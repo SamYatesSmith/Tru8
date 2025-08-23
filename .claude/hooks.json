@@ -1,0 +1,196 @@
+{
+  "hooks": {
+    "pre-edit": {
+      "enabled": true,
+      "description": "Validates before any file edit",
+      "commands": [
+        {
+          "name": "verify-file-exists",
+          "command": "test -f $FILE_PATH",
+          "stop_on_failure": true
+        },
+        {
+          "name": "backup-original",
+          "command": "cp $FILE_PATH $FILE_PATH.bak",
+          "stop_on_failure": false
+        },
+        {
+          "name": "check-syntax",
+          "command": "node --check $FILE_PATH 2>/dev/null || python -m py_compile $FILE_PATH 2>/dev/null || true",
+          "stop_on_failure": false
+        }
+      ]
+    },
+    
+    "post-edit": {
+      "enabled": true,
+      "description": "Validates after file modification",
+      "commands": [
+        {
+          "name": "lint-check",
+          "command": "npm run lint --if-present || eslint $FILE_PATH 2>/dev/null || true",
+          "stop_on_failure": false
+        },
+        {
+          "name": "type-check",
+          "command": "npm run typecheck --if-present || tsc --noEmit 2>/dev/null || true",
+          "stop_on_failure": false
+        },
+        {
+          "name": "format-check",
+          "command": "prettier --check $FILE_PATH 2>/dev/null || black --check $FILE_PATH 2>/dev/null || true",
+          "stop_on_failure": false
+        }
+      ]
+    },
+    
+    "pre-commit": {
+      "enabled": true,
+      "description": "Comprehensive validation before commits",
+      "commands": [
+        {
+          "name": "python-format",
+          "command": "cd backend && black . --check && isort . --check 2>/dev/null || true",
+          "stop_on_failure": false
+        },
+        {
+          "name": "python-type-check",
+          "command": "cd backend && mypy . 2>/dev/null || true",
+          "stop_on_failure": false
+        },
+        {
+          "name": "run-backend-tests",
+          "command": "cd backend && pytest tests/ -v 2>/dev/null || true",
+          "stop_on_failure": false,
+          "timeout": 30000
+        },
+        {
+          "name": "run-frontend-tests",
+          "command": "(cd web && npm test --if-present) || (cd mobile && npm test --if-present) || true",
+          "stop_on_failure": false,
+          "timeout": 30000
+        },
+        {
+          "name": "check-api-keys",
+          "command": "git diff --cached --name-only | xargs grep -E '(OPENAI_API_KEY|BRAVE_API_KEY|SERP_API_KEY|CLERK_SECRET|STRIPE_SECRET|sk_|pk_)' || true",
+          "stop_on_failure": true
+        },
+        {
+          "name": "verify-no-console",
+          "command": "git diff --cached --name-only | xargs grep -E 'console\\.(log|debug|info)' || true",
+          "stop_on_failure": false
+        },
+        {
+          "name": "check-ml-models",
+          "command": "test -f backend/ml/deberta-v3-mnli.onnx || echo 'Warning: ML models not found'",
+          "stop_on_failure": false
+        }
+      ]
+    },
+    
+    "post-commit": {
+      "enabled": true,
+      "description": "Actions after successful commit",
+      "commands": [
+        {
+          "name": "update-changelog",
+          "command": "echo '- $(git log -1 --pretty=%B)' >> CHANGELOG.md 2>/dev/null || true",
+          "stop_on_failure": false
+        },
+        {
+          "name": "tag-version",
+          "command": "npm version patch --no-git-tag-version 2>/dev/null || true",
+          "stop_on_failure": false
+        }
+      ]
+    },
+    
+    "pre-task": {
+      "enabled": true,
+      "description": "Preparation before starting tasks",
+      "commands": [
+        {
+          "name": "git-status",
+          "command": "git status --short",
+          "stop_on_failure": false
+        },
+        {
+          "name": "check-branch",
+          "command": "git branch --show-current",
+          "stop_on_failure": false
+        },
+        {
+          "name": "pull-latest",
+          "command": "git pull --rebase 2>/dev/null || true",
+          "stop_on_failure": false
+        }
+      ]
+    },
+    
+    "validation": {
+      "enabled": true,
+      "description": "Continuous validation during development",
+      "rules": [
+        {
+          "name": "file-size-limit",
+          "condition": "file_size < 1MB",
+          "message": "File too large, consider splitting"
+        },
+        {
+          "name": "line-length",
+          "condition": "line_length <= 120",
+          "message": "Line too long, please wrap"
+        },
+        {
+          "name": "complexity-check",
+          "condition": "cyclomatic_complexity < 10",
+          "message": "Function too complex, consider refactoring"
+        },
+        {
+          "name": "test-coverage",
+          "condition": "coverage >= 80%",
+          "message": "Insufficient test coverage"
+        }
+      ]
+    },
+    
+    "error-recovery": {
+      "enabled": true,
+      "description": "Automatic error recovery strategies",
+      "strategies": [
+        {
+          "error_type": "syntax_error",
+          "action": "rollback_to_backup"
+        },
+        {
+          "error_type": "test_failure",
+          "action": "analyze_and_fix"
+        },
+        {
+          "error_type": "merge_conflict",
+          "action": "prompt_user"
+        },
+        {
+          "error_type": "dependency_error",
+          "action": "reinstall_dependencies"
+        }
+      ]
+    }
+  },
+  
+  "global_settings": {
+    "stop_on_first_failure": false,
+    "parallel_execution": true,
+    "timeout_ms": 60000,
+    "retry_on_failure": 2,
+    "verbose_output": false,
+    "log_level": "error"
+  },
+  
+  "custom_validators": {
+    "no_todos": "!grep -r 'TODO' --include='*.js' --include='*.ts' .",
+    "no_debugger": "!grep -r 'debugger' --include='*.js' --include='*.ts' .",
+    "no_large_files": "!find . -type f -size +5M",
+    "valid_json": "find . -name '*.json' -exec python -m json.tool {} \\; >/dev/null"
+  }
+}

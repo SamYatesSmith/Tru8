@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 236 236 236; /* #ECECEC */
+    --foreground: 44 44 84; /* #2C2C54 */
+    --card: 255 255 255;
+    --card-foreground: 44 44 84;
+    --primary: 44 44 84; /* #2C2C54 */
+    --primary-foreground: 236 236 236;
+    --secondary: 71 71 135; /* #474787 */
+    --secondary-foreground: 236 236 236;
+    --muted: 170 171 184; /* #AAABB8 */
+    --muted-foreground: 44 44 84;
+    --accent: 71 71 135;
+    --accent-foreground: 236 236 236;
+    --destructive: 179 38 30; /* #B3261E */
+    --destructive-foreground: 236 236 236;
+    --border: 170 171 184;
+    --input: 255 255 255;
+    --ring: 44 44 84;
+  }
+
+  .dark {
+    --background: 44 44 84; /* #2C2C54 */
+    --foreground: 236 236 236; /* #ECECEC */
+    --card: 71 71 135; /* #474787 */
+    --card-foreground: 236 236 236;
+    --primary: 236 236 236;
+    --primary-foreground: 44 44 84;
+    --secondary: 71 71 135;
+    --secondary-foreground: 236 236 236;
+    --muted: 170 171 184; /* #AAABB8 */
+    --muted-foreground: 236 236 236;
+    --accent: 170 171 184;
+    --accent-foreground: 44 44 84;
+    --destructive: 179 38 30;
+    --destructive-foreground: 236 236 236;
+    --border: 170 171 184;
+    --input: 71 71 135;
+    --ring: 236 236 236;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Verdict-specific styles */
+.verdict-supported {
+  @apply text-green-700 dark:text-green-400;
+}
+
+.verdict-contradicted {
+  @apply text-red-700 dark:text-red-400;
+}
+
+.verdict-uncertain {
+  @apply text-amber-700 dark:text-amber-400;
+}
+
+.verdict-pill-supported {
+  @apply bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400;
+}
+
+.verdict-pill-contradicted {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400;
+}
+
+.verdict-pill-uncertain {
+  @apply bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400;
+}

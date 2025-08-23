@@ -1,0 +1,225 @@
+# Claude Code Ignore Patterns
+# Optimized to reduce context and improve performance
+
+# Dependencies & Package Management
+node_modules/
+vendor/
+venv/
+env/
+.env/
+*.egg-info/
+dist/
+build/
+target/
+packages/
+.pnpm-store/
+.yarn/
+bower_components/
+
+# Build Outputs
+*.min.js
+*.min.css
+*.bundle.js
+*.chunk.js
+*.map
+*.d.ts.map
+out/
+bin/
+obj/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.sublime-*
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.vs/
+*.code-workspace
+
+# Version Control
+.git/
+.svn/
+.hg/
+.bzr/
+
+# Testing & Coverage
+coverage/
+.coverage
+*.coverage
+.pytest_cache/
+.phpunit.result.cache
+__pycache__/
+*.pyc
+*.pyo
+test-results/
+*.test.js.snap
+
+# Logs & Temporary Files
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.temp
+*.cache
+.cache/
+*.pid
+*.seed
+*.pid.lock
+
+# Documentation (if not needed for context)
+docs/generated/
+api-docs/
+*.pdf
+*.docx
+*.xlsx
+
+# Media Files (usually not needed)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.mp4
+*.mp3
+*.avi
+*.mov
+*.zip
+*.tar.gz
+*.rar
+
+# Database Files
+*.sqlite
+*.db
+*.mdb
+*.accdb
+data/*.sql
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+credentials/
+
+# Large Generated Files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+composer.lock
+Gemfile.lock
+poetry.lock
+Cargo.lock
+
+# Framework Specific
+.next/
+.nuxt/
+.gatsby/
+.serverless/
+.terraform/
+*.terraform.tfstate*
+
+# Custom Patterns for Optimization
+# Ignore files larger than 1MB
+**/*.min.*
+**/*.map
+**/dist/**
+**/build/**
+**/public/assets/**
+
+# Backup Files
+*.bak
+*.backup
+*.old
+*.orig
+
+# OS Generated Files
+Desktop.ini
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Tru8 Project Specific
+# ML Models (large binary files)
+*.onnx
+*.pt
+*.pth
+*.h5
+*.safetensors
+backend/ml/models/
+!backend/ml/model_configs.json
+
+# Embedding caches
+*.npy
+*.npz
+embeddings_cache/
+
+# Search API responses cache
+search_cache/
+evidence_cache/
+
+# Celery/Redis
+celerybeat-schedule
+dump.rdb
+
+# Expo/React Native
+.expo/
+.expo-shared/
+ios/Pods/
+android/.gradle/
+android/app/build/
+*.ipa
+*.apk
+*.aab
+
+# Next.js specific
+.next/
+out/
+.vercel/
+
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Database
+*.sqlite3
+postgres-data/
+migrations/versions/
+
+# Monitoring
+prometheus_data/
+grafana_data/
+
+# Project Specific (customize as needed)
+# migrations/
+# seeds/
+# fixtures/
+
+# Keep these for context
+!src/**/*.ts
+!src/**/*.tsx
+!src/**/*.js
+!src/**/*.jsx
+!**/*.md
+!**/package.json
+!**/*.config.js
+!**/*.config.ts
+!**/tsconfig.json

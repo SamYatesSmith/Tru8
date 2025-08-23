@@ -1,0 +1,166 @@
+{
+  "output_styles": {
+    "default": {
+      "name": "ultra-concise",
+      "description": "Minimal output for maximum efficiency",
+      "rules": {
+        "max_response_lines": 3,
+        "prefer_code_over_text": true,
+        "skip_explanations": true,
+        "use_abbreviations": true,
+        "show_only_essential": true
+      }
+    },
+    
+    "debug": {
+      "name": "diagnostic",
+      "enabled_when": "error_encountered",
+      "rules": {
+        "show_stack_trace": true,
+        "include_line_numbers": true,
+        "show_variable_states": true,
+        "format": "structured"
+      }
+    },
+    
+    "task_completion": {
+      "name": "checkpoint",
+      "template": "✓ {task_name} [{status}]",
+      "include_metrics": false,
+      "show_next_step": true
+    },
+    
+    "error_reporting": {
+      "name": "actionable",
+      "template": "❌ {error_type}: {brief_description}\n→ Fix: {solution}",
+      "skip_stack_unless_requested": true
+    },
+    
+    "search_results": {
+      "name": "relevant-only",
+      "max_results": 5,
+      "format": "{file}:{line} - {preview}",
+      "group_by": "file"
+    },
+    
+    "code_generation": {
+      "name": "clean",
+      "rules": {
+        "no_comments_unless_complex": true,
+        "prefer_one_liners": true,
+        "use_modern_syntax": true,
+        "follow_project_style": true
+      }
+    }
+  },
+  
+  "response_templates": {
+    "found": "Found in {file}:{line}",
+    "fixed": "✓ Fixed",
+    "created": "✓ Created {file}",
+    "updated": "✓ Updated {file}",
+    "error": "Error: {message}",
+    "completed": "✓ Done",
+    "running": "Running...",
+    "checking": "Checking...",
+    "skipped": "Skipped: {reason}",
+    "warning": "⚠ {message}"
+  },
+  
+  "formatting_rules": {
+    "code_blocks": {
+      "syntax_highlighting": true,
+      "line_numbers": false,
+      "max_lines_without_collapse": 20
+    },
+    
+    "lists": {
+      "prefer_bullets": true,
+      "max_items_before_summary": 5,
+      "group_similar": true
+    },
+    
+    "paths": {
+      "use_relative": true,
+      "highlight_changes": true,
+      "format": "clickable"
+    }
+  },
+  
+  "interaction_modes": {
+    "question": {
+      "format": "direct_answer",
+      "max_words": 10,
+      "skip_pleasantries": true
+    },
+    
+    "confirmation": {
+      "format": "yes_no",
+      "include_reason": "only_if_no"
+    },
+    
+    "exploration": {
+      "format": "findings_only",
+      "skip_process": true,
+      "show_relevant": true
+    },
+    
+    "implementation": {
+      "format": "actions_taken",
+      "show_progress": true,
+      "summarize_at_end": false
+    }
+  },
+  
+  "smart_summaries": {
+    "file_changes": {
+      "format": "+ {additions} - {deletions} in {file}",
+      "group_by_type": true
+    },
+    
+    "test_results": {
+      "format": "✓ {passed}/{total} tests",
+      "show_failures_only": true
+    },
+    
+    "search_summary": {
+      "format": "Found {count} in {files_count} files",
+      "list_top_matches": 3
+    }
+  },
+  
+  "conditional_verbosity": {
+    "rules": [
+      {
+        "condition": "user_asks_how",
+        "verbosity": "explanatory"
+      },
+      {
+        "condition": "user_asks_why", 
+        "verbosity": "reasoning"
+      },
+      {
+        "condition": "complex_task",
+        "verbosity": "step_by_step"
+      },
+      {
+        "condition": "simple_task",
+        "verbosity": "minimal"
+      },
+      {
+        "condition": "error_encountered",
+        "verbosity": "diagnostic"
+      }
+    ]
+  },
+  
+  "performance_mode": {
+    "enabled": true,
+    "rules": {
+      "batch_similar_outputs": true,
+      "compress_repetitive_content": true,
+      "use_references_not_repetition": true,
+      "cache_common_responses": true
+    }
+  }
+}

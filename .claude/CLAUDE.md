@@ -1,0 +1,230 @@
+# Tru8 - Fact-Checking Platform Configuration
+
+## 🎯 Project Context
+**Project:** Tru8 - Instant fact-checking with dated evidence  
+**Goal:** MVP launch in 6-8 weeks → 300 users → £1,500/month  
+**Architecture:** Mobile (React Native) + Web (Next.js) + API (FastAPI) + ML Pipeline
+
+## 🚀 Quick Commands
+
+### Backend (FastAPI)
+```bash
+cd backend
+uvicorn main:app --reload          # Start API server
+celery -A tasks worker --loglevel=info  # Start worker
+pytest tests/ -v                    # Run tests
+alembic upgrade head                # Run migrations
+```
+
+### Web (Next.js)
+```bash
+cd web
+npm run dev                         # Start dev server
+npm run build && npm run start      # Production build
+npm run lint && npm run typecheck   # Validate code
+```
+
+### Mobile (React Native/Expo)
+```bash
+cd mobile
+npx expo start                      # Start Expo
+npx expo run:ios                    # iOS simulator
+npx expo run:android                # Android emulator
+eas build --platform all            # Build for stores
+```
+
+## 📁 Project Structure
+```
+/
+├── backend/                # FastAPI + ML Pipeline
+│   ├── api/               # Endpoints
+│   ├── pipeline/          # Verification pipeline
+│   │   ├── ingest/       # URL/OCR/transcript
+│   │   ├── extract/      # Claim extraction
+│   │   ├── retrieve/     # Evidence search
+│   │   ├── verify/       # NLI verification
+│   │   └── judge/        # LLM judgment
+│   ├── models/           # SQLModel schemas
+│   ├── workers/          # Celery tasks
+│   └── ml/              # ONNX models
+├── web/                  # Next.js frontend
+│   ├── app/             # App Router pages
+│   ├── components/      # React components
+│   └── lib/            # Utils & hooks
+├── mobile/              # React Native app
+│   ├── app/            # Expo Router
+│   ├── components/     # Native components
+│   └── services/       # API client
+└── shared/             # Shared types/utils
+```
+
+## 🎨 Design System Implementation
+
+### Colors (Tailwind/Tamagui)
+```typescript
+// Semantic verdicts
+const verdicts = {
+  supported: '#1E6F3D',     // Green
+  contradicted: '#B3261E',   // Red
+  uncertain: '#A15C00'       // Amber
+}
+
+// Base palette
+const colors = {
+  darkIndigo: '#2C2C54',
+  deepPurpleGrey: '#474787',
+  coolGrey: '#AAABB8',
+  lightGrey: '#ECECEC'
+}
+```
+
+### Component Priorities
+1. **Verdict Pill** - Visual verdict indicator
+2. **Confidence Bar** - Percentage display
+3. **Citation Chip** - `Publisher · Date`
+4. **Claim Card** - Main result unit
+5. **Progress Stepper** - Pipeline status
+
+## 🔧 Development Guidelines
+
+### API Development (FastAPI)
+- Use Pydantic models for validation
+- Implement dependency injection
+- Add OpenAPI documentation
+- Use async/await for I/O operations
+- Handle errors with HTTPException
+
+### Pipeline Development
+- Each stage must be idempotent
+- Log with structured logging
+- Implement circuit breakers
+- Cache expensive operations
+- Monitor token usage
+
+### Frontend Development
+- Mobile-first responsive design
+- Implement skeleton loading
+- Use React Query for caching
+- Optimize bundle size
+- Ensure WCAG AA compliance
+
+### Testing Strategy
+```bash
+# Backend
+pytest tests/unit/          # Unit tests
+pytest tests/integration/   # Integration tests
+pytest tests/pipeline/      # Pipeline tests
+
+# Frontend
+npm run test:unit          # Component tests
+npm run test:e2e           # Playwright tests
+```
+
+## 🚨 Critical Paths to Validate
+
+### 1. Verification Pipeline
+- Claim extraction accuracy
+- Evidence retrieval relevance
+- NLI model performance
+- Judge prompt effectiveness
+- End-to-end latency (<10s)
+
+### 2. Payment Integration
+- RevenueCat entitlements sync
+- Stripe webhook handling
+- Credit reservation/finalisation
+- Usage tracking accuracy
+
+### 3. Cross-Platform Auth
+- Clerk token validation
+- Session management
+- Rate limiting enforcement
+
+## 📊 Performance Targets
+- **Pipeline latency:** <10s for Quick mode
+- **API response:** <200ms p95
+- **Web Core Vitals:** LCP <2.5s, FID <100ms
+- **Mobile app size:** <50MB
+- **Token cost:** <$0.02 per check
+
+## 🔐 Security Checklist
+- [ ] Sanitize all HTML inputs (bleach)
+- [ ] Validate claim extraction JSON
+- [ ] Rate limit by user & IP
+- [ ] Implement prompt injection guards
+- [ ] Respect robots.txt
+- [ ] GDPR compliance endpoints
+- [ ] Secure blob storage (signed URLs)
+
+## 🚀 Week-by-Week Focus
+
+### Current Week Tasks
+- [ ] Set up FastAPI skeleton
+- [ ] Configure Postgres + migrations
+- [ ] Implement Clerk auth
+- [ ] Set up Redis/Celery
+- [ ] Create basic UI shells
+
+### Pipeline Priorities
+1. **Ingest** - URL fetch, OCR, transcripts
+2. **Extract** - LLM claim extraction
+3. **Retrieve** - Search + embedding
+4. **Verify** - NLI + aggregation
+5. **Judge** - Final verdict generation
+
+## 💡 Development Tips
+
+### For ML Components
+- Use ONNX for production inference
+- Batch operations where possible
+- Monitor GPU/CPU usage
+- Implement fallback models
+- Log confidence distributions
+
+### For Real-time Updates
+- Use SSE for progress updates
+- Implement exponential backoff
+- Handle connection drops
+- Cache partial results
+
+### For Mobile Development
+- Use Expo EAS for builds
+- Test on real devices early
+- Optimize image loading
+- Handle offline scenarios
+
+## 🎯 MVP Feature Flags
+```typescript
+const features = {
+  deepMode: false,         // Hidden initially
+  reverseImageSearch: false,
+  longVideoSupport: false,
+  lightTheme: false,
+  localPrivacyMode: false
+}
+```
+
+## 📈 Monitoring & Analytics
+- **User events:** PostHog
+- **Errors:** Sentry
+- **API metrics:** Prometheus
+- **Costs:** Token usage dashboard
+- **Revenue:** RevenueCat/Stripe dashboards
+
+## 🔄 CI/CD Commands
+```bash
+# Pre-commit checks
+black backend/ --check
+isort backend/ --check
+mypy backend/
+npm run lint
+npm run typecheck
+
+# Deployment
+fly deploy                 # Backend
+vercel --prod             # Web
+eas build --auto-submit   # Mobile
+```
+
+---
+*Optimized for Tru8 MVP development - 6-8 week sprint to launch*

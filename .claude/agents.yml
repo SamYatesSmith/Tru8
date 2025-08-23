@@ -1,0 +1,176 @@
+# Custom Agent Configuration for Claude Code
+# Specialized agents for automated task handling
+
+agents:
+  # Code Quality Agent
+  code-reviewer:
+    trigger: "after_significant_code_change"
+    description: "Automatically reviews code for quality, security, and best practices"
+    tasks:
+      - Check for security vulnerabilities
+      - Verify error handling
+      - Assess code complexity
+      - Validate naming conventions
+      - Ensure test coverage
+      - Check FastAPI response models
+      - Validate Pydantic schemas
+      - Review React component patterns
+    auto_run: true
+
+  # Test Generator Agent
+  test-writer:
+    trigger: "after_new_function"
+    description: "Generates comprehensive test cases"
+    tasks:
+      - Create unit tests
+      - Add edge case tests
+      - Generate mock data
+      - Write integration tests
+    auto_run: false
+
+  # Documentation Agent
+  doc-generator:
+    trigger: "after_api_change"
+    description: "Updates documentation automatically"
+    tasks:
+      - Update API docs
+      - Generate JSDoc/docstrings
+      - Update README if needed
+      - Create usage examples
+    auto_run: true
+
+  # Performance Analyzer
+  perf-checker:
+    trigger: "on_demand"
+    description: "Analyzes performance bottlenecks"
+    tasks:
+      - Profile code execution
+      - Check time complexity
+      - Identify memory leaks
+      - Suggest optimizations
+    auto_run: false
+
+  # Dependency Auditor
+  dep-scanner:
+    trigger: "before_commit"
+    description: "Scans dependencies for issues"
+    tasks:
+      - Check for vulnerabilities
+      - Identify outdated packages
+      - Detect unused dependencies
+      - Verify license compliance
+    auto_run: true
+
+  # Refactoring Assistant
+  refactor-helper:
+    trigger: "on_code_smell_detection"
+    description: "Suggests and implements refactoring"
+    tasks:
+      - Identify code smells
+      - Extract methods
+      - Simplify complex logic
+      - Remove duplication
+    auto_run: false
+
+  # Search Specialist
+  deep-searcher:
+    trigger: "on_complex_search"
+    description: "Performs exhaustive codebase searches"
+    strategy:
+      - Use multiple search patterns
+      - Check all file types
+      - Search comments and docs
+      - Find indirect references
+    auto_run: true
+
+  # Bug Hunter
+  bug-finder:
+    trigger: "on_error_detected"
+    description: "Systematically hunts down bugs"
+    tasks:
+      - Analyze stack traces
+      - Check recent changes
+      - Test edge cases
+      - Verify fixes
+    auto_run: true
+
+  # Architecture Validator
+  arch-checker:
+    trigger: "on_structural_change"
+    description: "Ensures architectural consistency"
+    tasks:
+      - Verify design patterns
+      - Check layer separation
+      - Validate dependencies
+      - Ensure SOLID principles
+    auto_run: false
+
+  # Security Scanner
+  security-auditor:
+    trigger: "before_deployment"
+    description: "Comprehensive security audit"
+    tasks:
+      - Check for SQL injection
+      - Verify XSS protection
+      - Audit authentication
+      - Scan for secrets
+    auto_run: true
+
+  # Pipeline Optimizer
+  pipeline-optimizer:
+    trigger: "on_pipeline_change"
+    description: "Optimizes ML pipeline performance"
+    tasks:
+      - Check token usage
+      - Validate claim extraction
+      - Optimize embedding batches
+      - Review NLI thresholds
+      - Monitor latency targets
+    auto_run: true
+
+  # API Contract Validator
+  api-validator:
+    trigger: "on_endpoint_change"
+    description: "Ensures API contracts are maintained"
+    tasks:
+      - Validate OpenAPI specs
+      - Check response schemas
+      - Verify status codes
+      - Test error responses
+      - Ensure CORS headers
+    auto_run: true
+
+  # Mobile/Web Sync Checker
+  cross-platform-checker:
+    trigger: "on_ui_change"
+    description: "Ensures consistency across platforms"
+    tasks:
+      - Compare component implementations
+      - Verify shared types
+      - Check API client parity
+      - Validate design tokens
+    auto_run: false
+
+# Agent Coordination Rules
+coordination:
+  parallel_execution: true
+  max_concurrent: 3
+  priority_order:
+    - security-auditor
+    - pipeline-optimizer
+    - api-validator
+    - bug-finder
+    - code-reviewer
+    - test-writer
+    - doc-generator
+  
+  conflict_resolution:
+    strategy: "priority_based"
+    fallback: "sequential"
+
+# Agent Communication
+communication:
+  share_context: true
+  aggregate_results: true
+  report_format: "concise"
+  error_handling: "graceful_degradation"
