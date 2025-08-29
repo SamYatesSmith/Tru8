@@ -193,17 +193,6 @@ class EmbeddingService:
         if self.redis_client:
             await self.redis_client.close()
 
-# Global instance
-_embedding_service = None
-
-async def get_embedding_service() -> EmbeddingService:
-    """Get or create global embedding service instance"""
-    global _embedding_service
-    if _embedding_service is None:
-        _embedding_service = EmbeddingService()
-        await _embedding_service.initialize()
-    return _embedding_service
-
 # Specialized functions for fact-checking pipeline
 
 async def embed_claim_and_evidence(claim: str, evidence_snippets: List[str]) -> Dict[str, Any]:
@@ -287,3 +276,14 @@ async def compute_claim_evidence_similarity_matrix(claims: List[str],
         logger.error(f"Similarity matrix computation failed: {e}")
         # Return matrix with moderate similarities as fallback
         return np.full((len(claims), len(evidence_snippets)), 0.5)
+
+# Global embedding service instance
+_embedding_service = None
+
+async def get_embedding_service() -> EmbeddingService:
+    """Get singleton embedding service instance"""
+    global _embedding_service
+    if _embedding_service is None:
+        _embedding_service = EmbeddingService()
+        await _embedding_service.initialize()
+    return _embedding_service

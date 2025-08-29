@@ -296,17 +296,6 @@ class VectorStore:
         if self.client:
             await self.client.close()
 
-# Global instance
-_vector_store = None
-
-async def get_vector_store() -> VectorStore:
-    """Get or create global vector store instance"""
-    global _vector_store
-    if _vector_store is None:
-        _vector_store = VectorStore()
-        await _vector_store.initialize()
-    return _vector_store
-
 # Helper functions for the fact-checking pipeline
 
 async def store_check_evidence(check_id: str, claims_evidence: List[Dict[str, Any]]) -> Dict[str, List[str]]:
@@ -347,3 +336,14 @@ async def retrieve_claim_evidence(claim_embedding: np.ndarray,
         claim_id=claim_id,
         limit=limit
     )
+
+# Global vector store instance
+_vector_store = None
+
+async def get_vector_store() -> VectorStore:
+    """Get singleton vector store instance"""
+    global _vector_store
+    if _vector_store is None:
+        _vector_store = VectorStore()
+        await _vector_store.initialize()
+    return _vector_store

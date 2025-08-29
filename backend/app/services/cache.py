@@ -237,17 +237,6 @@ class CacheService:
         if self.redis_client:
             await self.redis_client.close()
 
-# Global cache service instance
-_cache_service = None
-
-async def get_cache_service() -> CacheService:
-    """Get or create global cache service instance"""
-    global _cache_service
-    if _cache_service is None:
-        _cache_service = CacheService()
-        await _cache_service.initialize()
-    return _cache_service
-
 # Convenient decorator for caching function results
 def cache_result(category: str, ttl: Optional[int] = None):
     """Decorator to cache function results"""
@@ -277,3 +266,14 @@ def cache_result(category: str, ttl: Optional[int] = None):
         
         return wrapper
     return decorator
+
+# Global cache service instance
+_cache_service = None
+
+async def get_cache_service() -> CacheService:
+    """Get singleton cache service instance"""
+    global _cache_service
+    if _cache_service is None:
+        _cache_service = CacheService()
+        await _cache_service.initialize()
+    return _cache_service

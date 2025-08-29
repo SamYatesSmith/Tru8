@@ -1,5 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from pydantic import BaseModel
@@ -7,9 +8,16 @@ from app.core.database import get_session
 from app.core.auth import get_current_user
 from app.models import User, Check, Claim, Evidence
 from app.workers.pipeline import process_check
+from app.workers import celery_app
 from datetime import datetime
 import uuid
 import json
+import asyncio
+import logging
+import redis.asyncio as redis
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -197,12 +205,153 @@ async def get_check(
     }
 
 @router.get("/{check_id}/progress")
-async def get_check_progress(check_id: str):
-    """Get real-time progress of a check (SSE endpoint placeholder)"""
-    # TODO: Implement SSE for real-time updates
-    return {
-        "checkId": check_id,
-        "stage": "processing",
-        "progress": 50,
-        "message": "Extracting claims..."
-    }
+async def stream_check_progress(
+    check_id: str,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Stream real-time progress updates via SSE"""
+    
+    # Verify check belongs to user
+    stmt = select(Check).where(
+        Check.id == check_id,
+        Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+    
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+    
+    async def event_stream():
+        """Generate SSE events for pipeline progress"""
+        redis_client = None
+        try:
+            # Connect to Redis for Celery task updates
+            redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            
+            # Initial connection event
+            yield f"data: {json.dumps({'type': 'connected', 'checkId': check_id, 'timestamp': datetime.utcnow().isoformat()})}\n\n"
+            
+            # Check if task is already completed
+            if check.status == "completed":
+                yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100})}\n\n"
+                return
+            elif check.status == "failed":
+                yield f"data: {json.dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': check.error_message})}\n\n"
+                return
+            
+            # Monitor task progress
+            task_key_pattern = f"celery-task-meta-*"
+            last_progress = 0
+            timeout_counter = 0
+            max_timeout = 120  # 2 minutes timeout
+            
+            while timeout_counter < max_timeout:
+                try:
+                    # Get task status from Celery
+                    task_id = None
+                    
+                    # Find task ID by scanning Redis keys (fallback method)
+                    keys = await redis_client.keys(task_key_pattern)
+                    for key in keys:
+                        try:
+                            task_data = await redis_client.get(key)
+                            if task_data:
+                                task_info = json.loads(task_data)
+                                # Check if this task relates to our check
+                                if isinstance(task_info, dict) and 'args' in str(task_info):
+                                    if check_id in str(task_info):
+                                        task_id = key.replace("celery-task-meta-", "")
+                                        break
+                        except (json.JSONDecodeError, Exception):
+                            continue
+                    
+                    if task_id:
+                        # Get task result
+                        task = celery_app.AsyncResult(task_id)
+                        
+                        if task.state == "PENDING":
+                            if last_progress == 0:
+                                yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': 'queued', 'progress': 0, 'message': 'Check queued for processing'})}\n\n"
+                                last_progress = 0
+                        
+                        elif task.state == "PROGRESS":
+                            info = task.info or {}
+                            stage = info.get('stage', 'processing')
+                            progress = info.get('progress', 0)
+                            
+                            if progress > last_progress:
+                                stage_messages = {
+                                    'ingest': 'Processing input content...',
+                                    'extract': 'Extracting factual claims...',
+                                    'retrieve': 'Gathering evidence from sources...',
+                                    'verify': 'Verifying claims against evidence...',
+                                    'judge': 'Generating final verdicts...'
+                                }
+                                
+                                message = stage_messages.get(stage, f'Processing {stage}...')
+                                
+                                yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': stage, 'progress': progress, 'message': message})}\n\n"
+                                last_progress = progress
+                        
+                        elif task.state == "SUCCESS":
+                            yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100, 'message': 'Fact-check completed successfully'})}\n\n"
+                            break
+                        
+                        elif task.state == "FAILURE":
+                            error_message = str(task.info) if task.info else "Processing failed"
+                            yield f"data: {json.dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error_message})}\n\n"
+                            break
+                    
+                    # Check database for status updates
+                    try:
+                        from app.core.database import AsyncSession, get_engine
+                        async with AsyncSession(get_engine()) as db_session:
+                            stmt = select(Check).where(Check.id == check_id)
+                            result = await db_session.execute(stmt)
+                            updated_check = result.scalar_one_or_none()
+                            
+                            if updated_check and updated_check.status != check.status:
+                                if updated_check.status == "completed":
+                                    yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100})}\n\n"
+                                    break
+                                elif updated_check.status == "failed":
+                                    yield f"data: {json.dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': updated_check.error_message})}\n\n"
+                                    break
+                    except Exception as db_error:
+                        logger.warning(f"Database check failed in SSE: {db_error}")
+                    
+                    # Send heartbeat
+                    if timeout_counter % 10 == 0:  # Every 10 seconds
+                        yield f"data: {json.dumps({'type': 'heartbeat', 'timestamp': datetime.utcnow().isoformat()})}\n\n"
+                    
+                    await asyncio.sleep(1)
+                    timeout_counter += 1
+                    
+                except Exception as e:
+                    logger.error(f"SSE error for check {check_id}: {e}")
+                    yield f"data: {json.dumps({'type': 'error', 'error': 'Connection error occurred'})}\n\n"
+                    break
+            
+            # Timeout reached
+            if timeout_counter >= max_timeout:
+                yield f"data: {json.dumps({'type': 'timeout', 'checkId': check_id, 'message': 'Connection timeout - please refresh'})}\n\n"
+            
+        except Exception as e:
+            logger.error(f"SSE stream error: {e}")
+            yield f"data: {json.dumps({'type': 'error', 'error': 'Stream connection failed'})}\n\n"
+        finally:
+            if redis_client:
+                await redis_client.aclose()
+    
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Cache-Control"
+        }
+    )

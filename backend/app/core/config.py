@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     BRAVE_API_KEY: str = Field("", env="BRAVE_API_KEY")
     SERP_API_KEY: str = Field("", env="SERP_API_KEY")
     OPENAI_API_KEY: str = Field("", env="OPENAI_API_KEY")
+    ANTHROPIC_API_KEY: str = Field("", env="ANTHROPIC_API_KEY")
     
     # Storage
     S3_BUCKET: str = Field("tru8-uploads", env="S3_BUCKET")
@@ -49,6 +50,16 @@ class Settings(BaseSettings):
     # Pipeline
     PIPELINE_TIMEOUT_SECONDS: int = Field(10, env="PIPELINE_TIMEOUT_SECONDS")
     CACHE_TTL_SECONDS: int = Field(3600, env="CACHE_TTL_SECONDS")
+    
+    # NLI & Verification
+    NLI_CONFIDENCE_THRESHOLD: float = Field(0.7, env="NLI_CONFIDENCE_THRESHOLD")
+    MAX_CONCURRENT_VERIFICATIONS: int = Field(5, env="MAX_CONCURRENT_VERIFICATIONS")
+    VERIFICATION_TIMEOUT_SECONDS: int = Field(5, env="VERIFICATION_TIMEOUT_SECONDS")
+    
+    # Judge LLM
+    JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
+    JUDGE_TEMPERATURE: float = Field(0.3, env="JUDGE_TEMPERATURE")
+    MAX_CONCURRENT_JUDGMENTS: int = Field(3, env="MAX_CONCURRENT_JUDGMENTS")
     
     class Config:
         env_file = ".env"
