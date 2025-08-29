@@ -27,19 +27,25 @@ export interface Subscription {
   creditsPerMonth: number;
 }
 
-// Check & Claims
+// Check & Claims - MUST match backend API responses exactly
 export interface Check {
   id: string;
-  userId: string;
   inputType: InputType;
-  inputContent: string;
+  inputContent?: any; // JSON object from backend
   inputUrl?: string;
   status: CheckStatus;
-  claims: Claim[];
+  claims?: Claim[]; // Optional - not always included
   creditsUsed: number;
   processingTimeMs?: number;
-  createdAt: Date;
-  completedAt?: Date;
+  errorMessage?: string; // Backend includes this field
+  createdAt: string; // ISO string from backend, not Date object
+  completedAt?: string; // ISO string from backend
+  claimsCount?: number; // For list view
+}
+
+// For API responses that include user context
+export interface CheckWithUser extends Check {
+  userId: string;
 }
 
 export interface Claim {
@@ -55,12 +61,12 @@ export interface Claim {
 
 export interface Evidence {
   id: string;
-  claimId: string;
+  claimId?: string; // Optional in some contexts
   source: string; // Publisher name
   url: string;
   title: string;
   snippet: string;
-  publishedDate?: Date;
+  publishedDate?: string; // ISO string from backend, not Date
   relevanceScore: number; // 0-1
 }
 
@@ -72,10 +78,57 @@ export interface CreateCheckRequest {
   file?: File; // For image/video upload
 }
 
-export interface CheckResponse {
-  check: Check;
+// API Responses - Match backend exactly
+export interface CreateCheckResponse {
+  check: {
+    id: string;
+    status: CheckStatus;
+    inputType: InputType;
+    createdAt: string;
+    creditsUsed: number;
+  };
   remainingCredits: number;
+  taskId: string;
 }
+
+export interface CheckListResponse {
+  checks: Check[];
+  total: number;
+}
+
+export interface UserProfileResponse {
+  id: string;
+  email: string;
+  name?: string;
+  credits: number;
+  totalCreditsUsed: number;
+  subscription?: {
+    plan: string;
+    status: string;
+    creditsPerMonth: number;
+    currentPeriodEnd: string;
+  };
+  stats: {
+    totalChecks: number;
+    completedChecks: number;
+    failedChecks: number;
+  };
+  createdAt: string;
+}
+
+export interface UserUsageResponse {
+  creditsRemaining: number;
+  totalCreditsUsed: number;
+  subscription: {
+    plan: string;
+    creditsPerMonth: number;
+    resetDate?: string;
+  };
+}
+
+// Type aliases for cleaner imports
+export type UserProfile = UserProfileResponse;
+export type UserUsage = UserUsageResponse;
 
 // Pipeline stages
 export interface PipelineProgress {

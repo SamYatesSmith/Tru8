@@ -23,8 +23,15 @@ export default function RootLayout({
     <ClerkProvider
       appearance={{
         variables: {
-          colorPrimary: "#2C2C54",
-          colorBackground: "#ECECEC",
+          colorPrimary: "#1E40AF",    // Tru8 primary blue
+          colorBackground: "#FFFFFF", // Clean white background
+          colorText: "#1F2937",       // Gray-800 for text
+          borderRadius: "0.5rem",     // 8px border radius (design system)
+        },
+        elements: {
+          card: "shadow-lg border border-gray-200",
+          headerTitle: "text-gray-900 font-bold",
+          headerSubtitle: "text-gray-600",
         }
       }}
     >
@@ -32,8 +39,9 @@ export default function RootLayout({
         <body className={inter.className}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="light"
             enableSystem={false}
+            disableTransitionOnChange
           >
             <QueryProvider>
               {children}

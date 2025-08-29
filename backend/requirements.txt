@@ -3,6 +3,10 @@ fastapi==0.109.0
 uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 pydantic-settings==2.1.0
+aiofiles==23.2.1
+
+# Payments
+stripe==10.8.0
 
 # Database
 sqlmodel==0.0.14

@@ -32,11 +32,11 @@ export function formatRelativeTime(date: string | Date) {
 export function getVerdictColor(verdict: string) {
   switch (verdict) {
     case "supported":
-      return "text-supported"
+      return "text-verdict-supported"
     case "contradicted":
-      return "text-contradicted"
+      return "text-verdict-contradicted"
     case "uncertain":
-      return "text-uncertain"
+      return "text-verdict-uncertain"
     default:
       return "text-muted-foreground"
   }
@@ -45,11 +45,11 @@ export function getVerdictColor(verdict: string) {
 export function getVerdictBadgeClass(verdict: string) {
   switch (verdict) {
     case "supported":
-      return "verdict-pill-supported"
+      return "verdict-supported" // Uses design system CSS class
     case "contradicted":
-      return "verdict-pill-contradicted"
+      return "verdict-contradicted" // Uses design system CSS class
     case "uncertain":
-      return "verdict-pill-uncertain"
+      return "verdict-uncertain" // Uses design system CSS class
     default:
       return "bg-muted text-muted-foreground"
   }

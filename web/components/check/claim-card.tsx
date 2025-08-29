@@ -3,37 +3,21 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { VerdictPill } from "./verdict-pill";
 import { CitationChip } from "./citation-chip";
+import { ConfidenceBar } from "./confidence-bar";
+import { EvidenceDrawer } from "./evidence-drawer";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, FileSearch } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-interface Evidence {
-  id: string;
-  source: string;
-  url: string;
-  title: string;
-  snippet: string;
-  publishedDate?: string;
-  relevanceScore: number;
-}
-
-interface Claim {
-  id: string;
-  text: string;
-  verdict: 'supported' | 'contradicted' | 'uncertain';
-  confidence: number;
-  rationale: string;
-  evidence: Evidence[];
-  position: number;
-}
+import type { Claim, Evidence } from "@shared/types";
 
 interface ClaimCardProps {
   claim: Claim;
+  index?: number;
   className?: string;
 }
 
-export function ClaimCard({ claim, className }: ClaimCardProps) {
+export function ClaimCard({ claim, index, className }: ClaimCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -50,13 +34,21 @@ export function ClaimCard({ claim, className }: ClaimCardProps) {
               confidence={claim.confidence}
             />
             <span className="text-sm text-muted-foreground">
-              Claim {claim.position + 1}
+              Claim {index || claim.position + 1}
             </span>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Confidence Bar */}
+        <ConfidenceBar 
+          confidence={claim.confidence}
+          verdict={claim.verdict}
+          size="md"
+          animated={true}
+        />
+        
         {/* Rationale */}
         <div>
           <p className="text-sm leading-relaxed text-muted-foreground">
@@ -74,59 +66,29 @@ export function ClaimCard({ claim, className }: ClaimCardProps) {
                 source={evidence.source}
                 date={evidence.publishedDate}
                 url={evidence.url}
+                relevanceScore={evidence.relevanceScore}
+                showCredibility={true}
               />
             ))}
             {claim.evidence.length > 2 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="h-6 px-2 text-xs"
+              <EvidenceDrawer 
+                evidence={claim.evidence}
+                claimText={claim.text}
+                verdict={claim.verdict}
               >
-                {isExpanded ? (
-                  <>
-                    <ChevronUp className="h-3 w-3 mr-1" />
-                    Less
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-3 w-3 mr-1" />
-                    +{claim.evidence.length - 2} more
-                  </>
-                )}
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                >
+                  <FileSearch className="h-3 w-3 mr-1" />
+                  View all {claim.evidence.length} sources
+                </Button>
+              </EvidenceDrawer>
             )}
           </div>
         </div>
 
-        {/* Expanded Evidence Details */}
-        {isExpanded && claim.evidence.length > 2 && (
-          <div className="space-y-3 pt-2 border-t">
-            <h4 className="text-sm font-medium">Additional Sources:</h4>
-            {claim.evidence.slice(2).map((evidence) => (
-              <div key={evidence.id} className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <CitationChip 
-                    source={evidence.source}
-                    date={evidence.publishedDate}
-                    url={evidence.url}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => window.open(evidence.url, '_blank')}
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                </div>
-                <blockquote className="text-xs text-muted-foreground border-l-2 border-border pl-3">
-                  "{evidence.snippet}"
-                </blockquote>
-              </div>
-            ))}
-          </div>
-        )}
       </CardContent>
     </Card>
   );

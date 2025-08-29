@@ -9,22 +9,88 @@ from app.core.auth import get_current_user
 from app.models import User, Check, Claim, Evidence
 from app.workers.pipeline import process_check
 from app.workers import celery_app
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 import json
 import asyncio
 import logging
 import redis.asyncio as redis
 from app.core.config import settings
+import os
+import aiofiles
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+def safe_json_dumps(data: dict) -> str:
+    """Safely serialize JSON for SSE with ASCII encoding"""
+    return json.dumps(data, ensure_ascii=True, separators=(',', ':'))
+
 class CreateCheckRequest(BaseModel):
     input_type: str  # 'url', 'text', 'image', 'video'
     content: Optional[str] = None
     url: Optional[str] = None
+    file_path: Optional[str] = None  # For uploaded files
+
+@router.post("/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a file for fact-checking (images only)"""
+    
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith('image/'):
+        raise HTTPException(
+            status_code=400, 
+            detail="Only image files are supported"
+        )
+    
+    # Check file size (6MB limit from project requirements)
+    max_size = 6 * 1024 * 1024  # 6MB
+    content = await file.read()
+    if len(content) > max_size:
+        raise HTTPException(
+            status_code=413,
+            detail="File too large. Maximum size is 6MB."
+        )
+    
+    # Generate unique filename
+    file_id = str(uuid.uuid4())
+    file_extension = Path(file.filename).suffix.lower()
+    if file_extension not in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported image format. Supported: jpg, jpeg, png, gif, bmp, webp"
+        )
+    
+    filename = f"{file_id}{file_extension}"
+    
+    # For now, store locally (TODO: implement S3 storage)
+    upload_dir = Path("uploads")
+    upload_dir.mkdir(exist_ok=True)
+    file_path = upload_dir / filename
+    
+    try:
+        async with aiofiles.open(file_path, 'wb') as f:
+            await f.write(content)
+        
+        return {
+            "success": True,
+            "filePath": str(file_path),
+            "filename": file.filename,
+            "contentType": file.content_type,
+            "size": len(content)
+        }
+        
+    except Exception as e:
+        logger.error(f"File upload error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to save uploaded file"
+        )
 
 @router.post("/")
 async def create_check(
@@ -57,6 +123,12 @@ async def create_check(
     if request.input_type == "text" and not request.content:
         raise HTTPException(status_code=400, detail="Content is required for text input type")
     
+    if request.input_type == "image" and not request.file_path:
+        raise HTTPException(status_code=400, detail="File path is required for image input type")
+    
+    if request.input_type == "video" and not request.url:
+        raise HTTPException(status_code=400, detail="URL is required for video input type")
+    
     # Create check record
     check = Check(
         id=str(uuid.uuid4()),
@@ -64,7 +136,8 @@ async def create_check(
         input_type=request.input_type,
         input_content=json.dumps({
             "content": request.content,
-            "url": request.url
+            "url": request.url,
+            "file_path": request.file_path
         }),
         input_url=request.url,
         status="pending",
@@ -85,7 +158,8 @@ async def create_check(
         input_data={
             "input_type": request.input_type,
             "content": request.content,
-            "url": request.url
+            "url": request.url,
+            "file_path": request.file_path
         }
     )
     
@@ -231,14 +305,14 @@ async def stream_check_progress(
             redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
             
             # Initial connection event
-            yield f"data: {json.dumps({'type': 'connected', 'checkId': check_id, 'timestamp': datetime.utcnow().isoformat()})}\n\n"
+            yield f"data: {safe_json_dumps({'type': 'connected', 'checkId': check_id, 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
             
             # Check if task is already completed
             if check.status == "completed":
                 yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100})}\n\n"
                 return
             elif check.status == "failed":
-                yield f"data: {json.dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': check.error_message})}\n\n"
+                yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': check.error_message})}\n\n"
                 return
             
             # Monitor task progress
@@ -301,7 +375,7 @@ async def stream_check_progress(
                         
                         elif task.state == "FAILURE":
                             error_message = str(task.info) if task.info else "Processing failed"
-                            yield f"data: {json.dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error_message})}\n\n"
+                            yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error_message})}\n\n"
                             break
                     
                     # Check database for status updates
@@ -324,7 +398,7 @@ async def stream_check_progress(
                     
                     # Send heartbeat
                     if timeout_counter % 10 == 0:  # Every 10 seconds
-                        yield f"data: {json.dumps({'type': 'heartbeat', 'timestamp': datetime.utcnow().isoformat()})}\n\n"
+                        yield f"data: {safe_json_dumps({'type': 'heartbeat', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
                     
                     await asyncio.sleep(1)
                     timeout_counter += 1

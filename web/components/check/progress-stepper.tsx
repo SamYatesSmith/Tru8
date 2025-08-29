@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type PipelineStage = 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'complete';
+type PipelineStage = 'queued' | 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'complete';
 
 interface ProgressStepperProps {
   currentStage: PipelineStage;
@@ -43,6 +43,7 @@ const stages = [
 
 function getStageIndex(stage: PipelineStage): number {
   if (stage === 'complete') return stages.length;
+  if (stage === 'queued') return -1; // Before first stage
   return stages.findIndex(s => s.key === stage);
 }
 

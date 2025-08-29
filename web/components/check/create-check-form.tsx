@@ -10,8 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Link, Type, Video } from "lucide-react";
 import { createCheck } from "@/lib/api";
-
-type InputType = "url" | "text" | "image" | "video";
+import type { InputType } from "@shared/types";
 
 interface CreateCheckFormProps {
   onSuccess?: (checkId: string) => void;
