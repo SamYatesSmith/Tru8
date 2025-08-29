@@ -60,30 +60,46 @@ eas build --platform all            # Build for stores
 
 ## 🎨 Design System Implementation
 
-### Colors (Tailwind/Tamagui)
-```typescript
-// Semantic verdicts
-const verdicts = {
-  supported: '#1E6F3D',     // Green
-  contradicted: '#B3261E',   // Red
-  uncertain: '#A15C00'       // Amber
-}
+**CRITICAL: ALL frontend development MUST follow the comprehensive design system in DESIGN_SYSTEM.md**
 
-// Base palette
-const colors = {
-  darkIndigo: '#2C2C54',
-  deepPurpleGrey: '#474787',
-  coolGrey: '#AAABB8',
-  lightGrey: '#ECECEC'
-}
+### Key Design Principles
+- **4pt Grid System**: All spacing uses multiples of 4px (`var(--space-*)`)
+- **Centralized Content**: All content uses container classes, max-width 1024px
+- **Bold Professional**: High contrast, strong typography, authoritative colors
+- **Consistent Components**: Standardized buttons, cards, pills, bars
+
+### Colors (CSS Variables Only)
+```css
+/* Brand Colors - Professional Authority */
+--tru8-primary: #1E40AF;        /* Deep Blue */
+--gradient-primary: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%);
+--gradient-hero: linear-gradient(135deg, #1E40AF 0%, #7C3AED 50%, #EC4899 100%);
+
+/* Verdict System - High Contrast */
+--verdict-supported: #059669;     /* Emerald */  
+--verdict-contradicted: #DC2626;  /* Red */
+--verdict-uncertain: #D97706;     /* Amber */
 ```
 
-### Component Priorities
-1. **Verdict Pill** - Visual verdict indicator
-2. **Confidence Bar** - Percentage display
-3. **Citation Chip** - `Publisher · Date`
-4. **Claim Card** - Main result unit
-5. **Progress Stepper** - Pipeline status
+### Typography Scale (Responsive)
+```css
+--text-5xl: clamp(2.5rem, 5vw, 3rem);    /* Hero headlines */
+--text-4xl: clamp(2rem, 4vw, 2.25rem);   /* Page titles */
+--font-weight-black: 900;                 /* Stand-out headings */
+```
+
+### MANDATORY Component Usage
+1. **Verdict Pills** - Semantic color system with borders
+2. **Confidence Bars** - Animated with gradient fills  
+3. **Citation Chips** - `Publisher · Date · Credibility`
+4. **Card System** - Standard shadows and spacing
+5. **Button Hierarchy** - Primary gradients, secondary borders
+
+### Layout Requirements
+- All pages use `.container` (max-width: 1024px, centered)
+- All spacing uses 4pt grid (`--space-4`, `--space-6`, etc.)
+- All borders use consistent radius (`--radius-md`, `--radius-lg`)
+- Mobile-first responsive with defined breakpoints
 
 ## 🔧 Development Guidelines
 
