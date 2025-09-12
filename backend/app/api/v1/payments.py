@@ -43,8 +43,15 @@ async def create_checkout_session(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Prevent duplicate subscriptions
-        if user.subscription and user.subscription.status == "active":
+        # Check for existing active subscription
+        existing_sub_stmt = select(Subscription).where(
+            Subscription.user_id == user.id,
+            Subscription.status == "active"
+        )
+        existing_sub_result = await session.execute(existing_sub_stmt)
+        existing_subscription = existing_sub_result.scalar_one_or_none()
+        
+        if existing_subscription:
             raise HTTPException(
                 status_code=400, 
                 detail="User already has an active subscription"
@@ -152,8 +159,10 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
     price_id = stripe_subscription['items']['data'][0]['price']['id']
     plan, credits_per_month = plan_mapping.get(price_id, ('starter', 120))
     
-    # Create or update subscription
-    existing_subscription = user.subscription
+    # Get existing subscription
+    existing_sub_stmt = select(Subscription).where(Subscription.user_id == user_id)
+    existing_sub_result = await session.execute(existing_sub_stmt)
+    existing_subscription = existing_sub_result.scalar_one_or_none()
     if existing_subscription:
         # Update existing subscription
         existing_subscription.plan = plan
@@ -273,7 +282,15 @@ async def get_subscription_status(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not user.subscription:
+    # Get user's subscription
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == user.id,
+        Subscription.status == "active"
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+    
+    if not subscription:
         return {
             "hasSubscription": False,
             "plan": "free",
@@ -284,12 +301,12 @@ async def get_subscription_status(
 
     return {
         "hasSubscription": True,
-        "plan": user.subscription.plan,
-        "status": user.subscription.status,
-        "creditsPerMonth": user.subscription.credits_per_month,
-        "creditsRemaining": user.subscription.credits_remaining,
-        "currentPeriodEnd": user.subscription.current_period_end.isoformat(),
-        "stripeSubscriptionId": user.subscription.stripe_subscription_id,
+        "plan": subscription.plan,
+        "status": subscription.status,
+        "creditsPerMonth": subscription.credits_per_month,
+        "creditsRemaining": subscription.credits_remaining,
+        "currentPeriodEnd": subscription.current_period_end.isoformat(),
+        "stripeSubscriptionId": subscription.stripe_subscription_id,
     }
 
 @router.post("/cancel-subscription")
@@ -302,13 +319,21 @@ async def cancel_subscription(
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
     
-    if not user or not user.subscription:
+    # Get user's active subscription
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == user.id,
+        Subscription.status == "active"
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+    
+    if not user or not subscription:
         raise HTTPException(status_code=404, detail="No active subscription found")
 
     try:
         # Cancel the subscription in Stripe (at period end)
         stripe.Subscription.modify(
-            user.subscription.stripe_subscription_id,
+            subscription.stripe_subscription_id,
             cancel_at_period_end=True
         )
         

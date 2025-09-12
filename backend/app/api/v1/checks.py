@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from pydantic import BaseModel
 from app.core.database import get_session
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, get_current_user_sse
 from app.models import User, Check, Claim, Evidence
 from app.workers.pipeline import process_check
 from app.workers import celery_app
@@ -281,7 +281,7 @@ async def get_check(
 @router.get("/{check_id}/progress")
 async def stream_check_progress(
     check_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_sse),
     session: AsyncSession = Depends(get_session)
 ):
     """Stream real-time progress updates via SSE"""

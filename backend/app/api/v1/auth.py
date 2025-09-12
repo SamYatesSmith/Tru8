@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_session
 from app.core.auth import get_current_user
-from app.models import User
+from app.models import User, Subscription
 
 router = APIRouter()
 
@@ -30,13 +30,21 @@ async def get_me(
         await session.commit()
         await session.refresh(user)
     
+    # Check for active subscription
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == user.id,
+        Subscription.status == "active"
+    )
+    sub_result = await session.execute(sub_stmt)
+    has_subscription = sub_result.scalar_one_or_none() is not None
+    
     return {
         "id": user.id,
         "email": user.email,
         "name": user.name,
         "credits": user.credits,
         "totalCreditsUsed": user.total_credits_used,
-        "hasSubscription": user.subscription is not None,
+        "hasSubscription": has_subscription,
         "createdAt": user.created_at.isoformat(),
     }
 
