@@ -3,6 +3,7 @@ import { Link, router } from 'expo-router';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '@/lib/design-system';
 
 export default function SignIn() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -24,7 +25,7 @@ export default function SignIn() {
 
       if (signInAttempt.status === 'complete') {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace('/(tabs)/');
+        router.replace('/');
       } else {
         console.log(JSON.stringify(signInAttempt, null, 2));
       }
@@ -52,7 +53,7 @@ export default function SignIn() {
               autoCapitalize="none"
               value={emailAddress}
               placeholder="Enter your email..."
-              placeholderTextColor="#AAABB8"
+              placeholderTextColor={Colors.coolGrey}
               onChangeText={setEmailAddress}
               className="bg-deepPurpleGrey text-lightGrey p-4 rounded-lg"
             />
@@ -63,7 +64,7 @@ export default function SignIn() {
             <TextInput
               value={password}
               placeholder="Enter your password..."
-              placeholderTextColor="#AAABB8"
+              placeholderTextColor={Colors.coolGrey}
               secureTextEntry={true}
               onChangeText={setPassword}
               className="bg-deepPurpleGrey text-lightGrey p-4 rounded-lg"

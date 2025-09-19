@@ -1,0 +1,6 @@
+module.exports = {
+  extends: ['expo'],
+  rules: {
+    'react-hooks/exhaustive-deps': 'warn',
+  },
+};

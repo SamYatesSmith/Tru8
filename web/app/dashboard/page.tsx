@@ -15,31 +15,37 @@ export default function DashboardPage() {
   const { user } = useUser();
   const { getToken } = useAuth();
 
-  const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = useQuery({
+  const { data: profile, isLoading: profileLoading, refetch: refetchProfile, error: profileError } = useQuery({
     queryKey: ["user", "profile"],
     queryFn: async () => {
       const token = await getToken();
-      return getUserProfile(token!);
+      if (!token) throw new Error('No authentication token available');
+      return getUserProfile(token);
     },
     enabled: !!user,
+    retry: false,
   });
 
-  const { data: usage, isLoading: usageLoading, refetch: refetchUsage } = useQuery({
+  const { data: usage, isLoading: usageLoading, refetch: refetchUsage, error: usageError } = useQuery({
     queryKey: ["user", "usage"],
     queryFn: async () => {
       const token = await getToken();
-      return getUserUsage(token!);
+      if (!token) throw new Error('No authentication token available');
+      return getUserUsage(token);
     },
     enabled: !!user,
+    retry: false,
   });
 
-  const { data: checksData, isLoading: checksLoading } = useQuery({
+  const { data: checksData, isLoading: checksLoading, error: checksError } = useQuery({
     queryKey: ["checks", "recent"],
     queryFn: async () => {
       const token = await getToken();
-      return getChecks(token!, 0, 5); // Get 5 most recent checks
+      if (!token) throw new Error('No authentication token available');
+      return getChecks(token, 0, 5); // Get 5 most recent checks
     },
     enabled: !!user,
+    retry: false,
   });
 
   const isLoading = profileLoading || usageLoading || checksLoading;
@@ -69,6 +75,28 @@ export default function DashboardPage() {
     if (diffHours > 0) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     return 'Just now';
   };
+
+  // Show errors if any
+  const hasErrors = profileError || usageError || checksError;
+  if (hasErrors) {
+    return (
+      <MainLayout>
+        <div className="container py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-red-900 mb-4">Authentication Error</h2>
+            <div className="space-y-2 text-sm text-red-700">
+              {profileError && <p>Profile error: {profileError.message}</p>}
+              {usageError && <p>Usage error: {usageError.message}</p>}
+              {checksError && <p>Checks error: {checksError.message}</p>}
+            </div>
+            <p className="mt-4 text-sm text-red-600">
+              Please try signing out and signing back in to refresh your authentication.
+            </p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (isLoading) {
     return (

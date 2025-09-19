@@ -15,7 +15,7 @@ class ExtractedClaim(BaseModel):
     category: Optional[str] = Field(description="Category of claim", default=None)
     
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "text": "The Earth's average temperature has increased by 1.1°C since pre-industrial times",
                 "confidence": 0.95,
@@ -48,7 +48,7 @@ RULES:
 4. Include numbers, dates, names when present
 5. Maximum {max_claims} claims for Quick mode
 6. Focus on the most important/checkable claims
-7. Return valid JSON only
+7. Always return a valid JSON response with the required format
 
 EXAMPLES:
 Input: "Tesla delivered 1.3 million vehicles in 2022, exceeding Wall Street expectations."

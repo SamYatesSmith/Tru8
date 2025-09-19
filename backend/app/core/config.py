@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     MAX_CLAIMS_PER_CHECK: int = Field(12, env="MAX_CLAIMS_PER_CHECK")
     
     # Pipeline
-    PIPELINE_TIMEOUT_SECONDS: int = Field(10, env="PIPELINE_TIMEOUT_SECONDS")
+    PIPELINE_TIMEOUT_SECONDS: int = Field(180, env="PIPELINE_TIMEOUT_SECONDS")
     CACHE_TTL_SECONDS: int = Field(3600, env="CACHE_TTL_SECONDS")
     
     # NLI & Verification

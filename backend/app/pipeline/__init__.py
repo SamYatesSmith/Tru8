@@ -1,15 +1,17 @@
-from .ingest import UrlIngester, ImageIngester, VideoIngester
-from .extract import ClaimExtractor
-from .retrieve import EvidenceRetriever
-from .verify import NLIVerifier
-from .judge import ClaimJudge
+# Pipeline package
+# 
+# Note: Classes are NOT imported here to prevent heavy ML libraries (transformers, torch)
+# from loading at startup. Each module should be imported directly when needed.
+#
+# Usage:
+#   from app.pipeline.verify import get_claim_verifier
+#   from app.pipeline.extract import ClaimExtractor
+#   etc.
 
 __all__ = [
-    "UrlIngester", 
-    "ImageIngester", 
-    "VideoIngester",
-    "ClaimExtractor",
-    "EvidenceRetriever", 
-    "NLIVerifier",
-    "ClaimJudge"
+    "ingest",
+    "extract", 
+    "retrieve",
+    "verify",
+    "judge"
 ]

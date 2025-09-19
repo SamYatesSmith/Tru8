@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useAuth } from '@clerk/clerk-expo';
-import * as DocumentPicker from 'expo-document-picker';
+// import * as DocumentPicker from 'expo-document-picker'; // TODO: implement file upload
 import * as ImagePicker from 'expo-image-picker';
-import { Link2, Type, Upload, Video, Loader2 } from 'lucide-react-native';
+import { Link2, Type, Upload, Video, Loader2, Camera, Image as ImageIcon, WifiOff } from 'lucide-react-native';
 import { createCheck } from '@/lib/api';
+import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
+import { useNetwork } from '@/hooks/use-network';
+import OfflineQueueManager from '@/lib/offline-queue';
 
 type InputType = 'url' | 'text' | 'image' | 'video';
 
@@ -20,6 +23,7 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
   const [loading, setLoading] = useState(false);
   
   const { getToken } = useAuth();
+  const { isOnline } = useNetwork();
 
   const handleSubmit = async () => {
     if (loading) return;
@@ -64,6 +68,32 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
           break;
       }
 
+      // Check if offline and queue the request
+      if (!isOnline) {
+        const queuedId = await OfflineQueueManager.addToQueue(data);
+        
+        Alert.alert(
+          'Added to Queue',
+          'You\'re offline. Your fact-check has been queued and will be processed when you\'re back online.',
+          [{ text: 'OK', onPress: () => onSuccess?.(queuedId) }]
+        );
+        
+        // Reset form
+        setUrl('');
+        setText('');
+        setFile(null);
+        return;
+      }
+
+      // Try to process offline queue first if online
+      if (isOnline) {
+        try {
+          await OfflineQueueManager.processQueue(token);
+        } catch (queueError) {
+          console.log('Queue processing failed, but continuing with current request:', queueError);
+        }
+      }
+
       const result = await createCheck(data, token);
       
       Alert.alert(
@@ -78,17 +108,91 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
       setFile(null);
       
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create check');
+      console.error('Create check error:', error);
+      
+      // Network error while online - add to offline queue
+      if (error.name === 'NetworkError' || error.code === 'NETWORK_ERROR' || !isOnline) {
+        try {
+          const queuedId = await OfflineQueueManager.addToQueue({
+            inputType,
+            content: inputType === 'text' ? text.trim() : undefined,
+            url: (inputType === 'url' || inputType === 'video') ? url.trim() : undefined,
+            file: inputType === 'image' ? file : undefined,
+          });
+          
+          Alert.alert(
+            'Added to Queue',
+            'Network error occurred. Your fact-check has been queued and will be processed when connection is restored.',
+            [{ text: 'OK', onPress: () => onSuccess?.(queuedId) }]
+          );
+          
+          // Reset form
+          setUrl('');
+          setText('');
+          setFile(null);
+          return;
+        } catch (queueError) {
+          console.error('Failed to add to queue:', queueError);
+        }
+      }
+      
+      let errorMessage = 'Failed to create check';
+      
+      if (error.status === 402) {
+        errorMessage = 'Insufficient credits. Please upgrade your plan to continue.';
+      } else if (error.status === 413) {
+        errorMessage = 'File too large. Please select a smaller image.';
+      } else if (error.status === 400) {
+        errorMessage = error.message || 'Invalid input. Please check your data and try again.';
+      } else if (error.status >= 500) {
+        errorMessage = 'Server error. Please try again in a moment.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      Alert.alert(
+        'Error',
+        errorMessage,
+        [
+          { text: 'OK' },
+          ...(error.status >= 500 ? [{
+            text: 'Retry',
+            onPress: () => handleSubmit()
+          }] : [])
+        ]
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImagePicker = async () => {
+  // Removed showImagePicker - using direct camera/library buttons instead
+
+  const handleCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Camera permission is required');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+      exif: false,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      processImageAsset(result.assets[0]);
+    }
+  };
+
+  const handleImageLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Camera roll permission is required');
+      Alert.alert('Permission needed', 'Photo library permission is required');
       return;
     }
 
@@ -100,20 +204,23 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
     });
 
     if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      
-      // Check file size (6MB limit)
-      if (asset.fileSize && asset.fileSize > 6 * 1024 * 1024) {
-        Alert.alert('File too large', 'Please select an image smaller than 6MB');
-        return;
-      }
-      
-      setFile({
-        uri: asset.uri,
-        type: 'image/jpeg',
-        name: 'image.jpg',
-      });
+      processImageAsset(result.assets[0]);
     }
+  };
+
+  const processImageAsset = (asset: ImagePicker.ImagePickerAsset) => {
+    // Check file size (6MB limit)
+    if (asset.fileSize && asset.fileSize > 6 * 1024 * 1024) {
+      Alert.alert('File too large', 'Please select an image smaller than 6MB');
+      return;
+    }
+    
+    setFile({
+      uri: asset.uri,
+      type: asset.type || 'image/jpeg',
+      name: asset.fileName || `image_${Date.now()}.jpg`,
+      size: asset.fileSize,
+    });
   };
 
   const inputTypeOptions = [
@@ -124,32 +231,75 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
   ];
 
   return (
-    <View className="p-6 space-y-6">
+    <View style={{ padding: Spacing.space6, gap: Spacing.space6 }}>
+      {/* Offline Status */}
+      {!isOnline && (
+        <View style={{
+          backgroundColor: Colors.verdictContradicted + '20',
+          borderColor: Colors.verdictContradicted,
+          borderWidth: 1,
+          borderRadius: BorderRadius.radiusLg,
+          padding: Spacing.space3,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.space2,
+        }}>
+          <WifiOff size={20} color={Colors.verdictContradicted} />
+          <Text style={{
+            color: Colors.verdictContradicted,
+            fontSize: Typography.textSm,
+            fontWeight: Typography.fontWeightMedium,
+            flex: 1,
+          }}>
+            You're offline. Checks will be queued and processed when connection is restored.
+          </Text>
+        </View>
+      )}
+
       {/* Title */}
-      <Text className="text-2xl font-bold text-lightGrey">
+      <Text style={{
+        fontSize: Typography.text2xl,
+        fontWeight: Typography.fontWeightBold,
+        color: Colors.lightGrey,
+        textAlign: 'center',
+      }}>
         What would you like to fact-check?
       </Text>
 
       {/* Input Type Selector */}
-      <View className="grid grid-cols-2 gap-3">
+      <View style={{ 
+        flexDirection: 'row', 
+        flexWrap: 'wrap', 
+        gap: Spacing.space3,
+        justifyContent: 'space-between',
+      }}>
         {inputTypeOptions.map(({ value, label, icon: Icon }) => (
           <TouchableOpacity
             key={value}
             onPress={() => setInputType(value)}
-            className={`p-4 rounded-lg border-2 items-center ${
-              inputType === value
-                ? 'border-lightGrey bg-lightGrey/10'
-                : 'border-coolGrey'
-            }`}
+            style={{
+              padding: Spacing.space4,
+              borderRadius: BorderRadius.radiusLg,
+              borderWidth: 2,
+              borderColor: inputType === value ? Colors.lightGrey : Colors.coolGrey,
+              backgroundColor: inputType === value 
+                ? `${Colors.lightGrey}1A` // 10% opacity
+                : 'transparent',
+              alignItems: 'center',
+              width: '47%', // Two columns with gap
+            }}
           >
             <Icon 
               size={24} 
-              color={inputType === value ? '#ECECEC' : '#AAABB8'} 
+              color={inputType === value ? Colors.lightGrey : Colors.coolGrey} 
             />
             <Text 
-              className={`mt-2 text-sm font-medium ${
-                inputType === value ? 'text-lightGrey' : 'text-coolGrey'
-              }`}
+              style={{
+                marginTop: Spacing.space2,
+                fontSize: Typography.textSm,
+                fontWeight: Typography.fontWeightMedium,
+                color: inputType === value ? Colors.lightGrey : Colors.coolGrey,
+              }}
             >
               {label}
             </Text>
@@ -158,10 +308,15 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
       </View>
 
       {/* Input Fields */}
-      <View className="space-y-4">
+      <View style={{ gap: Spacing.space4 }}>
         {(inputType === 'url' || inputType === 'video') && (
           <View>
-            <Text className="text-lightGrey mb-2 font-medium">
+            <Text style={{
+              color: Colors.lightGrey,
+              marginBottom: Spacing.space2,
+              fontSize: Typography.textBase,
+              fontWeight: Typography.fontWeightMedium,
+            }}>
               {inputType === 'url' ? 'URL or Link' : 'Video URL'}
             </Text>
             <TextInput
@@ -172,13 +327,23 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
                   ? 'https://example.com/article'
                   : 'https://youtube.com/watch?v=...'
               }
-              placeholderTextColor="#AAABB8"
-              className="bg-deepPurpleGrey text-lightGrey p-4 rounded-lg"
+              placeholderTextColor={Colors.coolGrey}
+              style={{
+                backgroundColor: Colors.deepPurpleGrey,
+                color: Colors.lightGrey,
+                padding: Spacing.space4,
+                borderRadius: BorderRadius.radiusLg,
+                fontSize: Typography.textBase,
+              }}
               keyboardType="url"
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <Text className="text-coolGrey text-sm mt-1">
+            <Text style={{
+              color: Colors.coolGrey,
+              fontSize: Typography.textSm,
+              marginTop: Spacing.space1,
+            }}>
               {inputType === 'url' 
                 ? 'Paste a link to an article, social media post, or webpage'
                 : 'YouTube or Vimeo links supported (max 8 minutes)'
@@ -189,18 +354,34 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
 
         {inputType === 'text' && (
           <View>
-            <Text className="text-lightGrey mb-2 font-medium">Text Content</Text>
+            <Text style={{
+              color: Colors.lightGrey,
+              marginBottom: Spacing.space2,
+              fontSize: Typography.textBase,
+              fontWeight: Typography.fontWeightMedium,
+            }}>Text Content</Text>
             <TextInput
               value={text}
               onChangeText={setText}
               placeholder="Paste or type the content you want to fact-check..."
-              placeholderTextColor="#AAABB8"
-              className="bg-deepPurpleGrey text-lightGrey p-4 rounded-lg min-h-[120px]"
+              placeholderTextColor={Colors.coolGrey}
+              style={{
+                backgroundColor: Colors.deepPurpleGrey,
+                color: Colors.lightGrey,
+                padding: Spacing.space4,
+                borderRadius: BorderRadius.radiusLg,
+                minHeight: 120,
+                fontSize: Typography.textBase,
+              }}
               multiline
               textAlignVertical="top"
               maxLength={2500}
             />
-            <Text className="text-coolGrey text-sm mt-1">
+            <Text style={{
+              color: Colors.coolGrey,
+              fontSize: Typography.textSm,
+              marginTop: Spacing.space1,
+            }}>
               Maximum 2,500 words. {text.split(' ').filter(Boolean).length} words entered.
             </Text>
           </View>
@@ -208,22 +389,110 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
 
         {inputType === 'image' && (
           <View>
-            <Text className="text-lightGrey mb-2 font-medium">Select Image</Text>
-            <TouchableOpacity
-              onPress={handleImagePicker}
-              className="bg-deepPurpleGrey border-2 border-dashed border-coolGrey rounded-lg p-8 items-center"
-            >
-              <Upload size={32} color="#AAABB8" />
-              <Text className="text-coolGrey mt-2 text-center">
-                {file ? 'Image selected' : 'Tap to select image'}
-              </Text>
-              {file && (
-                <Text className="text-lightGrey text-sm mt-1">
-                  Ready to upload
+            <Text style={{
+              color: Colors.lightGrey,
+              marginBottom: Spacing.space2,
+              fontSize: Typography.textBase,
+              fontWeight: Typography.fontWeightMedium,
+            }}>Select Image</Text>
+            {!file ? (
+              <View style={{ gap: Spacing.space3 }}>
+                {/* Camera Option */}
+                <TouchableOpacity
+                  onPress={handleCamera}
+                  style={{
+                    backgroundColor: Colors.deepPurpleGrey,
+                    borderWidth: 2,
+                    borderColor: Colors.coolGrey,
+                    borderRadius: BorderRadius.radiusLg,
+                    padding: Spacing.space4,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: Spacing.space3,
+                  }}
+                >
+                  <Camera size={24} color={Colors.lightGrey} />
+                  <Text style={{
+                    color: Colors.lightGrey,
+                    fontSize: Typography.textBase,
+                    fontWeight: Typography.fontWeightMedium,
+                  }}>
+                    Take Photo
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Gallery Option */}
+                <TouchableOpacity
+                  onPress={handleImageLibrary}
+                  style={{
+                    backgroundColor: Colors.deepPurpleGrey,
+                    borderWidth: 2,
+                    borderColor: Colors.coolGrey,
+                    borderRadius: BorderRadius.radiusLg,
+                    padding: Spacing.space4,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: Spacing.space3,
+                  }}
+                >
+                  <ImageIcon size={24} color={Colors.lightGrey} />
+                  <Text style={{
+                    color: Colors.lightGrey,
+                    fontSize: Typography.textBase,
+                    fontWeight: Typography.fontWeightMedium,
+                  }}>
+                    Choose from Gallery
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={{
+                backgroundColor: Colors.deepPurpleGrey,
+                borderRadius: BorderRadius.radiusLg,
+                padding: Spacing.space4,
+                alignItems: 'center',
+                gap: Spacing.space2,
+              }}>
+                <Upload size={32} color={Colors.verdictSupported} />
+                <Text style={{
+                  color: Colors.lightGrey,
+                  fontSize: Typography.textBase,
+                  fontWeight: Typography.fontWeightMedium,
+                }}>
+                  Image Selected
                 </Text>
-              )}
-            </TouchableOpacity>
-            <Text className="text-coolGrey text-sm mt-1">
+                <Text style={{
+                  color: Colors.coolGrey,
+                  fontSize: Typography.textSm,
+                  textAlign: 'center',
+                }}>
+                  {file.name}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setFile(null)}
+                  style={{
+                    marginTop: Spacing.space2,
+                    paddingVertical: Spacing.space1,
+                    paddingHorizontal: Spacing.space3,
+                    borderRadius: BorderRadius.radiusMd,
+                    borderWidth: 1,
+                    borderColor: Colors.coolGrey,
+                  }}
+                >
+                  <Text style={{
+                    color: Colors.coolGrey,
+                    fontSize: Typography.textSm,
+                  }}>
+                    Change
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            <Text style={{
+              color: Colors.coolGrey,
+              fontSize: Typography.textSm,
+              marginTop: Spacing.space1,
+            }}>
               Upload a screenshot or image containing text (max 6MB)
             </Text>
           </View>
@@ -234,13 +503,26 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
       <TouchableOpacity
         onPress={handleSubmit}
         disabled={loading}
-        className="bg-lightGrey py-4 rounded-lg disabled:opacity-50"
+        style={{
+          backgroundColor: loading ? `${Colors.lightGrey}80` : Colors.lightGrey, // 50% opacity when disabled
+          paddingVertical: Spacing.space4,
+          borderRadius: BorderRadius.radiusLg,
+        }}
       >
-        <View className="flex-row items-center justify-center">
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
           {loading && (
-            <Loader2 size={20} color="#2C2C54" className="mr-2 animate-spin" />
+            <Loader2 size={20} color={Colors.darkIndigo} style={{ marginRight: Spacing.space2 }} />
           )}
-          <Text className="text-darkIndigo text-center font-semibold text-lg">
+          <Text style={{
+            color: Colors.darkIndigo,
+            textAlign: 'center',
+            fontSize: Typography.textLg,
+            fontWeight: Typography.fontWeightSemibold,
+          }}>
             {loading ? 'Creating Check...' : 'Start Fact-Check'}
           </Text>
         </View>

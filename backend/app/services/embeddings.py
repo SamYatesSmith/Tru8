@@ -2,11 +2,13 @@ import logging
 import asyncio
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
-from sentence_transformers import SentenceTransformer
 import hashlib
 import json
 import redis.asyncio as redis
 from app.core.config import settings
+
+# Note: sentence_transformers import moved inside functions to prevent
+# heavy ML libraries from loading at startup. They will only load when embedding service is actually used.
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +33,13 @@ class EmbeddingService:
                         logger.info(f"Loading embedding model: {self.model_name}")
                         # Load in thread pool to avoid blocking
                         loop = asyncio.get_event_loop()
-                        self.model = await loop.run_in_executor(
-                            None, 
-                            lambda: SentenceTransformer(self.model_name)
-                        )
+                        
+                        def load_model():
+                            # Import sentence_transformers only when actually needed
+                            from sentence_transformers import SentenceTransformer
+                            return SentenceTransformer(self.model_name)
+                        
+                        self.model = await loop.run_in_executor(None, load_model)
                         logger.info("Embedding model loaded successfully")
             
             # Initialize Redis for caching

@@ -2,10 +2,11 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from pydantic import BaseModel
 from app.core.database import get_session
 from app.core.auth import get_current_user, get_current_user_sse
+from app.core.config import settings
 from app.models import User, Check, Claim, Evidence
 from app.workers.pipeline import process_check
 from app.workers import celery_app
@@ -107,7 +108,8 @@ async def create_check(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    if user.credits < 1:
+    # Skip credit check in development mode
+    if not settings.DEBUG and user.credits < 1:
         raise HTTPException(
             status_code=402,
             detail="Insufficient credits. Please upgrade your plan."
@@ -152,16 +154,47 @@ async def create_check(
     await session.refresh(check)
     
     # Start pipeline processing
-    task = process_check.delay(
-        check_id=check.id,
-        user_id=user.id,
-        input_data={
-            "input_type": request.input_type,
-            "content": request.content,
-            "url": request.url,
-            "file_path": request.file_path
-        }
-    )
+    try:
+        logger.info(f"Attempting to dispatch task for check {check.id}")
+        logger.info(f"Redis URL: {settings.REDIS_URL}")
+
+        # Test Redis connection first
+        import redis
+        try:
+            r = redis.Redis.from_url(settings.REDIS_URL)
+            r.ping()
+            logger.info("Redis connection successful")
+        except Exception as redis_error:
+            logger.error(f"Redis connection failed: {redis_error}")
+            raise redis_error
+
+        task = process_check.delay(
+            check_id=check.id,
+            user_id=user.id,
+            input_data={
+                "input_type": request.input_type,
+                "content": request.content,
+                "url": request.url,
+                "file_path": request.file_path
+            }
+        )
+        logger.info(f"Task dispatched successfully: {task.id} for check {check.id}")
+        logger.info(f"Task state immediately after dispatch: {task.state}")
+
+        # Verify task is in Redis queue
+        queue_length = r.llen("celery")
+        logger.info(f"Queue length after dispatch: {queue_length}")
+
+    except Exception as e:
+        import traceback
+        logger.error(f"Failed to dispatch task for check {check.id}: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        # Update check status to failed
+        check.status = "failed"
+        check.error_message = f"Task dispatch failed: {str(e)}"
+        session.add(check)
+        await session.commit()
+        raise HTTPException(status_code=500, detail="Failed to start fact-checking pipeline")
     
     return {
         "check": {
@@ -193,21 +226,28 @@ async def get_checks(
     result = await session.execute(stmt)
     checks = result.scalars().all()
     
+    # Get claims count for each check with explicit async query
+    check_data = []
+    for check in checks:
+        # Count claims for this check
+        claims_count_stmt = select(func.count(Claim.id)).where(Claim.check_id == check.id)
+        claims_count_result = await session.execute(claims_count_stmt)
+        claims_count = claims_count_result.scalar() or 0
+        
+        check_data.append({
+            "id": check.id,
+            "inputType": check.input_type,
+            "inputUrl": check.input_url,
+            "status": check.status,
+            "creditsUsed": check.credits_used,
+            "processingTimeMs": check.processing_time_ms,
+            "createdAt": check.created_at.isoformat(),
+            "completedAt": check.completed_at.isoformat() if check.completed_at else None,
+            "claimsCount": claims_count,
+        })
+    
     return {
-        "checks": [
-            {
-                "id": check.id,
-                "inputType": check.input_type,
-                "inputUrl": check.input_url,
-                "status": check.status,
-                "creditsUsed": check.credits_used,
-                "processingTimeMs": check.processing_time_ms,
-                "createdAt": check.created_at.isoformat(),
-                "completedAt": check.completed_at.isoformat() if check.completed_at else None,
-                "claimsCount": len(check.claims),
-            }
-            for check in checks
-        ],
+        "checks": check_data,
         "total": len(checks)
     }
 
@@ -319,7 +359,7 @@ async def stream_check_progress(
             task_key_pattern = f"celery-task-meta-*"
             last_progress = 0
             timeout_counter = 0
-            max_timeout = 120  # 2 minutes timeout
+            max_timeout = 200  # 3+ minutes timeout (longer than task timeout)
             
             while timeout_counter < max_timeout:
                 try:
@@ -380,19 +420,22 @@ async def stream_check_progress(
                     
                     # Check database for status updates
                     try:
-                        from app.core.database import AsyncSession, get_engine
-                        async with AsyncSession(get_engine()) as db_session:
+                        from app.core.database import async_session
+                        async with async_session() as db_session:
                             stmt = select(Check).where(Check.id == check_id)
                             result = await db_session.execute(stmt)
                             updated_check = result.scalar_one_or_none()
                             
-                            if updated_check and updated_check.status != check.status:
+                            if updated_check:
                                 if updated_check.status == "completed":
-                                    yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100})}\n\n"
+                                    yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100, 'message': 'Fact-check completed successfully'})}\n\n"
                                     break
                                 elif updated_check.status == "failed":
-                                    yield f"data: {json.dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': updated_check.error_message})}\n\n"
+                                    yield f"data: {json.dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': updated_check.error_message or 'Processing failed'})}\n\n"
                                     break
+                                elif updated_check.status == "processing":
+                                    # Update local check status to track progress
+                                    check.status = "processing"
                     except Exception as db_error:
                         logger.warning(f"Database check failed in SSE: {db_error}")
                     

@@ -61,7 +61,7 @@ ANALYSIS FRAMEWORK:
 3. Consensus: Look for agreement across multiple sources
 4. Context: Consider nuances, qualifications, temporal factors
 
-RESPONSE FORMAT:
+RESPONSE FORMAT: Respond with a valid JSON object containing:
 {
   "verdict": "supported|contradicted|uncertain",
   "confidence": 85,
@@ -74,7 +74,7 @@ RESPONSE FORMAT:
   }
 }
 
-Be precise, objective, and transparent about uncertainty."""
+Be precise, objective, and transparent about uncertainty. Always return valid JSON."""
 
     async def initialize(self):
         """Initialize judge service"""

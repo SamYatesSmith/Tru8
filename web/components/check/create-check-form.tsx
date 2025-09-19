@@ -22,13 +22,17 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const createCheckMutation = useMutation({
     mutationFn: async (data: { inputType: InputType; content?: string; url?: string; file?: File }) => {
+      // Get fresh token for backend authentication
       const token = await getToken();
+      if (!token) {
+        throw new Error("Not authenticated. Please sign in to create a fact check.");
+      }
       return createCheck(data, token);
     },
     onSuccess: (data) => {

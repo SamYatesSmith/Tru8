@@ -7,10 +7,11 @@ import httpx
 import trafilatura
 from readability import Document
 import bleach
-import pytesseract
-from PIL import Image
 from youtube_transcript_api import YouTubeTranscriptApi
 from app.core.config import settings
+
+# Note: pytesseract and PIL imports moved inside functions to prevent
+# heavy ML libraries (numpy) from loading at startup. They will only load when OCR is actually used.
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +141,9 @@ class ImageIngester(BaseIngester):
     async def process(self, image_path: str) -> Dict[str, Any]:
         """Extract text from image using OCR"""
         try:
+            # Import PIL only when actually needed
+            from PIL import Image
+            
             # Load image
             image = Image.open(image_path)
             
@@ -152,6 +156,9 @@ class ImageIngester(BaseIngester):
                         "error": "Image too large (max 6MB)",
                         "content": ""
                     }
+            
+            # Import pytesseract only when actually needed
+            import pytesseract
             
             # Run OCR in thread pool to avoid blocking
             loop = asyncio.get_event_loop()

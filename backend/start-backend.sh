@@ -97,8 +97,11 @@ trap cleanup SIGINT SIGTERM
 
 # Start Celery worker in background
 echo "Starting Celery worker..."
-celery -A app.workers worker --loglevel=info --logfile=celery.log &
+# CRITICAL: Limit to 2 workers to prevent memory exhaustion (defaults to CPU count)
+# On Linux/Mac we can use prefork, but on Windows use solo pool
+celery -A app.workers worker --concurrency=2 --loglevel=info --logfile=celery.log &
 CELERY_PID=$!
+echo "[Memory Safe] Using only 2 Celery workers"
 
 # Wait a moment for worker to start
 sleep 2

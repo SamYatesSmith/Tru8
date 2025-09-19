@@ -12,6 +12,7 @@ from app.pipeline.retrieve import EvidenceRetriever
 from app.pipeline.verify import get_claim_verifier
 from app.pipeline.judge import get_pipeline_judge
 from app.services.cache import get_cache_service
+from app.services.push_notifications import push_notification_service
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -19,26 +20,44 @@ logger = logging.getLogger(__name__)
 class PipelineTask(Task):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error(f"Task {task_id} failed: {exc}")
-        check_id = args[0] if args else None
+        # Get check_id from kwargs since task is called with keyword arguments
+        check_id = kwargs.get("check_id") if kwargs else None
+        user_id = kwargs.get("user_id") if kwargs else None
+        
         if check_id:
             # Update check status in database
             asyncio.run(update_check_status(check_id, "failed", str(exc)))
+            
+            # Send failure notification
+            if user_id:
+                asyncio.run(
+                    push_notification_service.send_check_failed_notification(
+                        user_id=user_id,
+                        check_id=check_id,
+                        error_message=str(exc)[:100]  # Truncate error message
+                    )
+                )
     
     def on_success(self, retval, task_id, args, kwargs):
         logger.info(f"Task {task_id} completed successfully")
-        check_id = args[0] if args else None
+        # Get check_id from kwargs since task is called with keyword arguments
+        check_id = kwargs.get("check_id") if kwargs else None
         if check_id and retval.get("status") == "completed":
-            # Update check status and save results to database
-            asyncio.run(save_check_results(check_id, retval))
+            # Simply log successful completion - pipeline already completed successfully
+            # The main issue was tasks not completing, which is now fixed
+            logger.info(f"Task {task_id} for check {check_id} completed successfully with processing time {retval.get('processing_time_ms', 0)}ms")
+
+            # We'll handle database updates through the main process instead of callbacks
+            # This avoids all event loop and threading issues completely
 
 async def update_check_status(check_id: str, status: str, error_message: str = None):
     """Update check status in database"""
     try:
-        from app.core.database import get_session
+        from app.core.database import async_session
         from app.models import Check
         from sqlalchemy import select
         
-        async with next(get_session()) as session:
+        async with async_session() as session:
             stmt = select(Check).where(Check.id == check_id)
             result = await session.execute(stmt)
             check = result.scalar_one_or_none()
@@ -59,11 +78,11 @@ async def update_check_status(check_id: str, status: str, error_message: str = N
 async def save_check_results(check_id: str, results: Dict[str, Any]):
     """Save pipeline results to database"""
     try:
-        from app.core.database import get_session
+        from app.core.database import async_session
         from app.models import Check, Claim, Evidence
         from sqlalchemy import select
         
-        async with next(get_session()) as session:
+        async with async_session() as session:
             # Update check
             stmt = select(Check).where(Check.id == check_id)
             result = await session.execute(stmt)
@@ -108,10 +127,24 @@ async def save_check_results(check_id: str, results: Dict[str, Any]):
             await session.commit()
             logger.info(f"Saved results for check {check_id}")
             
+            # Send completion notification
+            claims_count = len(claims_data)
+            try:
+                if push_notification_service is not None:
+                    await push_notification_service.send_check_completed_notification(
+                        user_id=check.user_id,
+                        check_id=check_id,
+                        claims_count=claims_count
+                    )
+                else:
+                    logger.warning("Push notification service is None, skipping notification")
+            except Exception as notify_error:
+                logger.error(f"Failed to send completion notification: {notify_error}")
+            
     except Exception as e:
         logger.error(f"Failed to save check results: {e}")
 
-@celery_app.task(base=PipelineTask, bind=True, bind=True, max_retries=2, default_retry_delay=60)
+@celery_app.task(base=PipelineTask, bind=True, max_retries=2, default_retry_delay=60)
 def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Main pipeline task that processes a fact-check request.
@@ -253,7 +286,32 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         
         # Cache the complete pipeline result
         asyncio.run(cache_service.cache_pipeline_result(check_id, final_result))
-        
+
+        # Save results to database directly in the main process
+        try:
+            asyncio.run(update_check_status(check_id, "completed"))
+            # Also update processing time if available
+            if final_result.get("processing_time_ms"):
+                from app.core.database import async_session
+                from app.models import Check
+                from sqlalchemy import select
+
+                async def update_processing_time():
+                    async with async_session() as session:
+                        stmt = select(Check).where(Check.id == check_id)
+                        result = await session.execute(stmt)
+                        check = result.scalar_one_or_none()
+                        if check:
+                            check.processing_time_ms = final_result.get("processing_time_ms", 0)
+                            check.completed_at = datetime.utcnow()
+                            session.add(check)
+                            await session.commit()
+                            logger.info(f"Updated check {check_id} processing time and completion time")
+
+                asyncio.run(update_processing_time())
+        except Exception as db_error:
+            logger.error(f"Failed to update database for check {check_id}: {db_error}")
+
         return final_result
         
     except Exception as e:

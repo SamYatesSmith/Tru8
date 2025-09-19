@@ -1,20 +1,23 @@
 import { View, Text } from 'react-native';
 import { CheckCircle, Clock, Circle } from 'lucide-react-native';
+import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
 
-type PipelineStage = 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'complete';
+type PipelineStage = 'pending' | 'processing' | 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'completed' | 'failed';
 
 interface ProgressStepperProps {
   currentStage: PipelineStage;
   progress: number; // 0-100
   message?: string;
   error?: string;
+  isConnected?: boolean;
+  connectionMode?: 'realtime' | 'polling' | 'offline';
 }
 
 const stages = [
   { 
     key: 'ingest' as const, 
-    label: 'Ingesting', 
-    description: 'Processing your content...' 
+    label: 'Processing', 
+    description: 'Analyzing your content...' 
   },
   { 
     key: 'extract' as const, 
@@ -39,7 +42,9 @@ const stages = [
 ];
 
 function getStageIndex(stage: PipelineStage): number {
-  if (stage === 'complete') return stages.length;
+  if (stage === 'completed') return stages.length;
+  if (stage === 'failed') return -1;
+  if (stage === 'pending' || stage === 'processing') return 0;
   return stages.findIndex(s => s.key === stage);
 }
 
@@ -47,77 +52,178 @@ export function ProgressStepper({
   currentStage, 
   progress, 
   message, 
-  error 
+  error,
+  isConnected = false,
+  connectionMode = 'polling'
 }: ProgressStepperProps) {
   const currentIndex = getStageIndex(currentStage);
-  const isComplete = currentStage === 'complete';
+  const isComplete = currentStage === 'completed';
+  const isFailed = currentStage === 'failed';
 
   return (
-    <View className="p-6 space-y-6">
+    <View style={{ 
+      padding: Spacing.space6, 
+      gap: Spacing.space6 
+    }}>
+      {/* Connection Status Indicator */}
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.space2,
+        marginBottom: Spacing.space2,
+      }}>
+        <View style={{
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: isConnected 
+            ? connectionMode === 'realtime' 
+              ? Colors.verdictSupported 
+              : Colors.verdictUncertain
+            : Colors.verdictContradicted,
+        }} />
+        <Text style={{
+          color: Colors.coolGrey,
+          fontSize: Typography.textXs,
+          fontWeight: Typography.fontWeightMedium,
+        }}>
+          {isConnected 
+            ? connectionMode === 'realtime' 
+              ? 'Live updates' 
+              : 'Polling updates'
+            : 'Offline'
+          }
+        </Text>
+      </View>
+
       {/* Overall Progress */}
-      <View className="space-y-2">
-        <View className="flex-row justify-between">
-          <Text className="text-lightGrey font-medium">
-            {error ? 'Processing failed' : isComplete ? 'Complete!' : 'Processing...'}
+      <View style={{ gap: Spacing.space2 }}>
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <Text style={{
+            color: Colors.lightGrey,
+            fontSize: Typography.textBase,
+            fontWeight: Typography.fontWeightMedium,
+          }}>
+            {error || isFailed 
+              ? 'Processing failed' 
+              : isComplete 
+                ? 'Complete!' 
+                : 'Processing...'}
           </Text>
-          <Text className="text-coolGrey">{progress}%</Text>
+          <Text style={{
+            color: Colors.coolGrey,
+            fontSize: Typography.textBase,
+          }}>
+            {progress}%
+          </Text>
         </View>
         
         {/* Progress Bar */}
-        <View className="h-3 bg-deepPurpleGrey rounded-full overflow-hidden">
-          <View 
-            className="h-full bg-lightGrey transition-all"
-            style={{ width: `${progress}%` }}
-          />
+        <View style={{
+          height: 12,
+          backgroundColor: Colors.deepPurpleGrey,
+          borderRadius: BorderRadius.radiusFull,
+          overflow: 'hidden',
+        }}>
+          <View style={{
+            height: '100%',
+            width: `${progress}%`,
+            backgroundColor: isFailed 
+              ? Colors.verdictContradicted 
+              : isComplete 
+                ? Colors.verdictSupported 
+                : Colors.lightGrey,
+            borderRadius: BorderRadius.radiusFull,
+          }} />
         </View>
         
         {message && (
-          <Text className="text-coolGrey text-sm">{message}</Text>
+          <Text style={{
+            color: Colors.coolGrey,
+            fontSize: Typography.textSm,
+          }}>
+            {message}
+          </Text>
         )}
         {error && (
-          <Text className="text-contradicted text-sm">{error}</Text>
+          <Text style={{
+            color: Colors.verdictContradicted,
+            fontSize: Typography.textSm,
+          }}>
+            {error}
+          </Text>
         )}
       </View>
 
       {/* Stage Steps */}
-      <View className="space-y-4">
+      <View style={{ gap: Spacing.space4 }}>
         {stages.map((stage, index) => {
-          const isCompleted = index < currentIndex;
-          const isCurrent = index === currentIndex && !isComplete;
-          const isPending = index > currentIndex;
+          const isCompleted = index < currentIndex || isComplete;
+          const isCurrent = index === currentIndex && !isComplete && !isFailed;
+          const isPending = index > currentIndex && !isFailed;
+          const isStepFailed = isFailed && index === currentIndex;
 
           return (
             <View
               key={stage.key}
-              className={`flex-row items-start gap-3 p-3 rounded-lg border-2 ${
-                isCurrent
-                  ? 'bg-lightGrey/10 border-lightGrey'
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: Spacing.space3,
+                padding: Spacing.space3,
+                borderRadius: BorderRadius.radiusLg,
+                borderWidth: 2,
+                borderColor: isCurrent
+                  ? Colors.lightGrey
                   : isCompleted
-                  ? 'bg-deepPurpleGrey/50 border-coolGrey'
-                  : 'border-coolGrey/30'
-              }`}
+                    ? Colors.coolGrey
+                    : isStepFailed
+                      ? Colors.verdictContradicted
+                      : Colors.coolGrey + '50',
+                backgroundColor: isCurrent
+                  ? Colors.lightGrey + '20'
+                  : isCompleted
+                    ? Colors.deepPurpleGrey + '80'
+                    : isStepFailed
+                      ? Colors.verdictContradicted + '20'
+                      : 'transparent',
+              }}
             >
-              <View className="mt-0.5">
+              <View style={{ marginTop: 2 }}>
                 {isCompleted ? (
-                  <CheckCircle size={20} color="#ECECEC" />
+                  <CheckCircle size={20} color={Colors.lightGrey} />
                 ) : isCurrent ? (
-                  <Clock size={20} color="#ECECEC" />
+                  <Clock size={20} color={Colors.lightGrey} />
+                ) : isStepFailed ? (
+                  <Circle size={20} color={Colors.verdictContradicted} />
                 ) : (
-                  <Circle size={20} color="#AAABB8" />
+                  <Circle size={20} color={Colors.coolGrey} />
                 )}
               </View>
               
-              <View className="flex-1">
-                <Text className={`font-medium ${
-                  isCurrent 
-                    ? 'text-lightGrey' 
+              <View style={{ flex: 1 }}>
+                <Text style={{
+                  color: isCurrent 
+                    ? Colors.lightGrey
                     : isCompleted 
-                    ? 'text-lightGrey' 
-                    : 'text-coolGrey'
-                }`}>
+                      ? Colors.lightGrey
+                      : isStepFailed
+                        ? Colors.verdictContradicted
+                        : Colors.coolGrey,
+                  fontSize: Typography.textBase,
+                  fontWeight: Typography.fontWeightMedium,
+                }}>
                   {stage.label}
                 </Text>
-                <Text className="text-coolGrey text-sm mt-1">
+                <Text style={{
+                  color: Colors.coolGrey,
+                  fontSize: Typography.textSm,
+                  marginTop: Spacing.space1,
+                }}>
                   {stage.description}
                 </Text>
               </View>
@@ -127,12 +233,63 @@ export function ProgressStepper({
 
         {/* Completion Step */}
         {isComplete && (
-          <View className="flex-row items-start gap-3 p-3 rounded-lg border-2 bg-lightGrey/10 border-lightGrey">
-            <CheckCircle size={20} color="#ECECEC" className="mt-0.5" />
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: Spacing.space3,
+            padding: Spacing.space3,
+            borderRadius: BorderRadius.radiusLg,
+            borderWidth: 2,
+            borderColor: Colors.lightGrey,
+            backgroundColor: Colors.lightGrey + '20',
+          }}>
+            <CheckCircle size={20} color={Colors.lightGrey} style={{ marginTop: 2 }} />
             <View>
-              <Text className="font-medium text-lightGrey">Complete!</Text>
-              <Text className="text-coolGrey text-sm mt-1">
+              <Text style={{
+                color: Colors.lightGrey,
+                fontSize: Typography.textBase,
+                fontWeight: Typography.fontWeightMedium,
+              }}>
+                Complete!
+              </Text>
+              <Text style={{
+                color: Colors.coolGrey,
+                fontSize: Typography.textSm,
+                marginTop: Spacing.space1,
+              }}>
                 Your fact-check results are ready.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Failed Step */}
+        {isFailed && (
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: Spacing.space3,
+            padding: Spacing.space3,
+            borderRadius: BorderRadius.radiusLg,
+            borderWidth: 2,
+            borderColor: Colors.verdictContradicted,
+            backgroundColor: Colors.verdictContradicted + '20',
+          }}>
+            <Circle size={20} color={Colors.verdictContradicted} style={{ marginTop: 2 }} />
+            <View>
+              <Text style={{
+                color: Colors.verdictContradicted,
+                fontSize: Typography.textBase,
+                fontWeight: Typography.fontWeightMedium,
+              }}>
+                Failed
+              </Text>
+              <Text style={{
+                color: Colors.coolGrey,
+                fontSize: Typography.textSm,
+                marginTop: Spacing.space1,
+              }}>
+                {error || 'Processing encountered an error. Please try again.'}
               </Text>
             </View>
           </View>

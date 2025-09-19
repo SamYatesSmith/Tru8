@@ -3,10 +3,11 @@ import asyncio
 from typing import List, Dict, Any, Optional, Tuple
 import hashlib
 import json
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import torch
 from app.core.config import settings
 from app.services.cache import get_cache_service
+
+# Note: transformers and torch imports moved inside functions to prevent
+# 400MB+ memory consumption at startup. They will only load when NLI verification is actually used.
 
 logger = logging.getLogger(__name__)
 
@@ -46,15 +47,15 @@ class NLIVerifier:
     def __init__(self):
         self.model = None
         self.tokenizer = None
-        self.model_name = "microsoft/deberta-v3-base-mnli"  # High-performance NLI model
+        self.model_name = "facebook/bart-large-mnli"  # Well-tested NLI model that actually exists
         self.max_length = 512
         self.batch_size = 8
         self.confidence_threshold = getattr(settings, 'NLI_CONFIDENCE_THRESHOLD', 0.7)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = None  # Will be set when model is loaded
         self._lock = asyncio.Lock()
         self.cache_service = None
         
-        logger.info(f"NLI Verifier initialized with device: {self.device}")
+        logger.info("NLI Verifier initialized (models will be loaded on first use)")
     
     async def initialize(self):
         """Initialize the NLI model and tokenizer"""
@@ -68,14 +69,21 @@ class NLIVerifier:
                         loop = asyncio.get_event_loop()
                         
                         def load_model():
+                            # Import transformers only when actually needed
+                            from transformers import AutoTokenizer, AutoModelForSequenceClassification
+                            import torch
+                            
+                            # Set device here when torch is available
+                            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                            
                             tokenizer = AutoTokenizer.from_pretrained(self.model_name)
                             model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
-                            model.to(self.device)
+                            model.to(device)
                             model.eval()
-                            return tokenizer, model
+                            return tokenizer, model, device
                         
-                        self.tokenizer, self.model = await loop.run_in_executor(None, load_model)
-                        logger.info("NLI model loaded successfully")
+                        self.tokenizer, self.model, self.device = await loop.run_in_executor(None, load_model)
+                        logger.info(f"NLI model loaded successfully on device: {self.device}")
             
             # Initialize cache service
             if self.cache_service is None:
@@ -206,6 +214,9 @@ class NLIVerifier:
     def _run_inference(self, premises: List[str], hypotheses: List[str]) -> List[Tuple[float, float, float]]:
         """Run NLI inference on CPU/GPU"""
         try:
+            # Import torch here to avoid startup overhead
+            import torch
+
             # Tokenize inputs
             inputs = self.tokenizer(
                 premises,
@@ -215,10 +226,10 @@ class NLIVerifier:
                 max_length=self.max_length,
                 return_tensors="pt"
             )
-            
+
             # Move to device
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
-            
+
             # Run inference
             with torch.no_grad():
                 outputs = self.model(**inputs)

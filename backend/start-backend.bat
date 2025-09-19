@@ -18,15 +18,22 @@ if errorlevel 1 (
 
 REM Check if Redis is running
 echo [1/4] Checking Redis connection...
-python -c "import redis; r = redis.Redis(host='localhost', port=6379); r.ping(); print('✓ Redis is running')" 2>nul
-if errorlevel 1 (
-    echo ⚠ Redis not running. You need to start Redis manually:
-    echo   Option 1: Install Redis for Windows
-    echo   Option 2: Use Docker: docker run -d -p 6379:6379 redis:alpine
-    echo   Option 3: Use WSL with Redis
-    echo.
-    echo Press any key to continue anyway ^(some features may not work^)...
-    pause >nul
+python -c "import redis; r = redis.Redis(host='localhost', port=6379, decode_responses=True); r.ping(); print('Redis is running')" 2>nul
+if %errorlevel% == 0 (
+    echo ✓ Redis is running
+) else (
+    echo ⚠ Redis not detected. Checking if Docker container exists...
+    docker ps 2>nul | findstr redis >nul
+    if %errorlevel% == 0 (
+        echo ✓ Redis container found in Docker
+    ) else (
+        echo ⚠ Redis may not be running. If you have issues, ensure Redis is started:
+        echo   Option 1: docker run -d -p 6379:6379 redis:alpine
+        echo   Option 2: docker start redis ^(if container exists^)
+        echo.
+        echo Press any key to continue anyway...
+        pause >nul
+    )
 )
 
 REM Check if virtual environment should be activated
@@ -42,59 +49,57 @@ if exist "venv\Scripts\activate.bat" (
     echo [2/4] No virtual environment found, using system Python
 )
 
-REM Check and install only essential dependencies (avoid scikit-learn)
-echo [3/4] Checking essential dependencies...
-python -c "import celery" 2>nul
-if errorlevel 1 (
-    echo Installing Celery...
-    pip install -q celery redis
-)
-python -c "import uvicorn" 2>nul
-if errorlevel 1 (
-    echo Installing Uvicorn and FastAPI...
-    pip install -q uvicorn fastapi python-multipart
-)
-python -c "import sentry_sdk" 2>nul
-if errorlevel 1 (
-    echo Installing Sentry SDK...
-    pip install -q sentry-sdk
-)
-python -c "import sqlmodel" 2>nul
-if errorlevel 1 (
-    echo Installing SQLModel...
-    pip install -q sqlmodel asyncpg
-)
-python -c "import httpx" 2>nul
-if errorlevel 1 (
-    echo Installing HTTPX...
-    pip install -q httpx
-)
-python -c "import jwt" 2>nul
-if errorlevel 1 (
-    echo Installing PyJWT...
-    pip install -q pyjwt cryptography
-)
-python -c "import prometheus_client" 2>nul
-if errorlevel 1 (
-    echo Installing Prometheus client...
-    pip install -q prometheus-client
-)
-python -c "import aiofiles" 2>nul
-if errorlevel 1 (
-    echo Installing aiofiles...
-    pip install -q aiofiles
-)
-python -c "import alembic" 2>nul
-if errorlevel 1 (
-    echo Installing Alembic...
-    pip install -q alembic
-)
-python -c "import pydantic" 2>nul
-if errorlevel 1 (
-    echo Installing Pydantic...
-    pip install -q pydantic python-dotenv
-)
-echo ✓ Essential dependencies ready
+REM Check and install ALL required dependencies systematically
+echo [3/4] Checking and installing dependencies...
+echo This may take a few moments on first run...
+
+REM Core Web Framework
+python -c "import fastapi" 2>nul || pip install -q fastapi
+python -c "import uvicorn" 2>nul || pip install -q uvicorn
+python -c "import multipart" 2>nul || pip install -q python-multipart
+python -c "import pydantic_settings" 2>nul || pip install -q pydantic-settings
+python -c "import aiofiles" 2>nul || pip install -q aiofiles
+
+REM Database
+python -c "import sqlmodel" 2>nul || pip install -q sqlmodel
+python -c "import asyncpg" 2>nul || pip install -q asyncpg
+python -c "import alembic" 2>nul || pip install -q alembic
+
+REM Task Queue & Cache
+python -c "import celery" 2>nul || pip install -q celery
+python -c "import redis" 2>nul || pip install -q redis
+
+REM Authentication
+python -c "import jwt" 2>nul || pip install -q pyjwt
+python -c "import httpx" 2>nul || pip install -q httpx
+python -c "import cryptography" 2>nul || pip install -q cryptography
+
+REM Payments
+python -c "import stripe" 2>nul || pip install -q stripe
+
+REM Push Notifications
+python -c "import exponent_server_sdk" 2>nul || pip install -q exponent-server-sdk
+
+REM Content Processing
+python -c "import bleach" 2>nul || pip install -q bleach
+python -c "import trafilatura" 2>nul || pip install -q trafilatura
+python -c "import readability" 2>nul || pip install -q readability-lxml
+python -c "import pytesseract" 2>nul || pip install -q pytesseract
+python -c "import youtube_transcript_api" 2>nul || pip install -q youtube-transcript-api
+python -c "import PIL" 2>nul || pip install -q Pillow
+
+REM Vector Search
+python -c "import qdrant_client" 2>nul || pip install -q qdrant-client
+
+REM Monitoring
+python -c "import sentry_sdk" 2>nul || pip install -q sentry-sdk
+python -c "import prometheus_client" 2>nul || pip install -q prometheus-client
+
+REM Note: Skipping ML libraries (sentence-transformers, torch, transformers, scikit-learn)
+REM due to Python 3.13 compatibility issues. Install manually if needed:
+REM pip install sentence-transformers torch transformers scikit-learn
+
+echo ✓ Essential dependencies installed
 
 echo [4/4] Starting services...
 echo.
@@ -111,11 +116,17 @@ echo.
 
 REM Start Celery worker in background (use python -m to ensure it's found)
 echo Starting Celery worker...
-start /b cmd /c "python -m celery -A app.workers worker --loglevel=info --logfile=celery.log 2>&1"
+REM Write logs to temp directory to avoid IDE file watching issues
+set CELERY_LOG=%TEMP%\tru8-celery.log
+REM CRITICAL: Use solo pool for Windows compatibility (prefork has permission issues)
+start /b cmd /c "python -m celery -A app.workers worker --pool=solo --loglevel=info --logfile=%CELERY_LOG% 2>&1"
+echo Celery logs: %CELERY_LOG%
+echo [Memory Safe] Using only 2 Celery workers instead of 32
 
 REM Wait a moment for worker to start
 timeout /t 2 /nobreak >nul
 
 REM Start FastAPI server (use python -m to ensure it's found)
+REM Use --reload-dir to limit file watching scope
 echo Starting FastAPI server...
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn main:app --reload --reload-dir app --host 127.0.0.1 --port 8000

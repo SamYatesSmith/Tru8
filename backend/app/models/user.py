@@ -8,6 +8,13 @@ class User(SQLModel, table=True):
     name: Optional[str] = None
     credits: int = Field(default=3)  # Start with 3 free credits
     total_credits_used: int = Field(default=0)
+    
+    # Push notification settings
+    push_token: Optional[str] = None
+    push_notifications_enabled: bool = Field(default=True)
+    platform: Optional[str] = None  # 'ios' or 'android'
+    device_id: Optional[str] = None
+    
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     
