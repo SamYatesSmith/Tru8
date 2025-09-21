@@ -75,28 +75,31 @@ async def update_check_status(check_id: str, status: str, error_message: str = N
     except Exception as e:
         logger.error(f"Failed to update check status: {e}")
 
-async def save_check_results(check_id: str, results: Dict[str, Any]):
-    """Save pipeline results to database"""
+def save_check_results_sync(check_id: str, results: Dict[str, Any]):
+    """Save pipeline results to database (synchronous for Celery)"""
     try:
-        from app.core.database import async_session
+        from app.core.database import sync_session
         from app.models import Check, Claim, Evidence
         from sqlalchemy import select
-        
-        async with async_session() as session:
+
+        with sync_session() as session:
             # Update check
             stmt = select(Check).where(Check.id == check_id)
-            result = await session.execute(stmt)
+            result = session.execute(stmt)
             check = result.scalar_one_or_none()
-            
+
             if not check:
+                logger.error(f"Check {check_id} not found in database")
                 return
-                
+
             check.status = "completed"
             check.completed_at = datetime.utcnow()
             check.processing_time_ms = results.get("processing_time_ms", 0)
-            
+
             # Save claims and evidence
             claims_data = results.get("claims", [])
+            logger.info(f"Saving {len(claims_data)} claims for check {check_id}")
+
             for claim_data in claims_data:
                 # Create claim
                 claim = Claim(
@@ -108,10 +111,13 @@ async def save_check_results(check_id: str, results: Dict[str, Any]):
                     position=claim_data.get("position", 0)
                 )
                 session.add(claim)
-                await session.flush()  # Get claim ID
-                
+                session.flush()  # Get claim ID
+                logger.info(f"Saved claim {claim.id}: {claim.text[:50]}...")
+
                 # Create evidence
                 evidence_list = claim_data.get("evidence", [])
+                logger.info(f"Saving {len(evidence_list)} evidence items for claim {claim.id}")
+
                 for ev_data in evidence_list:
                     evidence = Evidence(
                         claim_id=claim.id,
@@ -123,26 +129,19 @@ async def save_check_results(check_id: str, results: Dict[str, Any]):
                         relevance_score=ev_data.get("relevance_score", 0.0)
                     )
                     session.add(evidence)
-            
-            await session.commit()
-            logger.info(f"Saved results for check {check_id}")
-            
-            # Send completion notification
-            claims_count = len(claims_data)
-            try:
-                if push_notification_service is not None:
-                    await push_notification_service.send_check_completed_notification(
-                        user_id=check.user_id,
-                        check_id=check_id,
-                        claims_count=claims_count
-                    )
-                else:
-                    logger.warning("Push notification service is None, skipping notification")
-            except Exception as notify_error:
-                logger.error(f"Failed to send completion notification: {notify_error}")
-            
+
+            session.commit()
+            logger.info(f"Successfully saved results for check {check_id} with {len(claims_data)} claims")
+
     except Exception as e:
         logger.error(f"Failed to save check results: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+
+# Keep async version for compatibility
+async def save_check_results(check_id: str, results: Dict[str, Any]):
+    """Save pipeline results to database (async version for compatibility)"""
+    return save_check_results_sync(check_id, results)
 
 @celery_app.task(base=PipelineTask, bind=True, max_retries=2, default_retry_delay=60)
 def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -172,9 +171,12 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         stage_start = datetime.utcnow()
         
         try:
+            logger.info(f"Ingesting content for check {check_id}, input_type: {input_data.get('input_type')}")
+            logger.info(f"Input content length: {len(input_data.get('content', ''))}")
             content = asyncio.run(ingest_content_async(input_data))
             if not content.get("success"):
                 raise Exception(f"Ingest failed: {content.get('error', 'Unknown error')}")
+            logger.info(f"Ingested content length: {len(content.get('content', ''))}")
         except Exception as e:
             logger.error(f"Ingest stage failed: {e}")
             if self.request.retries < self.max_retries:
@@ -188,18 +190,24 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         stage_start = datetime.utcnow()
         
         try:
+            extract_content = content.get("content", "")
+            logger.info(f"Extracting claims from content of length: {len(extract_content)}")
+            logger.info(f"First 100 chars of content: {extract_content[:100]}")
             claims = asyncio.run(extract_claims_with_cache(
-                content.get("content", ""), 
+                extract_content,
                 content.get("metadata", {}),
                 cache_service
             ))
+            logger.info(f"Extracted {len(claims)} claims")
             if not claims:
                 raise Exception("No claims extracted from content")
         except Exception as e:
             logger.error(f"Extract stage failed: {e}")
             # Try fallback extraction
-            claims = extract_claims_fallback(content.get("content", ""))
+            claims = extract_claims_fallback(extract_content)
+            logger.info(f"Fallback extraction returned {len(claims)} claims")
             if not claims:
+                logger.error(f"Both primary and fallback extraction failed for content: {extract_content[:200]}")
                 raise Exception(f"Extract stage failed completely: {e}")
         
         stage_timings["extract"] = (datetime.utcnow() - stage_start).total_seconds()
@@ -287,30 +295,13 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         # Cache the complete pipeline result
         asyncio.run(cache_service.cache_pipeline_result(check_id, final_result))
 
-        # Save results to database directly in the main process
+        # Save all results to database (claims, evidence, and check status)
         try:
-            asyncio.run(update_check_status(check_id, "completed"))
-            # Also update processing time if available
-            if final_result.get("processing_time_ms"):
-                from app.core.database import async_session
-                from app.models import Check
-                from sqlalchemy import select
-
-                async def update_processing_time():
-                    async with async_session() as session:
-                        stmt = select(Check).where(Check.id == check_id)
-                        result = await session.execute(stmt)
-                        check = result.scalar_one_or_none()
-                        if check:
-                            check.processing_time_ms = final_result.get("processing_time_ms", 0)
-                            check.completed_at = datetime.utcnow()
-                            session.add(check)
-                            await session.commit()
-                            logger.info(f"Updated check {check_id} processing time and completion time")
-
-                asyncio.run(update_processing_time())
+            save_check_results_sync(check_id, final_result)
         except Exception as db_error:
-            logger.error(f"Failed to update database for check {check_id}: {db_error}")
+            logger.error(f"Failed to save check results to database for check {check_id}: {db_error}")
+            import traceback
+            logger.error(f"Full database error traceback: {traceback.format_exc()}")
 
         return final_result
         
@@ -557,24 +548,27 @@ def retrieve_evidence(claims: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, 
     
     return evidence
 
-def verify_claims(claims: List[Dict[str, Any]], evidence: Dict) -> List[Dict[str, Any]]:
+def verify_claims(claims: List[Dict[str, Any]], evidence: Dict) -> Dict[str, List[Dict[str, Any]]]:
     """Mock NLI verification - Week 3 implementation"""
     verdicts = ["supported", "contradicted", "uncertain"]
-    verifications = []
-    
+    verifications = {}
+
     for i, claim in enumerate(claims):
         # Mock realistic confidence based on content
         confidence = 85.0 + (i * 3.0) % 30  # Vary confidence
         verdict = verdicts[i % len(verdicts)]
-        
-        verifications.append({
+
+        position = str(claim.get("position", i))
+        verifications[position] = [{
             "verdict": verdict,
-            "confidence": confidence
-        })
-    
+            "confidence": confidence,
+            "evidence_id": f"mock_evidence_{i}",
+            "similarity_score": 0.8 + (i * 0.02) % 0.2
+        }]
+
     return verifications
 
-def judge_claims(claims: List[Dict[str, Any]], verifications: List[Dict], 
+def judge_claims(claims: List[Dict[str, Any]], verifications: Dict[str, List[Dict[str, Any]]],
                 evidence: Dict) -> List[Dict[str, Any]]:
     """Mock judge stage - Week 4 implementation"""
     rationales = {
@@ -584,17 +578,27 @@ def judge_claims(claims: List[Dict[str, Any]], verifications: List[Dict],
     }
     
     results = []
-    for i, claim in enumerate(claims):
-        verdict = verifications[i]["verdict"]
-        confidence = verifications[i]["confidence"]
-        
+    for claim in claims:
+        position = str(claim.get("position", 0))
+        claim_verifications = verifications.get(position, [])
+
+        if claim_verifications:
+            # Use the first verification result
+            verification = claim_verifications[0]
+            verdict = verification["verdict"]
+            confidence = verification["confidence"]
+        else:
+            # Fallback for claims without verification
+            verdict = "uncertain"
+            confidence = 0.0
+
         results.append({
             "text": claim["text"],
             "verdict": verdict,
             "confidence": confidence,
             "rationale": rationales.get(verdict, "Assessment based on available evidence."),
-            "evidence": evidence.get(str(i), [])[:3],  # Top 3 sources
-            "position": claim["position"],
+            "evidence": evidence.get(position, [])[:3],  # Top 3 sources
+            "position": claim.get("position", 0),
         })
     
     return results

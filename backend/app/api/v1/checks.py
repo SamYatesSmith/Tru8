@@ -15,7 +15,8 @@ import uuid
 import json
 import asyncio
 import logging
-import redis.asyncio as redis
+import redis.asyncio as aioredis
+import redis
 from app.core.config import settings
 import os
 import aiofiles
@@ -181,6 +182,10 @@ async def create_check(
         logger.info(f"Task dispatched successfully: {task.id} for check {check.id}")
         logger.info(f"Task state immediately after dispatch: {task.state}")
 
+        # Store task ID mapping in Redis for progress tracking
+        r.set(f"check-task:{check.id}", task.id, ex=300)  # Expire after 5 minutes
+        logger.info(f"Stored task mapping check-task:{check.id} -> {task.id}")
+
         # Verify task is in Redis queue
         queue_length = r.llen("celery")
         logger.info(f"Queue length after dispatch: {queue_length}")
@@ -337,8 +342,9 @@ async def stream_check_progress(
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
     
-    async def event_stream():
+    def event_stream():
         """Generate SSE events for pipeline progress"""
+        import time
         redis_client = None
         try:
             # Connect to Redis for Celery task updates
@@ -363,23 +369,25 @@ async def stream_check_progress(
             
             while timeout_counter < max_timeout:
                 try:
-                    # Get task status from Celery
-                    task_id = None
-                    
-                    # Find task ID by scanning Redis keys (fallback method)
-                    keys = await redis_client.keys(task_key_pattern)
-                    for key in keys:
-                        try:
-                            task_data = await redis_client.get(key)
-                            if task_data:
-                                task_info = json.loads(task_data)
-                                # Check if this task relates to our check
-                                if isinstance(task_info, dict) and 'args' in str(task_info):
-                                    if check_id in str(task_info):
-                                        task_id = key.replace("celery-task-meta-", "")
-                                        break
-                        except (json.JSONDecodeError, Exception):
-                            continue
+                    # Get task ID from Redis mapping
+                    task_id = redis_client.get(f"check-task:{check_id}")
+
+                    if not task_id:
+                        # Fallback: Find task ID by scanning Redis keys
+                        keys = redis_client.keys(task_key_pattern)
+                        for key in keys:
+                            try:
+                                task_data = redis_client.get(key)
+                                if task_data:
+                                    task_info = json.loads(task_data)
+                                    # Check if this task relates to our check
+                                    if isinstance(task_info, dict) and 'kwargs' in task_info:
+                                        kwargs = task_info.get('kwargs', {})
+                                        if kwargs.get('check_id') == check_id:
+                                            task_id = key.replace("celery-task-meta-", "")
+                                            break
+                            except (json.JSONDecodeError, Exception):
+                                continue
                     
                     if task_id:
                         # Get task result
@@ -418,32 +426,14 @@ async def stream_check_progress(
                             yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error_message})}\n\n"
                             break
                     
-                    # Check database for status updates
-                    try:
-                        from app.core.database import async_session
-                        async with async_session() as db_session:
-                            stmt = select(Check).where(Check.id == check_id)
-                            result = await db_session.execute(stmt)
-                            updated_check = result.scalar_one_or_none()
-                            
-                            if updated_check:
-                                if updated_check.status == "completed":
-                                    yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100, 'message': 'Fact-check completed successfully'})}\n\n"
-                                    break
-                                elif updated_check.status == "failed":
-                                    yield f"data: {json.dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': updated_check.error_message or 'Processing failed'})}\n\n"
-                                    break
-                                elif updated_check.status == "processing":
-                                    # Update local check status to track progress
-                                    check.status = "processing"
-                    except Exception as db_error:
-                        logger.warning(f"Database check failed in SSE: {db_error}")
+                    # Skip database status check - rely on Celery task status
+                    # Database updates are handled by the pipeline itself
                     
                     # Send heartbeat
                     if timeout_counter % 10 == 0:  # Every 10 seconds
                         yield f"data: {safe_json_dumps({'type': 'heartbeat', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
                     
-                    await asyncio.sleep(1)
+                    time.sleep(1)
                     timeout_counter += 1
                     
                 except Exception as e:
@@ -460,7 +450,7 @@ async def stream_check_progress(
             yield f"data: {json.dumps({'type': 'error', 'error': 'Stream connection failed'})}\n\n"
         finally:
             if redis_client:
-                await redis_client.aclose()
+                redis_client.close()
     
     return StreamingResponse(
         event_stream(),

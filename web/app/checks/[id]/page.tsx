@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/main-layout";
 import { ClaimCard } from "@/components/check/claim-card";
 import { VerdictPill } from "@/components/check/verdict-pill";
@@ -16,14 +16,16 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Clock, Calendar, Link as LinkIcon, FileText, Image, Video } from "lucide-react";
 import Link from "next/link";
 import { getCheck } from "@/lib/api";
+import { useCheckProgress } from "@/hooks/use-check-progress";
 import type { Check } from "@shared/types";
 
 export default function CheckResultsPage() {
   const params = useParams();
   const { getToken } = useAuth();
+  const queryClient = useQueryClient();
   const checkId = params.id as string;
 
-  const { data: check, isLoading, error } = useQuery({
+  const { data: check, isLoading, error, refetch } = useQuery({
     queryKey: ["check", checkId],
     queryFn: async () => {
       const token = await getToken();
@@ -31,6 +33,18 @@ export default function CheckResultsPage() {
     },
     enabled: !!checkId,
   });
+
+  // Track progress and refetch when completed
+  const progress = useCheckProgress(checkId);
+
+  // Refetch check data when SSE indicates completion
+  useEffect(() => {
+    if (progress.isComplete && !progress.error) {
+      // Invalidate and refetch the check query to get updated data
+      queryClient.invalidateQueries({ queryKey: ["check", checkId] });
+      refetch();
+    }
+  }, [progress.isComplete, progress.error, queryClient, checkId, refetch]);
 
   const getInputTypeIcon = (inputType: string) => {
     switch (inputType) {
@@ -86,6 +100,39 @@ export default function CheckResultsPage() {
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>
             <div className="h-64 bg-gray-200 rounded"></div>
             <div className="h-48 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Show progress if check is still processing
+  if (check && check.status === 'pending' && !progress.isComplete) {
+    return (
+      <MainLayout>
+        <div className="container py-8">
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Processing Fact-Check</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <ConfidenceBar
+                    confidence={progress.progress}
+                    verdict="uncertain"
+                    size="lg"
+                    className="mb-4"
+                  />
+                  <div className="text-center">
+                    <p className="text-gray-600 mb-2">{progress.message || 'Processing...'}</p>
+                    <p className="text-sm text-gray-500">
+                      Stage: {progress.stage} ({progress.progress}%)
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </MainLayout>
