@@ -188,8 +188,8 @@ This master plan outlines the systematic transformation of Tru8's UI using a **d
 ### Enhanced CSS Variables
 ```css
 /* New gradient system */
---gradient-text-primary: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%);
---gradient-text-hero: linear-gradient(135deg, #1E40AF 0%, #7C3AED 50%, #EC4899 100%);
+--gradient-text-primary: linear-gradient(135deg, var(--berkeley-blue) 0%, #1E3A5F 100%);
+--gradient-text-hero: linear-gradient(135deg, var(--berkeley-blue) 0%, #1E3A5F 50%, #F2B718 100%);
 
 /* Glass morphism system */
 --glass-bg: rgba(255, 255, 255, 0.1);
