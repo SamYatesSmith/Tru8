@@ -481,29 +481,40 @@
 
   /* ===== ACCESSIBILITY ENHANCEMENTS ===== */
 
-  /* Reduced motion preferences */
+  /* Reduced motion preferences - Phase 02 & 03 consolidated */
   @media (prefers-reduced-motion: reduce) {
-
-    .btn-primary:hover,
-    .btn-primary.enhanced:hover {
-      transform: none;
-    }
-
+    /* Disable all animations globally */
     * {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+
+    /* Remove transforms that cause motion */
+    .btn-primary:hover,
+    .btn-primary.enhanced:hover,
+    .card:hover {
+      transform: none !important;
+    }
+
+    /* Keep functional visibility changes */
+    .navbar-secondary-pill {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) scale(1);
+    }
   }
 
-  /* High contrast mode support */
+  /* High contrast mode support - Phase 02 & 03 consolidated */
   @media (prefers-contrast: high) {
+    /* Glass effects fallback */
     .glass-enhanced {
       background: var(--white) !important;
       backdrop-filter: none !important;
       border: 2px solid var(--gray-900) !important;
     }
 
+    /* Gradient text fallbacks */
     .gradient-text-hero,
     .gradient-text-primary {
       background: none !important;
@@ -511,8 +522,98 @@
       color: var(--berkeley-blue) !important;
     }
 
+    /* Button and enhanced element overrides */
     .btn-primary.enhanced {
       background: var(--berkeley-blue) !important;
     }
+
+    /* Enhanced hover and focus states */
+    .card:hover {
+      border: 3px solid var(--gray-900) !important;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .btn-primary:focus,
+    .btn-secondary:focus {
+      outline: 4px solid var(--gray-900) !important;
+      outline-offset: 2px;
+    }
   }
+
+  /* ===== PHASE 03: ACCESSIBILITY COMPLIANCE ===== */
+
+  /* Skip links for keyboard navigation */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--tru8-primary);
+    color: white;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    z-index: 100;
+    font-weight: 600;
+    font-size: var(--text-sm);
+    transition: top 0.2s ease;
+  }
+
+  .skip-link:focus {
+    top: 6px;
+    outline: 3px solid var(--white);
+    outline-offset: 2px;
+  }
+
+  /* Enhanced focus states for all interactive elements */
+  .btn-primary:focus,
+  .btn-secondary:focus,
+  .navbar-secondary-item:focus,
+  .navbar-brand-link:focus,
+  .card:focus-within {
+    outline: 3px solid var(--tru8-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-md);
+  }
+
+  /* Focus visible only when using keyboard */
+  .btn-primary:focus:not(:focus-visible),
+  .btn-secondary:focus:not(:focus-visible),
+  .navbar-secondary-item:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Enhanced hover states that don't rely solely on color */
+  .card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-color: var(--tru8-primary);
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+  }
+
+  /* Touch targets minimum 44px */
+  .btn-primary,
+  .btn-secondary,
+  .navbar-secondary-item,
+  .navbar-brand-link {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+
 }
