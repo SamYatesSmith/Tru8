@@ -46,9 +46,8 @@ export function IdleTimeoutModal({
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent 
-        className="sm:max-w-[425px]" 
-        hideCloseButton
+      <DialogContent
+        className="sm:max-w-[425px] [&>button]:hidden"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >

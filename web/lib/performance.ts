@@ -1,6 +1,6 @@
 'use client';
 
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
+import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
 
 /**
  * Sends Core Web Vitals metrics to analytics provider
@@ -27,15 +27,15 @@ function sendToAnalytics(metric: any) {
 
 /**
  * Initialize Core Web Vitals monitoring
- * Tracks: CLS, FID, FCP, LCP, TTFB
+ * Tracks: CLS, INP (replaced FID), FCP, LCP, TTFB
  */
 export function initPerformanceMonitoring() {
   if (typeof window !== 'undefined') {
-    getCLS(sendToAnalytics);
-    getFID(sendToAnalytics);
-    getFCP(sendToAnalytics);
-    getLCP(sendToAnalytics);
-    getTTFB(sendToAnalytics);
+    onCLS(sendToAnalytics);
+    onINP(sendToAnalytics);  // INP replaces FID in Web Vitals v5
+    onFCP(sendToAnalytics);
+    onLCP(sendToAnalytics);
+    onTTFB(sendToAnalytics);
   }
 }
 
@@ -46,7 +46,7 @@ export function initPerformanceMonitoring() {
 export function checkPerformanceBudget(metric: any) {
   const budgets = {
     LCP: 2500,    // 2.5s
-    FID: 100,     // 100ms
+    INP: 200,     // 200ms (INP replaces FID)
     CLS: 0.1,     // 0.1
     FCP: 1800,    // 1.8s
     TTFB: 800,    // 800ms

@@ -3,14 +3,17 @@ import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { MainLayout } from "@/components/layout/main-layout";
 import { CheckCircle, Clock, Search, Shield, Zap, Globe } from "lucide-react";
+// Phase 01: Performance & SEO Foundation - Enhanced metadata for homepage
 import { homeMetadata } from "./metadata";
 import { MarketingStructuredData, OrganizationStructuredData, FAQStructuredData } from "@/components/seo/structured-data";
 
+// PHASE 01: Enhanced SEO metadata with Open Graph, Twitter Cards, and robots
 export const metadata = homeMetadata;
 
 export default function HomePage() {
   return (
     <>
+      {/* PHASE 01: Schema.org structured data for enhanced search visibility */}
       <MarketingStructuredData />
       <OrganizationStructuredData />
       <FAQStructuredData />

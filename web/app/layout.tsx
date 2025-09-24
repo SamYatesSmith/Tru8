@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { PerformanceProvider } from "@/components/providers/performance-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -11,8 +12,13 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// LEGACY: Basic fallback metadata for non-homepage pages
+// NOTE: Homepage uses enhanced Phase 01 metadata from ./metadata.ts
 export const metadata: Metadata = {
-  title: "Tru8 - Instant Fact Checking",
+  title: {
+    default: "Tru8 - Professional Fact-Checking Platform",
+    template: "%s | Tru8"
+  },
   description: "Get instant, explainable fact checks with sources and dates",
   keywords: ["fact check", "verification", "truth", "misinformation"],
 };
@@ -34,10 +40,14 @@ export default function RootLayout({
           >
             <QueryProvider>
               <SessionProvider>
-                {children}
-                <Toaster />
-                <Analytics />
-                <SpeedInsights />
+                {/* PHASE 01: Performance monitoring and analytics */}
+                <PerformanceProvider>
+                  {children}
+                  <Toaster />
+                  {/* PHASE 01: Vercel Analytics & Speed Insights */}
+                  <Analytics />
+                  <SpeedInsights />
+                </PerformanceProvider>
               </SessionProvider>
             </QueryProvider>
           </ThemeProvider>
