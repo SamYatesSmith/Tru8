@@ -3,10 +3,18 @@ import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { MainLayout } from "@/components/layout/main-layout";
 import { CheckCircle, Clock, Search, Shield, Zap, Globe } from "lucide-react";
+import { homeMetadata } from "./metadata";
+import { MarketingStructuredData, OrganizationStructuredData, FAQStructuredData } from "@/components/seo/structured-data";
+
+export const metadata = homeMetadata;
 
 export default function HomePage() {
   return (
-    <MainLayout>
+    <>
+      <MarketingStructuredData />
+      <OrganizationStructuredData />
+      <FAQStructuredData />
+      <MainLayout>
       {/* Hero Section */}
       <section className="hero-section">
         <div className="container">
@@ -169,6 +177,7 @@ export default function HomePage() {
           </div>
         </section>
       </SignedOut>
-    </MainLayout>
+      </MainLayout>
+    </>
   );
 }

@@ -5,6 +5,8 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,21 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          colorPrimary: "#1E40AF",    // Tru8 primary blue
-          colorBackground: "#FFFFFF", // Clean white background
-          colorText: "#1F2937",       // Gray-800 for text
-          borderRadius: "0.5rem",     // 8px border radius (design system)
-        },
-        elements: {
-          card: "shadow-lg border border-gray-200",
-          headerTitle: "text-gray-900 font-bold",
-          headerSubtitle: "text-gray-600",
-        }
-      }}
-    >
+    <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
           <ThemeProvider
@@ -48,6 +36,8 @@ export default function RootLayout({
               <SessionProvider>
                 {children}
                 <Toaster />
+                <Analytics />
+                <SpeedInsights />
               </SessionProvider>
             </QueryProvider>
           </ThemeProvider>
