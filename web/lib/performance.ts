@@ -3,8 +3,9 @@
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
 
 /**
- * Sends Core Web Vitals metrics to analytics provider
+ * Sends Core Web Vitals metrics to analytics providers
  * Phase 01: Performance & SEO Foundation
+ * Phase 04: PostHog Integration
  */
 function sendToAnalytics(metric: any) {
   // Send to Google Analytics if available
@@ -13,6 +14,14 @@ function sendToAnalytics(metric: any) {
       value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
       event_label: metric.id,
       non_interaction: true,
+    });
+  }
+
+  // PHASE 04: Send to PostHog analytics (only if initialized/consented)
+  if (typeof window !== 'undefined') {
+    import('@/lib/analytics').then(({ analytics }) => {
+      // Only track if analytics is initialized (user consented)
+      analytics.trackPerformance(metric);
     });
   }
 

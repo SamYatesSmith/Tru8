@@ -93,22 +93,25 @@ web/
 
 ---
 
-### Phase 4: Gleam Effects (04_GLEAM_EFFECTS.md)
+### Phase 04: Marketing Analytics Integration (04_MARKETING_ANALYTICS.md)
 
 #### **Affected Files:**
-1. **web/app/globals.css** (Lines 165-200)
-   - **Current State:** Basic card styles with simple shadows
-   - **Enhance Lines 166-177:** Add glass morphism properties
-   - **New Additions:** Glass system CSS variables, backdrop-filter classes
+1. **web/lib/analytics.ts** (NEW FILE)
+   - **Purpose:** MVP analytics class with PostHog integration
+   - **Features:** 4 core tracking events, basic performance monitoring
 
-2. **web/components/layout/navigation.tsx**
-   - **Current navbar pills:** Apply glass effects to existing pill system
-   - **Performance consideration:** Mobile-specific optimizations needed
+2. **web/hooks/useTracking.ts** (NEW FILE)
+   - **Purpose:** Simple tracking hook for marketing interactions
+   - **Returns:** Track functions for CTA clicks, signup events
 
-#### **Redundancy Issues:**
-- Existing card shadows conflict with glass effects
-- Performance overhead from backdrop-filters on all cards
-- Browser compatibility fallbacks double the CSS
+3. **web/app/layout.tsx**
+   - **Addition:** Simple cookie consent banner
+   - **Integration:** Analytics initialization after consent
+
+#### **Dependencies Created:**
+- Basic analytics foundation for all interactive components
+- Cookie consent infrastructure
+- PostHog integration for user behavior tracking
 
 ---
 

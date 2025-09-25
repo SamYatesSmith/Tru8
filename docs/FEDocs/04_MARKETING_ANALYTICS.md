@@ -1,552 +1,204 @@
-# 04. Marketing Analytics Integration - Conversion Tracking & Optimization
+# 04. Marketing Analytics Integration - MVP Conversion Tracking
 
 ## 🎯 Objective
-Implement comprehensive analytics tracking for the redesigned marketing page to measure conversion performance, user engagement, and design effectiveness. Enable data-driven optimization of the marketing experience through proper event tracking and A/B testing capabilities.
+Implement lean, MVP-focused analytics tracking to measure basic conversion performance and user behavior. Focus on essential metrics needed for launch optimization without over-engineering.
 
 ## 📊 Current State Analysis
 
 ### Existing Analytics Setup
 ```tsx
-// From web/app/layout.tsx - minimal analytics
+// From web/app/layout.tsx - basic Vercel analytics
 import { Analytics } from '@vercel/analytics/react';
 
-// Current implementation:
-<Analytics />
+// From web/lib/performance.ts - gtag foundation ready
+function sendToAnalytics(metric: any) {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', metric.name, { /* metric data */ });
+  }
+}
 ```
 
-### Missing Marketing Analytics
-- Conversion funnel tracking
-- User engagement measurement
-- A/B testing infrastructure
-- Heat mapping capabilities
-- Form abandonment tracking
-- Section-specific analytics
+### MVP Analytics Needs (Keep It Simple)
+- **4 core conversion events** (not 20+)
+- **Single analytics platform** (not 3 platforms)
+- **Basic cookie consent** (not complex GDPR framework)
+- **Performance integration** (build on Phase 01 foundation)
 
-## 🏗️ Implementation Strategy
+## 🏗️ Implementation Strategy (MVP-Focused)
 
-### 1. Comprehensive Event Tracking System
+### 1. Single Analytics Platform (PostHog Recommended)
 
-#### Marketing Events Framework
+#### Why PostHog for MVP:
+- **Free tier:** 1M events/month (generous for startup)
+- **Session recordings:** See actual user behavior
+- **Product analytics:** Better than GA4 for early-stage decisions
+- **Privacy-friendly:** Can be configured without cookie banner
+- **Simple setup:** One package, minimal configuration
+
+#### Minimal Analytics Implementation
 ```tsx
-// Create: web/lib/analytics.ts
+// Create: web/lib/analytics.ts (MVP Version - 30 lines, not 200)
 'use client';
 
-interface MarketingEvent {
-  event: string;
-  category: 'marketing' | 'conversion' | 'engagement' | 'navigation';
-  action: string;
-  label?: string;
-  value?: number;
-  userId?: string;
-  properties?: Record<string, any>;
-}
+import posthog from 'posthog-js';
 
-class MarketingAnalytics {
-  private isInitialized = false;
+class MVPAnalytics {
+  private initialized = false;
 
   initialize() {
-    if (typeof window === 'undefined' || this.isInitialized) return;
+    if (typeof window === 'undefined' || this.initialized) return;
 
-    // Google Analytics 4
-    this.initializeGA4();
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+      person_profiles: 'identified_only', // Privacy-friendly
+      capture_pageview: false, // We'll do manual pageviews
+    });
 
-    // PostHog for event tracking
-    this.initializePostHog();
-
-    // Microsoft Clarity for heat mapping
-    this.initializeClarity();
-
-    this.isInitialized = true;
+    this.initialized = true;
   }
 
-  private initializeGA4() {
-    // GA4 setup with enhanced e-commerce tracking
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('config', process.env.NEXT_PUBLIC_GA4_ID, {
-        page_title: 'Tru8 Marketing',
-        page_location: window.location.href,
-        custom_map: {
-          custom_parameter_1: 'user_type',
-          custom_parameter_2: 'page_section',
-        }
-      });
-    }
-  }
-
-  private initializePostHog() {
-    if (typeof window !== 'undefined') {
-      // PostHog initialization for detailed event tracking
-      const posthog = (window as any).posthog;
-      if (posthog) {
-        posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-          api_host: 'https://app.posthog.com',
-          autocapture: false, // We'll do manual tracking for precision
-          capture_pageview: false, // Custom pageview tracking
-        });
-      }
-    }
-  }
-
-  private initializeClarity() {
-    // Microsoft Clarity for heat mapping and session recordings
-    if (typeof window !== 'undefined') {
-      (function(c: any, l: any, a: any, r: any, i: any, t: any, y: any){
-        c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
-        t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
-        y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-      })(window, document, "clarity", "script", process.env.NEXT_PUBLIC_CLARITY_ID);
-    }
-  }
-
-  // Core tracking methods
-  track(event: MarketingEvent) {
-    if (!this.isInitialized) return;
-
-    // Google Analytics 4
-    this.trackGA4(event);
-
-    // PostHog
-    this.trackPostHog(event);
-
-    // Custom events
-    this.trackCustom(event);
-  }
-
-  private trackGA4(event: MarketingEvent) {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', event.action, {
-        event_category: event.category,
-        event_label: event.label,
-        value: event.value,
-        custom_parameter_1: event.properties?.userType || 'anonymous',
-        custom_parameter_2: event.properties?.section || 'unknown',
-        ...event.properties,
-      });
-    }
-  }
-
-  private trackPostHog(event: MarketingEvent) {
-    if (typeof window !== 'undefined') {
-      const posthog = (window as any).posthog;
-      if (posthog) {
-        posthog.capture(event.event, {
-          category: event.category,
-          action: event.action,
-          label: event.label,
-          value: event.value,
-          ...event.properties,
-        });
-      }
-    }
-  }
-
-  private trackCustom(event: MarketingEvent) {
-    // Custom analytics for internal dashboard
-    fetch('/api/analytics/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event: event.event,
-        timestamp: Date.now(),
-        url: window.location.href,
-        referrer: document.referrer,
-        ...event,
-      }),
-    }).catch(console.error);
-  }
-
-  // Conversion tracking
-  trackConversion(type: 'signup_started' | 'signup_completed' | 'demo_requested', value?: number) {
-    this.track({
-      event: `conversion_${type}`,
-      category: 'conversion',
-      action: type,
-      value,
-      properties: {
-        timestamp: Date.now(),
-        userAgent: navigator.userAgent,
-        viewport: `${window.innerWidth}x${window.innerHeight}`,
-      },
+  // MVP: Only 4 essential events
+  trackPageView(page: string) {
+    if (!this.initialized) return;
+    posthog.capture('page_viewed', {
+      page,
+      referrer: document.referrer,
+      timestamp: Date.now()
     });
   }
 
-  // Engagement tracking
-  trackEngagement(section: string, action: string, duration?: number) {
-    this.track({
-      event: 'engagement',
-      category: 'engagement',
-      action: action,
-      label: section,
-      value: duration,
-      properties: {
-        section,
-        timestamp: Date.now(),
-      },
+  trackCTAClick(location: string, ctaType: 'primary' | 'secondary') {
+    posthog.capture('cta_clicked', { location, ctaType });
+  }
+
+  trackSignupStart() {
+    posthog.capture('signup_started', {
+      source: 'marketing_page',
+      timestamp: Date.now()
     });
   }
 
-  // Navigation tracking
-  trackNavigation(from: string, to: string, method: 'click' | 'scroll' | 'keyboard') {
-    this.track({
-      event: 'navigation',
-      category: 'navigation',
-      action: method,
-      label: `${from}_to_${to}`,
-      properties: {
-        from,
-        to,
-        method,
-      },
+  trackSignupComplete() {
+    posthog.capture('signup_completed', {
+      source: 'marketing_page',
+      timestamp: Date.now()
+    });
+  }
+
+  // Integrate with existing Core Web Vitals (Phase 01)
+  trackPerformance(metric: any) {
+    posthog.capture('performance_metric', {
+      name: metric.name,
+      value: Math.round(metric.value),
+      rating: metric.rating,
     });
   }
 }
 
-export const analytics = new MarketingAnalytics();
+export const analytics = new MVPAnalytics();
 ```
 
-### 2. Section-Specific Tracking Hooks
+### 2. Simple Tracking Hook (MVP Only)
 
-#### Scroll Tracking Hook
+#### Basic Tracking Hook
 ```tsx
-// Create: web/hooks/useScrollTracking.ts
-'use client';
-
-import { useEffect, useRef } from 'react';
-import { analytics } from '@/lib/analytics';
-
-interface ScrollTrackingOptions {
-  sectionId: string;
-  threshold?: number;
-  trackTime?: boolean;
-}
-
-export function useScrollTracking({ sectionId, threshold = 0.5, trackTime = true }: ScrollTrackingOptions) {
-  const ref = useRef<HTMLElement>(null);
-  const startTime = useRef<number>(0);
-  const hasTrackedView = useRef(false);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    const observer = new RalewaysectionObserver(
-      ([entry]) => {
-        if (entry.isRalewaysecting && !hasTrackedView.current) {
-          // Track section view
-          analytics.trackEngagement(sectionId, 'section_viewed');
-          hasTrackedView.current = true;
-
-          if (trackTime) {
-            startTime.current = Date.now();
-          }
-        } else if (!entry.isRalewaysecting && startTime.current > 0 && trackTime) {
-          // Track time spent in section
-          const timeSpent = Date.now() - startTime.current;
-          if (timeSpent > 1000) { // Only track if viewed for more than 1 second
-            analytics.trackEngagement(sectionId, 'time_spent', timeSpent);
-          }
-          startTime.current = 0;
-        }
-      },
-      { threshold }
-    );
-
-    observer.observe(element);
-
-    return () => {
-      if (startTime.current > 0 && trackTime) {
-        const timeSpent = Date.now() - startTime.current;
-        if (timeSpent > 1000) {
-          analytics.trackEngagement(sectionId, 'time_spent', timeSpent);
-        }
-      }
-      observer.disconnect();
-    };
-  }, [sectionId, threshold, trackTime]);
-
-  return ref;
-}
-```
-
-#### Conversion Tracking Hook
-```tsx
-// Create: web/hooks/useConversionTracking.ts
+// Create: web/hooks/useTracking.ts (Simple wrapper)
 'use client';
 
 import { useEffect } from 'react';
 import { analytics } from '@/lib/analytics';
 
-export function useConversionTracking() {
+export function useTracking() {
   useEffect(() => {
-    // Track page load as marketing impression
-    analytics.track({
-      event: 'marketing_page_loaded',
-      category: 'marketing',
-      action: 'page_load',
-      properties: {
-        userAgent: navigator.userAgent,
-        viewport: `${window.innerWidth}x${window.innerHeight}`,
-        referrer: document.referrer,
-        timestamp: Date.now(),
-      },
-    });
+    // Initialize analytics on page load
+    analytics.initialize();
+    analytics.trackPageView('marketing_home');
   }, []);
 
-  const trackCTAClick = (ctaType: 'primary' | 'secondary', location: string) => {
-    analytics.track({
-      event: 'cta_clicked',
-      category: 'conversion',
-      action: `${ctaType}_cta_click`,
-      label: location,
-      properties: {
-        ctaType,
-        location,
-        timestamp: Date.now(),
-      },
-    });
-  };
-
-  const trackFormStart = (formType: 'signup' | 'demo') => {
-    analytics.trackConversion('signup_started');
-    analytics.track({
-      event: 'form_started',
-      category: 'conversion',
-      action: 'form_interaction',
-      label: formType,
-      properties: {
-        formType,
-        timestamp: Date.now(),
-      },
-    });
-  };
-
-  const trackFormComplete = (formType: 'signup' | 'demo') => {
-    analytics.trackConversion('signup_completed', 1);
-    analytics.track({
-      event: 'form_completed',
-      category: 'conversion',
-      action: 'conversion_complete',
-      label: formType,
-      value: 1,
-      properties: {
-        formType,
-        timestamp: Date.now(),
-      },
-    });
-  };
-
   return {
-    trackCTAClick,
-    trackFormStart,
-    trackFormComplete,
+    trackCTA: analytics.trackCTAClick,
+    trackSignupStart: analytics.trackSignupStart,
+    trackSignupComplete: analytics.trackSignupComplete,
   };
 }
 ```
 
-### 3. Enhanced Marketing Components with Tracking
+### 3. Simple Component Integration
 
-#### Tracked CTA Buttons
+#### Add Tracking to Existing Components
 ```tsx
-// Enhanced CTA buttons with conversion tracking
-export function TrackedCTAButton({
-  children,
-  href,
-  ctaType = 'primary',
-  location,
-  ...props
-}: {
-  children: React.ReactNode;
-  href: string;
-  ctaType?: 'primary' | 'secondary';
-  location: string;
-} & React.ComponentProps<typeof Button>) {
-  const { trackCTAClick } = useConversionTracking();
+// Update existing homepage buttons (no new components needed)
+import { useTracking } from '@/hooks/useTracking';
 
-  const handleClick = () => {
-    trackCTAClick(ctaType, location);
-  };
+export default function HomePage() {
+  const { trackCTA, trackSignupStart } = useTracking();
 
   return (
-    <Button
-      {...props}
-      asChild
-      onClick={handleClick}
-      data-analytics-cta={ctaType}
-      data-analytics-location={location}
-    >
-      <Link href={href}>
-        {children}
-      </Link>
-    </Button>
-  );
-}
-```
+    <MainLayout>
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="container">
+          <h1 className="hero-title">Instant Fact-Checking with Dated Evidence</h1>
 
-#### Tracked Feature Section
-```tsx
-// Feature section with engagement tracking
-export function TrackedFeatureSection({ features }: { features: Feature[] }) {
-  const sectionRef = useScrollTracking({
-    sectionId: 'features',
-    threshold: 0.3,
-    trackTime: true
-  });
-
-  const handleFeatureClick = (featureId: string) => {
-    analytics.trackEngagement('features', 'feature_clicked', featureId);
-  };
-
-  return (
-    <section ref={sectionRef} id="features" className="features-section">
-      <div className="container">
-        <h2 className="heading-section gradient-text-primary">
-          Professional Fact-Checking, Simplified
-        </h2>
-
-        <div className="feature-grid">
-          {features.map((feature) => (
-            <div
-              key={feature.id}
-              className="feature-card"
-              onClick={() => handleFeatureClick(feature.id)}
-              data-analytics-feature={feature.id}
-            >
-              <h3 className="feature-title">{feature.title}</h3>
-              <p className="feature-description">{feature.description}</p>
-            </div>
-          ))}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button
+                size="lg"
+                className="btn-primary px-8 py-4 text-lg"
+                onClick={() => {
+                  trackCTA('hero', 'primary');
+                  trackSignupStart();
+                }}
+              >
+                Start Fact-Checking Now
+              </Button>
+            </SignInButton>
+          </SignedOut>
         </div>
-      </div>
-    </section>
+      </section>
+    </MainLayout>
   );
 }
 ```
 
-### 4. A/B Testing Framework
+### 4. Cookie Consent (Simple)
 
-#### A/B Testing Hook
-```tsx
-// Create: web/hooks/useABTest.ts
-'use client';
-
-import { useState, useEffect } from 'react';
-import { analytics } from '@/lib/analytics';
-
-interface ABTestConfig {
-  testName: string;
-  variants: Record<string, any>;
-  defaultVariant: string;
-  trafficSplit?: Record<string, number>; // e.g., { A: 50, B: 50 }
-}
-
-export function useABTest<T = any>(config: ABTestConfig): { variant: string; data: T } {
-  const [assignment, setAssignment] = useState<{ variant: string; data: T }>({
-    variant: config.defaultVariant,
-    data: config.variants[config.defaultVariant],
-  });
-
-  useEffect(() => {
-    // Get or create user ID for consistent assignment
-    let userId = localStorage.getItem('ab_user_id');
-    if (!userId) {
-      userId = `user_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('ab_user_id', userId);
-    }
-
-    // Check for existing assignment
-    const existingAssignment = localStorage.getItem(`ab_${config.testName}`);
-    if (existingAssignment) {
-      const variant = existingAssignment;
-      setAssignment({
-        variant,
-        data: config.variants[variant],
-      });
-      return;
-    }
-
-    // Assign variant based on traffic split
-    const variants = Object.keys(config.trafficSplit || { A: 50, B: 50 });
-    const weights = Object.values(config.trafficSplit || { A: 50, B: 50 });
-
-    const random = Math.random() * 100;
-    let cumulative = 0;
-    let selectedVariant = config.defaultVariant;
-
-    for (let i = 0; i < variants.length; i++) {
-      cumulative += weights[i];
-      if (random <= cumulative) {
-        selectedVariant = variants[i];
-        break;
-      }
-    }
-
-    // Store assignment
-    localStorage.setItem(`ab_${config.testName}`, selectedVariant);
-
-    setAssignment({
-      variant: selectedVariant,
-      data: config.variants[selectedVariant],
-    });
-
-    // Track assignment
-    analytics.track({
-      event: 'ab_test_assigned',
-      category: 'marketing',
-      action: 'test_assignment',
-      label: `${config.testName}_${selectedVariant}`,
-      properties: {
-        testName: config.testName,
-        variant: selectedVariant,
-        userId,
-      },
-    });
-
-  }, [config]);
-
-  return assignment;
-}
+#### Install Cookie Consent Package
+```bash
+npm install react-cookie-consent
 ```
 
-#### A/B Test Implementation Example
+#### Basic Cookie Banner
 ```tsx
-// A/B test different hero headlines
-export function ABTestHeroSection() {
-  const { variant, data } = useABTest({
-    testName: 'hero_headline_test',
-    variants: {
-      A: {
-        headline: "Instant Fact-Checking with Dated Evidence",
-        subtitle: "Get explainable verdicts on claims from articles, images, videos, and text.",
-      },
-      B: {
-        headline: "Professional Fact-Checking in Under 10 Seconds",
-        subtitle: "Verify any claim with transparent sources and publication dates.",
-      },
-    },
-    defaultVariant: 'A',
-    trafficSplit: { A: 50, B: 50 },
-  });
+// Add to web/app/layout.tsx
+import CookieConsent from 'react-cookie-consent';
 
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <section className="hero-section" data-ab-test="hero_headline_test" data-ab-variant={variant}>
-      <div className="container">
-        <h1 className="heading-hero gradient-text-hero">
-          {data.headline}
-        </h1>
-        <p className="hero-subtitle">
-          {data.subtitle}
-        </p>
+    <html>
+      <body>
+        {children}
 
-        <TrackedCTAButton
-          href="/sign-up"
-          ctaType="primary"
-          location="hero"
-          className="btn-primary"
+        <CookieConsent
+          location="bottom"
+          buttonText="Accept"
+          declineButtonText="Decline"
+          enableDeclineButton
+          cookieName="tru8-analytics-consent"
+          style={{ background: "#2B373B" }}
+          buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
+          onAccept={() => {
+            // Initialize analytics only after consent
+            import('@/lib/analytics').then(({ analytics }) => {
+              analytics.initialize();
+            });
+          }}
         >
-          Start Fact-Checking Now
-        </TrackedCTAButton>
-      </div>
-    </section>
+          We use cookies to improve your experience and analyze site usage.{" "}
+          <Link href="/privacy" style={{ fontSize: "10px" }}>Privacy Policy</Link>
+        </CookieConsent>
+      </body>
+    </html>
   );
 }
 ```
