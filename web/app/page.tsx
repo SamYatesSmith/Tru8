@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { MainLayout } from "@/components/layout/main-layout";
-import { CheckCircle, Clock, Search, Shield, Zap, Globe } from "lucide-react";
+import { CheckCircle, Clock, Search, Shield, Zap, Globe, Share2, Code } from "lucide-react";
 // Phase 01: Performance & SEO Foundation - Enhanced metadata for homepage
 import { homeMetadata } from "./metadata";
 import { MarketingStructuredData, OrganizationStructuredData, FAQStructuredData } from "@/components/seo/structured-data";
@@ -41,9 +41,9 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
-              {/* Feature 1 */}
-              <article className="card text-center" role="listitem">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" role="list">
+              {/* Feature 1 - Core */}
+              <article className="card feature-card core text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -59,8 +59,8 @@ export default function HomePage() {
                 </p>
               </article>
 
-              {/* Feature 2 */}
-              <article className="card text-center" role="listitem">
+              {/* Feature 2 - Core */}
+              <article className="card feature-card core text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -76,8 +76,8 @@ export default function HomePage() {
                 </p>
               </article>
 
-              {/* Feature 3 */}
-              <article className="card text-center" role="listitem">
+              {/* Feature 3 - Core */}
+              <article className="card feature-card core text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -93,8 +93,8 @@ export default function HomePage() {
                 </p>
               </article>
 
-              {/* Feature 4 */}
-              <article className="card text-center" role="listitem">
+              {/* Feature 4 - Core */}
+              <article className="card feature-card core text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -110,8 +110,8 @@ export default function HomePage() {
                 </p>
               </article>
 
-              {/* Feature 5 */}
-              <article className="card text-center" role="listitem">
+              {/* Feature 5 - Advanced */}
+              <article className="card feature-card advanced text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -127,8 +127,8 @@ export default function HomePage() {
                 </p>
               </article>
 
-              {/* Feature 6 */}
-              <article className="card text-center" role="listitem">
+              {/* Feature 6 - Advanced */}
+              <article className="card feature-card advanced text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -141,6 +141,40 @@ export default function HomePage() {
                 <p className="text-gray-600">
                   Search across international news sources and databases for
                   comprehensive fact-checking coverage.
+                </p>
+              </article>
+
+              {/* Feature 7 - Advanced */}
+              <article className="card feature-card advanced text-center" role="listitem">
+                <div
+                  className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+                  aria-hidden="true"
+                >
+                  <Share2 className="h-6 w-6 text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Export & Share
+                </h3>
+                <p className="text-gray-600">
+                  Export results in multiple formats and share fact-checks with
+                  colleagues and teams.
+                </p>
+              </article>
+
+              {/* Feature 8 - Advanced */}
+              <article className="card feature-card advanced text-center" role="listitem">
+                <div
+                  className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+                  aria-hidden="true"
+                >
+                  <Code className="h-6 w-6 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  API Integration
+                </h3>
+                <p className="text-gray-600">
+                  Integrate fact-checking capabilities directly into your applications
+                  with our comprehensive API.
                 </p>
               </article>
           </div>

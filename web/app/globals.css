@@ -243,7 +243,42 @@
     border: 1px solid var(--tru8-primary);
     box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.1);
   }
-  
+
+  /* Phase 07: Feature Card Enhancements (extends .card) */
+  .card.feature-card {
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border-color: var(--tru8-primary);
+  }
+
+  /* Feature category distinction */
+  .card.feature-card.core {
+    border-left: 4px solid var(--tru8-primary);
+  }
+
+  .card.feature-card.advanced {
+    border-left: 4px solid var(--gray-300);
+  }
+
+  .card.feature-card.core:hover {
+    box-shadow: 0 20px 40px rgba(30, 64, 175, 0.15);
+  }
+
+  /* Core feature title gradient (Phase 05 integration) */
+  .card.feature-card.core h3 {
+    background: var(--gradient-text-primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
   /* Verdict Pills */
   .verdict-pill {
     display: inline-flex;
@@ -364,7 +399,8 @@
 
     .gradient-text-primary,
     .gradient-text-secondary,
-    .gradient-text-accent {
+    .gradient-text-accent,
+    .card.feature-card.core h3 {
       color: var(--berkeley-blue);
       background: none;
     }
@@ -711,11 +747,12 @@
       border: 2px solid var(--gray-900) !important;
     }
 
-    /* Gradient text fallbacks - Phase 05 extended */
+    /* Gradient text fallbacks - Phase 05 & 07 extended */
     .gradient-text-hero,
     .gradient-text-primary,
     .gradient-text-secondary,
-    .gradient-text-accent {
+    .gradient-text-accent,
+    .card.feature-card.core h3 {
       background: none !important;
       -webkit-text-fill-color: unset !important;
       color: var(--berkeley-blue) !important;
