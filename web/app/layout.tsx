@@ -8,7 +8,8 @@ import { PerformanceProvider } from "@/components/providers/performance-provider
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import CookieConsent from 'react-cookie-consent';
+// TEMPORARILY DISABLED - Package compatibility issue with Next.js 14.2.25
+// import CookieConsent from 'react-cookie-consent';
 import Link from 'next/link';
 import "./globals.css";
 
@@ -53,7 +54,9 @@ export default function RootLayout({
               </SessionProvider>
             </QueryProvider>
 
-            {/* PHASE 04: Cookie Consent Banner */}
+            {/* PHASE 04: Cookie Consent Banner - TEMPORARILY DISABLED */}
+            {/* Package compatibility issue with Next.js 14.2.25 - to be fixed separately */}
+            {/*
             <CookieConsent
               location="bottom"
               buttonText="Accept"
@@ -79,6 +82,7 @@ export default function RootLayout({
                 Contact us for privacy questions
               </span>
             </CookieConsent>
+            */}
           </ThemeProvider>
         </body>
       </html>

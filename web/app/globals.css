@@ -54,17 +54,26 @@
     --gray-100: #F5F5F5;
     --gray-50: var(--cosmic-latte);
     
-    /* Spacing System - 4pt Grid */
+    /* Spacing System - 4pt Grid (Phase 06 Enhanced) */
+    --space-0: 0;
     --space-1: 0.25rem;   /* 4px */
     --space-2: 0.5rem;    /* 8px */
     --space-3: 0.75rem;   /* 12px */
     --space-4: 1rem;      /* 16px */
+    --space-5: 1.25rem;   /* 20px */
     --space-6: 1.5rem;    /* 24px */
+    --space-7: 1.75rem;   /* 28px */
     --space-8: 2rem;      /* 32px */
+    --space-10: 2.5rem;   /* 40px */
     --space-12: 3rem;     /* 48px */
+    --space-14: 3.5rem;   /* 56px */
     --space-16: 4rem;     /* 64px */
+    --space-18: 4.5rem;   /* 72px */
     --space-20: 5rem;     /* 80px */
     --space-24: 6rem;     /* 96px */
+    --space-28: 7rem;     /* 112px */
+    --space-32: 8rem;     /* 128px */
+    --space-36: 9rem;     /* 144px */
     
     /* Border Radius - 4pt Based */
     --radius-sm: 0.25rem;   /* 4px */
@@ -90,6 +99,23 @@
     --container-lg: 1024px;
     --container-xl: 1280px;
     --container-2xl: 1536px;
+
+    /* Phase 06: Semantic Spacing - Section Hierarchy */
+    --section-padding-hero: var(--space-32);
+    --section-padding-primary: var(--space-24);
+    --section-padding-secondary: var(--space-20);
+    --section-padding-tertiary: var(--space-16);
+
+    /* Phase 06: Content Grouping Spaces */
+    --content-group-tight: var(--space-6);
+    --content-group-medium: var(--space-12);
+    --content-group-loose: var(--space-20);
+    --content-group-section: var(--space-32);
+
+    /* Phase 06: Element Spacing */
+    --element-spacing-inline: var(--space-2);
+    --element-spacing-stack: var(--space-4);
+    --element-spacing-section: var(--space-8);
   }
 }
 
@@ -137,7 +163,29 @@
     padding-left: var(--space-6);
     padding-right: var(--space-6);
   }
-  
+
+  /* Phase 06: Enhanced Container Variations */
+  .container-tight {
+    max-width: var(--container-md);
+    margin: 0 auto;
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .container-reading {
+    max-width: 65ch;
+    margin: 0 auto;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+
+  .container-feature {
+    max-width: var(--container-lg);
+    margin: 0 auto;
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+
   /* Button System */
   .btn-primary {
     background: var(--gradient-primary);
@@ -320,6 +368,72 @@
       color: var(--berkeley-blue);
       background: none;
     }
+  }
+
+  /* Phase 06: Section Spacing System */
+  .section-hero {
+    padding-top: var(--section-padding-hero);
+    padding-bottom: var(--section-padding-hero);
+    position: relative;
+  }
+
+  .section-primary {
+    padding-top: var(--section-padding-primary);
+    padding-bottom: var(--section-padding-primary);
+  }
+
+  .section-secondary {
+    padding-top: var(--section-padding-secondary);
+    padding-bottom: var(--section-padding-secondary);
+  }
+
+  .section-tertiary {
+    padding-top: var(--section-padding-tertiary);
+    padding-bottom: var(--section-padding-tertiary);
+  }
+
+  /* Phase 06: Content Grouping Classes */
+  .content-group {
+    margin-bottom: var(--content-group-medium);
+  }
+
+  .content-group-tight {
+    margin-bottom: var(--content-group-tight);
+  }
+
+  .content-group-loose {
+    margin-bottom: var(--content-group-loose);
+  }
+
+  .content-group-section {
+    margin-bottom: var(--content-group-section);
+  }
+
+  /* Automatic child spacing for groups */
+  .content-group > * + * {
+    margin-top: var(--element-spacing-stack);
+  }
+
+  .content-group-tight > * + * {
+    margin-top: var(--element-spacing-inline);
+  }
+
+  .content-group-section > * + * {
+    margin-top: var(--element-spacing-section);
+  }
+
+  /* Related content grouping */
+  .related-content {
+    border-left: 3px solid var(--gray-200);
+    padding-left: var(--space-6);
+    margin-left: var(--space-4);
+  }
+
+  .related-content-primary {
+    border-left-color: var(--tru8-primary);
+    background: rgba(30, 64, 175, 0.02);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
   }
 
   .hero-subtitle {
@@ -513,6 +627,52 @@
 
     .btn-primary.enhanced:hover::before {
       left: 100%;
+    }
+  }
+
+  /* Phase 06: Responsive Spacing Adjustments */
+  @media (max-width: 640px) {
+    :root {
+      --section-padding-hero: var(--space-20);
+      --section-padding-primary: var(--space-16);
+      --section-padding-secondary: var(--space-12);
+      --section-padding-tertiary: var(--space-10);
+      --content-group-medium: var(--space-8);
+      --content-group-loose: var(--space-12);
+    }
+
+    .container,
+    .container-tight,
+    .container-wide,
+    .container-feature {
+      padding-left: var(--space-4);
+      padding-right: var(--space-4);
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 1024px) {
+    :root {
+      --section-padding-hero: var(--space-24);
+      --section-padding-primary: var(--space-20);
+    }
+
+    .container,
+    .container-wide {
+      padding-left: var(--space-6);
+      padding-right: var(--space-6);
+    }
+  }
+
+  /* Wide screen enhancements */
+  @media (min-width: 1536px) {
+    :root {
+      --section-padding-hero: var(--space-36);
+      --section-padding-primary: var(--space-28);
+    }
+
+    .container-feature {
+      padding-left: var(--space-16);
+      padding-right: var(--space-16);
     }
   }
 
