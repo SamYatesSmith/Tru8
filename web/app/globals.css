@@ -26,6 +26,8 @@
     --gradient-card: linear-gradient(145deg, var(--white) 0%, var(--cosmic-latte) 100%);
     --gradient-text-hero: linear-gradient(135deg, var(--berkeley-blue) 0%, var(--xanthous) 100%);
     --gradient-text-primary: linear-gradient(135deg, var(--berkeley-blue) 0%, #2A4A70 100%);
+    --gradient-text-secondary: linear-gradient(135deg, #2A4A70 0%, var(--xanthous) 100%);
+    --gradient-text-accent: linear-gradient(135deg, var(--berkeley-blue) 0%, #1E3A5F 100%);
 
     /* Verdict System - High Contrast */
     --verdict-supported: #059669;
@@ -278,10 +280,45 @@
     color: transparent;
   }
 
+  /* Phase 05: Gradient text classes with shared properties */
+  .gradient-text-primary,
+  .gradient-text-secondary,
+  .gradient-text-accent {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+  }
+
+  .gradient-text-primary {
+    background: var(--gradient-text-primary);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .gradient-text-secondary {
+    background: var(--gradient-text-secondary);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .gradient-text-accent {
+    background: var(--gradient-text-accent);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
   /* Fallback for unsupported browsers */
   @supports not (background-clip: text) {
     .hero-title.gradient {
       color: var(--white);
+    }
+
+    .gradient-text-primary,
+    .gradient-text-secondary,
+    .gradient-text-accent {
+      color: var(--berkeley-blue);
+      background: none;
     }
   }
 
@@ -514,12 +551,20 @@
       border: 2px solid var(--gray-900) !important;
     }
 
-    /* Gradient text fallbacks */
+    /* Gradient text fallbacks - Phase 05 extended */
     .gradient-text-hero,
-    .gradient-text-primary {
+    .gradient-text-primary,
+    .gradient-text-secondary,
+    .gradient-text-accent {
       background: none !important;
       -webkit-text-fill-color: unset !important;
       color: var(--berkeley-blue) !important;
+    }
+
+    .hero-title.gradient {
+      background: none !important;
+      -webkit-text-fill-color: unset !important;
+      color: var(--white) !important;
     }
 
     /* Button and enhanced element overrides */

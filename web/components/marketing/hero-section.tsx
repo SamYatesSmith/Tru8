@@ -18,7 +18,7 @@ export function HeroSection() {
   return (
     <section className="hero-section" aria-labelledby="hero-heading">
       <div className="container">
-        <h1 id="hero-heading" className="hero-title">
+        <h1 id="hero-heading" className="hero-title gradient">
           Instant Fact-Checking with Dated Evidence
         </h1>
         <p className="hero-subtitle">

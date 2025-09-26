@@ -46,16 +46,27 @@ See UI_IMPROVEMENT_PLAN.md section "Code Management & Git Policy" for detailed r
 - **Next Phase Needs:** All components must maintain a11y compliance
 
 ### **Phase 04: Marketing Analytics Integration**
-- **Status:** 🟡 PENDING
-- **Files to Modify:**
-  - `web/lib/analytics.ts` - NEW FILE - MVP analytics class (PostHog only)
-  - `web/hooks/useTracking.ts` - NEW FILE - Simple tracking hook
-  - `web/app/layout.tsx` - Add cookie consent banner
-- **Dependencies Created:**
-  - Basic analytics tracking (4 core events)
-  - Simple cookie consent
-  - PostHog integration foundation
-- **Next Phase Needs:** All interactive components must integrate basic tracking
+- **Status:** ✅ COMPLETED
+- **Files Modified:**
+  - `web/lib/analytics.ts` - NEW FILE - MVP analytics class with error handling
+  - `web/hooks/useTracking.ts` - NEW FILE - Dynamic page tracking hook
+  - `web/components/marketing/hero-section.tsx` - NEW FILE - Analytics-enabled hero component
+  - `web/app/layout.tsx` (lines 56-81) - Added cookie consent banner with PostHog integration
+  - `web/app/page.tsx` (lines 24-25) - Replaced hero with tracking component
+  - `web/lib/performance.ts` (lines 20-25) - Integrated PostHog performance tracking
+- **New Components Created:**
+  - `MVPAnalytics` class - PostHog wrapper with 4 core events + performance tracking
+  - `useTracking()` hook - Simple tracking interface for marketing components
+  - `HeroSection` component - Client component with CTA tracking
+- **Integration Points Established:**
+  - Hook: `useTracking(pageName)` - Available for all marketing components
+  - Analytics: `analytics.trackCTA()`, `analytics.trackSignupStart()` etc.
+  - Performance: Core Web Vitals now sent to PostHog (consent-aware)
+- **Dependencies for Next Phase:**
+  - Analytics foundation ready for gradient engagement tracking
+  - Cookie consent infrastructure in place
+  - PostHog available for all future interactive elements
+- **Testing Status:** TypeScript compilation ✅, Dev server ✅, Build has unrelated issues
 
 ---
 
@@ -65,25 +76,21 @@ See UI_IMPROVEMENT_PLAN.md section "Code Management & Git Policy" for detailed r
 - **Status:** 🟡 PENDING
 - **Depends On:** Phases 01, 02, 03, 04
 - **Files to Modify:**
-  - `web/app/globals.css` (after line 80) - Gradient CSS variables
-  - `web/app/page.tsx` (lines 13-14, 51-52) - Apply gradient classes
+  - `web/app/globals.css` (extend existing gradients ~lines 27-28) - Add missing gradient variants
+  - `web/components/marketing/hero-section.tsx` (line 21) - Apply `.gradient` class to existing `hero-title`
+  - `web/app/page.tsx` (line 35) - Apply gradient classes to features section heading
 - **Integration Requirements:**
   - **Phase 01:** Ensure gradients don't impact performance scores
-  - **Phase 02:** Use `useFeatureDetection()` for gradient support
-  - **Phase 03:** Maintain contrast ratios, high contrast mode fallbacks
-  - **Phase 04:** Track gradient text engagement
-- **Code Connections:**
-  ```tsx
-  // Must integrate with Phase 02's feature detection
-  const { backdropFilter } = useFeatureDetection();
+  - **Phase 02:** Use existing feature detection (browser fallbacks already implemented)
+  - **Phase 03:** Maintain contrast ratios, high contrast mode fallbacks (already exists)
+  - **Phase 04:** Track gradient text engagement with existing analytics
+- **Existing Infrastructure Used:**
+  ```css
+  /* Already exists - will be extended */
+  --gradient-text-hero: linear-gradient(135deg, var(--berkeley-blue) 0%, var(--xanthous) 100%);
+  --gradient-text-primary: linear-gradient(135deg, var(--berkeley-blue) 0%, #2A4A70 100%);
 
-  // Must respect Phase 03's accessibility requirements
-  @media (prefers-contrast: high) {
-    .gradient-text { color: var(--gray-900) !important; }
-  }
-
-  // Must include Phase 04's analytics
-  <h1 className="gradient-text-hero" data-analytics-element="hero-title">
+  .hero-title.gradient { /* Already exists - just needs application */ }
   ```
 
 ### **Phase 06: Spatial Design**

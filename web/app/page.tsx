@@ -32,7 +32,7 @@ export default function HomePage() {
         >
           <div className="container">
             <div className="text-center mb-16">
-              <h2 id="features-heading" className="text-4xl font-bold text-gray-900 mb-4">
+              <h2 id="features-heading" className="text-4xl font-bold mb-4 gradient-text-primary">
                 Professional Fact-Checking, Simplified
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">

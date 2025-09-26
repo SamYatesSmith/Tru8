@@ -9,9 +9,13 @@ Implement bold gradient text treatments inspired by Reflect.app to enhance visua
 
 ## 📊 Current State Analysis
 
-### Existing Typography System (web/app/globals.css)
+### ✅ EXISTING Gradient System (web/app/globals.css)
 ```css
-/* Current heading styles */
+/* ALREADY EXISTS - Gradient text variables */
+--gradient-text-hero: linear-gradient(135deg, var(--berkeley-blue) 0%, var(--xanthous) 100%);
+--gradient-text-primary: linear-gradient(135deg, var(--berkeley-blue) 0%, #2A4A70 100%);
+
+/* ALREADY EXISTS - Typography system */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-weight: 700;
@@ -19,32 +23,41 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
 }
 
-h1 { font-size: var(--text-5xl); }  /* clamp(2.5rem, 5vw, 3rem) */
-h2 { font-size: var(--text-4xl); }  /* clamp(2rem, 4vw, 2.25rem) */
-h3 { font-size: var(--text-3xl); }  /* clamp(1.5rem, 3vw, 1.875rem) */
-
-/* Hero title styling */
+/* ALREADY EXISTS - Hero title with gradient support */
 .hero-title {
+  font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: var(--text-5xl);
   font-weight: 900;
   line-height: 1.1;
   margin-bottom: var(--space-6);
 }
+
+.hero-title.gradient {
+  background: var(--gradient-text-hero);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ALREADY EXISTS - Browser fallback */
+@supports not (background-clip: text) {
+  .hero-title.gradient {
+    color: var(--white);
+  }
+}
 ```
 
-### Current Usage in Homepage (web/app/page.tsx)
+### Current Usage in Components
 ```tsx
-<div className="hero-title">
+// web/components/marketing/hero-section.tsx (line 21)
+<h1 id="hero-heading" className="hero-title">  {/* Ready for .gradient class */}
   Instant Fact-Checking with Dated Evidence
-</div>
+</h1>
 
-<h2 className="text-4xl font-bold text-gray-900 mb-4">
-  Professional Fact-Checking, Simplified
+// web/app/page.tsx (line 35)
+<h2 id="features-heading" className="text-4xl font-bold text-gray-900 mb-4">
+  Professional Fact-Checking, Simplified  {/* Ready for gradient class */}
 </h2>
-
-<h3 className="text-xl font-semibold text-gray-900 mb-2">
-  Lightning Fast
-</h3>
 ```
 
 ## 🎨 Reflect.app Inspiration
@@ -74,54 +87,35 @@ h3 { font-size: var(--text-3xl); }  /* clamp(1.5rem, 3vw, 1.875rem) */
 
 ## 🛠️ Technical Implementation
 
-### 1. Enhanced CSS Variables (web/app/globals.css)
+### 1. EXTEND Existing CSS Variables (web/app/globals.css)
 
-#### Gradient Text System - AUTHORITATIVE SOURCE
+#### Add Missing Gradient Variants (extend around line 28)
 ```css
-/* SINGLE SOURCE OF TRUTH: All gradient definitions originate here */
-:root {
-  /* Gradient text colors */
-  --gradient-text-hero: linear-gradient(135deg, var(--berkeley-blue) 0%, #1E3A5F 50%, #F2B718 100%);
-  --gradient-text-primary: linear-gradient(135deg, var(--berkeley-blue) 0%, #1E3A5F 100%);
-  --gradient-text-secondary: linear-gradient(135deg, #1E3A5F 0%, #F2B718 100%);
-  --gradient-text-accent: linear-gradient(135deg, var(--berkeley-blue) 0%, #F2B718 100%);
+/* EXISTING - Already implemented */
+--gradient-text-hero: linear-gradient(135deg, var(--berkeley-blue) 0%, var(--xanthous) 100%);
+--gradient-text-primary: linear-gradient(135deg, var(--berkeley-blue) 0%, #2A4A70 100%);
 
-  /* Animated gradients */
-  --gradient-text-animated: linear-gradient(270deg, var(--berkeley-blue), #1E3A5F, #F2B718, #1E3A5F, var(--berkeley-blue));
+/* NEW - Add these missing variants */
+--gradient-text-secondary: linear-gradient(135deg, #2A4A70 0%, var(--xanthous) 100%);
+--gradient-text-accent: linear-gradient(135deg, var(--berkeley-blue) 0%, var(--xanthous) 100%);
 
-  /* Light mode adjustments */
-  --gradient-text-subtle: linear-gradient(135deg, #374151 0%, var(--berkeley-blue) 100%);
-}
+/* OPTIONAL - Advanced effects */
+--gradient-text-animated: linear-gradient(270deg, var(--berkeley-blue), #2A4A70, var(--xanthous), #2A4A70, var(--berkeley-blue));
+--gradient-text-subtle: linear-gradient(135deg, #374151 0%, var(--berkeley-blue) 100%);
 ```
 
-#### Gradient Text Classes
+#### NEW Gradient Classes to Add (extend existing system)
 ```css
-/* Base gradient text class */
-.gradient-text {
-  background: var(--gradient-text-primary);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 100%;
-  display: inline-block;
-}
+/* EXISTING - Already works (.hero-title.gradient) - NO CHANGES NEEDED */
 
-/* Gradient text variations */
-.gradient-text-hero {
-  background: var(--gradient-text-hero);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 900;
-  line-height: 1.1;
-}
-
+/* NEW - Add these classes for other components */
 .gradient-text-primary {
   background: var(--gradient-text-primary);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .gradient-text-secondary {
@@ -130,6 +124,7 @@ h3 { font-size: var(--text-3xl); }  /* clamp(1.5rem, 3vw, 1.875rem) */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .gradient-text-accent {
@@ -138,9 +133,10 @@ h3 { font-size: var(--text-3xl); }  /* clamp(1.5rem, 3vw, 1.875rem) */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 600;
+  line-height: 1.3;
 }
 
-/* Animated gradient text */
+/* OPTIONAL - Advanced animated effect */
 .gradient-text-animated {
   background: var(--gradient-text-animated);
   background-size: 300% 100%;
@@ -156,26 +152,31 @@ h3 { font-size: var(--text-3xl); }  /* clamp(1.5rem, 3vw, 1.875rem) */
 }
 ```
 
-#### Browser Compatibility and Fallbacks
+#### Browser Compatibility and Fallbacks (EXTEND EXISTING)
 ```css
-/* Fallback for browsers without background-clip support */
-.gradient-text {
-  background: var(--gradient-text-primary);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: var(--tru8-primary); /* Fallback color */
-}
-
-/* Feature detection fallback */
+/* EXISTING fallback system - Extend for new classes */
 @supports not (background-clip: text) {
-  .gradient-text,
-  .gradient-text-hero,
+  .hero-title.gradient {
+    color: var(--white);  /* Existing fallback */
+  }
+
+  /* NEW - Add fallbacks for new gradient classes */
   .gradient-text-primary,
   .gradient-text-secondary,
   .gradient-text-accent {
-    color: var(--tru8-primary);
+    color: var(--berkeley-blue);
     background: none;
+  }
+}
+
+/* EXISTING high contrast mode - Extend for new classes */
+@media (prefers-contrast: high) {
+  .gradient-text-primary,
+  .gradient-text-secondary,
+  .gradient-text-accent {
+    background: none !important;
+    -webkit-text-fill-color: unset !important;
+    color: var(--berkeley-blue) !important;
   }
 }
 ```
@@ -216,58 +217,61 @@ h3 { font-size: var(--text-3xl); }  /* clamp(1.5rem, 3vw, 1.875rem) */
 }
 ```
 
-### 3. Component Integration
+### 3. Component Integration (Apply to Existing Components)
 
-#### Homepage Updates (web/app/page.tsx)
+#### Hero Section Update (web/components/marketing/hero-section.tsx)
 ```tsx
-export default function HomePage() {
+// SIMPLE CHANGE: Add .gradient class to existing hero-title
+export function HeroSection() {
+  const { trackCTA, trackSignupStart } = useTracking();
+
   return (
-    <MainLayout>
-      {/* Hero Section - Maximum Impact */}
-      <section className="hero-section">
-        <div className="container">
-          <h1 className="heading-hero gradient-text-hero">
-            Instant Fact-Checking with Dated Evidence
-          </h1>
-          <p className="hero-subtitle">
-            Get explainable verdicts on claims from articles, images, videos, and text.
-            Professional-grade verification in seconds.
-          </p>
-        </div>
-      </section>
-
-      {/* Features Section - Primary Emphasis */}
-      <section className="py-24 bg-white">
-        <div className="container">
-          <h2 className="heading-section gradient-text-primary text-center mb-16">
-            Professional Fact-Checking, Simplified
-          </h2>
-
-          {/* Feature cards with accent gradients */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map(feature => (
-              <div key={feature.id} className="card text-center">
-                <h3 className="heading-subsection gradient-text-accent mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works - Secondary Gradient */}
-      <section className="py-24 bg-gray-50">
-        <div className="container">
-          <h2 className="heading-section gradient-text-secondary text-center mb-16">
-            How Tru8 Works
-          </h2>
-        </div>
-      </section>
-    </MainLayout>
+    <section className="hero-section" aria-labelledby="hero-heading">
+      <div className="container">
+        {/* CHANGE: Add 'gradient' class to existing hero-title */}
+        <h1 id="hero-heading" className="hero-title gradient">
+          Instant Fact-Checking with Dated Evidence
+        </h1>
+        <p className="hero-subtitle">
+          Get explainable verdicts on claims from articles, images, videos, and text.
+          Professional-grade verification in seconds.
+        </p>
+        {/* Rest of component unchanged */}
+      </div>
+    </section>
   );
 }
+```
+
+#### Features Section Update (web/app/page.tsx)
+```tsx
+// CHANGE: Apply gradient to existing features heading (around line 35)
+<div className="text-center mb-16">
+  <h2 id="features-heading" className="text-4xl font-bold mb-4 gradient-text-primary">
+    Professional Fact-Checking, Simplified
+  </h2>
+  <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+    Built for journalists, researchers, and truth-seekers who need fast,
+    accurate verification with transparent sourcing.
+  </p>
+</div>
+```
+
+#### Optional: Feature Title Gradients
+```tsx
+// OPTIONAL: Apply gradients to individual feature titles
+<article className="card text-center" role="listitem">
+  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+    <Zap className="h-6 w-6 text-blue-600" />
+  </div>
+  <h3 className="text-xl font-semibold mb-2 gradient-text-accent">
+    Lightning Fast
+  </h3>
+  <p className="text-gray-600">
+    Get results in seconds, not minutes. Our optimized pipeline processes
+    claims faster than any competitor.
+  </p>
+</article>
 ```
 
 ### 4. Advanced Gradient Effects
@@ -368,27 +372,24 @@ export default function HomePage() {
 - Maintained accessibility compliance
 - Cross-browser consistency achieved
 
-## 🚀 Implementation Phases
+## 🚀 Implementation Phases (REDUCED SCOPE)
 
-### Phase 3A: Core System (Day 1)
-1. Add gradient CSS variables and classes
-2. Implement browser fallbacks
-3. Test gradient rendering across browsers
+### Phase 5A: Extend Gradient System (Day 1)
+1. Add missing CSS gradient variables to existing system
+2. Add new gradient classes (.gradient-text-primary, etc.)
+3. Extend existing browser fallbacks for new classes
 
-### Phase 3B: Homepage Integration (Day 2)
-1. Apply hero gradient to main title
-2. Add section heading gradients
-3. Implement feature title gradients
+### Phase 5B: Apply to Components (Day 1)
+1. Add `.gradient` class to hero title in HeroSection component
+2. Apply gradient to features section heading
+3. Test gradient rendering and Phase 04 analytics integration
 
-### Phase 3C: Advanced Effects (Day 3)
-1. Add hover interactions
-2. Implement animation effects
-3. Fine-tune performance
+### Phase 5C: Optional Enhancements (Day 2 - if time allows)
+1. Add gradients to individual feature titles
+2. Implement hover interactions for gradient headings
+3. Add animated gradient effects for special cases
 
-### Phase 3D: System-wide Application (Day 4)
-1. Apply to dashboard headings
-2. Update component library
-3. Document usage guidelines
+**TOTAL: 1-2 days instead of 3-4 days** (reduced due to existing infrastructure)
 
 ## 🔗 Related Documents
 - **01_PERFORMANCE_SEO_FOUNDATION.md** - Performance impact monitoring for gradients
