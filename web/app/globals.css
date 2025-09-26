@@ -116,6 +116,21 @@
     --element-spacing-inline: var(--space-2);
     --element-spacing-stack: var(--space-4);
     --element-spacing-section: var(--space-8);
+
+    /* Phase 08: Glass Morphism System - Extends existing .glass-enhanced */
+    --glass-bg-primary: rgba(255, 255, 255, 0.1);
+    --glass-bg-secondary: rgba(255, 255, 255, 0.05);
+    --glass-bg-accent: rgba(255, 255, 255, 0.15);
+    --glass-border-primary: rgba(255, 255, 255, 0.2);
+    --glass-border-secondary: rgba(255, 255, 255, 0.1);
+    --glass-border-accent: rgba(30, 64, 175, 0.2);
+    --glass-shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --glass-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --glass-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --glass-blur-sm: blur(8px);
+    --glass-blur-md: blur(12px);
+    --glass-blur-lg: blur(16px);
+    --glass-blur-xl: blur(24px);
   }
 }
 
@@ -269,6 +284,27 @@
 
   .card.feature-card.core:hover {
     box-shadow: 0 20px 40px rgba(30, 64, 175, 0.15);
+  }
+
+  /* Phase 08: Optional Glass Effect for Feature Cards (Track A - Marketing) */
+  @supports (backdrop-filter: blur(10px)) {
+    .card.feature-card.glass-card {
+      background: var(--glass-bg-primary);
+      backdrop-filter: var(--glass-blur-md);
+      -webkit-backdrop-filter: var(--glass-blur-md);
+      border: 1px solid var(--glass-border-primary);
+      box-shadow: var(--glass-shadow-md);
+    }
+
+    .card.feature-card.glass-card:hover {
+      background: var(--glass-bg-accent);
+      border-color: var(--glass-border-accent);
+      box-shadow: var(--glass-shadow-lg);
+    }
+
+    .card.feature-card.glass-card.core:hover {
+      box-shadow: var(--glass-shadow-lg), 0 0 0 1px rgba(30, 64, 175, 0.2);
+    }
   }
 
   /* Core feature title gradient (Phase 05 integration) */
@@ -556,6 +592,56 @@
     transform: translateX(-50%) translateY(-50%) scale(1);
   }
 
+  /* Phase 08: Glass Navigation Variants (Track A - Marketing) */
+  /* Alternative glass versions for future marketing navigation */
+  @supports (backdrop-filter: blur(10px)) {
+    .navbar-primary-pill-glass {
+      background: var(--glass-bg-primary);
+      backdrop-filter: var(--glass-blur-md);
+      -webkit-backdrop-filter: var(--glass-blur-md);
+      border: 1px solid var(--glass-border-primary);
+      border-radius: var(--radius-full);
+      padding: var(--space-6) var(--space-12);
+      box-shadow: var(--glass-shadow-md);
+      transition: all 0.3s ease-in-out;
+      position: relative;
+      z-index: 53;
+    }
+
+    .navbar-primary-pill-glass:hover {
+      background: var(--glass-bg-accent);
+      border-color: var(--glass-border-accent);
+      box-shadow: var(--glass-shadow-lg);
+    }
+
+    .navbar-secondary-pill-glass {
+      background: var(--glass-bg-primary);
+      backdrop-filter: var(--glass-blur-lg);
+      -webkit-backdrop-filter: var(--glass-blur-lg);
+      border: 1px solid var(--glass-border-primary);
+      border-radius: var(--radius-full);
+      padding: var(--space-8) var(--space-16);
+      box-shadow: var(--glass-shadow-lg);
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-50%) scale(0.95);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease-in-out;
+      z-index: 49;
+      min-width: 1000px;
+      margin-top: var(--space-4);
+    }
+
+    .navbar-pill-system:hover .navbar-secondary-pill-glass {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(-50%) scale(1);
+      background: var(--glass-bg-accent);
+    }
+  }
+
   .navbar-secondary-nav {
     display: flex;
     align-items: center;
@@ -595,21 +681,124 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
-  /* Enhanced glass styling - modern browsers only */
+  /* Phase 08: Enhanced Glass Styling - Extends Phase 02 foundation */
   @supports (backdrop-filter: blur(10px)) {
     .card.glass-enhanced {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: var(--glass-bg-primary);
+      backdrop-filter: var(--glass-blur-md);
+      -webkit-backdrop-filter: var(--glass-blur-md);
+      border: 1px solid var(--glass-border-primary);
+    }
+
+    .glass-primary {
+      background: var(--glass-bg-primary);
+      backdrop-filter: var(--glass-blur-md);
+      -webkit-backdrop-filter: var(--glass-blur-md);
+      border: 1px solid var(--glass-border-primary);
+      box-shadow: var(--glass-shadow-md);
+    }
+
+    .glass-secondary {
+      background: var(--glass-bg-secondary);
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+      border: 1px solid var(--glass-border-secondary);
+      box-shadow: var(--glass-shadow-sm);
+    }
+
+    .glass-accent {
+      background: var(--glass-bg-accent);
+      backdrop-filter: var(--glass-blur-md);
+      -webkit-backdrop-filter: var(--glass-blur-md);
+      border: 1px solid var(--glass-border-accent);
+      box-shadow: var(--glass-shadow-md);
     }
   }
 
   /* Fallback for older browsers */
   @supports not (backdrop-filter: blur(10px)) {
-    .card.glass-enhanced {
+    .card.glass-enhanced,
+    .glass-primary,
+    .glass-secondary,
+    .glass-accent {
       background: rgba(255, 255, 255, 0.95);
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--gray-200);
+    }
+  }
+
+  /* Phase 08: Interactive Gleam Effects */
+  .glass-gleam {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-gleam::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -100%;
+    width: 100%;
+    height: calc(100% + 4px);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    transition: left 0.6s ease-in-out;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .glass-gleam:hover::before {
+    left: 100%;
+  }
+
+  .glass-shimmer {
+    background: linear-gradient(
+      135deg,
+      var(--glass-bg-primary) 0%,
+      var(--glass-bg-accent) 50%,
+      var(--glass-bg-primary) 100%
+    );
+    background-size: 200% 200%;
+    animation: shimmer 4s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Phase 08: Performance Optimizations */
+  .glass-optimized {
+    transform: translate3d(0, 0, 0);
+    will-change: backdrop-filter, background, border-color;
+  }
+
+  /* Phase 08: Mobile Performance - Reduced blur on mobile */
+  @media (max-width: 767px) {
+    @supports (backdrop-filter: blur(10px)) {
+      .card.glass-enhanced,
+      .glass-primary,
+      .glass-accent {
+        backdrop-filter: var(--glass-blur-sm);
+        -webkit-backdrop-filter: var(--glass-blur-sm);
+      }
+
+      .glass-secondary {
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+    }
+  }
+
+  /* Phase 08: Desktop-only glass effects */
+  @media (min-width: 768px) {
+    .glass-desktop-only {
+      backdrop-filter: var(--glass-blur-md);
+      -webkit-backdrop-filter: var(--glass-blur-md);
     }
   }
 
@@ -714,7 +903,7 @@
 
   /* ===== ACCESSIBILITY ENHANCEMENTS ===== */
 
-  /* Reduced motion preferences - Phase 02 & 03 consolidated */
+  /* Reduced motion preferences - Phase 02, 03 & 08 consolidated */
   @media (prefers-reduced-motion: reduce) {
     /* Disable all animations globally */
     * {
@@ -730,6 +919,13 @@
       transform: none !important;
     }
 
+    /* Phase 08: Disable glass gleam and shimmer effects */
+    .glass-gleam::before,
+    .glass-shimmer {
+      animation: none !important;
+      transition: none !important;
+    }
+
     /* Keep functional visibility changes */
     .navbar-secondary-pill {
       opacity: 1;
@@ -738,10 +934,13 @@
     }
   }
 
-  /* High contrast mode support - Phase 02 & 03 consolidated */
+  /* High contrast mode support - Phase 02, 03 & 08 consolidated */
   @media (prefers-contrast: high) {
-    /* Glass effects fallback */
-    .glass-enhanced {
+    /* Phase 08: Glass effects fallback - extended */
+    .glass-enhanced,
+    .glass-primary,
+    .glass-secondary,
+    .glass-accent {
       background: var(--white) !important;
       backdrop-filter: none !important;
       border: 2px solid var(--gray-900) !important;

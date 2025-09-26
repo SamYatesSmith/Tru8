@@ -24,9 +24,9 @@ export default function HomePage() {
         {/* PHASE 04: Hero Section with Analytics Tracking */}
         <HeroSection />
 
-        {/* Features Section */}
+        {/* Features Section - Phase 08: Gradient background for glass effect visibility */}
         <section
-          className="py-24 bg-white"
+          className="py-24 bg-gradient-to-b from-gray-50 via-white to-gray-50"
           aria-labelledby="features-heading"
           id="features"
         >
@@ -43,7 +43,7 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" role="list">
               {/* Feature 1 - Core */}
-              <article className="card feature-card core text-center" role="listitem">
+              <article className="card feature-card core glass-card text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -60,7 +60,7 @@ export default function HomePage() {
               </article>
 
               {/* Feature 2 - Core */}
-              <article className="card feature-card core text-center" role="listitem">
+              <article className="card feature-card core glass-card text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -77,7 +77,7 @@ export default function HomePage() {
               </article>
 
               {/* Feature 3 - Core */}
-              <article className="card feature-card core text-center" role="listitem">
+              <article className="card feature-card core glass-card text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -94,7 +94,7 @@ export default function HomePage() {
               </article>
 
               {/* Feature 4 - Core */}
-              <article className="card feature-card core text-center" role="listitem">
+              <article className="card feature-card core glass-card text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -111,7 +111,7 @@ export default function HomePage() {
               </article>
 
               {/* Feature 5 - Advanced */}
-              <article className="card feature-card advanced text-center" role="listitem">
+              <article className="card feature-card advanced glass-card text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -128,7 +128,7 @@ export default function HomePage() {
               </article>
 
               {/* Feature 6 - Advanced */}
-              <article className="card feature-card advanced text-center" role="listitem">
+              <article className="card feature-card advanced glass-card text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -145,7 +145,7 @@ export default function HomePage() {
               </article>
 
               {/* Feature 7 - Advanced */}
-              <article className="card feature-card advanced text-center" role="listitem">
+              <article className="card feature-card advanced glass-card text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
@@ -162,7 +162,7 @@ export default function HomePage() {
               </article>
 
               {/* Feature 8 - Advanced */}
-              <article className="card feature-card advanced text-center" role="listitem">
+              <article className="card feature-card advanced glass-card text-center" role="listitem">
                 <div
                   className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-4"
                   aria-hidden="true"
