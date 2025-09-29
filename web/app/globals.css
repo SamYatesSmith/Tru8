@@ -131,6 +131,48 @@
     --glass-blur-md: blur(12px);
     --glass-blur-lg: blur(16px);
     --glass-blur-xl: blur(24px);
+
+    /* Phase 09: Opacity Layer System - Visual Depth Management */
+    /* Opacity levels for systematic layering */
+    --opacity-background: 0.02;
+    --opacity-subtle: 0.05;
+    --opacity-light: 0.1;
+    --opacity-medium: 0.2;
+    --opacity-strong: 0.4;
+    --opacity-prominent: 0.6;
+    --opacity-dominant: 0.8;
+    --opacity-opaque: 0.95;
+
+    /* Layer z-index system - Systematic stacking order */
+    --layer-background: -1;
+    --layer-content: 1;
+    --layer-elevated: 10;
+    --layer-floating: 20;
+    --layer-overlay: 30;
+    --layer-modal: 40;
+    --layer-navigation: 50;
+    --layer-tooltip: 60;
+
+    /* Background layer colors using opacity variables */
+    --bg-layer-primary: rgba(30, 64, 175, var(--opacity-background));
+    --bg-layer-secondary: rgba(124, 58, 237, var(--opacity-subtle));
+    --bg-layer-accent: rgba(236, 72, 153, var(--opacity-light));
+    --bg-layer-neutral: rgba(17, 24, 39, var(--opacity-subtle));
+
+    /* Content layer backgrounds */
+    --content-layer-elevated: rgba(255, 255, 255, var(--opacity-opaque));
+    --content-layer-floating: rgba(255, 255, 255, var(--opacity-prominent));
+    --content-layer-subtle: rgba(255, 255, 255, var(--opacity-medium));
+
+    /* Interactive state adjustments */
+    --hover-opacity-increase: 0.1;
+    --hover-opacity-decrease: -0.1;
+    --focus-opacity-ring: 0.2;
+
+    /* Opacity transition durations */
+    --opacity-transition-fast: 0.15s ease-out;
+    --opacity-transition-medium: 0.3s ease-out;
+    --opacity-transition-slow: 0.5s ease-out;
   }
 }
 
@@ -523,7 +565,7 @@
     top: var(--space-4);
     left: 50%;
     transform: translateX(-50%);
-    z-index: 50;
+    z-index: var(--layer-navigation);
   }
 
   /* Primary Pill - Always Visible */
@@ -535,7 +577,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease-in-out;
     position: relative;
-    z-index: 53;
+    z-index: calc(var(--layer-navigation) + 3);
   }
 
   .navbar-pill-system:hover .navbar-primary-pill {
@@ -580,7 +622,7 @@
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease-in-out;
-    z-index: 49;
+    z-index: calc(var(--layer-navigation) - 1);
     min-width: 1000px;
     width: max-content;
     margin-top: var(--space-4);
@@ -605,7 +647,7 @@
       box-shadow: var(--glass-shadow-md);
       transition: all 0.3s ease-in-out;
       position: relative;
-      z-index: 53;
+      z-index: calc(var(--layer-navigation) + 3);
     }
 
     .navbar-primary-pill-glass:hover {
@@ -629,7 +671,7 @@
       opacity: 0;
       visibility: hidden;
       transition: all 0.3s ease-in-out;
-      z-index: 49;
+      z-index: calc(var(--layer-navigation) - 1);
       min-width: 1000px;
       margin-top: var(--space-4);
     }
@@ -747,7 +789,7 @@
       transparent
     );
     transition: left 0.6s ease-in-out;
-    z-index: 1;
+    z-index: var(--layer-content);
     pointer-events: none;
   }
 
@@ -800,6 +842,128 @@
       backdrop-filter: var(--glass-blur-md);
       -webkit-backdrop-filter: var(--glass-blur-md);
     }
+  }
+
+  /* ===== PHASE 09: OPACITY LAYER SYSTEM ===== */
+
+  /* Background Layer System */
+  .layer-background {
+    position: relative;
+    z-index: var(--layer-background);
+  }
+
+  .layer-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-layer-primary);
+    z-index: -1;
+  }
+
+  .layer-background-secondary::before {
+    background: var(--bg-layer-secondary);
+  }
+
+  .layer-background-accent::before {
+    background: var(--bg-layer-accent);
+  }
+
+  /* Multi-layer background system */
+  .layer-background-multi {
+    position: relative;
+  }
+
+  .layer-background-multi::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 50%, var(--bg-layer-primary) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, var(--bg-layer-secondary) 0%, transparent 50%),
+      radial-gradient(circle at 40% 20%, var(--bg-layer-accent) 0%, transparent 50%);
+    z-index: -1;
+  }
+
+  /* Content Layer Elevation */
+  .layer-content {
+    position: relative;
+    z-index: var(--layer-content);
+  }
+
+  .layer-elevated {
+    position: relative;
+    z-index: var(--layer-elevated);
+    background: var(--content-layer-elevated);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, var(--opacity-light));
+    transition: all var(--opacity-transition-medium);
+  }
+
+  .layer-floating {
+    position: relative;
+    z-index: var(--layer-floating);
+    background: var(--content-layer-floating);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, var(--opacity-medium));
+    transition: all var(--opacity-transition-medium);
+  }
+
+  .layer-overlay {
+    position: relative;
+    z-index: var(--layer-overlay);
+    background: var(--content-layer-subtle);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Interactive Layer Effects */
+  .layer-interactive {
+    transition: all var(--opacity-transition-medium);
+  }
+
+  .layer-interactive:hover {
+    z-index: calc(var(--layer-elevated) + 1);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, var(--opacity-strong));
+    transform: translateY(-2px);
+  }
+
+  .layer-interactive:hover::before {
+    opacity: calc(var(--opacity-subtle) + var(--hover-opacity-increase));
+  }
+
+  /* Focus layer enhancement */
+  .layer-focusable:focus {
+    outline: none;
+    box-shadow:
+      0 0 0 3px rgba(30, 64, 175, var(--focus-opacity-ring)),
+      0 20px 25px -5px rgba(0, 0, 0, var(--opacity-medium));
+  }
+
+  /* Content-based opacity layers */
+  .content-primary { opacity: var(--opacity-opaque); }
+  .content-secondary { opacity: var(--opacity-dominant); }
+  .content-tertiary { opacity: var(--opacity-prominent); }
+  .content-subtle { opacity: var(--opacity-strong); }
+  .content-hint { opacity: var(--opacity-medium); }
+
+  /* State-based layering */
+  .state-active {
+    opacity: var(--opacity-opaque);
+    z-index: var(--layer-elevated);
+  }
+
+  .state-inactive {
+    opacity: var(--opacity-strong);
+    z-index: var(--layer-content);
+  }
+
+  .state-disabled {
+    opacity: var(--opacity-medium);
+    z-index: var(--layer-background);
   }
 
   /* Progressive Grid System */
@@ -903,7 +1067,7 @@
 
   /* ===== ACCESSIBILITY ENHANCEMENTS ===== */
 
-  /* Reduced motion preferences - Phase 02, 03 & 08 consolidated */
+  /* Reduced motion preferences - Phase 02, 03, 08 & 09 consolidated */
   @media (prefers-reduced-motion: reduce) {
     /* Disable all animations globally */
     * {
@@ -915,7 +1079,8 @@
     /* Remove transforms that cause motion */
     .btn-primary:hover,
     .btn-primary.enhanced:hover,
-    .card:hover {
+    .card:hover,
+    .layer-interactive:hover {
       transform: none !important;
     }
 
@@ -923,6 +1088,13 @@
     .glass-gleam::before,
     .glass-shimmer {
       animation: none !important;
+      transition: none !important;
+    }
+
+    /* Phase 09: Disable layer transitions */
+    .layer-elevated,
+    .layer-floating,
+    .layer-interactive {
       transition: none !important;
     }
 
@@ -934,7 +1106,7 @@
     }
   }
 
-  /* High contrast mode support - Phase 02, 03 & 08 consolidated */
+  /* High contrast mode support - Phase 02, 03, 08 & 09 consolidated */
   @media (prefers-contrast: high) {
     /* Phase 08: Glass effects fallback - extended */
     .glass-enhanced,
@@ -944,6 +1116,20 @@
       background: var(--white) !important;
       backdrop-filter: none !important;
       border: 2px solid var(--gray-900) !important;
+    }
+
+    /* Phase 09: Layer opacity overrides for contrast */
+    .content-primary,
+    .content-secondary,
+    .content-tertiary,
+    .content-subtle,
+    .content-hint {
+      opacity: 1 !important;
+    }
+
+    .layer-background::before,
+    .layer-background-multi::before {
+      display: none !important;
     }
 
     /* Gradient text fallbacks - Phase 05 & 07 extended */
@@ -993,7 +1179,7 @@
     padding: var(--space-2) var(--space-4);
     border-radius: var(--radius-md);
     text-decoration: none;
-    z-index: 100;
+    z-index: calc(var(--layer-tooltip) + 40); /* Skip link must be highest for accessibility */
     font-weight: 600;
     font-size: var(--text-sm);
     transition: top 0.2s ease;

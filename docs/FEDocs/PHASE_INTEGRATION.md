@@ -157,14 +157,30 @@ See UI_IMPROVEMENT_PLAN.md section "Code Management & Git Policy" for detailed r
 - **Testing Status:** TypeScript ✅, Zero duplication ✅, Browser fallbacks ✅, Accessibility ✅
 
 ### **Phase 09: Opacity Layers**
-- **Status:** 🟡 PENDING
-- **Depends On:** Phase 08 (glass effects use layering)
-- **Files to Modify:**
-  - `web/app/globals.css` - Complete z-index system overhaul
-  - All positioned components - Z-index migration
-- **Integration Requirements:**
-  - **Phase 08:** Glass effects must work with new layer system
-  - **Phase 03:** Layer system must not break focus order
+- **Status:** ✅ COMPLETED
+- **Files Modified:**
+  - `web/app/globals.css` (lines 135-176, 847-967, 1070-1133) - Complete opacity layer system
+- **New Components Created:**
+  - 29 CSS variables: 8 opacity levels, 8 z-index layers, 13 composite variables
+  - `.layer-background` system with multi-layer radial gradients
+  - `.layer-content/elevated/floating/overlay` elevation system
+  - `.layer-interactive` and `.layer-focusable` hover/focus effects
+  - `.content-primary` through `.content-hint` opacity hierarchy
+  - `.state-active/inactive/disabled` state management
+- **Z-Index Migration Complete:**
+  - All hardcoded z-index values converted to CSS variables
+  - Navigation system: `z-index: 50` → `var(--layer-navigation)`
+  - Skip link accessibility: `z-index: 100` → `calc(var(--layer-tooltip) + 40)`
+  - Glass effects integrated with layer system
+- **Integration Points Established:**
+  - Phase 08: Glass effects work seamlessly with layer system
+  - Phase 03: Extended reduced-motion and high-contrast accessibility
+  - Systematic z-index management for all future components
+- **Dependencies for Next Phase:**
+  - Complete layer infrastructure ready for single-page layout
+  - Z-index variables available for section layering
+  - Opacity system ready for content hierarchy
+- **Testing Status:** TypeScript ✅, Zero duplication ✅, Accessibility ✅, Z-index migration 100% ✅
 
 ### **Phase 10: Single-Page Layout**
 - **Status:** 🟡 PENDING
