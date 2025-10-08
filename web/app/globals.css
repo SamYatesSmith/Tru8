@@ -41,3 +41,17 @@ a:focus-visible {
   outline: 2px solid #f57a07;
   outline-offset: 2px;
 }
+
+/* Clerk Modal Custom Styling */
+.clerk-modal-content .cl-card {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.clerk-modal-content .cl-formButtonPrimary {
+  background: #f57a07 !important;
+}
+
+.clerk-modal-content .cl-formButtonPrimary:hover {
+  background: #e06a00 !important;
+}
