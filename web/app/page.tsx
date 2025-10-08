@@ -1,6 +1,7 @@
 import { AnimatedBackground } from '@/components/marketing/animated-background'
 import { Navigation } from '@/components/layout/navigation'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
+import { Footer } from '@/components/layout/footer'
 import { HeroSection } from '@/components/marketing/hero-section'
 import { HowItWorks } from '@/components/marketing/how-it-works'
 import { FeatureCarousel } from '@/components/marketing/feature-carousel'
@@ -34,6 +35,9 @@ export default function Home() {
         {/* Pricing Section */}
         <PricingCards />
       </main>
+
+      {/* Footer */}
+      <Footer />
     </>
   )
 }
