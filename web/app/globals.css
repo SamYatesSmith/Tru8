@@ -74,18 +74,46 @@
     }
   }
 
+  /* Carousel 3D perspective */
+  .carousel-perspective {
+    perspective: 1200px;
+    perspective-origin: center;
+  }
+
+  .carousel-card {
+    transform-style: preserve-3d;
+    transition: all 300ms ease-in-out;
+  }
+
+  .carousel-card-center {
+    transform: scale(1) translateZ(0) rotateY(0);
+  }
+
+  .carousel-card-adjacent {
+    transform: scale(0.85) translateZ(-100px) rotateY(5deg);
+  }
+
+  .carousel-card-far {
+    transform: scale(0.7) translateZ(-200px) rotateY(10deg);
+  }
+
   /* Respect reduced motion preference */
   @media (prefers-reduced-motion: reduce) {
     .animate-ascend-slow,
     .animate-ascend-medium,
     .animate-ascend-fast,
     .hero-gradient-glow,
-    .hero-gradient-text {
+    .hero-gradient-text,
+    .carousel-card {
       animation: none;
     }
 
     .hero-gradient-text {
       background-position: 0% 50%;
+    }
+
+    .carousel-card {
+      transition: none;
     }
   }
 }
