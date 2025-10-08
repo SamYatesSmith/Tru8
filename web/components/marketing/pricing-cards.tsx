@@ -38,7 +38,7 @@ import { apiClient } from '@/lib/api';
 export function PricingCards() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
 
   const handleFreePlan = () => {
     // Open auth modal for free trial
@@ -56,10 +56,13 @@ export function PricingCards() {
     // Create Stripe checkout session
     setIsProcessing(true);
     try {
+      // Get auth token from Clerk
+      const token = await getToken();
+
       const session = await apiClient.createCheckoutSession({
         price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO || 'price_placeholder',
         plan: 'professional',
-      });
+      }, token);
 
       // Redirect to Stripe checkout
       if (session.url) {

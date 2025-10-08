@@ -1,12 +1,10 @@
-import { auth } from '@clerk/nextjs/server';
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 /**
  * Backend API Client
  *
- * Automatically injects Clerk JWT token in Authorization header
- * for all backend requests.
+ * For client components: Pass token from useAuth().getToken()
+ * For server components: Pass token from auth().getToken()
  *
  * Backend Integration:
  * - Base URL: http://localhost:8000/api/v1
@@ -25,23 +23,14 @@ class ApiClient {
   }
 
   /**
-   * Get Clerk auth token
-   * This is used server-side in API routes
-   */
-  private async getToken(): Promise<string | null> {
-    const { getToken } = auth();
-    return await getToken();
-  }
-
-  /**
-   * Generic request method with automatic JWT injection
+   * Generic request method with JWT injection
+   * @param token - Optional Clerk JWT token for authenticated requests
    */
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    token?: string | null
   ): Promise<T> {
-    const token = await this.getToken();
-
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -76,40 +65,43 @@ class ApiClient {
    * - If not found, creates user with 3 credits
    * - Returns user object with credits, subscription status
    */
-  async getCurrentUser() {
-    return this.request('/api/v1/users/me');
+  async getCurrentUser(token?: string | null) {
+    return this.request('/api/v1/users/me', {}, token);
   }
 
   /**
    * GET /api/v1/users/profile
    * Returns detailed user profile with usage stats
    */
-  async getUserProfile() {
-    return this.request('/api/v1/users/profile');
+  async getUserProfile(token?: string | null) {
+    return this.request('/api/v1/users/profile', {}, token);
   }
 
   /**
    * POST /api/v1/checks
    * Create a new fact-check
    */
-  async createCheck(data: {
-    input_type: 'url' | 'text' | 'image' | 'video';
-    content?: string;
-    url?: string;
-    file_path?: string;
-  }) {
+  async createCheck(
+    data: {
+      input_type: 'url' | 'text' | 'image' | 'video';
+      content?: string;
+      url?: string;
+      file_path?: string;
+    },
+    token?: string | null
+  ) {
     return this.request('/api/v1/checks', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, token);
   }
 
   /**
    * GET /api/v1/checks
    * Get user's fact-check history
    */
-  async getChecks() {
-    return this.request('/api/v1/checks');
+  async getChecks(token?: string | null) {
+    return this.request('/api/v1/checks', {}, token);
   }
 
   /**
@@ -123,14 +115,17 @@ class ApiClient {
    * - Stripe webhook creates Subscription record
    * - User upgraded to Professional tier (40 credits/month)
    */
-  async createCheckoutSession(data: {
-    price_id: string;
-    plan: string;
-  }) {
+  async createCheckoutSession(
+    data: {
+      price_id: string;
+      plan: string;
+    },
+    token?: string | null
+  ) {
     return this.request('/api/v1/payments/create-checkout-session', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, token);
   }
 }
 
