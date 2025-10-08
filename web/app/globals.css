@@ -40,53 +40,25 @@
     animation: ascend 60s linear infinite;
   }
 
-  /* Hero gradient glow animation */
-  @keyframes gradient-glow {
+  /* Hero border glow animation */
+  @keyframes border-glow {
     0%, 100% {
-      transform: scale(1);
-      opacity: 0.6;
+      box-shadow: 0 0 20px rgba(245, 122, 7, 0.3),
+                  0 0 40px rgba(245, 122, 7, 0.2),
+                  0 0 60px rgba(245, 122, 7, 0.1),
+                  inset 0 0 20px rgba(245, 122, 7, 0.1);
     }
     50% {
-      transform: scale(1.1);
-      opacity: 0.8;
+      box-shadow: 0 0 30px rgba(245, 122, 7, 0.5),
+                  0 0 60px rgba(245, 122, 7, 0.3),
+                  0 0 90px rgba(245, 122, 7, 0.2),
+                  inset 0 0 30px rgba(245, 122, 7, 0.15);
     }
   }
 
-  .hero-gradient-glow {
-    width: 800px;
-    height: 800px;
-    background: radial-gradient(
-      circle,
-      rgba(245, 122, 7, 0.3) 0%,
-      rgba(34, 211, 238, 0.2) 40%,
-      transparent 70%
-    );
-    animation: gradient-glow 4s ease-in-out infinite;
-    filter: blur(60px);
-  }
-
-  /* Transparent text with gradient */
-  .hero-gradient-text {
-    background: linear-gradient(
-      135deg,
-      #f57a07 0%,
-      #22d3ee 50%,
-      #f57a07 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    background-size: 200% auto;
-    animation: gradient-shift 8s ease infinite;
-  }
-
-  @keyframes gradient-shift {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
+  .hero-border-glow {
+    border: 1px solid rgba(245, 122, 7, 0.3);
+    animation: border-glow 4s ease-in-out infinite;
   }
 
   /* Carousel 3D perspective */
@@ -117,14 +89,15 @@
     .animate-ascend-slow,
     .animate-ascend-medium,
     .animate-ascend-fast,
-    .hero-gradient-glow,
-    .hero-gradient-text,
+    .hero-border-glow,
     .carousel-card {
       animation: none;
     }
 
-    .hero-gradient-text {
-      background-position: 0% 50%;
+    .hero-border-glow {
+      box-shadow: 0 0 30px rgba(245, 122, 7, 0.4),
+                  0 0 60px rgba(245, 122, 7, 0.25),
+                  inset 0 0 25px rgba(245, 122, 7, 0.125);
     }
 
     .carousel-card {

@@ -113,54 +113,54 @@ export function PricingCards() {
   return (
     <>
       <section id="pricing" className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-7xl">
           {/* Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-[#f57a07] mb-4">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-bold text-[#f57a07] mb-6">
               Choose Your Plan
             </h2>
-            <p className="text-xl text-slate-400">
+            <p className="text-2xl text-slate-400">
               Professional fact-checking for every need
             </p>
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`relative bg-[#1a1f2e]/80 backdrop-blur-sm rounded-lg p-8 border ${
+                className={`relative bg-[#1a1f2e]/90 backdrop-blur-sm rounded-2xl p-12 border-2 ${
                   plan.highlighted
-                    ? 'border-[#22d3ee] shadow-lg shadow-[#22d3ee]/20'
+                    ? 'border-[#22d3ee] shadow-2xl shadow-[#22d3ee]/30 scale-105'
                     : 'border-slate-700'
-                } transition-all hover:border-opacity-80`}
+                } transition-all hover:border-opacity-80 hover:shadow-xl`}
               >
                 {/* Badge */}
                 {plan.badge && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <div className="bg-[#22d3ee] text-slate-900 px-4 py-1 rounded-full text-sm font-semibold">
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2">
+                    <div className="bg-[#22d3ee] text-slate-900 px-6 py-2 rounded-full text-base font-bold">
                       {plan.badge}
                     </div>
                   </div>
                 )}
 
                 {/* Plan Name */}
-                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                <h3 className="text-3xl font-bold text-white mb-4">{plan.name}</h3>
 
                 {/* Price */}
-                <div className="mb-6">
-                  <span className="text-5xl font-bold text-white">{plan.price}</span>
+                <div className="mb-8">
+                  <span className="text-7xl font-black text-white">{plan.price}</span>
                   {plan.period && (
-                    <span className="text-slate-400 text-lg">{plan.period}</span>
+                    <span className="text-slate-400 text-2xl ml-2">{plan.period}</span>
                   )}
                 </div>
 
                 {/* Features */}
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-4 mb-10">
                   {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-[#22d3ee] flex-shrink-0 mt-0.5" />
-                      <span className="text-slate-300">{feature}</span>
+                    <li key={index} className="flex items-start gap-4">
+                      <Check className="w-6 h-6 text-[#22d3ee] flex-shrink-0 mt-1" />
+                      <span className="text-slate-300 text-lg">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -169,10 +169,10 @@ export function PricingCards() {
                 <button
                   onClick={plan.onCTA}
                   disabled={isProcessing && plan.highlighted}
-                  className={`w-full py-4 rounded-lg text-lg font-semibold transition-all ${
+                  className={`w-full py-5 rounded-xl text-xl font-bold transition-all ${
                     plan.highlighted
-                      ? 'bg-[#f57a07] hover:bg-[#e06a00] text-white shadow-lg hover:shadow-xl'
-                      : 'bg-transparent border-2 border-slate-700 hover:border-[#f57a07] text-white'
+                      ? 'bg-[#f57a07] hover:bg-[#e06a00] text-white shadow-xl hover:shadow-2xl hover:scale-105'
+                      : 'bg-transparent border-2 border-slate-700 hover:border-[#f57a07] hover:bg-slate-800/50 text-white'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isProcessing && plan.highlighted ? 'Processing...' : plan.cta}

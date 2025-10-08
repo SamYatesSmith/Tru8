@@ -20,6 +20,32 @@ const COLORS = [
 ];
 
 const PIXEL_SIZES = [8, 12, 16];
+const CORNER_RADIUS = 2; // Softened corners for pixels
+
+/**
+ * Draw a rounded rectangle on canvas
+ */
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fill();
+}
 
 /**
  * Generate a pixel grid pattern as a data URL
@@ -69,9 +95,9 @@ export function generatePixelGrid(
     else if (rand < 0.95) color = COLORS[3]; // stone-300 (20%)
     else color = COLORS[4]; // orange (5% - rare accent)
 
-    // Draw pixel
+    // Draw rounded pixel
     ctx.fillStyle = color;
-    ctx.fillRect(x, y, size, size);
+    drawRoundedRect(ctx, x, y, size, size, CORNER_RADIUS);
   }
 
   // Return as data URL
