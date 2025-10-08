@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* Ascending animations for pixel grid background */
+  @keyframes ascend {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-50%);
+    }
+  }
+
+  .animate-ascend-slow {
+    animation: ascend 100s linear infinite;
+  }
+
+  .animate-ascend-medium {
+    animation: ascend 80s linear infinite;
+  }
+
+  .animate-ascend-fast {
+    animation: ascend 60s linear infinite;
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-ascend-slow,
+    .animate-ascend-medium,
+    .animate-ascend-fast {
+      animation: none;
+    }
+  }
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #f57a07;
+  outline-offset: 2px;
+}
