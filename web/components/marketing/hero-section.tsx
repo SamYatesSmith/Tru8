@@ -79,6 +79,7 @@ export function HeroSection() {
             <button
               onClick={() => setIsAuthModalOpen(true)}
               className="px-8 py-4 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg text-lg font-semibold transition-all hover:shadow-lg hover:shadow-[rgba(245,122,7,0.3)] min-w-[240px]"
+              aria-label="Start verifying content for free"
             >
               Start Verifying Free
             </button>
@@ -87,6 +88,7 @@ export function HeroSection() {
             <button
               onClick={scrollToHowItWorks}
               className="px-8 py-4 bg-transparent border-2 border-slate-700 hover:border-[#f57a07] text-white rounded-lg text-lg font-semibold transition-all min-w-[240px]"
+              aria-label="Learn how Tru8 works"
             >
               See How It Works
             </button>

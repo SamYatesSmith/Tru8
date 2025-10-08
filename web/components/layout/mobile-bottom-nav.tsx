@@ -89,7 +89,7 @@ export function MobileBottomNav() {
 
   return (
     <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1a1f2e] border-t border-slate-700">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1a1f2e] border-t border-slate-700" aria-label="Mobile navigation">
         <div className="grid grid-cols-4 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -101,10 +101,11 @@ export function MobileBottomNav() {
                 onClick={item.onClick}
                 className="flex flex-col items-center justify-center gap-1 relative"
                 aria-label={item.label}
+                aria-current={isActive ? 'page' : undefined}
               >
                 {/* Active indicator (orange top border) */}
                 {isActive && (
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#f57a07]" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#f57a07]" aria-hidden="true" />
                 )}
 
                 {/* Icon */}
@@ -112,6 +113,7 @@ export function MobileBottomNav() {
                   className={`w-5 h-5 ${
                     isActive ? 'text-[#f57a07]' : 'text-slate-400'
                   }`}
+                  aria-hidden="true"
                 />
 
                 {/* Label */}
