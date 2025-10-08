@@ -30,11 +30,18 @@ export function AnimatedBackground() {
 
   useEffect(() => {
     // Generate pixel grids on mount (client-side only)
-    const layer1 = generatePixelGrid(1920, 2160, 0.02); // Least dense
-    const layer2 = generatePixelGrid(1920, 2160, 0.03); // Medium
-    const layer3 = generatePixelGrid(1920, 2160, 0.04); // Most dense
+    try {
+      const layer1 = generatePixelGrid(1920, 2160, 0.05); // Increased density
+      const layer2 = generatePixelGrid(1920, 2160, 0.06); // Increased density
+      const layer3 = generatePixelGrid(1920, 2160, 0.07); // Increased density
 
-    setLayers({ layer1, layer2, layer3 });
+      // Only set layers if they were generated successfully
+      if (layer1 && layer2 && layer3) {
+        setLayers({ layer1, layer2, layer3 });
+      }
+    } catch (error) {
+      console.error('Failed to generate pixel grids:', error);
+    }
   }, []);
 
   if (!layers) {
