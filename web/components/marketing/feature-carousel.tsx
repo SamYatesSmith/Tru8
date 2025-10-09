@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, 
 /**
  * Feature Carousel Component
  *
- * Rollerdeck-style carousel with 6 feature cards.
+ * Rollerdeck-style carousel with 6 feature cards - tightly overlapping.
  *
  * Features:
  * 1. Multi-Source Verification
@@ -18,12 +18,12 @@ import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, 
  *
  * Rollerdeck Specifications:
  * - Center card: Scale 1.0, opacity 100%, z-index highest
- * - Adjacent cards: Scale 0.85, opacity 70%, slightly behind
- * - Far cards: Scale 0.7, opacity 40%, furthest back
+ * - Adjacent cards: Scale 0.9, opacity 80%, tightly overlapping
+ * - Far cards: Scale 0.8, opacity 50%, behind adjacent
+ * - Cards positioned with minimal spacing for tight overlap
  * - Auto-play: 5-second interval
  * - Manual: Left/Right arrow buttons
  * - Animation: 300ms ease-in-out
- * - Mobile: 1 card visible, swipeable
  */
 export function FeatureCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -87,12 +87,23 @@ export function FeatureCarousel() {
     setTimeout(() => setIsPaused(false), 3000); // Resume after 3s
   };
 
-  // Calculate position relative to active index
-  const getCardPosition = (index: number) => {
-    const diff = (index - activeIndex + totalCards) % totalCards;
+  // Calculate circular position - wraps smoothly in both directions
+  const getCircularOffset = (index: number) => {
+    let diff = (index - activeIndex + totalCards) % totalCards;
 
-    if (diff === 0) return 'center';
-    if (diff === 1 || diff === totalCards - 1) return 'adjacent';
+    // Normalize to -3 to +3 range for circular effect (shows 3 cards on each side)
+    if (diff > totalCards / 2) {
+      diff = diff - totalCards;
+    }
+
+    return diff;
+  };
+
+  const getCardPosition = (offset: number) => {
+    const absDiff = Math.abs(offset);
+
+    if (absDiff === 0) return 'center';
+    if (absDiff === 1) return 'adjacent';
     return 'far';
   };
 
@@ -111,34 +122,26 @@ export function FeatureCarousel() {
 
         {/* Carousel Container */}
         <div className="relative">
-          {/* 3D Perspective Container */}
+          {/* 3D Perspective Container - Circular Rollerdeck */}
           <div className="carousel-perspective relative h-[400px] md:h-[450px] flex items-center justify-center">
             {features.map((feature, index) => {
               const Icon = feature.icon;
-              const position = getCardPosition(index);
-              const isCenter = position === 'center';
+              const offset = getCircularOffset(index);
+              const position = getCardPosition(offset);
 
               return (
                 <div
                   key={index}
-                  className={`carousel-card absolute w-full max-w-md transition-all duration-300 ease-in-out ${
-                    position === 'center'
-                      ? 'carousel-card-center'
-                      : position === 'adjacent'
-                      ? 'carousel-card-adjacent'
-                      : 'carousel-card-far'
-                  }`}
+                  className="carousel-card absolute w-full max-w-md transition-all duration-300 ease-in-out"
                   style={{
-                    transform: `translateX(${
-                      (index - activeIndex) * 100
-                    }%) scale(${
-                      position === 'center' ? 1 : position === 'adjacent' ? 0.85 : 0.7
+                    transform: `translateX(${offset * 35}%) scale(${
+                      position === 'center' ? 1 : position === 'adjacent' ? 0.9 : 0.8
                     })`,
-                    opacity: position === 'center' ? 1 : position === 'adjacent' ? 0.7 : 0.4,
+                    opacity: position === 'center' ? 1 : position === 'adjacent' ? 0.8 : 0.5,
                     zIndex: position === 'center' ? 30 : position === 'adjacent' ? 20 : 10,
                   }}
                 >
-                  <div className="bg-[#1a1f2e]/90 backdrop-blur-sm rounded-lg p-8 border border-slate-700 h-full">
+                  <div className="bg-[#1a1f2e]/90 backdrop-blur-sm rounded-lg p-8 border border-slate-700 h-full shadow-xl">
                     {/* Icon */}
                     <div className="mb-6">
                       <Icon className="w-16 h-16 text-[#22d3ee]" />

@@ -33,13 +33,14 @@ export function AnimatedBackground() {
   useEffect(() => {
     // Generate pixel grids on mount (client-side only)
     try {
-      // Calculate canvas height based on viewport (need 2x for seamless loop)
-      const viewportHeight = window.innerHeight;
-      const canvasHeight = Math.max(2160, viewportHeight * 2); // At least 2x viewport height
+      // Fixed canvas size - large enough to tile seamlessly but not memory-intensive
+      // 1920x2400 is sufficient for smooth tiling on all screen sizes
+      const canvasWidth = 1920;
+      const canvasHeight = 2400;
 
-      const layer1 = generatePixelGrid(1920, canvasHeight, 0.05); // Increased density
-      const layer2 = generatePixelGrid(1920, canvasHeight, 0.06); // Increased density
-      const layer3 = generatePixelGrid(1920, canvasHeight, 0.07); // Increased density
+      const layer1 = generatePixelGrid(canvasWidth, canvasHeight, 0.05);
+      const layer2 = generatePixelGrid(canvasWidth, canvasHeight, 0.06);
+      const layer3 = generatePixelGrid(canvasWidth, canvasHeight, 0.07);
 
       // Only set layers if they were generated successfully
       if (layer1 && layer2 && layer3) {

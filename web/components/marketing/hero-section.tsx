@@ -47,14 +47,14 @@ export function HeroSection() {
         id="hero"
         className="relative min-h-screen flex items-center justify-center pt-16 pb-20 px-4"
       >
-        {/* Content Container with Glowing Border */}
-        <div className="relative max-w-4xl w-full mx-auto">
-          {/* Glowing border container */}
-          <div className="hero-border-glow rounded-3xl p-12 md:p-16 bg-[#1e293b]/80 backdrop-blur-sm">
+        {/* Content Container with Backlight */}
+        <div className="relative max-w-6xl w-full mx-auto">
+          {/* Backlit container */}
+          <div className="hero-backlight rounded-3xl p-16 md:p-20 bg-[#1e293b] border border-slate-700/50">
             {/* Content */}
             <div className="text-center">
-              {/* Headline - White Text */}
-              <h1 className="text-7xl md:text-8xl lg:text-9xl font-black text-white mb-6">
+              {/* Headline - Transparent text showing gradient through */}
+              <h1 className="hero-gradient-text text-7xl md:text-8xl lg:text-9xl font-black mb-6">
                 Tru8
               </h1>
 

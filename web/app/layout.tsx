@@ -5,6 +5,9 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Tru8 - Transparent Fact-Checking with Dated Evidence',
   description: 'Professional fact-checking platform providing instant verification with dated evidence for journalists, researchers, and content creators.',
+  icons: {
+    icon: '/favicon.proper.png',
+  },
 }
 
 export default function RootLayout({

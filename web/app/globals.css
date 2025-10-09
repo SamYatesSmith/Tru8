@@ -40,25 +40,63 @@
     animation: ascend 60s linear infinite;
   }
 
-  /* Hero border glow animation */
-  @keyframes border-glow {
-    0%, 100% {
-      box-shadow: 0 0 20px rgba(245, 122, 7, 0.3),
-                  0 0 40px rgba(245, 122, 7, 0.2),
-                  0 0 60px rgba(245, 122, 7, 0.1),
-                  inset 0 0 20px rgba(245, 122, 7, 0.1);
+  /* Hero backlight glow animation */
+  @keyframes animateBacklight {
+    0% {
+      background-position: 0% 50%;
     }
     50% {
-      box-shadow: 0 0 30px rgba(245, 122, 7, 0.5),
-                  0 0 60px rgba(245, 122, 7, 0.3),
-                  0 0 90px rgba(245, 122, 7, 0.2),
-                  inset 0 0 30px rgba(245, 122, 7, 0.15);
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
     }
   }
 
-  .hero-border-glow {
-    border: 1px solid rgba(245, 122, 7, 0.3);
-    animation: border-glow 4s ease-in-out infinite;
+  .hero-backlight {
+    position: relative;
+  }
+
+  .hero-backlight::after {
+    position: absolute;
+    content: "";
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    transform: scale(1.05);
+    filter: blur(100px);
+    background: linear-gradient(270deg, #f57a07, #d1d5db, #ffffff);
+    background-size: 200% 200%;
+    animation: animateBacklight 10s ease infinite;
+    border-radius: 3rem;
+    opacity: 0.8;
+  }
+
+  /* Transparent text with animated gradient */
+  .hero-gradient-text {
+    background: linear-gradient(270deg, #f57a07, #d1d5db, #ffffff);
+    background-size: 200% 200%;
+    animation: animateBacklight 10s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Navigation links fade-in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 1s ease forwards;
   }
 
   /* Carousel 3D perspective */
@@ -89,15 +127,15 @@
     .animate-ascend-slow,
     .animate-ascend-medium,
     .animate-ascend-fast,
-    .hero-border-glow,
+    .hero-backlight::after,
+    .hero-gradient-text,
     .carousel-card {
       animation: none;
     }
 
-    .hero-border-glow {
-      box-shadow: 0 0 30px rgba(245, 122, 7, 0.4),
-                  0 0 60px rgba(245, 122, 7, 0.25),
-                  inset 0 0 25px rgba(245, 122, 7, 0.125);
+    .hero-backlight::after,
+    .hero-gradient-text {
+      background-position: 0% 50%;
     }
 
     .carousel-card {

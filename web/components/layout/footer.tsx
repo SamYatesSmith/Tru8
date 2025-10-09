@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 export function Footer() {
   const scrollToSection = (sectionId: string) => {
@@ -36,7 +36,13 @@ export function Footer() {
           {/* Logo & Tagline */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-6 h-6 text-[#f57a07]" />
+              <Image
+                src="/logo.proper.png"
+                alt="Tru8 logo"
+                width={32}
+                height={32}
+                className="object-contain"
+              />
               <span className="text-2xl font-black text-white">Tru8</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">
