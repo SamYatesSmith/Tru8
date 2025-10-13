@@ -76,19 +76,19 @@ export function Navigation() {
                   <div className="flex items-center justify-center gap-8 whitespace-nowrap animate-fade-in">
 
                   <button
-                    onClick={() => scrollToSection('features')}
-                    className="text-slate-300 hover:text-[#f57a07] transition-colors text-base font-medium"
-                    aria-label="Navigate to features section"
-                  >
-                    FEATURES
-                  </button>
-                  <span className="text-slate-700">|</span>
-                  <button
                     onClick={() => scrollToSection('how-it-works')}
                     className="text-slate-300 hover:text-[#f57a07] transition-colors text-base font-medium"
                     aria-label="Navigate to how it works section"
                   >
                     HOW IT WORKS
+                  </button>
+                  <span className="text-slate-700">|</span>
+                  <button
+                    onClick={() => scrollToSection('features')}
+                    className="text-slate-300 hover:text-[#f57a07] transition-colors text-base font-medium"
+                    aria-label="Navigate to features section"
+                  >
+                    FEATURES
                   </button>
                   <span className="text-slate-700">|</span>
                   <button

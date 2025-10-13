@@ -62,7 +62,7 @@ export function PricingCards() {
       const session = await apiClient.createCheckoutSession({
         price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO || 'price_placeholder',
         plan: 'professional',
-      }, token);
+      }, token) as { session_id: string; url: string };
 
       // Redirect to Stripe checkout
       if (session.url) {
@@ -131,7 +131,7 @@ export function PricingCards() {
                 key={plan.name}
                 className={`relative bg-[#1a1f2e]/90 backdrop-blur-sm rounded-2xl p-12 border-2 ${
                   plan.highlighted
-                    ? 'border-[#22d3ee] shadow-2xl shadow-[#22d3ee]/30 scale-105'
+                    ? 'border-[#22d3ee] shadow-2xl shadow-[#22d3ee]/30'
                     : 'border-slate-700'
                 } transition-all hover:border-opacity-80 hover:shadow-xl`}
               >
@@ -171,7 +171,7 @@ export function PricingCards() {
                   disabled={isProcessing && plan.highlighted}
                   className={`w-full py-5 rounded-xl text-xl font-bold transition-all ${
                     plan.highlighted
-                      ? 'bg-[#f57a07] hover:bg-[#e06a00] text-white shadow-xl hover:shadow-2xl hover:scale-105'
+                      ? 'bg-[#f57a07] hover:bg-[#e06a00] text-white shadow-xl hover:shadow-2xl'
                       : 'bg-transparent border-2 border-slate-700 hover:border-[#f57a07] hover:bg-slate-800/50 text-white'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >

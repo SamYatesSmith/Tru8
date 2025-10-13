@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, CheckCircle2, Mic } from 'lucide-react';
 
 /**
  * Feature Carousel Component
@@ -39,6 +39,11 @@ export function FeatureCarousel() {
       icon: Search,
       title: 'Article Analysis',
       description: 'Deep content analysis with context understanding and claim extraction',
+    },
+    {
+      icon: Mic,
+      title: 'Voice Recording Verification',
+      description: 'Record spoken claims directly and verify them instantly—perfect for conversations, debates, or statements on the go',
     },
     {
       icon: Calendar,

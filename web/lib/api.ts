@@ -31,9 +31,8 @@ class ApiClient {
     options: RequestInit = {},
     token?: string | null
   ): Promise<T> {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
     };
 
     // Add auth token if available

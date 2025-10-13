@@ -25,7 +25,7 @@ export function HowItWorks() {
     {
       number: 1,
       title: 'Submit Content',
-      description: 'Upload articles, images, videos, or paste text directly into our platform',
+      description: 'Upload articles, URLs, record voice messages, or paste text directly into our platform',
       icon: Upload,
     },
     {
