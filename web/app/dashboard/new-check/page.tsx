@@ -1,0 +1,270 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
+import { Loader2, Facebook, Instagram, Twitter, Youtube, MessageCircle } from 'lucide-react';
+import { apiClient } from '@/lib/api';
+import { PageHeader } from '../components/page-header';
+import { PrismGraphic } from '../components/prism-graphic';
+
+type TabType = 'url' | 'text';
+
+export default function NewCheckPage() {
+  const router = useRouter();
+  const { getToken } = useAuth();
+
+  // Form state
+  const [activeTab, setActiveTab] = useState<TabType>('url');
+  const [urlInput, setUrlInput] = useState('');
+  const [textInput, setTextInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Validation
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Validate based on active tab
+    if (activeTab === 'url') {
+      if (!urlInput.trim()) {
+        setError('Please enter a URL');
+        return;
+      }
+      if (!isValidUrl(urlInput)) {
+        setError('Please enter a valid URL (e.g., https://example.com)');
+        return;
+      }
+    }
+
+    if (activeTab === 'text') {
+      if (!textInput.trim()) {
+        setError('Please enter some text');
+        return;
+      }
+      if (textInput.length < 10) {
+        setError('Text must be at least 10 characters');
+        return;
+      }
+      if (textInput.length > 5000) {
+        setError('Text must be less than 5000 characters');
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const token = await getToken();
+
+      const result = await apiClient.createCheck({
+        input_type: activeTab,
+        url: activeTab === 'url' ? urlInput : undefined,
+        content: activeTab === 'text' ? textInput : undefined,
+      }, token);
+
+      // Redirect to check detail page
+      router.push(`/dashboard/check/${result.check.id}`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to create check. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleShare = (platform: string) => {
+    const url = window.location.origin;
+    const title = 'Tru8 - Fact-Checking Platform';
+    const text = 'Check out Tru8 for instant fact verification';
+
+    const shareUrls: Record<string, string> = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+      instagram: url,
+      youtube: url,
+      message: `sms:?&body=${encodeURIComponent(text + ' ' + url)}`,
+    };
+
+    const shareUrl = shareUrls[platform];
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+  };
+
+  const charCount = textInput.length;
+  const maxChars = 5000;
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="Create New Claim Check"
+        subtitle="Submit claims, URLs, or articles for instant verification"
+        graphic={<PrismGraphic />}
+      />
+
+      {/* Submit Content Card */}
+      <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-8">
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-white">Submit Content</h3>
+          <p className="text-slate-400 text-sm mt-1">
+            Enter a URL or paste text to verify claims and check facts
+          </p>
+        </div>
+
+        {/* Tab Selector */}
+        <div className="flex gap-6 mb-6 border-b border-slate-700">
+          <button
+            type="button"
+            onClick={() => setActiveTab('url')}
+            className={`pb-2 font-bold uppercase text-sm transition-colors ${
+              activeTab === 'url'
+                ? 'text-[#f57a07] border-b-2 border-[#f57a07]'
+                : 'text-slate-400 hover:text-slate-300'
+            }`}
+          >
+            URL
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('text')}
+            className={`pb-2 font-bold uppercase text-sm transition-colors ${
+              activeTab === 'text'
+                ? 'text-[#f57a07] border-b-2 border-[#f57a07]'
+                : 'text-slate-400 hover:text-slate-300'
+            }`}
+          >
+            TEXT
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* URL Tab Content */}
+          {activeTab === 'url' && (
+            <div>
+              <label htmlFor="url-input" className="block text-sm font-semibold text-white mb-2">
+                Website URL
+              </label>
+              <input
+                id="url-input"
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="https://example.com/article"
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:border-[#f57a07] focus:outline-none transition-colors"
+                disabled={isSubmitting}
+              />
+              <p className="text-sm text-slate-400 mt-2">
+                Enter the URL of an article, blog post, or webpage to verify
+              </p>
+            </div>
+          )}
+
+          {/* TEXT Tab Content */}
+          {activeTab === 'text' && (
+            <div>
+              <label htmlFor="text-input" className="block text-sm font-semibold text-white mb-2">
+                Text Content
+              </label>
+              <textarea
+                id="text-input"
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                placeholder="Paste or type the text you want to fact-check..."
+                rows={8}
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:border-[#f57a07] focus:outline-none transition-colors resize-vertical"
+                disabled={isSubmitting}
+              />
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-sm text-slate-400">
+                  Enter text containing claims you want to verify
+                </p>
+                <p className="text-sm text-slate-400">
+                  {charCount} / {maxChars} characters
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-900/20 border border-red-600 rounded-lg px-4 py-3 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-[#f57a07] hover:bg-[#e06a00] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                PROCESSING...
+              </>
+            ) : (
+              'START FACT CHECK'
+            )}
+          </button>
+        </form>
+      </div>
+
+      {/* Share Your Results Card */}
+      <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-8 text-center">
+        <h3 className="text-2xl font-bold text-white mb-3">Share Your Results</h3>
+        <p className="text-slate-300 max-w-2xl mx-auto mb-6">
+          Once your fact-check is complete, share the verified results with your network to help combat misinformation
+        </p>
+
+        {/* Social Icons */}
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={() => handleShare('facebook')}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            aria-label="Share on Facebook"
+          >
+            <Facebook size={24} />
+          </button>
+          <button
+            onClick={() => handleShare('instagram')}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            aria-label="Share on Instagram"
+          >
+            <Instagram size={24} />
+          </button>
+          <button
+            onClick={() => handleShare('twitter')}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            aria-label="Share on Twitter"
+          >
+            <Twitter size={24} />
+          </button>
+          <button
+            onClick={() => handleShare('youtube')}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            aria-label="Share on YouTube"
+          >
+            <Youtube size={24} />
+          </button>
+          <button
+            onClick={() => handleShare('message')}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            aria-label="Share via Message"
+          >
+            <MessageCircle size={24} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

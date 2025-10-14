@@ -54,26 +54,26 @@ class ApiClient {
   }
 
   /**
-   * GET /api/v1/users/me
-   * Returns user profile with credits
+   * GET /api/v1/users/profile
+   * Returns user profile with credits and stats
    * Auto-creates user if doesn't exist (first login)
    *
-   * Backend Logic (backend/app/api/v1/users.py:10-31):
+   * Backend Logic (backend/app/api/v1/users.py:12-69):
    * - Verifies Clerk JWT token
    * - Finds user by Clerk ID
    * - If not found, creates user with 3 credits
-   * - Returns user object with credits, subscription status
+   * - Returns user object with credits, subscription status, stats
    */
   async getCurrentUser(token?: string | null) {
-    return this.request('/api/v1/users/me', {}, token);
+    return this.request('/api/v1/users/profile', {}, token);
   }
 
   /**
-   * GET /api/v1/users/profile
-   * Returns detailed user profile with usage stats
+   * GET /api/v1/users/usage
+   * Returns detailed usage statistics
    */
-  async getUserProfile(token?: string | null) {
-    return this.request('/api/v1/users/profile', {}, token);
+  async getUsage(token?: string | null) {
+    return this.request('/api/v1/users/usage', {}, token);
   }
 
   /**
@@ -97,10 +97,18 @@ class ApiClient {
 
   /**
    * GET /api/v1/checks
-   * Get user's fact-check history
+   * Get user's fact-check history with pagination
    */
-  async getChecks(token?: string | null) {
-    return this.request('/api/v1/checks', {}, token);
+  async getChecks(token?: string | null, skip: number = 0, limit: number = 20) {
+    return this.request(`/api/v1/checks?skip=${skip}&limit=${limit}`, {}, token);
+  }
+
+  /**
+   * GET /api/v1/checks/{id}
+   * Get single check with full details (claims, evidence)
+   */
+  async getCheckById(checkId: string, token?: string | null) {
+    return this.request(`/api/v1/checks/${checkId}`, {}, token);
   }
 
   /**
@@ -124,6 +132,77 @@ class ApiClient {
     return this.request('/api/v1/payments/create-checkout-session', {
       method: 'POST',
       body: JSON.stringify(data),
+    }, token);
+  }
+
+  /**
+   * GET /api/v1/payments/subscription-status
+   * Get current subscription details
+   */
+  async getSubscriptionStatus(token?: string | null) {
+    return this.request('/api/v1/payments/subscription-status', {}, token);
+  }
+
+  /**
+   * POST /api/v1/payments/create-portal-session
+   * Create Stripe billing portal session
+   */
+  async createBillingPortalSession(token?: string | null) {
+    return this.request('/api/v1/payments/create-portal-session', {
+      method: 'POST',
+    }, token);
+  }
+
+  /**
+   * POST /api/v1/checks/{id}/sse-token
+   * Generate short-lived token for SSE connection (GAP #16)
+   * NEW ENDPOINT - Requires backend implementation
+   */
+  async createSSEToken(checkId: string, token?: string | null) {
+    return this.request(`/api/v1/checks/${checkId}/sse-token`, {
+      method: 'POST',
+    }, token);
+  }
+
+  /**
+   * GET /api/v1/payments/invoices
+   * Fetch last 5 Stripe invoices (GAP #17)
+   * NEW ENDPOINT - Requires backend implementation
+   */
+  async getInvoices(token?: string | null) {
+    return this.request('/api/v1/payments/invoices', {}, token);
+  }
+
+  /**
+   * DELETE /api/v1/users/me
+   * Delete user account and all associated data (GAP #18)
+   * NEW ENDPOINT - Requires backend implementation
+   */
+  async deleteUser(userId: string, token?: string | null) {
+    return this.request('/api/v1/users/me', {
+      method: 'DELETE',
+    }, token);
+  }
+
+  /**
+   * POST /api/v1/payments/cancel-subscription
+   * Cancel subscription at end of billing period (GAP #19)
+   * NEW ENDPOINT - Requires backend implementation
+   */
+  async cancelSubscription(token?: string | null) {
+    return this.request('/api/v1/payments/cancel-subscription', {
+      method: 'POST',
+    }, token);
+  }
+
+  /**
+   * POST /api/v1/payments/reactivate-subscription
+   * Reactivate subscription before period end (GAP #19)
+   * NEW ENDPOINT - Requires backend implementation
+   */
+  async reactivateSubscription(token?: string | null) {
+    return this.request('/api/v1/payments/reactivate-subscription', {
+      method: 'POST',
     }, token);
   }
 }

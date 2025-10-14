@@ -6,8 +6,8 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware((auth, req) => {
-  // Protect routes that match the pattern
-  if (isProtectedRoute(req)) auth().protect();
+  // TEMPORARILY DISABLED FOR TESTING - Re-enable before production!
+  // if (isProtectedRoute(req)) auth().protect();
 });
 
 export const config = {

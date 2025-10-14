@@ -231,14 +231,35 @@ async def get_checks(
     result = await session.execute(stmt)
     checks = result.scalars().all()
     
-    # Get claims count for each check with explicit async query
+    # Get claims for each check (including first claim for preview)
     check_data = []
     for check in checks:
-        # Count claims for this check
+        # Get first claim for preview (ordered by position)
+        first_claim_stmt = (
+            select(Claim)
+            .where(Claim.check_id == check.id)
+            .order_by(Claim.position)
+            .limit(1)
+        )
+        first_claim_result = await session.execute(first_claim_stmt)
+        first_claim = first_claim_result.scalar_one_or_none()
+
+        # Count total claims
         claims_count_stmt = select(func.count(Claim.id)).where(Claim.check_id == check.id)
         claims_count_result = await session.execute(claims_count_stmt)
         claims_count = claims_count_result.scalar() or 0
-        
+
+        # Build claims array with first claim details
+        claims_array = []
+        if first_claim:
+            claims_array.append({
+                "id": first_claim.id,
+                "text": first_claim.text,
+                "verdict": first_claim.verdict,
+                "confidence": first_claim.confidence,
+                "position": first_claim.position,
+            })
+
         check_data.append({
             "id": check.id,
             "inputType": check.input_type,
@@ -249,8 +270,9 @@ async def get_checks(
             "createdAt": check.created_at.isoformat(),
             "completedAt": check.completed_at.isoformat() if check.completed_at else None,
             "claimsCount": claims_count,
+            "claims": claims_array,  # First claim for preview
         })
-    
+
     return {
         "checks": check_data,
         "total": len(checks)
