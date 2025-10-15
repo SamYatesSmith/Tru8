@@ -33,9 +33,14 @@ export function Navigation() {
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Ensure component is fully hydrated before enabling interactions
+  // Ensure component is fully hydrated and interactive
   useEffect(() => {
-    setIsMounted(true);
+    // Use requestAnimationFrame to ensure DOM is ready
+    const frame = requestAnimationFrame(() => {
+      setIsMounted(true);
+    });
+
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const scrollToSection = (sectionId: string) => {

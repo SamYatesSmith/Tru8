@@ -146,7 +146,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   footerActionLink: 'text-[#f57a07] hover:text-[#e06a00]',
                 },
               }}
-              redirectUrl="/dashboard"
+              routing="hash"
+              afterSignInUrl="/dashboard"
             />
           </div>
         ) : (
@@ -172,7 +173,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   footerActionLink: 'text-[#f57a07] hover:text-[#e06a00]',
                 },
               }}
-              redirectUrl="/dashboard"
+              routing="hash"
+              afterSignUpUrl="/dashboard"
             />
           </div>
         )}

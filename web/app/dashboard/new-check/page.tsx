@@ -71,7 +71,7 @@ export default function NewCheckPage() {
         input_type: activeTab,
         url: activeTab === 'url' ? urlInput : undefined,
         content: activeTab === 'text' ? textInput : undefined,
-      }, token);
+      }, token) as any;
 
       // Redirect to check detail page
       router.push(`/dashboard/check/${result.check.id}`);

@@ -43,7 +43,7 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
     setIsLoading(true);
     try {
       const token = await getToken();
-      const newChecks = await apiClient.getChecks(token, checks.length, 20);
+      const newChecks = await apiClient.getChecks(token, checks.length, 20) as any;
       setChecks([...checks, ...newChecks.checks]);
     } catch (error) {
       console.error('Failed to load more checks:', error);

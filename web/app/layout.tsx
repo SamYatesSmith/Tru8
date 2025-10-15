@@ -10,15 +10,23 @@ export const metadata: Metadata = {
   },
 }
 
+// Force dynamic rendering to prevent build-time issues
+export const dynamic = 'force-dynamic'
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className="bg-[#0f1419] text-white antialiased">{children}</body>
+    <ClerkProvider
+      dynamic
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    >
+      <html lang="en" suppressHydrationWarning>
+        <body className="bg-[#0f1419] text-white antialiased" suppressHydrationWarning>
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   )

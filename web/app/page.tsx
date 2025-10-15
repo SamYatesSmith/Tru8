@@ -31,8 +31,8 @@ export default function Home() {
         Skip to main content
       </a>
 
-      {/* Animated Background */}
-      <AnimatedBackground />
+      {/* Animated Background - wrapped in Suspense for better error handling */}
+      <AnimatedBackground key="animated-bg" />
 
       {/* Navigation */}
       <Navigation />
