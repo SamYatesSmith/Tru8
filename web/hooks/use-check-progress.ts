@@ -17,6 +17,7 @@ interface UseCheckProgressReturn {
   currentStage: string;
   isConnected: boolean;
   error: string | null;
+  message: string | null;
 }
 
 /**
@@ -33,6 +34,7 @@ export function useCheckProgress(
   const [currentStage, setCurrentStage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -69,6 +71,9 @@ export function useCheckProgress(
               }
               if (data.progress !== undefined) {
                 setProgress(data.progress);
+              }
+              if (data.message) {
+                setMessage(data.message);
               }
               break;
 
@@ -131,5 +136,6 @@ export function useCheckProgress(
     currentStage,
     isConnected,
     error,
+    message,
   };
 }

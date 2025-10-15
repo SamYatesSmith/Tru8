@@ -6,15 +6,16 @@ interface ProgressSectionProps {
   progress: number;
   currentStage: string;
   isConnected: boolean;
+  message?: string | null;
 }
 
-export function ProgressSection({ progress, currentStage, isConnected }: ProgressSectionProps) {
+export function ProgressSection({ progress, currentStage, isConnected, message }: ProgressSectionProps) {
   const stages = [
-    { key: 'ingest', label: 'Ingesting content...' },
-    { key: 'extract', label: 'Extracting claims...' },
-    { key: 'retrieve', label: 'Retrieving evidence...' },
-    { key: 'verify', label: 'Verifying claims...' },
-    { key: 'judge', label: 'Generating final verdict...' },
+    { key: 'ingest', label: 'Reading Content', description: 'Analyzing your submission' },
+    { key: 'extract', label: 'Finding Claims', description: 'Identifying statements to verify' },
+    { key: 'retrieve', label: 'Gathering Evidence', description: 'Searching trusted sources' },
+    { key: 'verify', label: 'Cross-Checking Facts', description: 'Comparing claims against evidence' },
+    { key: 'judge', label: 'Generating Verdict', description: 'Creating final assessment' },
   ];
 
   const getStageStatus = (stageKey: string) => {
@@ -37,32 +38,46 @@ export function ProgressSection({ progress, currentStage, isConnected }: Progres
           const status = getStageStatus(stage.key);
 
           return (
-            <div key={stage.key} className="flex items-center gap-3">
-              {status === 'completed' && (
-                <CheckCircle2 size={20} className="text-emerald-400 flex-shrink-0" />
-              )}
-              {status === 'processing' && (
-                <Loader2 size={20} className="text-blue-400 animate-spin flex-shrink-0" />
-              )}
-              {status === 'pending' && (
-                <Circle size={20} className="text-slate-600 flex-shrink-0" />
-              )}
+            <div key={stage.key} className="flex items-start gap-3">
+              <div className="mt-0.5">
+                {status === 'completed' && (
+                  <CheckCircle2 size={20} className="text-emerald-400 flex-shrink-0" />
+                )}
+                {status === 'processing' && (
+                  <Loader2 size={20} className="text-blue-400 animate-spin flex-shrink-0" />
+                )}
+                {status === 'pending' && (
+                  <Circle size={20} className="text-slate-600 flex-shrink-0" />
+                )}
+              </div>
 
-              <span
-                className={`text-sm font-medium ${
-                  status === 'completed'
-                    ? 'text-emerald-400'
-                    : status === 'processing'
-                    ? 'text-blue-400'
-                    : 'text-slate-500'
-                }`}
-              >
-                {stage.label}
-              </span>
+              <div className="flex-1">
+                <div
+                  className={`text-sm font-semibold ${
+                    status === 'completed'
+                      ? 'text-emerald-400'
+                      : status === 'processing'
+                      ? 'text-blue-400'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  {stage.label}
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">
+                  {stage.description}
+                </div>
+              </div>
             </div>
           );
         })}
       </div>
+
+      {/* Current Stage Message */}
+      {message && (
+        <div className="mb-6 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
+          <p className="text-sm text-blue-300 font-medium">{message}</p>
+        </div>
+      )}
 
       {/* Progress Bar */}
       <div className="relative">

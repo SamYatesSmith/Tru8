@@ -26,7 +26,7 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
   }, [getToken]);
 
   // Real-time progress updates via SSE
-  const { progress, currentStage, isConnected } = useCheckProgress(
+  const { progress, currentStage, isConnected, message } = useCheckProgress(
     checkId,
     token,
     checkData.status === 'processing'
@@ -63,7 +63,7 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
 
       {/* Status-based Rendering */}
       {checkData.status === 'processing' && (
-        <ProgressSection progress={progress} currentStage={currentStage} isConnected={isConnected} />
+        <ProgressSection progress={progress} currentStage={currentStage} isConnected={isConnected} message={message} />
       )}
 
       {checkData.status === 'completed' && checkData.claims && checkData.claims.length > 0 && (
