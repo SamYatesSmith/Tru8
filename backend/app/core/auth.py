@@ -57,12 +57,12 @@ async def get_current_user(token_payload: dict = Depends(verify_token)) -> dict:
             detail="Invalid token payload"
         )
     
-    # Try to get email from token, but it might not be there if JWT template isn't configured
+    # Try to get email and name from token, but they might not be there if JWT template isn't configured
     email = token_payload.get("email")
     name = token_payload.get("name")
-    
-    # If email is missing from JWT, fetch it from Clerk's API
-    if not email:
+
+    # If email or name is missing from JWT, fetch from Clerk's API
+    if not email or not name:
         try:
             # Fetch user details from Clerk API
             async with httpx.AsyncClient() as client:
@@ -75,17 +75,34 @@ async def get_current_user(token_payload: dict = Depends(verify_token)) -> dict:
                 )
                 if response.status_code == 200:
                     user_data = response.json()
-                    email = user_data.get("email_addresses", [{}])[0].get("email_address")
-                    first_name = user_data.get('first_name', '') or ''
-                    last_name = user_data.get('last_name', '') or ''
-                    name = f"{first_name} {last_name}".strip()
-                    if name == '' or name == 'None None' or 'None' in name:
-                        name = None
+
+                    # Get email if missing
+                    if not email:
+                        email = user_data.get("email_addresses", [{}])[0].get("email_address")
+
+                    # Get name if missing - try multiple fallback strategies
+                    if not name:
+                        first_name = user_data.get('first_name', '').strip() if user_data.get('first_name') else ''
+                        last_name = user_data.get('last_name', '').strip() if user_data.get('last_name') else ''
+
+                        # Strategy 1: Use first_name + last_name
+                        if first_name or last_name:
+                            name = f"{first_name} {last_name}".strip()
+
+                        # Strategy 2: Use username if available
+                        if not name:
+                            username = user_data.get('username')
+                            if username:
+                                name = username
+
+                        # Strategy 3: Use email prefix (part before @)
+                        if not name and email:
+                            name = email.split('@')[0].replace('.', ' ').replace('_', ' ').title()
                 else:
                     # Failed to get user data from Clerk API
                     pass
-        except Exception:
-            # Error fetching from Clerk API, continue with None email
+        except Exception as e:
+            # Error fetching from Clerk API, continue with what we have
             pass
     
     return {
@@ -126,12 +143,12 @@ async def get_current_user_sse(request: Request, token: Optional[str] = Query(No
             detail="Invalid token payload"
         )
     
-    # Try to get email from token, but it might not be there if JWT template isn't configured
+    # Try to get email and name from token, but they might not be there if JWT template isn't configured
     email = payload.get("email")
     name = payload.get("name")
-    
-    # If email is missing from JWT, fetch it from Clerk's API
-    if not email:
+
+    # If email or name is missing from JWT, fetch from Clerk's API
+    if not email or not name:
         try:
             # Fetch user details from Clerk API
             async with httpx.AsyncClient() as client:
@@ -144,17 +161,34 @@ async def get_current_user_sse(request: Request, token: Optional[str] = Query(No
                 )
                 if response.status_code == 200:
                     user_data = response.json()
-                    email = user_data.get("email_addresses", [{}])[0].get("email_address")
-                    first_name = user_data.get('first_name', '') or ''
-                    last_name = user_data.get('last_name', '') or ''
-                    name = f"{first_name} {last_name}".strip()
-                    if name == '' or name == 'None None' or 'None' in name:
-                        name = None
+
+                    # Get email if missing
+                    if not email:
+                        email = user_data.get("email_addresses", [{}])[0].get("email_address")
+
+                    # Get name if missing - try multiple fallback strategies
+                    if not name:
+                        first_name = user_data.get('first_name', '').strip() if user_data.get('first_name') else ''
+                        last_name = user_data.get('last_name', '').strip() if user_data.get('last_name') else ''
+
+                        # Strategy 1: Use first_name + last_name
+                        if first_name or last_name:
+                            name = f"{first_name} {last_name}".strip()
+
+                        # Strategy 2: Use username if available
+                        if not name:
+                            username = user_data.get('username')
+                            if username:
+                                name = username
+
+                        # Strategy 3: Use email prefix (part before @)
+                        if not name and email:
+                            name = email.split('@')[0].replace('.', ' ').replace('_', ' ').title()
                 else:
                     # Failed to get user data from Clerk API
                     pass
-        except Exception:
-            # Error fetching from Clerk API, continue with None email
+        except Exception as e:
+            # Error fetching from Clerk API, continue with what we have
             pass
     
     return {
