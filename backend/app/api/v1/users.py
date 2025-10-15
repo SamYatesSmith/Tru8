@@ -1,11 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, delete
 from app.core.database import get_session
 from app.core.auth import get_current_user
-from app.models import User, Check
+from app.core.config import settings
+from app.models import User, Check, Subscription, Claim, Evidence
 from app.services.push_notifications import push_notification_service
+import stripe
+import logging
+
+# Configure Stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -184,12 +191,123 @@ async def get_notification_preferences(
     stmt = select(User).where(User.id == current_user["id"])
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     return {
         "notifications": user.push_notifications_enabled,
         "hasPushToken": bool(user.push_token),
         "platform": user.platform
     }
+
+
+@router.delete("/me")
+async def delete_user_account(
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Delete user account and all associated data
+
+    This endpoint:
+    - Deletes all checks, claims, and evidence (via CASCADE)
+    - Cancels active Stripe subscriptions
+    - Deletes all subscription records
+    - Deletes the user record
+
+    This action is permanent and cannot be undone.
+    Frontend must also delete the Clerk user separately.
+    """
+    user_id = current_user["id"]
+
+    try:
+        # 1. Get user record
+        stmt = select(User).where(User.id == user_id)
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        # 2. Cancel active Stripe subscriptions
+        subscription_stmt = select(Subscription).where(
+            Subscription.user_id == user_id,
+            Subscription.status.in_(["active", "trialing", "past_due"])
+        )
+        subscription_result = await session.execute(subscription_stmt)
+        active_subscriptions = subscription_result.scalars().all()
+
+        for sub in active_subscriptions:
+            if sub.stripe_subscription_id:
+                try:
+                    # Cancel immediately (not at period end)
+                    stripe.Subscription.delete(sub.stripe_subscription_id)
+                    logger.info(f"Cancelled Stripe subscription {sub.stripe_subscription_id} for user {user_id}")
+                except stripe.error.StripeError as e:
+                    # Log but don't block deletion if Stripe cancellation fails
+                    logger.error(f"Failed to cancel Stripe subscription {sub.stripe_subscription_id}: {e}")
+                except Exception as e:
+                    logger.error(f"Unexpected error cancelling subscription {sub.stripe_subscription_id}: {e}")
+
+        # 3. Delete all evidence records (must be done first due to foreign keys)
+        # Get all claim IDs for this user's checks
+        check_ids_stmt = select(Check.id).where(Check.user_id == user_id)
+        check_ids_result = await session.execute(check_ids_stmt)
+        check_ids = [row[0] for row in check_ids_result.all()]
+
+        if check_ids:
+            # Get all claim IDs for these checks
+            claim_ids_stmt = select(Claim.id).where(Claim.check_id.in_(check_ids))
+            claim_ids_result = await session.execute(claim_ids_stmt)
+            claim_ids = [row[0] for row in claim_ids_result.all()]
+
+            if claim_ids:
+                # Delete all evidence for these claims
+                await session.execute(
+                    delete(Evidence).where(Evidence.claim_id.in_(claim_ids))
+                )
+                logger.info(f"Deleted evidence for {len(claim_ids)} claims")
+
+            # Delete all claims for these checks
+            await session.execute(
+                delete(Claim).where(Claim.check_id.in_(check_ids))
+            )
+            logger.info(f"Deleted {len(claim_ids)} claims")
+
+        # 4. Delete all checks
+        checks_deleted = await session.execute(
+            delete(Check).where(Check.user_id == user_id)
+        )
+        logger.info(f"Deleted {checks_deleted.rowcount} checks for user {user_id}")
+
+        # 5. Delete all subscriptions
+        subs_deleted = await session.execute(
+            delete(Subscription).where(Subscription.user_id == user_id)
+        )
+        logger.info(f"Deleted {subs_deleted.rowcount} subscriptions for user {user_id}")
+
+        # 6. Delete user record
+        await session.delete(user)
+        await session.commit()
+
+        logger.info(f"Successfully deleted user account {user_id}")
+
+        return {
+            "message": "Account successfully deleted",
+            "userId": user_id
+        }
+
+    except HTTPException:
+        await session.rollback()
+        raise
+    except Exception as e:
+        await session.rollback()
+        logger.error(f"Failed to delete user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete account. Please contact support at support@tru8.com"
+        )

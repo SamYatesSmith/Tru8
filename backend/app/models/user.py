@@ -32,6 +32,7 @@ class Subscription(SQLModel, table=True):
     current_period_start: datetime
     current_period_end: datetime
     stripe_subscription_id: Optional[str] = None
+    stripe_customer_id: Optional[str] = None
     revenue_cat_id: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

@@ -3,19 +3,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_session
 from app.core.auth import get_current_user
+from app.core.config import settings
 from app.models import User, Subscription
 from pydantic import BaseModel
 from typing import Optional
 import stripe
-import os
 from datetime import datetime, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
 
 # Configure Stripe
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+stripe.api_key = settings.STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
 
 router = APIRouter()
 
@@ -66,8 +66,8 @@ async def create_checkout_session(
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url=f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/account?success=true",
-            cancel_url=f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/account?cancelled=true",
+            success_url=f"{settings.FRONTEND_URL}/dashboard?upgraded=true",
+            cancel_url=f"{settings.FRONTEND_URL}/dashboard?cancelled=true",
             metadata={
                 'user_id': user.id,
                 'plan': request.plan,
@@ -140,7 +140,8 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
 
     # Get the subscription details from Stripe
     stripe_subscription = stripe.Subscription.retrieve(stripe_subscription_id)
-    
+    stripe_customer_id = stripe_subscription.get('customer')
+
     # Get user from database
     stmt = select(User).where(User.id == user_id)
     result = await session.execute(stmt)
@@ -151,13 +152,18 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
         return
 
     # Determine plan details from the subscription
-    plan_mapping = {
-        os.getenv('STRIPE_STARTER_PRICE_ID', 'price_starter_test'): ('starter', 120),
-        os.getenv('STRIPE_PRO_PRICE_ID', 'price_pro_test'): ('pro', 300),
-    }
-    
+    # Map Stripe price IDs to plan names and credit amounts
     price_id = stripe_subscription['items']['data'][0]['price']['id']
-    plan, credits_per_month = plan_mapping.get(price_id, ('starter', 120))
+
+    # For now, we only have Professional plan (£7/month = 40 checks)
+    if price_id == settings.STRIPE_PRICE_ID_PRO:
+        plan = 'pro'
+        credits_per_month = 40  # Professional plan: 40 checks per month
+    else:
+        # Fallback for unknown price IDs
+        logger.warning(f"Unknown price ID: {price_id}, defaulting to free plan")
+        plan = 'free'
+        credits_per_month = 3
     
     # Get existing subscription
     existing_sub_stmt = select(Subscription).where(Subscription.user_id == user_id)
@@ -176,6 +182,7 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
             stripe_subscription['current_period_end']
         )
         existing_subscription.stripe_subscription_id = stripe_subscription_id
+        existing_subscription.stripe_customer_id = stripe_customer_id
         existing_subscription.updated_at = datetime.utcnow()
     else:
         # Create new subscription
@@ -193,6 +200,7 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
                 stripe_subscription['current_period_end']
             ),
             stripe_subscription_id=stripe_subscription_id,
+            stripe_customer_id=stripe_customer_id,
         )
         session.add(new_subscription)
 
@@ -305,6 +313,7 @@ async def get_subscription_status(
         "status": subscription.status,
         "creditsPerMonth": subscription.credits_per_month,
         "creditsRemaining": subscription.credits_remaining,
+        "currentPeriodStart": subscription.current_period_start.isoformat(),
         "currentPeriodEnd": subscription.current_period_end.isoformat(),
         "stripeSubscriptionId": subscription.stripe_subscription_id,
     }
@@ -336,9 +345,130 @@ async def cancel_subscription(
             subscription.stripe_subscription_id,
             cancel_at_period_end=True
         )
-        
+
         return {"message": "Subscription will be cancelled at the end of the current period"}
-    
+
     except stripe.error.StripeError as e:
         logger.error(f"Error cancelling subscription: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/create-portal-session")
+async def create_billing_portal_session(
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Create a Stripe billing portal session
+
+    Allows users to:
+    - View billing history
+    - Download invoices
+    - Update payment method
+    - Cancel subscription
+    """
+    try:
+        # Get user from database
+        stmt = select(User).where(User.id == current_user["id"])
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Get user's subscription to find Stripe customer ID
+        sub_stmt = select(Subscription).where(
+            Subscription.user_id == user.id
+        ).order_by(desc(Subscription.created_at)).limit(1)
+        sub_result = await session.execute(sub_stmt)
+        subscription = sub_result.scalar_one_or_none()
+
+        # If no subscription exists yet, we need to create a customer first
+        if not subscription or not subscription.stripe_customer_id:
+            # Create a Stripe customer for this user
+            customer = stripe.Customer.create(
+                email=user.email,
+                metadata={
+                    'user_id': user.id
+                }
+            )
+            customer_id = customer.id
+
+            # Save customer ID to subscription if it exists
+            if subscription:
+                subscription.stripe_customer_id = customer_id
+                await session.commit()
+        else:
+            customer_id = subscription.stripe_customer_id
+
+        # Create billing portal session
+        portal_session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=f"{settings.FRONTEND_URL}/dashboard/settings?tab=subscription",
+        )
+
+        return {"url": portal_session.url}
+
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error creating portal session: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error creating portal session: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.post("/reactivate-subscription")
+async def reactivate_subscription(
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Reactivate a subscription that was scheduled for cancellation
+
+    Removes the cancel_at_period_end flag from the Stripe subscription,
+    allowing it to continue renewing after the current period ends.
+    """
+    try:
+        # Get user from database
+        stmt = select(User).where(User.id == current_user["id"])
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Get user's subscription
+        sub_stmt = select(Subscription).where(
+            Subscription.user_id == user.id,
+            Subscription.status == "active"
+        )
+        sub_result = await session.execute(sub_stmt)
+        subscription = sub_result.scalar_one_or_none()
+
+        if not subscription or not subscription.stripe_subscription_id:
+            raise HTTPException(
+                status_code=404,
+                detail="No active subscription found to reactivate"
+            )
+
+        # Reactivate the subscription in Stripe
+        stripe_subscription = stripe.Subscription.modify(
+            subscription.stripe_subscription_id,
+            cancel_at_period_end=False
+        )
+
+        logger.info(f"Reactivated subscription {subscription.stripe_subscription_id} for user {user.id}")
+
+        return {
+            "message": "Subscription reactivated successfully",
+            "subscription": {
+                "id": subscription.id,
+                "status": "active",
+                "currentPeriodEnd": stripe_subscription.current_period_end
+            }
+        }
+
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error reactivating subscription: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error reactivating subscription: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")

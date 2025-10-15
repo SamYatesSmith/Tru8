@@ -16,25 +16,17 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 1. Check authentication
+  // 1. Check authentication - middleware will redirect if not authenticated
   const { userId, getToken } = auth();
 
-  // TEMPORARY: Mock user data for testing when not authenticated
-  let user: User;
-
   if (!userId) {
-    // Mock user for testing
-    user = {
-      id: 'test-user-123',
-      name: 'Test User',
-      email: 'test@example.com',
-      credits: 3,
-    };
-  } else {
-    // 2. Fetch real user data
-    const token = await getToken();
-    user = await apiClient.getCurrentUser(token) as User;
+    // No user ID means not authenticated - redirect to sign-in
+    redirect('/?signin=true');
   }
+
+  // 2. Fetch authenticated user data
+  const token = await getToken();
+  const user = await apiClient.getCurrentUser(token) as User;
 
   // 3. Render layout
   return (

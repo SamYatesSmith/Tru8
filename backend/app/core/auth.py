@@ -23,12 +23,14 @@ async def _verify_jwt_token(token: str) -> dict:
         signing_key = jwks_client.get_signing_key_from_jwt(token)
         
         # Verify and decode the token with correct issuer
+        # Add leeway to tolerate clock skew between client and server (up to 60 seconds)
         expected_issuer = f"https://{settings.CLERK_JWT_ISSUER}"
         payload = jwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
             issuer=expected_issuer,
+            leeway=60,  # Allow 60 seconds of clock skew
             options={"verify_aud": False}  # Clerk doesn't use aud claim
         )
         

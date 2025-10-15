@@ -9,7 +9,7 @@ interface UpgradeBannerProps {
 
 export function UpgradeBanner({ currentPlan }: UpgradeBannerProps) {
   const features = [
-    'Unlimited fact-checks per month',
+    '40 fact-checks per month',
     'Priority verification processing',
     'Advanced source analysis',
     'Export reports and citations',

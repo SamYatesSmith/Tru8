@@ -13,8 +13,13 @@ from sqlmodel import SQLModel
 config = context.config
 
 # Interpret the config file for Python logging
+# Skip if logging sections are not configured
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    try:
+        fileConfig(config.config_file_name)
+    except KeyError:
+        # alembic.ini doesn't have logging config, skip it
+        pass
 
 # add your model's MetaData object here for 'autogenerate' support
 target_metadata = SQLModel.metadata
