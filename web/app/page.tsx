@@ -8,8 +8,8 @@ import { FeatureCarousel } from '@/components/marketing/feature-carousel'
 import { VideoDemo } from '@/components/marketing/video-demo'
 import { PricingCards } from '@/components/marketing/pricing-cards'
 
-// Dynamic import for AnimatedBackground to prevent SSR chunk loading issues
-// This ensures the component only loads on the client side after hydration
+// Dynamic import for AnimatedBackground to prevent SSR issues
+// Loads only on client side with proper loading fallback
 const AnimatedBackground = dynamic(
   () => import('@/components/marketing/animated-background').then((mod) => ({
     default: mod.AnimatedBackground,
@@ -18,17 +18,7 @@ const AnimatedBackground = dynamic(
     ssr: false,
     loading: () => <div className="fixed inset-0 bg-[#0f1419] -z-10" />,
   }
-);
-
-// Preload the AnimatedBackground component to reduce initial load time
-if (typeof window !== 'undefined') {
-  // Defer preloading until after initial page load
-  setTimeout(() => {
-    import('@/components/marketing/animated-background').catch(() => {
-      console.warn('[Home] Failed to preload AnimatedBackground');
-    });
-  }, 100);
-}
+)
 
 export default function Home() {
   return (
