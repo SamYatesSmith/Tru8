@@ -29,15 +29,18 @@ export default async function HistoryPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Check History"
-        subtitle="View, search, and manage all your fact-checking verifications in one place"
-        ctaText="New Check"
-        ctaHref="/dashboard/new-check"
-        graphic={<CompassGraphic />}
-        titleSize="normal"
-        graphicScale={1.6}
-      />
+      {/* Custom wrapper for History page with extra vertical space */}
+      <div className="py-8">
+        <PageHeader
+          title="Check History"
+          subtitle="View, search, and manage all your fact-checking verifications in one place"
+          ctaText="New Check"
+          ctaHref="/dashboard/new-check"
+          graphic={<CompassGraphic />}
+          titleSize="normal"
+          graphicScale={1.5}
+        />
+      </div>
 
       <HistoryContent initialChecks={initialChecks} />
     </div>
