@@ -1,98 +1,76 @@
-# Tru8 - Instant Fact-Checking Platform
+# Tru8 Documentation
 
-## 🚀 Quick Start
+This directory contains all project documentation organized by category and chronology.
 
-### Prerequisites
-- Docker & Docker Compose
-- Node.js 20+
-- Python 3.11+
-- Git
+## Directory Structure
 
-### 1. Start Services
-```bash
-docker-compose up -d
-```
+### `/plans/`
+Current active implementation plans for dashboard features.
+- `PLAN_00_GAPS_AND_DECISIONS.md` - Initial gap analysis and decisions
+- `PLAN_01_DASHBOARD_LAYOUT.md` - Dashboard layout implementation
+- `PLAN_02_DASHBOARD_HOME.md` - Home page implementation
+- `PLAN_03_HISTORY_PAGE.md` - History page implementation
+- `PLAN_04_NEW_CHECK_PAGE.md` - New check page implementation
+- `PLAN_05_CHECK_DETAIL_PAGE.md` - Check detail page implementation
+- `PLAN_06_SETTINGS_PAGE.md` - Settings page implementation
+- `BACKEND_ENDPOINTS_REQUIRED.md` - Backend API requirements
+- `IMPLEMENTATION_SUMMARY.md` - Overall implementation summary
 
-### 2. Backend Setup
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env with your API keys
-alembic upgrade head
-uvicorn main:app --reload
-```
+### `/implementation-summaries/`
+Detailed summaries of completed implementation phases.
+- `2024-10-14_plan-05-implementation.md` - Plan 05 implementation details
+- `2024-10-14_plan-05-verification.md` - Plan 05 verification report
+- `2024-10-14_plan-06-context-analysis.md` - Plan 06 context analysis
+- `2024-10-14_gap-002-implementation.md` - Gap 002 implementation summary
 
-### 3. Web Frontend
-```bash
-cd web
-npm install
-npm run dev
-```
+### `/integration/`
+Integration guides and documentation.
+- `backend-integration-guide.md` - Backend integration guide
+- `frontend-backend-integration.md` - Frontend/backend integration details
 
-### 4. Mobile App
-```bash
-cd mobile
-npm install
-npx expo start
-```
+### `/diagnostics/`
+Debugging sessions and issue analysis.
+- `2024-10-14_clerk-auth-diagnostic.md` - Clerk authentication diagnostics
+- `2024-10-14_file-analysis-check-vs-checks.md` - File analysis report
+- `2024-10-15_dashboard-error-resolved.md` - Dashboard error resolution
 
-## 📁 Project Structure
-```
-tru8/
-├── backend/          # FastAPI + ML Pipeline
-├── web/             # Next.js Web App
-├── mobile/          # React Native (Expo)
-├── shared/          # Shared TypeScript types
-├── .claude/         # Claude Code configuration
-└── docker-compose.yml
-```
+### `/archived-plans/`
+Historical plans, weekly summaries, and completed initiatives.
+- `2024-10-07_frontend-removal-summary.md` - Frontend removal summary
+- `2024-10-07_track-a-validation.md` - Track A validation
+- `2024-10-07_track-c-*.md` - Track C implementation documents
+- `2024-10-14_gap-resolution-plan.md` - Gap resolution planning
+- `2024-10-14_temporary-changes-todo.md` - Temporary changes log
+- `ui-improvement-plan.md` - UI improvement initiatives
+- `WEEK1_COMPLETE.md` through `WEEK4_COMPLETE.md` - Weekly progress summaries
+- `WEEK4_CONTEXT.md` - Week 4 context and status
 
-## 🔑 Environment Variables
+### `/guides/`
+Developer guides and reference documentation.
+- `quick-start.md` - Quick start guide for development
+- `testing-guide.md` - Testing procedures and best practices
+- `development-plan.md` - Overall development plan
+- `setup-instructions.md` - Environment setup instructions
+- `project-overview.md` - Tru8 project overview
 
-Create `.env` files in each directory:
-- `backend/.env` - API keys, database URLs
-- `web/.env.local` - Clerk public key, API URL
-- `mobile/.env` - Clerk, RevenueCat keys
+### Root-Level Documentation
+- `DESIGN_SYSTEM.md` - Comprehensive design system specification
+- `README.md` - This file
 
-## 🧪 Testing
+### `/FEDocs/`
+Frontend-specific documentation (legacy structure to be consolidated).
 
-```bash
-# Backend
-cd backend && pytest
+## File Naming Convention
 
-# Web
-cd web && npm test
+For dated documents: `YYYY-MM-DD_descriptive-name.md`
 
-# Mobile
-cd mobile && npm test
-```
+Example: `2024-10-14_clerk-auth-diagnostic.md`
 
-## 📊 Monitoring
+## Document Categories
 
-- **API Docs**: http://localhost:8000/api/docs
-- **Metrics**: http://localhost:8000/metrics
-- **Flower** (Celery): http://localhost:5555
-
-## 🎯 Development Plan
-
-Following the phased approach in `DEVELOPMENT_PLAN.md`:
-- **Phase 0**: Foundation ✅
-- **Track A**: Backend Pipeline (Week 1-4) ✅ **COMPLETE**
-- **Track B**: Web Frontend (Week 1-4) - In Progress
-- **Track C**: Mobile App (Week 1-4) - In Progress
-- **Phase 2**: Integration (Week 5-6)
-- **Phase 3**: Launch Prep (Week 7-8)
-
-### 🏆 Track A Achievements
-- ✅ Full ML pipeline: Extract → Retrieve → Verify → Judge
-- ✅ Real-time progress via SSE streaming
-- ✅ Sub-10s end-to-end performance
-- ✅ Production-ready NLI verification & LLM judgment
-- ✅ Complete caching & optimization layers
-
-## 📝 License
-
-Private - All rights reserved
+**Plans** - Forward-looking implementation plans
+**Implementation Summaries** - Post-completion analysis
+**Diagnostics** - Issue investigation and debugging
+**Guides** - How-to documentation and references
+**Archived Plans** - Historical planning documents
+**Integration** - Cross-system integration documentation
