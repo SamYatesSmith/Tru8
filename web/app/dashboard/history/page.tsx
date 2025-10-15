@@ -35,6 +35,8 @@ export default async function HistoryPage() {
         ctaText="New Check"
         ctaHref="/dashboard/new-check"
         graphic={<CompassGraphic />}
+        titleSize="normal"
+        graphicScale={1.6}
       />
 
       <HistoryContent initialChecks={initialChecks} />

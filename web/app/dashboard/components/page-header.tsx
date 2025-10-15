@@ -9,9 +9,19 @@ interface PageHeaderProps {
   ctaText?: string;
   ctaHref?: string;
   graphic?: React.ReactNode;
+  graphicScale?: number; // Optional custom scale for graphic (default 2)
+  titleSize?: 'normal' | 'large'; // Optional size variant (default large)
 }
 
-export function PageHeader({ title, subtitle, ctaText, ctaHref, graphic }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  subtitle,
+  ctaText,
+  ctaHref,
+  graphic,
+  graphicScale = 2,
+  titleSize = 'large'
+}: PageHeaderProps) {
   const handleShare = async (platform: string) => {
     const url = window.location.origin;
     const titleText = 'Tru8 - Fact-Checking Platform';
@@ -41,12 +51,17 @@ export function PageHeader({ title, subtitle, ctaText, ctaHref, graphic }: PageH
     }
   };
 
+  // Dynamic classes based on titleSize
+  const titleClasses = titleSize === 'normal'
+    ? 'text-5xl md:text-6xl lg:text-7xl font-black text-white mb-8 leading-tight'
+    : 'text-6xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight';
+
   return (
     <div className="relative mb-20 py-20">
       <div className="flex items-center justify-between gap-8">
         {/* Left content */}
         <div className="flex-1 max-w-3xl">
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight">
+          <h1 className={titleClasses}>
             {title}
           </h1>
           <p className="text-2xl md:text-3xl text-slate-300 mb-10 leading-relaxed">
@@ -61,9 +76,12 @@ export function PageHeader({ title, subtitle, ctaText, ctaHref, graphic }: PageH
           )}
         </div>
 
-        {/* Right graphic - much larger with better spacing */}
+        {/* Right graphic - size controlled by graphicScale prop */}
         {graphic && (
-          <div className="hidden lg:block flex-shrink-0 ml-20 mr-16 scale-[2]">
+          <div
+            className="hidden lg:block flex-shrink-0 ml-20 mr-20"
+            style={{ transform: `scale(${graphicScale})` }}
+          >
             {graphic}
           </div>
         )}
