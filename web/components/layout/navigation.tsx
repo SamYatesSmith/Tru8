@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthModal } from '@/components/auth/auth-modal';
 
 /**
@@ -31,6 +31,12 @@ import { AuthModal } from '@/components/auth/auth-modal';
 export function Navigation() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure component is fully hydrated before enabling interactions
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -58,8 +64,8 @@ export function Navigation() {
             {/* Center: Hover Pill Container - Absolutely centered */}
             <div
               className="absolute left-1/2 -translate-x-1/2"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
+              onMouseEnter={() => isMounted && setIsHovered(true)}
+              onMouseLeave={() => isMounted && setIsHovered(false)}
               role="navigation"
             >
               {/* Primary Pill - Tru8 Heading - 40% larger, no border */}

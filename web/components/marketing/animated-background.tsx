@@ -25,74 +25,121 @@ import { generatePixelGrid } from '@/lib/pixel-grid-generator';
  */
 export function AnimatedBackground() {
   const [layers, setLayers] = useState<{
-    layer1: string;
-    layer2: string;
-    layer3: string;
-  } | null>(null);
+    layer1: string | null;
+    layer2: string | null;
+    layer3: string | null;
+  }>({
+    layer1: null,
+    layer2: null,
+    layer3: null,
+  });
 
   useEffect(() => {
-    // Generate pixel grids on mount (client-side only)
-    try {
-      // Fixed canvas size - large enough to tile seamlessly but not memory-intensive
-      // 1920x2400 is sufficient for smooth tiling on all screen sizes
-      const canvasWidth = 1920;
-      const canvasHeight = 2400;
+    // Generate pixel grids progressively (client-side only)
+    // Reduced canvas size to prevent chunk loading timeouts
+    const canvasWidth = 1600;  // Reduced from 1920
+    const canvasHeight = 2000; // Reduced from 2400
+    let mounted = true;
 
-      const layer1 = generatePixelGrid(canvasWidth, canvasHeight, 0.05);
-      const layer2 = generatePixelGrid(canvasWidth, canvasHeight, 0.06);
-      const layer3 = generatePixelGrid(canvasWidth, canvasHeight, 0.07);
+    // Helper function to generate layer with retry logic
+    const generateLayer = async (
+      layerNum: number,
+      density: number,
+      delay: number = 0
+    ): Promise<void> => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          if (!mounted) {
+            resolve();
+            return;
+          }
 
-      // Only set layers if they were generated successfully
-      if (layer1 && layer2 && layer3) {
-        setLayers({ layer1, layer2, layer3 });
-      }
-    } catch (error) {
-      console.error('Failed to generate pixel grids:', error);
-    }
+          // Use requestIdleCallback for non-blocking generation (fallback to setTimeout)
+          const scheduleWork = (callback: () => void) => {
+            if ('requestIdleCallback' in window) {
+              window.requestIdleCallback(callback, { timeout: 2000 });
+            } else {
+              setTimeout(callback, delay);
+            }
+          };
+
+          scheduleWork(() => {
+            try {
+              const layer = generatePixelGrid(canvasWidth, canvasHeight, density);
+              if (layer && mounted) {
+                setLayers((prev) => ({ ...prev, [`layer${layerNum}`]: layer }));
+              }
+              resolve();
+            } catch (error) {
+              console.error(`[AnimatedBackground] Failed to generate layer ${layerNum}:`, error);
+              resolve();
+            }
+          });
+        }, delay);
+      });
+    };
+
+    // Generate layers sequentially with increasing delays
+    (async () => {
+      await generateLayer(1, 0.04, 0);     // Layer 1 - Reduced density
+      await generateLayer(2, 0.045, 100);  // Layer 2
+      await generateLayer(3, 0.05, 200);   // Layer 3
+    })();
+
+    // Cleanup
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  if (!layers) {
-    // Loading state - show solid dark background
+  // Show fallback until at least layer 1 loads
+  if (!layers.layer1) {
     return <div className="fixed inset-0 bg-[#0f1419] -z-10" />;
   }
 
   return (
     <div className="fixed inset-0 overflow-hidden -z-10 bg-[#0f1419]">
-      {/* Layer 1 - Slowest, most visible */}
-      <div
-        className="absolute left-0 right-0 top-0 animate-ascend-slow opacity-30"
-        style={{
-          height: '200vh',
-          backgroundImage: `url(${layers.layer1})`,
-          backgroundRepeat: 'repeat',
-          backgroundSize: 'auto',
-          willChange: 'transform',
-        }}
-      />
+      {/* Layer 1 - Slowest, most visible (always rendered if loaded) */}
+      {layers.layer1 && (
+        <div
+          className="absolute left-0 right-0 top-0 animate-ascend-slow opacity-30"
+          style={{
+            height: '200vh',
+            backgroundImage: `url(${layers.layer1})`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: 'auto',
+            willChange: 'transform',
+          }}
+        />
+      )}
 
-      {/* Layer 2 - Medium speed */}
-      <div
-        className="absolute left-0 right-0 top-0 animate-ascend-medium opacity-20"
-        style={{
-          height: '200vh',
-          backgroundImage: `url(${layers.layer2})`,
-          backgroundRepeat: 'repeat',
-          backgroundSize: 'auto',
-          willChange: 'transform',
-        }}
-      />
+      {/* Layer 2 - Medium speed (only render if loaded) */}
+      {layers.layer2 && (
+        <div
+          className="absolute left-0 right-0 top-0 animate-ascend-medium opacity-20"
+          style={{
+            height: '200vh',
+            backgroundImage: `url(${layers.layer2})`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: 'auto',
+            willChange: 'transform',
+          }}
+        />
+      )}
 
-      {/* Layer 3 - Fastest, least visible */}
-      <div
-        className="absolute left-0 right-0 top-0 animate-ascend-fast opacity-10"
-        style={{
-          height: '200vh',
-          backgroundImage: `url(${layers.layer3})`,
-          backgroundRepeat: 'repeat',
-          backgroundSize: 'auto',
-          willChange: 'transform',
-        }}
-      />
+      {/* Layer 3 - Fastest, least visible (only render if loaded) */}
+      {layers.layer3 && (
+        <div
+          className="absolute left-0 right-0 top-0 animate-ascend-fast opacity-10"
+          style={{
+            height: '200vh',
+            backgroundImage: `url(${layers.layer3})`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: 'auto',
+            willChange: 'transform',
+          }}
+        />
+      )}
     </div>
   );
 }

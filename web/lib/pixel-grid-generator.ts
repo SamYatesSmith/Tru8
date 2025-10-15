@@ -65,6 +65,24 @@ export function generatePixelGrid(
     return '';
   }
 
+  // Reduced canvas size limits to prevent memory issues and chunk loading timeouts
+  const MAX_CANVAS_DIMENSION = 2048; // Reduced from 4096 for better performance
+  const MAX_CANVAS_AREA = 4194304;  // 2048 * 2048 (reduced from 16MB)
+
+  // Check dimensions and scale down aggressively
+  if (width > MAX_CANVAS_DIMENSION || height > MAX_CANVAS_DIMENSION) {
+    console.warn(`Canvas size ${width}x${height} exceeds safe limits, scaling down`);
+    const scale = Math.min(MAX_CANVAS_DIMENSION / width, MAX_CANVAS_DIMENSION / height);
+    width = Math.floor(width * scale);
+    height = Math.floor(height * scale);
+  }
+
+  // Check total area
+  const requestedArea = width * height;
+  if (requestedArea > MAX_CANVAS_AREA) {
+    throw new Error(`Canvas area ${requestedArea} exceeds maximum ${MAX_CANVAS_AREA}`);
+  }
+
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -100,6 +118,26 @@ export function generatePixelGrid(
     drawRoundedRect(ctx, x, y, size, size, CORNER_RADIUS);
   }
 
-  // Return as data URL
-  return canvas.toDataURL('image/png');
+  // Convert to data URL with error handling
+  try {
+    const dataUrl = canvas.toDataURL('image/png');
+
+    // Validate output
+    if (!dataUrl || dataUrl.length < 100) {
+      throw new Error('Generated invalid or empty data URL');
+    }
+
+    // Log memory usage for debugging (only on first call)
+    if (typeof window !== 'undefined' && !(window as any).__pixelGridMemoryLogged) {
+      const sizeInMB = (dataUrl.length / (1024 * 1024)).toFixed(2);
+      console.log(`[PixelGrid] Generated ${width}x${height} canvas: ${sizeInMB}MB`);
+      (window as any).__pixelGridMemoryLogged = true;
+    }
+
+    return dataUrl;
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`[PixelGrid] Failed to convert canvas to data URL: ${errorMsg}`);
+    throw new Error(`Canvas encoding failed: ${errorMsg}`);
+  }
 }
