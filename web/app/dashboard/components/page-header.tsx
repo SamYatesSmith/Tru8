@@ -42,34 +42,34 @@ export function PageHeader({ title, subtitle, ctaText, ctaHref, graphic }: PageH
   };
 
   return (
-    <div className="relative mb-16 py-12">
-      <div className="flex items-center justify-between">
+    <div className="relative mb-20 py-20">
+      <div className="flex items-center justify-between gap-8">
         {/* Left content */}
-        <div className="flex-1 max-w-2xl">
-          <h1 className="text-5xl md:text-6xl font-black text-white mb-6 leading-tight">
+        <div className="flex-1 max-w-3xl">
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight">
             {title}
           </h1>
-          <p className="text-xl text-slate-300 mb-8">
+          <p className="text-2xl md:text-3xl text-slate-300 mb-10 leading-relaxed">
             {subtitle}
           </p>
           {ctaText && ctaHref && (
             <Link href={ctaHref}>
-              <button className="bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-10 py-4 rounded-xl transition-colors text-lg">
+              <button className="bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-12 py-5 rounded-xl transition-colors text-xl">
                 {ctaText}
               </button>
             </Link>
           )}
         </div>
 
-        {/* Right graphic - larger */}
+        {/* Right graphic - much larger with better spacing */}
         {graphic && (
-          <div className="hidden lg:block flex-shrink-0 ml-16 scale-125">
+          <div className="hidden lg:block flex-shrink-0 ml-20 mr-16 scale-[2]">
             {graphic}
           </div>
         )}
       </div>
 
-      {/* Social icons with vertical connecting lines */}
+      {/* Social icons with vertical connecting lines - positioned further right */}
       <div className="hidden xl:flex absolute right-0 top-1/2 -translate-y-1/2 flex-col items-center">
         <button
           onClick={() => handleShare('facebook')}
