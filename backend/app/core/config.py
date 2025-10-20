@@ -66,7 +66,33 @@ class Settings(BaseSettings):
     JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
     JUDGE_TEMPERATURE: float = Field(0.3, env="JUDGE_TEMPERATURE")
     MAX_CONCURRENT_JUDGMENTS: int = Field(3, env="MAX_CONCURRENT_JUDGMENTS")
-    
+
+    # ========== PIPELINE IMPROVEMENT FEATURE FLAGS ==========
+    # Phase 1 - Structural Integrity
+    ENABLE_DOMAIN_CAPPING: bool = Field(False, env="ENABLE_DOMAIN_CAPPING")
+    ENABLE_DEDUPLICATION: bool = Field(False, env="ENABLE_DEDUPLICATION")
+    ENABLE_SOURCE_DIVERSITY: bool = Field(False, env="ENABLE_SOURCE_DIVERSITY")
+    ENABLE_CONTEXT_PRESERVATION: bool = Field(False, env="ENABLE_CONTEXT_PRESERVATION")
+    ENABLE_SAFETY_CHECKING: bool = Field(False, env="ENABLE_SAFETY_CHECKING")
+    ENABLE_CITATION_ARCHIVAL: bool = Field(False, env="ENABLE_CITATION_ARCHIVAL")
+    ENABLE_VERDICT_MONITORING: bool = Field(False, env="ENABLE_VERDICT_MONITORING")
+
+    # Phase 1.5 - Semantic Intelligence
+    ENABLE_FACTCHECK_API: bool = Field(False, env="ENABLE_FACTCHECK_API")
+    ENABLE_TEMPORAL_CONTEXT: bool = Field(False, env="ENABLE_TEMPORAL_CONTEXT")
+
+    # Phase 2 - User Experience & Trust
+    ENABLE_CLAIM_CLASSIFICATION: bool = Field(False, env="ENABLE_CLAIM_CLASSIFICATION")
+    ENABLE_ENHANCED_EXPLAINABILITY: bool = Field(False, env="ENABLE_ENHANCED_EXPLAINABILITY")
+
+    # Domain Capping Configuration
+    MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")
+    DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
+
+    # Rollout Controls
+    FEATURE_ROLLOUT_PERCENTAGE: int = Field(0, env="FEATURE_ROLLOUT_PERCENTAGE")
+    INTERNAL_USER_IDS: List[str] = Field([], env="INTERNAL_USER_IDS")
+
     class Config:
         env_file = ".env"
         case_sensitive = True
