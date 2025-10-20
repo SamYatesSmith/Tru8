@@ -148,8 +148,10 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                     for i, claim in enumerate(validated_response.claims)
                 ]
 
-                # Temporal analysis if enabled (Phase 1.5, Week 4.5-5.5)
+                # Post-processing: temporal analysis and classification (Phase 1.5+2)
                 from app.core.config import settings
+
+                # Temporal analysis if enabled (Phase 1.5, Week 4.5-5.5)
                 if settings.ENABLE_TEMPORAL_CONTEXT:
                     from app.utils.temporal import TemporalAnalyzer
                     temporal_analyzer = TemporalAnalyzer()
