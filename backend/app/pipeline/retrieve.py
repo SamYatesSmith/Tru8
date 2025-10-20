@@ -86,18 +86,7 @@ class EvidenceRetriever:
                 )
                 
                 # Step 3: Apply credibility and recency weighting
-                final_evidence = self._apply_credibility_weighting(ranked_evidence)
-
-                # Step 3.5: Apply temporal filtering if claim is time-sensitive (Phase 1.5, Week 4.5-5.5)
-                from app.core.config import settings
-                if settings.ENABLE_TEMPORAL_CONTEXT and claim.get("temporal_analysis"):
-                    from app.utils.temporal import TemporalAnalyzer
-                    temporal_analyzer = TemporalAnalyzer()
-                    final_evidence = temporal_analyzer.filter_evidence_by_time(
-                        final_evidence,
-                        claim["temporal_analysis"]
-                    )
-                    logger.info(f"Temporal filtering applied for time-sensitive claim")
+                final_evidence = self._apply_credibility_weighting(ranked_evidence, claim)
 
                 # Step 4: Store in vector database for future retrieval
                 await self._store_evidence_embeddings(claim, final_evidence)
@@ -170,33 +159,44 @@ class EvidenceRetriever:
                 for i, snippet in enumerate(evidence_snippets)
             ]
     
-    def _apply_credibility_weighting(self, evidence_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _apply_credibility_weighting(self, evidence_list: List[Dict[str, Any]], claim: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Apply credibility and recency weighting to evidence"""
         try:
             for evidence in evidence_list:
                 source = evidence.get("source", "").lower()
-                
+
                 # Determine credibility tier
                 credibility_score = self._get_credibility_score(source)
-                
+
                 # Apply recency weighting (favor recent content)
                 recency_score = self._get_recency_score(evidence.get("published_date"))
-                
+
                 # Calculate final weighted score
                 base_score = evidence.get("combined_score", 0.5)
                 weighted_score = base_score * credibility_score * recency_score
-                
+
                 evidence.update({
                     "credibility_score": credibility_score,
                     "recency_score": recency_score,
                     "final_score": weighted_score
                 })
-            
+
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
 
-            # NEW: Apply deduplication if enabled
+            # Apply temporal filtering if claim is time-sensitive (Phase 1.5, Week 4.5-5.5)
+            # This happens BEFORE deduplication to filter out old evidence first
             from app.core.config import settings
+            if claim and settings.ENABLE_TEMPORAL_CONTEXT and claim.get("temporal_analysis"):
+                from app.utils.temporal import TemporalAnalyzer
+                temporal_analyzer = TemporalAnalyzer()
+                evidence_list = temporal_analyzer.filter_evidence_by_time(
+                    evidence_list,
+                    claim["temporal_analysis"]
+                )
+                logger.info(f"Temporal filtering applied: {len(evidence_list)} sources within temporal window")
+
+            # NEW: Apply deduplication if enabled
             if settings.ENABLE_DEDUPLICATION:
                 from app.utils.deduplication import EvidenceDeduplicator
                 deduplicator = EvidenceDeduplicator()
