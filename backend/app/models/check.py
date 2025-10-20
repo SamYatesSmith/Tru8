@@ -54,5 +54,10 @@ class Evidence(SQLModel, table=True):
     is_syndicated: bool = Field(default=False)  # True if content duplicated elsewhere
     original_source_url: Optional[str] = None  # URL of original source if syndicated
 
+    # Source independence fields (Phase 1, Week 3)
+    parent_company: Optional[str] = None  # Media company owner (e.g., "News Corp")
+    independence_flag: Optional[str] = None  # 'independent', 'corporate', 'state-funded', 'unknown'
+    domain_cluster_id: Optional[int] = None  # Unique ID for ownership group
+
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")

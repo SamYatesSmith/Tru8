@@ -1,0 +1,149 @@
+{
+  "dmgt": {
+    "name": "Daily Mail and General Trust",
+    "domains": [
+      "dailymail.co.uk",
+      "metro.co.uk",
+      "thisismoney.co.uk",
+      "mailonsunday.co.uk"
+    ]
+  },
+  "news_corp": {
+    "name": "News Corp",
+    "domains": [
+      "thesun.co.uk",
+      "thetimes.co.uk",
+      "nypost.com",
+      "wsj.com",
+      "foxnews.com"
+    ]
+  },
+  "reach_plc": {
+    "name": "Reach plc",
+    "domains": [
+      "mirror.co.uk",
+      "express.co.uk",
+      "dailystar.co.uk"
+    ]
+  },
+  "bbc": {
+    "name": "BBC",
+    "domains": [
+      "bbc.com",
+      "bbc.co.uk"
+    ]
+  },
+  "nyt_company": {
+    "name": "The New York Times Company",
+    "domains": [
+      "nytimes.com",
+      "nyt.com"
+    ]
+  },
+  "guardian_media": {
+    "name": "Guardian Media Group",
+    "domains": [
+      "theguardian.com",
+      "guardian.co.uk"
+    ]
+  },
+  "telegraph_media": {
+    "name": "Telegraph Media Group",
+    "domains": [
+      "telegraph.co.uk",
+      "telegraphgraphics.com"
+    ]
+  },
+  "conde_nast": {
+    "name": "Condé Nast",
+    "domains": [
+      "wired.com",
+      "newyorker.com",
+      "vanityfair.com",
+      "vogue.com"
+    ]
+  },
+  "hearst": {
+    "name": "Hearst Communications",
+    "domains": [
+      "esquire.com",
+      "cosmopolitan.com",
+      "harpersbazaar.com"
+    ]
+  },
+  "thomson_reuters": {
+    "name": "Thomson Reuters",
+    "domains": [
+      "reuters.com",
+      "reuters.co.uk"
+    ]
+  },
+  "associated_press": {
+    "name": "Associated Press",
+    "domains": [
+      "apnews.com",
+      "ap.org"
+    ]
+  },
+  "cnn_warnermedia": {
+    "name": "CNN (Warner Bros. Discovery)",
+    "domains": [
+      "cnn.com",
+      "cnn.co.uk"
+    ]
+  },
+  "nbc_universal": {
+    "name": "NBCUniversal",
+    "domains": [
+      "nbcnews.com",
+      "msnbc.com",
+      "today.com"
+    ]
+  },
+  "cbs_paramount": {
+    "name": "CBS (Paramount Global)",
+    "domains": [
+      "cbsnews.com",
+      "cbs.com"
+    ]
+  },
+  "abc_disney": {
+    "name": "ABC News (Disney)",
+    "domains": [
+      "abcnews.go.com",
+      "abc.com"
+    ]
+  },
+  "economist_group": {
+    "name": "The Economist Group",
+    "domains": [
+      "economist.com"
+    ]
+  },
+  "ft_nikkei": {
+    "name": "Financial Times (Nikkei)",
+    "domains": [
+      "ft.com",
+      "financialtimes.com"
+    ]
+  },
+  "independent_evgeny": {
+    "name": "The Independent (Evgeny Lebedev)",
+    "domains": [
+      "independent.co.uk"
+    ]
+  },
+  "bloomberg": {
+    "name": "Bloomberg L.P.",
+    "domains": [
+      "bloomberg.com"
+    ]
+  },
+  "politico": {
+    "name": "Politico (Axel Springer)",
+    "domains": [
+      "politico.com",
+      "politico.eu"
+    ]
+  }
+}
