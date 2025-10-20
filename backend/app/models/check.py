@@ -38,6 +38,11 @@ class Claim(SQLModel, table=True):
     time_reference: Optional[str] = None  # 'present', 'recent_past', 'specific_year', 'historical', 'future'
     is_time_sensitive: bool = Field(default=False)  # True if claim requires temporal context
 
+    # Classification fields (Phase 2, Week 5.5-6.5)
+    claim_type: Optional[str] = None  # 'factual', 'opinion', 'prediction', 'personal_experience'
+    is_verifiable: bool = Field(default=True)  # False for opinions, predictions, personal experiences
+    verifiability_reason: Optional[str] = None  # Explanation of why claim is/isn't verifiable
+
     # Relationships
     check: Check = Relationship(back_populates="claims")
     evidence: List["Evidence"] = Relationship(back_populates="claim")

@@ -163,6 +163,20 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
 
                         logger.debug(f"Claim temporal analysis: {temporal_analysis}")
 
+                # Claim classification if enabled (Phase 2, Week 5.5-6.5)
+                if settings.ENABLE_CLAIM_CLASSIFICATION:
+                    from app.utils.claim_classifier import ClaimClassifier
+                    classifier = ClaimClassifier()
+
+                    for i, claim in enumerate(claims):
+                        classification = classifier.classify(claim["text"])
+                        claims[i]["classification"] = classification
+                        claims[i]["claim_type"] = classification["claim_type"]
+                        claims[i]["is_verifiable"] = classification["is_verifiable"]
+                        claims[i]["verifiability_reason"] = classification["reason"]
+
+                        logger.debug(f"Claim classification: {classification['claim_type']} (verifiable: {classification['is_verifiable']})")
+
                 return {
                     "success": True,
                     "claims": claims,
