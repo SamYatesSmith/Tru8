@@ -212,18 +212,30 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
                 raise Exception(f"Extract stage failed completely: {e}")
         
         stage_timings["extract"] = (datetime.utcnow() - stage_start).total_seconds()
-            
+
+        # Stage 2.5: Fact-check lookup (if enabled)
+        factcheck_evidence = {}
+        if settings.ENABLE_FACTCHECK_API:
+            self.update_state(state="PROGRESS", meta={"stage": "factcheck", "progress": 35})
+            stage_start = datetime.utcnow()
+            try:
+                factcheck_evidence = asyncio.run(search_factchecks_for_claims(claims))
+                logger.info(f"Found {sum(len(v) for v in factcheck_evidence.values())} fact-checks")
+            except Exception as e:
+                logger.warning(f"Fact-check lookup failed (non-critical): {e}")
+            stage_timings["factcheck"] = (datetime.utcnow() - stage_start).total_seconds()
+
         # Stage 3: Retrieve evidence (REAL IMPLEMENTATION WITH CACHING)
         self.update_state(state="PROGRESS", meta={"stage": "retrieve", "progress": 40})
         stage_start = datetime.utcnow()
-        
+
         try:
-            evidence = asyncio.run(retrieve_evidence_with_cache(claims, cache_service))
+            evidence = asyncio.run(retrieve_evidence_with_cache(claims, cache_service, factcheck_evidence))
         except Exception as e:
             logger.error(f"Retrieve stage failed: {e}")
             # Try fallback evidence
-            evidence = retrieve_evidence(claims)
-        
+            evidence = retrieve_evidence(claims, factcheck_evidence)
+
         stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
         
         # Stage 4: Verify with NLI (REAL IMPLEMENTATION WITH TIMEOUT)
@@ -376,15 +388,44 @@ async def extract_claims_with_cache(content: str, metadata: Dict[str, Any], cach
         logger.error(f"Claims extraction error: {e}")
         return extract_claims_fallback(content)
 
-async def retrieve_evidence_with_cache(claims: List[Dict[str, Any]], cache_service) -> Dict[str, List[Dict[str, Any]]]:
+async def search_factchecks_for_claims(claims: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    """Search for existing fact-checks for claims"""
+    from app.services.factcheck_api import FactCheckAPI
+
+    factcheck_api = FactCheckAPI()
+    factcheck_evidence = {}
+
+    for claim in claims:
+        claim_text = claim.get("text", "")
+        position = str(claim.get("position", 0))
+
+        # Search for fact-checks
+        fact_checks = await factcheck_api.search_fact_checks(claim_text)
+
+        if fact_checks:
+            # Convert to evidence format
+            evidence_items = []
+            for fc in fact_checks:
+                ev = factcheck_api.convert_to_evidence(fc, claim_text)
+                evidence_items.append(ev)
+
+            factcheck_evidence[position] = evidence_items
+            logger.info(f"Found {len(evidence_items)} fact-checks for claim position {position}")
+
+    return factcheck_evidence
+
+async def retrieve_evidence_with_cache(claims: List[Dict[str, Any]], cache_service, factcheck_evidence: Dict = None) -> Dict[str, List[Dict[str, Any]]]:
     """Retrieve evidence using real search and embeddings with caching"""
+    if factcheck_evidence is None:
+        factcheck_evidence = {}
+
     try:
         retriever = EvidenceRetriever()
-        
+
         # Check if we have cached evidence for each claim
         cached_evidence = {}
         uncached_claims = []
-        
+
         for claim in claims:
             claim_text = claim.get("text", "")
             cached_result = await cache_service.get_cached_evidence_extraction(claim_text)
@@ -393,28 +434,35 @@ async def retrieve_evidence_with_cache(claims: List[Dict[str, Any]], cache_servi
                 cached_evidence[position] = cached_result
             else:
                 uncached_claims.append(claim)
-        
+
         # Retrieve evidence for uncached claims
         if uncached_claims:
             logger.info(f"Retrieving evidence for {len(uncached_claims)} uncached claims")
             new_evidence = await retriever.retrieve_evidence_for_claims(uncached_claims)
-            
+
             # Cache the new evidence
             for claim in uncached_claims:
                 claim_text = claim.get("text", "")
                 position = str(claim.get("position", 0))
                 if position in new_evidence:
                     await cache_service.cache_evidence_extraction(claim_text, new_evidence[position])
-            
+
             # Merge cached and new evidence
             cached_evidence.update(new_evidence)
-        
+
+        # Merge fact-check evidence (prepend to give it priority)
+        for position, fc_evidence in factcheck_evidence.items():
+            if position in cached_evidence:
+                cached_evidence[position] = fc_evidence + cached_evidence[position]
+            else:
+                cached_evidence[position] = fc_evidence
+
         return cached_evidence
-        
+
     except Exception as e:
         logger.error(f"Evidence retrieval error: {e}")
         # Fallback to mock evidence
-        return retrieve_evidence(claims)
+        return retrieve_evidence(claims, factcheck_evidence)
 
 async def verify_claims_with_nli(claims: List[Dict[str, Any]], evidence_by_claim: Dict[str, List[Dict[str, Any]]], 
                                 cache_service) -> Dict[str, List[Dict[str, Any]]]:
@@ -516,10 +564,13 @@ def extract_claims_fallback(content: str) -> List[Dict[str, Any]]:
     
     return claims
 
-def retrieve_evidence(claims: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+def retrieve_evidence(claims: List[Dict[str, Any]], factcheck_evidence: Dict = None) -> Dict[str, List[Dict[str, Any]]]:
     """Mock evidence retrieval fallback"""
+    if factcheck_evidence is None:
+        factcheck_evidence = {}
+
     evidence = {}
-    
+
     for i, claim in enumerate(claims):
         # Generate realistic mock evidence
         sources = [

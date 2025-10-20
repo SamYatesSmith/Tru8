@@ -59,5 +59,12 @@ class Evidence(SQLModel, table=True):
     independence_flag: Optional[str] = None  # 'independent', 'corporate', 'state-funded', 'unknown'
     domain_cluster_id: Optional[int] = None  # Unique ID for ownership group
 
+    # Fact-check fields (Phase 1.5, Week 4)
+    is_factcheck: bool = Field(default=False)  # True if from fact-checking organization
+    factcheck_publisher: Optional[str] = None  # "Snopes", "Full Fact", etc.
+    factcheck_rating: Optional[str] = None  # Original rating text
+    factcheck_date: Optional[datetime] = None  # When fact-check was published
+    source_type: Optional[str] = None  # 'factcheck', 'news', 'academic', 'government', 'general'
+
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")

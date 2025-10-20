@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     SERP_API_KEY: str = Field("", env="SERP_API_KEY")
     OPENAI_API_KEY: str = Field("", env="OPENAI_API_KEY")
     ANTHROPIC_API_KEY: str = Field("", env="ANTHROPIC_API_KEY")
+    GOOGLE_FACTCHECK_API_KEY: str = Field("", env="GOOGLE_FACTCHECK_API_KEY")
     
     # Storage
     S3_BUCKET: str = Field("tru8-uploads", env="S3_BUCKET")
