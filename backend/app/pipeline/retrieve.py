@@ -183,7 +183,17 @@ class EvidenceRetriever:
             
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
-            
+
+            # NEW: Apply domain capping if enabled
+            from app.core.config import settings
+            if settings.ENABLE_DOMAIN_CAPPING:
+                from app.utils.domain_capping import DomainCapper
+                capper = DomainCapper(
+                    max_per_domain=settings.MAX_EVIDENCE_PER_DOMAIN,
+                    max_domain_ratio=settings.DOMAIN_DIVERSITY_THRESHOLD
+                )
+                evidence_list = capper.apply_caps(evidence_list, target_count=self.max_sources_per_claim)
+
             logger.info("Applied credibility and recency weighting")
             return evidence_list
             
