@@ -49,5 +49,10 @@ class Evidence(SQLModel, table=True):
     credibility_score: float = Field(default=0.6, ge=0, le=1)  # 0-1 (source trustworthiness)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    # Deduplication fields (Phase 1, Week 2)
+    content_hash: Optional[str] = None  # MD5 hash of normalized content
+    is_syndicated: bool = Field(default=False)  # True if content duplicated elsewhere
+    original_source_url: Optional[str] = None  # URL of original source if syndicated
+
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")

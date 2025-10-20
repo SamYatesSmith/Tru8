@@ -184,8 +184,15 @@ class EvidenceRetriever:
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
 
-            # NEW: Apply domain capping if enabled
+            # NEW: Apply deduplication if enabled (BEFORE domain capping)
             from app.core.config import settings
+            if settings.ENABLE_DEDUPLICATION:
+                from app.utils.deduplication import EvidenceDeduplicator
+                deduplicator = EvidenceDeduplicator()
+                evidence_list, dedup_stats = deduplicator.deduplicate(evidence_list)
+                logger.info(f"Deduplication: {dedup_stats.get('duplicates_removed', 0)} duplicates removed")
+
+            # Apply domain capping if enabled (AFTER deduplication)
             if settings.ENABLE_DOMAIN_CAPPING:
                 from app.utils.domain_capping import DomainCapper
                 capper = DomainCapper(
