@@ -201,7 +201,7 @@ Based on this analysis, provide your final judgment."""
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "gpt-4o-mini",
+                        "model": "gpt-4o-mini-2024-07-18",
                         "messages": [
                             {"role": "system", "content": self.system_prompt},
                             {"role": "user", "content": context}

@@ -108,10 +108,10 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "gpt-3.5-turbo",
+                        "model": "gpt-4o-mini-2024-07-18",
                         "messages": [
                             {
-                                "role": "system", 
+                                "role": "system",
                                 "content": self.system_prompt.format(max_claims=self.max_claims)
                             },
                             {
@@ -152,7 +152,7 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                     "success": True,
                     "claims": claims,
                     "metadata": {
-                        "extraction_method": "openai_gpt3.5",
+                        "extraction_method": "openai_gpt4o_mini",
                         "source_summary": validated_response.source_summary,
                         "extraction_confidence": validated_response.extraction_confidence,
                         "token_usage": result.get("usage", {})

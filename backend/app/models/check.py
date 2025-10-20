@@ -46,7 +46,8 @@ class Evidence(SQLModel, table=True):
     snippet: str
     published_date: Optional[datetime] = None
     relevance_score: float = Field(ge=0, le=1)  # 0-1
+    credibility_score: float = Field(default=0.6, ge=0, le=1)  # 0-1 (source trustworthiness)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")

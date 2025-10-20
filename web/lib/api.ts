@@ -156,7 +156,7 @@ class ApiClient {
   /**
    * POST /api/v1/checks/{id}/sse-token
    * Generate short-lived token for SSE connection (GAP #16)
-   * NEW ENDPOINT - Requires backend implementation
+   * TODO: Not implemented - SSE currently uses query param auth
    */
   async createSSEToken(checkId: string, token?: string | null) {
     return this.request(`/api/v1/checks/${checkId}/sse-token`, {
@@ -167,7 +167,7 @@ class ApiClient {
   /**
    * GET /api/v1/payments/invoices
    * Fetch last 5 Stripe invoices (GAP #17)
-   * NEW ENDPOINT - Requires backend implementation
+   * TODO: Not implemented - planned for post-MVP
    */
   async getInvoices(token?: string | null) {
     return this.request('/api/v1/payments/invoices', {}, token);
@@ -175,8 +175,8 @@ class ApiClient {
 
   /**
    * DELETE /api/v1/users/me
-   * Delete user account and all associated data (GAP #18)
-   * NEW ENDPOINT - Requires backend implementation
+   * Delete user account and all associated data
+   * Implements GDPR compliance - backend/app/api/v1/users.py:206
    */
   async deleteUser(userId: string, token?: string | null) {
     return this.request('/api/v1/users/me', {
@@ -186,8 +186,8 @@ class ApiClient {
 
   /**
    * POST /api/v1/payments/cancel-subscription
-   * Cancel subscription at end of billing period (GAP #19)
-   * NEW ENDPOINT - Requires backend implementation
+   * Cancel subscription at end of billing period
+   * Backend: backend/app/api/v1/payments.py:321
    */
   async cancelSubscription(token?: string | null) {
     return this.request('/api/v1/payments/cancel-subscription', {
@@ -197,8 +197,8 @@ class ApiClient {
 
   /**
    * POST /api/v1/payments/reactivate-subscription
-   * Reactivate subscription before period end (GAP #19)
-   * NEW ENDPOINT - Requires backend implementation
+   * Reactivate subscription before period end
+   * Backend: backend/app/api/v1/payments.py:418
    */
   async reactivateSubscription(token?: string | null) {
     return this.request('/api/v1/payments/reactivate-subscription', {

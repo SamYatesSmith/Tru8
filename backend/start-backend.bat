@@ -116,12 +116,12 @@ echo.
 
 REM Start Celery worker in background (use python -m to ensure it's found)
 echo Starting Celery worker...
-REM Write logs to temp directory to avoid IDE file watching issues
-set CELERY_LOG=%TEMP%\tru8-celery.log
-REM CRITICAL: Use solo pool for Windows compatibility (prefork has permission issues)
-start /b cmd /c "python -m celery -A app.workers worker --pool=solo --loglevel=info --logfile=%CELERY_LOG% 2>&1"
+REM Write logs to backend directory so we can see errors immediately
+set CELERY_LOG=celery-worker.log
+REM CRITICAL: Use solo pool for Windows compatibility AND correct module path
+start "Tru8 Celery Worker" cmd /c "python -m celery -A app.workers.celery_app worker --pool=solo --loglevel=info --logfile=%CELERY_LOG% 2>&1"
 echo Celery logs: %CELERY_LOG%
-echo [Memory Safe] Using only 2 Celery workers instead of 32
+echo [Memory Safe] Using solo pool for Windows compatibility
 
 REM Wait a moment for worker to start
 timeout /t 2 /nobreak >nul

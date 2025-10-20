@@ -54,19 +54,39 @@ async def get_profile(
     checks_stmt = select(Check).where(Check.user_id == user.id)
     checks_result = await session.execute(checks_stmt)
     checks = checks_result.scalars().all()
-    
+
+    # Get subscription data
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == user.id,
+        Subscription.status.in_(["active", "trialing"])
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+
+    # Build subscription response
+    if subscription:
+        subscription_data = {
+            "plan": subscription.plan,
+            "status": subscription.status,
+            "creditsPerMonth": subscription.credits_per_month,
+            "currentPeriodEnd": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
+        }
+    else:
+        # No active subscription = free tier
+        subscription_data = {
+            "plan": "free",
+            "status": "active",
+            "creditsPerMonth": 3,
+            "currentPeriodEnd": None,
+        }
+
     return {
         "id": user.id,
         "email": user.email,
         "name": user.name,
         "credits": user.credits,
         "totalCreditsUsed": user.total_credits_used,
-        "subscription": {
-            "plan": "free",
-            "status": "active", 
-            "creditsPerMonth": 3,
-            "currentPeriodEnd": None,
-        },
+        "subscription": subscription_data,
         "stats": {
             "totalChecks": len(checks),
             "completedChecks": len([c for c in checks if c.status == "completed"]),
@@ -108,15 +128,34 @@ async def get_usage(
         except Exception as e:
             await session.rollback()
             raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
-    
-    return {
-        "creditsRemaining": user.credits,
-        "totalCreditsUsed": user.total_credits_used,
-        "subscription": {
+
+    # Get subscription data
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == user.id,
+        Subscription.status.in_(["active", "trialing"])
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+
+    # Build subscription response
+    if subscription:
+        subscription_data = {
+            "plan": subscription.plan,
+            "creditsPerMonth": subscription.credits_per_month,
+            "resetDate": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
+        }
+    else:
+        # No active subscription = free tier
+        subscription_data = {
             "plan": "free",
             "creditsPerMonth": 3,
             "resetDate": None,
         }
+
+    return {
+        "creditsRemaining": user.credits,
+        "totalCreditsUsed": user.total_credits_used,
+        "subscription": subscription_data
     }
 
 

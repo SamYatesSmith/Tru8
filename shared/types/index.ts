@@ -67,7 +67,8 @@ export interface Evidence {
   title: string;
   snippet: string;
   publishedDate?: string; // ISO string from backend, not Date
-  relevanceScore: number; // 0-1
+  relevanceScore: number; // 0-1 (semantic similarity)
+  credibilityScore?: number; // 0-1 (source trustworthiness)
 }
 
 // API Requests

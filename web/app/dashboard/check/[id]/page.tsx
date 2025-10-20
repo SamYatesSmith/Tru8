@@ -24,55 +24,19 @@ interface CheckData {
 }
 
 export default async function CheckDetailPage({ params }: CheckDetailPageProps) {
-  const { userId, getToken } = auth();
+  const { getToken } = auth();
 
-  // TEMPORARY: Mock data for testing when not authenticated
+  // Fetch check data
+  const token = await getToken();
   let checkData: CheckData;
 
-  if (!userId) {
-    // Mock check data for testing
-    checkData = {
-      id: params.id,
-      inputType: 'url',
-      inputUrl: 'https://example.com/article',
-      status: 'completed',
-      creditsUsed: 1,
-      createdAt: new Date().toISOString(),
-      claims: [
-        {
-          id: 'claim-1',
-          text: 'The unemployment rate decreased to 3.7%',
-          verdict: 'supported',
-          confidence: 87,
-          rationale: 'Multiple credible sources confirm this statistic.',
-          position: 0,
-          evidence: [
-            {
-              id: 'ev-1',
-              source: 'Bureau of Labor Statistics',
-              url: 'https://bls.gov/news',
-              title: 'Employment Situation Summary',
-              snippet: 'The unemployment rate declined to 3.7 percent in October...',
-              publishedDate: '2024-01-15T00:00:00Z',
-              relevanceScore: 0.92,
-              credibilityScore: 1.0,
-            },
-          ],
-        },
-      ],
-    };
-  } else {
-    // Fetch real check data
-    const token = await getToken();
-
-    try {
-      checkData = (await apiClient.getCheckById(params.id, token)) as CheckData;
-    } catch (error: any) {
-      if (error.message?.includes('404') || error.message?.includes('not found')) {
-        redirect('/dashboard/history');
-      }
-      throw error;
+  try {
+    checkData = (await apiClient.getCheckById(params.id, token)) as CheckData;
+  } catch (error: any) {
+    if (error.message?.includes('404') || error.message?.includes('not found')) {
+      redirect('/dashboard/history');
     }
+    throw error;
   }
 
   return (

@@ -125,6 +125,7 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                         url=ev_data.get("url", ""),
                         title=ev_data.get("title", ""),
                         snippet=ev_data.get("snippet", ev_data.get("text", "")),
+                        credibility_score=ev_data.get("credibility_score", 0.6),
                         published_date=None,  # Parse if needed
                         relevance_score=ev_data.get("relevance_score", 0.0)
                     )

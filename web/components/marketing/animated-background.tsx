@@ -94,21 +94,43 @@ export function AnimatedBackground() {
 
   // Show fallback until at least layer 1 loads
   if (!layers.layer1) {
-    return <div className="fixed inset-0 bg-[#0f1419] -z-10" />;
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: '#0f1419',
+          zIndex: -10
+        }}
+      />
+    );
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden -z-10 bg-[#0f1419]">
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        overflow: 'hidden',
+        zIndex: -10,
+        backgroundColor: '#0f1419'
+      }}
+    >
       {/* Layer 1 - Slowest, most visible (always rendered if loaded) */}
       {layers.layer1 && (
         <div
-          className="absolute left-0 right-0 top-0 animate-ascend-slow opacity-30"
           style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
             height: '200vh',
             backgroundImage: `url(${layers.layer1})`,
             backgroundRepeat: 'repeat',
             backgroundSize: 'auto',
             willChange: 'transform',
+            opacity: 0.3,
+            animation: 'ascend 100s linear infinite',
           }}
         />
       )}
@@ -116,13 +138,18 @@ export function AnimatedBackground() {
       {/* Layer 2 - Medium speed (only render if loaded) */}
       {layers.layer2 && (
         <div
-          className="absolute left-0 right-0 top-0 animate-ascend-medium opacity-20"
           style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
             height: '200vh',
             backgroundImage: `url(${layers.layer2})`,
             backgroundRepeat: 'repeat',
             backgroundSize: 'auto',
             willChange: 'transform',
+            opacity: 0.2,
+            animation: 'ascend 80s linear infinite',
           }}
         />
       )}
@@ -130,16 +157,33 @@ export function AnimatedBackground() {
       {/* Layer 3 - Fastest, least visible (only render if loaded) */}
       {layers.layer3 && (
         <div
-          className="absolute left-0 right-0 top-0 animate-ascend-fast opacity-10"
           style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
             height: '200vh',
             backgroundImage: `url(${layers.layer3})`,
             backgroundRepeat: 'repeat',
             backgroundSize: 'auto',
             willChange: 'transform',
+            opacity: 0.1,
+            animation: 'ascend 60s linear infinite',
           }}
         />
       )}
+
+      {/* Inject keyframes directly (ensures they're always available) */}
+      <style jsx>{`
+        @keyframes ascend {
+          from {
+            transform: translateY(0);
+          }
+          to {
+            transform: translateY(-50%);
+          }
+        }
+      `}</style>
     </div>
   );
 }

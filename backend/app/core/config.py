@@ -29,7 +29,13 @@ class Settings(BaseSettings):
     S3_ACCESS_KEY: str = Field("", env="S3_ACCESS_KEY")
     S3_SECRET_KEY: str = Field("", env="S3_SECRET_KEY")
     S3_ENDPOINT: str = Field("", env="S3_ENDPOINT")
-    
+
+    # Stripe Payments
+    STRIPE_SECRET_KEY: str = Field("", env="STRIPE_SECRET_KEY")
+    STRIPE_WEBHOOK_SECRET: str = Field("", env="STRIPE_WEBHOOK_SECRET")
+    STRIPE_PRICE_ID_PRO: str = Field("", env="STRIPE_PRICE_ID_PRO")
+    FRONTEND_URL: str = Field("http://localhost:3000", env="FRONTEND_URL")
+
     # Monitoring
     SENTRY_DSN: str = Field("", env="SENTRY_DSN")
     POSTHOG_API_KEY: str = Field("", env="POSTHOG_API_KEY")

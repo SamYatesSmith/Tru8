@@ -94,7 +94,8 @@ async def upload_file(
             detail="Failed to save uploaded file"
         )
 
-@router.post("/")
+@router.post("", status_code=201)
+@router.post("/", status_code=201)
 async def create_check(
     request: CreateCheckRequest,
     current_user: dict = Depends(get_current_user),
@@ -213,6 +214,7 @@ async def create_check(
         "taskId": task.id
     }
 
+@router.get("")
 @router.get("/")
 async def get_checks(
     skip: int = 0,
@@ -326,6 +328,7 @@ async def get_check(
                     "snippet": ev.snippet,
                     "publishedDate": ev.published_date.isoformat() if ev.published_date else None,
                     "relevanceScore": ev.relevance_score,
+                    "credibilityScore": ev.credibility_score,
                 }
                 for ev in evidence
             ]

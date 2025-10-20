@@ -10,22 +10,11 @@ interface ChecksResponse {
 }
 
 export default async function HistoryPage() {
-  const { userId, getToken } = auth();
+  const { getToken } = auth();
 
-  // TEMPORARY: Mock data for testing when not authenticated
-  let initialChecks: ChecksResponse;
-
-  if (!userId) {
-    // Mock data for testing
-    initialChecks = {
-      checks: [],
-      total: 0,
-    };
-  } else {
-    // Fetch first page
-    const token = await getToken();
-    initialChecks = await apiClient.getChecks(token, 0, 20) as ChecksResponse;
-  }
+  // Fetch first page of checks
+  const token = await getToken();
+  const initialChecks = await apiClient.getChecks(token, 0, 20) as ChecksResponse;
 
   return (
     <div className="space-y-8">
