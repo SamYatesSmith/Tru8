@@ -279,7 +279,58 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             results = judge_claims(claims, verifications, evidence)
         
         stage_timings["judge"] = (datetime.utcnow() - stage_start).total_seconds()
-        
+
+        # Stage 6: Enhanced Explainability (Phase 2, Week 6.5-7.5)
+        if settings.ENABLE_ENHANCED_EXPLAINABILITY:
+            from app.utils.explainability import ExplainabilityEnhancer
+            explainer = ExplainabilityEnhancer()
+
+            # Add explainability to each claim
+            for i, result in enumerate(results):
+                position = result.get("position", i)
+                claim_evidence = evidence.get(position, [])
+                claim_verifications = verifications.get(position, [])
+
+                # Create verification signals summary
+                verification_signals = {
+                    "supporting_count": sum(1 for v in claim_verifications if v.get("label") == "SUPPORTS"),
+                    "contradicting_count": sum(1 for v in claim_verifications if v.get("label") == "CONTRADICTS"),
+                    "neutral_count": sum(1 for v in claim_verifications if v.get("label") == "NEUTRAL")
+                }
+
+                # Add uncertainty explanation if verdict is uncertain
+                if result.get("verdict", "").lower() in ["uncertain", "unclear"]:
+                    uncertainty_explanation = explainer.create_uncertainty_explanation(
+                        result.get("verdict", ""),
+                        verification_signals,
+                        claim_evidence
+                    )
+                    results[i]["uncertainty_explanation"] = uncertainty_explanation
+
+                # Add confidence breakdown
+                confidence_breakdown = explainer.create_confidence_breakdown(
+                    result,
+                    claim_evidence,
+                    verification_signals
+                )
+                results[i]["confidence_breakdown"] = confidence_breakdown
+
+            # Create overall decision trail for the check
+            decision_trail = {
+                "total_claims": len(claims),
+                "claims_processed": len(results),
+                "stage_timings": stage_timings,
+                "features_enabled": {
+                    "domain_capping": settings.ENABLE_DOMAIN_CAPPING,
+                    "deduplication": settings.ENABLE_DEDUPLICATION,
+                    "temporal_context": settings.ENABLE_TEMPORAL_CONTEXT,
+                    "factcheck_api": settings.ENABLE_FACTCHECK_API,
+                    "claim_classification": settings.ENABLE_CLAIM_CLASSIFICATION
+                }
+            }
+
+            logger.info(f"Added explainability for {len(results)} claims")
+
         # Calculate processing time
         processing_time_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
         

@@ -18,7 +18,11 @@ class Check(SQLModel, table=True):
     error_message: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
-    
+
+    # Explainability fields (Phase 2, Week 6.5-7.5)
+    decision_trail: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Full decision trail
+    transparency_score: Optional[float] = Field(default=None, ge=0, le=1)  # How explainable the verdict is (0-1)
+
     # Relationships
     user: "User" = Relationship(back_populates="checks")
     claims: List["Claim"] = Relationship(back_populates="check")
@@ -42,6 +46,10 @@ class Claim(SQLModel, table=True):
     claim_type: Optional[str] = None  # 'factual', 'opinion', 'prediction', 'personal_experience'
     is_verifiable: bool = Field(default=True)  # False for opinions, predictions, personal experiences
     verifiability_reason: Optional[str] = None  # Explanation of why claim is/isn't verifiable
+
+    # Explainability fields (Phase 2, Week 6.5-7.5)
+    uncertainty_explanation: Optional[str] = None  # Explanation for uncertain verdicts
+    confidence_breakdown: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Detailed confidence factors
 
     # Relationships
     check: Check = Relationship(back_populates="claims")
