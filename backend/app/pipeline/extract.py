@@ -147,7 +147,22 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                     }
                     for i, claim in enumerate(validated_response.claims)
                 ]
-                
+
+                # Temporal analysis if enabled (Phase 1.5, Week 4.5-5.5)
+                from app.core.config import settings
+                if settings.ENABLE_TEMPORAL_CONTEXT:
+                    from app.utils.temporal import TemporalAnalyzer
+                    temporal_analyzer = TemporalAnalyzer()
+
+                    for i, claim in enumerate(claims):
+                        temporal_analysis = temporal_analyzer.analyze_claim(claim["text"])
+                        claims[i]["temporal_analysis"] = temporal_analysis
+                        claims[i]["is_time_sensitive"] = temporal_analysis["is_time_sensitive"]
+                        claims[i]["temporal_markers"] = temporal_analysis["temporal_markers"]
+                        claims[i]["temporal_window"] = temporal_analysis["temporal_window"]
+
+                        logger.debug(f"Claim temporal analysis: {temporal_analysis}")
+
                 return {
                     "success": True,
                     "claims": claims,

@@ -87,7 +87,18 @@ class EvidenceRetriever:
                 
                 # Step 3: Apply credibility and recency weighting
                 final_evidence = self._apply_credibility_weighting(ranked_evidence)
-                
+
+                # Step 3.5: Apply temporal filtering if claim is time-sensitive (Phase 1.5, Week 4.5-5.5)
+                from app.core.config import settings
+                if settings.ENABLE_TEMPORAL_CONTEXT and claim.get("temporal_analysis"):
+                    from app.utils.temporal import TemporalAnalyzer
+                    temporal_analyzer = TemporalAnalyzer()
+                    final_evidence = temporal_analyzer.filter_evidence_by_time(
+                        final_evidence,
+                        claim["temporal_analysis"]
+                    )
+                    logger.info(f"Temporal filtering applied for time-sensitive claim")
+
                 # Step 4: Store in vector database for future retrieval
                 await self._store_evidence_embeddings(claim, final_evidence)
                 

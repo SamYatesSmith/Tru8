@@ -32,7 +32,12 @@ class Claim(SQLModel, table=True):
     rationale: str
     position: int  # Order in the check
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
+    # Temporal context fields (Phase 1.5, Week 4.5-5.5)
+    temporal_markers: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Detected time markers
+    time_reference: Optional[str] = None  # 'present', 'recent_past', 'specific_year', 'historical', 'future'
+    is_time_sensitive: bool = Field(default=False)  # True if claim requires temporal context
+
     # Relationships
     check: Check = Relationship(back_populates="claims")
     evidence: List["Evidence"] = Relationship(back_populates="claim")
@@ -65,6 +70,12 @@ class Evidence(SQLModel, table=True):
     factcheck_rating: Optional[str] = None  # Original rating text
     factcheck_date: Optional[datetime] = None  # When fact-check was published
     source_type: Optional[str] = None  # 'factcheck', 'news', 'academic', 'government', 'general'
+
+    # Temporal context fields (Phase 1.5, Week 4.5-5.5)
+    temporal_relevance_score: Optional[float] = Field(default=None, ge=0, le=1)  # How temporally relevant (0-1)
+    extracted_date: Optional[str] = None  # Date extracted from content
+    is_time_sensitive: bool = Field(default=False)  # True if evidence relates to time-sensitive claim
+    temporal_window: Optional[str] = None  # 'last_30_days', 'last_90_days', 'year_YYYY', 'timeless'
 
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")
