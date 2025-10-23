@@ -35,6 +35,7 @@ bleach==6.1.0
 pytesseract==0.3.10
 youtube-transcript-api==0.6.1
 Pillow==10.2.0
+tldextract==5.1.1  # Phase 3: Domain credibility framework
 
 # Search & Vector
 qdrant-client==1.7.0

@@ -164,9 +164,10 @@ class EvidenceRetriever:
         try:
             for evidence in evidence_list:
                 source = evidence.get("source", "").lower()
+                url = evidence.get("url", "")
 
-                # Determine credibility tier
-                credibility_score = self._get_credibility_score(source)
+                # Determine credibility tier (Phase 3: pass url and evidence for enrichment)
+                credibility_score = self._get_credibility_score(source, url, evidence)
 
                 # Apply recency weighting (favor recent content)
                 recency_score = self._get_recency_score(evidence.get("published_date"))
@@ -180,6 +181,9 @@ class EvidenceRetriever:
                     "recency_score": recency_score,
                     "final_score": weighted_score
                 })
+
+            # Filter out auto-excluded sources (credibility_score = 0.0)
+            evidence_list = [e for e in evidence_list if e.get("credibility_score", 0.6) > 0.0]
 
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
@@ -227,30 +231,76 @@ class EvidenceRetriever:
             logger.error(f"Credibility weighting error: {e}")
             return evidence_list
     
-    def _get_credibility_score(self, source: str) -> float:
-        """Determine credibility score for a source"""
+    def _get_credibility_score(self, source: str, url: str = None, evidence_item: Dict[str, Any] = None) -> float:
+        """
+        Determine credibility score for a source.
+
+        Phase 3 Enhancement: Uses Domain Credibility Framework if enabled,
+        otherwise falls back to legacy hardcoded weights.
+
+        Args:
+            source: Source name
+            url: Source URL (required for Phase 3)
+            evidence_item: Evidence dict to enrich with metadata (optional)
+
+        Returns:
+            Credibility score 0.0-1.0
+        """
+        from app.core.config import settings
+
+        # Phase 3: Use Domain Credibility Framework if enabled
+        if settings.ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK and url:
+            try:
+                from app.services.source_credibility import get_credibility_service
+
+                credibility_service = get_credibility_service()
+                cred_info = credibility_service.get_credibility(source, url)
+
+                # Check for auto-exclusion (satire, etc.)
+                if cred_info.get('auto_exclude', False):
+                    logger.info(f"Auto-excluding source {url}: {cred_info.get('reasoning')}")
+                    return 0.0  # Exclude from results
+
+                # Enrich evidence item with credibility metadata if provided
+                if evidence_item is not None:
+                    evidence_item['tier'] = cred_info.get('tier')
+                    evidence_item['risk_flags'] = cred_info.get('risk_flags', [])
+                    evidence_item['credibility_reasoning'] = cred_info.get('reasoning')
+
+                    # Get risk assessment
+                    risk_info = credibility_service.get_risk_assessment(url)
+                    evidence_item['risk_level'] = risk_info.get('risk_level')
+                    evidence_item['risk_warning'] = risk_info.get('warning_message')
+
+                return cred_info.get('credibility', 0.6)
+
+            except Exception as e:
+                logger.warning(f"Credibility framework error for {url}: {e}, falling back to legacy")
+                # Fall through to legacy logic
+
+        # Legacy fallback: Hardcoded pattern matching
         # Academic/research institutions
         if any(domain in source for domain in ['.edu', '.ac.uk', 'university', 'research']):
             return self.credibility_weights['academic']
-        
+
         # Scientific journals
         if any(journal in source for journal in ['nature', 'science', 'cell', 'lancet', 'nejm']):
             return self.credibility_weights['scientific']
-        
+
         # Government sources
         if any(domain in source for domain in ['.gov', 'nhs.uk', 'who.int']):
             return self.credibility_weights['government']
-        
+
         # Tier 1 news
         if any(outlet in source for outlet in ['bbc', 'reuters', 'ap.org', 'apnews']):
             return self.credibility_weights['news_tier1']
-        
+
         # Tier 2 news
         if any(outlet in source for outlet in [
             'guardian', 'telegraph', 'independent', 'economist', 'ft.com'
         ]):
             return self.credibility_weights['news_tier2']
-        
+
         # Default
         return self.credibility_weights['general']
     

@@ -31,7 +31,7 @@ class Claim(SQLModel, table=True):
     id: str = Field(default_factory=generate_uuid, primary_key=True)
     check_id: str = Field(foreign_key="check.id", index=True)
     text: str
-    verdict: str  # 'supported', 'contradicted', 'uncertain'
+    verdict: str  # 'supported', 'contradicted', 'uncertain', 'insufficient_evidence', 'conflicting_expert_opinion', 'needs_primary_source', 'outdated_claim', 'lacks_context'
     confidence: float = Field(ge=0, le=100)  # 0-100
     rationale: str
     position: int  # Order in the check
@@ -50,6 +50,11 @@ class Claim(SQLModel, table=True):
     # Explainability fields (Phase 2, Week 6.5-7.5)
     uncertainty_explanation: Optional[str] = None  # Explanation for uncertain verdicts
     confidence_breakdown: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Detailed confidence factors
+
+    # Consensus & Abstention fields (Phase 3, Week 8)
+    abstention_reason: Optional[str] = None  # Why we abstained from making a verdict
+    min_requirements_met: bool = Field(default=False)  # Did evidence meet minimum quality requirements
+    consensus_strength: Optional[float] = Field(default=None, ge=0, le=1)  # Credibility-weighted agreement (0-1)
 
     # Relationships
     check: Check = Relationship(back_populates="claims")
@@ -89,6 +94,13 @@ class Evidence(SQLModel, table=True):
     extracted_date: Optional[str] = None  # Date extracted from content
     is_time_sensitive: bool = Field(default=False)  # True if evidence relates to time-sensitive claim
     temporal_window: Optional[str] = None  # 'last_30_days', 'last_90_days', 'year_YYYY', 'timeless'
+
+    # Domain Credibility Framework fields (Phase 3, Week 9)
+    tier: Optional[str] = None  # 'tier1', 'tier2', 'tier3', 'general', 'blacklist', 'flagged', 'excluded'
+    risk_flags: Optional[str] = Field(default=None, sa_column=Column(JSON))  # List of risk indicators
+    credibility_reasoning: Optional[str] = None  # Explanation of credibility score
+    risk_level: Optional[str] = None  # 'none', 'low', 'medium', 'high'
+    risk_warning: Optional[str] = None  # User-facing warning message
 
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")

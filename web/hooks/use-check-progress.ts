@@ -38,12 +38,17 @@ export function useCheckProgress(
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
+    console.log('[useCheckProgress] Effect triggered:', { enabled, hasToken: !!token, checkId });
+
     if (!enabled || !token) {
+      console.log('[useCheckProgress] Exiting early - enabled:', enabled, 'token:', !!token);
       return;
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
     const url = `${apiUrl}/api/v1/checks/${checkId}/progress?token=${token}`;
+
+    console.log('[useCheckProgress] Creating SSE connection to:', url);
 
     try {
       // Create SSE connection

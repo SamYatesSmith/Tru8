@@ -28,10 +28,11 @@ export function RecentChecksList({ checks }: RecentChecksListProps) {
           <p className="text-slate-400">Your latest fact-checking verifications</p>
         </div>
 
-        <Link href="/dashboard/history">
-          <button className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors">
-            View All
-          </button>
+        <Link
+          href="/dashboard/history"
+          className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors inline-block"
+        >
+          View All
         </Link>
       </div>
 

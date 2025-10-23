@@ -81,23 +81,45 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
         if self.cache_service is None:
             self.cache_service = await get_cache_service()
     
-    async def judge_claim(self, claim: Dict[str, Any], verification_signals: Dict[str, Any], 
+    async def judge_claim(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
                          evidence: List[Dict[str, Any]]) -> JudgmentResult:
         """Judge a single claim based on verification signals and evidence"""
         await self.initialize()
-        
+
         claim_text = claim.get("text", "")
-        
+
         # Check cache first
         cache_key = self._make_judgment_cache_key(claim_text, verification_signals, evidence)
         if self.cache_service:
             cached_result = await self.cache_service.get("judgment", cache_key)
             if cached_result:
                 return self._result_from_dict(cached_result)
-        
+
+        # PHASE 3: Check for abstention BEFORE making a judgment
+        if settings.ENABLE_ABSTENTION_LOGIC:
+            abstention_check = self._should_abstain(evidence, verification_signals)
+            if abstention_check:
+                verdict, reason, consensus_strength = abstention_check
+                logger.info(f"Abstaining from verdict: {verdict} - {reason}")
+
+                # Return abstention result
+                return JudgmentResult(
+                    claim_text=claim_text,
+                    verdict=verdict,
+                    confidence=0.0,  # No confidence when abstaining
+                    rationale=reason,
+                    supporting_evidence=evidence[:3],
+                    evidence_summary={
+                        **verification_signals,
+                        'abstention_reason': reason,
+                        'min_requirements_met': False,
+                        'consensus_strength': consensus_strength
+                    }
+                )
+
         # Prepare judgment context
         context = self._prepare_judgment_context(claim, verification_signals, evidence)
-        
+
         # Get LLM judgment
         try:
             if self.openai_api_key:
@@ -109,13 +131,21 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 judgment_data = self._fallback_judgment(verification_signals)
             
             # Create result
+            # Phase 3: Enrich evidence summary with consensus data
+            enriched_summary = {
+                **verification_signals,
+                'min_requirements_met': True,
+                'consensus_strength': self._calculate_consensus_strength(evidence, verification_signals) if settings.ENABLE_ABSTENTION_LOGIC else None,
+                'abstention_reason': None
+            }
+
             result = JudgmentResult(
                 claim_text=claim_text,
                 verdict=judgment_data.get("verdict", "uncertain"),
                 confidence=min(max(judgment_data.get("confidence", 50), 0), 100),
                 rationale=judgment_data.get("rationale", "Assessment based on available evidence"),
                 supporting_evidence=evidence[:3],  # Top 3 evidence pieces
-                evidence_summary=verification_signals
+                evidence_summary=enriched_summary
             )
             
             # Cache result
@@ -307,7 +337,118 @@ Based on this analysis, provide your final judgment."""
                 "temporal_relevance": "current"
             }
         }
-    
+
+    def _should_abstain(self, evidence: List[Dict[str, Any]], verification_signals: Dict[str, Any]) -> Optional[tuple]:
+        """
+        Determine if we should abstain from making a verdict.
+
+        Phase 3 - Week 8: Consensus & Abstention Logic
+        Never force a verdict when evidence is weak or conflicting.
+
+        Returns:
+            Tuple[verdict, reason, consensus_strength] if should abstain, None otherwise
+        """
+        # Configuration thresholds
+        MIN_SOURCES = settings.MIN_SOURCES_FOR_VERDICT  # Default: 3
+        MIN_HIGH_CRED = settings.MIN_CREDIBILITY_THRESHOLD  # Default: 0.75
+        MIN_CONSENSUS = settings.MIN_CONSENSUS_STRENGTH  # Default: 0.65
+
+        # Check 1: Too few sources
+        if len(evidence) < MIN_SOURCES:
+            return (
+                "insufficient_evidence",
+                f"Only {len(evidence)} source(s) found. Need at least {MIN_SOURCES} for reliable verdict.",
+                0.0
+            )
+
+        # Check 2: No authoritative sources
+        high_cred_sources = [e for e in evidence if e.get('credibility_score', 0.6) >= MIN_HIGH_CRED]
+        if len(high_cred_sources) < 1:
+            max_cred = max([e.get('credibility_score', 0) for e in evidence]) if evidence else 0
+            return (
+                "insufficient_evidence",
+                f"No high-credibility sources (≥{MIN_HIGH_CRED:.0%}). "
+                f"Highest credibility: {max_cred:.0%}. Need authoritative sources for verdict.",
+                0.0
+            )
+
+        # Check 3: Calculate consensus strength
+        consensus_strength = self._calculate_consensus_strength(evidence, verification_signals)
+        if consensus_strength < MIN_CONSENSUS:
+            return (
+                "conflicting_expert_opinion",
+                f"Evidence shows weak consensus ({consensus_strength:.0%}). "
+                f"High-credibility sources disagree on this claim.",
+                consensus_strength
+            )
+
+        # Check 4: Conflicting high-credibility sources
+        supporting = verification_signals.get('supporting_count', 0)
+        contradicting = verification_signals.get('contradicting_count', 0)
+
+        high_cred_supporting = sum(1 for e in high_cred_sources
+                                   if verification_signals.get(f"evidence_{e.get('id', '')}_stance") == 'supporting')
+        high_cred_contradicting = sum(1 for e in high_cred_sources
+                                      if verification_signals.get(f"evidence_{e.get('id', '')}_stance") == 'contradicting')
+
+        if high_cred_supporting > 0 and high_cred_contradicting > 0:
+            return (
+                "conflicting_expert_opinion",
+                f"High-credibility sources conflict: {high_cred_supporting} support, "
+                f"{high_cred_contradicting} contradict. Expert opinion divided.",
+                consensus_strength
+            )
+
+        # Check 5: Temporal issues (if temporal markers present)
+        if verification_signals.get('temporal_flag') == 'outdated':
+            return (
+                "outdated_claim",
+                "Claim may have been accurate historically, but circumstances have changed. "
+                "Evidence suggests this is no longer current.",
+                consensus_strength
+            )
+
+        # No abstention needed - minimum requirements met
+        return None
+
+    def _calculate_consensus_strength(self, evidence: List[Dict[str, Any]],
+                                     verification_signals: Dict[str, Any]) -> float:
+        """
+        Calculate consensus strength using credibility-weighted agreement.
+
+        Returns:
+            Float 0-1 representing strength of consensus
+        """
+        if not evidence:
+            return 0.0
+
+        # Weight votes by credibility score
+        supporting_weight = 0.0
+        contradicting_weight = 0.0
+
+        for ev in evidence:
+            cred_score = ev.get('credibility_score', 0.6)
+            ev_id = ev.get('id', '')
+
+            # Get stance from verification signals
+            stance = verification_signals.get(f'evidence_{ev_id}_stance', 'neutral')
+
+            if stance == 'supporting':
+                supporting_weight += cred_score
+            elif stance == 'contradicting':
+                contradicting_weight += cred_score
+
+        total_weight = supporting_weight + contradicting_weight
+
+        if total_weight == 0:
+            return 0.0
+
+        # Consensus = majority weight / total weight
+        majority_weight = max(supporting_weight, contradicting_weight)
+        consensus = majority_weight / total_weight
+
+        return consensus
+
     def _make_judgment_cache_key(self, claim: str, signals: Dict[str, Any], evidence: List[Dict[str, Any]]) -> str:
         """Create cache key for judgment result"""
         # Include key signal values and evidence URLs for cache invalidation

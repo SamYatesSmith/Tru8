@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { VerdictPill } from '@/app/dashboard/components/verdict-pill';
 import { ConfidenceBar } from '@/app/dashboard/components/confidence-bar';
+import { DecisionTrail } from '@/app/dashboard/components/decision-trail';
+import { ConfidenceBreakdown } from '@/app/dashboard/components/confidence-breakdown';
+import { UncertaintyExplanation } from '@/app/dashboard/components/uncertainty-explanation';
+import { NonVerifiableNotice } from '@/app/dashboard/components/non-verifiable-notice';
+import { FactCheckBadge } from '@/app/dashboard/components/fact-check-badge';
+import { TimeSensitiveIndicator } from '@/app/dashboard/components/time-sensitive-indicator';
 import { formatMonthYear } from '@/lib/utils';
 
 interface Claim {
@@ -14,6 +20,21 @@ interface Claim {
   rationale: string;
   position: number;
   evidence: Evidence[];
+
+  // Classification fields (Phase 2)
+  claimType?: string;
+  isVerifiable?: boolean;
+  verifiabilityReason?: string;
+
+  // Temporal fields (Phase 1.5)
+  isTimeSensitive?: boolean;
+  timeReference?: string;
+  temporalMarkers?: any;
+
+  // Explainability fields (Phase 2)
+  uncertaintyExplanation?: string;
+  confidenceBreakdown?: any;
+  decisionTrail?: any;
 }
 
 interface Evidence {
@@ -25,6 +46,19 @@ interface Evidence {
   publishedDate?: string;
   relevanceScore: number;
   credibilityScore?: number;
+
+  // Fact-check fields
+  isFactcheck?: boolean;
+  factcheckPublisher?: string;
+  factcheckRating?: string;
+
+  // Source independence fields
+  parentCompany?: string;
+  independenceFlag?: string;
+
+  // Temporal fields
+  temporalRelevanceScore?: number;
+  isTimeSensitive?: boolean;
 }
 
 interface ClaimsSectionProps {
@@ -44,37 +78,80 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
 
       {claims.map((claim) => {
         const isExpanded = expandedClaim === claim.id;
-        // Sort evidence by relevance score
-        const sortedEvidence = [...claim.evidence].sort(
-          (a, b) => b.relevanceScore - a.relevanceScore
-        );
+
+        // Sort evidence by relevance score, prioritize fact-checks
+        const sortedEvidence = [...claim.evidence].sort((a, b) => {
+          // Fact-checks first
+          if (a.isFactcheck && !b.isFactcheck) return -1;
+          if (!a.isFactcheck && b.isFactcheck) return 1;
+          // Then by relevance
+          return b.relevanceScore - a.relevanceScore;
+        });
 
         return (
           <div
             key={claim.id}
-            className="bg-slate-800/50 border border-slate-700 rounded-xl p-6"
+            className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 space-y-4"
           >
-            {/* Header: Verdict + Confidence */}
-            <div className="flex items-start justify-between mb-4">
-              <VerdictPill verdict={claim.verdict} />
-              <span className="text-2xl font-bold text-white">
-                {Math.round(claim.confidence)}%
-              </span>
-            </div>
-
-            {/* Confidence Bar */}
-            <ConfidenceBar
-              confidence={claim.confidence}
-              verdict={claim.verdict}
-              className="mb-4"
-            />
+            {/* Claim Type & Time Sensitivity Indicators */}
+            {(claim.claimType || claim.isTimeSensitive) && (
+              <div className="flex flex-wrap gap-2">
+                {claim.isTimeSensitive && claim.timeReference && (
+                  <TimeSensitiveIndicator timeReference={claim.timeReference} />
+                )}
+                {claim.claimType && claim.claimType !== 'factual' && (
+                  <span className="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded">
+                    {claim.claimType.replace('_', ' ')}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Claim Text */}
-            <p className="text-lg font-medium text-white mb-4">&quot;{claim.text}&quot;</p>
+            <p className="text-lg font-medium text-white">&quot;{claim.text}&quot;</p>
 
-            {/* Rationale */}
-            {claim.rationale && (
-              <p className="text-sm text-slate-400 mb-4">{claim.rationale}</p>
+            {/* Non-Verifiable Notice OR Normal Verdict */}
+            {claim.isVerifiable === false ? (
+              <NonVerifiableNotice
+                claimType={claim.claimType || 'unknown'}
+                reason={claim.verifiabilityReason || 'This claim cannot be fact-checked.'}
+              />
+            ) : (
+              <>
+                {/* Header: Verdict + Confidence */}
+                <div className="flex items-start justify-between">
+                  <VerdictPill verdict={claim.verdict} />
+                  <span className="text-2xl font-bold text-white">
+                    {Math.round(claim.confidence)}%
+                  </span>
+                </div>
+
+                {/* Confidence Bar */}
+                <ConfidenceBar
+                  confidence={claim.confidence}
+                  verdict={claim.verdict}
+                />
+
+                {/* Rationale */}
+                {claim.rationale && (
+                  <p className="text-sm text-slate-400">{claim.rationale}</p>
+                )}
+
+                {/* Uncertainty Explanation (if uncertain) */}
+                {claim.verdict === 'uncertain' && claim.uncertaintyExplanation && (
+                  <UncertaintyExplanation explanation={claim.uncertaintyExplanation} />
+                )}
+
+                {/* Confidence Breakdown */}
+                {claim.confidenceBreakdown && (
+                  <ConfidenceBreakdown breakdown={claim.confidenceBreakdown} />
+                )}
+
+                {/* Decision Trail */}
+                {claim.decisionTrail && (
+                  <DecisionTrail decisionTrail={claim.decisionTrail} />
+                )}
+              </>
             )}
 
             {/* Evidence Toggle Button */}
@@ -99,9 +176,17 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                     rel="noopener noreferrer"
                     className="flex items-start gap-3 p-4 bg-slate-900/50 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors group"
                   >
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 space-y-2">
+                      {/* Fact-Check Badge */}
+                      {evidence.isFactcheck && evidence.factcheckPublisher && (
+                        <FactCheckBadge
+                          publisher={evidence.factcheckPublisher}
+                          rating={evidence.factcheckRating}
+                        />
+                      )}
+
                       {/* Title */}
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-white truncate">
                           {evidence.title}
                         </span>
@@ -112,21 +197,41 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                       </div>
 
                       {/* Snippet */}
-                      <p className="text-xs text-slate-400 mb-2 line-clamp-4">
+                      <p className="text-xs text-slate-400 line-clamp-4">
                         {evidence.snippet}
                       </p>
 
                       {/* Metadata: Source · Date · Credibility */}
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
                         <span className="font-medium">{evidence.source}</span>
+
+                        {evidence.parentCompany && (
+                          <>
+                            <span>·</span>
+                            <span title="Parent Company">
+                              {evidence.parentCompany}
+                            </span>
+                          </>
+                        )}
+
                         <span>·</span>
                         <span>{formatMonthYear(evidence.publishedDate || null)}</span>
+
                         <span>·</span>
                         <span className="font-medium">
                           {evidence.credibilityScore
                             ? `${(evidence.credibilityScore * 10).toFixed(1)}/10`
                             : `${(evidence.relevanceScore * 10).toFixed(1)}/10`}
                         </span>
+
+                        {evidence.temporalRelevanceScore !== undefined && (
+                          <>
+                            <span>·</span>
+                            <span title="Temporal Relevance" className="text-amber-400">
+                              Time: {(evidence.temporalRelevanceScore * 10).toFixed(1)}/10
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </a>

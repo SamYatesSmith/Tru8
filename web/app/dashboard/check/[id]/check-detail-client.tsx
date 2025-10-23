@@ -58,7 +58,7 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
 
   return (
     <div className="space-y-6">
-      {/* Metadata Card - Always shown */}
+      {/* Metadata Card - Always shown (now includes transparency score) */}
       <CheckMetadataCard check={checkData} />
 
       {/* Status-based Rendering */}

@@ -86,9 +86,18 @@ class Settings(BaseSettings):
     ENABLE_CLAIM_CLASSIFICATION: bool = Field(False, env="ENABLE_CLAIM_CLASSIFICATION")
     ENABLE_ENHANCED_EXPLAINABILITY: bool = Field(False, env="ENABLE_ENHANCED_EXPLAINABILITY")
 
+    # Phase 3 - Critical Credibility Enhancements
+    ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK: bool = Field(False, env="ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK")
+    ENABLE_ABSTENTION_LOGIC: bool = Field(False, env="ENABLE_ABSTENTION_LOGIC")
+
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
+
+    # Abstention Thresholds (Phase 3)
+    MIN_SOURCES_FOR_VERDICT: int = Field(3, env="MIN_SOURCES_FOR_VERDICT")
+    MIN_CREDIBILITY_THRESHOLD: float = Field(0.75, env="MIN_CREDIBILITY_THRESHOLD")
+    MIN_CONSENSUS_STRENGTH: float = Field(0.65, env="MIN_CONSENSUS_STRENGTH")
 
     # Rollout Controls
     FEATURE_ROLLOUT_PERCENTAGE: int = Field(0, env="FEATURE_ROLLOUT_PERCENTAGE")

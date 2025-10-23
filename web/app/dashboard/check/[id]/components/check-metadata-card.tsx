@@ -1,6 +1,7 @@
 'use client';
 
 import { formatRelativeTime } from '@/lib/utils';
+import { TransparencyScore } from '@/app/dashboard/components/transparency-score';
 
 interface CheckMetadataCardProps {
   check: {
@@ -10,6 +11,7 @@ interface CheckMetadataCardProps {
     status: string;
     creditsUsed: number;
     createdAt: string;
+    transparencyScore?: number; // Phase 2 addition
   };
 }
 
@@ -54,42 +56,50 @@ export function CheckMetadataCard({ check }: CheckMetadataCardProps) {
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Input Type */}
-        <div>
-          <p className="text-slate-400 text-sm mb-1">Input Type</p>
-          <p className="text-white font-medium uppercase">{check.inputType}</p>
-        </div>
+    <div className="space-y-4">
+      {/* Main Metadata Card */}
+      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Input Type */}
+          <div>
+            <p className="text-slate-400 text-sm mb-1">Input Type</p>
+            <p className="text-white font-medium uppercase">{check.inputType}</p>
+          </div>
 
-        {/* Status */}
-        <div>
-          <p className="text-slate-400 text-sm mb-1">Status</p>
-          <span
-            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.bg} ${config.text} ${config.border}`}
-          >
-            {check.status.toUpperCase()}
-          </span>
-        </div>
+          {/* Status */}
+          <div>
+            <p className="text-slate-400 text-sm mb-1">Status</p>
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.bg} ${config.text} ${config.border}`}
+            >
+              {check.status.toUpperCase()}
+            </span>
+          </div>
 
-        {/* Content */}
-        <div className="md:col-span-2">
-          <p className="text-slate-400 text-sm mb-1">Content</p>
-          <p className="text-white font-medium break-all">{getContentDisplay()}</p>
-        </div>
+          {/* Content */}
+          <div className="md:col-span-2">
+            <p className="text-slate-400 text-sm mb-1">Content</p>
+            <p className="text-white font-medium break-all">{getContentDisplay()}</p>
+          </div>
 
-        {/* Submitted */}
-        <div>
-          <p className="text-slate-400 text-sm mb-1">Submitted</p>
-          <p className="text-white font-medium">{formatRelativeTime(check.createdAt)}</p>
-        </div>
+          {/* Submitted */}
+          <div>
+            <p className="text-slate-400 text-sm mb-1">Submitted</p>
+            <p className="text-white font-medium">{formatRelativeTime(check.createdAt)}</p>
+          </div>
 
-        {/* Credits Used */}
-        <div>
-          <p className="text-slate-400 text-sm mb-1">Credits Used</p>
-          <p className="text-white font-medium">{check.creditsUsed}</p>
+          {/* Credits Used */}
+          <div>
+            <p className="text-slate-400 text-sm mb-1">Credits Used</p>
+            <p className="text-white font-medium">{check.creditsUsed}</p>
+          </div>
         </div>
       </div>
+
+      {/* Transparency Score (if available and completed) */}
+      {check.status === 'completed' && check.transparencyScore !== undefined && check.transparencyScore !== null && (
+        <TransparencyScore score={check.transparencyScore} />
+      )}
     </div>
   );
 }

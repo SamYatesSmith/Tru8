@@ -24,9 +24,10 @@ export function Footer() {
   ];
 
   const legalLinks = [
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookie Policy', href: '/cookies' },
+    { label: 'Privacy Policy', href: '/privacy-policy' },
+    { label: 'Terms of Service', href: '/terms-of-service' },
+    { label: 'Cookie Policy', href: '/cookie-policy' },
+    { label: 'Refund Policy', href: '/refund-policy' },
   ];
 
   return (
@@ -49,8 +50,8 @@ export function Footer() {
           </p>
         </div>
 
-        {/* Links Grid - 2 cols on mobile, 3 cols on desktop */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8">
+        {/* Links Grid - 2 cols on mobile, 4 cols on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           {/* Product Links */}
           <div>
             <h3 className="text-white font-semibold mb-3 text-sm">Product</h3>
@@ -99,7 +100,36 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && (window as any).cookieyes) {
+                      (window as any).cookieyes.showBanner();
+                    }
+                  }}
+                  className="text-slate-400 hover:text-[#f57a07] transition-colors text-sm"
+                >
+                  Cookie Preferences
+                </button>
+              </li>
             </ul>
+          </div>
+
+          {/* Compliance */}
+          <div>
+            <h3 className="text-white font-semibold mb-3 text-sm">Compliance</h3>
+            <div className="space-y-2 text-xs">
+              <p className="text-slate-400">
+                <span className="text-slate-300 font-medium">ICO Registration:</span>
+                <br />
+                <span className="font-mono text-slate-500">[ZA123456]</span>
+              </p>
+              <p className="text-slate-400">
+                <span className="text-slate-300 font-medium">Data Controller:</span>
+                <br />
+                Tru8 Ltd
+              </p>
+            </div>
           </div>
         </div>
 

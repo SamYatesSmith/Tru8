@@ -72,11 +72,12 @@ export function SignedInNav({ user }: SignedInNavProps) {
 
           {/* Right: New Check + Avatar */}
           <div className="flex items-center gap-4">
-            <Link href="/dashboard/new-check">
-              <button className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors">
-                <Plus size={18} />
-                <span className="font-medium">New Check</span>
-              </button>
+            <Link
+              href="/dashboard/new-check"
+              className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <Plus size={18} />
+              <span className="font-medium">New Check</span>
             </Link>
 
             {/* User Avatar */}

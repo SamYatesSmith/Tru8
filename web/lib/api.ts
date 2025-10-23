@@ -46,7 +46,7 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}: ${response.statusText}` }));
       throw new Error(error.detail || `API error: ${response.status}`);
     }
 

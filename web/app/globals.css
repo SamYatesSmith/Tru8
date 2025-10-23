@@ -196,3 +196,56 @@ a:focus-visible {
 .clerk-modal-content .cl-formButtonPrimary:hover {
   background: #e06a00 !important;
 }
+
+/* Legal Document Prose Styles */
+.prose-legal {
+  @apply text-slate-300 leading-relaxed;
+}
+
+.prose-legal h2 {
+  @apply text-3xl font-bold text-white mt-12 mb-6 first:mt-0;
+}
+
+.prose-legal h3 {
+  @apply text-2xl font-semibold text-white mt-8 mb-4;
+}
+
+.prose-legal h4 {
+  @apply text-xl font-semibold text-slate-200 mt-6 mb-3;
+}
+
+.prose-legal p {
+  @apply mb-4 text-slate-300;
+}
+
+.prose-legal ul, .prose-legal ol {
+  @apply mb-6 pl-6;
+}
+
+.prose-legal li {
+  @apply mb-2 text-slate-300;
+}
+
+.prose-legal a {
+  @apply text-[#f57a07] hover:text-[#e06a00] underline transition-colors;
+}
+
+.prose-legal strong {
+  @apply text-white font-semibold;
+}
+
+.prose-legal code {
+  @apply bg-slate-900 text-slate-300 px-2 py-1 rounded text-sm font-mono;
+}
+
+.prose-legal table {
+  @apply w-full border-collapse border border-slate-700 my-6;
+}
+
+.prose-legal th {
+  @apply bg-slate-800 text-white font-semibold p-3 border border-slate-700;
+}
+
+.prose-legal td {
+  @apply p-3 border border-slate-700 text-slate-300;
+}

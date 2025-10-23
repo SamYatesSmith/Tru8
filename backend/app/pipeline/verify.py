@@ -360,7 +360,7 @@ class ClaimVerifier:
         else:
             evidence_quality = "low"
         
-        return {
+        signals = {
             "overall_verdict": overall_verdict,
             "confidence": confidence,
             "supporting_count": supporting_count,
@@ -372,6 +372,19 @@ class ClaimVerifier:
             "total_evidence": len(verifications),
             "avg_confidence": avg_confidence
         }
+
+        # Phase 3: Add per-evidence stance data for abstention logic consensus calculation
+        for v in verifications:
+            evidence_id = v.get('evidence_id', '')
+            if evidence_id:
+                relationship = v.get('relationship', 'neutral')
+                # Map relationship to stance terminology
+                stance = 'supporting' if relationship == 'entails' else \
+                         'contradicting' if relationship == 'contradicts' else \
+                         'neutral'
+                signals[f'evidence_{evidence_id}_stance'] = stance
+
+        return signals
 
 # Singleton instance for reuse
 _claim_verifier = None

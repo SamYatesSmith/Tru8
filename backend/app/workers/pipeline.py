@@ -51,27 +51,52 @@ class PipelineTask(Task):
             # This avoids all event loop and threading issues completely
 
 async def update_check_status(check_id: str, status: str, error_message: str = None):
-    """Update check status in database"""
+    """Update check status in database (async version - DO NOT USE IN CELERY)"""
     try:
         from app.core.database import async_session
         from app.models import Check
         from sqlalchemy import select
-        
+
         async with async_session() as session:
             stmt = select(Check).where(Check.id == check_id)
             result = await session.execute(stmt)
             check = result.scalar_one_or_none()
-            
+
             if check:
                 check.status = status
                 if error_message:
                     check.error_message = error_message
                 if status == "completed":
                     check.completed_at = datetime.utcnow()
-                
+
                 await session.commit()
                 logger.info(f"Updated check {check_id} status to {status}")
-                
+
+    except Exception as e:
+        logger.error(f"Failed to update check status: {e}")
+
+def update_check_status_sync(check_id: str, status: str, error_message: str = None):
+    """Update check status in database (synchronous for Celery)"""
+    try:
+        from app.core.database import sync_session
+        from app.models import Check
+        from sqlalchemy import select
+
+        with sync_session() as session:
+            stmt = select(Check).where(Check.id == check_id)
+            result = session.execute(stmt)
+            check = result.scalar_one_or_none()
+
+            if check:
+                check.status = status
+                if error_message:
+                    check.error_message = error_message
+                if status == "completed":
+                    check.completed_at = datetime.utcnow()
+
+                session.commit()
+                logger.info(f"Updated check {check_id} status to {status}")
+
     except Exception as e:
         logger.error(f"Failed to update check status: {e}")
 
@@ -155,29 +180,34 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
     stage_timings = {}
     
     try:
-        # Set processing status
-        asyncio.run(update_check_status(check_id, "processing"))
-        
-        # Get cache service for pipeline result caching
-        cache_service = asyncio.run(get_cache_service())
-        
-        # Check if we have cached results for this exact check
-        cached_result = asyncio.run(cache_service.get_cached_pipeline_result(check_id))
-        if cached_result:
-            logger.info(f"Returning cached result for check {check_id}")
-            return cached_result
-        
+        print(f"[PIPELINE] process_check started for {check_id}", flush=True)
+        # Set processing status (using sync version to avoid event loop issues)
+        update_check_status_sync(check_id, "processing")
+        print(f"[PIPELINE] Status updated to processing", flush=True)
+
+        # DISABLED: Cache service causing event loop issues in Celery - set to None for now
+        cache_service = None
+
+        # DISABLED: Checking cached results (cache_service is None)
+        # cached_result = asyncio.run(cache_service.get_cached_pipeline_result(check_id))
+        # if cached_result:
+        #     logger.info(f"Returning cached result for check {check_id}")
+        #     return cached_result
+
+        logger.info(f"About to start Stage 1: Ingest for check {check_id}")
+
         # Stage 1: Ingest (REAL IMPLEMENTATION WITH CIRCUIT BREAKER)
         self.update_state(state="PROGRESS", meta={"stage": "ingest", "progress": 10})
+        logger.info(f"Task state updated to PROGRESS for check {check_id}")
         stage_start = datetime.utcnow()
         
         try:
             logger.info(f"Ingesting content for check {check_id}, input_type: {input_data.get('input_type')}")
-            logger.info(f"Input content length: {len(input_data.get('content', ''))}")
+            logger.info(f"Input content length: {len(input_data.get('content') or '')}")
             content = asyncio.run(ingest_content_async(input_data))
             if not content.get("success"):
                 raise Exception(f"Ingest failed: {content.get('error', 'Unknown error')}")
-            logger.info(f"Ingested content length: {len(content.get('content', ''))}")
+            logger.info(f"Ingested content length: {len(content.get('content') or '')}")
         except Exception as e:
             logger.error(f"Ingest stage failed: {e}")
             if self.request.retries < self.max_retries:
@@ -355,9 +385,9 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
                 "efficiency_score": min(100, (10000 / max(processing_time_ms, 1000)) * 100)
             }
         }
-        
-        # Cache the complete pipeline result
-        asyncio.run(cache_service.cache_pipeline_result(check_id, final_result))
+
+        # DISABLED: Cache the complete pipeline result (cache_service is None)
+        # asyncio.run(cache_service.cache_pipeline_result(check_id, final_result))
 
         # Save all results to database (claims, evidence, and check status)
         try:

@@ -26,11 +26,12 @@ export function UpgradeBanner({ currentPlan }: UpgradeBannerProps) {
           </div>
         </div>
 
-        <Link href="/dashboard/settings?tab=subscription">
-          <button className="bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-6 py-3 rounded-lg flex items-center gap-2 transition-colors">
-            Upgrade Now
-            <ArrowRight size={18} />
-          </button>
+        <Link
+          href="/dashboard/settings?tab=subscription"
+          className="bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
+        >
+          Upgrade Now
+          <ArrowRight size={18} />
         </Link>
       </div>
 

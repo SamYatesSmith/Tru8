@@ -68,10 +68,11 @@ export function PageHeader({
             {subtitle}
           </p>
           {ctaText && ctaHref && (
-            <Link href={ctaHref}>
-              <button className="bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-12 py-5 rounded-xl transition-colors text-xl">
-                {ctaText}
-              </button>
+            <Link
+              href={ctaHref}
+              className="inline-block bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-12 py-5 rounded-xl transition-colors text-xl"
+            >
+              {ctaText}
             </Link>
           )}
         </div>
