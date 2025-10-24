@@ -243,21 +243,32 @@ class SearchService:
         """Optimize search query for better fact-checking results"""
         # Extract key terms and add fact-checking keywords
         query = claim
-        
+
         # Add fact-checking terms to improve result quality
         factcheck_terms = [
             "study", "research", "report", "data", "statistics",
             "official", "government", "university", "peer reviewed"
         ]
-        
+
         # Remove question words and make it more search-friendly
         query = query.replace("?", "").replace("!", "")
-        
+
+        # Exclude fact-check meta-content sites to prefer primary sources
+        # Use negative keywords to filter out fact-checking articles about other claims
+        exclude_terms = [
+            "-site:snopes.com",
+            "-site:factcheck.org",
+            "-site:politifact.com",
+            "-\"fact check\"",
+            "-\"fact-check\""
+        ]
+        query += " " + " ".join(exclude_terms)
+
         # Limit query length for API limits
-        if len(query) > 200:
+        if len(query) > 250:
             words = query.split()
-            query = " ".join(words[:30])  # First 30 words
-        
+            query = " ".join(words[:35])  # First 35 words including exclusions
+
         return query.strip()
     
     def _filter_credible_sources(self, results: List[SearchResult]) -> List[SearchResult]:

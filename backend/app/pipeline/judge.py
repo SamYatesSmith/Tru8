@@ -52,7 +52,7 @@ TASK: Analyze verification signals and evidence to determine final verdict and e
 
 VERDICTS:
 - "supported": Strong evidence supports the claim
-- "contradicted": Strong evidence contradicts the claim  
+- "contradicted": Strong evidence contradicts the claim
 - "uncertain": Insufficient or conflicting evidence
 
 ANALYSIS FRAMEWORK:
@@ -60,6 +60,12 @@ ANALYSIS FRAMEWORK:
 2. Signal Strength: Weight entailment/contradiction scores
 3. Consensus: Look for agreement across multiple sources
 4. Context: Consider nuances, qualifications, temporal factors
+
+IMPORTANT - Handling Fact-Check Articles:
+- If evidence is from fact-checking sites (Snopes, FactCheck.org, etc.), recognize these are META-CLAIMS
+- A fact-check article saying "FALSE - claim X is debunked" means the OPPOSITE claim is supported
+- Focus on PRIMARY sources (scientific studies, government data, news reports) over fact-check meta-content
+- Do not be confused by double negatives in fact-check headlines
 
 RESPONSE FORMAT: Respond with a valid JSON object containing:
 {

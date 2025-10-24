@@ -289,14 +289,22 @@ class EvidenceExtractor:
         def scoring_function(snippet: EvidenceSnippet) -> float:
             # Base relevance score
             score = snippet.relevance_score
-            
-            # Domain credibility boost
-            credible_indicators = [
-                '.edu', '.gov', '.org', 'bbc', 'reuters', 'nature', 'science'
+
+            # Detect and deprioritize fact-check meta-content
+            factcheck_sites = ['snopes', 'factcheck.org', 'politifact', 'fullfact']
+            is_factcheck = any(site in snippet.source.lower() or site in snippet.url.lower()
+                             for site in factcheck_sites)
+            if is_factcheck:
+                score *= 0.3  # Heavily deprioritize fact-check sites
+
+            # Domain credibility boost for primary sources
+            primary_sources = [
+                '.edu', '.gov', '.org', 'bbc', 'reuters', 'nature', 'science',
+                'pnas.org', 'nasa.gov', 'noaa.gov', 'who.int', 'nhs.uk'
             ]
-            if any(indicator in snippet.source.lower() for indicator in credible_indicators):
-                score += 0.2
-            
+            if any(indicator in snippet.source.lower() for indicator in primary_sources):
+                score += 0.3  # Increased boost for primary sources
+
             # Recent content boost
             if snippet.published_date:
                 try:
@@ -305,12 +313,12 @@ class EvidenceExtractor:
                         score += 0.1
                 except:
                     pass
-            
+
             # Length boost for substantial snippets
             if snippet.word_count > 50:
                 score += 0.1
-            
+
             return score
-        
+
         # Sort by combined score
         return sorted(snippets, key=scoring_function, reverse=True)
