@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     DEBUG: bool = Field(True, env="DEBUG")
     SECRET_KEY: str = Field(..., env="SECRET_KEY")
     CORS_ORIGINS: List[str] = Field(
-        ["http://localhost:3000", "http://localhost:8081"],
+        default=["http://localhost:3000", "http://localhost:3001", "http://localhost:8081", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
         env="CORS_ORIGINS"
     )
     

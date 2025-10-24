@@ -83,6 +83,9 @@ export const VERDICT_LABELS = {
   supported: 'Supported',
   contradicted: 'Contradicted',
   uncertain: 'Uncertain',
+  insufficient_evidence: 'Insufficient Evidence',
+  conflicting_expert_opinion: 'Conflicting Opinions',
+  outdated_claim: 'Outdated',
 } as const;
 
 // Verdict icons
@@ -90,4 +93,10 @@ export const VERDICT_ICONS = {
   supported: '✓',
   contradicted: '!',
   uncertain: '?',
+  insufficient_evidence: '?',
+  conflicting_expert_opinion: '⚖',
+  outdated_claim: '⏱',
 } as const;
+
+// Verdict type (for TypeScript)
+export type VerdictType = keyof typeof VERDICT_LABELS;

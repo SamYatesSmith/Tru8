@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native';
-import { CheckCircle, AlertTriangle, Clock } from 'lucide-react-native';
+import { CheckCircle, AlertTriangle, Clock, HelpCircle, Scale } from 'lucide-react-native';
 import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
-import type { VerdictType } from '@shared/types';
+import type { VerdictType } from '@shared/constants';
 
 interface VerdictPillProps {
   verdict: VerdictType;
@@ -62,6 +62,30 @@ export function VerdictPill({
           textColor: Colors.verdictUncertain,
           icon: Clock,
           label: 'Uncertain',
+        };
+      case 'insufficient_evidence':
+        return {
+          backgroundColor: Colors.gray100,
+          borderColor: Colors.gray400,
+          textColor: Colors.gray700,
+          icon: HelpCircle,
+          label: 'Insufficient Evidence',
+        };
+      case 'conflicting_expert_opinion':
+        return {
+          backgroundColor: '#F3E8FF',
+          borderColor: '#C084FC',
+          textColor: '#7C3AED',
+          icon: Scale,
+          label: 'Conflicting Opinions',
+        };
+      case 'outdated_claim':
+        return {
+          backgroundColor: '#F1F5F9',
+          borderColor: '#94A3B8',
+          textColor: '#475569',
+          icon: Clock,
+          label: 'Outdated',
         };
       default:
         return {

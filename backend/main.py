@@ -28,12 +28,23 @@ app = FastAPI(
 )
 
 # Middleware
+# Development: Allow localhost/127.0.0.1 origins
+# Production: Use specific origins from settings.CORS_ORIGINS
+dev_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:8081",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:8081",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=dev_origins if settings.ENVIRONMENT == "development" else settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 

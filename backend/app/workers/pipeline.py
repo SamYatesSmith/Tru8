@@ -263,15 +263,21 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             evidence = asyncio.run(retrieve_evidence_with_cache(claims, cache_service, factcheck_evidence))
         except Exception as e:
             logger.error(f"Retrieve stage failed: {e}")
-            # Try fallback evidence
-            evidence = retrieve_evidence(claims, factcheck_evidence)
+            # Try fallback evidence (development only)
+            if settings.ENVIRONMENT == "development":
+                logger.warning("Using mock evidence fallback (development only)")
+                evidence = retrieve_evidence(claims, factcheck_evidence)
+            else:
+                # Production: fail the check properly with clear error
+                logger.critical(f"Evidence retrieval failed in {settings.ENVIRONMENT} environment, cannot continue")
+                raise Exception(f"Evidence retrieval failed: {e}")
 
         stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
         
         # Stage 4: Verify with NLI (REAL IMPLEMENTATION WITH TIMEOUT)
         self.update_state(state="PROGRESS", meta={"stage": "verify", "progress": 60})
         stage_start = datetime.utcnow()
-        
+
         try:
             # Add timeout for NLI stage
             verifications = asyncio.run(
@@ -281,18 +287,28 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
                 )
             )
         except asyncio.TimeoutError:
-            logger.warning(f"Verify stage timed out, using fallback")
-            verifications = verify_claims(claims, evidence)
+            logger.warning(f"Verify stage timed out")
+            if settings.ENVIRONMENT == "development":
+                logger.warning("Using mock verification fallback (development only)")
+                verifications = verify_claims(claims, evidence)
+            else:
+                logger.critical(f"NLI verification timed out in {settings.ENVIRONMENT} environment")
+                raise Exception("NLI verification timed out")
         except Exception as e:
             logger.error(f"Verify stage failed: {e}")
-            verifications = verify_claims(claims, evidence)
+            if settings.ENVIRONMENT == "development":
+                logger.warning("Using mock verification fallback (development only)")
+                verifications = verify_claims(claims, evidence)
+            else:
+                logger.critical(f"NLI verification failed in {settings.ENVIRONMENT} environment")
+                raise Exception(f"NLI verification failed: {e}")
         
         stage_timings["verify"] = (datetime.utcnow() - stage_start).total_seconds()
         
         # Stage 5: Judge and finalize (REAL IMPLEMENTATION WITH TIMEOUT)
         self.update_state(state="PROGRESS", meta={"stage": "judge", "progress": 80})
         stage_start = datetime.utcnow()
-        
+
         try:
             # Add timeout for judge stage
             results = asyncio.run(
@@ -302,11 +318,21 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
                 )
             )
         except asyncio.TimeoutError:
-            logger.warning(f"Judge stage timed out, using fallback")
-            results = judge_claims(claims, verifications, evidence)
+            logger.warning(f"Judge stage timed out")
+            if settings.ENVIRONMENT == "development":
+                logger.warning("Using mock judgment fallback (development only)")
+                results = judge_claims(claims, verifications, evidence)
+            else:
+                logger.critical(f"LLM judgment timed out in {settings.ENVIRONMENT} environment")
+                raise Exception("LLM judgment timed out")
         except Exception as e:
             logger.error(f"Judge stage failed: {e}")
-            results = judge_claims(claims, verifications, evidence)
+            if settings.ENVIRONMENT == "development":
+                logger.warning("Using mock judgment fallback (development only)")
+                results = judge_claims(claims, verifications, evidence)
+            else:
+                logger.critical(f"LLM judgment failed in {settings.ENVIRONMENT} environment")
+                raise Exception(f"LLM judgment failed: {e}")
         
         stage_timings["judge"] = (datetime.utcnow() - stage_start).total_seconds()
 
@@ -445,19 +471,23 @@ async def extract_claims_with_cache(content: str, metadata: Dict[str, Any], cach
     try:
         # Try cache first using content hash and model name
         model_name = "gpt-4o-mini"  # Default extraction model
-        cached_claims = await cache_service.get_cached_claim_extraction(content, model_name)
-        if cached_claims:
-            logger.info("Using cached claim extraction")
-            return cached_claims
-        
+
+        # Check cache if available
+        if cache_service:
+            cached_claims = await cache_service.get_cached_claim_extraction(content, model_name)
+            if cached_claims:
+                logger.info("Using cached claim extraction")
+                return cached_claims
+
         # Extract claims with real LLM
         extractor = ClaimExtractor()
         extraction_result = await extractor.extract_claims(content, metadata)
-        
+
         if extraction_result.get("success"):
             claims = extraction_result.get("claims", [])
-            # Cache the result
-            await cache_service.cache_claim_extraction(content, model_name, claims)
+            # Cache the result if cache is available
+            if cache_service:
+                await cache_service.cache_claim_extraction(content, model_name, claims)
             return claims
         else:
             logger.warning(f"LLM extraction failed: {extraction_result.get('error')}")
@@ -509,24 +539,28 @@ async def retrieve_evidence_with_cache(claims: List[Dict[str, Any]], cache_servi
 
         for claim in claims:
             claim_text = claim.get("text", "")
-            cached_result = await cache_service.get_cached_evidence_extraction(claim_text)
-            if cached_result:
-                position = str(claim.get("position", 0))
-                cached_evidence[position] = cached_result
-            else:
-                uncached_claims.append(claim)
+            # Check cache if available
+            if cache_service:
+                cached_result = await cache_service.get_cached_evidence_extraction(claim_text)
+                if cached_result:
+                    position = str(claim.get("position", 0))
+                    cached_evidence[position] = cached_result
+                    continue
+            # If no cache or no cached result, add to uncached list
+            uncached_claims.append(claim)
 
         # Retrieve evidence for uncached claims
         if uncached_claims:
             logger.info(f"Retrieving evidence for {len(uncached_claims)} uncached claims")
             new_evidence = await retriever.retrieve_evidence_for_claims(uncached_claims)
 
-            # Cache the new evidence
-            for claim in uncached_claims:
-                claim_text = claim.get("text", "")
-                position = str(claim.get("position", 0))
-                if position in new_evidence:
-                    await cache_service.cache_evidence_extraction(claim_text, new_evidence[position])
+            # Cache the new evidence if cache is available
+            if cache_service:
+                for claim in uncached_claims:
+                    claim_text = claim.get("text", "")
+                    position = str(claim.get("position", 0))
+                    if position in new_evidence:
+                        await cache_service.cache_evidence_extraction(claim_text, new_evidence[position])
 
             # Merge cached and new evidence
             cached_evidence.update(new_evidence)
@@ -542,8 +576,14 @@ async def retrieve_evidence_with_cache(claims: List[Dict[str, Any]], cache_servi
 
     except Exception as e:
         logger.error(f"Evidence retrieval error: {e}")
-        # Fallback to mock evidence
-        return retrieve_evidence(claims, factcheck_evidence)
+        # Fallback to mock evidence (development only)
+        if settings.ENVIRONMENT == "development":
+            logger.warning("Using mock evidence fallback (development only)")
+            return retrieve_evidence(claims, factcheck_evidence)
+        else:
+            # Production: return empty evidence dict, let judge handle insufficient evidence
+            logger.critical(f"Evidence retrieval failed in {settings.ENVIRONMENT} environment: {e}")
+            return {}
 
 async def verify_claims_with_nli(claims: List[Dict[str, Any]], evidence_by_claim: Dict[str, List[Dict[str, Any]]], 
                                 cache_service) -> Dict[str, List[Dict[str, Any]]]:
@@ -602,8 +642,14 @@ async def verify_claims_with_nli(claims: List[Dict[str, Any]], evidence_by_claim
         
     except Exception as e:
         logger.error(f"NLI verification error: {e}")
-        # Fallback to mock verification
-        return verify_claims(claims, evidence_by_claim)
+        # Fallback to mock verification (development only)
+        if settings.ENVIRONMENT == "development":
+            logger.warning("Using mock verification fallback (development only)")
+            return verify_claims(claims, evidence_by_claim)
+        else:
+            # Production: return empty verifications, will trigger abstention
+            logger.critical(f"NLI verification failed in {settings.ENVIRONMENT} environment: {e}")
+            return {}
 
 async def judge_claims_with_llm(claims: List[Dict[str, Any]], verifications_by_claim: Dict[str, List[Dict[str, Any]]], 
                                evidence_by_claim: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
@@ -621,8 +667,14 @@ async def judge_claims_with_llm(claims: List[Dict[str, Any]], verifications_by_c
         
     except Exception as e:
         logger.error(f"LLM judgment error: {e}")
-        # Fallback to mock judgment
-        return judge_claims(claims, verifications_by_claim, evidence_by_claim)
+        # Fallback to mock judgment (development only)
+        if settings.ENVIRONMENT == "development":
+            logger.warning("Using mock judgment fallback (development only)")
+            return judge_claims(claims, verifications_by_claim, evidence_by_claim)
+        else:
+            # Production: fail properly
+            logger.critical(f"LLM judgment failed in {settings.ENVIRONMENT} environment: {e}")
+            raise
 
 def extract_claims_fallback(content: str) -> List[Dict[str, Any]]:
     """Mock claim extraction - Week 3 will implement real LLM"""

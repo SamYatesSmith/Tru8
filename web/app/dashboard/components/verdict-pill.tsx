@@ -1,10 +1,17 @@
-import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, HelpCircle, Scale, Clock } from 'lucide-react';
+import type { VerdictType } from '@shared/constants';
 
 interface VerdictPillProps {
-  verdict: 'supported' | 'contradicted' | 'uncertain';
+  verdict: VerdictType;
 }
 
-const verdictConfig = {
+const verdictConfig: Record<VerdictType, {
+  icon: any;
+  label: string;
+  bgColor: string;
+  textColor: string;
+  borderColor: string;
+}> = {
   supported: {
     icon: CheckCircle2,
     label: 'SUPPORTED',
@@ -25,6 +32,27 @@ const verdictConfig = {
     bgColor: 'bg-amber-900/30',
     textColor: 'text-amber-400',
     borderColor: 'border-amber-600',
+  },
+  insufficient_evidence: {
+    icon: HelpCircle,
+    label: 'INSUFFICIENT EVIDENCE',
+    bgColor: 'bg-gray-900/30',
+    textColor: 'text-gray-400',
+    borderColor: 'border-gray-600',
+  },
+  conflicting_expert_opinion: {
+    icon: Scale,
+    label: 'CONFLICTING OPINIONS',
+    bgColor: 'bg-purple-900/30',
+    textColor: 'text-purple-400',
+    borderColor: 'border-purple-600',
+  },
+  outdated_claim: {
+    icon: Clock,
+    label: 'OUTDATED',
+    bgColor: 'bg-slate-900/30',
+    textColor: 'text-slate-400',
+    borderColor: 'border-slate-600',
   },
 };
 
