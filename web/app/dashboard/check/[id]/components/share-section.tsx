@@ -1,14 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Facebook, Twitter, Linkedin, Link as LinkIcon, Check } from 'lucide-react';
+import { useAuth } from '@clerk/nextjs';
+import { Facebook, Twitter, Linkedin, Link as LinkIcon, Check, Download } from 'lucide-react';
 
 interface ShareSectionProps {
   checkId: string;
 }
 
 export function ShareSection({ checkId }: ShareSectionProps) {
+  const { getToken } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const shareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/dashboard/check/${checkId}`
@@ -52,9 +55,51 @@ export function ShareSection({ checkId }: ShareSectionProps) {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    setDownloadingPdf(true);
+    try {
+      const token = await getToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/v1/checks/${checkId}/export/pdf`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('PDF generation failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tru8-factcheck-${checkId.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('PDF download failed:', error);
+      alert('Failed to download PDF. Please try again.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
   return (
     <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-      <h3 className="text-xl font-bold text-white mb-4">Share This Check</h3>
+      <h3 className="text-xl font-bold text-white mb-4">Share & Export</h3>
+
+      {/* PDF Download Button */}
+      <button
+        onClick={handleDownloadPDF}
+        disabled={downloadingPdf}
+        className="w-full mb-6 flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-all shadow-lg hover:shadow-xl"
+      >
+        <Download size={20} />
+        {downloadingPdf ? 'Generating PDF...' : 'Download PDF Report'}
+      </button>
 
       <div className="flex items-center gap-3">
         {/* Facebook */}

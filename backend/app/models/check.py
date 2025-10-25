@@ -23,6 +23,13 @@ class Check(SQLModel, table=True):
     decision_trail: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Full decision trail
     transparency_score: Optional[float] = Field(default=None, ge=0, le=1)  # How explainable the verdict is (0-1)
 
+    # Overall Summary fields (for PDF & UI display)
+    overall_summary: Optional[str] = Field(default=None, description="LLM-generated executive summary of all claims")
+    credibility_score: Optional[int] = Field(default=None, ge=0, le=100, description="Overall credibility score 0-100")
+    claims_supported: Optional[int] = Field(default=0, description="Count of supported claims")
+    claims_contradicted: Optional[int] = Field(default=0, description="Count of contradicted claims")
+    claims_uncertain: Optional[int] = Field(default=0, description="Count of uncertain claims")
+
     # Relationships
     user: "User" = Relationship(back_populates="checks")
     claims: List["Claim"] = Relationship(back_populates="check")

@@ -18,6 +18,11 @@ interface CheckData {
   creditsUsed: number;
   processingTimeMs?: number;
   errorMessage?: string;
+  overallSummary?: string;
+  credibilityScore?: number;
+  claimsSupported?: number;
+  claimsContradicted?: number;
+  claimsUncertain?: number;
   claims?: any[];
   createdAt: string;
   completedAt?: string;

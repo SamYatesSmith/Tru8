@@ -1,6 +1,7 @@
 # Feature Implementation Plan: Overall Summary & PDF Export
 
 **Date Created:** 2025-10-21
+**Date Updated:** 2025-10-25 (Refined specifications)
 **Status:** Ready for Implementation
 **Estimated Total Time:** 8-10 hours
 
@@ -16,6 +17,27 @@ Both features enhance user experience by providing:
 - Quick understanding of overall credibility (summary)
 - Shareable, professional documentation (PDF)
 - Email-friendly format for sharing with colleagues/authorities
+
+---
+
+## 🔄 Key Refinements (2025-10-25)
+
+**Technology Decisions:**
+- ✅ **PDF Library:** xhtml2pdf (lightweight, pure Python, Windows-friendly)
+- ✅ **Templating:** Jinja2 (already available, HTML-based templates)
+- ❌ **NOT using:** WeasyPrint (Windows compatibility issues), Playwright (not installed), ReportLab (code-based layout)
+
+**Design Specifications:**
+- ✅ **Print-friendly:** White background, black text, minimal color usage
+- ✅ **Color usage:** Only verdict badges (green/amber/red for supported/uncertain/contradicted)
+- ✅ **Summary styling:** Blue border (#1E40AF) for professional branding
+- ✅ **Logo branding:** Tru8 logo in header (`web/public/logo.proper.png`)
+- ✅ **Footer:** Company info, disclaimer, report ID, timestamp
+
+**Feature Enhancements:**
+- ✅ **Claim referencing:** Summary can reference specific claims by number (e.g., "Claim 3 contradicts...")
+- ✅ **Button placement:** PDF download button positioned above social share section
+- ✅ **Download behavior:** Standard browser download to default downloads folder
 
 ---
 
@@ -109,6 +131,8 @@ Generate a concise overall assessment in 2-3 sentences that answers:
 3. Are there any red flags or patterns?
 
 Be direct and actionable. Focus on practical guidance for the reader.
+When referencing specific claims, use the format "Claim X" where X is the claim number.
+For example: "However, Claim 3 contradicts multiple fact-checking sources."
 """
 
     llm_service = get_llm_service()
@@ -294,23 +318,29 @@ export function OverallSummaryCard({ check }: OverallSummaryCardProps) {
 
 **Add:**
 ```
-weasyprint==62.3
-jinja2==3.1.4
+xhtml2pdf==0.2.15
+jinja2==3.1.6
 ```
 
 **Install:**
 ```bash
 cd backend
-pip install weasyprint jinja2
+pip install xhtml2pdf jinja2
 ```
 
-**Note:** WeasyPrint requires system dependencies (Cairo, Pango). On Windows, install GTK3 runtime.
+**Note:** xhtml2pdf is pure Python with no external system dependencies, making it ideal for Windows environments. Jinja2 is already installed as a transitive dependency but we're adding it explicitly for clarity.
 
 ---
 
 ### 2.2 PDF Template
 
 **New File:** `backend/app/templates/pdf/fact_check_report.html`
+
+**Design Specifications:**
+- **Print-friendly:** White background, black text (save ink)
+- **Minimal color:** Only verdict badges (green/amber/red)
+- **Branding:** Tru8 logo + company info
+- **Professional:** Clean layout suitable for professional use
 
 ```html
 <!DOCTYPE html>
@@ -322,28 +352,36 @@ pip install weasyprint jinja2
 
     body {
       font-family: 'Helvetica', 'Arial', sans-serif;
-      color: #1e293b;
+      color: #000000;
       line-height: 1.6;
       padding: 40px;
       background: #ffffff;
     }
 
     .header {
-      border-bottom: 4px solid #1e40af;
+      border-bottom: 3px solid #1e40af;
       padding-bottom: 20px;
       margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
-    .logo {
+    .logo-img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .logo-text {
       font-size: 32px;
       font-weight: 900;
       color: #1e40af;
-      margin-bottom: 10px;
+      margin-bottom: 4px;
     }
 
     .tagline {
       color: #64748b;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .metadata {
@@ -365,8 +403,8 @@ pip install weasyprint jinja2
     }
 
     .summary-box {
-      background: linear-gradient(135deg, #1e40af15 0%, #7c3aed15 100%);
-      border: 2px solid #1e40af;
+      background: #ffffff;
+      border: 3px solid #1e40af;
       border-radius: 8px;
       padding: 24px;
       margin-bottom: 30px;
@@ -402,7 +440,8 @@ pip install weasyprint jinja2
     .summary-text {
       font-size: 16px;
       line-height: 1.8;
-      color: #334155;
+      color: #000000;
+      font-weight: 500;
     }
 
     .claims-breakdown {
@@ -583,10 +622,13 @@ pip install weasyprint jinja2
   </style>
 </head>
 <body>
-  <!-- Header -->
+  <!-- Header with Logo -->
   <div class="header">
-    <div class="logo">TRU8</div>
-    <div class="tagline">Independent Fact-Checking Report</div>
+    <img src="file:///{{ logo_path }}" alt="Tru8 Logo" class="logo-img" />
+    <div>
+      <div class="logo-text">TRU8</div>
+      <div class="tagline">Independent AI-Powered Fact-Checking Report</div>
+    </div>
   </div>
 
   <!-- Metadata -->
@@ -682,7 +724,11 @@ pip install weasyprint jinja2
     <div class="footer-logo">TRU8</div>
     <div>This report was generated automatically using AI-powered fact-checking technology.</div>
     <div>For more information, visit https://tru8.com</div>
-    <div style="margin-top: 8px;">Generated on {{ now.strftime('%B %d, %Y at %H:%M UTC') }}</div>
+    <div style="margin-top: 8px;">Report ID: {{ check.id[:8] }} | Generated on {{ now.strftime('%B %d, %Y at %H:%M UTC') }}</div>
+    <div style="margin-top: 8px; font-size: 11px;">
+      Disclaimer: This automated analysis is provided for informational purposes.
+      Users should verify critical information independently.
+    </div>
   </div>
 </body>
 </html>
@@ -699,14 +745,19 @@ pip install weasyprint jinja2
 **Add new endpoint:**
 ```python
 from fastapi.responses import Response
-from weasyprint import HTML
+from xhtml2pdf import pisa
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from datetime import datetime
+from io import BytesIO
+import os
 
 # Setup Jinja2 environment
 template_dir = Path(__file__).parent.parent.parent / "templates"
 jinja_env = Environment(loader=FileSystemLoader(template_dir))
+
+# Logo path (adjust based on deployment)
+LOGO_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../web/public/logo.proper.png"))
 
 @router.get("/{check_id}/export/pdf")
 async def export_check_pdf(
@@ -768,12 +819,24 @@ async def export_check_pdf(
     html_content = template.render(
         check=check,
         claims=claims_with_evidence,
-        now=datetime.utcnow()
+        now=datetime.utcnow(),
+        logo_path=LOGO_PATH
     )
 
-    # Generate PDF
+    # Generate PDF with xhtml2pdf
     try:
-        pdf_bytes = HTML(string=html_content).write_pdf()
+        pdf_buffer = BytesIO()
+        pisa_status = pisa.CreatePDF(
+            html_content,
+            dest=pdf_buffer,
+            encoding='utf-8'
+        )
+
+        if pisa_status.err:
+            raise Exception(f"PDF generation error: {pisa_status.err}")
+
+        pdf_bytes = pdf_buffer.getvalue()
+        pdf_buffer.close()
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
         raise HTTPException(
@@ -800,6 +863,9 @@ async def export_check_pdf(
 ### 2.4 Frontend PDF Download Button
 
 **File:** `web/app/dashboard/check/[id]/components/share-section.tsx`
+
+**Placement:** Button placed **above** the social share buttons section
+**Behavior:** Triggers immediate download to user's default downloads folder
 
 **Update to add PDF download:**
 ```typescript
@@ -1007,31 +1073,31 @@ export async function GET(req: NextRequest) {
 
 ### Pre-Implementation
 - [ ] Review plan with team
-- [ ] Ensure all dependencies can be installed (WeasyPrint on Windows)
 - [ ] Backup database before migration
 - [ ] Test LLM API has sufficient quota for summary generation
+- [ ] Verify logo file path is accessible from backend
 
 ### Phase 1: Overall Summary (3.5 hours)
 - [ ] Create database migration for new fields
 - [ ] Run migration on dev database
-- [ ] Add `generate_overall_assessment()` function to pipeline.py
+- [ ] Add `generate_overall_assessment()` function to pipeline.py with claim referencing
 - [ ] Integrate assessment into pipeline results
 - [ ] Update `save_check_results_sync()` to save new fields
 - [ ] Create `OverallSummaryCard` component
 - [ ] Add component to check detail page
 - [ ] Test with sample check
-- [ ] Verify summary appears correctly
+- [ ] Verify summary appears correctly with claim numbers
 
 ### Phase 2: PDF Export (4.5 hours)
-- [ ] Install WeasyPrint and Jinja2
+- [ ] Install xhtml2pdf and Jinja2
 - [ ] Create templates directory structure
-- [ ] Create PDF HTML template
-- [ ] Test PDF template renders correctly
-- [ ] Add PDF export API endpoint
+- [ ] Create print-friendly PDF HTML template with logo branding
+- [ ] Test PDF template renders correctly (check logo appears)
+- [ ] Add PDF export API endpoint with xhtml2pdf
 - [ ] Test PDF generation with real check data
-- [ ] Add PDF download button to frontend
+- [ ] Add PDF download button above share section
 - [ ] Test PDF download flow
-- [ ] Verify PDF formatting on print
+- [ ] Verify PDF formatting on print (white background, minimal color)
 
 ### Phase 3: Social Media (1.5 hours)
 - [ ] Update metadata generation in check detail page
@@ -1083,18 +1149,21 @@ export async function GET(req: NextRequest) {
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| WeasyPrint installation fails on Windows | High | Document GTK3 installation steps, provide Docker alternative |
-| PDF generation too slow (>3s) | Medium | Implement background job queue for PDF generation |
+| xhtml2pdf CSS compatibility issues | Medium | Use simple CSS, test early, adjust template if needed |
+| Logo file path resolution in production | Medium | Use absolute paths, verify in deployment config |
+| PDF generation too slow (>3s) | Low | xhtml2pdf is fast (~500ms); monitor performance |
 | LLM summary quality inconsistent | Medium | Add prompt engineering iteration, collect user feedback |
-| Social previews don't update | Low | Clear CDN cache, use versioned OG image URLs |
+| Claim numbering confuses users | Low | Clear labeling in UI, add tooltips if needed |
 
 ---
 
 ## 📚 References
 
-- WeasyPrint docs: https://doc.courtbouillon.org/weasyprint/
+- xhtml2pdf docs: https://xhtml2pdf.readthedocs.io/
+- Jinja2 templates: https://jinja.palletsprojects.com/
 - Next.js OG Image: https://nextjs.org/docs/app/api-reference/functions/image-response
 - Open Graph Protocol: https://ogp.me/
+- Logo location: `web/public/logo.proper.png`
 
 ---
 

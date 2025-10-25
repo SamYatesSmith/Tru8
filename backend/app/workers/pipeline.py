@@ -1,9 +1,10 @@
 from celery import Task
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import asyncio
 import logging
 import hashlib
 import json
+import httpx
 from datetime import datetime
 from app.workers import celery_app
 from app.pipeline.ingest import UrlIngester, ImageIngester, VideoIngester
@@ -120,6 +121,13 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
             check.status = "completed"
             check.completed_at = datetime.utcnow()
             check.processing_time_ms = results.get("processing_time_ms", 0)
+
+            # Save overall summary fields
+            check.overall_summary = results.get("overall_summary")
+            check.credibility_score = results.get("credibility_score")
+            check.claims_supported = results.get("claims_supported", 0)
+            check.claims_contradicted = results.get("claims_contradicted", 0)
+            check.claims_uncertain = results.get("claims_uncertain", 0)
 
             # Save claims and evidence
             claims_data = results.get("claims", [])
@@ -387,14 +395,47 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
 
             logger.info(f"Added explainability for {len(results)} claims")
 
+        # Stage 6.5: Generate Overall Assessment (Summary + Credibility Score)
+        self.update_state(state="PROGRESS", meta={"stage": "summary", "progress": 90})
+        stage_start = datetime.utcnow()
+
+        try:
+            logger.info(f"Generating overall assessment for {len(results)} claims")
+            assessment = asyncio.run(generate_overall_assessment(
+                results,
+                input_data.get('url') or input_data.get('content', '')[:100]  # Pass URL or content preview
+            ))
+            logger.info(f"Overall assessment generated: credibility_score={assessment['credibility_score']}")
+        except Exception as e:
+            logger.error(f"Assessment generation failed, using fallback: {e}")
+            # Fallback assessment
+            total = len(results)
+            supported = sum(1 for c in results if c.get('verdict') == 'supported')
+            contradicted = sum(1 for c in results if c.get('verdict') == 'contradicted')
+            uncertain = sum(1 for c in results if c.get('verdict') == 'uncertain')
+            assessment = {
+                "summary": f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain.",
+                "credibility_score": int((supported * 100 + uncertain * 50) / total) if total > 0 else 50,
+                "claims_supported": supported,
+                "claims_contradicted": contradicted,
+                "claims_uncertain": uncertain
+            }
+
+        stage_timings["summary"] = (datetime.utcnow() - stage_start).total_seconds()
+
         # Calculate processing time
         processing_time_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
         
         # Prepare final result with enhanced metrics
         final_result = {
             "check_id": check_id,
-            "status": "completed", 
+            "status": "completed",
             "claims": results,
+            "overall_summary": assessment["summary"],
+            "credibility_score": assessment["credibility_score"],
+            "claims_supported": assessment["claims_supported"],
+            "claims_contradicted": assessment["claims_contradicted"],
+            "claims_uncertain": assessment["claims_uncertain"],
             "processing_time_ms": processing_time_ms,
             "ingest_metadata": content.get("metadata", {}),
             "pipeline_stats": {
@@ -424,10 +465,111 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             logger.error(f"Full database error traceback: {traceback.format_exc()}")
 
         return final_result
-        
+
     except Exception as e:
         logger.error(f"Pipeline failed for check {check_id}: {e}")
         raise
+
+async def generate_overall_assessment(
+    claims: List[Dict[str, Any]],
+    check_url: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Generate overall credibility assessment after all claims judged.
+    Returns: {
+        "summary": str,           # 2-3 sentence executive summary
+        "credibility_score": int, # 0-100 overall score
+        "claims_supported": int,
+        "claims_contradicted": int,
+        "claims_uncertain": int
+    }
+    """
+    # Calculate statistics
+    total = len(claims)
+    supported = sum(1 for c in claims if c.get('verdict') == 'supported')
+    contradicted = sum(1 for c in claims if c.get('verdict') == 'contradicted')
+    uncertain = sum(1 for c in claims if c.get('verdict') == 'uncertain')
+    avg_confidence = sum(c.get('confidence', 0) for c in claims) / total if total > 0 else 0
+
+    # Calculate overall credibility score (weighted)
+    credibility_score = int(
+        (supported * 100 + uncertain * 50 + contradicted * 0) / total if total > 0 else 50
+    )
+
+    # Prepare claims summary for LLM (use 1-indexed numbering for user display)
+    claims_summary = []
+    for i, claim in enumerate(claims, 1):  # START AT 1 for user-facing numbers
+        claims_summary.append({
+            "number": i,  # User-facing claim number (1, 2, 3...)
+            "text": claim.get('text', '')[:200],  # Truncate long claims
+            "verdict": claim.get('verdict'),
+            "confidence": claim.get('confidence')
+        })
+
+    # LLM prompt
+    prompt = f"""You are a fact-checking expert providing an overall assessment.
+
+SOURCE: {check_url or 'User-submitted content'}
+
+CLAIMS ANALYZED: {total}
+- Supported: {supported} ({supported/total*100:.1f}%)
+- Contradicted: {contradicted} ({contradicted/total*100:.1f}%)
+- Uncertain: {uncertain} ({uncertain/total*100:.1f}%)
+- Average Confidence: {avg_confidence:.1f}%
+
+CLAIM DETAILS:
+{json.dumps(claims_summary, indent=2)}
+
+Generate a concise overall assessment in 2-3 sentences that answers:
+1. What is the overall credibility of this content?
+2. What can readers trust vs. what needs skepticism?
+3. Are there any red flags or patterns?
+
+Be direct and actionable. Focus on practical guidance for the reader.
+When referencing specific claims, use the format "Claim X" where X is the claim number.
+For example: "However, Claim 3 contradicts multiple fact-checking sources."
+"""
+
+    try:
+        # Use OpenAI API (same pattern as judge.py)
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "gpt-4o-mini-2024-07-18",
+                    "messages": [
+                        {"role": "system", "content": "You are a fact-checking expert providing concise overall assessments."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 250,
+                    "temperature": 0.3
+                }
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                summary = result["choices"][0]["message"]["content"].strip()
+            else:
+                logger.error(f"OpenAI API error for summary: {response.status_code}")
+                # Fallback summary
+                summary = f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain. Overall credibility score: {credibility_score}/100."
+
+    except Exception as e:
+        logger.error(f"LLM summary generation failed: {e}")
+        # Fallback summary
+        summary = f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain. Overall credibility score: {credibility_score}/100."
+
+    return {
+        "summary": summary,
+        "credibility_score": credibility_score,
+        "claims_supported": supported,
+        "claims_contradicted": contradicted,
+        "claims_uncertain": uncertain
+    }
 
 async def ingest_content_async(input_data: Dict[str, Any]) -> Dict[str, Any]:
     """Real ingest implementation using pipeline classes"""

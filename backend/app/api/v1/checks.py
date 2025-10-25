@@ -1,9 +1,12 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from pydantic import BaseModel
+from xhtml2pdf import pisa
+from jinja2 import Environment, FileSystemLoader
+from io import BytesIO
 from app.core.database import get_session
 from app.core.auth import get_current_user, get_current_user_sse
 from app.core.config import settings
@@ -25,6 +28,10 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Setup Jinja2 environment for PDF templates
+template_dir = Path(__file__).parent.parent.parent / "templates"
+jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
 
 def safe_json_dumps(data: dict) -> str:
     """Safely serialize JSON for SSE with ASCII encoding"""
@@ -343,6 +350,11 @@ async def get_check(
         "creditsUsed": check.credits_used,
         "processingTimeMs": check.processing_time_ms,
         "errorMessage": check.error_message,
+        "overallSummary": check.overall_summary,
+        "credibilityScore": check.credibility_score,
+        "claimsSupported": check.claims_supported,
+        "claimsContradicted": check.claims_contradicted,
+        "claimsUncertain": check.claims_uncertain,
         "claims": claims_data,
         "createdAt": check.created_at.isoformat(),
         "completedAt": check.completed_at.isoformat() if check.completed_at else None,
@@ -434,7 +446,8 @@ async def stream_check_progress(
                                     'extract': 'Extracting factual claims...',
                                     'retrieve': 'Gathering evidence from sources...',
                                     'verify': 'Verifying claims against evidence...',
-                                    'judge': 'Generating final verdicts...'
+                                    'judge': 'Generating final verdicts...',
+                                    'summary': 'Creating overall credibility assessment...'
                                 }
                                 
                                 message = stage_messages.get(stage, f'Processing {stage}...')
@@ -485,5 +498,106 @@ async def stream_check_progress(
             "Connection": "keep-alive",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "Cache-Control"
+        }
+    )
+
+@router.get("/{check_id}/export/pdf")
+async def export_check_pdf(
+    check_id: str,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Export fact-check as PDF report"""
+
+    # Fetch check with user verification
+    stmt = select(Check).where(
+        Check.id == check_id,
+        Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    if check.status != "completed":
+        raise HTTPException(
+            status_code=400,
+            detail="PDF export only available for completed checks"
+        )
+
+    # Fetch claims ordered by position
+    claims_stmt = (
+        select(Claim)
+        .where(Claim.check_id == check_id)
+        .order_by(Claim.position)
+    )
+    claims_result = await session.execute(claims_stmt)
+    claims = claims_result.scalars().all()
+
+    # Fetch evidence for each claim (top 3 by relevance)
+    claims_with_evidence = []
+    for claim in claims:
+        evidence_stmt = (
+            select(Evidence)
+            .where(Evidence.claim_id == claim.id)
+            .order_by(desc(Evidence.relevance_score))
+            .limit(3)
+        )
+        evidence_result = await session.execute(evidence_stmt)
+        evidence_list = evidence_result.scalars().all()
+
+        claims_with_evidence.append({
+            "text": claim.text,
+            "verdict": claim.verdict,
+            "confidence": claim.confidence,
+            "rationale": claim.rationale,
+            "evidence": evidence_list
+        })
+
+    # Render HTML template
+    try:
+        template = jinja_env.get_template("pdf/fact_check_report.html")
+        html_content = template.render(
+            check=check,
+            claims=claims_with_evidence,
+            now=datetime.utcnow()
+        )
+    except Exception as e:
+        logger.error(f"Template rendering failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate PDF template"
+        )
+
+    # Generate PDF with xhtml2pdf
+    try:
+        pdf_buffer = BytesIO()
+        pisa_status = pisa.CreatePDF(
+            html_content,
+            dest=pdf_buffer,
+            encoding='utf-8'
+        )
+
+        if pisa_status.err:
+            raise Exception(f"PDF generation error: {pisa_status.err}")
+
+        pdf_bytes = pdf_buffer.getvalue()
+        pdf_buffer.close()
+    except Exception as e:
+        logger.error(f"PDF generation failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate PDF. Please try again."
+        )
+
+    # Return PDF as downloadable file
+    filename = f"tru8-factcheck-{check_id[:8]}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Cache-Control": "no-cache"
         }
     )

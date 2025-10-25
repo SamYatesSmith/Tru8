@@ -5,6 +5,7 @@ import { useAuth } from '@clerk/nextjs';
 import { apiClient } from '@/lib/api';
 import { useCheckProgress } from '@/hooks/use-check-progress';
 import { CheckMetadataCard } from './components/check-metadata-card';
+import { OverallSummaryCard } from './components/overall-summary-card';
 import { ProgressSection } from './components/progress-section';
 import { ClaimsSection } from './components/claims-section';
 import { ShareSection } from './components/share-section';
@@ -69,6 +70,13 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
       {checkData.status === 'completed' && checkData.claims && checkData.claims.length > 0 && (
         <>
           <ClaimsSection claims={checkData.claims} />
+          <OverallSummaryCard
+            overallSummary={checkData.overallSummary}
+            credibilityScore={checkData.credibilityScore}
+            claimsSupported={checkData.claimsSupported}
+            claimsContradicted={checkData.claimsContradicted}
+            claimsUncertain={checkData.claimsUncertain}
+          />
           <ShareSection checkId={checkId} />
         </>
       )}
