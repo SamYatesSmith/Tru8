@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Helvetica', 'Arial', sans-serif;
+      color: #000000;
+      line-height: 1.6;
+      padding: 40px;
+      background: #ffffff;
+    }
+
+    .header {
+      border-bottom: 3px solid #1e40af;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo-img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .logo-text {
+      font-size: 32px;
+      font-weight: 900;
+      color: #1e40af;
+      margin-bottom: 4px;
+    }
+
+    .tagline {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .metadata {
+      background: #f1f5f9;
+      border-left: 4px solid #1e40af;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .metadata-item {
+      margin-bottom: 8px;
+    }
+
+    .metadata-label {
+      font-weight: 700;
+      color: #1e40af;
+      display: inline-block;
+      width: 140px;
+    }
+
+    .summary-box {
+      background: #ffffff;
+      border: 3px solid #1e40af;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .summary-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #1e40af;
+    }
+
+    .credibility-score {
+      font-size: 32px;
+      font-weight: 900;
+      color: #1e40af;
+    }
+
+    .credibility-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-text {
+      font-size: 16px;
+      line-height: 1.8;
+      color: #000000;
+      font-weight: 500;
+    }
+
+    .claims-breakdown {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0 30px 0;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 8px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .stat-value.supported { color: #059669; }
+    .stat-value.uncertain { color: #d97706; }
+    .stat-value.contradicted { color: #dc2626; }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 4px;
+      color: #64748b;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #1e293b;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+
+    .claim-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      page-break-inside: avoid;
+    }
+
+    .claim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .claim-number {
+      font-size: 14px;
+      font-weight: 700;
+      color: #64748b;
+      margin-right: 8px;
+    }
+
+    .claim-text {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    .verdict-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .verdict-supported {
+      background: #059669;
+      color: #ffffff;
+    }
+
+    .verdict-contradicted {
+      background: #dc2626;
+      color: #ffffff;
+    }
+
+    .verdict-uncertain {
+      background: #d97706;
+      color: #ffffff;
+    }
+
+    .confidence {
+      font-size: 12px;
+      color: #64748b;
+      margin-left: 8px;
+    }
+
+    .claim-rationale {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f8fafc;
+      border-left: 3px solid #1e40af;
+      font-size: 14px;
+      color: #475569;
+      font-style: italic;
+    }
+
+    .evidence-section {
+      margin-top: 16px;
+    }
+
+    .evidence-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 8px;
+    }
+
+    .evidence-item {
+      margin-bottom: 12px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .evidence-item:before {
+      content: "•";
+      position: absolute;
+      left: 8px;
+      color: #1e40af;
+      font-weight: 900;
+    }
+
+    .evidence-source {
+      font-weight: 700;
+      color: #1e40af;
+      font-size: 13px;
+    }
+
+    .evidence-title-text {
+      font-size: 13px;
+      color: #334155;
+      margin-bottom: 4px;
+    }
+
+    .evidence-snippet {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 2px solid #e2e8f0;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .footer-logo {
+      font-weight: 900;
+      color: #1e40af;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .page-break {
+      page-break-after: always;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header with Logo -->
+  <div class="header">
+    <img src="file:///{{ logo_path }}" alt="Tru8 Logo" class="logo-img" />
+    <div>
+      <div class="logo-text">TRU8</div>
+      <div class="tagline">Independent AI-Powered Fact-Checking Report</div>
+    </div>
+  </div>
+
+  <!-- Metadata -->
+  <div class="metadata">
+    <div class="metadata-item">
+      <span class="metadata-label">Source URL:</span>
+      <span>{{ check.input_url or 'User-submitted text' }}</span>
+    </div>
+    <div class="metadata-item">
+      <span class="metadata-label">Date Checked:</span>
+      <span>{{ check.created_at.strftime('%B %d, %Y at %H:%M UTC') }}</span>
+    </div>
+    <div class="metadata-item">
+      <span class="metadata-label">Report ID:</span>
+      <span>{{ check.id[:8] }}</span>
+    </div>
+    <div class="metadata-item">
+      <span class="metadata-label">Processing Time:</span>
+      <span>{{ (check.processing_time_ms / 1000)|round(1) }} seconds</span>
+    </div>
+  </div>
+
+  <!-- Overall Summary -->
+  <div class="summary-box">
+    <div class="summary-header">
+      <div>
+        <div class="summary-title">Overall Assessment</div>
+      </div>
+      <div style="text-align: right;">
+        <div class="credibility-score">{{ check.credibility_score }}/100</div>
+        <div class="credibility-label">Credibility Score</div>
+      </div>
+    </div>
+
+    <p class="summary-text">{{ check.overall_summary }}</p>
+  </div>
+
+  <!-- Claims Breakdown -->
+  <div class="claims-breakdown">
+    <div class="stat-item">
+      <div class="stat-value supported">{{ check.claims_supported }}</div>
+      <div class="stat-label">Supported</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value uncertain">{{ check.claims_uncertain }}</div>
+      <div class="stat-label">Uncertain</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value contradicted">{{ check.claims_contradicted }}</div>
+      <div class="stat-label">Contradicted</div>
+    </div>
+  </div>
+
+  <!-- Claims Detail -->
+  <h2 class="section-title">Claims Analyzed ({{ claims|length }})</h2>
+
+  {% for claim in claims %}
+  <div class="claim-card">
+    <div class="claim-header">
+      <div style="flex: 1;">
+        <span class="claim-number">Claim {{ loop.index }}</span>
+        <div class="claim-text">{{ claim.text }}</div>
+      </div>
+      <div style="text-align: right; white-space: nowrap;">
+        <span class="verdict-badge verdict-{{ claim.verdict }}">
+          {{ claim.verdict }}
+        </span>
+        <div class="confidence">{{ claim.confidence }}% confidence</div>
+      </div>
+    </div>
+
+    <div class="claim-rationale">
+      {{ claim.rationale }}
+    </div>
+
+    {% if claim.evidence %}
+    <div class="evidence-section">
+      <div class="evidence-title">Supporting Evidence ({{ claim.evidence|length }} sources)</div>
+      {% for evidence in claim.evidence[:3] %}
+      <div class="evidence-item">
+        <div class="evidence-source">{{ evidence.source }}</div>
+        <div class="evidence-title-text">{{ evidence.title }}</div>
+        <div class="evidence-snippet">{{ evidence.snippet[:150] }}...</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-logo">TRU8</div>
+    <div>This report was generated automatically using AI-powered fact-checking technology.</div>
+    <div>For more information, visit https://tru8.com</div>
+    <div style="margin-top: 8px;">Report ID: {{ check.id[:8] }} | Generated on {{ now.strftime('%B %d, %Y at %H:%M UTC') }}</div>
+    <div style="margin-top: 8px; font-size: 11px;">
+      Disclaimer: This automated analysis is provided for informational purposes.
+      Users should verify critical information independently.
+    </div>
+  </div>
+</body>
+</html>
