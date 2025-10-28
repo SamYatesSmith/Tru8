@@ -70,13 +70,7 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
       {checkData.status === 'completed' && checkData.claims && checkData.claims.length > 0 && (
         <>
           <ClaimsSection claims={checkData.claims} />
-          <OverallSummaryCard
-            overallSummary={checkData.overallSummary}
-            credibilityScore={checkData.credibilityScore}
-            claimsSupported={checkData.claimsSupported}
-            claimsContradicted={checkData.claimsContradicted}
-            claimsUncertain={checkData.claimsUncertain}
-          />
+          <OverallSummaryCard check={checkData} />
           <ShareSection checkId={checkId} />
         </>
       )}

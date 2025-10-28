@@ -352,6 +352,81 @@
     "tier": "tier3"
   },
 
+  "primary_documents": {
+    "credibility": 1.0,
+    "description": "Official government documents, legislation, and court rulings",
+    "domains": [
+      "govinfo.gov",
+      "archives.gov",
+      "loc.gov",
+      "congress.gov",
+      "federalregister.gov",
+      "bailii.org",
+      "legislation.gov.uk",
+      "canlii.org",
+      "austlii.edu.au",
+      "parl.ca",
+      "parliament.uk",
+      "echr.coe.int",
+      "curia.europa.eu",
+      "whitehouse.gov",
+      "state.gov"
+    ],
+    "tier": "tier1"
+  },
+
+  "academic_publishers": {
+    "credibility": 0.95,
+    "description": "Academic book publishers and university presses",
+    "domains": [
+      "oup.com",
+      "cambridge.org",
+      "press.princeton.edu",
+      "mitpress.mit.edu",
+      "yalebooks.yale.edu",
+      "ucpress.edu",
+      "hup.harvard.edu",
+      "press.uchicago.edu",
+      "sup.org",
+      "cornellpress.cornell.edu",
+      "cup.columbia.edu",
+      "dukeupress.edu",
+      "nupress.northwestern.edu",
+      "pennpress.org",
+      "press.jhu.edu"
+    ],
+    "tier": "tier1"
+  },
+
+  "digital_archives": {
+    "credibility": 0.9,
+    "description": "Digital archives and scholarly repositories",
+    "domains": [
+      "jstor.org",
+      "archive.org",
+      "proquest.com",
+      "hathitrust.org",
+      "worldcat.org",
+      "ebsco.com",
+      "gale.com",
+      "repository.library"
+    ],
+    "tier": "tier1"
+  },
+
+  "investigative_nonprofits": {
+    "credibility": 0.85,
+    "description": "Independent investigative journalism nonprofits",
+    "domains": [
+      "theintercept.com",
+      "thebureauinvestigates.com",
+      "revealnews.org",
+      "publicintegrity.org",
+      "occrp.org"
+    ],
+    "tier": "tier2"
+  },
+
   "general": {
     "credibility": 0.6,
     "description": "Default for unmatched sources",

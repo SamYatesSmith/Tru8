@@ -63,6 +63,12 @@ class Claim(SQLModel, table=True):
     min_requirements_met: bool = Field(default=False)  # Did evidence meet minimum quality requirements
     consensus_strength: Optional[float] = Field(default=None, ge=0, le=1)  # Credibility-weighted agreement (0-1)
 
+    # Context Preservation (Context Improvement)
+    subject_context: Optional[str] = Field(default=None, description="Main subject/topic the claim is about")
+    key_entities: Optional[str] = Field(default=None, sa_column=Column(JSON), description="Key entities mentioned in claim")
+    source_title: Optional[str] = Field(default=None, description="Title of source article")
+    source_url: Optional[str] = Field(default=None, description="URL of source article")
+
     # Relationships
     check: Check = Relationship(back_populates="claims")
     evidence: List["Evidence"] = Relationship(back_populates="claim")

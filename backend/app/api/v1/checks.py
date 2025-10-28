@@ -127,16 +127,22 @@ async def create_check(
     # Validate input
     if request.input_type not in ["url", "text", "image", "video"]:
         raise HTTPException(status_code=400, detail="Invalid input type")
-    
+
     if request.input_type == "url" and not request.url:
         raise HTTPException(status_code=400, detail="URL is required for url input type")
-    
+
+    # Normalize URL (add https:// if missing protocol)
+    if request.input_type in ["url", "video"] and request.url:
+        if not request.url.startswith(("http://", "https://")):
+            request.url = f"https://{request.url}"
+            logger.info(f"Normalized URL to: {request.url}")
+
     if request.input_type == "text" and not request.content:
         raise HTTPException(status_code=400, detail="Content is required for text input type")
-    
+
     if request.input_type == "image" and not request.file_path:
         raise HTTPException(status_code=400, detail="File path is required for image input type")
-    
+
     if request.input_type == "video" and not request.url:
         raise HTTPException(status_code=400, detail="URL is required for video input type")
     
@@ -326,6 +332,11 @@ async def get_check(
             "confidence": claim.confidence,
             "rationale": claim.rationale,
             "position": claim.position,
+            # Context preservation fields (Context Improvement - Phase 5)
+            "subjectContext": claim.subject_context,
+            "keyEntities": json.loads(claim.key_entities) if claim.key_entities else [],
+            "sourceTitle": claim.source_title,
+            "sourceUrl": claim.source_url,
             "evidence": [
                 {
                     "id": ev.id,

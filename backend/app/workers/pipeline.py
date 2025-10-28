@@ -134,14 +134,19 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
             logger.info(f"Saving {len(claims_data)} claims for check {check_id}")
 
             for claim_data in claims_data:
-                # Create claim
+                # Create claim with context preservation fields
                 claim = Claim(
                     check_id=check_id,
                     text=claim_data.get("text", ""),
                     verdict=claim_data.get("verdict", "uncertain"),
                     confidence=claim_data.get("confidence", 0),
                     rationale=claim_data.get("rationale", ""),
-                    position=claim_data.get("position", 0)
+                    position=claim_data.get("position", 0),
+                    # Context preservation fields (Context Improvement)
+                    subject_context=claim_data.get("subject_context"),
+                    key_entities=json.dumps(claim_data.get("key_entities", [])) if claim_data.get("key_entities") else None,
+                    source_title=claim_data.get("source_title"),
+                    source_url=claim_data.get("source_url")
                 )
                 session.add(claim)
                 session.flush()  # Get claim ID
@@ -202,10 +207,12 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         #     logger.info(f"Returning cached result for check {check_id}")
         #     return cached_result
 
+        print(f"[PIPELINE DEBUG] About to start Stage 1: Ingest for check {check_id}", flush=True)
         logger.info(f"About to start Stage 1: Ingest for check {check_id}")
 
         # Stage 1: Ingest (REAL IMPLEMENTATION WITH CIRCUIT BREAKER)
         self.update_state(state="PROGRESS", meta={"stage": "ingest", "progress": 10})
+        print(f"[PIPELINE DEBUG] Task state updated to PROGRESS for check {check_id}", flush=True)
         logger.info(f"Task state updated to PROGRESS for check {check_id}")
         stage_start = datetime.utcnow()
         

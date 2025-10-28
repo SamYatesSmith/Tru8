@@ -201,7 +201,7 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                         {evidence.snippet}
                       </p>
 
-                      {/* Metadata: Source · Date · Credibility */}
+                      {/* Metadata: Source · Date · Credibility Label */}
                       <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
                         <span className="font-medium">{evidence.source}</span>
 
@@ -217,18 +217,28 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                         <span>·</span>
                         <span>{formatMonthYear(evidence.publishedDate || null)}</span>
 
-                        <span>·</span>
-                        <span className="font-medium">
-                          {evidence.credibilityScore
-                            ? `${(evidence.credibilityScore * 10).toFixed(1)}/10`
-                            : `${(evidence.relevanceScore * 10).toFixed(1)}/10`}
-                        </span>
+                        {evidence.credibilityScore && (
+                          <>
+                            <span>·</span>
+                            <span className={`font-medium ${
+                              evidence.credibilityScore >= 0.9 ? 'text-emerald-400' :
+                              evidence.credibilityScore >= 0.8 ? 'text-blue-400' :
+                              evidence.credibilityScore >= 0.6 ? 'text-slate-400' :
+                              'text-amber-400'
+                            }`}>
+                              {evidence.credibilityScore >= 0.9 ? 'Expert Source' :
+                               evidence.credibilityScore >= 0.8 ? 'Verified Source' :
+                               evidence.credibilityScore >= 0.6 ? 'General Source' :
+                               'Unverified Source'}
+                            </span>
+                          </>
+                        )}
 
                         {evidence.temporalRelevanceScore !== undefined && (
                           <>
                             <span>·</span>
                             <span title="Temporal Relevance" className="text-amber-400">
-                              Time: {(evidence.temporalRelevanceScore * 10).toFixed(1)}/10
+                              Time-Relevant
                             </span>
                           </>
                         )}
