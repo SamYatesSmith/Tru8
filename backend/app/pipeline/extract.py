@@ -34,7 +34,6 @@ class ClaimExtractor:
     
     def __init__(self):
         self.openai_api_key = settings.OPENAI_API_KEY
-        self.anthropic_api_key = getattr(settings, 'ANTHROPIC_API_KEY', '')
         self.max_claims = settings.MAX_CLAIMS_PER_CHECK  # 12 for Quick mode
         self.timeout = 30
         
@@ -74,17 +73,14 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                 content = ' '.join(words[:max_words]) + "..."
                 logger.info(f"Truncated content to {max_words} words")
             
-            # Try OpenAI first, then Anthropic fallback
+            # Try OpenAI extraction
             if self.openai_api_key:
                 result = await self._extract_with_openai(content)
                 if result["success"]:
                     return result
-            
-            if self.anthropic_api_key:
-                result = await self._extract_with_anthropic(content)
-                if result["success"]:
-                    return result
-            
+                else:
+                    logger.error(f"OpenAI extraction failed: {result.get('error')}")
+
             # Fallback to rule-based extraction
             logger.warning("LLM extraction failed, using rule-based fallback")
             return self._extract_rule_based(content)
@@ -148,7 +144,7 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                     for i, claim in enumerate(validated_response.claims)
                 ]
 
-                # Post-processing: temporal analysis and classification (Phase 1.5+2)
+                # Post-processing: temporal analysis and claim classification
                 from app.core.config import settings
 
                 # Temporal analysis if enabled (Phase 1.5, Week 4.5-5.5)
@@ -198,80 +194,7 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
         except Exception as e:
             logger.error(f"OpenAI extraction error: {e}")
             return {"success": False, "error": str(e)}
-    
-    async def _extract_with_anthropic(self, content: str) -> Dict[str, Any]:
-        """Extract claims using Anthropic Claude"""
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers={
-                        "x-api-key": self.anthropic_api_key,
-                        "Content-Type": "application/json",
-                        "anthropic-version": "2023-06-01"
-                    },
-                    json={
-                        "model": "claude-3-haiku-20240307",
-                        "max_tokens": 1500,
-                        "system": self.system_prompt.format(max_claims=self.max_claims),
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": f"Extract atomic factual claims from this content and return valid JSON:\n\n{content}"
-                            }
-                        ]
-                    }
-                )
-                
-                if response.status_code != 200:
-                    error_msg = f"Anthropic API error: {response.status_code}"
-                    logger.error(error_msg)
-                    return {"success": False, "error": error_msg}
-                
-                result = response.json()
-                content_text = result["content"][0]["text"]
-                
-                # Extract JSON from response (Claude sometimes wraps in markdown)
-                json_start = content_text.find('{')
-                json_end = content_text.rfind('}') + 1
-                if json_start >= 0 and json_end > json_start:
-                    json_content = content_text[json_start:json_end]
-                else:
-                    json_content = content_text
-                
-                claims_data = json.loads(json_content)
-                validated_response = ClaimExtractionResponse(**claims_data)
-                
-                claims = [
-                    {
-                        "text": claim.text,
-                        "position": i,
-                        "confidence": claim.confidence,
-                        "category": claim.category
-                    }
-                    for i, claim in enumerate(validated_response.claims)
-                ]
-                
-                return {
-                    "success": True,
-                    "claims": claims,
-                    "metadata": {
-                        "extraction_method": "anthropic_claude3_haiku",
-                        "source_summary": validated_response.source_summary,
-                        "extraction_confidence": validated_response.extraction_confidence,
-                        "token_usage": result.get("usage", {})
-                    }
-                }
-                
-        except httpx.TimeoutException:
-            return {"success": False, "error": "Anthropic API timeout"}
-        except ValidationError as e:
-            logger.error(f"Anthropic response validation error: {e}")
-            return {"success": False, "error": "Invalid response format from Anthropic"}
-        except Exception as e:
-            logger.error(f"Anthropic extraction error: {e}")
-            return {"success": False, "error": str(e)}
-    
+
     def _extract_rule_based(self, content: str) -> Dict[str, Any]:
         """Fallback rule-based claim extraction"""
         try:
@@ -304,7 +227,7 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                             "confidence": 0.4,
                             "category": "general"
                         })
-            
+
             return {
                 "success": True,
                 "claims": claims,

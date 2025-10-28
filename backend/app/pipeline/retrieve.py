@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Union
 from datetime import datetime
 import numpy as np
 from app.services.search import SearchService
@@ -68,10 +68,11 @@ class EvidenceRetriever:
                     return []
                 
                 logger.info(f"Retrieving evidence for claim {claim_position}: {claim_text[:50]}...")
-                
+
                 # Step 1: Search and extract evidence snippets
+                # NOTE: Context and claim_type parameters removed - not yet supported by evidence.py
                 evidence_snippets = await self.evidence_extractor.extract_evidence_for_claim(
-                    claim_text, 
+                    claim_text,
                     max_sources=self.max_sources_per_claim * 2  # Get extra for filtering
                 )
                 
@@ -271,6 +272,26 @@ class EvidenceRetriever:
                     risk_info = credibility_service.get_risk_assessment(url)
                     evidence_item['risk_level'] = risk_info.get('risk_level')
                     evidence_item['risk_warning'] = risk_info.get('warning_message')
+
+                # Log unknown sources for progressive curation (Phase 1)
+                if cred_info.get('tier') == 'general' and evidence_item is not None:
+                    try:
+                        from app.services.source_monitor import get_source_monitor
+                        from app.core.database import sync_session
+
+                        with sync_session() as db:
+                            monitor = get_source_monitor(db)
+                            monitor.log_unknown_source(
+                                url=url,
+                                claim_topic=evidence_item.get('claim_text', '')[:200] if 'claim_text' in evidence_item else None,
+                                evidence_title=evidence_item.get('title'),
+                                evidence_snippet=evidence_item.get('snippet'),
+                                has_https=url.startswith('https://'),
+                                has_author_byline=None,  # Could be enriched later
+                                has_primary_sources=None  # Could be enriched later
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to log unknown source {url}: {e}")
 
                 return cred_info.get('credibility', 0.6)
 
