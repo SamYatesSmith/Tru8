@@ -169,12 +169,10 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
             {isExpanded && (
               <div className="mt-4 space-y-3">
                 {sortedEvidence.map((evidence) => (
-                  <a
+                  <div
                     key={evidence.id}
-                    href={evidence.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-start gap-3 p-4 bg-slate-900/50 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors group"
+                    onClick={() => window.open(evidence.url, '_blank', 'noopener,noreferrer')}
+                    className="flex items-start gap-3 p-4 bg-slate-900/50 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors group cursor-pointer"
                   >
                     <div className="flex-1 min-w-0 space-y-2">
                       {/* Fact-Check Badge */}
@@ -244,7 +242,7 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                         )}
                       </div>
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
             )}

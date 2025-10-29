@@ -26,9 +26,12 @@ class SearchResult:
             # Remove www. prefix
             if domain.startswith('www.'):
                 domain = domain[4:]
-            return domain
+            # Ensure we have a valid domain (not empty or just protocol)
+            if domain and domain not in ['', 'http:', 'https:']:
+                return domain
+            return "Unknown Source"
         except:
-            return "Unknown"
+            return "Unknown Source"
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -100,12 +103,18 @@ class BraveSearchProvider(BaseSearchProvider):
                         # Convert relative age to approximate date
                         published_date = self._parse_relative_date(item["age"])
                     
+                    # Extract source name from Brave's profile data
+                    source = item.get("profile", {}).get("name")
+                    # Filter out invalid source values
+                    if source in ['', 'http:', 'https:', None]:
+                        source = None  # Will fallback to domain extraction
+
                     result = SearchResult(
                         title=item.get("title", ""),
                         url=item.get("url", ""),
                         snippet=item.get("description", ""),
                         published_date=published_date,
-                        source=item.get("profile", {}).get("name")
+                        source=source
                     )
                     results.append(result)
                 
@@ -181,12 +190,19 @@ class SerpAPIProvider(BaseSearchProvider):
                     elif "displayed_date" in item:
                         published_date = item["displayed_date"]
                     
+                    # Extract source properly from displayed_link (e.g., "example.com/path" -> "example.com")
+                    displayed_link = item.get("displayed_link", "")
+                    source = None
+                    if displayed_link and "/" in displayed_link:
+                        # Remove protocol and get domain (e.g., "https://example.com" -> "example.com")
+                        source = displayed_link.split("//")[-1].split("/")[0] if "//" in displayed_link else displayed_link.split("/")[0]
+
                     result = SearchResult(
                         title=item.get("title", ""),
                         url=item.get("link", ""),
                         snippet=item.get("snippet", ""),
                         published_date=published_date,
-                        source=item.get("displayed_link", "").split("/")[0] if item.get("displayed_link") else None
+                        source=source
                     )
                     results.append(result)
                 

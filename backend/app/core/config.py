@@ -79,12 +79,12 @@ class Settings(BaseSettings):
     ENABLE_VERDICT_MONITORING: bool = Field(False, env="ENABLE_VERDICT_MONITORING")
 
     # Phase 1.5 - Semantic Intelligence
-    ENABLE_FACTCHECK_API: bool = Field(False, env="ENABLE_FACTCHECK_API")
-    ENABLE_TEMPORAL_CONTEXT: bool = Field(False, env="ENABLE_TEMPORAL_CONTEXT")
+    ENABLE_FACTCHECK_API: bool = Field(True, env="ENABLE_FACTCHECK_API")
+    ENABLE_TEMPORAL_CONTEXT: bool = Field(True, env="ENABLE_TEMPORAL_CONTEXT")
 
     # Phase 2 - User Experience & Trust
-    ENABLE_CLAIM_CLASSIFICATION: bool = Field(False, env="ENABLE_CLAIM_CLASSIFICATION")
-    ENABLE_ENHANCED_EXPLAINABILITY: bool = Field(False, env="ENABLE_ENHANCED_EXPLAINABILITY")
+    ENABLE_CLAIM_CLASSIFICATION: bool = Field(True, env="ENABLE_CLAIM_CLASSIFICATION")
+    ENABLE_ENHANCED_EXPLAINABILITY: bool = Field(True, env="ENABLE_ENHANCED_EXPLAINABILITY")
 
     # Phase 3 - Critical Credibility Enhancements
     ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK: bool = Field(True, env="ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK")

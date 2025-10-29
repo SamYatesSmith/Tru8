@@ -59,7 +59,28 @@ ANALYSIS FRAMEWORK:
 1. Evidence Quality: Assess source credibility, recency, relevance
 2. Signal Strength: Weight entailment/contradiction scores
 3. Consensus: Look for agreement across multiple sources
-4. Context: Consider nuances, qualifications, temporal factors
+4. Context & Numerical Precision: Consider nuances, qualifications, temporal factors, and apply appropriate numerical tolerance:
+
+   APPLY TOLERANCE (±15-20%) when the claim text contains approximation language:
+   - Approximate words: "roughly", "approximately", "around", "about", "~", "nearly", "close to"
+   - Magnitude phrases: "hundreds of", "thousands of", "millions in", "billions of"
+   - Ranges: "between X and Y", "X to Y", "X-Y"
+   - Estimates: "estimated", "projected", "expected", "forecasted"
+   - Comparative: "more than", "over", "under", "at least", "up to"
+
+   REQUIRE EXACT PRECISION when the claim text contains precision indicators:
+   - Exactness: "exactly", "precisely", "specifically", "the exact figure"
+   - Legal/Official: "allocated", "mandated", "authorized by law", "statute requires", "enacted"
+   - Records: "highest ever", "first time", "record-breaking", "maximum", "minimum"
+   - Contractual: "agreed to", "signed for", "contract states"
+
+   EXAMPLES:
+   ✓ Claim "roughly $350 million" + Evidence "$300M" or "$400M" = SUPPORTING (tolerance applies)
+   ✗ Claim "exactly $350 million mandated" + Evidence "$300M" = CONTRADICTING (precision required)
+   ✓ Claim "about 85% support" + Evidence "82-87% support" = SUPPORTING (tolerance applies)
+   ✗ Claim "over 50 people attended" + Evidence "48 people" = CONTRADICTING (48 is not over 50)
+
+   If no qualifier present, use DEFAULT tolerance (±10%) for minor discrepancies
 
 IMPORTANT - Handling Fact-Check Articles:
 - If evidence is from fact-checking sites (Snopes, FactCheck.org, etc.), recognize these are META-CLAIMS
