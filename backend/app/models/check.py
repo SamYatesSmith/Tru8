@@ -115,5 +115,14 @@ class Evidence(SQLModel, table=True):
     risk_level: Optional[str] = None  # 'none', 'low', 'medium', 'high'
     risk_warning: Optional[str] = None  # User-facing warning message
 
+    # Citation Precision & NLI Context (Phase 2, Week 10)
+    page_number: Optional[int] = Field(default=None, description="Page number in PDF/document")
+    context_before: Optional[str] = Field(default=None, description="Text before snippet")
+    context_after: Optional[str] = Field(default=None, description="Text after snippet")
+    nli_stance: Optional[str] = Field(default=None, description="'supporting'|'contradicting'|'neutral'")
+    nli_confidence: Optional[float] = Field(default=None, ge=0, le=1, description="NLI confidence score 0-1")
+    nli_entailment: Optional[float] = Field(default=None, ge=0, le=1, description="Entailment probability")
+    nli_contradiction: Optional[float] = Field(default=None, ge=0, le=1, description="Contradiction probability")
+
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")

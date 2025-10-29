@@ -527,13 +527,35 @@ class PipelineJudge:
                     position = str(claim.get("position", 0))
                     verifications = verifications_by_claim.get(position, [])
                     evidence = evidence_by_claim.get(position, [])
-                    
+
+                    # Phase 2: Enrich evidence with NLI verification data (Section 2.6a)
+                    enriched_evidence = []
+                    for i, ev in enumerate(evidence):
+                        ev_copy = ev.copy()  # Don't mutate original
+
+                        # Attach NLI data if verification exists for this evidence
+                        if i < len(verifications):
+                            verification = verifications[i]
+                            relationship = verification.get("relationship", "neutral")
+
+                            # Map NLI relationship to user-friendly stance
+                            ev_copy["nli_stance"] = (
+                                "supporting" if relationship == "entails" else
+                                "contradicting" if relationship == "contradicts" else
+                                "neutral"
+                            )
+                            ev_copy["nli_confidence"] = verification.get("confidence", 0.0)
+                            ev_copy["nli_entailment"] = verification.get("entailment_score", 0.0)
+                            ev_copy["nli_contradiction"] = verification.get("contradiction_score", 0.0)
+
+                        enriched_evidence.append(ev_copy)
+
                     # Aggregate verification signals
                     signals = claim_verifier.aggregate_verification_signals(verifications)
-                    
-                    # Get final judgment
-                    judgment = await self.claim_judge.judge_claim(claim, signals, evidence)
-                    
+
+                    # Get final judgment with ENRICHED evidence (now has NLI fields)
+                    judgment = await self.claim_judge.judge_claim(claim, signals, enriched_evidence)
+
                     return {
                         **judgment.to_dict(),
                         "position": claim.get("position", 0),

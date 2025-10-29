@@ -13,9 +13,10 @@ logger = logging.getLogger(__name__)
 
 class EvidenceSnippet:
     """Extracted evidence snippet with metadata"""
-    
+
     def __init__(self, text: str, source: str, url: str, title: str,
-                 published_date: Optional[str] = None, relevance_score: float = 0.0):
+                 published_date: Optional[str] = None, relevance_score: float = 0.0,
+                 metadata: Optional[Dict[str, Any]] = None):
         self.text = text
         self.source = source
         self.url = url
@@ -23,7 +24,8 @@ class EvidenceSnippet:
         self.published_date = published_date
         self.relevance_score = relevance_score
         self.word_count = len(text.split())
-    
+        self.metadata = metadata or {}  # Store page numbers, context
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "text": self.text,
@@ -32,7 +34,8 @@ class EvidenceSnippet:
             "title": self.title,
             "published_date": self.published_date,
             "relevance_score": self.relevance_score,
-            "word_count": self.word_count
+            "word_count": self.word_count,
+            "metadata": self.metadata
         }
 
 class EvidenceExtractor:
@@ -51,11 +54,33 @@ class EvidenceExtractor:
             'evidence indicates', 'survey found', 'poll shows', 'investigation revealed'
         ]
     
-    async def extract_evidence_for_claim(self, claim: str, max_sources: int = 5) -> List[EvidenceSnippet]:
-        """Extract evidence snippets for a specific claim"""
+    async def extract_evidence_for_claim(
+        self,
+        claim: str,
+        max_sources: int = 5,
+        subject_context: str = None,
+        key_entities: list = None
+    ) -> List[EvidenceSnippet]:
+        """
+        Extract evidence snippets for a specific claim.
+
+        Args:
+            claim: The claim text to verify
+            max_sources: Maximum number of evidence sources
+            subject_context: Main subject/topic for context-aware search
+            key_entities: Key entities to boost in search query
+        """
         try:
-            # Step 1: Search for relevant pages
-            search_results = await self.search_service.search_for_evidence(claim, max_results=max_sources * 2)
+            # Step 1: Build context-enriched search query
+            search_query = claim
+            if subject_context and key_entities:
+                # Boost query with key entities for disambiguation
+                entities_str = " ".join(key_entities[:3])  # Top 3 entities
+                search_query = f"{claim} {entities_str}"
+                logger.info(f"Context-enriched search: '{search_query}'")
+
+            # Step 2: Search for relevant pages
+            search_results = await self.search_service.search_for_evidence(search_query, max_results=max_sources * 2)
             
             if not search_results:
                 logger.warning(f"No search results for claim: {claim[:50]}...")
@@ -86,38 +111,69 @@ class EvidenceExtractor:
             logger.error(f"Evidence extraction error for claim: {e}")
             return []
     
-    async def _extract_from_page(self, search_result: SearchResult, claim: str, 
+    async def _extract_from_page(self, search_result: SearchResult, claim: str,
                                 semaphore: asyncio.Semaphore) -> Optional[EvidenceSnippet]:
-        """Extract relevant content from a single page"""
+        """Extract relevant content from a single page (enhanced for PDFs)"""
         async with semaphore:
             try:
-                # Fetch page content
+                # Check if URL is a PDF
+                if search_result.url.lower().endswith('.pdf'):
+                    from app.services.pdf_evidence import get_pdf_extractor
+                    pdf_extractor = get_pdf_extractor()
+
+                    # Extract PDF evidence with page numbers
+                    pdf_matches = await pdf_extractor.extract_evidence_from_pdf(
+                        search_result.url,
+                        claim,
+                        max_results=1  # Best match only
+                    )
+
+                    if pdf_matches:
+                        best_match = pdf_matches[0]
+                        return EvidenceSnippet(
+                            text=best_match['text'],
+                            source=search_result.source,
+                            url=search_result.url,
+                            title=f"{search_result.title} (p. {best_match['page_number']})",
+                            published_date=search_result.published_date,
+                            relevance_score=best_match['relevance_score'],
+                            metadata={
+                                'page_number': best_match['page_number'],
+                                'context_before': best_match.get('context_before'),
+                                'context_after': best_match.get('context_after')
+                            }
+                        )
+                    else:
+                        logger.warning(f"No relevant content found in PDF: {search_result.url}")
+                        return None
+
+                # Non-PDF extraction (HTML pages)
                 async with httpx.AsyncClient(
                     timeout=self.timeout,
                     follow_redirects=True
                 ) as client:
                     response = await client.get(search_result.url)
                     response.raise_for_status()
-                    
+
                     if response.status_code != 200:
                         return None
-                    
+
                     # Extract main content
                     content = self._extract_main_content(response.text, search_result.url)
-                    
+
                     if not content:
                         # Fallback to search snippet if extraction fails
                         content = search_result.snippet
-                    
+
                     # Find most relevant snippet
                     snippet_text = self._find_relevant_snippet(content, claim)
-                    
+
                     if not snippet_text:
                         return None
-                    
+
                     # Calculate relevance score
                     relevance_score = self._calculate_relevance(snippet_text, claim)
-                    
+
                     return EvidenceSnippet(
                         text=snippet_text,
                         source=search_result.source,

@@ -90,6 +90,10 @@ class Settings(BaseSettings):
     ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK: bool = Field(True, env="ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK")
     ENABLE_ABSTENTION_LOGIC: bool = Field(True, env="ENABLE_ABSTENTION_LOGIC")
 
+    # Phase 3.5 - Source Quality Control (Week 9.5-10)
+    ENABLE_SOURCE_VALIDATION: bool = Field(True, env="ENABLE_SOURCE_VALIDATION")
+    SOURCE_CREDIBILITY_THRESHOLD: float = Field(0.65, env="SOURCE_CREDIBILITY_THRESHOLD")
+
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")

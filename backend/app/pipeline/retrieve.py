@@ -69,11 +69,18 @@ class EvidenceRetriever:
                 
                 logger.info(f"Retrieving evidence for claim {claim_position}: {claim_text[:50]}...")
 
-                # Step 1: Search and extract evidence snippets
-                # NOTE: Context and claim_type parameters removed - not yet supported by evidence.py
+                # Step 1: Search and extract evidence snippets with context enrichment
+                subject_context = claim.get("subject_context")
+                key_entities = claim.get("key_entities", [])
+
+                if subject_context:
+                    logger.info(f"Using context: '{subject_context}' with entities: {key_entities[:3]}")
+
                 evidence_snippets = await self.evidence_extractor.extract_evidence_for_claim(
                     claim_text,
-                    max_sources=self.max_sources_per_claim * 2  # Get extra for filtering
+                    max_sources=self.max_sources_per_claim * 2,  # Get extra for filtering
+                    subject_context=subject_context,
+                    key_entities=key_entities
                 )
                 
                 if not evidence_snippets:
@@ -131,7 +138,8 @@ class EvidenceRetriever:
                         "relevance_score": float(snippet.relevance_score),
                         "semantic_similarity": float(similarity),
                         "combined_score": float((snippet.relevance_score + similarity) / 2),
-                        "word_count": snippet.word_count
+                        "word_count": snippet.word_count,
+                        "metadata": snippet.metadata  # Phase 2: Include PDF metadata (page_number, context)
                     }
                     ranked_evidence.append(evidence_item)
             
@@ -155,7 +163,8 @@ class EvidenceRetriever:
                     "relevance_score": float(snippet.relevance_score),
                     "semantic_similarity": 0.5,
                     "combined_score": float(snippet.relevance_score),
-                    "word_count": snippet.word_count
+                    "word_count": snippet.word_count,
+                    "metadata": snippet.metadata  # Phase 2: Include PDF metadata (page_number, context)
                 }
                 for i, snippet in enumerate(evidence_snippets)
             ]
@@ -183,8 +192,10 @@ class EvidenceRetriever:
                     "final_score": weighted_score
                 })
 
-            # Filter out auto-excluded sources (credibility_score = 0.0)
-            evidence_list = [e for e in evidence_list if e.get("credibility_score", 0.6) > 0.0]
+            # Filter by credibility threshold (Phase 1: raised from 0.0 to 0.65)
+            MIN_CREDIBILITY = getattr(settings, 'SOURCE_CREDIBILITY_THRESHOLD', 0.65)
+            evidence_list = [e for e in evidence_list if e.get("credibility_score", 0.6) >= MIN_CREDIBILITY]
+            logger.info(f"Credibility filtering: Retained sources with score >= {MIN_CREDIBILITY}")
 
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
@@ -224,6 +235,16 @@ class EvidenceRetriever:
                     max_domain_ratio=settings.DOMAIN_DIVERSITY_THRESHOLD
                 )
                 evidence_list = capper.apply_caps(evidence_list, target_count=self.max_sources_per_claim)
+
+            # Apply source validation if enabled (Phase 1)
+            if settings.ENABLE_SOURCE_VALIDATION:
+                from app.utils.source_validator import get_source_validator
+                validator = get_source_validator()
+                evidence_list, validation_stats = validator.validate_sources(evidence_list)
+                logger.info(
+                    f"Source validation: {validation_stats['validated_count']}/{validation_stats['original_count']} sources retained, "
+                    f"{validation_stats['filtered_count']} filtered out"
+                )
 
             logger.info("Applied credibility and recency weighting")
             return evidence_list

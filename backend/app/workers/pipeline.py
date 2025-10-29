@@ -165,7 +165,18 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                         snippet=ev_data.get("snippet", ev_data.get("text", "")),
                         credibility_score=ev_data.get("credibility_score", 0.6),
                         published_date=None,  # Parse if needed
-                        relevance_score=ev_data.get("relevance_score", 0.0)
+                        relevance_score=ev_data.get("relevance_score", 0.0),
+
+                        # Citation Precision (Phase 2)
+                        page_number=ev_data.get("metadata", {}).get("page_number") if ev_data.get("metadata") else None,
+                        context_before=ev_data.get("metadata", {}).get("context_before") if ev_data.get("metadata") else None,
+                        context_after=ev_data.get("metadata", {}).get("context_after") if ev_data.get("metadata") else None,
+
+                        # NLI Context (Phase 2 - enriched in judge.py)
+                        nli_stance=ev_data.get("nli_stance"),
+                        nli_confidence=ev_data.get("nli_confidence"),
+                        nli_entailment=ev_data.get("nli_entailment"),
+                        nli_contradiction=ev_data.get("nli_contradiction")
                     )
                     session.add(evidence)
 
@@ -326,10 +337,14 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
 
         try:
             # Add timeout for judge stage
+            # Adjust timeout: 15s per claim with 120s max cap to prevent exceeding pipeline timeout
+            judge_timeout = min(15 * len(claims), 120)
+            logger.info(f"Judge stage timeout set to {judge_timeout}s for {len(claims)} claims")
+
             results = asyncio.run(
                 asyncio.wait_for(
                     judge_claims_with_llm(claims, verifications, evidence),
-                    timeout=30 * len(claims)  # 30s per claim
+                    timeout=judge_timeout
                 )
             )
         except asyncio.TimeoutError:
@@ -369,8 +384,10 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
                     "neutral_count": sum(1 for v in claim_verifications if v.get("label") == "NEUTRAL")
                 }
 
-                # Add uncertainty explanation if verdict is uncertain
-                if result.get("verdict", "").lower() in ["uncertain", "unclear"]:
+                # Add uncertainty explanation if verdict is uncertain or abstention
+                abstention_verdicts = ['insufficient_evidence', 'conflicting_expert_opinion',
+                                      'outdated_claim', 'needs_primary_source', 'lacks_context']
+                if result.get("verdict", "").lower() in ["uncertain", "unclear"] or result.get("verdict") in abstention_verdicts:
                     uncertainty_explanation = explainer.create_uncertainty_explanation(
                         result.get("verdict", ""),
                         verification_signals,
@@ -419,7 +436,11 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             total = len(results)
             supported = sum(1 for c in results if c.get('verdict') == 'supported')
             contradicted = sum(1 for c in results if c.get('verdict') == 'contradicted')
-            uncertain = sum(1 for c in results if c.get('verdict') == 'uncertain')
+            # Include abstention verdicts in uncertain count
+            abstention_verdicts = ['insufficient_evidence', 'conflicting_expert_opinion',
+                                  'outdated_claim', 'needs_primary_source', 'lacks_context']
+            uncertain = sum(1 for c in results if c.get('verdict') == 'uncertain' or
+                           c.get('verdict') in abstention_verdicts)
             assessment = {
                 "summary": f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain.",
                 "credibility_score": int((supported * 100 + uncertain * 50) / total) if total > 0 else 50,
@@ -495,10 +516,23 @@ async def generate_overall_assessment(
     total = len(claims)
     supported = sum(1 for c in claims if c.get('verdict') == 'supported')
     contradicted = sum(1 for c in claims if c.get('verdict') == 'contradicted')
-    uncertain = sum(1 for c in claims if c.get('verdict') == 'uncertain')
+
+    # Phase 3: Abstention verdicts are semantically a type of "uncertain"
+    # These verdicts indicate uncertainty with specific, documented reasons:
+    # - insufficient_evidence: Too few sources or low credibility
+    # - conflicting_expert_opinion: High-credibility sources disagree
+    # - outdated_claim: Temporal flag indicates claim is no longer current
+    # - needs_primary_source: Requires direct source verification
+    # - lacks_context: Missing critical context for verification
+    abstention_verdicts = ['insufficient_evidence', 'conflicting_expert_opinion',
+                          'outdated_claim', 'needs_primary_source', 'lacks_context']
+    uncertain = sum(1 for c in claims if c.get('verdict') == 'uncertain' or
+                   c.get('verdict') in abstention_verdicts)
+
     avg_confidence = sum(c.get('confidence', 0) for c in claims) / total if total > 0 else 0
 
     # Calculate overall credibility score (weighted)
+    # Abstention verdicts are treated as uncertain (50% weight)
     credibility_score = int(
         (supported * 100 + uncertain * 50 + contradicted * 0) / total if total > 0 else 50
     )

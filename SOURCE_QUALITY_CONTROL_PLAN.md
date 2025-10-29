@@ -813,51 +813,87 @@ alembic upgrade head
 
 **Note**: This single migration adds 7 new fields (3 citation + 4 NLI context)
 
-#### **2.6 Update Pipeline Worker to Store Citation & NLI Data**
+#### **2.6a Enrich Evidence with NLI Data in Judge Stage**
+
+**File**: `backend/app/pipeline/judge.py`
+
+**Location**: Lines 525-541 (Inside `judge_single_claim` function within `judge_all_claims` method)
+
+**Challenge**: Evidence items need NLI verification data attached before being saved to database
+
+**Solution**: Enrich evidence with NLI data at the point where both verifications and evidence are available
+
+**Key Insight**: The `judge_single_claim` function in judge.py receives both:
+- `verifications` (has NLI scores: relationship, confidence, entailment_score, etc.)
+- `evidence` (lacks NLI scores)
+
+These lists are in the same order (verifications[i] corresponds to evidence[i]), allowing index-based matching.
+
+```python
+async def judge_single_claim(claim: Dict[str, Any]) -> Dict[str, Any]:
+    async with semaphore:
+        position = str(claim.get("position", 0))
+        verifications = verifications_by_claim.get(position, [])
+        evidence = evidence_by_claim.get(position, [])
+
+        # >>> NEW: Enrich evidence with NLI verification data <<<
+        enriched_evidence = []
+        for i, ev in enumerate(evidence):
+            ev_copy = ev.copy()  # Don't mutate original
+
+            # Attach NLI data if verification exists for this evidence
+            if i < len(verifications):
+                verification = verifications[i]
+                relationship = verification.get("relationship", "neutral")
+
+                # Map NLI relationship to user-friendly stance
+                ev_copy["nli_stance"] = (
+                    "supporting" if relationship == "entails" else
+                    "contradicting" if relationship == "contradicts" else
+                    "neutral"
+                )
+                ev_copy["nli_confidence"] = verification.get("confidence", 0.0)
+                ev_copy["nli_entailment"] = verification.get("entailment_score", 0.0)
+                ev_copy["nli_contradiction"] = verification.get("contradiction_score", 0.0)
+
+            enriched_evidence.append(ev_copy)
+
+        # Aggregate verification signals
+        signals = claim_verifier.aggregate_verification_signals(verifications)
+
+        # Get final judgment with ENRICHED evidence (now has NLI fields)
+        judgment = await self.claim_judge.judge_claim(claim, signals, enriched_evidence)
+
+        return {
+            **judgment.to_dict(),  # Evidence items now include NLI fields!
+            "position": claim.get("position", 0),
+            "verification_signals": signals
+        }
+```
+
+**Why This Location?**
+1. Both `verifications` and `evidence` are available for the same claim
+2. Index correspondence is maintained (verifications[i] ↔ evidence[i])
+3. Enrichment happens BEFORE judgment creation
+4. Evidence flows naturally to pipeline worker with NLI data already attached
+
+#### **2.6b Update Pipeline Worker to Map NLI Fields**
 
 **File**: `backend/app/workers/pipeline.py`
 
-**Location**: Lines 160-175 (Evidence creation in save_results)
+**Location**: Lines 159-170 (Evidence creation in `save_check_results_sync`)
 
-**Challenge**: Need to match NLI verification data to evidence items
+**Action**: Map NLI fields from enriched evidence to database model
 
-**Solution**: Create helper function to attach verification stance to evidence
+**Note**: Evidence items already have NLI fields attached from judge stage (section 2.6a above). Just map them to database fields.
 
 ```python
-def attach_nli_stance_to_evidence(evidence_list, verifications):
-    """
-    Attach NLI verification stance to each evidence item.
-    Verifications are in same order as evidence list.
-    """
-    for i, ev_data in enumerate(evidence_list):
-        if i < len(verifications):
-            verification = verifications[i]
-            # Convert NLI relationship to user-friendly stance
-            relationship = verification.get("relationship", "neutral")
-            if relationship == "entails":
-                ev_data["nli_stance"] = "supporting"
-            elif relationship == "contradicts":
-                ev_data["nli_stance"] = "contradicting"
-            else:
-                ev_data["nli_stance"] = "neutral"
-
-            # Store NLI scores
-            ev_data["nli_confidence"] = verification.get("confidence", 0.0)
-            ev_data["nli_entailment"] = verification.get("entailment_score", 0.0)
-            ev_data["nli_contradiction"] = verification.get("contradiction_score", 0.0)
-
-    return evidence_list
-
 # In save_check_results_sync function (around line 135-175):
 for claim_data in claims_data:
     # ... existing claim creation ...
 
-    # Get evidence and verifications for this claim
+    # Get evidence (already enriched with NLI data from judge stage)
     evidence_list = claim_data.get("evidence", [])
-    verifications = claim_data.get("verifications", [])  # From verification stage
-
-    # Attach NLI stance to evidence (NEW)
-    evidence_list = attach_nli_stance_to_evidence(evidence_list, verifications)
 
     for ev_data in evidence_list:
         evidence = Evidence(
@@ -866,27 +902,30 @@ for claim_data in claims_data:
             url=ev_data.get("url", ""),
             title=ev_data.get("title", ""),
             snippet=ev_data.get("snippet", ev_data.get("text", "")),
-            published_date=published_date,
+            published_date=None,  # Parse if needed
             relevance_score=ev_data.get("relevance_score", 0.0),
             credibility_score=ev_data.get("credibility_score", 0.6),
 
-            # Citation metadata (Phase 2)
-            page_number=ev_data.get("metadata", {}).get("page_number"),
-            context_before=ev_data.get("metadata", {}).get("context_before"),
-            context_after=ev_data.get("metadata", {}).get("context_after"),
+            # Citation Precision (Phase 2)
+            page_number=ev_data.get("metadata", {}).get("page_number") if ev_data.get("metadata") else None,
+            context_before=ev_data.get("metadata", {}).get("context_before") if ev_data.get("metadata") else None,
+            context_after=ev_data.get("metadata", {}).get("context_after") if ev_data.get("metadata") else None,
 
-            # NLI context (Phase 2 - NEW)
+            # NLI Context (Phase 2 - already enriched in judge.py)
             nli_stance=ev_data.get("nli_stance"),
             nli_confidence=ev_data.get("nli_confidence"),
             nli_entailment=ev_data.get("nli_entailment"),
             nli_contradiction=ev_data.get("nli_contradiction"),
-
-            # ... rest of existing fields
         )
         session.add(evidence)
 ```
 
-**Note**: Requires plumbing `verifications` data through to the save stage. Currently verifications are used by judge but not passed to save_results.
+**Data Flow Summary**:
+1. `verify.py` → Creates verifications with NLI scores
+2. `judge.py` → Enriches evidence with NLI scores (Section 2.6a)
+3. `judge.py` → Returns judgment with enriched evidence
+4. `pipeline.py` → Receives enriched evidence, maps to database (Section 2.6b)
+5. Database → Stores evidence with NLI fields
 
 #### **2.7 Update Frontend: Enhanced Evidence Cards with Direct Display**
 
@@ -1202,15 +1241,16 @@ pytest tests/unit/test_pdf_evidence.py -v
 ### **Success Metrics**
 
 ✅ **Phase 2 Complete When**:
-1. PDF page extraction tests pass
-2. Khan Review PDF shows page numbers in frontend
-3. Database stores page_number field correctly
-4. **Database stores nli_stance, nli_confidence fields correctly** ⭐ NEW
-5. **Frontend displays stance badges for all evidence** ⭐ NEW
-6. **Context before/after/reasoning visible without extra clicks** ⭐ NEW
-7. Non-PDF sources work as before (no regression)
-8. Old checks (without NLI data) still render correctly
-9. **User verification time reduces by >70%** ⭐ NEW (measured via analytics)
+1. PDF page extraction tests pass (Section 2.2-2.3)
+2. Khan Review PDF shows page numbers in frontend (Section 2.7)
+3. Database migration adds 7 new fields successfully (Section 2.5)
+4. **Judge stage enriches evidence with NLI data correctly (Section 2.6a)** ⭐ NEW
+5. **Database stores nli_stance, nli_confidence fields correctly (Section 2.6b)** ⭐ NEW
+6. **Frontend displays stance badges for all evidence (Section 2.7)** ⭐ NEW
+7. **Context before/after/reasoning visible without extra clicks (Section 2.7)** ⭐ NEW
+8. Non-PDF sources work as before (no regression)
+9. Old checks (without NLI data) still render correctly (graceful degradation)
+10. **User verification time reduces by >70%** ⭐ NEW (measured via analytics)
 
 ---
 
@@ -1710,13 +1750,14 @@ backend/
 │   ├── core/
 │   │   └── config.py                # Add feature flags
 │   ├── models/
-│   │   └── check.py                 # Add page_number, source_judgment fields
+│   │   └── check.py                 # Add 7 fields (page_number, nli_stance, etc.)
 │   ├── pipeline/
-│   │   └── retrieve.py              # Integrate validators, raise threshold
+│   │   ├── retrieve.py              # Integrate validators, raise threshold
+│   │   └── judge.py                 # ⭐ NEW: Enrich evidence with NLI data (Section 2.6a)
 │   ├── services/
 │   │   └── evidence.py              # Add PDF detection, metadata handling
 │   └── workers/
-│       └── pipeline.py              # Store page numbers in Evidence
+│       └── pipeline.py              # Map NLI fields to database (Section 2.6b)
 └── requirements.txt                 # Add PyPDF2, pdfplumber
 
 web/
@@ -1724,7 +1765,7 @@ web/
     └── dashboard/
         └── check/[id]/
             └── components/
-                └── claims-section.tsx  # Display page numbers
+                └── claims-section.tsx  # Display page numbers, stance badges, context
 ```
 
 ---
@@ -1749,26 +1790,38 @@ web/
 
 ---
 
-### **Week 2: Phase 2 (Citation Precision)**
+### **Week 2: Phase 2 (Citation Precision & NLI Context Display)**
 
 **Day 1-2** (6 hours):
-- ✅ Install PyPDF2/pdfplumber
-- ✅ Create `pdf_evidence.py` with page extraction
+- ✅ Install PyPDF2/pdfplumber (Section 2.1)
+- ✅ Create `pdf_evidence.py` with page extraction (Section 2.2)
 - ✅ Write unit tests (test_pdf_evidence.py)
-- ✅ Integrate into evidence.py
+- ✅ Integrate PDF detection into evidence.py (Section 2.3)
+- ✅ Update EvidenceSnippet class with metadata parameter (Section 2.4)
 
-**Day 3** (3 hours):
-- ✅ Create database migration (add page_number field)
-- ✅ Update pipeline worker to store metadata
-- ✅ Update frontend to display page numbers
+**Day 3** (4 hours):
+- ✅ Create database migration adding 7 fields (3 citation + 4 NLI) (Section 2.5)
+- ✅ **Enrich evidence with NLI data in judge.py (Section 2.6a)** ⭐ NEW
+- ✅ Update pipeline worker to map NLI fields (Section 2.6b)
+- ✅ Run migration: `alembic upgrade head`
+
+**Day 4** (3 hours):
+- ✅ Update frontend TypeScript Evidence interface (Section 2.8)
+- ✅ Implement enhanced evidence cards with stance badges (Section 2.7)
+- ✅ Add NLI explanation helper function
 - ✅ Test with Khan Review PDF
 
-**Day 4** (2 hours):
+**Day 5** (2 hours):
 - ✅ Test on multiple PDF sources
 - ✅ Verify page numbers display correctly
+- ✅ **Verify NLI stance badges appear correctly** ⭐ NEW
+- ✅ **Test graceful degradation (old checks without NLI data)** ⭐ NEW
 - ✅ Monitor PDF extraction performance
 
-**Deliverable**: PDF citations show page numbers (e.g., "Khan Review (p. 47)")
+**Deliverable**:
+- PDF citations show page numbers (e.g., "Khan Review (p. 47)")
+- **Evidence cards display stance badges (🟢 SUPPORTS / 🔴 CONTRADICTS)** ⭐ NEW
+- **Context and reasoning visible without extra clicks** ⭐ NEW
 
 ---
 
@@ -1833,12 +1886,23 @@ web/
 
 ### **Phase 2 Testing**
 
+**Citation Precision (Sections 2.1-2.4):**
 - [ ] Unit tests pass (test_pdf_evidence.py)
 - [ ] Khan Review PDF shows page numbers
 - [ ] Page number displays in frontend
-- [ ] Database stores page_number field
 - [ ] Non-PDF sources work as before
 - [ ] PDF extraction timeouts handled gracefully
+
+**NLI Context Display (Sections 2.5-2.8):**
+- [ ] Database migration adds 7 fields successfully (Section 2.5)
+- [ ] **Judge stage enriches evidence with NLI data (Section 2.6a)** ⭐ NEW
+- [ ] **Pipeline worker stores NLI fields correctly (Section 2.6b)** ⭐ NEW
+- [ ] **Stance badges display correctly (🟢/🔴/⚪) (Section 2.7)** ⭐ NEW
+- [ ] **Context before/after visible without extra clicks (Section 2.7)** ⭐ NEW
+- [ ] **NLI explanation text generates appropriately (Section 2.7)** ⭐ NEW
+- [ ] **TypeScript interface includes new fields (Section 2.8)** ⭐ NEW
+- [ ] **Old checks without NLI data render gracefully** ⭐ NEW
+- [ ] **Verify index correspondence (verifications[i] ↔ evidence[i])** ⭐ NEW
 
 ### **Phase 3 Testing** (if implemented)
 
@@ -1972,6 +2036,38 @@ NLI Verification
 
 ---
 
-**Document Version**: 1.0
+## 📝 Plan Revisions
+
+### **Revision 1.1 - Corrected NLI Data Flow (October 29, 2025)**
+
+**Issue Identified**: Original Section 2.6 showed enriching evidence with NLI data in `pipeline.py` save stage, but verification data is not available at that point in the pipeline.
+
+**Root Cause Analysis**:
+- `verify.py` returns `verifications_by_claim` (has NLI scores)
+- `judge.py` receives verifications and evidence as SEPARATE parameters
+- `JudgmentResult.to_dict()` only returns evidence (without NLI fields)
+- `pipeline.py` receives `claim_data["evidence"]` without NLI data
+- Attempting `claim_data.get("verifications")` returns empty list
+
+**Corrected Approach**:
+- **Split Section 2.6 into 2.6a and 2.6b**
+  - **2.6a**: Enrich evidence in `judge.py` where both lists are available
+  - **2.6b**: Pipeline worker simply maps already-enriched fields
+- **Location**: `judge.py` line 525-541 in `judge_single_claim()` function
+- **Timing**: Enrichment happens BEFORE `judgment.to_dict()` is called
+- **Result**: Evidence items flow to pipeline worker with NLI data already attached
+
+**Key Improvement**: Index correspondence (verifications[i] ↔ evidence[i]) is guaranteed at judge stage, making enrichment safe and straightforward.
+
+**Files Updated**:
+- Section 2.6 → Split into 2.6a (judge.py enrichment) and 2.6b (pipeline.py mapping)
+- Success Metrics → Added references to 2.6a and 2.6b
+- Implementation Timeline → Updated Day 3 tasks with corrected approach
+- Modified Files → Added judge.py to list
+- Testing Checklist → Split Phase 2 into Citation Precision and NLI Context Display sections
+
+---
+
+**Document Version**: 1.1 (Revised)
 **Last Updated**: October 29, 2025
 **Status**: Ready for Implementation

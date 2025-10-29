@@ -13,13 +13,19 @@ class ExtractedClaim(BaseModel):
     text: str = Field(description="The atomic factual claim", min_length=10)
     confidence: float = Field(description="Extraction confidence 0-1", ge=0, le=1, default=0.8)
     category: Optional[str] = Field(description="Category of claim", default=None)
-    
+
+    # Context preservation fields
+    subject_context: Optional[str] = Field(description="Main subject/topic of the claim", default=None)
+    key_entities: Optional[List[str]] = Field(description="Key entities mentioned (names, organizations, places)", default=None)
+
     class Config:
         json_schema_extra = {
             "example": {
                 "text": "The Earth's average temperature has increased by 1.1°C since pre-industrial times",
                 "confidence": 0.95,
-                "category": "science"
+                "category": "science",
+                "subject_context": "global warming and climate change",
+                "key_entities": ["Earth", "1.1°C", "pre-industrial times"]
             }
         }
 
@@ -43,18 +49,39 @@ class ClaimExtractor:
 RULES:
 1. Extract ONLY factual claims that can be verified against external sources
 2. Make claims atomic (one fact per claim) and specific
-3. Avoid opinions, speculation, or subjective statements
-4. Include numbers, dates, names when present
-5. Maximum {max_claims} claims for Quick mode
-6. Focus on the most important/checkable claims
-7. Always return a valid JSON response with the required format
+3. CRITICAL: Make claims SELF-CONTAINED by resolving vague references (pronouns, "the project", "the company", etc.) using context from the article
+4. Avoid opinions, speculation, or subjective statements
+5. Include numbers, dates, names when present
+6. Maximum {max_claims} claims for Quick mode
+7. Focus on the most important/checkable claims
+8. For EACH claim, extract:
+   - text: The self-contained claim with resolved references
+   - subject_context: Main subject/topic (2-5 words)
+   - key_entities: List of key entities (names, organizations, places, amounts)
+9. Always return a valid JSON response with the required format
 
 EXAMPLES:
-Input: "Tesla delivered 1.3 million vehicles in 2022, exceeding Wall Street expectations."
-Output: {{"claims": [{{"text": "Tesla delivered 1.3 million vehicles in 2022", "confidence": 0.95}}]}}
+Article Title: "Tesla Q4 Earnings Report"
+Input: "The company delivered 1.3 million vehicles in 2022, exceeding expectations."
+Output: {{
+  "claims": [{{
+    "text": "Tesla delivered 1.3 million vehicles in 2022",
+    "confidence": 0.95,
+    "subject_context": "Tesla vehicle deliveries",
+    "key_entities": ["Tesla", "1.3 million vehicles", "2022"]
+  }}]
+}}
 
-Input: "Climate change is a hoax promoted by scientists for funding."
-Output: {{"claims": [{{"text": "Some individuals claim climate change is promoted for funding", "confidence": 0.6}}]}}"""
+Article Title: "White House Ballroom Renovation"
+Input: "The Project received $350 million in federal funding."
+Output: {{
+  "claims": [{{
+    "text": "The White House ballroom renovation project received $350 million in federal funding",
+    "confidence": 0.95,
+    "subject_context": "White House ballroom renovation funding",
+    "key_entities": ["White House", "ballroom renovation", "$350 million", "federal funding"]
+  }}]
+}}"""
 
     async def extract_claims(self, content: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
         """Extract atomic claims from content"""
@@ -75,8 +102,12 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
             
             # Try OpenAI extraction
             if self.openai_api_key:
-                result = await self._extract_with_openai(content)
+                result = await self._extract_with_openai(content, metadata or {})
                 if result["success"]:
+                    # Add source metadata to each claim
+                    for claim in result.get("claims", []):
+                        claim["source_title"] = metadata.get("title") if metadata else None
+                        claim["source_url"] = metadata.get("url") if metadata else None
                     return result
                 else:
                     logger.error(f"OpenAI extraction failed: {result.get('error')}")
@@ -93,9 +124,17 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                 "claims": []
             }
     
-    async def _extract_with_openai(self, content: str) -> Dict[str, Any]:
+    async def _extract_with_openai(self, content: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
         """Extract claims using OpenAI GPT"""
         try:
+            # Build context-aware user prompt
+            user_prompt = ""
+            if metadata and metadata.get("title"):
+                user_prompt += f"Article Title: \"{metadata.get('title')}\"\n"
+            if metadata and metadata.get("url"):
+                user_prompt += f"Source URL: {metadata.get('url')}\n"
+            user_prompt += f"\nExtract atomic factual claims from this content:\n\n{content}"
+
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     "https://api.openai.com/v1/chat/completions",
@@ -112,7 +151,7 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                             },
                             {
                                 "role": "user",
-                                "content": f"Extract atomic factual claims from this content:\n\n{content}"
+                                "content": user_prompt
                             }
                         ],
                         "temperature": 0.1,
@@ -133,13 +172,16 @@ Output: {{"claims": [{{"text": "Some individuals claim climate change is promote
                 claims_data = json.loads(content_text)
                 validated_response = ClaimExtractionResponse(**claims_data)
                 
-                # Convert to format expected by pipeline
+                # Convert to format expected by pipeline with context preservation
                 claims = [
                     {
                         "text": claim.text,
                         "position": i,
                         "confidence": claim.confidence,
-                        "category": claim.category
+                        "category": claim.category,
+                        # Context preservation fields
+                        "subject_context": claim.subject_context,
+                        "key_entities": claim.key_entities or []
                     }
                     for i, claim in enumerate(validated_response.claims)
                 ]

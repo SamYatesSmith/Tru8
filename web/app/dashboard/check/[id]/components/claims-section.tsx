@@ -12,6 +12,19 @@ import { FactCheckBadge } from '@/app/dashboard/components/fact-check-badge';
 import { TimeSensitiveIndicator } from '@/app/dashboard/components/time-sensitive-indicator';
 import { formatMonthYear } from '@/lib/utils';
 
+// Phase 2: Helper function for NLI explanations
+function generateNliExplanation(stance: string, confidence?: number): string {
+  const confidenceLevel = (confidence || 0) >= 0.8 ? 'strongly' :
+                          (confidence || 0) >= 0.6 ? 'moderately' : 'weakly';
+
+  if (stance === 'supporting') {
+    return `This evidence ${confidenceLevel} confirms key aspects of the claim. The passage directly corroborates the claim's assertions.`;
+  } else if (stance === 'contradicting') {
+    return `This evidence ${confidenceLevel} disputes the claim. The passage contains information that conflicts with what the claim asserts.`;
+  }
+  return 'This evidence provides context but neither clearly supports nor contradicts the claim.';
+}
+
 interface Claim {
   id: string;
   text: string;
@@ -59,6 +72,17 @@ interface Evidence {
   // Temporal fields
   temporalRelevanceScore?: number;
   isTimeSensitive?: boolean;
+
+  // Citation Precision (Phase 2)
+  pageNumber?: number;
+  contextBefore?: string;
+  contextAfter?: string;
+
+  // NLI Context Display (Phase 2)
+  nliStance?: 'supporting' | 'contradicting' | 'neutral';
+  nliConfidence?: number;
+  nliEntailment?: number;
+  nliContradiction?: number;
 }
 
 interface ClaimsSectionProps {
@@ -194,10 +218,77 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                         />
                       </div>
 
-                      {/* Snippet */}
-                      <p className="text-xs text-slate-400 line-clamp-4">
-                        {evidence.snippet}
-                      </p>
+                      {/* NLI Stance Badge (Phase 2) */}
+                      {evidence.nliStance && (
+                        <div className="mb-2">
+                          {evidence.nliStance === 'supporting' && (
+                            <div className="flex items-center gap-2">
+                              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold">
+                                🟢 SUPPORTS CLAIM
+                              </span>
+                              <span className="text-xs text-emerald-400/70">
+                                {Math.round((evidence.nliConfidence || 0) * 100)}% confident
+                              </span>
+                            </div>
+                          )}
+                          {evidence.nliStance === 'contradicting' && (
+                            <div className="flex items-center gap-2">
+                              <span className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-xs font-bold">
+                                🔴 CONTRADICTS CLAIM
+                              </span>
+                              <span className="text-xs text-red-400/70">
+                                {Math.round((evidence.nliConfidence || 0) * 100)}% confident
+                              </span>
+                            </div>
+                          )}
+                          {evidence.nliStance === 'neutral' && (
+                            <div className="flex items-center gap-2">
+                              <span className="px-3 py-1 bg-slate-500/20 text-slate-400 border border-slate-500/30 rounded-full text-xs font-bold">
+                                ⚪ NEUTRAL
+                              </span>
+                              <span className="text-xs text-slate-400/70">
+                                {Math.round((evidence.nliConfidence || 0) * 100)}% confident
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Context Section with Highlighted Passage (Phase 2) */}
+                      <div className="my-2 space-y-2">
+                        {/* Context Before */}
+                        {evidence.contextBefore && (
+                          <p className="text-xs text-slate-500 italic line-clamp-2">
+                            ...{evidence.contextBefore}
+                          </p>
+                        )}
+
+                        {/* Main Snippet - Highlighted in Brand Orange */}
+                        <div className="p-3 bg-orange-500/10 border-l-4 border-[#f57a07] rounded">
+                          <p className="text-sm text-white leading-relaxed">
+                            {evidence.snippet}
+                          </p>
+                        </div>
+
+                        {/* Context After */}
+                        {evidence.contextAfter && (
+                          <p className="text-xs text-slate-500 italic line-clamp-2">
+                            {evidence.contextAfter}...
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Reasoning - Why this supports/contradicts (Phase 2) */}
+                      {evidence.nliStance && evidence.nliStance !== 'neutral' && (
+                        <div className="p-3 bg-slate-800/50 border border-slate-700 rounded text-xs text-slate-300 mb-2">
+                          <span className="font-semibold text-slate-200">
+                            💬 Why this {evidence.nliStance === 'supporting' ? 'supports' : 'contradicts'}:
+                          </span>
+                          <p className="mt-1">
+                            {generateNliExplanation(evidence.nliStance, evidence.nliConfidence)}
+                          </p>
+                        </div>
+                      )}
 
                       {/* Metadata: Source · Date · Credibility Label */}
                       <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
