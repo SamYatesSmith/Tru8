@@ -8,6 +8,7 @@ import trafilatura
 from readability import Document
 import bleach
 from app.services.search import SearchResult, SearchService
+from app.utils.url_utils import extract_domain
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ class EvidenceExtractor:
                 original_count = len(search_results)
                 search_results = [
                     result for result in search_results
-                    if self._extract_domain(result.url) != excluded_domain
+                    if extract_domain(result.url) != excluded_domain
                 ]
                 filtered_count = original_count - len(search_results)
                 if filtered_count > 0:
@@ -395,20 +396,3 @@ class EvidenceExtractor:
 
         # Sort by combined score
         return sorted(snippets, key=scoring_function, reverse=True)
-
-    def _extract_domain(self, url: str) -> str:
-        """Extract clean domain from URL for comparison"""
-        from urllib.parse import urlparse
-
-        try:
-            parsed = urlparse(url)
-            domain = parsed.netloc
-
-            # Remove www. prefix
-            if domain.startswith('www.'):
-                domain = domain[4:]
-
-            return domain.lower()
-        except Exception as e:
-            logger.warning(f"Failed to extract domain from URL '{url}': {e}")
-            return ""

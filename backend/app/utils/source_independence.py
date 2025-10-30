@@ -1,8 +1,8 @@
 from typing import List, Dict, Any, Tuple
-from urllib.parse import urlparse
 import json
 import os
 import logging
+from app.utils.url_utils import extract_domain
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class SourceIndependenceChecker:
         """
         for ev in evidence_list:
             url = ev.get('url', '')
-            domain = self._extract_domain(url)
+            domain = extract_domain(url, fallback="unknown")
 
             parent = self.domain_to_parent.get(domain, 'Unknown')
             ev['parent_company'] = parent
@@ -148,21 +148,6 @@ class SourceIndependenceChecker:
             "independence_distribution": independence_counts,
             "diversity_score": round(diversity_score, 2)
         }
-
-    def _extract_domain(self, url: str) -> str:
-        """Extract clean domain from URL"""
-        try:
-            parsed = urlparse(url)
-            domain = parsed.netloc
-
-            # Remove www. prefix
-            if domain.startswith('www.'):
-                domain = domain[4:]
-
-            return domain.lower()
-        except Exception as e:
-            logger.warning(f"Failed to extract domain from URL '{url}': {e}")
-            return "unknown"
 
     def _get_state_media(self) -> List[str]:
         """List of known state-funded media domains"""

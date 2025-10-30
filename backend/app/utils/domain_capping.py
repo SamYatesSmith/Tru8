@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
-from urllib.parse import urlparse
 from collections import defaultdict
 import logging
+from app.utils.url_utils import extract_domain
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class DomainCapper:
         # Group evidence by domain with credibility tracking
         domain_evidence = defaultdict(list)
         for ev in evidence:
-            domain = self._extract_domain(ev.get('url', ''))
+            domain = extract_domain(ev.get('url', ''), fallback="unknown")
             domain_evidence[domain].append(ev)
 
         # Calculate domain caps based on credibility
@@ -76,7 +76,7 @@ class DomainCapper:
 
         # Evidence should already be sorted by score (descending)
         for ev in evidence:
-            domain = self._extract_domain(ev.get('url', ''))
+            domain = extract_domain(ev.get('url', ''), fallback="unknown")
             cap = domain_caps.get(domain, 2)  # Default to 2 if not calculated
 
             if domain_counts[domain] < cap:
@@ -90,29 +90,6 @@ class DomainCapper:
                    f"Distribution: {dict(domain_counts)}")
 
         return capped_evidence
-
-    def _extract_domain(self, url: str) -> str:
-        """
-        Extract clean domain from URL.
-
-        Args:
-            url: Full URL string
-
-        Returns:
-            Clean domain (e.g., "bbc.co.uk" from "https://www.bbc.co.uk/news/...")
-        """
-        try:
-            parsed = urlparse(url)
-            domain = parsed.netloc
-
-            # Remove www. prefix
-            if domain.startswith('www.'):
-                domain = domain[4:]
-
-            return domain.lower()
-        except Exception as e:
-            logger.warning(f"Failed to extract domain from URL '{url}': {e}")
-            return "unknown"
 
     def get_diversity_metrics(self, evidence: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -136,7 +113,7 @@ class DomainCapper:
                 "domain_distribution": {}
             }
 
-        domains = [self._extract_domain(ev.get('url', '')) for ev in evidence]
+        domains = [extract_domain(ev.get('url', ''), fallback="unknown") for ev in evidence]
         domain_counts = defaultdict(int)
         for domain in domains:
             domain_counts[domain] += 1

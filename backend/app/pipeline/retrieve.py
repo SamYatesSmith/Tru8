@@ -7,6 +7,7 @@ from app.services.search import SearchService
 from app.services.evidence import EvidenceExtractor, EvidenceSnippet
 from app.services.embeddings import get_embedding_service, rank_evidence_by_similarity
 from app.services.vector_store import get_vector_store
+from app.utils.url_utils import extract_domain
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class EvidenceRetriever:
             # Extract excluded domain if provided
             excluded_domain = None
             if exclude_source_url:
-                excluded_domain = self._extract_domain(exclude_source_url)
+                excluded_domain = extract_domain(exclude_source_url)
                 logger.info(f"Evidence retrieval will exclude source domain: {excluded_domain}")
 
             # Process claims with concurrency limit
@@ -453,24 +454,3 @@ class EvidenceRetriever:
         except Exception as e:
             logger.error(f"Vector store retrieval error: {e}")
             return []
-
-    def _extract_domain(self, url: str) -> str:
-        """
-        Extract clean domain from URL for comparison.
-
-        Reuses logic from domain_capping.py for consistency.
-        """
-        from urllib.parse import urlparse
-
-        try:
-            parsed = urlparse(url)
-            domain = parsed.netloc
-
-            # Remove www. prefix
-            if domain.startswith('www.'):
-                domain = domain[4:]
-
-            return domain.lower()
-        except Exception as e:
-            logger.warning(f"Failed to extract domain from URL '{url}': {e}")
-            return ""

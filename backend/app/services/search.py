@@ -10,28 +10,15 @@ logger = logging.getLogger(__name__)
 
 class SearchResult:
     """Standardized search result format"""
-    def __init__(self, title: str, url: str, snippet: str, 
+    def __init__(self, title: str, url: str, snippet: str,
                  published_date: Optional[str] = None, source: Optional[str] = None):
+        from app.utils.url_utils import extract_domain
+
         self.title = title
         self.url = url
         self.snippet = snippet
         self.published_date = published_date
-        self.source = source or self._extract_domain(url)
-    
-    def _extract_domain(self, url: str) -> str:
-        """Extract domain name from URL"""
-        try:
-            from urllib.parse import urlparse
-            domain = urlparse(url).netloc
-            # Remove www. prefix
-            if domain.startswith('www.'):
-                domain = domain[4:]
-            # Ensure we have a valid domain (not empty or just protocol)
-            if domain and domain not in ['', 'http:', 'https:']:
-                return domain
-            return "Unknown Source"
-        except:
-            return "Unknown Source"
+        self.source = source or extract_domain(url, fallback="Unknown Source")
     
     def to_dict(self) -> Dict[str, Any]:
         return {
