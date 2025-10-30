@@ -173,7 +173,13 @@
     "cbc.ca",
     "theglobeandmail.com",
     "lemonde.fr",
-    "derspiegel.de"
+    "derspiegel.de",
+    "forbes.com",
+    "thehill.com",
+    "politico.com",
+    "axios.com",
+    "cnbc.com",
+    "time.com"
     ],
     "tier": "tier2"
   },

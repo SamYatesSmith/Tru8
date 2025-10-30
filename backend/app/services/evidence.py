@@ -76,10 +76,14 @@ class EvidenceExtractor:
             # Step 1: Build context-enriched search query
             search_query = claim
             if subject_context and key_entities:
-                # Boost query with key entities for disambiguation
-                entities_str = " ".join(key_entities[:3])  # Top 3 entities
-                search_query = f"{claim} {entities_str}"
-                logger.info(f"Context-enriched search: '{search_query}'")
+                # Only add entities that AREN'T already in the claim text (avoid duplication)
+                unique_entities = [e for e in key_entities[:3] if e.lower() not in claim.lower()]
+                if unique_entities:
+                    entities_str = " ".join(unique_entities[:2])  # Max 2 additional entities
+                    search_query = f"{claim} {entities_str}"
+                    logger.info(f"Context-enriched search with {len(unique_entities)} unique entities: '{search_query}'")
+                else:
+                    logger.info(f"No context enrichment needed (entities already in claim)")
 
             # Step 2: Search for relevant pages
             search_results = await self.search_service.search_for_evidence(search_query, max_results=max_sources * 2)

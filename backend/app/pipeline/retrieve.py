@@ -187,6 +187,9 @@ class EvidenceRetriever:
     def _apply_credibility_weighting(self, evidence_list: List[Dict[str, Any]], claim: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Apply credibility and recency weighting to evidence"""
         try:
+            # Store original count for safety check
+            original_evidence_count = len(evidence_list)
+
             for evidence in evidence_list:
                 source = evidence.get("source", "").lower()
                 url = evidence.get("url", "")
@@ -259,6 +262,14 @@ class EvidenceRetriever:
                 logger.info(
                     f"Source validation: {validation_stats['validated_count']}/{validation_stats['original_count']} sources retained, "
                     f"{validation_stats['filtered_count']} filtered out"
+                )
+
+            # Safety check: Warn if all evidence eliminated
+            if len(evidence_list) == 0 and original_evidence_count > 0:
+                logger.warning(
+                    f"All evidence eliminated by filters for claim. "
+                    f"This suggests filters are too aggressive. "
+                    f"Original count: {original_evidence_count}"
                 )
 
             logger.info("Applied credibility and recency weighting")

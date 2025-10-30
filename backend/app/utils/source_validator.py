@@ -25,7 +25,8 @@ class SourceValidator:
         # Low-quality or user-generated content
         self.low_quality_patterns = [
             r'\b(forum|discussion board|comment section)\b',
-            r'\b(blog post|personal blog|opinion piece|editorial)\b',
+            r'\b(personal blog|my blog)\b',  # More specific - removed "opinion piece" and "editorial"
+            r'\buser[ -]?(blog|opinion)\b',  # User-generated only
             r'\b(promotional|advertisement|marketing|press release)\b',
             r'\buser[ -]?(generated|submitted|uploaded)\b',
             r'\b(wiki\b|reddit|quora|yahoo answers)\b',
@@ -39,7 +40,9 @@ class SourceValidator:
             r'/resources/ks[0-9]',
             r'/exam-?prep/',
             r'/study-?guides?/',
-            r'/education/',  # Unless it's .gov or authoritative
+            r'/k-?12-?education/',  # More specific - K-12 educational materials
+            r'/student-?resources/',
+            r'/teacher-?guides?/',
         ]
 
         # Authoritative education domains (ALLOWED despite /education/ in URL)
