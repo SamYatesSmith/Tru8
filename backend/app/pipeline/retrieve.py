@@ -29,13 +29,23 @@ class EvidenceRetriever:
             'general': 0.6        # Other sources
         }
     
-    async def retrieve_evidence_for_claims(self, claims: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    async def retrieve_evidence_for_claims(
+        self,
+        claims: List[Dict[str, Any]],
+        exclude_source_url: Optional[str] = None
+    ) -> Dict[str, List[Dict[str, Any]]]:
         """Retrieve evidence for multiple claims concurrently"""
         try:
+            # Extract excluded domain if provided
+            excluded_domain = None
+            if exclude_source_url:
+                excluded_domain = self._extract_domain(exclude_source_url)
+                logger.info(f"Evidence retrieval will exclude source domain: {excluded_domain}")
+
             # Process claims with concurrency limit
             semaphore = asyncio.Semaphore(self.max_concurrent_claims)
             tasks = [
-                self._retrieve_evidence_for_single_claim(claim, semaphore)
+                self._retrieve_evidence_for_single_claim(claim, semaphore, excluded_domain)
                 for claim in claims
             ]
             
@@ -56,17 +66,21 @@ class EvidenceRetriever:
             logger.error(f"Evidence retrieval error: {e}")
             return {}
     
-    async def _retrieve_evidence_for_single_claim(self, claim: Dict[str, Any], 
-                                                 semaphore: asyncio.Semaphore) -> List[Dict[str, Any]]:
+    async def _retrieve_evidence_for_single_claim(
+        self,
+        claim: Dict[str, Any],
+        semaphore: asyncio.Semaphore,
+        excluded_domain: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Retrieve evidence for a single claim"""
         async with semaphore:
             try:
                 claim_text = claim.get("text", "")
                 claim_position = claim.get("position", 0)
-                
+
                 if not claim_text:
                     return []
-                
+
                 logger.info(f"Retrieving evidence for claim {claim_position}: {claim_text[:50]}...")
 
                 # Step 1: Search and extract evidence snippets with context enrichment
@@ -80,7 +94,8 @@ class EvidenceRetriever:
                     claim_text,
                     max_sources=self.max_sources_per_claim * 2,  # Get extra for filtering
                     subject_context=subject_context,
-                    key_entities=key_entities
+                    key_entities=key_entities,
+                    excluded_domain=excluded_domain
                 )
                 
                 if not evidence_snippets:
@@ -423,3 +438,24 @@ class EvidenceRetriever:
         except Exception as e:
             logger.error(f"Vector store retrieval error: {e}")
             return []
+
+    def _extract_domain(self, url: str) -> str:
+        """
+        Extract clean domain from URL for comparison.
+
+        Reuses logic from domain_capping.py for consistency.
+        """
+        from urllib.parse import urlparse
+
+        try:
+            parsed = urlparse(url)
+            domain = parsed.netloc
+
+            # Remove www. prefix
+            if domain.startswith('www.'):
+                domain = domain[4:]
+
+            return domain.lower()
+        except Exception as e:
+            logger.warning(f"Failed to extract domain from URL '{url}': {e}")
+            return ""

@@ -59,7 +59,8 @@ class EvidenceExtractor:
         claim: str,
         max_sources: int = 5,
         subject_context: str = None,
-        key_entities: list = None
+        key_entities: list = None,
+        excluded_domain: Optional[str] = None
     ) -> List[EvidenceSnippet]:
         """
         Extract evidence snippets for a specific claim.
@@ -69,6 +70,7 @@ class EvidenceExtractor:
             max_sources: Maximum number of evidence sources
             subject_context: Main subject/topic for context-aware search
             key_entities: Key entities to boost in search query
+            excluded_domain: Domain to exclude from search results (for self-citation filtering)
         """
         try:
             # Step 1: Build context-enriched search query
@@ -81,7 +83,18 @@ class EvidenceExtractor:
 
             # Step 2: Search for relevant pages
             search_results = await self.search_service.search_for_evidence(search_query, max_results=max_sources * 2)
-            
+
+            # Filter out excluded domain (self-citation prevention)
+            if excluded_domain:
+                original_count = len(search_results)
+                search_results = [
+                    result for result in search_results
+                    if self._extract_domain(result.url) != excluded_domain
+                ]
+                filtered_count = original_count - len(search_results)
+                if filtered_count > 0:
+                    logger.info(f"Excluded {filtered_count} search results from source domain: {excluded_domain}")
+
             if not search_results:
                 logger.warning(f"No search results for claim: {claim[:50]}...")
                 return []
@@ -378,3 +391,20 @@ class EvidenceExtractor:
 
         # Sort by combined score
         return sorted(snippets, key=scoring_function, reverse=True)
+
+    def _extract_domain(self, url: str) -> str:
+        """Extract clean domain from URL for comparison"""
+        from urllib.parse import urlparse
+
+        try:
+            parsed = urlparse(url)
+            domain = parsed.netloc
+
+            # Remove www. prefix
+            if domain.startswith('www.'):
+                domain = domain[4:]
+
+            return domain.lower()
+        except Exception as e:
+            logger.warning(f"Failed to extract domain from URL '{url}': {e}")
+            return ""

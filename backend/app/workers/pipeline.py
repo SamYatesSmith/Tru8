@@ -339,7 +339,9 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         stage_start = datetime.utcnow()
 
         try:
-            evidence = asyncio.run(retrieve_evidence_with_cache(claims, cache_service, factcheck_evidence))
+            # Extract source URL for self-citation filtering
+            source_url = content.get("metadata", {}).get("url")
+            evidence = asyncio.run(retrieve_evidence_with_cache(claims, cache_service, factcheck_evidence, source_url=source_url))
         except Exception as e:
             logger.error(f"Retrieve stage failed: {e}")
             # Try fallback evidence (development only)
@@ -761,7 +763,12 @@ async def search_factchecks_for_claims(claims: List[Dict[str, Any]]) -> Dict[str
 
     return factcheck_evidence
 
-async def retrieve_evidence_with_cache(claims: List[Dict[str, Any]], cache_service, factcheck_evidence: Dict = None) -> Dict[str, List[Dict[str, Any]]]:
+async def retrieve_evidence_with_cache(
+    claims: List[Dict[str, Any]],
+    cache_service,
+    factcheck_evidence: Dict = None,
+    source_url: Optional[str] = None
+) -> Dict[str, List[Dict[str, Any]]]:
     """Retrieve evidence using real search and embeddings with caching"""
     if factcheck_evidence is None:
         factcheck_evidence = {}
@@ -788,7 +795,10 @@ async def retrieve_evidence_with_cache(claims: List[Dict[str, Any]], cache_servi
         # Retrieve evidence for uncached claims
         if uncached_claims:
             logger.info(f"Retrieving evidence for {len(uncached_claims)} uncached claims")
-            new_evidence = await retriever.retrieve_evidence_for_claims(uncached_claims)
+            new_evidence = await retriever.retrieve_evidence_for_claims(
+                uncached_claims,
+                exclude_source_url=source_url
+            )
 
             # Cache the new evidence if cache is available
             if cache_service:
