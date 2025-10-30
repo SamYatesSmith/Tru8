@@ -191,7 +191,7 @@ class TestAbstentionLogic:
         assert abs(consensus - 0.6) < 0.01
 
     def test_consensus_strength_with_neutral_evidence(self):
-        """Test that neutral evidence is ignored in consensus calculation"""
+        """Test that neutral evidence counts as weak support (40% weight)"""
         evidence = [
             {'id': '1', 'credibility_score': 0.9, 'url': 'a.com'},
             {'id': '2', 'credibility_score': 0.8, 'url': 'b.com'},
@@ -200,12 +200,13 @@ class TestAbstentionLogic:
         signals = {
             'evidence_1_stance': 'supporting',
             'evidence_2_stance': 'supporting',
-            'evidence_3_stance': 'neutral'  # Should be ignored
+            'evidence_3_stance': 'neutral'  # Counts as 40% support
         }
 
         consensus = self.judge._calculate_consensus_strength(evidence, signals)
 
-        # Only evidence 1 and 2 count: (0.9 + 0.8) / (0.9 + 0.8) = 1.0
+        # Evidence 1: 0.9, Evidence 2: 0.8, Evidence 3: 0.7 * 0.4 = 0.28
+        # Total: (0.9 + 0.8 + 0.28) / (0.9 + 0.8 + 0.28) = 1.0
         assert consensus == 1.0
 
     def test_consensus_strength_with_no_stances(self):
@@ -226,6 +227,25 @@ class TestAbstentionLogic:
         consensus = self.judge._calculate_consensus_strength([], {})
 
         assert consensus == 0.0
+
+    def test_consensus_strength_with_all_neutral_evidence(self):
+        """Test that all-neutral evidence produces strong consensus (not 0%)"""
+        evidence = [
+            {'id': '1', 'credibility_score': 0.9, 'url': 'a.com'},
+            {'id': '2', 'credibility_score': 0.8, 'url': 'b.com'},
+            {'id': '3', 'credibility_score': 0.7, 'url': 'c.com'}
+        ]
+        signals = {
+            'evidence_1_stance': 'neutral',
+            'evidence_2_stance': 'neutral',
+            'evidence_3_stance': 'neutral'
+        }
+
+        consensus = self.judge._calculate_consensus_strength(evidence, signals)
+
+        # All neutral = (0.9 + 0.8 + 0.7) * 0.4 = 0.96
+        # Consensus = 0.96 / 0.96 = 1.0 (100% weak support)
+        assert consensus == 1.0
 
     # ========== INTEGRATION TESTS ==========
 

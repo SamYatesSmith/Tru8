@@ -443,11 +443,17 @@ Based on this analysis, provide your final judgment."""
         """
         Calculate consensus strength using credibility-weighted agreement.
 
+        Neutral stances are counted as weak support (40% weight) to avoid
+        falsely flagging tangentially-related evidence as "conflicting opinion".
+
         Returns:
             Float 0-1 representing strength of consensus
         """
         if not evidence:
             return 0.0
+
+        # Weight for neutral evidence (weak support, not disagreement)
+        NEUTRAL_SUPPORT_WEIGHT = 0.4
 
         # Weight votes by credibility score
         supporting_weight = 0.0
@@ -457,13 +463,16 @@ Based on this analysis, provide your final judgment."""
             cred_score = ev.get('credibility_score', 0.6)
             ev_id = ev.get('id', '')
 
-            # Get stance from verification signals
-            stance = verification_signals.get(f'evidence_{ev_id}_stance', 'neutral')
+            # Get stance from verification signals (None if missing)
+            stance = verification_signals.get(f'evidence_{ev_id}_stance')
 
             if stance == 'supporting':
                 supporting_weight += cred_score
             elif stance == 'contradicting':
                 contradicting_weight += cred_score
+            elif stance == 'neutral':
+                # Neutral evidence that discusses topic = weak support
+                supporting_weight += cred_score * NEUTRAL_SUPPORT_WEIGHT
 
         total_weight = supporting_weight + contradicting_weight
 
