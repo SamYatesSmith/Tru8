@@ -97,6 +97,7 @@ class Settings(BaseSettings):
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
+    OUTSTANDING_SOURCE_THRESHOLD: float = Field(0.95, env="OUTSTANDING_SOURCE_THRESHOLD")
 
     # Abstention Thresholds (Phase 3)
     # Lowered from 0.70 -> 0.60 and 0.65 -> 0.50 to reduce fence-sitting

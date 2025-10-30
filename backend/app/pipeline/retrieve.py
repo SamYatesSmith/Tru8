@@ -252,7 +252,11 @@ class EvidenceRetriever:
                     max_per_domain=settings.MAX_EVIDENCE_PER_DOMAIN,
                     max_domain_ratio=settings.DOMAIN_DIVERSITY_THRESHOLD
                 )
-                evidence_list = capper.apply_caps(evidence_list, target_count=self.max_sources_per_claim)
+                evidence_list = capper.apply_caps(
+                    evidence_list,
+                    target_count=self.max_sources_per_claim,
+                    outstanding_threshold=getattr(settings, 'OUTSTANDING_SOURCE_THRESHOLD', 0.95)
+                )
 
             # Apply source validation if enabled (Phase 1)
             if settings.ENABLE_SOURCE_VALIDATION:
