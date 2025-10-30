@@ -101,6 +101,59 @@ def update_check_status_sync(check_id: str, status: str, error_message: str = No
     except Exception as e:
         logger.error(f"Failed to update check status: {e}")
 
+def parse_published_date(date_value: Any) -> Optional[datetime]:
+    """
+    Parse published_date from various formats.
+
+    Args:
+        date_value: Can be datetime, ISO string, or other date formats
+
+    Returns:
+        datetime object or None if unparseable
+    """
+    if date_value is None:
+        return None
+
+    # Already a datetime
+    if isinstance(date_value, datetime):
+        return date_value
+
+    # String date
+    if isinstance(date_value, str):
+        # Try ISO format (most common from APIs)
+        try:
+            # Handle both "2025-01-28" and "2025-01-28T10:30:00Z"
+            return datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+        except:
+            pass
+
+        # Try common formats
+        import re
+        formats = [
+            "%Y-%m-%d",           # 2025-01-28
+            "%Y/%m/%d",           # 2025/01/28
+            "%d-%m-%Y",           # 28-01-2025
+            "%B %d, %Y",          # January 28, 2025
+            "%b %d, %Y",          # Jan 28, 2025
+            "%Y-%m-%dT%H:%M:%S"   # 2025-01-28T10:30:00
+        ]
+
+        for fmt in formats:
+            try:
+                return datetime.strptime(date_value, fmt)
+            except:
+                continue
+
+        # Extract year and assume Jan 1 (fallback for "2025" or "Published in 2025")
+        match = re.search(r"20\d{2}", date_value)
+        if match:
+            year = int(match.group(0))
+            return datetime(year, 1, 1)
+
+    # Can't parse
+    logger.warning(f"Could not parse published_date: {date_value} (type: {type(date_value)})")
+    return None
+
 def save_check_results_sync(check_id: str, results: Dict[str, Any]):
     """Save pipeline results to database (synchronous for Celery)"""
     try:
@@ -164,7 +217,7 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                         title=ev_data.get("title", ""),
                         snippet=ev_data.get("snippet", ev_data.get("text", "")),
                         credibility_score=ev_data.get("credibility_score", 0.6),
-                        published_date=None,  # Parse if needed
+                        published_date=parse_published_date(ev_data.get("published_date")),
                         relevance_score=ev_data.get("relevance_score", 0.0),
 
                         # Citation Precision (Phase 2)
