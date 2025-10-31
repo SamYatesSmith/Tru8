@@ -86,6 +86,7 @@ class ApiClient {
       content?: string;
       url?: string;
       file_path?: string;
+      user_query?: string;  // Search Clarity feature
     },
     token?: string | null
   ) {

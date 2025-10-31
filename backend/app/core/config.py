@@ -78,6 +78,10 @@ class Settings(BaseSettings):
     ENABLE_CITATION_ARCHIVAL: bool = Field(False, env="ENABLE_CITATION_ARCHIVAL")
     ENABLE_VERDICT_MONITORING: bool = Field(False, env="ENABLE_VERDICT_MONITORING")
 
+    # Search Clarity Feature (MVP)
+    ENABLE_SEARCH_CLARITY: bool = Field(default=True, env="ENABLE_SEARCH_CLARITY")
+    QUERY_CONFIDENCE_THRESHOLD: float = Field(default=40.0, env="QUERY_CONFIDENCE_THRESHOLD")
+
     # Phase 1.5 - Semantic Intelligence
     ENABLE_FACTCHECK_API: bool = Field(True, env="ENABLE_FACTCHECK_API")
     ENABLE_TEMPORAL_CONTEXT: bool = Field(True, env="ENABLE_TEMPORAL_CONTEXT")

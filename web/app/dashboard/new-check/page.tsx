@@ -18,6 +18,7 @@ export default function NewCheckPage() {
   const [activeTab, setActiveTab] = useState<TabType>('url');
   const [urlInput, setUrlInput] = useState('');
   const [textInput, setTextInput] = useState('');
+  const [queryInput, setQueryInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,8 +70,9 @@ export default function NewCheckPage() {
 
       const result = await apiClient.createCheck({
         input_type: activeTab,
-        url: activeTab === 'url' ? urlInput : undefined,
-        content: activeTab === 'text' ? textInput : undefined,
+        url: activeTab === 'url' ? urlInput.trim() : undefined,
+        content: activeTab === 'text' ? textInput.trim() : undefined,
+        user_query: queryInput.trim() || undefined,  // Search Clarity
       }, token) as any;
 
       // Redirect to check detail page
@@ -193,6 +195,33 @@ export default function NewCheckPage() {
               </div>
             </div>
           )}
+
+          {/* Search Clarity Field - Always visible after input selection */}
+          <div className="border-t border-slate-700 pt-6 mt-2">
+            <label htmlFor="query-input" className="block text-sm font-semibold text-white mb-2">
+              💡 Search Clarity (Optional)
+            </label>
+            <textarea
+              id="query-input"
+              value={queryInput}
+              onChange={(e) => setQueryInput(e.target.value)}
+              placeholder="Have a Specific Question, relating to the article you've selected, text you've added or voice note that you recorded? Ask here, and we'll ensure that your query is clarified.
+
+Leave this text field blank to proceed for a standard check on your article."
+              maxLength={200}
+              rows={3}
+              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:border-[#f57a07] focus:outline-none transition-colors resize-vertical"
+              disabled={isSubmitting}
+            />
+            <div className="flex justify-between items-center mt-2">
+              <p className="text-sm text-slate-400">
+                Optional: Ask what you want to know
+              </p>
+              <p className={`text-sm ${queryInput.length > 200 ? 'text-red-400' : 'text-slate-400'}`}>
+                {queryInput.length} / 200 characters
+              </p>
+            </div>
+          </div>
 
           {/* Error Message */}
           {error && (

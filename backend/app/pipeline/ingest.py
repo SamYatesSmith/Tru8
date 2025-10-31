@@ -3,7 +3,7 @@ import asyncio
 from typing import Dict, Any, Optional
 from urllib.parse import urlparse, parse_qs
 import re
-import httpx
+import requests
 import trafilatura
 from readability import Document
 import bleach
@@ -44,87 +44,99 @@ class UrlIngester(BaseIngester):
     async def process(self, url: str) -> Dict[str, Any]:
         """Fetch and extract content from URL"""
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            # Use synchronous requests library to avoid asyncio DNS issues on Windows
+            # Run in thread pool to keep async interface
+            loop = asyncio.get_event_loop()
+
+            def fetch_url():
                 # DISABLED: robots.txt checker was incorrectly blocking legitimate requests
-                # The naive implementation incorrectly parsed multi-agent robots.txt files
                 # For MVP: We access publicly available content for fact-checking purposes (fair use)
-                # TODO: Implement proper robots.txt parser post-MVP if needed
                 # Note: robots.txt is advisory, not legally binding. We respect paywalls (HTTP 402).
 
-                # Fetch content
-                response = await client.get(url, follow_redirects=True)
-                response.raise_for_status()
-                
-                # Extract with trafilatura (primary)
-                extracted = trafilatura.extract(
-                    response.text,
-                    include_comments=False,
-                    include_tables=False,
-                    with_metadata=True,
-                    url=url
+                session = requests.Session()
+                session.max_redirects = 5
+                response = session.get(
+                    url,
+                    timeout=self.timeout,
+                    allow_redirects=True,
+                    headers={'User-Agent': 'Tru8Bot/1.0 (Fact-checking service)'}
                 )
-                
-                if extracted:
-                    # Parse metadata (removed fast=True for compatibility)
-                    metadata = trafilatura.extract_metadata(response.text)
+                response.raise_for_status()
+                return response
 
-                    content = await self.sanitize_content(extracted)
+            # Fetch content in thread pool to avoid blocking
+            response = await loop.run_in_executor(None, fetch_url)
 
-                    # Check if content is actually usable
-                    if not content or len(content.strip()) < 50:
-                        # Fall through to readability fallback
-                        pass
-                    else:
-                        return {
-                            "success": True,
-                            "content": content,
-                            "metadata": {
-                                "title": metadata.title if metadata else "",
-                                "author": metadata.author if metadata else "",
-                                "date": metadata.date if metadata else "",
-                                "url": url,
-                                "word_count": len(content.split())
-                            }
-                        }
+            # Extract with trafilatura (primary)
+            extracted = trafilatura.extract(
+                response.text,
+                include_comments=False,
+                include_tables=False,
+                with_metadata=True,
+                url=url
+            )
 
-                # Fallback to readability
-                doc = Document(response.text)
-                summary = doc.summary()
+            if extracted:
+                # Parse metadata (removed fast=True for compatibility)
+                metadata = trafilatura.extract_metadata(response.text)
 
-                if not summary:
-                    return {
-                        "success": False,
-                        "error": "Could not extract content from URL - both trafilatura and readability failed",
-                        "metadata": {"url": url}
-                    }
+                content = await self.sanitize_content(extracted)
 
-                content = await self.sanitize_content(summary)
-
-                # Final check - ensure we got actual content
+                # Check if content is actually usable
                 if not content or len(content.strip()) < 50:
+                    # Fall through to readability fallback
+                    pass
+                else:
                     return {
-                        "success": False,
-                        "error": "Extracted content too short - URL may be behind paywall or block bot access",
-                        "metadata": {"url": url}
+                        "success": True,
+                        "content": content,
+                        "metadata": {
+                            "title": metadata.title if metadata else "",
+                            "author": metadata.author if metadata else "",
+                            "date": metadata.date if metadata else "",
+                            "url": url,
+                            "word_count": len(content.split())
+                        }
                     }
 
+            # Fallback to readability
+            doc = Document(response.text)
+            summary = doc.summary()
+
+            if not summary:
                 return {
-                    "success": True,
-                    "content": content,
-                    "metadata": {
-                        "title": doc.title(),
-                        "url": url,
-                        "word_count": len(content.split()),
-                        "extraction_method": "readability"
-                    }
+                    "success": False,
+                    "error": "Could not extract content from URL - both trafilatura and readability failed",
+                    "metadata": {"url": url}
                 }
-                
-        except httpx.TimeoutException:
+
+            content = await self.sanitize_content(summary)
+
+            # Final check - ensure we got actual content
+            if not content or len(content.strip()) < 50:
+                return {
+                    "success": False,
+                    "error": "Extracted content too short - URL may be behind paywall or block bot access",
+                    "metadata": {"url": url}
+                }
+
+            return {
+                "success": True,
+                "content": content,
+                "metadata": {
+                    "title": doc.title(),
+                    "url": url,
+                    "word_count": len(content.split()),
+                    "extraction_method": "readability"
+                }
+            }
+
+        except requests.Timeout:
             logger.error(f"Timeout fetching URL: {url}")
             return {"success": False, "error": "Request timeout", "content": ""}
-            
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 402:
+
+        except requests.HTTPError as e:
+            if e.response and e.response.status_code == 402:
                 # Paywall detected
                 return {
                     "success": False,
@@ -133,30 +145,11 @@ class UrlIngester(BaseIngester):
                     "metadata": {"paywall": True}
                 }
             logger.error(f"HTTP error fetching URL {url}: {e}")
-            return {"success": False, "error": f"HTTP {e.response.status_code}", "content": ""}
+            return {"success": False, "error": f"HTTP {e.response.status_code if e.response else 'error'}", "content": ""}
             
         except Exception as e:
             logger.error(f"Error processing URL {url}: {e}")
             return {"success": False, "error": str(e), "content": ""}
-    
-    async def _check_robots_txt(self, client: httpx.AsyncClient, url: str) -> bool:
-        """Check if URL is allowed by robots.txt"""
-        try:
-            parsed_url = urlparse(url)
-            robots_url = f"{parsed_url.scheme}://{parsed_url.netloc}/robots.txt"
-            
-            response = await client.get(robots_url, timeout=5)
-            if response.status_code == 200:
-                # Simple check for Disallow: /
-                robots_content = response.text.lower()
-                if "disallow: /" in robots_content and "user-agent: *" in robots_content:
-                    return False
-            
-            return True
-            
-        except Exception:
-            # If we can't fetch robots.txt, assume allowed
-            return True
 
 class ImageIngester(BaseIngester):
     """Extract text from images using OCR"""

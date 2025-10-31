@@ -115,7 +115,8 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
         return (
           <div
             key={claim.id}
-            className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 space-y-4"
+            id={`claim-${claim.position}`}
+            className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 space-y-4 scroll-mt-4"
           >
             {/* Claim Type & Time Sensitivity Indicators */}
             {(claim.claimType || claim.isTimeSensitive) && (

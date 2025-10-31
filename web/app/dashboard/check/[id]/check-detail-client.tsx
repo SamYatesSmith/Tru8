@@ -10,6 +10,7 @@ import { ProgressSection } from './components/progress-section';
 import { ClaimsSection } from './components/claims-section';
 import { ShareSection } from './components/share-section';
 import { ErrorState } from './components/error-state';
+import { ClarityResponseCard } from './components/clarity-response-card';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -69,6 +70,16 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
 
       {checkData.status === 'completed' && checkData.claims && checkData.claims.length > 0 && (
         <>
+          {checkData.userQuery && (
+            <ClarityResponseCard
+              userQuery={checkData.userQuery}
+              queryResponse={checkData.queryResponse}
+              queryConfidence={checkData.queryConfidence}
+              querySources={checkData.querySources}
+              relatedClaims={checkData.queryRelatedClaims}
+              claims={checkData.claims}
+            />
+          )}
           <ClaimsSection claims={checkData.claims} />
           {checkData.overallSummary && checkData.credibilityScore !== undefined && (
             <OverallSummaryCard check={checkData} />

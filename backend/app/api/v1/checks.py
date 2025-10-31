@@ -42,6 +42,7 @@ class CreateCheckRequest(BaseModel):
     content: Optional[str] = None
     url: Optional[str] = None
     file_path: Optional[str] = None  # For uploaded files
+    user_query: Optional[str] = None  # Search Clarity feature
 
 @router.post("/upload")
 async def upload_file(
@@ -145,7 +146,32 @@ async def create_check(
 
     if request.input_type == "video" and not request.url:
         raise HTTPException(status_code=400, detail="URL is required for video input type")
-    
+
+    # Sanitize inputs (trim whitespace)
+    if request.url:
+        request.url = request.url.strip()
+    if request.content:
+        request.content = request.content.strip()
+
+    # Search Clarity validation
+    if request.user_query:
+        # Check feature flag
+        if not settings.ENABLE_SEARCH_CLARITY:
+            raise HTTPException(
+                status_code=503,
+                detail="Search Clarity feature is temporarily disabled"
+            )
+
+        # Validate query length
+        if len(request.user_query) > 200:
+            raise HTTPException(
+                status_code=400,
+                detail="Query must be 200 characters or less"
+            )
+
+        # Sanitize query (prevent prompt injection)
+        request.user_query = request.user_query.strip()
+
     # Create check record
     check = Check(
         id=str(uuid.uuid4()),
@@ -158,7 +184,8 @@ async def create_check(
         }),
         input_url=request.url,
         status="pending",
-        credits_used=1
+        credits_used=1,
+        user_query=request.user_query  # Search Clarity feature
     )
     
     session.add(check)
@@ -190,7 +217,8 @@ async def create_check(
                 "input_type": request.input_type,
                 "content": request.content,
                 "url": request.url,
-                "file_path": request.file_path
+                "file_path": request.file_path,
+                "user_query": request.user_query  # Search Clarity feature
             }
         )
         logger.info(f"Task dispatched successfully: {task.id} for check {check.id}")
@@ -366,6 +394,12 @@ async def get_check(
         "claimsSupported": check.claims_supported,
         "claimsContradicted": check.claims_contradicted,
         "claimsUncertain": check.claims_uncertain,
+        # Search Clarity fields
+        "userQuery": check.user_query,
+        "queryResponse": check.query_response,
+        "queryConfidence": check.query_confidence,
+        "querySources": check.query_sources.get("sources", []) if check.query_sources else None,
+        "queryRelatedClaims": check.query_sources.get("related_claims", []) if check.query_sources else None,
         "claims": claims_data,
         "createdAt": check.created_at.isoformat(),
         "completedAt": check.completed_at.isoformat() if check.completed_at else None,

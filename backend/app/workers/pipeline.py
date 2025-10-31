@@ -130,6 +130,19 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
             check.claims_contradicted = results.get("claims_contradicted", 0)
             check.claims_uncertain = results.get("claims_uncertain", 0)
 
+            # Save Search Clarity query response fields (if present)
+            query_data = results.get("query_response")
+            if query_data:
+                check.query_response = query_data.get("answer")
+                check.query_confidence = query_data.get("confidence")
+
+                # Store source objects and related claims as JSON (SQLAlchemy handles serialization)
+                query_metadata = {
+                    "sources": query_data.get("source_ids", []),
+                    "related_claims": query_data.get("related_claims", [])
+                }
+                check.query_sources = query_metadata
+
             # Save claims and evidence
             claims_data = results.get("claims", [])
             logger.info(f"Saving {len(claims_data)} claims for check {check_id}")
@@ -369,6 +382,47 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         
         stage_timings["judge"] = (datetime.utcnow() - stage_start).total_seconds()
 
+        # Stage 5.5: Query Answering (OPTIONAL - if user_query exists)
+        query_response_data = None
+        if input_data.get("user_query") and settings.ENABLE_SEARCH_CLARITY:
+            self.update_state(state="PROGRESS", meta={"stage": "query", "progress": 85})
+            stage_start = datetime.utcnow()
+
+            try:
+                from app.pipeline.query_answer import get_query_answerer
+
+                user_query = input_data.get("user_query")
+                logger.info(f"Answering user query: {user_query}")
+
+                # Call async function using asyncio.run (same pattern as ingest stage)
+                async def run_query_answering():
+                    query_answerer = await get_query_answerer()
+                    return await query_answerer.answer_query(
+                        user_query=user_query,
+                        claims=claims,
+                        evidence_by_claim=evidence,
+                        original_text=content.get("content", "")[:1000]  # First 1000 chars for context
+                    )
+
+                query_result = asyncio.run(run_query_answering())
+
+                # Store query response
+                query_response_data = {
+                    "answer": query_result["answer"],
+                    "confidence": query_result["confidence"],
+                    "source_ids": query_result["source_ids"],  # Already full objects
+                    "related_claims": query_result["related_claims"],
+                    "found_answer": query_result["found_answer"]
+                }
+
+                logger.info(f"Query answered: confidence={query_result['confidence']}%, found_answer={query_result['found_answer']}")
+
+            except Exception as e:
+                logger.error(f"Query answering failed (non-critical): {e}", exc_info=True)
+                query_response_data = None
+
+            stage_timings["query"] = (datetime.utcnow() - stage_start).total_seconds()
+
         # Stage 6: Enhanced Explainability (Phase 2, Week 6.5-7.5)
         if settings.ENABLE_ENHANCED_EXPLAINABILITY:
             from app.utils.explainability import ExplainabilityEnhancer
@@ -469,6 +523,7 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             "claims_uncertain": assessment["claims_uncertain"],
             "processing_time_ms": processing_time_ms,
             "ingest_metadata": content.get("metadata", {}),
+            "query_response": query_response_data,  # Search Clarity
             "pipeline_stats": {
                 "claims_extracted": len(claims),
                 "evidence_sources": sum(len(ev) for ev in evidence.values()),

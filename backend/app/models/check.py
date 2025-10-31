@@ -30,6 +30,28 @@ class Check(SQLModel, table=True):
     claims_contradicted: Optional[int] = Field(default=0, description="Count of contradicted claims")
     claims_uncertain: Optional[int] = Field(default=0, description="Count of uncertain claims")
 
+    # Search Clarity fields (MVP Feature)
+    user_query: Optional[str] = Field(
+        default=None,
+        max_length=200,
+        description="User's specific question about the content"
+    )
+    query_response: Optional[str] = Field(
+        default=None,
+        description="Answer to user's query based on evidence"
+    )
+    query_confidence: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Confidence in query answer (0-100)"
+    )
+    query_sources: Optional[str] = Field(
+        default=None,
+        sa_column=Column(JSON),
+        description="Evidence sources used for query response (JSON array)"
+    )
+
     # Relationships
     user: "User" = Relationship(back_populates="checks")
     claims: List["Claim"] = Relationship(back_populates="check")
