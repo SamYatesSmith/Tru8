@@ -54,8 +54,23 @@ class NLIVerifier:
         self.device = None  # Will be set when model is loaded
         self._lock = asyncio.Lock()
         self.cache_service = None
-        
+
         logger.info("NLI Verifier initialized (models will be loaded on first use)")
+
+    @property
+    def nli_model(self):
+        """Alias for self.model to support test mocking"""
+        return self.model
+
+    @nli_model.setter
+    def nli_model(self, value):
+        """Setter for nli_model alias"""
+        self.model = value
+
+    @nli_model.deleter
+    def nli_model(self):
+        """Deleter for nli_model alias"""
+        self.model = None
     
     async def initialize(self):
         """Initialize the NLI model and tokenizer"""
@@ -92,7 +107,58 @@ class NLIVerifier:
         except Exception as e:
             logger.error(f"Failed to initialize NLI verifier: {e}")
             raise
-    
+
+    async def verify_single(self, claim, evidence):
+        """
+        Helper method for testing: Verify a single claim against a single evidence
+
+        Args:
+            claim: Claim object with .text attribute
+            evidence: Evidence object with .text attribute
+
+        Returns:
+            dict with stance, confidence, and scores
+        """
+        # Convert claim and evidence objects to required format
+        claim_text = getattr(claim, 'text', str(claim))
+        evidence_text = getattr(evidence, 'text', str(evidence))
+
+        # Call the main verification method
+        evidence_dict = {"text": evidence_text}
+        results = await self.verify_claim_against_evidence(claim_text, [evidence_dict])
+
+        if not results:
+            return {
+                "stance": "NEUTRAL",
+                "confidence": 0.0,
+                "scores": {
+                    "entailment": 0.33,
+                    "neutral": 0.34,
+                    "contradiction": 0.33
+                }
+            }
+
+        # Convert result to test-expected format
+        result = results[0]
+
+        # Map relationship to stance label (lowercase to match StanceLabel enum)
+        stance_map = {
+            "entails": "supports",
+            "contradicts": "contradicts",
+            "neutral": "neutral"
+        }
+        stance = stance_map.get(result.relationship, "neutral")
+
+        return {
+            "stance": stance,
+            "confidence": result.confidence,
+            "scores": {
+                "entailment": result.entailment_score,
+                "neutral": result.neutral_score,
+                "contradiction": result.contradiction_score
+            }
+        }
+
     def _make_cache_key(self, claim: str, evidence: str) -> str:
         """Create cache key for claim-evidence pair"""
         content = f"{claim}|||{evidence}"

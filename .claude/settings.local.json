@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(pip install:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(pytest:*)"
     ],
     "deny": [],
     "ask": []
