@@ -91,3 +91,60 @@ Traceback (most recent call last):
     async def _check_robots_txt(self, client: httpx.AsyncClient, url: str) -> bool:
                                               ^^^^^
 NameError: name 'httpx' is not defined
+
+
+
+
+
+------------------------------------------
+
+
+
+
+
+PS C:\Users\projects\Tru8> cd web
+PS C:\Users\projects\Tru8\web> npm run dev:clean
+
+> tru8-web@0.1.0 dev:clean
+> if exist .next rmdir /s /q .next && next dev
+
+  ▲ Next.js 14.2.13
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 2s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 657ms (182 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 4s (1026 modules)
+ GET / 200 in 4578ms
+ ✓ Compiled in 571ms (429 modules)
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 548ms (1121 modules)
+ ⨯ lib\api.ts (50:13) @ ApiClient.request
+ ⨯ Error: HTTP 500: Internal Server Error
+    at ApiClient.request (./lib/api.ts:43:19)
+    at async Promise.all (index 2)
+    at async DashboardPage (./app/dashboard/page.tsx:36:50)
+digest: "1215667219"
+  48 |     if (!response.ok) {
+  49 |       const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}: ${response.statusText}` }));
+> 50 |       throw new Error(error.detail || `API error: ${response.status}`);
+     |             ^
+  51 |     }
+  52 |
+  53 |     return response.json();
+ ⨯ lib\api.ts (50:13) @ ApiClient.request
+ ⨯ Error: HTTP 500: Internal Server Error
+    at ApiClient.request (./lib/api.ts:43:19)
+    at async DashboardLayout (./app/dashboard/layout.tsx:27:18)
+digest: "2951851899"
+  48 |     if (!response.ok) {
+  49 |       const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}: ${response.statusText}` }));
+> 50 |       throw new Error(error.detail || `API error: ${response.status}`);
+     |             ^
+  51 |     }
+  52 |
+  53 |     return response.json();
+ GET /dashboard?_rsc=3y0gy 200 in 1514ms
