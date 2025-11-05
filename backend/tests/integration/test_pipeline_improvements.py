@@ -104,14 +104,16 @@ class TestPipelineWithAllFeatures:
         - Temporal context analyzed
         - Decision trails generated
         """
-        from app.pipeline.extract import extract_claims
-        from app.pipeline.retrieve import retrieve_evidence
-        from app.pipeline.verify import verify_evidence
-        from app.pipeline.judge import generate_judgment
+        from app.pipeline.extract import ClaimExtractor
+        from app.pipeline.retrieve import EvidenceRetriever
+        from app.pipeline.verify import ClaimVerifier
+        from app.pipeline.judge import PipelineJudge
         from app.utils.explainability import ExplainabilityEnhancer
 
         # Extract claims
-        claims = await extract_claims(sample_text_input, "text")
+        extractor = ClaimExtractor()
+        extract_result = await extractor.extract_claims(sample_text_input)
+        claims = extract_result.get("claims", [])
 
         # Should extract 4 claims
         assert len(claims) >= 4
@@ -136,10 +138,14 @@ class TestPipelineWithAllFeatures:
         # Test evidence retrieval with all features (use factual claim)
         factual_claim = factual_claims[0]
 
-        with patch('app.pipeline.retrieve.search_web') as mock_search:
-            mock_search.return_value = mock_search_results
+        # Prepare claim dict for retriever
+        claim_dict = {"text": factual_claim["text"], "position": 0}
 
-            evidence = await retrieve_evidence(factual_claim["text"], factual_claim)
+        retriever = EvidenceRetriever()
+
+        with patch.object(retriever.search_service, 'search_for_evidence', return_value=mock_search_results):
+            result = await retriever.retrieve_evidence_for_claims([claim_dict])
+            evidence = result.get("0", [])
 
             # Evidence should be deduplicated (CNN duplicate removed)
             assert len(evidence) <= 4, "Duplicate evidence should be removed"
@@ -156,11 +162,17 @@ class TestPipelineWithAllFeatures:
             assert any(e.get("parent_company") for e in evidence)
 
         # Test verification
-        verifications = await verify_evidence(factual_claim["text"], evidence)
+        verifier = ClaimVerifier()
+        verifications_result = await verifier.verify_claim_against_evidence(factual_claim["text"], evidence)
+        verifications = [{"label": v.stance.value if hasattr(v, 'stance') else "NEUTRAL"} for v in verifications_result]
         assert len(verifications) > 0
 
         # Test judgment with explainability
-        judgment = await generate_judgment(factual_claim["text"], evidence, verifications)
+        judge = PipelineJudge()
+        # Create NLI results format expected by judge
+        nli_results = {"evidence_stances": verifications_result}
+        judgment_result = await judge.judge_claim(claim_dict, nli_results, evidence)
+        judgment = {"verdict": judgment_result.verdict, "confidence": judgment_result.confidence}
 
         # Should have enhanced explainability fields
         assert "confidence_breakdown" in judgment or "confidence" in judgment
@@ -198,11 +210,13 @@ class TestPipelineWithAllFeatures:
         - Temporal markers extracted
         - Evidence filtered by temporal relevance
         """
-        from app.pipeline.extract import extract_claims
-        from app.pipeline.retrieve import retrieve_evidence
+        from app.pipeline.extract import ClaimExtractor
+        from app.pipeline.retrieve import EvidenceRetriever
 
         # Extract claims
-        claims = await extract_claims(sample_time_sensitive_input, "text")
+        extractor = ClaimExtractor()
+        extract_result = await extractor.extract_claims(sample_time_sensitive_input)
+        claims = extract_result.get("claims", [])
 
         # Should detect time-sensitive claims
         time_sensitive_claims = [c for c in claims if c.get("is_time_sensitive")]
@@ -218,8 +232,10 @@ class TestPipelineWithAllFeatures:
         # Test evidence retrieval with temporal filtering
         ts_claim = time_sensitive_claims[0]
 
-        with patch('app.pipeline.retrieve.search_web') as mock_search:
-            mock_search.return_value = [
+        retriever = EvidenceRetriever()
+        ts_claim_dict = {"text": ts_claim["text"], "position": 0}
+
+        mock_temporal_results = [
                 {
                     "source": "Reuters",
                     "url": "https://reuters.com/markets/crash",
@@ -236,7 +252,9 @@ class TestPipelineWithAllFeatures:
                 }
             ]
 
-            evidence = await retrieve_evidence(ts_claim["text"], ts_claim)
+        with patch.object(retriever.search_service, 'search_for_evidence', return_value=mock_temporal_results):
+            result = await retriever.retrieve_evidence_for_claims([ts_claim_dict])
+            evidence = result.get("0", [])
 
             # Recent evidence should be prioritized
             if len(evidence) > 0:
@@ -258,12 +276,14 @@ class TestPipelineWithAllFeatures:
         - Uncertainty explanations provided
         - Pipeline doesn't fail on non-verifiable content
         """
-        from app.pipeline.extract import extract_claims
+        from app.pipeline.extract import ClaimExtractor
         from app.utils.explainability import ExplainabilityEnhancer
 
         opinion_text = "I think chocolate ice cream is the best flavor in the world."
 
-        claims = await extract_claims(opinion_text, "text")
+        extractor = ClaimExtractor()
+        extract_result = await extractor.extract_claims(opinion_text)
+        claims = extract_result.get("claims", [])
 
         assert len(claims) >= 1
         opinion_claim = claims[0]
@@ -305,7 +325,7 @@ class TestPipelineWithAllFeatures:
         - Syndication flagging
         - Original source tracking
         """
-        from app.pipeline.retrieve import retrieve_evidence
+        from app.pipeline.retrieve import EvidenceRetriever
         from app.utils.deduplication import ContentDeduplicator
 
         deduplicator = ContentDeduplicator()
@@ -335,12 +355,14 @@ class TestPipelineWithAllFeatures:
         - Fact-check metadata populated
         - Fact-checks ranked higher
         """
-        from app.pipeline.retrieve import retrieve_evidence
+        from app.pipeline.retrieve import EvidenceRetriever
 
-        with patch('app.pipeline.retrieve.search_web') as mock_search:
-            mock_search.return_value = mock_search_results
+        retriever = EvidenceRetriever()
+        claim_dict = {"text": "Earth is round", "position": 0}
 
-            evidence = await retrieve_evidence("Earth is round", {})
+        with patch.object(retriever.search_service, 'search_for_evidence', return_value=mock_search_results):
+            result = await retriever.retrieve_evidence_for_claims([claim_dict])
+            evidence = result.get("0", [])
 
             # Find Snopes fact-check
             factchecks = [e for e in evidence if e.get("is_factcheck")]
@@ -460,12 +482,14 @@ class TestPipelineWithAllFeatures:
         be done with production-scale infrastructure.
         """
         import time
-        from app.pipeline.extract import extract_claims
+        from app.pipeline.extract import ClaimExtractor
 
         start_time = time.time()
 
         # Extract claims (lightest stage to test overhead)
-        claims = await extract_claims(sample_text_input, "text")
+        extractor = ClaimExtractor()
+        extract_result = await extractor.extract_claims(sample_text_input)
+        claims = extract_result.get("claims", [])
 
         end_time = time.time()
         duration = end_time - start_time
@@ -485,18 +509,22 @@ class TestFeatureToggling:
     @pytest.mark.asyncio
     async def test_deduplication_toggle(self, monkeypatch):
         """Test: Deduplication only works when enabled"""
-        from app.pipeline.retrieve import retrieve_evidence
+        from app.pipeline.retrieve import EvidenceRetriever
 
         # Disabled
         monkeypatch.setenv("ENABLE_EVIDENCE_DEDUPLICATION", "false")
 
-        with patch('app.pipeline.retrieve.search_web') as mock_search:
-            mock_search.return_value = [
-                {"url": "a.com", "title": "Same", "snippet": "Same content"},
-                {"url": "b.com", "title": "Same", "snippet": "Same content"}
-            ]
+        retriever = EvidenceRetriever()
+        claim_dict = {"text": "test", "position": 0}
 
-            evidence = await retrieve_evidence("test", {})
+        mock_dup_results = [
+            {"url": "a.com", "title": "Same", "snippet": "Same content"},
+            {"url": "b.com", "title": "Same", "snippet": "Same content"}
+        ]
+
+        with patch.object(retriever.search_service, 'search_for_evidence', return_value=mock_dup_results):
+            result = await retriever.retrieve_evidence_for_claims([claim_dict])
+            evidence = result.get("0", [])
 
             # Should NOT deduplicate when disabled
             # (both sources present, no content_hash)
@@ -505,12 +533,14 @@ class TestFeatureToggling:
     @pytest.mark.asyncio
     async def test_classification_toggle(self, monkeypatch):
         """Test: Claim classification only works when enabled"""
-        from app.pipeline.extract import extract_claims
+        from app.pipeline.extract import ClaimExtractor
 
         # Disabled
         monkeypatch.setenv("ENABLE_CLAIM_CLASSIFICATION", "false")
 
-        claims = await extract_claims("I think this is great", "text")
+        extractor = ClaimExtractor()
+        extract_result = await extractor.extract_claims("I think this is great")
+        claims = extract_result.get("claims", [])
 
         # Should NOT have classification fields when disabled
         if len(claims) > 0:
@@ -519,12 +549,14 @@ class TestFeatureToggling:
     @pytest.mark.asyncio
     async def test_temporal_toggle(self, monkeypatch):
         """Test: Temporal analysis only works when enabled"""
-        from app.pipeline.extract import extract_claims
+        from app.pipeline.extract import ClaimExtractor
 
         # Disabled
         monkeypatch.setenv("ENABLE_TEMPORAL_CONTEXT", "false")
 
-        claims = await extract_claims("This happened yesterday", "text")
+        extractor = ClaimExtractor()
+        extract_result = await extractor.extract_claims("This happened yesterday")
+        claims = extract_result.get("claims", [])
 
         # Should NOT have temporal fields when disabled
         if len(claims) > 0:

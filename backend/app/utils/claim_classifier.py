@@ -12,6 +12,7 @@ class ClaimClassifier:
         # Opinion indicators
         self.opinion_patterns = [
             r"\b(i think|i believe|in my opinion|i feel|seems like)\b",
+            r"\b(people think|some think|experts believe|many believe)\b",  # Third-person opinions
             r"\b(beautiful|ugly|amazing|terrible|best|worst)\b",
             r"\b(should|ought to|must|need to)\b"  # Normative
         ]
