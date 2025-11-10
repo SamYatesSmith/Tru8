@@ -261,6 +261,8 @@ class EvidenceRetriever:
     def _apply_credibility_weighting(self, evidence_list: List[Dict[str, Any]], claim: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Apply credibility and recency weighting to evidence"""
         try:
+            from app.core.config import settings
+
             # Store original count for safety check
             original_evidence_count = len(evidence_list)
 
@@ -305,7 +307,6 @@ class EvidenceRetriever:
 
             # Apply temporal filtering if claim is time-sensitive (Phase 1.5, Week 4.5-5.5)
             # This happens BEFORE deduplication to filter out old evidence first
-            from app.core.config import settings
             if claim and settings.ENABLE_TEMPORAL_CONTEXT and claim.get("temporal_analysis"):
                 from app.utils.temporal import TemporalAnalyzer
                 temporal_analyzer = TemporalAnalyzer()
