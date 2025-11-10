@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pip install:*)",
       "Bash(sed:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(alembic check:*)"
     ],
     "deny": [],
     "ask": []

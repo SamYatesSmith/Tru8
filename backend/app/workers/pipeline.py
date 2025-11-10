@@ -484,7 +484,8 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             logger.info(f"Generating overall assessment for {len(results)} claims")
             assessment = asyncio.run(generate_overall_assessment(
                 results,
-                input_data.get('url') or input_data.get('content', '')[:100]  # Pass URL or content preview
+                input_data.get('url') or input_data.get('content', '')[:100],  # Pass URL or content preview
+                evidence_by_claim=evidence  # Pass evidence for confidence weighting
             ))
             logger.info(f"Overall assessment generated: credibility_score={assessment['credibility_score']}")
         except Exception as e:
@@ -558,7 +559,8 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
 
 async def generate_overall_assessment(
     claims: List[Dict[str, Any]],
-    check_url: Optional[str] = None
+    check_url: Optional[str] = None,
+    evidence_by_claim: Optional[Dict[str, List[Dict[str, Any]]]] = None
 ) -> Dict[str, Any]:
     """
     Generate overall credibility assessment after all claims judged.
@@ -589,11 +591,47 @@ async def generate_overall_assessment(
 
     avg_confidence = sum(c.get('confidence', 0) for c in claims) / total if total > 0 else 0
 
-    # Calculate overall credibility score (weighted)
-    # Abstention verdicts are treated as uncertain (50% weight)
-    credibility_score = int(
-        (supported * 100 + uncertain * 50 + contradicted * 0) / total if total > 0 else 50
-    )
+    # Calculate overall credibility score (Consensus Plan Phase 3: confidence-weighted)
+    # Weight each claim by its confidence and average evidence credibility
+    if evidence_by_claim and total > 0:
+        weighted_score = 0.0
+        total_weight = 0.0
+
+        for i, claim in enumerate(claims):
+            # Get claim confidence (0-100) and convert to 0-1
+            confidence = claim.get('confidence', 50) / 100.0
+
+            # Calculate average evidence credibility for this claim
+            position = claim.get('position', i)
+            claim_evidence = evidence_by_claim.get(str(position), [])
+            if claim_evidence:
+                avg_evidence_cred = sum(e.get('credibility_score', 0.6) for e in claim_evidence) / len(claim_evidence)
+            else:
+                avg_evidence_cred = 0.7  # Default if no evidence
+
+            # Claim weight = confidence × evidence quality
+            claim_weight = confidence * avg_evidence_cred
+
+            # Verdict value: supported=100, contradicted=0, uncertain=40, abstention=30
+            verdict = claim.get('verdict', '')
+            if verdict == 'supported':
+                verdict_value = 100
+            elif verdict == 'contradicted':
+                verdict_value = 0
+            elif verdict in abstention_verdicts:
+                verdict_value = 30  # Penalize abstention more than uncertain
+            else:  # uncertain or other
+                verdict_value = 40  # Penalize uncertainty more than old 50
+
+            weighted_score += verdict_value * claim_weight
+            total_weight += claim_weight
+
+        credibility_score = int(weighted_score / total_weight) if total_weight > 0 else 50
+    else:
+        # Fallback: simple count-based (old method)
+        credibility_score = int(
+            (supported * 100 + uncertain * 50 + contradicted * 0) / total if total > 0 else 50
+        )
 
     # Prepare claims summary for LLM (use 1-indexed numbering for user display)
     claims_summary = []

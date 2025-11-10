@@ -17,7 +17,7 @@ class EvidenceRetriever:
     def __init__(self):
         self.search_service = SearchService()
         self.evidence_extractor = EvidenceExtractor()
-        self.max_sources_per_claim = 5
+        self.max_sources_per_claim = 10
         self.max_concurrent_claims = 3
         
         # Credibility weights for different source types

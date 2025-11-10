@@ -535,22 +535,36 @@ class ClaimVerifier:
                 "evidence_quality": "low"
             }
         
+        # Calculate both simple counts (for metadata) and credibility-weighted scores (for verdict)
         supporting_count = sum(1 for v in verifications if v.get("relationship") == "entails")
         contradicting_count = sum(1 for v in verifications if v.get("relationship") == "contradicts")
         neutral_count = len(verifications) - supporting_count - contradicting_count
-        
+
+        # Weight by evidence credibility (Consensus Plan Phase 2)
+        supporting_weight = sum(
+            v.get("evidence_credibility", 0.6)
+            for v in verifications
+            if v.get("relationship") == "entails"
+        )
+        contradicting_weight = sum(
+            v.get("evidence_credibility", 0.6)
+            for v in verifications
+            if v.get("relationship") == "contradicts"
+        )
+
         max_entailment = max([v.get("entailment_score", 0.0) for v in verifications], default=0.0)
         max_contradiction = max([v.get("contradiction_score", 0.0) for v in verifications], default=0.0)
-        
+
         avg_confidence = sum([v.get("confidence", 0.0) for v in verifications]) / len(verifications)
-        
-        # Determine overall verdict based on evidence strength
-        if supporting_count > contradicting_count and max_entailment > 0.7:
+
+        # Determine overall verdict using credibility-weighted scores
+        total_weight = supporting_weight + contradicting_weight
+        if supporting_weight > contradicting_weight and max_entailment > 0.7:
             overall_verdict = "supported"
-            confidence = min(max_entailment * (supporting_count / len(verifications)), 0.95)
-        elif contradicting_count > supporting_count and max_contradiction > 0.7:
+            confidence = min(max_entailment * (supporting_weight / total_weight if total_weight > 0 else 0), 0.95)
+        elif contradicting_weight > supporting_weight and max_contradiction > 0.7:
             overall_verdict = "contradicted"
-            confidence = min(max_contradiction * (contradicting_count / len(verifications)), 0.95)
+            confidence = min(max_contradiction * (contradicting_weight / total_weight if total_weight > 0 else 0), 0.95)
         else:
             overall_verdict = "uncertain"
             confidence = max(0.1, min(avg_confidence, 0.6))
@@ -570,6 +584,8 @@ class ClaimVerifier:
             "supporting_count": supporting_count,
             "contradicting_count": contradicting_count,
             "neutral_count": neutral_count,
+            "supporting_weight": supporting_weight,
+            "contradicting_weight": contradicting_weight,
             "max_entailment": max_entailment,
             "max_contradiction": max_contradiction,
             "evidence_quality": evidence_quality,
