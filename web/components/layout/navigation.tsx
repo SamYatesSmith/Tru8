@@ -27,9 +27,19 @@ import { AuthModal } from '@/components/auth/auth-modal';
  * CTAs:
  * - Sign In → Opens Clerk auth modal
  * - Get Started → Opens Clerk auth modal (same as Sign In)
+ *
+ * Auto-open:
+ * - Accepts initialAuthOpen prop to open modal on mount (for auth redirects)
+ * - Accepts redirectUrl to send user back to protected route after auth
  */
-export function Navigation() {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+export function Navigation({
+  initialAuthOpen = false,
+  redirectUrl
+}: {
+  initialAuthOpen?: boolean;
+  redirectUrl?: string;
+}) {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(initialAuthOpen);
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -147,6 +157,7 @@ export function Navigation() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        redirectUrl={redirectUrl}
       />
     </>
   );

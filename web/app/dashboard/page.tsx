@@ -1,5 +1,4 @@
 import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { calculateMonthlyUsage } from '@/lib/usage-utils';
 import { PageHeader } from './components/page-header';
@@ -28,19 +27,20 @@ interface ChecksResponse {
   total: number;
 }
 
+/**
+ * Dashboard Page
+ *
+ * UNIFIED AUTH FLOW:
+ * - Middleware guarantees authentication
+ * - Just fetch data and render
+ */
 export default async function DashboardPage({
   searchParams,
 }: {
   searchParams: { upgraded?: string; cancelled?: string };
 }) {
-  const { userId, getToken } = auth();
-
-  // Authentication is required - middleware and layout will handle redirects
-  if (!userId) {
-    redirect('/?signin=true');
-  }
-
-  // Fetch authenticated user data
+  // Middleware guarantees authentication - just get token and fetch data
+  const { getToken } = auth();
   const token = await getToken();
   const [user, subscription, checksResponse] = await Promise.all([
     apiClient.getCurrentUser(token) as Promise<User>,

@@ -28,10 +28,12 @@ import { X } from 'lucide-react';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  redirectUrl?: string; // Where to send user after successful auth
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
+  const afterAuthUrl = redirectUrl || '/dashboard';
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -147,7 +149,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 },
               }}
               routing="hash"
-              afterSignInUrl="/dashboard"
+              afterSignInUrl={afterAuthUrl}
             />
           </div>
         ) : (
@@ -174,7 +176,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 },
               }}
               routing="hash"
-              afterSignUpUrl="/dashboard"
+              afterSignUpUrl={afterAuthUrl}
             />
           </div>
         )}

@@ -198,12 +198,86 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 supporting_evidence=evidence[:3],
                 evidence_summary=verification_signals
             )
-    
-    def _prepare_judgment_context(self, claim: Dict[str, Any], verification_signals: Dict[str, Any], 
+
+    def _get_few_shot_examples(self) -> str:
+        """
+        Return few-shot examples for judge prompt (Phase 1.2).
+        Covers: clean support, contradiction, abstention (insufficient), numerical tolerance.
+        """
+        return """
+=== EXAMPLE 1: Clean Support Case ===
+
+CLAIM: "NASA's Perseverance rover landed on Mars on February 18, 2021"
+
+EVIDENCE:
+[1] "NASA confirmed successful touchdown at 3:55 PM EST on Feb 18, 2021"
+    Source: nasa.gov, Credibility: 0.95, Published: 2021-02-18
+[2] "Perseverance Mars landing confirmed by mission control"
+    Source: Reuters, Credibility: 0.90, Published: 2021-02-18
+
+VERDICT: supported
+CONFIDENCE: 95
+RATIONALE: Multiple high-credibility sources (NASA official + Reuters) confirm exact date. No contradicting evidence. Clean consensus.
+
+---
+
+=== EXAMPLE 2: Contradiction with Conflicting Snippets ===
+
+CLAIM: "The conference had exactly 500 attendees"
+
+EVIDENCE:
+[1] "Conference organizers report 487 registered participants"
+    Source: Conference Official Site, Credibility: 0.90, Published: 2024-10-15
+[2] "Attendance estimated at 480-490 based on venue capacity"
+    Source: Industry Journal, Credibility: 0.75, Published: 2024-10-16
+
+VERDICT: contradicted
+CONFIDENCE: 80
+RATIONALE: Claim states "exactly 500" requiring precision. High-quality official source reports 487. Second source estimates 480-490. Both contradict the exact figure. Clear mismatch.
+
+---
+
+=== EXAMPLE 3: Abstention - Insufficient Evidence ===
+
+CLAIM: "Startup SecureChain raised $50 million in Series B funding"
+
+EVIDENCE:
+[1] "SecureChain rumored to close funding round"
+    Source: startup-rumors-blog.com, Credibility: 0.45, Published: 2024-11-01
+[2] "Sources suggest blockchain company raising capital"
+    Source: crypto-news-aggregator.net, Credibility: 0.50, Published: 2024-11-02
+
+VERDICT: insufficient_evidence
+CONFIDENCE: 0
+RATIONALE: Only low-credibility sources (blog rumors, aggregator). No authoritative sources (company announcement, financial press, SEC filing). Cannot verify funding claim. Abstaining is appropriate.
+
+---
+
+=== EXAMPLE 4: Numerical Tolerance ===
+
+CLAIM: "The infrastructure project received roughly $350 million in federal funding"
+
+EVIDENCE:
+[1] "Department of Transportation allocated $320 million to highway expansion"
+    Source: dot.gov, Credibility: 0.95, Published: 2023-06-10
+[2] "Federal infrastructure grants totaled $350M for state projects"
+    Source: Reuters, Credibility: 0.90, Published: 2023-06-12
+
+VERDICT: supported
+CONFIDENCE: 85
+RATIONALE: Claim uses "roughly" indicating approximation. Evidence shows $320M (official gov source) and $350M (news source). Within reasonable tolerance for approximate language. High-credibility sources support the claim.
+
+---
+
+NOW JUDGE THE FOLLOWING CLAIM:
+
+"""
+
+    def _prepare_judgment_context(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
                                  evidence: List[Dict[str, Any]]) -> str:
-        """Prepare context for LLM judgment"""
+        """Prepare context for LLM judgment (Phase 1.2: with optional few-shot examples)"""
         claim_text = claim.get("text", "")
-        
+
         # Evidence summary
         evidence_summary = []
         for i, ev in enumerate(evidence[:5]):  # Top 5 pieces
@@ -211,7 +285,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             snippet = ev.get("snippet", ev.get("text", ""))[:150]
             url = ev.get("url", "")
             date = ev.get("published_date", "")
-            
+
             evidence_summary.append(
                 f"Evidence {i+1}:\n"
                 f"Source: {source}\n"
@@ -219,11 +293,11 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 f"Content: {snippet}...\n"
                 f"URL: {url}\n"
             )
-        
+
         # Verification signals summary
         signals = verification_signals
-        
-        context = f"""
+
+        base_context = f"""
 CLAIM TO JUDGE:
 {claim_text}
 
@@ -244,8 +318,13 @@ EVIDENCE DETAILS:
 {chr(10).join(evidence_summary)}
 
 Based on this analysis, provide your final judgment."""
-        
-        return context
+
+        # Phase 1.2: Prepend few-shot examples if enabled
+        if settings.ENABLE_JUDGE_FEW_SHOT:
+            few_shot_examples = self._get_few_shot_examples()
+            return f"{few_shot_examples}\n{base_context}"
+
+        return base_context
     
     async def _judge_with_openai(self, context: str) -> Dict[str, Any]:
         """Make judgment using OpenAI API"""

@@ -103,12 +103,18 @@ class EvidenceRetriever:
                     logger.warning(f"No evidence found for claim {claim_position}")
                     return []
                 
-                # Step 2: Rank evidence using embeddings
+                # Step 2: Rank evidence using embeddings (bi-encoder)
                 ranked_evidence = await self._rank_evidence_with_embeddings(
-                    claim_text, 
+                    claim_text,
                     evidence_snippets
                 )
-                
+
+                # Step 2.5: Cross-encoder reranking for precision (Phase 1.3)
+                ranked_evidence = await self._rerank_with_cross_encoder(
+                    claim_text,
+                    ranked_evidence
+                )
+
                 # Step 3: Apply credibility and recency weighting
                 final_evidence = self._apply_credibility_weighting(ranked_evidence, claim)
 
@@ -184,7 +190,74 @@ class EvidenceRetriever:
                 }
                 for i, snippet in enumerate(evidence_snippets)
             ]
-    
+
+    async def _rerank_with_cross_encoder(self, claim_text: str,
+                                        evidence_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Rerank evidence using cross-encoder for precision (Phase 1.3).
+
+        Cross-encoders process claim+evidence together with full attention,
+        providing more accurate relevance scores than bi-encoders.
+
+        Args:
+            claim_text: The claim text
+            evidence_list: Evidence items ranked by bi-encoder
+
+        Returns:
+            Evidence items reranked by cross-encoder scores
+        """
+        from app.core.config import settings
+        import time
+
+        if not settings.ENABLE_CROSS_ENCODER_RERANK:
+            return evidence_list
+
+        if not evidence_list:
+            return []
+
+        start_time = time.time()
+
+        try:
+            # Lazy load cross-encoder (only when actually used)
+            if not hasattr(self, '_cross_encoder'):
+                from sentence_transformers import CrossEncoder
+                self._cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+                logger.info("Cross-encoder loaded: ms-marco-MiniLM-L-6-v2")
+
+            # Prepare claim-evidence pairs
+            pairs = [(claim_text, ev.get('text', '')) for ev in evidence_list]
+
+            # Score all pairs (synchronous but fast ~50ms for 10 pairs)
+            scores = self._cross_encoder.predict(pairs)
+
+            # Attach scores and preserve bi-encoder scores for comparison
+            for i, ev in enumerate(evidence_list):
+                ev['cross_encoder_score'] = float(scores[i])
+                ev['bi_encoder_score'] = ev.get('combined_score', 0.0)
+
+            # Sort by cross-encoder score
+            reranked = sorted(evidence_list, key=lambda x: x['cross_encoder_score'], reverse=True)
+
+            # Log latency and ranking changes
+            latency_ms = (time.time() - start_time) * 1000
+            ranking_changes = sum(1 for i, ev in enumerate(reranked) if evidence_list.index(ev) != i)
+
+            logger.info(
+                f"Cross-encoder reranking: {len(pairs)} pairs in {latency_ms:.1f}ms "
+                f"({latency_ms/len(pairs):.1f}ms per pair), "
+                f"{ranking_changes} position changes"
+            )
+
+            return reranked
+
+        except ImportError as e:
+            logger.warning(f"Cross-encoder not available (sentence-transformers.CrossEncoder): {e}")
+            logger.warning("Falling back to bi-encoder ranking. Install sentence-transformers>=2.3.0 to enable cross-encoder.")
+            return evidence_list
+        except Exception as e:
+            logger.error(f"Cross-encoder reranking failed: {e}, falling back to bi-encoder ranking")
+            return evidence_list
+
     def _apply_credibility_weighting(self, evidence_list: List[Dict[str, Any]], claim: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Apply credibility and recency weighting to evidence"""
         try:

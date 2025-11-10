@@ -20,7 +20,22 @@ const AnimatedBackground = dynamic(
   }
 )
 
-export default function Home() {
+/**
+ * Home Page
+ *
+ * Unified Auth Flow Integration:
+ * - Detects auth_redirect=true parameter (set by middleware)
+ * - Auto-opens auth modal when user tried to access protected route
+ * - Stores redirect_url to send user back after sign-in
+ */
+export default function Home({
+  searchParams,
+}: {
+  searchParams: { auth_redirect?: string; redirect_url?: string };
+}) {
+  const shouldOpenAuth = searchParams.auth_redirect === 'true';
+  const redirectUrl = searchParams.redirect_url;
+
   return (
     <>
       {/* Skip to main content for accessibility */}
@@ -34,8 +49,8 @@ export default function Home() {
       {/* Animated Background - wrapped in Suspense for better error handling */}
       <AnimatedBackground key="animated-bg" />
 
-      {/* Navigation */}
-      <Navigation />
+      {/* Navigation - auto-opens auth modal if redirected from protected route */}
+      <Navigation initialAuthOpen={shouldOpenAuth} redirectUrl={redirectUrl} />
       <MobileBottomNav />
 
       {/* Main Content */}

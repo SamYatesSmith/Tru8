@@ -113,6 +113,23 @@ class Settings(BaseSettings):
     FEATURE_ROLLOUT_PERCENTAGE: int = Field(0, env="FEATURE_ROLLOUT_PERCENTAGE")
     INTERNAL_USER_IDS: List[str] = Field([], env="INTERNAL_USER_IDS")
 
+    # ========== PHASE 1: ACCURACY IMPROVEMENTS ==========
+    # DeBERTa NLI Model Swap (Phase 1.1)
+    ENABLE_DEBERTA_NLI: bool = Field(False, env="ENABLE_DEBERTA_NLI")
+
+    # Judge Few-Shot Prompting (Phase 1.2)
+    ENABLE_JUDGE_FEW_SHOT: bool = Field(False, env="ENABLE_JUDGE_FEW_SHOT")
+
+    # Cross-Encoder Evidence Reranking (Phase 1.3)
+    ENABLE_CROSS_ENCODER_RERANK: bool = Field(False, env="ENABLE_CROSS_ENCODER_RERANK")
+
+    @property
+    def nli_model_name(self) -> str:
+        """Dynamic NLI model selection based on feature flag"""
+        if self.ENABLE_DEBERTA_NLI:
+            return "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"
+        return "facebook/bart-large-mnli"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

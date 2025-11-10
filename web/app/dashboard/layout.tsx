@@ -1,5 +1,4 @@
 import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { SignedInNav } from './components/signed-in-nav';
 import { Footer } from '@/components/layout/footer';
@@ -11,24 +10,27 @@ interface User {
   credits: number;
 }
 
+/**
+ * Dashboard Layout
+ *
+ * UNIFIED AUTH FLOW:
+ * - Middleware guarantees user is authenticated (no need to check here)
+ * - We trust middleware - just fetch user data and render
+ * - If you reach this component, you ARE authenticated
+ */
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // 1. Check authentication - middleware will redirect if not authenticated
-  const { userId, getToken } = auth();
-
-  if (!userId) {
-    // No user ID means not authenticated - redirect to sign-in
-    redirect('/?signin=true');
-  }
-
-  // 2. Fetch authenticated user data
+  // Middleware guarantees authentication - just get the token
+  const { getToken } = auth();
   const token = await getToken();
+
+  // Fetch authenticated user data
   const user = await apiClient.getCurrentUser(token) as User;
 
-  // 3. Render layout
+  // Render layout
   return (
     <div className="min-h-screen bg-[#0f1419]">
       <SignedInNav user={user} />
