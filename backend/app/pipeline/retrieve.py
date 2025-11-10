@@ -284,10 +284,21 @@ class EvidenceRetriever:
                     "final_score": weighted_score
                 })
 
-            # Filter by credibility threshold (Phase 1: raised from 0.0 to 0.65)
-            MIN_CREDIBILITY = getattr(settings, 'SOURCE_CREDIBILITY_THRESHOLD', 0.65)
+            # Filter by credibility threshold + auto_exclude flag
+            MIN_CREDIBILITY = getattr(settings, 'SOURCE_CREDIBILITY_THRESHOLD', 0.70)
+
+            # First, remove auto-excluded sources (social media, satire, etc.)
+            before_auto_exclude = len(evidence_list)
+            evidence_list = [e for e in evidence_list if not e.get("auto_exclude", False)]
+            auto_excluded_count = before_auto_exclude - len(evidence_list)
+
+            # Then, filter by minimum credibility
+            before_credibility = len(evidence_list)
             evidence_list = [e for e in evidence_list if e.get("credibility_score", 0.6) >= MIN_CREDIBILITY]
-            logger.info(f"Credibility filtering: Retained sources with score >= {MIN_CREDIBILITY}")
+            credibility_filtered_count = before_credibility - len(evidence_list)
+
+            logger.info(f"Source filtering: Removed {auto_excluded_count} auto-excluded sources (social media/satire), "
+                       f"{credibility_filtered_count} low-credibility sources (<{MIN_CREDIBILITY*100:.0f}%)")
 
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
@@ -382,16 +393,12 @@ class EvidenceRetriever:
                 credibility_service = get_credibility_service()
                 cred_info = credibility_service.get_credibility(source, url)
 
-                # Check for auto-exclusion (satire, etc.)
-                if cred_info.get('auto_exclude', False):
-                    logger.info(f"Auto-excluding source {url}: {cred_info.get('reasoning')}")
-                    return 0.0  # Exclude from results
-
                 # Enrich evidence item with credibility metadata if provided
                 if evidence_item is not None:
                     evidence_item['tier'] = cred_info.get('tier')
                     evidence_item['risk_flags'] = cred_info.get('risk_flags', [])
                     evidence_item['credibility_reasoning'] = cred_info.get('reasoning')
+                    evidence_item['auto_exclude'] = cred_info.get('auto_exclude', False)  # NEW: Pass through flag
 
                     # Get risk assessment
                     risk_info = credibility_service.get_risk_assessment(url)

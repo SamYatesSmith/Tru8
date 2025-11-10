@@ -316,6 +316,36 @@
     "tier": "flagged"
   },
 
+  "social_media": {
+    "credibility": 0.3,
+    "description": "Social media platforms - unreliable for fact-checking",
+    "domains": [
+      "facebook.com",
+      "twitter.com",
+      "x.com",
+      "instagram.com",
+      "tiktok.com",
+      "reddit.com",
+      "youtube.com",
+      "linkedin.com",
+      "pinterest.com",
+      "tumblr.com",
+      "snapchat.com",
+      "threads.net",
+      "truthsocial.com",
+      "parler.com",
+      "gab.com",
+      "gettr.com"
+    ],
+    "risk_flags": [
+      "user_generated_content",
+      "no_editorial_oversight",
+      "unreliable_for_verification"
+    ],
+    "auto_exclude": true,
+    "tier": "excluded"
+  },
+
   "satire": {
     "credibility": 0.0,
     "description": "Satirical content - intentionally fictional",

@@ -20,10 +20,11 @@ class EvidenceDeduplicator:
 
     def deduplicate(self, evidence_list: List[Dict[str, Any]]) -> Tuple[List[Dict], Dict[str, Any]]:
         """
-        Remove duplicates using three-stage process:
+        Remove duplicates using four-stage process:
         1. Exact hash deduplication (fastest)
-        2. Text similarity deduplication (medium)
-        3. Semantic similarity if embeddings available (slowest, most accurate)
+        2. Domain-level deduplication (prevent same source multiple times)
+        3. Text similarity deduplication (medium)
+        4. Semantic similarity if embeddings available (slowest, most accurate)
 
         Args:
             evidence_list: List of evidence dictionaries
@@ -37,21 +38,25 @@ class EvidenceDeduplicator:
         # Stage 1: Exact hash deduplication
         stage1 = self._exact_hash_dedup(evidence_list)
 
-        # Stage 2: Text similarity deduplication
-        stage2 = self._text_similarity_dedup(stage1)
+        # Stage 2: Domain-level deduplication (NEW - prevents duplicate sources)
+        stage2 = self._domain_dedup(stage1)
+
+        # Stage 3: Text similarity deduplication
+        stage3 = self._text_similarity_dedup(stage2)
 
         stats = {
             "original_count": len(evidence_list),
             "after_hash_dedup": len(stage1),
-            "final_count": len(stage2),
-            "duplicates_removed": len(evidence_list) - len(stage2),
-            "dedup_ratio": round((len(evidence_list) - len(stage2)) / len(evidence_list), 2) if evidence_list else 0
+            "after_domain_dedup": len(stage2),
+            "final_count": len(stage3),
+            "duplicates_removed": len(evidence_list) - len(stage3),
+            "dedup_ratio": round((len(evidence_list) - len(stage3)) / len(evidence_list), 2) if evidence_list else 0
         }
 
         logger.info(f"Deduplication: {stats['original_count']} → {stats['final_count']} "
                    f"({stats['duplicates_removed']} duplicates removed)")
 
-        return stage2, stats
+        return stage3, stats
 
     def _exact_hash_dedup(self, evidence: List[Dict]) -> List[Dict]:
         """
@@ -77,6 +82,41 @@ class EvidenceDeduplicator:
                 unique.append(ev)
             else:
                 logger.debug(f"Exact duplicate found: {ev.get('url', 'unknown')}")
+
+        return unique
+
+    def _domain_dedup(self, evidence: List[Dict]) -> List[Dict]:
+        """
+        Remove duplicate domains - keep only the best evidence from each source.
+
+        This prevents Hartford Courant x3 or Facebook x2 in the same claim.
+
+        Args:
+            evidence: List of evidence dictionaries
+
+        Returns:
+            List with max 1 evidence per domain
+        """
+        import tldextract
+
+        seen_domains = set()
+        unique = []
+
+        for ev in evidence:
+            url = ev.get('url', '')
+
+            # Extract domain
+            try:
+                parsed = tldextract.extract(url)
+                domain = parsed.registered_domain.lower()
+            except Exception:
+                domain = url  # Fallback to full URL if parsing fails
+
+            if domain not in seen_domains:
+                seen_domains.add(domain)
+                unique.append(ev)
+            else:
+                logger.debug(f"Domain duplicate found: {domain} (URL: {url})")
 
         return unique
 
