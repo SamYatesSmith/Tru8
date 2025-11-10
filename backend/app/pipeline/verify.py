@@ -542,12 +542,12 @@ class ClaimVerifier:
 
         # Weight by evidence credibility (Consensus Plan Phase 2)
         supporting_weight = sum(
-            v.get("evidence_credibility", 0.6)
+            v.get("evidence", {}).get("credibility_score", 0.6)
             for v in verifications
             if v.get("relationship") == "entails"
         )
         contradicting_weight = sum(
-            v.get("evidence_credibility", 0.6)
+            v.get("evidence", {}).get("credibility_score", 0.6)
             for v in verifications
             if v.get("relationship") == "contradicts"
         )
