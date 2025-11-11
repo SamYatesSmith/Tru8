@@ -215,6 +215,10 @@ Output: {{
                         claims[i]["is_verifiable"] = classification["is_verifiable"]
                         claims[i]["verifiability_reason"] = classification["reason"]
 
+                        # Store legal metadata if present (for legal claims)
+                        if "metadata" in classification:
+                            claims[i]["legal_metadata"] = classification["metadata"]
+
                         logger.debug(f"Claim classification: {classification['claim_type']} (verifiable: {classification['is_verifiable']})")
 
                 return {

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
@@ -97,6 +97,13 @@ class Settings(BaseSettings):
     # Phase 3.5 - Source Quality Control (Week 9.5-10)
     ENABLE_SOURCE_VALIDATION: bool = Field(True, env="ENABLE_SOURCE_VALIDATION")
     SOURCE_CREDIBILITY_THRESHOLD: float = Field(0.65, env="SOURCE_CREDIBILITY_THRESHOLD")
+
+    # Phase 4 - Legal Integration
+    ENABLE_LEGAL_SEARCH: bool = Field(True, env="ENABLE_LEGAL_SEARCH")
+    GOVINFO_API_KEY: Optional[str] = Field(None, env="GOVINFO_API_KEY")
+    CONGRESS_API_KEY: Optional[str] = Field(None, env="CONGRESS_API_KEY")
+    LEGAL_API_TIMEOUT_SECONDS: int = Field(10, env="LEGAL_API_TIMEOUT_SECONDS")
+    LEGAL_CACHE_TTL_DAYS: int = Field(30, env="LEGAL_CACHE_TTL_DAYS")
 
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")

@@ -72,9 +72,10 @@ class Claim(SQLModel, table=True):
     is_time_sensitive: bool = Field(default=False)  # True if claim requires temporal context
 
     # Classification fields (Phase 2, Week 5.5-6.5)
-    claim_type: Optional[str] = None  # 'factual', 'opinion', 'prediction', 'personal_experience'
+    claim_type: Optional[str] = None  # 'factual', 'opinion', 'prediction', 'personal_experience', 'legal'
     is_verifiable: bool = Field(default=True)  # False for opinions, predictions, personal experiences
     verifiability_reason: Optional[str] = None  # Explanation of why claim is/isn't verifiable
+    legal_metadata: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Legal citations, jurisdiction, etc. for legal claims
 
     # Explainability fields (Phase 2, Week 6.5-7.5)
     uncertainty_explanation: Optional[str] = None  # Explanation for uncertain verdicts
