@@ -3,9 +3,17 @@ Government API Adapters
 Phase 5: Government API Integration
 
 Concrete implementations of API adapters for:
-- ONS Economic Statistics (UK)
-- PubMed (US/Global)
-- Companies House (UK)
+- ONS Economic Statistics (UK) - Finance, Demographics
+- FRED (US) - Finance
+- Companies House (UK) - Government
+- PubMed (US/Global) - Health, Science
+- WHO (Global) - Health
+- Met Office (UK) - Climate
+- CrossRef (Global) - Science
+- GovUK Content (UK) - Government
+- Hansard (UK) - Law, Parliament
+- Wikidata (Global) - General
+- GovInfo.gov (US) - Law, Federal Statutes
 
 Each adapter extends GovernmentAPIClient and implements:
 - search(): Query the API with claim-specific parameters
@@ -18,6 +26,7 @@ import os
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from app.services.government_api_client import GovernmentAPIClient
+from app.services.legal_search import LegalSearchService
 
 logger = logging.getLogger(__name__)
 
@@ -1257,6 +1266,192 @@ class WikidataAdapter(GovernmentAPIClient):
         return evidence_list
 
 
+# ========== GOVINFO.GOV LEGAL STATUTES ADAPTER ==========
+
+class GovInfoAdapter(GovernmentAPIClient):
+    """
+    GovInfo.gov API Adapter for US Legal Statutes.
+
+    Wraps the existing LegalSearchService (Phase 4) to integrate with
+    Phase 5 Government API adapter system.
+
+    Coverage:
+    - US federal statutes and legislation
+    - Congress.gov for bills and laws
+    - Direct citation lookup (fastest)
+    - Year + keyword search (filtered)
+    - Full-text search (broad)
+
+    Domain: Law
+    Jurisdiction: US
+    API: GovInfo.gov (requires GOVINFO_API_KEY)
+    """
+
+    def __init__(self):
+        from app.core.config import settings
+
+        # Initialize legal search service (handles GovInfo + Congress APIs)
+        self.legal_service = LegalSearchService()
+
+        super().__init__(
+            api_name="GovInfo.gov",
+            base_url="https://api.govinfo.gov",
+            timeout=settings.LEGAL_API_TIMEOUT_SECONDS if hasattr(settings, 'LEGAL_API_TIMEOUT_SECONDS') else 10,
+            max_results=5  # Statutes are high-quality, don't need many
+        )
+
+        # Check if API key is configured
+        if not settings.GOVINFO_API_KEY:
+            logger.warning("GOVINFO_API_KEY not configured - GovInfo adapter will return empty results")
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """
+        GovInfo covers Law domain for US jurisdiction.
+
+        Args:
+            domain: Domain classification (Law, Finance, Health, etc.)
+            jurisdiction: US, UK, EU, Global
+
+        Returns:
+            True if this adapter can handle the domain/jurisdiction
+        """
+        return domain == "Law" and jurisdiction == "US"
+
+    def search(self, query: str, domain: str, jurisdiction: str) -> List[Dict[str, Any]]:
+        """
+        Search US federal statutes and legislation.
+
+        Uses three-tier search strategy:
+        1. Direct citation lookup (if citation detected)
+        2. Year + keyword search (if year detected)
+        3. Full-text search (fallback)
+
+        Args:
+            query: Search query (claim text)
+            domain: Law
+            jurisdiction: US
+
+        Returns:
+            List of evidence dictionaries with statute excerpts
+        """
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        try:
+            # Extract legal metadata from query using classifier
+            # (This is fast - just regex patterns)
+            from app.utils.claim_classifier import ClaimClassifier
+            classifier = ClaimClassifier()
+            classification = classifier.classify(query)
+
+            # Only proceed if classified as legal
+            if classification.get("claim_type") != "legal":
+                logger.info(f"GovInfo: Query not classified as legal, skipping: {query[:50]}")
+                return []
+
+            legal_metadata = classification.get("metadata", {})
+
+            logger.info(
+                f"GovInfo: Searching for legal claim with metadata: "
+                f"year={legal_metadata.get('year')}, "
+                f"jurisdiction={legal_metadata.get('jurisdiction')}"
+            )
+
+            # Call legal search service (async, so we need to run it)
+            import asyncio
+            try:
+                # Try to get running loop
+                loop = asyncio.get_running_loop()
+                # We're in a sync context called from async via asyncio.to_thread
+                # So we can't use await here, but the service handles this
+                results = asyncio.run(self.legal_service.search_statutes(query, legal_metadata))
+            except RuntimeError:
+                # No running loop, create new one
+                results = asyncio.run(self.legal_service.search_statutes(query, legal_metadata))
+
+            # Transform legal search results to standardized evidence format
+            return self._transform_response(results)
+
+        except Exception as e:
+            logger.error(f"GovInfo search failed for '{query}': {e}", exc_info=True)
+            return []
+
+    def _transform_response(self, legal_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Transform LegalSearchService results to standardized evidence format.
+
+        LegalSearchService returns:
+        {
+            "title": "Act name and section",
+            "text": "Statute text excerpt",
+            "url": "govinfo.gov or legislation.gov.uk URL",
+            "source_date": "YYYY-MM-DD",
+            "citation": "Formal citation",
+            "jurisdiction": "US" or "UK"
+        }
+
+        Standardized format:
+        {
+            "text": "Evidence text",
+            "source": "GovInfo.gov",
+            "url": "...",
+            "title": "...",
+            "published_date": "...",
+            "credibility_score": 0.95,
+            "external_source_provider": "GovInfo.gov",
+            "metadata": {...}
+        }
+        """
+        evidence_list = []
+
+        for item in legal_results:
+            try:
+                # Extract fields from legal search result
+                title = item.get("title", "Federal Statute")
+                text = item.get("text", "")
+                url = item.get("url", "")
+                citation = item.get("citation", "")
+                jurisdiction = item.get("jurisdiction", "US")
+
+                # Parse source_date (may be string or datetime)
+                source_date = item.get("source_date")
+                if source_date and isinstance(source_date, str):
+                    try:
+                        source_date = datetime.fromisoformat(source_date.replace('Z', '+00:00'))
+                    except (ValueError, AttributeError):
+                        source_date = None
+
+                # Create metadata dict with legal-specific fields
+                metadata = {
+                    "citation": citation,
+                    "jurisdiction": jurisdiction,
+                    "statute_type": item.get("statute_type", "federal"),
+                    "section": item.get("section"),
+                    "year": item.get("year")
+                }
+
+                # Create standardized evidence dict using base class helper
+                evidence = self._create_evidence_dict(
+                    title=title,
+                    snippet=text,
+                    url=url,
+                    source_date=source_date,
+                    metadata=metadata
+                )
+
+                # Override credibility for legal statutes (very high)
+                evidence["credibility_score"] = 0.95
+
+                evidence_list.append(evidence)
+
+            except Exception as e:
+                logger.warning(f"Failed to parse GovInfo legal result: {e}")
+                continue
+
+        logger.info(f"GovInfo returned {len(evidence_list)} statute excerpts")
+        return evidence_list
+
+
 # ========== ADAPTER INITIALIZATION ==========
 
 def initialize_adapters():
@@ -1320,5 +1515,13 @@ def initialize_adapters():
     # Register Wikidata adapter (Week 2)
     registry.register(WikidataAdapter())
     logger.info("Registered Wikidata adapter")
+
+    # Register GovInfo adapter (Phase 4/5 integration)
+    govinfo_key = os.getenv("GOVINFO_API_KEY")
+    if govinfo_key:
+        registry.register(GovInfoAdapter())
+        logger.info("Registered GovInfo.gov adapter for US legal statutes")
+    else:
+        logger.warning("GOVINFO_API_KEY not configured, GovInfo adapter not registered")
 
     logger.info(f"API adapter initialization complete. {len(registry.get_all_adapters())} adapters registered.")
