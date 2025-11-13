@@ -562,6 +562,9 @@ class EvidenceRetriever:
             claim_type = claim.get("claim_type")
             legal_metadata = claim.get("legal_metadata", {})
 
+            logger.info(f"🔎 API routing START - claim_type: {claim_type}, has_legal_metadata: {bool(legal_metadata)}")
+            logger.info(f"   Full claim dict keys: {list(claim.keys())}")
+
             if claim_type == "legal" and legal_metadata:
                 # Use legal classification for routing
                 domain = "Law"
@@ -569,7 +572,7 @@ class EvidenceRetriever:
                 confidence = claim.get("classification", {}).get("confidence", 0.9)
 
                 logger.info(
-                    f"API routing (legal claim): domain=Law, jurisdiction={jurisdiction}, "
+                    f"✅ API routing (legal claim): domain=Law, jurisdiction={jurisdiction}, "
                     f"confidence={confidence:.2f}, metadata={legal_metadata}"
                 )
             else:
@@ -587,8 +590,13 @@ class EvidenceRetriever:
             # Get relevant API adapters
             relevant_adapters = self.api_registry.get_adapters_for_domain(domain, jurisdiction)
 
+            logger.info(f"📊 Found {len(relevant_adapters)} adapters for domain={domain}, jurisdiction={jurisdiction}")
+            if relevant_adapters:
+                adapter_names = [a.api_name for a in relevant_adapters]
+                logger.info(f"   Adapters: {adapter_names}")
+
             if not relevant_adapters:
-                logger.info(f"No API adapters found for domain={domain}, jurisdiction={jurisdiction}")
+                logger.warning(f"⚠️  No API adapters found for domain={domain}, jurisdiction={jurisdiction}")
                 return {"evidence": [], "api_stats": {}}
 
             # Query all relevant APIs concurrently

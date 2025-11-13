@@ -1334,8 +1334,13 @@ class GovInfoAdapter(GovernmentAPIClient):
         Returns:
             List of evidence dictionaries with statute excerpts
         """
+        logger.info(f"🔍 GovInfoAdapter.search() CALLED - query: '{query[:100]}...', domain: {domain}, jurisdiction: {jurisdiction}")
+
         if not self.is_relevant_for_domain(domain, jurisdiction):
+            logger.info(f"   ❌ Not relevant for domain={domain}, jurisdiction={jurisdiction}")
             return []
+
+        logger.info(f"   ✅ Domain/jurisdiction match confirmed")
 
         try:
             # Extract legal metadata from query using classifier
@@ -1461,6 +1466,7 @@ def initialize_adapters():
     Call this function at application startup to register all adapters.
     """
     from app.services.government_api_client import get_api_registry
+    from app.core.config import settings
 
     registry = get_api_registry()
 
@@ -1517,11 +1523,13 @@ def initialize_adapters():
     logger.info("Registered Wikidata adapter")
 
     # Register GovInfo adapter (Phase 4/5 integration)
-    govinfo_key = os.getenv("GOVINFO_API_KEY")
-    if govinfo_key:
-        registry.register(GovInfoAdapter())
-        logger.info("Registered GovInfo.gov adapter for US legal statutes")
+    # Use settings instead of os.getenv() because .env is loaded by pydantic-settings
+    if settings.GOVINFO_API_KEY:
+        adapter = GovInfoAdapter()
+        registry.register(adapter)
+        logger.info(f"✅ Registered GovInfo.gov adapter for US legal statutes (key: {settings.GOVINFO_API_KEY[:10]}...)")
+        logger.info(f"   Adapter: {adapter.api_name}, relevant for domain=Law, jurisdiction=US")
     else:
-        logger.warning("GOVINFO_API_KEY not configured, GovInfo adapter not registered")
+        logger.warning("⚠️  GOVINFO_API_KEY not configured, GovInfo adapter not registered")
 
     logger.info(f"API adapter initialization complete. {len(registry.get_all_adapters())} adapters registered.")
