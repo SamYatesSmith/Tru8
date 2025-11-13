@@ -557,16 +557,32 @@ class EvidenceRetriever:
             return {"evidence": [], "api_stats": {}}
 
         try:
-            # Detect domain and jurisdiction for API routing
-            domain_info = self.claim_classifier.detect_domain(claim_text)
-            domain = domain_info.get("domain", "General")
-            jurisdiction = domain_info.get("jurisdiction", "Global")
-            confidence = domain_info.get("domain_confidence", 0.0)
+            # PRIORITY 1: Check if claim was classified as legal during extraction
+            # If legal, use legal_metadata for targeted routing to statute APIs
+            claim_type = claim.get("claim_type")
+            legal_metadata = claim.get("legal_metadata", {})
 
-            logger.info(
-                f"API routing: domain={domain}, jurisdiction={jurisdiction}, "
-                f"confidence={confidence:.2f}"
-            )
+            if claim_type == "legal" and legal_metadata:
+                # Use legal classification for routing
+                domain = "Law"
+                jurisdiction = legal_metadata.get("jurisdiction", "US")
+                confidence = claim.get("classification", {}).get("confidence", 0.9)
+
+                logger.info(
+                    f"API routing (legal claim): domain=Law, jurisdiction={jurisdiction}, "
+                    f"confidence={confidence:.2f}, metadata={legal_metadata}"
+                )
+            else:
+                # PRIORITY 2: Fallback to domain detection via keywords/NER
+                domain_info = self.claim_classifier.detect_domain(claim_text)
+                domain = domain_info.get("domain", "General")
+                jurisdiction = domain_info.get("jurisdiction", "Global")
+                confidence = domain_info.get("domain_confidence", 0.0)
+
+                logger.info(
+                    f"API routing (detected): domain={domain}, jurisdiction={jurisdiction}, "
+                    f"confidence={confidence:.2f}"
+                )
 
             # Get relevant API adapters
             relevant_adapters = self.api_registry.get_adapters_for_domain(domain, jurisdiction)

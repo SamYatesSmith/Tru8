@@ -14,7 +14,12 @@ class ClaimClassifier:
             r"\b(i think|i believe|in my opinion|i feel|seems like)\b",
             r"\b(people think|some think|experts believe|many believe)\b",  # Third-person opinions
             r"\b(beautiful|ugly|amazing|terrible|best|worst)\b",
-            r"\b(should|ought to|must|need to)\b"  # Normative
+            r"\b(should|ought to|must|need to)\b",  # Normative
+            r"\b(is considered|are considered|regarded as|seen as|viewed as|perceived as)\b",  # Subjective judgments
+            r"\b(one of the most|among the most)\s+\w+",  # Comparative rankings
+            r"\b(most\s+(substantial|significant|important|notable|remarkable|dramatic))\b",  # Superlative judgments
+            r"\b(arguably|presumably|supposedly|allegedly)\b",  # Hedging/uncertainty indicating opinion
+            r"\b(better|worse|superior|inferior)\s+(than|to)\b"  # Comparative judgments
         ]
 
         # Prediction indicators
@@ -31,6 +36,7 @@ class ClaimClassifier:
         # Legal claim indicators (patterns match against lowercased text)
         self.legal_patterns = [
             r"\b(19\d{2}|20\d{2})\s+(\w+\s+){0,5}(law|statute|act|legislation|bill)\b",  # "1964 Civil Rights Act" or "1952 federal law"
+            r"\b(law|statute|act|legislation|bill)\s+of\s+(19\d{2}|20\d{2})\b",  # "Act of 1966" or "Law of 2010"
             r"\b(\d+)\s+u\.?s\.?c\.?\s+§?\s*(\d+[a-z]?(?:-\d+)?)\b",  # "42 usc 1983"
             r"\b(ukpga|uksi|asp)\s+\d{4}/\d+\b",  # "ukpga 2010/15"
             r"\bsection\s+\d+[a-z]?\b",  # "section 230"
@@ -214,6 +220,15 @@ class ClaimClassifier:
             metadata["year"] = year_match.group(1)
             if "federal" in year_match.group(0) or not metadata["jurisdiction"]:
                 metadata["jurisdiction"] = "US"
+
+        # Extract year from "Act of 1966" or "Law of 2010" patterns (reverse order)
+        if not metadata["year"]:
+            year_reverse_pattern = r"\b(law|statute|act|legislation)\s+of\s+(19\d{2}|20\d{2})\b"
+            year_reverse_match = re.search(year_reverse_pattern, lower_text)
+            if year_reverse_match:
+                metadata["year"] = year_reverse_match.group(2)
+                if not metadata["jurisdiction"]:
+                    metadata["jurisdiction"] = "US"  # Default to US for dated acts
 
         # Extract Title/Chapter references
         title_pattern = r"Title\s+(\d+)|Chapter\s+(\d+)"
