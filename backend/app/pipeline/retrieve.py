@@ -8,6 +8,8 @@ from app.services.evidence import EvidenceExtractor, EvidenceSnippet
 from app.services.embeddings import get_embedding_service, rank_evidence_by_similarity
 from app.services.vector_store import get_vector_store
 from app.utils.url_utils import extract_domain
+from app.services.government_api_client import get_api_registry
+from app.utils.claim_classifier import ClaimClassifier
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,12 @@ class EvidenceRetriever:
         self.evidence_extractor = EvidenceExtractor()
         self.max_sources_per_claim = 10
         self.max_concurrent_claims = 3
-        
+
+        # Phase 5: Government API Integration
+        self.api_registry = get_api_registry()
+        self.claim_classifier = ClaimClassifier()
+        self.enable_api_retrieval = True  # Feature flag (set via settings)
+
         # Credibility weights for different source types
         self.credibility_weights = {
             'academic': 1.0,      # .edu, .org, peer-reviewed
@@ -84,29 +91,59 @@ class EvidenceRetriever:
 
                 logger.info(f"Retrieving evidence for claim {claim_position}: {claim_text[:50]}...")
 
-                # Step 1: Search and extract evidence snippets with context enrichment
+                # Step 1: Parallel retrieval from web search AND government APIs
                 subject_context = claim.get("subject_context")
                 key_entities = claim.get("key_entities", [])
 
                 if subject_context:
                     logger.info(f"Using context: '{subject_context}' with entities: {key_entities[:3]}")
 
-                evidence_snippets = await self.evidence_extractor.extract_evidence_for_claim(
+                # Run web search and API retrieval in parallel
+                web_search_task = self.evidence_extractor.extract_evidence_for_claim(
                     claim_text,
                     max_sources=self.max_sources_per_claim * 2,  # Get extra for filtering
                     subject_context=subject_context,
                     key_entities=key_entities,
                     excluded_domain=excluded_domain
                 )
-                
-                if not evidence_snippets:
+
+                # Phase 5: Government API retrieval (parallel with web search)
+                api_results_task = self._retrieve_from_government_apis(claim_text, claim)
+
+                # Await both tasks concurrently
+                web_evidence_snippets, api_evidence = await asyncio.gather(
+                    web_search_task,
+                    api_results_task,
+                    return_exceptions=True
+                )
+
+                # Handle exceptions
+                if isinstance(web_evidence_snippets, Exception):
+                    logger.error(f"Web search failed: {web_evidence_snippets}")
+                    web_evidence_snippets = []
+                if isinstance(api_evidence, Exception):
+                    logger.error(f"API retrieval failed: {api_evidence}")
+                    api_evidence = {"evidence": [], "api_stats": {}}
+
+                # Merge web search and API results
+                evidence_snippets = web_evidence_snippets
+                api_evidence_items = api_evidence.get("evidence", [])
+
+                # Store API stats in claim for later tracking
+                claim["api_stats"] = api_evidence.get("api_stats", {})
+
+                if not evidence_snippets and not api_evidence_items:
                     logger.warning(f"No evidence found for claim {claim_position}")
                     return []
-                
-                # Step 2: Rank evidence using embeddings (bi-encoder)
+
+                logger.info(f"Retrieved {len(evidence_snippets)} web sources + {len(api_evidence_items)} API sources")
+
+                # Step 2: Merge and rank ALL evidence (web + API) using embeddings (bi-encoder)
+                all_evidence_snippets = evidence_snippets + self._convert_api_evidence_to_snippets(api_evidence_items)
+
                 ranked_evidence = await self._rank_evidence_with_embeddings(
                     claim_text,
-                    evidence_snippets
+                    all_evidence_snippets
                 )
 
                 # Step 2.5: Cross-encoder reranking for precision (Phase 1.3)
@@ -150,6 +187,12 @@ class EvidenceRetriever:
             for idx, similarity, text in ranked_results:
                 if idx < len(evidence_snippets):
                     snippet = evidence_snippets[idx]
+
+                    # Extract API-specific fields from metadata (if present)
+                    # Issue #6 Fix: Preserve external_source_provider at top level
+                    external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
+                    credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
+
                     evidence_item = {
                         "id": f"evidence_{idx}",
                         "text": snippet.text,
@@ -161,6 +204,8 @@ class EvidenceRetriever:
                         "semantic_similarity": float(similarity),
                         "combined_score": float((snippet.relevance_score + similarity) / 2),
                         "word_count": snippet.word_count,
+                        "credibility_score": credibility,  # Add at top level
+                        "external_source_provider": external_source,  # Add at top level for Issue #6 fix
                         "metadata": snippet.metadata  # Phase 2: Include PDF metadata (page_number, context)
                     }
                     ranked_evidence.append(evidence_item)
@@ -174,8 +219,13 @@ class EvidenceRetriever:
         except Exception as e:
             logger.error(f"Evidence ranking error: {e}")
             # Fallback: return evidence without embedding ranking
-            return [
-                {
+            fallback_evidence = []
+            for i, snippet in enumerate(evidence_snippets):
+                # Extract API fields (same pattern as main code)
+                external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
+                credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
+
+                fallback_evidence.append({
                     "id": f"evidence_{i}",
                     "text": snippet.text,
                     "source": snippet.source,
@@ -186,10 +236,12 @@ class EvidenceRetriever:
                     "semantic_similarity": 0.5,
                     "combined_score": float(snippet.relevance_score),
                     "word_count": snippet.word_count,
+                    "credibility_score": credibility,  # Add at top level
+                    "external_source_provider": external_source,  # Add at top level for Issue #6 fix
                     "metadata": snippet.metadata  # Phase 2: Include PDF metadata (page_number, context)
-                }
-                for i, snippet in enumerate(evidence_snippets)
-            ]
+                })
+
+            return fallback_evidence
 
     async def _rerank_with_cross_encoder(self, claim_text: str,
                                         evidence_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -462,10 +514,10 @@ class EvidenceRetriever:
         """Calculate recency score (more recent = higher score)"""
         if not published_date:
             return 0.8  # Default for unknown dates
-        
+
         try:
             # Parse date (handle different formats)
-            if '2024' in published_date:
+            if '2024' in published_date or '2025' in published_date:
                 return 1.0  # Most recent
             elif '2023' in published_date:
                 return 0.95
@@ -475,9 +527,150 @@ class EvidenceRetriever:
                 return 0.85
             else:
                 return 0.8  # Older content
-                
+
         except Exception:
             return 0.8  # Default for parsing errors
+
+    async def _retrieve_from_government_apis(
+        self,
+        claim_text: str,
+        claim: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Retrieve evidence from government APIs based on claim domain/jurisdiction.
+
+        Phase 5: Government API Integration
+
+        Args:
+            claim_text: The claim text to search for
+            claim: Full claim dictionary (may include domain info)
+
+        Returns:
+            Dictionary with:
+                - evidence: List of evidence items
+                - api_stats: API usage statistics
+        """
+        from app.core.config import settings
+
+        # Check feature flag
+        if not getattr(settings, 'ENABLE_API_RETRIEVAL', False) or not self.enable_api_retrieval:
+            return {"evidence": [], "api_stats": {}}
+
+        try:
+            # Detect domain and jurisdiction for API routing
+            domain_info = self.claim_classifier.detect_domain(claim_text)
+            domain = domain_info.get("domain", "General")
+            jurisdiction = domain_info.get("jurisdiction", "Global")
+            confidence = domain_info.get("domain_confidence", 0.0)
+
+            logger.info(
+                f"API routing: domain={domain}, jurisdiction={jurisdiction}, "
+                f"confidence={confidence:.2f}"
+            )
+
+            # Get relevant API adapters
+            relevant_adapters = self.api_registry.get_adapters_for_domain(domain, jurisdiction)
+
+            if not relevant_adapters:
+                logger.info(f"No API adapters found for domain={domain}, jurisdiction={jurisdiction}")
+                return {"evidence": [], "api_stats": {}}
+
+            # Query all relevant APIs concurrently
+            api_tasks = []
+            for adapter in relevant_adapters:
+                # Use asyncio.to_thread to run sync API calls in executor
+                task = asyncio.to_thread(
+                    adapter.search_with_cache,
+                    claim_text,
+                    domain,
+                    jurisdiction
+                )
+                api_tasks.append((adapter.api_name, task))
+
+            # Gather all API results
+            api_results = await asyncio.gather(
+                *[task for _, task in api_tasks],
+                return_exceptions=True
+            )
+
+            # Collect evidence and statistics
+            all_api_evidence = []
+            api_stats = {
+                "apis_queried": [],
+                "total_api_calls": 0,
+                "total_api_results": 0
+            }
+
+            for i, (api_name, _) in enumerate(api_tasks):
+                result = api_results[i]
+
+                if isinstance(result, Exception):
+                    logger.error(f"{api_name} API call failed: {result}")
+                    api_stats["apis_queried"].append({"name": api_name, "results": 0, "error": str(result)})
+                    continue
+
+                if result:
+                    all_api_evidence.extend(result)
+                    api_stats["apis_queried"].append({"name": api_name, "results": len(result)})
+                    api_stats["total_api_results"] += len(result)
+                    logger.info(f"{api_name} returned {len(result)} results")
+                else:
+                    api_stats["apis_queried"].append({"name": api_name, "results": 0})
+                    logger.info(f"{api_name} returned no results")
+
+            api_stats["total_api_calls"] = len(api_tasks)
+
+            logger.info(
+                f"API retrieval complete: {api_stats['total_api_calls']} APIs queried, "
+                f"{api_stats['total_api_results']} total results"
+            )
+
+            return {
+                "evidence": all_api_evidence,
+                "api_stats": api_stats
+            }
+
+        except Exception as e:
+            logger.error(f"Government API retrieval error: {e}", exc_info=True)
+            return {"evidence": [], "api_stats": {}}
+
+    def _convert_api_evidence_to_snippets(
+        self,
+        api_evidence: List[Dict[str, Any]]
+    ) -> List[EvidenceSnippet]:
+        """
+        Convert API evidence dictionaries to EvidenceSnippet objects.
+
+        Args:
+            api_evidence: List of evidence dictionaries from APIs
+
+        Returns:
+            List of EvidenceSnippet objects
+        """
+        snippets = []
+
+        for evidence in api_evidence:
+            try:
+                snippet = EvidenceSnippet(
+                    text=evidence.get("snippet", ""),
+                    source=evidence.get("source", "Unknown API"),
+                    url=evidence.get("url", ""),
+                    title=evidence.get("title", ""),
+                    published_date=evidence.get("source_date"),
+                    relevance_score=0.8,  # Default relevance for API sources
+                    word_count=len(evidence.get("snippet", "").split()),
+                    metadata={
+                        **evidence.get("metadata", {}),
+                        "external_source_provider": evidence.get("external_source_provider"),
+                        "credibility_score": evidence.get("credibility_score", 0.95)
+                    }
+                )
+                snippets.append(snippet)
+            except Exception as e:
+                logger.warning(f"Failed to convert API evidence to snippet: {e}")
+                continue
+
+        return snippets
     
     async def _store_evidence_embeddings(self, claim: Dict[str, Any], 
                                        evidence_list: List[Dict[str, Any]]):

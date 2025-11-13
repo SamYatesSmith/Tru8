@@ -130,6 +130,17 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
             check.claims_contradicted = results.get("claims_contradicted", 0)
             check.claims_uncertain = results.get("claims_uncertain", 0)
 
+            # Phase 5: Save Government API statistics
+            api_stats = results.get("api_stats")
+            if api_stats:
+                check.api_sources_used = api_stats.get("apis_queried", [])
+                check.api_call_count = api_stats.get("total_api_calls", 0)
+                check.api_coverage_percentage = api_stats.get("api_coverage_percentage", 0.0)
+                logger.info(
+                    f"API stats: {api_stats['total_api_calls']} calls, "
+                    f"{api_stats['api_coverage_percentage']:.1f}% coverage"
+                )
+
             # Save Search Clarity query response fields (if present)
             query_data = results.get("query_response")
             if query_data:
@@ -158,7 +169,7 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                     position=claim_data.get("position", 0),
                     # Context preservation fields (Context Improvement)
                     subject_context=claim_data.get("subject_context"),
-                    key_entities=json.dumps(claim_data.get("key_entities", [])) if claim_data.get("key_entities") else None,
+                    key_entities=claim_data.get("key_entities", []) if claim_data.get("key_entities") else None,
                     source_title=claim_data.get("source_title"),
                     source_url=claim_data.get("source_url")
                 )
@@ -171,6 +182,9 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                 logger.info(f"Saving {len(evidence_list)} evidence items for claim {claim.id}")
 
                 for ev_data in evidence_list:
+                    # Get metadata dict for API fields
+                    metadata_dict = ev_data.get("metadata", {})
+
                     evidence = Evidence(
                         claim_id=claim.id,
                         source=ev_data.get("source", "Unknown"),
@@ -182,15 +196,19 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                         relevance_score=ev_data.get("relevance_score", 0.0),
 
                         # Citation Precision (Phase 2)
-                        page_number=ev_data.get("metadata", {}).get("page_number") if ev_data.get("metadata") else None,
-                        context_before=ev_data.get("metadata", {}).get("context_before") if ev_data.get("metadata") else None,
-                        context_after=ev_data.get("metadata", {}).get("context_after") if ev_data.get("metadata") else None,
+                        page_number=metadata_dict.get("page_number") if metadata_dict else None,
+                        context_before=metadata_dict.get("context_before") if metadata_dict else None,
+                        context_after=metadata_dict.get("context_after") if metadata_dict else None,
 
                         # NLI Context (Phase 2 - enriched in judge.py)
                         nli_stance=ev_data.get("nli_stance"),
                         nli_confidence=ev_data.get("nli_confidence"),
                         nli_entailment=ev_data.get("nli_entailment"),
-                        nli_contradiction=ev_data.get("nli_contradiction")
+                        nli_contradiction=ev_data.get("nli_contradiction"),
+
+                        # Phase 5: Government API Integration
+                        external_source_provider=ev_data.get("external_source_provider"),
+                        api_metadata=metadata_dict
                     )
                     session.add(evidence)
 
@@ -509,9 +527,12 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
 
         stage_timings["summary"] = (datetime.utcnow() - stage_start).total_seconds()
 
+        # Phase 5: Aggregate API statistics across all claims
+        api_stats = aggregate_api_stats(claims, evidence)
+
         # Calculate processing time
         processing_time_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
-        
+
         # Prepare final result with enhanced metrics
         final_result = {
             "check_id": check_id,
@@ -525,6 +546,7 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             "processing_time_ms": processing_time_ms,
             "ingest_metadata": content.get("metadata", {}),
             "query_response": query_response_data,  # Search Clarity
+            "api_stats": api_stats,  # Phase 5: Government API Integration
             "pipeline_stats": {
                 "claims_extracted": len(claims),
                 "evidence_sources": sum(len(ev) for ev in evidence.values()),
@@ -556,6 +578,82 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
     except Exception as e:
         logger.error(f"Pipeline failed for check {check_id}: {e}")
         raise
+
+
+def aggregate_api_stats(
+    claims: List[Dict[str, Any]],
+    evidence: Dict[str, List[Dict[str, Any]]]
+) -> Dict[str, Any]:
+    """
+    Aggregate API statistics across all claims.
+
+    Phase 5: Government API Integration
+
+    Args:
+        claims: List of claims (each may have api_stats)
+        evidence: Evidence by claim position
+
+    Returns:
+        Aggregated API stats dictionary
+    """
+    # Collect all API calls from claim-level stats
+    all_apis_queried = []
+    total_api_calls = 0
+    total_api_results = 0
+
+    for claim in claims:
+        claim_api_stats = claim.get("api_stats", {})
+        apis_queried = claim_api_stats.get("apis_queried", [])
+
+        for api_info in apis_queried:
+            # Check if this API is already in the aggregate list
+            existing_api = next(
+                (a for a in all_apis_queried if a["name"] == api_info["name"]),
+                None
+            )
+
+            if existing_api:
+                # Aggregate results for this API
+                existing_api["results"] += api_info.get("results", 0)
+            else:
+                # Add new API to list
+                all_apis_queried.append({
+                    "name": api_info["name"],
+                    "results": api_info.get("results", 0)
+                })
+
+        total_api_calls += claim_api_stats.get("total_api_calls", 0)
+        total_api_results += claim_api_stats.get("total_api_results", 0)
+
+    # Count evidence from APIs vs web search
+    total_evidence_count = sum(len(ev_list) for ev_list in evidence.values())
+    api_evidence_count = 0
+
+    for ev_list in evidence.values():
+        for ev in ev_list:
+            # Issue #6 Fix: Check both top-level (correct) and nested (defensive fallback)
+            external_provider = ev.get("external_source_provider")
+
+            # Defensive: also check in metadata if not at top level
+            if not external_provider and ev.get("metadata"):
+                external_provider = ev.get("metadata", {}).get("external_source_provider")
+
+            if external_provider:
+                api_evidence_count += 1
+
+    # Calculate API coverage percentage
+    api_coverage_percentage = 0.0
+    if total_evidence_count > 0:
+        api_coverage_percentage = (api_evidence_count / total_evidence_count) * 100
+
+    return {
+        "apis_queried": all_apis_queried,
+        "total_api_calls": total_api_calls,
+        "total_api_results": total_api_results,
+        "api_evidence_count": api_evidence_count,
+        "total_evidence_count": total_evidence_count,
+        "api_coverage_percentage": round(api_coverage_percentage, 2)
+    }
 
 async def generate_overall_assessment(
     claims: List[Dict[str, Any]],
