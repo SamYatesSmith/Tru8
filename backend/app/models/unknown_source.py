@@ -8,6 +8,7 @@ Tracks unknown domains encountered during evidence retrieval for manual review a
 from typing import Optional
 from datetime import datetime
 from sqlmodel import Field, SQLModel, Column, JSON
+from sqlalchemy.dialects.postgresql import JSONB
 import uuid
 
 def generate_uuid() -> str:
@@ -39,7 +40,7 @@ class UnknownSource(SQLModel, table=True):
     # Curation status
     reviewed: bool = Field(default=False, description="Has been manually reviewed by admin")
     added_to_credibility_list: bool = Field(default=False, description="Added to source_credibility.json")
-    review_notes: Optional[str] = Field(default=None, sa_column=Column(JSON), description="Admin notes from review")
+    review_notes: Optional[str] = Field(default=None, sa_column=Column(JSONB), description="Admin notes from review")
     assigned_tier: Optional[str] = Field(default=None, description="Tier assigned after review (e.g., 'news_tier2')")
     assigned_credibility: Optional[float] = Field(default=None, description="Credibility score assigned (0.0-1.0)")
 

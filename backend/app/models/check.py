@@ -1,6 +1,8 @@
 from typing import Optional, List
 from datetime import datetime
-from sqlmodel import Field, SQLModel, Relationship, JSON, Column
+from sqlmodel import Field, SQLModel, Relationship, JSON
+from sqlalchemy import Column
+from sqlalchemy.dialects.postgresql import JSONB
 import uuid
 
 def generate_uuid() -> str:
@@ -10,7 +12,7 @@ class Check(SQLModel, table=True):
     id: str = Field(default_factory=generate_uuid, primary_key=True)
     user_id: str = Field(foreign_key="user.id", index=True)
     input_type: str  # 'url', 'text', 'image', 'video'
-    input_content: str = Field(sa_column=Column(JSON))  # Store as JSON
+    input_content: str = Field(sa_column=Column(JSONB))  # Store as JSONB for PostgreSQL optimization
     input_url: Optional[str] = None
     status: str = Field(default="pending")  # 'pending', 'processing', 'completed', 'failed'
     credits_used: int = Field(default=1)
@@ -20,7 +22,7 @@ class Check(SQLModel, table=True):
     completed_at: Optional[datetime] = None
 
     # Explainability fields (Phase 2, Week 6.5-7.5)
-    decision_trail: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Full decision trail
+    decision_trail: Optional[str] = Field(default=None, sa_column=Column(JSONB))  # Full decision trail
     transparency_score: Optional[float] = Field(default=None, ge=0, le=1)  # How explainable the verdict is (0-1)
 
     # Overall Summary fields (for PDF & UI display)
@@ -48,8 +50,25 @@ class Check(SQLModel, table=True):
     )
     query_sources: Optional[str] = Field(
         default=None,
-        sa_column=Column(JSON),
+        sa_column=Column(JSONB),
         description="Evidence sources used for query response (JSON array)"
+    )
+
+    # Government API Integration fields (Phase 5)
+    api_sources_used: Optional[str] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="List of government APIs queried for this check"
+    )
+    api_call_count: Optional[int] = Field(
+        default=0,
+        description="Total number of API calls made"
+    )
+    api_coverage_percentage: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Percentage of evidence from government APIs (0-100)"
     )
 
     # Relationships
@@ -67,7 +86,7 @@ class Claim(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Temporal context fields (Phase 1.5, Week 4.5-5.5)
-    temporal_markers: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Detected time markers
+    temporal_markers: Optional[str] = Field(default=None, sa_column=Column(JSONB))  # Detected time markers
     time_reference: Optional[str] = None  # 'present', 'recent_past', 'specific_year', 'historical', 'future'
     is_time_sensitive: bool = Field(default=False)  # True if claim requires temporal context
 
@@ -75,11 +94,11 @@ class Claim(SQLModel, table=True):
     claim_type: Optional[str] = None  # 'factual', 'opinion', 'prediction', 'personal_experience', 'legal'
     is_verifiable: bool = Field(default=True)  # False for opinions, predictions, personal experiences
     verifiability_reason: Optional[str] = None  # Explanation of why claim is/isn't verifiable
-    legal_metadata: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Legal citations, jurisdiction, etc. for legal claims
+    legal_metadata: Optional[str] = Field(default=None, sa_column=Column(JSONB))  # Legal citations, jurisdiction, etc. for legal claims
 
     # Explainability fields (Phase 2, Week 6.5-7.5)
     uncertainty_explanation: Optional[str] = None  # Explanation for uncertain verdicts
-    confidence_breakdown: Optional[str] = Field(default=None, sa_column=Column(JSON))  # Detailed confidence factors
+    confidence_breakdown: Optional[str] = Field(default=None, sa_column=Column(JSONB))  # Detailed confidence factors
 
     # Consensus & Abstention fields (Phase 3, Week 8)
     abstention_reason: Optional[str] = None  # Why we abstained from making a verdict
@@ -88,7 +107,7 @@ class Claim(SQLModel, table=True):
 
     # Context Preservation (Context Improvement)
     subject_context: Optional[str] = Field(default=None, description="Main subject/topic the claim is about")
-    key_entities: Optional[str] = Field(default=None, sa_column=Column(JSON), description="Key entities mentioned in claim")
+    key_entities: Optional[str] = Field(default=None, sa_column=Column(JSONB), description="Key entities mentioned in claim")
     source_title: Optional[str] = Field(default=None, description="Title of source article")
     source_url: Optional[str] = Field(default=None, description="URL of source article")
 
@@ -133,7 +152,7 @@ class Evidence(SQLModel, table=True):
 
     # Domain Credibility Framework fields (Phase 3, Week 9)
     tier: Optional[str] = None  # 'tier1', 'tier2', 'tier3', 'general', 'blacklist', 'flagged', 'excluded'
-    risk_flags: Optional[str] = Field(default=None, sa_column=Column(JSON))  # List of risk indicators
+    risk_flags: Optional[str] = Field(default=None, sa_column=Column(JSONB))  # List of risk indicators
     credibility_reasoning: Optional[str] = None  # Explanation of credibility score
     risk_level: Optional[str] = None  # 'none', 'low', 'medium', 'high'
     risk_warning: Optional[str] = None  # User-facing warning message
@@ -146,6 +165,18 @@ class Evidence(SQLModel, table=True):
     nli_confidence: Optional[float] = Field(default=None, ge=0, le=1, description="NLI confidence score 0-1")
     nli_entailment: Optional[float] = Field(default=None, ge=0, le=1, description="Entailment probability")
     nli_contradiction: Optional[float] = Field(default=None, ge=0, le=1, description="Contradiction probability")
+
+    # Government API Integration fields (Phase 5)
+    api_metadata: Optional[str] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="API-specific response metadata"
+    )
+    external_source_provider: Optional[str] = Field(
+        default=None,
+        max_length=200,
+        description="API name (e.g., 'ONS Economic Statistics', 'PubMed')"
+    )
 
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")
