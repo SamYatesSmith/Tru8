@@ -1,5 +1,9 @@
 from celery import Celery
+from celery.signals import worker_ready
 from app.core.config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 celery_app = Celery(
     "tru8",
@@ -37,3 +41,21 @@ celery_app.conf.update(
     task_acks_late=False,
     task_reject_on_worker_lost=True,
 )
+
+
+@worker_ready.connect
+def initialize_worker(**kwargs):
+    """
+    Initialize API adapters when Celery worker starts.
+
+    CRITICAL: Celery workers run in separate processes from FastAPI server,
+    so adapters must be initialized here as well as in main.py.
+    """
+    logger.info("Celery worker starting - initializing API adapters...")
+
+    if settings.ENABLE_API_RETRIEVAL:
+        from app.services.api_adapters import initialize_adapters
+        initialize_adapters()
+        logger.info("✅ API adapters initialized in Celery worker")
+    else:
+        logger.info("⚠️  ENABLE_API_RETRIEVAL is False, skipping adapter initialization")
