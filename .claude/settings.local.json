@@ -4,7 +4,10 @@
       "Bash(pip install:*)",
       "Bash(sed:*)",
       "Bash(pytest:*)",
-      "Bash(alembic check:*)"
+      "Bash(alembic check:*)",
+      "Bash(pip uninstall:*)",
+      "Bash(python -m spacy download:*)",
+      "Bash(python -c:*)"
     ],
     "deny": [],
     "ask": []

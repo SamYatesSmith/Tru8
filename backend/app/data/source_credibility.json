@@ -464,6 +464,145 @@
     "tier": "tier2"
   },
 
+  "government_apis": {
+    "credibility": 0.95,
+    "description": "Authoritative government and institutional API sources (Phase 5)",
+    "domains": [
+      "api.ons.gov.uk",
+      "api.companieshouse.gov.uk",
+      "datapoint.metoffice.gov.uk",
+      "data.parliament.uk",
+      "www.ons.gov.uk",
+      "api.census.gov",
+      "api.parliament.uk",
+      "eutils.ncbi.nlm.nih.gov",
+      "api.stlouisfed.org",
+      "api.congress.gov",
+      "api.who.int",
+      "api.crossref.org",
+      "query.wikidata.org",
+      "sportradar.com",
+      "musicbrainz.org",
+      "oauth.reddit.com",
+      "api.stackexchange.com"
+    ],
+    "tier": "tier1",
+    "api_sources": [
+      {
+        "name": "ONS Economic Statistics",
+        "domain": "api.ons.gov.uk",
+        "jurisdiction": "UK",
+        "domains_served": ["Finance", "Demographics"],
+        "description": "UK economic and population statistics"
+      },
+      {
+        "name": "Companies House",
+        "domain": "api.companieshouse.gov.uk",
+        "jurisdiction": "UK",
+        "domains_served": ["Government", "Finance"],
+        "description": "UK company registration and financial data"
+      },
+      {
+        "name": "Met Office",
+        "domain": "datapoint.metoffice.gov.uk",
+        "jurisdiction": "UK",
+        "domains_served": ["Climate"],
+        "description": "UK weather and climate data"
+      },
+      {
+        "name": "UK Parliament",
+        "domain": "data.parliament.uk",
+        "jurisdiction": "UK",
+        "domains_served": ["Government", "Law"],
+        "description": "UK parliamentary records and legislation"
+      },
+      {
+        "name": "UK Census",
+        "domain": "www.ons.gov.uk",
+        "jurisdiction": "UK",
+        "domains_served": ["Demographics"],
+        "description": "UK census and demographic statistics"
+      },
+      {
+        "name": "US Census",
+        "domain": "api.census.gov",
+        "jurisdiction": "US",
+        "domains_served": ["Demographics"],
+        "description": "US census and demographic data"
+      },
+      {
+        "name": "PubMed",
+        "domain": "eutils.ncbi.nlm.nih.gov",
+        "jurisdiction": "Global",
+        "domains_served": ["Health", "Science"],
+        "description": "Medical and life sciences research database"
+      },
+      {
+        "name": "FRED",
+        "domain": "api.stlouisfed.org",
+        "jurisdiction": "US",
+        "domains_served": ["Finance"],
+        "description": "Federal Reserve economic data"
+      },
+      {
+        "name": "Congress.gov",
+        "domain": "api.congress.gov",
+        "jurisdiction": "US",
+        "domains_served": ["Government", "Law"],
+        "description": "US congressional records and legislation"
+      },
+      {
+        "name": "WHO",
+        "domain": "api.who.int",
+        "jurisdiction": "Global",
+        "domains_served": ["Health"],
+        "description": "World Health Organization data"
+      },
+      {
+        "name": "CrossRef",
+        "domain": "api.crossref.org",
+        "jurisdiction": "Global",
+        "domains_served": ["Science"],
+        "description": "Academic research metadata and DOIs"
+      },
+      {
+        "name": "Wikidata",
+        "domain": "query.wikidata.org",
+        "jurisdiction": "Global",
+        "domains_served": ["General"],
+        "description": "Structured knowledge base"
+      },
+      {
+        "name": "Sports Open Data",
+        "domain": "sportradar.com",
+        "jurisdiction": "Global",
+        "domains_served": ["General"],
+        "description": "Sports statistics and results"
+      },
+      {
+        "name": "MusicBrainz",
+        "domain": "musicbrainz.org",
+        "jurisdiction": "Global",
+        "domains_served": ["General"],
+        "description": "Music metadata and artist information"
+      },
+      {
+        "name": "Reddit",
+        "domain": "oauth.reddit.com",
+        "jurisdiction": "Global",
+        "domains_served": ["General"],
+        "description": "Community discussions and content"
+      },
+      {
+        "name": "Stack Exchange",
+        "domain": "api.stackexchange.com",
+        "jurisdiction": "Global",
+        "domains_served": ["Science", "General"],
+        "description": "Technical Q&A and knowledge sharing"
+      }
+    ]
+  },
+
   "general": {
     "credibility": 0.6,
     "description": "Default for unmatched sources",

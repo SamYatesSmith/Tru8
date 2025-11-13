@@ -105,6 +105,9 @@ class Settings(BaseSettings):
     LEGAL_API_TIMEOUT_SECONDS: int = Field(10, env="LEGAL_API_TIMEOUT_SECONDS")
     LEGAL_CACHE_TTL_DAYS: int = Field(30, env="LEGAL_CACHE_TTL_DAYS")
 
+    # Phase 5 - Government API Integration
+    ENABLE_API_RETRIEVAL: bool = Field(True, env="ENABLE_API_RETRIEVAL")
+
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")

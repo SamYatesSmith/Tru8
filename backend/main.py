@@ -16,6 +16,12 @@ setup_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+
+    # Phase 5: Initialize Government API adapters
+    if settings.ENABLE_API_RETRIEVAL:
+        from app.services.api_adapters import initialize_adapters
+        initialize_adapters()
+
     yield
 
 app = FastAPI(

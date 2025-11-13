@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Any
+from typing import Dict, Any, List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,55 @@ class ClaimClassifier:
             r"\b(illegal|unlawful|lawful)\s+under\b",  # Legality under law
             r"\b(violates?|complies?\s+with)\s+(\w+\s+){0,3}(law|act|statute)\b"  # Compliance/violation
         ]
+
+        # NEW: Domain detection with spaCy (lazy loaded for Phase 5: Government API Integration)
+        self.nlp = None  # Lazy load only when ENABLE_API_RETRIEVAL=True
+
+        # Domain classification keywords and scoring
+        self.domain_keywords = {
+            "Finance": {
+                "keywords": ["unemployment", "gdp", "inflation", "economy", "market", "stock",
+                           "interest", "fiscal", "monetary", "treasury", "growth", "recession"],
+                "entities": ["MONEY", "PERCENT"],
+                "orgs": ["ons", "fed", "treasury", "bank of england", "federal reserve"]
+            },
+            "Health": {
+                "keywords": ["health", "medical", "disease", "vaccine", "hospital", "doctor",
+                           "patient", "treatment", "covid", "pandemic", "nhs", "medicine"],
+                "entities": [],
+                "orgs": ["nhs", "who", "cdc", "nihr", "world health"]
+            },
+            "Government": {
+                "keywords": ["company", "business", "corporation", "registered", "director",
+                           "filing", "incorporation", "shareholder"],
+                "entities": ["ORG"],
+                "orgs": ["companies house"]
+            },
+            "Climate": {
+                "keywords": ["climate", "temperature", "weather", "carbon", "emissions",
+                           "greenhouse", "warming", "celsius", "fahrenheit"],
+                "entities": [],
+                "orgs": ["met office", "noaa"]
+            },
+            "Demographics": {
+                "keywords": ["population", "census", "demographic", "people", "household",
+                           "birth", "death", "migration", "ethnicity"],
+                "entities": [],
+                "orgs": ["ons", "census"]
+            },
+            "Science": {
+                "keywords": ["research", "study", "journal", "science", "experiment",
+                           "peer-review", "publication", "findings", "paper"],
+                "entities": [],
+                "orgs": ["pubmed", "nature", "science"]
+            },
+            "Law": {
+                "keywords": ["statute", "regulation", "act", "bill", "court", "ruling",
+                           "section", "subsection", "amended", "legislation"],
+                "entities": ["LAW"],
+                "orgs": ["parliament", "congress", "supreme court"]
+            }
+        }
 
     def classify(self, claim_text: str) -> Dict[str, Any]:
         """Classify claim type and assess verifiability"""
@@ -183,6 +232,211 @@ class ClaimClassifier:
                 metadata["jurisdiction"] = "UK"
 
         return metadata
+
+    # ========== NEW METHODS FOR DOMAIN DETECTION (Phase 5: Government API Integration) ==========
+
+    def detect_domain(self, claim_text: str) -> Dict[str, Any]:
+        """
+        NEW METHOD: Detect domain for API routing using spaCy NER
+
+        Returns:
+            {
+                "domain": str,  # Finance, Health, Government, etc.
+                "domain_confidence": float,  # 0-1
+                "jurisdiction": str,  # UK, US, EU, Global
+                "key_entities": List[str]
+            }
+        """
+        # Early return for empty or whitespace-only claims
+        if not claim_text or not claim_text.strip():
+            return {
+                "domain": "General",
+                "domain_confidence": 0.0,
+                "jurisdiction": "Global",
+                "key_entities": []
+            }
+
+        # Lazy load spaCy only when needed
+        if self.nlp is None:
+            self._load_spacy()
+
+        try:
+            doc = self.nlp(claim_text)
+
+            # Extract entities
+            entities = [{"text": ent.text, "label": ent.label_} for ent in doc.ents]
+
+            # Score each domain
+            domain, confidence = self._score_domains(claim_text, entities)
+
+            # Detect jurisdiction
+            jurisdiction = self._detect_jurisdiction(claim_text, doc)
+
+            return {
+                "domain": domain,
+                "domain_confidence": confidence,
+                "jurisdiction": jurisdiction,
+                "key_entities": [ent.text for ent in doc.ents]
+            }
+        except Exception as e:
+            logger.error(f"Domain detection failed: {e}", exc_info=True)
+            # Fallback to General domain
+            return {
+                "domain": "General",
+                "domain_confidence": 0.1,
+                "jurisdiction": "Global",
+                "key_entities": []
+            }
+
+    def _load_spacy(self):
+        """Lazy load spaCy model with custom patterns"""
+        try:
+            import spacy
+
+            self.nlp = spacy.load("en_core_web_sm")
+
+            # Add custom entity ruler for domain-specific entities
+            if "entity_ruler" not in self.nlp.pipe_names:
+                ruler = self.nlp.add_pipe("entity_ruler", before="ner")
+
+                patterns = [
+                    # Government/Companies
+                    {"label": "ORG", "pattern": [{"LOWER": "companies"}, {"LOWER": "house"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "nhs"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "ons"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "met"}, {"LOWER": "office"}]},
+
+                    # Health organizations
+                    {"label": "ORG", "pattern": [{"LOWER": "who"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "cdc"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "world"}, {"LOWER": "health"}]},
+
+                    # Financial terms
+                    {"label": "FINANCIAL", "pattern": [{"LOWER": "gdp"}]},
+                    {"label": "FINANCIAL", "pattern": [{"LOWER": "unemployment"}]},
+                    {"label": "FINANCIAL", "pattern": [{"LOWER": "inflation"}]},
+
+                    # Climate terms
+                    {"label": "CLIMATE", "pattern": [{"LOWER": "carbon"}, {"LOWER": "emissions"}]},
+                ]
+
+                ruler.add_patterns(patterns)
+
+            logger.info("spaCy model loaded for domain detection")
+
+        except OSError:
+            logger.error("spaCy model not found. Run: python -m spacy download en_core_web_sm")
+            raise
+        except Exception as e:
+            logger.error(f"Failed to load spaCy: {e}", exc_info=True)
+            raise
+
+    def _score_domains(self, claim_text: str, entities: List[Dict]) -> tuple:
+        """
+        Score each domain and return highest with confidence
+
+        Scoring system:
+        - Keyword match: +1 point each
+        - Entity match: +2 points each
+        - Organization match: +3 points each
+        """
+        claim_lower = claim_text.lower()
+        scores = {domain: 0 for domain in self.domain_keywords}
+
+        for domain, config in self.domain_keywords.items():
+            # Check keywords (+1 point each)
+            for keyword in config["keywords"]:
+                if keyword in claim_lower:
+                    scores[domain] += 1
+
+            # Check entities (+2 points each)
+            for entity in entities:
+                if entity["label"] in config["entities"]:
+                    scores[domain] += 2
+
+            # Check organizations (+3 points each)
+            for entity in entities:
+                if entity["label"] == "ORG":
+                    entity_text_lower = entity["text"].lower()
+                    if any(org in entity_text_lower for org in config["orgs"]):
+                        scores[domain] += 3
+
+        # Get highest scoring domain
+        max_domain = max(scores, key=scores.get)
+        max_score = scores[max_domain]
+
+        # Calculate confidence (0-1 scale)
+        # 0 points = 0.1 confidence (General)
+        # 5+ points = 0.9 confidence
+        confidence = min(0.1 + (max_score * 0.15), 0.95)
+
+        if max_score == 0:
+            return "General", 0.1
+
+        return max_domain, confidence
+
+    def _detect_jurisdiction(self, claim_text: str, doc) -> str:
+        """
+        Detect jurisdiction from text and entities.
+
+        Priority order:
+        1. Organization entities (highest signal)
+        2. Explicit location indicators
+        3. GPE entities
+        4. Default to Global
+        """
+        claim_lower = claim_text.lower()
+
+        # Extract all entities for checking
+        entities_lower = [ent.text.lower() for ent in doc.ents]
+
+        # PRIORITY 1: Organization-based jurisdiction (strongest signal)
+        # These organizations are definitively tied to specific jurisdictions
+        uk_orgs = ["ons", "nhs", "companies house", "met office", "uk parliament",
+                   "bank of england", "fca", "hmrc", "ofsted"]
+        us_orgs = ["federal reserve", "fed", "cdc", "fda", "congress",
+                   "supreme court", "irs", "sec", "epa"]
+
+        for org in uk_orgs:
+            if org in claim_lower or org in entities_lower:
+                return "UK"
+
+        for org in us_orgs:
+            if org in claim_lower or org in entities_lower:
+                return "US"
+
+        # PRIORITY 2: Explicit location indicators
+        # UK indicators
+        uk_indicators = ["uk", "britain", "british", "united kingdom",
+                         "westminster", "england", "scotland", "wales", "northern ireland"]
+        if any(ind in claim_lower for ind in uk_indicators):
+            return "UK"
+
+        # US indicators
+        us_indicators = ["usa", "america", "american", "united states",
+                        "senate", "house of representatives", "washington dc"]
+        if any(ind in claim_lower for ind in us_indicators):
+            return "US"
+
+        # EU indicators
+        eu_indicators = ["eu", "european union", "brussels", "european commission",
+                        "eurozone", "european central bank", "ecb"]
+        if any(ind in claim_lower for ind in eu_indicators):
+            return "EU"
+
+        # PRIORITY 3: Check GPE (Geo-Political Entity) entities
+        for ent in doc.ents:
+            if ent.label_ == "GPE":
+                ent_text = ent.text.lower()
+                if ent_text in ["uk", "britain", "england", "scotland", "wales", "northern ireland"]:
+                    return "UK"
+                if ent_text in ["us", "usa", "america", "united states"]:
+                    return "US"
+                if ent_text in ["eu", "europe"]:
+                    return "EU"
+
+        # PRIORITY 4: Default to Global
+        return "Global"
 
     def get_classification_summary(self, claims: list[Dict[str, Any]]) -> Dict[str, Any]:
         """Get summary statistics for a batch of classified claims"""
