@@ -201,8 +201,9 @@
   },
 
   "factcheck": {
-    "credibility": 0.95,
-    "description": "Professional fact-checking organizations (IFCN signatories)",
+    "credibility": 0.87,
+    "description": "Professional fact-checking organizations (IFCN signatories) - Meta-analysis sources, credibility adjusted to below primary news sources",
+    "reasoning": "Fact-check sites provide meta-analysis about other claims, not primary evidence. Should not override multiple tier-1 news sources (BBC/Reuters/NPR at 0.90). Adjusted from 0.95 to 0.87 to prevent single fact-check from overriding multiple primary sources.",
     "domains": [
     "snopes.com",
     "factcheck.org",

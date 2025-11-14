@@ -282,6 +282,33 @@ async def compute_claim_evidence_similarity_matrix(claims: List[str],
         # Return matrix with moderate similarities as fallback
         return np.full((len(claims), len(evidence_snippets)), 0.5)
 
+async def calculate_semantic_similarity(text1: str, text2: str) -> float:
+    """
+    Calculate semantic similarity between two texts.
+
+    Returns cosine similarity score between 0.0 (completely different) and 1.0 (identical).
+    Used for relevance gatekeeper to filter off-topic evidence before NLI.
+    """
+    service = await get_embedding_service()
+
+    try:
+        # Generate embeddings for both texts
+        embeddings = await service.embed_batch([text1, text2])
+        embedding1, embedding2 = embeddings[0], embeddings[1]
+
+        # Compute cosine similarity
+        similarity = await service.compute_similarity(embedding1, embedding2)
+
+        # Convert from [-1, 1] to [0, 1] range
+        normalized_similarity = (similarity + 1.0) / 2.0
+
+        return float(normalized_similarity)
+
+    except Exception as e:
+        logger.error(f"Semantic similarity calculation failed: {e}")
+        # Return moderate similarity as fallback (don't filter by default on error)
+        return 0.5
+
 # Global embedding service instance
 _embedding_service = None
 

@@ -138,7 +138,7 @@ Be direct and concise. Cite source numbers used."""
                             "source": ev.get("source", "Unknown"),
                             "url": ev.get("url", ""),
                             "title": ev.get("title", ""),
-                            "snippet": ev.get("snippet", "")[:200],
+                            "snippet": ev.get("snippet", "")[:settings.EVIDENCE_SNIPPET_LENGTH],
                             "publishedDate": ev.get("published_date"),
                             "credibilityScore": ev.get("credibility_score", 0.7)
                         })
@@ -167,7 +167,7 @@ Be direct and concise. Cite source numbers used."""
         context_lines = []
         for i, ev in enumerate(evidence_list):
             source = ev.get("source", "Unknown")
-            snippet = ev.get("snippet", ev.get("text", ""))[:200]
+            snippet = ev.get("snippet", ev.get("text", ""))[:settings.EVIDENCE_SNIPPET_LENGTH]
             date = ev.get("published_date", "")
             credibility = ev.get("credibility_score", 0.7)
 

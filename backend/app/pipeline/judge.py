@@ -82,11 +82,63 @@ ANALYSIS FRAMEWORK:
 
    If no qualifier present, use DEFAULT tolerance (±10%) for minor discrepancies
 
+CRITICAL - Do NOT Add Qualifiers or Over-Interpret:
+- Judge ONLY what the claim EXPLICITLY states - do not infer additional meaning
+- If claim says "exempts from provisions", do NOT interpret as "all provisions" or "certain provisions"
+- If claim says "exempts the White House", do NOT add qualifiers like "completely" or "partially"
+- If claim states a fact without qualifiers, do NOT assume universal or limited scope
+- Do NOT infer semantic qualifiers (all, some, certain, most, few, many) unless EXPLICITLY present
+- Do NOT add temporal qualifiers (always, never, sometimes, often, rarely) unless stated
+- Do NOT add scope qualifiers (everywhere, nowhere, somewhere, completely, partially) unless stated
+
+EXAMPLES OF OVER-INFERENCE TO AVOID:
+❌ Claim: "The act exempts the White House from its provisions"
+   Judge reads: "exempts from ALL provisions"
+   Evidence: "White House is exempt from Section 106"
+   Wrong conclusion: CONTRADICTED (because "all" ≠ "certain")
+   → ERROR: The claim NEVER said "all provisions"!
+
+✓  Claim: "The act exempts the White House from its provisions"
+   Evidence: "White House is exempt from Section 106"
+   Correct conclusion: SUPPORTED (exemption confirmed, scope not specified in claim)
+
+❌ Claim: "Project costs $350 million"
+   Judge reads: "costs exactly $350 million"
+   Evidence: "$320 million"
+   → ERROR: No exactness qualifier present, should apply default ±10% tolerance
+
+✓  Claim: "Project costs $350 million"
+   Evidence: "$320 million"
+   Correct conclusion: SUPPORTED ($320M is within ±10% tolerance of $350M)
+
 IMPORTANT - Handling Fact-Check Articles:
 - If evidence is from fact-checking sites (Snopes, FactCheck.org, etc.), recognize these are META-CLAIMS
 - A fact-check article saying "FALSE - claim X is debunked" means the OPPOSITE claim is supported
 - Focus on PRIMARY sources (scientific studies, government data, news reports) over fact-check meta-content
 - Do not be confused by double negatives in fact-check headlines
+
+CRITICAL - Detecting Off-Topic/Irrelevant Evidence:
+- Before marking evidence as CONTRADICTING, verify it actually ADDRESSES the claim
+- Evidence about a DIFFERENT ASPECT of the topic is IRRELEVANT, not contradicting
+- Only mark as CONTRADICTING if evidence DIRECTLY DISPROVES the claim's core assertion
+- Examples of IRRELEVANT (not contradicting) evidence:
+  ❌ Claim: "Person A sent a letter requesting documentation" + Evidence: "The letter doesn't require approval" → DIFFERENT TOPICS (action vs requirements)
+  ❌ Claim: "Event costs $500M" + Evidence: "Event is funded by private donations" → DIFFERENT ASPECTS (cost vs funding source)
+  ❌ Claim: "Building demolition began in June" + Evidence: "Building is exempt from review" → DIFFERENT TOPICS (timing vs legal status)
+  ✓  Claim: "Person A sent a letter" + Evidence: "No letter was ever sent by Person A" → DIRECT CONTRADICTION
+  ✓  Claim: "Event costs $500M" + Evidence: "Event actually costs $300M" → DIRECT CONTRADICTION
+
+- When evidence is OFF-TOPIC or discusses unrelated aspects, treat as NEUTRAL/INSUFFICIENT
+- Do NOT infer logical connections between unrelated facts
+- Absence of requirement ≠ Absence of action
+- Legal exemption ≠ Action didn't happen
+- Funding source ≠ Cost amount
+
+CRITICAL - Logical Fallacies to Avoid:
+- Do NOT infer: "Action X doesn't require approval → Therefore action X didn't happen"
+- Do NOT infer: "Project funded privately → Therefore no oversight requests were made"
+- Do NOT infer: "Law exempts building → Therefore no agencies were consulted"
+- Do NOT infer: "Process doesn't need documentation → Therefore no documentation was requested"
 
 RESPONSE FORMAT: Respond with a valid JSON object containing:
 {
@@ -282,7 +334,8 @@ NOW JUDGE THE FOLLOWING CLAIM:
         evidence_summary = []
         for i, ev in enumerate(evidence[:5]):  # Top 5 pieces
             source = ev.get("source", "Unknown")
-            snippet = ev.get("snippet", ev.get("text", ""))[:150]
+            # Use configurable snippet length (increased from 150 to 400 to preserve context)
+            snippet = ev.get("snippet", ev.get("text", ""))[:settings.EVIDENCE_SNIPPET_LENGTH]
             url = ev.get("url", "")
             date = ev.get("published_date", "")
 
@@ -497,7 +550,10 @@ Based on this analysis, provide your final judgment."""
         high_cred_contradicting = sum(1 for e in high_cred_sources
                                       if verification_signals.get(f"evidence_{e.get('id', '')}_stance") == 'contradicting')
 
-        if high_cred_supporting > 0 and high_cred_contradicting > 0:
+        # CRITICAL FIX: Only abstain if contradictions are STRONG and NUMEROUS
+        # Don't abstain on 1 false contradiction - require at least 2 contradicting sources
+        # AND contradictions must be equal to or outnumber supporting sources
+        if high_cred_contradicting >= 2 and high_cred_contradicting >= high_cred_supporting:
             return (
                 "conflicting_expert_opinion",
                 f"High-credibility sources conflict: {high_cred_supporting} support, "

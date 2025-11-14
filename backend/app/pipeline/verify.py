@@ -11,10 +11,17 @@ from app.services.cache import get_cache_service
 
 logger = logging.getLogger(__name__)
 
+# MODULE LOAD DIAGNOSTIC: This will print when the module is imported
+print("=" * 80)
+print("🔍 VERIFY.PY MODULE LOADED - Checking NLI label mapping configuration")
+print(f"   Timestamp: {__import__('datetime').datetime.now()}")
+print(f"   Expected label order: {{0: 'entailment', 1: 'neutral', 2: 'contradiction'}}")
+print("=" * 80)
+
 class NLIVerificationResult:
     """Result of NLI verification for a claim-evidence pair"""
     
-    def __init__(self, claim_text: str, evidence_text: str, 
+    def __init__(self, claim_text: str, evidence_text: str,
                  entailment_score: float, contradiction_score: float, neutral_score: float):
         self.claim_text = claim_text
         self.evidence_text = evidence_text
@@ -22,9 +29,16 @@ class NLIVerificationResult:
         self.contradiction_score = contradiction_score
         self.neutral_score = neutral_score
         self.confidence = max(entailment_score, contradiction_score, neutral_score)
-        
-        # Determine relationship
-        if entailment_score > contradiction_score and entailment_score > neutral_score:
+
+        # CRITICAL FIX: Neutral threshold to prevent false contradictions
+        # If neutral score is high (>0.7), evidence is off-topic/not-related
+        # Don't classify as "contradicting" just because it doesn't support
+        NEUTRAL_THRESHOLD = 0.7
+
+        if neutral_score > NEUTRAL_THRESHOLD:
+            # High neutral = evidence doesn't address claim (NOT contradicting)
+            self.relationship = "neutral"
+        elif entailment_score > contradiction_score and entailment_score > neutral_score:
             self.relationship = "entails"
         elif contradiction_score > entailment_score and contradiction_score > neutral_score:
             self.relationship = "contradicts"
@@ -38,7 +52,7 @@ class NLIVerificationResult:
             "entailment_score": self.entailment_score,
             "contradiction_score": self.contradiction_score,
             "neutral_score": self.neutral_score,
-            "evidence_snippet": self.evidence_text[:200] + "..." if len(self.evidence_text) > 200 else self.evidence_text
+            "evidence_snippet": self.evidence_text[:400] + "..." if len(self.evidence_text) > 400 else self.evidence_text
         }
 
 class NLIVerifier:
@@ -376,16 +390,82 @@ class NLIVerifier:
         return all_results
     
     async def _process_batch(self, batch: List[Tuple[str, str, Dict]]) -> List[NLIVerificationResult]:
-        """Process a single batch of claim-evidence pairs"""
+        """Process a single batch of claim-evidence pairs with relevance filtering"""
         try:
+            from app.core.config import settings
+
+            # NEW: Relevance gatekeeper - check semantic similarity before running NLI
+            if settings.ENABLE_EVIDENCE_RELEVANCE_FILTER:
+                from app.services.embeddings import get_embedding_service, calculate_semantic_similarity
+
+                embedding_service = await get_embedding_service()
+                results = []
+
+                # Split batch into relevant and irrelevant
+                relevant_pairs = []
+                irrelevant_pairs = []
+
+                for claim_text, evidence_text, evidence in batch:
+                    # Calculate semantic similarity
+                    relevance_score = await calculate_semantic_similarity(claim_text, evidence_text)
+
+                    # Store relevance score in evidence metadata
+                    if isinstance(evidence, dict):
+                        evidence['relevance_score'] = relevance_score
+
+                    # If evidence is OFF-TOPIC (low relevance), skip NLI and mark as neutral
+                    if relevance_score < settings.RELEVANCE_THRESHOLD:
+                        logger.info(f"Evidence OFF-TOPIC (relevance {relevance_score:.2f} < {settings.RELEVANCE_THRESHOLD}), skipping NLI")
+                        # Mark as highly neutral (off-topic evidence is not supporting OR contradicting)
+                        result = NLIVerificationResult(
+                            claim_text=claim_text,
+                            evidence_text=evidence_text,
+                            entailment_score=0.05,  # Very low
+                            contradiction_score=0.05,  # Very low
+                            neutral_score=0.90  # High - evidence is irrelevant
+                        )
+                        irrelevant_pairs.append((claim_text, evidence_text, evidence, result))
+                    else:
+                        logger.debug(f"Evidence relevant (relevance {relevance_score:.2f}), running NLI")
+                        relevant_pairs.append((claim_text, evidence_text, evidence))
+
+                # Run NLI only on relevant evidence
+                if relevant_pairs:
+                    premises = [evidence_text for claim_text, evidence_text, _ in relevant_pairs]
+                    hypotheses = [claim_text for claim_text, evidence_text, _ in relevant_pairs]
+
+                    loop = asyncio.get_event_loop()
+                    scores = await loop.run_in_executor(None, self._run_inference, premises, hypotheses)
+
+                    # Convert NLI results
+                    for i, (claim_text, evidence_text, evidence) in enumerate(relevant_pairs):
+                        entailment, contradiction, neutral = scores[i]
+                        result = NLIVerificationResult(
+                            claim_text=claim_text,
+                            evidence_text=evidence_text,
+                            entailment_score=float(entailment),
+                            contradiction_score=float(contradiction),
+                            neutral_score=float(neutral)
+                        )
+                        results.append(result)
+
+                # Add irrelevant results (already created above)
+                results.extend([result for _, _, _, result in irrelevant_pairs])
+
+                logger.info(f"Relevance filter: {len(relevant_pairs)} relevant, {len(irrelevant_pairs)} off-topic (skipped NLI)")
+                return results
+
+            # FALLBACK: If relevance filter disabled, run NLI on all evidence (old behavior)
             # Prepare inputs
+            # CORRECT NLI CONVENTION: premise = evidence (the facts), hypothesis = claim (what we're testing)
+            # This asks: "Given the EVIDENCE (premise), does the CLAIM (hypothesis) logically follow?"
             premises = [evidence_text for claim_text, evidence_text, _ in batch]
             hypotheses = [claim_text for claim_text, evidence_text, _ in batch]
-            
+
             # Run inference in thread pool
             loop = asyncio.get_event_loop()
             scores = await loop.run_in_executor(None, self._run_inference, premises, hypotheses)
-            
+
             # Convert to results
             results = []
             for i, (claim_text, evidence_text, evidence) in enumerate(batch):
@@ -398,7 +478,7 @@ class NLIVerifier:
                     neutral_score=float(neutral)
                 )
                 results.append(result)
-            
+
             return results
             
         except Exception as e:
@@ -438,16 +518,26 @@ class NLIVerifier:
             with torch.no_grad():
                 outputs = self.model(**inputs)
                 probabilities = torch.softmax(outputs.logits, dim=-1)
-            
+
+            # DIAGNOSTIC: Print raw probabilities to verify correct loading
+            logger.info(f"🔬 RAW MODEL OUTPUT (first result): {probabilities[0].tolist() if len(probabilities) > 0 else 'empty'}")
+            logger.info(f"   Model config: {self.model_name}")
+
             # Convert to list of tuples (entailment, contradiction, neutral)
             results = []
             for i in range(len(premises)):
-                # DeBERTa-MNLI: [contradiction, neutral, entailment]
-                contradiction = probabilities[i][0].item()
+                # DeBERTa model outputs: {0: 'entailment', 1: 'neutral', 2: 'contradiction'}
+                entailment = probabilities[i][0].item()
                 neutral = probabilities[i][1].item()
-                entailment = probabilities[i][2].item()
+                contradiction = probabilities[i][2].item()
                 results.append((entailment, contradiction, neutral))
-            
+
+                # DEBUG LOGGING: Show NLI scores for each verification
+                logger.info(f"🔬 NLI SCORES - Premise (EVIDENCE): {premises[i][:80]}...")
+                logger.info(f"   Hypothesis (CLAIM): {hypotheses[i][:80]}...")
+                logger.info(f"   Entailment: {entailment:.3f}, Contradiction: {contradiction:.3f}, Neutral: {neutral:.3f}")
+                logger.info(f"   → Relationship: {'ENTAILS' if entailment > max(contradiction, neutral) else 'CONTRADICTS' if contradiction > max(entailment, neutral) else 'NEUTRAL'}")
+
             return results
             
         except Exception as e:

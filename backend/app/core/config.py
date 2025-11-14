@@ -108,6 +108,11 @@ class Settings(BaseSettings):
     # Phase 5 - Government API Integration
     ENABLE_API_RETRIEVAL: bool = Field(True, env="ENABLE_API_RETRIEVAL")
 
+    # Phase 6 - Judge Improvements (Week 12)
+    EVIDENCE_SNIPPET_LENGTH: int = Field(400, env="EVIDENCE_SNIPPET_LENGTH")  # Increased from 150 to preserve context
+    ENABLE_EVIDENCE_RELEVANCE_FILTER: bool = Field(False, env="ENABLE_EVIDENCE_RELEVANCE_FILTER")  # Filter low-relevance evidence
+    RELEVANCE_THRESHOLD: float = Field(0.65, env="RELEVANCE_THRESHOLD")  # Minimum relevance score (0-1)
+
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
@@ -137,7 +142,10 @@ class Settings(BaseSettings):
     def nli_model_name(self) -> str:
         """Dynamic NLI model selection based on feature flag"""
         if self.ENABLE_DEBERTA_NLI:
-            return "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"
+            # Using DeBERTa-v3-LARGE for better FEVER-trained fact-checking
+            # Trained on MNLI, FEVER, ANLI, LingNLI, WANLI (SNLI excluded for quality)
+            # Better at distinguishing "NOT ENOUGH INFO" from "CONTRADICTION"
+            return "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
         return "facebook/bart-large-mnli"
 
     class Config:

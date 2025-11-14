@@ -225,21 +225,29 @@ class SearchService:
         """Search for evidence supporting/contradicting a claim"""
         # Optimize search query for fact-checking
         query = self._optimize_query_for_factcheck(claim)
-        
+
+        # NON-DETERMINISM DIAGNOSTIC: Log which provider is used each run
+        logger.info(f"🔎 Search providers available: {[p.__class__.__name__ for p in self.providers]}")
+
         # Try providers in order until we get results
-        for provider in self.providers:
+        for i, provider in enumerate(self.providers):
+            provider_name = provider.__class__.__name__
             try:
+                logger.info(f"🔎 Trying provider {i+1}/{len(self.providers)}: {provider_name}")
                 results = await provider.search(query, max_results=max_results)
+
                 if results:
                     # Filter for credible sources
                     filtered_results = self._filter_credible_sources(results)
-                    logger.info(f"Found {len(filtered_results)} credible sources for claim")
+                    logger.info(f"✅ {provider_name} SUCCESS: {len(results)} raw results → {len(filtered_results)} after filtering")
                     return filtered_results[:max_results]
+                else:
+                    logger.warning(f"⚠️  {provider_name} returned 0 results, trying next provider...")
             except Exception as e:
-                logger.error(f"Provider {provider.__class__.__name__} failed: {e}")
+                logger.error(f"❌ {provider_name} FAILED: {e}, trying next provider...")
                 continue
-        
-        logger.warning(f"No search results found for claim: {claim[:50]}...")
+
+        logger.warning(f"🚨 ALL PROVIDERS FAILED for claim: {claim[:50]}...")
         return []
     
     def _optimize_query_for_factcheck(self, claim: str) -> str:
