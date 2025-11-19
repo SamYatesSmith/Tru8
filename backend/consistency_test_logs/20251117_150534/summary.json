@@ -1,0 +1,149 @@
+{
+  "test_session": "20251117_150534",
+  "url": "https://rollcall.com/2025/10/24/east-wing-demolition-highlights-loopholes-in-preservation-law/",
+  "total_runs": 5,
+  "successful_runs": 5,
+  "wait_seconds": 60,
+  "statistics": {
+    "score_min": 45,
+    "score_max": 54,
+    "score_avg": 48.6,
+    "score_variance": 9,
+    "claims_analyzed_range": [
+      11,
+      11
+    ],
+    "claims_supported_range": [
+      5,
+      6
+    ],
+    "processing_time_avg": 108.2
+  },
+  "runs": [
+    {
+      "run_number": 1,
+      "check_id": "63e22c24-b54a-4a88-8ba2-025f77a52f84",
+      "timestamp": "2025-11-17T15:07:28.085663",
+      "elapsed_seconds": 113.4,
+      "overall_score": 45,
+      "claims_analyzed": 11,
+      "claims_supported": 5,
+      "claims_uncertain": 4,
+      "claims_contradicted": 0,
+      "full_response": {
+        "id": "63e22c24-b54a-4a88-8ba2-025f77a52f84",
+        "status": "completed",
+        "inputType": "url",
+        "inputUrl": "https://rollcall.com/2025/10/24/east-wing-demolition-highlights-loopholes-in-preservation-law/",
+        "createdAt": "2025-11-17T15:05:35.209069",
+        "creditsUsed": 0,
+        "overall_score": 45,
+        "claims_analyzed": 11,
+        "claims_supported": 5,
+        "claims_contradicted": 0,
+        "claims_uncertain": 4,
+        "claims_insufficient": 0
+      }
+    },
+    {
+      "run_number": 2,
+      "check_id": "332689a0-42df-4ebf-bc5b-58936b59dfb4",
+      "timestamp": "2025-11-17T15:10:15.424984",
+      "elapsed_seconds": 107.3,
+      "overall_score": 45,
+      "claims_analyzed": 11,
+      "claims_supported": 5,
+      "claims_uncertain": 4,
+      "claims_contradicted": 1,
+      "full_response": {
+        "id": "332689a0-42df-4ebf-bc5b-58936b59dfb4",
+        "status": "completed",
+        "inputType": "url",
+        "inputUrl": "https://rollcall.com/2025/10/24/east-wing-demolition-highlights-loopholes-in-preservation-law/",
+        "createdAt": "2025-11-17T15:08:28.596619",
+        "creditsUsed": 0,
+        "overall_score": 45,
+        "claims_analyzed": 11,
+        "claims_supported": 5,
+        "claims_contradicted": 1,
+        "claims_uncertain": 4,
+        "claims_insufficient": 0
+      }
+    },
+    {
+      "run_number": 3,
+      "check_id": "413fb5ce-6f10-4ddc-9a0d-e322d3458801",
+      "timestamp": "2025-11-17T15:13:04.828107",
+      "elapsed_seconds": 109.4,
+      "overall_score": 54,
+      "claims_analyzed": 11,
+      "claims_supported": 6,
+      "claims_uncertain": 4,
+      "claims_contradicted": 0,
+      "full_response": {
+        "id": "413fb5ce-6f10-4ddc-9a0d-e322d3458801",
+        "status": "completed",
+        "inputType": "url",
+        "inputUrl": "https://rollcall.com/2025/10/24/east-wing-demolition-highlights-loopholes-in-preservation-law/",
+        "createdAt": "2025-11-17T15:11:15.945719",
+        "creditsUsed": 0,
+        "overall_score": 54,
+        "claims_analyzed": 11,
+        "claims_supported": 6,
+        "claims_contradicted": 0,
+        "claims_uncertain": 4,
+        "claims_insufficient": 0
+      }
+    },
+    {
+      "run_number": 4,
+      "check_id": "2e0d68e0-88c7-4aea-bb8e-f0b5f0126e73",
+      "timestamp": "2025-11-17T15:15:54.200973",
+      "elapsed_seconds": 109.4,
+      "overall_score": 45,
+      "claims_analyzed": 11,
+      "claims_supported": 5,
+      "claims_uncertain": 5,
+      "claims_contradicted": 0,
+      "full_response": {
+        "id": "2e0d68e0-88c7-4aea-bb8e-f0b5f0126e73",
+        "status": "completed",
+        "inputType": "url",
+        "inputUrl": "https://rollcall.com/2025/10/24/east-wing-demolition-highlights-loopholes-in-preservation-law/",
+        "createdAt": "2025-11-17T15:14:05.343646",
+        "creditsUsed": 0,
+        "overall_score": 45,
+        "claims_analyzed": 11,
+        "claims_supported": 5,
+        "claims_contradicted": 0,
+        "claims_uncertain": 5,
+        "claims_insufficient": 0
+      }
+    },
+    {
+      "run_number": 5,
+      "check_id": "8b1e916a-3c87-41d8-8b96-2f713044199b",
+      "timestamp": "2025-11-17T15:18:35.536474",
+      "elapsed_seconds": 101.3,
+      "overall_score": 54,
+      "claims_analyzed": 11,
+      "claims_supported": 6,
+      "claims_uncertain": 2,
+      "claims_contradicted": 0,
+      "full_response": {
+        "id": "8b1e916a-3c87-41d8-8b96-2f713044199b",
+        "status": "completed",
+        "inputType": "url",
+        "inputUrl": "https://rollcall.com/2025/10/24/east-wing-demolition-highlights-loopholes-in-preservation-law/",
+        "createdAt": "2025-11-17T15:16:54.719863",
+        "creditsUsed": 0,
+        "overall_score": 54,
+        "claims_analyzed": 11,
+        "claims_supported": 6,
+        "claims_contradicted": 0,
+        "claims_uncertain": 2,
+        "claims_insufficient": 2
+      }
+    }
+  ]
+}

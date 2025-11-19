@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # MODULE LOAD DIAGNOSTIC: This will print when the module is imported
 print("=" * 80)
-print("🔍 VERIFY.PY MODULE LOADED - Checking NLI label mapping configuration")
+print("VERIFY.PY MODULE LOADED - Checking NLI label mapping configuration")
 print(f"   Timestamp: {__import__('datetime').datetime.now()}")
 print(f"   Expected label order: {{0: 'entailment', 1: 'neutral', 2: 'contradiction'}}")
 print("=" * 80)
@@ -57,7 +57,10 @@ class NLIVerificationResult:
 
 class NLIVerifier:
     """Natural Language Inference verifier for claim-evidence pairs"""
-    
+
+    # Cache version - increment when NLI or search logic changes to invalidate old cache
+    CACHE_VERSION = "v3_rate_limited_search"
+
     def __init__(self):
         self.model = None
         self.tokenizer = None
@@ -312,8 +315,9 @@ class NLIVerifier:
         }
 
     def _make_cache_key(self, claim: str, evidence: str) -> str:
-        """Create cache key for claim-evidence pair"""
-        content = f"{claim}|||{evidence}"
+        """Create cache key for claim-evidence pair with version"""
+        # Include version to auto-invalidate cache when logic changes
+        content = f"{self.CACHE_VERSION}|||{claim}|||{evidence}"
         return hashlib.md5(content.encode()).hexdigest()
     
     async def verify_claim_against_evidence(self, claim: str, evidence_list: List[Dict[str, Any]]) -> List[NLIVerificationResult]:
@@ -353,10 +357,10 @@ class NLIVerifier:
                 
                 if self.cache_service:
                     await self.cache_service.set(
-                        "nli_verification", 
+                        "nli_verification",
                         cache_key,
                         result_dict,
-                        3600 * 24  # 24 hour cache
+                        3600  # 1 hour cache for testing (was 24 hours)
                     )
                 
                 results.append(batch_results[i])
@@ -695,6 +699,49 @@ class ClaimVerifier:
                 signals[f'evidence_{evidence_id}_stance'] = stance
 
         return signals
+
+    def adjust_confidence_for_claim_complexity(self, claim_text: str, base_confidence: float,
+                                               verifications: List[Dict[str, Any]]) -> float:
+        """
+        Adjust confidence based on claim complexity and evidence coverage
+
+        Complex multi-part claims (with conjunctions like "and", "but", "without")
+        may only have partial evidence coverage, so confidence should be reduced.
+        """
+        # Detect multi-part claims (conjunction indicators)
+        complexity_indicators = [
+            ' and ', ' but ', ' while ', ' without ', ' despite ',
+            ' although ', ' however ', ' yet ', ' whereas '
+        ]
+
+        has_multiple_parts = any(conj in claim_text.lower() for conj in complexity_indicators)
+
+        if not has_multiple_parts:
+            # Simple atomic claim - no adjustment needed
+            return base_confidence
+
+        # Multi-part claim detected - check evidence coverage
+        # If evidence only addresses one part, reduce confidence significantly
+        logger.info(f"🔍 COMPLEXITY ADJUSTMENT: Multi-part claim detected")
+        logger.info(f"   Claim: {claim_text[:80]}...")
+
+        # Check if we have strong evidence (high entailment/contradiction scores)
+        has_strong_evidence = any(
+            v.get("entailment_score", 0.0) > 0.8 or v.get("contradiction_score", 0.0) > 0.8
+            for v in verifications
+        )
+
+        if has_strong_evidence:
+            # Strong evidence for multi-part claim likely means partial coverage
+            # (e.g., evidence confirms "demolished" but not "without consulting")
+            adjusted_confidence = base_confidence * 0.65
+            logger.info(f"   Adjustment: {base_confidence:.2f} → {adjusted_confidence:.2f} (partial evidence coverage)")
+            return adjusted_confidence
+        else:
+            # Weak evidence for multi-part claim - moderate reduction
+            adjusted_confidence = base_confidence * 0.80
+            logger.info(f"   Adjustment: {base_confidence:.2f} → {adjusted_confidence:.2f} (weak coverage)")
+            return adjusted_confidence
 
 # Singleton instance for reuse
 _claim_verifier = None

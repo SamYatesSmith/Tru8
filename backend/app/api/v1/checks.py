@@ -102,6 +102,193 @@ async def upload_file(
             detail="Failed to save uploaded file"
         )
 
+class CreateCheckTestRequest(BaseModel):
+    """Test-only request model that accepts a URL without authentication"""
+    url: str
+    mode: str = "quick"  # quick or deep
+
+@router.post("/test", status_code=201)
+async def create_check_test(
+    request: CreateCheckTestRequest,
+    session: AsyncSession = Depends(get_session)
+):
+    """TEST-ONLY ENDPOINT: Create a fact-check without authentication (DEBUG mode only)"""
+    if not settings.DEBUG:
+        raise HTTPException(
+            status_code=404,
+            detail="Test endpoint only available in DEBUG mode"
+        )
+
+    # Create or get test user
+    test_user_id = "test-user-consistency"
+    stmt = select(User).where(User.id == test_user_id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        user = User(
+            id=test_user_id,
+            email="test@consistency.local",
+            name="Consistency Test User",
+            credits=1000000  # Unlimited credits for testing
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+
+    # Create check request in the same format as the main endpoint
+    check_request = CreateCheckRequest(
+        input_type="url",
+        url=request.url,
+        content=None,
+        file_path=None,
+        user_query=None
+    )
+
+    # Validate and normalize URL
+    if not check_request.url:
+        raise HTTPException(status_code=400, detail="URL is required")
+
+    if not check_request.url.startswith(("http://", "https://")):
+        check_request.url = f"https://{check_request.url}"
+        logger.info(f"Normalized URL to: {check_request.url}")
+
+    check_request.url = check_request.url.strip()
+
+    # Create check record
+    check = Check(
+        id=str(uuid.uuid4()),
+        user_id=user.id,
+        input_type="url",
+        input_content=json.dumps({
+            "content": None,
+            "url": check_request.url,
+            "file_path": None
+        }),
+        input_url=check_request.url,
+        status="pending",
+        credits_used=0,  # Don't charge for test checks
+        user_query=None
+    )
+
+    session.add(check)
+    await session.commit()
+    await session.refresh(check)
+
+    # Start pipeline processing
+    try:
+        logger.info(f"[TEST] Dispatching task for check {check.id}")
+
+        task = process_check.delay(
+            check_id=check.id,
+            user_id=user.id,
+            input_data={
+                "input_type": "url",
+                "content": None,
+                "url": check_request.url,
+                "file_path": None,
+                "user_query": None
+            }
+        )
+        logger.info(f"[TEST] Task dispatched: {task.id}")
+
+        # Store task ID mapping
+        r = redis.Redis.from_url(settings.REDIS_URL)
+        r.set(f"check-task:{check.id}", task.id, ex=300)
+
+    except Exception as e:
+        logger.error(f"[TEST] Failed to dispatch task: {e}")
+        check.status = "failed"
+        check.error_message = f"Task dispatch failed: {str(e)}"
+        session.add(check)
+        await session.commit()
+        raise HTTPException(status_code=500, detail="Failed to start fact-checking pipeline")
+
+    return {
+        "check_id": check.id,
+        "status": check.status,
+        "task_id": task.id
+    }
+
+@router.get("/test/{check_id}")
+async def get_check_test(
+    check_id: str,
+    session: AsyncSession = Depends(get_session)
+):
+    """TEST-ONLY ENDPOINT: Get check status without authentication (DEBUG mode only)"""
+    if not settings.DEBUG:
+        raise HTTPException(
+            status_code=404,
+            detail="Test endpoint only available in DEBUG mode"
+        )
+
+    try:
+        # Get check from database
+        stmt = select(Check).where(Check.id == check_id)
+        result = await session.execute(stmt)
+        check = result.scalar_one_or_none()
+
+        if not check:
+            raise HTTPException(status_code=404, detail="Check not found")
+
+        # Build basic response
+        response = {
+            "id": check.id,
+            "status": check.status,
+            "inputType": check.input_type,
+            "inputUrl": check.input_url,
+            "createdAt": check.created_at.isoformat() if check.created_at else None,
+            "creditsUsed": check.credits_used or 0,
+        }
+
+        # If completed, add results
+        if check.status == "completed":
+            try:
+                # Get claims for this check
+                claims_stmt = select(Claim).where(Claim.check_id == check_id)
+                claims_result = await session.execute(claims_stmt)
+                claims = list(claims_result.scalars().all())
+
+                # Calculate statistics
+                total_claims = len(claims)
+                supported = sum(1 for c in claims if c.verdict == "supported")
+                contradicted = sum(1 for c in claims if c.verdict == "contradicted")
+                uncertain = sum(1 for c in claims if c.verdict == "uncertain")
+                insufficient = sum(1 for c in claims if c.verdict == "insufficient_evidence")
+
+                # Calculate overall score
+                if total_claims > 0:
+                    overall_score = int((supported / total_claims) * 100)
+                else:
+                    overall_score = 0
+
+                response.update({
+                    "overall_score": overall_score,
+                    "claims_analyzed": total_claims,
+                    "claims_supported": supported,
+                    "claims_contradicted": contradicted,
+                    "claims_uncertain": uncertain,
+                    "claims_insufficient": insufficient,
+                })
+            except Exception as e:
+                logger.error(f"[TEST] Error getting claims for check {check_id}: {e}")
+                # Return basic response without claims data
+                pass
+
+        # If failed, add error
+        if check.status == "failed":
+            response["error"] = check.error_message or "Unknown error"
+
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[TEST] Error in get_check_test for {check_id}: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
 @router.post("", status_code=201)
 @router.post("/", status_code=201)
 async def create_check(
@@ -114,7 +301,7 @@ async def create_check(
     stmt = select(User).where(User.id == current_user["id"])
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     

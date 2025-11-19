@@ -130,6 +130,9 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
             check.claims_contradicted = results.get("claims_contradicted", 0)
             check.claims_uncertain = results.get("claims_uncertain", 0)
 
+            # Save article excerpt for context-aware judgments
+            check.article_excerpt = results.get("article_excerpt")
+
             # Phase 5: Save Government API statistics
             api_stats = results.get("api_stats")
             if api_stats:
@@ -375,9 +378,12 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             judge_timeout = min(15 * len(claims), 120)
             logger.info(f"Judge stage timeout set to {judge_timeout}s for {len(claims)} claims")
 
+            # Extract article excerpt for context-aware judgment
+            article_excerpt = content.get("content", "")[:5000]
+
             results = asyncio.run(
                 asyncio.wait_for(
-                    judge_claims_with_llm(claims, verifications, evidence),
+                    judge_claims_with_llm(claims, verifications, evidence, article_context=article_excerpt),
                     timeout=judge_timeout
                 )
             )
@@ -547,6 +553,7 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             "ingest_metadata": content.get("metadata", {}),
             "query_response": query_response_data,  # Search Clarity
             "api_stats": api_stats,  # Phase 5: Government API Integration
+            "article_excerpt": content.get("content", "")[:5000],  # First 5000 chars for judge context
             "pipeline_stats": {
                 "claims_extracted": len(claims),
                 "evidence_sources": sum(len(ev) for ev in evidence.values()),
@@ -1036,14 +1043,14 @@ async def verify_claims_with_nli(claims: List[Dict[str, Any]], evidence_by_claim
             logger.critical(f"NLI verification failed in {settings.ENVIRONMENT} environment: {e}")
             return {}
 
-async def judge_claims_with_llm(claims: List[Dict[str, Any]], verifications_by_claim: Dict[str, List[Dict[str, Any]]], 
-                               evidence_by_claim: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
-    """Judge claims using real LLM with verification signals"""
+async def judge_claims_with_llm(claims: List[Dict[str, Any]], verifications_by_claim: Dict[str, List[Dict[str, Any]]],
+                               evidence_by_claim: Dict[str, List[Dict[str, Any]]], article_context: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Judge claims using real LLM with verification signals and article context"""
     try:
         pipeline_judge = await get_pipeline_judge()
-        
-        logger.info(f"Running LLM judgment for {len(claims)} claims")
-        results = await pipeline_judge.judge_all_claims(claims, verifications_by_claim, evidence_by_claim)
+
+        logger.info(f"Running LLM judgment for {len(claims)} claims with article context: {bool(article_context)}")
+        results = await pipeline_judge.judge_all_claims(claims, verifications_by_claim, evidence_by_claim, article_context=article_context)
         
         # Sort results by position to maintain order
         results.sort(key=lambda x: x.get("position", 0))

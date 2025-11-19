@@ -41,13 +41,16 @@ class EvidenceSnippet:
 
 class EvidenceExtractor:
     """Extract relevant evidence snippets from web pages"""
-    
+
     def __init__(self):
         self.search_service = SearchService()
         self.timeout = 15
         self.max_snippet_words = 200
         self.max_concurrent = 3
-        
+
+        # Blocked domains (rate limiting issues)
+        self.blocked_domains = {'yahoo.com', 'www.yahoo.com'}
+
         # Common fact-checking terms to look for
         self.fact_indicators = [
             'according to', 'study shows', 'research indicates', 'data reveals',
@@ -61,7 +64,8 @@ class EvidenceExtractor:
         max_sources: int = 5,
         subject_context: str = None,
         key_entities: list = None,
-        excluded_domain: Optional[str] = None
+        excluded_domain: Optional[str] = None,
+        temporal_analysis: Dict = None
     ) -> List[EvidenceSnippet]:
         """
         Extract evidence snippets for a specific claim.
@@ -72,22 +76,43 @@ class EvidenceExtractor:
             subject_context: Main subject/topic for context-aware search
             key_entities: Key entities to boost in search query
             excluded_domain: Domain to exclude from search results (for self-citation filtering)
+            temporal_analysis: Temporal analysis from claim extraction (for query refinement)
         """
         try:
             # Step 1: Build context-enriched search query
-            search_query = claim
-            if subject_context and key_entities:
-                # Only add entities that AREN'T already in the claim text (avoid duplication)
-                unique_entities = [e for e in key_entities[:3] if e.lower() not in claim.lower()]
-                if unique_entities:
-                    entities_str = " ".join(unique_entities[:2])  # Max 2 additional entities
-                    search_query = f"{claim} {entities_str}"
-                    logger.info(f"Context-enriched search with {len(unique_entities)} unique entities: '{search_query}'")
-                else:
-                    logger.info(f"No context enrichment needed (entities already in claim)")
+            # TIER 1 IMPROVEMENT: Enhanced query formulation
+            from app.core.config import settings
+
+            if settings.ENABLE_QUERY_EXPANSION:
+                from app.utils.query_formulation import get_query_formulator
+                formulator = get_query_formulator()
+                search_query = formulator.formulate_query(
+                    claim,
+                    subject_context,
+                    key_entities,
+                    temporal_analysis
+                )
+                logger.info(f"🔎 QUERY EXPANDED | Claim: '{claim[:60]}...'")
+                logger.info(f"🔎 QUERY RESULT  | Query: '{search_query}'")
+            else:
+                # FALLBACK: Existing logic (preserve backward compatibility)
+                search_query = claim
+                logger.info(f"🔎 QUERY BASIC | Using claim as-is: '{search_query[:80]}...')")
+                if subject_context and key_entities:
+                    # Only add entities that AREN'T already in the claim text (avoid duplication)
+                    unique_entities = [e for e in key_entities[:3] if e.lower() not in claim.lower()]
+                    if unique_entities:
+                        entities_str = " ".join(unique_entities[:2])  # Max 2 additional entities
+                        search_query = f"{claim} {entities_str}"
+                        logger.info(f"Context-enriched search with {len(unique_entities)} unique entities: '{search_query}'")
+                    else:
+                        logger.info(f"No context enrichment needed (entities already in claim)")
 
             # Step 2: Search for relevant pages
             search_results = await self.search_service.search_for_evidence(search_query, max_results=max_sources * 2)
+
+            # DIAGNOSTIC: Log search results
+            logger.info(f"🔍 SEARCH RESULTS | Found: {len(search_results)} results | Requested: {max_sources * 2}")
 
             # Filter out excluded domain (self-citation prevention)
             if excluded_domain:
@@ -112,17 +137,25 @@ class EvidenceExtractor:
             ]
             
             extracted_results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             # Step 3: Filter successful extractions and rank by relevance
             evidence_snippets = []
+            failed_count = 0
             for result in extracted_results:
                 if isinstance(result, EvidenceSnippet):
                     evidence_snippets.append(result)
                 elif isinstance(result, Exception):
+                    failed_count += 1
                     logger.warning(f"Evidence extraction failed: {result}")
-            
+
+            # DIAGNOSTIC: Log extraction success rate
+            total_attempts = len(extracted_results)
+            success_rate = (len(evidence_snippets) / total_attempts * 100) if total_attempts > 0 else 0
+            logger.info(f"📄 EXTRACTION | Success: {len(evidence_snippets)}/{total_attempts} ({success_rate:.1f}%) | Failed: {failed_count}")
+
             # Step 4: Rank by relevance and return top results
             ranked_snippets = self._rank_snippets(evidence_snippets, claim)
+            logger.info(f"🎯 FINAL EVIDENCE | Returning: {len(ranked_snippets[:max_sources])} snippets (requested: {max_sources})")
             return ranked_snippets[:max_sources]
             
         except Exception as e:
@@ -166,6 +199,13 @@ class EvidenceExtractor:
                         return None
 
                 # Non-PDF extraction (HTML pages)
+                # Block domains with rate limiting issues
+                domain = extract_domain(search_result.url, fallback="unknown")
+
+                if any(blocked in domain.lower() for blocked in self.blocked_domains):
+                    logger.info(f"⛔ Skipping blocked domain: {domain}")
+                    return None
+
                 async with httpx.AsyncClient(
                     timeout=self.timeout,
                     follow_redirects=True
@@ -183,8 +223,8 @@ class EvidenceExtractor:
                         # Fallback to search snippet if extraction fails
                         content = search_result.snippet
 
-                    # Find most relevant snippet
-                    snippet_text = self._find_relevant_snippet(content, claim)
+                    # Find most relevant snippet (now async for semantic extraction)
+                    snippet_text = await self._find_relevant_snippet(content, claim)
 
                     if not snippet_text:
                         return None
@@ -272,53 +312,68 @@ class EvidenceExtractor:
         
         return content.strip()
     
-    def _find_relevant_snippet(self, content: str, claim: str) -> Optional[str]:
-        """Find the most relevant snippet from content for the claim"""
+    async def _find_relevant_snippet(self, content: str, claim: str) -> Optional[str]:
+        """
+        Find the most relevant snippet from content for the claim.
+
+        TIER 1 IMPROVEMENT: Uses semantic similarity (embeddings) when enabled,
+        falls back to word overlap for backward compatibility.
+        """
+        from app.core.config import settings
+
         if not content or len(content) < 50:
             return None
-        
+
         # Split into sentences
         sentences = [s.strip() for s in re.split(r'[.!?]+', content) if s.strip()]
-        
+
         if not sentences:
             return None
-        
-        # Score sentences for relevance
+
+        # TIER 1 IMPROVEMENT: Semantic snippet extraction (if enabled)
+        if settings.ENABLE_SEMANTIC_SNIPPET_EXTRACTION:
+            try:
+                return await self._extract_semantic_snippet(claim, sentences)
+            except Exception as e:
+                logger.error(f"Semantic snippet extraction failed: {e}, falling back to word overlap")
+                # Fall through to existing logic
+
+        # FALLBACK: Existing word overlap logic (preserved for backward compatibility)
         scored_sentences = []
         claim_words = set(claim.lower().split())
-        
+
         for sentence in sentences:
             if len(sentence) < 20:  # Skip very short sentences
                 continue
-            
+
             sentence_words = set(sentence.lower().split())
-            
+
             # Calculate word overlap
             word_overlap = len(claim_words & sentence_words) / len(claim_words)
-            
+
             # Bonus for fact-indicating phrases
             fact_bonus = sum(1 for indicator in self.fact_indicators if indicator in sentence.lower()) * 0.2
-            
+
             # Bonus for numbers/dates (often important for facts)
             number_bonus = len(re.findall(r'\d+', sentence)) * 0.1
-            
+
             total_score = word_overlap + fact_bonus + number_bonus
             scored_sentences.append((sentence, total_score))
-        
+
         if not scored_sentences:
             # Fallback: return first substantial paragraph
             paragraphs = [p.strip() for p in content.split('\n\n') if len(p.strip()) > 100]
             if paragraphs:
                 return paragraphs[0][:self.max_snippet_words * 6]  # Rough word limit
             return None
-        
+
         # Sort by score and build snippet from top sentences
         scored_sentences.sort(key=lambda x: x[1], reverse=True)
-        
+
         # Take top 2-3 sentences up to word limit
         snippet_sentences = []
         total_words = 0
-        
+
         for sentence, score in scored_sentences[:3]:
             words = sentence.split()
             if total_words + len(words) <= self.max_snippet_words:
@@ -326,12 +381,84 @@ class EvidenceExtractor:
                 total_words += len(words)
             else:
                 break
-        
+
         if snippet_sentences:
             return '. '.join(snippet_sentences) + '.'
         else:
             # Return the best sentence even if it's long
             return scored_sentences[0][0][:self.max_snippet_words * 6]
+
+    async def _extract_semantic_snippet(self, claim: str, sentences: List[str]) -> Optional[str]:
+        """
+        Extract snippet using semantic similarity with embeddings.
+
+        TIER 1 IMPROVEMENT: Better than word overlap for:
+        - Paraphrasing ("car" vs "vehicle")
+        - Synonyms ("study found" vs "research shows")
+        - Technical/scientific terminology
+        """
+        from app.services.embeddings import get_embedding_service
+        from app.core.config import settings
+
+        # Filter very short sentences
+        valid_sentences = [(i, sent) for i, sent in enumerate(sentences) if len(sent) > 20]
+        if not valid_sentences:
+            return None
+
+        # Generate embeddings for claim and all sentences
+        embedding_service = await get_embedding_service()
+        claim_embedding = await embedding_service.embed_text(claim)
+
+        sentence_texts = [sent for _, sent in valid_sentences]
+        sentence_embeddings = await embedding_service.embed_batch(sentence_texts)
+
+        # Calculate semantic similarity for each sentence
+        similarities = []
+        for i, (orig_idx, sent_text) in enumerate(valid_sentences):
+            similarity = await embedding_service.compute_similarity(
+                claim_embedding,
+                sentence_embeddings[i]
+            )
+            similarities.append((orig_idx, sent_text, similarity))
+
+        # Sort by similarity
+        similarities.sort(key=lambda x: x[2], reverse=True)
+
+        # Filter by threshold
+        threshold = settings.SNIPPET_SEMANTIC_THRESHOLD
+        relevant_sentences = [
+            (idx, text, sim) for idx, text, sim in similarities
+            if sim >= threshold
+        ]
+
+        if not relevant_sentences:
+            # No sentences meet threshold - return best match anyway
+            best_match = similarities[0]
+            logger.debug(f"No sentences above threshold {threshold}, using best: {best_match[2]:.2f}")
+            return best_match[1][:self.max_snippet_words * 6]
+
+        # Build snippet from top sentences WITH CONTEXT
+        # Include N sentences before/after for coherence (using only valid sentences)
+        context_window = settings.SNIPPET_CONTEXT_SENTENCES
+        best_orig_idx = relevant_sentences[0][0]  # Original index of best sentence
+
+        # Find position in valid_sentences list
+        valid_idx = next(i for i, (orig_idx, _) in enumerate(valid_sentences) if orig_idx == best_orig_idx)
+
+        # Build context from valid_sentences only (excludes short sentences)
+        start_idx = max(0, valid_idx - context_window)
+        end_idx = min(len(valid_sentences), valid_idx + context_window + 1)
+
+        snippet_sentences = [sent for _, sent in valid_sentences[start_idx:end_idx]]
+        snippet = '. '.join(snippet_sentences).strip()
+
+        # Enforce max length
+        if len(snippet.split()) > self.max_snippet_words:
+            words = snippet.split()
+            snippet = ' '.join(words[:self.max_snippet_words]) + '...'
+
+        logger.debug(f"Semantic snippet similarity: {relevant_sentences[0][2]:.2f}")
+        return snippet
     
     def _calculate_relevance(self, snippet: str, claim: str) -> float:
         """Calculate relevance score between snippet and claim"""
@@ -359,27 +486,63 @@ class EvidenceExtractor:
             return 0.5  # Default moderate relevance
     
     def _rank_snippets(self, snippets: List[EvidenceSnippet], claim: str) -> List[EvidenceSnippet]:
-        """Rank evidence snippets by relevance and credibility"""
+        """
+        Rank evidence snippets by relevance and credibility.
+
+        TIER 1 IMPROVEMENT: Enhanced with primary source detection.
+        """
+        from app.core.config import settings
+
         def scoring_function(snippet: EvidenceSnippet) -> float:
             # Base relevance score
             score = snippet.relevance_score
 
-            # Detect and deprioritize fact-check meta-content
+            # TIER 1 IMPROVEMENT: Primary source detection and boosting
+            if settings.ENABLE_PRIMARY_SOURCE_DETECTION:
+                from app.utils.source_type_classifier import get_source_type_classifier
+                classifier = get_source_type_classifier()
+
+                source_info = classifier.classify_source(
+                    snippet.url,
+                    snippet.title,
+                    snippet.text
+                )
+
+                # Store in metadata for transparency
+                snippet.metadata['source_type'] = source_info['source_type']
+                snippet.metadata['primary_indicators'] = source_info['primary_indicators']
+                snippet.metadata['is_original_research'] = source_info['is_original_research']
+
+                # Apply credibility boost/penalty
+                score += source_info['credibility_boost']
+
+                # Extra boost for original research
+                if source_info['is_original_research']:
+                    score += 0.15
+                    logger.info(f"Original research detected: {snippet.source}")
+
+                logger.debug(
+                    f"Source classification: {source_info['source_type']} "
+                    f"(boost: {source_info['credibility_boost']:+.2f})"
+                )
+
+            # EXISTING: Detect and deprioritize fact-check meta-content
             factcheck_sites = ['snopes', 'factcheck.org', 'politifact', 'fullfact']
             is_factcheck = any(site in snippet.source.lower() or site in snippet.url.lower()
                              for site in factcheck_sites)
             if is_factcheck:
                 score *= 0.3  # Heavily deprioritize fact-check sites
 
-            # Domain credibility boost for primary sources
-            primary_sources = [
-                '.edu', '.gov', '.org', 'bbc', 'reuters', 'nature', 'science',
-                'pnas.org', 'nasa.gov', 'noaa.gov', 'who.int', 'nhs.uk'
-            ]
-            if any(indicator in snippet.source.lower() for indicator in primary_sources):
-                score += 0.3  # Increased boost for primary sources
+            # EXISTING: Domain credibility boost for primary sources (kept as fallback)
+            if not settings.ENABLE_PRIMARY_SOURCE_DETECTION:
+                primary_sources = [
+                    '.edu', '.gov', '.org', 'bbc', 'reuters', 'nature', 'science',
+                    'pnas.org', 'nasa.gov', 'noaa.gov', 'who.int', 'nhs.uk'
+                ]
+                if any(indicator in snippet.source.lower() for indicator in primary_sources):
+                    score += 0.3  # Increased boost for primary sources
 
-            # Recent content boost
+            # EXISTING: Recent content boost
             if snippet.published_date:
                 try:
                     # Simple boost for more recent content
@@ -388,7 +551,7 @@ class EvidenceExtractor:
                 except:
                     pass
 
-            # Length boost for substantial snippets
+            # EXISTING: Length boost for substantial snippets
             if snippet.word_count > 50:
                 score += 0.1
 

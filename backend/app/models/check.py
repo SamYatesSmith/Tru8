@@ -21,6 +21,13 @@ class Check(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
 
+    # Article context for holistic judgment
+    article_excerpt: Optional[str] = Field(
+        default=None,
+        max_length=5000,
+        description="First 5000 characters of article for context-aware fact-checking"
+    )
+
     # Explainability fields (Phase 2, Week 6.5-7.5)
     decision_trail: Optional[str] = Field(default=None, sa_column=Column(JSONB))  # Full decision trail
     transparency_score: Optional[float] = Field(default=None, ge=0, le=1)  # How explainable the verdict is (0-1)
@@ -176,6 +183,17 @@ class Evidence(SQLModel, table=True):
         default=None,
         max_length=200,
         description="API name (e.g., 'ONS Economic Statistics', 'PubMed')"
+    )
+
+    # Primary Source Detection fields (Tier 1 Improvement, 2025-01-17)
+    is_primary_source: bool = Field(
+        default=False,
+        description="True if evidence is original research, government data, or official report"
+    )
+    primary_indicators: Optional[str] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="JSON array of primary source indicators detected (e.g., ['academic_journal', 'peer_reviewed'])"
     )
 
     # Relationships

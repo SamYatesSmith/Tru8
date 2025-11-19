@@ -161,8 +161,8 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             self.cache_service = await get_cache_service()
     
     async def judge_claim(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
-                         evidence: List[Dict[str, Any]]) -> JudgmentResult:
-        """Judge a single claim based on verification signals and evidence"""
+                         evidence: List[Dict[str, Any]], article_context: Optional[str] = None) -> JudgmentResult:
+        """Judge a single claim based on verification signals and evidence with optional article context"""
         await self.initialize()
 
         claim_text = claim.get("text", "")
@@ -196,8 +196,8 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                     }
                 )
 
-        # Prepare judgment context
-        context = self._prepare_judgment_context(claim, verification_signals, evidence)
+        # Prepare judgment context with optional article context
+        context = self._prepare_judgment_context(claim, verification_signals, evidence, article_context)
 
         # Get LLM judgment
         try:
@@ -326,8 +326,8 @@ NOW JUDGE THE FOLLOWING CLAIM:
 """
 
     def _prepare_judgment_context(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
-                                 evidence: List[Dict[str, Any]]) -> str:
-        """Prepare context for LLM judgment (Phase 1.2: with optional few-shot examples)"""
+                                 evidence: List[Dict[str, Any]], article_context: Optional[str] = None) -> str:
+        """Prepare context for LLM judgment with optional article context for holistic evaluation"""
         claim_text = claim.get("text", "")
 
         # Evidence summary
@@ -350,10 +350,25 @@ NOW JUDGE THE FOLLOWING CLAIM:
         # Verification signals summary
         signals = verification_signals
 
+        # Add article context section if provided
+        article_context_section = ""
+        if article_context:
+            article_context_section = f"""
+ARTICLE CONTEXT (for detecting cherry-picked claims, satire, or missing qualifiers):
+{article_context[:5000]}
+
+IMPORTANT: Use this article context to:
+- Detect if the claim is cherry-picked or taken out of context
+- Identify satirical or humorous content that shouldn't be fact-checked literally
+- Understand the full narrative before judging isolated claims
+- Notice qualifiers or caveats in the surrounding text
+
+"""
+
         base_context = f"""
 CLAIM TO JUDGE:
 {claim_text}
-
+{article_context_section}
 EVIDENCE ANALYSIS:
 Total Evidence Pieces: {signals.get('total_evidence', 0)}
 Supporting Evidence: {signals.get('supporting_count', 0)} pieces
@@ -652,10 +667,11 @@ class PipelineJudge:
         self.claim_judge = ClaimJudge()
         self.max_concurrent_judgments = 3  # Conservative for LLM calls
     
-    async def judge_all_claims(self, claims: List[Dict[str, Any]], 
-                              verifications_by_claim: Dict[str, List[Dict[str, Any]]], 
-                              evidence_by_claim: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
-        """Judge all claims and return final results"""
+    async def judge_all_claims(self, claims: List[Dict[str, Any]],
+                              verifications_by_claim: Dict[str, List[Dict[str, Any]]],
+                              evidence_by_claim: Dict[str, List[Dict[str, Any]]],
+                              article_context: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Judge all claims and return final results with optional article context for holistic judgment"""
         try:
             await self.claim_judge.initialize()
             
@@ -697,8 +713,18 @@ class PipelineJudge:
                     # Aggregate verification signals
                     signals = claim_verifier.aggregate_verification_signals(verifications)
 
-                    # Get final judgment with ENRICHED evidence (now has NLI fields)
-                    judgment = await self.claim_judge.judge_claim(claim, signals, enriched_evidence)
+                    # Adjust confidence for claim complexity (multi-part claims with partial evidence)
+                    claim_text = claim.get("text", "")
+                    if claim_text and verifications:
+                        adjusted_confidence = claim_verifier.adjust_confidence_for_claim_complexity(
+                            claim_text,
+                            signals.get("confidence", 0.0),
+                            verifications
+                        )
+                        signals["confidence"] = adjusted_confidence
+
+                    # Get final judgment with ENRICHED evidence (now has NLI fields) and article context
+                    judgment = await self.claim_judge.judge_claim(claim, signals, enriched_evidence, article_context)
 
                     return {
                         **judgment.to_dict(),

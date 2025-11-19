@@ -94,9 +94,13 @@ class EvidenceRetriever:
                 # Step 1: Parallel retrieval from web search AND government APIs
                 subject_context = claim.get("subject_context")
                 key_entities = claim.get("key_entities", [])
+                temporal_analysis = claim.get("temporal_analysis")  # TIER 1: For query refinement
 
                 if subject_context:
                     logger.info(f"Using context: '{subject_context}' with entities: {key_entities[:3]}")
+
+                # DIAGNOSTIC: Log claim processing start
+                logger.info(f"🔍 RETRIEVE START | Claim: '{claim_text[:80]}...' | Entities: {key_entities[:3]} | Temporal: {bool(temporal_analysis)}")
 
                 # Run web search and API retrieval in parallel
                 web_search_task = self.evidence_extractor.extract_evidence_for_claim(
@@ -104,7 +108,8 @@ class EvidenceRetriever:
                     max_sources=self.max_sources_per_claim * 2,  # Get extra for filtering
                     subject_context=subject_context,
                     key_entities=key_entities,
-                    excluded_domain=excluded_domain
+                    excluded_domain=excluded_domain,
+                    temporal_analysis=temporal_analysis  # TIER 1: Pass to query formulation
                 )
 
                 # Phase 5: Government API retrieval (parallel with web search)
@@ -132,8 +137,13 @@ class EvidenceRetriever:
                 # Store API stats in claim for later tracking
                 claim["api_stats"] = api_evidence.get("api_stats", {})
 
+                # DIAGNOSTIC: Log evidence retrieval results
+                web_count = len(web_evidence_snippets) if isinstance(web_evidence_snippets, list) else 0
+                api_count = len(api_evidence_items)
+                logger.info(f"📊 EVIDENCE RETRIEVED | Web: {web_count} sources | API: {api_count} sources | Total: {web_count + api_count}")
+
                 if not evidence_snippets and not api_evidence_items:
-                    logger.warning(f"No evidence found for claim {claim_position}")
+                    logger.warning(f"⚠️ NO EVIDENCE | Claim {claim_position}: '{claim_text[:60]}...'")
                     return []
 
                 logger.info(f"Retrieved {len(evidence_snippets)} web sources + {len(api_evidence_items)} API sources")
@@ -428,6 +438,8 @@ class EvidenceRetriever:
         Phase 3 Enhancement: Uses Domain Credibility Framework if enabled,
         otherwise falls back to legacy hardcoded weights.
 
+        TIER 1 IMPROVEMENT: Enhanced with primary source detection.
+
         Args:
             source: Source name
             url: Source URL (required for Phase 3)
@@ -478,37 +490,72 @@ class EvidenceRetriever:
                     except Exception as e:
                         logger.warning(f"Failed to log unknown source {url}: {e}")
 
-                return cred_info.get('credibility', 0.6)
+                base_credibility = cred_info.get('credibility', 0.6)
 
             except Exception as e:
                 logger.warning(f"Credibility framework error for {url}: {e}, falling back to legacy")
-                # Fall through to legacy logic
+                base_credibility = None  # Fall through to legacy logic
+
+        else:
+            base_credibility = None  # Use legacy logic
 
         # Legacy fallback: Hardcoded pattern matching
-        # Academic/research institutions
-        if any(domain in source for domain in ['.edu', '.ac.uk', 'university', 'research']):
-            return self.credibility_weights['academic']
+        if base_credibility is None:
+            # Academic/research institutions
+            if any(domain in source for domain in ['.edu', '.ac.uk', 'university', 'research']):
+                base_credibility = self.credibility_weights['academic']
 
-        # Scientific journals
-        if any(journal in source for journal in ['nature', 'science', 'cell', 'lancet', 'nejm']):
-            return self.credibility_weights['scientific']
+            # Scientific journals
+            elif any(journal in source for journal in ['nature', 'science', 'cell', 'lancet', 'nejm']):
+                base_credibility = self.credibility_weights['scientific']
 
-        # Government sources
-        if any(domain in source for domain in ['.gov', 'nhs.uk', 'who.int']):
-            return self.credibility_weights['government']
+            # Government sources
+            elif any(domain in source for domain in ['.gov', 'nhs.uk', 'who.int']):
+                base_credibility = self.credibility_weights['government']
 
-        # Tier 1 news
-        if any(outlet in source for outlet in ['bbc', 'reuters', 'ap.org', 'apnews']):
-            return self.credibility_weights['news_tier1']
+            # Tier 1 news
+            elif any(outlet in source for outlet in ['bbc', 'reuters', 'ap.org', 'apnews']):
+                base_credibility = self.credibility_weights['news_tier1']
 
-        # Tier 2 news
-        if any(outlet in source for outlet in [
-            'guardian', 'telegraph', 'independent', 'economist', 'ft.com'
-        ]):
-            return self.credibility_weights['news_tier2']
+            # Tier 2 news
+            elif any(outlet in source for outlet in [
+                'guardian', 'telegraph', 'independent', 'economist', 'ft.com'
+            ]):
+                base_credibility = self.credibility_weights['news_tier2']
 
-        # Default
-        return self.credibility_weights['general']
+            # Default
+            else:
+                base_credibility = self.credibility_weights['general']
+
+        # TIER 1 IMPROVEMENT: Apply primary source boost/penalty
+        if settings.ENABLE_PRIMARY_SOURCE_DETECTION and evidence_item and url:
+            from app.utils.source_type_classifier import get_source_type_classifier
+            classifier = get_source_type_classifier()
+
+            source_info = classifier.classify_source(
+                url,
+                evidence_item.get('title', ''),
+                evidence_item.get('snippet', '')
+            )
+
+            # Enrich evidence metadata
+            evidence_item['source_type'] = source_info['source_type']
+            evidence_item['is_primary_source'] = source_info['is_original_research']
+            evidence_item['primary_indicators'] = source_info['primary_indicators']
+
+            # Apply boost/penalty (capped at 1.0)
+            boost = source_info['credibility_boost']
+            final_credibility = min(1.0, base_credibility + boost)
+
+            if boost != 0:
+                logger.info(
+                    f"Primary source analysis: {source_info['source_type']} "
+                    f"({base_credibility:.2f} → {final_credibility:.2f})"
+                )
+
+            return final_credibility
+
+        return base_credibility
     
     def _get_recency_score(self, published_date: Optional[str]) -> float:
         """Calculate recency score (more recent = higher score)"""

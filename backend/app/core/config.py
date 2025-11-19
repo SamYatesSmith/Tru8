@@ -114,7 +114,7 @@ class Settings(BaseSettings):
     RELEVANCE_THRESHOLD: float = Field(0.65, env="RELEVANCE_THRESHOLD")  # Minimum relevance score (0-1)
 
     # Domain Capping Configuration
-    MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")
+    MAX_EVIDENCE_PER_DOMAIN: int = Field(1, env="MAX_EVIDENCE_PER_DOMAIN")  # Only 1 result per domain to prevent same-publisher duplicates
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
     OUTSTANDING_SOURCE_THRESHOLD: float = Field(0.95, env="OUTSTANDING_SOURCE_THRESHOLD")
 
@@ -137,6 +137,22 @@ class Settings(BaseSettings):
 
     # Cross-Encoder Evidence Reranking (Phase 1.3)
     ENABLE_CROSS_ENCODER_RERANK: bool = Field(False, env="ENABLE_CROSS_ENCODER_RERANK")
+
+    # ========== TIER 1 IMPROVEMENTS (2025-01-17) ==========
+    # Query Formulation Enhancement
+    ENABLE_QUERY_EXPANSION: bool = Field(False, env="ENABLE_QUERY_EXPANSION")
+    QUERY_EXPANSION_SYNONYMS: int = Field(2, env="QUERY_EXPANSION_SYNONYMS")
+    QUERY_TEMPORAL_BOOST: bool = Field(True, env="QUERY_TEMPORAL_BOOST")
+
+    # Semantic Snippet Extraction
+    ENABLE_SEMANTIC_SNIPPET_EXTRACTION: bool = Field(False, env="ENABLE_SEMANTIC_SNIPPET_EXTRACTION")
+    SNIPPET_SEMANTIC_THRESHOLD: float = Field(0.65, env="SNIPPET_SEMANTIC_THRESHOLD")
+    SNIPPET_CONTEXT_SENTENCES: int = Field(2, env="SNIPPET_CONTEXT_SENTENCES")
+
+    # Primary Source Prioritization
+    ENABLE_PRIMARY_SOURCE_DETECTION: bool = Field(False, env="ENABLE_PRIMARY_SOURCE_DETECTION")
+    PRIMARY_SOURCE_BOOST: float = Field(0.25, env="PRIMARY_SOURCE_BOOST")
+    SECONDARY_SOURCE_PENALTY: float = Field(0.15, env="SECONDARY_SOURCE_PENALTY")
 
     @property
     def nli_model_name(self) -> str:

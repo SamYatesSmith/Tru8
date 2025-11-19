@@ -47,7 +47,7 @@ def upgrade() -> None:
     # Check table (4 columns)
     print("  - check.input_content")
     op.execute("""
-        ALTER TABLE check
+        ALTER TABLE "check"
         ALTER COLUMN input_content
         TYPE jsonb
         USING input_content::jsonb
@@ -55,7 +55,7 @@ def upgrade() -> None:
 
     print("  - check.decision_trail")
     op.execute("""
-        ALTER TABLE check
+        ALTER TABLE "check"
         ALTER COLUMN decision_trail
         TYPE jsonb
         USING decision_trail::jsonb
@@ -63,7 +63,7 @@ def upgrade() -> None:
 
     print("  - check.query_sources")
     op.execute("""
-        ALTER TABLE check
+        ALTER TABLE "check"
         ALTER COLUMN query_sources
         TYPE jsonb
         USING query_sources::jsonb
@@ -71,7 +71,7 @@ def upgrade() -> None:
 
     print("  - check.api_sources_used")
     op.execute("""
-        ALTER TABLE check
+        ALTER TABLE "check"
         ALTER COLUMN api_sources_used
         TYPE jsonb
         USING api_sources_used::jsonb
@@ -136,7 +136,7 @@ def upgrade() -> None:
         USING review_notes::jsonb
     """)
 
-    print("✅ Successfully converted 11 JSON columns to JSONB")
+    print("[OK] Successfully converted 11 JSON columns to JSONB")
     print("   Performance improvement: JSONB supports GIN indexes and native operators")
 
 
@@ -150,10 +150,10 @@ def downgrade() -> None:
     print("Reverting JSONB columns to JSON...")
 
     # Check table
-    op.execute("ALTER TABLE check ALTER COLUMN input_content TYPE json USING input_content::json")
-    op.execute("ALTER TABLE check ALTER COLUMN decision_trail TYPE json USING decision_trail::json")
-    op.execute("ALTER TABLE check ALTER COLUMN query_sources TYPE json USING query_sources::json")
-    op.execute("ALTER TABLE check ALTER COLUMN api_sources_used TYPE json USING api_sources_used::json")
+    op.execute('ALTER TABLE "check" ALTER COLUMN input_content TYPE json USING input_content::json')
+    op.execute('ALTER TABLE "check" ALTER COLUMN decision_trail TYPE json USING decision_trail::json')
+    op.execute('ALTER TABLE "check" ALTER COLUMN query_sources TYPE json USING query_sources::json')
+    op.execute('ALTER TABLE "check" ALTER COLUMN api_sources_used TYPE json USING api_sources_used::json')
 
     # Claim table
     op.execute("ALTER TABLE claim ALTER COLUMN temporal_markers TYPE json USING temporal_markers::json")
