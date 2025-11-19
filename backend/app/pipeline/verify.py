@@ -30,14 +30,19 @@ class NLIVerificationResult:
         self.neutral_score = neutral_score
         self.confidence = max(entailment_score, contradiction_score, neutral_score)
 
-        # CRITICAL FIX: Neutral threshold to prevent false contradictions
-        # If neutral score is high (>0.7), evidence is off-topic/not-related
-        # Don't classify as "contradicting" just because it doesn't support
+        # INTERNATIONAL CONTENT FIX: Adjust thresholds for paraphrasing tolerance
+        # If contradiction is very low (< 0.3), evidence at minimum isn't contradicting
+        # This helps with international content where paraphrasing is common
+        # Example: "under fire for comments" vs "made disparaging remarks" should match
+        LOW_CONTRADICTION_THRESHOLD = 0.3
         NEUTRAL_THRESHOLD = 0.7
 
-        if neutral_score > NEUTRAL_THRESHOLD:
-            # High neutral = evidence doesn't address claim (NOT contradicting)
+        if neutral_score > NEUTRAL_THRESHOLD and contradiction_score >= LOW_CONTRADICTION_THRESHOLD:
+            # High neutral AND meaningful contradiction → evidence is off-topic
             self.relationship = "neutral"
+        elif contradiction_score < LOW_CONTRADICTION_THRESHOLD and neutral_score > entailment_score:
+            # Low contradiction + neutral likely means paraphrasing → treat as weak support
+            self.relationship = "entails"
         elif entailment_score > contradiction_score and entailment_score > neutral_score:
             self.relationship = "entails"
         elif contradiction_score > entailment_score and contradiction_score > neutral_score:
