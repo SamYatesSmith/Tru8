@@ -174,7 +174,8 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                     subject_context=claim_data.get("subject_context"),
                     key_entities=claim_data.get("key_entities", []) if claim_data.get("key_entities") else None,
                     source_title=claim_data.get("source_title"),
-                    source_url=claim_data.get("source_url")
+                    source_url=claim_data.get("source_url"),
+                    source_date=claim_data.get("source_date")
                 )
                 session.add(claim)
                 session.flush()  # Get claim ID
@@ -861,6 +862,12 @@ async def extract_claims_with_cache(content: str, metadata: Dict[str, Any], cach
             cached_claims = await cache_service.get_cached_claim_extraction(content, model_name)
             if cached_claims:
                 logger.info("Using cached claim extraction")
+                # BUGFIX: Add current metadata to cached claims (may be missing from old cache)
+                for claim in cached_claims:
+                    claim["source_title"] = metadata.get("title") if metadata else None
+                    claim["source_url"] = metadata.get("url") if metadata else None
+                    claim["source_date"] = metadata.get("date") if metadata else None
+                logger.info(f"Added metadata to {len(cached_claims)} cached claims")
                 return cached_claims
 
         # Extract claims with real LLM

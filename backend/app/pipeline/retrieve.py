@@ -96,8 +96,15 @@ class EvidenceRetriever:
                 key_entities = claim.get("key_entities", [])
                 temporal_analysis = claim.get("temporal_analysis")  # TIER 1: For query refinement
 
+                # Article context grounding (Phase 4)
+                article_title = claim.get("source_title")
+                article_date = claim.get("source_date")
+
                 if subject_context:
                     logger.info(f"Using context: '{subject_context}' with entities: {key_entities[:3]}")
+
+                if article_title or article_date:
+                    logger.info(f"📰 ARTICLE CONTEXT | Title: '{article_title[:60] if article_title else 'N/A'}...' | Date: {article_date or 'N/A'}")
 
                 # DIAGNOSTIC: Log claim processing start
                 logger.info(f"🔍 RETRIEVE START | Claim: '{claim_text[:80]}...' | Entities: {key_entities[:3]} | Temporal: {bool(temporal_analysis)}")
@@ -109,7 +116,9 @@ class EvidenceRetriever:
                     subject_context=subject_context,
                     key_entities=key_entities,
                     excluded_domain=excluded_domain,
-                    temporal_analysis=temporal_analysis  # TIER 1: Pass to query formulation
+                    temporal_analysis=temporal_analysis,  # TIER 1: Pass to query formulation
+                    article_title=article_title,  # Article context grounding
+                    article_date=article_date  # Article context grounding
                 )
 
                 # Phase 5: Government API retrieval (parallel with web search)

@@ -17,6 +17,7 @@ import re
 import spacy
 from typing import Dict, List, Optional
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,9 @@ class QueryFormulator:
         claim: str,
         subject_context: Optional[str] = None,
         key_entities: Optional[List[str]] = None,
-        temporal_analysis: Optional[Dict] = None
+        temporal_analysis: Optional[Dict] = None,
+        article_title: Optional[str] = None,
+        article_date: Optional[str] = None
     ) -> str:
         """
         Create optimized search query from claim.
@@ -52,12 +55,15 @@ class QueryFormulator:
         2. Temporal refinement (add year for time-sensitive claims)
         3. Query term extraction (important nouns/verbs only)
         4. Search syntax optimization (site: filters, exclusions)
+        5. Article context grounding (add title entities and date for specificity)
 
         Args:
             claim: Original claim text
             subject_context: Main subject/topic from extraction
             key_entities: Key entities from extraction (names, orgs, places)
             temporal_analysis: Temporal analysis from claim extraction
+            article_title: Title of source article (for context grounding)
+            article_date: Publication date of source article (for temporal context)
 
         Returns:
             Optimized search query string (max 250 chars for API limits)
@@ -68,7 +74,7 @@ class QueryFormulator:
         try:
             # If spaCy not available, use fallback
             if not self.nlp:
-                return self._fallback_query(claim, key_entities, temporal_analysis)
+                return self._fallback_query(claim, key_entities, temporal_analysis, article_title, article_date)
 
             # Parse claim with spaCy
             doc = self.nlp(claim)
@@ -81,13 +87,24 @@ class QueryFormulator:
                 temporal_terms = self._add_temporal_refinement(temporal_analysis)
                 query_terms.extend(temporal_terms)
 
+            # Apply article context grounding (Phase 2.2 & 2.3)
+            if article_title or article_date:
+                article_terms = self._add_article_context(
+                    claim,
+                    article_title,
+                    article_date,
+                    query_terms
+                )
+                query_terms.extend(article_terms)
+
             # Build final query
             query = " ".join(query_terms)
 
-            # Add source type filters (prefer primary sources)
-            query += ' (site:.gov OR site:.edu OR site:.org OR "study" OR "research")'
+            # Note: Previously filtered to .gov/.edu/.org but this EXCLUDED news sources
+            # For news-based claims, we NEED NYT, BBC, Reuters, etc.
+            # Credibility filtering happens downstream in retrieve.py
 
-            # Exclude fact-check meta-content
+            # Exclude fact-check meta-content (avoid circular fact-checking)
             query += ' -site:snopes.com -site:factcheck.org -"fact check"'
 
             # Enforce API limit
@@ -98,7 +115,7 @@ class QueryFormulator:
 
         except Exception as e:
             logger.error(f"Query formulation failed: {e}, using fallback")
-            return self._fallback_query(claim, key_entities, temporal_analysis)
+            return self._fallback_query(claim, key_entities, temporal_analysis, article_title, article_date)
 
     def _extract_query_terms(self, doc, key_entities: Optional[List[str]]) -> List[str]:
         """
@@ -200,11 +217,90 @@ class QueryFormulator:
 
         return temporal_terms
 
+    def _add_article_context(
+        self,
+        claim: str,
+        article_title: Optional[str],
+        article_date: Optional[str],
+        existing_query_terms: List[str]
+    ) -> List[str]:
+        """
+        Extract context from article title and date for query grounding.
+
+        Phase 2.2: Extract entities from article title that aren't in claim
+        Phase 2.3: Add article year for recent articles
+
+        Args:
+            claim: Original claim text
+            article_title: Title of source article
+            article_date: Publication date (ISO format string or date object)
+            existing_query_terms: Already extracted query terms
+
+        Returns:
+            List of additional terms from article context
+        """
+        article_terms = []
+
+        try:
+            # Phase 2.2: Extract entities from article title
+            if article_title and self.nlp:
+                # Parse article title with spaCy
+                title_doc = self.nlp(article_title)
+
+                # Extract named entities from title
+                title_entities = [
+                    ent.text for ent in title_doc.ents
+                    if ent.label_ in ['PERSON', 'ORG', 'GPE', 'EVENT', 'LAW']
+                ]
+
+                # Add entities NOT already in claim or existing query terms
+                claim_lower = claim.lower()
+                existing_lower = [term.lower() for term in existing_query_terms]
+
+                for entity in title_entities[:3]:  # Top 3 entities from title
+                    entity_lower = entity.lower()
+                    # Check if entity not already in claim or query
+                    if entity_lower not in claim_lower and entity_lower not in existing_lower:
+                        article_terms.append(entity)
+                        logger.debug(f"Added title entity to query: {entity}")
+
+            # Phase 2.3: Add article year for recent articles
+            if article_date:
+                try:
+                    # Parse date (handle ISO string or datetime)
+                    if isinstance(article_date, str):
+                        # Try parsing ISO format
+                        if 'T' in article_date:
+                            pub_date = datetime.fromisoformat(article_date.replace('Z', '+00:00'))
+                        else:
+                            # Try simple YYYY-MM-DD format
+                            pub_date = datetime.strptime(article_date[:10], '%Y-%m-%d')
+                    else:
+                        pub_date = article_date
+
+                    # Add year if article is recent (within last 2 years)
+                    days_old = (datetime.now() - pub_date).days
+                    if days_old < 730:  # ~2 years
+                        year = str(pub_date.year)
+                        if year not in existing_query_terms:
+                            article_terms.append(year)
+                            logger.debug(f"Added article year to query: {year}")
+
+                except Exception as date_error:
+                    logger.debug(f"Could not parse article date '{article_date}': {date_error}")
+
+        except Exception as e:
+            logger.error(f"Article context extraction failed: {e}")
+
+        return article_terms
+
     def _fallback_query(
         self,
         claim: str,
         key_entities: Optional[List[str]],
-        temporal_analysis: Optional[Dict]
+        temporal_analysis: Optional[Dict],
+        article_title: Optional[str] = None,
+        article_date: Optional[str] = None
     ) -> str:
         """
         Fallback query formulation when spaCy unavailable.
@@ -213,6 +309,8 @@ class QueryFormulator:
             claim: Original claim
             key_entities: Entities from extraction
             temporal_analysis: Temporal context
+            article_title: Title of source article
+            article_date: Publication date of source article
 
         Returns:
             Basic optimized query
@@ -230,6 +328,19 @@ class QueryFormulator:
                 if marker.get('type') == 'YEAR':
                     query_parts.append(str(marker.get('value')))
                     break
+
+        # Add article year if available (basic version of Phase 2.3)
+        if article_date:
+            try:
+                # Extract year from date string
+                if isinstance(article_date, str):
+                    # Try to extract year (first 4 digits)
+                    year_match = re.search(r'\d{4}', article_date)
+                    if year_match:
+                        year = year_match.group()
+                        query_parts.append(year)
+            except Exception:
+                pass
 
         query = " ".join(query_parts)
 

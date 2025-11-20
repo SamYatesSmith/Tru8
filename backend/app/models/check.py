@@ -117,6 +117,7 @@ class Claim(SQLModel, table=True):
     key_entities: Optional[str] = Field(default=None, sa_column=Column(JSONB), description="Key entities mentioned in claim")
     source_title: Optional[str] = Field(default=None, description="Title of source article")
     source_url: Optional[str] = Field(default=None, description="URL of source article")
+    source_date: Optional[str] = Field(default=None, description="Publication date of source article")
 
     # Relationships
     check: Check = Relationship(back_populates="claims")

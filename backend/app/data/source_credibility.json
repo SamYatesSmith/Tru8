@@ -678,6 +678,538 @@
     ]
   },
 
+  "transportation_safety": {
+    "credibility": 1.0,
+    "description": "Independent transportation accident investigation agencies",
+    "domains": [
+      "ntsb.gov"
+    ],
+    "tier": "tier1"
+  },
+
+  "maritime_specialized": {
+    "credibility": 0.95,
+    "description": "Specialized maritime navigation and safety authorities",
+    "domains": [
+      "navcen.uscg.gov",
+      "uscg.mil"
+    ],
+    "tier": "tier1"
+  },
+
+  "uk_labor_statistics": {
+    "credibility": 0.95,
+    "description": "Official UK labor market statistics portal",
+    "domains": [
+      "nomisweb.co.uk"
+    ],
+    "tier": "tier1"
+  },
+
+  "securities_india": {
+    "credibility": 0.93,
+    "description": "Indian securities regulator",
+    "domains": [
+      "sebi.gov.in"
+    ],
+    "tier": "tier1"
+  },
+
+  "climate_international": {
+    "credibility": 0.94,
+    "description": "International climate and environmental organizations",
+    "domains": [
+      "ipcc.ch",
+      "unep.org",
+      "wmo.int",
+      "unfccc.int"
+    ],
+    "tier": "tier1"
+  },
+
+  "international_orgs": {
+    "credibility": 0.93,
+    "description": "Major UN and international organizations",
+    "domains": [
+      "iea.org",
+      "ilo.org",
+      "ilostat.ilo.org",
+      "fao.org",
+      "imo.org",
+      "icao.int",
+      "iaea.org",
+      "interpol.int"
+    ],
+    "tier": "tier1"
+  },
+
+  "eu_agencies": {
+    "credibility": 0.93,
+    "description": "European Union regulatory and monitoring agencies",
+    "domains": [
+      "eea.europa.eu",
+      "copernicus.eu",
+      "marine.copernicus.eu",
+      "esma.europa.eu",
+      "acer.europa.eu",
+      "easa.europa.eu",
+      "europol.europa.eu"
+    ],
+    "tier": "tier1"
+  },
+
+  "climate_research": {
+    "credibility": 0.95,
+    "description": "Climate and atmospheric research institutions",
+    "domains": [
+      "ncar.ucar.edu"
+    ],
+    "tier": "tier1"
+  },
+
+  "energy_renewable": {
+    "credibility": 0.88,
+    "description": "Renewable energy organizations and research",
+    "domains": [
+      "irena.org",
+      "ren21.net",
+      "gwec.net",
+      "solarpowereurope.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "energy_fossil": {
+    "credibility": 0.84,
+    "description": "Oil, gas, and petroleum industry organizations",
+    "domains": [
+      "opec.org",
+      "api.org"
+    ],
+    "tier": "tier2"
+  },
+
+  "energy_grid": {
+    "credibility": 0.89,
+    "description": "Grid operators and transmission system operators",
+    "domains": [
+      "nerc.com",
+      "caiso.com",
+      "ercot.com",
+      "entsoe.eu",
+      "transparency.entsoe.eu",
+      "aemo.com.au"
+    ],
+    "tier": "tier1"
+  },
+
+  "energy_nuclear": {
+    "credibility": 0.88,
+    "description": "Nuclear energy associations and research",
+    "domains": [
+      "world-nuclear.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "conservation_biodiversity": {
+    "credibility": 0.82,
+    "description": "Conservation organizations and biodiversity databases",
+    "domains": [
+      "iucn.org",
+      "iucnredlist.org",
+      "gbif.org",
+      "worldwildlife.org",
+      "wwf.panda.org",
+      "nature.org"
+    ],
+    "tier": "tier2"
+  },
+
+  "securities_international": {
+    "credibility": 0.92,
+    "description": "International securities and financial regulators",
+    "domains": [
+      "mas.gov.sg",
+      "finma.ch",
+      "finra.org",
+      "brokercheck.finra.org",
+      "bafin.de",
+      "amf-france.org",
+      "cnmv.es",
+      "sfc.hk"
+    ],
+    "tier": "tier1"
+  },
+
+  "credit_rating_agencies": {
+    "credibility": 0.83,
+    "description": "Major credit rating agencies (NRSROs)",
+    "domains": [
+      "spglobal.com",
+      "moodys.com",
+      "ratings.moodys.io",
+      "fitchratings.com",
+      "dbrs.morningstar.com",
+      "kbra.com"
+    ],
+    "tier": "tier2"
+  },
+
+  "stock_exchanges": {
+    "credibility": 0.85,
+    "description": "Major stock exchanges worldwide",
+    "domains": [
+      "nyse.com",
+      "nasdaq.com",
+      "lseg.com",
+      "euronext.com"
+    ],
+    "tier": "tier2"
+  },
+
+  "aviation_international": {
+    "credibility": 0.95,
+    "description": "International aviation safety authorities",
+    "domains": [
+      "caa.co.uk"
+    ],
+    "tier": "tier1"
+  },
+
+  "employment_international": {
+    "credibility": 0.88,
+    "description": "International employment and labor agencies",
+    "domains": [
+      "acas.org.uk",
+      "fwc.gov.au",
+      "worksafebc.com",
+      "francetravail.fr",
+      "arbeitsagentur.de",
+      "mbie.govt.nz",
+      "employment.govt.nz"
+    ],
+    "tier": "tier1"
+  },
+
+  "housing_gse": {
+    "credibility": 0.85,
+    "description": "Government-sponsored housing finance enterprises",
+    "domains": [
+      "freddiemac.com",
+      "fanniemae.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "housing_industry": {
+    "credibility": 0.73,
+    "description": "Real estate and mortgage industry associations and data providers",
+    "domains": [
+      "nar.realtor",
+      "mba.org",
+      "corelogic.com",
+      "zillow.com",
+      "redfin.com",
+      "realtor.com"
+    ],
+    "tier": "tier2"
+  },
+
+  "consumer_protection_nonprofits": {
+    "credibility": 0.85,
+    "description": "Consumer protection and advocacy nonprofits",
+    "domains": [
+      "bbb.org"
+    ],
+    "tier": "tier2"
+  },
+
+  "singapore_government": {
+    "credibility": 0.95,
+    "description": "Singapore government agencies and data portals",
+    "domains": [
+      "acra.gov.sg",
+      "data.gov.sg",
+      "hdb.gov.sg",
+      "ura.gov.sg",
+      "*.gov.sg"
+    ],
+    "tier": "tier1"
+  },
+
+  "canada_transportation": {
+    "credibility": 0.95,
+    "description": "Canadian transportation agencies",
+    "domains": [
+      "tc.canada.ca"
+    ],
+    "tier": "tier1"
+  },
+
+  "olympic_governing": {
+    "credibility": 0.98,
+    "description": "Olympic Committee and multi-sport organizations",
+    "domains": [
+      "olympics.com",
+      "anocolympic.org",
+      "thecgf.com",
+      "imga.ch"
+    ],
+    "tier": "tier1"
+  },
+
+  "athletics_governing": {
+    "credibility": 1.0,
+    "description": "International athletics and track & field governing bodies",
+    "domains": [
+      "worldathletics.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "team_sports_international": {
+    "credibility": 0.98,
+    "description": "International governing bodies for team sports",
+    "domains": [
+      "fifa.com",
+      "inside.fifa.com",
+      "fiba.basketball",
+      "fivb.com",
+      "ihf.info",
+      "icc-cricket.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "racquet_sports": {
+    "credibility": 1.0,
+    "description": "International tennis, table tennis, and badminton federations",
+    "domains": [
+      "itftennis.com",
+      "ittf.com",
+      "bwfbadminton.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "aquatic_sports": {
+    "credibility": 1.0,
+    "description": "International swimming, diving, and water sports federations",
+    "domains": [
+      "fina.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "cycling_sports": {
+    "credibility": 1.0,
+    "description": "International cycling governing bodies",
+    "domains": [
+      "uci.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "winter_sports": {
+    "credibility": 1.0,
+    "description": "International skiing, skating, and winter sports federations",
+    "domains": [
+      "fis-ski.com",
+      "isu.org",
+      "isu-skating.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "combat_sports": {
+    "credibility": 0.95,
+    "description": "International martial arts and combat sports federations",
+    "domains": [
+      "ijf.org",
+      "worldtaekwondo.org",
+      "iba.sport",
+      "uww.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "precision_sports": {
+    "credibility": 1.0,
+    "description": "International archery, shooting, and equestrian federations",
+    "domains": [
+      "worldarchery.sport",
+      "issf-sports.org",
+      "fei.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "water_endurance_sports": {
+    "credibility": 1.0,
+    "description": "International rowing, canoeing, triathlon, and weightlifting federations",
+    "domains": [
+      "worldrowing.com",
+      "canoeicf.com",
+      "triathlon.org",
+      "iwf.sport"
+    ],
+    "tier": "tier1"
+  },
+
+  "sports_governance": {
+    "credibility": 0.97,
+    "description": "Anti-doping agencies and sports arbitration",
+    "domains": [
+      "wada-ama.org",
+      "usada.org",
+      "ita.sport",
+      "tas-cas.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "north_american_leagues": {
+    "credibility": 0.93,
+    "description": "Major North American professional sports leagues",
+    "domains": [
+      "nfl.com",
+      "nba.com",
+      "mlb.com",
+      "nhl.com",
+      "mlssoccer.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "european_football": {
+    "credibility": 0.95,
+    "description": "Top European football leagues",
+    "domains": [
+      "premierleague.com",
+      "laliga.com",
+      "bundesliga.com",
+      "legaseriea.it"
+    ],
+    "tier": "tier1"
+  },
+
+  "football_confederations": {
+    "credibility": 0.93,
+    "description": "Continental football governing bodies",
+    "domains": [
+      "uefa.com",
+      "conmebol.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "cricket_boards": {
+    "credibility": 0.91,
+    "description": "International and national cricket boards",
+    "domains": [
+      "bcci.tv",
+      "cricket.com.au",
+      "ecb.co.uk"
+    ],
+    "tier": "tier1"
+  },
+
+  "rugby_competitions": {
+    "credibility": 0.88,
+    "description": "Major rugby union and league competitions",
+    "domains": [
+      "sixnationsrugby.com",
+      "super.rugby",
+      "nrl.com"
+    ],
+    "tier": "tier2"
+  },
+
+  "tennis_tours": {
+    "credibility": 0.95,
+    "description": "Professional tennis tour organizations",
+    "domains": [
+      "atptour.com",
+      "wtatennis.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "golf_organizations": {
+    "credibility": 0.93,
+    "description": "Professional golf tours and governing bodies",
+    "domains": [
+      "pgatour.com",
+      "usga.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "motorsport": {
+    "credibility": 0.95,
+    "description": "Official Formula 1 and motorsport organizations",
+    "domains": [
+      "formula1.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "league_statistics": {
+    "credibility": 0.88,
+    "description": "Official league statistics portals and record databases",
+    "domains": [
+      "records.nhl.com",
+      "ncaa.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "sports_data_aggregators": {
+    "credibility": 0.82,
+    "description": "Comprehensive sports statistics aggregators with verified data",
+    "domains": [
+      "sports-reference.com",
+      "baseball-reference.com",
+      "pro-football-reference.com",
+      "basketball-reference.com",
+      "hockey-reference.com",
+      "fbref.com",
+      "olympedia.org",
+      "hockeydb.com"
+    ],
+    "tier": "tier2"
+  },
+
+  "professional_sports_stats": {
+    "credibility": 0.88,
+    "description": "Professional statistics services recognized by leagues",
+    "domains": [
+      "esb.com",
+      "statsperform.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "paralympic_sports": {
+    "credibility": 0.88,
+    "description": "Paralympic and adaptive sports databases",
+    "domains": [
+      "db.ipc-services.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "sports_records_archives": {
+    "credibility": 0.77,
+    "description": "Sports halls of fame and official record archives",
+    "domains": [
+      "profootballhof.com",
+      "guinnessworldrecords.com"
+    ],
+    "tier": "tier2"
+  },
+
   "general": {
     "credibility": 0.6,
     "description": "Default for unmatched sources",

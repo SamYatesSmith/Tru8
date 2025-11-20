@@ -147,6 +147,7 @@ Always return valid JSON matching the required format."""
                     for claim in result.get("claims", []):
                         claim["source_title"] = metadata.get("title") if metadata else None
                         claim["source_url"] = metadata.get("url") if metadata else None
+                        claim["source_date"] = metadata.get("date") if metadata else None
                     return result
                 else:
                     logger.error(f"OpenAI extraction failed: {result.get('error')}")
