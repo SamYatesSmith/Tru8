@@ -1210,6 +1210,34 @@
     "tier": "tier2"
   },
 
+  "sports_news": {
+    "credibility": 0.85,
+    "description": "Sports journalism and news outlets",
+    "domains": [
+      "espn.com",
+      "skysports.com",
+      "theathletic.com",
+      "sportingnews.com",
+      "goal.com",
+      "talksport.com",
+      "90min.com",
+      "fourfourtwo.com",
+      "sportbible.com",
+      "givemesport.com",
+      "bbc.co.uk/sport/*",
+      "bbc.com/sport/*",
+      "theguardian.com/sport/*",
+      "theguardian.com/football/*",
+      "reuters.com/sports/*",
+      "telegraph.co.uk/sport/*",
+      "sky.com/sports/*",
+      "independent.co.uk/sport/*",
+      "mirror.co.uk/sport/*",
+      "dailymail.co.uk/sport/*"
+    ],
+    "tier": "tier2"
+  },
+
   "general": {
     "credibility": 0.6,
     "description": "Default for unmatched sources",

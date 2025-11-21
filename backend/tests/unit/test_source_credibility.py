@@ -369,6 +369,73 @@ class TestSourceCredibilityService:
 
         assert service1 is service2  # Same instance
 
+    # ========== PATH-AWARE MATCHING TESTS ==========
+
+    def test_path_pattern_matches_sports_section(self):
+        """BBC Sport URL should match sports_news tier via path pattern"""
+        self.service.clear_cache()
+        result = self.service.get_credibility("BBC Sport", "https://bbc.co.uk/sport/football/article-123")
+
+        assert result['tier'] == 'sports_news'
+        assert result['credibility'] == 0.85
+        assert 'path' in result['reasoning'].lower()
+
+    def test_path_pattern_takes_precedence_over_domain(self):
+        """Path pattern should match before domain-only pattern"""
+        self.service.clear_cache()
+
+        # BBC Sport should hit sports_news (path pattern)
+        sport_result = self.service.get_credibility("BBC", "https://bbc.co.uk/sport/tennis")
+        assert sport_result['tier'] == 'sports_news'
+
+        # BBC News should hit news_tier1 (domain pattern - no path match)
+        self.service.clear_cache()
+        news_result = self.service.get_credibility("BBC", "https://bbc.co.uk/news/politics")
+        assert news_result['tier'] == 'news_tier1'
+
+    def test_domain_fallback_when_no_path_match(self):
+        """Non-sport BBC URL should fall back to news_tier1"""
+        self.service.clear_cache()
+        result = self.service.get_credibility("BBC", "https://bbc.co.uk/weather/london")
+
+        # Should fall back to domain match (news_tier1)
+        assert result['tier'] == 'news_tier1'
+        assert 'domain' in result['reasoning'].lower()
+
+    def test_dedicated_sports_domain_matches(self):
+        """Dedicated sports sites should match sports_news tier"""
+        self.service.clear_cache()
+        result = self.service.get_credibility("ESPN", "https://espn.com/nfl/story/123")
+
+        assert result['tier'] == 'sports_news'
+        assert result['credibility'] == 0.85
+
+    def test_guardian_football_path_pattern(self):
+        """Guardian football section should match sports_news"""
+        self.service.clear_cache()
+        result = self.service.get_credibility("Guardian", "https://theguardian.com/football/premier-league")
+
+        assert result['tier'] == 'sports_news'
+
+    def test_guardian_politics_falls_back_to_news(self):
+        """Guardian politics should fall back to news_tier2"""
+        self.service.clear_cache()
+        result = self.service.get_credibility("Guardian", "https://theguardian.com/politics/article")
+
+        assert result['tier'] == 'news_tier2'
+
+    def test_path_caching_separates_sections(self):
+        """Cache should distinguish between different path sections"""
+        self.service.clear_cache()
+
+        # First: BBC Sport
+        sport_result = self.service.get_credibility("BBC", "https://bbc.co.uk/sport/football")
+        assert sport_result['tier'] == 'sports_news'
+
+        # Second: BBC News (should NOT return cached sport result)
+        news_result = self.service.get_credibility("BBC", "https://bbc.co.uk/news/world")
+        assert news_result['tier'] == 'news_tier1'
+
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

@@ -10,8 +10,9 @@ Phase 3 - Week 9: Domain Credibility Framework
 import json
 import tldextract
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 from functools import lru_cache
+from urllib.parse import urlparse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -70,56 +71,101 @@ class SourceCredibilityService:
                 - description: str - Tier description
 
         Example:
-            >>> service.get_credibility("BBC", "https://bbc.co.uk/news/article")
+            >>> service.get_credibility("BBC", "https://bbc.co.uk/sport/football")
             {
-                'tier': 'news_tier1',
-                'credibility': 0.9,
+                'tier': 'sports_news',
+                'credibility': 0.85,
                 'risk_flags': [],
                 'auto_exclude': False,
-                'reasoning': 'Matched news_tier1 tier (domain: bbc.co.uk)',
-                'description': 'Highest-rated international news agencies'
+                'reasoning': 'Matched sports_news tier (path: bbc.co.uk/sport)',
+                'description': 'Sports journalism and news outlets'
             }
         """
-        # Extract domain from URL
+        # Extract domain and path from URL
         try:
             parsed = tldextract.extract(url)
             domain = parsed.registered_domain.lower()
+            url_path = urlparse(url).path.lower().rstrip('/')
         except Exception as e:
             logger.warning(f"Failed to extract domain from {url}: {e}")
             return self._get_general_tier("Failed to parse domain")
 
-        # Check cache first
-        if domain in self._domain_cache:
-            return self._domain_cache[domain]
+        # Generate cache key (includes path prefix for path-based matches)
+        cache_key = self._get_cache_key(domain, url_path)
+        if cache_key in self._domain_cache:
+            return self._domain_cache[cache_key]
 
-        # Match domain against tiers
-        result = self._match_domain_to_tier(domain, parsed)
+        # Match against tiers (path patterns first, then domain patterns)
+        result = self._match_domain_to_tier(domain, url_path, parsed)
 
         # Cache the result
-        self._domain_cache[domain] = result
+        self._domain_cache[cache_key] = result
 
         return result
 
-    def _match_domain_to_tier(self, domain: str, parsed) -> Dict[str, Any]:
+    def _get_cache_key(self, domain: str, url_path: str) -> str:
         """
-        Match domain against all configured tiers.
+        Generate cache key based on domain and path.
+
+        For path-based matches, includes the first path segment.
+        For domain-only matches, uses just the domain.
+        """
+        if url_path:
+            # Extract first path segment for cache key
+            path_parts = url_path.strip('/').split('/')
+            if path_parts and path_parts[0]:
+                return f"{domain}/{path_parts[0]}"
+        return domain
+
+    def _match_domain_to_tier(self, domain: str, url_path: str, parsed) -> Dict[str, Any]:
+        """
+        Match domain and path against all configured tiers.
+
+        Uses two-pass matching:
+        1. First pass: Check path patterns (more specific)
+        2. Second pass: Check domain-only patterns (fallback)
 
         Args:
             domain: Registered domain (e.g., 'bbc.co.uk')
+            url_path: URL path (e.g., '/sport/football')
             parsed: tldextract result object
 
         Returns:
             Credibility info dictionary
         """
-        # Check each tier (skip 'general' - it's the fallback)
+        # PASS 1: Check path patterns first (more specific)
         for tier_name, tier_config in self.config.items():
             if tier_name == 'general':
                 continue
 
-            # Check if domain matches this tier
-            if 'domains' in tier_config:
-                for pattern in tier_config['domains']:
-                    if self._matches_pattern(domain, pattern, parsed):
+            if 'domains' not in tier_config:
+                continue
+
+            for pattern in tier_config['domains']:
+                # Only check path patterns in first pass
+                if '/' in pattern:
+                    if self._matches_path_pattern(domain, url_path, pattern):
+                        return {
+                            'tier': tier_name,
+                            'credibility': tier_config.get('credibility', 0.6),
+                            'risk_flags': tier_config.get('risk_flags', []),
+                            'auto_exclude': tier_config.get('auto_exclude', False),
+                            'reasoning': f"Matched {tier_name} tier (path: {domain}{url_path})",
+                            'description': tier_config.get('description', '')
+                        }
+
+        # PASS 2: Check domain-only patterns (fallback)
+        for tier_name, tier_config in self.config.items():
+            if tier_name == 'general':
+                continue
+
+            if 'domains' not in tier_config:
+                continue
+
+            for pattern in tier_config['domains']:
+                # Only check domain patterns in second pass
+                if '/' not in pattern:
+                    if self._matches_domain_pattern(domain, pattern, parsed):
                         return {
                             'tier': tier_name,
                             'credibility': tier_config.get('credibility', 0.6),
@@ -132,9 +178,48 @@ class SourceCredibilityService:
         # No match found - default to general tier
         return self._get_general_tier(f"No specific tier matched (domain: {domain})")
 
-    def _matches_pattern(self, domain: str, pattern: str, parsed) -> bool:
+    def _matches_path_pattern(self, domain: str, url_path: str, pattern: str) -> bool:
         """
-        Check if domain matches a pattern (supports wildcards).
+        Check if domain+path matches a path pattern.
+
+        Patterns:
+            - 'bbc.co.uk/sport/*' matches 'bbc.co.uk' + '/sport/football'
+            - 'theguardian.com/football/*' matches 'theguardian.com' + '/football/article'
+
+        Args:
+            domain: Domain to check (e.g., 'bbc.co.uk')
+            url_path: URL path (e.g., '/sport/football')
+            pattern: Path pattern (e.g., 'bbc.co.uk/sport/*')
+
+        Returns:
+            True if domain+path matches pattern
+        """
+        pattern = pattern.lower().rstrip('/')
+
+        # Split pattern into domain and path parts
+        if '/' not in pattern:
+            return False
+
+        pattern_parts = pattern.split('/', 1)
+        pattern_domain = pattern_parts[0]
+        pattern_path = '/' + pattern_parts[1] if len(pattern_parts) > 1 else ''
+
+        # Check domain matches
+        if pattern_domain != domain:
+            return False
+
+        # Check path matches (with wildcard support)
+        if pattern_path.endswith('/*'):
+            # Wildcard path - check prefix
+            path_prefix = pattern_path[:-2]  # Remove '/*'
+            return url_path.startswith(path_prefix)
+        else:
+            # Exact path match
+            return url_path == pattern_path or url_path.startswith(pattern_path + '/')
+
+    def _matches_domain_pattern(self, domain: str, pattern: str, parsed) -> bool:
+        """
+        Check if domain matches a domain-only pattern (supports wildcards).
 
         Patterns:
             - Exact match: 'bbc.co.uk' matches 'bbc.co.uk'
