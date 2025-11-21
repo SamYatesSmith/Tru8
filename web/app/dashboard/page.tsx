@@ -1,6 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
 import { apiClient } from '@/lib/api';
-import { calculateMonthlyUsage } from '@/lib/usage-utils';
 import { PageHeader } from './components/page-header';
 import { JusticeScalesGraphic } from './components/justice-scales-graphic';
 import { UpgradeBanner } from './components/upgrade-banner';
@@ -20,6 +19,13 @@ interface Subscription {
   plan: string;
   creditsPerMonth: number;
   currentPeriodStart?: string;
+}
+
+interface UsageData {
+  monthlyCreditsUsed: number;
+  creditsPerMonth: number;
+  creditsRemaining: number;
+  totalCreditsUsed: number;
 }
 
 interface ChecksResponse {
@@ -42,22 +48,16 @@ export default async function DashboardPage({
   // Middleware guarantees authentication - just get token and fetch data
   const { getToken } = auth();
   const token = await getToken();
-  const [user, subscription, checksResponse] = await Promise.all([
+  const [user, subscription, usage, checksResponse] = await Promise.all([
     apiClient.getCurrentUser(token) as Promise<User>,
     apiClient.getSubscriptionStatus(token) as Promise<Subscription>,
+    apiClient.getUsage(token) as Promise<UsageData>,
     apiClient.getChecks(token, 0, 5) as Promise<ChecksResponse>,
   ]);
 
-  // Calculate monthly usage (pass subscription start date to reset usage count on upgrade)
-  const subscriptionStartDate = subscription.hasSubscription && subscription.currentPeriodStart
-    ? subscription.currentPeriodStart
-    : undefined;
-  const monthlyUsage = calculateMonthlyUsage(checksResponse.checks, subscriptionStartDate);
-
-  // Determine credits per month (3 for free, or subscription amount)
-  const creditsPerMonth = subscription.hasSubscription
-    ? subscription.creditsPerMonth
-    : 3;
+  // Use server-calculated monthly usage
+  const monthlyUsage = usage.monthlyCreditsUsed;
+  const creditsPerMonth = usage.creditsPerMonth;
 
   // Show upgrade banner only for free users
   const showUpgradeBanner = !subscription.hasSubscription || subscription.plan === 'free';

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { Check } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import { calculateMonthlyUsage } from '@/lib/usage-utils';
 
 interface SubscriptionTabProps {
   userData: any;
@@ -24,23 +23,20 @@ export function SubscriptionTab({
   const isFree = !subscriptionData?.hasSubscription;
   const isPro = subscriptionData?.plan === 'pro';
 
-  // Calculate monthly usage
+  // Fetch monthly usage from backend
   useEffect(() => {
     const fetchUsage = async () => {
       try {
         const token = await getToken();
-        const checks = await apiClient.getChecks(token, 0, 1000) as any;
-        // Pass subscription start date to reset usage count on upgrade
-        const subscriptionStartDate = subscriptionData?.currentPeriodStart;
-        const usage = calculateMonthlyUsage(checks.checks, subscriptionStartDate);
-        setMonthlyUsage(usage);
+        const usageData = await apiClient.getUsage(token) as any;
+        setMonthlyUsage(usageData.monthlyCreditsUsed || 0);
       } catch (error) {
         console.error('Failed to fetch usage:', error);
       }
     };
 
     fetchUsage();
-  }, [getToken, subscriptionData?.currentPeriodStart]);
+  }, [getToken]);
 
   const handleUpgrade = async () => {
     setLoading(true);

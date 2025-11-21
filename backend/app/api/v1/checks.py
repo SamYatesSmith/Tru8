@@ -376,9 +376,10 @@ async def create_check(
     )
     
     session.add(check)
-    
-    # Reserve credits
+
+    # Reserve credits and track usage
     user.credits -= 1
+    user.total_credits_used += 1
     await session.commit()
     await session.refresh(check)
     

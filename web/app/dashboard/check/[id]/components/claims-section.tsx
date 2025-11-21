@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import { VerdictPill } from '@/app/dashboard/components/verdict-pill';
 import { ConfidenceBar } from '@/app/dashboard/components/confidence-bar';
 import { DecisionTrail } from '@/app/dashboard/components/decision-trail';
@@ -98,9 +98,14 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-2xl font-bold text-white">Claims Analyzed ({claims.length})</h3>
+      <div className="space-y-2">
+        <h3 className="text-2xl font-bold text-white">Claims Analyzed ({claims.length})</h3>
+        <p className="text-xs text-slate-500">
+          AI-assisted analysis based on publicly available sources. Results should be used as a starting point for further research, not as definitive fact.
+        </p>
+      </div>
 
-      {claims.map((claim) => {
+      {claims.map((claim, index) => {
         const isExpanded = expandedClaim === claim.id;
 
         // Sort evidence by relevance score, prioritize fact-checks
@@ -116,8 +121,13 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
           <div
             key={claim.id}
             id={`claim-${claim.position}`}
-            className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 space-y-4 scroll-mt-4"
+            className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 space-y-4 scroll-mt-4 relative"
           >
+            {/* Claim Number */}
+            <span className="absolute top-4 right-6 text-xs text-slate-500 font-medium">
+              Claim {index + 1} of {claims.length}
+            </span>
+
             {/* Claim Type & Time Sensitivity Indicators */}
             {(claim.claimType || claim.isTimeSensitive) && (
               <div className="flex flex-wrap gap-2">
@@ -186,13 +196,20 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                 className="flex items-center gap-2 text-sm text-[#f57a07] hover:text-[#ff8c1a] transition-colors font-medium"
               >
                 <span>Evidence Sources ({claim.evidence.length})</span>
-                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                />
               </button>
             )}
 
-            {/* Evidence List (Collapsible) */}
-            {isExpanded && (
-              <div className="mt-4 space-y-3">
+            {/* Evidence List (Collapsible with Animation) */}
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-out ${
+                isExpanded ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="pt-4 space-y-3">
                 {sortedEvidence.map((evidence) => (
                   <div
                     key={evidence.id}
@@ -337,7 +354,7 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                   </div>
                 ))}
               </div>
-            )}
+            </div>
           </div>
         );
       })}

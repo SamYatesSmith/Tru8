@@ -115,15 +115,19 @@ async def stripe_webhook(
     if event['type'] == 'checkout.session.completed':
         session_data = event['data']['object']
         await handle_successful_payment(session_data, session)
-    
+
     elif event['type'] == 'customer.subscription.updated':
         subscription = event['data']['object']
         await handle_subscription_updated(subscription, session)
-    
+
     elif event['type'] == 'customer.subscription.deleted':
         subscription = event['data']['object']
         await handle_subscription_cancelled(subscription, session)
-    
+
+    elif event['type'] == 'invoice.paid':
+        invoice = event['data']['object']
+        await handle_invoice_paid(invoice, session)
+
     else:
         logger.info(f"Unhandled event type: {event['type']}")
 
@@ -276,6 +280,65 @@ async def handle_subscription_cancelled(subscription: dict, session: AsyncSessio
     
     await session.commit()
     logger.info(f"Cancelled subscription {stripe_subscription_id}")
+
+
+async def handle_invoice_paid(invoice: dict, session: AsyncSession):
+    """
+    Handle invoice.paid event from Stripe.
+
+    This fires on every successful payment including renewals.
+    Updates subscription period dates and resets monthly credits.
+    """
+    # Only process subscription invoices
+    stripe_subscription_id = invoice.get('subscription')
+    if not stripe_subscription_id:
+        logger.info("Invoice is not for a subscription, skipping")
+        return
+
+    # Find subscription in our database
+    stmt = select(Subscription).where(Subscription.stripe_subscription_id == stripe_subscription_id)
+    result = await session.execute(stmt)
+    db_subscription = result.scalar_one_or_none()
+
+    if not db_subscription:
+        logger.warning(f"Subscription {stripe_subscription_id} not found for invoice.paid")
+        return
+
+    # Fetch current subscription details from Stripe to get updated period
+    try:
+        stripe_subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+    except stripe.error.StripeError as e:
+        logger.error(f"Failed to retrieve subscription from Stripe: {e}")
+        return
+
+    # Update subscription period dates
+    new_period_start = datetime.fromtimestamp(stripe_subscription['current_period_start'])
+    new_period_end = datetime.fromtimestamp(stripe_subscription['current_period_end'])
+
+    logger.info(f"Invoice paid for subscription {stripe_subscription_id}. "
+                f"Updating period: {db_subscription.current_period_start} -> {new_period_start}")
+
+    db_subscription.current_period_start = new_period_start
+    db_subscription.current_period_end = new_period_end
+    db_subscription.status = stripe_subscription['status']
+    db_subscription.updated_at = datetime.utcnow()
+
+    # Reset monthly credits
+    db_subscription.credits_remaining = db_subscription.credits_per_month
+
+    # Update user credits
+    user_stmt = select(User).where(User.id == db_subscription.user_id)
+    user_result = await session.execute(user_stmt)
+    user = user_result.scalar_one_or_none()
+
+    if user:
+        user.credits = db_subscription.credits_per_month
+        user.updated_at = datetime.utcnow()
+        logger.info(f"Reset credits for user {user.id} to {db_subscription.credits_per_month}")
+
+    await session.commit()
+    logger.info(f"Successfully processed invoice.paid for subscription {stripe_subscription_id}")
+
 
 @router.get("/subscription-status")
 async def get_subscription_status(

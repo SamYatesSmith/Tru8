@@ -80,7 +80,7 @@ export function PageHeader({
         {/* Right graphic - size controlled by graphicScale prop */}
         {graphic && (
           <div
-            className="hidden lg:block flex-shrink-0 ml-20 mr-20"
+            className="hidden lg:block flex-shrink-0 ml-20 mr-32"
             style={{ transform: `scale(${graphicScale})` }}
           >
             {graphic}

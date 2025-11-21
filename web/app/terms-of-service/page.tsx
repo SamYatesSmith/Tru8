@@ -9,7 +9,7 @@ export default function TermsOfServicePage() {
   return (
     <LegalPageLayout
       title="Terms of Service"
-      lastUpdated="22 January 2025"
+      lastUpdated="21 November 2025"
     >
       <div className="prose-legal">
         <h2>1. Agreement to Terms</h2>
@@ -114,6 +114,29 @@ export default function TermsOfServicePage() {
           <li>Fitness for particular purpose</li>
           <li>Uninterrupted availability</li>
         </ul>
+
+        <h3>6.3 Source Credibility Scoring</h3>
+        <p>
+          Tru8 assigns credibility scores to sources based on:
+        </p>
+        <ul>
+          <li>Independent media research and academic studies</li>
+          <li>Fact-checking track records (IFCN signatory assessments)</li>
+          <li>Journalistic standards and editorial processes</li>
+        </ul>
+        <p>
+          These scores:
+        </p>
+        <ul>
+          <li>Reflect general reliability patterns, not quality of individual articles</li>
+          <li>Are used to weight evidence, not to exclude sources entirely</li>
+          <li>Do not constitute Tru8's endorsement or criticism of any publication</li>
+          <li>May differ from other rating systems or personal assessments</li>
+        </ul>
+        <p>
+          Source ratings are editorial judgments informed by third-party research
+          and are subject to periodic review and update.
+        </p>
 
         <h2>7. Intellectual Property</h2>
 

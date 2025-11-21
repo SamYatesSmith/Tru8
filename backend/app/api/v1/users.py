@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, delete
+from sqlalchemy import select, desc, delete, func
+from datetime import datetime
 from app.core.database import get_session
 from app.core.auth import get_current_user
 from app.core.config import settings
@@ -137,12 +138,32 @@ async def get_usage(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
+    # Determine billing period start for monthly usage calculation
+    if subscription and subscription.current_period_start:
+        # Subscriber: use subscription billing period
+        period_start = subscription.current_period_start
+        credits_per_month = subscription.credits_per_month
+    else:
+        # Free user: use start of current calendar month
+        now = datetime.utcnow()
+        period_start = datetime(now.year, now.month, 1)
+        credits_per_month = 3
+
+    # Calculate monthly usage by summing credits_used from checks in current period
+    usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+        Check.user_id == user.id,
+        Check.created_at >= period_start
+    )
+    usage_result = await session.execute(usage_stmt)
+    monthly_credits_used = usage_result.scalar() or 0
+
     # Build subscription response
     if subscription:
         subscription_data = {
             "plan": subscription.plan,
             "creditsPerMonth": subscription.credits_per_month,
             "resetDate": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
+            "periodStart": subscription.current_period_start.isoformat() if subscription.current_period_start else None,
         }
     else:
         # No active subscription = free tier
@@ -150,11 +171,14 @@ async def get_usage(
             "plan": "free",
             "creditsPerMonth": 3,
             "resetDate": None,
+            "periodStart": period_start.isoformat(),
         }
 
     return {
         "creditsRemaining": user.credits,
         "totalCreditsUsed": user.total_credits_used,
+        "monthlyCreditsUsed": monthly_credits_used,
+        "creditsPerMonth": credits_per_month,
         "subscription": subscription_data
     }
 
