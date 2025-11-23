@@ -51,7 +51,7 @@ export function HowItWorks() {
             How Tru8 Works
           </h2>
           <p className="text-xl text-slate-400">
-            Three simple steps to professional fact-checking
+            Three simple steps to reliable fact-checking
           </p>
         </div>
 

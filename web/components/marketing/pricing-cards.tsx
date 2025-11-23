@@ -120,7 +120,7 @@ export function PricingCards() {
               Choose Your Plan
             </h2>
             <p className="text-2xl text-slate-400">
-              Professional fact-checking for every need
+              Fact-checking plans for every need
             </p>
           </div>
 

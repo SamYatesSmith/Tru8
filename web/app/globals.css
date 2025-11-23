@@ -115,6 +115,15 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     color: transparent;
+
+    /* Fine orange border/stroke for emphasis - subtle */
+    -webkit-text-stroke: 1px #f57a07;
+    text-stroke: 1px #f57a07;
+    paint-order: stroke fill;
+
+    /* Subtle shadow for depth and premium feel */
+    filter: drop-shadow(0 4px 12px rgba(245, 122, 7, 0.4))
+            drop-shadow(0 8px 24px rgba(245, 122, 7, 0.2));
   }
 
   /* Navigation links fade-in animation */
@@ -127,8 +136,60 @@
     }
   }
 
+  /* Subtle pulse animation for CTA */
+  @keyframes ctaPulse {
+    0%, 100% {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                  0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                  0 0 0 0 rgba(245, 122, 7, 0.4);
+    }
+    50% {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                  0 4px 6px -2px rgba(0, 0, 0, 0.05),
+                  0 0 20px 5px rgba(245, 122, 7, 0.3);
+    }
+  }
+
+  .cta-pulse {
+    animation: ctaPulse 3s ease-in-out infinite;
+  }
+
   .animate-fade-in {
     animation: fadeIn 1s ease forwards;
+  }
+
+  /* Stagger fade-in for trust badges */
+  .trust-badge-1 {
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards 0.3s;
+  }
+
+  .trust-badge-2 {
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards 0.5s;
+  }
+
+  .trust-badge-3 {
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards 0.7s;
+  }
+
+  /* Button microinteraction */
+  .btn-scale-hover {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+
+  .btn-scale-hover:hover {
+    transform: scale(1.05);
+  }
+
+  /* Hero container inner shadow for depth - all sides, subtle with soft blend */
+  .hero-container-depth {
+    box-shadow: inset 0 3px 16px 0 rgba(0, 0, 0, 0.15),
+                inset 0 6px 24px 0 rgba(0, 0, 0, 0.1),
+                inset 0 -3px 16px 0 rgba(0, 0, 0, 0.15),
+                inset 3px 0 16px 0 rgba(0, 0, 0, 0.15),
+                inset -3px 0 16px 0 rgba(0, 0, 0, 0.15);
   }
 
   /* Carousel 3D perspective */

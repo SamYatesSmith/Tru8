@@ -50,24 +50,22 @@ export function HeroSection() {
         {/* Content Container with Backlight */}
         <div className="relative max-w-6xl w-full mx-auto">
           {/* Backlit container */}
-          <div className="hero-backlight rounded-3xl p-16 md:p-20 bg-[#1e293b] border border-slate-700/50">
+          <div className="hero-backlight hero-container-depth rounded-3xl p-16 md:p-20 bg-[#1e293b] border border-slate-700/50">
             {/* Content */}
             <div className="text-center">
               {/* Headline - Transparent text showing gradient through */}
-              <h1 className="hero-gradient-text text-7xl md:text-8xl lg:text-9xl font-black mb-6">
+              <h1 className="hero-gradient-text text-7xl md:text-8xl lg:text-9xl font-black mb-6 tracking-wider">
                 Tru8
               </h1>
 
               {/* Subheadline */}
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white mb-6">
-                Transparent Fact-Checking with Dated Evidence
+                Stop Guessing. Start Knowing.
               </h2>
 
               {/* Description */}
               <p className="text-base md:text-lg lg:text-xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-                Built for journalists, researchers, and content creators who demand
-                accuracy. Get instant verification with transparent, sourced
-                evidence—not just answers, but proof you can cite.
+                In a world of misinformation, or fake news, verify what you read and share. Quick fact-checking backed by credible sources you can cite.
               </p>
 
               {/* CTAs */}
@@ -75,7 +73,7 @@ export function HeroSection() {
                 {/* Primary CTA - Opens Auth Modal */}
                 <button
                   onClick={() => setIsAuthModalOpen(true)}
-                  className="px-8 py-4 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg text-lg font-semibold transition-all hover:shadow-lg hover:shadow-[rgba(245,122,7,0.3)] min-w-[240px]"
+                  className="px-8 py-4 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg text-lg font-semibold transition-all hover:shadow-lg hover:shadow-[rgba(245,122,7,0.3)] min-w-[240px] cta-pulse btn-scale-hover"
                   aria-label="Start verifying content for free"
                 >
                   Start Verifying Free
@@ -84,7 +82,7 @@ export function HeroSection() {
                 {/* Secondary CTA - Scroll to How It Works */}
                 <button
                   onClick={scrollToHowItWorks}
-                  className="px-8 py-4 bg-transparent border-2 border-slate-600 hover:border-[#f57a07] text-white rounded-lg text-lg font-semibold transition-all min-w-[240px]"
+                  className="px-8 py-4 bg-transparent border-2 border-slate-600 hover:border-[#f57a07] text-white rounded-lg text-lg font-semibold transition-all min-w-[240px] btn-scale-hover"
                   aria-label="Learn how Tru8 works"
                 >
                   See How It Works
@@ -94,19 +92,19 @@ export function HeroSection() {
               {/* Trust Indicators */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm">
                 {/* Verified Sources */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 trust-badge-1">
                   <CheckCircle className="w-5 h-5 text-[#22d3ee]" />
                   <span className="text-slate-400">Verified Sources</span>
                 </div>
 
                 {/* Real-time Results */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 trust-badge-2">
                   <Clock className="w-5 h-5 text-[#22d3ee]" />
                   <span className="text-slate-400">Real-time Results</span>
                 </div>
 
                 {/* Professional Grade */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 trust-badge-3">
                   <Users className="w-5 h-5 text-[#22d3ee]" />
                   <span className="text-slate-400">Professional Grade</span>
                 </div>

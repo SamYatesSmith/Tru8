@@ -17,10 +17,13 @@ import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, 
  * 6. Global Coverage
  *
  * Rollerdeck Specifications:
- * - Center card: Scale 1.0, opacity 100%, z-index highest
- * - Adjacent cards: Scale 0.9, opacity 80%, tightly overlapping
- * - Far cards: Scale 0.8, opacity 50%, behind adjacent
- * - Cards positioned with minimal spacing for tight overlap
+ * - All cards: Fixed dimensions (480x320px desktop, 320x280px mobile) for uniform sizing
+ * - Content: Line-clamped text (2 lines title, 4 lines description) with flexbox layout
+ * - Center card: Scale 1.0 (full size), opacity 100%, z-index 30
+ * - Adjacent cards: Scale 0.85, opacity 100%, z-index 25
+ * - Far cards: Scale 0.7, opacity 100%, z-index 20
+ * - Very far cards: Scale 0.5, opacity 100%, z-index 15
+ * - Positioning: Tight spacing (220px desktop, 150px mobile)
  * - Auto-play: 5-second interval
  * - Manual: Left/Right arrow buttons
  * - Animation: 300ms ease-in-out
@@ -104,12 +107,29 @@ export function FeatureCarousel() {
     return diff;
   };
 
-  const getCardPosition = (offset: number) => {
+  const getCardStyle = (offset: number) => {
     const absDiff = Math.abs(offset);
 
-    if (absDiff === 0) return 'center';
-    if (absDiff === 1) return 'adjacent';
-    return 'far';
+    // Uniform scaling and positioning
+    let scale = 1;
+
+    // Tighter spacing - reduced from 280/200 to 220/150
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    let translateX = offset * (isMobile ? 150 : 220); // Tighter pixel spacing
+
+    if (absDiff === 0) {
+      scale = 1.0; // Center card - full size
+    } else if (absDiff === 1) {
+      scale = 0.85; // Adjacent cards
+    } else if (absDiff === 2) {
+      scale = 0.7; // Far cards
+    } else {
+      scale = 0.5; // Very far cards
+    }
+
+    const zIndex = 30 - absDiff * 5;
+
+    return { scale, translateX, zIndex };
   };
 
   return (
@@ -128,35 +148,42 @@ export function FeatureCarousel() {
         {/* Carousel Container */}
         <div className="relative">
           {/* 3D Perspective Container - Circular Rollerdeck */}
-          <div className="carousel-perspective relative h-[400px] md:h-[450px] flex items-center justify-center">
+          <div className="carousel-perspective relative h-[320px] md:h-[380px] flex items-center justify-center">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               const offset = getCircularOffset(index);
-              const position = getCardPosition(offset);
+              const { scale, translateX, zIndex } = getCardStyle(offset);
+
+              const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+              const cardWidth = isMobile ? 320 : 480;
+              const cardHeight = isMobile ? 280 : 320;
+              const cardPadding = isMobile ? 'p-6' : 'p-8';
 
               return (
                 <div
                   key={index}
-                  className="carousel-card absolute w-full max-w-md transition-all duration-300 ease-in-out"
+                  className="carousel-card absolute transition-all duration-300 ease-in-out"
                   style={{
-                    transform: `translateX(${offset * 35}%) scale(${
-                      position === 'center' ? 1 : position === 'adjacent' ? 0.9 : 0.8
-                    })`,
-                    opacity: position === 'center' ? 1 : position === 'adjacent' ? 0.8 : 0.5,
-                    zIndex: position === 'center' ? 30 : position === 'adjacent' ? 20 : 10,
+                    width: `${cardWidth}px`,
+                    height: `${cardHeight}px`,
+                    transform: `translateX(${translateX}px) scale(${scale})`,
+                    opacity: 1,
+                    zIndex,
+                    left: '50%',
+                    marginLeft: `-${cardWidth / 2}px`, // Half of width to center
                   }}
                 >
-                  <div className="bg-[#1a1f2e]/90 backdrop-blur-sm rounded-lg p-8 border border-slate-700 h-full shadow-xl">
+                  <div className={`bg-[#1a1f2e] rounded-lg ${cardPadding} border border-slate-700 shadow-xl h-full flex flex-col`}>
                     {/* Icon */}
-                    <div className="mb-6">
-                      <Icon className="w-16 h-16 text-[#22d3ee]" />
+                    <div className="mb-4 flex-shrink-0">
+                      <Icon className="w-12 h-12 text-[#22d3ee]" />
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-2xl font-semibold text-white mb-4">
+                    <h3 className="text-xl font-semibold text-white mb-3 flex-shrink-0 min-h-[3.5rem] line-clamp-2">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-400 leading-relaxed">
+                    <p className="text-slate-400 leading-relaxed text-sm line-clamp-4 flex-grow">
                       {feature.description}
                     </p>
                   </div>
