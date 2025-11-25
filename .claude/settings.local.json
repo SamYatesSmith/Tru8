@@ -8,7 +8,9 @@
       "Bash(pip uninstall:*)",
       "Bash(python -m spacy download:*)",
       "Bash(python -c:*)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:www.nytimes.com)",
+      "WebFetch(domain:www.washingtonpost.com)"
     ],
     "deny": [],
     "ask": []

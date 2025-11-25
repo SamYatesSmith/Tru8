@@ -39,8 +39,8 @@ export function Footer() {
             <Image
               src="/logo.proper.png"
               alt="Tru8 logo"
-              width={32}
-              height={32}
+              width={40}
+              height={40}
               className="object-contain"
             />
             <span className="text-2xl font-black text-white">Tru8</span>

@@ -49,10 +49,12 @@ export function HeroSection() {
       >
         {/* Content Container with Backlight */}
         <div className="relative max-w-6xl w-full mx-auto">
-          {/* Backlit container */}
+          {/* Backlit container with multi-layer glow */}
           <div className="hero-backlight hero-container-depth rounded-3xl p-16 md:p-20 bg-[#1e293b] border border-slate-700/50">
-            {/* Content */}
-            <div className="text-center">
+            {/* Inner wrapper for additional glow layers */}
+            <div>
+              {/* Content */}
+              <div className="text-center">
               {/* Headline - Transparent text showing gradient through */}
               <h1 className="hero-gradient-text text-7xl md:text-8xl lg:text-9xl font-black mb-6 tracking-wider">
                 Tru8
@@ -109,6 +111,7 @@ export function HeroSection() {
                   <span className="text-slate-400">Professional Grade</span>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>

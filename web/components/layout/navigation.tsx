@@ -70,8 +70,8 @@ export function Navigation({
               <Image
                 src="/logo.proper.png"
                 alt="Tru8 logo"
-                width={80}
-                height={80}
+                width={100}
+                height={100}
                 className="object-contain"
               />
             </Link>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { generatePixelGrid } from '@/lib/pixel-grid-generator';
+import { generatePixelGrid, type PopShape } from '@/lib/pixel-grid-generator';
 
 /**
  * Animated Background Component
@@ -9,9 +9,13 @@ import { generatePixelGrid } from '@/lib/pixel-grid-generator';
  * 3-layer parallax pixel grid with ascending animation.
  *
  * Animation Specs:
- * - Layer 1 (Back): 100s cycle, 30% opacity, slowest
- * - Layer 2 (Middle): 80s cycle, 20% opacity
- * - Layer 3 (Front): 60s cycle, 10% opacity, fastest
+ * - Layer 1 (Back): 100s cycle, 30% opacity, slowest, CIRCLES (15% brand orange)
+ *   - Special effect: 15% of orange circles continuously "pop" (scale + glow burst)
+ *   - Pop animation: 0.6s, initial delays (0-8s), then cycles every 5-15s
+ *   - Continuous cycle: Each shape re-pops indefinitely at random intervals
+ * - Layer 2 (Middle): 80s cycle, 20% opacity, SQUARES (5% orange accents)
+ * - Layer 3 (Front): 60s cycle, 10% opacity, fastest, SQUARES (5% orange accents)
+ * - 15% of all shapes have contrasting 1px borders
  * - Each layer is 200vh tall to prevent blank space during animation
  * - Animation translateY(-50%) moves up by 100vh, always keeping viewport covered
  *
@@ -34,6 +38,10 @@ export function AnimatedBackground() {
     layer3: null,
   });
 
+  const [popShapes, setPopShapes] = useState<PopShape[]>([]);
+  const [popKeys, setPopKeys] = useState<number[]>([]); // Unique keys to force re-animation
+  const [visiblePops, setVisiblePops] = useState<boolean[]>([]); // Track which pops should be visible
+
   useEffect(() => {
     // Generate pixel grids progressively (client-side only)
     // Reduced canvas size to prevent chunk loading timeouts
@@ -45,7 +53,9 @@ export function AnimatedBackground() {
     const generateLayer = async (
       layerNum: number,
       density: number,
-      delay: number = 0
+      delay: number = 0,
+      shape: 'square' | 'circle' = 'square',
+      enablePop: boolean = false
     ): Promise<void> => {
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -65,9 +75,16 @@ export function AnimatedBackground() {
 
           scheduleWork(() => {
             try {
-              const layer = generatePixelGrid(canvasWidth, canvasHeight, density);
-              if (layer && mounted) {
-                setLayers((prev) => ({ ...prev, [`layer${layerNum}`]: layer }));
+              const result = generatePixelGrid(canvasWidth, canvasHeight, density, shape, enablePop);
+              if (result && mounted) {
+                setLayers((prev) => ({ ...prev, [`layer${layerNum}`]: result.dataUrl }));
+                // Store pop shapes if this is layer 1
+                if (layerNum === 1 && result.popShapes) {
+                  setPopShapes(result.popShapes);
+                  // Initialize keys and visibility for each shape
+                  setPopKeys(result.popShapes.map(() => 0));
+                  setVisiblePops(result.popShapes.map(() => true)); // Start visible for initial pop
+                }
               }
               resolve();
             } catch (error) {
@@ -81,9 +98,9 @@ export function AnimatedBackground() {
 
     // Generate layers sequentially with increasing delays
     (async () => {
-      await generateLayer(1, 0.04, 0);     // Layer 1 - Reduced density
-      await generateLayer(2, 0.045, 100);  // Layer 2
-      await generateLayer(3, 0.05, 200);   // Layer 3
+      await generateLayer(1, 0.04, 0, 'circle', true);  // Layer 1 - Circles with pop effect
+      await generateLayer(2, 0.045, 100, 'square');     // Layer 2 - Squares
+      await generateLayer(3, 0.05, 200, 'square');      // Layer 3 - Squares
     })();
 
     // Cleanup
@@ -91,6 +108,73 @@ export function AnimatedBackground() {
       mounted = false;
     };
   }, []);
+
+  // Set up continuous re-popping for each shape
+  useEffect(() => {
+    if (popShapes.length === 0) return;
+
+    const timeouts: NodeJS.Timeout[] = [];
+
+    popShapes.forEach((shape, index) => {
+      // Schedule re-pop cycle
+      const scheduleNextPop = (currentDelay: number, isInitial: boolean = false) => {
+        // Animation duration is 0.6s
+        const animationDuration = 600; // 0.6s in ms
+        const delayTime = currentDelay * 1000;
+
+        // After delay + animation, hide the shape
+        const hideTimeout = setTimeout(() => {
+          setVisiblePops((prev) => {
+            const updated = [...prev];
+            updated[index] = false;
+            return updated;
+          });
+
+          // Wait 5-15 seconds before showing again
+          const waitTime = (5 + Math.random() * 10) * 1000;
+
+          const showTimeout = setTimeout(() => {
+            // Generate new random delay for next pop (0-2 seconds for quick appearance)
+            const nextDelay = Math.random() * 2;
+
+            // Make visible and update delay
+            setVisiblePops((prev) => {
+              const updated = [...prev];
+              updated[index] = true;
+              return updated;
+            });
+
+            setPopShapes((prev) => {
+              const updated = [...prev];
+              updated[index] = { ...updated[index], delay: nextDelay };
+              return updated;
+            });
+
+            setPopKeys((prev) => {
+              const updated = [...prev];
+              updated[index] = updated[index] + 1;
+              return updated;
+            });
+
+            // Schedule the next cycle
+            scheduleNextPop(nextDelay);
+          }, waitTime);
+
+          timeouts.push(showTimeout);
+        }, delayTime + animationDuration);
+
+        timeouts.push(hideTimeout);
+      };
+
+      // Start the cycle with the initial delay
+      scheduleNextPop(shape.delay, true);
+    });
+
+    // Cleanup timeouts on unmount
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, [popShapes.length]); // Only run when popShapes are first loaded
 
   // Show fallback until at least layer 1 loads
   if (!layers.layer1) {
@@ -118,21 +202,45 @@ export function AnimatedBackground() {
     >
       {/* Layer 1 - Slowest, most visible (always rendered if loaded) */}
       {layers.layer1 && (
-        <div
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: 0,
-            height: '200vh',
-            backgroundImage: `url(${layers.layer1})`,
-            backgroundRepeat: 'repeat',
-            backgroundSize: 'auto',
-            willChange: 'transform',
-            opacity: 0.3,
-            animation: 'ascend 100s linear infinite',
-          }}
-        />
+        <>
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: 0,
+              height: '200vh',
+              backgroundImage: `url(${layers.layer1})`,
+              backgroundRepeat: 'repeat',
+              backgroundSize: 'auto',
+              willChange: 'transform',
+              opacity: 0.3,
+              animation: 'ascend 100s linear infinite',
+            }}
+          />
+
+          {/* Pop Shapes - Orange circles that continuously pop */}
+          {popShapes.map((shape, index) =>
+            visiblePops[index] ? (
+              <div
+                key={`pop-${index}-${popKeys[index]}`}
+                className="pop-shape"
+                style={{
+                  position: 'absolute',
+                  left: `${(shape.x / 1600) * 100}%`,
+                  top: `${(shape.y / 2000) * 100}%`,
+                  width: `${shape.size}px`,
+                  height: `${shape.size}px`,
+                  borderRadius: '50%',
+                  backgroundColor: shape.color,
+                  opacity: 0.3,
+                  animation: `ascend 100s linear infinite, pop 0.6s ease-out ${shape.delay}s forwards`,
+                  willChange: 'transform, opacity',
+                }}
+              />
+            ) : null
+          )}
+        </>
       )}
 
       {/* Layer 2 - Medium speed (only render if loaded) */}
@@ -181,6 +289,24 @@ export function AnimatedBackground() {
           }
           to {
             transform: translateY(-50%);
+          }
+        }
+
+        @keyframes pop {
+          0% {
+            transform: scale(1);
+            opacity: 0.3;
+            box-shadow: 0 0 0 0 rgba(245, 122, 7, 0.7);
+          }
+          50% {
+            transform: scale(1.8);
+            opacity: 0.5;
+            box-shadow: 0 0 20px 10px rgba(245, 122, 7, 0.4);
+          }
+          100% {
+            transform: scale(2.2);
+            opacity: 0;
+            box-shadow: 0 0 30px 15px rgba(245, 122, 7, 0);
           }
         }
       `}</style>

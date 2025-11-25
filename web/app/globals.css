@@ -40,77 +40,108 @@
     animation: ascend 60s linear infinite;
   }
 
-  /* Hero backlight glow animation */
-  @keyframes animateBacklight {
-    0% {
-      background-position: 0% center;
+  /* Gentle pulse animation - pulses intensity, NOT scale (prevents gap) */
+  @keyframes gentlePulse {
+    0%, 100% {
+      opacity: 0.75;
+      filter: brightness(1);
     }
     50% {
-      background-position: 100% center;
-    }
-    100% {
-      background-position: 0% center;
+      opacity: 1;
+      filter: brightness(1.15);
     }
   }
 
-  /* Text gradient animation (same timing, same positions) */
-  @keyframes animateTextGradient {
+  /* Serene color rotation through orange/white spectrum */
+  @keyframes colorRotate {
     0% {
-      background-position: 0% center;
+      filter: hue-rotate(0deg) brightness(1);
     }
-    50% {
-      background-position: 100% center;
+    33% {
+      filter: hue-rotate(10deg) brightness(1.2);
+    }
+    66% {
+      filter: hue-rotate(-10deg) brightness(1.1);
     }
     100% {
-      background-position: 0% center;
+      filter: hue-rotate(0deg) brightness(1);
     }
   }
+
+  /* Swirling color animation - rotates the gradient BEHIND the text */
+  @keyframes swirlColors {
+    0% {
+      background-position: 50% 50%;
+    }
+    25% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 50% 100%;
+    }
+    75% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 50% 50%;
+    }
+  }
+
 
   .hero-backlight {
     position: relative;
+    overflow: visible;
   }
 
-  .hero-backlight::after {
+  /* Single pulsing glow - anchored to card edge, pulses brightness NOT position */
+  .hero-backlight::before {
     position: absolute;
     content: "";
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     z-index: -1;
-    transform: scale(1.02);
-    filter: blur(60px);
-    background: linear-gradient(90deg,
-      #d1d5db 0%,
-      #ffffff 15%,
-      #d1d5db 30%,
-      #f57a07 50%,
-      #d1d5db 70%,
-      #ffffff 85%,
-      #d1d5db 100%
-    );
-    background-size: 200vw 100%;
-    background-position: 0% center;
-    animation: animateBacklight 8s ease-in-out infinite;
     border-radius: 3rem;
-    opacity: 0.6;
+    box-shadow:
+      0 0 0 5px rgba(245, 122, 7, 1),
+      0 0 0 8px rgba(245, 122, 7, 0.95),
+      0 0 2px 10px rgba(245, 122, 7, 0.9),
+      0 0 4px 13px rgba(245, 122, 7, 0.85),
+      0 0 8px 16px rgba(245, 122, 7, 0.8),
+      0 0 12px 20px rgba(245, 122, 7, 0.75),
+      0 0 18px 25px rgba(245, 122, 7, 0.65),
+      0 0 25px 32px rgba(251, 146, 60, 0.52),
+      0 0 35px 40px rgba(251, 146, 60, 0.4),
+      0 0 48px 50px rgba(252, 165, 87, 0.3),
+      0 0 65px 62px rgba(253, 186, 116, 0.22),
+      0 0 85px 76px rgba(255, 220, 180, 0.16),
+      0 0 110px 92px rgba(255, 235, 215, 0.11),
+      0 0 140px 110px rgba(255, 245, 235, 0.06),
+      0 0 175px 130px rgba(255, 255, 255, 0.03);
+    animation: gentlePulse 10s ease-in-out infinite, colorRotate 20s ease-in-out infinite;
   }
 
-  /* Transparent text with animated gradient - synchronized with backlight using viewport units */
+  .hero-backlight > div {
+    position: relative;
+  }
+
+  /* Transparent text - swirling colors that rotate around and through the letters */
   .hero-gradient-text {
-    background: linear-gradient(90deg,
-      #d1d5db 0%,
-      #ffffff 15%,
-      #d1d5db 30%,
-      #f57a07 50%,
-      #d1d5db 70%,
-      #ffffff 85%,
-      #d1d5db 100%
-    );
-    background-size: 200vw 100%;
-    background-position: 0% center;
-    background-attachment: fixed;
-    animation: animateBacklight 8s ease-in-out infinite;
+    background:
+      radial-gradient(ellipse at 20% 30%, #f57a07 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, #fb923c 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, #fca55f 0%, transparent 40%),
+      radial-gradient(ellipse at 70% 20%, #fdc9a0 0%, transparent 45%),
+      radial-gradient(ellipse at 30% 80%, #ffffff 0%, transparent 50%),
+      linear-gradient(135deg,
+        #f57a07 0%,
+        #fb923c 20%,
+        #fca55f 40%,
+        #fdc9a0 60%,
+        #ffffff 80%,
+        #fca55f 100%
+      );
+    background-size: 400% 400%;
+    background-position: center;
+    animation: swirlColors 15s ease-in-out infinite;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -121,9 +152,10 @@
     text-stroke: 1px #f57a07;
     paint-order: stroke fill;
 
-    /* Subtle shadow for depth and premium feel */
-    filter: drop-shadow(0 4px 12px rgba(245, 122, 7, 0.4))
-            drop-shadow(0 8px 24px rgba(245, 122, 7, 0.2));
+    /* Warm orange glow shadow - no yellow tones */
+    filter: drop-shadow(0 4px 12px rgba(245, 122, 7, 0.6))
+            drop-shadow(0 8px 24px rgba(251, 146, 60, 0.4))
+            drop-shadow(0 12px 32px rgba(252, 165, 87, 0.3));
   }
 
   /* Navigation links fade-in animation */
