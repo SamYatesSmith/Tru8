@@ -154,6 +154,13 @@ class Settings(BaseSettings):
     PRIMARY_SOURCE_BOOST: float = Field(0.25, env="PRIMARY_SOURCE_BOOST")
     SECONDARY_SOURCE_PENALTY: float = Field(0.15, env="SECONDARY_SOURCE_PENALTY")
 
+    # ========== QUERY PLANNING AGENT ==========
+    # LLM-powered batch query planning for semantic claim understanding
+    # Generates targeted queries based on claim type (squad, stats, contract, etc.)
+    ENABLE_QUERY_PLANNING: bool = Field(False, env="ENABLE_QUERY_PLANNING")
+    QUERY_PLANNING_MODEL: str = Field("gpt-4o-mini-2024-07-18", env="QUERY_PLANNING_MODEL")
+    QUERY_PLANNING_TIMEOUT: int = Field(15, env="QUERY_PLANNING_TIMEOUT")
+
     @property
     def nli_model_name(self) -> str:
         """Dynamic NLI model selection based on feature flag"""

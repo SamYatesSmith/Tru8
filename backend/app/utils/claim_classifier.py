@@ -98,6 +98,20 @@ class ClaimClassifier:
                            "section", "subsection", "amended", "legislation"],
                 "entities": ["LAW"],
                 "orgs": ["parliament", "congress", "supreme court"]
+            },
+            "Sports": {
+                "keywords": ["goal", "assist", "transfer", "squad", "player", "match",
+                           "season", "league", "score", "manager", "striker", "midfielder",
+                           "defender", "goalkeeper", "captain", "contract", "signed",
+                           "football", "soccer", "premier league", "championship",
+                           "standings", "table", "points", "win", "draw", "loss"],
+                "entities": ["PERSON", "ORG"],
+                "orgs": ["fifa", "uefa", "premier league", "la liga", "bundesliga",
+                        "serie a", "ligue 1", "champions league", "europa league",
+                        "arsenal", "chelsea", "liverpool", "man utd", "manchester united",
+                        "man city", "manchester city", "tottenham", "spurs",
+                        "real madrid", "barcelona", "bayern", "dortmund", "psg",
+                        "juventus", "inter", "ac milan", "borussia"]
             }
         }
 
@@ -333,6 +347,29 @@ class ClaimClassifier:
 
                     # Climate terms
                     {"label": "CLIMATE", "pattern": [{"LOWER": "carbon"}, {"LOWER": "emissions"}]},
+
+                    # Sports organizations and leagues
+                    {"label": "ORG", "pattern": [{"LOWER": "premier"}, {"LOWER": "league"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "champions"}, {"LOWER": "league"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "europa"}, {"LOWER": "league"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "la"}, {"LOWER": "liga"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "serie"}, {"LOWER": "a"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "ligue"}, {"LOWER": "1"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "fifa"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "uefa"}]},
+
+                    # Football clubs (common ones)
+                    {"label": "ORG", "pattern": [{"LOWER": "arsenal"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "chelsea"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "liverpool"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "tottenham"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "man"}, {"LOWER": "utd"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "man"}, {"LOWER": "city"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "real"}, {"LOWER": "madrid"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "barcelona"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "bayern"}, {"LOWER": "munich"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "borussia"}, {"LOWER": "dortmund"}]},
+                    {"label": "ORG", "pattern": [{"LOWER": "dortmund"}]},
                 ]
 
                 ruler.add_patterns(patterns)

@@ -10,6 +10,7 @@ from app.services.vector_store import get_vector_store
 from app.utils.url_utils import extract_domain
 from app.services.government_api_client import get_api_registry
 from app.utils.claim_classifier import ClaimClassifier
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,25 @@ class EvidenceRetriever:
             if exclude_source_url:
                 excluded_domain = extract_domain(exclude_source_url)
                 logger.info(f"Evidence retrieval will exclude source domain: {excluded_domain}")
+
+            # Query Planning Agent: Generate targeted queries for all claims (single LLM call)
+            query_plans = None
+            if settings.ENABLE_QUERY_PLANNING:
+                try:
+                    from app.utils.query_planner import get_query_planner
+                    planner = get_query_planner()
+                    query_plans = await planner.plan_queries_batch(claims)
+                    if query_plans:
+                        logger.info(f"Query planning complete: {len(query_plans)} plans for {len(claims)} claims")
+                        # Attach query plans to claims
+                        for i, plan in enumerate(query_plans):
+                            claim_idx = plan.get("claim_index", i)
+                            if claim_idx < len(claims):
+                                claims[claim_idx]["query_plan"] = plan
+                    else:
+                        logger.warning("Query planning returned no plans, using fallback")
+                except Exception as e:
+                    logger.warning(f"Query planning failed: {e}, using fallback")
 
             # Process claims with concurrency limit
             semaphore = asyncio.Semaphore(self.max_concurrent_claims)
@@ -109,17 +129,31 @@ class EvidenceRetriever:
                 # DIAGNOSTIC: Log claim processing start
                 logger.info(f"🔍 RETRIEVE START | Claim: '{claim_text[:80]}...' | Entities: {key_entities[:3]} | Temporal: {bool(temporal_analysis)}")
 
+                # Check for query plan (from Query Planning Agent)
+                query_plan = claim.get("query_plan")
+
                 # Run web search and API retrieval in parallel
-                web_search_task = self.evidence_extractor.extract_evidence_for_claim(
-                    claim_text,
-                    max_sources=self.max_sources_per_claim * 2,  # Get extra for filtering
-                    subject_context=subject_context,
-                    key_entities=key_entities,
-                    excluded_domain=excluded_domain,
-                    temporal_analysis=temporal_analysis,  # TIER 1: Pass to query formulation
-                    article_title=article_title,  # Article context grounding
-                    article_date=article_date  # Article context grounding
-                )
+                if query_plan and query_plan.get("queries"):
+                    # Use Query Planning Agent's targeted queries
+                    web_search_task = self._execute_planned_queries(
+                        claim_text,
+                        query_plan,
+                        excluded_domain=excluded_domain,
+                        max_sources=self.max_sources_per_claim * 2
+                    )
+                    logger.info(f"🎯 QUERY PLAN | Type: {query_plan.get('claim_type')} | Queries: {len(query_plan['queries'])}")
+                else:
+                    # Fallback: Standard query formulation
+                    web_search_task = self.evidence_extractor.extract_evidence_for_claim(
+                        claim_text,
+                        max_sources=self.max_sources_per_claim * 2,  # Get extra for filtering
+                        subject_context=subject_context,
+                        key_entities=key_entities,
+                        excluded_domain=excluded_domain,
+                        temporal_analysis=temporal_analysis,  # TIER 1: Pass to query formulation
+                        article_title=article_title,  # Article context grounding
+                        article_date=article_date  # Article context grounding
+                    )
 
                 # Phase 5: Government API retrieval (parallel with web search)
                 api_results_task = self._retrieve_from_government_apis(claim_text, claim)
@@ -183,8 +217,105 @@ class EvidenceRetriever:
             except Exception as e:
                 logger.error(f"Single claim evidence retrieval error: {e}")
                 return []
-    
-    async def _rank_evidence_with_embeddings(self, claim: str, 
+
+    async def _execute_planned_queries(
+        self,
+        claim_text: str,
+        query_plan: Dict[str, Any],
+        excluded_domain: Optional[str] = None,
+        max_sources: int = 20
+    ) -> List[EvidenceSnippet]:
+        """
+        Execute multiple targeted queries from Query Planning Agent.
+
+        Args:
+            claim_text: Original claim text
+            query_plan: Query plan with targeted queries and source priorities
+            excluded_domain: Domain to exclude from results
+            max_sources: Maximum total sources to return
+
+        Returns:
+            List of deduplicated EvidenceSnippet from all queries
+        """
+        try:
+            queries = query_plan.get("queries", [])
+            priority_sources = query_plan.get("priority_sources", [])
+            claim_type = query_plan.get("claim_type", "general")
+
+            if not queries:
+                logger.warning(f"No queries in plan for claim: {claim_text[:50]}...")
+                return []
+
+            # Get site filter from query planner
+            from app.utils.query_planner import get_query_planner
+            planner = get_query_planner()
+            site_filter = planner.get_site_filter(priority_sources, claim_type)
+
+            logger.info(f"Executing {len(queries)} planned queries with site filter: {site_filter or 'none'}")
+
+            # Execute all queries concurrently
+            query_tasks = []
+            sources_per_query = max(3, max_sources // len(queries))  # Distribute sources across queries
+
+            for query in queries:
+                # Append site filter to query if available
+                full_query = f"{query} {site_filter}" if site_filter else query
+                task = self.evidence_extractor.search_service.search_for_evidence(
+                    full_query,
+                    max_results=sources_per_query
+                )
+                query_tasks.append(task)
+
+            # Gather all results
+            all_results = await asyncio.gather(*query_tasks, return_exceptions=True)
+
+            # Merge and deduplicate results
+            seen_urls = set()
+            merged_snippets = []
+
+            for i, results in enumerate(all_results):
+                if isinstance(results, Exception):
+                    logger.warning(f"Query {i+1} failed: {results}")
+                    continue
+
+                for result in results:
+                    # Skip excluded domain
+                    if excluded_domain and extract_domain(result.url) == excluded_domain:
+                        continue
+
+                    # Deduplicate by URL
+                    if result.url in seen_urls:
+                        continue
+                    seen_urls.add(result.url)
+
+                    # Convert SearchResult to EvidenceSnippet
+                    snippet = EvidenceSnippet(
+                        text=result.snippet or "",
+                        source=extract_domain(result.url),
+                        url=result.url,
+                        title=result.title or "",
+                        published_date=result.published_date,
+                        relevance_score=0.7,  # Default relevance for planned queries
+                        metadata={
+                            "query_index": i,
+                            "query_used": queries[i],
+                            "claim_type": claim_type
+                        }
+                    )
+                    merged_snippets.append(snippet)
+
+            logger.info(f"Planned queries returned {len(merged_snippets)} unique sources from {len(queries)} queries")
+            return merged_snippets[:max_sources]
+
+        except Exception as e:
+            logger.error(f"Planned query execution failed: {e}")
+            # Fallback to standard search with claim text
+            return await self.evidence_extractor.extract_evidence_for_claim(
+                claim_text,
+                max_sources=max_sources
+            )
+
+    async def _rank_evidence_with_embeddings(self, claim: str,
                                            evidence_snippets: List[EvidenceSnippet]) -> List[Dict[str, Any]]:
         """Rank evidence using semantic similarity"""
         try:

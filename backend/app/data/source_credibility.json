@@ -1238,6 +1238,60 @@
     "tier": "tier2"
   },
 
+  "sports_data_primary": {
+    "credibility": 0.92,
+    "description": "Primary sports data sources for transfers, contracts, squad info, and player statistics",
+    "domains": [
+      "transfermarkt.com",
+      "transfermarkt.co.uk",
+      "transfermarkt.de",
+      "transfermarkt.us",
+      "whoscored.com",
+      "sofascore.com",
+      "soccerway.com",
+      "flashscore.com",
+      "flashscore.co.uk",
+      "capology.com",
+      "footballcritic.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "official_club_sites": {
+    "credibility": 0.95,
+    "description": "Official football club websites - authoritative for squad and player information",
+    "domains": [
+      "arsenal.com",
+      "chelseafc.com",
+      "mancity.com",
+      "manutd.com",
+      "liverpoolfc.com",
+      "tottenhamhotspur.com",
+      "avfc.co.uk",
+      "brentfordfc.com",
+      "brightonandhovealbion.com",
+      "burnleyfootballclub.com",
+      "cpfc.co.uk",
+      "evertonfc.com",
+      "fulhamfc.com",
+      "lcfc.com",
+      "nufc.co.uk",
+      "nottinghamforest.co.uk",
+      "whufc.com",
+      "wolves.co.uk",
+      "bvb.de",
+      "fcbayern.com",
+      "realmadrid.com",
+      "fcbarcelona.com",
+      "atleticodemadrid.com",
+      "juventus.com",
+      "acmilan.com",
+      "inter.it",
+      "psg.fr"
+    ],
+    "tier": "tier1"
+  },
+
   "general": {
     "credibility": 0.6,
     "description": "Default for unmatched sources",
