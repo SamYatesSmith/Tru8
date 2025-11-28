@@ -76,7 +76,13 @@ class GovernmentAPIClient(ABC):
         self.headers["Authorization"] = f"Bearer {self.api_key}"
 
     @abstractmethod
-    def search(self, query: str, domain: str, jurisdiction: str) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, Any]]:
         """
         Search the API for evidence related to a claim.
 
@@ -86,6 +92,11 @@ class GovernmentAPIClient(ABC):
             query: Search query extracted from claim
             domain: Claim domain (Finance, Health, Government, etc.)
             jurisdiction: UK, US, EU, or Global
+            entities: Optional list of NER entities from claim, e.g.:
+                      [{"text": "Karim Adeyemi", "label": "PERSON"},
+                       {"text": "Arsenal", "label": "ORG"}]
+                      Adapters can use these for dynamic entity extraction
+                      instead of hardcoded lists.
 
         Returns:
             List of evidence dictionaries with standardized format
@@ -227,7 +238,8 @@ class GovernmentAPIClient(ABC):
         self,
         query: str,
         domain: str,
-        jurisdiction: str
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """
         Search with caching. Checks cache first, then calls API.
@@ -236,6 +248,7 @@ class GovernmentAPIClient(ABC):
             query: Search query
             domain: Claim domain
             jurisdiction: UK, US, EU, or Global
+            entities: Optional list of NER entities from claim for dynamic extraction
 
         Returns:
             List of evidence dictionaries
@@ -248,7 +261,7 @@ class GovernmentAPIClient(ABC):
 
         # Cache miss - call API
         logger.info(f"{self.api_name} cache MISS - calling API for: {query[:50]}")
-        results = self.search(query, domain, jurisdiction)
+        results = self.search(query, domain, jurisdiction, entities)
 
         # Cache results
         if results:

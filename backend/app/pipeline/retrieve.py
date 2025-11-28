@@ -14,9 +14,26 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Module load timestamp for debugging stale worker issues
+import time as _time
+_MODULE_LOAD_TIME = _time.strftime("%Y-%m-%d %H:%M:%S")
+print(f"[RETRIEVE MODULE LOADED] {_MODULE_LOAD_TIME} - Query Planning: {settings.ENABLE_QUERY_PLANNING}", flush=True)
+
 class EvidenceRetriever:
     """Retrieve and rank evidence for claims using search, embeddings, and vector storage"""
-    
+
+    # Mapping from temporal_window (from claim extraction) to Brave freshness parameter
+    # temporal_window values: current_day, current_week, current_month, current_year, any, historical
+    # Brave freshness values: pd (past day), pw (past week), pm (past month), py (past year), 2y (2 years)
+    TEMPORAL_TO_FRESHNESS = {
+        "current_day": "pd",      # Past day - breaking news, live events
+        "current_week": "pw",     # Past week - recent developments
+        "current_month": "pm",    # Past month - recent news
+        "current_year": "py",     # Past year - annual events, seasons
+        "any": "2y",              # Default 2 years
+        "historical": "2y",       # Historical claims - use 2 years
+    }
+
     def __init__(self):
         self.search_service = SearchService()
         self.evidence_extractor = EvidenceExtractor()
@@ -49,10 +66,11 @@ class EvidenceRetriever:
             excluded_domain = None
             if exclude_source_url:
                 excluded_domain = extract_domain(exclude_source_url)
-                logger.info(f"Evidence retrieval will exclude source domain: {excluded_domain}")
+                logger.debug(f"Excluding source domain: {excluded_domain}")
 
             # Query Planning Agent: Generate targeted queries for all claims (single LLM call)
             query_plans = None
+            logger.info(f"[RETRIEVE] QUERY_PLANNING_ENABLED: {settings.ENABLE_QUERY_PLANNING}")
             if settings.ENABLE_QUERY_PLANNING:
                 try:
                     from app.utils.query_planner import get_query_planner
@@ -109,7 +127,7 @@ class EvidenceRetriever:
                 if not claim_text:
                     return []
 
-                logger.info(f"Retrieving evidence for claim {claim_position}: {claim_text[:50]}...")
+                logger.debug(f"Processing claim {claim_position}")
 
                 # Step 1: Parallel retrieval from web search AND government APIs
                 subject_context = claim.get("subject_context")
@@ -120,17 +138,20 @@ class EvidenceRetriever:
                 article_title = claim.get("source_title")
                 article_date = claim.get("source_date")
 
+                # Context logging moved to DEBUG to reduce noise
                 if subject_context:
-                    logger.info(f"Using context: '{subject_context}' with entities: {key_entities[:3]}")
-
-                if article_title or article_date:
-                    logger.info(f"📰 ARTICLE CONTEXT | Title: '{article_title[:60] if article_title else 'N/A'}...' | Date: {article_date or 'N/A'}")
-
-                # DIAGNOSTIC: Log claim processing start
-                logger.info(f"🔍 RETRIEVE START | Claim: '{claim_text[:80]}...' | Entities: {key_entities[:3]} | Temporal: {bool(temporal_analysis)}")
+                    logger.debug(f"Using context: '{subject_context}' with entities: {key_entities[:3]}")
 
                 # Check for query plan (from Query Planning Agent)
                 query_plan = claim.get("query_plan")
+
+                # Extract freshness from temporal_analysis (single source of truth)
+                freshness = None
+                if temporal_analysis:
+                    temporal_window = temporal_analysis.get("temporal_window", "any")
+                    freshness = self.TEMPORAL_TO_FRESHNESS.get(temporal_window, "2y")
+                    if freshness != "2y":
+                        logger.info(f"[RETRIEVE] FRESHNESS | Claim {claim_position} | temporal_window={temporal_window} -> freshness={freshness}")
 
                 # Run web search and API retrieval in parallel
                 if query_plan and query_plan.get("queries"):
@@ -139,9 +160,11 @@ class EvidenceRetriever:
                         claim_text,
                         query_plan,
                         excluded_domain=excluded_domain,
-                        max_sources=self.max_sources_per_claim * 2
+                        max_sources=self.max_sources_per_claim * 2,
+                        freshness=freshness
                     )
-                    logger.info(f"🎯 QUERY PLAN | Type: {query_plan.get('claim_type')} | Queries: {len(query_plan['queries'])}")
+                    queries_preview = query_plan['queries'][:2]  # Show first 2 queries
+                    logger.info(f"[RETRIEVE] QUERY PLAN | Claim {claim_position} | Type: {query_plan.get('claim_type')} | Queries: {queries_preview}")
                 else:
                     # Fallback: Standard query formulation
                     web_search_task = self.evidence_extractor.extract_evidence_for_claim(
@@ -180,16 +203,14 @@ class EvidenceRetriever:
                 # Store API stats in claim for later tracking
                 claim["api_stats"] = api_evidence.get("api_stats", {})
 
-                # DIAGNOSTIC: Log evidence retrieval results
+                # Log evidence counts (single consolidated log)
                 web_count = len(web_evidence_snippets) if isinstance(web_evidence_snippets, list) else 0
                 api_count = len(api_evidence_items)
-                logger.info(f"📊 EVIDENCE RETRIEVED | Web: {web_count} sources | API: {api_count} sources | Total: {web_count + api_count}")
+                logger.info(f"[RETRIEVE] Claim {claim_position}: {web_count} web + {api_count} API sources")
 
                 if not evidence_snippets and not api_evidence_items:
-                    logger.warning(f"⚠️ NO EVIDENCE | Claim {claim_position}: '{claim_text[:60]}...'")
+                    logger.warning(f"[RETRIEVE] NO EVIDENCE for claim {claim_position}")
                     return []
-
-                logger.info(f"Retrieved {len(evidence_snippets)} web sources + {len(api_evidence_items)} API sources")
 
                 # Step 2: Merge and rank ALL evidence (web + API) using embeddings (bi-encoder)
                 all_evidence_snippets = evidence_snippets + self._convert_api_evidence_to_snippets(api_evidence_items)
@@ -223,7 +244,8 @@ class EvidenceRetriever:
         claim_text: str,
         query_plan: Dict[str, Any],
         excluded_domain: Optional[str] = None,
-        max_sources: int = 20
+        max_sources: int = 20,
+        freshness: Optional[str] = None
     ) -> List[EvidenceSnippet]:
         """
         Execute multiple targeted queries from Query Planning Agent.
@@ -233,6 +255,7 @@ class EvidenceRetriever:
             query_plan: Query plan with targeted queries and source priorities
             excluded_domain: Domain to exclude from results
             max_sources: Maximum total sources to return
+            freshness: Brave freshness filter (pd/pw/pm/py/2y) from temporal_analysis
 
         Returns:
             List of deduplicated EvidenceSnippet from all queries
@@ -251,18 +274,22 @@ class EvidenceRetriever:
             planner = get_query_planner()
             site_filter = planner.get_site_filter(priority_sources, claim_type)
 
-            logger.info(f"Executing {len(queries)} planned queries with site filter: {site_filter or 'none'}")
+            logger.debug(f"Executing {len(queries)} planned queries")
 
             # Execute all queries concurrently
             query_tasks = []
             sources_per_query = max(3, max_sources // len(queries))  # Distribute sources across queries
 
             for query in queries:
-                # Append site filter to query if available
-                full_query = f"{query} {site_filter}" if site_filter else query
+                # Only append site filter if query doesn't already have one (LLM may include it)
+                if site_filter and "site:" not in query.lower():
+                    full_query = f"{query} {site_filter}"
+                else:
+                    full_query = query
                 task = self.evidence_extractor.search_service.search_for_evidence(
                     full_query,
-                    max_results=sources_per_query
+                    max_results=sources_per_query,
+                    freshness=freshness
                 )
                 query_tasks.append(task)
 
@@ -304,7 +331,7 @@ class EvidenceRetriever:
                     )
                     merged_snippets.append(snippet)
 
-            logger.info(f"Planned queries returned {len(merged_snippets)} unique sources from {len(queries)} queries")
+            logger.debug(f"Planned queries: {len(merged_snippets)} sources")
             return merged_snippets[:max_sources]
 
         except Exception as e:
@@ -363,7 +390,7 @@ class EvidenceRetriever:
             # Sort by combined score
             ranked_evidence.sort(key=lambda x: x["combined_score"], reverse=True)
             
-            logger.info(f"Ranked {len(ranked_evidence)} evidence items by similarity")
+            logger.debug(f"Ranked {len(ranked_evidence)} evidence items by similarity")
             return ranked_evidence
             
         except Exception as e:
@@ -424,7 +451,7 @@ class EvidenceRetriever:
             if not hasattr(self, '_cross_encoder'):
                 from sentence_transformers import CrossEncoder
                 self._cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-                logger.info("Cross-encoder loaded: ms-marco-MiniLM-L-6-v2")
+                logger.debug("Cross-encoder loaded")
 
             # Prepare claim-evidence pairs
             pairs = [(claim_text, ev.get('text', '')) for ev in evidence_list]
@@ -444,11 +471,7 @@ class EvidenceRetriever:
             latency_ms = (time.time() - start_time) * 1000
             ranking_changes = sum(1 for i, ev in enumerate(reranked) if evidence_list.index(ev) != i)
 
-            logger.info(
-                f"Cross-encoder reranking: {len(pairs)} pairs in {latency_ms:.1f}ms "
-                f"({latency_ms/len(pairs):.1f}ms per pair), "
-                f"{ranking_changes} position changes"
-            )
+            logger.debug(f"Cross-encoder: {len(pairs)} pairs in {latency_ms:.1f}ms")
 
             return reranked
 
@@ -498,17 +521,21 @@ class EvidenceRetriever:
 
             # Then, filter by minimum credibility
             before_credibility = len(evidence_list)
+            # Log sources being filtered for debugging
+            low_cred_sources = [e for e in evidence_list if e.get("credibility_score", 0.6) < MIN_CREDIBILITY]
+            for e in low_cred_sources[:3]:  # Show first 3 filtered
+                logger.info(f"[FILTER] LOW-CRED: {e.get('source')} (cred={e.get('credibility_score', 0.6):.2f} < {MIN_CREDIBILITY}) - {e.get('url', '')[:60]}")
             evidence_list = [e for e in evidence_list if e.get("credibility_score", 0.6) >= MIN_CREDIBILITY]
             credibility_filtered_count = before_credibility - len(evidence_list)
 
-            logger.info(f"Source filtering: Removed {auto_excluded_count} auto-excluded sources (social media/satire), "
-                       f"{credibility_filtered_count} low-credibility sources (<{MIN_CREDIBILITY*100:.0f}%)")
+            logger.info(f"[FILTER] Stage 1: {original_evidence_count} raw -> {before_auto_exclude - auto_excluded_count} after auto-exclude -> {len(evidence_list)} after cred filter (threshold={MIN_CREDIBILITY})")
 
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
 
             # Apply temporal filtering if claim is time-sensitive (Phase 1.5, Week 4.5-5.5)
             # This happens BEFORE deduplication to filter out old evidence first
+            before_temporal = len(evidence_list)
             if claim and settings.ENABLE_TEMPORAL_CONTEXT and claim.get("temporal_analysis"):
                 from app.utils.temporal import TemporalAnalyzer
                 temporal_analyzer = TemporalAnalyzer()
@@ -516,24 +543,27 @@ class EvidenceRetriever:
                     evidence_list,
                     claim["temporal_analysis"]
                 )
-                logger.info(f"Temporal filtering applied: {len(evidence_list)} sources within temporal window")
+            logger.info(f"[FILTER] Stage 2 (temporal): {before_temporal} -> {len(evidence_list)}")
 
             # NEW: Apply deduplication if enabled
+            before_dedup = len(evidence_list)
             if settings.ENABLE_DEDUPLICATION:
                 from app.utils.deduplication import EvidenceDeduplicator
                 deduplicator = EvidenceDeduplicator()
                 evidence_list, dedup_stats = deduplicator.deduplicate(evidence_list)
-                logger.info(f"Deduplication: {dedup_stats.get('duplicates_removed', 0)} duplicates removed")
+            logger.info(f"[FILTER] Stage 3 (dedup): {before_dedup} -> {len(evidence_list)}")
 
             # Apply source independence checking if enabled
+            before_diversity = len(evidence_list)
             if settings.ENABLE_SOURCE_DIVERSITY:
                 from app.utils.source_independence import SourceIndependenceChecker
                 independence_checker = SourceIndependenceChecker()
                 evidence_list = independence_checker.enrich_evidence(evidence_list)
                 diversity_score, passes = independence_checker.check_diversity(evidence_list)
-                logger.info(f"Source diversity: {diversity_score} (passes: {passes})")
+            logger.info(f"[FILTER] Stage 4 (diversity): {before_diversity} -> {len(evidence_list)}")
 
             # Apply domain capping if enabled
+            before_domain_cap = len(evidence_list)
             if settings.ENABLE_DOMAIN_CAPPING:
                 from app.utils.domain_capping import DomainCapper
                 capper = DomainCapper(
@@ -545,16 +575,15 @@ class EvidenceRetriever:
                     target_count=self.max_sources_per_claim,
                     outstanding_threshold=getattr(settings, 'OUTSTANDING_SOURCE_THRESHOLD', 0.95)
                 )
+            logger.info(f"[FILTER] Stage 5 (domain cap, max={settings.MAX_EVIDENCE_PER_DOMAIN}): {before_domain_cap} -> {len(evidence_list)}")
 
             # Apply source validation if enabled (Phase 1)
+            before_validation = len(evidence_list)
             if settings.ENABLE_SOURCE_VALIDATION:
                 from app.utils.source_validator import get_source_validator
                 validator = get_source_validator()
                 evidence_list, validation_stats = validator.validate_sources(evidence_list)
-                logger.info(
-                    f"Source validation: {validation_stats['validated_count']}/{validation_stats['original_count']} sources retained, "
-                    f"{validation_stats['filtered_count']} filtered out"
-                )
+            logger.info(f"[FILTER] Stage 6 (validation): {before_validation} -> {len(evidence_list)} FINAL")
 
             # Safety check: Warn if all evidence eliminated
             if len(evidence_list) == 0 and original_evidence_count > 0:
@@ -564,7 +593,6 @@ class EvidenceRetriever:
                     f"Original count: {original_evidence_count}"
                 )
 
-            logger.info("Applied credibility and recency weighting")
             return evidence_list
             
         except Exception as e:
@@ -688,10 +716,7 @@ class EvidenceRetriever:
             final_credibility = min(1.0, base_credibility + boost)
 
             if boost != 0:
-                logger.info(
-                    f"Primary source analysis: {source_info['source_type']} "
-                    f"({base_credibility:.2f} → {final_credibility:.2f})"
-                )
+                logger.debug(f"Primary source boost: {source_info['source_type']}")
 
             return final_credibility
 
@@ -749,52 +774,43 @@ class EvidenceRetriever:
             claim_type = claim.get("claim_type")
             legal_metadata = claim.get("legal_metadata", {})
 
-            logger.info(f"🔎 API routing START - claim_type: {claim_type}, has_legal_metadata: {bool(legal_metadata)}")
-            logger.info(f"   Full claim dict keys: {list(claim.keys())}")
+            # Always run domain detection to get NER entities for dynamic API queries
+            domain_info = self.claim_classifier.detect_domain(claim_text)
+            # Use labeled entities ({"text": "...", "label": "PERSON/ORG/..."}) for dynamic extraction
+            entities = domain_info.get("entities", [])
 
             if claim_type == "legal" and legal_metadata:
-                # Use legal classification for routing
+                # Use legal classification for routing (override domain/jurisdiction)
                 domain = "Law"
                 jurisdiction = legal_metadata.get("jurisdiction", "US")
                 confidence = claim.get("classification", {}).get("confidence", 0.9)
 
-                logger.info(
-                    f"✅ API routing (legal claim): domain=Law, jurisdiction={jurisdiction}, "
-                    f"confidence={confidence:.2f}, metadata={legal_metadata}"
-                )
             else:
-                # PRIORITY 2: Fallback to domain detection via keywords/NER
-                domain_info = self.claim_classifier.detect_domain(claim_text)
+                # PRIORITY 2: Use domain detection results
                 domain = domain_info.get("domain", "General")
                 jurisdiction = domain_info.get("jurisdiction", "Global")
                 confidence = domain_info.get("domain_confidence", 0.0)
 
-                logger.info(
-                    f"API routing (detected): domain={domain}, jurisdiction={jurisdiction}, "
-                    f"confidence={confidence:.2f}"
-                )
 
             # Get relevant API adapters
             relevant_adapters = self.api_registry.get_adapters_for_domain(domain, jurisdiction)
 
-            logger.info(f"📊 Found {len(relevant_adapters)} adapters for domain={domain}, jurisdiction={jurisdiction}")
-            if relevant_adapters:
-                adapter_names = [a.api_name for a in relevant_adapters]
-                logger.info(f"   Adapters: {adapter_names}")
 
             if not relevant_adapters:
-                logger.warning(f"⚠️  No API adapters found for domain={domain}, jurisdiction={jurisdiction}")
+                logger.warning(f"[API] No adapters found for domain={domain}, jurisdiction={jurisdiction}")
                 return {"evidence": [], "api_stats": {}}
 
             # Query all relevant APIs concurrently
             api_tasks = []
             for adapter in relevant_adapters:
                 # Use asyncio.to_thread to run sync API calls in executor
+                # Pass entities for dynamic entity extraction (no hardcoded lists!)
                 task = asyncio.to_thread(
                     adapter.search_with_cache,
                     claim_text,
                     domain,
-                    jurisdiction
+                    jurisdiction,
+                    entities
                 )
                 api_tasks.append((adapter.api_name, task))
 
@@ -824,17 +840,10 @@ class EvidenceRetriever:
                     all_api_evidence.extend(result)
                     api_stats["apis_queried"].append({"name": api_name, "results": len(result)})
                     api_stats["total_api_results"] += len(result)
-                    logger.info(f"{api_name} returned {len(result)} results")
                 else:
                     api_stats["apis_queried"].append({"name": api_name, "results": 0})
-                    logger.info(f"{api_name} returned no results")
 
             api_stats["total_api_calls"] = len(api_tasks)
-
-            logger.info(
-                f"API retrieval complete: {api_stats['total_api_calls']} APIs queried, "
-                f"{api_stats['total_api_results']} total results"
-            )
 
             return {
                 "evidence": all_api_evidence,
@@ -911,7 +920,7 @@ class EvidenceRetriever:
             
             # Store embeddings
             stored_ids = await vector_store.store_evidence_embeddings(evidence_data)
-            logger.info(f"Stored {len(stored_ids)} evidence embeddings")
+            logger.debug(f"Stored {len(stored_ids)} embeddings")
             
         except Exception as e:
             logger.warning(f"Evidence storage error: {e}")
@@ -933,7 +942,7 @@ class EvidenceRetriever:
                 score_threshold=0.7
             )
             
-            logger.info(f"Retrieved {len(similar_evidence)} items from vector store")
+            logger.debug(f"Vector store: {len(similar_evidence)} items")
             return similar_evidence
             
         except Exception as e:

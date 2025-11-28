@@ -305,7 +305,8 @@ class ClaimClassifier:
                 "domain": domain,
                 "domain_confidence": confidence,
                 "jurisdiction": jurisdiction,
-                "key_entities": [ent.text for ent in doc.ents]
+                "key_entities": [ent.text for ent in doc.ents],
+                "entities": entities  # Full entities with labels for dynamic API queries
             }
         except Exception as e:
             logger.error(f"Domain detection failed: {e}", exc_info=True)
@@ -314,7 +315,8 @@ class ClaimClassifier:
                 "domain": "General",
                 "domain_confidence": 0.1,
                 "jurisdiction": "Global",
-                "key_entities": []
+                "key_entities": [],
+                "entities": []
             }
 
     def _load_spacy(self):
