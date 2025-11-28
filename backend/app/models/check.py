@@ -152,6 +152,12 @@ class Evidence(SQLModel, table=True):
     factcheck_date: Optional[datetime] = None  # When fact-check was published
     source_type: Optional[str] = None  # 'factcheck', 'news', 'academic', 'government', 'general'
 
+    # Fact-check Parsing fields (Programmatic parser)
+    factcheck_target_claim: Optional[str] = None  # The claim the fact-checker is checking (not our claim)
+    factcheck_claim_similarity: Optional[float] = Field(default=None, ge=0, le=1)  # Similarity between our claim and their target claim
+    factcheck_parse_success: bool = Field(default=False)  # True if parsing succeeded
+    factcheck_low_relevance: bool = Field(default=False)  # True if similarity < threshold
+
     # Temporal context fields (Phase 1.5, Week 4.5-5.5)
     temporal_relevance_score: Optional[float] = Field(default=None, ge=0, le=1)  # How temporally relevant (0-1)
     extracted_date: Optional[str] = None  # Date extracted from content

@@ -36,6 +36,7 @@ bleach==6.1.0
 pytesseract==0.3.10
 youtube-transcript-api==0.6.1
 Pillow==10.2.0
+beautifulsoup4==4.12.3  # Fact-check parser HTML extraction
 tldextract==5.1.1  # Phase 3: Domain credibility framework
 xhtml2pdf==0.2.17  # PDF report generation
 jinja2==3.1.6  # Template engine for PDF reports

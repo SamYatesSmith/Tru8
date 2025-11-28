@@ -87,6 +87,11 @@ class Settings(BaseSettings):
     ENABLE_FACTCHECK_API: bool = Field(True, env="ENABLE_FACTCHECK_API")
     ENABLE_TEMPORAL_CONTEXT: bool = Field(True, env="ENABLE_TEMPORAL_CONTEXT")
 
+    # Fact-Check Parser (Programmatic parsing of fact-check articles)
+    ENABLE_FACTCHECK_PARSING: bool = Field(False, env="ENABLE_FACTCHECK_PARSING")  # Parse fact-check articles for target claim extraction
+    FACTCHECK_SIMILARITY_THRESHOLD: float = Field(0.7, env="FACTCHECK_SIMILARITY_THRESHOLD")  # Min similarity to keep fact-check evidence
+    FACTCHECK_LOW_RELEVANCE_PENALTY: float = Field(0.1, env="FACTCHECK_LOW_RELEVANCE_PENALTY")  # Penalty for low-similarity fact-checks
+
     # Phase 2 - User Experience & Trust
     ENABLE_CLAIM_CLASSIFICATION: bool = Field(True, env="ENABLE_CLAIM_CLASSIFICATION")
     ENABLE_ENHANCED_EXPLAINABILITY: bool = Field(True, env="ENABLE_ENHANCED_EXPLAINABILITY")
@@ -134,7 +139,7 @@ class Settings(BaseSettings):
     ENABLE_DEBERTA_NLI: bool = Field(False, env="ENABLE_DEBERTA_NLI")
 
     # Judge Few-Shot Prompting (Phase 1.2)
-    ENABLE_JUDGE_FEW_SHOT: bool = Field(False, env="ENABLE_JUDGE_FEW_SHOT")
+    ENABLE_JUDGE_FEW_SHOT: bool = Field(True, env="ENABLE_JUDGE_FEW_SHOT")  # ENABLED: Provides concrete examples to guide judge reasoning
 
     # Cross-Encoder Evidence Reranking (Phase 1.3)
     ENABLE_CROSS_ENCODER_RERANK: bool = Field(False, env="ENABLE_CROSS_ENCODER_RERANK")
@@ -146,7 +151,7 @@ class Settings(BaseSettings):
     QUERY_TEMPORAL_BOOST: bool = Field(True, env="QUERY_TEMPORAL_BOOST")
 
     # Semantic Snippet Extraction
-    ENABLE_SEMANTIC_SNIPPET_EXTRACTION: bool = Field(False, env="ENABLE_SEMANTIC_SNIPPET_EXTRACTION")
+    ENABLE_SEMANTIC_SNIPPET_EXTRACTION: bool = Field(True, env="ENABLE_SEMANTIC_SNIPPET_EXTRACTION")  # ENABLED: Extract claim-relevant sentences using embeddings
     SNIPPET_SEMANTIC_THRESHOLD: float = Field(0.65, env="SNIPPET_SEMANTIC_THRESHOLD")
     SNIPPET_CONTEXT_SENTENCES: int = Field(2, env="SNIPPET_CONTEXT_SENTENCES")
 

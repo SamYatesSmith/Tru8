@@ -337,7 +337,30 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
                 raise Exception(f"Evidence retrieval failed: {e}")
 
         stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
-        
+
+        # Stage 3.5: Parse fact-check evidence (CONDITIONAL IMPLEMENTATION)
+        if settings.ENABLE_FACTCHECK_PARSING:
+            self.update_state(state="PROGRESS", meta={"stage": "factcheck_parse", "progress": 50})
+            stage_start = datetime.utcnow()
+            try:
+                from app.services.factcheck_parser import get_factcheck_parser
+                parser = get_factcheck_parser()
+                evidence = asyncio.run(parser.parse_factcheck_evidence(claims, evidence))
+
+                # Count parsed fact-checks
+                parsed_count = sum(
+                    1 for ev_list in evidence.values()
+                    for ev in ev_list
+                    if ev.get('factcheck_parse_success')
+                )
+                logger.info(f"Fact-check parsing: {parsed_count} articles parsed successfully")
+
+            except Exception as e:
+                logger.warning(f"Fact-check parsing failed (non-critical): {e}")
+                # Continue with unparsed evidence - safe fallback
+
+            stage_timings["factcheck_parse"] = (datetime.utcnow() - stage_start).total_seconds()
+
         # Stage 4: Verify with NLI (REAL IMPLEMENTATION WITH TIMEOUT)
         self.update_state(state="PROGRESS", meta={"stage": "verify", "progress": 60})
         stage_start = datetime.utcnow()
