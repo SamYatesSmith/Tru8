@@ -293,12 +293,12 @@ class EvidenceRetriever:
                 )
                 query_tasks.append(task)
 
-            # Gather all results
+            # Gather all search results
             all_results = await asyncio.gather(*query_tasks, return_exceptions=True)
 
-            # Merge and deduplicate results
+            # Merge and deduplicate search results by URL
             seen_urls = set()
-            merged_snippets = []
+            unique_search_results = []
 
             for i, results in enumerate(all_results):
                 if isinstance(results, Exception):
@@ -315,24 +315,54 @@ class EvidenceRetriever:
                         continue
                     seen_urls.add(result.url)
 
-                    # Convert SearchResult to EvidenceSnippet
-                    snippet = EvidenceSnippet(
-                        text=result.snippet or "",
-                        source=extract_domain(result.url),
-                        url=result.url,
-                        title=result.title or "",
-                        published_date=result.published_date,
-                        relevance_score=0.7,  # Default relevance for planned queries
-                        metadata={
-                            "query_index": i,
-                            "query_used": queries[i],
-                            "claim_type": claim_type
-                        }
-                    )
-                    merged_snippets.append(snippet)
+                    # Attach query metadata to result for later preservation
+                    result._query_index = i
+                    result._query_used = queries[i]
+                    result._claim_type = claim_type
+                    unique_search_results.append(result)
 
-            logger.debug(f"Planned queries: {len(merged_snippets)} sources")
-            return merged_snippets[:max_sources]
+            if not unique_search_results:
+                logger.warning(f"No search results for planned queries")
+                return []
+
+            # ============================================================
+            # CRITICAL FIX: Extract actual page content (like standard path)
+            # ============================================================
+            semaphore = asyncio.Semaphore(self.evidence_extractor.max_concurrent)
+            extraction_tasks = [
+                self._extract_with_fallback(result, claim_text, semaphore)
+                for result in unique_search_results[:max_sources]
+            ]
+
+            extracted_results = await asyncio.gather(*extraction_tasks, return_exceptions=True)
+
+            # Filter successful extractions and track fallback stats
+            evidence_snippets = []
+            fallback_count = 0
+            dropped_count = 0
+
+            for result in extracted_results:
+                if isinstance(result, Exception):
+                    logger.warning(f"Content extraction exception: {result}")
+                    dropped_count += 1
+                    continue
+                if result is None:
+                    dropped_count += 1
+                    continue
+                if result.metadata and result.metadata.get("is_snippet_fallback"):
+                    fallback_count += 1
+                evidence_snippets.append(result)
+
+            # Log extraction stats
+            total = len(unique_search_results[:max_sources])
+            success_count = len(evidence_snippets) - fallback_count
+            logger.info(
+                f"[RETRIEVE] Query Planning extraction: "
+                f"{success_count}/{total} content, {fallback_count} fallback, {dropped_count} dropped | "
+                f"claim_type={claim_type}"
+            )
+
+            return evidence_snippets
 
         except Exception as e:
             logger.error(f"Planned query execution failed: {e}")
@@ -341,6 +371,92 @@ class EvidenceRetriever:
                 claim_text,
                 max_sources=max_sources
             )
+
+    async def _extract_with_fallback(
+        self,
+        search_result,
+        claim_text: str,
+        semaphore: asyncio.Semaphore
+    ) -> Optional[EvidenceSnippet]:
+        """
+        Extract content from a search result with nuanced fallback policy.
+
+        Fallback Policy:
+        - 403/429 blocked: Keep snippet if ALLOW_SNIPPET_FALLBACK=True, mark as fallback
+        - Timeout: Keep snippet if ALLOW_SNIPPET_FALLBACK=True, mark as fallback
+        - Empty/JS-only: Drop entirely (return None)
+        - Success: Return extracted content
+
+        Args:
+            search_result: SearchResult with attached query metadata
+            claim_text: Claim text for relevance matching
+            semaphore: Concurrency limiter
+
+        Returns:
+            EvidenceSnippet with extracted content, or None if dropped
+        """
+        # Preserve query planning metadata
+        query_index = getattr(search_result, '_query_index', None)
+        query_used = getattr(search_result, '_query_used', None)
+        claim_type = getattr(search_result, '_claim_type', 'general')
+
+        try:
+            # Attempt full content extraction
+            snippet = await self.evidence_extractor._extract_from_page(
+                search_result,
+                claim_text,
+                semaphore
+            )
+
+            if snippet is not None:
+                # Success: Enrich with query planning metadata
+                snippet.metadata = snippet.metadata or {}
+                snippet.metadata["query_index"] = query_index
+                snippet.metadata["query_used"] = query_used
+                snippet.metadata["claim_type"] = claim_type
+                snippet.metadata["source_path"] = "query_planning"
+                snippet.metadata["extraction_status"] = "success"
+                snippet.metadata["is_snippet_fallback"] = False
+                return snippet
+
+            # Content extraction returned None
+            # This means HTML was fetched but yielded no substantive content (JS-only/empty)
+            # Policy: Drop entirely - don't pollute with low-signal meta descriptions
+            logger.debug(f"Dropping empty extraction for {search_result.url}")
+            return None
+
+        except Exception as e:
+            # Extraction failed - check if we should use snippet fallback
+            error_str = str(e).lower()
+            is_blocked = "403" in error_str or "429" in error_str or "forbidden" in error_str
+            is_timeout = "timeout" in error_str
+
+            if (is_blocked or is_timeout) and settings.ALLOW_SNIPPET_FALLBACK:
+                # Transient failure: Use snippet as fallback with lower score
+                extraction_status = "fallback_blocked" if is_blocked else "fallback_timeout"
+                logger.debug(f"Using snippet fallback ({extraction_status}) for {search_result.url}")
+
+                return EvidenceSnippet(
+                    text=search_result.snippet or "",
+                    source=extract_domain(search_result.url),
+                    url=search_result.url,
+                    title=search_result.title or "",
+                    published_date=search_result.published_date,
+                    relevance_score=0.4,  # Lower score for fallback snippets
+                    metadata={
+                        "query_index": query_index,
+                        "query_used": query_used,
+                        "claim_type": claim_type,
+                        "source_path": "query_planning",
+                        "extraction_status": extraction_status,
+                        "is_snippet_fallback": True,
+                        "fallback_reason": str(e)[:100]
+                    }
+                )
+            else:
+                # Other failure or fallback disabled: Drop
+                logger.debug(f"Dropping failed extraction for {search_result.url}: {e}")
+                return None
 
     async def _rank_evidence_with_embeddings(self, claim: str,
                                            evidence_snippets: List[EvidenceSnippet]) -> List[Dict[str, Any]]:

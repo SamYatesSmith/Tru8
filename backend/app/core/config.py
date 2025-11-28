@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = Field("", env="OPENAI_API_KEY")
     ANTHROPIC_API_KEY: str = Field("", env="ANTHROPIC_API_KEY")
     GOOGLE_FACTCHECK_API_KEY: str = Field("", env="GOOGLE_FACTCHECK_API_KEY")
+    FOOTBALL_DATA_API_KEY: str = Field("", env="FOOTBALL_DATA_API_KEY")  # Football-Data.org for sports stats
     
     # Storage
     S3_BUCKET: str = Field("tru8-uploads", env="S3_BUCKET")
@@ -114,7 +115,7 @@ class Settings(BaseSettings):
     RELEVANCE_THRESHOLD: float = Field(0.65, env="RELEVANCE_THRESHOLD")  # Minimum relevance score (0-1)
 
     # Domain Capping Configuration
-    MAX_EVIDENCE_PER_DOMAIN: int = Field(1, env="MAX_EVIDENCE_PER_DOMAIN")  # Only 1 result per domain to prevent same-publisher duplicates
+    MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")  # Allow 3 results per domain for better evidence coverage
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
     OUTSTANDING_SOURCE_THRESHOLD: float = Field(0.95, env="OUTSTANDING_SOURCE_THRESHOLD")
 
@@ -157,9 +158,14 @@ class Settings(BaseSettings):
     # ========== QUERY PLANNING AGENT ==========
     # LLM-powered batch query planning for semantic claim understanding
     # Generates targeted queries based on claim type (squad, stats, contract, etc.)
-    ENABLE_QUERY_PLANNING: bool = Field(False, env="ENABLE_QUERY_PLANNING")
+    ENABLE_QUERY_PLANNING: bool = Field(True, env="ENABLE_QUERY_PLANNING")
     QUERY_PLANNING_MODEL: str = Field("gpt-4o-mini-2024-07-18", env="QUERY_PLANNING_MODEL")
-    QUERY_PLANNING_TIMEOUT: int = Field(15, env="QUERY_PLANNING_TIMEOUT")
+    QUERY_PLANNING_TIMEOUT: int = Field(30, env="QUERY_PLANNING_TIMEOUT")
+
+    # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?
+    # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
+    # False = Drop sources entirely if content extraction fails
+    ALLOW_SNIPPET_FALLBACK: bool = Field(True, env="ALLOW_SNIPPET_FALLBACK")
 
     @property
     def nli_model_name(self) -> str:
