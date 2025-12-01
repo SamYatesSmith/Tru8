@@ -13,6 +13,7 @@ Key Features:
 
 import logging
 import json
+from datetime import datetime
 from typing import Dict, List, Any, Optional
 import httpx
 from app.core.config import settings
@@ -27,40 +28,22 @@ class LLMQueryPlanner:
     Uses batch processing to minimize API calls and costs.
     """
 
-    SYSTEM_PROMPT = """You are a fact-checking query planner. Given claims from an article, determine what data would verify each claim and generate targeted search queries.
+    SYSTEM_PROMPT = """You are a fact-checking query planner. Generate targeted search queries to find evidence for claims.
 
-For EACH claim, analyze what TYPE of evidence would verify it and generate appropriate queries.
+QUERY RULES:
+1. Generate 2-3 SPECIFIC queries per claim
+2. For claims about CURRENT events, include the current year/month in queries to get recent results
+3. Use exact names and numbers from the claim
+4. Keep queries concise (5-10 words)
 
-CLAIM TYPES:
-- squad_composition: Claims about which players are in a team's squad
-- player_statistics: Claims about goals, assists, appearances, etc.
-- contract_info: Claims about player contracts, expiry dates, wages
-- transfer_rumor: Claims about potential transfers, interest from clubs
-- match_result: Claims about specific match scores or outcomes
-- league_standing: Claims about league positions, points, leads
-- general: Other factual claims
+CLAIM TYPES: league_standing, player_statistics, contract_info, transfer_rumor, squad_composition, match_result, political, scientific, economic, general
 
-PRIORITY SOURCES BY TYPE:
-- squad_composition: premierleague.com, official club sites, transfermarkt.com
-- player_statistics: fbref.com, transfermarkt.com, whoscored.com
-- contract_info: transfermarkt.com, capology.com
-- transfer_rumor: skysports.com, theathletic.com, bbc.co.uk/sport
-- match_result: premierleague.com, uefa.com, flashscore.com
-- league_standing: premierleague.com, uefa.com, official league sites
-
-QUERY GENERATION RULES:
-1. Generate 2-4 targeted queries per claim
-2. Include year/season when relevant (e.g., "2024-25 season", "2025")
-3. Use specific entity names from the claim
-4. For squad claims, query both official sources AND verify individual players
-5. Include site: filters for authoritative sources when helpful
-
-Respond with a JSON array. For each claim:
+RESPOND WITH JSON:
 {
-  "claim_index": <index>,
-  "claim_type": "<type>",
-  "priority_sources": ["<domain1>", "<domain2>"],
-  "queries": ["<query1>", "<query2>", "<query3>"]
+  "plans": [
+    {"claim_index": 0, "claim_type": "...", "queries": ["query1", "query2"]},
+    ...
+  ]
 }"""
 
     def __init__(self):
@@ -82,21 +65,28 @@ Respond with a JSON array. For each claim:
             return []
 
         if not self.openai_api_key:
-            logger.warning("OpenAI API key not configured, skipping query planning")
+            logger.warning("[QUERY_PLANNER] OpenAI API key not configured")
             return None
 
         try:
+            # Current date for context
+            now = datetime.now()
+            current_date = now.strftime("%Y-%m-%d")
+            logger.info(f"[QUERY_PLANNER] Current date: {current_date}")
+
             # Format claims for the prompt
             claims_text = "\n".join([
                 f"{i+1}. {c.get('text', '')}"
                 for i, c in enumerate(claims)
             ])
 
-            user_prompt = f"""Plan search queries for these {len(claims)} claims:
+            user_prompt = f"""TODAY'S DATE: {current_date}
+
+Generate search queries for each of these {len(claims)} claims:
 
 {claims_text}
 
-Respond with a JSON array of query plans."""
+Return a JSON object with "plans" array containing exactly {len(claims)} plan objects, one for each claim."""
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
@@ -112,7 +102,7 @@ Respond with a JSON array of query plans."""
                             {"role": "user", "content": user_prompt}
                         ],
                         "temperature": 0.1,
-                        "max_tokens": 2000,
+                        "max_tokens": 3000,
                         "response_format": {"type": "json_object"}
                     }
                 )
@@ -126,38 +116,51 @@ Respond with a JSON array of query plans."""
 
                 # Parse response
                 parsed = json.loads(content)
+                logger.debug(f"[QUERY_PLANNER] Raw response keys: {list(parsed.keys()) if isinstance(parsed, dict) else 'array'}")
 
-                # Handle both array and object with 'plans' key
-                if isinstance(parsed, list):
-                    query_plans = parsed
-                elif isinstance(parsed, dict) and "plans" in parsed:
+                # Extract plans array from response
+                query_plans = None
+                if isinstance(parsed, dict) and "plans" in parsed:
                     query_plans = parsed["plans"]
                 elif isinstance(parsed, dict) and "claims" in parsed:
                     query_plans = parsed["claims"]
+                elif isinstance(parsed, dict) and "query_plans" in parsed:
+                    query_plans = parsed["query_plans"]
+                elif isinstance(parsed, list):
+                    query_plans = parsed
                 else:
-                    # Try to extract array from dict values
+                    # Try to find any array of dicts in the response
                     for key, value in parsed.items():
-                        if isinstance(value, list):
+                        if isinstance(value, list) and len(value) > 0 and isinstance(value[0], dict):
                             query_plans = value
+                            logger.debug(f"[QUERY_PLANNER] Found plans under key: {key}")
                             break
                     else:
-                        logger.error(f"Unexpected response format: {parsed}")
+                        logger.error(f"[QUERY_PLANNER] No plans array found. Keys: {list(parsed.keys())}")
                         return None
+
+                if not query_plans:
+                    logger.error(f"[QUERY_PLANNER] Empty plans array")
+                    return None
 
                 # Validate structure
                 validated_plans = self._validate_plans(query_plans, len(claims))
 
-                logger.info(f"Query planning complete: {len(validated_plans)} plans for {len(claims)} claims")
+                # Check if we got enough plans
+                if len(validated_plans) < len(claims):
+                    logger.warning(f"[QUERY_PLANNER] Only {len(validated_plans)} plans for {len(claims)} claims - some claims will use fallback")
+
+                logger.info(f"[QUERY_PLANNER] SUCCESS: {len(validated_plans)} plans for {len(claims)} claims")
                 return validated_plans
 
         except httpx.TimeoutException:
-            logger.warning("Query planning timed out, using fallback")
+            logger.warning("[QUERY_PLANNER] TIMEOUT: API call took too long")
             return None
         except json.JSONDecodeError as e:
-            logger.error(f"Query planning JSON parse error: {e}")
+            logger.error(f"[QUERY_PLANNER] JSON ERROR: {e}")
             return None
         except Exception as e:
-            logger.error(f"Query planning failed: {e}", exc_info=True)
+            logger.error(f"[QUERY_PLANNER] EXCEPTION: {type(e).__name__}: {e}", exc_info=True)
             return None
 
     def _validate_plans(self, plans: List[Any], expected_count: int) -> List[Dict[str, Any]]:
@@ -166,6 +169,7 @@ Respond with a JSON array of query plans."""
 
         for i, plan in enumerate(plans):
             if not isinstance(plan, dict):
+                logger.warning(f"[QUERY_PLANNER] Plan {i} is not a dict, skipping")
                 continue
 
             validated_plan = {

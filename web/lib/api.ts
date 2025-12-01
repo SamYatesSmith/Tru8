@@ -43,6 +43,7 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers,
+      cache: 'no-store',  // Prevent caching for real-time status updates
     });
 
     if (!response.ok) {

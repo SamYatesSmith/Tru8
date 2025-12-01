@@ -9,22 +9,27 @@ logger = logging.getLogger(__name__)
 class EvidenceDeduplicator:
     """Detect and remove duplicate/near-duplicate evidence"""
 
-    def __init__(self, text_similarity_threshold: float = 0.85):
+    def __init__(self, text_similarity_threshold: float = 0.95):
         """
         Initialize deduplicator with configurable thresholds.
 
         Args:
-            text_similarity_threshold: Minimum similarity ratio (0-1) to consider text as duplicate
+            text_similarity_threshold: Minimum similarity ratio (0-1) to consider text as duplicate.
+                                       Set high (0.95) to only catch true syndication/copy-paste,
+                                       not independent sources reporting the same facts.
         """
         self.text_similarity_threshold = text_similarity_threshold
 
     def deduplicate(self, evidence_list: List[Dict[str, Any]]) -> Tuple[List[Dict], Dict[str, Any]]:
         """
-        Remove duplicates using four-stage process:
-        1. Exact hash deduplication (fastest)
-        2. Domain-level deduplication (prevent same source multiple times)
-        3. Text similarity deduplication (medium)
-        4. Semantic similarity if embeddings available (slowest, most accurate)
+        Remove TRUE duplicates only - not independent sources confirming the same facts.
+
+        For fact-checking, we WANT multiple sources confirming the same claim.
+        Only remove:
+        1. Exact duplicates (same content hash)
+        2. True syndication (95%+ identical text from different URLs)
+
+        Domain limiting is handled separately by domain_capping.py.
 
         Args:
             evidence_list: List of evidence dictionaries
@@ -35,28 +40,25 @@ class EvidenceDeduplicator:
         if len(evidence_list) <= 1:
             return evidence_list, {"duplicates_removed": 0}
 
-        # Stage 1: Exact hash deduplication
+        # Stage 1: Exact hash deduplication (same content, different URLs)
         stage1 = self._exact_hash_dedup(evidence_list)
 
-        # Stage 2: Domain-level deduplication (NEW - prevents duplicate sources)
-        stage2 = self._domain_dedup(stage1)
-
-        # Stage 3: Text similarity deduplication
-        stage3 = self._text_similarity_dedup(stage2)
+        # Stage 2: Text similarity for TRUE syndication only (95%+ match)
+        # NOTE: Domain deduplication removed - handled by domain_capping.py
+        stage2 = self._text_similarity_dedup(stage1)
 
         stats = {
             "original_count": len(evidence_list),
             "after_hash_dedup": len(stage1),
-            "after_domain_dedup": len(stage2),
-            "final_count": len(stage3),
-            "duplicates_removed": len(evidence_list) - len(stage3),
-            "dedup_ratio": round((len(evidence_list) - len(stage3)) / len(evidence_list), 2) if evidence_list else 0
+            "final_count": len(stage2),
+            "duplicates_removed": len(evidence_list) - len(stage2),
+            "dedup_ratio": round((len(evidence_list) - len(stage2)) / len(evidence_list), 2) if evidence_list else 0
         }
 
         logger.info(f"Deduplication: {stats['original_count']} → {stats['final_count']} "
                    f"({stats['duplicates_removed']} duplicates removed)")
 
-        return stage3, stats
+        return stage2, stats
 
     def _exact_hash_dedup(self, evidence: List[Dict]) -> List[Dict]:
         """

@@ -34,9 +34,9 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
     checkData.status === 'processing'
   );
 
-  // Poll for updates when processing
+  // Poll for updates when pending or processing
   useEffect(() => {
-    if (checkData.status !== 'processing') {
+    if (checkData.status !== 'processing' && checkData.status !== 'pending') {
       return;
     }
 
@@ -46,8 +46,8 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
         const updated = await apiClient.getCheckById(checkId, currentToken) as any;
         setCheckData(updated);
 
-        // Stop polling if completed or failed
-        if (updated.status !== 'processing') {
+        // Stop polling only when completed or failed (not pending or processing)
+        if (updated.status === 'completed' || updated.status === 'failed') {
           clearInterval(interval);
         }
       } catch (error) {

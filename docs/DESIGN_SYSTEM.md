@@ -22,16 +22,18 @@
 
 ### **Brand Colors**
 ```css
-/* Primary Palette - Authority & Trust */
+/* Primary Palette - Bold, Energetic, Authoritative */
 :root {
-  --tru8-primary: #1E40AF;        /* Deep Blue - main brand */
-  --tru8-primary-light: #3B82F6;  /* Bright Blue - CTAs, links */
-  --tru8-primary-dark: #1E3A8A;   /* Navy - headings, emphasis */
-  
+  --tru8-primary: #f57a07;        /* Tru8 Orange - main brand */
+  --tru8-primary-hover: #e06a00;  /* Orange hover state */
+  --tru8-cyan: #22d3ee;           /* Accent cyan - icons, highlights */
+  --tru8-dark: #0f1419;           /* Dark background */
+  --tru8-card: #1e293b;           /* Card/container background */
+
   /* Gradient System */
-  --gradient-primary: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%);
-  --gradient-hero: linear-gradient(135deg, #1E40AF 0%, #7C3AED 50%, #EC4899 100%);
-  --gradient-card: linear-gradient(145deg, #F8FAFC 0%, #E2E8F0 100%);
+  --gradient-primary: linear-gradient(135deg, #f57a07 0%, #fb923c 100%);
+  --gradient-hero: radial-gradient(ellipse, #f57a07, #fb923c, #fca55f, #ffffff);
+  --gradient-card: linear-gradient(145deg, #1e293b 0%, #0f1419 100%);
 }
 ```
 

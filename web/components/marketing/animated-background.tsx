@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { generatePixelGrid, type PopShape } from '@/lib/pixel-grid-generator';
 
 /**
@@ -26,7 +26,16 @@ import { generatePixelGrid, type PopShape } from '@/lib/pixel-grid-generator';
  * - GPU-accelerated (will-change: transform)
  * - Pure CSS animation (no JavaScript RAF)
  * - Dynamic canvas height (2x viewport) for seamless tiling
+ * - AbortController pattern prevents memory leaks from orphaned timeouts
  */
+
+/** Consolidated state for pop animation to prevent race conditions */
+interface PopAnimationState {
+  shapes: PopShape[];
+  keys: number[];
+  visible: boolean[];
+}
+
 export function AnimatedBackground() {
   const [layers, setLayers] = useState<{
     layer1: string | null;
@@ -38,143 +47,148 @@ export function AnimatedBackground() {
     layer3: null,
   });
 
-  const [popShapes, setPopShapes] = useState<PopShape[]>([]);
-  const [popKeys, setPopKeys] = useState<number[]>([]); // Unique keys to force re-animation
-  const [visiblePops, setVisiblePops] = useState<boolean[]>([]); // Track which pops should be visible
+  // Consolidated pop animation state (prevents race conditions from parallel array updates)
+  const [popState, setPopState] = useState<PopAnimationState>({
+    shapes: [],
+    keys: [],
+    visible: [],
+  });
 
+  // Refs for cleanup - track all timeouts and abort signal
+  const abortRef = useRef<AbortController | null>(null);
+  const timeoutIds = useRef<Set<NodeJS.Timeout>>(new Set());
+
+  // Layer generation effect - runs immediately on mount
   useEffect(() => {
-    // Generate pixel grids progressively (client-side only)
-    // Reduced canvas size to prevent chunk loading timeouts
-    const canvasWidth = 1600;  // Reduced from 1920
-    const canvasHeight = 2000; // Reduced from 2400
+    const canvasWidth = 1600;
+    const canvasHeight = 2000;
     let mounted = true;
 
-    // Helper function to generate layer with retry logic
-    const generateLayer = async (
-      layerNum: number,
-      density: number,
-      delay: number = 0,
-      shape: 'square' | 'circle' = 'square',
-      enablePop: boolean = false
-    ): Promise<void> => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          if (!mounted) {
-            resolve();
-            return;
+    const generateAllLayers = () => {
+      if (!mounted) return;
+
+      try {
+        // Generate layer 1 immediately (circles with pop effect)
+        const result1 = generatePixelGrid(canvasWidth, canvasHeight, 0.04, 'circle', true);
+        if (result1 && mounted) {
+          setLayers((prev) => ({ ...prev, layer1: result1.dataUrl }));
+          if (result1.popShapes) {
+            setPopState({
+              shapes: result1.popShapes,
+              keys: result1.popShapes.map(() => 0),
+              visible: result1.popShapes.map(() => true),
+            });
           }
+        }
 
-          // Use requestIdleCallback for non-blocking generation (fallback to setTimeout)
-          const scheduleWork = (callback: () => void) => {
-            if ('requestIdleCallback' in window) {
-              window.requestIdleCallback(callback, { timeout: 2000 });
-            } else {
-              setTimeout(callback, delay);
-            }
-          };
+        // Generate layers 2 and 3 with slight delays for performance
+        setTimeout(() => {
+          if (!mounted) return;
+          const result2 = generatePixelGrid(canvasWidth, canvasHeight, 0.045, 'square', false);
+          if (result2 && mounted) {
+            setLayers((prev) => ({ ...prev, layer2: result2.dataUrl }));
+          }
+        }, 50);
 
-          scheduleWork(() => {
-            try {
-              const result = generatePixelGrid(canvasWidth, canvasHeight, density, shape, enablePop);
-              if (result && mounted) {
-                setLayers((prev) => ({ ...prev, [`layer${layerNum}`]: result.dataUrl }));
-                // Store pop shapes if this is layer 1
-                if (layerNum === 1 && result.popShapes) {
-                  setPopShapes(result.popShapes);
-                  // Initialize keys and visibility for each shape
-                  setPopKeys(result.popShapes.map(() => 0));
-                  setVisiblePops(result.popShapes.map(() => true)); // Start visible for initial pop
-                }
-              }
-              resolve();
-            } catch (error) {
-              console.error(`[AnimatedBackground] Failed to generate layer ${layerNum}:`, error);
-              resolve();
-            }
-          });
-        }, delay);
-      });
+        setTimeout(() => {
+          if (!mounted) return;
+          const result3 = generatePixelGrid(canvasWidth, canvasHeight, 0.05, 'square', false);
+          if (result3 && mounted) {
+            setLayers((prev) => ({ ...prev, layer3: result3.dataUrl }));
+          }
+        }, 100);
+      } catch (error) {
+        console.error('[AnimatedBackground] Failed to generate layers:', error);
+      }
     };
 
-    // Generate layers sequentially with increasing delays
-    (async () => {
-      await generateLayer(1, 0.04, 0, 'circle', true);  // Layer 1 - Circles with pop effect
-      await generateLayer(2, 0.045, 100, 'square');     // Layer 2 - Squares
-      await generateLayer(3, 0.05, 200, 'square');      // Layer 3 - Squares
-    })();
+    // Generate immediately - no idle callback needed
+    generateAllLayers();
 
-    // Cleanup
     return () => {
       mounted = false;
     };
   }, []);
 
-  // Set up continuous re-popping for each shape
+  // Pop animation scheduling effect with proper cleanup
   useEffect(() => {
-    if (popShapes.length === 0) return;
+    if (popState.shapes.length === 0) return;
 
-    const timeouts: NodeJS.Timeout[] = [];
+    // Copy ref values for cleanup (React hooks best practice)
+    const currentTimeoutIds = timeoutIds.current;
+    const currentShapes = popState.shapes;
 
-    popShapes.forEach((shape, index) => {
-      // Schedule re-pop cycle
-      const scheduleNextPop = (currentDelay: number, isInitial: boolean = false) => {
-        // Animation duration is 0.6s
+    // Create new AbortController for this effect cycle
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
+
+    // Helper to schedule a timeout and track it
+    const scheduleTimeout = (callback: () => void, delay: number): NodeJS.Timeout => {
+      const id = setTimeout(() => {
+        // Remove from tracking set when executed
+        currentTimeoutIds.delete(id);
+        // Only execute if not aborted
+        if (!signal.aborted) {
+          callback();
+        }
+      }, delay);
+      currentTimeoutIds.add(id);
+      return id;
+    };
+
+    // Schedule pop cycles for each shape
+    currentShapes.forEach((shape, index) => {
+      const scheduleNextPop = (currentDelay: number) => {
+        if (signal.aborted) return;
+
         const animationDuration = 600; // 0.6s in ms
         const delayTime = currentDelay * 1000;
 
         // After delay + animation, hide the shape
-        const hideTimeout = setTimeout(() => {
-          setVisiblePops((prev) => {
-            const updated = [...prev];
-            updated[index] = false;
-            return updated;
-          });
+        scheduleTimeout(() => {
+          if (signal.aborted) return;
+
+          // Hide this shape
+          setPopState((prev) => ({
+            ...prev,
+            visible: prev.visible.map((v, i) => (i === index ? false : v)),
+          }));
 
           // Wait 5-15 seconds before showing again
           const waitTime = (5 + Math.random() * 10) * 1000;
 
-          const showTimeout = setTimeout(() => {
-            // Generate new random delay for next pop (0-2 seconds for quick appearance)
+          scheduleTimeout(() => {
+            if (signal.aborted) return;
+
             const nextDelay = Math.random() * 2;
 
-            // Make visible and update delay
-            setVisiblePops((prev) => {
-              const updated = [...prev];
-              updated[index] = true;
-              return updated;
-            });
+            // Show shape with new delay and increment key
+            setPopState((prev) => ({
+              shapes: prev.shapes.map((s, i) =>
+                i === index ? { ...s, delay: nextDelay } : s
+              ),
+              keys: prev.keys.map((k, i) => (i === index ? k + 1 : k)),
+              visible: prev.visible.map((v, i) => (i === index ? true : v)),
+            }));
 
-            setPopShapes((prev) => {
-              const updated = [...prev];
-              updated[index] = { ...updated[index], delay: nextDelay };
-              return updated;
-            });
-
-            setPopKeys((prev) => {
-              const updated = [...prev];
-              updated[index] = updated[index] + 1;
-              return updated;
-            });
-
-            // Schedule the next cycle
+            // Schedule next cycle
             scheduleNextPop(nextDelay);
           }, waitTime);
-
-          timeouts.push(showTimeout);
         }, delayTime + animationDuration);
-
-        timeouts.push(hideTimeout);
       };
 
       // Start the cycle with the initial delay
-      scheduleNextPop(shape.delay, true);
+      scheduleNextPop(shape.delay);
     });
 
-    // Cleanup timeouts on unmount
+    // Cleanup: abort all operations and clear all timeouts
     return () => {
-      timeouts.forEach(clearTimeout);
+      abortRef.current?.abort();
+      currentTimeoutIds.forEach(clearTimeout);
+      currentTimeoutIds.clear();
     };
-  }, [popShapes.length]); // Only run when popShapes are first loaded
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [popState.shapes.length]); // Intentionally only re-run when shapes count changes, not on every shape update
 
   // Show fallback until at least layer 1 loads
   if (!layers.layer1) {
@@ -184,7 +198,7 @@ export function AnimatedBackground() {
           position: 'fixed',
           inset: 0,
           backgroundColor: '#0f1419',
-          zIndex: -10
+          zIndex: -10,
         }}
       />
     );
@@ -197,10 +211,10 @@ export function AnimatedBackground() {
         inset: 0,
         overflow: 'hidden',
         zIndex: -10,
-        backgroundColor: '#0f1419'
+        backgroundColor: '#0f1419',
       }}
     >
-      {/* Layer 1 - Slowest, most visible (always rendered if loaded) */}
+      {/* Layer 1 - Slowest, most visible */}
       {layers.layer1 && (
         <>
           <div
@@ -220,10 +234,10 @@ export function AnimatedBackground() {
           />
 
           {/* Pop Shapes - Orange circles that continuously pop */}
-          {popShapes.map((shape, index) =>
-            visiblePops[index] ? (
+          {popState.shapes.map((shape, index) =>
+            popState.visible[index] ? (
               <div
-                key={`pop-${index}-${popKeys[index]}`}
+                key={`pop-${index}-${popState.keys[index]}`}
                 className="pop-shape"
                 style={{
                   position: 'absolute',
@@ -243,7 +257,7 @@ export function AnimatedBackground() {
         </>
       )}
 
-      {/* Layer 2 - Medium speed (only render if loaded) */}
+      {/* Layer 2 - Medium speed */}
       {layers.layer2 && (
         <div
           style={{
@@ -262,7 +276,7 @@ export function AnimatedBackground() {
         />
       )}
 
-      {/* Layer 3 - Fastest, least visible (only render if loaded) */}
+      {/* Layer 3 - Fastest, least visible */}
       {layers.layer3 && (
         <div
           style={{
@@ -281,8 +295,8 @@ export function AnimatedBackground() {
         />
       )}
 
-      {/* Inject keyframes directly (ensures they're always available) */}
-      <style jsx>{`
+      {/* Animation keyframes - global needed for inline style animation references */}
+      <style jsx global>{`
         @keyframes ascend {
           from {
             transform: translateY(0);

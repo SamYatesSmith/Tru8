@@ -230,6 +230,26 @@ export function FeatureCarousel() {
           </div>
         </div>
       </div>
+
+      {/* Carousel styles - global needed for class selectors to work */}
+      <style jsx global>{`
+        .carousel-perspective {
+          perspective: 1200px;
+          perspective-origin: center;
+        }
+
+        .carousel-card {
+          transform-style: preserve-3d;
+          transition: all 300ms ease-in-out;
+        }
+
+        /* Respect reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+          .carousel-card {
+            transition: none;
+          }
+        }
+      `}</style>
     </section>
   );
 }

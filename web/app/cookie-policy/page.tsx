@@ -109,7 +109,7 @@ export default function CookiePolicyPage() {
 
         <h3>3.1 Cookie Consent Banner</h3>
         <p>
-          On your first visit, you'll see our cookie consent banner. Choose:
+          On your first visit, you&apos;ll see our cookie consent banner. Choose:
         </p>
         <ul>
           <li><strong>Accept All:</strong> Essential + Analytics + Error Tracking</li>
@@ -123,7 +123,7 @@ export default function CookiePolicyPage() {
           <li>
             Clicking{' '}
             <CookiePreferencesButton>
-              "Cookie Preferences"
+              &quot;Cookie Preferences&quot;
             </CookiePreferencesButton>
             {' '}in the footer
           </li>
@@ -163,7 +163,7 @@ export default function CookiePolicyPage() {
         <h2>6. Updates</h2>
         <p>
           We may update this policy to reflect new cookies or technologies.
-          Changes will be posted on this page with an updated "Last Updated" date.
+          Changes will be posted on this page with an updated &quot;Last Updated&quot; date.
         </p>
 
         <h2>7. Contact</h2>

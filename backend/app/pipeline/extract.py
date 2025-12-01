@@ -320,14 +320,14 @@ Always return valid JSON matching the required format."""
 
                 # Only keep if factual core is substantial (>20 chars)
                 if len(factual_core) > 20:
-                    logger.info(f"🔧 CLAIM REFINEMENT: Stripped procedural negative")
+                    logger.info(f"[EXTRACT] CLAIM REFINEMENT: Stripped procedural negative")
                     logger.info(f"   Original: {claim_text[:80]}...")
                     logger.info(f"   Refined: {factual_core[:80]}...")
                     claim["text"] = factual_core
                     claim["confidence"] *= 0.85  # Lower confidence for modified claim
                     claim["was_refined"] = True
                 else:
-                    logger.warning(f"⚠️  CLAIM FILTERED: Procedural negative with no factual core")
+                    logger.warning(f"[EXTRACT] CLAIM FILTERED: Procedural negative with no factual core")
                     logger.warning(f"   Claim: {claim_text[:80]}...")
                     filtered_count += 1
                     continue
@@ -338,7 +338,7 @@ Always return valid JSON matching the required format."""
             has_pronoun = any(pronoun.strip() in words_lower for pronoun in unresolved_pronouns)
 
             if has_pronoun:
-                logger.warning(f"⚠️  CLAIM FILTERED: Unresolved pronoun/reference")
+                logger.warning(f"[EXTRACT] CLAIM FILTERED: Unresolved pronoun/reference")
                 logger.warning(f"   Claim: {claim_text[:80]}...")
                 filtered_count += 1
                 continue
@@ -349,7 +349,7 @@ Always return valid JSON matching the required format."""
             has_proper_noun = bool(re.search(r'\b[A-Z][a-z]+\b', claim_text))
 
             if not (has_date or has_number or has_proper_noun):
-                logger.warning(f"⚠️  CLAIM FILTERED: Too vague (no date/number/proper noun)")
+                logger.warning(f"[EXTRACT] CLAIM FILTERED: Too vague (no date/number/proper noun)")
                 logger.warning(f"   Claim: {claim_text[:80]}...")
                 filtered_count += 1
                 continue
@@ -364,7 +364,7 @@ Always return valid JSON matching the required format."""
 
             if has_subjective:
                 # Lower confidence but don't filter (might still be verifiable)
-                logger.info(f"⚠️  CLAIM WARNING: Contains subjective language")
+                logger.info(f"[EXTRACT] CLAIM WARNING: Contains subjective language")
                 logger.info(f"   Claim: {claim_text[:80]}...")
                 claim["confidence"] *= 0.75
                 claim["has_subjective_language"] = True
@@ -373,7 +373,7 @@ Always return valid JSON matching the required format."""
             validated_claims.append(claim)
 
         if filtered_count > 0:
-            logger.info(f"📊 CLAIM VALIDATION: {len(validated_claims)} passed, {filtered_count} filtered")
+            logger.info(f"[EXTRACT] CLAIM VALIDATION: {len(validated_claims)} passed, {filtered_count} filtered")
 
         return validated_claims
 

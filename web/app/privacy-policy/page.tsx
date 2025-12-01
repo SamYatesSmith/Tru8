@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
 
         <h2>1. Introduction</h2>
         <p>
-          Tru8 Ltd ("we," "our," or "us") operates the Tru8 fact-checking platform.
+          Tru8 Ltd (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the Tru8 fact-checking platform.
           This Privacy Policy explains how we collect, use, disclose, and safeguard
           your information when you use our services.
         </p>
@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
 
         <h3>2.3 Payment Information</h3>
         <ul>
-          <li><strong>Billing details:</strong> Processed securely by Stripe (we don't store card numbers)</li>
+          <li><strong>Billing details:</strong> Processed securely by Stripe (we don&apos;t store card numbers)</li>
           <li><strong>Subscription status:</strong> Plan type, renewal dates, payment history</li>
         </ul>
 
@@ -125,7 +125,7 @@ export default function PrivacyPolicyPage() {
         <h3>7.2 Right to Rectification</h3>
         <p>Update your name/email in Settings → Account → Update Profile</p>
 
-        <h3>7.3 Right to Erasure ("Right to be Forgotten")</h3>
+        <h3>7.3 Right to Erasure (&quot;Right to be Forgotten&quot;)</h3>
         <p>Delete your account in Settings → Account → Delete Account</p>
         <p><em>Note: Payment records retained 7 years for legal compliance</em></p>
 
@@ -160,7 +160,7 @@ export default function PrivacyPolicyPage() {
           <CookiePreferencesButton />
         </p>
 
-        <h2>11. Children's Privacy</h2>
+        <h2>11. Children&apos;s Privacy</h2>
         <p>
           Tru8 is not intended for users under 13. We do not knowingly collect
           data from children.
@@ -188,7 +188,7 @@ export default function PrivacyPolicyPage() {
 
         <p>
           <strong>Complaints to ICO:</strong><br />
-          Information Commissioner's Office<br />
+          Information Commissioner&apos;s Office<br />
           Wycliffe House, Water Lane<br />
           Wilmslow, Cheshire SK9 5AF<br />
           Website: <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a>

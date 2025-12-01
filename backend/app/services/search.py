@@ -129,17 +129,23 @@ class BraveSearchProvider(BaseSearchProvider):
 
     async def _execute_search(self, query: str, **kwargs) -> List[SearchResult]:
         """Execute the actual search request with exponential backoff retry on 429 errors"""
-        # Filter for recent content (last 2 years as per project requirements)
+        # Freshness parameter: pd (past day), pw (past week), pm (past month), py (past year), 2y (2 years)
+        # Use passed freshness or default to 2y
+        freshness = kwargs.get("freshness", "2y")
+
         params = {
             "q": query,
             "count": min(kwargs.get("max_results", self.max_results), 20),
-            "freshness": "2y",  # Last 2 years
+            "freshness": freshness,
             "text_decorations": False,
             "search_lang": "en",
             "country": "GB",  # UK focus for Tru8
             "safesearch": "moderate",
             "extra_snippets": True  # Get up to 5 snippets for better context (Pro plans only, ignored otherwise)
         }
+
+        if freshness != "2y":
+            logger.info(f"BRAVE FRESHNESS: Using '{freshness}' for time-sensitive claim")
 
         # Retry configuration
         max_retries = 3
@@ -424,13 +430,20 @@ class SearchService:
         if not self.providers:
             logger.warning("No search providers configured")
     
-    async def search_for_evidence(self, claim: str, max_results: int = 10) -> List[SearchResult]:
-        """Search for evidence supporting/contradicting a claim"""
+    async def search_for_evidence(self, claim: str, max_results: int = 10, freshness: str = None) -> List[SearchResult]:
+        """Search for evidence supporting/contradicting a claim
+
+        Args:
+            claim: The claim text to search for
+            max_results: Maximum number of results to return
+            freshness: Brave freshness filter - pd (day), pw (week), pm (month), py (year), 2y (default)
+        """
         # Optimize search query for fact-checking
         query = self._optimize_query_for_factcheck(claim)
 
         # DIAGNOSTIC: Log search initiation
-        logger.info(f"SEARCH INITIATED | Claim: '{claim[:60]}...' | Query: '{query[:80]}...' | Max: {max_results}")
+        freshness_str = f" | Freshness: {freshness}" if freshness else ""
+        logger.info(f"SEARCH INITIATED | Claim: '{claim[:60]}...' | Query: '{query[:80]}...' | Max: {max_results}{freshness_str}")
         logger.info(f"Providers available: {[p.__class__.__name__ for p in self.providers]}")
 
         # Try providers in order until we get results
@@ -438,7 +451,10 @@ class SearchService:
             provider_name = provider.__class__.__name__
             try:
                 logger.info(f"Trying provider {i+1}/{len(self.providers)}: {provider_name}")
-                results = await provider.search(query, max_results=max_results)
+                search_kwargs = {"max_results": max_results}
+                if freshness:
+                    search_kwargs["freshness"] = freshness
+                results = await provider.search(query, **search_kwargs)
 
                 if results:
                     # Filter for credible sources

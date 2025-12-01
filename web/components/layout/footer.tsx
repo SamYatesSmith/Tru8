@@ -2,15 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { scrollToSection } from '@/lib/scroll-utils';
 
 export function Footer() {
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   const productLinks = [
     { label: 'Features', sectionId: 'features' },
     { label: 'How It Works', sectionId: 'how-it-works' },

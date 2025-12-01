@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { AuthModal } from '@/components/auth/auth-modal';
+import { scrollToSection } from '@/lib/scroll-utils';
 
 /**
  * Desktop Navigation Component
@@ -52,13 +53,6 @@ export function Navigation({
 
     return () => cancelAnimationFrame(frame);
   }, []);
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   return (
     <>

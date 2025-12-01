@@ -529,7 +529,7 @@ class NLIVerifier:
                 probabilities = torch.softmax(outputs.logits, dim=-1)
 
             # DIAGNOSTIC: Print raw probabilities to verify correct loading
-            logger.info(f"🔬 RAW MODEL OUTPUT (first result): {probabilities[0].tolist() if len(probabilities) > 0 else 'empty'}")
+            logger.info(f"[NLI] RAW MODEL OUTPUT (first result): {probabilities[0].tolist() if len(probabilities) > 0 else 'empty'}")
             logger.info(f"   Model config: {self.model_name}")
 
             # Convert to list of tuples (entailment, contradiction, neutral)
@@ -542,7 +542,7 @@ class NLIVerifier:
                 results.append((entailment, contradiction, neutral))
 
                 # DEBUG LOGGING: Show NLI scores for each verification
-                logger.info(f"🔬 NLI SCORES - Premise (EVIDENCE): {premises[i][:80]}...")
+                logger.info(f"[NLI] SCORES - Premise (EVIDENCE): {premises[i][:80]}...")
                 logger.info(f"   Hypothesis (CLAIM): {hypotheses[i][:80]}...")
                 logger.info(f"   Entailment: {entailment:.3f}, Contradiction: {contradiction:.3f}, Neutral: {neutral:.3f}")
                 logger.info(f"   → Relationship: {'ENTAILS' if entailment > max(contradiction, neutral) else 'CONTRADICTS' if contradiction > max(entailment, neutral) else 'NEUTRAL'}")
@@ -727,7 +727,7 @@ class ClaimVerifier:
 
         # Multi-part claim detected - check evidence coverage
         # If evidence only addresses one part, reduce confidence significantly
-        logger.info(f"🔍 COMPLEXITY ADJUSTMENT: Multi-part claim detected")
+        logger.info(f"[VERIFY] COMPLEXITY ADJUSTMENT: Multi-part claim detected")
         logger.info(f"   Claim: {claim_text[:80]}...")
 
         # Check if we have strong evidence (high entailment/contradiction scores)

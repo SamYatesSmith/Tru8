@@ -18,146 +18,6 @@
 }
 
 @layer utilities {
-  /* Ascending animations for pixel grid background */
-  @keyframes ascend {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(-50%);
-    }
-  }
-
-  .animate-ascend-slow {
-    animation: ascend 100s linear infinite;
-  }
-
-  .animate-ascend-medium {
-    animation: ascend 80s linear infinite;
-  }
-
-  .animate-ascend-fast {
-    animation: ascend 60s linear infinite;
-  }
-
-  /* Gentle pulse animation - pulses intensity, NOT scale (prevents gap) */
-  @keyframes gentlePulse {
-    0%, 100% {
-      opacity: 0.75;
-      filter: brightness(1);
-    }
-    50% {
-      opacity: 1;
-      filter: brightness(1.15);
-    }
-  }
-
-  /* Serene color rotation through orange/white spectrum */
-  @keyframes colorRotate {
-    0% {
-      filter: hue-rotate(0deg) brightness(1);
-    }
-    33% {
-      filter: hue-rotate(10deg) brightness(1.2);
-    }
-    66% {
-      filter: hue-rotate(-10deg) brightness(1.1);
-    }
-    100% {
-      filter: hue-rotate(0deg) brightness(1);
-    }
-  }
-
-  /* Swirling color animation - rotates the gradient BEHIND the text */
-  @keyframes swirlColors {
-    0% {
-      background-position: 50% 50%;
-    }
-    25% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 50% 100%;
-    }
-    75% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 50% 50%;
-    }
-  }
-
-
-  .hero-backlight {
-    position: relative;
-    overflow: visible;
-  }
-
-  /* Single pulsing glow - anchored to card edge, pulses brightness NOT position */
-  .hero-backlight::before {
-    position: absolute;
-    content: "";
-    inset: 0;
-    z-index: -1;
-    border-radius: 3rem;
-    box-shadow:
-      0 0 0 5px rgba(245, 122, 7, 1),
-      0 0 0 8px rgba(245, 122, 7, 0.95),
-      0 0 2px 10px rgba(245, 122, 7, 0.9),
-      0 0 4px 13px rgba(245, 122, 7, 0.85),
-      0 0 8px 16px rgba(245, 122, 7, 0.8),
-      0 0 12px 20px rgba(245, 122, 7, 0.75),
-      0 0 18px 25px rgba(245, 122, 7, 0.65),
-      0 0 25px 32px rgba(251, 146, 60, 0.52),
-      0 0 35px 40px rgba(251, 146, 60, 0.4),
-      0 0 48px 50px rgba(252, 165, 87, 0.3),
-      0 0 65px 62px rgba(253, 186, 116, 0.22),
-      0 0 85px 76px rgba(255, 220, 180, 0.16),
-      0 0 110px 92px rgba(255, 235, 215, 0.11),
-      0 0 140px 110px rgba(255, 245, 235, 0.06),
-      0 0 175px 130px rgba(255, 255, 255, 0.03);
-    animation: gentlePulse 10s ease-in-out infinite, colorRotate 20s ease-in-out infinite;
-  }
-
-  .hero-backlight > div {
-    position: relative;
-  }
-
-  /* Transparent text - swirling colors that rotate around and through the letters */
-  .hero-gradient-text {
-    background:
-      radial-gradient(ellipse at 20% 30%, #f57a07 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, #fb923c 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 50%, #fca55f 0%, transparent 40%),
-      radial-gradient(ellipse at 70% 20%, #fdc9a0 0%, transparent 45%),
-      radial-gradient(ellipse at 30% 80%, #ffffff 0%, transparent 50%),
-      linear-gradient(135deg,
-        #f57a07 0%,
-        #fb923c 20%,
-        #fca55f 40%,
-        #fdc9a0 60%,
-        #ffffff 80%,
-        #fca55f 100%
-      );
-    background-size: 400% 400%;
-    background-position: center;
-    animation: swirlColors 15s ease-in-out infinite;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-
-    /* Fine orange border/stroke for emphasis - subtle */
-    -webkit-text-stroke: 1px #f57a07;
-    text-stroke: 1px #f57a07;
-    paint-order: stroke fill;
-
-    /* Warm orange glow shadow - no yellow tones */
-    filter: drop-shadow(0 4px 12px rgba(245, 122, 7, 0.6))
-            drop-shadow(0 8px 24px rgba(251, 146, 60, 0.4))
-            drop-shadow(0 12px 32px rgba(252, 165, 87, 0.3));
-  }
-
   /* Navigation links fade-in animation */
   @keyframes fadeIn {
     from {
@@ -215,56 +75,19 @@
     transform: scale(1.05);
   }
 
-  /* Hero container inner shadow for depth - all sides, subtle with soft blend */
-  .hero-container-depth {
-    box-shadow: inset 0 3px 16px 0 rgba(0, 0, 0, 0.15),
-                inset 0 6px 24px 0 rgba(0, 0, 0, 0.1),
-                inset 0 -3px 16px 0 rgba(0, 0, 0, 0.15),
-                inset 3px 0 16px 0 rgba(0, 0, 0, 0.15),
-                inset -3px 0 16px 0 rgba(0, 0, 0, 0.15);
-  }
-
-  /* Carousel 3D perspective */
-  .carousel-perspective {
-    perspective: 1200px;
-    perspective-origin: center;
-  }
-
-  .carousel-card {
-    transform-style: preserve-3d;
-    transition: all 300ms ease-in-out;
-  }
-
-  .carousel-card-center {
-    transform: scale(1) translateZ(0) rotateY(0);
-  }
-
-  .carousel-card-adjacent {
-    transform: scale(0.85) translateZ(-100px) rotateY(5deg);
-  }
-
-  .carousel-card-far {
-    transform: scale(0.7) translateZ(-200px) rotateY(10deg);
-  }
-
   /* Respect reduced motion preference */
   @media (prefers-reduced-motion: reduce) {
-    .animate-ascend-slow,
-    .animate-ascend-medium,
-    .animate-ascend-fast,
-    .hero-backlight::after,
-    .hero-gradient-text,
-    .carousel-card {
+    .cta-pulse,
+    .animate-fade-in,
+    .trust-badge-1,
+    .trust-badge-2,
+    .trust-badge-3 {
       animation: none;
+      opacity: 1;
     }
 
-    .hero-backlight::after,
-    .hero-gradient-text {
-      background-position: 0% 50%;
-    }
-
-    .carousel-card {
-      transition: none;
+    .btn-scale-hover:hover {
+      transform: none;
     }
   }
 }

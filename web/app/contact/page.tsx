@@ -14,7 +14,7 @@ export default function ContactPage() {
     >
       <div className="prose-legal">
         <p className="text-lg text-slate-200 mb-12">
-          We're here to help. Contact us for any inquiry related to your account, privacy, billing, or legal matters.
+          We&apos;re here to help. Contact us for any inquiry related to your account, privacy, billing, or legal matters.
         </p>
 
         {/* Single Contact Email */}
@@ -77,17 +77,17 @@ export default function ContactPage() {
 
         <h2>Complaints Escalation</h2>
         <p>
-          If you're not satisfied with our response:
+          If you&apos;re not satisfied with our response:
         </p>
         <ol>
           <li>Reply to the original support email requesting escalation</li>
           <li>Your case will be reviewed by a senior team member</li>
-          <li>You'll receive a response within 7 business days</li>
+          <li>You&apos;ll receive a response within 7 business days</li>
         </ol>
 
         <h2>Regulatory Authority</h2>
         <p>
-          For data protection complaints, you may contact the UK Information Commissioner's Office:
+          For data protection complaints, you may contact the UK Information Commissioner&apos;s Office:
         </p>
         <div className="bg-slate-900/30 border border-slate-700 rounded-lg p-6 not-prose">
           <p className="text-slate-300 mb-2">

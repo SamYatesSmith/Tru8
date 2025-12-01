@@ -87,7 +87,7 @@ export default function TermsOfServicePage() {
           <li>Attempting to reverse-engineer or bypass our systems</li>
           <li>Automated abuse or scraping</li>
           <li>Reselling or redistributing our services</li>
-          <li>Violating others' intellectual property rights</li>
+          <li>Violating others&apos; intellectual property rights</li>
         </ul>
 
         <h2>6. Service Limitations & Disclaimers</h2>
@@ -107,7 +107,7 @@ export default function TermsOfServicePage() {
 
         <h3>6.2 No Warranty</h3>
         <p>
-          Services provided "AS IS" without warranties of:
+          Services provided &quot;AS IS&quot; without warranties of:
         </p>
         <ul>
           <li>Accuracy or completeness</li>
@@ -130,7 +130,7 @@ export default function TermsOfServicePage() {
         <ul>
           <li>Reflect general reliability patterns, not quality of individual articles</li>
           <li>Are used to weight evidence, not to exclude sources entirely</li>
-          <li>Do not constitute Tru8's endorsement or criticism of any publication</li>
+          <li>Do not constitute Tru8&apos;s endorsement or criticism of any publication</li>
           <li>May differ from other rating systems or personal assessments</li>
         </ul>
         <p>

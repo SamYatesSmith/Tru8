@@ -1,9 +1,23 @@
 from celery import Celery
-from celery.signals import worker_ready
+from celery.signals import worker_ready, setup_logging as celery_setup_logging
 from app.core.config import settings
+from app.core.logging import setup_logging
 import logging
 
+# Setup logging at module import time
+setup_logging()
+
 logger = logging.getLogger(__name__)
+
+
+@celery_setup_logging.connect
+def configure_celery_logging(**kwargs):
+    """
+    Configure logging after Celery initializes its own logging system.
+    This ensures our app loggers are properly configured.
+    """
+    setup_logging()
+    logger.info("[WORKER] Celery logging configured")
 
 celery_app = Celery(
     "tru8",
@@ -56,6 +70,6 @@ def initialize_worker(**kwargs):
     if settings.ENABLE_API_RETRIEVAL:
         from app.services.api_adapters import initialize_adapters
         initialize_adapters()
-        logger.info("✅ API adapters initialized in Celery worker")
+        logger.info("[WORKER] API adapters initialized in Celery worker")
     else:
-        logger.info("⚠️  ENABLE_API_RETRIEVAL is False, skipping adapter initialization")
+        logger.info("[WORKER] ENABLE_API_RETRIEVAL is False, skipping adapter initialization")

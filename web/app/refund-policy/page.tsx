@@ -18,7 +18,7 @@ export default function RefundPolicyPage() {
         </p>
         <ul>
           <li>Go to Settings → Subscription</li>
-          <li>Click "Cancel Subscription"</li>
+          <li>Click &quot;Cancel Subscription&quot;</li>
           <li>Access continues until the end of your current billing period</li>
           <li>No charges after cancellation</li>
         </ul>
@@ -27,15 +27,15 @@ export default function RefundPolicyPage() {
 
         <h3>2.1 14-Day Money-Back Guarantee</h3>
         <p>
-          <strong>NEW CUSTOMERS:</strong> If you're not satisfied within 14 days of your
-          first subscription payment, we'll provide a full refund.
+          <strong>NEW CUSTOMERS:</strong> If you&apos;re not satisfied within 14 days of your
+          first subscription payment, we&apos;ll provide a full refund.
         </p>
 
         <h3>2.2 How to Request</h3>
         <ol>
           <li>Email <a href="mailto:hello@tru8.com">hello@tru8.com</a> within 14 days of payment</li>
           <li>Include your account email and reason for refund</li>
-          <li>We'll process your request within 5 business days</li>
+          <li>We&apos;ll process your request within 5 business days</li>
           <li>Refunds issued to original payment method within 7-10 business days</li>
         </ol>
 
@@ -46,7 +46,7 @@ export default function RefundPolicyPage() {
         <ul>
           <li>Partial months (prorated refunds not offered)</li>
           <li>Renewal payments beyond 14 days</li>
-          <li>Unused credits (credits don't roll over)</li>
+          <li>Unused credits (credits don&apos;t roll over)</li>
           <li>Service dissatisfaction after 14-day period</li>
           <li>Account termination due to Terms of Service violations</li>
         </ul>
@@ -58,7 +58,7 @@ export default function RefundPolicyPage() {
         <ul>
           <li>Contact <a href="mailto:hello@tru8.com">hello@tru8.com</a> immediately</li>
           <li>Provide transaction details (date, amount, payment method)</li>
-          <li>We'll investigate and resolve within 7 business days</li>
+          <li>We&apos;ll investigate and resolve within 7 business days</li>
         </ul>
 
         <h2>5. EU Consumer Rights</h2>
