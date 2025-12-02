@@ -59,7 +59,15 @@ ANALYSIS FRAMEWORK:
 1. Evidence Quality: Assess source credibility, recency, relevance
 2. Signal Strength: Weight entailment/contradiction scores
 3. Consensus: Look for agreement across multiple sources
-4. Context & Numerical Precision: Consider nuances, qualifications, temporal factors, and apply appropriate numerical tolerance:
+4. **Evidence Freshness**: Time-sensitive claims REQUIRE recent evidence:
+   - Squad/roster claims: Evidence must be within 14 days (players transfer/get injured)
+   - League standings: Evidence must be within 7 days (tables change each matchweek)
+   - Match results: Evidence must be within 7 days
+   - Player statistics: Evidence should be within 30 days (season stats)
+   - Contract info: Evidence can be up to 6 months old (annual data)
+   - If evidence is marked as STALE, treat it with EXTREME CAUTION - it may no longer be accurate
+   - STALE evidence should NOT be used to support or contradict time-sensitive claims
+5. Context & Numerical Precision: Consider nuances, qualifications, temporal factors, and apply appropriate numerical tolerance:
 
    APPLY TOLERANCE (±15-20%) when the claim text contains approximation language:
    - Approximate words: "roughly", "approximately", "around", "about", "~", "nearly", "close to"
@@ -140,6 +148,35 @@ CRITICAL - Logical Fallacies to Avoid:
 - Do NOT infer: "Law exempts building → Therefore no agencies were consulted"
 - Do NOT infer: "Process doesn't need documentation → Therefore no documentation was requested"
 
+CRITICAL - Temporal/Date Reasoning (MUST calculate, don't just pattern match):
+When claims involve dates, contracts, or durations, YOU MUST perform arithmetic reasoning:
+
+1. CONTRACT DATES:
+   - "Contract expires June 2027" → "Last year of contract starts July 2026" (EQUIVALENT)
+   - "Contract expires 30/06/2027" means the FINAL year is from 01/07/2026 to 30/06/2027
+   - Claim "enters last year in July 2026" + Evidence "expires June 2027" = SUPPORTED
+
+2. AGE CALCULATIONS:
+   - "Born September 2001" + "Current year 2025" → "Is 24 years old" (calculate: 2025-2001)
+   - "Born March 1992" + "Current date Dec 2025" → "Is 33 years old"
+
+3. DURATION CALCULATIONS:
+   - "Joined July 2022" + "Current date Dec 2025" → "Been at club 3.5 years"
+   - "Signed 5-year deal in 2021" → "Contract expires 2026"
+
+4. "LAST YEAR" LOGIC:
+   - If something expires on date X, the "last year" or "final year" begins 12 months before X
+   - Contract expires 30/06/2027 → Last year is 01/07/2026 to 30/06/2027
+   - Warranty expires Dec 2026 → Last year of warranty is Jan 2026 to Dec 2026
+
+5. DO THE MATH - Don't just look for exact text matches:
+   ✓ Claim: "Adeyemi will enter final year of contract in July 2026"
+     Evidence: "Contract expires: 30/06/2027"
+     Reasoning: 30/06/2027 minus 1 year = 01/07/2026. Claim says "July 2026" = SUPPORTED
+
+   ✗ WRONG: Marking as "uncertain" because "2026" and "2027" are different numbers
+   ✓ RIGHT: Calculating that expiry 2027 means last year starts 2026
+
 RESPONSE FORMAT: Respond with a valid JSON object containing:
 {
   "verdict": "supported|contradicted|uncertain",
@@ -176,7 +213,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
 
         # PHASE 3: Check for abstention BEFORE making a judgment
         if settings.ENABLE_ABSTENTION_LOGIC:
-            abstention_check = self._should_abstain(evidence, verification_signals)
+            abstention_check = self._should_abstain(evidence, verification_signals, claim_text)
             if abstention_check:
                 verdict, reason, consensus_strength = abstention_check
                 logger.info(f"Abstaining from verdict: {verdict} - {reason}")
@@ -321,6 +358,26 @@ RATIONALE: Claim uses "roughly" indicating approximation. Evidence shows $320M (
 
 ---
 
+=== EXAMPLE 5: Temporal/Date Reasoning (CRITICAL - DO THE MATH!) ===
+
+CLAIM: "Karim Adeyemi will enter the last year of his contract in July 2026"
+
+EVIDENCE:
+[1] "#27 Karim Adeyemi Dortmund... Contract expires: 30/06/2027"
+    Source: Transfermarkt, Credibility: 0.85, Published: 2025-11-30
+[2] "Contract expires: 30/06/2027"
+    Source: Transfermarkt, Credibility: 0.85, Published: 2025-11-30
+
+VERIFICATION METRICS (from NLI - IGNORE FOR DATE CLAIMS):
+Overall Verdict Signal: contradicted (NLI CANNOT DO DATE MATH - IGNORE THIS!)
+Contradicting Evidence: 2 pieces (NLI saw "2027" vs "2026" - WRONG CONCLUSION!)
+
+VERDICT: supported
+CONFIDENCE: 90
+RATIONALE: Contract expires 30/06/2027. The LAST YEAR of a contract begins 12 months before expiry. 30/06/2027 minus 12 months = 01/07/2026 (July 2026). The claim says "July 2026" which MATCHES. NLI models cannot do date arithmetic and incorrectly marked this as contradicted because they saw "2027" vs "2026" as different numbers. Doing the math: SUPPORTED.
+
+---
+
 NOW JUDGE THE FOLLOWING CLAIM:
 
 """
@@ -330,8 +387,14 @@ NOW JUDGE THE FOLLOWING CLAIM:
         """Prepare context for LLM judgment with optional article context for holistic evaluation"""
         claim_text = claim.get("text", "")
 
-        # Evidence summary
+        # Check if this is a temporal/date claim that requires math reasoning
+        is_temporal_claim = self._requires_llm_reasoning(claim_text, evidence)
+
+        # Evidence summary with staleness checking
         evidence_summary = []
+        stale_evidence_count = 0
+        stale_evidence_warnings = []
+
         for i, ev in enumerate(evidence[:5]):  # Top 5 pieces
             source = ev.get("source", "Unknown")
             # Use configurable snippet length (increased from 150 to 400 to preserve context)
@@ -339,8 +402,38 @@ NOW JUDGE THE FOLLOWING CLAIM:
             url = ev.get("url", "")
             date = ev.get("published_date", "")
 
+            # Check staleness from metadata (set during retrieval)
+            staleness_check = ev.get("metadata", {}).get("staleness_check") if ev.get("metadata") else None
+            claim_type = ev.get("metadata", {}).get("claim_type", "general") if ev.get("metadata") else "general"
+
+            staleness_warning = ""
+            if staleness_check:
+                if staleness_check.get("is_stale"):
+                    stale_evidence_count += 1
+                    age_days = staleness_check.get("age_days", "?")
+                    max_age = staleness_check.get("max_age_days", "?")
+                    staleness_warning = f"⚠️ STALE ({age_days} days old, max {max_age} for {claim_type})"
+                    stale_evidence_warnings.append(
+                        f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} for {claim_type})"
+                    )
+                elif staleness_check.get("is_warning"):
+                    age_days = staleness_check.get("age_days", "?")
+                    staleness_warning = f"⏰ WARNING: {age_days} days old"
+            elif date:
+                # Fallback: Do basic staleness check if metadata not present
+                from app.utils.query_planner import check_evidence_staleness
+                fallback_check = check_evidence_staleness(claim_type, date)
+                if fallback_check.get("is_stale"):
+                    stale_evidence_count += 1
+                    age_days = fallback_check.get("age_days", "?")
+                    max_age = fallback_check.get("max_age_days", "?")
+                    staleness_warning = f"⚠️ STALE ({age_days} days old, max {max_age} for {claim_type})"
+                    stale_evidence_warnings.append(
+                        f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} for {claim_type})"
+                    )
+
             evidence_summary.append(
-                f"Evidence {i+1}:\n"
+                f"Evidence {i+1}: {staleness_warning}\n"
                 f"Source: {source}\n"
                 f"Date: {date}\n"
                 f"Content: {snippet}...\n"
@@ -365,10 +458,41 @@ IMPORTANT: Use this article context to:
 
 """
 
+        # Add temporal warning if this claim involves dates/contracts
+        temporal_warning = ""
+        if is_temporal_claim:
+            temporal_warning = """
+⚠️ TEMPORAL CLAIM DETECTED - DATE ARITHMETIC REQUIRED! ⚠️
+This claim involves dates, contracts, or time calculations.
+The NLI verification signals below MAY BE WRONG because NLI models cannot do math.
+YOU MUST do the date arithmetic yourself:
+- "Contract expires June 2027" means "last year starts July 2026" (12 months before)
+- IGNORE the Overall Verdict Signal for date claims - reason independently!
+- See Example 5 in the training examples for how to handle this.
+
+"""
+
+        # Add stale evidence warning if any evidence is too old for the claim type
+        stale_warning = ""
+        if stale_evidence_count > 0:
+            stale_warning = f"""
+🚨 STALE EVIDENCE WARNING - {stale_evidence_count} of {len(evidence[:5])} pieces are outdated! 🚨
+{chr(10).join(stale_evidence_warnings)}
+
+IMPORTANT: Stale evidence may no longer reflect current reality, especially for:
+- Squad composition (players transfer, get injured, retire)
+- League standings (tables change after every match)
+- Recent events (situations evolve rapidly)
+
+Consider marking the verdict as "uncertain" if ALL evidence is stale, or
+reduce confidence significantly if relying on outdated sources.
+
+"""
+
         base_context = f"""
 CLAIM TO JUDGE:
 {claim_text}
-{article_context_section}
+{temporal_warning}{stale_warning}{article_context_section}
 EVIDENCE ANALYSIS:
 Total Evidence Pieces: {signals.get('total_evidence', 0)}
 Supporting Evidence: {signals.get('supporting_count', 0)} pieces
@@ -376,7 +500,7 @@ Contradicting Evidence: {signals.get('contradicting_count', 0)} pieces
 Neutral Evidence: {signals.get('neutral_count', 0)} pieces
 
 VERIFICATION METRICS:
-Overall Verdict Signal: {signals.get('overall_verdict', 'uncertain')}
+Overall Verdict Signal: {signals.get('overall_verdict', 'uncertain')}{"  ⚠️ MAY BE INCORRECT FOR DATE CLAIMS - DO THE MATH!" if is_temporal_claim else ""}
 Signal Confidence: {signals.get('confidence', 0.0):.2f}
 Max Entailment Score: {signals.get('max_entailment', 0.0):.2f}
 Max Contradiction Score: {signals.get('max_contradiction', 0.0):.2f}
@@ -512,7 +636,8 @@ Based on this analysis, provide your final judgment."""
             }
         }
 
-    def _should_abstain(self, evidence: List[Dict[str, Any]], verification_signals: Dict[str, Any]) -> Optional[tuple]:
+    def _should_abstain(self, evidence: List[Dict[str, Any]], verification_signals: Dict[str, Any],
+                        claim_text: str = "") -> Optional[tuple]:
         """
         Determine if we should abstain from making a verdict.
 
@@ -545,6 +670,15 @@ Based on this analysis, provide your final judgment."""
                 f"Highest credibility: {max_cred:.0%}. Need authoritative sources for verdict.",
                 0.0
             )
+
+        # CRITICAL: Check if claim requires temporal/mathematical reasoning
+        # NLI models CANNOT do date math, so we must let Judge LLM reason about these
+        requires_llm_reasoning = self._requires_llm_reasoning(claim_text, evidence)
+
+        if requires_llm_reasoning:
+            logger.info(f"[JUDGE] Bypassing NLI-based abstention - claim requires LLM reasoning: {claim_text[:80]}...")
+            # Don't abstain based on NLI signals - let the Judge LLM handle it
+            return None
 
         # Check 3: Calculate consensus strength
         consensus_strength = self._calculate_consensus_strength(evidence, verification_signals)
@@ -587,6 +721,61 @@ Based on this analysis, provide your final judgment."""
 
         # No abstention needed - minimum requirements met
         return None
+
+    def _requires_llm_reasoning(self, claim_text: str, evidence: List[Dict[str, Any]]) -> bool:
+        """
+        Detect if a claim requires LLM reasoning that NLI cannot perform.
+
+        NLI models are good at textual entailment but CANNOT:
+        - Do date/temporal arithmetic (expires 2027 → last year starts 2026)
+        - Calculate ages from birth dates
+        - Compare rankings that require inference
+        - Reason about contract durations
+
+        When we detect these patterns, we bypass NLI-based abstention and let
+        the Judge LLM reason about the evidence.
+        """
+        import re
+
+        claim_lower = claim_text.lower()
+
+        # Temporal/Date patterns in claim that require arithmetic
+        temporal_patterns = [
+            r'\b(last|final|remaining)\s+(year|month|season)',  # "last year of contract"
+            r'\b(contract|deal|agreement)\s+.{0,30}(expires?|ends?|runs?\s+out)',  # contract expiry
+            r'\b(enter|entering|begin|beginning|start)\s+.{0,20}(year|phase|period)',  # "enter last year"
+            r'\b(20\d{2})\b',  # Any year mentioned (needs context comparison)
+            r'\b(born|age|years?\s+old)\b',  # Age calculations
+            r'\b(joined|signed|transferred)\s+.{0,20}(ago|in\s+20\d{2})',  # Duration calculations
+        ]
+
+        has_temporal_claim = any(re.search(p, claim_lower) for p in temporal_patterns)
+
+        if not has_temporal_claim:
+            return False
+
+        # Check if evidence contains dates/contract info that would need reasoning
+        evidence_text = " ".join([
+            e.get('text', '') + " " + e.get('snippet', '')
+            for e in evidence
+        ]).lower()
+
+        date_patterns = [
+            r'contract\s+expires?',
+            r'expires?:\s*\d',
+            r'\d{2}/\d{2}/20\d{2}',  # Date format DD/MM/YYYY
+            r'20\d{2}[-/]20\d{2}',   # Season format 2024-25 or 2024/25
+            r'(joined|signed):\s*\d',
+            r'until\s+20\d{2}',
+        ]
+
+        has_date_evidence = any(re.search(p, evidence_text) for p in date_patterns)
+
+        if has_temporal_claim and has_date_evidence:
+            logger.debug(f"[JUDGE] Temporal claim detected with date evidence - requires LLM reasoning")
+            return True
+
+        return False
 
     def _calculate_consensus_strength(self, evidence: List[Dict[str, Any]],
                                      verification_signals: Dict[str, Any]) -> float:

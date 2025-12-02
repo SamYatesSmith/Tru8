@@ -8,6 +8,7 @@ Key Features:
 - Batch processing: Single LLM call for all claims in an article (~$0.02/article)
 - Semantic classification: Identifies claim type (squad, stats, contract, etc.)
 - Source prioritization: Routes to authoritative sources per claim type
+- **Domain-aware freshness**: Different claim types require different evidence recency
 - Graceful fallback: Falls back to standard query formulation on failure
 """
 
@@ -19,6 +20,97 @@ import httpx
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================
+# DOMAIN-AWARE EVIDENCE FRESHNESS REQUIREMENTS
+# ============================================================
+# Different claim types require different evidence recency.
+# This mapping defines max_age_days for each claim type.
+#
+# Brave Search freshness values:
+#   - pd (past day)     -> 1 day
+#   - pw (past week)    -> 7 days
+#   - pm (past month)   -> 30 days
+#   - py (past year)    -> 365 days
+#   - 2y (2 years)      -> 730 days
+#
+# CRITICAL: Sports squad/standing claims change DAILY during season!
+# ============================================================
+
+CLAIM_TYPE_FRESHNESS = {
+    # SPORTS - Time-critical (changes daily/weekly during season)
+    "squad_composition": {
+        "max_age_days": 14,       # Squad can change in transfer windows
+        "brave_freshness": "pw",  # Past week
+        "stale_warning_days": 30, # Warn if evidence > 30 days old
+        "description": "Current squad membership - changes during transfer windows"
+    },
+    "league_standing": {
+        "max_age_days": 7,        # Table changes after each matchweek
+        "brave_freshness": "pw",  # Past week
+        "stale_warning_days": 14,
+        "description": "League table/standings - changes after each match"
+    },
+    "match_result": {
+        "max_age_days": 7,        # Recent match results
+        "brave_freshness": "pw",  # Past week
+        "stale_warning_days": 14,
+        "description": "Recent match results and scores"
+    },
+    "player_statistics": {
+        "max_age_days": 30,       # Season stats update weekly
+        "brave_freshness": "pm",  # Past month
+        "stale_warning_days": 60,
+        "description": "Player performance statistics for current season"
+    },
+    "comparison_ranking": {
+        "max_age_days": 30,       # Rankings change with new data
+        "brave_freshness": "pm",  # Past month
+        "stale_warning_days": 60,
+        "description": "Comparative rankings and statistics"
+    },
+    "transfer_rumor": {
+        "max_age_days": 14,       # Transfer news moves fast
+        "brave_freshness": "pw",  # Past week
+        "stale_warning_days": 30,
+        "description": "Transfer speculation and rumors"
+    },
+
+    # SPORTS - Less time-critical
+    "contract_info": {
+        "max_age_days": 180,      # Contracts change less frequently
+        "brave_freshness": "py",  # Past year (contracts are annual data)
+        "stale_warning_days": 365,
+        "description": "Contract details and expiry dates"
+    },
+
+    # NON-SPORTS DOMAINS
+    "political": {
+        "max_age_days": 90,       # Policy positions can change
+        "brave_freshness": "pm",  # Past month
+        "stale_warning_days": 180,
+        "description": "Political claims and statements"
+    },
+    "scientific": {
+        "max_age_days": 730,      # Scientific findings are more stable
+        "brave_freshness": "2y",  # 2 years
+        "stale_warning_days": 365,
+        "description": "Scientific research and findings"
+    },
+    "economic": {
+        "max_age_days": 90,       # Economic data updates quarterly
+        "brave_freshness": "pm",  # Past month
+        "stale_warning_days": 180,
+        "description": "Economic statistics and financial data"
+    },
+    "general": {
+        "max_age_days": 365,      # Default for unclassified claims
+        "brave_freshness": "py",  # Past year
+        "stale_warning_days": 730,
+        "description": "General claims without specific time sensitivity"
+    }
+}
 
 
 class LLMQueryPlanner:
@@ -36,7 +128,31 @@ QUERY RULES:
 3. Use exact names and numbers from the claim
 4. Keep queries concise (5-10 words)
 
-CLAIM TYPES: league_standing, player_statistics, contract_info, transfer_rumor, squad_composition, match_result, political, scientific, economic, general
+SMART QUERY STRATEGIES:
+
+1. COMPARISON/RANKING CLAIMS (e.g., "X is second only to Y", "X is behind Y"):
+   - Query the RANKING directly: "Champions League top scorers 2024-25", "most goals in Europe clubs"
+   - Query BOTH entities' stats: "Arsenal goals Champions League 2024-25", "Bayern Munich goals Champions League 2024-25"
+   - Use official sources: UEFA, Premier League, Bundesliga official sites
+
+2. PLAYER STATISTICS (goals, assists, appearances):
+   - Include SEASON: "Adeyemi goals assists 2024-25 season"
+   - Include COMPETITION: "Adeyemi Bundesliga statistics", "Adeyemi Champions League stats"
+   - Use stats sites: fbref, transfermarkt, whoscored
+
+3. CONTRACT/TRANSFER INFO:
+   - Query player profile pages: "Adeyemi contract expiry transfermarkt"
+   - Include exact year if mentioned: "Adeyemi contract 2027"
+
+4. SQUAD COMPOSITION (who plays for whom):
+   - Query official squad pages: "Arsenal squad 2024-25"
+   - Query player profiles: "Gyokeres Arsenal", "Merino Arsenal current club"
+
+5. CURRENT STANDINGS/TABLES:
+   - Include date/matchweek: "Premier League table December 2024"
+   - Query league official sites: "Premier League standings"
+
+CLAIM TYPES: league_standing, player_statistics, contract_info, transfer_rumor, squad_composition, match_result, comparison_ranking, political, scientific, economic, general
 
 RESPOND WITH JSON:
 {
@@ -208,11 +324,12 @@ Return a JSON object with "plans" array containing exactly {len(claims)} plan ob
         # Default sources by claim type
         default_sources = {
             "squad_composition": ["premierleague.com", "transfermarkt.com"],
-            "player_statistics": ["fbref.com", "transfermarkt.com"],
+            "player_statistics": ["fbref.com", "transfermarkt.com", "whoscored.com"],
             "contract_info": ["transfermarkt.com"],
-            "transfer_rumor": ["skysports.com", "bbc.co.uk"],
+            "transfer_rumor": ["skysports.com", "bbc.co.uk/sport"],
             "match_result": ["premierleague.com", "flashscore.com"],
             "league_standing": ["premierleague.com", "uefa.com"],
+            "comparison_ranking": ["uefa.com", "fbref.com", "transfermarkt.com"],
             "general": []
         }
 
@@ -236,3 +353,98 @@ def get_query_planner() -> LLMQueryPlanner:
     if _query_planner is None:
         _query_planner = LLMQueryPlanner()
     return _query_planner
+
+
+def get_freshness_for_claim_type(claim_type: str) -> Dict[str, Any]:
+    """
+    Get freshness requirements for a claim type.
+
+    Args:
+        claim_type: The type of claim (e.g., 'squad_composition', 'contract_info')
+
+    Returns:
+        Dictionary with:
+        - brave_freshness: Brave search freshness parameter (pd/pw/pm/py/2y)
+        - max_age_days: Maximum acceptable evidence age in days
+        - stale_warning_days: Days after which evidence triggers a warning
+        - description: Human-readable description of freshness requirement
+    """
+    return CLAIM_TYPE_FRESHNESS.get(claim_type, CLAIM_TYPE_FRESHNESS["general"])
+
+
+def check_evidence_staleness(
+    claim_type: str,
+    evidence_date: Optional[str],
+    reference_date: Optional[datetime] = None
+) -> Dict[str, Any]:
+    """
+    Check if evidence is stale for a given claim type.
+
+    Args:
+        claim_type: The type of claim being verified
+        evidence_date: The published date of the evidence (ISO format or partial)
+        reference_date: The date to compare against (default: today)
+
+    Returns:
+        Dictionary with:
+        - is_stale: True if evidence exceeds max_age_days
+        - is_warning: True if evidence exceeds stale_warning_days
+        - age_days: Age of evidence in days (or None if unparseable)
+        - max_age_days: Maximum acceptable age for this claim type
+        - message: Human-readable staleness description
+    """
+    if reference_date is None:
+        reference_date = datetime.now()
+
+    freshness_req = get_freshness_for_claim_type(claim_type)
+    max_age = freshness_req["max_age_days"]
+    warning_age = freshness_req["stale_warning_days"]
+
+    # Parse evidence date
+    age_days = None
+    if evidence_date:
+        try:
+            # Try various date formats with their expected string lengths
+            format_specs = [
+                ("%Y-%m-%d", 10),       # 2025-11-28
+                ("%Y-%m-%dT%H:%M:%S", 19),  # 2025-11-28T12:30:45
+                ("%d/%m/%Y", 10),       # 28/11/2025
+                ("%Y", 4),              # 2025
+            ]
+            for fmt, expected_len in format_specs:
+                try:
+                    if fmt == "%Y" and len(evidence_date) >= 4:
+                        # Year only - assume mid-year
+                        parsed = datetime(int(evidence_date[:4]), 6, 15)
+                    else:
+                        date_str = evidence_date[:expected_len]
+                        parsed = datetime.strptime(date_str, fmt)
+                    age_days = (reference_date - parsed).days
+                    break
+                except (ValueError, TypeError):
+                    continue
+        except Exception:
+            pass
+
+    # Determine staleness
+    is_stale = age_days is not None and age_days > max_age
+    is_warning = age_days is not None and age_days > warning_age
+
+    # Generate message
+    if age_days is None:
+        message = f"Evidence date unknown - cannot verify recency for {claim_type} claim"
+    elif is_stale:
+        message = f"STALE: Evidence is {age_days} days old, max allowed for {claim_type} is {max_age} days"
+    elif is_warning:
+        message = f"WARNING: Evidence is {age_days} days old, consider finding more recent sources for {claim_type}"
+    else:
+        message = f"Evidence is {age_days} days old (acceptable for {claim_type})"
+
+    return {
+        "is_stale": is_stale,
+        "is_warning": is_warning,
+        "age_days": age_days,
+        "max_age_days": max_age,
+        "warning_age_days": warning_age,
+        "message": message
+    }

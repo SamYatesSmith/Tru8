@@ -160,6 +160,12 @@ class Settings(BaseSettings):
     PRIMARY_SOURCE_BOOST: float = Field(0.25, env="PRIMARY_SOURCE_BOOST")
     SECONDARY_SOURCE_PENALTY: float = Field(0.15, env="SECONDARY_SOURCE_PENALTY")
 
+    # ========== ARTICLE-LEVEL CLASSIFICATION ==========
+    # LLM-based article classification (runs once per check, not per claim)
+    # Replaces per-claim spaCy NER domain detection with ~95% accuracy
+    ENABLE_ARTICLE_CLASSIFICATION: bool = Field(True, env="ENABLE_ARTICLE_CLASSIFICATION")
+    ARTICLE_CLASSIFICATION_MODEL: str = Field("gpt-4o-mini-2024-07-18", env="ARTICLE_CLASSIFICATION_MODEL")
+
     # ========== QUERY PLANNING AGENT ==========
     # LLM-powered batch query planning for semantic claim understanding
     # Generates targeted queries based on claim type (squad, stats, contract, etc.)
@@ -171,6 +177,12 @@ class Settings(BaseSettings):
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails
     ALLOW_SNIPPET_FALLBACK: bool = Field(True, env="ALLOW_SNIPPET_FALLBACK")
+
+    # ========== DOMAIN-AWARE EVIDENCE FRESHNESS ==========
+    # Enable claim-type-based freshness filtering for evidence retrieval
+    # When enabled, squad_composition claims get fresher evidence (1-2 weeks)
+    # vs contract_info claims which can use older evidence (up to 6 months)
+    ENABLE_FRESHNESS_BY_CLAIM_TYPE: bool = Field(True, env="ENABLE_FRESHNESS_BY_CLAIM_TYPE")
 
     @property
     def nli_model_name(self) -> str:

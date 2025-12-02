@@ -9,7 +9,6 @@ from app.services.embeddings import get_embedding_service, rank_evidence_by_simi
 from app.services.vector_store import get_vector_store
 from app.utils.url_utils import extract_domain
 from app.services.government_api_client import get_api_registry
-from app.utils.claim_classifier import ClaimClassifier
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -42,7 +41,6 @@ class EvidenceRetriever:
 
         # Phase 5: Government API Integration
         self.api_registry = get_api_registry()
-        self.claim_classifier = ClaimClassifier()
         self.enable_api_retrieval = True  # Feature flag (set via settings)
 
         # Credibility weights for different source types
@@ -265,6 +263,37 @@ class EvidenceRetriever:
             priority_sources = query_plan.get("priority_sources", [])
             claim_type = query_plan.get("claim_type", "general")
 
+            # ============================================================
+            # DOMAIN-AWARE FRESHNESS: Use claim_type to determine freshness
+            # ============================================================
+            # Claim type is more semantically meaningful than temporal_analysis
+            # E.g., "squad_composition" ALWAYS needs fresh evidence (days/weeks)
+            # whereas temporal_analysis might default to "any" -> 2y
+            from app.utils.query_planner import get_freshness_for_claim_type
+            freshness_req = get_freshness_for_claim_type(claim_type)
+            claim_type_freshness = freshness_req["brave_freshness"]
+
+            # Use the MORE RESTRICTIVE freshness filter
+            # (lower is fresher: pd < pw < pm < py < 2y)
+            freshness_order = {"pd": 1, "pw": 2, "pm": 3, "py": 4, "2y": 5}
+            if freshness is None:
+                effective_freshness = claim_type_freshness
+            else:
+                # Use whichever is more restrictive (fresher)
+                if freshness_order.get(claim_type_freshness, 5) < freshness_order.get(freshness, 5):
+                    effective_freshness = claim_type_freshness
+                    logger.info(
+                        f"[FRESHNESS] Overriding temporal_analysis '{freshness}' with claim_type '{claim_type}' "
+                        f"freshness '{claim_type_freshness}' (more restrictive)"
+                    )
+                else:
+                    effective_freshness = freshness
+
+            logger.info(
+                f"[FRESHNESS] claim_type={claim_type} -> freshness={effective_freshness} "
+                f"(max_age={freshness_req['max_age_days']} days)"
+            )
+
             if not queries:
                 logger.warning(f"No queries in plan for claim: {claim_text[:50]}...")
                 return []
@@ -289,7 +318,7 @@ class EvidenceRetriever:
                 task = self.evidence_extractor.search_service.search_for_evidence(
                     full_query,
                     max_results=sources_per_query,
-                    freshness=freshness
+                    freshness=effective_freshness  # Use domain-aware freshness
                 )
                 query_tasks.append(task)
 
@@ -417,6 +446,17 @@ class EvidenceRetriever:
                 snippet.metadata["source_path"] = "query_planning"
                 snippet.metadata["extraction_status"] = "success"
                 snippet.metadata["is_snippet_fallback"] = False
+
+                # Add staleness check for time-sensitive claims
+                from app.utils.query_planner import check_evidence_staleness
+                staleness = check_evidence_staleness(
+                    claim_type,
+                    snippet.published_date
+                )
+                snippet.metadata["staleness_check"] = staleness
+                if staleness["is_stale"]:
+                    logger.warning(f"[STALE EVIDENCE] {staleness['message']} - URL: {snippet.url}")
+
                 return snippet
 
             # Content extraction returned None
@@ -890,10 +930,10 @@ class EvidenceRetriever:
             claim_type = claim.get("claim_type")
             legal_metadata = claim.get("legal_metadata", {})
 
-            # Always run domain detection to get NER entities for dynamic API queries
-            domain_info = self.claim_classifier.detect_domain(claim_text)
-            # Use labeled entities ({"text": "...", "label": "PERSON/ORG/..."}) for dynamic extraction
-            entities = domain_info.get("entities", [])
+            # Extract entities from key_entities field (set during extraction)
+            # Convert to labeled entity format for backward compatibility with API adapters
+            key_entities = claim.get("key_entities", [])
+            entities = [{"text": entity, "label": "ENTITY"} for entity in key_entities]
 
             if claim_type == "legal" and legal_metadata:
                 # Use legal classification for routing (override domain/jurisdiction)
@@ -902,15 +942,45 @@ class EvidenceRetriever:
                 confidence = claim.get("classification", {}).get("confidence", 0.9)
 
             else:
-                # PRIORITY 2: Use domain detection results
-                domain = domain_info.get("domain", "General")
-                jurisdiction = domain_info.get("jurisdiction", "Global")
-                confidence = domain_info.get("domain_confidence", 0.0)
+                # PRIORITY 2: Use article-level classification (once per check, not per claim)
+                # This is set during extraction and attached to all claims
+                article_classification = claim.get("article_classification", {})
+
+                if article_classification:
+                    # Use article-level classification
+                    domain = article_classification.get("primary_domain", "General")
+                    jurisdiction = article_classification.get("jurisdiction", "Global")
+                    confidence = article_classification.get("confidence", 0.0)
+                    secondary_domains = article_classification.get("secondary_domains", [])
+
+                    logger.debug(
+                        f"[API ROUTING] Using article classification: "
+                        f"domain={domain}, jurisdiction={jurisdiction}, "
+                        f"confidence={confidence:.2f}, source={article_classification.get('source', 'unknown')}"
+                    )
+                else:
+                    # Fallback: No article classification available
+                    # This happens when ENABLE_ARTICLE_CLASSIFICATION is disabled
+                    # or classification failed during extraction
+                    domain = "General"
+                    jurisdiction = "Global"
+                    confidence = 0.0
+                    secondary_domains = []
+                    logger.warning("[API ROUTING] No article classification, defaulting to General")
 
 
-            # Get relevant API adapters
+            # Get relevant API adapters for primary domain
             relevant_adapters = self.api_registry.get_adapters_for_domain(domain, jurisdiction)
 
+            # Also query secondary domain adapters (for cross-domain articles)
+            if 'secondary_domains' in dir() and secondary_domains:
+                for sec_domain in secondary_domains:
+                    sec_adapters = self.api_registry.get_adapters_for_domain(sec_domain, jurisdiction)
+                    # Add unique adapters (avoid duplicates)
+                    for adapter in sec_adapters:
+                        if adapter not in relevant_adapters:
+                            relevant_adapters.append(adapter)
+                            logger.debug(f"[API ROUTING] Added secondary domain adapter: {adapter.api_name} ({sec_domain})")
 
             if not relevant_adapters:
                 logger.warning(f"[API] No adapters found for domain={domain}, jurisdiction={jurisdiction}")
