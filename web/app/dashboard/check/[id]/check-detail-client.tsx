@@ -9,6 +9,7 @@ import { OverallSummaryCard } from './components/overall-summary-card';
 import { ProgressSection } from './components/progress-section';
 import { ClaimsSection } from './components/claims-section';
 import { ShareSection } from './components/share-section';
+import { NavigationSection } from './components/navigation-section';
 import { ErrorState } from './components/error-state';
 import { ClarityResponseCard } from './components/clarity-response-card';
 
@@ -85,6 +86,7 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
             <OverallSummaryCard check={checkData} />
           )}
           <ShareSection checkId={checkId} />
+          <NavigationSection />
         </>
       )}
 

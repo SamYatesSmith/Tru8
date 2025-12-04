@@ -175,7 +175,9 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                     key_entities=claim_data.get("key_entities", []) if claim_data.get("key_entities") else None,
                     source_title=claim_data.get("source_title"),
                     source_url=claim_data.get("source_url"),
-                    source_date=claim_data.get("source_date")
+                    source_date=claim_data.get("source_date"),
+                    # Temporal drift comparison (current API data vs claimed values)
+                    current_verified_data=claim_data.get("current_verified_data")
                 )
                 session.add(claim)
                 session.flush()  # Get claim ID
