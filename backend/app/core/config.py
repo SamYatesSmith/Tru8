@@ -126,7 +126,9 @@ class Settings(BaseSettings):
 
     # Abstention Thresholds (Phase 3)
     # Lowered from 0.70 -> 0.60 and 0.65 -> 0.50 to reduce fence-sitting
-    MIN_SOURCES_FOR_VERDICT: int = Field(3, env="MIN_SOURCES_FOR_VERDICT")
+    # MIN_SOURCES lowered from 3 to 2: For established scientific facts with
+    # high-credibility sources, 2 sources is sufficient to take a position.
+    MIN_SOURCES_FOR_VERDICT: int = Field(2, env="MIN_SOURCES_FOR_VERDICT")
     MIN_CREDIBILITY_THRESHOLD: float = Field(0.60, env="MIN_CREDIBILITY_THRESHOLD")
     MIN_CONSENSUS_STRENGTH: float = Field(0.50, env="MIN_CONSENSUS_STRENGTH")
 

@@ -727,6 +727,21 @@
     "tier": "tier1"
   },
 
+  "climate_research_us": {
+    "credibility": 0.95,
+    "description": "US climate and ice research institutions - authoritative for sea level/Antarctic claims",
+    "domains": [
+      "noaa.gov",
+      "climate.gov",
+      "nsidc.org",
+      "ncei.noaa.gov",
+      "giss.nasa.gov",
+      "earthobservatory.nasa.gov",
+      "antarcticglaciers.org"
+    ],
+    "tier": "tier1"
+  },
+
   "international_orgs": {
     "credibility": 0.93,
     "description": "Major UN and international organizations",
@@ -765,6 +780,42 @@
       "ncar.ucar.edu"
     ],
     "tier": "tier1"
+  },
+
+  "science_news": {
+    "credibility": 0.78,
+    "description": "Science news aggregators that summarize peer-reviewed research with sourcing",
+    "domains": [
+      "sciencedaily.com",
+      "phys.org",
+      "eurekalert.org",
+      "sciencealert.com",
+      "livescience.com",
+      "space.com",
+      "newscientist.com",
+      "scientificamerican.com",
+      "arstechnica.com",
+      "wired.com/science",
+      "popularmechanics.com",
+      "discovermagazine.com"
+    ],
+    "tier": "tier2"
+  },
+
+  "climate_news": {
+    "credibility": 0.72,
+    "description": "Climate and environmental journalism outlets",
+    "domains": [
+      "theinvadingsea.com",
+      "insideclimatenews.org",
+      "carbonbrief.org",
+      "climatecentral.org",
+      "grist.org",
+      "theclimategroup.org",
+      "e360.yale.edu",
+      "climate.gov"
+    ],
+    "tier": "tier2"
   },
 
   "energy_renewable": {

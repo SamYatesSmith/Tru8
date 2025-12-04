@@ -2,13 +2,13 @@
 Query Planning Agent for Fact-Checking Pipeline
 
 This module provides LLM-powered query planning to generate targeted search queries
-based on the semantic type of claims being verified.
+with DYNAMIC context-aware freshness decisions.
 
 Key Features:
 - Batch processing: Single LLM call for all claims in an article (~$0.02/article)
-- Semantic classification: Identifies claim type (squad, stats, contract, etc.)
-- Source prioritization: Routes to authoritative sources per claim type
-- **Domain-aware freshness**: Different claim types require different evidence recency
+- Context-aware: Receives article context to make intelligent freshness decisions
+- Dynamic freshness: LLM decides freshness per claim based on article context
+- No hardcoded domain logic: Works for any domain (sports, politics, finance, etc.)
 - Graceful fallback: Falls back to standard query formulation on failure
 """
 
@@ -23,93 +23,25 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================
-# DOMAIN-AWARE EVIDENCE FRESHNESS REQUIREMENTS
+# FRESHNESS REFERENCE (for LLM guidance and staleness checking)
 # ============================================================
-# Different claim types require different evidence recency.
-# This mapping defines max_age_days for each claim type.
-#
 # Brave Search freshness values:
-#   - pd (past day)     -> 1 day
-#   - pw (past week)    -> 7 days
-#   - pm (past month)   -> 30 days
-#   - py (past year)    -> 365 days
-#   - 2y (2 years)      -> 730 days
+#   - pd (past day)     -> 1 day    - Breaking news, live events
+#   - pw (past week)    -> 7 days   - Fast-changing data (standings, polls)
+#   - pm (past month)   -> 30 days  - Periodic updates (monthly stats)
+#   - py (past year)    -> 365 days - Stable facts, annual data
+#   - 2y (2 years)      -> 730 days - Historical, scientific
 #
-# CRITICAL: Sports squad/standing claims change DAILY during season!
+# The LLM decides freshness dynamically based on article context.
+# These defaults are only used for staleness warnings when LLM
+# doesn't provide freshness or for fallback scenarios.
 # ============================================================
 
-CLAIM_TYPE_FRESHNESS = {
-    # SPORTS - Time-critical (changes daily/weekly during season)
-    "squad_composition": {
-        "max_age_days": 14,       # Squad can change in transfer windows
-        "brave_freshness": "pw",  # Past week
-        "stale_warning_days": 30, # Warn if evidence > 30 days old
-        "description": "Current squad membership - changes during transfer windows"
-    },
-    "league_standing": {
-        "max_age_days": 7,        # Table changes after each matchweek
-        "brave_freshness": "pw",  # Past week
-        "stale_warning_days": 14,
-        "description": "League table/standings - changes after each match"
-    },
-    "match_result": {
-        "max_age_days": 7,        # Recent match results
-        "brave_freshness": "pw",  # Past week
-        "stale_warning_days": 14,
-        "description": "Recent match results and scores"
-    },
-    "player_statistics": {
-        "max_age_days": 30,       # Season stats update weekly
-        "brave_freshness": "pm",  # Past month
-        "stale_warning_days": 60,
-        "description": "Player performance statistics for current season"
-    },
-    "comparison_ranking": {
-        "max_age_days": 30,       # Rankings change with new data
-        "brave_freshness": "pm",  # Past month
-        "stale_warning_days": 60,
-        "description": "Comparative rankings and statistics"
-    },
-    "transfer_rumor": {
-        "max_age_days": 14,       # Transfer news moves fast
-        "brave_freshness": "pw",  # Past week
-        "stale_warning_days": 30,
-        "description": "Transfer speculation and rumors"
-    },
-
-    # SPORTS - Less time-critical
-    "contract_info": {
-        "max_age_days": 180,      # Contracts change less frequently
-        "brave_freshness": "py",  # Past year (contracts are annual data)
-        "stale_warning_days": 365,
-        "description": "Contract details and expiry dates"
-    },
-
-    # NON-SPORTS DOMAINS
-    "political": {
-        "max_age_days": 90,       # Policy positions can change
-        "brave_freshness": "pm",  # Past month
-        "stale_warning_days": 180,
-        "description": "Political claims and statements"
-    },
-    "scientific": {
-        "max_age_days": 730,      # Scientific findings are more stable
-        "brave_freshness": "2y",  # 2 years
-        "stale_warning_days": 365,
-        "description": "Scientific research and findings"
-    },
-    "economic": {
-        "max_age_days": 90,       # Economic data updates quarterly
-        "brave_freshness": "pm",  # Past month
-        "stale_warning_days": 180,
-        "description": "Economic statistics and financial data"
-    },
-    "general": {
-        "max_age_days": 365,      # Default for unclassified claims
-        "brave_freshness": "py",  # Past year
-        "stale_warning_days": 730,
-        "description": "General claims without specific time sensitivity"
-    }
+DEFAULT_FRESHNESS = {
+    "max_age_days": 365,
+    "brave_freshness": "py",
+    "stale_warning_days": 730,
+    "description": "Default freshness for claims"
 }
 
 
@@ -120,45 +52,82 @@ class LLMQueryPlanner:
     Uses batch processing to minimize API calls and costs.
     """
 
-    SYSTEM_PROMPT = """You are a fact-checking query planner. Generate targeted search queries to find evidence for claims.
+    SYSTEM_PROMPT = """You are a Tru8 fact-checking specialist specializing in evidence retrieval strategy. Generate search queries and determine evidence requirements for claims.
 
-QUERY RULES:
-1. Generate 2-3 SPECIFIC queries per claim
-2. For claims about CURRENT events, include the current year/month in queries to get recent results
-3. Use exact names and numbers from the claim
-4. Keep queries concise (5-10 words)
+CRITICAL - DATE CONTEXT:
+You will be given TODAY'S DATE at the start of the user message. This is the ACTUAL current date.
+- ALWAYS use this date when generating queries about recent/current events
+- NEVER guess or hallucinate dates - use ONLY the date provided
+- If the article mentions "this week" or "yesterday", calculate relative to TODAY'S DATE
+- For recent events, include the correct year (from TODAY'S DATE) in your queries
 
-SMART QUERY STRATEGIES:
+You will receive ARTICLE CONTEXT that tells you:
+- The domain (Sports, Politics, Finance, etc.)
+- Temporal context (what time period the article covers)
+- Key entities mentioned
+- Evidence guidance (how fresh evidence needs to be)
 
-1. COMPARISON/RANKING CLAIMS (e.g., "X is second only to Y", "X is behind Y"):
-   - Query the RANKING directly: "Champions League top scorers 2024-25", "most goals in Europe clubs"
-   - Query BOTH entities' stats: "Arsenal goals Champions League 2024-25", "Bayern Munich goals Champions League 2024-25"
-   - Use official sources: UEFA, Premier League, Bundesliga official sites
+USE THIS CONTEXT to make intelligent decisions about each claim.
 
-2. PLAYER STATISTICS (goals, assists, appearances):
-   - Include SEASON: "Adeyemi goals assists 2024-25 season"
-   - Include COMPETITION: "Adeyemi Bundesliga statistics", "Adeyemi Champions League stats"
-   - Use stats sites: fbref, transfermarkt, whoscored
+FOR EACH CLAIM, OUTPUT:
+1. queries: 2-3 specific search queries
+   - Use EXACT names, numbers, and entities from the claim
+   - For RECENT events, include the year from TODAY'S DATE (e.g., if today is 2025-12-03, use "2025" not "2023" or "2024")
+   - Keep queries concise (5-10 words)
+   - DO NOT add site: filters
 
-3. CONTRACT/TRANSFER INFO:
-   - Query player profile pages: "Adeyemi contract expiry transfermarkt"
-   - Include exact year if mentioned: "Adeyemi contract 2027"
+2. freshness: How recent must evidence be? Choose one:
+   - "pd" (past day): Breaking news, live events, real-time data
+   - "pw" (past week): Fast-changing data (standings, polls, prices)
+   - "pm" (past month): Periodic updates (monthly stats, recent news)
+   - "py" (past year): Stable facts, annual data, historical
 
-4. SQUAD COMPOSITION (who plays for whom):
-   - Query official squad pages: "Arsenal squad 2024-25"
-   - Query player profiles: "Gyokeres Arsenal", "Merino Arsenal current club"
+3. source_hints: Brief description of authoritative source types
 
-5. CURRENT STANDINGS/TABLES:
-   - Include date/matchweek: "Premier League table December 2024"
-   - Query league official sites: "Premier League standings"
+4. reasoning: Why this freshness level is appropriate
 
-CLAIM TYPES: league_standing, player_statistics, contract_info, transfer_rumor, squad_composition, match_result, comparison_ranking, political, scientific, economic, general
+QUERY STRATEGIES:
+- RANKINGS/COMPARISONS: Query the ranking directly, query both entities being compared
+- STATISTICS: Include the relevant time period (season, quarter, year)
+- CURRENT STATE: Include recent date context to get fresh results
+- HISTORICAL: Can use broader time range
+
+AUTHORITATIVE SOURCES BY DOMAIN (use in source_hints and priority_sources):
+- SPORTS STATISTICS: transfermarkt.com, fbref.com, whoscored.com, official league sites
+- TRANSFER NEWS: transfermarkt.com, fabrizio romano, official club announcements
+- POLITICAL: Official government sites (.gov), established news (Reuters, AP, BBC)
+- FINANCIAL: Company filings (SEC, Companies House), Bloomberg, Reuters
+- SCIENTIFIC: Peer-reviewed journals, academic institutions (.edu), official health organizations
+- GENERAL: Primary sources, official statements, established news organizations
+
+CRITICAL - OFFICIAL SOURCE PRIORITY:
+When a claim attributes a statement/action to a NAMED ORGANIZATION (e.g., "X released a statement", "Y announced", "Z confirmed", "W explained"):
+1. IDENTIFY the organization's official website domain (use your knowledge)
+2. ADD that domain to priority_sources
+3. INCLUDE one query with site:[official-domain] filter
+The official source is DEFINITIVE - it can verify the claim alone without needing other sources.
+
+For PLAYER STATISTICS claims (goals, assists, appearances, market value):
+- Always include priority_sources: ["transfermarkt.com", "fbref.com"]
+- Query format: "[Player Name] [season] statistics" or "[Player Name] goals assists [year]"
+
+HANDLING UNCERTAINTY:
+If a claim is too vague to query effectively:
+- Generate broader queries covering multiple interpretations
+- Set freshness to "py" (past year) for safety
+- In reasoning field, note what makes the claim ambiguous
+- Do NOT guess or fabricate specific details not in the claim
 
 RESPOND WITH JSON:
 {
   "plans": [
-    {"claim_index": 0, "claim_type": "...", "queries": ["query1", "query2"]},
-    ...
+    {
+      "claim_index": 0,
+      "queries": ["query 1", "query 2"],
+      "freshness": "pw",
+      "source_hints": "Official data sources",
+      "reasoning": "Data changes frequently"
+    }
   ]
 }"""
 
@@ -167,15 +136,20 @@ RESPOND WITH JSON:
         self.timeout = settings.QUERY_PLANNING_TIMEOUT
         self.model = settings.QUERY_PLANNING_MODEL
 
-    async def plan_queries_batch(self, claims: List[Dict[str, Any]]) -> Optional[List[Dict[str, Any]]]:
+    async def plan_queries_batch(
+        self,
+        claims: List[Dict[str, Any]],
+        article_context: Optional[Dict[str, Any]] = None
+    ) -> Optional[List[Dict[str, Any]]]:
         """
-        Plan queries for all claims in a single LLM call.
+        Plan queries for all claims in a single LLM call with article context.
 
         Args:
             claims: List of claim dictionaries with 'text' and optional metadata
+            article_context: Article classification with temporal_context, key_entities, evidence_guidance
 
         Returns:
-            List of query plans, one per claim, or None on failure
+            List of query plans with freshness decisions, or None on failure
         """
         if not claims:
             return []
@@ -196,13 +170,28 @@ RESPOND WITH JSON:
                 for i, c in enumerate(claims)
             ])
 
-            user_prompt = f"""TODAY'S DATE: {current_date}
+            # Build article context section
+            article_context_section = ""
+            if article_context:
+                article_context_section = f"""
+ARTICLE CONTEXT:
+- Domain: {article_context.get('primary_domain', 'General')}
+- Temporal Context: {article_context.get('temporal_context', 'Not specified')}
+- Key Entities: {', '.join(article_context.get('key_entities', [])) or 'Not specified'}
+- Evidence Guidance: {article_context.get('evidence_guidance', 'Use appropriate sources')}
+"""
+                logger.info(f"[QUERY_PLANNER] Using article context: domain={article_context.get('primary_domain')}")
 
-Generate search queries for each of these {len(claims)} claims:
+            current_year = now.strftime("%Y")
+            user_prompt = f"""TODAY'S DATE: {current_date} (CURRENT YEAR: {current_year})
+Use {current_year} in queries for recent events - NEVER use older years like 2023 or 2024 unless the claim explicitly refers to those years.
+{article_context_section}
+Generate query plans for each of these {len(claims)} claims:
 
 {claims_text}
 
-Return a JSON object with "plans" array containing exactly {len(claims)} plan objects, one for each claim."""
+For EACH claim, provide: queries, freshness (pd/pw/pm/py), source_hints, and reasoning.
+Return a JSON object with "plans" array containing exactly {len(claims)} plan objects."""
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
@@ -280,19 +269,31 @@ Return a JSON object with "plans" array containing exactly {len(claims)} plan ob
             return None
 
     def _validate_plans(self, plans: List[Any], expected_count: int) -> List[Dict[str, Any]]:
-        """Validate and normalize query plans."""
+        """Validate and normalize query plans with freshness decisions."""
         validated = []
+        valid_freshness = {"pd", "pw", "pm", "py", "2y"}
+        current_year = datetime.now().year
 
         for i, plan in enumerate(plans):
             if not isinstance(plan, dict):
                 logger.warning(f"[QUERY_PLANNER] Plan {i} is not a dict, skipping")
                 continue
 
+            # Extract and validate freshness
+            freshness = plan.get("freshness", "py")
+            if freshness not in valid_freshness:
+                logger.warning(f"[QUERY_PLANNER] Invalid freshness '{freshness}', defaulting to 'py'")
+                freshness = "py"
+
             validated_plan = {
-                "claim_index": plan.get("claim_index", i),
+                "claim_index": i,  # Always use enumeration index, never trust LLM's claim_index
+                "queries": plan.get("queries", []),
+                "freshness": freshness,
+                "source_hints": plan.get("source_hints", ""),
+                "reasoning": plan.get("reasoning", ""),
+                # Keep for backward compatibility but no longer used for routing
                 "claim_type": plan.get("claim_type", "general"),
                 "priority_sources": plan.get("priority_sources", []),
-                "queries": plan.get("queries", [])
             }
 
             # Ensure queries is a list
@@ -303,6 +304,13 @@ Return a JSON object with "plans" array containing exactly {len(claims)} plan ob
             if isinstance(validated_plan["priority_sources"], str):
                 validated_plan["priority_sources"] = [validated_plan["priority_sources"]]
 
+            # POST-PROCESS: Fix hallucinated years in queries for recent claims
+            # For claims requiring recent evidence (pd/pw/pm), replace old years with current year
+            if freshness in {"pd", "pw", "pm"}:
+                validated_plan["queries"] = self._fix_hallucinated_years(
+                    validated_plan["queries"], current_year
+                )
+
             # Limit queries to 4 per claim
             validated_plan["queries"] = validated_plan["queries"][:4]
 
@@ -310,36 +318,61 @@ Return a JSON object with "plans" array containing exactly {len(claims)} plan ob
 
         return validated
 
-    def get_site_filter(self, priority_sources: List[str], claim_type: str) -> str:
+    def _fix_hallucinated_years(self, queries: List[str], current_year: int) -> List[str]:
+        """
+        Fix hallucinated years in LLM-generated queries.
+
+        LLMs often generate old years (2023, 2024) due to training data patterns.
+        For recent claims, we replace these with the current year.
+
+        Args:
+            queries: List of search query strings
+            current_year: The actual current year (e.g., 2025)
+
+        Returns:
+            List of queries with corrected years
+        """
+        import re
+
+        fixed_queries = []
+        # Years that are likely hallucinated (1-3 years before current)
+        hallucinated_years = [str(current_year - i) for i in range(1, 4)]
+
+        for query in queries:
+            original = query
+            # Replace hallucinated years with current year
+            for old_year in hallucinated_years:
+                # Match year as whole word (not part of larger number)
+                pattern = rf'\b{old_year}\b'
+                if re.search(pattern, query):
+                    query = re.sub(pattern, str(current_year), query)
+
+            if query != original:
+                logger.info(f"[QUERY_PLANNER] Fixed hallucinated year: '{original}' -> '{query}'")
+
+            fixed_queries.append(query)
+
+        return fixed_queries
+
+    def get_site_filter(self, priority_sources: List[str], claim_type: str = "") -> str:
         """
         Generate a site filter string for search queries.
 
+        Only uses LLM-suggested sources - no hardcoded domain defaults.
+        Let the search engine find the best sources dynamically.
+
         Args:
-            priority_sources: List of priority domains
-            claim_type: Type of claim for fallback sources
+            priority_sources: List of priority domains from LLM
+            claim_type: Unused, kept for backward compatibility
 
         Returns:
-            Site filter string (e.g., "site:premierleague.com OR site:arsenal.com")
+            Site filter string (e.g., "site:example.com OR site:other.com")
         """
-        # Default sources by claim type
-        default_sources = {
-            "squad_composition": ["premierleague.com", "transfermarkt.com"],
-            "player_statistics": ["fbref.com", "transfermarkt.com", "whoscored.com"],
-            "contract_info": ["transfermarkt.com"],
-            "transfer_rumor": ["skysports.com", "bbc.co.uk/sport"],
-            "match_result": ["premierleague.com", "flashscore.com"],
-            "league_standing": ["premierleague.com", "uefa.com"],
-            "comparison_ranking": ["uefa.com", "fbref.com", "transfermarkt.com"],
-            "general": []
-        }
-
-        sources = priority_sources or default_sources.get(claim_type, [])
-
-        if not sources:
+        if not priority_sources:
             return ""
 
         # Use first 2 sources to keep query short
-        site_filters = [f"site:{s}" for s in sources[:2]]
+        site_filters = [f"site:{s}" for s in priority_sources[:2]]
         return " OR ".join(site_filters)
 
 
@@ -355,50 +388,65 @@ def get_query_planner() -> LLMQueryPlanner:
     return _query_planner
 
 
-def get_freshness_for_claim_type(claim_type: str) -> Dict[str, Any]:
+def get_freshness_for_claim_type(claim_type: str = "") -> Dict[str, Any]:
     """
-    Get freshness requirements for a claim type.
+    Get default freshness requirements.
+
+    NOTE: This function is deprecated. Freshness is now determined dynamically
+    by the LLM query planner based on article context. This function returns
+    default values for backward compatibility and fallback scenarios.
 
     Args:
-        claim_type: The type of claim (e.g., 'squad_composition', 'contract_info')
+        claim_type: Unused, kept for backward compatibility
 
     Returns:
-        Dictionary with:
-        - brave_freshness: Brave search freshness parameter (pd/pw/pm/py/2y)
-        - max_age_days: Maximum acceptable evidence age in days
-        - stale_warning_days: Days after which evidence triggers a warning
-        - description: Human-readable description of freshness requirement
+        Dictionary with default freshness values
     """
-    return CLAIM_TYPE_FRESHNESS.get(claim_type, CLAIM_TYPE_FRESHNESS["general"])
+    return DEFAULT_FRESHNESS
 
 
 def check_evidence_staleness(
-    claim_type: str,
     evidence_date: Optional[str],
-    reference_date: Optional[datetime] = None
+    freshness: Optional[str] = None,
+    reference_date: Optional[datetime] = None,
+    claim_type: str = ""  # Deprecated, kept for backward compatibility
 ) -> Dict[str, Any]:
     """
-    Check if evidence is stale for a given claim type.
+    Check if evidence is stale based on freshness requirements.
+
+    Freshness is determined dynamically by the LLM query planner. This function
+    validates evidence age against the freshness decision for judge warnings.
 
     Args:
-        claim_type: The type of claim being verified
         evidence_date: The published date of the evidence (ISO format or partial)
+        freshness: LLM-decided freshness (pd/pw/pm/py/2y) - determines max_age
         reference_date: The date to compare against (default: today)
+        claim_type: Deprecated, unused
 
     Returns:
         Dictionary with:
         - is_stale: True if evidence exceeds max_age_days
         - is_warning: True if evidence exceeds stale_warning_days
         - age_days: Age of evidence in days (or None if unparseable)
-        - max_age_days: Maximum acceptable age for this claim type
+        - max_age_days: Maximum acceptable age based on freshness
         - message: Human-readable staleness description
     """
     if reference_date is None:
         reference_date = datetime.now()
 
-    freshness_req = get_freshness_for_claim_type(claim_type)
-    max_age = freshness_req["max_age_days"]
-    warning_age = freshness_req["stale_warning_days"]
+    # Map freshness codes to max age days
+    freshness_to_days = {
+        "pd": {"max_age_days": 1, "stale_warning_days": 3},
+        "pw": {"max_age_days": 7, "stale_warning_days": 14},
+        "pm": {"max_age_days": 30, "stale_warning_days": 60},
+        "py": {"max_age_days": 365, "stale_warning_days": 730},
+        "2y": {"max_age_days": 730, "stale_warning_days": 1095},
+    }
+
+    # Get freshness config based on LLM decision
+    config = freshness_to_days.get(freshness, freshness_to_days["py"])
+    max_age = config["max_age_days"]
+    warning_age = config["stale_warning_days"]
 
     # Parse evidence date
     age_days = None
@@ -430,15 +478,21 @@ def check_evidence_staleness(
     is_stale = age_days is not None and age_days > max_age
     is_warning = age_days is not None and age_days > warning_age
 
+    # Human-readable freshness description
+    freshness_desc = {
+        "pd": "real-time", "pw": "weekly", "pm": "monthly",
+        "py": "annual", "2y": "historical"
+    }.get(freshness, "standard")
+
     # Generate message
     if age_days is None:
-        message = f"Evidence date unknown - cannot verify recency for {claim_type} claim"
+        message = f"Evidence date unknown - cannot verify recency"
     elif is_stale:
-        message = f"STALE: Evidence is {age_days} days old, max allowed for {claim_type} is {max_age} days"
+        message = f"STALE: Evidence is {age_days} days old, max allowed for {freshness_desc} data is {max_age} days"
     elif is_warning:
-        message = f"WARNING: Evidence is {age_days} days old, consider finding more recent sources for {claim_type}"
+        message = f"WARNING: Evidence is {age_days} days old, consider finding more recent sources"
     else:
-        message = f"Evidence is {age_days} days old (acceptable for {claim_type})"
+        message = f"Evidence is {age_days} days old (acceptable for {freshness_desc} data)"
 
     return {
         "is_stale": is_stale,

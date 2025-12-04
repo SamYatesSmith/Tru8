@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class ExtractedClaim(BaseModel):
     """Schema for extracted claims"""
     text: str = Field(description="The atomic factual claim", min_length=10)
-    confidence: float = Field(description="Extraction confidence 0-1", ge=0, le=1, default=0.8)
+    confidence: int = Field(description="Extraction confidence 0-100", ge=0, le=100, default=80)
     category: Optional[str] = Field(description="Category of claim", default=None)
 
     # Context preservation fields
@@ -23,7 +23,7 @@ class ExtractedClaim(BaseModel):
         json_schema_extra = {
             "example": {
                 "text": "The Earth's average temperature has increased by 1.1°C since pre-industrial times",
-                "confidence": 0.95,
+                "confidence": 95,
                 "category": "science",
                 "subject_context": "global warming and climate change",
                 "key_entities": ["Earth", "1.1°C", "pre-industrial times"]
@@ -32,9 +32,11 @@ class ExtractedClaim(BaseModel):
 
 class ClaimExtractionResponse(BaseModel):
     """Schema for LLM response"""
-    claims: List[ExtractedClaim] = Field(max_items=12, description="List of atomic claims, max 12 for Quick mode")
+    # max_items=20 is a safety ceiling; actual limit controlled by MAX_CLAIMS_PER_CHECK config
+    # Truncation happens before validation (see _extract_with_openai)
+    claims: List[ExtractedClaim] = Field(max_items=20, description="List of atomic claims (config-controlled limit, ceiling=20)")
     source_summary: Optional[str] = Field(description="Brief summary of source content", default=None)
-    extraction_confidence: float = Field(description="Overall extraction quality", default=0.8)
+    extraction_confidence: int = Field(description="Overall extraction quality 0-100", default=80)
 
 class ClaimExtractor:
     """Extract atomic factual claims from content using LLM"""
@@ -45,7 +47,7 @@ class ClaimExtractor:
         self.timeout = 30
         
         # System prompt for claim extraction
-        self.system_prompt = """You are a fact-checking assistant that extracts atomic, verifiable claims from content.
+        self.system_prompt = """You are a Tru8 fact-checking specialist specializing in identifying verifiable claims.
 
 RULES FOR EXTRACTING VERIFIABLE CLAIMS:
 
@@ -77,12 +79,22 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
 
 7. PRESENT IN SOURCE - Extract only explicitly stated or directly implied claims
 8. Maximum {max_claims} claims for Quick mode
-9. Focus on the most important/checkable claims
+9. Extract ALL verifiable claims up to the limit - do not be selective. Every factual claim deserves verification.
+
+HANDLING UNCERTAINTY:
+If you cannot confidently extract a claim:
+- Set confidence below 50
+- Include the claim with a caveat in subject_context
+- Do NOT fabricate or infer information not present in the source
 
 OUTPUT FORMAT:
 For EACH claim, provide:
 - text: The self-contained, atomic, verifiable claim
-- confidence: 0.8-1.0 (how confident you are this is verifiable)
+- confidence: Integer 0-100 (how confident you are this is verifiable)
+  - 90-100: Very high confidence (clear, specific, verifiable)
+  - 75-89: High confidence (mostly clear, minor ambiguity)
+  - 50-74: Moderate confidence (some ambiguity or missing context)
+  - Below 50: Low confidence (significant uncertainty)
 - subject_context: Main subject/topic (2-5 words)
 - key_entities: List of specific entities (names, organizations, places, amounts, dates)
 
@@ -93,7 +105,7 @@ Input: "The company delivered 1.3 million vehicles in 2022, exceeding expectatio
 Output: {{
   "claims": [{{
     "text": "Tesla delivered 1.3 million vehicles in 2022",
-    "confidence": 0.95,
+    "confidence": 95,
     "subject_context": "Tesla vehicle deliveries",
     "key_entities": ["Tesla", "1.3 million vehicles", "2022"]
   }}]
@@ -104,7 +116,7 @@ Input: "The Project received $350 million in federal funding."
 Output: {{
   "claims": [{{
     "text": "The White House ballroom renovation project received $350 million in federal funding",
-    "confidence": 0.95,
+    "confidence": 95,
     "subject_context": "White House renovation funding",
     "key_entities": ["White House", "ballroom renovation", "$350 million", "federal funding"]
   }}]
@@ -167,8 +179,17 @@ Always return valid JSON matching the required format."""
     async def _extract_with_openai(self, content: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
         """Extract claims using OpenAI GPT"""
         try:
-            # Build context-aware user prompt
-            user_prompt = ""
+            from datetime import datetime
+            now = datetime.now()
+            current_date = now.strftime("%Y-%m-%d")
+            current_year = now.strftime("%Y")
+
+            # Build context-aware user prompt with date context
+            user_prompt = f"""CURRENT DATE CONTEXT:
+Today's date is {current_date} (Year: {current_year}).
+Use this to resolve relative time references ("yesterday", "this week", "recently").
+
+"""
             if metadata and metadata.get("title"):
                 user_prompt += f"Article Title: \"{metadata.get('title')}\"\n"
             if metadata and metadata.get("url"):
@@ -210,6 +231,15 @@ Always return valid JSON matching the required format."""
                 
                 # Parse and validate JSON
                 claims_data = json.loads(content_text)
+
+                # Truncate claims if LLM exceeded the max (common issue)
+                if "claims" in claims_data and len(claims_data["claims"]) > self.max_claims:
+                    logger.warning(
+                        f"LLM returned {len(claims_data['claims'])} claims (max={self.max_claims}), "
+                        f"truncating to first {self.max_claims}"
+                    )
+                    claims_data["claims"] = claims_data["claims"][:self.max_claims]
+
                 validated_response = ClaimExtractionResponse(**claims_data)
                 
                 # Convert to format expected by pipeline with context preservation
@@ -268,6 +298,30 @@ Always return valid JSON matching the required format."""
 
                         logger.debug(f"Claim classification: {classification['claim_type']} (verifiable: {classification['is_verifiable']})")
 
+                # Article-level classification (once per check, not per claim)
+                # This replaces per-claim spaCy NER domain detection
+                article_classification = None
+                if settings.ENABLE_ARTICLE_CLASSIFICATION:
+                    try:
+                        from app.utils.article_classifier import classify_article
+
+                        article_classification = await classify_article(
+                            title=metadata.get("title", "") if metadata else "",
+                            url=metadata.get("url", "") if metadata else "",
+                            content=content[:2000]  # First 2000 chars for classification
+                        )
+
+                        # Attach classification to ALL claims for consistent API routing
+                        for claim in claims:
+                            claim["article_classification"] = article_classification.to_dict()
+
+                        logger.info(
+                            f"[EXTRACT] Article classified: {article_classification.primary_domain} "
+                            f"(confidence: {article_classification.confidence:.2f}, source: {article_classification.source})"
+                        )
+                    except Exception as e:
+                        logger.warning(f"Article classification failed, continuing without: {e}")
+
                 return {
                     "success": True,
                     "claims": claims,
@@ -324,7 +378,7 @@ Always return valid JSON matching the required format."""
                     logger.info(f"   Original: {claim_text[:80]}...")
                     logger.info(f"   Refined: {factual_core[:80]}...")
                     claim["text"] = factual_core
-                    claim["confidence"] *= 0.85  # Lower confidence for modified claim
+                    claim["confidence"] = int(claim["confidence"] * 0.85)  # Lower confidence for modified claim
                     claim["was_refined"] = True
                 else:
                     logger.warning(f"[EXTRACT] CLAIM FILTERED: Procedural negative with no factual core")
@@ -366,7 +420,7 @@ Always return valid JSON matching the required format."""
                 # Lower confidence but don't filter (might still be verifiable)
                 logger.info(f"[EXTRACT] CLAIM WARNING: Contains subjective language")
                 logger.info(f"   Claim: {claim_text[:80]}...")
-                claim["confidence"] *= 0.75
+                claim["confidence"] = int(claim["confidence"] * 0.75)
                 claim["has_subjective_language"] = True
 
             # Passed all checks

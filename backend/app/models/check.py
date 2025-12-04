@@ -78,6 +78,34 @@ class Check(SQLModel, table=True):
         description="Percentage of evidence from government APIs (0-100)"
     )
 
+    # Article Classification fields (LLM-based, runs once per check)
+    article_domain: Optional[str] = Field(
+        default=None,
+        max_length=50,
+        description="Primary domain classification (Sports, Politics, Finance, etc.)"
+    )
+    article_secondary_domains: Optional[str] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="Secondary domains for cross-domain articles (JSON array)"
+    )
+    article_jurisdiction: Optional[str] = Field(
+        default=None,
+        max_length=20,
+        description="Geographic jurisdiction (UK, US, EU, Global)"
+    )
+    article_classification_confidence: Optional[int] = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Confidence in article classification (0-100)"
+    )
+    article_classification_source: Optional[str] = Field(
+        default=None,
+        max_length=30,
+        description="Classification source (cache_pattern, cache_url, llm_primary, fallback_general)"
+    )
+
     # Relationships
     user: "User" = Relationship(back_populates="checks")
     claims: List["Claim"] = Relationship(back_populates="check")
@@ -118,6 +146,13 @@ class Claim(SQLModel, table=True):
     source_title: Optional[str] = Field(default=None, description="Title of source article")
     source_url: Optional[str] = Field(default=None, description="URL of source article")
     source_date: Optional[str] = Field(default=None, description="Publication date of source article")
+
+    # Temporal Drift Comparison fields (API current data vs claimed values)
+    current_verified_data: Optional[str] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="Current authoritative data from APIs for temporal comparison with claimed values"
+    )
 
     # Relationships
     check: Check = Relationship(back_populates="claims")

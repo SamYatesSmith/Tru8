@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import re
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 import json
@@ -12,19 +13,21 @@ logger = logging.getLogger(__name__)
 
 class JudgmentResult:
     """Result of claim judgment with verdict and rationale"""
-    
-    def __init__(self, claim_text: str, verdict: str, confidence: float, rationale: str, 
-                 supporting_evidence: List[Dict[str, Any]], evidence_summary: Dict[str, Any]):
+
+    def __init__(self, claim_text: str, verdict: str, confidence: float, rationale: str,
+                 supporting_evidence: List[Dict[str, Any]], evidence_summary: Dict[str, Any],
+                 current_verified_data: Optional[Dict[str, Any]] = None):
         self.claim_text = claim_text
         self.verdict = verdict  # 'supported', 'contradicted', 'uncertain'
         self.confidence = confidence  # 0-100
         self.rationale = rationale
         self.supporting_evidence = supporting_evidence
         self.evidence_summary = evidence_summary
+        self.current_verified_data = current_verified_data  # Temporal drift comparison data
         self.created_at = datetime.utcnow()
-    
+
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result = {
             "text": self.claim_text,
             "verdict": self.verdict,
             "confidence": self.confidence,
@@ -33,6 +36,10 @@ class JudgmentResult:
             "evidence_summary": self.evidence_summary,
             "timestamp": self.created_at.isoformat()
         }
+        # Include temporal comparison data if present
+        if self.current_verified_data:
+            result["current_verified_data"] = self.current_verified_data
+        return result
 
 class ClaimJudge:
     """LLM-powered claim judge that makes final verdicts based on verification signals"""
@@ -46,7 +53,7 @@ class ClaimJudge:
         self.cache_service = None
         
         # Judge system prompt optimized for final verdicts
-        self.system_prompt = """You are an expert fact-checker making final verdicts on claims based on evidence analysis.
+        self.system_prompt = """You are a Tru8 fact-checking specialist specializing in evidence-based verdict determination.
 
 TASK: Analyze verification signals and evidence to determine final verdict and explanation.
 
@@ -60,11 +67,10 @@ ANALYSIS FRAMEWORK:
 2. Signal Strength: Weight entailment/contradiction scores
 3. Consensus: Look for agreement across multiple sources
 4. **Evidence Freshness**: Time-sensitive claims REQUIRE recent evidence:
-   - Squad/roster claims: Evidence must be within 14 days (players transfer/get injured)
-   - League standings: Evidence must be within 7 days (tables change each matchweek)
-   - Match results: Evidence must be within 7 days
-   - Player statistics: Evidence should be within 30 days (season stats)
-   - Contract info: Evidence can be up to 6 months old (annual data)
+   - Real-time data (live events, breaking news, current scores): Evidence within days
+   - Fast-changing data (standings, polls, prices, rosters): Evidence within weeks
+   - Periodic data (monthly stats, quarterly reports): Evidence within months
+   - Historical facts (dates, legislation, established facts): Older evidence acceptable
    - If evidence is marked as STALE, treat it with EXTREME CAUTION - it may no longer be accurate
    - STALE evidence should NOT be used to support or contradict time-sensitive claims
 5. Context & Numerical Precision: Consider nuances, qualifications, temporal factors, and apply appropriate numerical tolerance:
@@ -177,6 +183,17 @@ When claims involve dates, contracts, or durations, YOU MUST perform arithmetic 
    ✗ WRONG: Marking as "uncertain" because "2026" and "2027" are different numbers
    ✓ RIGHT: Calculating that expiry 2027 means last year starts 2026
 
+HANDLING UNCERTAINTY:
+When you cannot confidently determine a verdict:
+- Return verdict "uncertain" with confidence below 50
+- In rationale, explain what specific information is missing or conflicting
+- In key_evidence_points, list what evidence would be needed for a confident verdict
+- Common uncertainty reasons:
+  - Insufficient evidence (fewer than 2 credible sources)
+  - Conflicting expert opinions
+  - Evidence is stale/outdated for time-sensitive claims
+  - Evidence doesn't directly address the claim
+
 RESPONSE FORMAT: Respond with a valid JSON object containing:
 {
   "verdict": "supported|contradicted|uncertain",
@@ -211,6 +228,23 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             if cached_result:
                 return self._result_from_dict(cached_result)
 
+        # TEMPORAL DRIFT: Detect API evidence and compare with claimed values
+        temporal_comparison = None
+        api_current_data = self._extract_api_current_data(evidence)
+        claimed_values = self._extract_claimed_statistics(claim_text)
+
+        if api_current_data and claimed_values:
+            temporal_comparison = self._build_temporal_comparison(
+                claimed_values=claimed_values,
+                current_data=api_current_data,
+                claim_text=claim_text
+            )
+            if temporal_comparison.get("drift_detected"):
+                logger.info(
+                    f"[JUDGE] Temporal drift detected: {temporal_comparison.get('drift_summary')} "
+                    f"(severity: {temporal_comparison.get('drift_severity')})"
+                )
+
         # PHASE 3: Check for abstention BEFORE making a judgment
         if settings.ENABLE_ABSTENTION_LOGIC:
             abstention_check = self._should_abstain(evidence, verification_signals, claim_text)
@@ -230,7 +264,8 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                         'abstention_reason': reason,
                         'min_requirements_met': False,
                         'consensus_strength': consensus_strength
-                    }
+                    },
+                    current_verified_data=temporal_comparison
                 )
 
         # Prepare judgment context with optional article context
@@ -261,7 +296,8 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 confidence=min(max(judgment_data.get("confidence", 50), 0), 100),
                 rationale=judgment_data.get("rationale", "Assessment based on available evidence"),
                 supporting_evidence=evidence[:3],  # Top 3 evidence pieces
-                evidence_summary=enriched_summary
+                evidence_summary=enriched_summary,
+                current_verified_data=temporal_comparison
             )
             
             # Cache result
@@ -285,7 +321,8 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 confidence=fallback_data["confidence"],
                 rationale=fallback_data["rationale"],
                 supporting_evidence=evidence[:3],
-                evidence_summary=verification_signals
+                evidence_summary=verification_signals,
+                current_verified_data=temporal_comparison
             )
 
     def _get_few_shot_examples(self) -> str:
@@ -390,7 +427,16 @@ NOW JUDGE THE FOLLOWING CLAIM:
         # Check if this is a temporal/date claim that requires math reasoning
         is_temporal_claim = self._requires_llm_reasoning(claim_text, evidence)
 
-        # Evidence summary with staleness checking
+        # Check if this is a TIMELESS claim (established scientific facts that don't need fresh evidence)
+        # For timeless claims, evidence age doesn't matter - scientific consensus is stable
+        temporal_window = claim.get("temporal_window", "")
+        claim_type_from_extraction = claim.get("claim_type", "")
+        is_timeless_claim = temporal_window == "timeless" or claim_type_from_extraction == "timeless_fact"
+
+        if is_timeless_claim:
+            logger.debug(f"[JUDGE] Timeless claim detected - staleness checks disabled: {claim_text[:60]}...")
+
+        # Evidence summary with staleness checking (disabled for timeless claims)
         evidence_summary = []
         stale_evidence_count = 0
         stale_evidence_warnings = []
@@ -407,30 +453,33 @@ NOW JUDGE THE FOLLOWING CLAIM:
             claim_type = ev.get("metadata", {}).get("claim_type", "general") if ev.get("metadata") else "general"
 
             staleness_warning = ""
-            if staleness_check:
-                if staleness_check.get("is_stale"):
-                    stale_evidence_count += 1
-                    age_days = staleness_check.get("age_days", "?")
-                    max_age = staleness_check.get("max_age_days", "?")
-                    staleness_warning = f"⚠️ STALE ({age_days} days old, max {max_age} for {claim_type})"
-                    stale_evidence_warnings.append(
-                        f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} for {claim_type})"
-                    )
-                elif staleness_check.get("is_warning"):
-                    age_days = staleness_check.get("age_days", "?")
-                    staleness_warning = f"⏰ WARNING: {age_days} days old"
-            elif date:
-                # Fallback: Do basic staleness check if metadata not present
-                from app.utils.query_planner import check_evidence_staleness
-                fallback_check = check_evidence_staleness(claim_type, date)
-                if fallback_check.get("is_stale"):
-                    stale_evidence_count += 1
-                    age_days = fallback_check.get("age_days", "?")
-                    max_age = fallback_check.get("max_age_days", "?")
-                    staleness_warning = f"⚠️ STALE ({age_days} days old, max {max_age} for {claim_type})"
-                    stale_evidence_warnings.append(
-                        f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} for {claim_type})"
-                    )
+            # SKIP staleness checks for TIMELESS claims - scientific consensus doesn't expire
+            if not is_timeless_claim:
+                if staleness_check:
+                    if staleness_check.get("is_stale"):
+                        stale_evidence_count += 1
+                        age_days = staleness_check.get("age_days", "?")
+                        max_age = staleness_check.get("max_age_days", "?")
+                        staleness_warning = f"⚠️ STALE ({age_days} days old, max {max_age} for {claim_type})"
+                        stale_evidence_warnings.append(
+                            f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} for {claim_type})"
+                        )
+                    elif staleness_check.get("is_warning"):
+                        age_days = staleness_check.get("age_days", "?")
+                        staleness_warning = f"⏰ WARNING: {age_days} days old"
+                elif date:
+                    # Fallback: Do basic staleness check if metadata not present
+                    # Use default freshness (py = 365 days) since we don't have plan context
+                    from app.utils.query_planner import check_evidence_staleness
+                    fallback_check = check_evidence_staleness(evidence_date=date, freshness="py")
+                    if fallback_check.get("is_stale"):
+                        stale_evidence_count += 1
+                        age_days = fallback_check.get("age_days", "?")
+                        max_age = fallback_check.get("max_age_days", "?")
+                        staleness_warning = f"⚠️ STALE ({age_days} days old, max {max_age} days)"
+                        stale_evidence_warnings.append(
+                            f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} days)"
+                        )
 
             evidence_summary.append(
                 f"Evidence {i+1}: {staleness_warning}\n"
@@ -480,9 +529,9 @@ YOU MUST do the date arithmetic yourself:
 {chr(10).join(stale_evidence_warnings)}
 
 IMPORTANT: Stale evidence may no longer reflect current reality, especially for:
-- Squad composition (players transfer, get injured, retire)
-- League standings (tables change after every match)
-- Recent events (situations evolve rapidly)
+- Fast-changing data (standings, polls, prices, roster compositions)
+- Recent events (situations evolve rapidly, breaking developments)
+- Market data (prices, availability, valuations change frequently)
 
 Consider marking the verdict as "uncertain" if ALL evidence is stale, or
 reduce confidence significantly if relying on outdated sources.
@@ -777,6 +826,191 @@ Based on this analysis, provide your final judgment."""
 
         return False
 
+    def _extract_claimed_statistics(self, claim_text: str) -> Optional[Dict[str, Any]]:
+        """
+        Extract numerical statistics from claim text for temporal drift comparison.
+
+        Returns dict of stat_name -> claimed_value pairs.
+
+        Example: "scored 4 goals and provided 3 assists"
+               → {"goals": 4, "assists": 3}
+        """
+        patterns = {
+            "goals": r"(\d+)\s*(?:goals?|scored)",
+            "assists": r"(\d+)\s*(?:assists?|provided)",
+            "appearances": r"(\d+)\s*(?:appearances?|games?|matches?)",
+            "points": r"(\d+)\s*(?:points?)",
+            "position": r"(\d+)(?:st|nd|rd|th)\s*(?:place|position)?",
+            "market_value": r"[€£$]?\s*(\d+(?:\.\d+)?)\s*(?:million|m)\b",
+            "wins": r"(\d+)\s*(?:wins?|victories)",
+            "losses": r"(\d+)\s*(?:losses?|defeats?)",
+            "draws": r"(\d+)\s*(?:draws?)",
+        }
+
+        extracted = {}
+        for stat_name, pattern in patterns.items():
+            match = re.search(pattern, claim_text, re.IGNORECASE)
+            if match:
+                value_str = match.group(1)
+                # Handle decimal values for market_value
+                if '.' in value_str:
+                    extracted[stat_name] = float(value_str)
+                else:
+                    extracted[stat_name] = int(value_str)
+
+        return extracted if extracted else None
+
+    def _extract_api_current_data(self, evidence: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        Extract current statistics from API evidence sources for temporal comparison.
+
+        Looks for evidence from authoritative API sources (Transfermarkt, Football-Data, etc.)
+        and extracts their current data values.
+
+        Returns:
+            Dict with source, retrieved_at, and stat values, or None if no API evidence
+        """
+        for ev in evidence:
+            provider = ev.get("external_source_provider") or ""
+            source = ev.get("source") or ""
+            metadata = ev.get("api_metadata") or ev.get("metadata") or {}
+
+            # Handle metadata stored as JSON string
+            if isinstance(metadata, str):
+                try:
+                    metadata = json.loads(metadata)
+                except (json.JSONDecodeError, TypeError):
+                    metadata = {}
+
+            # Check for Transfermarkt player stats
+            if "Transfermarkt" in provider or "transfermarkt" in source.lower():
+                data_type = metadata.get("data_type", "")
+                if data_type in ["career_stats", "player_statistics", "season_stats"]:
+                    return {
+                        "source": "Transfermarkt",
+                        "retrieved_at": ev.get("created_at") or datetime.utcnow().isoformat(),
+                        "data_type": data_type,
+                        "goals": metadata.get("total_goals") or metadata.get("goals"),
+                        "assists": metadata.get("total_assists") or metadata.get("assists"),
+                        "appearances": metadata.get("total_appearances") or metadata.get("appearances"),
+                        "market_value": metadata.get("market_value"),
+                    }
+
+            # Check for Football-Data standings
+            if "Football-Data" in provider or "football-data" in source.lower():
+                data_type = metadata.get("data_type", "")
+                if data_type in ["standings", "league_table"]:
+                    return {
+                        "source": "Football-Data.org",
+                        "retrieved_at": ev.get("created_at") or datetime.utcnow().isoformat(),
+                        "data_type": data_type,
+                        "position": metadata.get("position"),
+                        "points": metadata.get("points"),
+                        "wins": metadata.get("wins"),
+                        "losses": metadata.get("losses"),
+                        "draws": metadata.get("draws"),
+                    }
+
+            # Check for FRED economic data
+            if "FRED" in provider:
+                return {
+                    "source": "FRED (Federal Reserve)",
+                    "retrieved_at": ev.get("created_at") or datetime.utcnow().isoformat(),
+                    "data_type": metadata.get("data_type", "economic_indicator"),
+                    "value": metadata.get("value"),
+                    "unit": metadata.get("unit"),
+                }
+
+        return None
+
+    def _build_temporal_comparison(
+        self,
+        claimed_values: Dict[str, Any],
+        current_data: Dict[str, Any],
+        claim_text: str
+    ) -> Dict[str, Any]:
+        """
+        Build temporal comparison showing claimed vs current values.
+
+        Creates a structured comparison that the frontend can display
+        to show users how data has changed since the article was published.
+
+        Returns:
+            Dict with source, claim_values, current_values, drift info
+        """
+        comparison = {
+            "source": current_data.get("source"),
+            "retrieved_at": current_data.get("retrieved_at"),
+            "data_type": current_data.get("data_type", "statistics"),
+            "claim_values": claimed_values,
+            "current_values": {},
+            "drift_detected": False,
+            "changes": []
+        }
+
+        # Compare each claimed stat against current data
+        for stat_name, claimed_val in claimed_values.items():
+            current_val = current_data.get(stat_name)
+            if current_val is not None:
+                comparison["current_values"][stat_name] = current_val
+
+                # Detect drift (handle both int and float comparisons)
+                if isinstance(claimed_val, (int, float)) and isinstance(current_val, (int, float)):
+                    if current_val != claimed_val:
+                        comparison["drift_detected"] = True
+                        diff = current_val - claimed_val
+                        sign = "+" if diff > 0 else ""
+                        comparison["changes"].append(
+                            f"{stat_name.replace('_', ' ').title()}: {claimed_val}→{current_val} ({sign}{diff})"
+                        )
+
+        # Build human-readable drift summary
+        if comparison["changes"]:
+            comparison["drift_summary"] = ", ".join(comparison["changes"])
+        else:
+            comparison["drift_summary"] = None
+
+        # Calculate drift severity for verdict guidance
+        comparison["drift_severity"] = self._calculate_drift_severity(
+            claimed_values,
+            comparison["current_values"]
+        )
+
+        return comparison
+
+    def _calculate_drift_severity(
+        self,
+        claimed_values: Dict[str, Any],
+        current_values: Dict[str, Any]
+    ) -> str:
+        """
+        Determine drift severity for verdict guidance.
+
+        Returns: 'none', 'minor' (≤25% change), or 'significant' (>25% change)
+        """
+        if not claimed_values or not current_values:
+            return "none"
+
+        total_drift_pct = 0.0
+        comparisons = 0
+
+        for stat, claimed in claimed_values.items():
+            current = current_values.get(stat)
+            if current is not None and isinstance(claimed, (int, float)) and claimed > 0:
+                drift_pct = abs(current - claimed) / claimed * 100
+                total_drift_pct += drift_pct
+                comparisons += 1
+
+        if comparisons == 0:
+            return "none"
+
+        avg_drift = total_drift_pct / comparisons
+
+        if avg_drift <= 25:  # Within 25% = minor drift
+            return "minor"
+        else:
+            return "significant"
+
     def _calculate_consensus_strength(self, evidence: List[Dict[str, Any]],
                                      verification_signals: Dict[str, Any]) -> float:
         """
@@ -846,7 +1080,8 @@ Based on this analysis, provide your final judgment."""
             confidence=data["confidence"],
             rationale=data["rationale"],
             supporting_evidence=data.get("evidence", []),
-            evidence_summary=data.get("evidence_summary", {})
+            evidence_summary=data.get("evidence_summary", {}),
+            current_verified_data=data.get("current_verified_data")
         )
 
 class PipelineJudge:

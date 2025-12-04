@@ -73,7 +73,14 @@ class EvidenceRetriever:
                 try:
                     from app.utils.query_planner import get_query_planner
                     planner = get_query_planner()
-                    query_plans = await planner.plan_queries_batch(claims)
+
+                    # Phase 4: Pass article context to query planner for dynamic freshness decisions
+                    article_context = None
+                    if claims and claims[0].get("article_classification"):
+                        article_context = claims[0]["article_classification"]
+                        logger.info(f"[RETRIEVE] Passing article context to query planner: domain={article_context.get('primary_domain')}")
+
+                    query_plans = await planner.plan_queries_batch(claims, article_context=article_context)
                     if query_plans:
                         logger.info(f"Query planning complete: {len(query_plans)} plans for {len(claims)} claims")
                         # Attach query plans to claims
@@ -261,37 +268,26 @@ class EvidenceRetriever:
         try:
             queries = query_plan.get("queries", [])
             priority_sources = query_plan.get("priority_sources", [])
-            claim_type = query_plan.get("claim_type", "general")
+            claim_type = query_plan.get("claim_type", "general")  # Keep for metadata/backward compat
 
             # ============================================================
-            # DOMAIN-AWARE FRESHNESS: Use claim_type to determine freshness
+            # DYNAMIC FRESHNESS: Use LLM-decided freshness from query plan
             # ============================================================
-            # Claim type is more semantically meaningful than temporal_analysis
-            # E.g., "squad_composition" ALWAYS needs fresh evidence (days/weeks)
-            # whereas temporal_analysis might default to "any" -> 2y
-            from app.utils.query_planner import get_freshness_for_claim_type
-            freshness_req = get_freshness_for_claim_type(claim_type)
-            claim_type_freshness = freshness_req["brave_freshness"]
+            # The query planner receives full article context and decides
+            # freshness per claim based on domain, temporal context, and
+            # evidence guidance. No more hardcoded claim_type lookups.
+            effective_freshness = query_plan.get("freshness", "py")
+            plan_reasoning = query_plan.get("reasoning", "default")
 
-            # Use the MORE RESTRICTIVE freshness filter
-            # (lower is fresher: pd < pw < pm < py < 2y)
-            freshness_order = {"pd": 1, "pw": 2, "pm": 3, "py": 4, "2y": 5}
-            if freshness is None:
-                effective_freshness = claim_type_freshness
-            else:
-                # Use whichever is more restrictive (fresher)
-                if freshness_order.get(claim_type_freshness, 5) < freshness_order.get(freshness, 5):
-                    effective_freshness = claim_type_freshness
-                    logger.info(
-                        f"[FRESHNESS] Overriding temporal_analysis '{freshness}' with claim_type '{claim_type}' "
-                        f"freshness '{claim_type_freshness}' (more restrictive)"
-                    )
-                else:
+            # If temporal_analysis provided a more restrictive freshness, use it
+            if freshness is not None:
+                freshness_order = {"pd": 1, "pw": 2, "pm": 3, "py": 4, "2y": 5}
+                if freshness_order.get(freshness, 5) < freshness_order.get(effective_freshness, 5):
+                    logger.info(f"[FRESHNESS] temporal_analysis '{freshness}' is more restrictive than plan '{effective_freshness}'")
                     effective_freshness = freshness
 
             logger.info(
-                f"[FRESHNESS] claim_type={claim_type} -> freshness={effective_freshness} "
-                f"(max_age={freshness_req['max_age_days']} days)"
+                f"[FRESHNESS] Using plan freshness: {effective_freshness} (reasoning: {plan_reasoning[:50]})"
             )
 
             if not queries:
@@ -348,11 +344,64 @@ class EvidenceRetriever:
                     result._query_index = i
                     result._query_used = queries[i]
                     result._claim_type = claim_type
+                    result._freshness = effective_freshness  # For staleness check
                     unique_search_results.append(result)
 
+            # BALANCED FRESHNESS FALLBACK when 0 results
             if not unique_search_results:
-                logger.warning(f"No search results for planned queries")
-                return []
+                fallback_progression = ["pw", "pm", "py"]
+                current_idx = fallback_progression.index(effective_freshness) if effective_freshness in fallback_progression else -1
+
+                # FALLBACK 1: Try WITHOUT site filter (same freshness)
+                if site_filter:
+                    logger.info(f"[FRESHNESS FALLBACK] 0 results. Trying without site filter (freshness={effective_freshness})")
+                    for query in queries:
+                        try:
+                            results = await self.evidence_extractor.search_service.search_for_evidence(
+                                query, max_results=sources_per_query, freshness=effective_freshness)
+                            for result in results:
+                                if excluded_domain and extract_domain(result.url) == excluded_domain:
+                                    continue
+                                if result.url not in seen_urls:
+                                    seen_urls.add(result.url)
+                                    result._query_index = queries.index(query)
+                                    result._query_used = query
+                                    result._claim_type = claim_type
+                                    result._freshness = effective_freshness
+                                    unique_search_results.append(result)
+                        except Exception as e:
+                            logger.warning(f"Fallback query failed: {e}")
+                    if unique_search_results:
+                        logger.info(f"[FRESHNESS FALLBACK] Found {len(unique_search_results)} without site filter")
+
+                # FALLBACK 2: Progressively relax freshness (pw->pm->py, never 2y)
+                if not unique_search_results and current_idx >= 0 and current_idx < len(fallback_progression) - 1:
+                    for fallback_freshness in fallback_progression[current_idx + 1:]:
+                        logger.info(f"[FRESHNESS FALLBACK] Relaxing: {effective_freshness} -> {fallback_freshness}")
+                        for query in queries:
+                            try:
+                                results = await self.evidence_extractor.search_service.search_for_evidence(
+                                    query, max_results=sources_per_query, freshness=fallback_freshness)
+                                for result in results:
+                                    if excluded_domain and extract_domain(result.url) == excluded_domain:
+                                        continue
+                                    if result.url not in seen_urls:
+                                        seen_urls.add(result.url)
+                                        result._query_index = queries.index(query)
+                                        result._query_used = query
+                                        result._claim_type = claim_type
+                                        result._freshness = fallback_freshness  # Use fallback freshness
+                                        result._freshness_fallback = fallback_freshness
+                                        unique_search_results.append(result)
+                            except Exception as e:
+                                logger.warning(f"Fallback query failed: {e}")
+                        if unique_search_results:
+                            logger.info(f"[FRESHNESS FALLBACK] Found {len(unique_search_results)} with {fallback_freshness}")
+                            break
+
+                if not unique_search_results:
+                    logger.warning(f"[FRESHNESS FALLBACK] No results after all attempts")
+                    return []
 
             # ============================================================
             # CRITICAL FIX: Extract actual page content (like standard path)
@@ -428,6 +477,7 @@ class EvidenceRetriever:
         query_index = getattr(search_result, '_query_index', None)
         query_used = getattr(search_result, '_query_used', None)
         claim_type = getattr(search_result, '_claim_type', 'general')
+        freshness = getattr(search_result, '_freshness', 'py')  # For staleness check
 
         try:
             # Attempt full content extraction
@@ -447,11 +497,11 @@ class EvidenceRetriever:
                 snippet.metadata["extraction_status"] = "success"
                 snippet.metadata["is_snippet_fallback"] = False
 
-                # Add staleness check for time-sensitive claims
+                # Add staleness check for time-sensitive claims (using dynamic freshness)
                 from app.utils.query_planner import check_evidence_staleness
                 staleness = check_evidence_staleness(
-                    claim_type,
-                    snippet.published_date
+                    evidence_date=snippet.published_date,
+                    freshness=freshness  # Use LLM-decided freshness from query plan
                 )
                 snippet.metadata["staleness_check"] = staleness
                 if staleness["is_stale"]:
@@ -681,8 +731,25 @@ class EvidenceRetriever:
             low_cred_sources = [e for e in evidence_list if e.get("credibility_score", 0.6) < MIN_CREDIBILITY]
             for e in low_cred_sources[:3]:  # Show first 3 filtered
                 logger.info(f"[FILTER] LOW-CRED: {e.get('source')} (cred={e.get('credibility_score', 0.6):.2f} < {MIN_CREDIBILITY}) - {e.get('url', '')[:60]}")
-            evidence_list = [e for e in evidence_list if e.get("credibility_score", 0.6) >= MIN_CREDIBILITY]
-            credibility_filtered_count = before_credibility - len(evidence_list)
+
+            passing_cred = [e for e in evidence_list if e.get("credibility_score", 0.6) >= MIN_CREDIBILITY]
+
+            # ADAPTIVE FALLBACK: If ALL evidence would be filtered, keep top 3 by credibility score
+            # This prevents returning 0 evidence when all sources are unknown (0.60 default)
+            if len(passing_cred) == 0 and len(evidence_list) > 0:
+                # Sort by credibility and take top 3
+                evidence_list.sort(key=lambda x: x.get("credibility_score", 0.6), reverse=True)
+                fallback_count = min(3, len(evidence_list))
+                evidence_list = evidence_list[:fallback_count]
+                logger.warning(
+                    f"[FILTER] ADAPTIVE FALLBACK: All {before_credibility} sources below threshold "
+                    f"({MIN_CREDIBILITY}), keeping top {fallback_count} by credibility"
+                )
+                for e in evidence_list:
+                    logger.info(f"[FILTER] FALLBACK KEPT: {e.get('source')} (cred={e.get('credibility_score', 0.6):.2f})")
+            else:
+                evidence_list = passing_cred
+                credibility_filtered_count = before_credibility - len(evidence_list)
 
             logger.info(f"[FILTER] Stage 1: {original_evidence_count} raw -> {before_auto_exclude - auto_excluded_count} after auto-exclude -> {len(evidence_list)} after cred filter (threshold={MIN_CREDIBILITY})")
 
@@ -899,6 +966,62 @@ class EvidenceRetriever:
         except Exception:
             return 0.8  # Default for parsing errors
 
+    def _label_entities_for_api(self, key_entities: List[str]) -> List[Dict[str, str]]:
+        """
+        Convert string entities to labeled format for API adapters.
+
+        Uses heuristics to classify entities as PERSON, ORG, or ENTITY.
+        This enables API adapters (e.g., TransfermarktAdapter) to properly
+        query for players, clubs, etc.
+
+        Args:
+            key_entities: List of entity strings from claim extraction
+
+        Returns:
+            List of labeled entities: [{"text": "...", "label": "PERSON|ORG|ENTITY"}]
+        """
+        # Common sports organization suffixes
+        org_suffixes = (
+            "FC", "United", "City", "Rovers", "Wanderers", "Athletic",
+            "Dortmund", "Arsenal", "Chelsea", "Munich", "Madrid", "Barcelona",
+            "Milan", "Inter", "Juventus", "PSG", "Bayern", "Liverpool",
+            "Tottenham", "Spurs", "Hotspur", "Rangers", "Celtic",
+            "Club", "Association", "Federation", "League", "UEFA", "FIFA",
+            "Inc", "Ltd", "Corp", "Company", "Organization", "Government"
+        )
+
+        # Common title prefixes that indicate PERSON
+        person_prefixes = (
+            "Mr", "Mrs", "Ms", "Dr", "Prof", "Sir", "Lord", "Lady",
+            "President", "Prime Minister", "Minister", "Senator", "Governor"
+        )
+
+        labeled = []
+        for entity in key_entities:
+            if not entity or not isinstance(entity, str):
+                continue
+
+            entity_stripped = entity.strip()
+            words = entity_stripped.split()
+
+            # Check for organization indicators
+            if any(entity_stripped.endswith(suffix) for suffix in org_suffixes):
+                labeled.append({"text": entity_stripped, "label": "ORG"})
+            # Check for person name patterns (2+ capitalized words, not org)
+            elif (len(words) >= 2 and
+                  all(w[0].isupper() for w in words if w) and
+                  not any(suffix in entity_stripped for suffix in org_suffixes)):
+                labeled.append({"text": entity_stripped, "label": "PERSON"})
+            # Check for title prefix
+            elif any(entity_stripped.startswith(prefix) for prefix in person_prefixes):
+                labeled.append({"text": entity_stripped, "label": "PERSON"})
+            # Default to ENTITY (adapters can still try to use these)
+            else:
+                labeled.append({"text": entity_stripped, "label": "ENTITY"})
+
+        logger.debug(f"[API ROUTING] Labeled entities: {labeled}")
+        return labeled
+
     async def _retrieve_from_government_apis(
         self,
         claim_text: str,
@@ -931,9 +1054,9 @@ class EvidenceRetriever:
             legal_metadata = claim.get("legal_metadata", {})
 
             # Extract entities from key_entities field (set during extraction)
-            # Convert to labeled entity format for backward compatibility with API adapters
+            # Convert to labeled entity format for API adapters (PERSON, ORG, etc.)
             key_entities = claim.get("key_entities", [])
-            entities = [{"text": entity, "label": "ENTITY"} for entity in key_entities]
+            entities = self._label_entities_for_api(key_entities)
 
             if claim_type == "legal" and legal_metadata:
                 # Use legal classification for routing (override domain/jurisdiction)

@@ -7,16 +7,16 @@ from unittest.mock import Mock, patch, AsyncMock
 
 from app.pipeline.extract import ClaimExtractor
 
-# Mock response
+# Mock response (uses 0-100 confidence scale)
 MOCK_CLAIM_EXTRACTION = json.dumps({
     "claims": [{
         "text": "Test claim about climate change",
-        "confidence": 0.95,
+        "confidence": 95,
         "subject_context": "Climate",
         "key_entities": ["climate change"]
     }],
     "source_summary": "Test summary",
-    "extraction_confidence": 0.9
+    "extraction_confidence": 90
 })
 
 
