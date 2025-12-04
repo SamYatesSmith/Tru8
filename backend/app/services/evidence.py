@@ -9,6 +9,7 @@ from readability import Document
 import bleach
 from app.services.search import SearchResult, SearchService
 from app.utils.url_utils import extract_domain
+from app.utils.domain_status_tracker import get_domain_tracker, DomainStatus
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,8 @@ class EvidenceExtractor:
         self.max_snippet_words = 200
         self.max_concurrent = 3
 
-        # Blocked domains (rate limiting issues)
-        self.blocked_domains = {'yahoo.com', 'www.yahoo.com'}
+        # Blocked domains - now dynamically populated from tracker
+        self._init_blocked_domains()
 
         # Common fact-checking terms to look for
         self.fact_indicators = [
@@ -57,7 +58,31 @@ class EvidenceExtractor:
             'statistics show', 'report states', 'findings suggest', 'analysis shows',
             'evidence indicates', 'survey found', 'poll shows', 'investigation revealed'
         ]
-    
+
+    def _init_blocked_domains(self) -> None:
+        """Initialize blocked domains from tracker - only BOT_BLOCKED (403) domains.
+
+        Note: We ONLY block domains with confirmed bot detection (403).
+        Rate-limited (429), paywall, timeout, and JS-required are logged
+        but NOT blocked - they may work on retry or future subscription.
+        """
+        try:
+            tracker = get_domain_tracker()
+            # ONLY bot-blocked domains (403) - NOT rate-limited (429)
+            blocked = tracker.get_domains_by_status(DomainStatus.BOT_BLOCKED)
+
+            self.blocked_domains = set()
+            for d in blocked:
+                domain = d.get("domain", "")
+                self.blocked_domains.add(domain)
+                self.blocked_domains.add(f"www.{domain}")
+
+            logger.info(f"[EVIDENCE] Loaded {len(self.blocked_domains)} bot-blocked domains")
+        except Exception as e:
+            logger.warning(f"[EVIDENCE] Failed to load blocked domains: {e}")
+            # Fallback to hardcoded list
+            self.blocked_domains = {'yahoo.com', 'www.yahoo.com'}
+
     async def extract_evidence_for_claim(
         self,
         claim: str,
@@ -224,10 +249,24 @@ class EvidenceExtractor:
 
                     # Extract main content
                     content = self._extract_main_content(response.text, search_result.url)
+                    domain = extract_domain(search_result.url, fallback="unknown")
 
                     if not content:
+                        # Track as JS-required (page loaded but no content extracted)
+                        try:
+                            get_domain_tracker().record_access_result(
+                                domain, DomainStatus.JS_REQUIRED, {"reason": "empty_extraction"}
+                            )
+                        except Exception:
+                            pass
                         # Fallback to search snippet if extraction fails
                         content = search_result.snippet
+                    else:
+                        # Track successful extraction
+                        try:
+                            get_domain_tracker().record_access_result(domain, DomainStatus.ACCESSIBLE)
+                        except Exception:
+                            pass
 
                     # Find most relevant snippet (now async for semantic extraction)
                     snippet_text = await self._find_relevant_snippet(content, claim)
@@ -249,9 +288,35 @@ class EvidenceExtractor:
                     
             except httpx.TimeoutException:
                 logger.warning(f"Timeout fetching evidence from: {search_result.url}")
+                # Track domain status (one-time collection)
+                try:
+                    domain = extract_domain(search_result.url, fallback="unknown")
+                    get_domain_tracker().record_access_result(domain, DomainStatus.TIMEOUT)
+                except Exception:
+                    pass  # Don't let tracking affect pipeline
                 return None
             except httpx.HTTPStatusError as e:
-                if e.response.status_code == 403 or e.response.status_code == 429:
+                domain = extract_domain(search_result.url, fallback="unknown")
+                status_code = e.response.status_code
+
+                # Track domain status (one-time collection)
+                try:
+                    if status_code == 403:
+                        get_domain_tracker().record_access_result(
+                            domain, DomainStatus.BOT_BLOCKED, {"status_code": 403}
+                        )
+                    elif status_code == 429:
+                        get_domain_tracker().record_access_result(
+                            domain, DomainStatus.RATE_LIMITED, {"status_code": 429}
+                        )
+                    elif status_code == 402:
+                        get_domain_tracker().record_access_result(
+                            domain, DomainStatus.PAYWALL, {"status_code": 402}
+                        )
+                except Exception:
+                    pass  # Don't let tracking affect pipeline
+
+                if status_code == 403 or status_code == 429:
                     logger.warning(f"Access denied to: {search_result.url}")
                     # Return search snippet as fallback
                     return EvidenceSnippet(

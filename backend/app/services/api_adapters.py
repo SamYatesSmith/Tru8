@@ -26,6 +26,7 @@ import os
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from app.services.government_api_client import GovernmentAPIClient
+from app.core.config import settings
 from app.services.legal_search import LegalSearchService
 
 logger = logging.getLogger(__name__)
@@ -1566,8 +1567,8 @@ class TransfermarktAdapter(GovernmentAPIClient):
         """
         Extract PERSON entity names from NER results.
 
-        Uses dynamic NER entities - NO HARDCODED LISTS!
-        Falls back to basic extraction if no entities passed.
+        Uses dynamic NER entities. Also accepts ENTITY labels as fallback
+        if they look like person names (2+ capitalized words).
 
         Args:
             entities: List of NER entities [{"text": "Karim Adeyemi", "label": "PERSON"}, ...]
@@ -1576,19 +1577,37 @@ class TransfermarktAdapter(GovernmentAPIClient):
             List of person names to search for
         """
         persons = []
+        entity_fallbacks = []
 
         if entities:
             for ent in entities:
-                if isinstance(ent, dict) and ent.get("label") == "PERSON":
-                    persons.append(ent["text"])
+                if not isinstance(ent, dict):
+                    continue
 
-        return persons
+                text = ent.get("text", "")
+                label = ent.get("label", "")
+
+                if label == "PERSON":
+                    persons.append(text)
+                elif label == "ENTITY":
+                    # Fallback: Check if it looks like a person name
+                    # (2+ words, all capitalized, no org-like suffixes)
+                    words = text.split()
+                    org_indicators = ("FC", "United", "City", "Club", "League", "Inc", "Ltd")
+                    if (len(words) >= 2 and
+                        all(w[0].isupper() for w in words if w) and
+                        not any(ind in text for ind in org_indicators)):
+                        entity_fallbacks.append(text)
+
+        # Use PERSON entities first, fall back to ENTITY if none found
+        return persons if persons else entity_fallbacks
 
     def _extract_org_names(self, entities: Optional[List[Dict[str, str]]]) -> List[str]:
         """
         Extract ORG entity names (clubs/teams) from NER results.
 
-        Uses dynamic NER entities - NO HARDCODED LISTS!
+        Uses dynamic NER entities. Also accepts ENTITY labels as fallback
+        if they look like organization names (contain org-like suffixes).
 
         Args:
             entities: List of NER entities [{"text": "Arsenal", "label": "ORG"}, ...]
@@ -1597,13 +1616,33 @@ class TransfermarktAdapter(GovernmentAPIClient):
             List of organization/club names to search for
         """
         orgs = []
+        entity_fallbacks = []
+
+        # Common sports/org indicators
+        org_indicators = (
+            "FC", "United", "City", "Rovers", "Athletic", "Club",
+            "Dortmund", "Arsenal", "Chelsea", "Munich", "Madrid", "Barcelona",
+            "Milan", "Inter", "Juventus", "PSG", "Bayern", "Liverpool",
+            "League", "Association", "Federation", "UEFA", "FIFA"
+        )
 
         if entities:
             for ent in entities:
-                if isinstance(ent, dict) and ent.get("label") == "ORG":
-                    orgs.append(ent["text"])
+                if not isinstance(ent, dict):
+                    continue
 
-        return orgs
+                text = ent.get("text", "")
+                label = ent.get("label", "")
+
+                if label == "ORG":
+                    orgs.append(text)
+                elif label == "ENTITY":
+                    # Fallback: Check if it looks like an organization
+                    if any(ind in text for ind in org_indicators):
+                        entity_fallbacks.append(text)
+
+        # Use ORG entities first, fall back to ENTITY if none found
+        return orgs if orgs else entity_fallbacks
 
     def _search_player_with_transfers(
         self,
@@ -1952,7 +1991,8 @@ class FootballDataAdapter(GovernmentAPIClient):
     """
 
     def __init__(self):
-        api_key = os.getenv("FOOTBALL_DATA_API_KEY")
+        # Use settings instead of os.getenv - .env loaded by pydantic-settings
+        api_key = settings.FOOTBALL_DATA_API_KEY
 
         super().__init__(
             api_name="Football-Data.org",
@@ -2063,7 +2103,8 @@ class FootballDataAdapter(GovernmentAPIClient):
         """
         Extract ORG entity names (clubs/teams) from NER results.
 
-        Uses dynamic NER entities - NO HARDCODED LISTS!
+        Uses dynamic NER entities. Also accepts ENTITY labels as fallback
+        if they look like organization names (contain club/team indicators).
 
         Args:
             entities: List of NER entities [{"text": "Arsenal", "label": "ORG"}, ...]
@@ -2072,13 +2113,33 @@ class FootballDataAdapter(GovernmentAPIClient):
             List of organization/club names to search for
         """
         orgs = []
+        entity_fallbacks = []
+
+        # Common sports/org indicators
+        org_indicators = (
+            "FC", "United", "City", "Rovers", "Athletic", "Club",
+            "Dortmund", "Arsenal", "Chelsea", "Munich", "Madrid", "Barcelona",
+            "Milan", "Inter", "Juventus", "PSG", "Bayern", "Liverpool",
+            "League", "Association", "Federation", "UEFA", "FIFA"
+        )
 
         if entities:
             for ent in entities:
-                if isinstance(ent, dict) and ent.get("label") == "ORG":
-                    orgs.append(ent["text"])
+                if not isinstance(ent, dict):
+                    continue
 
-        return orgs
+                text = ent.get("text", "")
+                label = ent.get("label", "")
+
+                if label == "ORG":
+                    orgs.append(text)
+                elif label == "ENTITY":
+                    # Fallback: Check if it looks like an organization
+                    if any(ind in text for ind in org_indicators):
+                        entity_fallbacks.append(text)
+
+        # Use ORG entities first, fall back to ENTITY if none found
+        return orgs if orgs else entity_fallbacks
 
     def _get_standings(
         self,
@@ -2518,11 +2579,11 @@ def initialize_adapters():
         logger.warning("[ADAPTERS] GOVINFO_API_KEY not configured, GovInfo adapter not registered")
 
     # Register Football-Data.org adapter (Sports Statistics - Real-time)
-    football_data_key = os.getenv("FOOTBALL_DATA_API_KEY")
-    if football_data_key:
+    # Use settings instead of os.getenv() - .env is loaded by pydantic-settings into settings object
+    if settings.FOOTBALL_DATA_API_KEY:
         adapter = FootballDataAdapter()
         registry.register(adapter)
-        logger.info(f"[ADAPTERS] Registered Football-Data.org adapter for Sports (key: {football_data_key[:10]}...)")
+        logger.info(f"[ADAPTERS] Registered Football-Data.org adapter for Sports (key: {settings.FOOTBALL_DATA_API_KEY[:10]}...)")
     else:
         logger.warning("[ADAPTERS] FOOTBALL_DATA_API_KEY not configured, Football-Data adapter not registered")
 

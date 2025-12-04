@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { ChevronDown, ExternalLink, RefreshCw } from 'lucide-react';
 import { VerdictPill } from '@/app/dashboard/components/verdict-pill';
 import { ConfidenceBar } from '@/app/dashboard/components/confidence-bar';
 import { DecisionTrail } from '@/app/dashboard/components/decision-trail';
@@ -23,6 +23,19 @@ function generateNliExplanation(stance: string, confidence?: number): string {
     return `This evidence ${confidenceLevel} disputes the claim. The passage contains information that conflicts with what the claim asserts.`;
   }
   return 'This evidence provides context but neither clearly supports nor contradicts the claim.';
+}
+
+// Temporal drift comparison data (API current values vs claimed values)
+interface CurrentVerifiedData {
+  source: string;
+  retrieved_at: string;
+  data_type?: string;
+  claim_values: Record<string, number>;
+  current_values: Record<string, number>;
+  drift_detected: boolean;
+  drift_summary?: string;
+  drift_severity?: 'none' | 'minor' | 'significant';
+  changes?: string[];
 }
 
 interface Claim {
@@ -48,6 +61,9 @@ interface Claim {
   uncertaintyExplanation?: string;
   confidenceBreakdown?: any;
   decisionTrail?: any;
+
+  // Temporal drift comparison (current API data vs claimed values)
+  currentVerifiedData?: CurrentVerifiedData;
 }
 
 interface Evidence {
@@ -170,6 +186,62 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                 {/* Rationale */}
                 {claim.rationale && (
                   <p className="text-sm text-slate-400">{claim.rationale}</p>
+                )}
+
+                {/* Current Data Comparison - Show when temporal drift detected */}
+                {claim.currentVerifiedData?.drift_detected && (
+                  <div className="mt-3 p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-blue-300 mb-3">
+                      <RefreshCw size={14} className="animate-none" />
+                      <span className="font-semibold">Data Has Changed Since Publication</span>
+                      <span className="text-blue-500">·</span>
+                      <span className="text-blue-400 text-xs">{claim.currentVerifiedData.source}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="p-3 bg-slate-800/50 rounded-lg">
+                        <span className="text-xs text-slate-500 uppercase tracking-wide">Article Claimed</span>
+                        <div className="mt-1 text-slate-300 font-medium">
+                          {Object.entries(claim.currentVerifiedData.claim_values).map(([k, v]) => (
+                            <div key={k} className="flex justify-between">
+                              <span className="capitalize">{k.replace('_', ' ')}:</span>
+                              <span>{v}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="p-3 bg-emerald-900/30 border border-emerald-600/20 rounded-lg">
+                        <span className="text-xs text-emerald-400 uppercase tracking-wide">Current Data</span>
+                        <div className="mt-1 text-emerald-300 font-semibold">
+                          {Object.entries(claim.currentVerifiedData.current_values).map(([k, v]) => (
+                            <div key={k} className="flex justify-between">
+                              <span className="capitalize">{k.replace('_', ' ')}:</span>
+                              <span>{v}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {claim.currentVerifiedData.drift_summary && (
+                      <div className="mt-3 flex items-center gap-2 text-xs">
+                        <span className={`px-2 py-1 rounded font-medium ${
+                          claim.currentVerifiedData.drift_severity === 'minor'
+                            ? 'bg-amber-500/20 text-amber-400'
+                            : 'bg-orange-500/20 text-orange-400'
+                        }`}>
+                          {claim.currentVerifiedData.drift_severity === 'minor' ? 'Minor Update' : 'Significant Change'}
+                        </span>
+                        <span className="text-slate-400">
+                          {claim.currentVerifiedData.drift_summary}
+                        </span>
+                      </div>
+                    )}
+
+                    <p className="mt-2 text-xs text-slate-500 italic">
+                      The claim may have been accurate when published. Current data retrieved from {claim.currentVerifiedData.source}.
+                    </p>
+                  </div>
                 )}
 
                 {/* Uncertainty Explanation (if uncertain) */}

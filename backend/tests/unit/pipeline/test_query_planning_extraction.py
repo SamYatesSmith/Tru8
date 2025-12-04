@@ -24,8 +24,7 @@ def retriever():
     """Create an EvidenceRetriever with mocked dependencies."""
     with patch('app.pipeline.retrieve.SearchService'), \
          patch('app.pipeline.retrieve.EvidenceExtractor'), \
-         patch('app.pipeline.retrieve.get_api_registry'), \
-         patch('app.pipeline.retrieve.ClaimClassifier'):
+         patch('app.pipeline.retrieve.get_api_registry'):
         retriever = EvidenceRetriever()
         # Set max_concurrent for semaphore
         retriever.evidence_extractor.max_concurrent = 3

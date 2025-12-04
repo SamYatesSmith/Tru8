@@ -93,6 +93,8 @@ class TestAbstentionLogic:
 
     def test_abstains_with_weak_consensus(self):
         """Should abstain when consensus strength < MIN_CONSENSUS_STRENGTH"""
+        from unittest.mock import patch
+
         evidence = [
             {'id': '1', 'credibility_score': 0.9, 'url': 'a.com'},
             {'id': '2', 'credibility_score': 0.85, 'url': 'b.com'},
@@ -105,7 +107,9 @@ class TestAbstentionLogic:
             'evidence_3_stance': 'neutral'
         }
 
-        result = self.judge._should_abstain(evidence, verification_signals)
+        # Use higher threshold to trigger weak consensus abstention
+        with patch('app.pipeline.judge.settings.MIN_CONSENSUS_STRENGTH', 0.65):
+            result = self.judge._should_abstain(evidence, verification_signals, "")
 
         assert result is not None
         verdict, reason, consensus = result
@@ -117,16 +121,18 @@ class TestAbstentionLogic:
         evidence = [
             {'id': '1', 'credibility_score': 0.9, 'url': 'reuters.com'},
             {'id': '2', 'credibility_score': 0.9, 'url': 'bbc.co.uk'},
-            {'id': '3', 'credibility_score': 0.8, 'url': 'guardian.com'}
+            {'id': '3', 'credibility_score': 0.9, 'url': 'guardian.com'},  # Need 2+ high-cred contradicting
+            {'id': '4', 'credibility_score': 0.9, 'url': 'nyt.com'}
         ]
-        # High credibility sources conflict
+        # High credibility sources conflict - need 2+ contradicting to trigger
         verification_signals = {
             'evidence_1_stance': 'supporting',
             'evidence_2_stance': 'contradicting',
-            'evidence_3_stance': 'supporting'
+            'evidence_3_stance': 'contradicting',  # 2 high-cred contradicting
+            'evidence_4_stance': 'supporting'
         }
 
-        result = self.judge._should_abstain(evidence, verification_signals)
+        result = self.judge._should_abstain(evidence, verification_signals, "")
 
         assert result is not None
         verdict, reason, consensus = result

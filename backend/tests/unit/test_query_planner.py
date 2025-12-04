@@ -12,44 +12,51 @@ class TestLLMQueryPlanner:
     """Test the LLMQueryPlanner class."""
 
     def test_get_site_filter_with_priority_sources(self):
-        """Test site filter generation with priority sources."""
+        """Test site filter generation with LLM-provided priority sources."""
         from app.utils.query_planner import LLMQueryPlanner
 
         planner = LLMQueryPlanner()
 
-        # Test with priority sources
+        # Test with priority sources from LLM
         result = planner.get_site_filter(
-            ["premierleague.com", "arsenal.com", "transfermarkt.com"],
-            "squad_composition"
+            ["example.com", "authority.org", "data.gov"],
+            ""  # claim_type is now unused
         )
 
         # Should use first 2 sources
-        assert "site:premierleague.com" in result
-        assert "site:arsenal.com" in result
+        assert "site:example.com" in result
+        assert "site:authority.org" in result
         assert "OR" in result
 
-    def test_get_site_filter_fallback_to_defaults(self):
-        """Test site filter falls back to default sources by claim type."""
+    def test_get_site_filter_empty_without_priority_sources(self):
+        """Test site filter is empty when no priority sources provided (dynamic system)."""
         from app.utils.query_planner import LLMQueryPlanner
 
         planner = LLMQueryPlanner()
 
-        # Test with no priority sources - should use defaults
-        result = planner.get_site_filter([], "player_statistics")
+        # With no priority sources, should return empty (let search engine decide)
+        result = planner.get_site_filter([], "any_claim_type")
 
-        # Should use default sources for player_statistics
-        assert "site:fbref.com" in result or "site:transfermarkt.com" in result
-
-    def test_get_site_filter_empty_for_general(self):
-        """Test site filter is empty for general claim type."""
-        from app.utils.query_planner import LLMQueryPlanner
-
-        planner = LLMQueryPlanner()
-
-        # General claims should have no site filter
-        result = planner.get_site_filter([], "general")
-
+        # No hardcoded defaults anymore - dynamic system relies on LLM
         assert result == ""
+
+    def test_get_site_filter_limits_to_two_sources(self):
+        """Test site filter limits to first 2 sources to keep queries short."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+
+        # Pass more than 2 sources
+        result = planner.get_site_filter(
+            ["site1.com", "site2.com", "site3.com", "site4.com"],
+            ""
+        )
+
+        # Should only include 2 sources
+        assert result.count("site:") == 2
+        assert "site:site1.com" in result
+        assert "site:site2.com" in result
+        assert "site:site3.com" not in result
 
     def test_validate_plans_normalizes_structure(self):
         """Test plan validation normalizes various response formats."""
@@ -224,32 +231,135 @@ class TestQueryPlannerSingleton:
         assert planner1 is planner2
 
 
-class TestClaimTypes:
-    """Test claim type detection and routing."""
+class TestDynamicFreshness:
+    """Test dynamic freshness system (replaced hardcoded claim types)."""
 
-    @pytest.fixture
-    def sample_sports_claims(self):
-        """Sample sports claims for testing."""
-        return [
-            {"text": "Arsenal has Viktor Gyokeres in their squad for 2025"},
-            {"text": "Bukayo Saka scored 15 goals this season"},
-            {"text": "Kai Havertz contract expires in 2027"},
-            {"text": "Manchester United interested in signing Marcus Rashford"},
-            {"text": "Arsenal beat Chelsea 3-1 in the Premier League"},
-            {"text": "Liverpool top the Premier League table with 45 points"}
-        ]
-
-    def test_claim_type_mapping(self):
-        """Test that claim types map to correct source priorities."""
+    def test_freshness_validation_in_plans(self):
+        """Test that freshness values are validated in query plans."""
         from app.utils.query_planner import LLMQueryPlanner
 
         planner = LLMQueryPlanner()
 
-        # Verify default source mappings
-        assert planner.get_site_filter([], "squad_composition") != ""
-        assert planner.get_site_filter([], "player_statistics") != ""
-        assert planner.get_site_filter([], "contract_info") != ""
-        assert planner.get_site_filter([], "transfer_rumor") != ""
-        assert planner.get_site_filter([], "match_result") != ""
-        assert planner.get_site_filter([], "league_standing") != ""
-        assert planner.get_site_filter([], "general") == ""
+        # Test plans with various freshness values
+        plans = [
+            {"claim_index": 0, "queries": ["test"], "freshness": "pw"},  # Valid
+            {"claim_index": 1, "queries": ["test"], "freshness": "invalid"},  # Invalid -> py
+            {"claim_index": 2, "queries": ["test"]},  # Missing -> py
+        ]
+
+        validated = planner._validate_plans(plans, 3)
+
+        assert validated[0]["freshness"] == "pw"
+        assert validated[1]["freshness"] == "py"  # Default for invalid
+        assert validated[2]["freshness"] == "py"  # Default for missing
+
+    def test_valid_freshness_values(self):
+        """Test all valid freshness values are accepted."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        valid_values = ["pd", "pw", "pm", "py", "2y"]
+
+        for freshness in valid_values:
+            plans = [{"claim_index": 0, "queries": ["test"], "freshness": freshness}]
+            validated = planner._validate_plans(plans, 1)
+            assert validated[0]["freshness"] == freshness
+
+    def test_default_freshness_function(self):
+        """Test get_freshness_for_claim_type returns default values."""
+        from app.utils.query_planner import get_freshness_for_claim_type
+
+        # All claim types should return the same DEFAULT_FRESHNESS now
+        result = get_freshness_for_claim_type("any_type")
+        assert result["brave_freshness"] == "py"
+        assert result["max_age_days"] == 365
+
+    def test_check_evidence_staleness_with_freshness(self):
+        """Test evidence staleness check uses freshness parameter."""
+        from app.utils.query_planner import check_evidence_staleness
+        from datetime import datetime
+
+        # Test with fresh evidence and strict freshness
+        result = check_evidence_staleness(
+            evidence_date="2025-12-01",
+            freshness="pw",  # Past week
+            reference_date=datetime(2025, 12, 2)
+        )
+        assert result["is_stale"] is False
+        assert result["max_age_days"] == 7
+
+        # Test with stale evidence and strict freshness
+        result = check_evidence_staleness(
+            evidence_date="2025-11-01",
+            freshness="pw",  # Past week
+            reference_date=datetime(2025, 12, 2)
+        )
+        assert result["is_stale"] is True
+
+        # Test with lenient freshness
+        result = check_evidence_staleness(
+            evidence_date="2025-11-01",
+            freshness="py",  # Past year
+            reference_date=datetime(2025, 12, 2)
+        )
+        assert result["is_stale"] is False
+
+
+class TestArticleContextIntegration:
+    """Test article context is passed to query planner."""
+
+    @pytest.mark.asyncio
+    async def test_plan_queries_with_article_context(self):
+        """Test query planning receives article context."""
+        from app.utils.query_planner import LLMQueryPlanner
+        from unittest.mock import MagicMock
+
+        planner = LLMQueryPlanner()
+
+        # Mock the httpx client to capture the request
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "choices": [{
+                "message": {
+                    "content": '''{"plans": [
+                        {
+                            "claim_index": 0,
+                            "queries": ["test query"],
+                            "freshness": "pw",
+                            "source_hints": "Official sources",
+                            "reasoning": "Fast-changing data"
+                        }
+                    ]}'''
+                }
+            }]
+        }
+
+        captured_request = {}
+
+        async def capture_post(*args, **kwargs):
+            captured_request.update(kwargs.get("json", {}))
+            return mock_response
+
+        with patch('httpx.AsyncClient') as mock_client:
+            mock_instance = AsyncMock()
+            mock_instance.post = capture_post
+            mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+            mock_instance.__aexit__ = AsyncMock(return_value=None)
+            mock_client.return_value = mock_instance
+
+            claims = [{"text": "Test claim"}]
+            article_context = {
+                "primary_domain": "Politics",
+                "temporal_context": "December 2024 election coverage",
+                "key_entities": ["Congress", "Senate"],
+                "evidence_guidance": "Use official government sources"
+            }
+
+            result = await planner.plan_queries_batch(claims, article_context=article_context)
+
+            # Verify article context was included in the prompt
+            user_message = captured_request.get("messages", [{}])[-1].get("content", "")
+            assert "Politics" in user_message
+            assert "December 2024" in user_message
+            assert "Congress" in user_message

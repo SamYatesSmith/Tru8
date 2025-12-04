@@ -1,406 +1,415 @@
 """
-Unit Tests for Domain Detection
-Phase 5: Government API Integration
+Unit Tests for Article Classification
+Phase 5: Government API Integration - LLM-based article-level classification
 
-Tests for ClaimClassifier.detect_domain() method.
-Validates 82-87% routing accuracy as per plan.
+Tests for article_classifier module.
+Replaces old per-claim spaCy NER domain detection with ~95% accuracy LLM classification.
 """
 
 import pytest
-from app.utils.claim_classifier import ClaimClassifier
+from app.utils.article_classifier import (
+    ArticleClassification,
+    _check_url_pattern_cache,
+    classify_article_sync,
+    VALID_DOMAINS,
+    VALID_JURISDICTIONS,
+)
 
 
-@pytest.fixture
-def classifier():
-    """Create ClaimClassifier instance for tests."""
-    return ClaimClassifier()
+class TestArticleClassification:
+    """Test suite for ArticleClassification dataclass."""
+
+    def test_article_classification_creation(self):
+        """Test creating an ArticleClassification instance."""
+        classification = ArticleClassification(
+            primary_domain="Sports",
+            secondary_domains=["Politics"],
+            jurisdiction="UK",
+            confidence=0.95,
+            reasoning="Football article from BBC Sport",
+            source="cache_pattern"
+        )
+
+        assert classification.primary_domain == "Sports"
+        assert classification.secondary_domains == ["Politics"]
+        assert classification.jurisdiction == "UK"
+        assert classification.confidence == 0.95
+        assert classification.source == "cache_pattern"
+
+    def test_article_classification_to_dict(self):
+        """Test converting ArticleClassification to dictionary."""
+        classification = ArticleClassification(
+            primary_domain="Finance",
+            secondary_domains=[],
+            jurisdiction="Global",
+            confidence=0.8,
+            reasoning="Financial news",
+            source="llm_primary"
+        )
+
+        result = classification.to_dict()
+
+        assert isinstance(result, dict)
+        assert result["primary_domain"] == "Finance"
+        assert result["jurisdiction"] == "Global"
+        assert result["confidence"] == 0.8
+        assert result["source"] == "llm_primary"
+
+    def test_article_classification_from_dict(self):
+        """Test creating ArticleClassification from dictionary."""
+        data = {
+            "primary_domain": "Health",
+            "secondary_domains": ["Science"],
+            "jurisdiction": "UK",
+            "confidence": 0.9,
+            "reasoning": "NHS article",
+            "source": "cache_url"
+        }
+
+        classification = ArticleClassification.from_dict(data)
+
+        assert classification.primary_domain == "Health"
+        assert classification.secondary_domains == ["Science"]
+        assert classification.jurisdiction == "UK"
+        assert classification.confidence == 0.9
+        assert classification.source == "cache_url"
+
+    def test_article_classification_from_dict_defaults(self):
+        """Test ArticleClassification handles missing fields with defaults."""
+        data = {}
+
+        classification = ArticleClassification.from_dict(data)
+
+        assert classification.primary_domain == "General"
+        assert classification.secondary_domains == []
+        assert classification.jurisdiction == "Global"
+        assert classification.confidence == 0.0
 
 
-class TestDomainDetection:
-    """Test suite for domain detection functionality."""
+class TestURLPatternCache:
+    """Test suite for URL pattern cache functionality."""
+
+    # ========== SPORTS DOMAIN ==========
+
+    def test_bbc_sport_pattern(self):
+        """Test BBC Sport URL detection."""
+        url = "https://www.bbc.co.uk/sport/football/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Sports"
+        assert result.jurisdiction == "UK"
+        assert result.source == "cache_pattern"
+        assert result.confidence >= 0.9
+
+    def test_skysports_pattern(self):
+        """Test Sky Sports URL detection."""
+        url = "https://www.skysports.com/football/news/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Sports"
+        assert result.jurisdiction == "UK"
+
+    def test_espn_pattern(self):
+        """Test ESPN URL detection."""
+        url = "https://www.espn.com/soccer/match/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Sports"
+        assert result.jurisdiction == "US"
+
+    def test_athletic_pattern(self):
+        """Test The Athletic URL detection."""
+        url = "https://theathletic.com/article/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Sports"
+        assert result.jurisdiction == "Global"
+
+    # ========== POLITICS DOMAIN ==========
+
+    def test_bbc_politics_pattern(self):
+        """Test BBC Politics URL detection."""
+        url = "https://www.bbc.co.uk/news/politics/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Politics"
+        assert result.jurisdiction == "UK"
+
+    def test_gov_uk_pattern(self):
+        """Test GOV.UK URL detection."""
+        url = "https://www.gov.uk/government/news/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Politics"
+        assert result.jurisdiction == "UK"
+
+    def test_parliament_pattern(self):
+        """Test UK Parliament URL detection."""
+        url = "https://www.parliament.uk/business/bills/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Politics"
+        assert result.jurisdiction == "UK"
 
     # ========== FINANCE DOMAIN ==========
 
-    def test_finance_domain_uk_unemployment(self, classifier):
-        """Test Finance domain detection for UK unemployment claim."""
-        claim = "UK unemployment is 5.2%"
-        result = classifier.detect_domain(claim)
+    def test_ft_pattern(self):
+        """Test Financial Times URL detection."""
+        url = "https://www.ft.com/content/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Finance"
-        assert result["jurisdiction"] == "UK"
-        assert result["domain_confidence"] >= 0.5
-        assert "unemployment" in [e.lower() for e in result["key_entities"]]
+        assert result is not None
+        assert result.primary_domain == "Finance"
+        assert result.jurisdiction == "Global"
 
-    def test_finance_domain_gdp_growth(self, classifier):
-        """Test Finance domain detection for GDP claim."""
-        claim = "GDP growth reached 2.1% in Q4"
-        result = classifier.detect_domain(claim)
+    def test_bloomberg_pattern(self):
+        """Test Bloomberg URL detection."""
+        url = "https://www.bloomberg.com/news/articles/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Finance"
-        assert result["domain_confidence"] >= 0.5
+        assert result is not None
+        assert result.primary_domain == "Finance"
+        assert result.jurisdiction == "Global"
 
-    def test_finance_domain_inflation(self, classifier):
-        """Test Finance domain detection for inflation claim."""
-        claim = "Inflation is at 3.2% according to the ONS"
-        result = classifier.detect_domain(claim)
+    def test_ons_pattern(self):
+        """Test ONS URL detection."""
+        url = "https://www.ons.gov.uk/economy/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Finance"
-        assert result["jurisdiction"] == "UK"  # ONS is UK entity
-        assert "ons" in [e.lower() for e in result["key_entities"]]
-
-    def test_finance_domain_us_fed(self, classifier):
-        """Test Finance domain with US Federal Reserve."""
-        claim = "The Federal Reserve raised interest rates by 0.25%"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Finance"
-        assert result["jurisdiction"] == "US"
-        assert "federal reserve" in [e.lower() for e in result["key_entities"]]
+        assert result is not None
+        assert result.primary_domain == "Finance"
+        assert result.jurisdiction == "UK"
 
     # ========== HEALTH DOMAIN ==========
 
-    def test_health_domain_nhs(self, classifier):
-        """Test Health domain detection for NHS claim."""
-        claim = "The NHS reported 1000 new COVID cases yesterday"
-        result = classifier.detect_domain(claim)
+    def test_nhs_pattern(self):
+        """Test NHS URL detection."""
+        url = "https://www.nhs.uk/conditions/covid-19"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Health"
-        assert result["jurisdiction"] == "UK"
-        assert "nhs" in [e.lower() for e in result["key_entities"]]
+        assert result is not None
+        assert result.primary_domain == "Health"
+        assert result.jurisdiction == "UK"
 
-    def test_health_domain_who(self, classifier):
-        """Test Health domain detection for WHO claim."""
-        claim = "WHO declared COVID-19 a pandemic"
-        result = classifier.detect_domain(claim)
+    def test_who_pattern(self):
+        """Test WHO URL detection."""
+        url = "https://www.who.int/news/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Health"
-        assert result["jurisdiction"] == "Global"
-        assert "who" in [e.lower() for e in result["key_entities"]]
+        assert result is not None
+        assert result.primary_domain == "Health"
+        assert result.jurisdiction == "Global"
 
-    def test_health_domain_vaccine(self, classifier):
-        """Test Health domain for vaccine claim."""
-        claim = "COVID vaccine is 95% effective according to clinical trials"
-        result = classifier.detect_domain(claim)
+    def test_cdc_pattern(self):
+        """Test CDC URL detection."""
+        url = "https://www.cdc.gov/disease/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Health"
+        assert result is not None
+        assert result.primary_domain == "Health"
+        assert result.jurisdiction == "US"
 
-    def test_health_domain_medical_treatment(self, classifier):
-        """Test Health domain for medical treatment claim."""
-        claim = "New cancer treatment shows promising results in hospital trials"
-        result = classifier.detect_domain(claim)
+    def test_pubmed_pattern(self):
+        """Test PubMed URL detection."""
+        url = "https://pubmed.ncbi.nlm.nih.gov/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Health"
-
-    # ========== GOVERNMENT DOMAIN ==========
-
-    def test_government_domain_parliament(self, classifier):
-        """Test Government domain for UK Parliament claim."""
-        claim = "UK Parliament passed new legislation on climate change"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Government"
-        assert result["jurisdiction"] == "UK"
-
-    def test_government_domain_companies_house(self, classifier):
-        """Test Government domain for Companies House claim."""
-        claim = "Companies House registered 500000 new businesses in 2024"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Government"
-        assert result["jurisdiction"] == "UK"
-        assert "companies house" in [e.lower() for e in result["key_entities"]]
-
-    def test_government_domain_policy(self, classifier):
-        """Test Government domain for policy claim."""
-        claim = "Government announced new policy on immigration"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Government"
-
-    # ========== CLIMATE DOMAIN ==========
-
-    def test_climate_domain_temperature(self, classifier):
-        """Test Climate domain for temperature claim."""
-        claim = "Global temperature increased by 1.5 degrees Celsius"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Climate"
-
-    def test_climate_domain_met_office(self, classifier):
-        """Test Climate domain with Met Office."""
-        claim = "Met Office forecasts record temperatures this summer"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Climate"
-        assert result["jurisdiction"] == "UK"
+        assert result is not None
+        assert result.primary_domain == "Health"
+        assert result.jurisdiction == "Global"
 
     # ========== SCIENCE DOMAIN ==========
 
-    def test_science_domain_research(self, classifier):
-        """Test Science domain for research claim."""
-        claim = "Study published in Nature shows breakthrough in quantum computing"
-        result = classifier.detect_domain(claim)
+    def test_nature_pattern(self):
+        """Test Nature journal URL detection."""
+        url = "https://www.nature.com/articles/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Science"
+        assert result is not None
+        assert result.primary_domain == "Science"
+        assert result.jurisdiction == "Global"
 
-    def test_science_domain_pubmed(self, classifier):
-        """Test Science domain with PubMed."""
-        claim = "PubMed database contains over 30 million research articles"
-        result = classifier.detect_domain(claim)
+    def test_arxiv_pattern(self):
+        """Test arXiv URL detection."""
+        url = "https://arxiv.org/abs/2401.12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Science"
+        assert result is not None
+        assert result.primary_domain == "Science"
+        assert result.jurisdiction == "Global"
 
-    # ========== DEMOGRAPHICS DOMAIN ==========
+    # ========== CLIMATE DOMAIN ==========
 
-    def test_demographics_domain_census(self, classifier):
-        """Test Demographics domain for census claim."""
-        claim = "UK Census shows population growth of 6.3% since 2011"
-        result = classifier.detect_domain(claim)
+    def test_met_office_pattern(self):
+        """Test Met Office URL detection."""
+        url = "https://www.metoffice.gov.uk/weather/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Demographics"
-        assert result["jurisdiction"] == "UK"
+        assert result is not None
+        assert result.primary_domain == "Climate"
+        assert result.jurisdiction == "UK"
 
-    def test_demographics_domain_population(self, classifier):
-        """Test Demographics domain for population claim."""
-        claim = "Population of London reached 9 million in 2024"
-        result = classifier.detect_domain(claim)
+    def test_noaa_pattern(self):
+        """Test NOAA URL detection."""
+        url = "https://www.noaa.gov/climate/12345"
+        result = _check_url_pattern_cache(url)
 
-        assert result["domain"] == "Demographics"
+        assert result is not None
+        assert result.primary_domain == "Climate"
+        assert result.jurisdiction == "US"
 
     # ========== LAW DOMAIN ==========
 
-    def test_law_domain_legislation(self, classifier):
-        """Test Law domain for legislation claim."""
-        claim = "Section 230 of Communications Decency Act protects online platforms"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Law"
-        assert result["jurisdiction"] == "US"
-
-    def test_law_domain_court(self, classifier):
-        """Test Law domain for court claim."""
-        claim = "Supreme Court ruled on landmark case"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Law"
-
-    # ========== GENERAL DOMAIN (FALLBACK) ==========
-
-    def test_general_domain_ambiguous(self, classifier):
-        """Test General domain for ambiguous claim."""
-        claim = "The weather is nice today"
-        result = classifier.detect_domain(claim)
-
-        # This is not a verifiable claim, should default to General
-        assert result["domain"] == "General"
-        assert result["domain_confidence"] <= 0.5
-
-    def test_general_domain_opinion(self, classifier):
-        """Test General domain for opinion claim."""
-        claim = "The movie was excellent"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "General"
-
-    # ========== MULTI-DOMAIN CLAIMS ==========
-
-    def test_multi_domain_health_finance(self, classifier):
-        """Test multi-domain claim (Health + Finance)."""
-        claim = "NHS spending on mental health increased by 10%"
-        result = classifier.detect_domain(claim)
-
-        # Should pick the HIGHEST scoring domain
-        assert result["domain"] in ["Health", "Finance", "Government"]
-        # Multi-domain claims are expected to have lower confidence
-        # This is a known limitation (13-18% routing error rate)
-
-    def test_multi_domain_climate_government(self, classifier):
-        """Test multi-domain claim (Climate + Government)."""
-        claim = "Government spending on climate research doubled"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] in ["Climate", "Government", "Finance"]
-
-    # ========== JURISDICTION DETECTION ==========
-
-    def test_jurisdiction_uk_explicit(self, classifier):
-        """Test UK jurisdiction detection."""
-        claim = "UK unemployment rate is 4.2%"
-        result = classifier.detect_domain(claim)
-
-        assert result["jurisdiction"] == "UK"
-
-    def test_jurisdiction_us_explicit(self, classifier):
-        """Test US jurisdiction detection."""
-        claim = "US inflation reached 3.5%"
-        result = classifier.detect_domain(claim)
-
-        assert result["jurisdiction"] == "US"
-
-    def test_jurisdiction_global_implicit(self, classifier):
-        """Test Global jurisdiction for claims without specific location."""
-        claim = "Climate change is accelerating"
-        result = classifier.detect_domain(claim)
-
-        assert result["jurisdiction"] == "Global"
-
-    def test_jurisdiction_eu_detection(self, classifier):
-        """Test EU jurisdiction detection."""
-        claim = "European Union passed GDPR legislation"
-        result = classifier.detect_domain(claim)
-
-        assert result["jurisdiction"] == "EU"
-
-    # ========== ENTITY EXTRACTION ==========
-
-    def test_entity_extraction_organizations(self, classifier):
-        """Test that key organizations are extracted."""
-        claim = "The NHS and WHO collaborated on vaccine distribution"
-        result = classifier.detect_domain(claim)
-
-        entities_lower = [e.lower() for e in result["key_entities"]]
-        assert "nhs" in entities_lower
-        assert "who" in entities_lower
-
-    def test_entity_extraction_numbers(self, classifier):
-        """Test that numbers and percentages are captured."""
-        claim = "GDP grew by 2.1% in Q4"
-        result = classifier.detect_domain(claim)
-
-        # Should have percentage entities
-        assert len(result["key_entities"]) > 0
-
-    # ========== CONFIDENCE SCORING ==========
-
-    def test_high_confidence_single_domain(self, classifier):
-        """Test that single-domain claims have high confidence."""
-        claim = "The Federal Reserve raised interest rates by 0.25%"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Finance"
-        assert result["domain_confidence"] >= 0.7  # High confidence
-
-    def test_low_confidence_ambiguous(self, classifier):
-        """Test that ambiguous claims have low confidence."""
-        claim = "Things are getting better"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain_confidence"] < 0.5  # Low confidence
-
-    # ========== EDGE CASES ==========
-
-    def test_empty_claim(self, classifier):
-        """Test handling of empty claim."""
-        claim = ""
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "General"
-        assert result["domain_confidence"] == 0.0
-
-    def test_very_long_claim(self, classifier):
-        """Test handling of very long claim."""
-        claim = "UK unemployment " * 100  # 200+ words
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Finance"
-        # Should still work despite length
-
-    def test_special_characters(self, classifier):
-        """Test handling of special characters."""
-        claim = "GDP growth is 2.1% (up from 1.5%!!!) according to ONS"
-        result = classifier.detect_domain(claim)
-
-        assert result["domain"] == "Finance"
-        assert result["jurisdiction"] == "UK"
-
-    def test_case_insensitivity(self, classifier):
-        """Test that detection is case-insensitive."""
-        claim1 = "NHS reported 1000 cases"
-        claim2 = "nhs reported 1000 cases"
-
-        result1 = classifier.detect_domain(claim1)
-        result2 = classifier.detect_domain(claim2)
-
-        assert result1["domain"] == result2["domain"]
-        assert result1["jurisdiction"] == result2["jurisdiction"]
-
-
-class TestAccuracyBenchmark:
-    """
-    Benchmark tests to validate 82-87% routing accuracy.
-
-    These tests use a predefined set of claims with known correct domains.
-    """
-
-    BENCHMARK_CLAIMS = [
-        # Format: (claim, expected_domain, expected_jurisdiction)
-        ("UK unemployment is 5.2%", "Finance", "UK"),
-        ("NHS reported 1000 COVID cases", "Health", "UK"),
-        ("WHO declared pandemic", "Health", "Global"),
-        ("Companies House registered 500000 businesses", "Government", "UK"),
-        ("GDP growth is 2.1%", "Finance", "UK"),
-        ("Met Office forecasts record temperatures", "Climate", "UK"),
-        ("PubMed contains 30 million articles", "Science", "Global"),
-        ("UK Census shows population growth", "Demographics", "UK"),
-        ("Federal Reserve raised interest rates", "Finance", "US"),
-        ("Supreme Court ruled on landmark case", "Law", "US"),
-    ]
-
-    def test_routing_accuracy_benchmark(self, classifier):
-        """
-        Test routing accuracy across benchmark claims.
-
-        Target: 82-87% accuracy (8-9 out of 10 correct)
-        """
-        correct = 0
-        total = len(self.BENCHMARK_CLAIMS)
-
-        for claim, expected_domain, expected_jurisdiction in self.BENCHMARK_CLAIMS:
-            result = classifier.detect_domain(claim)
-
-            if result["domain"] == expected_domain and result["jurisdiction"] == expected_jurisdiction:
-                correct += 1
-            else:
-                print(f"MISS: '{claim}' -> Got {result['domain']}/{result['jurisdiction']}, "
-                      f"Expected {expected_domain}/{expected_jurisdiction}")
-
-        accuracy = correct / total
-
-        print(f"\nRouting Accuracy: {accuracy:.1%} ({correct}/{total})")
-
-        # Assert 80%+ accuracy (allowing for some variance)
-        assert accuracy >= 0.80, f"Routing accuracy {accuracy:.1%} below 80% threshold"
-
-
-# ========== PERFORMANCE TESTS ==========
-
-class TestPerformance:
-    """Test domain detection performance."""
-
-    def test_detection_speed(self, classifier):
-        """Test that domain detection is fast (<50ms as per plan)."""
-        import time
-
-        claim = "UK unemployment is 5.2%"
-
-        start = time.time()
-        for _ in range(10):
-            classifier.detect_domain(claim)
-        end = time.time()
-
-        avg_time_ms = (end - start) / 10 * 1000
-
-        print(f"\nAverage detection time: {avg_time_ms:.2f}ms")
-
-        # Should be under 50ms per plan (allowing 100ms for CI environments)
-        assert avg_time_ms < 100, f"Detection took {avg_time_ms:.2f}ms (target <100ms)"
-
-    def test_lazy_loading(self, classifier):
-        """Test that spaCy loads lazily."""
-        # Before first call, nlp should be None
-        if not hasattr(classifier, '_spacy_loaded'):
-            assert classifier.nlp is None
-
-        # After first call, nlp should be loaded
-        classifier.detect_domain("Test claim")
-        assert classifier.nlp is not None
+    def test_legislation_gov_pattern(self):
+        """Test legislation.gov.uk URL detection."""
+        url = "https://www.legislation.gov.uk/ukpga/2020/1"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Law"
+        assert result.jurisdiction == "UK"
+
+    def test_supremecourt_gov_pattern(self):
+        """Test Supreme Court URL detection."""
+        url = "https://www.supremecourt.gov/opinions/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is not None
+        assert result.primary_domain == "Law"
+        assert result.jurisdiction == "US"
+
+    # ========== NO MATCH (FALLBACK) ==========
+
+    def test_unknown_url_no_match(self):
+        """Test that unknown URLs return None (no cache match)."""
+        url = "https://www.random-news-site.com/article/12345"
+        result = _check_url_pattern_cache(url)
+
+        assert result is None
+
+    def test_empty_url(self):
+        """Test handling of empty URL."""
+        url = ""
+        result = _check_url_pattern_cache(url)
+
+        assert result is None
+
+    def test_none_url(self):
+        """Test handling of None URL."""
+        url = None
+        result = _check_url_pattern_cache(url)
+
+        assert result is None
+
+
+class TestSyncClassification:
+    """Test suite for synchronous classification (URL pattern only)."""
+
+    def test_sync_sports_classification(self):
+        """Test sync classification for sports URL."""
+        result = classify_article_sync(
+            title="Arsenal transfer news",
+            url="https://www.skysports.com/football/arsenal",
+            content="Arsenal are looking to sign a new striker..."
+        )
+
+        assert result.primary_domain == "Sports"
+        assert result.jurisdiction == "UK"
+        assert result.source == "cache_pattern"
+
+    def test_sync_fallback_classification(self):
+        """Test sync classification falls back to General for unknown URLs."""
+        result = classify_article_sync(
+            title="Random article",
+            url="https://www.unknown-site.com/article",
+            content="Some random content..."
+        )
+
+        assert result.primary_domain == "General"
+        assert result.jurisdiction == "Global"
+        assert result.source == "fallback_general"
+        assert result.confidence == 0.0
+
+
+class TestDomainConstants:
+    """Test domain and jurisdiction constants."""
+
+    def test_valid_domains_complete(self):
+        """Test that all expected domains are defined."""
+        expected_domains = [
+            "Sports", "Politics", "Finance", "Health", "Science",
+            "Law", "Climate", "Demographics", "Entertainment", "General"
+        ]
+
+        for domain in expected_domains:
+            assert domain in VALID_DOMAINS
+
+    def test_valid_jurisdictions_complete(self):
+        """Test that all expected jurisdictions are defined."""
+        expected_jurisdictions = ["UK", "US", "EU", "Global"]
+
+        for jurisdiction in expected_jurisdictions:
+            assert jurisdiction in VALID_JURISDICTIONS
+
+
+class TestURLPatternCacheCoverage:
+    """Test URL pattern cache coverage for major publishers."""
+
+    # Test major UK sports publishers
+    @pytest.mark.parametrize("url,expected_domain", [
+        ("https://www.bbc.co.uk/sport/football/12345", "Sports"),
+        ("https://www.bbc.com/sport/cricket/12345", "Sports"),
+        ("https://www.skysports.com/football", "Sports"),
+        ("https://www.espn.co.uk/football/12345", "Sports"),
+        ("https://www.premierleague.com/match/12345", "Sports"),
+        ("https://www.goal.com/en/news/12345", "Sports"),
+        ("https://www.football365.com/news/12345", "Sports"),
+    ])
+    def test_sports_coverage(self, url, expected_domain):
+        """Test sports URL pattern coverage."""
+        result = _check_url_pattern_cache(url)
+        assert result is not None, f"URL not matched: {url}"
+        assert result.primary_domain == expected_domain
+
+    # Test major news publishers by section
+    @pytest.mark.parametrize("url,expected_domain,expected_jurisdiction", [
+        ("https://www.bbc.co.uk/news/politics/12345", "Politics", "UK"),
+        ("https://www.bbc.co.uk/news/health/12345", "Health", "UK"),
+        ("https://www.bbc.co.uk/news/science-environment/12345", "Science", "UK"),
+        ("https://www.bbc.co.uk/news/business/12345", "Finance", "UK"),
+    ])
+    def test_bbc_section_coverage(self, url, expected_domain, expected_jurisdiction):
+        """Test BBC section URL pattern coverage."""
+        result = _check_url_pattern_cache(url)
+        assert result is not None, f"URL not matched: {url}"
+        assert result.primary_domain == expected_domain
+        assert result.jurisdiction == expected_jurisdiction
+
+
+# ========== ASYNC TESTS (require event loop) ==========
+
+class TestAsyncClassification:
+    """Test suite for async classification (requires async fixtures)."""
+
+    @pytest.mark.asyncio
+    async def test_async_classification_with_cache_hit(self):
+        """Test async classification with URL pattern cache hit."""
+        from app.utils.article_classifier import classify_article
+
+        result = await classify_article(
+            title="Premier League Match Report",
+            url="https://www.bbc.co.uk/sport/football/12345",
+            content="Arsenal won 2-0 against Chelsea..."
+        )
+
+        assert result.primary_domain == "Sports"
+        assert result.jurisdiction == "UK"
+        assert result.source == "cache_pattern"
+        assert result.confidence >= 0.9
