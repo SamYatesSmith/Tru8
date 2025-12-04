@@ -538,6 +538,21 @@ reduce confidence significantly if relying on outdated sources.
 
 """
 
+        # Build verification metrics conditionally based on feature flag
+        # When disabled (default): Judge makes verdict decisions without NLI bias
+        # NLI still runs for evidence relevance filtering
+        verification_metrics = ""
+        if settings.PASS_NLI_VERDICT_TO_JUDGE:
+            temporal_suffix = "  ⚠️ MAY BE INCORRECT FOR DATE CLAIMS - DO THE MATH!" if is_temporal_claim else ""
+            verification_metrics = f"""
+VERIFICATION METRICS:
+Overall Verdict Signal: {signals.get('overall_verdict', 'uncertain')}{temporal_suffix}
+Signal Confidence: {signals.get('confidence', 0.0):.2f}
+Max Entailment Score: {signals.get('max_entailment', 0.0):.2f}
+Max Contradiction Score: {signals.get('max_contradiction', 0.0):.2f}
+Evidence Quality: {signals.get('evidence_quality', 'low')}
+"""
+
         base_context = f"""
 CLAIM TO JUDGE:
 {claim_text}
@@ -547,14 +562,7 @@ Total Evidence Pieces: {signals.get('total_evidence', 0)}
 Supporting Evidence: {signals.get('supporting_count', 0)} pieces
 Contradicting Evidence: {signals.get('contradicting_count', 0)} pieces
 Neutral Evidence: {signals.get('neutral_count', 0)} pieces
-
-VERIFICATION METRICS:
-Overall Verdict Signal: {signals.get('overall_verdict', 'uncertain')}{"  ⚠️ MAY BE INCORRECT FOR DATE CLAIMS - DO THE MATH!" if is_temporal_claim else ""}
-Signal Confidence: {signals.get('confidence', 0.0):.2f}
-Max Entailment Score: {signals.get('max_entailment', 0.0):.2f}
-Max Contradiction Score: {signals.get('max_contradiction', 0.0):.2f}
-Evidence Quality: {signals.get('evidence_quality', 'low')}
-
+{verification_metrics}
 EVIDENCE DETAILS:
 {chr(10).join(evidence_summary)}
 
@@ -696,10 +704,10 @@ Based on this analysis, provide your final judgment."""
         Returns:
             Tuple[verdict, reason, consensus_strength] if should abstain, None otherwise
         """
-        # Configuration thresholds
-        MIN_SOURCES = settings.MIN_SOURCES_FOR_VERDICT  # Default: 3
-        MIN_HIGH_CRED = settings.MIN_CREDIBILITY_THRESHOLD  # Default: 0.75
-        MIN_CONSENSUS = settings.MIN_CONSENSUS_STRENGTH  # Default: 0.65
+        # Configuration thresholds (see config.py for rationale)
+        MIN_SOURCES = settings.MIN_SOURCES_FOR_VERDICT  # Default: 2
+        MIN_HIGH_CRED = settings.MIN_CREDIBILITY_THRESHOLD  # Default: 0.60
+        MIN_CONSENSUS = settings.MIN_CONSENSUS_STRENGTH  # Default: 0.50
 
         # Check 1: Too few sources
         if len(evidence) < MIN_SOURCES:
@@ -729,15 +737,18 @@ Based on this analysis, provide your final judgment."""
             # Don't abstain based on NLI signals - let the Judge LLM handle it
             return None
 
-        # Check 3: Calculate consensus strength
-        consensus_strength = self._calculate_consensus_strength(evidence, verification_signals)
-        if consensus_strength < MIN_CONSENSUS:
-            return (
-                "conflicting_expert_opinion",
-                f"Evidence shows weak consensus ({consensus_strength:.0%}). "
-                f"High-credibility sources disagree on this claim.",
-                consensus_strength
-            )
+        # Check 3: Calculate consensus strength (only when NLI signals are passed to judge)
+        # When PASS_NLI_VERDICT_TO_JUDGE=False, skip NLI-based abstention checks
+        consensus_strength = 0.0
+        if settings.PASS_NLI_VERDICT_TO_JUDGE:
+            consensus_strength = self._calculate_consensus_strength(evidence, verification_signals)
+            if consensus_strength < MIN_CONSENSUS:
+                return (
+                    "conflicting_expert_opinion",
+                    f"Evidence shows weak consensus ({consensus_strength:.0%}). "
+                    f"High-credibility sources disagree on this claim.",
+                    consensus_strength
+                )
 
         # Check 4: Conflicting high-credibility sources
         supporting = verification_signals.get('supporting_count', 0)

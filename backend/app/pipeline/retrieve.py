@@ -150,7 +150,7 @@ class EvidenceRetriever:
                 # Check for query plan (from Query Planning Agent)
                 query_plan = claim.get("query_plan")
 
-                # Extract freshness from temporal_analysis (single source of truth)
+                # DEPRECATED: Extract freshness from temporal_analysis (now disabled, Query Planner provides freshness)
                 freshness = None
                 if temporal_analysis:
                     temporal_window = temporal_analysis.get("temporal_window", "any")
@@ -279,12 +279,7 @@ class EvidenceRetriever:
             effective_freshness = query_plan.get("freshness", "py")
             plan_reasoning = query_plan.get("reasoning", "default")
 
-            # If temporal_analysis provided a more restrictive freshness, use it
-            if freshness is not None:
-                freshness_order = {"pd": 1, "pw": 2, "pm": 3, "py": 4, "2y": 5}
-                if freshness_order.get(freshness, 5) < freshness_order.get(effective_freshness, 5):
-                    logger.info(f"[FRESHNESS] temporal_analysis '{freshness}' is more restrictive than plan '{effective_freshness}'")
-                    effective_freshness = freshness
+            # NOTE: TemporalAnalyzer reconciliation removed - Query Planner is single source of truth
 
             logger.info(
                 f"[FRESHNESS] Using plan freshness: {effective_freshness} (reasoning: {plan_reasoning[:50]})"
@@ -756,7 +751,7 @@ class EvidenceRetriever:
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
 
-            # Apply temporal filtering if claim is time-sensitive (Phase 1.5, Week 4.5-5.5)
+            # DEPRECATED: Temporal filtering via TemporalAnalyzer (now disabled, Query Planner handles freshness)
             # This happens BEFORE deduplication to filter out old evidence first
             before_temporal = len(evidence_list)
             if claim and settings.ENABLE_TEMPORAL_CONTEXT and claim.get("temporal_analysis"):

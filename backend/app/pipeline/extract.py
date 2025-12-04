@@ -280,23 +280,17 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
                         logger.debug(f"Claim temporal analysis: {temporal_analysis}")
 
-                # Claim classification if enabled (Phase 2, Week 5.5-6.5)
+                # Legal claim detection for API routing (simplified from full classification)
                 if settings.ENABLE_CLAIM_CLASSIFICATION:
-                    from app.utils.claim_classifier import ClaimClassifier
-                    classifier = ClaimClassifier()
+                    from app.utils.legal_claim_detector import LegalClaimDetector
+                    detector = LegalClaimDetector()
 
                     for i, claim in enumerate(claims):
-                        classification = classifier.classify(claim["text"])
-                        claims[i]["classification"] = classification
-                        claims[i]["claim_type"] = classification["claim_type"]
-                        claims[i]["is_verifiable"] = classification["is_verifiable"]
-                        claims[i]["verifiability_reason"] = classification["reason"]
-
-                        # Store legal metadata if present (for legal claims)
-                        if "metadata" in classification:
-                            claims[i]["legal_metadata"] = classification["metadata"]
-
-                        logger.debug(f"Claim classification: {classification['claim_type']} (verifiable: {classification['is_verifiable']})")
+                        result = detector.classify(claim["text"])
+                        if result.get("is_legal"):
+                            claims[i]["claim_type"] = "legal"
+                            claims[i]["legal_metadata"] = result.get("metadata", {})
+                            logger.debug(f"Legal claim detected: {claim['text'][:50]}...")
 
                 # Article-level classification (once per check, not per claim)
                 # This replaces per-claim spaCy NER domain detection

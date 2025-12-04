@@ -8,6 +8,7 @@ import httpx
 from datetime import datetime
 from app.workers import celery_app
 from app.utils.date_utils import parse_date
+from app.utils.article_classifier import classify_article
 from app.pipeline.ingest import UrlIngester, ImageIngester, VideoIngester
 from app.pipeline.extract import ClaimExtractor
 from app.pipeline.retrieve import EvidenceRetriever
@@ -283,14 +284,32 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         # Stage 2: Extract claims (REAL LLM IMPLEMENTATION WITH CACHING)
         self.update_state(state="PROGRESS", meta={"stage": "extract", "progress": 25})
         stage_start = datetime.utcnow()
-        
+
+        extract_content = content.get("content", "")
+        extract_metadata = content.get("metadata", {})
+
+        # Run article classification FIRST (at pipeline level) - ensures fallback claims get it too
+        article_classification = None
+        if settings.ENABLE_ARTICLE_CLASSIFICATION:
+            try:
+                article_classification = asyncio.run(classify_article(
+                    title=extract_metadata.get("title", "") if extract_metadata else "",
+                    url=extract_metadata.get("url", "") if extract_metadata else "",
+                    content=extract_content[:2000]  # First 2000 chars for classification
+                ))
+                logger.info(
+                    f"[PIPELINE] Article classified: {article_classification.primary_domain} "
+                    f"(confidence: {article_classification.confidence:.2f})"
+                )
+            except Exception as e:
+                logger.warning(f"Article classification failed, continuing without: {e}")
+
         try:
-            extract_content = content.get("content", "")
             logger.info(f"Extracting claims from content of length: {len(extract_content)}")
             logger.info(f"First 100 chars of content: {extract_content[:100]}")
             claims = asyncio.run(extract_claims_with_cache(
                 extract_content,
-                content.get("metadata", {}),
+                extract_metadata,
                 cache_service
             ))
             logger.info(f"Extracted {len(claims)} claims")
@@ -304,6 +323,13 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             if not claims:
                 logger.error(f"Both primary and fallback extraction failed for content: {extract_content[:200]}")
                 raise Exception(f"Extract stage failed completely: {e}")
+
+        # Attach article classification to ALL claims (main or fallback)
+        # This ensures API routing works correctly regardless of extraction method
+        if article_classification:
+            for claim in claims:
+                claim["article_classification"] = article_classification.to_dict()
+            logger.info(f"[PIPELINE] Attached {article_classification.primary_domain} classification to {len(claims)} claims")
         
         stage_timings["extract"] = (datetime.utcnow() - stage_start).total_seconds()
 

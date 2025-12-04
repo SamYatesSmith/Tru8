@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = Field("", env="ANTHROPIC_API_KEY")
     GOOGLE_FACTCHECK_API_KEY: str = Field("", env="GOOGLE_FACTCHECK_API_KEY")
     FOOTBALL_DATA_API_KEY: str = Field("", env="FOOTBALL_DATA_API_KEY")  # Football-Data.org for sports stats
+    NOAA_API_KEY: str = Field("", env="NOAA_API_KEY")  # NOAA CDO for climate data
+    ALPHA_VANTAGE_API_KEY: str = Field("", env="ALPHA_VANTAGE_API_KEY")  # Alpha Vantage for stocks, forex, crypto
+    MARKETAUX_API_KEY: str = Field("", env="MARKETAUX_API_KEY")  # Marketaux for financial news
+    FRED_API_KEY: str = Field("", env="FRED_API_KEY")  # FRED for economic data (interest rates, GDP, unemployment)
+    WEATHER_API_KEY: str = Field("", env="WEATHER_API_KEY")  # WeatherAPI.com for weather forecasts
+    COMPANIES_HOUSE_API_KEY: str = Field("", env="COMPANIES_HOUSE_API_KEY")  # UK company filings, directors
     
     # Storage
     S3_BUCKET: str = Field("tru8-uploads", env="S3_BUCKET")
@@ -85,7 +91,7 @@ class Settings(BaseSettings):
 
     # Phase 1.5 - Semantic Intelligence
     ENABLE_FACTCHECK_API: bool = Field(True, env="ENABLE_FACTCHECK_API")
-    ENABLE_TEMPORAL_CONTEXT: bool = Field(True, env="ENABLE_TEMPORAL_CONTEXT")
+    ENABLE_TEMPORAL_CONTEXT: bool = Field(False, env="ENABLE_TEMPORAL_CONTEXT")  # Disabled: Query Planner handles freshness
 
     # Fact-Check Parser (Programmatic parsing of fact-check articles)
     ENABLE_FACTCHECK_PARSING: bool = Field(False, env="ENABLE_FACTCHECK_PARSING")  # Parse fact-check articles for target claim extraction
@@ -131,6 +137,11 @@ class Settings(BaseSettings):
     MIN_SOURCES_FOR_VERDICT: int = Field(2, env="MIN_SOURCES_FOR_VERDICT")
     MIN_CREDIBILITY_THRESHOLD: float = Field(0.60, env="MIN_CREDIBILITY_THRESHOLD")
     MIN_CONSENSUS_STRENGTH: float = Field(0.50, env="MIN_CONSENSUS_STRENGTH")
+
+    # NLI Signal Control (Phase 3 - Redundancy Removal)
+    # When False: Judge makes verdict decisions without seeing NLI verdict/confidence scores
+    # NLI still runs for evidence relevance filtering, but doesn't bias Judge's decision
+    PASS_NLI_VERDICT_TO_JUDGE: bool = Field(False, env="PASS_NLI_VERDICT_TO_JUDGE")
 
     # Rollout Controls
     FEATURE_ROLLOUT_PERCENTAGE: int = Field(0, env="FEATURE_ROLLOUT_PERCENTAGE")

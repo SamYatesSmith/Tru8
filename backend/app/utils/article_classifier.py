@@ -70,7 +70,7 @@ class ArticleClassification:
 # Valid domain categories (match existing API adapters)
 VALID_DOMAINS = [
     "Sports", "Politics", "Finance", "Health", "Science",
-    "Law", "Climate", "Demographics", "Entertainment", "General"
+    "Law", "Climate", "Weather", "Demographics", "Entertainment", "General"
 ]
 
 # Valid jurisdictions

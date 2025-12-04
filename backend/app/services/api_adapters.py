@@ -825,6 +825,919 @@ class MetOfficeAdapter(GovernmentAPIClient):
         return self._create_placeholder_evidence()
 
 
+# ========== NOAA CDO ADAPTER (Global Climate Data) ==========
+
+class NOAAAdapter(GovernmentAPIClient):
+    """
+    NOAA Climate Data Online (CDO) API Adapter.
+
+    Covers: Climate
+    Jurisdiction: Global (primarily US, but includes worldwide data)
+    Rate limits: 5 requests/second, 10,000 requests/day
+    API key: Required (token in header)
+
+    Key datasets:
+    - GHCND: Global Historical Climatology Network Daily
+    - GSOM: Global Summary of Month
+    - GSOY: Global Summary of Year
+    - NORMAL_DLY/MLY/ANN: Climate normals
+    """
+
+    # NOAA dataset IDs for different climate data types
+    DATASETS = {
+        "daily": "GHCND",      # Global Historical Climatology Network Daily
+        "monthly": "GSOM",     # Global Summary of Month
+        "yearly": "GSOY",      # Global Summary of Year
+        "normals": "NORMAL_ANN"  # Climate Normals
+    }
+
+    # Data type IDs for common climate variables
+    DATA_TYPES = {
+        "temperature": ["TAVG", "TMAX", "TMIN"],  # Average, max, min temp
+        "precipitation": ["PRCP", "SNOW", "SNWD"],  # Precip, snowfall, snow depth
+        "wind": ["AWND", "WSF2", "WSF5"],  # Avg wind, fastest 2-min, 5-sec
+        "sea_level": ["MMSL"]  # Mean sea level
+    }
+
+    def __init__(self):
+        super().__init__(
+            api_name="NOAA CDO",
+            base_url="https://www.ncei.noaa.gov/cdo-web/api/v2",
+            api_key=settings.NOAA_API_KEY,
+            cache_ttl=86400,  # 24 hours (climate data updates daily at most)
+            timeout=15,
+            max_results=10
+        )
+
+        # NOAA uses token header authentication
+        if self.api_key:
+            self.headers["token"] = self.api_key
+            # Remove default Authorization header
+            if "Authorization" in self.headers:
+                del self.headers["Authorization"]
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """NOAA covers Climate globally."""
+        return domain == "Climate"
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """
+        Search NOAA CDO for climate data.
+
+        Strategy:
+        1. First get relevant datasets
+        2. Then query for actual data based on claim type
+
+        Args:
+            query: Search query (e.g., "average temperature 2024", "sea level rise")
+            domain: Climate
+            jurisdiction: Any (NOAA has global data)
+            entities: Optional NER entities for location extraction
+
+        Returns:
+            List of evidence dictionaries
+        """
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        if not self.api_key:
+            logger.warning("NOAA API key not configured, skipping")
+            return []
+
+        query_lower = query.lower()
+        evidence = []
+
+        try:
+            # Determine what type of climate data to fetch
+            if any(term in query_lower for term in ["temperature", "warm", "cold", "heat", "hot"]):
+                evidence.extend(self._search_temperature_data(query, entities))
+            elif any(term in query_lower for term in ["rain", "precipitation", "snow", "flood"]):
+                evidence.extend(self._search_precipitation_data(query, entities))
+            elif any(term in query_lower for term in ["sea level", "ocean", "coastal"]):
+                evidence.extend(self._search_sea_level_data(query, entities))
+            else:
+                # General climate search - get dataset info
+                evidence.extend(self._search_datasets(query))
+
+            return evidence
+
+        except Exception as e:
+            logger.error(f"NOAA search failed for '{query}': {e}")
+            return []
+
+    def _search_datasets(self, query: str) -> List[Dict[str, Any]]:
+        """Search available NOAA datasets."""
+        try:
+            response = self._make_request("datasets", params={"limit": 10})
+
+            if not response or "results" not in response:
+                return []
+
+            return self._transform_dataset_response(response)
+
+        except Exception as e:
+            logger.error(f"NOAA dataset search failed: {e}")
+            return []
+
+    def _search_temperature_data(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """Search for temperature-related climate data."""
+        # Extract location from entities if available
+        location_id = self._extract_location_id(entities)
+
+        # Get recent temperature data
+        params = {
+            "datasetid": "GSOM",  # Global Summary of Month
+            "datatypeid": "TAVG",  # Average temperature
+            "limit": self.max_results,
+            "sortfield": "date",
+            "sortorder": "desc"
+        }
+
+        if location_id:
+            params["locationid"] = location_id
+
+        # Set date range (last 2 years)
+        end_date = datetime.utcnow()
+        start_date = datetime(end_date.year - 2, 1, 1)
+        params["startdate"] = start_date.strftime("%Y-%m-%d")
+        params["enddate"] = end_date.strftime("%Y-%m-%d")
+
+        try:
+            response = self._make_request("data", params=params)
+            if response and "results" in response:
+                return self._transform_data_response(response, "temperature")
+        except Exception as e:
+            logger.warning(f"NOAA temperature search failed: {e}")
+
+        # Fallback to dataset info
+        return self._create_climate_evidence(
+            "NOAA Global Temperature Data",
+            "NOAA maintains comprehensive temperature records from thousands of weather stations worldwide, "
+            "including the Global Historical Climatology Network (GHCND) with daily temperature observations.",
+            "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series"
+        )
+
+    def _search_precipitation_data(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """Search for precipitation-related climate data."""
+        location_id = self._extract_location_id(entities)
+
+        params = {
+            "datasetid": "GSOM",
+            "datatypeid": "PRCP",  # Precipitation
+            "limit": self.max_results,
+            "sortfield": "date",
+            "sortorder": "desc"
+        }
+
+        if location_id:
+            params["locationid"] = location_id
+
+        end_date = datetime.utcnow()
+        start_date = datetime(end_date.year - 2, 1, 1)
+        params["startdate"] = start_date.strftime("%Y-%m-%d")
+        params["enddate"] = end_date.strftime("%Y-%m-%d")
+
+        try:
+            response = self._make_request("data", params=params)
+            if response and "results" in response:
+                return self._transform_data_response(response, "precipitation")
+        except Exception as e:
+            logger.warning(f"NOAA precipitation search failed: {e}")
+
+        return self._create_climate_evidence(
+            "NOAA Precipitation Data",
+            "NOAA provides precipitation data including rainfall, snowfall, and drought indices "
+            "from the Global Historical Climatology Network and other monitoring systems.",
+            "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series"
+        )
+
+    def _search_sea_level_data(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """Search for sea level data."""
+        # Sea level data requires specific tide gauge stations
+        # Return authoritative NOAA sea level info
+        return self._create_climate_evidence(
+            "NOAA Sea Level Rise Data",
+            "NOAA's tide gauge and satellite altimetry data shows global mean sea level has risen "
+            "about 3.4 mm per year since 1993. Long-term records from tide gauges show approximately "
+            "8-9 inches of sea level rise since 1880.",
+            "https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level"
+        )
+
+    def _extract_location_id(self, entities: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+        """Extract NOAA location ID from NER entities."""
+        if not entities:
+            return None
+
+        # NOAA uses FIPS codes for US states and country codes globally
+        # Example: FIPS:06 = California, FIPS:36 = New York
+        for entity in entities:
+            if entity.get("type") in ["GPE", "LOC"]:
+                location = entity.get("text", "").upper()
+                # Map common locations to NOAA IDs
+                location_map = {
+                    "US": "FIPS:US",
+                    "USA": "FIPS:US",
+                    "UNITED STATES": "FIPS:US",
+                    "UK": "FIPS:UK",
+                    "CALIFORNIA": "FIPS:06",
+                    "NEW YORK": "FIPS:36",
+                    "TEXAS": "FIPS:48",
+                    "FLORIDA": "FIPS:12",
+                }
+                if location in location_map:
+                    return location_map[location]
+
+        return None
+
+    def _create_climate_evidence(self, title: str, snippet: str, url: str) -> List[Dict[str, Any]]:
+        """Create climate evidence dictionary."""
+        evidence = self._create_evidence_dict(
+            title=title,
+            snippet=snippet,
+            url=url,
+            source_date=datetime.utcnow(),
+            metadata={
+                "api_source": "NOAA CDO",
+                "data_type": "climate",
+                "authority": "US Government"
+            }
+        )
+        return [evidence]
+
+    def _transform_dataset_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform NOAA dataset list response."""
+        evidence_list = []
+
+        for item in raw_response.get("results", []):
+            try:
+                evidence = self._create_evidence_dict(
+                    title=item.get("name", "NOAA Dataset"),
+                    snippet=f"{item.get('name')}: {item.get('datacoverage', 'N/A')} data coverage. "
+                            f"Date range: {item.get('mindate', 'N/A')} to {item.get('maxdate', 'N/A')}",
+                    url=f"https://www.ncei.noaa.gov/cdo-web/datasets/{item.get('id')}",
+                    source_date=datetime.utcnow(),
+                    metadata={
+                        "api_source": "NOAA CDO",
+                        "dataset_id": item.get("id"),
+                        "data_coverage": item.get("datacoverage")
+                    }
+                )
+                evidence_list.append(evidence)
+
+            except Exception as e:
+                logger.warning(f"Failed to parse NOAA dataset item: {e}")
+                continue
+
+        return evidence_list
+
+    def _transform_data_response(self, raw_response: Any, data_type: str) -> List[Dict[str, Any]]:
+        """Transform NOAA data query response."""
+        evidence_list = []
+
+        # Group results by station for cleaner output
+        results = raw_response.get("results", [])
+        if not results:
+            return []
+
+        # Create summary evidence from results
+        values = [r.get("value") for r in results if r.get("value") is not None]
+        dates = [r.get("date") for r in results if r.get("date")]
+
+        if values:
+            avg_value = sum(values) / len(values)
+            min_value = min(values)
+            max_value = max(values)
+
+            unit = "°C" if data_type == "temperature" else "mm"
+            snippet = (
+                f"NOAA {data_type} data summary: Average {avg_value:.1f}{unit}, "
+                f"Range {min_value:.1f}-{max_value:.1f}{unit}. "
+                f"Based on {len(values)} observations."
+            )
+
+            if dates:
+                snippet += f" Data period: {dates[-1][:10]} to {dates[0][:10]}."
+
+            evidence = self._create_evidence_dict(
+                title=f"NOAA {data_type.title()} Observations",
+                snippet=snippet,
+                url="https://www.ncei.noaa.gov/cdo-web/",
+                source_date=datetime.utcnow(),
+                metadata={
+                    "api_source": "NOAA CDO",
+                    "data_type": data_type,
+                    "observation_count": len(values),
+                    "average": avg_value,
+                    "min": min_value,
+                    "max": max_value
+                }
+            )
+            evidence_list.append(evidence)
+
+        return evidence_list
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Generic transform - delegates to specific methods."""
+        return self._transform_dataset_response(raw_response)
+
+
+# ========== ALPHA VANTAGE ADAPTER (Stocks, Forex, Crypto, News) ==========
+
+class AlphaVantageAdapter(GovernmentAPIClient):
+    """
+    Alpha Vantage API Adapter.
+
+    Covers: Finance (stocks, forex, crypto, news sentiment)
+    Jurisdiction: Global (primarily US stocks)
+    Rate limits: 25 requests/day (free tier)
+    API key: Required
+
+    Key endpoints:
+    - GLOBAL_QUOTE: Latest stock price
+    - TIME_SERIES_DAILY: Historical daily prices
+    - NEWS_SENTIMENT: News with AI sentiment
+    - CURRENCY_EXCHANGE_RATE: Forex rates
+    """
+
+    def __init__(self):
+        super().__init__(
+            api_name="Alpha Vantage",
+            base_url="https://www.alphavantage.co/query",
+            api_key=settings.ALPHA_VANTAGE_API_KEY,
+            cache_ttl=300,  # 5 minutes (stock data changes frequently)
+            timeout=15,
+            max_results=10
+        )
+
+        # Alpha Vantage uses apikey as query parameter, not header
+        if "Authorization" in self.headers:
+            del self.headers["Authorization"]
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """Alpha Vantage covers Finance globally."""
+        return domain == "Finance"
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """
+        Search Alpha Vantage for financial data.
+
+        Args:
+            query: Search query (e.g., "Apple stock price", "Bitcoin price")
+            domain: Finance
+            jurisdiction: Any
+            entities: Optional NER entities for ticker extraction
+
+        Returns:
+            List of evidence dictionaries
+        """
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        if not self.api_key:
+            logger.warning("Alpha Vantage API key not configured, skipping")
+            return []
+
+        query_lower = query.lower()
+        evidence = []
+
+        try:
+            # Extract ticker symbol from entities or query
+            ticker = self._extract_ticker(query, entities)
+
+            # Determine what type of financial data to fetch
+            if any(term in query_lower for term in ["stock", "share", "price", "trading"]):
+                if ticker:
+                    evidence.extend(self._get_stock_quote(ticker))
+                else:
+                    evidence.extend(self._search_symbol(query))
+            elif any(term in query_lower for term in ["bitcoin", "crypto", "ethereum", "btc", "eth"]):
+                evidence.extend(self._get_crypto_rate(query))
+            elif any(term in query_lower for term in ["exchange rate", "forex", "currency", "usd", "eur", "gbp"]):
+                evidence.extend(self._get_forex_rate(query))
+            elif any(term in query_lower for term in ["news", "sentiment", "market"]):
+                evidence.extend(self._get_news_sentiment(ticker or query))
+            else:
+                # Default: try stock quote if ticker found, else search
+                if ticker:
+                    evidence.extend(self._get_stock_quote(ticker))
+                else:
+                    evidence.extend(self._search_symbol(query))
+
+            return evidence
+
+        except Exception as e:
+            logger.error(f"Alpha Vantage search failed for '{query}': {e}")
+            return []
+
+    def _extract_ticker(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+        """Extract stock ticker from query or entities."""
+        # Common company to ticker mapping
+        company_tickers = {
+            "apple": "AAPL", "microsoft": "MSFT", "google": "GOOGL", "alphabet": "GOOGL",
+            "amazon": "AMZN", "tesla": "TSLA", "meta": "META", "facebook": "META",
+            "nvidia": "NVDA", "netflix": "NFLX", "intel": "INTC", "amd": "AMD",
+            "ibm": "IBM", "oracle": "ORCL", "salesforce": "CRM", "adobe": "ADBE",
+            "paypal": "PYPL", "uber": "UBER", "airbnb": "ABNB", "spotify": "SPOT",
+            "twitter": "X", "snap": "SNAP", "pinterest": "PINS", "zoom": "ZM",
+            "shopify": "SHOP", "square": "SQ", "block": "SQ", "coinbase": "COIN",
+            "disney": "DIS", "warner": "WBD", "comcast": "CMCSA", "verizon": "VZ",
+            "at&t": "T", "boeing": "BA", "lockheed": "LMT", "raytheon": "RTX",
+            "jpmorgan": "JPM", "goldman": "GS", "morgan stanley": "MS", "citi": "C",
+            "bank of america": "BAC", "wells fargo": "WFC", "visa": "V", "mastercard": "MA",
+            "walmart": "WMT", "target": "TGT", "costco": "COST", "home depot": "HD",
+            "nike": "NKE", "starbucks": "SBUX", "mcdonald": "MCD", "coca-cola": "KO",
+            "pepsi": "PEP", "procter": "PG", "johnson": "JNJ", "pfizer": "PFE",
+            "moderna": "MRNA", "exxon": "XOM", "chevron": "CVX", "shell": "SHEL",
+        }
+
+        query_lower = query.lower()
+
+        # Check for company name matches
+        for company, ticker in company_tickers.items():
+            if company in query_lower:
+                return ticker
+
+        # Check for direct ticker symbols (uppercase, 1-5 chars)
+        import re
+        ticker_match = re.search(r'\b([A-Z]{1,5})\b', query)
+        if ticker_match:
+            potential_ticker = ticker_match.group(1)
+            # Verify it's likely a ticker (not a common word)
+            common_words = {"A", "I", "THE", "AND", "OR", "FOR", "TO", "IN", "ON", "AT", "IS", "IT", "BE", "AS", "BY"}
+            if potential_ticker not in common_words:
+                return potential_ticker
+
+        # Check entities for ORG type
+        if entities:
+            for entity in entities:
+                if entity.get("type") == "ORG":
+                    org_name = entity.get("text", "").lower()
+                    for company, ticker in company_tickers.items():
+                        if company in org_name:
+                            return ticker
+
+        return None
+
+    def _get_stock_quote(self, ticker: str) -> List[Dict[str, Any]]:
+        """Get latest stock quote for a ticker."""
+        params = {
+            "function": "GLOBAL_QUOTE",
+            "symbol": ticker,
+            "apikey": self.api_key
+        }
+
+        try:
+            response = self._make_request("", params=params)
+
+            if not response or "Global Quote" not in response:
+                logger.warning(f"Alpha Vantage returned no quote for {ticker}")
+                return []
+
+            quote = response["Global Quote"]
+            if not quote:
+                return []
+
+            price = quote.get("05. price", "N/A")
+            change = quote.get("09. change", "N/A")
+            change_pct = quote.get("10. change percent", "N/A")
+            volume = quote.get("06. volume", "N/A")
+            latest_day = quote.get("07. latest trading day", "N/A")
+
+            snippet = (
+                f"{ticker} stock price: ${price} (Change: {change} / {change_pct}). "
+                f"Volume: {volume}. Latest trading day: {latest_day}."
+            )
+
+            evidence = self._create_evidence_dict(
+                title=f"{ticker} Stock Quote - Alpha Vantage",
+                snippet=snippet,
+                url=f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}",
+                source_date=datetime.utcnow(),
+                metadata={
+                    "api_source": "Alpha Vantage",
+                    "data_type": "stock_quote",
+                    "ticker": ticker,
+                    "price": price,
+                    "change": change,
+                    "change_percent": change_pct,
+                    "volume": volume
+                }
+            )
+            return [evidence]
+
+        except Exception as e:
+            logger.error(f"Alpha Vantage stock quote failed for {ticker}: {e}")
+            return []
+
+    def _search_symbol(self, query: str) -> List[Dict[str, Any]]:
+        """Search for stock symbols matching a query."""
+        params = {
+            "function": "SYMBOL_SEARCH",
+            "keywords": query[:50],  # Limit query length
+            "apikey": self.api_key
+        }
+
+        try:
+            response = self._make_request("", params=params)
+
+            if not response or "bestMatches" not in response:
+                return []
+
+            evidence_list = []
+            for match in response["bestMatches"][:5]:
+                symbol = match.get("1. symbol", "")
+                name = match.get("2. name", "")
+                match_type = match.get("3. type", "")
+                region = match.get("4. region", "")
+
+                evidence = self._create_evidence_dict(
+                    title=f"{symbol} - {name}",
+                    snippet=f"{name} ({symbol}): {match_type} listed in {region}.",
+                    url=f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}",
+                    source_date=datetime.utcnow(),
+                    metadata={
+                        "api_source": "Alpha Vantage",
+                        "data_type": "symbol_search",
+                        "ticker": symbol,
+                        "company_name": name,
+                        "type": match_type,
+                        "region": region
+                    }
+                )
+                evidence_list.append(evidence)
+
+            return evidence_list
+
+        except Exception as e:
+            logger.error(f"Alpha Vantage symbol search failed: {e}")
+            return []
+
+    def _get_crypto_rate(self, query: str) -> List[Dict[str, Any]]:
+        """Get cryptocurrency exchange rate."""
+        # Determine crypto symbol
+        crypto_map = {
+            "bitcoin": "BTC", "btc": "BTC",
+            "ethereum": "ETH", "eth": "ETH",
+            "litecoin": "LTC", "ltc": "LTC",
+            "ripple": "XRP", "xrp": "XRP",
+            "dogecoin": "DOGE", "doge": "DOGE",
+            "cardano": "ADA", "ada": "ADA",
+            "solana": "SOL", "sol": "SOL",
+        }
+
+        query_lower = query.lower()
+        crypto = "BTC"  # Default to Bitcoin
+        for name, symbol in crypto_map.items():
+            if name in query_lower:
+                crypto = symbol
+                break
+
+        params = {
+            "function": "CURRENCY_EXCHANGE_RATE",
+            "from_currency": crypto,
+            "to_currency": "USD",
+            "apikey": self.api_key
+        }
+
+        try:
+            response = self._make_request("", params=params)
+
+            if not response or "Realtime Currency Exchange Rate" not in response:
+                return []
+
+            rate_data = response["Realtime Currency Exchange Rate"]
+            rate = rate_data.get("5. Exchange Rate", "N/A")
+            from_name = rate_data.get("2. From_Currency Name", crypto)
+            last_refresh = rate_data.get("6. Last Refreshed", "N/A")
+
+            snippet = f"{from_name} ({crypto}) price: ${rate} USD. Last updated: {last_refresh}."
+
+            evidence = self._create_evidence_dict(
+                title=f"{crypto}/USD Exchange Rate - Alpha Vantage",
+                snippet=snippet,
+                url=f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={crypto}&to_currency=USD",
+                source_date=datetime.utcnow(),
+                metadata={
+                    "api_source": "Alpha Vantage",
+                    "data_type": "crypto_rate",
+                    "crypto": crypto,
+                    "rate_usd": rate
+                }
+            )
+            return [evidence]
+
+        except Exception as e:
+            logger.error(f"Alpha Vantage crypto rate failed: {e}")
+            return []
+
+    def _get_forex_rate(self, query: str) -> List[Dict[str, Any]]:
+        """Get forex exchange rate."""
+        # Extract currency pair from query
+        currencies = {
+            "usd": "USD", "dollar": "USD",
+            "eur": "EUR", "euro": "EUR",
+            "gbp": "GBP", "pound": "GBP", "sterling": "GBP",
+            "jpy": "JPY", "yen": "JPY",
+            "cad": "CAD", "canadian": "CAD",
+            "aud": "AUD", "australian": "AUD",
+            "chf": "CHF", "swiss": "CHF",
+        }
+
+        query_lower = query.lower()
+        from_curr = "USD"
+        to_curr = "EUR"
+
+        found = []
+        for name, code in currencies.items():
+            if name in query_lower and code not in found:
+                found.append(code)
+                if len(found) >= 2:
+                    break
+
+        if len(found) >= 2:
+            from_curr, to_curr = found[0], found[1]
+        elif len(found) == 1:
+            from_curr = found[0]
+            to_curr = "USD" if from_curr != "USD" else "EUR"
+
+        params = {
+            "function": "CURRENCY_EXCHANGE_RATE",
+            "from_currency": from_curr,
+            "to_currency": to_curr,
+            "apikey": self.api_key
+        }
+
+        try:
+            response = self._make_request("", params=params)
+
+            if not response or "Realtime Currency Exchange Rate" not in response:
+                return []
+
+            rate_data = response["Realtime Currency Exchange Rate"]
+            rate = rate_data.get("5. Exchange Rate", "N/A")
+            last_refresh = rate_data.get("6. Last Refreshed", "N/A")
+
+            snippet = f"{from_curr}/{to_curr} exchange rate: {rate}. Last updated: {last_refresh}."
+
+            evidence = self._create_evidence_dict(
+                title=f"{from_curr}/{to_curr} Exchange Rate - Alpha Vantage",
+                snippet=snippet,
+                url=f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={from_curr}&to_currency={to_curr}",
+                source_date=datetime.utcnow(),
+                metadata={
+                    "api_source": "Alpha Vantage",
+                    "data_type": "forex_rate",
+                    "from_currency": from_curr,
+                    "to_currency": to_curr,
+                    "rate": rate
+                }
+            )
+            return [evidence]
+
+        except Exception as e:
+            logger.error(f"Alpha Vantage forex rate failed: {e}")
+            return []
+
+    def _get_news_sentiment(self, query: str) -> List[Dict[str, Any]]:
+        """Get news with sentiment analysis."""
+        params = {
+            "function": "NEWS_SENTIMENT",
+            "tickers": query if query.isupper() and len(query) <= 5 else "",
+            "topics": "" if query.isupper() else query[:50],
+            "limit": 5,
+            "apikey": self.api_key
+        }
+
+        # Remove empty params
+        params = {k: v for k, v in params.items() if v}
+        params["apikey"] = self.api_key
+        params["function"] = "NEWS_SENTIMENT"
+        params["limit"] = 5
+
+        try:
+            response = self._make_request("", params=params)
+
+            if not response or "feed" not in response:
+                return []
+
+            evidence_list = []
+            for article in response["feed"][:5]:
+                title = article.get("title", "Financial News")
+                summary = article.get("summary", "")[:300]
+                url = article.get("url", "")
+                sentiment = article.get("overall_sentiment_label", "Neutral")
+                sentiment_score = article.get("overall_sentiment_score", 0)
+                time_published = article.get("time_published", "")
+
+                # Parse date
+                source_date = None
+                if time_published:
+                    try:
+                        source_date = datetime.strptime(time_published[:8], "%Y%m%d")
+                    except:
+                        source_date = datetime.utcnow()
+
+                snippet = f"{summary} [Sentiment: {sentiment} ({sentiment_score:.2f})]"
+
+                evidence = self._create_evidence_dict(
+                    title=title,
+                    snippet=snippet,
+                    url=url,
+                    source_date=source_date or datetime.utcnow(),
+                    metadata={
+                        "api_source": "Alpha Vantage",
+                        "data_type": "news_sentiment",
+                        "sentiment_label": sentiment,
+                        "sentiment_score": sentiment_score
+                    }
+                )
+                evidence_list.append(evidence)
+
+            return evidence_list
+
+        except Exception as e:
+            logger.error(f"Alpha Vantage news sentiment failed: {e}")
+            return []
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Generic transform - handled by specific methods."""
+        return []
+
+
+# ========== MARKETAUX ADAPTER (Financial News) ==========
+
+class MarketauxAdapter(GovernmentAPIClient):
+    """
+    Marketaux API Adapter.
+
+    Covers: Finance (financial news, sentiment)
+    Jurisdiction: Global
+    Rate limits: 100 requests/day (free tier)
+    API key: Required
+
+    Key endpoints:
+    - /news/all: Financial news with entity filtering
+    - /entity/search: Find companies/stocks
+    - /entity/trending: Trending entities
+    """
+
+    def __init__(self):
+        super().__init__(
+            api_name="Marketaux",
+            base_url="https://api.marketaux.com/v1",
+            api_key=settings.MARKETAUX_API_KEY,
+            cache_ttl=600,  # 10 minutes (news updates frequently)
+            timeout=15,
+            max_results=10
+        )
+
+        # Marketaux uses api_token as query parameter
+        if "Authorization" in self.headers:
+            del self.headers["Authorization"]
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """Marketaux covers Finance globally (news focus)."""
+        return domain == "Finance"
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """
+        Search Marketaux for financial news.
+
+        Args:
+            query: Search query (e.g., "Tesla news", "market crash")
+            domain: Finance
+            jurisdiction: Any
+            entities: Optional NER entities
+
+        Returns:
+            List of evidence dictionaries
+        """
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        if not self.api_key:
+            logger.warning("Marketaux API key not configured, skipping")
+            return []
+
+        try:
+            # Extract ticker symbol if available
+            ticker = self._extract_ticker(query, entities)
+
+            # Search for news
+            evidence = self._search_news(query, ticker)
+
+            return evidence
+
+        except Exception as e:
+            logger.error(f"Marketaux search failed for '{query}': {e}")
+            return []
+
+    def _extract_ticker(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+        """Extract stock ticker from query or entities."""
+        # Common company to ticker mapping (same as Alpha Vantage)
+        company_tickers = {
+            "apple": "AAPL", "microsoft": "MSFT", "google": "GOOGL", "alphabet": "GOOGL",
+            "amazon": "AMZN", "tesla": "TSLA", "meta": "META", "facebook": "META",
+            "nvidia": "NVDA", "netflix": "NFLX", "intel": "INTC", "amd": "AMD",
+            "ibm": "IBM", "disney": "DIS", "boeing": "BA", "nike": "NKE",
+            "jpmorgan": "JPM", "goldman": "GS", "visa": "V", "mastercard": "MA",
+            "walmart": "WMT", "coca-cola": "KO", "pepsi": "PEP", "pfizer": "PFE",
+            "exxon": "XOM", "chevron": "CVX",
+        }
+
+        query_lower = query.lower()
+
+        for company, ticker in company_tickers.items():
+            if company in query_lower:
+                return ticker
+
+        # Check for direct ticker symbols
+        import re
+        ticker_match = re.search(r'\b([A-Z]{1,5})\b', query)
+        if ticker_match:
+            potential_ticker = ticker_match.group(1)
+            common_words = {"A", "I", "THE", "AND", "OR", "FOR", "TO", "IN", "ON", "AT", "IS", "IT", "BE", "AS", "BY"}
+            if potential_ticker not in common_words:
+                return potential_ticker
+
+        return None
+
+    def _search_news(self, query: str, ticker: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Search for financial news."""
+        params = {
+            "api_token": self.api_key,
+            "language": "en",
+            "limit": 5
+        }
+
+        if ticker:
+            params["symbols"] = ticker
+        else:
+            params["search"] = query[:100]
+
+        try:
+            response = self._make_request("news/all", params=params)
+
+            if not response or "data" not in response:
+                logger.warning(f"Marketaux returned no news for {query}")
+                return []
+
+            evidence_list = []
+            for article in response["data"][:5]:
+                title = article.get("title", "Financial News")
+                description = article.get("description", "")[:400]
+                url = article.get("url", "")
+                published = article.get("published_at", "")
+                source_name = article.get("source", "")
+
+                # Extract sentiment if available
+                sentiment = article.get("sentiment", {})
+                sentiment_score = sentiment.get("score", 0) if isinstance(sentiment, dict) else 0
+
+                # Parse date
+                source_date = None
+                if published:
+                    try:
+                        source_date = datetime.fromisoformat(published.replace("Z", "+00:00"))
+                    except:
+                        source_date = datetime.utcnow()
+
+                # Extract relevant entities
+                entities = article.get("entities", [])
+                entity_names = [e.get("name", "") for e in entities[:3]] if entities else []
+                entity_str = f" [Related: {', '.join(entity_names)}]" if entity_names else ""
+
+                snippet = f"{description}{entity_str}"
+                if sentiment_score:
+                    snippet += f" [Sentiment: {sentiment_score:.2f}]"
+
+                evidence = self._create_evidence_dict(
+                    title=title,
+                    snippet=snippet,
+                    url=url,
+                    source_date=source_date or datetime.utcnow(),
+                    metadata={
+                        "api_source": "Marketaux",
+                        "data_type": "financial_news",
+                        "source_name": source_name,
+                        "sentiment_score": sentiment_score,
+                        "entities": entity_names
+                    }
+                )
+                evidence_list.append(evidence)
+
+            logger.info(f"Marketaux returned {len(evidence_list)} news items")
+            return evidence_list
+
+        except Exception as e:
+            logger.error(f"Marketaux news search failed: {e}")
+            return []
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Generic transform - handled by _search_news."""
+        return []
+
+
 # ========== CROSSREF ADAPTER (Academic Research Metadata) ==========
 
 class CrossRefAdapter(GovernmentAPIClient):
@@ -1346,16 +2259,16 @@ class GovInfoAdapter(GovernmentAPIClient):
         try:
             # Extract legal metadata from query using classifier
             # (This is fast - just regex patterns)
-            from app.utils.claim_classifier import ClaimClassifier
-            classifier = ClaimClassifier()
-            classification = classifier.classify(query)
+            from app.utils.legal_claim_detector import LegalClaimDetector
+            detector = LegalClaimDetector()
+            result = detector.classify(query)
 
             # Only proceed if classified as legal
-            if classification.get("claim_type") != "legal":
+            if not result.get("is_legal"):
                 logger.info(f"GovInfo: Query not classified as legal, skipping: {query[:50]}")
                 return []
 
-            legal_metadata = classification.get("metadata", {})
+            legal_metadata = result.get("metadata", {})
 
             logger.info(
                 f"GovInfo: Searching for legal claim with metadata: "
@@ -2503,6 +3416,300 @@ class FootballDataAdapter(GovernmentAPIClient):
         return []
 
 
+class WeatherAPIAdapter(GovernmentAPIClient):
+    """
+    WeatherAPI.com Adapter.
+
+    Covers: Weather (forecasts, current conditions, historical)
+    Jurisdiction: Global
+    Rate limits: 1,000,000 requests/month (free tier), commercial use OK
+    API key: Required
+
+    Features:
+    - 3-day forecast (free tier)
+    - Current conditions
+    - Historical weather
+    - Search/autocomplete locations
+    """
+
+    def __init__(self):
+        super().__init__(
+            api_name="WeatherAPI",
+            base_url="https://api.weatherapi.com/v1",
+            api_key=settings.WEATHER_API_KEY,
+            cache_ttl=1800,  # 30 mins (weather updates frequently)
+            timeout=10,
+            max_results=5
+        )
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """WeatherAPI covers Weather globally."""
+        return domain in ["Weather", "Climate"]
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """
+        Search WeatherAPI for weather data.
+
+        Args:
+            query: Search query (e.g., "weather in London tomorrow", "temperature forecast")
+            domain: Weather or Climate
+            jurisdiction: Any (global coverage)
+            entities: Optional NER entities for location extraction
+
+        Returns:
+            List of evidence dictionaries
+        """
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        if not self.api_key:
+            logger.warning("WeatherAPI key not configured, skipping")
+            return []
+
+        query_lower = query.lower()
+        evidence = []
+
+        try:
+            # Extract location from entities or query
+            location = self._extract_location(query, entities)
+
+            if not location:
+                logger.warning(f"WeatherAPI: Could not determine location for query '{query}'")
+                return []
+
+            # Determine what type of weather data to fetch
+            if any(term in query_lower for term in ["forecast", "tomorrow", "next week", "will it"]):
+                evidence.extend(self._get_forecast(location, query))
+            elif any(term in query_lower for term in ["yesterday", "last week", "was it", "historical"]):
+                evidence.extend(self._get_historical(location, query))
+            else:
+                # Default: get current conditions
+                evidence.extend(self._get_current_weather(location, query))
+
+            return evidence
+
+        except Exception as e:
+            logger.error(f"WeatherAPI search failed for '{query}': {e}")
+            return []
+
+    def _extract_location(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+        """
+        Extract location from query or entities.
+
+        Returns:
+            Location string (city name, coordinates, etc.) or None
+        """
+        location_name = None
+
+        # Try to extract from entities first
+        if entities:
+            for entity in entities:
+                if entity.get("label") in ["GPE", "LOC", "LOCATION"]:
+                    location_name = entity.get("text")
+                    break
+
+        # If no entity, try to extract from query
+        if not location_name:
+            import re
+            patterns = [
+                r"(?:in|at|for|near)\s+([A-Z][a-zA-Z\s]+?)(?:\s+(?:today|tomorrow|this|next|will|is|was)|\?|$)",
+                r"([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\s+(?:weather|temperature|forecast|rain)",
+            ]
+            for pattern in patterns:
+                match = re.search(pattern, query)
+                if match:
+                    location_name = match.group(1).strip()
+                    break
+
+        # Default to London if no location found
+        return location_name or "London"
+
+    def _get_forecast(self, location: str, query: str) -> List[Dict[str, Any]]:
+        """Get weather forecast for location."""
+        evidence = []
+
+        try:
+            import httpx
+            from urllib.parse import quote
+
+            url = f"{self.base_url}/forecast.json?key={self.api_key}&q={quote(location)}&days=3&aqi=no"
+
+            with httpx.Client(timeout=10) as client:
+                response = client.get(url)
+                response.raise_for_status()
+                data = response.json()
+
+            if not data or "forecast" not in data:
+                return []
+
+            location_info = data.get("location", {})
+            location_name = f"{location_info.get('name', location)}, {location_info.get('country', '')}"
+            forecast_days = data["forecast"].get("forecastday", [])
+
+            # Build forecast summary
+            forecast_lines = []
+            for day in forecast_days:
+                date = day.get("date", "")
+                day_data = day.get("day", {})
+                condition = day_data.get("condition", {}).get("text", "Unknown")
+                max_temp = day_data.get("maxtemp_c", "N/A")
+                min_temp = day_data.get("mintemp_c", "N/A")
+                precip = day_data.get("totalprecip_mm", 0)
+
+                line = f"{date}: {min_temp}°C - {max_temp}°C, {condition}"
+                if precip > 0:
+                    line += f", {precip}mm precipitation"
+                forecast_lines.append(line)
+
+            evidence.append({
+                "title": f"3-Day Weather Forecast for {location_name}",
+                "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
+                "snippet": "\n".join(forecast_lines),
+                "source": "WeatherAPI.com",
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "credibility_score": 0.85,
+                "metadata": {
+                    "api_source": "WeatherAPI",
+                    "data_type": "weather_forecast",
+                    "location": location_name,
+                    "forecast_days": len(forecast_days)
+                }
+            })
+
+            return evidence
+
+        except Exception as e:
+            logger.error(f"WeatherAPI forecast fetch failed: {e}")
+            return []
+
+    def _get_current_weather(self, location: str, query: str) -> List[Dict[str, Any]]:
+        """Get current weather conditions."""
+        evidence = []
+
+        try:
+            import httpx
+            from urllib.parse import quote
+
+            url = f"{self.base_url}/current.json?key={self.api_key}&q={quote(location)}&aqi=no"
+
+            with httpx.Client(timeout=10) as client:
+                response = client.get(url)
+                response.raise_for_status()
+                data = response.json()
+
+            if not data or "current" not in data:
+                return []
+
+            location_info = data.get("location", {})
+            location_name = f"{location_info.get('name', location)}, {location_info.get('country', '')}"
+            current = data["current"]
+
+            temp = current.get("temp_c", "N/A")
+            feels_like = current.get("feelslike_c", "N/A")
+            humidity = current.get("humidity", "N/A")
+            wind_kph = current.get("wind_kph", "N/A")
+            condition = current.get("condition", {}).get("text", "Unknown")
+
+            snippet = (
+                f"Current weather in {location_name}:\n"
+                f"Temperature: {temp}°C (feels like {feels_like}°C)\n"
+                f"Conditions: {condition}\n"
+                f"Humidity: {humidity}%\n"
+                f"Wind: {wind_kph} km/h"
+            )
+
+            evidence.append({
+                "title": f"Current Weather in {location_name}",
+                "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
+                "snippet": snippet,
+                "source": "WeatherAPI.com",
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "credibility_score": 0.85,
+                "metadata": {
+                    "api_source": "WeatherAPI",
+                    "data_type": "current_weather",
+                    "location": location_name,
+                    "temperature_c": temp,
+                    "condition": condition
+                }
+            })
+
+            return evidence
+
+        except Exception as e:
+            logger.error(f"WeatherAPI current weather fetch failed: {e}")
+            return []
+
+    def _get_historical(self, location: str, query: str) -> List[Dict[str, Any]]:
+        """Get historical weather data (yesterday)."""
+        evidence = []
+
+        try:
+            import httpx
+            from urllib.parse import quote
+            from datetime import timedelta
+
+            # Get yesterday's date
+            yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+            url = f"{self.base_url}/history.json?key={self.api_key}&q={quote(location)}&dt={yesterday}"
+
+            with httpx.Client(timeout=10) as client:
+                response = client.get(url)
+                response.raise_for_status()
+                data = response.json()
+
+            if not data or "forecast" not in data:
+                return []
+
+            location_info = data.get("location", {})
+            location_name = f"{location_info.get('name', location)}, {location_info.get('country', '')}"
+            forecast_days = data["forecast"].get("forecastday", [])
+
+            if not forecast_days:
+                return []
+
+            day = forecast_days[0]
+            day_data = day.get("day", {})
+            condition = day_data.get("condition", {}).get("text", "Unknown")
+            max_temp = day_data.get("maxtemp_c", "N/A")
+            min_temp = day_data.get("mintemp_c", "N/A")
+            avg_temp = day_data.get("avgtemp_c", "N/A")
+            precip = day_data.get("totalprecip_mm", 0)
+
+            snippet = (
+                f"Weather in {location_name} on {yesterday}:\n"
+                f"Temperature: {min_temp}°C - {max_temp}°C (avg: {avg_temp}°C)\n"
+                f"Conditions: {condition}\n"
+                f"Precipitation: {precip}mm"
+            )
+
+            evidence.append({
+                "title": f"Historical Weather for {location_name} ({yesterday})",
+                "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
+                "snippet": snippet,
+                "source": "WeatherAPI.com",
+                "date": yesterday,
+                "credibility_score": 0.85,
+                "metadata": {
+                    "api_source": "WeatherAPI",
+                    "data_type": "historical_weather",
+                    "location": location_name,
+                    "date": yesterday
+                }
+            })
+
+            return evidence
+
+        except Exception as e:
+            logger.error(f"WeatherAPI historical fetch failed: {e}")
+            return []
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform WeatherAPI response to standardized evidence format."""
+        # Handled by specific methods above
+        return []
+
+
 # ========== ADAPTER INITIALIZATION ==========
 
 def initialize_adapters():
@@ -2552,6 +3759,13 @@ def initialize_adapters():
     else:
         logger.warning("Met Office API key not configured, adapter not registered")
 
+    # Register NOAA CDO adapter (Global Climate Data)
+    if settings.NOAA_API_KEY:
+        registry.register(NOAAAdapter())
+        logger.info(f"[ADAPTERS] Registered NOAA CDO adapter for Climate (key: {settings.NOAA_API_KEY[:10]}...)")
+    else:
+        logger.warning("[ADAPTERS] NOAA_API_KEY not configured, NOAA adapter not registered")
+
     # Register CrossRef adapter (Week 2)
     registry.register(CrossRefAdapter())
     logger.info("Registered CrossRef adapter")
@@ -2591,5 +3805,33 @@ def initialize_adapters():
     # No API key required - uses free community-hosted API
     registry.register(TransfermarktAdapter())
     logger.info("[ADAPTERS] Registered Transfermarkt adapter for historical sports data (transfers, achievements, career stats)")
+
+    # Register Alpha Vantage adapter (Stocks, Forex, Crypto, News Sentiment)
+    if settings.ALPHA_VANTAGE_API_KEY:
+        registry.register(AlphaVantageAdapter())
+        logger.info(f"[ADAPTERS] Registered Alpha Vantage adapter for Finance (key: {settings.ALPHA_VANTAGE_API_KEY[:10]}...)")
+    else:
+        logger.warning("[ADAPTERS] ALPHA_VANTAGE_API_KEY not configured, Alpha Vantage adapter not registered")
+
+    # Register Marketaux adapter (Financial News)
+    if settings.MARKETAUX_API_KEY:
+        registry.register(MarketauxAdapter())
+        logger.info(f"[ADAPTERS] Registered Marketaux adapter for Financial News (key: {settings.MARKETAUX_API_KEY[:10]}...)")
+    else:
+        logger.warning("[ADAPTERS] MARKETAUX_API_KEY not configured, Marketaux adapter not registered")
+
+    # Register FRED adapter (Federal Reserve Economic Data)
+    if settings.FRED_API_KEY:
+        registry.register(FREDAdapter())
+        logger.info(f"[ADAPTERS] Registered FRED adapter for Economics (key: {settings.FRED_API_KEY[:10]}...)")
+    else:
+        logger.warning("[ADAPTERS] FRED_API_KEY not configured, FRED adapter not registered")
+
+    # Register WeatherAPI adapter (Weather - 1M calls/month free, commercial OK)
+    if settings.WEATHER_API_KEY:
+        registry.register(WeatherAPIAdapter())
+        logger.info(f"[ADAPTERS] Registered WeatherAPI adapter for Weather (key: {settings.WEATHER_API_KEY[:10]}...)")
+    else:
+        logger.warning("[ADAPTERS] WEATHER_API_KEY not configured, WeatherAPI adapter not registered")
 
     logger.info(f"API adapter initialization complete. {len(registry.get_all_adapters())} adapters registered.")

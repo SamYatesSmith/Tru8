@@ -1,38 +1,23 @@
+"""
+Legal Claim Detector
+
+Simplified claim classification focused on legal claim detection and statute metadata extraction.
+Used for routing claims to legal APIs (GovInfo, Congress.gov).
+
+Opinion/prediction/personal experience detection removed - LLM extraction handles these.
+"""
+
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class ClaimClassifier:
-    """Classify claims by type and verifiability"""
+class LegalClaimDetector:
+    """Detect legal claims and extract statute metadata for API routing"""
 
     def __init__(self):
-        # Opinion indicators
-        self.opinion_patterns = [
-            r"\b(i think|i believe|in my opinion|i feel|seems like)\b",
-            r"\b(people think|some think|experts believe|many believe)\b",  # Third-person opinions
-            r"\b(beautiful|ugly|amazing|terrible|best|worst)\b",
-            r"\b(should|ought to|must|need to)\b",  # Normative
-            r"\b(is considered|are considered|regarded as|seen as|viewed as|perceived as)\b",  # Subjective judgments
-            r"\b(one of the most|among the most)\s+\w+",  # Comparative rankings
-            r"\b(most\s+(substantial|significant|important|notable|remarkable|dramatic))\b",  # Superlative judgments
-            r"\b(arguably|presumably|supposedly|allegedly)\b",  # Hedging/uncertainty indicating opinion
-            r"\b(better|worse|superior|inferior)\s+(than|to)\b"  # Comparative judgments
-        ]
-
-        # Prediction indicators
-        self.prediction_patterns = [
-            r"\b(will|going to|predict|forecast|expect)\b",
-            r"\b(in the future|next year|by 20\d{2})\b"
-        ]
-
-        # Personal experience indicators
-        self.personal_patterns = [
-            r"\b(i saw|i heard|i experienced|happened to me)\b"
-        ]
-
         # Legal claim indicators (patterns match against lowercased text)
         self.legal_patterns = [
             r"\b(19\d{2}|20\d{2})\s+(\w+\s+){0,5}(law|statute|act|legislation|bill)\b",  # "1964 Civil Rights Act" or "1952 federal law"
@@ -53,54 +38,33 @@ class ClaimClassifier:
         ]
 
     def classify(self, claim_text: str) -> Dict[str, Any]:
-        """Classify claim type and assess verifiability"""
+        """
+        Detect if claim is legal and extract metadata.
+
+        Returns:
+            Dict with:
+            - claim_type: "legal" or "factual"
+            - is_legal: True if legal claim detected
+            - metadata: Legal citation metadata if legal
+        """
         claim_lower = claim_text.lower()
 
-        # Check for legal claims FIRST (statutes, laws, regulations)
-        # Legal claims take precedence over opinion/normative language
+        # Check for legal claims (statutes, laws, regulations)
         if any(re.search(pattern, claim_lower) for pattern in self.legal_patterns):
             metadata = self._extract_legal_metadata(claim_text, claim_lower)
             return {
                 "claim_type": "legal",
-                "is_verifiable": True,
-                "reason": "This claim references legal statutes, laws, or regulations that can be verified",
+                "is_legal": True,
+                "reason": "This claim references legal statutes, laws, or regulations",
                 "confidence": 0.9,
                 "metadata": metadata
             }
 
-        # Check for opinion
-        if any(re.search(pattern, claim_lower) for pattern in self.opinion_patterns):
-            return {
-                "claim_type": "opinion",
-                "is_verifiable": False,
-                "reason": "This appears to be a subjective opinion or value judgment",
-                "confidence": 0.85
-            }
-
-        # Check for prediction
-        if any(re.search(pattern, claim_lower) for pattern in self.prediction_patterns):
-            return {
-                "claim_type": "prediction",
-                "is_verifiable": False,  # Can't verify future
-                "reason": "This is a prediction about future events",
-                "confidence": 0.8,
-                "note": "We can assess the basis for the prediction, but cannot verify its truth"
-            }
-
-        # Check for personal experience
-        if any(re.search(pattern, claim_lower) for pattern in self.personal_patterns):
-            return {
-                "claim_type": "personal_experience",
-                "is_verifiable": False,
-                "reason": "This is a personal experience that cannot be externally verified",
-                "confidence": 0.75
-            }
-
-        # Default: factual claim
+        # Default: Not a legal claim (LLM handles other classification)
         return {
             "claim_type": "factual",
-            "is_verifiable": True,
-            "reason": "This appears to be a factual claim that can be verified",
+            "is_legal": False,
+            "reason": "No legal statute references detected",
             "confidence": 0.7
         }
 
@@ -198,30 +162,3 @@ class ClaimClassifier:
                 metadata["jurisdiction"] = "UK"
 
         return metadata
-
-    def get_classification_summary(self, claims: list[Dict[str, Any]]) -> Dict[str, Any]:
-        """Get summary statistics for a batch of classified claims"""
-        total = len(claims)
-        if total == 0:
-            return {
-                "total_claims": 0,
-                "verifiable": 0,
-                "non_verifiable": 0,
-                "types": {}
-            }
-
-        verifiable_count = sum(1 for c in claims if c.get("is_verifiable", True))
-        type_counts = {}
-
-        for claim in claims:
-            classification = claim.get("classification", {})
-            claim_type = classification.get("claim_type", "factual")
-            type_counts[claim_type] = type_counts.get(claim_type, 0) + 1
-
-        return {
-            "total_claims": total,
-            "verifiable": verifiable_count,
-            "non_verifiable": total - verifiable_count,
-            "verifiable_percentage": round((verifiable_count / total) * 100, 1),
-            "types": type_counts
-        }
