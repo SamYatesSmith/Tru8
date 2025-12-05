@@ -26,20 +26,32 @@ class PipelineTask(Task):
         # Get check_id from kwargs since task is called with keyword arguments
         check_id = kwargs.get("check_id") if kwargs else None
         user_id = kwargs.get("user_id") if kwargs else None
-        
+
         if check_id:
-            # Update check status in database
-            asyncio.run(update_check_status(check_id, "failed", str(exc)))
-            
-            # Send failure notification
+            # Refund the user's credit for the failed check
+            credit_refunded = False
             if user_id:
-                asyncio.run(
-                    push_notification_service.send_check_failed_notification(
+                credit_refunded = refund_check_credit_sync(check_id, user_id)
+
+            # Build error message with refund status
+            error_msg = str(exc)
+            if credit_refunded:
+                error_msg = f"{error_msg}. Your credit has been returned."
+
+            # Update check status using SYNC version to avoid event loop issues in Celery
+            update_check_status_sync(check_id, "failed", error_msg)
+
+            # Send failure notification using SYNC version to avoid event loop issues
+            if user_id:
+                try:
+                    push_notification_service.send_check_failed_notification_sync(
                         user_id=user_id,
                         check_id=check_id,
-                        error_message=str(exc)[:100]  # Truncate error message
+                        error_message=error_msg[:100]  # Truncate error message
                     )
-                )
+                except Exception as notif_error:
+                    # Push notification failure should not crash the failure handler
+                    logger.warning(f"Failed to send failure notification: {notif_error}")
     
     def on_success(self, retval, task_id, args, kwargs):
         logger.info(f"Task {task_id} completed successfully")
@@ -102,6 +114,58 @@ def update_check_status_sync(check_id: str, status: str, error_message: str = No
 
     except Exception as e:
         logger.error(f"Failed to update check status: {e}")
+
+def refund_check_credit_sync(check_id: str, user_id: str) -> bool:
+    """
+    Refund the credit used for a failed check (synchronous for Celery).
+
+    Returns True if refund was successful, False otherwise.
+    """
+    try:
+        from app.core.database import sync_session
+        from app.models import Check, User
+        from sqlalchemy import select
+
+        with sync_session() as session:
+            # Get the check
+            check_stmt = select(Check).where(Check.id == check_id)
+            check_result = session.execute(check_stmt)
+            check = check_result.scalar_one_or_none()
+
+            if not check:
+                logger.error(f"Cannot refund: Check {check_id} not found")
+                return False
+
+            # Check if already refunded (credits_used = 0)
+            if check.credits_used == 0:
+                logger.info(f"Check {check_id} already refunded or no credits used")
+                return True
+
+            credits_to_refund = check.credits_used
+
+            # Get the user
+            user_stmt = select(User).where(User.id == user_id)
+            user_result = session.execute(user_stmt)
+            user = user_result.scalar_one_or_none()
+
+            if not user:
+                logger.error(f"Cannot refund: User {user_id} not found")
+                return False
+
+            # Refund the credit
+            user.credits += credits_to_refund
+            # Note: We keep total_credits_used as-is to track attempted usage
+
+            # Mark check as refunded
+            check.credits_used = 0
+
+            session.commit()
+            logger.info(f"Refunded {credits_to_refund} credit(s) to user {user_id} for failed check {check_id}")
+            return True
+
+    except Exception as e:
+        logger.error(f"Failed to refund credit for check {check_id}: {e}")
+        return False
 
 def save_check_results_sync(check_id: str, results: Dict[str, Any]):
     """Save pipeline results to database (synchronous for Celery)"""

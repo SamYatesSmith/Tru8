@@ -287,5 +287,59 @@ class PushNotificationService:
             logger.error(f"Failed to update notification preferences for user {user_id}: {e}")
             return False
 
+    def send_check_failed_notification_sync(
+        self,
+        user_id: str,
+        check_id: str,
+        error_message: str
+    ) -> bool:
+        """
+        Send a notification when a fact-check fails (SYNC version for Celery workers).
+        Uses synchronous database session to avoid event loop conflicts.
+        """
+        try:
+            from app.core.database import sync_session
+
+            with sync_session() as session:
+                user = session.get(User, user_id)
+
+                if not user or not user.push_token or not user.push_notifications_enabled:
+                    logger.info(f"User {user_id} has no push token or notifications disabled")
+                    return False
+
+                title = "Fact-check failed"
+                body = "Tap to try again"
+
+                data = {
+                    'type': 'check_failed',
+                    'checkId': check_id,
+                    'error': error_message
+                }
+
+                # PushClient.publish() is synchronous
+                message = PushMessage(
+                    to=user.push_token,
+                    title=title,
+                    body=body,
+                    data=data,
+                    category_id='check_failed',
+                    sound='default',
+                    badge=1,
+                    priority='high'
+                )
+
+                response = self.client.publish(message)
+
+                if response.is_success():
+                    logger.info(f"Push notification sent successfully to token {user.push_token[:8]}...")
+                    return True
+                else:
+                    logger.warning(f"Push notification failed: {response.details}")
+                    return False
+
+        except Exception as e:
+            logger.error(f"Failed to send sync notification to user {user_id}: {e}")
+            return False
+
 # Singleton instance
 push_notification_service = PushNotificationService()

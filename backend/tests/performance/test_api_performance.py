@@ -8,6 +8,9 @@ Tests performance characteristics of API integration:
 - Cache hit rates
 - Concurrent load handling
 - Error recovery and fallback
+
+Note: Domain detection is now done via article_classification in the claim dict,
+not via a claim_classifier attribute on EvidenceRetriever.
 """
 
 import pytest
@@ -18,7 +21,6 @@ from unittest.mock import Mock, patch, AsyncMock
 
 from app.pipeline.retrieve import EvidenceRetriever
 from app.services.api_adapters import initialize_adapters
-from app.utils.claim_classifier import ClaimClassifier
 
 
 class TestAPIPerformance:
@@ -32,7 +34,17 @@ class TestAPIPerformance:
         retriever.enable_api_retrieval = True
 
         claim_text = "UK inflation is 3.2% according to the ONS"
-        claim = {"text": claim_text, "position": 0}
+        # Include article_classification in claim dict (how domain routing works)
+        claim = {
+            "text": claim_text,
+            "position": 0,
+            "article_classification": {
+                "primary_domain": "Finance",
+                "jurisdiction": "UK",
+                "confidence": 0.85,
+                "secondary_domains": []
+            }
+        }
 
         # Mock adapters to return quickly
         mock_adapter = Mock()
@@ -48,26 +60,18 @@ class TestAPIPerformance:
             }
         ]
 
-        with patch.object(retriever.claim_classifier, 'detect_domain') as mock_detect:
-            mock_detect.return_value = {
-                "domain": "Finance",
-                "jurisdiction": "UK",
-                "domain_confidence": 0.85,
-                "key_entities": ["UK", "ONS"]
-            }
+        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+            mock_get.return_value = [mock_adapter]
 
-            with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
-                mock_get.return_value = [mock_adapter]
+            # Measure API retrieval latency
+            start_time = time.time()
+            result = await retriever._retrieve_from_government_apis(claim_text, claim)
+            latency_ms = (time.time() - start_time) * 1000
 
-                # Measure API retrieval latency
-                start_time = time.time()
-                result = await retriever._retrieve_from_government_apis(claim_text, claim)
-                latency_ms = (time.time() - start_time) * 1000
-
-                # Assert latency is reasonable
-                assert latency_ms < 2000, f"API retrieval took {latency_ms:.0f}ms (target: <2000ms)"
-                assert result["evidence"]
-                assert result["api_stats"]["total_api_calls"] == 1
+            # Assert latency is reasonable
+            assert latency_ms < 2000, f"API retrieval took {latency_ms:.0f}ms (target: <2000ms)"
+            assert result["evidence"]
+            assert result["api_stats"]["total_api_calls"] == 1
 
     @pytest.mark.asyncio
     @pytest.mark.performance
@@ -77,7 +81,17 @@ class TestAPIPerformance:
         retriever.enable_api_retrieval = True
 
         claim_text = "COVID-19 vaccine efficacy"
-        claim = {"text": claim_text, "position": 0}
+        # Include article_classification in claim dict (how domain routing works)
+        claim = {
+            "text": claim_text,
+            "position": 0,
+            "article_classification": {
+                "primary_domain": "Health",
+                "jurisdiction": "Global",
+                "confidence": 0.85,
+                "secondary_domains": []
+            }
+        }
 
         # Create multiple mock adapters with artificial delay
         async def slow_api_call(*args, **kwargs):
@@ -101,21 +115,13 @@ class TestAPIPerformance:
         mock_adapter2.api_name = "API 2"
         mock_adapter2.search_with_cache = Mock(return_value=[])
 
-        with patch.object(retriever.claim_classifier, 'detect_domain') as mock_detect:
-            mock_detect.return_value = {
-                "domain": "Health",
-                "jurisdiction": "Global",
-                "domain_confidence": 0.85,
-                "key_entities": ["COVID-19"]
-            }
+        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+            mock_get.return_value = [mock_adapter1, mock_adapter2]
 
-            with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
-                mock_get.return_value = [mock_adapter1, mock_adapter2]
-
-                # Measure parallel execution time
-                start_time = time.time()
-                result = await retriever._retrieve_from_government_apis(claim_text, claim)
-                latency_ms = (time.time() - start_time) * 1000
+            # Measure parallel execution time
+            start_time = time.time()
+            result = await retriever._retrieve_from_government_apis(claim_text, claim)
+            latency_ms = (time.time() - start_time) * 1000
 
                 # If sequential: ~1000ms (2 * 500ms)
                 # If parallel: ~500ms
@@ -130,7 +136,17 @@ class TestAPIPerformance:
         retriever.enable_api_retrieval = True
 
         claim_text = "UK inflation is 3.2%"
-        claim = {"text": claim_text, "position": 0}
+        # Include article_classification in claim dict (how domain routing works)
+        claim = {
+            "text": claim_text,
+            "position": 0,
+            "article_classification": {
+                "primary_domain": "Finance",
+                "jurisdiction": "UK",
+                "confidence": 0.85,
+                "secondary_domains": []
+            }
+        }
 
         # First call - cache miss
         mock_adapter = Mock()
@@ -146,31 +162,23 @@ class TestAPIPerformance:
             }
         ]
 
-        with patch.object(retriever.claim_classifier, 'detect_domain') as mock_detect:
-            mock_detect.return_value = {
-                "domain": "Finance",
-                "jurisdiction": "UK",
-                "domain_confidence": 0.85,
-                "key_entities": ["UK"]
-            }
+        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+            mock_get.return_value = [mock_adapter]
 
-            with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
-                mock_get.return_value = [mock_adapter]
+            # First call - should hit API
+            start_time = time.time()
+            result1 = await retriever._retrieve_from_government_apis(claim_text, claim)
+            first_call_ms = (time.time() - start_time) * 1000
 
-                # First call - should hit API
-                start_time = time.time()
-                result1 = await retriever._retrieve_from_government_apis(claim_text, claim)
-                first_call_ms = (time.time() - start_time) * 1000
+            # Second call - should be faster (cached)
+            start_time = time.time()
+            result2 = await retriever._retrieve_from_government_apis(claim_text, claim)
+            cached_call_ms = (time.time() - start_time) * 1000
 
-                # Second call - should be faster (cached)
-                start_time = time.time()
-                result2 = await retriever._retrieve_from_government_apis(claim_text, claim)
-                cached_call_ms = (time.time() - start_time) * 1000
-
-                # Cache hit should be significantly faster
-                # (In real scenario with actual cache, this would be true)
-                assert result1["evidence"]
-                assert result2["evidence"]
+            # Cache hit should be significantly faster
+            # (In real scenario with actual cache, this would be true)
+            assert result1["evidence"]
+            assert result2["evidence"]
 
 
 class TestPipelineLatency:
@@ -249,31 +257,33 @@ class TestErrorHandling:
         retriever.enable_api_retrieval = True
 
         claim_text = "Test claim"
-        claim = {"text": claim_text, "position": 0}
+        # Include article_classification in claim dict (how domain routing works)
+        claim = {
+            "text": claim_text,
+            "position": 0,
+            "article_classification": {
+                "primary_domain": "Finance",
+                "jurisdiction": "UK",
+                "confidence": 0.85,
+                "secondary_domains": []
+            }
+        }
 
         # Mock adapter that times out
         mock_adapter = Mock()
         mock_adapter.api_name = "Slow API"
         mock_adapter.search_with_cache.side_effect = TimeoutError("API timeout")
 
-        with patch.object(retriever.claim_classifier, 'detect_domain') as mock_detect:
-            mock_detect.return_value = {
-                "domain": "Finance",
-                "jurisdiction": "UK",
-                "domain_confidence": 0.85,
-                "key_entities": []
-            }
+        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+            mock_get.return_value = [mock_adapter]
 
-            with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
-                mock_get.return_value = [mock_adapter]
+            # Should not raise exception, should return empty results
+            result = await retriever._retrieve_from_government_apis(claim_text, claim)
 
-                # Should not raise exception, should return empty results
-                result = await retriever._retrieve_from_government_apis(claim_text, claim)
-
-                assert "evidence" in result
-                assert "api_stats" in result
-                # Should track the failed call
-                assert result["api_stats"]["total_api_calls"] == 1
+            assert "evidence" in result
+            assert "api_stats" in result
+            # Should track the failed call
+            assert result["api_stats"]["total_api_calls"] == 1
 
     @pytest.mark.asyncio
     @pytest.mark.performance
@@ -283,7 +293,17 @@ class TestErrorHandling:
         retriever.enable_api_retrieval = True
 
         claim_text = "Test claim"
-        claim = {"text": claim_text, "position": 0}
+        # Include article_classification in claim dict (how domain routing works)
+        claim = {
+            "text": claim_text,
+            "position": 0,
+            "article_classification": {
+                "primary_domain": "General",
+                "jurisdiction": "Global",
+                "confidence": 0.5,
+                "secondary_domains": []
+            }
+        }
 
         # Mock: one successful adapter, one failing adapter
         mock_adapter1 = Mock()
@@ -303,25 +323,17 @@ class TestErrorHandling:
         mock_adapter2.api_name = "Bad API"
         mock_adapter2.search_with_cache.side_effect = Exception("API error")
 
-        with patch.object(retriever.claim_classifier, 'detect_domain') as mock_detect:
-            mock_detect.return_value = {
-                "domain": "General",
-                "jurisdiction": "Global",
-                "domain_confidence": 0.5,
-                "key_entities": []
-            }
+        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+            mock_get.return_value = [mock_adapter1, mock_adapter2]
 
-            with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
-                mock_get.return_value = [mock_adapter1, mock_adapter2]
+            result = await retriever._retrieve_from_government_apis(claim_text, claim)
 
-                result = await retriever._retrieve_from_government_apis(claim_text, claim)
+            # Should get evidence from good API
+            assert len(result["evidence"]) == 1
+            assert result["evidence"][0]["title"] == "Good Evidence"
 
-                # Should get evidence from good API
-                assert len(result["evidence"]) == 1
-                assert result["evidence"][0]["title"] == "Good Evidence"
-
-                # Should track both API calls
-                assert result["api_stats"]["total_api_calls"] == 2
+            # Should track both API calls
+            assert result["api_stats"]["total_api_calls"] == 2
 
 
 class TestCacheEfficiency:

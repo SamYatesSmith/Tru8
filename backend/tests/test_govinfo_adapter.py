@@ -7,7 +7,7 @@ through the Phase 5 adapter system.
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
 from app.services.api_adapters import GovInfoAdapter
-from app.utils.claim_classifier import ClaimClassifier
+from app.utils.legal_claim_detector import LegalClaimDetector
 
 
 class TestGovInfoAdapter:
@@ -16,7 +16,7 @@ class TestGovInfoAdapter:
     def setup_method(self):
         """Setup test fixtures"""
         self.adapter = GovInfoAdapter()
-        self.classifier = ClaimClassifier()
+        self.detector = LegalClaimDetector()
 
     def test_adapter_domain_matching_law_us(self):
         """Test adapter matches Law domain with US jurisdiction"""
@@ -36,10 +36,10 @@ class TestGovInfoAdapter:
         """Test legal claim with 'Act of YYYY' format is classified correctly"""
         claim = "The National Historic Preservation Act of 1966 exempts the White House from its provisions."
 
-        result = self.classifier.classify(claim)
+        result = self.detector.classify(claim)
 
         assert result["claim_type"] == "legal", f"Expected 'legal' but got '{result['claim_type']}'"
-        assert result["is_verifiable"] is True
+        assert result["is_legal"] is True
 
         metadata = result.get("metadata", {})
         assert metadata["year"] == "1966", f"Expected year 1966 but got {metadata.get('year')}"
@@ -49,7 +49,7 @@ class TestGovInfoAdapter:
         """Test legal claim with 'YYYY federal law' format"""
         claim = "A 1952 federal law requires the administration to submit new construction plans."
 
-        result = self.classifier.classify(claim)
+        result = self.detector.classify(claim)
 
         assert result["claim_type"] == "legal"
         metadata = result.get("metadata", {})
@@ -116,28 +116,28 @@ class TestGovInfoIntegration:
 
     def test_legal_claim_gets_legal_classification(self):
         """Test that legal claims are classified correctly for routing"""
-        from app.utils.claim_classifier import ClaimClassifier
+        from app.utils.legal_claim_detector import LegalClaimDetector
 
-        classifier = ClaimClassifier()
+        detector = LegalClaimDetector()
         claim = "The National Historic Preservation Act of 1966 exempts the White House."
 
         # Classify claim - this is what retrieve.py checks FIRST
-        classification = classifier.classify(claim)
+        classification = detector.classify(claim)
         assert classification["claim_type"] == "legal"
-        assert classification["is_verifiable"] is True
+        assert classification["is_legal"] is True
 
         # Extract legal metadata (year, jurisdiction, etc.)
         metadata = classification.get("metadata", {})
         assert metadata.get("year") == "1966"
         assert metadata.get("jurisdiction") in ["US", None]
 
-        # NOTE: Domain detection may return "Government" or other domains
-        # because it uses keywords. But retrieve.py checks claim_type=="legal" FIRST,
+        # NOTE: Domain detection is handled by article_classification at extraction time,
+        # but retrieve.py checks claim_type=="legal" FIRST,
         # so legal claims still route correctly to Law domain adapters.
 
     def test_multiple_legal_patterns(self):
         """Test various legal claim patterns"""
-        classifier = ClaimClassifier()
+        detector = LegalClaimDetector()
 
         test_claims = [
             ("The National Historic Preservation Act of 1966 exempts the White House", "legal"),
@@ -148,7 +148,7 @@ class TestGovInfoIntegration:
         ]
 
         for claim_text, expected_type in test_claims:
-            result = classifier.classify(claim_text)
+            result = detector.classify(claim_text)
             assert result["claim_type"] == expected_type, \
                 f"Claim '{claim_text[:50]}...' expected {expected_type}, got {result['claim_type']}"
 

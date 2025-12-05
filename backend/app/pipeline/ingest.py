@@ -1,6 +1,7 @@
 import logging
 import asyncio
-from typing import Dict, Any, Optional
+import random
+from typing import Dict, Any, Optional, List
 from urllib.parse import urlparse, parse_qs
 import re
 import requests
@@ -14,6 +15,19 @@ from app.core.config import settings
 # heavy ML libraries (numpy) from loading at startup. They will only load when OCR is actually used.
 
 logger = logging.getLogger(__name__)
+
+# Browser-like User-Agents for sites that block bots
+# Using common browser UA strings improves success rate
+USER_AGENTS = [
+    # Chrome on Windows (most common)
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    # Firefox on Windows
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    # Safari on macOS
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+    # Chrome on macOS
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+]
 
 class BaseIngester:
     """Base class for content ingesters"""
@@ -40,7 +54,24 @@ class BaseIngester:
 
 class UrlIngester(BaseIngester):
     """Ingest content from URLs"""
-    
+
+    def _get_browser_headers(self, user_agent: str) -> Dict[str, str]:
+        """Return browser-like headers to avoid bot detection"""
+        return {
+            'User-Agent': user_agent,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-GB,en;q=0.9,en-US;q=0.8',
+            'Accept-Encoding': 'gzip, deflate',  # Removed 'br' (Brotli) - requests library has buggy Brotli support
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0',
+        }
+
     async def process(self, url: str) -> Dict[str, Any]:
         """Fetch and extract content from URL"""
         try:
@@ -48,21 +79,46 @@ class UrlIngester(BaseIngester):
             # Run in thread pool to keep async interface
             loop = asyncio.get_event_loop()
 
-            def fetch_url():
+            def fetch_url() -> requests.Response:
+                """Fetch URL with retry logic for 403 errors using different User-Agents"""
                 # DISABLED: robots.txt checker was incorrectly blocking legitimate requests
                 # For MVP: We access publicly available content for fact-checking purposes (fair use)
                 # Note: robots.txt is advisory, not legally binding. We respect paywalls (HTTP 402).
 
                 session = requests.Session()
                 session.max_redirects = 5
-                response = session.get(
-                    url,
-                    timeout=self.timeout,
-                    allow_redirects=True,
-                    headers={'User-Agent': 'Tru8Bot/1.0 (Fact-checking service)'}
-                )
-                response.raise_for_status()
-                return response
+
+                # Shuffle User-Agents to try different ones on each attempt
+                user_agents = USER_AGENTS.copy()
+                random.shuffle(user_agents)
+
+                last_error = None
+                for attempt, user_agent in enumerate(user_agents):
+                    try:
+                        headers = self._get_browser_headers(user_agent)
+                        response = session.get(
+                            url,
+                            timeout=self.timeout,
+                            allow_redirects=True,
+                            headers=headers
+                        )
+                        response.raise_for_status()
+                        return response
+
+                    except requests.HTTPError as e:
+                        last_error = e
+                        status_code = e.response.status_code if e.response is not None else 0
+
+                        # For 403/429, try next User-Agent
+                        if status_code in (403, 429) and attempt < len(user_agents) - 1:
+                            logger.debug(f"Got {status_code} on attempt {attempt + 1}, trying different User-Agent")
+                            continue
+
+                        # For other errors or final attempt, raise
+                        raise
+
+                # Should not reach here, but just in case
+                raise last_error or requests.HTTPError("All User-Agent attempts failed")
 
             # Fetch content in thread pool to avoid blocking
             response = await loop.run_in_executor(None, fetch_url)
@@ -136,17 +192,51 @@ class UrlIngester(BaseIngester):
             return {"success": False, "error": "Request timeout", "content": ""}
 
         except requests.HTTPError as e:
-            if e.response and e.response.status_code == 402:
+            status_code = e.response.status_code if e.response is not None else 0
+            domain = urlparse(url).netloc
+
+            if status_code == 402:
                 # Paywall detected
                 return {
                     "success": False,
-                    "error": "Paywall detected",
+                    "error": "Paywall detected - this content requires a subscription",
                     "content": "",
-                    "metadata": {"paywall": True}
+                    "metadata": {"paywall": True, "url": url}
                 }
-            logger.error(f"HTTP error fetching URL {url}: {e}")
-            return {"success": False, "error": f"HTTP {e.response.status_code if e.response else 'error'}", "content": ""}
-            
+            elif status_code == 403:
+                # Access forbidden - site is blocking automated access
+                logger.warning(f"Site {domain} blocked access (403 Forbidden) after all User-Agent attempts")
+                return {
+                    "success": False,
+                    "error": f"Site blocked access - {domain} does not allow automated fact-checking. Try pasting the article text directly",
+                    "content": "",
+                    "metadata": {"blocked": True, "url": url, "domain": domain}
+                }
+            elif status_code == 429:
+                # Rate limited
+                logger.warning(f"Rate limited by {domain}")
+                return {
+                    "success": False,
+                    "error": "Rate limited - please try again in a few minutes",
+                    "content": "",
+                    "metadata": {"rate_limited": True, "url": url}
+                }
+            elif status_code == 404:
+                return {
+                    "success": False,
+                    "error": "Page not found - the URL may be incorrect or the content removed",
+                    "content": "",
+                    "metadata": {"url": url}
+                }
+            else:
+                logger.error(f"HTTP error fetching URL {url}: {e}")
+                return {
+                    "success": False,
+                    "error": f"HTTP error ({status_code}) - unable to access this URL",
+                    "content": "",
+                    "metadata": {"url": url, "status_code": status_code}
+                }
+
         except Exception as e:
             logger.error(f"Error processing URL {url}: {e}")
             return {"success": False, "error": str(e), "content": ""}

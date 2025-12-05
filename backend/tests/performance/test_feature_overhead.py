@@ -201,13 +201,13 @@ class TestFeaturePerformance:
 
         Target: <100ms overhead for 5 claims
         """
-        from app.utils.claim_classifier import ClaimClassifier
+        from app.utils.legal_claim_detector import LegalClaimDetector
 
-        classifier = ClaimClassifier()
+        detector = LegalClaimDetector()
 
         def operation():
             for claim in sample_claims:
-                classifier.classify(claim["text"])
+                detector.classify(claim["text"])
 
         stats = self.benchmark_operation(operation, iterations=100)
 
@@ -298,7 +298,7 @@ class TestFeaturePerformance:
         from app.utils.source_independence import SourceIndependenceChecker
         from app.utils.factcheck import FactCheckDetector
         from app.utils.temporal import TemporalAnalyzer
-        from app.utils.claim_classifier import ClaimClassifier
+        from app.utils.legal_claim_detector import LegalClaimDetector
         from app.utils.explainability import ExplainabilityEnhancer
         from app.pipeline.retrieve import apply_domain_cap
 
@@ -307,15 +307,15 @@ class TestFeaturePerformance:
         independence_checker = SourceIndependenceChecker()
         factcheck_detector = FactCheckDetector()
         temporal_analyzer = TemporalAnalyzer()
-        classifier = ClaimClassifier()
+        detector = LegalClaimDetector()
         explainer = ExplainabilityEnhancer()
 
         def operation():
             # Simulate full pipeline with all features
 
-            # 1. Claim classification and temporal analysis (extract stage)
+            # 1. Legal claim detection and temporal analysis (extract stage)
             for claim in sample_claims:
-                classifier.classify(claim["text"])
+                detector.classify(claim["text"])
                 temporal_analyzer.analyze_claim(claim["text"])
 
             # 2. Evidence processing (retrieve stage)
@@ -373,7 +373,7 @@ class TestFeaturePerformance:
         from app.utils.deduplication import ContentDeduplicator
         from app.utils.source_independence import SourceIndependenceChecker
         from app.utils.temporal import TemporalAnalyzer
-        from app.utils.claim_classifier import ClaimClassifier
+        from app.utils.legal_claim_detector import LegalClaimDetector
         from app.utils.explainability import ExplainabilityEnhancer
 
         tracemalloc.start()
@@ -386,7 +386,7 @@ class TestFeaturePerformance:
             deduplicator = ContentDeduplicator()
             independence = SourceIndependenceChecker()
             temporal = TemporalAnalyzer()
-            classifier = ClaimClassifier()
+            detector = LegalClaimDetector()
             explainer = ExplainabilityEnhancer()
 
             # Do some work
@@ -455,16 +455,16 @@ class TestScalability:
             assert duration_ms < expected_max, f"Deduplication doesn't scale linearly"
 
     def test_classification_scales_linearly(self):
-        """Test: Classification performance scales linearly with claim count"""
-        from app.utils.claim_classifier import ClaimClassifier
+        """Test: Legal claim detection performance scales linearly with claim count"""
+        from app.utils.legal_claim_detector import LegalClaimDetector
 
-        classifier = ClaimClassifier()
+        detector = LegalClaimDetector()
 
         claims = [
             "The Earth is round and orbits the Sun.",
-            "I think chocolate is the best flavor.",
-            "The market will crash by 2030.",
-            "I saw a celebrity yesterday.",
+            "42 USC 1983 protects civil rights.",
+            "The National Historic Preservation Act of 1966 exempts the White House.",
+            "A 1952 federal law requires submission.",
             "Water boils at 100 degrees Celsius."
         ]
 
@@ -473,7 +473,7 @@ class TestScalability:
 
             start = time.perf_counter()
             for claim in test_claims:
-                classifier.classify(claim)
+                detector.classify(claim)
             end = time.perf_counter()
 
             duration_ms = (end - start) * 1000

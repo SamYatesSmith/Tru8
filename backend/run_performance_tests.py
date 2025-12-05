@@ -173,21 +173,21 @@ def test_temporal_analysis():
     return benchmark_operation("Temporal Analysis (5 claims)", operation, iterations=100, target_ms=150)
 
 
-def test_claim_classification():
-    """Test claim classification performance"""
+def test_legal_claim_detection():
+    """Test legal claim detection performance"""
     try:
-        from app.utils.claim_classifier import ClaimClassifier
+        from app.utils.legal_claim_detector import LegalClaimDetector
     except ImportError as e:
-        print(f"[SKIP] Skipping claim classification test: {e}")
+        print(f"[SKIP] Skipping legal claim detection test: {e}")
         return None
 
-    classifier = ClaimClassifier()
+    detector = LegalClaimDetector()
 
     def operation():
         for claim in SAMPLE_CLAIMS:
-            classifier.classify(claim["text"])
+            detector.classify(claim["text"])
 
-    return benchmark_operation("Claim Classification (5 claims)", operation, iterations=100, target_ms=100)
+    return benchmark_operation("Legal Claim Detection (5 claims)", operation, iterations=100, target_ms=100)
 
 
 def test_explainability():
@@ -231,7 +231,7 @@ def test_combined_overhead():
         from app.utils.source_independence import SourceIndependenceChecker
         from app.utils.factcheck import FactCheckDetector
         from app.utils.temporal import TemporalAnalyzer
-        from app.utils.claim_classifier import ClaimClassifier
+        from app.utils.legal_claim_detector import LegalClaimDetector
         from app.utils.explainability import ExplainabilityEnhancer
     except ImportError as e:
         print(f"[SKIP] Cannot run combined test: {e}")
@@ -242,7 +242,7 @@ def test_combined_overhead():
     independence_checker = SourceIndependenceChecker()
     factcheck_detector = FactCheckDetector()
     temporal_analyzer = TemporalAnalyzer()
-    classifier = ClaimClassifier()
+    detector = LegalClaimDetector()
     explainer = ExplainabilityEnhancer()
 
     def operation():
@@ -250,7 +250,7 @@ def test_combined_overhead():
 
         # 1. Claim processing
         for claim in SAMPLE_CLAIMS:
-            classifier.classify(claim["text"])
+            detector.classify(claim["text"])
             temporal_analyzer.analyze_claim(claim["text"])
 
         # 2. Evidence processing
@@ -286,7 +286,7 @@ def main():
     results['source_independence'] = test_source_independence()
     results['factcheck'] = test_factcheck_detection()
     results['temporal'] = test_temporal_analysis()
-    results['classification'] = test_claim_classification()
+    results['classification'] = test_legal_claim_detection()
     results['explainability'] = test_explainability()
 
     # Run combined test

@@ -4,7 +4,7 @@ Phase 5: Week 3 - Full Pipeline with API Retrieval
 
 Tests the end-to-end integration of government API adapters with the pipeline:
 - API adapter initialization and registration
-- Domain detection and routing
+- Domain detection and routing (via ArticleClassifier)
 - Evidence retrieval from APIs + web search
 - API statistics tracking in Check model
 - Evidence metadata storage
@@ -21,7 +21,7 @@ from app.services.api_adapters import (
     ONSAdapter, PubMedAdapter, FREDAdapter, WHOAdapter,
     CrossRefAdapter, GovUKAdapter, initialize_adapters
 )
-from app.utils.claim_classifier import ClaimClassifier
+from app.utils.article_classifier import ArticleClassifier
 
 
 class TestAPIAdapterRegistration:
@@ -83,37 +83,41 @@ class TestAPIAdapterRegistration:
 
 
 class TestDomainDetectionAndRouting:
-    """Test claim classification and API routing."""
+    """Test article-level classification and API routing."""
 
-    def test_domain_detection_for_finance_claim(self):
-        """Test domain detection routes correctly for finance claims."""
-        classifier = ClaimClassifier()
+    @pytest.mark.asyncio
+    async def test_domain_detection_for_finance_article(self):
+        """Test domain detection routes correctly for finance articles."""
+        classifier = ArticleClassifier()
 
-        claim_text = "UK inflation rate is 3.2% according to the ONS"
-        domain_info = classifier.detect_domain(claim_text)
+        # Simulate article content about UK finance
+        article_text = "UK inflation rate is 3.2% according to the ONS. The Bank of England is expected to raise interest rates."
+        domain_info = await classifier.classify_article(article_text)
 
-        assert domain_info["domain"] == "Finance"
+        assert domain_info["primary_domain"] == "Finance"
         assert domain_info["jurisdiction"] == "UK"
-        assert domain_info["domain_confidence"] > 0.5
+        assert domain_info["confidence"] > 0.5
 
-    def test_domain_detection_for_health_claim(self):
-        """Test domain detection routes correctly for health claims."""
-        classifier = ClaimClassifier()
+    @pytest.mark.asyncio
+    async def test_domain_detection_for_health_article(self):
+        """Test domain detection routes correctly for health articles."""
+        classifier = ArticleClassifier()
 
-        claim_text = "COVID-19 vaccine efficacy is 95% according to recent studies"
-        domain_info = classifier.detect_domain(claim_text)
+        article_text = "COVID-19 vaccine efficacy is 95% according to recent clinical studies. The WHO recommends vaccination."
+        domain_info = await classifier.classify_article(article_text)
 
-        assert domain_info["domain"] in ["Health", "Science"]
+        assert domain_info["primary_domain"] in ["Health", "Science"]
         assert domain_info["jurisdiction"] in ["Global", "US"]
 
-    def test_domain_detection_for_government_claim(self):
-        """Test domain detection routes correctly for government claims."""
-        classifier = ClaimClassifier()
+    @pytest.mark.asyncio
+    async def test_domain_detection_for_government_article(self):
+        """Test domain detection routes correctly for government articles."""
+        classifier = ArticleClassifier()
 
-        claim_text = "The UK Parliament passed new legislation on climate change"
-        domain_info = classifier.detect_domain(claim_text)
+        article_text = "The UK Parliament passed new legislation on climate change. MPs voted in favour of the bill."
+        domain_info = await classifier.classify_article(article_text)
 
-        assert domain_info["domain"] in ["Government", "Law"]
+        assert domain_info["primary_domain"] in ["Government", "Law", "Environment"]
         assert domain_info["jurisdiction"] == "UK"
 
 
@@ -127,49 +131,50 @@ class TestAPIEvidenceRetrieval:
         retriever.enable_api_retrieval = True
 
         claim_text = "UK inflation is 3.2%"
-        claim = {"text": claim_text, "position": 0}
-
-        # Mock classifier to return Finance + UK
-        with patch.object(retriever.claim_classifier, 'detect_domain') as mock_detect:
-            mock_detect.return_value = {
-                "domain": "Finance",
+        # Include article_classification in claim dict (how domain routing works)
+        claim = {
+            "text": claim_text,
+            "position": 0,
+            "article_classification": {
+                "primary_domain": "Finance",
                 "jurisdiction": "UK",
-                "domain_confidence": 0.85,
-                "key_entities": ["UK", "inflation"]
+                "confidence": 0.85,
+                "secondary_domains": []
             }
+        }
 
-            # Mock registry to return mock adapter
-            mock_adapter = Mock()
-            mock_adapter.api_name = "Test API"
-            mock_adapter.search_with_cache.return_value = [
-                {
-                    "title": "UK Inflation Report",
-                    "snippet": "Inflation rate stands at 3.2%",
-                    "url": "https://api.test.gov.uk/inflation",
-                    "external_source_provider": "Test API",
-                    "credibility_score": 0.95,
-                    "metadata": {"dataset_id": "CPI"}
-                }
-            ]
+        # Mock registry to return mock adapter
+        mock_adapter = Mock()
+        mock_adapter.api_name = "Test API"
+        mock_adapter.search_with_cache.return_value = [
+            {
+                "title": "UK Inflation Report",
+                "snippet": "Inflation rate stands at 3.2%",
+                "url": "https://api.test.gov.uk/inflation",
+                "external_source_provider": "Test API",
+                "credibility_score": 0.95,
+                "metadata": {"dataset_id": "CPI"}
+            }
+        ]
 
-            with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get_adapters:
-                mock_get_adapters.return_value = [mock_adapter]
+        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get_adapters:
+            mock_get_adapters.return_value = [mock_adapter]
 
-                # Call API retrieval
-                result = await retriever._retrieve_from_government_apis(claim_text, claim)
+            # Call API retrieval
+            result = await retriever._retrieve_from_government_apis(claim_text, claim)
 
-                # Verify results
-                assert "evidence" in result
-                assert "api_stats" in result
-                assert len(result["evidence"]) == 1
-                assert result["api_stats"]["total_api_calls"] == 1
-                assert result["api_stats"]["total_api_results"] == 1
+            # Verify results
+            assert "evidence" in result
+            assert "api_stats" in result
+            assert len(result["evidence"]) == 1
+            assert result["api_stats"]["total_api_calls"] == 1
+            assert result["api_stats"]["total_api_results"] == 1
 
-                # Verify evidence format
-                evidence = result["evidence"][0]
-                assert evidence["title"] == "UK Inflation Report"
-                assert evidence["external_source_provider"] == "Test API"
-                assert evidence["credibility_score"] == 0.95
+            # Verify evidence format
+            evidence = result["evidence"][0]
+            assert evidence["title"] == "UK Inflation Report"
+            assert evidence["external_source_provider"] == "Test API"
+            assert evidence["credibility_score"] == 0.95
 
     @pytest.mark.asyncio
     async def test_retrieve_with_feature_flag_disabled(self):
@@ -351,7 +356,7 @@ class TestEndToEndIntegration:
         Test complete pipeline flow with API integration.
 
         This test verifies:
-        1. Domain detection works correctly
+        1. Domain detection works correctly (via article_classification)
         2. Relevant APIs are queried
         3. Evidence is retrieved from both APIs and web
         4. API stats are tracked correctly
@@ -366,10 +371,10 @@ class TestEndToEndIntegration:
 
         retriever = EvidenceRetriever()
         assert retriever.api_registry is not None
-        assert retriever.claim_classifier is not None
         assert retriever.enable_api_retrieval is True
 
         # Test passes if initialization works correctly
+        # Domain detection is done via article_classification in claim dict
         # Full integration tests would be run against a test environment
 
 
