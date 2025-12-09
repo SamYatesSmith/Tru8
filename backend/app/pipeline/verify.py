@@ -117,7 +117,7 @@ class NLIVerifier:
                             # Load with FP16 on GPU for memory efficiency (Phase 1.1)
                             model = AutoModelForSequenceClassification.from_pretrained(
                                 self.model_name,
-                                torch_dtype=torch.float16 if device.type == 'cuda' else torch.float32
+                                dtype=torch.float16 if device.type == 'cuda' else torch.float32
                             )
                             model.to(device)
                             model.eval()

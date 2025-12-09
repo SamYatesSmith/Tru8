@@ -2,8 +2,8 @@
 Unit Tests for Week 2 API Adapters
 Phase 5: Government API Integration
 
-Tests for the 7 new adapters implemented in Week 2:
-- FRED, WHO, Met Office, CrossRef
+Tests for the 6 adapters implemented in Week 2:
+- FRED, WHO, CrossRef
 - GOV.UK, Hansard, Wikidata
 """
 
@@ -11,7 +11,6 @@ import pytest
 from app.services.api_adapters import (
     FREDAdapter,
     WHOAdapter,
-    MetOfficeAdapter,
     CrossRefAdapter,
     GovUKAdapter,
     HansardAdapter,
@@ -111,39 +110,6 @@ class TestWHOAdapter:
         assert "Life expectancy" in result[0]["title"]
         assert result[0]["external_source_provider"] == "WHO"
         assert result[0]["metadata"]["indicator_code"] == "WHS9_86"
-
-
-class TestMetOfficeAdapter:
-    """Test suite for Met Office (UK Weather/Climate) adapter."""
-
-    def test_instantiation(self):
-        """Test Met Office adapter instantiates correctly."""
-        adapter = MetOfficeAdapter()
-        assert adapter.api_name == "Met Office"
-        assert "metoffice.gov.uk" in adapter.base_url
-        assert adapter.cache_ttl == 3600  # 1 hour (weather changes frequently)
-
-    def test_is_relevant_for_domain(self):
-        """Test Met Office domain relevance."""
-        adapter = MetOfficeAdapter()
-
-        # Should be relevant for Climate + UK
-        assert adapter.is_relevant_for_domain("Climate", "UK") == True
-        assert adapter.is_relevant_for_domain("Climate", "Global") == True
-
-        # Should not be relevant for other domains
-        assert adapter.is_relevant_for_domain("Health", "UK") == False
-        assert adapter.is_relevant_for_domain("Climate", "US") == False
-
-    def test_placeholder_evidence(self):
-        """Test Met Office creates placeholder evidence."""
-        adapter = MetOfficeAdapter()
-
-        result = adapter._create_placeholder_evidence()
-
-        assert len(result) == 1
-        assert "Met Office" in result[0]["title"]
-        assert result[0]["external_source_provider"] == "Met Office"
 
 
 class TestCrossRefAdapter:
@@ -355,7 +321,6 @@ class TestAdapterRegistry:
         adapters = [
             FREDAdapter(),
             WHOAdapter(),
-            MetOfficeAdapter(),
             CrossRefAdapter(),
             GovUKAdapter(),
             HansardAdapter(),
@@ -422,7 +387,6 @@ class TestCommonAdapterFeatures:
     @pytest.mark.parametrize("adapter_class", [
         FREDAdapter,
         WHOAdapter,
-        MetOfficeAdapter,
         CrossRefAdapter,
         GovUKAdapter,
         HansardAdapter,
@@ -442,7 +406,6 @@ class TestCommonAdapterFeatures:
     @pytest.mark.parametrize("adapter_class", [
         FREDAdapter,
         WHOAdapter,
-        MetOfficeAdapter,
         CrossRefAdapter,
         GovUKAdapter,
         HansardAdapter,
@@ -466,7 +429,6 @@ class TestCommonAdapterFeatures:
     @pytest.mark.parametrize("adapter_class", [
         FREDAdapter,
         WHOAdapter,
-        MetOfficeAdapter,
         CrossRefAdapter,
         GovUKAdapter,
         HansardAdapter,

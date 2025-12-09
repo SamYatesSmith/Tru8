@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     BRAVE_API_KEY: str = Field("", env="BRAVE_API_KEY")
     SERP_API_KEY: str = Field("", env="SERP_API_KEY")
     OPENAI_API_KEY: str = Field("", env="OPENAI_API_KEY")
-    ANTHROPIC_API_KEY: str = Field("", env="ANTHROPIC_API_KEY")
+    ANTHROPIC_API_KEY: str = Field("", env="ANTHROPIC_API_KEY")  # Deprecated - use GOOGLE_AI_API_KEY as backup
+    GOOGLE_AI_API_KEY: str = Field("", env="GOOGLE_AI_API_KEY")  # Google AI Studio (Gemini) - backup LLM provider
     GOOGLE_FACTCHECK_API_KEY: str = Field("", env="GOOGLE_FACTCHECK_API_KEY")
     FOOTBALL_DATA_API_KEY: str = Field("", env="FOOTBALL_DATA_API_KEY")  # Football-Data.org for sports stats
     NOAA_API_KEY: str = Field("", env="NOAA_API_KEY")  # NOAA CDO for climate data

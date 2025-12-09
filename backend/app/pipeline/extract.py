@@ -40,9 +40,10 @@ class ClaimExtractionResponse(BaseModel):
 
 class ClaimExtractor:
     """Extract atomic factual claims from content using LLM"""
-    
+
     def __init__(self):
         self.openai_api_key = settings.OPENAI_API_KEY
+        self.google_ai_api_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
         self.max_claims = settings.MAX_CLAIMS_PER_CHECK  # 12 for Quick mode
         self.timeout = 30
         
@@ -79,7 +80,17 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
 
 7. PRESENT IN SOURCE - Extract only explicitly stated or directly implied claims
 8. Maximum {max_claims} claims for Quick mode
-9. Extract ALL verifiable claims up to the limit - do not be selective. Every factual claim deserves verification.
+9. EXTRACT COMPREHENSIVELY - Extract ALL distinct verifiable facts, not just the main headline.
+   Each of these deserves a separate claim:
+   - Dates/timelines ("completed in 2019", "happened last week")
+   - Costs/figures (monetary amounts, statistics, quantities)
+   - Named individuals and their roles/titles
+   - Organizations and their actions
+   - Specific events with details
+   - Historical context facts
+   - Attributions ("X said", "Y denied", "Z confirmed")
+
+   If an article contains 10 facts, extract 10 claims. Never summarize multiple facts into one.
 
 HANDLING UNCERTAINTY:
 If you cannot confidently extract a claim:
@@ -151,7 +162,7 @@ Always return valid JSON matching the required format."""
                 content = ' '.join(words[:max_words]) + "..."
                 logger.info(f"Truncated content to {max_words} words")
             
-            # Try OpenAI extraction
+            # Try OpenAI extraction (primary)
             if self.openai_api_key:
                 result = await self._extract_with_openai(content, metadata or {})
                 if result["success"]:
@@ -164,8 +175,22 @@ Always return valid JSON matching the required format."""
                 else:
                     logger.error(f"OpenAI extraction failed: {result.get('error')}")
 
+            # Try Google AI extraction (backup)
+            if self.google_ai_api_key:
+                logger.info("Attempting Google AI (Gemini) extraction as backup")
+                result = await self._extract_with_google(content, metadata or {})
+                if result["success"]:
+                    # Add source metadata to each claim
+                    for claim in result.get("claims", []):
+                        claim["source_title"] = metadata.get("title") if metadata else None
+                        claim["source_url"] = metadata.get("url") if metadata else None
+                        claim["source_date"] = metadata.get("date") if metadata else None
+                    return result
+                else:
+                    logger.error(f"Google AI extraction failed: {result.get('error')}")
+
             # Fallback to rule-based extraction
-            logger.warning("LLM extraction failed, using rule-based fallback")
+            logger.warning("All LLM extractions failed, using rule-based fallback")
             return self._extract_rule_based(content)
             
         except Exception as e:
@@ -334,6 +359,159 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             return {"success": False, "error": "Invalid response format from OpenAI"}
         except Exception as e:
             logger.error(f"OpenAI extraction error: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def _extract_with_google(self, content: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Extract claims using Google AI (Gemini) API as backup provider"""
+        try:
+            from datetime import datetime
+            now = datetime.now()
+            current_date = now.strftime("%Y-%m-%d")
+            current_year = now.strftime("%Y")
+
+            # Build context-aware user prompt with date context
+            user_prompt = f"""CURRENT DATE CONTEXT:
+Today's date is {current_date} (Year: {current_year}).
+Use this to resolve relative time references ("yesterday", "this week", "recently").
+
+"""
+            if metadata and metadata.get("title"):
+                user_prompt += f"Article Title: \"{metadata.get('title')}\"\n"
+            if metadata and metadata.get("url"):
+                user_prompt += f"Source URL: {metadata.get('url')}\n"
+            user_prompt += f"\nExtract atomic factual claims from this content:\n\n{content}"
+
+            # Combine system prompt and user prompt for Gemini
+            full_prompt = f"{self.system_prompt.format(max_claims=self.max_claims)}\n\n{user_prompt}\n\nProvide your response as valid JSON."
+
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.google_ai_api_key}",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "contents": [{"parts": [{"text": full_prompt}]}],
+                        "generationConfig": {
+                            "temperature": 0.1,
+                            "maxOutputTokens": 1500,
+                            "responseMimeType": "application/json"
+                        }
+                    }
+                )
+
+                if response.status_code != 200:
+                    error_msg = f"Google AI API error: {response.status_code}"
+                    logger.error(error_msg)
+                    return {"success": False, "error": error_msg}
+
+                result = response.json()
+
+                # Extract text from Gemini response
+                try:
+                    content_text = result["candidates"][0]["content"]["parts"][0]["text"]
+                except (KeyError, IndexError) as e:
+                    logger.error(f"Google AI response structure error: {e}")
+                    return {"success": False, "error": "Invalid response structure from Google AI"}
+
+                # Parse and validate JSON
+                claims_data = json.loads(content_text)
+
+                # Truncate claims if LLM exceeded the max
+                if "claims" in claims_data and len(claims_data["claims"]) > self.max_claims:
+                    logger.warning(
+                        f"Google AI returned {len(claims_data['claims'])} claims (max={self.max_claims}), "
+                        f"truncating to first {self.max_claims}"
+                    )
+                    claims_data["claims"] = claims_data["claims"][:self.max_claims]
+
+                validated_response = ClaimExtractionResponse(**claims_data)
+
+                # Convert to format expected by pipeline with context preservation
+                claims = [
+                    {
+                        "text": claim.text,
+                        "position": i,
+                        "confidence": claim.confidence,
+                        "category": claim.category,
+                        "subject_context": claim.subject_context,
+                        "key_entities": claim.key_entities or []
+                    }
+                    for i, claim in enumerate(validated_response.claims)
+                ]
+
+                # Validate and refine claims
+                claims = self._validate_and_refine_claims(claims)
+
+                # Re-number positions after filtering
+                for i, claim in enumerate(claims):
+                    claim["position"] = i
+
+                # Post-processing: temporal analysis and claim classification
+                from app.core.config import settings
+
+                # Temporal analysis if enabled
+                if settings.ENABLE_TEMPORAL_CONTEXT:
+                    from app.utils.temporal import TemporalAnalyzer
+                    temporal_analyzer = TemporalAnalyzer()
+
+                    for i, claim in enumerate(claims):
+                        temporal_analysis = temporal_analyzer.analyze_claim(claim["text"])
+                        claims[i]["temporal_analysis"] = temporal_analysis
+                        claims[i]["is_time_sensitive"] = temporal_analysis["is_time_sensitive"]
+                        claims[i]["temporal_markers"] = temporal_analysis["temporal_markers"]
+                        claims[i]["temporal_window"] = temporal_analysis["temporal_window"]
+
+                # Legal claim detection
+                if settings.ENABLE_CLAIM_CLASSIFICATION:
+                    from app.utils.legal_claim_detector import LegalClaimDetector
+                    detector = LegalClaimDetector()
+
+                    for i, claim in enumerate(claims):
+                        result = detector.classify(claim["text"])
+                        if result.get("is_legal"):
+                            claims[i]["claim_type"] = "legal"
+                            claims[i]["legal_metadata"] = result.get("metadata", {})
+
+                # Article-level classification
+                if settings.ENABLE_ARTICLE_CLASSIFICATION:
+                    try:
+                        from app.utils.article_classifier import classify_article
+
+                        article_classification = await classify_article(
+                            title=metadata.get("title", "") if metadata else "",
+                            url=metadata.get("url", "") if metadata else "",
+                            content=content[:2000]
+                        )
+
+                        for claim in claims:
+                            claim["article_classification"] = article_classification.to_dict()
+
+                        logger.info(
+                            f"[EXTRACT] Article classified: {article_classification.primary_domain} "
+                            f"(confidence: {article_classification.confidence:.2f}, source: {article_classification.source})"
+                        )
+                    except Exception as e:
+                        logger.warning(f"Article classification failed, continuing without: {e}")
+
+                return {
+                    "success": True,
+                    "claims": claims,
+                    "metadata": {
+                        "extraction_method": "google_gemini_flash",
+                        "source_summary": validated_response.source_summary,
+                        "extraction_confidence": validated_response.extraction_confidence
+                    }
+                }
+
+        except httpx.TimeoutException:
+            return {"success": False, "error": "Google AI API timeout"}
+        except ValidationError as e:
+            logger.error(f"Google AI response validation error: {e}")
+            return {"success": False, "error": "Invalid response format from Google AI"}
+        except json.JSONDecodeError as e:
+            logger.error(f"Google AI JSON parse error: {e}")
+            return {"success": False, "error": "Failed to parse JSON from Google AI response"}
+        except Exception as e:
+            logger.error(f"Google AI extraction error: {e}")
             return {"success": False, "error": str(e)}
 
     def _validate_and_refine_claims(self, claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

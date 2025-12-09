@@ -70,7 +70,8 @@ class ArticleClassification:
 # Valid domain categories (match existing API adapters)
 VALID_DOMAINS = [
     "Sports", "Politics", "Finance", "Health", "Science",
-    "Law", "Climate", "Weather", "Demographics", "Entertainment", "General"
+    "Law", "Climate", "Weather", "Demographics", "Entertainment",
+    "Animals", "History", "General"
 ]
 
 # Valid jurisdictions
@@ -142,6 +143,67 @@ URL_PATTERN_CACHE = [
     (r".*bbc\.co\.uk/news/science.*environment.*", "Climate", "UK"),
     (r".*noaa\.gov.*", "Climate", "US"),
     (r".*ipcc\.ch.*", "Climate", "Global"),
+
+    # ==================== ANIMALS ====================
+    # Biodiversity & Conservation
+    (r".*gbif\.org.*", "Animals", "Global"),
+    (r".*iucnredlist\.org.*", "Animals", "Global"),
+    (r".*iucn\.org.*", "Animals", "Global"),
+    (r".*worldwildlife\.org.*", "Animals", "Global"),
+    (r".*wwf\.panda\.org.*", "Animals", "Global"),
+    # Pet & Veterinary
+    (r".*aspca\.org.*", "Animals", "US"),
+    (r".*akc\.org.*", "Animals", "US"),
+    (r".*petmd\.com.*", "Animals", "Global"),
+    (r".*merckvetmanual\.com.*", "Animals", "Global"),
+    (r".*vcahospitals\.com.*", "Animals", "Global"),
+    (r".*rspca\.org\.uk.*", "Animals", "UK"),
+    (r".*pdsa\.org\.uk.*", "Animals", "UK"),
+    (r".*thekennelclub\.org\.uk.*", "Animals", "UK"),
+    # Zoos & Wildlife
+    (r".*animaldiversity\.org.*", "Animals", "Global"),
+    (r".*nationalzoo\.si\.edu.*", "Animals", "US"),
+    (r".*sandiegozoo\.org.*", "Animals", "US"),
+    (r".*zsl\.org.*", "Animals", "UK"),
+
+    # ==================== HISTORY ====================
+    # National Archives
+    (r".*nationalarchives\.gov\.uk.*", "History", "UK"),
+    (r".*archives\.gov.*", "History", "US"),
+    (r".*bac-lac\.gc\.ca.*", "History", "Global"),
+    (r".*naa\.gov\.au.*", "History", "Global"),
+    # National Libraries
+    (r".*loc\.gov.*", "History", "US"),
+    (r".*bl\.uk.*", "History", "UK"),
+    (r".*bnf\.fr.*", "History", "Global"),
+    (r".*europeana\.eu.*", "History", "EU"),
+    (r".*gallica\.bnf\.fr.*", "History", "Global"),
+    # Major Museums
+    (r".*si\.edu.*", "History", "US"),
+    (r".*americanhistory\.si\.edu.*", "History", "US"),
+    (r".*britishmuseum\.org.*", "History", "UK"),
+    (r".*vam\.ac\.uk.*", "History", "UK"),
+    (r".*metmuseum\.org.*", "History", "US"),
+    # War & Military
+    (r".*iwm\.org\.uk.*", "History", "UK"),
+    (r".*nationalww2museum\.org.*", "History", "US"),
+    (r".*ushmm\.org.*", "History", "Global"),
+    (r".*yadvashem\.org.*", "History", "Global"),
+    (r".*awm\.gov\.au.*", "History", "Global"),
+    # Heritage Organizations
+    (r".*historicengland\.org\.uk.*", "History", "UK"),
+    (r".*english-heritage\.org\.uk.*", "History", "UK"),
+    (r".*nationaltrust\.org\.uk.*", "History", "UK"),
+    # Historical Societies
+    (r".*history\.ac\.uk.*", "History", "UK"),
+    (r".*historians\.org.*", "History", "US"),
+    (r".*royalhistsoc\.org.*", "History", "UK"),
+    # Genealogy
+    (r".*familysearch\.org.*", "History", "Global"),
+    (r".*ancestry\.(com|co\.uk).*", "History", "Global"),
+    # Historical Reference
+    (r".*oxforddnb\.com.*", "History", "UK"),
+    (r".*historytoday\.com.*", "History", "Global"),
 
     # ==================== LAW ====================
     (r".*courtlistener\.com.*", "Law", "US"),
@@ -410,19 +472,102 @@ async def _classify_with_fallback_llm(
     content: str
 ) -> Optional[ArticleClassification]:
     """
-    Placeholder for secondary LLM provider.
+    Fallback LLM classification using Google AI (Gemini).
 
-    TODO: Implement when second API key is configured.
-    Currently returns None to trigger General fallback.
-
-    Future options:
-    - Anthropic Claude
-    - Google Gemini
-    - Open-source models
+    Uses Gemini 1.5 Flash for fast, cost-effective classification when
+    primary OpenAI provider fails.
     """
-    # Check if fallback provider is configured
-    # Future: Check settings.FALLBACK_LLM_PROVIDER and settings.FALLBACK_LLM_API_KEY
-    return None
+    google_ai_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
+    if not google_ai_key:
+        logger.debug("Google AI API key not configured, skipping fallback")
+        return None
+
+    try:
+        import httpx
+        from datetime import datetime
+
+        now = datetime.now()
+        current_date = now.strftime("%Y-%m-%d")
+        current_year = now.strftime("%Y")
+
+        content_preview = content[:1500] if content else ""
+
+        prompt = CLASSIFICATION_PROMPT.format(
+            current_date=current_date,
+            current_year=current_year,
+            title=title or "Unknown Title",
+            url=url or "Unknown URL",
+            content=content_preview or "No content available"
+        )
+
+        full_prompt = f"You are a Tru8 fact-checking specialist. Always respond with valid JSON only, no markdown.\n\n{prompt}"
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={google_ai_key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": full_prompt}]}],
+                    "generationConfig": {
+                        "temperature": 0.1,
+                        "maxOutputTokens": 300,
+                        "responseMimeType": "application/json"
+                    }
+                }
+            )
+
+            if response.status_code != 200:
+                logger.error(f"Google AI classification error: {response.status_code}")
+                return None
+
+            result = response.json()
+            content_text = result["candidates"][0]["content"]["parts"][0]["text"]
+
+            # Extract JSON
+            json_start = content_text.find('{')
+            json_end = content_text.rfind('}') + 1
+            if json_start < 0 or json_end <= json_start:
+                logger.error("No JSON found in Google AI response")
+                return None
+
+            result_data = json.loads(content_text[json_start:json_end])
+
+            # Validate and sanitize
+            primary_domain = result_data.get("primary_domain", "General")
+            if primary_domain not in VALID_DOMAINS:
+                primary_domain = "General"
+
+            secondary_domains = result_data.get("secondary_domains", [])
+            secondary_domains = [d for d in secondary_domains if d in VALID_DOMAINS and d != primary_domain][:2]
+
+            jurisdiction = result_data.get("jurisdiction", "Global")
+            if jurisdiction not in VALID_JURISDICTIONS:
+                jurisdiction = "Global"
+
+            confidence = int(result_data.get("confidence", 70))
+            confidence = max(0, min(100, confidence))
+
+            key_entities = result_data.get("key_entities", [])
+            if isinstance(key_entities, list):
+                key_entities = [str(e) for e in key_entities[:10]]
+            else:
+                key_entities = []
+
+            return ArticleClassification(
+                primary_domain=primary_domain,
+                secondary_domains=secondary_domains,
+                jurisdiction=jurisdiction,
+                confidence=confidence,
+                reasoning=result_data.get("reasoning", "Classified by Google AI fallback"),
+                source="llm_fallback",
+                temporal_context=result_data.get("temporal_context", ""),
+                key_entities=key_entities,
+                evidence_guidance=result_data.get("evidence_guidance", "")
+            )
+
+    except Exception as e:
+        logger.error(f"Google AI fallback classification failed: {e}")
+        return None
 
 
 async def classify_article(

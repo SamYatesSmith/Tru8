@@ -343,7 +343,7 @@ class TestCacheEfficiency:
         """Test that different adapters have appropriate TTLs."""
         from app.services.api_adapters import (
             ONSAdapter, PubMedAdapter, FREDAdapter,
-            WHOAdapter, MetOfficeAdapter, WikidataAdapter
+            WHOAdapter, WeatherAPIAdapter, WikidataAdapter
         )
 
         # Economic data: 7 days (changes slowly)
@@ -353,8 +353,8 @@ class TestCacheEfficiency:
         # Health data: 7 days
         assert WHOAdapter().cache_ttl == 86400 * 7
 
-        # Weather: 1 hour (changes frequently)
-        assert MetOfficeAdapter().cache_ttl == 3600
+        # Weather: 30 minutes (changes frequently)
+        assert WeatherAPIAdapter().cache_ttl == 1800
 
         # Structured knowledge: 30 days (very stable)
         assert WikidataAdapter().cache_ttl == 86400 * 30

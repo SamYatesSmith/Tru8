@@ -264,12 +264,10 @@
     "domains": [
     "wikipedia.org",
     "britannica.com",
-    "archive.org",
     "merriam-webster.com",
     "oxfordlearnersdictionaries.com",
     "data.gov",
-    "wikidata.org",
-    "encyclopedia.com"
+    "wikidata.org"
     ],
     "tier": "tier1"
   },
@@ -466,21 +464,12 @@
 
   "primary_documents": {
     "credibility": 1.0,
-    "description": "Official government documents, legislation, and court rulings",
+    "description": "Official government documents and legislative records",
     "domains": [
       "govinfo.gov",
-      "archives.gov",
-      "loc.gov",
       "congress.gov",
       "federalregister.gov",
-      "bailii.org",
-      "legislation.gov.uk",
-      "canlii.org",
-      "austlii.edu.au",
       "parl.ca",
-      "parliament.uk",
-      "echr.coe.int",
-      "curia.europa.eu",
       "whitehouse.gov",
       "state.gov"
     ],
@@ -522,6 +511,273 @@
       "ebsco.com",
       "gale.com",
       "repository.library"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_national_archives": {
+    "credibility": 0.98,
+    "description": "Official national archives - primary source repositories of government and historical records",
+    "domains": [
+      "archives.gov",
+      "nationalarchives.gov.uk",
+      "bac-lac.gc.ca",
+      "naa.gov.au",
+      "archives.govt.nz",
+      "nationalarchives.ie",
+      "nas.gov.sg",
+      "archives-nationales.culture.gouv.fr",
+      "bundesarchiv.de",
+      "nationaalarchief.nl",
+      "riksarkivet.se",
+      "arkisto.fi",
+      "sa.dk",
+      "arkivverket.no",
+      "archivesportaleurope.net"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_national_libraries": {
+    "credibility": 0.97,
+    "description": "National libraries and their digital collections - authoritative manuscript and rare book holdings",
+    "domains": [
+      "loc.gov",
+      "bl.uk",
+      "bnf.fr",
+      "dnb.de",
+      "kb.nl",
+      "kb.se",
+      "nla.gov.au",
+      "nlnz.govt.nz",
+      "nlb.gov.sg",
+      "collectionscanada.gc.ca",
+      "europeana.eu",
+      "gallica.bnf.fr",
+      "trove.nla.gov.au",
+      "digitalnz.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_museums": {
+    "credibility": 0.95,
+    "description": "Major museums with significant historical collections and curatorial expertise",
+    "domains": [
+      "si.edu",
+      "americanhistory.si.edu",
+      "britishmuseum.org",
+      "vam.ac.uk",
+      "metmuseum.org",
+      "louvre.fr",
+      "rijksmuseum.nl",
+      "museodelprado.es",
+      "hermitagemuseum.org",
+      "dhm.de",
+      "musee-orsay.fr",
+      "nationalgallery.org.uk",
+      "nga.gov",
+      "uffizi.it",
+      "khm.at",
+      "smb.museum",
+      "mnhn.fr",
+      "rom.on.ca",
+      "aucklandmuseum.com",
+      "tepapa.govt.nz"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_military": {
+    "credibility": 0.95,
+    "description": "Military history institutions, war museums, and memorial archives",
+    "domains": [
+      "iwm.org.uk",
+      "nationalww2museum.org",
+      "ushmm.org",
+      "yadvashem.org",
+      "awm.gov.au",
+      "warmuseum.ca",
+      "army.mil/history",
+      "history.navy.mil",
+      "afhistory.af.mil",
+      "nam.ac.uk",
+      "nmrn.org.uk",
+      "rafmuseum.org.uk",
+      "cwgc.org",
+      "abmc.gov",
+      "fold3.com",
+      "veterans.gc.ca",
+      "nps.gov/civilwar"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_societies": {
+    "credibility": 0.90,
+    "description": "National and major regional historical societies and research institutes",
+    "domains": [
+      "royalhistsoc.org",
+      "historians.org",
+      "history.ac.uk",
+      "ghi-dc.org",
+      "ieg-mainz.de",
+      "ihr.sas.ac.uk",
+      "historyireland.com",
+      "royalsociety.org/about-us/history",
+      "rhs.org.uk",
+      "theaha.org",
+      "oah.org",
+      "histassoc.org.uk",
+      "historicalassociation.org.uk",
+      "rahs.org.au",
+      "nzhistory.govt.nz",
+      "historycouncilnsw.org.au"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_genealogy": {
+    "credibility": 0.88,
+    "description": "Genealogical databases and vital records archives",
+    "domains": [
+      "familysearch.org",
+      "ancestry.com",
+      "ancestry.co.uk",
+      "findmypast.com",
+      "findmypast.co.uk",
+      "myheritage.com",
+      "scotlandspeople.gov.uk",
+      "irishgenealogy.ie",
+      "genuki.org.uk",
+      "freebmd.org.uk",
+      "deceasedonline.com",
+      "billiongraves.com",
+      "findagrave.com"
+    ],
+    "tier": "tier2"
+  },
+
+  "history_newspapers": {
+    "credibility": 0.87,
+    "description": "Digitized historical newspaper archives",
+    "domains": [
+      "newspapers.com",
+      "britishnewspaperarchive.co.uk",
+      "chroniclingamerica.loc.gov",
+      "paperspast.natlib.govt.nz",
+      "thegazette.co.uk",
+      "fultonhistory.com",
+      "newspaperarchive.com",
+      "elephind.com",
+      "ukpressonline.co.uk"
+    ],
+    "tier": "tier2"
+  },
+
+  "history_specialized_archives": {
+    "credibility": 0.92,
+    "description": "Specialized historical databases and primary source collections",
+    "domains": [
+      "oldbaileyonline.org",
+      "slavevoyages.org",
+      "digitalcollections.nypl.org",
+      "bodleian.ox.ac.uk",
+      "cudl.lib.cam.ac.uk",
+      "archives.yale.edu",
+      "oac.cdlib.org",
+      "digitallibrary.usc.edu",
+      "contentdm.oclc.org",
+      "dp.la",
+      "calisphere.org",
+      "mdz-nbn-resolving.de"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_encyclopedias": {
+    "credibility": 0.93,
+    "description": "Authoritative biographical and historical reference works",
+    "domains": [
+      "oxforddnb.com",
+      "anb.org",
+      "encyclopedia.com",
+      "newadvent.org/cathen",
+      "jewishvirtuallibrary.org",
+      "oxfordreference.com",
+      "britannica.com/history",
+      "historynet.com",
+      "plato.stanford.edu"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_archaeology_heritage": {
+    "credibility": 0.92,
+    "description": "Archaeological institutions and cultural heritage organizations",
+    "domains": [
+      "archaeological.org",
+      "historicengland.org.uk",
+      "historicenvironment.scot",
+      "cadw.gov.wales",
+      "english-heritage.org.uk",
+      "nationaltrust.org.uk",
+      "nts.org.uk",
+      "pastscape.org.uk",
+      "heritagegateway.org.uk",
+      "archaeology.org",
+      "sha.org",
+      "saa.org",
+      "antiquity.ac.uk",
+      "whc.unesco.org"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_maps": {
+    "credibility": 0.90,
+    "description": "Historical cartography and geographic archives",
+    "domains": [
+      "davidrumsey.com",
+      "oldmapsonline.org",
+      "maps.nls.uk",
+      "mapstor.com",
+      "maphistory.info",
+      "raremaps.com",
+      "geographicus.com"
+    ],
+    "tier": "tier1"
+  },
+
+  "history_oral": {
+    "credibility": 0.85,
+    "description": "Oral history collections and recorded testimonies",
+    "domains": [
+      "oralhistory.org",
+      "storycorps.org",
+      "bbc.co.uk/historyofthebbc/collections",
+      "vhaonline.usc.edu",
+      "oralhistory.columbia.edu",
+      "bancroft.berkeley.edu/ROHO",
+      "pbs.org/wgbh/americanexperience"
+    ],
+    "tier": "tier2"
+  },
+
+  "history_academic_journals": {
+    "credibility": 0.94,
+    "description": "Peer-reviewed historical journals and academic publications",
+    "domains": [
+      "academic.oup.com/ahr",
+      "journals.cambridge.org/historical",
+      "tandfonline.com/loi/rhi",
+      "historytoday.com",
+      "pastpresent.org",
+      "history.ox.ac.uk",
+      "history.cam.ac.uk",
+      "ich.ucl.ac.uk",
+      "kcl.ac.uk/history",
+      "lse.ac.uk/history"
     ],
     "tier": "tier1"
   },
@@ -812,8 +1068,7 @@
       "climatecentral.org",
       "grist.org",
       "theclimategroup.org",
-      "e360.yale.edu",
-      "climate.gov"
+      "e360.yale.edu"
     ],
     "tier": "tier2"
   },
@@ -1339,6 +1594,52 @@
       "acmilan.com",
       "inter.it",
       "psg.fr"
+    ],
+    "tier": "tier1"
+  },
+
+  "veterinary_pet": {
+    "credibility": 0.88,
+    "description": "Veterinary medicine, pet health, and animal care organizations",
+    "domains": [
+      "avma.org",
+      "aaha.org",
+      "merckvetmanual.com",
+      "vcahospitals.com",
+      "petmd.com",
+      "aspca.org",
+      "akc.org",
+      "cfa.org",
+      "tica.org",
+      "ukc.org",
+      "thekennelclub.org.uk",
+      "pdsa.org.uk",
+      "rspca.org.uk",
+      "bluecross.org.uk",
+      "rcvs.org.uk",
+      "bva.co.uk",
+      "vet.cornell.edu",
+      "vetmed.ucdavis.edu",
+      "cvm.ncsu.edu",
+      "vet.osu.edu",
+      "vetmed.tamu.edu"
+    ],
+    "tier": "tier1"
+  },
+
+  "animal_science": {
+    "credibility": 0.90,
+    "description": "Zoological research institutions and animal behavior databases",
+    "domains": [
+      "animaldiversity.org",
+      "zsl.org",
+      "si.edu/unit/national-zoo",
+      "sandiegozoo.org",
+      "nationalzoo.si.edu",
+      "zoosociety.org",
+      "aza.org",
+      "eaza.net",
+      "waza.org"
     ],
     "tier": "tier1"
   },

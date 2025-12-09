@@ -46,7 +46,7 @@ class ClaimJudge:
     
     def __init__(self):
         self.openai_api_key = settings.OPENAI_API_KEY
-        self.anthropic_api_key = getattr(settings, 'ANTHROPIC_API_KEY', '')
+        self.google_ai_api_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
         self.judge_max_tokens = getattr(settings, 'JUDGE_MAX_TOKENS', 1000)
         self.temperature = getattr(settings, 'JUDGE_TEMPERATURE', 0.3)
         self.timeout = 30
@@ -275,8 +275,8 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
         try:
             if self.openai_api_key:
                 judgment_data = await self._judge_with_openai(context)
-            elif self.anthropic_api_key:
-                judgment_data = await self._judge_with_anthropic(context)
+            elif self.google_ai_api_key:
+                judgment_data = await self._judge_with_google(context)
             else:
                 # Fallback to rule-based judgment
                 judgment_data = self._fallback_judgment(verification_signals)
@@ -609,33 +609,38 @@ Based on this analysis, provide your final judgment."""
             logger.error(f"OpenAI judgment error: {e}")
             raise
     
-    async def _judge_with_anthropic(self, context: str) -> Dict[str, Any]:
-        """Make judgment using Anthropic API"""
+    async def _judge_with_google(self, context: str) -> Dict[str, Any]:
+        """Make judgment using Google AI (Gemini) API as backup provider"""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
+                # Use Gemini 1.5 Flash for fast, cost-effective judgment
+                # Gemini 1.5 Flash: Fast responses, good for structured output
+                # Gemini 1.5 Pro: More capable but slower/costlier (use for complex cases)
                 response = await client.post(
-                    "https://api.anthropic.com/v1/messages",
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.google_ai_api_key}",
                     headers={
-                        "x-api-key": self.anthropic_api_key,
-                        "Content-Type": "application/json",
-                        "anthropic-version": "2023-06-01"
+                        "Content-Type": "application/json"
                     },
                     json={
-                        "model": "claude-3-haiku-20240307",
-                        "max_tokens": self.judge_max_tokens,
-                        "temperature": self.temperature,
-                        "messages": [
+                        "contents": [
                             {
-                                "role": "user", 
-                                "content": f"{self.system_prompt}\n\n{context}\n\nProvide your judgment as JSON."
+                                "parts": [
+                                    {"text": f"{self.system_prompt}\n\n{context}\n\nProvide your judgment as JSON."}
+                                ]
                             }
-                        ]
+                        ],
+                        "generationConfig": {
+                            "temperature": self.temperature,
+                            "maxOutputTokens": self.judge_max_tokens,
+                            "responseMimeType": "application/json"
+                        }
                     }
                 )
-                
+
                 if response.status_code == 200:
                     result = response.json()
-                    content = result["content"][0]["text"]
+                    # Gemini response structure: candidates[0].content.parts[0].text
+                    content = result["candidates"][0]["content"]["parts"][0]["text"]
                     # Extract JSON from response
                     json_start = content.find('{')
                     json_end = content.rfind('}') + 1
@@ -643,13 +648,13 @@ Based on this analysis, provide your final judgment."""
                         json_content = content[json_start:json_end]
                         return json.loads(json_content)
                     else:
-                        raise Exception("No JSON found in Anthropic response")
+                        raise Exception("No JSON found in Google AI response")
                 else:
-                    logger.error(f"Anthropic API error: {response.status_code} - {response.text}")
-                    raise Exception(f"Anthropic API error: {response.status_code}")
-                    
+                    logger.error(f"Google AI API error: {response.status_code} - {response.text}")
+                    raise Exception(f"Google AI API error: {response.status_code}")
+
         except Exception as e:
-            logger.error(f"Anthropic judgment error: {e}")
+            logger.error(f"Google AI judgment error: {e}")
             raise
     
     def _fallback_judgment(self, verification_signals: Dict[str, Any]) -> Dict[str, Any]:
