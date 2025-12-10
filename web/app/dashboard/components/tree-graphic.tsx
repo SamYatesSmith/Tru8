@@ -7,6 +7,8 @@ export function TreeGraphic() {
         src="/imagery/choice.tree.png"
         alt="Decision tree"
         fill
+        sizes="256px"
+        loading="eager"
         className="object-contain"
       />
     </div>

@@ -17,6 +17,15 @@ const config: Config = {
           card: '#1e293b',
         },
       },
+      animation: {
+        'border-rotate': 'border-rotate 4s linear infinite',
+      },
+      keyframes: {
+        'border-rotate': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+      },
     },
   },
   plugins: [],

@@ -77,7 +77,7 @@ export default function TestAuthPage() {
                 Test 1: Default Clerk component (no customization)
               </p>
             </div>
-            <SignIn afterSignInUrl="/dashboard" />
+            <SignIn fallbackRedirectUrl="/dashboard" />
           </>
         )}
 
@@ -104,7 +104,7 @@ export default function TestAuthPage() {
                   footerActionLink: 'text-[#f57a07] hover:text-[#e06a00]',
                 },
               }}
-              afterSignInUrl="/dashboard"
+              fallbackRedirectUrl="/dashboard"
             />
           </>
         )}
@@ -118,7 +118,7 @@ export default function TestAuthPage() {
             </div>
             <SignIn
               routing="hash"
-              afterSignInUrl="/dashboard"
+              fallbackRedirectUrl="/dashboard"
             />
           </>
         )}

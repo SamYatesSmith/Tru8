@@ -79,7 +79,7 @@ export function CheckMetadataCard({ check }: CheckMetadataCardProps) {
           {/* Content */}
           <div className="md:col-span-2">
             <p className="text-slate-400 text-sm mb-1">Content</p>
-            <p className="text-white font-medium break-all">{getContentDisplay()}</p>
+            <p className="text-white font-medium break-words whitespace-pre-wrap leading-relaxed">{getContentDisplay()}</p>
           </div>
 
           {/* Submitted */}

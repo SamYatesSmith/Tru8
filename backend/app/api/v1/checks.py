@@ -10,7 +10,7 @@ from io import BytesIO
 from app.core.database import get_session
 from app.core.auth import get_current_user, get_current_user_sse
 from app.core.config import settings
-from app.models import User, Check, Claim, Evidence
+from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription
 from app.workers.pipeline import process_check
 from app.workers import celery_app
 from datetime import datetime, timezone
@@ -829,6 +829,311 @@ async def export_check_pdf(
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Cache-Control": "no-cache"
+        }
+    )
+
+
+# ============================================================================
+# FULL SOURCES LIST - Pro Feature
+# ============================================================================
+
+class SourcesResponse(BaseModel):
+    """Response model for check sources endpoint"""
+    checkId: str
+    totalSources: int
+    includedCount: int
+    filteredCount: int
+    legacyCheck: bool
+    message: Optional[str] = None
+    claims: Optional[List[dict]] = None
+    filterBreakdown: Optional[dict] = None
+
+
+@router.get("/{check_id}/sources")
+async def get_check_sources(
+    check_id: str,
+    include_filtered: bool = True,
+    sort_by: str = "relevance",  # relevance, credibility, date
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Get all sources reviewed for a check (Pro feature).
+
+    This endpoint returns all sources that were reviewed during fact-checking,
+    including those that were filtered out. It shows which filtering stage
+    excluded each source and why.
+
+    Query params:
+    - include_filtered: Include filtered sources (default: true)
+    - sort_by: Sort order - relevance, credibility, or date
+    """
+
+    # 1. Verify check belongs to user
+    stmt = select(Check).where(
+        Check.id == check_id,
+        Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    # 2. Check Pro subscription (include trialing users per project pattern)
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == current_user["id"],
+        Subscription.status.in_(["active", "trialing"])
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+
+    is_pro = subscription and subscription.plan == "pro"
+
+    if not is_pro:
+        # Return limited response for non-Pro users
+        return {
+            "checkId": check_id,
+            "totalSources": check.raw_sources_count or 0,
+            "includedCount": 0,
+            "filteredCount": 0,
+            "legacyCheck": check.raw_sources_count is None or check.raw_sources_count == 0,
+            "message": "Upgrade to Pro to see all sources reviewed during fact-checking",
+            "claims": None,
+            "filterBreakdown": None,
+            "requiresUpgrade": True
+        }
+
+    # 3. Query RawEvidence for this check
+    raw_stmt = select(RawEvidence).where(RawEvidence.check_id == check_id)
+
+    if not include_filtered:
+        raw_stmt = raw_stmt.where(RawEvidence.is_included == True)
+
+    # Apply sorting
+    if sort_by == "credibility":
+        raw_stmt = raw_stmt.order_by(desc(RawEvidence.credibility_score))
+    elif sort_by == "date":
+        raw_stmt = raw_stmt.order_by(desc(RawEvidence.published_date))
+    else:  # relevance (default)
+        raw_stmt = raw_stmt.order_by(desc(RawEvidence.relevance_score))
+
+    raw_result = await session.execute(raw_stmt)
+    raw_evidence = raw_result.scalars().all()
+
+    # Check for legacy check (no raw evidence stored)
+    if not raw_evidence and (check.raw_sources_count is None or check.raw_sources_count == 0):
+        return {
+            "checkId": check_id,
+            "totalSources": 0,
+            "includedCount": 0,
+            "filteredCount": 0,
+            "legacyCheck": True,
+            "message": "Source data not available for checks created before this feature.",
+            "claims": None,
+            "filterBreakdown": None
+        }
+
+    # 4. Group sources by claim
+    claims_dict = {}
+    filter_breakdown = {
+        "credibility": 0,
+        "temporal": 0,
+        "dedup": 0,
+        "diversity": 0,
+        "domain_cap": 0,
+        "validation": 0,
+        "extraction_failed": 0
+    }
+
+    included_count = 0
+    filtered_count = 0
+
+    for raw_ev in raw_evidence:
+        claim_pos = raw_ev.claim_position
+        if claim_pos not in claims_dict:
+            claims_dict[claim_pos] = {
+                "claimPosition": claim_pos,
+                "claimText": raw_ev.claim_text,
+                "sourcesCount": 0,
+                "sources": []
+            }
+
+        source_data = {
+            "id": raw_ev.id,
+            "source": raw_ev.source,
+            "title": raw_ev.title,
+            "url": raw_ev.url,
+            "publishedDate": raw_ev.published_date.isoformat() if raw_ev.published_date else None,
+            "credibilityScore": raw_ev.credibility_score,
+            "relevanceScore": raw_ev.relevance_score,
+            "isIncluded": raw_ev.is_included,
+            "filterStage": raw_ev.filter_stage,
+            "filterReason": raw_ev.filter_reason,
+            "tier": raw_ev.tier,
+            "isFactcheck": raw_ev.is_factcheck,
+            "externalSourceProvider": raw_ev.external_source_provider
+        }
+
+        claims_dict[claim_pos]["sources"].append(source_data)
+        claims_dict[claim_pos]["sourcesCount"] += 1
+
+        if raw_ev.is_included:
+            included_count += 1
+        else:
+            filtered_count += 1
+            # Count by filter stage
+            stage = raw_ev.filter_stage or "unknown"
+            if stage in filter_breakdown:
+                filter_breakdown[stage] += 1
+
+    # Convert to sorted list
+    claims_list = sorted(claims_dict.values(), key=lambda c: c["claimPosition"])
+
+    return {
+        "checkId": check_id,
+        "totalSources": len(raw_evidence),
+        "includedCount": included_count,
+        "filteredCount": filtered_count,
+        "legacyCheck": False,
+        "claims": claims_list,
+        "filterBreakdown": filter_breakdown
+    }
+
+
+@router.get("/{check_id}/sources/export")
+async def export_check_sources(
+    check_id: str,
+    format: str = "csv",  # csv, bibtex, apa
+    include_filtered: bool = False,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Export sources as CSV, BibTeX, or APA format (Pro feature).
+
+    Query params:
+    - format: Export format - csv, bibtex, or apa
+    - include_filtered: Include filtered sources (default: false)
+    """
+    import csv
+    from io import StringIO
+
+    # 1. Verify check belongs to user
+    stmt = select(Check).where(
+        Check.id == check_id,
+        Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    # 2. Check Pro subscription (include trialing users per project pattern)
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == current_user["id"],
+        Subscription.status.in_(["active", "trialing"])
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+
+    is_pro = subscription and subscription.plan == "pro"
+
+    if not is_pro:
+        raise HTTPException(
+            status_code=403,
+            detail="Source export is a Pro feature. Upgrade to access."
+        )
+
+    # 3. Query RawEvidence
+    raw_stmt = select(RawEvidence).where(RawEvidence.check_id == check_id)
+
+    if not include_filtered:
+        raw_stmt = raw_stmt.where(RawEvidence.is_included == True)
+
+    raw_stmt = raw_stmt.order_by(RawEvidence.claim_position, desc(RawEvidence.relevance_score))
+
+    raw_result = await session.execute(raw_stmt)
+    raw_evidence = raw_result.scalars().all()
+
+    if not raw_evidence:
+        raise HTTPException(
+            status_code=404,
+            detail="No sources available for export"
+        )
+
+    # 4. Generate export based on format
+    # NOTE: We intentionally exclude internal scoring metrics (credibility_score,
+    # relevance_score, filter_stage, filter_reason, tier) from exports to avoid
+    # potential legal issues with publicly rating news sources.
+    if format == "csv":
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "Claim", "Source", "Title", "URL", "Published Date", "Used in Analysis"
+        ])
+
+        for ev in raw_evidence:
+            writer.writerow([
+                ev.claim_text or "",
+                ev.source,
+                ev.title,
+                ev.url,
+                ev.published_date.strftime("%Y-%m-%d") if ev.published_date else "",
+                "Yes" if ev.is_included else "No"
+            ])
+
+        content = output.getvalue()
+        media_type = "text/csv"
+        filename = f"tru8-sources-{check_id[:8]}.csv"
+
+    elif format == "bibtex":
+        lines = []
+        for i, ev in enumerate(raw_evidence):
+            # Generate a unique key for each entry
+            key = f"tru8_{check_id[:8]}_{i+1}"
+            pub_year = ev.published_date.year if ev.published_date else "n.d."
+            pub_month = ev.published_date.strftime("%B") if ev.published_date else ""
+            pub_day = ev.published_date.day if ev.published_date else ""
+
+            # Standard BibTeX @online entry (no internal scoring)
+            entry = f"""@online{{{key},
+    title = {{{ev.title}}},
+    author = {{{{{ev.source}}}}},
+    year = {{{pub_year}}},
+    month = {{{pub_month.lower()}}},
+    url = {{{ev.url}}},
+    urldate = {{{datetime.now().strftime("%Y-%m-%d")}}}
+}}"""
+            lines.append(entry)
+
+        content = "\n\n".join(lines)
+        media_type = "application/x-bibtex"
+        filename = f"tru8-sources-{check_id[:8]}.bib"
+
+    elif format == "apa":
+        lines = []
+        for ev in raw_evidence:
+            # APA 7th edition format for web pages
+            pub_date = ev.published_date.strftime("%Y, %B %d") if ev.published_date else "n.d."
+            entry = f"{ev.source}. ({pub_date}). {ev.title}. Retrieved from {ev.url}"
+            lines.append(entry)
+
+        content = "\n\n".join(lines)
+        media_type = "text/plain"
+        filename = f"tru8-sources-{check_id[:8]}-apa.txt"
+
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid format. Supported: csv, bibtex, apa"
+        )
+
+    return Response(
+        content=content,
+        media_type=media_type,
         headers={
             "Content-Disposition": f"attachment; filename={filename}",
             "Cache-Control": "no-cache"

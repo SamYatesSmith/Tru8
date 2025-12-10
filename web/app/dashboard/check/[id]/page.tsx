@@ -26,17 +26,32 @@ interface CheckData {
   claims?: any[];
   createdAt: string;
   completedAt?: string;
+  rawSourcesCount?: number;  // Full Sources List feature
 }
 
 export default async function CheckDetailPage({ params }: CheckDetailPageProps) {
   const { getToken } = auth();
 
-  // Fetch check data
+  // Fetch check data and subscription status in parallel
   const token = await getToken();
   let checkData: CheckData;
+  let isPro = false;
+  let rawSourcesCount = 0;
 
   try {
-    checkData = (await apiClient.getCheckById(params.id, token)) as CheckData;
+    // Fetch check data and subscription status in parallel
+    const [checkResult, sourcesResult] = await Promise.all([
+      apiClient.getCheckById(params.id, token) as Promise<CheckData>,
+      apiClient.getCheckSources(params.id, { includeFiltered: true }, token).catch(() => null),
+    ]);
+
+    checkData = checkResult;
+
+    // Get sources count from the sources endpoint (works for both Pro and non-Pro)
+    if (sourcesResult) {
+      rawSourcesCount = sourcesResult.totalSources || 0;
+      isPro = !sourcesResult.requiresUpgrade;
+    }
   } catch (error: any) {
     if (error.message?.includes('404') || error.message?.includes('not found')) {
       redirect('/dashboard/history');
@@ -54,7 +69,12 @@ export default async function CheckDetailPage({ params }: CheckDetailPageProps) 
       />
 
       {/* Check Detail Content */}
-      <CheckDetailClient initialData={checkData} checkId={params.id} />
+      <CheckDetailClient
+        initialData={checkData}
+        checkId={params.id}
+        isPro={isPro}
+        rawSourcesCount={rawSourcesCount}
+      />
     </div>
   );
 }

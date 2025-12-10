@@ -151,7 +151,7 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
                     rootBox: 'w-full',
                   },
                 }}
-                afterSignInUrl="/dashboard"
+                fallbackRedirectUrl="/dashboard"
                 // Removed hash routing - using default path routing
               />
             </div>
@@ -171,7 +171,7 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
                     rootBox: 'w-full',
                   },
                 }}
-                afterSignUpUrl="/dashboard"
+                fallbackRedirectUrl="/dashboard"
                 // Removed hash routing - using default path routing
               />
             </div>

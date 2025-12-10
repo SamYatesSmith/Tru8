@@ -78,6 +78,20 @@ class ApiClient {
   }
 
   /**
+   * PATCH /api/v1/users/profile
+   * Update user profile (name, etc.)
+   */
+  async updateUserProfile(
+    data: { name?: string },
+    token?: string | null
+  ) {
+    return this.request('/api/v1/users/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }, token);
+  }
+
+  /**
    * POST /api/v1/checks
    * Create a new fact-check
    */
@@ -206,6 +220,74 @@ class ApiClient {
     return this.request('/api/v1/payments/reactivate-subscription', {
       method: 'POST',
     }, token);
+  }
+
+  // ============================================================================
+  // Full Sources List - Pro Feature
+  // ============================================================================
+
+  /**
+   * GET /api/v1/checks/{check_id}/sources
+   * Get all sources reviewed for a check (Pro feature)
+   * Backend: backend/app/api/v1/checks.py - get_check_sources
+   */
+  async getCheckSources(
+    checkId: string,
+    options?: {
+      includeFiltered?: boolean;
+      sortBy?: 'relevance' | 'credibility' | 'date';
+    },
+    token?: string | null
+  ): Promise<{
+    checkId: string;
+    totalSources: number;
+    includedCount: number;
+    filteredCount: number;
+    legacyCheck: boolean;
+    message?: string;
+    claims?: any[];
+    filterBreakdown?: Record<string, number>;
+    requiresUpgrade?: boolean;
+  }> {
+    const params = new URLSearchParams();
+    if (options?.includeFiltered !== undefined) {
+      params.append('include_filtered', String(options.includeFiltered));
+    }
+    if (options?.sortBy) {
+      params.append('sort_by', options.sortBy);
+    }
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.request(`/api/v1/checks/${checkId}/sources${query}`, {}, token);
+  }
+
+  /**
+   * GET /api/v1/checks/{check_id}/sources/export
+   * Export sources as CSV, BibTeX, or APA format (Pro feature)
+   * Backend: backend/app/api/v1/checks.py - export_check_sources
+   */
+  async exportCheckSources(
+    checkId: string,
+    format: 'csv' | 'bibtex' | 'apa',
+    includeFiltered: boolean = false,
+    token?: string | null
+  ): Promise<Blob> {
+    const params = new URLSearchParams();
+    params.append('format', format);
+    params.append('include_filtered', String(includeFiltered));
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/checks/${checkId}/sources/export?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Export failed');
+    }
+
+    return response.blob();
   }
 }
 

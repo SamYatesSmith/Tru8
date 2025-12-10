@@ -171,7 +171,7 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
     """Save pipeline results to database (synchronous for Celery)"""
     try:
         from app.core.database import sync_session
-        from app.models import Check, Claim, Evidence
+        from app.models import Check, Claim, Evidence, RawEvidence
         from sqlalchemy import select
 
         with sync_session() as session:
@@ -282,6 +282,42 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                         api_metadata=metadata_dict
                     )
                     session.add(evidence)
+
+            # Save raw evidence for Full Sources List Pro feature
+            raw_evidence_data = results.get("raw_evidence", [])
+            raw_sources_count = results.get("raw_sources_count", len(raw_evidence_data))
+
+            if raw_evidence_data:
+                logger.info(f"Saving {len(raw_evidence_data)} raw evidence items for check {check_id}")
+                check.raw_sources_count = raw_sources_count
+
+                for raw_ev in raw_evidence_data:
+                    # Safely truncate claim_text to 500 chars
+                    claim_text_val = raw_ev.get("claim_text")
+                    if claim_text_val:
+                        claim_text_val = str(claim_text_val)[:500]
+
+                    raw_evidence = RawEvidence(
+                        check_id=check_id,
+                        claim_position=raw_ev.get("claim_position", 0),
+                        claim_text=claim_text_val,
+                        source=raw_ev.get("source", "Unknown") or "Unknown",
+                        url=raw_ev.get("url", "") or "",
+                        title=raw_ev.get("title", "") or "",
+                        snippet=raw_ev.get("snippet", "") or "",
+                        published_date=parse_date(raw_ev.get("published_date")),
+                        relevance_score=raw_ev.get("relevance_score", 0.0) or 0.0,
+                        credibility_score=raw_ev.get("credibility_score", 0.6) or 0.6,
+                        is_included=raw_ev.get("is_included", False),
+                        filter_stage=raw_ev.get("filter_stage"),
+                        filter_reason=raw_ev.get("filter_reason"),
+                        tier=raw_ev.get("tier"),
+                        is_factcheck=raw_ev.get("is_factcheck", False),
+                        external_source_provider=raw_ev.get("external_source_provider")
+                    )
+                    session.add(raw_evidence)
+
+                logger.info(f"Saved {len(raw_evidence_data)} raw evidence items (Full Sources List)")
 
             session.commit()
             logger.info(f"Successfully saved results for check {check_id} with {len(claims_data)} claims")
@@ -413,10 +449,24 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         self.update_state(state="PROGRESS", meta={"stage": "retrieve", "progress": 40})
         stage_start = datetime.utcnow()
 
+        # Raw evidence for Full Sources List Pro feature
+        raw_evidence_data = []
+        raw_sources_count = 0
+
         try:
             # Extract source URL for self-citation filtering
             source_url = content.get("metadata", {}).get("url")
-            evidence = asyncio.run(retrieve_evidence_with_cache(claims, cache_service, factcheck_evidence, source_url=source_url))
+            retrieval_result = asyncio.run(retrieve_evidence_with_cache(claims, cache_service, factcheck_evidence, source_url=source_url))
+
+            # Extract evidence and raw evidence from new structure
+            if isinstance(retrieval_result, dict) and "evidence_by_claim" in retrieval_result:
+                evidence = retrieval_result["evidence_by_claim"]
+                raw_evidence_data = retrieval_result.get("raw_evidence", [])
+                raw_sources_count = retrieval_result.get("raw_sources_count", 0)
+                logger.info(f"[RAW_EVIDENCE] Captured {raw_sources_count} raw sources for Full Sources List")
+            else:
+                # Backward compatibility
+                evidence = retrieval_result
         except Exception as e:
             logger.error(f"Retrieve stage failed: {e}")
             # Try fallback evidence (development only)
@@ -670,9 +720,13 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             "query_response": query_response_data,  # Search Clarity
             "api_stats": api_stats,  # Phase 5: Government API Integration
             "article_excerpt": content.get("content", "")[:5000],  # First 5000 chars for judge context
+            # Full Sources List Pro feature
+            "raw_evidence": raw_evidence_data,
+            "raw_sources_count": raw_sources_count,
             "pipeline_stats": {
                 "claims_extracted": len(claims),
                 "evidence_sources": sum(len(ev) for ev in evidence.values()),
+                "raw_sources_reviewed": raw_sources_count,  # NEW: Total sources reviewed
                 "cache_hits": getattr(cache_service, '_cache_hits', 0),
                 "stage_timings": stage_timings,
                 "total_stage_time": sum(stage_timings.values()),
@@ -1036,8 +1090,15 @@ async def retrieve_evidence_with_cache(
     cache_service,
     factcheck_evidence: Dict = None,
     source_url: Optional[str] = None
-) -> Dict[str, List[Dict[str, Any]]]:
-    """Retrieve evidence using real search and embeddings with caching"""
+) -> Dict[str, Any]:
+    """Retrieve evidence using real search and embeddings with caching.
+
+    Returns:
+        Dict with keys:
+        - evidence_by_claim: Dict[str, List[Dict]] - Filtered evidence by claim position
+        - raw_evidence: List[Dict] - All sources reviewed with filtering metadata
+        - raw_sources_count: int - Total count of raw sources
+    """
     if factcheck_evidence is None:
         factcheck_evidence = {}
 
@@ -1061,12 +1122,22 @@ async def retrieve_evidence_with_cache(
             uncached_claims.append(claim)
 
         # Retrieve evidence for uncached claims
+        all_raw_evidence = []
         if uncached_claims:
             logger.info(f"Retrieving evidence for {len(uncached_claims)} uncached claims")
-            new_evidence = await retriever.retrieve_evidence_for_claims(
+            retrieval_result = await retriever.retrieve_evidence_for_claims(
                 uncached_claims,
                 exclude_source_url=source_url
             )
+
+            # Extract evidence and raw evidence from new structure
+            if isinstance(retrieval_result, dict) and "evidence_by_claim" in retrieval_result:
+                new_evidence = retrieval_result["evidence_by_claim"]
+                all_raw_evidence = retrieval_result.get("raw_evidence", [])
+            else:
+                # Backward compatibility: old format returned Dict[str, List]
+                new_evidence = retrieval_result if isinstance(retrieval_result, dict) else {}
+                all_raw_evidence = []
 
             # Cache the new evidence if cache is available
             if cache_service:
@@ -1086,18 +1157,31 @@ async def retrieve_evidence_with_cache(
             else:
                 cached_evidence[position] = fc_evidence
 
-        return cached_evidence
+        return {
+            "evidence_by_claim": cached_evidence,
+            "raw_evidence": all_raw_evidence,
+            "raw_sources_count": len(all_raw_evidence)
+        }
 
     except Exception as e:
         logger.error(f"Evidence retrieval error: {e}")
         # Fallback to mock evidence (development only)
         if settings.ENVIRONMENT == "development":
             logger.warning("Using mock evidence fallback (development only)")
-            return retrieve_evidence(claims, factcheck_evidence)
+            mock_evidence = retrieve_evidence(claims, factcheck_evidence)
+            return {
+                "evidence_by_claim": mock_evidence,
+                "raw_evidence": [],
+                "raw_sources_count": 0
+            }
         else:
             # Production: return empty evidence dict, let judge handle insufficient evidence
             logger.critical(f"Evidence retrieval failed in {settings.ENVIRONMENT} environment: {e}")
-            return {}
+            return {
+                "evidence_by_claim": {},
+                "raw_evidence": [],
+                "raw_sources_count": 0
+            }
 
 async def verify_claims_with_nli(claims: List[Dict[str, Any]], evidence_by_claim: Dict[str, List[Dict[str, Any]]], 
                                 cache_service) -> Dict[str, List[Dict[str, Any]]]:

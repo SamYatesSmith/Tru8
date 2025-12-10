@@ -96,6 +96,43 @@ async def get_profile(
         "createdAt": user.created_at.isoformat(),
     }
 
+class ProfileUpdateRequest(BaseModel):
+    name: str | None = None
+
+
+@router.patch("/profile")
+async def update_profile(
+    request: ProfileUpdateRequest,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Update user profile (name, etc.)"""
+    stmt = select(User).where(User.id == current_user["id"])
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update fields if provided
+    if request.name is not None:
+        user.name = request.name.strip() if request.name else None
+
+    try:
+        await session.commit()
+        await session.refresh(user)
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
+
+    return {
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "message": "Profile updated successfully"
+    }
+
+
 @router.get("/usage")
 async def get_usage(
     current_user: dict = Depends(get_current_user),

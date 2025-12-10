@@ -7,6 +7,8 @@ export function CompassGraphic() {
         src="/imagery/history.compass.png"
         alt="Compass"
         fill
+        sizes="256px"
+        loading="eager"
         className="object-contain"
       />
     </div>

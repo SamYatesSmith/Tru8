@@ -61,9 +61,9 @@ export function VerdictPill({ verdict }: VerdictPillProps) {
   const Icon = config.icon;
 
   return (
-    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${config.bgColor} ${config.textColor} ${config.borderColor}`}>
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${config.bgColor} ${config.textColor} ${config.borderColor}`}>
       <Icon size={16} />
       <span className="text-xs font-bold">{config.label}</span>
-    </div>
+    </span>
   );
 }

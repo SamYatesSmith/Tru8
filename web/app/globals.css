@@ -2,6 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Animated glowing border effect - rotating beam */
+.glowing-border-wrapper {
+  position: relative;
+  border-radius: 0.75rem;
+  padding: 2px;
+  overflow: hidden;
+}
+
+.glowing-border-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -150%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 60deg,
+    #f57a07 120deg,
+    #ff9d4d 180deg,
+    #f57a07 240deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  animation: glowing-rotate 4s linear infinite;
+}
+
+.glowing-border-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: -150%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 60deg,
+    #f57a07 120deg,
+    #ff9d4d 180deg,
+    #f57a07 240deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  animation: glowing-rotate 4s linear infinite;
+  filter: blur(20px);
+  opacity: 0.6;
+}
+
+.glowing-border-content {
+  position: relative;
+  background: #1a1f2e;
+  border-radius: calc(0.75rem - 2px);
+  z-index: 1;
+  height: 100%;
+}
+
+@keyframes glowing-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Respect reduced motion preference for glowing border */
+@media (prefers-reduced-motion: reduce) {
+  .glowing-border-wrapper::before,
+  .glowing-border-wrapper::after {
+    animation: none;
+    background: #f57a07;
+    inset: 0;
+    opacity: 1;
+    filter: none;
+  }
+}
+
 @layer utilities {
   /* Screen reader only content */
   .sr-only {
@@ -99,18 +168,108 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* Clerk Modal Custom Styling */
-.clerk-modal-content .cl-card {
-  background: transparent !important;
-  box-shadow: none !important;
+/* Clerk Component Dark Theme Override */
+.cl-rootBox,
+.cl-card,
+.cl-userProfile-root,
+.cl-profilePage {
+  background-color: #0f172a !important;
 }
 
-.clerk-modal-content .cl-formButtonPrimary {
+.cl-navbar {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.cl-navbarButton {
+  color: #cbd5e1 !important;
+}
+
+.cl-navbarButton:hover,
+.cl-navbarButton[data-active="true"] {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+.cl-headerTitle,
+.cl-headerSubtitle,
+.cl-profileSectionTitle,
+.cl-profileSectionTitleText {
+  color: #ffffff !important;
+}
+
+.cl-profileSectionContent,
+.cl-formFieldLabel,
+.cl-formFieldHintText {
+  color: #94a3b8 !important;
+}
+
+.cl-formFieldInput,
+.cl-input {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
+}
+
+.cl-formFieldInput:focus,
+.cl-input:focus {
+  border-color: #f57a07 !important;
+  box-shadow: 0 0 0 2px rgba(245, 122, 7, 0.2) !important;
+}
+
+.cl-formButtonPrimary,
+.cl-button-primary {
   background: #f57a07 !important;
+  color: #ffffff !important;
 }
 
-.clerk-modal-content .cl-formButtonPrimary:hover {
+.cl-formButtonPrimary:hover,
+.cl-button-primary:hover {
   background: #e06a00 !important;
+}
+
+.cl-avatarBox {
+  border-color: #475569 !important;
+}
+
+.cl-badge {
+  background-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.cl-accordion,
+.cl-accordionContent {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.cl-menuList {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.cl-menuItem {
+  color: #cbd5e1 !important;
+}
+
+.cl-menuItem:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+.cl-internal-b1bwvi,
+.cl-internal-1dauvpw,
+.cl-userButtonPopoverCard,
+.cl-userButtonPopoverActions,
+.cl-userButtonPopoverFooter {
+  background-color: #1e293b !important;
+}
+
+/* Hide Clerk branding */
+.cl-internal-b8ck0n,
+.cl-footerAction,
+.cl-footer {
+  display: none !important;
 }
 
 /* Legal Document Prose Styles */

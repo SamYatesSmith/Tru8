@@ -20,8 +20,12 @@ export function SignedInNav({ user }: SignedInNavProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const pathname = usePathname();
 
+  // Use backend user data (name is stored in our database, not Clerk)
+  const displayName = user.name;
+  const displayEmail = user.email;
+
   // Calculate user initials
-  const initials = user.name
+  const initials = displayName
     ?.split(' ')
     .map(n => n[0])
     .join('')
@@ -101,7 +105,11 @@ export function SignedInNav({ user }: SignedInNavProps) {
                   {/* Dropdown Menu */}
                   <div className="absolute top-full right-0 mt-2 z-50">
                     <UserMenuDropdown
-                      user={user}
+                      user={{
+                        ...user,
+                        name: displayName,
+                        email: displayEmail,
+                      }}
                       onClose={() => setDropdownOpen(false)}
                     />
                   </div>

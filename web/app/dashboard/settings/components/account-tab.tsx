@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import Image from 'next/image';
-import { User, Shield, Trash2 } from 'lucide-react';
+import { User, Shield, Trash2, Check, X, Pencil } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth, useUser } from '@clerk/nextjs';
 
 interface AccountTabProps {
   clerkUser: any;
@@ -13,18 +13,53 @@ interface AccountTabProps {
 }
 
 export function AccountTab({ clerkUser, userData }: AccountTabProps) {
-  const { openUserProfile, signOut } = useClerk();
+  const { signOut } = useClerk();
   const { getToken } = useAuth();
+  const { user: clerkUserHook } = useUser();
   const [deleting, setDeleting] = useState(false);
 
-  const handleUpdateProfile = () => {
-    // Open Clerk's built-in profile modal
-    openUserProfile();
+  // Name editing state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState(clerkUser?.fullName || userData?.name || '');
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  const handleSaveName = async () => {
+    if (!nameValue.trim()) {
+      setNameError('Name cannot be empty');
+      return;
+    }
+
+    setSavingName(true);
+    setNameError(null);
+
+    try {
+      const token = await getToken();
+
+      // Update name in our backend database
+      const result = await apiClient.updateUserProfile({ name: nameValue.trim() }, token);
+      console.log('Name updated successfully:', result);
+
+      setIsEditingName(false);
+
+      // Refresh the page to update navbar with new name
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Failed to update name:', error);
+      setNameError(error?.message || 'Failed to save name. Please try again.');
+      setSavingName(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setNameValue(clerkUser?.fullName || userData?.name || '');
+    setIsEditingName(false);
+    setNameError(null);
   };
 
   const handleChangePassword = () => {
-    // Open Clerk's security modal
-    openUserProfile({ page: 'security' } as any);
+    // Open Clerk's security page in a new tab or redirect
+    window.open('https://accounts.clerk.dev/user/security', '_blank');
   };
 
   const handleDeleteAccount = async () => {
@@ -100,20 +135,62 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
             )}
           </div>
 
-          {/* Name */}
+          {/* Name - Inline editable */}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
               Name
             </label>
-            <input
-              type="text"
-              value={clerkUser?.fullName || ''}
-              disabled
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white cursor-not-allowed opacity-75"
-            />
-            <p className="text-xs text-slate-400 mt-1">
-              Click &quot;Update Profile&quot; below to change your name
-            </p>
+            {isEditingName ? (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nameValue}
+                    onChange={(e) => setNameValue(e.target.value)}
+                    placeholder="Enter your name"
+                    className="flex-1 px-4 py-3 bg-slate-900 border border-[#f57a07] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#f57a07]/50"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveName();
+                      if (e.key === 'Escape') handleCancelEdit();
+                    }}
+                  />
+                  <button
+                    onClick={handleSaveName}
+                    disabled={savingName}
+                    className="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-600 text-white rounded-lg transition-colors"
+                    title="Save"
+                  >
+                    {savingName ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Check size={20} />
+                    )}
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={savingName}
+                    className="px-4 py-3 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white rounded-lg transition-colors"
+                    title="Cancel"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                {nameError && (
+                  <p className="text-sm text-red-400">{nameError}</p>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsEditingName(true)}
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white text-left hover:border-[#f57a07] hover:bg-slate-800 transition-colors group"
+              >
+                <span className="flex items-center justify-between">
+                  <span>{nameValue || 'Click to add your name'}</span>
+                  <Pencil size={16} className="text-slate-500 group-hover:text-[#f57a07]" />
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Email */}
@@ -132,12 +209,6 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
             </p>
           </div>
 
-          <button
-            onClick={handleUpdateProfile}
-            className="w-full px-6 py-3 bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] hover:from-[#ff8c1a] hover:to-[#f57a07] text-white font-medium rounded-lg transition-all"
-          >
-            Update Profile
-          </button>
         </div>
       </section>
 
@@ -212,6 +283,7 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
           </button>
         </div>
       </section>
+
     </div>
   );
 }

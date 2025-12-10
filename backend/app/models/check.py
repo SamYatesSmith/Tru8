@@ -106,9 +106,16 @@ class Check(SQLModel, table=True):
         description="Classification source (cache_pattern, cache_url, llm_primary, fallback_general)"
     )
 
+    # Raw Sources List feature (Pro feature - shows all sources reviewed)
+    raw_sources_count: Optional[int] = Field(
+        default=0,
+        description="Total number of sources reviewed before filtering"
+    )
+
     # Relationships
     user: "User" = Relationship(back_populates="checks")
     claims: List["Claim"] = Relationship(back_populates="check")
+    raw_evidence: List["RawEvidence"] = Relationship(back_populates="check")
 
 class Claim(SQLModel, table=True):
     id: str = Field(default_factory=generate_uuid, primary_key=True)
@@ -240,3 +247,50 @@ class Evidence(SQLModel, table=True):
 
     # Relationships
     claim: Claim = Relationship(back_populates="evidence")
+
+
+class RawEvidence(SQLModel, table=True):
+    """All sources reviewed during evidence retrieval, including filtered ones.
+
+    This table stores every source that was considered during fact-checking,
+    not just the final filtered evidence. Used for the Pro "Sources" feature
+    that shows users all sources reviewed with filtering reasons.
+    """
+    id: str = Field(default_factory=generate_uuid, primary_key=True)
+    check_id: str = Field(foreign_key="check.id", index=True)
+    claim_position: int = Field(description="Which claim this evidence was retrieved for (0-indexed)")
+    claim_text: Optional[str] = Field(default=None, max_length=500, description="Text of the claim for display")
+
+    # Core evidence fields
+    source: str = Field(description="Publisher/source name")
+    url: str = Field(description="Source URL")
+    title: str = Field(description="Article/page title")
+    snippet: str = Field(description="Relevant text excerpt")
+    published_date: Optional[datetime] = None
+    relevance_score: float = Field(default=0.0, ge=0, le=1, description="Semantic relevance to claim (0-1)")
+    credibility_score: float = Field(default=0.6, ge=0, le=1, description="Source credibility (0-1)")
+
+    # Filtering metadata - the key feature
+    is_included: bool = Field(default=False, description="True if this source made it to final evidence")
+    filter_stage: Optional[str] = Field(
+        default=None,
+        description="Which filter stage excluded this source: credibility|temporal|dedup|diversity|domain_cap|validation|extraction_failed"
+    )
+    filter_reason: Optional[str] = Field(
+        default=None,
+        description="Human-readable explanation of why source was filtered"
+    )
+
+    # Display metadata
+    tier: Optional[str] = Field(default=None, description="Source tier: tier1|tier2|tier3|general|blacklist")
+    is_factcheck: bool = Field(default=False, description="True if from fact-checking organization")
+    external_source_provider: Optional[str] = Field(
+        default=None,
+        max_length=200,
+        description="API source if from government/authoritative API (e.g., 'ONS', 'PubMed')"
+    )
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    check: Check = Relationship(back_populates="raw_evidence")

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
+import { useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { useCheckProgress } from '@/hooks/use-check-progress';
 import { CheckMetadataCard } from './components/check-metadata-card';
@@ -12,16 +13,36 @@ import { ShareSection } from './components/share-section';
 import { NavigationSection } from './components/navigation-section';
 import { ErrorState } from './components/error-state';
 import { ClarityResponseCard } from './components/clarity-response-card';
+import { CheckTabs } from './components/check-tabs';
+import { UpgradeModal } from './components/upgrade-modal';
 
 interface CheckDetailClientProps {
   initialData: any;
   checkId: string;
+  isPro?: boolean;
+  rawSourcesCount?: number;
 }
 
-export function CheckDetailClient({ initialData, checkId }: CheckDetailClientProps) {
+export function CheckDetailClient({ initialData, checkId, isPro = false, rawSourcesCount = 0 }: CheckDetailClientProps) {
   const { getToken } = useAuth();
+  const searchParams = useSearchParams();
   const [checkData, setCheckData] = useState(initialData);
   const [token, setToken] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // Check for upgrade query param
+  useEffect(() => {
+    if (searchParams?.get('upgrade') === 'sources') {
+      setShowUpgradeModal(true);
+    }
+  }, [searchParams]);
+
+  // Listen for upgrade modal event
+  useEffect(() => {
+    const handler = () => setShowUpgradeModal(true);
+    window.addEventListener('show-upgrade-modal', handler);
+    return () => window.removeEventListener('show-upgrade-modal', handler);
+  }, []);
 
   // Get token for SSE connection
   useEffect(() => {
@@ -63,6 +84,29 @@ export function CheckDetailClient({ initialData, checkId }: CheckDetailClientPro
     <div className="space-y-6">
       {/* Metadata Card - Always shown (now includes transparency score) */}
       <CheckMetadataCard check={checkData} />
+
+      {/* Tab Toggle for Verdict/Sources (only shown when completed) */}
+      {checkData.status === 'completed' && (
+        <CheckTabs
+          checkId={checkId}
+          sourcesCount={rawSourcesCount}
+          isPro={isPro}
+          isCompleted={checkData.status === 'completed'}
+        />
+      )}
+
+      {/* Upgrade Modal for Sources */}
+      {showUpgradeModal && (
+        <UpgradeModal
+          feature="sources"
+          sourcesCount={rawSourcesCount}
+          onClose={() => {
+            setShowUpgradeModal(false);
+            // Clear the URL param
+            window.history.replaceState({}, '', `/dashboard/check/${checkId}`);
+          }}
+        />
+      )}
 
       {/* Status-based Rendering */}
       {checkData.status === 'processing' && (

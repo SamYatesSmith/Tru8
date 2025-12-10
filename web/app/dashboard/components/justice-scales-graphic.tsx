@@ -7,6 +7,8 @@ export function JusticeScalesGraphic() {
         src="/imagery/truthscales.png"
         alt="Justice scales"
         fill
+        sizes="256px"
+        loading="eager"
         className="object-contain"
       />
     </div>
