@@ -411,3 +411,87 @@ async def delete_user_account(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete account. Please contact support at support@tru8.com"
         )
+
+# ========== EMAIL NOTIFICATION PREFERENCES ==========
+
+class EmailPreferencesRequest(BaseModel):
+    email_notifications_enabled: bool | None = None
+    email_check_completion: bool | None = None
+    email_check_failure: bool | None = None
+    email_weekly_digest: bool | None = None
+    email_marketing: bool | None = None
+
+
+@router.get("/email-preferences")
+async def get_email_preferences(
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Get user's email notification preferences"""
+    stmt = select(User).where(User.id == current_user["id"])
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "emailNotificationsEnabled": user.email_notifications_enabled,
+        "checkCompletion": user.email_check_completion,
+        "checkFailure": user.email_check_failure,
+        "weeklyDigest": user.email_weekly_digest,
+        "marketing": user.email_marketing
+    }
+
+
+@router.put("/email-preferences")
+async def update_email_preferences(
+    request: EmailPreferencesRequest,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Update user's email notification preferences"""
+    stmt = select(User).where(User.id == current_user["id"])
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update only provided fields
+    if request.email_notifications_enabled is not None:
+        user.email_notifications_enabled = request.email_notifications_enabled
+        # If master toggle is disabled, disable all sub-preferences
+        if not request.email_notifications_enabled:
+            user.email_check_completion = False
+            user.email_check_failure = False
+            user.email_weekly_digest = False
+            user.email_marketing = False
+
+    if request.email_check_completion is not None:
+        user.email_check_completion = request.email_check_completion
+    if request.email_check_failure is not None:
+        user.email_check_failure = request.email_check_failure
+    if request.email_weekly_digest is not None:
+        user.email_weekly_digest = request.email_weekly_digest
+    if request.email_marketing is not None:
+        user.email_marketing = request.email_marketing
+
+    try:
+        await session.commit()
+        logger.info(f"Email preferences updated for user {user.id}")
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(e)}")
+
+    return {
+        "success": True,
+        "message": "Email preferences updated successfully",
+        "preferences": {
+            "emailNotificationsEnabled": user.email_notifications_enabled,
+            "checkCompletion": user.email_check_completion,
+            "checkFailure": user.email_check_failure,
+            "weeklyDigest": user.email_weekly_digest,
+            "marketing": user.email_marketing
+        }
+    }

@@ -16,6 +16,7 @@ from app.pipeline.verify import get_claim_verifier
 from app.pipeline.judge import get_pipeline_judge
 from app.services.cache import get_cache_service
 from app.services.push_notifications import push_notification_service
+from app.services.email_notifications import email_notification_service
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -51,8 +52,19 @@ class PipelineTask(Task):
                     )
                 except Exception as notif_error:
                     # Push notification failure should not crash the failure handler
-                    logger.warning(f"Failed to send failure notification: {notif_error}")
-    
+                    logger.warning(f"Failed to send push notification: {notif_error}")
+
+                # Email notification
+                try:
+                    email_notification_service.send_check_failed_email_sync(
+                        user_id=user_id,
+                        check_id=check_id,
+                        error_message=error_msg[:200]
+                    )
+                except Exception as email_error:
+                    # Email notification failure should not crash the failure handler
+                    logger.warning(f"Failed to send email notification: {email_error}")
+
     def on_success(self, retval, task_id, args, kwargs):
         logger.info(f"Task {task_id} completed successfully")
         # Get check_id from kwargs since task is called with keyword arguments
@@ -745,6 +757,22 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
         # Save all results to database (claims, evidence, and check status)
         try:
             save_check_results_sync(check_id, final_result)
+
+            # Send check completion email notification
+            try:
+                email_notification_service.send_check_completed_email_sync(
+                    user_id=user_id,
+                    check_id=check_id,
+                    claims_count=len(results),
+                    supported=assessment["claims_supported"],
+                    contradicted=assessment["claims_contradicted"],
+                    uncertain=assessment["claims_uncertain"],
+                    credibility_score=assessment["credibility_score"]
+                )
+            except Exception as email_error:
+                # Email notification failure should not crash the pipeline
+                logger.warning(f"Failed to send check completion email: {email_error}")
+
         except Exception as db_error:
             logger.error(f"Failed to save check results to database for check {check_id}: {db_error}")
             import traceback

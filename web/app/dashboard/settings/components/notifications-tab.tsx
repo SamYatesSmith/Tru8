@@ -1,61 +1,170 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { Bell, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { apiClient } from '@/lib/api';
 
 interface NotificationPreferences {
-  emailEnabled: boolean;
+  emailNotificationsEnabled: boolean;
   checkCompletion: boolean;
+  checkFailure: boolean;
   weeklyDigest: boolean;
   marketing: boolean;
 }
 
+const defaultPreferences: NotificationPreferences = {
+  emailNotificationsEnabled: true,
+  checkCompletion: true,
+  checkFailure: true,
+  weeklyDigest: false,
+  marketing: false,
+};
+
 export function NotificationsTab() {
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
-    emailEnabled: true,
-    checkCompletion: true,
-    weeklyDigest: false,
-    marketing: false,
-  });
+  const { getToken } = useAuth();
+  const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  // Load from localStorage on mount
+  // Load preferences from API on mount
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const saved = localStorage.getItem('notificationPrefs');
-    if (saved) {
+    const fetchPreferences = async () => {
       try {
-        setPreferences(JSON.parse(saved));
-      } catch (error) {
-        console.error('Failed to parse notification preferences:', error);
+        setLoading(true);
+        setError(null);
+        const token = await getToken();
+        const data = await apiClient.getEmailPreferences(token);
+        setPreferences({
+          emailNotificationsEnabled: data.emailNotificationsEnabled,
+          checkCompletion: data.checkCompletion,
+          checkFailure: data.checkFailure,
+          weeklyDigest: data.weeklyDigest,
+          marketing: data.marketing,
+        });
+        // Save to localStorage as backup
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('notificationPrefs', JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error('Failed to fetch notification preferences:', err);
+        // Fall back to localStorage if API fails
+        if (typeof window !== 'undefined') {
+          const saved = localStorage.getItem('notificationPrefs');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              setPreferences({
+                emailNotificationsEnabled: parsed.emailNotificationsEnabled ?? parsed.emailEnabled ?? true,
+                checkCompletion: parsed.checkCompletion ?? true,
+                checkFailure: parsed.checkFailure ?? true,
+                weeklyDigest: parsed.weeklyDigest ?? false,
+                marketing: parsed.marketing ?? false,
+              });
+            } catch {
+              // Use defaults
+            }
+          }
+        }
+        setError('Unable to load preferences from server. Using local settings.');
+      } finally {
+        setLoading(false);
       }
-    }
-  }, []);
+    };
 
-  // Save to localStorage on change
+    fetchPreferences();
+  }, [getToken]);
+
+  // Save preferences to API
+  const savePreferences = useCallback(async (updated: NotificationPreferences) => {
+    try {
+      setSaving(true);
+      setError(null);
+      const token = await getToken();
+      await apiClient.updateEmailPreferences({
+        email_notifications_enabled: updated.emailNotificationsEnabled,
+        email_check_completion: updated.checkCompletion,
+        email_check_failure: updated.checkFailure,
+        email_weekly_digest: updated.weeklyDigest,
+        email_marketing: updated.marketing,
+      }, token);
+      // Update localStorage backup
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('notificationPrefs', JSON.stringify(updated));
+      }
+      setLastSaved(new Date());
+    } catch (err) {
+      console.error('Failed to save notification preferences:', err);
+      setError('Failed to save preferences. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }, [getToken]);
+
+  // Update preference with optimistic update
   const updatePreference = (key: keyof NotificationPreferences, value: boolean) => {
-    const updated = { ...preferences, [key]: value };
+    let updated = { ...preferences, [key]: value };
 
     // If master toggle is disabled, disable all others
-    if (key === 'emailEnabled' && !value) {
-      updated.checkCompletion = false;
-      updated.weeklyDigest = false;
-      updated.marketing = false;
+    if (key === 'emailNotificationsEnabled' && !value) {
+      updated = {
+        ...updated,
+        checkCompletion: false,
+        checkFailure: false,
+        weeklyDigest: false,
+        marketing: false,
+      };
     }
 
+    // Optimistic update
     setPreferences(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('notificationPrefs', JSON.stringify(updated));
-    }
+    // Save to backend
+    savePreferences(updated);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+            <span className="ml-3 text-slate-400">Loading preferences...</span>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-          <Bell size={20} />
-          Email Notifications
-        </h3>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <Bell size={20} />
+            Email Notifications
+          </h3>
+          {saving && (
+            <span className="flex items-center text-xs text-slate-400">
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              Saving...
+            </span>
+          )}
+          {!saving && lastSaved && (
+            <span className="flex items-center text-xs text-emerald-400">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Saved
+            </span>
+          )}
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 bg-red-900/20 border border-red-700 rounded-lg flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <p className="text-xs text-red-300">{error}</p>
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Master Toggle */}
@@ -67,15 +176,16 @@ export function NotificationsTab() {
               </p>
             </div>
             <button
-              onClick={() => updatePreference('emailEnabled', !preferences.emailEnabled)}
+              onClick={() => updatePreference('emailNotificationsEnabled', !preferences.emailNotificationsEnabled)}
+              disabled={saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
-                preferences.emailEnabled ? 'bg-[#f57a07]' : 'bg-slate-600'
-              }`}
+                preferences.emailNotificationsEnabled ? 'bg-[#f57a07]' : 'bg-slate-600'
+              } ${saving ? 'opacity-50' : ''}`}
               aria-label="Toggle email notifications"
             >
               <div
                 className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  preferences.emailEnabled ? 'translate-x-6' : 'translate-x-0'
+                  preferences.emailNotificationsEnabled ? 'translate-x-6' : 'translate-x-0'
                 }`}
               />
             </button>
@@ -90,20 +200,46 @@ export function NotificationsTab() {
               </p>
             </div>
             <button
-              onClick={() =>
-                updatePreference('checkCompletion', !preferences.checkCompletion)
-              }
-              disabled={!preferences.emailEnabled}
+              onClick={() => updatePreference('checkCompletion', !preferences.checkCompletion)}
+              disabled={!preferences.emailNotificationsEnabled || saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
-                preferences.checkCompletion && preferences.emailEnabled
+                preferences.checkCompletion && preferences.emailNotificationsEnabled
                   ? 'bg-[#f57a07]'
                   : 'bg-slate-600'
-              } ${!preferences.emailEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Toggle check completion notifications"
             >
               <div
                 className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  preferences.checkCompletion && preferences.emailEnabled
+                  preferences.checkCompletion && preferences.emailNotificationsEnabled
+                    ? 'translate-x-6'
+                    : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Check Failures */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-white">Check Failures</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Get notified if a fact-check encounters an issue
+              </p>
+            </div>
+            <button
+              onClick={() => updatePreference('checkFailure', !preferences.checkFailure)}
+              disabled={!preferences.emailNotificationsEnabled || saving}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                preferences.checkFailure && preferences.emailNotificationsEnabled
+                  ? 'bg-[#f57a07]'
+                  : 'bg-slate-600'
+              } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label="Toggle check failure notifications"
+            >
+              <div
+                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  preferences.checkFailure && preferences.emailNotificationsEnabled
                     ? 'translate-x-6'
                     : 'translate-x-0'
                 }`}
@@ -121,17 +257,17 @@ export function NotificationsTab() {
             </div>
             <button
               onClick={() => updatePreference('weeklyDigest', !preferences.weeklyDigest)}
-              disabled={!preferences.emailEnabled}
+              disabled={!preferences.emailNotificationsEnabled || saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
-                preferences.weeklyDigest && preferences.emailEnabled
+                preferences.weeklyDigest && preferences.emailNotificationsEnabled
                   ? 'bg-[#f57a07]'
                   : 'bg-slate-600'
-              } ${!preferences.emailEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Toggle weekly digest"
             >
               <div
                 className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  preferences.weeklyDigest && preferences.emailEnabled
+                  preferences.weeklyDigest && preferences.emailNotificationsEnabled
                     ? 'translate-x-6'
                     : 'translate-x-0'
                 }`}
@@ -149,17 +285,17 @@ export function NotificationsTab() {
             </div>
             <button
               onClick={() => updatePreference('marketing', !preferences.marketing)}
-              disabled={!preferences.emailEnabled}
+              disabled={!preferences.emailNotificationsEnabled || saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
-                preferences.marketing && preferences.emailEnabled
+                preferences.marketing && preferences.emailNotificationsEnabled
                   ? 'bg-[#f57a07]'
                   : 'bg-slate-600'
-              } ${!preferences.emailEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Toggle marketing emails"
             >
               <div
                 className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  preferences.marketing && preferences.emailEnabled
+                  preferences.marketing && preferences.emailNotificationsEnabled
                     ? 'translate-x-6'
                     : 'translate-x-0'
                 }`}
@@ -168,10 +304,10 @@ export function NotificationsTab() {
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
-          <p className="text-xs text-blue-300">
-            ℹ️ <strong>Note:</strong> Notification preferences are currently stored locally.
-            Backend sync coming in Phase 2.
+        <div className="mt-6 p-4 bg-emerald-900/20 border border-emerald-700 rounded-lg">
+          <p className="text-xs text-emerald-300">
+            <CheckCircle className="w-3 h-3 inline mr-1" />
+            Your notification preferences are synced across all devices.
           </p>
         </div>
       </section>

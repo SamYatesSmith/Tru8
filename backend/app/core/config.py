@@ -45,6 +45,12 @@ class Settings(BaseSettings):
     STRIPE_PRICE_ID_PRO: str = Field("", env="STRIPE_PRICE_ID_PRO")
     FRONTEND_URL: str = Field("http://localhost:3000", env="FRONTEND_URL")
 
+    # Email Notifications (Resend)
+    RESEND_API_KEY: str = Field("", env="RESEND_API_KEY")
+    EMAIL_FROM_ADDRESS: str = Field("hello@trueight.com", env="EMAIL_FROM_ADDRESS")
+    EMAIL_FROM_NAME: str = Field("Tru8", env="EMAIL_FROM_NAME")
+    ENABLE_EMAIL_NOTIFICATIONS: bool = Field(True, env="ENABLE_EMAIL_NOTIFICATIONS")
+
     # Monitoring
     SENTRY_DSN: str = Field("", env="SENTRY_DSN")
     POSTHOG_API_KEY: str = Field("", env="POSTHOG_API_KEY")

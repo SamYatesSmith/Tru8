@@ -14,7 +14,14 @@ class User(SQLModel, table=True):
     push_notifications_enabled: bool = Field(default=True)
     platform: Optional[str] = None  # 'ios' or 'android'
     device_id: Optional[str] = None
-    
+
+    # Email notification settings
+    email_notifications_enabled: bool = Field(default=True)
+    email_check_completion: bool = Field(default=True)
+    email_check_failure: bool = Field(default=True)
+    email_weekly_digest: bool = Field(default=False)
+    email_marketing: bool = Field(default=False)
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     

@@ -289,6 +289,54 @@ class ApiClient {
 
     return response.blob();
   }
+
+  // ============================================================================
+  // Email Notification Preferences
+  // ============================================================================
+
+  /**
+   * GET /api/v1/users/email-preferences
+   * Get user's email notification preferences
+   */
+  async getEmailPreferences(token?: string | null) {
+    return this.request<{
+      emailNotificationsEnabled: boolean;
+      checkCompletion: boolean;
+      checkFailure: boolean;
+      weeklyDigest: boolean;
+      marketing: boolean;
+    }>('/api/v1/users/email-preferences', {}, token);
+  }
+
+  /**
+   * PUT /api/v1/users/email-preferences
+   * Update user's email notification preferences
+   */
+  async updateEmailPreferences(
+    data: {
+      email_notifications_enabled?: boolean;
+      email_check_completion?: boolean;
+      email_check_failure?: boolean;
+      email_weekly_digest?: boolean;
+      email_marketing?: boolean;
+    },
+    token?: string | null
+  ) {
+    return this.request<{
+      success: boolean;
+      message: string;
+      preferences: {
+        emailNotificationsEnabled: boolean;
+        checkCompletion: boolean;
+        checkFailure: boolean;
+        weeklyDigest: boolean;
+        marketing: boolean;
+      };
+    }>('/api/v1/users/email-preferences', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, token);
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

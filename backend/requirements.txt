@@ -56,6 +56,9 @@ prometheus-client==0.19.0
 # Push Notifications
 exponent-server-sdk==2.0.0
 
+# Email Notifications
+resend==2.19.0
+
 # Dev
 pytest==7.4.3
 pytest-asyncio==0.21.1
