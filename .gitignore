@@ -93,4 +93,5 @@ media/
 *.crt
 *.pfx
 secrets/
-credentials/
+credentials/nul
+backend/MODULE_RELOADED.txt
