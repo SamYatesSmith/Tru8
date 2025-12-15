@@ -119,5 +119,10 @@ def initialize_worker(**kwargs):
     else:
         logger.info("[WORKER] ENABLE_API_RETRIEVAL is False, skipping adapter initialization")
 
+    # Warmup search providers to prevent 10s cold-start delay on first claim
+    # This sets rate limiter timestamps so first search uses normal 2.5s spacing
+    from app.services.search import warmup_search_providers
+    warmup_search_providers()
+
     # Warmup ML models (NLI + embeddings) to prevent cold-start failures
     warmup_ml_models()

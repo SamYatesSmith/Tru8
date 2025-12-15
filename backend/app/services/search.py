@@ -28,6 +28,37 @@ _brave_last_request_time = 0
 _serpapi_lock = threading.Lock()
 _serpapi_last_request_time = 0
 
+
+def warmup_search_providers():
+    """
+    Pre-warm search providers by setting rate limit timestamps.
+
+    This prevents the 10-second "cold start" delay from triggering on the first
+    actual fact-check request. The cold start delay was designed to prevent
+    API anti-abuse detection, but it was being applied DURING task execution,
+    causing the first claim to timeout with 0 sources.
+
+    By setting the timestamps at worker startup, subsequent requests will use
+    the normal 2.5s spacing instead of the 10s cold start delay.
+
+    Call this from Celery worker initialization (workers/__init__.py).
+    """
+    global _brave_lock, _brave_last_request_time, _serpapi_lock, _serpapi_last_request_time
+
+    current_time = time.time()
+
+    with _brave_lock:
+        if _brave_last_request_time == 0:
+            _brave_last_request_time = current_time
+            logger.info(f"BRAVE WARMUP: Pre-warmed rate limiter at {current_time:.3f}")
+
+    with _serpapi_lock:
+        if _serpapi_last_request_time == 0:
+            _serpapi_last_request_time = current_time
+            logger.info(f"SERPAPI WARMUP: Pre-warmed rate limiter at {current_time:.3f}")
+
+    logger.info("[SEARCH] Search providers pre-warmed - cold start delay bypassed for first task")
+
 class SearchResult:
     """Standardized search result format"""
     def __init__(self, title: str, url: str, snippet: str,
