@@ -96,8 +96,16 @@ AUTHORITATIVE SOURCES BY DOMAIN (use in source_hints and priority_sources):
 - SPORTS STATISTICS: transfermarkt.com, fbref.com, whoscored.com, official league sites
 - TRANSFER NEWS: transfermarkt.com, fabrizio romano, official club announcements
 - POLITICAL: Official government sites (.gov), established news (Reuters, AP, BBC)
-- FINANCIAL: Company filings (SEC, Companies House), Bloomberg, Reuters
-- SCIENTIFIC: Peer-reviewed journals, academic institutions (.edu), official health organizations
+- FINANCIAL: Company filings (SEC, Companies House), Bloomberg, Reuters, FRED
+- SCIENTIFIC: Peer-reviewed journals, academic institutions (.edu), Nature, Science
+- HEALTH: WHO (who.int), CDC (cdc.gov), NHS (nhs.uk), NIH, PubMed, medical journals
+- LAW: govinfo.gov, congress.gov, legislation.gov.uk, bailii.org, courtlistener.com
+- CLIMATE: IPCC (ipcc.ch), NOAA climate data, NASA climate, peer-reviewed climate journals
+- WEATHER: Met Office (metoffice.gov.uk), NOAA weather, National Weather Service, weather.gov
+- DEMOGRAPHICS: Census Bureau (census.gov), ONS (ons.gov.uk), UN Population Division, Eurostat
+- ANIMALS: GBIF (gbif.org), IUCN Red List, WWF, official wildlife agencies, zoology journals
+- HISTORY: National Archives (archives.gov, nationalarchives.gov.uk), Library of Congress, Smithsonian, JSTOR, academic history journals
+- ENTERTAINMENT: IMDb, Billboard, Box Office Mojo, Variety, Hollywood Reporter
 - GENERAL: Primary sources, official statements, established news organizations
 
 CRITICAL - OFFICIAL SOURCE PRIORITY:

@@ -308,8 +308,11 @@ Classify this article into exactly ONE primary domain from this list:
 - Health (medicine, diseases, healthcare, wellness, medical research)
 - Science (research, technology, physics, chemistry, biology, space)
 - Law (legal cases, court rulings, regulations, legal analysis)
-- Climate (weather, environment, global warming, emissions)
+- Climate (environment, global warming, emissions, climate science)
+- Weather (meteorology, forecasts, storms, atmospheric conditions)
 - Demographics (population, census, migration, social statistics)
+- Animals (wildlife, pets, species, conservation, veterinary, biodiversity)
+- History (historical events, archives, museums, heritage, genealogy)
 - Entertainment (movies, music, celebrities, arts, culture)
 - General (if none of the above clearly fit)
 
@@ -353,6 +356,32 @@ Output: {{
     "temporal_context": "2025 legislative session",
     "key_entities": ["UK Government", "Net Zero", "Carbon Tax"],
     "evidence_guidance": "Policy documents and official announcements - pm (past month) freshness"
+}}
+
+Example 3 - History Article:
+Input: Article about the rise of fascism in 1930s Europe
+Output: {{
+    "primary_domain": "History",
+    "secondary_domains": ["Politics"],
+    "jurisdiction": "EU",
+    "confidence": 90,
+    "reasoning": "Article discusses historical political movements from the 1930s",
+    "temporal_context": "1930s Europe, pre-World War II period",
+    "key_entities": ["fascism", "Nazi Party", "Mussolini", "1930s"],
+    "evidence_guidance": "Historical claims require academic sources, archives, and established historical records"
+}}
+
+Example 4 - Animals Article:
+Input: Article about endangered species population decline
+Output: {{
+    "primary_domain": "Animals",
+    "secondary_domains": ["Science"],
+    "jurisdiction": "Global",
+    "confidence": 85,
+    "reasoning": "Article focuses on wildlife conservation and species data",
+    "temporal_context": "Current conservation status with historical population trends",
+    "key_entities": ["IUCN", "endangered species", "conservation"],
+    "evidence_guidance": "Wildlife claims require authoritative sources like IUCN Red List, GBIF, or peer-reviewed journals"
 }}
 
 RESPONSE FORMAT:
