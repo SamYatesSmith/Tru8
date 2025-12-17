@@ -39,9 +39,29 @@ async def create_checkout_session(
         stmt = select(User).where(User.id == current_user["id"])
         result = await session.execute(stmt)
         user = result.scalar_one_or_none()
-        
+
+        # Create user if doesn't exist (first login)
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            email = current_user.get("email")
+            if not email:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Unable to retrieve user email from authentication provider"
+                )
+
+            user = User(
+                id=current_user["id"],
+                email=email,
+                name=current_user.get("name"),
+                credits=3  # Free tier
+            )
+            session.add(user)
+            try:
+                await session.commit()
+                await session.refresh(user)
+            except Exception as e:
+                await session.rollback()
+                raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
 
         # Check for existing active subscription
         existing_sub_stmt = select(Subscription).where(
@@ -349,9 +369,29 @@ async def get_subscription_status(
     stmt = select(User).where(User.id == current_user["id"])
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
-    
+
+    # Create user if doesn't exist (first login)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        email = current_user.get("email")
+        if not email:
+            raise HTTPException(
+                status_code=500,
+                detail="Unable to retrieve user email from authentication provider"
+            )
+
+        user = User(
+            id=current_user["id"],
+            email=email,
+            name=current_user.get("name"),
+            credits=3  # Free tier
+        )
+        session.add(user)
+        try:
+            await session.commit()
+            await session.refresh(user)
+        except Exception as e:
+            await session.rollback()
+            raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
 
     # Get user's subscription
     sub_stmt = select(Subscription).where(
