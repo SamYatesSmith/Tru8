@@ -472,12 +472,35 @@ class SearchService:
         # Optimize search query for fact-checking
         query = self._optimize_query_for_factcheck(claim)
 
-        # DIAGNOSTIC: Log search initiation
+        # DIAGNOSTIC: Log search initiation with full query details
         freshness_str = f" | Freshness: {freshness}" if freshness else ""
-        logger.info(f"SEARCH INITIATED | Claim: '{claim[:60]}...' | Query: '{query[:80]}...' | Max: {max_results}{freshness_str}")
+        has_exclusions = "-site:" in query
+        logger.info(f"SEARCH INITIATED | Claim: '{claim[:60]}...' | Max: {max_results}{freshness_str}")
+        logger.info(f"SEARCH QUERY: '{query}'")
         logger.info(f"Providers available: {[p.__class__.__name__ for p in self.providers]}")
 
         # Try providers in order until we get results
+        results = await self._try_providers(query, max_results, freshness)
+
+        if results:
+            return results
+
+        # FALLBACK: If 0 results with exclusions, retry without exclusions
+        if has_exclusions:
+            simple_query = self._get_query_without_exclusions(query)
+            logger.warning(f"0 RESULTS FALLBACK: Retrying without exclusions | New query: '{simple_query}'")
+
+            results = await self._try_providers(simple_query, max_results, freshness)
+
+            if results:
+                logger.info(f"FALLBACK SUCCESS: Got {len(results)} results without exclusions")
+                return results
+
+        logger.warning(f"ALL PROVIDERS FAILED for claim: {claim[:50]}...")
+        return []
+
+    async def _try_providers(self, query: str, max_results: int, freshness: str = None) -> List[SearchResult]:
+        """Try each search provider in order until we get results"""
         for i, provider in enumerate(self.providers):
             provider_name = provider.__class__.__name__
             try:
@@ -493,13 +516,19 @@ class SearchService:
                     logger.info(f"{provider_name} SUCCESS: {len(results)} raw results -> {len(filtered_results)} after filtering")
                     return filtered_results[:max_results]
                 else:
-                    logger.warning(f"{provider_name} returned 0 results, trying next provider...")
+                    logger.warning(f"{provider_name} returned 0 results | Query: '{query[:80]}...'")
             except Exception as e:
                 logger.error(f"{provider_name} FAILED: {e}, trying next provider...")
                 continue
 
-        logger.warning(f"ALL PROVIDERS FAILED for claim: {claim[:50]}...")
         return []
+
+    def _get_query_without_exclusions(self, query: str) -> str:
+        """Remove exclusion terms (-site:, -"term") from query for fallback"""
+        words = query.split()
+        # Keep only non-exclusion words
+        clean_words = [w for w in words if not w.startswith('-')]
+        return " ".join(clean_words).strip()
     
     def _optimize_query_for_factcheck(self, claim: str) -> str:
         """Optimize search query for better fact-checking results"""
@@ -537,33 +566,49 @@ class SearchService:
         # STEP 4: Clean up extra whitespace
         query = re.sub(r'\s+', ' ', query).strip()
 
-        # STEP 5: Add credibility-boosting terms (helps surface official sources)
-        # Note: Only add if query is short enough
-        boost_terms = []
-        if len(query) < 150:
-            boost_terms = ["official", "report"]
-
-        # STEP 6: Exclude fact-check meta-content sites to prefer primary sources
+        # STEP 5: Add exclusions ONLY if not already present (avoid duplicates from query_formulation.py)
+        # These exclusions may already be in the query from upstream processing
         exclude_terms = [
             "-site:snopes.com",
             "-site:factcheck.org",
             "-site:politifact.com",
-            "-\"fact check\"",
-            "-\"fact-check\""
         ]
 
-        # Combine all parts
-        if boost_terms:
-            query = f"{query} {' '.join(boost_terms)}"
-        query += " " + " ".join(exclude_terms)
+        # Only add exclusions that aren't already present
+        for term in exclude_terms:
+            if term not in query:
+                query += " " + term
 
-        # STEP 7: Limit query length for API limits
+        # STEP 6: Limit query length for API limits - PRIORITIZE CLAIM KEYWORDS
         if len(query) > 250:
             words = query.split()
-            # Keep core claim + exclusions (exclude terms are at the end)
-            core_words = [w for w in words if not w.startswith('-')][:25]
+            # Separate claim words from exclusions
+            core_words = [w for w in words if not w.startswith('-')]
             exclude_words = [w for w in words if w.startswith('-')]
-            query = " ".join(core_words + exclude_words)
+
+            # Dedupe exclusions (keep unique only)
+            exclude_words = list(dict.fromkeys(exclude_words))
+
+            # PRIORITIZE: Keep as many claim words as possible, limit exclusions to 3
+            max_exclusions = 3
+            truncated_excludes = exclude_words[:max_exclusions]
+
+            # Calculate remaining space for claim words
+            exclude_chars = sum(len(w) + 1 for w in truncated_excludes)
+            remaining_chars = 250 - exclude_chars
+
+            # Keep claim words up to the remaining character limit
+            kept_words = []
+            char_count = 0
+            for w in core_words:
+                if char_count + len(w) + 1 <= remaining_chars:
+                    kept_words.append(w)
+                    char_count += len(w) + 1
+                else:
+                    break
+
+            query = " ".join(kept_words + truncated_excludes)
+            logger.debug(f"QUERY TRUNCATED: {len(core_words)} words -> {len(kept_words)} words, {len(exclude_words)} exclusions -> {len(truncated_excludes)}")
 
         return query.strip()
     

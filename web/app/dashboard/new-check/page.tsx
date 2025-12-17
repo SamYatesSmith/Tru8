@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { Loader2, Facebook, Instagram, Twitter, Youtube, MessageCircle } from 'lucide-react';
+import { Loader2, Facebook, Instagram, Twitter, Youtube, MessageCircle, Lock } from 'lucide-react';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 import { PageHeader } from '../components/page-header';
 import { PrismGraphic } from '../components/prism-graphic';
@@ -21,6 +22,29 @@ export default function NewCheckPage() {
   const [queryInput, setQueryInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Usage limit state
+  const [isLimitReached, setIsLimitReached] = useState(false);
+  const [usageInfo, setUsageInfo] = useState<{ used: number; limit: number } | null>(null);
+
+  // Check usage limits on page load
+  useEffect(() => {
+    const checkUsage = async () => {
+      try {
+        const token = await getToken();
+        const usage = await apiClient.getUsage(token) as any;
+        const used = usage.monthlyCreditsUsed || 0;
+        const limit = usage.creditsPerMonth || 3;
+        setUsageInfo({ used, limit });
+        if (used >= limit) {
+          setIsLimitReached(true);
+        }
+      } catch (err) {
+        // Ignore errors - backend will enforce limits anyway
+      }
+    };
+    checkUsage();
+  }, [getToken]);
 
   // Validation
   const isValidUrl = (url: string): boolean => {
@@ -78,7 +102,13 @@ export default function NewCheckPage() {
       // Redirect to check detail page
       router.push(`/dashboard/check/${result.check.id}`);
     } catch (err: any) {
-      setError(err.message || 'Failed to create check. Please try again.');
+      // Check for 402 (payment required / limit reached)
+      if (err.message?.includes('402') || err.message?.includes('limit')) {
+        setIsLimitReached(true);
+        setError('Monthly limit reached. Please upgrade to continue.');
+      } else {
+        setError(err.message || 'Failed to create check. Please try again.');
+      }
       setIsSubmitting(false);
     }
   };
@@ -112,6 +142,28 @@ export default function NewCheckPage() {
         subtitle="Submit claims, URLs, or articles for instant verification"
         graphic={<PrismGraphic />}
       />
+
+      {/* Limit Reached Banner */}
+      {isLimitReached && (
+        <div className="bg-amber-900/20 border border-amber-700 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <Lock className="text-amber-400 flex-shrink-0 mt-1" size={24} />
+            <div className="flex-1">
+              <h3 className="text-amber-400 font-bold text-lg mb-2">Monthly Limit Reached</h3>
+              <p className="text-amber-200 mb-4">
+                You've used all {usageInfo?.limit || 3} checks available on your free plan this month.
+                Upgrade to Pro for 40 checks per month and advanced features.
+              </p>
+              <Link
+                href="/dashboard/settings?tab=subscription"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl transition-all"
+              >
+                Upgrade to Pro
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Submit Content Card */}
       <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-8">
@@ -233,13 +285,18 @@ Leave this text field blank to proceed for a standard check on your article."
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLimitReached}
             className="w-full bg-[#f57a07] hover:bg-[#e06a00] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="animate-spin" size={20} />
                 PROCESSING...
+              </>
+            ) : isLimitReached ? (
+              <>
+                <Lock size={20} />
+                LIMIT REACHED - UPGRADE TO CONTINUE
               </>
             ) : (
               'START FACT CHECK'

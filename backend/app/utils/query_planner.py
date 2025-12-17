@@ -172,11 +172,29 @@ RESPOND WITH JSON:
             current_date = now.strftime("%Y-%m-%d")
             logger.info(f"[QUERY_PLANNER] Current date: {current_date}")
 
-            # Format claims for the prompt
-            claims_text = "\n".join([
-                f"{i+1}. {c.get('text', '')}"
-                for i, c in enumerate(claims)
-            ])
+            # Format claims for the prompt - include temporal context if available
+            claim_lines = []
+            for i, c in enumerate(claims):
+                claim_line = f"{i+1}. {c.get('text', '')}"
+
+                # Add temporal context from extraction if available
+                temporal_info = []
+                if c.get('is_time_sensitive'):
+                    temporal_info.append("TIME-SENSITIVE")
+                if c.get('temporal_markers'):
+                    markers = c.get('temporal_markers', [])
+                    years = [str(m.get('value')) for m in markers if m.get('type') == 'YEAR']
+                    if years:
+                        temporal_info.append(f"Years mentioned: {', '.join(years)}")
+                if c.get('temporal_window') and c.get('temporal_window') != 'any':
+                    temporal_info.append(f"Temporal window: {c.get('temporal_window')}")
+
+                if temporal_info:
+                    claim_line += f" [{' | '.join(temporal_info)}]"
+
+                claim_lines.append(claim_line)
+
+            claims_text = "\n".join(claim_lines)
 
             # Build article context section
             article_context_section = ""

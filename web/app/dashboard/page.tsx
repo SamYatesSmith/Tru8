@@ -125,7 +125,7 @@ export default async function DashboardPage({
           total={creditsPerMonth}
           label="Checks used this month"
         />
-        <QuickActionCard />
+        <QuickActionCard used={monthlyUsage} limit={creditsPerMonth} />
       </div>
 
       {/* Recent Checks */}

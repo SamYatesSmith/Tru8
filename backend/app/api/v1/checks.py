@@ -325,11 +325,41 @@ async def create_check(
             await session.rollback()
             raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
     
-    # Skip credit check in development mode
-    if not settings.DEBUG and user.credits < 1:
+    # MONTHLY USAGE LIMIT CHECK (applies in all modes, including DEBUG)
+    # Get subscription to determine monthly limit
+    from app.models.subscription import Subscription
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == user.id,
+        Subscription.status.in_(["active", "trialing"])
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+
+    # Determine billing period and monthly limit
+    if subscription and subscription.current_period_start:
+        period_start = subscription.current_period_start
+        credits_per_month = subscription.credits_per_month
+    else:
+        # Free user: use start of current calendar month
+        from datetime import datetime
+        now = datetime.utcnow()
+        period_start = datetime(now.year, now.month, 1)
+        credits_per_month = 3  # Free tier limit
+
+    # Calculate monthly usage
+    from sqlalchemy import func
+    usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+        Check.user_id == user.id,
+        Check.created_at >= period_start
+    )
+    usage_result = await session.execute(usage_stmt)
+    monthly_usage = usage_result.scalar() or 0
+
+    # Check if user has exceeded their monthly limit
+    if monthly_usage >= credits_per_month:
         raise HTTPException(
             status_code=402,
-            detail="Insufficient credits. Please upgrade your plan."
+            detail=f"Monthly limit reached ({monthly_usage}/{credits_per_month} checks used). Please upgrade your plan for more checks."
         )
     
     # Validate input
