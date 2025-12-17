@@ -996,6 +996,24 @@ class EvidenceRetriever:
         """
         from app.core.config import settings
 
+        # API SOURCE PRIORITY: If evidence comes from a registered API adapter,
+        # use its embedded credibility score (0.95) without domain framework lookup.
+        # API sources (NOAA, OpenAlex, PubMed, etc.) are authoritative by design.
+        if evidence_item and evidence_item.get("external_source_provider"):
+            api_provider = evidence_item.get("external_source_provider")
+            api_credibility = evidence_item.get("credibility_score", 0.95)
+
+            # Enrich evidence with API-specific metadata
+            evidence_item['tier'] = 'authoritative_api'
+            evidence_item['risk_flags'] = []
+            evidence_item['credibility_reasoning'] = f"Authoritative API source: {api_provider}"
+            evidence_item['auto_exclude'] = False
+            evidence_item['risk_level'] = 'none'
+            evidence_item['risk_warning'] = None
+
+            logger.debug(f"[CREDIBILITY] API source '{api_provider}' using embedded credibility: {api_credibility}")
+            return api_credibility
+
         # Phase 3: Use Domain Credibility Framework if enabled
         if settings.ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK and url:
             try:

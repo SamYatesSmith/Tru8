@@ -161,6 +161,22 @@ class Claim(SQLModel, table=True):
         description="Current authoritative data from APIs for temporal comparison with claimed values"
     )
 
+    # Rhetorical Context Detection fields (sarcasm, mockery, satire detection via source analysis)
+    rhetorical_context: Optional[str] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="Rhetorical context detected from evidence sources (sarcasm, mockery, satire markers)"
+    )
+    has_rhetorical_context: bool = Field(
+        default=False,
+        description="True if evidence sources describe rhetorical intent (sarcasm, mockery, etc.)"
+    )
+    rhetorical_style: Optional[str] = Field(
+        default=None,
+        max_length=30,
+        description="Primary rhetorical style detected (sarcasm, mockery, satire, joking, inflammatory, hyperbole)"
+    )
+
     # Relationships
     check: Check = Relationship(back_populates="claims")
     evidence: List["Evidence"] = Relationship(back_populates="claim")

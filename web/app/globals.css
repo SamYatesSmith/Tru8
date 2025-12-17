@@ -59,6 +59,52 @@
   100% { transform: rotate(360deg); }
 }
 
+/* New check highlight - rotating gradient border */
+@keyframes gradient-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.new-check-highlight {
+  position: relative;
+}
+
+.new-check-highlight::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 0.75rem;
+  background: conic-gradient(
+    from 0deg,
+    #f57a07,
+    #ff9d4d,
+    #f57a07,
+    #ff9d4d,
+    #f57a07
+  );
+  animation: gradient-rotate 1s linear 5;
+  z-index: -1;
+}
+
+.new-check-highlight::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 0.75rem;
+  background: conic-gradient(
+    from 0deg,
+    #f57a07,
+    #ff9d4d,
+    #f57a07,
+    #ff9d4d,
+    #f57a07
+  );
+  animation: gradient-rotate 1s linear 5;
+  filter: blur(8px);
+  opacity: 0.5;
+  z-index: -2;
+}
+
 /* Respect reduced motion preference for glowing border */
 @media (prefers-reduced-motion: reduce) {
   .glowing-border-wrapper::before,

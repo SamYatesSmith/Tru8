@@ -133,6 +133,112 @@ async def update_profile(
     }
 
 
+@router.get("/stats")
+async def get_user_stats(
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Get aggregated user statistics for dashboard insights"""
+    user_id = current_user["id"]
+
+    # Get user for member since date
+    user_stmt = select(User).where(User.id == user_id)
+    user_result = await session.execute(user_stmt)
+    user = user_result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Total completed checks
+    total_checks_stmt = select(func.count(Check.id)).where(
+        Check.user_id == user_id,
+        Check.status == "completed"
+    )
+    total_checks_result = await session.execute(total_checks_stmt)
+    total_checks = total_checks_result.scalar() or 0
+
+    # Checks this month
+    now = datetime.utcnow()
+    start_of_month = datetime(now.year, now.month, 1)
+    checks_this_month_stmt = select(func.count(Check.id)).where(
+        Check.user_id == user_id,
+        Check.status == "completed",
+        Check.created_at >= start_of_month
+    )
+    checks_this_month_result = await session.execute(checks_this_month_stmt)
+    checks_this_month = checks_this_month_result.scalar() or 0
+
+    # Total sources analyzed (sum of raw_sources_count)
+    sources_stmt = select(func.coalesce(func.sum(Check.raw_sources_count), 0)).where(
+        Check.user_id == user_id,
+        Check.status == "completed"
+    )
+    sources_result = await session.execute(sources_stmt)
+    total_sources_analyzed = sources_result.scalar() or 0
+
+    # Average confidence across all claims
+    avg_confidence_stmt = select(func.avg(Claim.confidence)).join(Check).where(
+        Check.user_id == user_id,
+        Check.status == "completed"
+    )
+    avg_confidence_result = await session.execute(avg_confidence_stmt)
+    avg_confidence = avg_confidence_result.scalar()
+    average_confidence = round(float(avg_confidence), 1) if avg_confidence else 0.0
+
+    # Verdict breakdown (count by verdict type)
+    verdict_stmt = select(Claim.verdict, func.count(Claim.id)).join(Check).where(
+        Check.user_id == user_id,
+        Check.status == "completed"
+    ).group_by(Claim.verdict)
+    verdict_result = await session.execute(verdict_stmt)
+    verdict_rows = verdict_result.all()
+
+    verdict_breakdown = {"supported": 0, "contradicted": 0, "uncertain": 0}
+    for verdict, count in verdict_rows:
+        if verdict in verdict_breakdown:
+            verdict_breakdown[verdict] = count
+        elif verdict in ["insufficient_evidence", "conflicting_expert_opinion", "needs_primary_source", "outdated_claim", "lacks_context"]:
+            # Group other verdicts under uncertain
+            verdict_breakdown["uncertain"] += count
+
+    # Domain breakdown (count by article_domain)
+    domain_stmt = select(Check.article_domain, func.count(Check.id)).where(
+        Check.user_id == user_id,
+        Check.status == "completed",
+        Check.article_domain.isnot(None)
+    ).group_by(Check.article_domain)
+    domain_result = await session.execute(domain_stmt)
+    domain_rows = domain_result.all()
+
+    domain_breakdown = {}
+    for domain, count in domain_rows:
+        if domain:  # Skip None values
+            domain_breakdown[domain] = count
+
+    # Calculate top domain
+    top_domain = None
+    if domain_breakdown:
+        top_domain = max(domain_breakdown, key=domain_breakdown.get)
+
+    # Calculate misinformation rate (% of claims that were contradicted)
+    total_claims = sum(verdict_breakdown.values())
+    misinformation_rate = 0.0
+    if total_claims > 0:
+        misinformation_rate = round((verdict_breakdown["contradicted"] / total_claims) * 100, 1)
+
+    return {
+        "totalChecks": total_checks,
+        "checksThisMonth": checks_this_month,
+        "totalSourcesAnalyzed": total_sources_analyzed,
+        "averageConfidence": average_confidence,
+        "verdictBreakdown": verdict_breakdown,
+        "domainBreakdown": domain_breakdown,
+        "topDomain": top_domain,
+        "misinformationRate": misinformation_rate,
+        "memberSince": user.created_at.isoformat() if user.created_at else None
+    }
+
+
 @router.get("/usage")
 async def get_usage(
     current_user: dict = Depends(get_current_user),

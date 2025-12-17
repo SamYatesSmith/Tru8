@@ -234,8 +234,21 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                 }
                 check.query_sources = query_metadata
 
-            # Save claims and evidence
+            # Save article classification (passed directly from pipeline, not from claims)
+            article_class = results.get("article_classification")
+            if article_class:
+                check.article_domain = article_class.get("primary_domain")
+                check.article_secondary_domains = article_class.get("secondary_domains", [])
+                check.article_jurisdiction = article_class.get("jurisdiction")
+                check.article_classification_confidence = int(article_class.get("confidence", 0) * 100) if article_class.get("confidence") else None
+                check.article_classification_source = article_class.get("source")
+                logger.info(f"Saved article classification: {check.article_domain} (jurisdiction: {check.article_jurisdiction})")
+            else:
+                logger.warning(f"No article classification available for check {check_id}")
+
             claims_data = results.get("claims", [])
+
+            # Save claims and evidence
             logger.info(f"Saving {len(claims_data)} claims for check {check_id}")
 
             for claim_data in claims_data:
@@ -254,7 +267,11 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                     source_url=claim_data.get("source_url"),
                     source_date=claim_data.get("source_date"),
                     # Temporal drift comparison (current API data vs claimed values)
-                    current_verified_data=claim_data.get("current_verified_data")
+                    current_verified_data=claim_data.get("current_verified_data"),
+                    # Rhetorical context detection (sarcasm, mockery, satire from source analysis)
+                    rhetorical_context=claim_data.get("rhetorical_analysis"),
+                    has_rhetorical_context=claim_data.get("has_rhetorical_context", False),
+                    rhetorical_style=claim_data.get("rhetorical_style")
                 )
                 session.add(claim)
                 session.flush()  # Get claim ID
@@ -732,6 +749,8 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             "query_response": query_response_data,  # Search Clarity
             "api_stats": api_stats,  # Phase 5: Government API Integration
             "article_excerpt": content.get("content", "")[:5000],  # First 5000 chars for judge context
+            # Article classification for domain stats
+            "article_classification": article_classification.to_dict() if article_classification else None,
             # Full Sources List Pro feature
             "raw_evidence": raw_evidence_data,
             "raw_sources_count": raw_sources_count,

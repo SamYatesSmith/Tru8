@@ -11,12 +11,25 @@ from app.pipeline.extract import ClaimExtractor  # Reuse LLM infrastructure
 
 logger = logging.getLogger(__name__)
 
+# Rhetorical context analyzer for detecting when sources describe sarcasm/mockery
+def _get_rhetorical_analysis(evidence: List[Dict[str, Any]], claim_text: str) -> Optional[Dict[str, Any]]:
+    """Analyze evidence for rhetorical context markers (sarcasm, mockery, satire)"""
+    if not settings.ENABLE_RHETORICAL_CONTEXT:
+        return None
+    try:
+        from app.utils.rhetorical_analyzer import analyze_rhetorical_context
+        return analyze_rhetorical_context(evidence, claim_text)
+    except Exception as e:
+        logger.warning(f"Rhetorical analysis failed (non-critical): {e}")
+        return None
+
 class JudgmentResult:
     """Result of claim judgment with verdict and rationale"""
 
     def __init__(self, claim_text: str, verdict: str, confidence: float, rationale: str,
                  supporting_evidence: List[Dict[str, Any]], evidence_summary: Dict[str, Any],
-                 current_verified_data: Optional[Dict[str, Any]] = None):
+                 current_verified_data: Optional[Dict[str, Any]] = None,
+                 rhetorical_analysis: Optional[Dict[str, Any]] = None):
         self.claim_text = claim_text
         self.verdict = verdict  # 'supported', 'contradicted', 'uncertain'
         self.confidence = confidence  # 0-100
@@ -24,6 +37,7 @@ class JudgmentResult:
         self.supporting_evidence = supporting_evidence
         self.evidence_summary = evidence_summary
         self.current_verified_data = current_verified_data  # Temporal drift comparison data
+        self.rhetorical_analysis = rhetorical_analysis  # Rhetorical context from source analysis
         self.created_at = datetime.utcnow()
 
     def to_dict(self) -> Dict[str, Any]:
@@ -39,6 +53,11 @@ class JudgmentResult:
         # Include temporal comparison data if present
         if self.current_verified_data:
             result["current_verified_data"] = self.current_verified_data
+        # Include rhetorical analysis if present
+        if self.rhetorical_analysis:
+            result["rhetorical_analysis"] = self.rhetorical_analysis
+            result["has_rhetorical_context"] = self.rhetorical_analysis.get("has_rhetorical_context", False)
+            result["rhetorical_style"] = self.rhetorical_analysis.get("primary_style")
         return result
 
 class ClaimJudge:
@@ -268,8 +287,18 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                     current_verified_data=temporal_comparison
                 )
 
-        # Prepare judgment context with optional article context
-        context = self._prepare_judgment_context(claim, verification_signals, evidence, article_context)
+        # Analyze rhetorical context (detect if sources describe sarcasm/mockery)
+        rhetorical_analysis = _get_rhetorical_analysis(evidence, claim_text)
+        if rhetorical_analysis and rhetorical_analysis.get("has_rhetorical_context"):
+            logger.info(
+                f"[JUDGE] Rhetorical context detected: {rhetorical_analysis.get('primary_style')} "
+                f"({rhetorical_analysis.get('unique_sources_flagging')} sources flagging)"
+            )
+
+        # Prepare judgment context with optional article context and rhetorical analysis
+        context = self._prepare_judgment_context(
+            claim, verification_signals, evidence, article_context, rhetorical_analysis
+        )
 
         # Get LLM judgment
         try:
@@ -297,7 +326,8 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 rationale=judgment_data.get("rationale", "Assessment based on available evidence"),
                 supporting_evidence=evidence[:3],  # Top 3 evidence pieces
                 evidence_summary=enriched_summary,
-                current_verified_data=temporal_comparison
+                current_verified_data=temporal_comparison,
+                rhetorical_analysis=rhetorical_analysis
             )
             
             # Cache result
@@ -322,7 +352,8 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 rationale=fallback_data["rationale"],
                 supporting_evidence=evidence[:3],
                 evidence_summary=verification_signals,
-                current_verified_data=temporal_comparison
+                current_verified_data=temporal_comparison,
+                rhetorical_analysis=rhetorical_analysis
             )
 
     def _get_few_shot_examples(self) -> str:
@@ -420,8 +451,9 @@ NOW JUDGE THE FOLLOWING CLAIM:
 """
 
     def _prepare_judgment_context(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
-                                 evidence: List[Dict[str, Any]], article_context: Optional[str] = None) -> str:
-        """Prepare context for LLM judgment with optional article context for holistic evaluation"""
+                                 evidence: List[Dict[str, Any]], article_context: Optional[str] = None,
+                                 rhetorical_analysis: Optional[Dict[str, Any]] = None) -> str:
+        """Prepare context for LLM judgment with optional article context and rhetorical analysis"""
         claim_text = claim.get("text", "")
 
         # Check if this is a temporal/date claim that requires math reasoning
@@ -538,6 +570,50 @@ reduce confidence significantly if relying on outdated sources.
 
 """
 
+        # Add rhetorical context warning if sources describe sarcasm/mockery/satire
+        rhetorical_warning = ""
+        if rhetorical_analysis and rhetorical_analysis.get("has_rhetorical_context"):
+            primary_style = rhetorical_analysis.get("primary_style", "rhetorical")
+            unique_sources = rhetorical_analysis.get("unique_sources_flagging", 0)
+            explanation = rhetorical_analysis.get("explanation", "")
+
+            # Get guidance from analyzer
+            try:
+                from app.utils.rhetorical_analyzer import RhetoricalContextAnalyzer
+                analyzer = RhetoricalContextAnalyzer()
+                guidance = analyzer.get_judge_guidance(rhetorical_analysis)
+            except:
+                guidance = ""
+
+            # List sources that flagged rhetorical context
+            source_details = ""
+            sources_flagging = rhetorical_analysis.get("sources_describing_rhetoric", [])
+            if sources_flagging:
+                source_lines = []
+                for src in sources_flagging[:3]:  # Top 3 sources
+                    source_lines.append(f"  - {src.get('source', 'Unknown')}: detected {', '.join(src.get('markers_found', []))}")
+                source_details = "\n".join(source_lines)
+
+            rhetorical_warning = f"""
+🎭 RHETORICAL CONTEXT DETECTED - LITERAL vs INTENT CONFLICT POSSIBLE 🎭
+{unique_sources} evidence source(s) describe this statement as {primary_style}.
+
+{explanation}
+
+Sources flagging rhetorical intent:
+{source_details}
+
+{guidance}
+
+CRITICAL GUIDANCE:
+- Claims about what was LITERALLY SAID may be true (exact words were used)
+- But characterizing the statement as SINCERE may be misleading
+- If judging "Person X said Y" - verify exact words (likely supported)
+- If judging "Person X meant Y" or "Person X believes Y" - consider rhetorical intent
+- When sources conflict on TONE (not facts), explain the literal-vs-intent distinction in your rationale
+
+"""
+
         # Build verification metrics conditionally based on feature flag
         # When disabled (default): Judge makes verdict decisions without NLI bias
         # NLI still runs for evidence relevance filtering
@@ -556,7 +632,7 @@ Evidence Quality: {signals.get('evidence_quality', 'low')}
         base_context = f"""
 CLAIM TO JUDGE:
 {claim_text}
-{temporal_warning}{stale_warning}{article_context_section}
+{temporal_warning}{stale_warning}{rhetorical_warning}{article_context_section}
 EVIDENCE ANALYSIS:
 Total Evidence Pieces: {signals.get('total_evidence', 0)}
 Supporting Evidence: {signals.get('supporting_count', 0)} pieces

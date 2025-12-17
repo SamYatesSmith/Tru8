@@ -29,6 +29,8 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   const [checkData, setCheckData] = useState(initialData);
   const [token, setToken] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [sourcesCount, setSourcesCount] = useState(rawSourcesCount);
+  const [isProUser, setIsProUser] = useState(isPro);
 
   // Check for upgrade query param
   useEffect(() => {
@@ -80,6 +82,30 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     return () => clearInterval(interval);
   }, [checkData.status, checkId, getToken]);
 
+  // Fetch sources count when check completes (handles transition from processing to completed)
+  useEffect(() => {
+    if (checkData.status !== 'completed') {
+      return;
+    }
+
+    // Only fetch if we don't have sources count yet (or it's 0 from initial load during processing)
+    if (sourcesCount === 0 || sourcesCount !== rawSourcesCount) {
+      const fetchSourcesCount = async () => {
+        try {
+          const currentToken = await getToken();
+          const sourcesResult = await apiClient.getCheckSources(checkId, { includeFiltered: true }, currentToken);
+          if (sourcesResult) {
+            setSourcesCount(sourcesResult.totalSources || 0);
+            setIsProUser(!sourcesResult.requiresUpgrade);
+          }
+        } catch (error) {
+          console.error('Failed to fetch sources count:', error);
+        }
+      };
+      fetchSourcesCount();
+    }
+  }, [checkData.status, checkId, getToken, sourcesCount, rawSourcesCount]);
+
   return (
     <div className="space-y-6">
       {/* Metadata Card - Always shown (now includes transparency score) */}
@@ -89,8 +115,8 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       {checkData.status === 'completed' && (
         <CheckTabs
           checkId={checkId}
-          sourcesCount={rawSourcesCount}
-          isPro={isPro}
+          sourcesCount={sourcesCount}
+          isPro={isProUser}
           isCompleted={checkData.status === 'completed'}
         />
       )}
@@ -99,7 +125,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       {showUpgradeModal && (
         <UpgradeModal
           feature="sources"
-          sourcesCount={rawSourcesCount}
+          sourcesCount={sourcesCount}
           onClose={() => {
             setShowUpgradeModal(false);
             // Clear the URL param

@@ -76,8 +76,12 @@ interface Evidence {
   relevanceScore: number;
   credibilityScore?: number;
 
-  // Fact-check fields
+  // Source type fields
   isFactcheck?: boolean;
+  externalSourceProvider?: string;  // API name (e.g., "Semantic Scholar", "NOAA")
+  sourceType?: string;  // 'factcheck', 'news', 'academic', 'government', 'general'
+
+  // Fact-check fields
   factcheckPublisher?: string;
   factcheckRating?: string;
 
@@ -380,9 +384,21 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                         </div>
                       )}
 
-                      {/* Metadata: Source · Date · Credibility Label */}
+                      {/* Metadata: Source · Source Type · Date · Credibility Label */}
                       <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
                         <span className="font-medium">{evidence.source}</span>
+
+                        {/* Source Type Badge */}
+                        {evidence.externalSourceProvider && (
+                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-bold uppercase">
+                            API
+                          </span>
+                        )}
+                        {evidence.isFactcheck && !evidence.externalSourceProvider && (
+                          <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-[10px] font-bold uppercase">
+                            Fact-Check
+                          </span>
+                        )}
 
                         {evidence.parentCompany && (
                           <>

@@ -187,7 +187,14 @@
     <table width="100%" style="margin-bottom: 8px; border-left: 2px solid #e2e8f0; background: #fafafa;">
       <tr>
         <td style="padding: 8px 10px;">
-          <div style="font-size: 10px; font-weight: bold; color: #1e40af;">{{ evidence.source }}</div>
+          <div style="font-size: 10px; font-weight: bold; color: #1e40af;">
+            {{ evidence.source }}
+            {% if evidence.external_source_provider %}
+            <span style="display: inline-block; background: #059669; color: #ffffff; padding: 1px 5px; font-size: 8px; font-weight: bold; text-transform: uppercase; margin-left: 6px; border-radius: 2px;">API</span>
+            {% elif evidence.is_factcheck %}
+            <span style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 1px 5px; font-size: 8px; font-weight: bold; text-transform: uppercase; margin-left: 6px; border-radius: 2px;">FACT-CHECK</span>
+            {% endif %}
+          </div>
           <div style="font-size: 10px; color: #334155; margin-top: 2px;">{{ evidence.title[:80] }}{% if evidence.title|length > 80 %}...{% endif %}</div>
           {% if evidence.snippet %}
           <div style="font-size: 9px; color: #64748b; margin-top: 4px; line-height: 1.4;">{{ evidence.snippet[:120] }}{% if evidence.snippet|length > 120 %}...{% endif %}</div>

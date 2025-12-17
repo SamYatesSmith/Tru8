@@ -1,6 +1,25 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 /**
+ * User statistics for dashboard insights
+ */
+export interface UserStats {
+  totalChecks: number;
+  checksThisMonth: number;
+  totalSourcesAnalyzed: number;
+  averageConfidence: number;
+  verdictBreakdown: {
+    supported: number;
+    contradicted: number;
+    uncertain: number;
+  };
+  domainBreakdown: Record<string, number>;
+  topDomain: string | null;
+  misinformationRate: number;
+  memberSince: string | null;
+}
+
+/**
  * Backend API Client
  *
  * For client components: Pass token from useAuth().getToken()
@@ -75,6 +94,14 @@ class ApiClient {
    */
   async getUsage(token?: string | null) {
     return this.request('/api/v1/users/usage', {}, token);
+  }
+
+  /**
+   * GET /api/v1/users/stats
+   * Returns aggregated user statistics for dashboard insights
+   */
+  async getUserStats(token?: string | null): Promise<UserStats> {
+    return this.request<UserStats>('/api/v1/users/stats', {}, token);
   }
 
   /**

@@ -502,6 +502,13 @@ async def get_checks(
             "completedAt": check.completed_at.isoformat() if check.completed_at else None,
             "claimsCount": claims_count,
             "claims": claims_array,  # First claim for preview
+            # Synopsis fields for dashboard cards
+            "overallSummary": check.overall_summary,
+            "credibilityScore": check.credibility_score,
+            "claimsSupported": check.claims_supported or 0,
+            "claimsContradicted": check.claims_contradicted or 0,
+            "claimsUncertain": check.claims_uncertain or 0,
+            "articleDomain": check.article_domain,
         })
 
     return {
@@ -563,6 +570,10 @@ async def get_check(
                     "publishedDate": ev.published_date.isoformat() if ev.published_date else None,
                     "relevanceScore": ev.relevance_score,
                     "credibilityScore": ev.credibility_score,
+                    # Source type fields
+                    "isFactcheck": ev.is_factcheck,
+                    "externalSourceProvider": ev.external_source_provider,
+                    "sourceType": ev.source_type,
                 }
                 for ev in evidence
             ]

@@ -1,11 +1,12 @@
 import { auth } from '@clerk/nextjs/server';
-import { apiClient } from '@/lib/api';
+import { apiClient, UserStats } from '@/lib/api';
 import { PageHeader } from './components/page-header';
 import { JusticeScalesGraphic } from './components/justice-scales-graphic';
 import { UpgradeBanner } from './components/upgrade-banner';
 import { UsageCard } from './components/usage-card';
 import { QuickActionCard } from './components/quick-action-card';
 import { RecentChecksList } from './components/recent-checks-list';
+import { UserInsightsCard } from './components/user-insights-card';
 
 interface User {
   id: string;
@@ -48,11 +49,12 @@ export default async function DashboardPage({
   // Middleware guarantees authentication - just get token and fetch data
   const { getToken } = auth();
   const token = await getToken();
-  const [user, subscription, usage, checksResponse] = await Promise.all([
+  const [user, subscription, usage, checksResponse, stats] = await Promise.all([
     apiClient.getCurrentUser(token) as Promise<User>,
     apiClient.getSubscriptionStatus(token) as Promise<Subscription>,
     apiClient.getUsage(token) as Promise<UsageData>,
     apiClient.getChecks(token, 0, 5) as Promise<ChecksResponse>,
+    apiClient.getUserStats(token) as Promise<UserStats>,
   ]);
 
   // Use server-calculated monthly usage
@@ -128,6 +130,11 @@ export default async function DashboardPage({
 
       {/* Recent Checks */}
       <RecentChecksList checks={checksResponse.checks} />
+
+      {/* User Insights (only show if user has completed checks) */}
+      {stats.totalChecks > 0 && (
+        <UserInsightsCard stats={stats} />
+      )}
     </div>
   );
 }

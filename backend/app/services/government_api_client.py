@@ -178,7 +178,7 @@ class GovernmentAPIClient(ABC):
 
         for attempt in range(self.max_retries):
             try:
-                with httpx.Client(timeout=self.timeout) as client:
+                with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
                     if method == "GET":
                         response = client.get(url, headers=self.headers, params=params)
                     elif method == "POST":

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { Search } from 'lucide-react';
 import { apiClient } from '@/lib/api';
@@ -8,11 +8,20 @@ import { CheckCard } from '../../components/check-card';
 import { EmptyState } from '../../components/empty-state';
 import { LoadingSpinner } from '../../components/loading-spinner';
 
+const LAST_SEEN_CHECK_KEY = 'tru8_last_seen_check';
+
 interface Check {
   id: string;
   status: string;
   inputUrl: string | null;
   createdAt: string;
+  claimsCount: number;
+  overallSummary: string | null;
+  credibilityScore: number | null;
+  claimsSupported: number;
+  claimsContradicted: number;
+  claimsUncertain: number;
+  articleDomain: string | null;
   claims: Array<{
     text: string;
     verdict: 'supported' | 'contradicted' | 'uncertain';
@@ -32,11 +41,29 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
   const [checks, setChecks] = useState<Check[]>(initialChecks.checks);
   const [total] = useState(initialChecks.total);
   const [isLoading, setIsLoading] = useState(false);
+  const [newCheckId, setNewCheckId] = useState<string | null>(null);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [verdictFilter, setVerdictFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Track seen checks - highlight newest if it's different from last seen
+  useEffect(() => {
+    if (checks.length === 0) return;
+
+    const firstCompletedCheck = checks.find(c => c.status === 'completed' && c.claims?.length > 0);
+    if (!firstCompletedCheck) return;
+
+    const lastSeenCheckId = localStorage.getItem(LAST_SEEN_CHECK_KEY);
+
+    // If the first completed check is different from last seen, it's new
+    if (lastSeenCheckId !== firstCompletedCheck.id) {
+      setNewCheckId(firstCompletedCheck.id);
+      // Update localStorage with the new first check
+      localStorage.setItem(LAST_SEEN_CHECK_KEY, firstCompletedCheck.id);
+    }
+  }, [checks]);
 
   // Load more checks
   const handleLoadMore = async () => {
@@ -144,7 +171,7 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
       ) : (
         <div className="space-y-4">
           {filteredChecks.map(check => (
-            <CheckCard key={check.id} check={check} />
+            <CheckCard key={check.id} check={check} isNew={check.id === newCheckId} />
           ))}
         </div>
       )}

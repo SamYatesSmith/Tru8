@@ -196,8 +196,8 @@ class PubMedAdapter(GovernmentAPIClient):
             del self.headers["Authorization"]
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """PubMed covers Health and Science globally."""
-        return domain in ["Health", "Science"]
+        """PubMed covers biomedical and life sciences globally."""
+        return domain in ["Health", "Science", "Climate", "Animals"]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
         """
@@ -807,8 +807,8 @@ class NOAAAdapter(GovernmentAPIClient):
                 del self.headers["Authorization"]
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """NOAA covers Climate globally."""
-        return domain == "Climate"
+        """NOAA covers Climate and Weather globally (historical climate data)."""
+        return domain in ["Climate", "Weather"]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
         """
@@ -1696,8 +1696,11 @@ class CrossRefAdapter(GovernmentAPIClient):
         })
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """CrossRef covers Science globally."""
-        return domain == "Science"
+        """CrossRef covers academic papers across knowledge domains."""
+        return domain in [
+            "Science", "Climate", "History", "Health",
+            "Politics", "Law", "Demographics", "Animals"
+        ]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
         """
@@ -1818,8 +1821,8 @@ class GovUKAdapter(GovernmentAPIClient):
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """GOV.UK covers Government for UK."""
-        return domain in ["Government", "General"] and jurisdiction in ["UK", "Global"]
+        """GOV.UK covers Government, History, and Law for UK."""
+        return domain in ["Government", "General", "History", "Law"] and jurisdiction in ["UK", "Global"]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
         """
@@ -2031,8 +2034,11 @@ class WikidataAdapter(GovernmentAPIClient):
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """Wikidata covers General globally."""
-        return domain == "General"
+        """Wikidata covers structured data across most domains."""
+        return domain in [
+            "General", "History", "Politics", "Entertainment",
+            "Sports", "Science", "Animals", "Climate", "Health"
+        ]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
         """
@@ -2150,16 +2156,16 @@ class GovInfoAdapter(GovernmentAPIClient):
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """
-        GovInfo covers Law domain for US jurisdiction.
+        GovInfo covers Law and History for US jurisdiction.
 
         Args:
-            domain: Domain classification (Law, Finance, Health, etc.)
+            domain: Domain classification (Law, History, etc.)
             jurisdiction: US, UK, EU, Global
 
         Returns:
             True if this adapter can handle the domain/jurisdiction
         """
-        return domain == "Law" and jurisdiction == "US"
+        return domain in ["Law", "History"] and jurisdiction in ["US", "Global"]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
         """
@@ -3829,6 +3835,721 @@ class GBIFAdapter(GovernmentAPIClient):
         return []
 
 
+class WikipediaAdapter(GovernmentAPIClient):
+    """
+    Wikipedia REST API Adapter.
+
+    Uses the MediaWiki REST API for reliable, structured data from Wikipedia.
+    Excellent for History, Politics, Entertainment, and General knowledge claims.
+    """
+
+    def __init__(self, max_results: int = 5):
+        super().__init__(
+            api_name="Wikipedia",
+            base_url="https://en.wikipedia.org/api/rest_v1",
+            api_key=None,  # No API key required
+            timeout=15,
+            max_results=max_results
+        )
+        # Required: Identify our application per Wikipedia API etiquette
+        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        self.search_base = "https://en.wikipedia.org/w/api.php"
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """Wikipedia covers encyclopedic content across most domains."""
+        return domain in [
+            "History", "Politics", "Entertainment", "General",
+            "Sports", "Science", "Animals", "Climate", "Health"
+        ]
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """
+        Search Wikipedia for relevant articles.
+
+        Strategy:
+        1. Use MediaWiki search API to find relevant articles
+        2. Fetch page summaries via REST API
+        3. Transform to evidence format
+
+        Args:
+            query: Search query
+            domain: History, Politics, Entertainment, or General
+            jurisdiction: Any (global encyclopedia)
+            entities: Optional named entities from NER
+
+        Returns:
+            List of evidence dictionaries
+        """
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        query = self._sanitize_query(query)
+        evidence = []
+
+        try:
+            # Step 1: Search for relevant articles using MediaWiki API
+            # Note: MediaWiki API uses different base URL, so we make direct request
+            search_params = {
+                "action": "query",
+                "list": "search",
+                "srsearch": query,
+                "srlimit": self.max_results,
+                "srprop": "snippet|timestamp|titlesnippet",
+                "format": "json",
+                "origin": "*"
+            }
+
+            # Direct request to MediaWiki API (different from REST API base_url)
+            import httpx
+            with httpx.Client(timeout=self.timeout) as client:
+                response = client.get(self.search_base, headers=self.headers, params=search_params)
+                response.raise_for_status()
+                search_response = response.json()
+
+            if not search_response or "query" not in search_response:
+                logger.warning(f"Wikipedia search returned no results for: {query[:50]}...")
+                return []
+
+            search_results = search_response.get("query", {}).get("search", [])
+
+            # Step 2: Fetch summaries for each result via REST API
+            for result in search_results[:self.max_results]:
+                title = result.get("title", "")
+                if not title:
+                    continue
+
+                # Get page summary via REST API
+                try:
+                    # URL-encode the title for the REST API
+                    encoded_title = title.replace(" ", "_")
+                    summary_response = self._make_request(f"/page/summary/{encoded_title}")
+
+                    if summary_response and "extract" in summary_response:
+                        # Extract publication date if available
+                        pub_date = None
+                        if "timestamp" in summary_response:
+                            try:
+                                pub_date = datetime.fromisoformat(summary_response["timestamp"].replace("Z", "+00:00"))
+                            except Exception:
+                                pass
+
+                        # Build URL
+                        url = summary_response.get("content_urls", {}).get("desktop", {}).get("page")
+                        if not url:
+                            url = f"https://en.wikipedia.org/wiki/{encoded_title}"
+
+                        evidence.append({
+                            "source_name": "Wikipedia",
+                            "source_type": "encyclopedia",
+                            "title": summary_response.get("title", title),
+                            "content": summary_response.get("extract", ""),
+                            "url": url,
+                            "publication_date": pub_date.isoformat() if pub_date else None,
+                            "credibility_score": 0.75,  # Wikipedia is generally reliable but editable
+                            "relevance_score": 0.8,
+                            "metadata": {
+                                "description": summary_response.get("description", ""),
+                                "page_id": summary_response.get("pageid"),
+                                "last_modified": summary_response.get("timestamp"),
+                                "domain": domain
+                            }
+                        })
+                except Exception as e:
+                    logger.warning(f"Failed to fetch Wikipedia summary for '{title}': {e}")
+                    continue
+
+            logger.info(f"Wikipedia returned {len(evidence)} results for query: {query[:50]}...")
+
+        except Exception as e:
+            logger.error(f"Wikipedia search failed: {e}")
+
+        return evidence
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform Wikipedia API response to standardized evidence format."""
+        # Handled by search method above
+        return []
+
+
+# ========== LIBRARY OF CONGRESS ADAPTER (P0) ==========
+
+class LibraryOfCongressAdapter(GovernmentAPIClient):
+    """
+    Library of Congress API adapter for historical documents and newspapers.
+
+    Provides access to:
+    - General LOC collections search
+    - Chronicling America (historical newspapers 1789-1963)
+
+    No API key required. Rate limit: polite usage (~10 req/sec).
+    """
+
+    def __init__(self, max_results: int = 10):
+        super().__init__(
+            api_name="Library of Congress",
+            base_url="https://www.loc.gov",
+            api_key=None,
+            cache_ttl=86400 * 7,  # 7 days (historical content is stable)
+            timeout=15,
+            max_results=max_results
+        )
+        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """Library of Congress covers History, Politics, and General (US focus, global relevance)."""
+        return domain in ["History", "Politics", "General"]
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
+        """
+        Search Library of Congress collections and Chronicling America newspapers.
+
+        Returns standardized evidence dictionaries.
+        """
+        evidence = []
+
+        try:
+            # Search 1: General LOC collections
+            loc_results = self._search_loc_collections(query)
+            evidence.extend(loc_results)
+
+            # Search 2: Chronicling America historical newspapers
+            newspaper_results = self._search_chronicling_america(query)
+            evidence.extend(newspaper_results)
+
+            logger.info(f"Library of Congress returned {len(evidence)} results for query: {query[:50]}...")
+
+        except Exception as e:
+            logger.error(f"Library of Congress search failed: {e}")
+
+        return evidence[:self.max_results]
+
+    def _search_loc_collections(self, query: str) -> List[Dict[str, Any]]:
+        """Search general LOC collections."""
+        evidence = []
+
+        try:
+            params = {
+                "q": query,
+                "fo": "json",
+                "c": 5,  # Limit results
+                "fa": "original-format:book|original-format:manuscript|original-format:newspaper"
+            }
+
+            response = self._make_request("/search/", params=params)
+
+            if not response or "results" not in response:
+                return []
+
+            for result in response.get("results", [])[:5]:
+                # Skip if no title
+                title = result.get("title")
+                if not title:
+                    continue
+
+                # Extract date
+                pub_date = None
+                date_str = result.get("date")
+                if date_str:
+                    try:
+                        # LOC dates can be in various formats
+                        if len(date_str) == 4:  # Year only
+                            pub_date = f"{date_str}-01-01"
+                        elif len(date_str) >= 10:
+                            pub_date = date_str[:10]
+                    except Exception:
+                        pass
+
+                # Build URL
+                url = result.get("url") or result.get("id")
+                if url and not url.startswith("http"):
+                    url = f"https://www.loc.gov{url}"
+
+                # Extract description/content
+                description = result.get("description", [])
+                if isinstance(description, list):
+                    description = " ".join(description[:2])
+
+                evidence.append({
+                    "source_name": "Library of Congress",
+                    "source_type": "archive",
+                    "title": title if isinstance(title, str) else title[0] if title else "Unknown",
+                    "content": description or result.get("extract", ""),
+                    "url": url,
+                    "publication_date": pub_date,
+                    "credibility_score": 0.95,  # Primary source archive
+                    "relevance_score": 0.85,
+                    "metadata": {
+                        "collection": result.get("partof", []),
+                        "format": result.get("original_format", []),
+                        "contributor": result.get("contributor", []),
+                        "subjects": result.get("subject", [])[:5]
+                    }
+                })
+
+        except Exception as e:
+            logger.warning(f"LOC collections search failed: {e}")
+
+        return evidence
+
+    def _search_chronicling_america(self, query: str) -> List[Dict[str, Any]]:
+        """Search Chronicling America historical newspapers (1789-1963) via LOC search API."""
+        evidence = []
+
+        try:
+            # Use LOC search API with Chronicling America filter
+            # (old chroniclingamerica.loc.gov API is deprecated)
+            params = {
+                "q": query,
+                "fo": "json",
+                "fa": "partof:chronicling america",
+                "c": 5
+            }
+
+            response = self._make_request("/search/", params=params)
+
+            if not response or "results" not in response:
+                return []
+
+            for result in response.get("results", [])[:5]:
+                title = result.get("title", "Historical Newspaper")
+
+                # Handle title as list or string
+                if isinstance(title, list):
+                    title = title[0] if title else "Historical Newspaper"
+
+                # Parse date
+                pub_date = None
+                date_str = result.get("date")
+                if date_str:
+                    try:
+                        if isinstance(date_str, list):
+                            date_str = date_str[0] if date_str else None
+                        if date_str:
+                            if len(date_str) == 4:  # Year only
+                                pub_date = f"{date_str}-01-01"
+                            elif len(date_str) >= 10:
+                                pub_date = date_str[:10]
+                    except Exception:
+                        pass
+
+                # Build URL
+                url = result.get("url") or result.get("id", "")
+                if url and not url.startswith("http"):
+                    url = f"https://www.loc.gov{url}"
+
+                # Extract location info
+                location = result.get("location", [])
+                if isinstance(location, list):
+                    location = location[0] if location else ""
+
+                evidence.append({
+                    "source_name": "Chronicling America",
+                    "source_type": "newspaper",
+                    "title": title,
+                    "content": result.get("description", [""])[0] if isinstance(result.get("description"), list) else result.get("description", ""),
+                    "url": url,
+                    "publication_date": pub_date,
+                    "credibility_score": 0.9,  # Historical primary source
+                    "relevance_score": 0.8,
+                    "metadata": {
+                        "location": location,
+                        "format": result.get("original_format", []),
+                        "subjects": result.get("subject", [])[:5]
+                    }
+                })
+
+        except Exception as e:
+            logger.warning(f"Chronicling America search failed: {e}")
+
+        return evidence
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform handled by search methods."""
+        return []
+
+
+# ========== SEMANTIC SCHOLAR ADAPTER (P1) ==========
+
+class SemanticScholarAdapter(GovernmentAPIClient):
+    """
+    Semantic Scholar API adapter for academic paper search.
+
+    Provides access to 200M+ academic papers with citation data.
+    No API key required (100 requests/5 minutes).
+    """
+
+    def __init__(self, max_results: int = 10):
+        super().__init__(
+            api_name="Semantic Scholar",
+            base_url="https://api.semanticscholar.org/graph/v1",
+            api_key=None,
+            cache_ttl=86400 * 7,  # 7 days
+            timeout=15,
+            max_results=max_results
+        )
+        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """Semantic Scholar covers academic research across all knowledge domains."""
+        # Academic papers exist for virtually all domains
+        return domain in [
+            "Science", "Climate", "History", "Health", "General",
+            "Politics", "Law", "Demographics", "Animals", "Entertainment"
+        ]
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
+        """
+        Search Semantic Scholar for academic papers.
+
+        Returns standardized evidence dictionaries.
+        """
+        evidence = []
+
+        try:
+            params = {
+                "query": query,
+                "limit": self.max_results,
+                "fields": "title,abstract,url,year,citationCount,authors,venue,publicationDate"
+            }
+
+            response = self._make_request("/paper/search", params=params)
+
+            if not response or "data" not in response:
+                logger.warning(f"Semantic Scholar returned no results for: {query[:50]}...")
+                return []
+
+            for paper in response.get("data", []):
+                if not paper:
+                    continue
+
+                title = paper.get("title", "")
+                if not title:
+                    continue
+
+                # Extract authors
+                authors = []
+                for author in paper.get("authors", [])[:3]:
+                    if author.get("name"):
+                        authors.append(author["name"])
+
+                # Parse publication date
+                pub_date = paper.get("publicationDate")
+                if not pub_date and paper.get("year"):
+                    pub_date = f"{paper['year']}-01-01"
+
+                # Calculate credibility based on citations
+                citation_count = paper.get("citationCount", 0) or 0
+                credibility = min(0.95, 0.75 + (citation_count / 1000) * 0.2)
+
+                evidence.append({
+                    "source_name": "Semantic Scholar",
+                    "source_type": "academic",
+                    "title": title,
+                    "content": paper.get("abstract", "") or "",
+                    "url": paper.get("url") or f"https://www.semanticscholar.org/paper/{paper.get('paperId', '')}",
+                    "publication_date": pub_date,
+                    "credibility_score": credibility,
+                    "relevance_score": 0.85,
+                    "metadata": {
+                        "authors": authors,
+                        "venue": paper.get("venue", ""),
+                        "citation_count": citation_count,
+                        "paper_id": paper.get("paperId")
+                    }
+                })
+
+            logger.info(f"Semantic Scholar returned {len(evidence)} results for query: {query[:50]}...")
+
+        except Exception as e:
+            logger.error(f"Semantic Scholar search failed: {e}")
+
+        return evidence
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform handled by search method."""
+        return []
+
+
+# ========== OPENALEX ADAPTER (P2) ==========
+
+class OpenAlexAdapter(GovernmentAPIClient):
+    """
+    OpenAlex API adapter for scholarly works.
+
+    Provides access to 250M+ scholarly works from the OpenAlex catalog.
+    No API key required (100,000 requests/day with polite pool).
+    """
+
+    def __init__(self, max_results: int = 10):
+        super().__init__(
+            api_name="OpenAlex",
+            base_url="https://api.openalex.org",
+            api_key=None,
+            cache_ttl=86400 * 7,  # 7 days
+            timeout=15,
+            max_results=max_results
+        )
+        # OpenAlex requests polite pool identification via email
+        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (mailto:contact@tru8.com)"
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """OpenAlex covers scholarly works across all knowledge domains."""
+        # Scholarly works exist for virtually all domains
+        return domain in [
+            "Science", "Climate", "History", "Health", "General",
+            "Politics", "Law", "Demographics", "Animals", "Entertainment"
+        ]
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
+        """
+        Search OpenAlex for scholarly works.
+
+        Returns standardized evidence dictionaries.
+        """
+        evidence = []
+
+        try:
+            params = {
+                "search": query,
+                "per_page": self.max_results,
+                "filter": "publication_year:>1900",
+                "mailto": "contact@tru8.com"  # Polite pool
+            }
+
+            response = self._make_request("/works", params=params)
+
+            if not response or "results" not in response:
+                logger.warning(f"OpenAlex returned no results for: {query[:50]}...")
+                return []
+
+            for work in response.get("results", []):
+                if not work:
+                    continue
+
+                title = work.get("title", "")
+                if not title:
+                    continue
+
+                # Extract authors
+                authors = []
+                for authorship in work.get("authorships", [])[:3]:
+                    author = authorship.get("author", {})
+                    if author.get("display_name"):
+                        authors.append(author["display_name"])
+
+                # Parse publication date
+                pub_date = work.get("publication_date")
+
+                # Calculate credibility based on citations
+                citation_count = work.get("cited_by_count", 0) or 0
+                credibility = min(0.95, 0.75 + (citation_count / 1000) * 0.2)
+
+                # Get best available URL
+                url = work.get("doi")
+                if url and not url.startswith("http"):
+                    url = f"https://doi.org/{url}"
+                if not url:
+                    url = work.get("id", "")  # OpenAlex ID URL
+
+                # Reconstruct abstract from inverted index if available
+                abstract = ""
+                abstract_index = work.get("abstract_inverted_index")
+                if abstract_index:
+                    try:
+                        # OpenAlex uses inverted index for abstract
+                        word_positions = []
+                        for word, positions in abstract_index.items():
+                            for pos in positions:
+                                word_positions.append((pos, word))
+                        word_positions.sort()
+                        abstract = " ".join(word for _, word in word_positions[:100])
+                    except Exception:
+                        pass
+
+                # Safely extract source name from primary_location
+                primary_location = work.get("primary_location") or {}
+                source_info = primary_location.get("source") or {}
+                source_name = source_info.get("display_name", "") if isinstance(source_info, dict) else ""
+
+                # Safely extract open_access info
+                open_access = work.get("open_access") or {}
+                is_oa = open_access.get("is_oa", False) if isinstance(open_access, dict) else False
+
+                evidence.append({
+                    "source_name": "OpenAlex",
+                    "source_type": "academic",
+                    "title": title,
+                    "content": abstract,
+                    "url": url,
+                    "publication_date": pub_date,
+                    "credibility_score": credibility,
+                    "relevance_score": 0.85,
+                    "metadata": {
+                        "authors": authors,
+                        "citation_count": citation_count,
+                        "type": work.get("type", ""),
+                        "open_access": is_oa,
+                        "source": source_name
+                    }
+                })
+
+            logger.info(f"OpenAlex returned {len(evidence)} results for query: {query[:50]}...")
+
+        except Exception as e:
+            logger.error(f"OpenAlex search failed: {e}")
+
+        return evidence
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform handled by search method."""
+        return []
+
+
+# ========== INTERNET ARCHIVE ADAPTER (P3) ==========
+
+class InternetArchiveAdapter(GovernmentAPIClient):
+    """
+    Internet Archive API adapter for historical documents and web archives.
+
+    Provides access to:
+    - Archive.org collections (texts, audio, video, images)
+    - Wayback Machine historical web snapshots
+
+    No API key required. Rate limit: 15 requests/minute per IP.
+    """
+
+    def __init__(self, max_results: int = 10):
+        super().__init__(
+            api_name="Internet Archive",
+            base_url="https://archive.org",
+            api_key=None,
+            cache_ttl=86400 * 7,  # 7 days
+            timeout=20,  # Archive can be slow
+            max_results=max_results
+        )
+        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """Internet Archive covers historical documents across many domains."""
+        return domain in ["History", "General", "Politics", "Entertainment", "Science"]
+
+    def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
+        """
+        Search Internet Archive collections.
+
+        Returns standardized evidence dictionaries.
+        """
+        evidence = []
+
+        try:
+            import httpx
+
+            # Build search query for texts and documents
+            params = {
+                "q": query,
+                "output": "json",
+                "rows": self.max_results,
+                "fl[]": ["identifier", "title", "description", "date", "creator", "mediatype", "collection"],
+                "sort[]": "downloads desc"  # Prioritize popular items
+            }
+
+            with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
+                response = client.get(
+                    f"{self.base_url}/advancedsearch.php",
+                    params=params,
+                    headers=self.headers
+                )
+                response.raise_for_status()
+                data = response.json()
+
+            if not data or "response" not in data:
+                logger.warning(f"Internet Archive returned no results for: {query[:50]}...")
+                return []
+
+            docs = data.get("response", {}).get("docs", [])
+
+            for doc in docs:
+                if not doc:
+                    continue
+
+                title = doc.get("title", "")
+                if not title:
+                    continue
+
+                # Handle title as list or string
+                if isinstance(title, list):
+                    title = title[0] if title else ""
+
+                # Parse date
+                pub_date = None
+                date_str = doc.get("date")
+                if date_str:
+                    try:
+                        if isinstance(date_str, list):
+                            date_str = date_str[0]
+                        # Various date formats
+                        if len(date_str) == 4:  # Year only
+                            pub_date = f"{date_str}-01-01"
+                        elif len(date_str) >= 10:
+                            pub_date = date_str[:10]
+                    except Exception:
+                        pass
+
+                # Extract description
+                description = doc.get("description", "")
+                if isinstance(description, list):
+                    description = " ".join(description[:2])
+
+                # Build URL
+                identifier = doc.get("identifier", "")
+                url = f"https://archive.org/details/{identifier}" if identifier else ""
+
+                # Extract creator
+                creator = doc.get("creator", [])
+                if isinstance(creator, list):
+                    creator = creator[:3]
+                elif creator:
+                    creator = [creator]
+                else:
+                    creator = []
+
+                # Credibility based on mediatype
+                mediatype = doc.get("mediatype", "")
+                credibility = 0.85
+                if mediatype == "texts":
+                    credibility = 0.9
+                elif mediatype in ["audio", "video"]:
+                    credibility = 0.8
+
+                evidence.append({
+                    "source_name": "Internet Archive",
+                    "source_type": "archive",
+                    "title": title,
+                    "content": description[:500] if description else "",
+                    "url": url,
+                    "publication_date": pub_date,
+                    "credibility_score": credibility,
+                    "relevance_score": 0.8,
+                    "metadata": {
+                        "identifier": identifier,
+                        "mediatype": mediatype,
+                        "creator": creator,
+                        "collection": doc.get("collection", [])
+                    }
+                })
+
+            logger.info(f"Internet Archive returned {len(evidence)} results for query: {query[:50]}...")
+
+        except Exception as e:
+            logger.error(f"Internet Archive search failed: {e}")
+
+        return evidence
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform handled by search method."""
+        return []
+
+
 # ========== ADAPTER INITIALIZATION ==========
 
 def initialize_adapters():
@@ -3948,5 +4669,27 @@ def initialize_adapters():
     # Register GBIF adapter (Biodiversity/Species - No API key required, fully open)
     registry.register(GBIFAdapter())
     logger.info("[ADAPTERS] Registered GBIF adapter for Animals/Biodiversity (no key required)")
+
+    # Register Wikipedia adapter (History, Politics, Entertainment, General - No API key required)
+    registry.register(WikipediaAdapter())
+    logger.info("[ADAPTERS] Registered Wikipedia adapter for History/Politics/Entertainment/General (no key required)")
+
+    # ===== NEW HIGH-QUALITY FREE ADAPTERS (No API keys required) =====
+
+    # Register Library of Congress adapter (History, Politics, General - Primary sources, newspapers)
+    registry.register(LibraryOfCongressAdapter())
+    logger.info("[ADAPTERS] Registered Library of Congress adapter for History/Politics/General (no key required)")
+
+    # Register Semantic Scholar adapter (Science, History, Health, General - 200M+ academic papers)
+    registry.register(SemanticScholarAdapter())
+    logger.info("[ADAPTERS] Registered Semantic Scholar adapter for Science/History/Health/General (no key required)")
+
+    # Register OpenAlex adapter (Science, History, Health, General - 250M+ scholarly works)
+    registry.register(OpenAlexAdapter())
+    logger.info("[ADAPTERS] Registered OpenAlex adapter for Science/History/Health/General (no key required)")
+
+    # Register Internet Archive adapter (History, General - Historical documents, Wayback Machine)
+    registry.register(InternetArchiveAdapter())
+    logger.info("[ADAPTERS] Registered Internet Archive adapter for History/General (no key required)")
 
     logger.info(f"API adapter initialization complete. {len(registry.get_all_adapters())} adapters registered.")

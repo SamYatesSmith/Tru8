@@ -180,6 +180,11 @@ class Settings(BaseSettings):
     PRIMARY_SOURCE_BOOST: float = Field(0.25, env="PRIMARY_SOURCE_BOOST")
     SECONDARY_SOURCE_PENALTY: float = Field(0.15, env="SECONDARY_SOURCE_PENALTY")
 
+    # ========== RHETORICAL CONTEXT DETECTION ==========
+    # Detect when evidence sources describe rhetorical intent (sarcasm, mockery, satire)
+    # More reliable than direct sarcasm detection - trusts journalists' characterization
+    ENABLE_RHETORICAL_CONTEXT: bool = Field(True, env="ENABLE_RHETORICAL_CONTEXT")
+
     # ========== ARTICLE-LEVEL CLASSIFICATION ==========
     # LLM-based article classification (runs once per check, not per claim)
     # Replaces per-claim spaCy NER domain detection with ~95% accuracy

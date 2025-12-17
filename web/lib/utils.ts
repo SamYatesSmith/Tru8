@@ -12,12 +12,16 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Format date string for display
  * Shows relative time for recent dates, absolute date for older dates
+ * Uses calendar day comparison (not 24-hour periods)
  */
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // Compare by calendar date (ignore time component)
+  const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.round((nowDay.getTime() - dateDay.getTime()) / (1000 * 60 * 60 * 24));
 
   // Relative time for recent dates
   if (diffDays === 0) return 'Today';
