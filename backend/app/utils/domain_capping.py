@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from collections import defaultdict
 import logging
 from app.utils.url_utils import extract_domain
@@ -90,6 +90,113 @@ class DomainCapper:
                    f"Distribution: {dict(domain_counts)}")
 
         return capped_evidence
+
+    def apply_global_caps(
+        self,
+        evidence_by_claim: Dict[str, List[Dict[str, Any]]],
+        global_max_per_domain: int = 5,
+        global_max_ratio: float = 0.25
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Apply global domain capping across ALL claims to ensure source diversity.
+
+        This prevents any single domain from dominating the evidence across the
+        entire fact-check, even if each individual claim's capping allows it.
+
+        Args:
+            evidence_by_claim: Dict mapping claim position to evidence list
+            global_max_per_domain: Absolute max evidence from any domain across all claims
+            global_max_ratio: Max ratio of total evidence from any domain (e.g., 0.25 = 25%)
+
+        Returns:
+            Modified evidence_by_claim with global diversity enforced
+        """
+        if not evidence_by_claim:
+            return evidence_by_claim
+
+        # Flatten all evidence with claim tracking
+        all_evidence = []
+        for position, ev_list in evidence_by_claim.items():
+            for ev in ev_list:
+                ev_copy = dict(ev)
+                ev_copy['_claim_position'] = position
+                all_evidence.append(ev_copy)
+
+        if not all_evidence:
+            return evidence_by_claim
+
+        # Calculate current domain distribution
+        domain_counts = defaultdict(int)
+        domain_evidence = defaultdict(list)
+        for ev in all_evidence:
+            domain = extract_domain(ev.get('url', ''), fallback="unknown")
+            domain_counts[domain] += 1
+            domain_evidence[domain].append(ev)
+
+        total_evidence = len(all_evidence)
+        effective_max_count = min(
+            global_max_per_domain,
+            max(3, int(total_evidence * global_max_ratio))  # At least 3
+        )
+
+        # Check if any domain exceeds the cap
+        capped_domains = {}
+        for domain, count in domain_counts.items():
+            if count > effective_max_count:
+                capped_domains[domain] = count
+                logger.info(
+                    f"[GLOBAL CAP] Domain '{domain}' has {count} sources "
+                    f"(exceeds cap of {effective_max_count}), will be reduced"
+                )
+
+        if not capped_domains:
+            logger.info(f"[GLOBAL CAP] All domains within limits (max={effective_max_count})")
+            return evidence_by_claim
+
+        # Sort evidence within each domain by score (descending) to keep best ones
+        for domain in capped_domains:
+            domain_evidence[domain].sort(
+                key=lambda x: x.get('final_score', x.get('combined_score', 0)),
+                reverse=True
+            )
+
+        # Rebuild evidence_by_claim with global caps enforced
+        global_domain_counts = defaultdict(int)
+        new_evidence_by_claim = {pos: [] for pos in evidence_by_claim.keys()}
+
+        # Process evidence in order of score (best first across all claims)
+        all_evidence_sorted = sorted(
+            all_evidence,
+            key=lambda x: x.get('final_score', x.get('combined_score', 0)),
+            reverse=True
+        )
+
+        for ev in all_evidence_sorted:
+            domain = extract_domain(ev.get('url', ''), fallback="unknown")
+            position = ev.get('_claim_position')
+
+            # Check global domain cap
+            if global_domain_counts[domain] >= effective_max_count:
+                logger.debug(
+                    f"[GLOBAL CAP] Skipping {domain} source (already at {effective_max_count})"
+                )
+                continue
+
+            # Remove tracking field and add to result
+            ev_clean = {k: v for k, v in ev.items() if not k.startswith('_')}
+            new_evidence_by_claim[position].append(ev_clean)
+            global_domain_counts[domain] += 1
+
+        # Log results
+        total_before = sum(len(v) for v in evidence_by_claim.values())
+        total_after = sum(len(v) for v in new_evidence_by_claim.values())
+        logger.info(
+            f"[GLOBAL CAP] Applied: {total_before} → {total_after} sources. "
+            f"Domains capped: {list(capped_domains.keys())}. "
+            f"New distribution: {dict(global_domain_counts)}"
+        )
+
+        return new_evidence_by_claim
 
     def get_diversity_metrics(self, evidence: List[Dict[str, Any]]) -> Dict[str, Any]:
         """

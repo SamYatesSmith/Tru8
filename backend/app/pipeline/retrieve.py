@@ -1217,8 +1217,20 @@ class EvidenceRetriever:
         from app.core.config import settings
 
         # Check feature flag
-        if not getattr(settings, 'ENABLE_API_RETRIEVAL', False) or not self.enable_api_retrieval:
+        api_flag = getattr(settings, 'ENABLE_API_RETRIEVAL', False)
+        logger.info(f"[API DEBUG] ENABLE_API_RETRIEVAL={api_flag}, self.enable_api_retrieval={self.enable_api_retrieval}")
+        logger.info(f"[API DEBUG] Registry adapter count: {len(self.api_registry.adapters)}")
+
+        if not api_flag or not self.enable_api_retrieval:
+            logger.warning("[API DEBUG] API retrieval DISABLED by feature flag")
             return {"evidence": [], "api_stats": {}}
+
+        # Safety check: if registry is empty, adapters weren't initialized
+        if len(self.api_registry.adapters) == 0:
+            logger.error("[API DEBUG] CRITICAL: Registry has 0 adapters! Initializing now...")
+            from app.services.api_adapters import initialize_adapters
+            initialize_adapters()
+            logger.info(f"[API DEBUG] After emergency init: {len(self.api_registry.adapters)} adapters")
 
         try:
             # PRIORITY 1: Check if claim was classified as legal during extraction
@@ -1278,6 +1290,23 @@ class EvidenceRetriever:
                             relevant_adapters.append(adapter)
                             logger.debug(f"[API ROUTING] Added secondary domain adapter: {adapter.api_name} ({sec_domain})")
 
+            # Claim-level keyword routing: add adapters based on claim text keywords
+            # This catches cross-domain claims (e.g., oil prices in Politics articles)
+            from app.utils.claim_keyword_router import get_keyword_router
+            keyword_router = get_keyword_router()
+            keyword_adapters = keyword_router.get_additional_adapters(
+                claim_text,
+                relevant_adapters,
+                self.api_registry
+            )
+            for adapter in keyword_adapters:
+                relevant_adapters.append(adapter)
+                logger.info(f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}...")
+
+            # Log final adapter list
+            adapter_names = [a.api_name for a in relevant_adapters]
+            logger.info(f"[API DEBUG] Final adapters to query: {adapter_names}")
+
             if not relevant_adapters:
                 logger.warning(f"[API] No adapters found for domain={domain}, jurisdiction={jurisdiction}")
                 return {"evidence": [], "api_stats": {}}
@@ -1326,6 +1355,12 @@ class EvidenceRetriever:
                     api_stats["apis_queried"].append({"name": api_name, "results": 0})
 
             api_stats["total_api_calls"] = len(api_tasks)
+
+            # Log API results summary
+            logger.info(f"[API DEBUG] Results: {api_stats['total_api_calls']} APIs queried, {api_stats['total_api_results']} total results")
+            for api_stat in api_stats["apis_queried"]:
+                logger.info(f"[API DEBUG]   - {api_stat['name']}: {api_stat.get('results', 0)} results" +
+                           (f" (ERROR: {api_stat.get('error', '')})" if api_stat.get('error') else ""))
 
             return {
                 "evidence": all_api_evidence,

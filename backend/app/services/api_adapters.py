@@ -1120,8 +1120,8 @@ class AlphaVantageAdapter(GovernmentAPIClient):
         Returns:
             List of evidence dictionaries
         """
-        if not self.is_relevant_for_domain(domain, jurisdiction):
-            return []
+        # Domain check removed - adapter selection already filters by relevance
+        # This was blocking calls from secondary domain routing and keyword routing
 
         if not self.api_key:
             logger.warning("Alpha Vantage API key not configured, skipping")
@@ -1135,15 +1135,19 @@ class AlphaVantageAdapter(GovernmentAPIClient):
             ticker = self._extract_ticker(query, entities)
 
             # Determine what type of financial data to fetch
-            if any(term in query_lower for term in ["stock", "share", "price", "trading"]):
-                if ticker:
-                    evidence.extend(self._get_stock_quote(ticker))
-                else:
-                    evidence.extend(self._search_symbol(query))
+            # NOTE: Order matters! Check specific commodities/crypto BEFORE generic terms like "price"
+            # because "oil price" should match commodity, not stock
+            if any(term in query_lower for term in ["oil", "crude", "brent", "wti", "petroleum", "natural gas", "commodity", "barrel"]):
+                evidence.extend(self._get_commodity_price(query))
             elif any(term in query_lower for term in ["bitcoin", "crypto", "ethereum", "btc", "eth"]):
                 evidence.extend(self._get_crypto_rate(query))
             elif any(term in query_lower for term in ["exchange rate", "forex", "currency", "usd", "eur", "gbp"]):
                 evidence.extend(self._get_forex_rate(query))
+            elif any(term in query_lower for term in ["stock", "share", "price", "trading"]):
+                if ticker:
+                    evidence.extend(self._get_stock_quote(ticker))
+                else:
+                    evidence.extend(self._search_symbol(query))
             elif any(term in query_lower for term in ["news", "sentiment", "market"]):
                 evidence.extend(self._get_news_sentiment(ticker or query))
             else:
@@ -1426,6 +1430,126 @@ class AlphaVantageAdapter(GovernmentAPIClient):
 
         except Exception as e:
             logger.error(f"Alpha Vantage forex rate failed: {e}")
+            return []
+
+    def _get_commodity_price(self, query: str) -> List[Dict[str, Any]]:
+        """
+        Get commodity prices from Alpha Vantage.
+
+        Supports: Brent Crude, WTI Crude, Natural Gas, and other commodities.
+
+        Args:
+            query: Search query containing commodity keywords
+
+        Returns:
+            List of evidence dictionaries with commodity price data
+        """
+        # Map query terms to Alpha Vantage commodity functions
+        commodity_map = {
+            "brent": ("BRENT", "Brent Crude Oil"),
+            "wti": ("WTI", "WTI Crude Oil"),
+            "crude": ("BRENT", "Brent Crude Oil"),  # Default crude to Brent
+            "oil": ("BRENT", "Brent Crude Oil"),  # Default oil to Brent
+            "petroleum": ("BRENT", "Brent Crude Oil"),
+            "natural gas": ("NATURAL_GAS", "Natural Gas"),
+            "gas": ("NATURAL_GAS", "Natural Gas"),
+            "copper": ("COPPER", "Copper"),
+            "aluminum": ("ALUMINUM", "Aluminum"),
+            "wheat": ("WHEAT", "Wheat"),
+            "corn": ("CORN", "Corn"),
+            "cotton": ("COTTON", "Cotton"),
+            "sugar": ("SUGAR", "Sugar"),
+            "coffee": ("COFFEE", "Coffee"),
+        }
+
+        query_lower = query.lower()
+
+        # Find matching commodity
+        function_name = "BRENT"  # Default
+        commodity_name = "Brent Crude Oil"
+
+        for term, (func, name) in commodity_map.items():
+            if term in query_lower:
+                function_name = func
+                commodity_name = name
+                break
+
+        params = {
+            "function": function_name,
+            "interval": "daily",
+            "apikey": self.api_key
+        }
+
+        try:
+            response = self._make_request("", params=params)
+
+            if not response or "data" not in response:
+                logger.warning(f"Alpha Vantage returned no data for commodity {function_name}")
+                return []
+
+            # Get the most recent data point
+            data = response.get("data", [])
+            if not data:
+                return []
+
+            # Get latest price
+            latest = data[0]
+            current_value = latest.get("value", "N/A")
+            current_date = latest.get("date", "N/A")
+
+            # Calculate percentage change if we have historical data
+            pct_change = None
+            prev_value = None
+            if len(data) >= 2:
+                try:
+                    current = float(current_value)
+                    previous = float(data[1].get("value", 0))
+                    if previous > 0:
+                        pct_change = ((current - previous) / previous) * 100
+                        prev_value = previous
+                except (ValueError, TypeError):
+                    pass
+
+            # Build detailed snippet
+            if pct_change is not None:
+                change_direction = "up" if pct_change > 0 else "down"
+                snippet = (
+                    f"{commodity_name} price: ${current_value}/barrel as of {current_date}. "
+                    f"Price {change_direction} {abs(pct_change):.2f}% from previous close (${prev_value:.2f})."
+                )
+            else:
+                snippet = f"{commodity_name} price: ${current_value}/barrel as of {current_date}."
+
+            # Parse date
+            source_date = datetime.utcnow()
+            if current_date and current_date != "N/A":
+                try:
+                    source_date = datetime.strptime(current_date, "%Y-%m-%d")
+                except:
+                    pass
+
+            evidence = self._create_evidence_dict(
+                title=f"{commodity_name} Price - Alpha Vantage",
+                snippet=snippet,
+                url=f"https://www.alphavantage.co/query?function={function_name}&interval=daily",
+                source_date=source_date,
+                metadata={
+                    "api_source": "Alpha Vantage",
+                    "data_type": "commodity_price",
+                    "commodity": function_name,
+                    "commodity_name": commodity_name,
+                    "price": current_value,
+                    "date": current_date,
+                    "pct_change": round(pct_change, 2) if pct_change else None,
+                    "unit": "USD/barrel" if "Oil" in commodity_name else "USD"
+                }
+            )
+
+            logger.info(f"Alpha Vantage commodity price: {commodity_name} = ${current_value}")
+            return [evidence]
+
+        except Exception as e:
+            logger.error(f"Alpha Vantage commodity price failed for {function_name}: {e}")
             return []
 
     def _get_news_sentiment(self, query: str) -> List[Dict[str, Any]]:
@@ -2156,16 +2280,19 @@ class GovInfoAdapter(GovernmentAPIClient):
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """
-        GovInfo covers Law and History for US jurisdiction.
+        GovInfo covers Law, Politics, and History for US jurisdiction.
+
+        Political articles frequently reference legislation (e.g., "DROP Act of 2025"),
+        so we include Politics to ensure congressional acts are properly verified.
 
         Args:
-            domain: Domain classification (Law, History, etc.)
+            domain: Domain classification (Law, History, Politics, etc.)
             jurisdiction: US, UK, EU, Global
 
         Returns:
             True if this adapter can handle the domain/jurisdiction
         """
-        return domain in ["Law", "History"] and jurisdiction in ["US", "Global"]
+        return domain in ["Law", "History", "Politics"] and jurisdiction in ["US", "Global"]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
         """

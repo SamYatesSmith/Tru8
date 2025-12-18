@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, delete, func
+from sqlalchemy import select, desc, delete, func, text
+from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 from app.core.database import get_session
 from app.core.auth import get_current_user
@@ -17,39 +18,74 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
+async def get_or_create_user(session: AsyncSession, current_user: dict) -> User:
+    """
+    Get existing user or create new one with race-condition protection.
+    Uses PostgreSQL INSERT ON CONFLICT to handle concurrent requests safely.
+    """
+    user_id = current_user["id"]
+    email = current_user.get("email")
+    name = current_user.get("name")
+
+    # First, try to get existing user by ID
+    stmt = select(User).where(User.id == user_id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user:
+        return user
+
+    # User doesn't exist - need to create
+    if not email:
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve user email from authentication provider"
+        )
+
+    # Use INSERT ON CONFLICT to handle race conditions
+    # If email already exists (from old Clerk ID), update the ID to new one
+    insert_stmt = insert(User).values(
+        id=user_id,
+        email=email,
+        name=name,
+        credits=3,  # Free tier
+        total_credits_used=0,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    ).on_conflict_do_update(
+        index_elements=['email'],  # Conflict on email unique constraint
+        set_={
+            'id': user_id,  # Update to new Clerk ID
+            'name': name,
+            'updated_at': datetime.utcnow()
+        }
+    ).returning(User)
+
+    try:
+        result = await session.execute(insert_stmt)
+        user = result.scalar_one()
+        await session.commit()
+        logger.info(f"User created/updated: {email} (ID: {user_id})")
+        return user
+    except Exception as e:
+        await session.rollback()
+        logger.error(f"Failed to create/update user: {e}")
+        # Try to fetch the user one more time (might have been created by another request)
+        stmt = select(User).where(User.email == email)
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+        if user:
+            return user
+        raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
+
 @router.get("/profile")
 async def get_profile(
     current_user: dict = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """Get user profile with usage stats"""
-    stmt = select(User).where(User.id == current_user["id"])
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
-    
-    # Create user if doesn't exist (first login)
-    if not user:
-        # Ensure we have required user data
-        email = current_user.get("email")
-        if not email:
-            raise HTTPException(
-                status_code=500, 
-                detail="Unable to retrieve user email from authentication provider"
-            )
-        
-        user = User(
-            id=current_user["id"],
-            email=email,
-            name=current_user.get("name"),
-            credits=3  # Free tier
-        )
-        session.add(user)
-        try:
-            await session.commit()
-            await session.refresh(user)
-        except Exception as e:
-            await session.rollback()
-            raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
+    user = await get_or_create_user(session, current_user)
     
     # Get check stats
     checks_stmt = select(Check).where(Check.user_id == user.id)
@@ -139,35 +175,8 @@ async def get_user_stats(
     session: AsyncSession = Depends(get_session)
 ):
     """Get aggregated user statistics for dashboard insights"""
-    user_id = current_user["id"]
-
-    # Get user for member since date
-    user_stmt = select(User).where(User.id == user_id)
-    user_result = await session.execute(user_stmt)
-    user = user_result.scalar_one_or_none()
-
-    # Create user if doesn't exist (first login)
-    if not user:
-        email = current_user.get("email")
-        if not email:
-            raise HTTPException(
-                status_code=500,
-                detail="Unable to retrieve user email from authentication provider"
-            )
-
-        user = User(
-            id=current_user["id"],
-            email=email,
-            name=current_user.get("name"),
-            credits=3  # Free tier
-        )
-        session.add(user)
-        try:
-            await session.commit()
-            await session.refresh(user)
-        except Exception as e:
-            await session.rollback()
-            raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
+    user = await get_or_create_user(session, current_user)
+    user_id = user.id
 
     # Total completed checks
     total_checks_stmt = select(func.count(Check.id)).where(
@@ -265,33 +274,7 @@ async def get_usage(
     session: AsyncSession = Depends(get_session)
 ):
     """Get detailed usage statistics"""
-    stmt = select(User).where(User.id == current_user["id"])
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
-    
-    # Create user if doesn't exist (first login)
-    if not user:
-        # Ensure we have required user data
-        email = current_user.get("email")
-        if not email:
-            raise HTTPException(
-                status_code=500, 
-                detail="Unable to retrieve user email from authentication provider"
-            )
-        
-        user = User(
-            id=current_user["id"],
-            email=email,
-            name=current_user.get("name"),
-            credits=3  # Free tier
-        )
-        session.add(user)
-        try:
-            await session.commit()
-            await session.refresh(user)
-        except Exception as e:
-            await session.rollback()
-            raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
+    user = await get_or_create_user(session, current_user)
 
     # Get subscription data
     sub_stmt = select(Subscription).where(

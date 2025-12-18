@@ -8,7 +8,7 @@ from prometheus_client import make_asgi_app
 
 from app.core.config import settings
 from app.core.database import init_db
-from app.api.v1 import checks, users, auth, health, payments
+from app.api.v1 import checks, users, auth, health, payments, feedback
 from app.core.logging import setup_logging
 
 setup_logging()
@@ -68,6 +68,7 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(checks.router, prefix="/api/v1/checks", tags=["checks"])
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
+app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 
 @app.get("/")
 async def root():

@@ -532,6 +532,24 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
 
             stage_timings["factcheck_parse"] = (datetime.utcnow() - stage_start).total_seconds()
 
+        # Stage 3.7: Global Domain Capping (cross-claim diversity enforcement)
+        if settings.ENABLE_GLOBAL_DOMAIN_CAPPING and evidence:
+            stage_start = datetime.utcnow()
+            try:
+                from app.utils.domain_capping import DomainCapper
+                global_capper = DomainCapper()
+                evidence = global_capper.apply_global_caps(
+                    evidence,
+                    global_max_per_domain=settings.GLOBAL_MAX_PER_DOMAIN,
+                    global_max_ratio=settings.GLOBAL_MAX_DOMAIN_RATIO
+                )
+                logger.info("[GLOBAL CAP] Applied global domain diversity enforcement")
+            except Exception as e:
+                logger.warning(f"Global domain capping failed (non-critical): {e}")
+                # Continue with uncapped evidence - safe fallback
+
+            stage_timings["global_domain_cap"] = (datetime.utcnow() - stage_start).total_seconds()
+
         # Stage 4: Verify with NLI (REAL IMPLEMENTATION WITH TIMEOUT)
         self.update_state(state="PROGRESS", meta={"stage": "verify", "progress": 60})
         stage_start = datetime.utcnow()
@@ -686,6 +704,7 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
                 "stage_timings": stage_timings,
                 "features_enabled": {
                     "domain_capping": settings.ENABLE_DOMAIN_CAPPING,
+                    "global_domain_capping": settings.ENABLE_GLOBAL_DOMAIN_CAPPING,
                     "deduplication": settings.ENABLE_DEDUPLICATION,
                     "temporal_context": settings.ENABLE_TEMPORAL_CONTEXT,
                     "factcheck_api": settings.ENABLE_FACTCHECK_API,

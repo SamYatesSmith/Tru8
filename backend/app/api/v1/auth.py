@@ -4,6 +4,7 @@ from sqlalchemy import select
 from app.core.database import get_session
 from app.core.auth import get_current_user
 from app.models import User, Subscription
+from app.api.v1.users import get_or_create_user
 
 router = APIRouter()
 
@@ -13,22 +14,7 @@ async def get_me(
     session: AsyncSession = Depends(get_session)
 ):
     """Get current user profile with credits"""
-    # Try to find existing user
-    stmt = select(User).where(User.id == current_user["id"])
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
-    
-    # Create user if doesn't exist (first login)
-    if not user:
-        user = User(
-            id=current_user["id"],
-            email=current_user["email"],
-            name=current_user.get("name"),
-            credits=3  # Free tier
-        )
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
+    user = await get_or_create_user(session, current_user)
     
     # Check for active subscription
     sub_stmt = select(Subscription).where(

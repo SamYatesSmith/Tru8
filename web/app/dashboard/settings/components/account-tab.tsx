@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import Image from 'next/image';
-import { User, Shield, Trash2, Check, X, Pencil } from 'lucide-react';
-import { apiClient } from '@/lib/api';
+import { User, Shield, Trash2, Check, X, Pencil, BarChart3, CheckCircle, XCircle, HelpCircle } from 'lucide-react';
+import { apiClient, UserStats } from '@/lib/api';
 import { useAuth, useUser } from '@clerk/nextjs';
 
 interface AccountTabProps {
@@ -13,16 +13,37 @@ interface AccountTabProps {
 }
 
 export function AccountTab({ clerkUser, userData }: AccountTabProps) {
-  const { signOut } = useClerk();
+  const clerk = useClerk();
+  const { signOut } = clerk;
   const { getToken } = useAuth();
   const { user: clerkUserHook } = useUser();
   const [deleting, setDeleting] = useState(false);
+
+  // User stats state
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   // Name editing state
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(clerkUser?.fullName || userData?.name || '');
   const [savingName, setSavingName] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+
+  // Fetch user stats on mount
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = await getToken();
+        const userStats = await apiClient.getUserStats(token);
+        setStats(userStats);
+      } catch (error) {
+        console.error('Failed to fetch user stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchStats();
+  }, [getToken]);
 
   const handleSaveName = async () => {
     if (!nameValue.trim()) {
@@ -58,8 +79,14 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
   };
 
   const handleChangePassword = () => {
-    // Open Clerk's security page in a new tab or redirect
-    window.open('https://accounts.clerk.dev/user/security', '_blank');
+    // Open Clerk's user profile modal with security settings
+    clerk.openUserProfile({
+      appearance: {
+        elements: {
+          rootBox: { width: '100%' }
+        }
+      }
+    });
   };
 
   const handleDeleteAccount = async () => {
@@ -212,6 +239,70 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
         </div>
       </section>
 
+      {/* Activity Section */}
+      <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <BarChart3 size={20} />
+          Your Activity
+        </h3>
+
+        {statsLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+            <span className="ml-3 text-slate-400">Loading stats...</span>
+          </div>
+        ) : stats ? (
+          <div className="space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-white">{stats.totalChecks}</div>
+                <div className="text-xs text-slate-400 mt-1">Total Checks</div>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-white">{stats.totalSourcesAnalyzed}</div>
+                <div className="text-xs text-slate-400 mt-1">Sources Analyzed</div>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-white">{Math.round(stats.averageConfidence)}%</div>
+                <div className="text-xs text-slate-400 mt-1">Avg Confidence</div>
+              </div>
+            </div>
+
+            {/* Verdict Breakdown */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-slate-400">Verdict Breakdown</h4>
+              <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span className="text-slate-300">{stats.verdictBreakdown.supported}</span>
+                  <span className="text-slate-500">Supported</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-red-400" />
+                  <span className="text-slate-300">{stats.verdictBreakdown.contradicted}</span>
+                  <span className="text-slate-500">Contradicted</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-amber-400" />
+                  <span className="text-slate-300">{stats.verdictBreakdown.uncertain}</span>
+                  <span className="text-slate-500">Uncertain</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Member Since */}
+            <div className="pt-4 border-t border-slate-700/50 text-sm text-slate-400">
+              Member since {stats.memberSince
+                ? new Date(stats.memberSince).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+                : 'Unknown'}
+            </div>
+          </div>
+        ) : (
+          <p className="text-slate-400 text-sm">Unable to load activity stats</p>
+        )}
+      </section>
+
       {/* Security Section */}
       <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
@@ -231,29 +322,6 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
               className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors"
             >
               Change Password
-            </button>
-          </div>
-
-          {/* 2FA */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-300">
-                Two-Factor Authentication
-              </p>
-              <p className="text-xs text-slate-400">
-                Status:{' '}
-                {clerkUser?.twoFactorEnabled ? (
-                  <span className="text-emerald-400 font-medium">Enabled</span>
-                ) : (
-                  <span className="text-slate-500 font-medium">Disabled</span>
-                )}
-              </p>
-            </div>
-            <button
-              onClick={handleChangePassword}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors"
-            >
-              Configure 2FA
             </button>
           </div>
         </div>

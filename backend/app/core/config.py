@@ -137,6 +137,11 @@ class Settings(BaseSettings):
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
     OUTSTANDING_SOURCE_THRESHOLD: float = Field(0.95, env="OUTSTANDING_SOURCE_THRESHOLD")
 
+    # Global Domain Capping (cross-claim diversity enforcement)
+    ENABLE_GLOBAL_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_GLOBAL_DOMAIN_CAPPING")
+    GLOBAL_MAX_PER_DOMAIN: int = Field(5, env="GLOBAL_MAX_PER_DOMAIN")  # Max sources from any domain across ALL claims
+    GLOBAL_MAX_DOMAIN_RATIO: float = Field(0.25, env="GLOBAL_MAX_DOMAIN_RATIO")  # Max 25% from any single domain
+
     # Abstention Thresholds (Phase 3)
     # Lowered from 0.70 -> 0.60 and 0.65 -> 0.50 to reduce fence-sitting
     # MIN_SOURCES lowered from 3 to 2: For established scientific facts with

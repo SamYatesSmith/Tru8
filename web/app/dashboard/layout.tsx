@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { apiClient } from '@/lib/api';
 import { SignedInNav } from './components/signed-in-nav';
 import { Footer } from '@/components/layout/footer';
+import { FeedbackWidget } from './components/feedback-widget';
 
 interface User {
   id: string;
@@ -42,6 +43,9 @@ export default async function DashboardLayout({
       </main>
 
       <Footer />
+
+      {/* Beta Testing Feedback Widget */}
+      <FeedbackWidget />
     </div>
   );
 }

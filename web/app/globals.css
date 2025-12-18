@@ -244,10 +244,16 @@ a:focus-visible {
   color: #ffffff !important;
 }
 
-.cl-profileSectionContent,
-.cl-formFieldLabel,
-.cl-formFieldHintText {
+.cl-profileSectionContent {
   color: #94a3b8 !important;
+}
+
+.cl-formFieldLabel {
+  color: #ffffff !important;
+}
+
+.cl-formFieldHintText {
+  color: #cbd5e1 !important;
 }
 
 .cl-formFieldInput,
@@ -255,6 +261,12 @@ a:focus-visible {
   background-color: #1e293b !important;
   border-color: #475569 !important;
   color: #ffffff !important;
+}
+
+.cl-formFieldInput::placeholder,
+.cl-input::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
 }
 
 .cl-formFieldInput:focus,
@@ -309,6 +321,122 @@ a:focus-visible {
 .cl-userButtonPopoverActions,
 .cl-userButtonPopoverFooter {
   background-color: #1e293b !important;
+}
+
+/* OTP/Verification code input styling */
+.cl-otpCodeFieldInput,
+.cl-otpCodeField input {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
+}
+
+.cl-otpCodeFieldInput::placeholder,
+.cl-otpCodeField input::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+.cl-otpCodeFieldInput:focus,
+.cl-otpCodeField input:focus {
+  border-color: #f57a07 !important;
+}
+
+/* General text color overrides for Clerk modals */
+.cl-signIn-root p,
+.cl-signUp-root p,
+.cl-signIn-root span,
+.cl-signUp-root span {
+  color: #cbd5e1 !important;
+}
+
+.cl-signIn-root h1,
+.cl-signUp-root h1,
+.cl-signIn-root h2,
+.cl-signUp-root h2 {
+  color: #ffffff !important;
+}
+
+/* Resend code link and other action links */
+.cl-formResendCodeLink,
+.cl-linkButton,
+.cl-footerActionLink {
+  color: #f57a07 !important;
+}
+
+.cl-formResendCodeLink:hover,
+.cl-linkButton:hover,
+.cl-footerActionLink:hover {
+  color: #ff9d4d !important;
+}
+
+/* Alert and error messages */
+.cl-alert,
+.cl-alertText,
+.cl-formFieldErrorText {
+  color: #ffffff !important;
+}
+
+/* Password field show/hide button */
+.cl-formFieldInputShowPasswordButton {
+  color: #cbd5e1 !important;
+}
+
+/* Success text */
+.cl-formFieldSuccessText {
+  color: #10b981 !important;
+}
+
+/* Divider text ("or") */
+.cl-dividerText {
+  color: #94a3b8 !important;
+}
+
+/* Social button text */
+.cl-socialButtonsBlockButton,
+.cl-socialButtonsIconButton {
+  color: #ffffff !important;
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+.cl-socialButtonsBlockButton:hover,
+.cl-socialButtonsIconButton:hover {
+  background-color: #334155 !important;
+}
+
+/* Modal card background */
+.cl-modalContent,
+.cl-signIn-root,
+.cl-signUp-root {
+  background-color: #1a1f2e !important;
+}
+
+/* Identity preview (email shown with edit option) */
+.cl-identityPreview,
+.cl-identityPreviewText {
+  color: #ffffff !important;
+}
+
+.cl-identityPreviewEditButton,
+.cl-identityPreviewEditButtonIcon {
+  color: #f57a07 !important;
+}
+
+.cl-identityPreviewEditButton:hover {
+  color: #ff9d4d !important;
+}
+
+/* Alternative actions text */
+.cl-footerActionText,
+.cl-signIn-alternativeMethods,
+.cl-alternativeMethodsBlockButton {
+  color: #cbd5e1 !important;
+}
+
+.cl-alternativeMethodsBlockButton:hover {
+  color: #ffffff !important;
+  background-color: #334155 !important;
 }
 
 /* Hide Clerk branding */

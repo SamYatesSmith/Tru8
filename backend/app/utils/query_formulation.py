@@ -133,7 +133,13 @@ class QueryFormulator:
         # Priority 1: Named entities (from extraction or spaCy)
         if key_entities:
             # Use entities from extraction phase (more accurate)
-            terms.extend(key_entities[:3])  # Top 3 entities
+            # Filter out numeric/money entities - they make queries too specific
+            # e.g. "2.5 percent" or "sixty dollars" won't match "1.29%" or "$59.68"
+            filtered_entities = [
+                e for e in key_entities
+                if not self._is_numeric_entity(e)
+            ]
+            terms.extend(filtered_entities[:3])  # Top 3 non-numeric entities
         else:
             # Fall back to spaCy entity extraction
             entities = [
@@ -216,6 +222,58 @@ class QueryFormulator:
             logger.error(f"Temporal refinement failed: {e}")
 
         return temporal_terms
+
+    def _is_numeric_entity(self, entity: str) -> bool:
+        """
+        Check if an entity is primarily numeric (money, percentage, quantity).
+
+        These should be filtered from search queries as they make queries too specific.
+        E.g., searching for "sixty dollars" won't find "$59.68" in results.
+
+        Args:
+            entity: Entity string to check
+
+        Returns:
+            True if entity is numeric/money/percentage
+        """
+        entity_lower = entity.lower().strip()
+
+        # Common numeric patterns
+        numeric_patterns = [
+            r'^\d',  # Starts with digit
+            r'\d+\s*%',  # Contains percentage
+            r'\$\d',  # Dollar amount
+            r'€\d',  # Euro amount
+            r'£\d',  # Pound amount
+            r'\d+\s*percent',  # "X percent"
+            r'\d+\s*dollar',  # "X dollar"
+            r'\d+\s*cent',  # "X cent"
+            r'\d+\s*million',  # "X million"
+            r'\d+\s*billion',  # "X billion"
+            r'\d+\s*barrel',  # "X barrel"
+        ]
+
+        # Word-based numeric indicators
+        numeric_words = [
+            'percent', 'percentage', 'dollar', 'dollars', 'cent', 'cents',
+            'million', 'billion', 'trillion', 'thousand', 'hundred',
+            'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+            'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety',
+        ]
+
+        # Check regex patterns
+        for pattern in numeric_patterns:
+            if re.search(pattern, entity_lower):
+                return True
+
+        # Check if primarily composed of numeric words
+        words = entity_lower.split()
+        if words:
+            numeric_word_count = sum(1 for w in words if w in numeric_words or w.isdigit())
+            if numeric_word_count / len(words) >= 0.5:
+                return True
+
+        return False
 
     def _add_article_context(
         self,

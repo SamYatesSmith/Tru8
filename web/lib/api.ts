@@ -119,6 +119,28 @@ class ApiClient {
   }
 
   /**
+   * POST /api/v1/feedback
+   * Submit user feedback (testing period)
+   */
+  async submitFeedback(
+    data: {
+      type: string;
+      message: string;
+      checkId?: string | null;
+      claimPosition?: number | null;
+      claimText?: string | null;
+      pageUrl: string;
+      userEmail?: string | null;
+    },
+    token?: string | null
+  ) {
+    return this.request('/api/v1/feedback', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, token);
+  }
+
+  /**
    * POST /api/v1/checks
    * Create a new fact-check
    */

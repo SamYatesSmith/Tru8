@@ -23,6 +23,7 @@ import redis
 from app.core.config import settings
 import os
 import aiofiles
+from app.api.v1.users import get_or_create_user
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -297,37 +298,11 @@ async def create_check(
     session: AsyncSession = Depends(get_session)
 ):
     """Create a new fact-check request"""
-    # Get user and check credits
-    stmt = select(User).where(User.id == current_user["id"])
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
+    # Get or create user (handles race conditions)
+    user = await get_or_create_user(session, current_user)
 
-    # Create user if doesn't exist (first login)
-    if not user:
-        email = current_user.get("email")
-        if not email:
-            raise HTTPException(
-                status_code=500,
-                detail="Unable to retrieve user email from authentication provider"
-            )
-
-        user = User(
-            id=current_user["id"],
-            email=email,
-            name=current_user.get("name"),
-            credits=3  # Free tier
-        )
-        session.add(user)
-        try:
-            await session.commit()
-            await session.refresh(user)
-        except Exception as e:
-            await session.rollback()
-            raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
-    
     # MONTHLY USAGE LIMIT CHECK (applies in all modes, including DEBUG)
-    # Get subscription to determine monthly limit
-    from app.models.subscription import Subscription
+    # Get subscription to determine monthly limit (Subscription already imported at top)
     sub_stmt = select(Subscription).where(
         Subscription.user_id == user.id,
         Subscription.status.in_(["active", "trialing"])
