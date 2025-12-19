@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     # Email Notifications (Resend)
     RESEND_API_KEY: str = Field("", env="RESEND_API_KEY")
     EMAIL_FROM_ADDRESS: str = Field("hello@trueight.com", env="EMAIL_FROM_ADDRESS")
+    FEEDBACK_EMAIL: Optional[str] = Field(None, env="FEEDBACK_EMAIL")
     EMAIL_FROM_NAME: str = Field("Tru8", env="EMAIL_FROM_NAME")
     ENABLE_EMAIL_NOTIFICATIONS: bool = Field(True, env="ENABLE_EMAIL_NOTIFICATIONS")
 
