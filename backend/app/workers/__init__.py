@@ -5,11 +5,21 @@ from app.core.logging import setup_logging
 import logging
 import asyncio
 import time
+import platform
 
 # Setup logging at module import time
 setup_logging()
 
 logger = logging.getLogger(__name__)
+
+# Determine worker pool based on platform
+# - Windows: Must use 'solo' (prefork has permission issues)
+# - Linux/macOS: Use 'prefork' for true concurrency (multiple checks at once)
+#
+# IMPORTANT: With 'solo' pool, only ONE task runs at a time globally.
+# This means users queue up waiting - not acceptable for production.
+# See docs/release/CELERY_SCALING.md for full details.
+WORKER_POOL = "solo" if platform.system() == "Windows" else "prefork"
 
 
 @celery_setup_logging.connect
@@ -37,11 +47,15 @@ celery_app.conf.update(
     task_track_started=True,
     task_time_limit=settings.PIPELINE_TIMEOUT_SECONDS,
     task_soft_time_limit=settings.PIPELINE_TIMEOUT_SECONDS - 2,
-    # CRITICAL: Limit worker concurrency to prevent memory exhaustion
-    # Default would be CPU count (32 on your system) which causes crashes
+    # Worker concurrency: how many tasks can run simultaneously
+    # - With prefork pool (Linux): Actually runs this many concurrent tasks
+    # - With solo pool (Windows): Ignored, always 1 task at a time
+    # Set to 2 to balance throughput vs memory usage (~800MB per concurrent task)
     worker_concurrency=2,
-    # Use solo pool for Windows compatibility (prefork has permission issues on Windows)
-    worker_pool="solo",
+    # Worker pool type - determined by platform (see WORKER_POOL constant above)
+    # - prefork (Linux/macOS): True parallelism, multiple tasks at once
+    # - solo (Windows): Sequential processing, one task at a time
+    worker_pool=WORKER_POOL,
     # Restart workers after processing 100 tasks to reduce cold-start frequency
     # (Was 10, but frequent restarts caused ML models to reload, causing first-claim failures)
     worker_max_tasks_per_child=100,
