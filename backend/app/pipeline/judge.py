@@ -1181,7 +1181,7 @@ class PipelineJudge:
     
     def __init__(self):
         self.claim_judge = ClaimJudge()
-        self.max_concurrent_judgments = 3  # Conservative for LLM calls
+        self.max_concurrent_judgments = getattr(settings, 'MAX_CONCURRENT_JUDGMENTS', 5)
     
     async def judge_all_claims(self, claims: List[Dict[str, Any]],
                               verifications_by_claim: Dict[str, List[Dict[str, Any]]],

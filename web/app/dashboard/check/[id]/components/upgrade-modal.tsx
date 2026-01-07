@@ -1,15 +1,16 @@
 'use client';
 
-import { X, Lock, FileSearch, Download, Filter } from 'lucide-react';
+import { X, Lock, FileSearch, Download, Filter, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 interface UpgradeModalProps {
   feature: 'sources';
   sourcesCount: number;
   onClose: () => void;
+  subscriptionsEnabled?: boolean;
 }
 
-export function UpgradeModal({ feature, sourcesCount, onClose }: UpgradeModalProps) {
+export function UpgradeModal({ feature, sourcesCount, onClose, subscriptionsEnabled = false }: UpgradeModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
@@ -31,18 +32,24 @@ export function UpgradeModal({ feature, sourcesCount, onClose }: UpgradeModalPro
         {/* Lock icon */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-amber-400" />
+            {subscriptionsEnabled ? (
+              <Lock className="w-8 h-8 text-amber-400" />
+            ) : (
+              <Clock className="w-8 h-8 text-amber-400" />
+            )}
           </div>
         </div>
 
         {/* Content */}
         <h2 className="text-2xl font-bold text-white text-center mb-3">
-          Full Sources List
+          {subscriptionsEnabled ? 'Full Sources List' : 'Pro Feature Coming Soon'}
         </h2>
 
         <p className="text-slate-300 text-center mb-6">
           We reviewed <span className="font-bold text-white">{sourcesCount} sources</span> to verify this content.
-          Upgrade to Pro to see the complete list with filtering details.
+          {subscriptionsEnabled
+            ? ' Upgrade to Pro to see the complete list with filtering details.'
+            : ' This Pro feature will be available when we launch subscriptions.'}
         </p>
 
         {/* Features list */}
@@ -78,13 +85,13 @@ export function UpgradeModal({ feature, sourcesCount, onClose }: UpgradeModalPro
             onClick={onClose}
             className="flex-1 px-4 py-3 text-slate-300 hover:text-white border border-slate-600 rounded-lg transition-colors"
           >
-            Maybe Later
+            {subscriptionsEnabled ? 'Maybe Later' : 'Got It'}
           </button>
           <Link
-            href="/dashboard/settings"
+            href="/dashboard/settings?tab=subscription"
             className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-lg text-center transition-all"
           >
-            Upgrade to Pro
+            {subscriptionsEnabled ? 'Upgrade to Pro' : 'Join Waitlist'}
           </Link>
         </div>
       </div>

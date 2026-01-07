@@ -34,6 +34,17 @@ async def create_checkout_session(
     session: AsyncSession = Depends(get_session)
 ):
     """Create a Stripe Checkout session for subscription upgrade"""
+    # Check if subscriptions are enabled (beta period gate)
+    if not settings.SUBSCRIPTIONS_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "message": "Subscriptions coming soon! We're currently in beta testing. Join our waitlist to be notified when Pro plans are available.",
+                "code": "SUBSCRIPTIONS_DISABLED",
+                "beta": True
+            }
+        )
+
     try:
         # Get user from database
         stmt = select(User).where(User.id == current_user["id"])
@@ -408,6 +419,7 @@ async def get_subscription_status(
             "status": "free",
             "creditsPerMonth": 3,
             "creditsRemaining": user.credits,
+            "subscriptionsEnabled": settings.SUBSCRIPTIONS_ENABLED,
         }
 
     return {
@@ -419,6 +431,7 @@ async def get_subscription_status(
         "currentPeriodStart": subscription.current_period_start.isoformat(),
         "currentPeriodEnd": subscription.current_period_end.isoformat(),
         "stripeSubscriptionId": subscription.stripe_subscription_id,
+        "subscriptionsEnabled": settings.SUBSCRIPTIONS_ENABLED,
     }
 
 @router.post("/cancel-subscription")

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { Check } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
 
 interface SubscriptionTabProps {
   userData: any;
@@ -22,6 +23,7 @@ export function SubscriptionTab({
 
   const isFree = !subscriptionData?.hasSubscription;
   const isPro = subscriptionData?.plan === 'pro';
+  const subscriptionsEnabled = subscriptionData?.subscriptionsEnabled ?? false;
 
   // Fetch monthly usage from backend
   useEffect(() => {
@@ -75,6 +77,43 @@ export function SubscriptionTab({
   const creditsPerMonth = subscriptionData?.hasSubscription
     ? subscriptionData.creditsPerMonth
     : 3;
+
+  // Show Coming Soon for free users when subscriptions are disabled
+  if (isFree && !subscriptionsEnabled) {
+    return (
+      <div className="space-y-8">
+        {/* Current Plan Card - Still show their free tier status */}
+        <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <h3 className="text-xl font-bold text-white mb-6">Your Current Plan</h3>
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-2xl font-black text-white">Free (Beta)</h4>
+              <p className="text-slate-400 mt-1">3 free checks per month</p>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-slate-300">
+                  Usage this month: {monthlyUsage} / 3 checks
+                </p>
+                <p className="text-sm font-bold text-slate-300">
+                  {Math.round((monthlyUsage / 3) * 100)}%
+                </p>
+              </div>
+              <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] transition-all duration-500"
+                  style={{ width: `${Math.min((monthlyUsage / 3) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Coming Soon Section */}
+        <SubscriptionsComingSoon source="settings" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

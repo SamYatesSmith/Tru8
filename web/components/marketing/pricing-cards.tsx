@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { useAuth } from '@clerk/nextjs';
 import { apiClient } from '@/lib/api';
+import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
 
 /**
  * Pricing Cards Component
@@ -23,7 +24,7 @@ import { apiClient } from '@/lib/api';
  * - Badge: "Most Popular" (cyan)
  * - X40 verifications p/m
  * - Ability to verify URL's
- * - Quick & Deep modes
+ * - Full verification analysis
  * - Export to PDF/JSON/CSV
  * - Comprehensive sources (10+ citations)
  * - Priority support
@@ -35,9 +36,14 @@ import { apiClient } from '@/lib/api';
  * - Professional plan: POST /api/v1/payments/create-checkout-session
  * - If not authenticated: Opens auth first, then triggers checkout
  */
+// Check if subscriptions are enabled via environment variable
+// This prevents showing misleading "Get Started" buttons when payments aren't ready
+const SUBSCRIPTIONS_ENABLED = process.env.NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED === 'true';
+
 export function PricingCards() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
   const { isSignedIn, getToken } = useAuth();
 
   const handleFreePlan = () => {
@@ -46,6 +52,12 @@ export function PricingCards() {
   };
 
   const handleProfessionalPlan = async () => {
+    // If subscriptions are disabled, show coming soon modal immediately
+    if (!SUBSCRIPTIONS_ENABLED) {
+      setShowComingSoon(true);
+      return;
+    }
+
     // Check if user is authenticated
     if (!isSignedIn) {
       // Open auth modal first
@@ -68,9 +80,15 @@ export function PricingCards() {
       if (session.url) {
         window.location.href = session.url;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create checkout session:', error);
-      alert('Failed to start checkout. Please try again.');
+
+      // Check if subscriptions are disabled (503 with SUBSCRIPTIONS_DISABLED code)
+      if (error.message?.includes('coming soon') || error.message?.includes('beta')) {
+        setShowComingSoon(true);
+      } else {
+        alert('Failed to start checkout. Please try again.');
+      }
       setIsProcessing(false);
     }
   };
@@ -81,8 +99,9 @@ export function PricingCards() {
       price: '£0',
       period: '',
       badge: null,
+      badgeColor: '',
       features: [
-        '7 day trial / 5 free checks',
+        '3 free checks per month',
         'Basic source checking',
         'Standard support',
         'Web interface access',
@@ -95,16 +114,17 @@ export function PricingCards() {
       name: 'Professional',
       price: '£7',
       period: '/month',
-      badge: 'Most Popular',
+      badge: SUBSCRIPTIONS_ENABLED ? 'Most Popular' : 'Coming Soon',
+      badgeColor: SUBSCRIPTIONS_ENABLED ? 'bg-[#22d3ee] text-slate-900' : 'bg-amber-500 text-slate-900',
       features: [
-        'X40 verifications p/m',
-        'Ability to verify URL\'s',
-        'Quick & Deep modes',
+        '40 verifications per month',
+        'View all sources analysed',
+        'Verify any URL',
+        'Full verification analysis',
         'Export to PDF/JSON/CSV',
-        'Comprehensive sources (10+ citations)',
         'Priority support',
       ],
-      cta: 'GET STARTED',
+      cta: SUBSCRIPTIONS_ENABLED ? 'GET STARTED' : 'JOIN WAITLIST',
       highlighted: true,
       onCTA: handleProfessionalPlan,
     },
@@ -138,7 +158,7 @@ export function PricingCards() {
                 {/* Badge */}
                 {plan.badge && (
                   <div className="absolute -top-5 left-1/2 -translate-x-1/2">
-                    <div className="bg-[#22d3ee] text-slate-900 px-6 py-2 rounded-full text-base font-bold">
+                    <div className={`${plan.badgeColor} px-6 py-2 rounded-full text-base font-bold`}>
                       {plan.badge}
                     </div>
                   </div>
@@ -188,6 +208,15 @@ export function PricingCards() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
+
+      {/* Coming Soon Modal */}
+      {showComingSoon && (
+        <SubscriptionsComingSoon
+          variant="modal"
+          source="pricing"
+          onDismiss={() => setShowComingSoon(false)}
+        />
+      )}
     </>
   );
 }

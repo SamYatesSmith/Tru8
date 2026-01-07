@@ -2,17 +2,15 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { 
-  ArrowLeft, 
-  Bell, 
-  Shield, 
-  Trash2, 
-  Info, 
+import {
+  ArrowLeft,
+  Bell,
+  Shield,
+  Trash2,
+  Info,
   ExternalLink,
-  Moon,
-  Globe,
   Database,
-  AlertTriangle 
+  AlertTriangle
 } from 'lucide-react-native';
 import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,7 +18,6 @@ import { useAuth } from '@clerk/clerk-expo';
 
 interface SettingsState {
   notifications: boolean;
-  deepMode: boolean;
   autoCache: boolean;
   analyticsOptOut: boolean;
 }
@@ -29,7 +26,6 @@ export default function SettingsScreen() {
   const { getToken } = useAuth();
   const [settings, setSettings] = useState<SettingsState>({
     notifications: true,
-    deepMode: false,
     autoCache: true,
     analyticsOptOut: false,
   });
@@ -47,9 +43,6 @@ export default function SettingsScreen() {
         setSettings(prev => ({ ...prev, ...parsed }));
       }
       
-      // Also check environment variable for deep mode
-      const envDeepMode = process.env.EXPO_PUBLIC_ENABLE_DEEP_MODE === 'true';
-      setSettings(prev => ({ ...prev, deepMode: envDeepMode }));
     } catch (error) {
       console.error('Failed to load settings:', error);
     } finally {
@@ -288,13 +281,6 @@ export default function SettingsScreen() {
             onToggle={(value) => saveSettings({ notifications: value })}
           />
 
-          <SettingRow
-            icon={Globe}
-            title="Deep Mode"
-            description="Enhanced analysis with additional sources (Pro plan required)"
-            value={settings.deepMode}
-            onToggle={(value) => saveSettings({ deepMode: value })}
-          />
 
           <SettingRow
             icon={Database}

@@ -9,7 +9,7 @@ export default function TermsOfServicePage() {
   return (
     <LegalPageLayout
       title="Terms of Service"
-      lastUpdated="21 November 2025"
+      lastUpdated="6 January 2026"
     >
       <div className="prose-legal">
         <h2>1. Agreement to Terms</h2>
@@ -20,6 +20,12 @@ export default function TermsOfServicePage() {
 
         <h2>2. Service Description</h2>
         <p>
+          <strong>BETA STATUS:</strong> Tru8 is currently in public beta. Features,
+          pricing, and availability may change as we continue development. By using
+          our service during beta, you acknowledge that results may vary and help
+          us improve the platform.
+        </p>
+        <p>
           Tru8 provides AI-powered fact-checking services to verify claims using
           publicly available sources. Our service:
         </p>
@@ -27,7 +33,7 @@ export default function TermsOfServicePage() {
           <li>Analyzes text, URLs, images, and videos for factual claims</li>
           <li>Searches credible sources for supporting or contradicting evidence</li>
           <li>Provides dated citations and confidence scores</li>
-          <li>Offers Quick and Deep verification modes (paid plans)</li>
+          <li>Provides verification results with source citations</li>
         </ul>
 
         <h2>3. User Accounts</h2>
@@ -59,7 +65,7 @@ export default function TermsOfServicePage() {
         <ul>
           <li>40 fact-checks per month</li>
           <li>URL verification</li>
-          <li>Quick & Deep modes</li>
+          <li>Comprehensive source citations</li>
           <li>Export to PDF/JSON/CSV</li>
           <li>Priority support</li>
         </ul>
@@ -217,7 +223,7 @@ export default function TermsOfServicePage() {
         <h2>13. Contact</h2>
         <p>
           <strong>Company:</strong> Tru8 Ltd<br />
-          <strong>Email:</strong> <a href="mailto:hello@tru8.com">hello@tru8.com</a>
+          <strong>Email:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a>
         </p>
       </div>
     </LegalPageLayout>

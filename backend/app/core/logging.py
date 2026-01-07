@@ -1,6 +1,7 @@
 import logging
 import sys
 from app.core.config import settings
+from app.core.correlation import CorrelationIdFilter
 
 # Global flag to prevent duplicate setup
 _logging_configured = False
@@ -12,6 +13,8 @@ def setup_logging():
     Works with both FastAPI (uvicorn) and Celery workers by explicitly
     configuring app loggers rather than relying on basicConfig.
 
+    Includes correlation ID in all log entries for request tracing.
+
     Uses a global flag to prevent duplicate handler setup.
     """
     global _logging_configured
@@ -22,15 +25,17 @@ def setup_logging():
 
     log_level = logging.DEBUG if settings.DEBUG else logging.INFO
 
-    # Create formatter
+    # Create formatter with correlation ID
+    # Format: timestamp - correlation_id - logger_name - level - message
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        "%(asctime)s - %(correlation_id)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     # Create single handler for root logger only
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
     handler.setLevel(log_level)
+    handler.addFilter(CorrelationIdFilter())
 
     # Configure root logger (single handler point)
     root_logger = logging.getLogger()

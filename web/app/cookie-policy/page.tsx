@@ -10,7 +10,7 @@ export default function CookiePolicyPage() {
   return (
     <LegalPageLayout
       title="Cookie Policy"
-      lastUpdated="22 January 2025"
+      lastUpdated="6 January 2026"
     >
       <div className="prose-legal">
         <h2>1. What Are Cookies?</h2>
@@ -169,7 +169,7 @@ export default function CookiePolicyPage() {
         <h2>7. Contact</h2>
         <p>
           Questions about our cookie usage?<br />
-          Email: <a href="mailto:hello@tru8.com">hello@tru8.com</a>
+          Email: <a href="mailto:hello@trueight.com">hello@trueight.com</a>
         </p>
       </div>
     </LegalPageLayout>

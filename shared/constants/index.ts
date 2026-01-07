@@ -47,26 +47,25 @@ export const LIMITS = {
 
 // Plans
 export const PLANS = {
-  starter: {
-    name: 'Starter',
-    price: 6.99,
+  free: {
+    name: 'Free',
+    price: 0,
     currency: 'GBP',
-    creditsPerMonth: 120,
-    features: ['Quick checks', 'Email support'],
+    creditsPerMonth: 3,
+    features: ['Fact-checking', 'Standard support'],
   },
-  pro: {
-    name: 'Pro',
-    price: 12.99,
+  professional: {
+    name: 'Professional',
+    price: 7,
     currency: 'GBP',
-    creditsPerMonth: 300,
-    features: ['Quick checks', 'Deep mode (coming soon)', 'Priority support'],
+    creditsPerMonth: 40,
+    features: ['Fact-checking', 'URL verification', 'Export to PDF/JSON/CSV', 'Priority support'],
   },
 } as const;
 
 // Credit costs
 export const CREDIT_COSTS = {
-  quick: 1,
-  deep: 3, // Hidden for MVP
+  standard: 1,
 } as const;
 
 // Feature flags

@@ -9,7 +9,7 @@ export default function RefundPolicyPage() {
   return (
     <LegalPageLayout
       title="Refund Policy"
-      lastUpdated="22 January 2025"
+      lastUpdated="6 January 2026"
     >
       <div className="prose-legal">
         <h2>1. Subscription Cancellation</h2>
@@ -33,7 +33,7 @@ export default function RefundPolicyPage() {
 
         <h3>2.2 How to Request</h3>
         <ol>
-          <li>Email <a href="mailto:hello@tru8.com">hello@tru8.com</a> within 14 days of payment</li>
+          <li>Email <a href="mailto:hello@trueight.com">hello@trueight.com</a> within 14 days of payment</li>
           <li>Include your account email and reason for refund</li>
           <li>We&apos;ll process your request within 5 business days</li>
           <li>Refunds issued to original payment method within 7-10 business days</li>
@@ -56,7 +56,7 @@ export default function RefundPolicyPage() {
           If you believe you were charged in error:
         </p>
         <ul>
-          <li>Contact <a href="mailto:hello@tru8.com">hello@tru8.com</a> immediately</li>
+          <li>Contact <a href="mailto:hello@trueight.com">hello@trueight.com</a> immediately</li>
           <li>Provide transaction details (date, amount, payment method)</li>
           <li>We&apos;ll investigate and resolve within 7 business days</li>
         </ul>
@@ -75,7 +75,7 @@ export default function RefundPolicyPage() {
 
         <h2>7. Contact</h2>
         <p>
-          <strong>For refund requests and billing questions:</strong> <a href="mailto:hello@tru8.com">hello@tru8.com</a><br />
+          <strong>For refund requests and billing questions:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a><br />
           <strong>Response Time:</strong> Within 5 business days
         </p>
       </div>

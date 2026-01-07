@@ -116,7 +116,7 @@ export default function NewCheckPage() {
   const handleShare = (platform: string) => {
     const url = window.location.origin;
     const title = 'Tru8 - Fact-Checking Platform';
-    const text = 'Check out Tru8 for instant fact verification';
+    const text = 'Check out Tru8 - Thorough fact-checking with credible sources';
 
     const shareUrls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
@@ -145,18 +145,18 @@ export default function NewCheckPage() {
 
       {/* Limit Reached Banner */}
       {isLimitReached && (
-        <div className="bg-amber-900/20 border border-amber-700 rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <Lock className="text-amber-400 flex-shrink-0 mt-1" size={24} />
+        <div className="bg-amber-900/20 border border-amber-700 rounded-xl p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+            <Lock className="text-amber-400 flex-shrink-0" size={20} />
             <div className="flex-1">
-              <h3 className="text-amber-400 font-bold text-lg mb-2">Monthly Limit Reached</h3>
-              <p className="text-amber-200 mb-4">
+              <h3 className="text-amber-400 font-bold text-base md:text-lg mb-2">Monthly Limit Reached</h3>
+              <p className="text-amber-200 text-sm md:text-base mb-4">
                 You've used all {usageInfo?.limit || 3} checks available on your free plan this month.
                 Upgrade to Pro for 40 checks per month and advanced features.
               </p>
               <Link
                 href="/dashboard/settings?tab=subscription"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl transition-all"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-2.5 md:py-3 px-5 md:px-6 rounded-xl transition-all text-sm md:text-base"
               >
                 Upgrade to Pro
               </Link>
@@ -166,10 +166,10 @@ export default function NewCheckPage() {
       )}
 
       {/* Submit Content Card */}
-      <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-8">
-        <div className="mb-6">
-          <h3 className="text-xl font-bold text-white">Submit Content</h3>
-          <p className="text-slate-400 text-sm mt-1">
+      <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-4 sm:p-6 md:p-8">
+        <div className="mb-4 md:mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-white">Submit Content</h3>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1">
             Enter a URL or paste text to verify claims and check facts
           </p>
         </div>
@@ -306,48 +306,48 @@ Leave this text field blank to proceed for a standard check on your article."
       </div>
 
       {/* Share Your Results Card */}
-      <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-8 text-center">
-        <h3 className="text-2xl font-bold text-white mb-3">Share Your Results</h3>
-        <p className="text-slate-300 max-w-2xl mx-auto mb-6">
+      <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-4 sm:p-6 md:p-8 text-center">
+        <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3">Share Your Results</h3>
+        <p className="text-slate-300 text-sm md:text-base max-w-2xl mx-auto mb-4 md:mb-6">
           Once your fact-check is complete, share the verified results with your network to help combat misinformation
         </p>
 
-        {/* Social Icons */}
-        <div className="flex items-center justify-center gap-4">
+        {/* Social Icons - wrap on mobile */}
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
           <button
             onClick={() => handleShare('facebook')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
             aria-label="Share on Facebook"
           >
-            <Facebook size={24} />
+            <Facebook size={20} className="sm:w-6 sm:h-6" />
           </button>
           <button
             onClick={() => handleShare('instagram')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
             aria-label="Share on Instagram"
           >
-            <Instagram size={24} />
+            <Instagram size={20} className="sm:w-6 sm:h-6" />
           </button>
           <button
             onClick={() => handleShare('twitter')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
             aria-label="Share on Twitter"
           >
-            <Twitter size={24} />
+            <Twitter size={20} className="sm:w-6 sm:h-6" />
           </button>
           <button
             onClick={() => handleShare('youtube')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
             aria-label="Share on YouTube"
           >
-            <Youtube size={24} />
+            <Youtube size={20} className="sm:w-6 sm:h-6" />
           </button>
           <button
             onClick={() => handleShare('message')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-3 rounded-full transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
             aria-label="Share via Message"
           >
-            <MessageCircle size={24} />
+            <MessageCircle size={20} className="sm:w-6 sm:h-6" />
           </button>
         </div>
       </div>

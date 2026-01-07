@@ -1,0 +1,61 @@
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env
+.env.*
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage_html/
+*.cover
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Logs
+*.log
+logs/
+
+# Local development
+docker-compose*.yml
+Makefile
+
+# Misc
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+
+# Alembic versions are needed for migrations
+# but we exclude test/dev configs
+alembic.ini.bak

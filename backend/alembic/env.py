@@ -4,6 +4,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 import asyncio
+import os
 
 # Import your models here
 from app.models import *  # This imports all models
@@ -11,6 +12,18 @@ from sqlmodel import SQLModel
 
 # this is the Alembic Config object
 config = context.config
+
+# Get DATABASE_URL from environment (required for production)
+# Falls back to a default for local development only
+def get_database_url() -> str:
+    url = os.getenv("DATABASE_URL")
+    if url:
+        return url
+    # Fallback for local development (should not be used in production)
+    return "postgresql+asyncpg://postgres:password@localhost:5433/tru8_dev"
+
+# Override sqlalchemy.url with environment variable
+config.set_main_option("sqlalchemy.url", get_database_url())
 
 # Interpret the config file for Python logging
 # Skip if logging sections are not configured

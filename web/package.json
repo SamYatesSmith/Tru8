@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:clean": "if exist .next rmdir /s /q .next && next dev",
+    "dev:clean": "(if exist .next rmdir /s /q .next) & next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^5.7.1",
+    "@sentry/nextjs": "^8.0.0",
     "lucide-react": "^0.451.0",
     "next": "14.2.13",
     "react": "^18.3.1",

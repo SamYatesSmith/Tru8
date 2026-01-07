@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 interface LegalPageLayoutProps {
   title: string;
-  lastUpdated: string;
+  lastUpdated?: string;
   children: React.ReactNode;
 }
 
@@ -34,9 +34,11 @@ export function LegalPageLayout({ title, lastUpdated, children }: LegalPageLayou
             <h1 className="text-5xl md:text-6xl font-black text-white mb-4">
               {title}
             </h1>
-            <p className="text-slate-400 text-sm">
-              Last Updated: <span className="text-slate-300">{lastUpdated}</span>
-            </p>
+            {lastUpdated && (
+              <p className="text-slate-400 text-sm">
+                Last Updated: <span className="text-slate-300">{lastUpdated}</span>
+              </p>
+            )}
           </div>
 
           {/* Content Container */}

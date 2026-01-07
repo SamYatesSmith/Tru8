@@ -1,14 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, delete, func, text
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import selectinload
 from datetime import datetime
+import json
 from app.core.database import get_session
 from app.core.auth import get_current_user
 from app.core.config import settings
-from app.models import User, Check, Subscription, Claim, Evidence
+from app.models import User, Check, Subscription, Claim, Evidence, RawEvidence
 from app.services.push_notifications import push_notification_service
+from app.core.rate_limit import limiter
 import stripe
 import logging
 
@@ -604,3 +608,180 @@ async def update_email_preferences(
             "marketing": user.email_marketing
         }
     }
+
+
+# ========== GDPR DATA EXPORT ==========
+
+def _serialize_datetime(dt: datetime | None) -> str | None:
+    """Convert datetime to ISO format string."""
+    return dt.isoformat() if dt else None
+
+
+def _serialize_dict(d: dict | None) -> dict | None:
+    """Ensure dict is JSON-serializable."""
+    if d is None:
+        return None
+    try:
+        json.dumps(d)
+        return d
+    except (TypeError, ValueError):
+        return str(d)
+
+
+@router.get("/export")
+@limiter.limit("3/hour")  # Rate limit: 3 exports per hour per user
+async def export_user_data(
+    request: Request,  # Required for rate limiting
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Export all user data (GDPR Article 20 - Right to data portability).
+
+    Returns a JSON file containing:
+    - User profile information
+    - All fact-checks performed
+    - All claims extracted
+    - All evidence gathered
+    - Subscription history
+    - Notification preferences
+
+    Rate limited to 3 requests per hour to prevent abuse.
+    """
+    user_id = current_user["id"]
+
+    # Get user record
+    stmt = select(User).where(User.id == user_id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Export user profile
+    user_data = {
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "credits": user.credits,
+        "total_credits_used": user.total_credits_used,
+        "created_at": _serialize_datetime(user.created_at),
+        "updated_at": _serialize_datetime(user.updated_at),
+        "preferences": {
+            "push_notifications_enabled": user.push_notifications_enabled,
+            "email_notifications_enabled": user.email_notifications_enabled,
+            "email_check_completion": user.email_check_completion,
+            "email_check_failure": user.email_check_failure,
+            "email_weekly_digest": user.email_weekly_digest,
+            "email_marketing": user.email_marketing,
+        }
+    }
+
+    # Export subscriptions
+    sub_stmt = select(Subscription).where(Subscription.user_id == user_id)
+    sub_result = await session.execute(sub_stmt)
+    subscriptions = sub_result.scalars().all()
+
+    subscriptions_data = [
+        {
+            "id": str(sub.id),
+            "plan": sub.plan,
+            "status": sub.status,
+            "credits_per_month": sub.credits_per_month,
+            "current_period_start": _serialize_datetime(sub.current_period_start),
+            "current_period_end": _serialize_datetime(sub.current_period_end),
+            "created_at": _serialize_datetime(sub.created_at),
+        }
+        for sub in subscriptions
+    ]
+
+    # Export checks with claims and evidence
+    checks_stmt = select(Check).where(Check.user_id == user_id).order_by(desc(Check.created_at))
+    checks_result = await session.execute(checks_stmt)
+    checks = checks_result.scalars().all()
+
+    checks_data = []
+    for check in checks:
+        # Get claims for this check
+        claims_stmt = select(Claim).where(Claim.check_id == check.id)
+        claims_result = await session.execute(claims_stmt)
+        claims = claims_result.scalars().all()
+
+        claims_data = []
+        for claim in claims:
+            # Get evidence for this claim
+            evidence_stmt = select(Evidence).where(Evidence.claim_id == claim.id)
+            evidence_result = await session.execute(evidence_stmt)
+            evidence_list = evidence_result.scalars().all()
+
+            evidence_data = [
+                {
+                    "id": str(ev.id),
+                    "url": ev.url,
+                    "title": ev.title,
+                    "publisher": ev.publisher,
+                    "snippet": ev.snippet,
+                    "published_date": _serialize_datetime(ev.published_date),
+                    "credibility_score": ev.credibility_score,
+                    "is_factcheck": ev.is_factcheck,
+                    "tier": ev.tier,
+                    "nli_verdict": ev.nli_verdict,
+                    "nli_confidence": ev.nli_confidence,
+                }
+                for ev in evidence_list
+            ]
+
+            claims_data.append({
+                "id": str(claim.id),
+                "text": claim.text,
+                "verdict": claim.verdict,
+                "confidence": claim.confidence,
+                "rationale": claim.rationale,
+                "claim_type": claim.claim_type,
+                "evidence": evidence_data,
+            })
+
+        checks_data.append({
+            "id": str(check.id),
+            "input_type": check.input_type,
+            "status": check.status,
+            "url": check.url,
+            "title": check.title,
+            "mode": check.mode,
+            "credits_used": check.credits_used,
+            "article_domain": check.article_domain,
+            "transparency_score": check.transparency_score,
+            "processing_time_ms": check.processing_time_ms,
+            "created_at": _serialize_datetime(check.created_at),
+            "completed_at": _serialize_datetime(check.completed_at),
+            "claims": claims_data,
+        })
+
+    # Build complete export
+    export_data = {
+        "export_date": datetime.utcnow().isoformat(),
+        "export_version": "1.0",
+        "user": user_data,
+        "subscriptions": subscriptions_data,
+        "checks": checks_data,
+        "metadata": {
+            "total_checks": len(checks_data),
+            "total_claims": sum(len(c["claims"]) for c in checks_data),
+            "total_evidence": sum(
+                len(ev)
+                for c in checks_data
+                for claim in c["claims"]
+                for ev in [claim["evidence"]]
+            ),
+        }
+    }
+
+    logger.info(f"GDPR data export generated for user {user_id}")
+
+    # Return as downloadable JSON file
+    return JSONResponse(
+        content=export_data,
+        headers={
+            "Content-Disposition": f'attachment; filename="tru8_data_export_{user_id[:8]}_{datetime.utcnow().strftime("%Y%m%d")}.json"'
+        }
+    )

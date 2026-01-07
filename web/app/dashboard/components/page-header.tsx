@@ -25,7 +25,7 @@ export function PageHeader({
   const handleShare = async (platform: string) => {
     const url = window.location.origin;
     const titleText = 'Tru8 - Fact-Checking Platform';
-    const text = 'Check out Tru8 for instant fact verification with dated evidence';
+    const text = 'Check out Tru8 - Thorough fact-checking with credible sources';
 
     // Try native Web Share API first
     if (navigator.share && platform === 'native') {
@@ -51,26 +51,26 @@ export function PageHeader({
     }
   };
 
-  // Dynamic classes based on titleSize
+  // Dynamic classes based on titleSize - mobile-first with progressive enhancement
   const titleClasses = titleSize === 'normal'
-    ? 'text-5xl md:text-6xl lg:text-7xl font-black text-white mb-8 leading-tight'
-    : 'text-6xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight';
+    ? 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 md:mb-8 leading-tight'
+    : 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-6 md:mb-8 leading-tight';
 
   return (
-    <div className="relative mb-20 py-20">
-      <div className="flex items-center justify-between gap-8">
+    <div className="relative mb-10 md:mb-20 py-10 md:py-20">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
         {/* Left content */}
         <div className="flex-1 max-w-3xl">
           <h1 className={titleClasses}>
             {title}
           </h1>
-          <p className="text-2xl md:text-3xl text-slate-300 mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-slate-300 mb-6 md:mb-10 leading-relaxed">
             {subtitle}
           </p>
           {ctaText && ctaHref && (
             <Link
               href={ctaHref}
-              className="inline-block bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-12 py-5 rounded-xl transition-colors text-xl"
+              className="inline-block bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-8 md:px-12 py-4 md:py-5 rounded-xl transition-colors text-base md:text-xl"
             >
               {ctaText}
             </Link>

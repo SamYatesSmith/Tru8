@@ -143,7 +143,7 @@ function CheckResultsContent() {
         });
       }
       
-      shareText += `Verified by Tru8 - Instant fact-checking with dated evidence`;
+      shareText += `Verified by Tru8 - Thorough fact-checking with credible sources`;
       
       if (await Sharing.isAvailableAsync()) {
         // Create a temporary text file to share

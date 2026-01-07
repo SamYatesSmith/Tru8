@@ -2,32 +2,30 @@ import Purchases, { PurchasesOffering, PurchasesPackage, CustomerInfo } from 're
 
 // Product configuration matching backend pricing
 export const MOBILE_PRODUCTS = {
-  starter: {
-    identifier: 'starter_plan',
-    name: 'Starter Plan',
-    price: '£6.99',
-    credits: 120,
-    description: '120 checks per month',
+  free: {
+    identifier: 'free_plan',
+    name: 'Free',
+    price: '£0',
+    credits: 3,
+    description: '3 free fact-checks',
     features: [
-      '120 fact-checks per month',
+      '3 fact-checks',
       'Real-time verification',
-      'Multiple evidence sources',
-      'Export results',
-      'Email support'
+      'Source citations',
+      'Standard support'
     ]
   },
-  pro: {
-    identifier: 'pro_plan', 
-    name: 'Pro Plan',
-    price: '£12.99',
-    credits: 300,
-    description: '300 checks per month + Deep mode',
+  professional: {
+    identifier: 'professional_plan',
+    name: 'Professional',
+    price: '£7',
+    credits: 40,
+    description: '40 checks per month',
     features: [
-      '300 fact-checks per month',
-      'Deep mode analysis',
-      'Priority processing',
-      'Advanced analytics',
-      'API access (coming soon)',
+      '40 fact-checks per month',
+      'URL verification',
+      'Export to PDF/JSON/CSV',
+      'Comprehensive sources (10+ citations)',
       'Priority support'
     ]
   }

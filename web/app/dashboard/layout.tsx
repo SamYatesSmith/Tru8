@@ -36,8 +36,9 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-[#0f1419]">
       <SignedInNav user={user} />
 
-      <main className="pt-24 pb-12">
-        <div className="container mx-auto px-6 max-w-7xl">
+      {/* Main content - adjusted padding for mobile nav (top: h-14, bottom: h-16) */}
+      <main className="pt-20 md:pt-24 pb-20 md:pb-12">
+        <div className="container mx-auto px-4 md:px-6 max-w-7xl">
           {children}
         </div>
       </main>

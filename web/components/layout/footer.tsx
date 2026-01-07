@@ -40,7 +40,7 @@ export function Footer() {
             <span className="text-2xl font-black text-white">Tru8</span>
           </div>
           <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-            Transparent fact-checking with dated evidence. Verify claims instantly with AI-powered analysis.
+            Thorough fact-checking with credible sources. AI-powered analysis backed by multi-source verification.
           </p>
         </div>
 
@@ -127,8 +127,11 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="pt-6 border-t border-slate-800">
+        {/* Beta Notice + Copyright */}
+        <div className="pt-6 border-t border-slate-800 space-y-3">
+          <p className="text-center text-amber-500/80 text-xs">
+            Tru8 is currently in beta. Results are for informational purposes only and should be independently verified.
+          </p>
           <p className="text-center text-slate-500 text-xs">
             © 2025 Tru8. All rights reserved.
           </p>

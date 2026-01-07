@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
@@ -24,6 +24,8 @@ from app.core.config import settings
 import os
 import aiofiles
 from app.api.v1.users import get_or_create_user
+from app.services.storage import storage_service
+from app.core.rate_limit import limiter
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -46,7 +48,9 @@ class CreateCheckRequest(BaseModel):
     user_query: Optional[str] = None  # Search Clarity feature
 
 @router.post("/upload")
+@limiter.limit("10/minute")  # Rate limit uploads
 async def upload_file(
+    request: Request,  # Required for rate limiting
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
@@ -78,24 +82,23 @@ async def upload_file(
         )
     
     filename = f"{file_id}{file_extension}"
-    
-    # For now, store locally (TODO: implement S3 storage)
-    upload_dir = Path("uploads")
-    upload_dir.mkdir(exist_ok=True)
-    file_path = upload_dir / filename
-    
+
     try:
-        async with aiofiles.open(file_path, 'wb') as f:
-            await f.write(content)
-        
+        # Use storage service (S3 in production, local in development)
+        file_path = await storage_service.upload(
+            file_data=content,
+            filename=filename,
+            content_type=file.content_type,
+        )
+
         return {
             "success": True,
-            "filePath": str(file_path),
+            "filePath": file_path,
             "filename": file.filename,
             "contentType": file.content_type,
             "size": len(content)
         }
-        
+
     except Exception as e:
         logger.error(f"File upload error: {e}")
         raise HTTPException(
@@ -106,7 +109,7 @@ async def upload_file(
 class CreateCheckTestRequest(BaseModel):
     """Test-only request model that accepts a URL without authentication"""
     url: str
-    mode: str = "quick"  # quick or deep
+    mode: str = "standard"
 
 @router.post("/test", status_code=201)
 async def create_check_test(
@@ -292,14 +295,21 @@ async def get_check_test(
 
 @router.post("", status_code=201)
 @router.post("/", status_code=201)
+@limiter.limit("10/minute")  # Rate limit: 10 checks per minute per IP
 async def create_check(
-    request: CreateCheckRequest,
+    body: CreateCheckRequest,
+    request: Request,  # Required for rate limiting (must be named 'request' for slowapi)
     current_user: dict = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """Create a new fact-check request"""
     # Get or create user (handles race conditions)
     user = await get_or_create_user(session, current_user)
+
+    # BETA TESTER CHECK - bypass credit limits for beta testers
+    is_beta_tester = user.email.lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+    if is_beta_tester:
+        logger.info(f"Beta tester {user.email} - bypassing credit limits")
 
     # MONTHLY USAGE LIMIT CHECK (applies in all modes, including DEBUG)
     # Get subscription to determine monthly limit (Subscription already imported at top)
@@ -330,43 +340,43 @@ async def create_check(
     usage_result = await session.execute(usage_stmt)
     monthly_usage = usage_result.scalar() or 0
 
-    # Check if user has exceeded their monthly limit
-    if monthly_usage >= credits_per_month:
+    # Check if user has exceeded their monthly limit (skip for beta testers)
+    if not is_beta_tester and monthly_usage >= credits_per_month:
         raise HTTPException(
             status_code=402,
             detail=f"Monthly limit reached ({monthly_usage}/{credits_per_month} checks used). Please upgrade your plan for more checks."
         )
     
     # Validate input
-    if request.input_type not in ["url", "text", "image", "video"]:
+    if body.input_type not in ["url", "text", "image", "video"]:
         raise HTTPException(status_code=400, detail="Invalid input type")
 
-    if request.input_type == "url" and not request.url:
+    if body.input_type == "url" and not body.url:
         raise HTTPException(status_code=400, detail="URL is required for url input type")
 
     # Normalize URL (add https:// if missing protocol)
-    if request.input_type in ["url", "video"] and request.url:
-        if not request.url.startswith(("http://", "https://")):
-            request.url = f"https://{request.url}"
-            logger.info(f"Normalized URL to: {request.url}")
+    if body.input_type in ["url", "video"] and body.url:
+        if not body.url.startswith(("http://", "https://")):
+            body.url = f"https://{body.url}"
+            logger.info(f"Normalized URL to: {body.url}")
 
-    if request.input_type == "text" and not request.content:
+    if body.input_type == "text" and not body.content:
         raise HTTPException(status_code=400, detail="Content is required for text input type")
 
-    if request.input_type == "image" and not request.file_path:
+    if body.input_type == "image" and not body.file_path:
         raise HTTPException(status_code=400, detail="File path is required for image input type")
 
-    if request.input_type == "video" and not request.url:
+    if body.input_type == "video" and not body.url:
         raise HTTPException(status_code=400, detail="URL is required for video input type")
 
     # Sanitize inputs (trim whitespace)
-    if request.url:
-        request.url = request.url.strip()
-    if request.content:
-        request.content = request.content.strip()
+    if body.url:
+        body.url = body.url.strip()
+    if body.content:
+        body.content = body.content.strip()
 
     # Search Clarity validation
-    if request.user_query:
+    if body.user_query:
         # Check feature flag
         if not settings.ENABLE_SEARCH_CLARITY:
             raise HTTPException(
@@ -375,29 +385,29 @@ async def create_check(
             )
 
         # Validate query length
-        if len(request.user_query) > 200:
+        if len(body.user_query) > 200:
             raise HTTPException(
                 status_code=400,
                 detail="Query must be 200 characters or less"
             )
 
         # Sanitize query (prevent prompt injection)
-        request.user_query = request.user_query.strip()
+        body.user_query = body.user_query.strip()
 
     # Create check record
     check = Check(
         id=str(uuid.uuid4()),
         user_id=user.id,
-        input_type=request.input_type,
+        input_type=body.input_type,
         input_content=json.dumps({
-            "content": request.content,
-            "url": request.url,
-            "file_path": request.file_path
+            "content": body.content,
+            "url": body.url,
+            "file_path": body.file_path
         }),
-        input_url=request.url,
+        input_url=body.url,
         status="pending",
         credits_used=1,
-        user_query=request.user_query  # Search Clarity feature
+        user_query=body.user_query  # Search Clarity feature
     )
     
     session.add(check)
@@ -427,11 +437,11 @@ async def create_check(
             check_id=check.id,
             user_id=user.id,
             input_data={
-                "input_type": request.input_type,
-                "content": request.content,
-                "url": request.url,
-                "file_path": request.file_path,
-                "user_query": request.user_query  # Search Clarity feature
+                "input_type": body.input_type,
+                "content": body.content,
+                "url": body.url,
+                "file_path": body.file_path,
+                "user_query": body.user_query  # Search Clarity feature
             }
         )
         logger.info(f"Task dispatched successfully: {task.id} for check {check.id}")

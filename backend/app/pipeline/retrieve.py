@@ -605,9 +605,24 @@ class EvidenceRetriever:
             
             # Convert to evidence format with similarity scores
             ranked_evidence = []
+            filtered_count = 0
+
             for idx, similarity, text in ranked_results:
                 if idx < len(evidence_snippets):
                     snippet = evidence_snippets[idx]
+
+                    # SEMANTIC RELEVANCE FILTER: Skip evidence below similarity threshold
+                    # This prevents generic landing pages (e.g., "how to fact check" guides)
+                    # from being used as evidence when they have no relevance to the claim
+                    if settings.ENABLE_SEMANTIC_RELEVANCE_FILTER:
+                        if similarity < settings.SEMANTIC_SIMILARITY_THRESHOLD:
+                            filtered_count += 1
+                            logger.info(
+                                f"[RETRIEVE] FILTERED (low relevance): {snippet.source} "
+                                f"(similarity={similarity:.3f} < {settings.SEMANTIC_SIMILARITY_THRESHOLD}) "
+                                f"- {snippet.title[:60]}..."
+                            )
+                            continue
 
                     # Extract API-specific fields from metadata (if present)
                     # Issue #6 Fix: Preserve external_source_provider at top level
@@ -630,6 +645,9 @@ class EvidenceRetriever:
                         "metadata": snippet.metadata  # Phase 2: Include PDF metadata (page_number, context)
                     }
                     ranked_evidence.append(evidence_item)
+
+            if filtered_count > 0:
+                logger.info(f"[RETRIEVE] Semantic filter: {filtered_count} low-relevance evidence items removed")
             
             # Sort by combined score
             ranked_evidence.sort(key=lambda x: x["combined_score"], reverse=True)

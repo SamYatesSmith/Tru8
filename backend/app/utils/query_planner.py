@@ -202,11 +202,12 @@ RESPOND WITH JSON:
                 article_context_section = f"""
 ARTICLE CONTEXT:
 - Domain: {article_context.get('primary_domain', 'General')}
+- Jurisdiction: {article_context.get('jurisdiction', 'Global')}
 - Temporal Context: {article_context.get('temporal_context', 'Not specified')}
 - Key Entities: {', '.join(article_context.get('key_entities', [])) or 'Not specified'}
 - Evidence Guidance: {article_context.get('evidence_guidance', 'Use appropriate sources')}
 """
-                logger.info(f"[QUERY_PLANNER] Using article context: domain={article_context.get('primary_domain')}")
+                logger.info(f"[QUERY_PLANNER] Using article context: domain={article_context.get('primary_domain')}, jurisdiction={article_context.get('jurisdiction')}")
 
             current_year = now.strftime("%Y")
             user_prompt = f"""TODAY'S DATE: {current_date} (CURRENT YEAR: {current_year})

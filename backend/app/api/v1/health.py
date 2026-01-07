@@ -5,6 +5,7 @@ from app.core.database import get_session
 from app.core.config import settings
 from app.services.cache import get_sync_cache_service
 from app.services.circuit_breaker import get_circuit_breaker_registry
+from app.services.email_notifications import email_notification_service
 import redis.asyncio as redis
 
 router = APIRouter()
@@ -117,3 +118,29 @@ async def get_circuit_breakers(api_name: str = Query(None, description="Optional
 
     except Exception as e:
         return {"error": f"Failed to retrieve circuit breaker states: {str(e)}"}
+
+
+@router.get("/email-config")
+async def check_email_config():
+    """
+    Diagnostic endpoint to check email notification configuration.
+    """
+    service = email_notification_service
+
+    # Check if resend module is available
+    resend_available = False
+    try:
+        import resend
+        resend_available = True
+    except ImportError:
+        pass
+
+    return {
+        "enabled": service.enabled,
+        "api_key_configured": bool(service.api_key),
+        "api_key_prefix": service.api_key[:8] + "..." if service.api_key else None,
+        "from_address": service.from_address,
+        "from_name": service.from_name,
+        "resend_package_installed": resend_available,
+        "status": "ready" if (service.enabled and service.api_key and resend_available) else "not_configured"
+    }

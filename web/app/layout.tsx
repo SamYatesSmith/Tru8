@@ -2,10 +2,11 @@ import { ClerkProvider } from '@clerk/nextjs'
 import Script from 'next/script'
 import './globals.css'
 import type { Metadata } from 'next'
+import { BetaBanner } from '@/components/layout/beta-banner'
 
 export const metadata: Metadata = {
-  title: 'Tru8 - Transparent Fact-Checking with Dated Evidence',
-  description: 'Professional fact-checking platform providing instant verification with dated evidence for journalists, researchers, and content creators.',
+  title: 'Tru8 - AI-Powered Fact Verification',
+  description: 'AI-powered fact verification with multi-source evidence. Professional fact-checking platform for journalists, researchers, and content creators.',
   icons: {
     icon: '/favicon.proper.png',
   },
@@ -32,6 +33,7 @@ export default function RootLayout({
           )}
         </head>
         <body className="bg-[#0f1419] text-white antialiased" suppressHydrationWarning>
+          <BetaBanner />
           {children}
         </body>
       </html>

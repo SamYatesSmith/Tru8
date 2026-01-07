@@ -39,37 +39,37 @@ export function HeroSection() {
     <>
       <section
         id="hero"
-        className="relative min-h-screen flex items-center justify-center pt-16 pb-20 px-4 overflow-hidden"
+        className="relative min-h-screen flex items-center justify-center pt-16 pb-24 md:pb-20 px-4 overflow-hidden"
       >
         {/* Content Container with Backlight */}
         <div className="relative max-w-6xl w-full mx-auto">
           {/* Backlit container with multi-layer glow */}
-          <div className="hero-backlight hero-container-depth rounded-3xl p-16 md:p-20 bg-[#1e293b] border border-slate-700/50">
+          <div className="hero-backlight hero-container-depth rounded-2xl md:rounded-3xl p-6 sm:p-10 md:p-16 lg:p-20 bg-[#1e293b] border border-slate-700/50">
             {/* Inner wrapper for additional glow layers */}
             <div>
               {/* Content */}
               <div className="text-center">
                 {/* Headline - Gradient text with swirling animation */}
-                <h1 className="hero-gradient-text text-7xl md:text-8xl lg:text-9xl font-black mb-6 tracking-wider">
+                <h1 className="hero-gradient-text text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black mb-4 md:mb-6 tracking-wider">
                   Tru8
                 </h1>
 
                 {/* Subheadline */}
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white mb-6">
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white mb-4 md:mb-6">
                   Stop Guessing. Start Knowing.
                 </h2>
 
                 {/* Description */}
-                <p className="text-base md:text-lg lg:text-xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-300 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
                   In a world of misinformation, or fake news, verify what you read and share. Quick fact-checking backed by credible sources you can cite.
                 </p>
 
                 {/* CTAs */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 md:mb-12">
                   {/* Primary CTA - Opens Auth Modal */}
                   <button
                     onClick={() => setIsAuthModalOpen(true)}
-                    className="px-8 py-4 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg text-lg font-semibold transition-all hover:shadow-lg hover:shadow-[rgba(245,122,7,0.3)] min-w-[240px] cta-pulse btn-scale-hover"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg text-base sm:text-lg font-semibold transition-all hover:shadow-lg hover:shadow-[rgba(245,122,7,0.3)] cta-pulse btn-scale-hover"
                     aria-label="Start verifying content for free"
                   >
                     Start Verifying Free
@@ -78,7 +78,7 @@ export function HeroSection() {
                   {/* Secondary CTA - Scroll to How It Works */}
                   <button
                     onClick={() => scrollToSection('how-it-works')}
-                    className="px-8 py-4 bg-transparent border-2 border-slate-600 hover:border-[#f57a07] text-white rounded-lg text-lg font-semibold transition-all min-w-[240px] btn-scale-hover"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent border-2 border-slate-600 hover:border-[#f57a07] text-white rounded-lg text-base sm:text-lg font-semibold transition-all btn-scale-hover"
                     aria-label="Learn how Tru8 works"
                   >
                     See How It Works
@@ -86,22 +86,22 @@ export function HeroSection() {
                 </div>
 
                 {/* Trust Indicators */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm">
                   {/* Verified Sources */}
                   <div className="flex items-center gap-2 trust-badge-1">
-                    <CheckCircle className="w-5 h-5 text-[#22d3ee]" />
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
                     <span className="text-slate-400">Verified Sources</span>
                   </div>
 
                   {/* Real-time Results */}
                   <div className="flex items-center gap-2 trust-badge-2">
-                    <Clock className="w-5 h-5 text-[#22d3ee]" />
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
                     <span className="text-slate-400">Real-time Results</span>
                   </div>
 
                   {/* Professional Grade */}
                   <div className="flex items-center gap-2 trust-badge-3">
-                    <Users className="w-5 h-5 text-[#22d3ee]" />
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
                     <span className="text-slate-400">Professional Grade</span>
                   </div>
                 </div>

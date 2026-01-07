@@ -55,6 +55,46 @@ class BaseIngester:
 class UrlIngester(BaseIngester):
     """Ingest content from URLs"""
 
+    # Cookie consent / GDPR boilerplate patterns
+    COOKIE_CONSENT_PATTERNS = [
+        'cookie settings', 'cookie policy', 'cookie preferences',
+        'manage cookies', 'accept cookies', 'reject cookies',
+        'accept all', 'reject all', 'manage privacy',
+        'privacy settings', 'privacy preferences', 'privacy dashboard',
+        'consent to cookies', 'cookie consent', 'gdpr',
+        'we use cookies', 'this site uses cookies',
+        'personal data', 'partners use cookies',
+        'legitimate interest', 'manage preferences',
+        'customise your choices', 'customize your choices',
+    ]
+
+    def _is_cookie_consent_content(self, content: str) -> bool:
+        """
+        Detect if extracted content is primarily cookie consent boilerplate.
+        Returns True if content appears to be a consent wall, not actual article.
+        """
+        if not content:
+            return False
+
+        content_lower = content.lower()
+        word_count = len(content.split())
+
+        # Count cookie/consent pattern matches
+        pattern_matches = sum(1 for pattern in self.COOKIE_CONSENT_PATTERNS if pattern in content_lower)
+
+        # If content is short AND has multiple consent patterns, it's likely a consent wall
+        # Threshold: 3+ patterns in content under 500 words suggests consent wall
+        if word_count < 500 and pattern_matches >= 3:
+            logger.info(f"[INGEST] Cookie consent detected: {pattern_matches} patterns in {word_count} words")
+            return True
+
+        # High density check: if >20% of patterns match in short content
+        if word_count < 300 and pattern_matches >= 2:
+            logger.info(f"[INGEST] Cookie consent detected (high density): {pattern_matches} patterns in {word_count} words")
+            return True
+
+        return False
+
     def _get_browser_headers(self, user_agent: str) -> Dict[str, str]:
         """Return browser-like headers to avoid bot detection"""
         return {
@@ -142,6 +182,14 @@ class UrlIngester(BaseIngester):
                 if not content or len(content.strip()) < 50:
                     # Fall through to readability fallback
                     pass
+                # Check for cookie consent wall
+                elif self._is_cookie_consent_content(content):
+                    return {
+                        "success": False,
+                        "error": "cookie_consent_wall",
+                        "message": "This article appears to be behind a cookie consent wall. Please visit the URL directly, accept cookies, then copy and paste the article text instead.",
+                        "metadata": {"url": url, "cookie_wall": True}
+                    }
                 else:
                     return {
                         "success": True,
@@ -174,6 +222,15 @@ class UrlIngester(BaseIngester):
                     "success": False,
                     "error": "Extracted content too short - URL may be behind paywall or block bot access",
                     "metadata": {"url": url}
+                }
+
+            # Check for cookie consent wall (readability fallback)
+            if self._is_cookie_consent_content(content):
+                return {
+                    "success": False,
+                    "error": "cookie_consent_wall",
+                    "message": "This article appears to be behind a cookie consent wall. Please visit the URL directly, accept cookies, then copy and paste the article text instead.",
+                    "metadata": {"url": url, "cookie_wall": True}
                 }
 
             return {

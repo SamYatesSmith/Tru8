@@ -1,4 +1,4 @@
-# Tru8 - Instant Fact-Checking Platform
+# Tru8 - AI-Powered Fact Verification Platform
 
 ## 🚀 Quick Start
 

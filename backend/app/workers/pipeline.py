@@ -400,10 +400,21 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
             logger.info(f"Input content length: {len(input_data.get('content') or '')}")
             content = asyncio.run(ingest_content_async(input_data))
             if not content.get("success"):
-                raise Exception(f"Ingest failed: {content.get('error', 'Unknown error')}")
+                # Use user-friendly message if available, otherwise fall back to error code
+                error_msg = content.get('message') or content.get('error', 'Unknown error')
+                error_code = content.get('error', '')
+
+                # Don't retry for certain errors (cookie walls, paywalls) - retrying won't help
+                if error_code in ('cookie_consent_wall', 'paywall'):
+                    raise Exception(error_msg)
+                raise Exception(f"Ingest failed: {error_msg}")
             logger.info(f"Ingested content length: {len(content.get('content') or '')}")
         except Exception as e:
             logger.error(f"Ingest stage failed: {e}")
+            # Don't retry cookie/paywall errors
+            error_str = str(e).lower()
+            if 'cookie' in error_str or 'paywall' in error_str or 'consent' in error_str:
+                raise Exception(str(e))
             if self.request.retries < self.max_retries:
                 raise self.retry(countdown=60, exc=e)
             raise Exception(f"Ingest stage failed after retries: {e}")
@@ -798,6 +809,31 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
 
             # Send check completion email notification
             try:
+                # Extract enhanced data for email
+                input_url = input_data.get('url') or content.get('metadata', {}).get('url')
+                input_title = content.get('metadata', {}).get('title')
+                # Use raw_sources_count (all sources reviewed) to match website display
+                total_sources = raw_sources_count if raw_sources_count > 0 else sum(len(ev) for ev in evidence.values())
+
+                # Build top claims (max 2 for email) - prioritize definitive verdicts
+                # Order: contradicted first (most important), then supported, uncertain last
+                sorted_claims = sorted(
+                    results,
+                    key=lambda c: (
+                        0 if c.get("verdict") == "contradicted" else
+                        1 if c.get("verdict") == "supported" else
+                        2  # uncertain/other
+                    )
+                )
+                top_claims = [
+                    {"text": c.get("claim_text", c.get("text", "")), "verdict": c.get("verdict", "uncertain")}
+                    for c in sorted_claims[:2]
+                ]
+
+                # Calculate average confidence
+                confidences = [c.get("confidence", 50) for c in results]
+                avg_confidence = int(sum(confidences) / len(confidences)) if confidences else 50
+
                 email_notification_service.send_check_completed_email_sync(
                     user_id=user_id,
                     check_id=check_id,
@@ -805,7 +841,13 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
                     supported=assessment["claims_supported"],
                     contradicted=assessment["claims_contradicted"],
                     uncertain=assessment["claims_uncertain"],
-                    credibility_score=assessment["credibility_score"]
+                    credibility_score=assessment["credibility_score"],
+                    # Enhanced parameters
+                    input_url=input_url,
+                    input_title=input_title,
+                    total_sources=total_sources,
+                    top_claims=top_claims,
+                    avg_confidence=avg_confidence
                 )
             except Exception as email_error:
                 # Email notification failure should not crash the pipeline
@@ -951,7 +993,8 @@ async def generate_overall_assessment(
                 avg_evidence_cred = 0.7  # Default if no evidence
 
             # Claim weight = confidence × evidence quality
-            claim_weight = confidence * avg_evidence_cred
+            # Ensure minimum weight of 0.1 so claims with 0% confidence still count
+            claim_weight = max(0.1, confidence * avg_evidence_cred)
 
             # Verdict value: supported=100, contradicted=0, uncertain=40, abstention=30
             verdict = claim.get('verdict', '')

@@ -42,7 +42,7 @@ export default function SignIn() {
         <View className="mb-12 items-center">
           <Text className="text-4xl font-bold text-lightGrey mb-2">Tru8</Text>
           <Text className="text-coolGrey text-center">
-            Instant fact-checking with dated evidence
+            Thorough fact-checking with credible sources
           </Text>
         </View>
 

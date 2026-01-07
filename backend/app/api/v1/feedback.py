@@ -210,3 +210,43 @@ async def submit_feedback(
         success=True,
         message="Thank you for your feedback!"
     )
+
+
+class WaitlistRequest(BaseModel):
+    email: str
+    source: Optional[str] = "landing"  # Where they signed up from
+
+
+@router.post("/waitlist", response_model=FeedbackResponse)
+async def join_waitlist(request: WaitlistRequest):
+    """
+    Public endpoint for Pro subscription waitlist signup.
+    Does not require authentication - anyone can join the waitlist.
+    """
+    import re
+
+    # Basic email validation
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, request.email):
+        raise HTTPException(status_code=400, detail="Please enter a valid email address")
+
+    logger.info(f"[WAITLIST] New signup: {request.email} from {request.source}")
+
+    # Create a feedback request to reuse email sending
+    feedback = FeedbackRequest(
+        type="waitlist",
+        message=f"Pro subscription waitlist signup from {request.source} page",
+        pageUrl=request.source,
+        userEmail=request.email,
+    )
+
+    # Send email notification
+    email_sent = _send_feedback_email(feedback, "anonymous")
+
+    if not email_sent:
+        logger.warning(f"Waitlist email not sent for {request.email}, but logged")
+
+    return FeedbackResponse(
+        success=True,
+        message="You're on the list! We'll notify you when Pro launches."
+    )

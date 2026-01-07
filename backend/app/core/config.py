@@ -55,11 +55,14 @@ class Settings(BaseSettings):
     # Monitoring
     SENTRY_DSN: str = Field("", env="SENTRY_DSN")
     POSTHOG_API_KEY: str = Field("", env="POSTHOG_API_KEY")
+    OTLP_ENDPOINT: str = Field("", env="OTLP_ENDPOINT")  # OpenTelemetry collector endpoint (e.g., http://localhost:4317)
     
     # App
     ENVIRONMENT: str = Field("development", env="ENVIRONMENT")
-    DEBUG: bool = Field(True, env="DEBUG")
+    DEBUG: bool = Field(False, env="DEBUG")  # MUST be False in production
     SECRET_KEY: str = Field(..., env="SECRET_KEY")
+    # CORS_ORIGINS: Set via env var in production (e.g., '["https://tru8.com","https://app.tru8.com"]')
+    # Default is localhost only - MUST override in production
     CORS_ORIGINS: List[str] = Field(
         default=["http://localhost:3000", "http://localhost:3001", "http://localhost:8081", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
         env="CORS_ORIGINS"
@@ -81,7 +84,7 @@ class Settings(BaseSettings):
     # Judge LLM
     JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
     JUDGE_TEMPERATURE: float = Field(0.3, env="JUDGE_TEMPERATURE")
-    MAX_CONCURRENT_JUDGMENTS: int = Field(3, env="MAX_CONCURRENT_JUDGMENTS")
+    MAX_CONCURRENT_JUDGMENTS: int = Field(5, env="MAX_CONCURRENT_JUDGMENTS")
 
     # ========== PIPELINE IMPROVEMENT FEATURE FLAGS ==========
     # Phase 1 - Structural Integrity
@@ -99,7 +102,7 @@ class Settings(BaseSettings):
 
     # Phase 1.5 - Semantic Intelligence
     ENABLE_FACTCHECK_API: bool = Field(True, env="ENABLE_FACTCHECK_API")
-    ENABLE_TEMPORAL_CONTEXT: bool = Field(False, env="ENABLE_TEMPORAL_CONTEXT")  # Disabled: Query Planner handles freshness
+    ENABLE_TEMPORAL_CONTEXT: bool = Field(True, env="ENABLE_TEMPORAL_CONTEXT")  # Enabled: Extracts temporal markers from claims for date-specific queries
 
     # Fact-Check Parser (Programmatic parsing of fact-check articles)
     ENABLE_FACTCHECK_PARSING: bool = Field(False, env="ENABLE_FACTCHECK_PARSING")  # Parse fact-check articles for target claim extraction
@@ -133,6 +136,12 @@ class Settings(BaseSettings):
     ENABLE_EVIDENCE_RELEVANCE_FILTER: bool = Field(False, env="ENABLE_EVIDENCE_RELEVANCE_FILTER")  # Filter low-relevance evidence
     RELEVANCE_THRESHOLD: float = Field(0.65, env="RELEVANCE_THRESHOLD")  # Minimum relevance score (0-1)
 
+    # Semantic Similarity Filtering (Retrieve Stage)
+    # Filters out irrelevant evidence BEFORE it reaches the judge
+    # Prevents generic landing pages (e.g., "how to fact check" guides) from being used as evidence
+    ENABLE_SEMANTIC_RELEVANCE_FILTER: bool = Field(True, env="ENABLE_SEMANTIC_RELEVANCE_FILTER")
+    SEMANTIC_SIMILARITY_THRESHOLD: float = Field(0.35, env="SEMANTIC_SIMILARITY_THRESHOLD")  # Min semantic similarity (0-1)
+
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")  # Allow 3 results per domain for better evidence coverage
     DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
@@ -159,6 +168,15 @@ class Settings(BaseSettings):
     # Rollout Controls
     FEATURE_ROLLOUT_PERCENTAGE: int = Field(0, env="FEATURE_ROLLOUT_PERCENTAGE")
     INTERNAL_USER_IDS: List[str] = Field([], env="INTERNAL_USER_IDS")
+
+    # ========== BETA TESTING CONFIGURATION ==========
+    # Comma-separated list of email addresses that get unlimited checks during beta
+    # Example: BETA_TESTER_EMAILS=["alice@example.com","bob@example.com"]
+    BETA_TESTER_EMAILS: List[str] = Field([], env="BETA_TESTER_EMAILS")
+
+    # When False, subscription endpoints return "coming soon" message
+    # Set to True when ready to accept paid subscriptions
+    SUBSCRIPTIONS_ENABLED: bool = Field(False, env="SUBSCRIPTIONS_ENABLED")
 
     # ========== PHASE 1: ACCURACY IMPROVEMENTS ==========
     # DeBERTa NLI Model Swap (Phase 1.1)

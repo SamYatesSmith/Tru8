@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { scrollToSection } from '@/lib/scroll-utils';
+import { BetaBadge } from '@/components/layout/beta-banner';
 
 /**
  * Desktop Navigation Component
@@ -79,9 +80,12 @@ export function Navigation({
             >
               {/* Primary Pill - Tru8 Heading - 40% larger, no border */}
               <div className="bg-[#1e293b] rounded-xl px-10 py-3 mt-2.5">
-                <h1 className="text-3xl font-bold text-white text-center whitespace-nowrap">
-                  Tru8
-                </h1>
+                <div className="flex items-center justify-center gap-2">
+                  <h1 className="text-3xl font-bold text-white text-center whitespace-nowrap">
+                    Tru8
+                  </h1>
+                  <BetaBadge />
+                </div>
               </div>
 
               {/* Secondary Pill - Navigation Links - Container appears instantly, links fade */}

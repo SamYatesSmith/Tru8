@@ -10,7 +10,11 @@
       "Bash(python -c:*)",
       "WebSearch",
       "WebFetch(domain:www.nytimes.com)",
-      "WebFetch(domain:www.washingtonpost.com)"
+      "WebFetch(domain:www.washingtonpost.com)",
+      "Bash(dir:*)",
+      "Bash(tree:*)",
+      "Bash(powershell -Command \"Get-ChildItem -Path ''C:\\\\Users\\\\projects\\\\Tru8\\\\backend'' -Recurse -Directory | Select-Object -ExpandProperty FullName | head -50\")",
+      "Bash(powershell -Command:*)"
     ],
     "deny": [],
     "ask": []

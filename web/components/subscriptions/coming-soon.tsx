@@ -1,0 +1,203 @@
+'use client';
+
+import { useState } from 'react';
+import { Sparkles, Bell, Check, ArrowRight, X } from 'lucide-react';
+import Link from 'next/link';
+
+interface SubscriptionsComingSoonProps {
+  /** Where the user came from, for context in the waitlist signup */
+  source?: 'settings' | 'pricing' | 'upgrade-banner' | 'upgrade-modal';
+  /** Optional callback when user dismisses or navigates away */
+  onDismiss?: () => void;
+  /** Show as modal overlay vs inline */
+  variant?: 'inline' | 'modal';
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+export function SubscriptionsComingSoon({
+  source = 'settings',
+  onDismiss,
+  variant = 'inline',
+}: SubscriptionsComingSoonProps) {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleWaitlistSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      // Use public waitlist endpoint (no auth required)
+      const response = await fetch(`${API_BASE_URL}/api/v1/waitlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || 'Failed to join waitlist');
+      }
+
+      setIsSubmitted(true);
+    } catch (err: any) {
+      console.error('Waitlist signup failed:', err);
+      setError(err.message || 'Failed to join waitlist. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const content = (
+    <div className="text-center">
+      {/* Icon */}
+      <div className="flex justify-center mb-6">
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#f57a07]/20 to-purple-500/20 flex items-center justify-center">
+          <Sparkles className="w-10 h-10 text-[#f57a07]" />
+        </div>
+      </div>
+
+      {/* Heading */}
+      <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+        Pro Subscriptions Coming Soon
+      </h2>
+
+      <p className="text-slate-400 mb-8 max-w-md mx-auto">
+        We're currently in beta testing. Pro subscriptions with 40 monthly checks,
+        priority processing, and advanced features will be available soon.
+      </p>
+
+      {/* Waitlist Form */}
+      {!isSubmitted ? (
+        <form onSubmit={handleWaitlistSignup} className="max-w-sm mx-auto mb-8">
+          <label className="block text-sm font-medium text-slate-300 mb-2 text-left">
+            <Bell className="w-4 h-4 inline mr-2" />
+            Get notified when Pro launches
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="flex-1 px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#f57a07] transition-colors"
+              required
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-3 bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] hover:from-[#ff8c1a] hover:to-[#f57a07] text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? '...' : 'Notify Me'}
+            </button>
+          </div>
+          {error && (
+            <p className="text-red-400 text-sm mt-2">{error}</p>
+          )}
+        </form>
+      ) : (
+        <div className="max-w-sm mx-auto mb-8 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+          <div className="flex items-center justify-center gap-2 text-emerald-400">
+            <Check className="w-5 h-5" />
+            <span className="font-medium">You're on the list!</span>
+          </div>
+          <p className="text-slate-400 text-sm mt-1">
+            We'll email you when Pro subscriptions are available.
+          </p>
+        </div>
+      )}
+
+      {/* What's included preview */}
+      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 mb-8 text-left max-w-md mx-auto">
+        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-4">
+          What's coming with Pro
+        </h3>
+        <ul className="space-y-3">
+          {[
+            '40 fact-checks per month',
+            'View all sources analysed per check',
+            'Priority verification processing',
+            'Advanced source analysis',
+            'Export reports (PDF, CSV, JSON)',
+            'Priority support',
+          ].map((feature, i) => (
+            <li key={i} className="flex items-center gap-3 text-slate-300">
+              <Check className="w-4 h-4 text-[#f57a07] flex-shrink-0" />
+              {feature}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Navigation links */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <Link
+          href="/dashboard"
+          onClick={() => {
+            // Blur focus to prevent skip-link from appearing
+            if (document.activeElement instanceof HTMLElement) {
+              document.activeElement.blur();
+            }
+            onDismiss?.();
+          }}
+          className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          Back to Dashboard
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+        <Link
+          href="/dashboard/new-check"
+          onClick={() => {
+            if (document.activeElement instanceof HTMLElement) {
+              document.activeElement.blur();
+            }
+            onDismiss?.();
+          }}
+          className="px-6 py-3 bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] hover:from-[#ff8c1a] hover:to-[#f57a07] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+        >
+          Start a Free Check
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+    </div>
+  );
+
+  // Modal variant
+  if (variant === 'modal') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={onDismiss}
+        />
+
+        {/* Modal */}
+        <div className="relative z-10 bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+          {onDismiss && (
+            <button
+              onClick={onDismiss}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  // Inline variant
+  return (
+    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-8">
+      {content}
+    </div>
+  );
+}

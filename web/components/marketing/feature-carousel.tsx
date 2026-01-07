@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, CheckCircle2, Mic } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, CheckCircle2 } from 'lucide-react';
 
 /**
  * Feature Carousel Component
@@ -44,19 +44,14 @@ export function FeatureCarousel() {
       description: 'Deep content analysis with context understanding and claim extraction',
     },
     {
-      icon: Mic,
-      title: 'Voice Recording Verification',
-      description: 'Record spoken claims directly and verify them instantly—perfect for conversations, debates, or statements on the go',
-    },
-    {
       icon: Calendar,
       title: 'Dated Evidence',
       description: 'Every source includes publication dates for temporal accuracy verification',
     },
     {
       icon: Shield,
-      title: 'Source Credibility',
-      description: 'Automatic credibility scoring based on publisher reputation and track record',
+      title: 'Source Listings',
+      description: 'Full transparency with complete source listings—see every article, publication, and reference reviewed during verification',
     },
     {
       icon: BarChart3,
@@ -113,18 +108,18 @@ export function FeatureCarousel() {
     // Uniform scaling and positioning
     let scale = 1;
 
-    // Tighter spacing - reduced from 280/200 to 220/150
+    // Tighter spacing for mobile
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    let translateX = offset * (isMobile ? 150 : 220); // Tighter pixel spacing
+    let translateX = offset * (isMobile ? 100 : 220); // Much tighter on mobile
 
     if (absDiff === 0) {
       scale = 1.0; // Center card - full size
     } else if (absDiff === 1) {
-      scale = 0.85; // Adjacent cards
+      scale = isMobile ? 0.75 : 0.85; // Smaller adjacent cards on mobile
     } else if (absDiff === 2) {
-      scale = 0.7; // Far cards
+      scale = isMobile ? 0.5 : 0.7; // Far cards
     } else {
-      scale = 0.5; // Very far cards
+      scale = 0.4; // Very far cards
     }
 
     const zIndex = 30 - absDiff * 5;
@@ -146,18 +141,18 @@ export function FeatureCarousel() {
         </div>
 
         {/* Carousel Container */}
-        <div className="relative">
+        <div className="relative px-8 md:px-0">
           {/* 3D Perspective Container - Circular Rollerdeck */}
-          <div className="carousel-perspective relative h-[320px] md:h-[380px] flex items-center justify-center">
+          <div className="carousel-perspective relative h-[280px] md:h-[380px] flex items-center justify-center">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               const offset = getCircularOffset(index);
               const { scale, translateX, zIndex } = getCardStyle(offset);
 
               const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-              const cardWidth = isMobile ? 320 : 480;
-              const cardHeight = isMobile ? 280 : 320;
-              const cardPadding = isMobile ? 'p-6' : 'p-8';
+              const cardWidth = isMobile ? 260 : 480;
+              const cardHeight = isMobile ? 240 : 320;
+              const cardPadding = isMobile ? 'p-4' : 'p-8';
 
               return (
                 <div
@@ -192,21 +187,21 @@ export function FeatureCarousel() {
             })}
           </div>
 
-          {/* Navigation Arrows */}
+          {/* Navigation Arrows - positioned outside cards on mobile */}
           <button
             onClick={goToPrevious}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-40 p-3 bg-[#1a1f2e]/80 hover:bg-[#1a1f2e] border border-slate-700 hover:border-[#f57a07] rounded-full transition-colors"
+            className="absolute -left-2 md:left-0 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 bg-[#1a1f2e] hover:bg-[#1a1f2e] border border-slate-700 hover:border-[#f57a07] rounded-full transition-colors"
             aria-label="Previous feature"
           >
-            <ChevronLeft className="w-6 h-6 text-white" />
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </button>
 
           <button
             onClick={goToNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-40 p-3 bg-[#1a1f2e]/80 hover:bg-[#1a1f2e] border border-slate-700 hover:border-[#f57a07] rounded-full transition-colors"
+            className="absolute -right-2 md:right-0 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 bg-[#1a1f2e] hover:bg-[#1a1f2e] border border-slate-700 hover:border-[#f57a07] rounded-full transition-colors"
             aria-label="Next feature"
           >
-            <ChevronRight className="w-6 h-6 text-white" />
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </button>
 
           {/* Indicator Dots */}

@@ -129,10 +129,10 @@ export function FeedbackWidget() {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Button - positioned above mobile bottom nav */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-[#f57a07] hover:bg-[#e06a00] text-white p-4 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2 group"
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 bg-[#f57a07] hover:bg-[#e06a00] text-white p-3 md:p-4 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2 group"
         aria-label="Send feedback"
       >
         <MessageSquare size={20} />

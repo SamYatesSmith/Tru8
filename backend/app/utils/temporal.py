@@ -10,14 +10,23 @@ class TemporalAnalyzer:
     """Detect and analyze temporal context in claims"""
 
     def __init__(self):
-        # Temporal marker patterns
+        # Get current year dynamically
+        current_year = datetime.now().year
+        next_year = current_year + 1
+        last_year = current_year - 1
+
+        # Temporal marker patterns (dynamic based on current year)
         self.time_markers = {
-            "present": r"\b(today|now|currently|at present|this year|2025)\b",
-            "recent_past": r"\b(yesterday|last week|last month|recently)\b",
+            "present": rf"\b(today|now|currently|at present|this year|{current_year})\b",
+            "recent_past": rf"\b(yesterday|last week|last month|recently|{last_year})\b",
             "specific_year": r"\b(in 20\d{2}|during 20\d{2})\b",
+            "specific_date": r"\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(?:st|nd|rd|th)?,?\s*20\d{2}\b",
             "historical": r"\b(in the past|historically|previously)\b",
-            "future": r"\b(will|going to|next year|in the future|2026)\b"
+            "future": rf"\b(will|going to|next year|in the future|{next_year})\b"
         }
+
+        # Store current year for reference
+        self.current_year = current_year
 
     def analyze_claim(self, claim_text: str) -> Dict[str, Any]:
         """Determine if claim is time-sensitive and extract temporal context"""
@@ -30,16 +39,32 @@ class TemporalAnalyzer:
             if matches:
                 detected_markers[category] = matches
 
+        # Also extract any years mentioned (standalone, not just in patterns)
+        years_found = re.findall(r'\b20\d{2}\b', claim_text)
+        if years_found:
+            detected_markers["years_mentioned"] = list(set(years_found))
+            # If current year mentioned, mark as present
+            if str(self.current_year) in years_found:
+                if "present" not in detected_markers:
+                    detected_markers["present"] = [str(self.current_year)]
+
         is_time_sensitive = bool(detected_markers)
 
-        # Determine temporal window for evidence
-        if "present" in detected_markers:
+        # Determine temporal window for evidence (priority order)
+        # 1. Specific dates (e.g., "January 6, 2026") = very recent
+        # 2. Present markers (today, 2026) = last 30 days
+        # 3. Recent past (yesterday, last week) = last 90 days
+        # 4. Specific year = that year
+        if "specific_date" in detected_markers:
+            temporal_window = "last_7_days"
+            max_evidence_age_days = 7
+        elif "present" in detected_markers:
             temporal_window = "last_30_days"
             max_evidence_age_days = 30
         elif "recent_past" in detected_markers:
             temporal_window = "last_90_days"
             max_evidence_age_days = 90
-        elif "specific_year" in detected_markers:
+        elif "specific_year" in detected_markers or "years_mentioned" in detected_markers:
             year = self._extract_year(claim_text)
             temporal_window = f"year_{year}"
             max_evidence_age_days = 365  # Accept evidence from that year
@@ -52,7 +77,8 @@ class TemporalAnalyzer:
             "temporal_markers": detected_markers,
             "temporal_window": temporal_window,
             "max_evidence_age_days": max_evidence_age_days,
-            "claim_type": self._classify_temporal_type(detected_markers)
+            "claim_type": self._classify_temporal_type(detected_markers),
+            "years_mentioned": years_found if years_found else []
         }
 
     def _extract_year(self, text: str) -> Optional[str]:
@@ -62,11 +88,13 @@ class TemporalAnalyzer:
 
     def _classify_temporal_type(self, markers: Dict) -> str:
         """Classify claim by temporal type"""
-        if "future" in markers:
+        if "specific_date" in markers:
+            return "breaking_news"  # Very specific date = likely breaking news
+        elif "future" in markers:
             return "prediction"
         elif "present" in markers:
             return "current_state"
-        elif "specific_year" in markers:
+        elif "specific_year" in markers or "years_mentioned" in markers:
             return "historical_fact"
         else:
             return "timeless_fact"

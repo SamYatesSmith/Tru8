@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout
       title="Privacy Policy"
-      lastUpdated="22 January 2025"
+      lastUpdated="6 January 2026"
     >
       <div className="prose-legal">
         {/* Use template from Part 2 of 2025-01-22_LEGAL_COMPLIANCE_MASTER_PLAN.md */}
@@ -175,14 +175,13 @@ export default function PrivacyPolicyPage() {
         <h2>13. Contact Us</h2>
         <p>
           <strong>Data Controller:</strong> Tru8 Ltd<br />
-          <strong>ICO Registration:</strong> [ZA123456]<br />
-          <strong>Email:</strong> <a href="mailto:hello@tru8.com">hello@tru8.com</a><br />
-          <strong>Address:</strong> [Business Address]
+          <strong>Email:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a><br />
+          <strong>Location:</strong> London, UK
         </p>
 
         <p>
           To exercise your data rights or submit complaints:<br />
-          Email: <a href="mailto:hello@tru8.com">hello@tru8.com</a><br />
+          Email: <a href="mailto:hello@trueight.com">hello@trueight.com</a><br />
           Response time: Within 30 days
         </p>
 

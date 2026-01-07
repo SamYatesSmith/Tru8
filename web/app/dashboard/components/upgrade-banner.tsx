@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Clock } from 'lucide-react';
 
 interface UpgradeBannerProps {
   currentPlan: string;
+  subscriptionsEnabled?: boolean;
 }
 
-export function UpgradeBanner({ currentPlan }: UpgradeBannerProps) {
+export function UpgradeBanner({ currentPlan, subscriptionsEnabled = false }: UpgradeBannerProps) {
   const features = [
     '40 fact-checks per month',
     'Priority verification processing',
@@ -21,8 +22,18 @@ export function UpgradeBanner({ currentPlan }: UpgradeBannerProps) {
         <div className="flex items-center gap-3">
           <Sparkles className="text-[#f57a07]" size={28} />
           <div>
-            <h3 className="text-xl font-bold text-white">Unlock Premium Features</h3>
-            <p className="text-slate-400">Current Plan: <span className="font-semibold">{currentPlan} (3 checks)</span></p>
+            <h3 className="text-xl font-bold text-white">
+              {subscriptionsEnabled ? 'Unlock Premium Features' : 'Pro Features Coming Soon'}
+            </h3>
+            <p className="text-slate-400">
+              Current Plan: <span className="font-semibold">{currentPlan} (3 checks)</span>
+              {!subscriptionsEnabled && (
+                <span className="ml-2 inline-flex items-center gap-1 text-amber-400 text-sm">
+                  <Clock size={14} />
+                  Beta
+                </span>
+              )}
+            </p>
           </div>
         </div>
 
@@ -30,7 +41,7 @@ export function UpgradeBanner({ currentPlan }: UpgradeBannerProps) {
           href="/dashboard/settings?tab=subscription"
           className="bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
         >
-          Upgrade Now
+          {subscriptionsEnabled ? 'Upgrade Now' : 'Join Waitlist'}
           <ArrowRight size={18} />
         </Link>
       </div>

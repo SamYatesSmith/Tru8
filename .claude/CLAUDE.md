@@ -1,7 +1,7 @@
 # Tru8 - Fact-Checking Platform Configuration
 
 ## Project Context
-**Project:** Tru8 - Instant fact-checking with dated evidence
+**Project:** Tru8 - AI-powered fact verification with multi-source evidence
 **Stage:** Production-ready (Phase 5-6 complete)
 **Architecture:** Mobile (React Native/Expo) + Web (Next.js 14) + API (FastAPI) + ML Pipeline
 
@@ -244,7 +244,7 @@ tests/
 - Shared types from `shared/` package
 
 ## Performance Targets
-- **Pipeline latency:** <10s for Quick mode
+- **Pipeline latency:** <10s
 - **API response:** <200ms p95
 - **Web Core Vitals:** LCP <2.5s, FID <100ms
 - **Mobile app size:** <50MB
@@ -293,7 +293,7 @@ eas build --auto-submit
 - Government API coverage expansion
 
 ### Next Phases
-- Deep mode for comprehensive analysis
+- Enhanced analysis depth options
 - Reverse image search integration
 - Long video support (>10 min)
 - Light theme option
