@@ -29,6 +29,7 @@ flower==2.0.1
 
 # Auth
 python-jose[cryptography]==3.4.0  # Updated from 3.3.0 (PYSEC-2024-232, PYSEC-2024-233)
+PyJWT[crypto]==2.8.0  # JWT validation with JWKS support
 httpx==0.25.2
 
 # Content Processing

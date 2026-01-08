@@ -1,96 +1,85 @@
-# Fly.io Configuration for Tru8 API
-# Documentation: https://fly.io/docs/reference/configuration/
+# fly.toml app configuration file generated for trueight-api on 2026-01-08T13:28:36Z
 #
-# BETA DEPLOYMENT - Subscriptions disabled, feature flags match .env
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
-# This config runs TWO processes:
-# 1. web: FastAPI server (handles HTTP requests)
-# 2. worker: Celery worker (processes fact-check pipeline tasks)
-#
-# See docs/release/CELERY_SCALING.md for scaling considerations.
 
-app = "trueight-api"
-primary_region = "lhr"  # London - closest to UK users
+app = 'trueight-api'
+primary_region = 'lhr'
 
 [build]
-  # Uses Dockerfile in the same directory
 
-# Process groups - defines what commands run
-[processes]
-  web = "uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1"
-  worker = "celery -A app.workers worker --loglevel=info --concurrency=2"
+[mounts]
+  source = "models_cache"
+  destination = "/models"
+  processes = ["web", "worker"]
 
 [env]
-  # Core settings
-  ENVIRONMENT = "production"
-  DEBUG = "false"
-  PORT = "8000"
+  # ML Model cache directories (persistent volume)
+  HF_HOME = '/models/huggingface'
+  SENTENCE_TRANSFORMERS_HOME = '/models/sentence-transformers'
+  TRANSFORMERS_CACHE = '/models/transformers'
+  DEBUG = 'false'
+  DATABASE_SSL = 'false'  # Fly.io internal network doesn't need SSL
+  ENABLE_ABSTENTION_LOGIC = 'true'
+  ENABLE_API_RETRIEVAL = 'true'
+  ENABLE_ARTICLE_CLASSIFICATION = 'true'
+  ENABLE_CLAIM_CLASSIFICATION = 'true'
+  ENABLE_CROSS_ENCODER_RERANK = 'true'
+  ENABLE_DEBERTA_NLI = 'true'
+  ENABLE_DEDUPLICATION = 'true'
+  ENABLE_DOMAIN_CAPPING = 'true'
+  ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK = 'true'
+  ENABLE_EMAIL_NOTIFICATIONS = 'true'
+  ENABLE_ENHANCED_EXPLAINABILITY = 'true'
+  ENABLE_EVIDENCE_RELEVANCE_FILTER = 'true'
+  ENABLE_FACTCHECK_API = 'true'
+  ENABLE_GLOBAL_DOMAIN_CAPPING = 'true'
+  ENABLE_JUDGE_FEW_SHOT = 'true'
+  ENABLE_LEGAL_SEARCH = 'true'
+  ENABLE_QUERY_EXPANSION = 'true'
+  ENABLE_QUERY_PLANNING = 'true'
+  ENABLE_RHETORICAL_CONTEXT = 'true'
+  ENABLE_SEMANTIC_RELEVANCE_FILTER = 'true'
+  ENABLE_SEMANTIC_SNIPPET_EXTRACTION = 'true'
+  ENABLE_SOURCE_DIVERSITY = 'true'
+  ENABLE_TEMPORAL_CONTEXT = 'true'
+  ENVIRONMENT = 'production'
+  PORT = '8000'
+  SUBSCRIPTIONS_ENABLED = 'false'
 
-  # Beta testing - subscriptions disabled
-  SUBSCRIPTIONS_ENABLED = "false"
+[processes]
+  web = 'uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1'
+  worker = 'celery -A app.workers worker --loglevel=info --concurrency=2'
 
-  # Pipeline feature flags (matching current .env)
-  ENABLE_DEDUPLICATION = "true"
-  ENABLE_DOMAIN_CAPPING = "true"
-  ENABLE_SOURCE_DIVERSITY = "true"
-  ENABLE_FACTCHECK_API = "true"
-  ENABLE_TEMPORAL_CONTEXT = "true"
-  ENABLE_CLAIM_CLASSIFICATION = "true"
-  ENABLE_ENHANCED_EXPLAINABILITY = "true"
-  ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK = "true"
-  ENABLE_ABSTENTION_LOGIC = "true"
-  ENABLE_LEGAL_SEARCH = "true"
-  ENABLE_API_RETRIEVAL = "true"
-
-  # Accuracy improvements (Tier 1)
-  ENABLE_DEBERTA_NLI = "true"
-  ENABLE_JUDGE_FEW_SHOT = "true"
-  ENABLE_CROSS_ENCODER_RERANK = "true"
-  ENABLE_EVIDENCE_RELEVANCE_FILTER = "true"
-  ENABLE_QUERY_EXPANSION = "true"
-
-  # Additional enabled features (defaults in config.py)
-  ENABLE_EMAIL_NOTIFICATIONS = "true"
-  ENABLE_SEMANTIC_RELEVANCE_FILTER = "true"
-  ENABLE_GLOBAL_DOMAIN_CAPPING = "true"
-  ENABLE_SEMANTIC_SNIPPET_EXTRACTION = "true"
-  ENABLE_RHETORICAL_CONTEXT = "true"
-  ENABLE_ARTICLE_CLASSIFICATION = "true"
-  ENABLE_QUERY_PLANNING = "true"
-
-# HTTP service configuration (web process only)
 [http_service]
   internal_port = 8000
   force_https = true
-  auto_stop_machines = false   # Keep running for consistent latency
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
-  processes = ["web"]  # Only web process handles HTTP
+  processes = ['web']
 
   [http_service.concurrency]
-    type = "requests"
+    type = 'requests'
     hard_limit = 250
     soft_limit = 200
 
-[[http_service.checks]]
-  grace_period = "10s"
-  interval = "30s"
-  method = "GET"
-  path = "/api/v1/health"
-  protocol = "http"
-  timeout = "5s"
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '10s'
+    grace_period = '120s'  # Allow time for model download on first startup
+    method = 'GET'
+    path = '/'  # Root path always works
+    protocol = 'http'
 
-# VM configuration for web process (API server)
 [[vm]]
-  memory = "512mb"
-  cpu_kind = "shared"
+  memory = '1gb'
+  cpu_kind = 'shared'
   cpus = 1
-  processes = ["web"]
+  processes = ['web']
 
-# VM configuration for worker process (Celery - needs more memory for ML models)
-# NLI model ~400MB + Embedding model ~90MB + overhead = ~800MB minimum
 [[vm]]
-  memory = "2gb"
-  cpu_kind = "shared"
-  cpus = 1
-  processes = ["worker"]
+  memory = '4gb'
+  cpu_kind = 'shared'
+  cpus = 2
+  processes = ['worker']

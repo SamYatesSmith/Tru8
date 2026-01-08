@@ -5,6 +5,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = Field(..., env="DATABASE_URL")
+    DATABASE_SSL: bool = Field(True, env="DATABASE_SSL")  # Set False for Fly.io internal network
     
     # Redis
     REDIS_URL: str = Field("redis://localhost:6379/0", env="REDIS_URL")

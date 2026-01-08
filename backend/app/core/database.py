@@ -3,6 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
+# Configure SSL for asyncpg connection
+# Set DATABASE_SSL=false for Fly.io internal network (no SSL needed)
+connect_args = {} if settings.DATABASE_SSL else {"ssl": False}
+
 # Async engine and session for main app
 engine = create_async_engine(
     settings.DATABASE_URL,
@@ -11,6 +15,7 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,
+    connect_args=connect_args,
 )
 
 async_session = sessionmaker(
