@@ -149,7 +149,7 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
                 },
               }}
               routing="hash"
-              fallbackRedirectUrl={afterAuthUrl}
+              forceRedirectUrl={afterAuthUrl}
             />
           </div>
         ) : (
@@ -176,7 +176,7 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
                 },
               }}
               routing="hash"
-              fallbackRedirectUrl={afterAuthUrl}
+              forceRedirectUrl={afterAuthUrl}
             />
           </div>
         )}
