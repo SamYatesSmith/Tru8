@@ -275,13 +275,13 @@ tests/
 
 ```bash
 # Backend (Fly.io)
-fly deploy
+cd backend && fly deploy
 
-# Web (Vercel)
-vercel --prod
+# Web (Fly.io) - deploy from project root with workspace support
+fly deploy --config fly.web.toml
 
 # Mobile (Expo EAS)
-eas build --auto-submit
+cd mobile && eas build --auto-submit
 ```
 
 ## Current Priorities

@@ -1,376 +1,297 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { CheckCircle, Clock, Users } from 'lucide-react';
-import { useState } from 'react';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { scrollToSection } from '@/lib/scroll-utils';
 
+// Card colors: Orange (inner) → Yellow (outer)
+const CARD_COLORS = [
+  '#F57A07', // Card 1 - Brand orange (innermost/front)
+  '#FA9406', // Card 2
+  '#F9A305', // Card 3
+  '#FAB306', // Card 4
+  '#FAC50B', // Card 5
+  '#FAD60E', // Card 6
+  '#F0DE14', // Card 7 - Yellow (outermost/back)
+];
+
+// SVG dimensions (viewBox)
+const SVG_WIDTH = 610;
+const SVG_HEIGHT = 366;
+const CARD_RADIUS = 24;
+
+// Calculate card dimensions
+// Card 7 = 100%, Card 6 = 95%, ..., Card 1 = 70%, Foreground = 65%
+function getCardDimensions(cardNumber: number) {
+  // cardNumber: 0=foreground (65%), 1-7 where 7 is largest (100%) and 1 is smallest (70%)
+  const percent = cardNumber === 0 ? 65 : 70 + ((cardNumber - 1) * 5);
+  const width = SVG_WIDTH * (percent / 100);
+  const height = SVG_HEIGHT * (percent / 100);
+  const x = (SVG_WIDTH - width) / 2;
+  const y = (SVG_HEIGHT - height) / 2;
+  return { width, height, x, y };
+}
+
 /**
- * Hero Section Component
- *
- * Main landing page hero with glowing border container.
- *
- * Design Features:
- * - Dark container with rounded corners
- * - Animated orange border glow effect
- * - Gradient "Tru8" text with swirling animation
- *
- * Content:
- * - Headline: "Tru8" (gradient text)
- * - Subheadline: "Stop Guessing. Start Knowing."
- * - Description: Brand messaging
- * - CTAs:
- *   - Primary: "Start Verifying Free" (orange, opens auth modal)
- *   - Secondary: "See How It Works" (outline, scrolls to #how-it-works)
- * - Trust Indicators:
- *   - Verified Sources (CheckCircle icon)
- *   - Real-time Results (Clock icon)
- *   - Professional Grade (Users icon)
- *
- * Backend Integration:
- * - "Start Verifying Free" triggers Clerk auth modal
- * - After auth: Redirects to /dashboard
- * - Backend auto-creates user with 3 free credits
+ * Card stack with Tru8 stencil mask and JS-powered animation
  */
+function HeroVisual() {
+  const fgDims = getCardDimensions(0);
+
+  // Track opacity for each card (1-7)
+  const [cardOpacity, setCardOpacity] = useState<Record<number, number>>({
+    1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1
+  });
+
+  // Track current text color (matches the innermost visible card)
+  const [textColor, setTextColor] = useState(CARD_COLORS[0]);
+
+  useEffect(() => {
+    // Animation cycle: 14 steps
+    // Steps 0-6: fade out cards 7→1 (back to front)
+    // Steps 7-13: fade in cards 1→7 (front to back)
+    const STEP_DURATION = 900; // 0.9 seconds per step
+    let step = 0;
+
+    const animate = () => {
+      setCardOpacity(() => {
+        const newOpacity: Record<number, number> = { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 };
+
+        if (step < 7) {
+          // Fade out phase: cards 7→1 disappear one by one
+          for (let i = 7; i > 7 - step - 1; i--) {
+            if (i >= 1) newOpacity[i] = 0;
+          }
+          // Text color matches the innermost visible card (the one about to fade)
+          const innermostVisible = 7 - step;
+          if (innermostVisible >= 1) {
+            setTextColor(CARD_COLORS[innermostVisible - 1]);
+          }
+        } else {
+          // Fade in phase: all cards start hidden, then 1→7 reappear
+          const fadeInStep = step - 7;
+          for (let i = 1; i <= 7; i++) {
+            newOpacity[i] = i <= fadeInStep + 1 ? 1 : 0;
+          }
+          // Text color matches the newest card being added
+          const newestCard = fadeInStep + 1;
+          if (newestCard <= 7) {
+            setTextColor(CARD_COLORS[newestCard - 1]);
+          }
+        }
+
+        return newOpacity;
+      });
+
+      step = (step + 1) % 14; // 14 steps total
+    };
+
+    const interval = setInterval(animate, STEP_DURATION);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <section className="relative flex items-center justify-center pt-[7.5rem] pb-8 md:pt-52 md:pb-12 px-4">
+      <svg
+        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+        className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl"
+        aria-hidden="true"
+      >
+        <defs>
+          <mask id="tru8-stencil">
+            <rect
+              fill="white"
+              width={fgDims.width}
+              height={fgDims.height}
+              x={fgDims.x}
+              y={fgDims.y}
+              rx={CARD_RADIUS}
+            />
+            <text
+              fill="black"
+              x={SVG_WIDTH / 2}
+              y={SVG_HEIGHT / 2}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="114"
+              fontWeight="900"
+              fontFamily="Quantify, system-ui, sans-serif"
+              letterSpacing="12"
+            >
+              Tru8
+            </text>
+          </mask>
+          {/* Mask for shadow - shows on grey card but NOT on letter areas */}
+          <mask id="outer-shadow-mask">
+            <rect
+              fill="white"
+              width={fgDims.width}
+              height={fgDims.height}
+              x={fgDims.x}
+              y={fgDims.y}
+              rx={CARD_RADIUS}
+            />
+            {/* Black text cuts out the letter areas from the mask */}
+            <text
+              fill="black"
+              x={SVG_WIDTH / 2}
+              y={SVG_HEIGHT / 2}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="114"
+              fontWeight="900"
+              fontFamily="Quantify, system-ui, sans-serif"
+              letterSpacing="12"
+            >
+              Tru8
+            </text>
+          </mask>
+          {/* Blur filter for outer glow - intensified */}
+          <filter id="letter-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="12" />
+          </filter>
+          {/* Inner shadow for grey card perimeter - intensified */}
+          <filter id="card-inner-shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feComponentTransfer in="SourceAlpha">
+              <feFuncA type="table" tableValues="1 0" />
+            </feComponentTransfer>
+            <feGaussianBlur stdDeviation="10" />
+            <feOffset dx="0" dy="0" result="offsetblur" />
+            <feFlood floodColor="#000000" floodOpacity="0.55" />
+            <feComposite in2="offsetblur" operator="in" />
+            <feComposite in2="SourceAlpha" operator="in" />
+            <feMerge>
+              <feMergeNode in="SourceGraphic" />
+              <feMergeNode />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Render cards 7 to 1 (back to front) */}
+        {[7, 6, 5, 4, 3, 2, 1].map((cardNum) => {
+          const dims = getCardDimensions(cardNum);
+          const color = CARD_COLORS[cardNum - 1];
+          return (
+            <rect
+              key={cardNum}
+              fill={color}
+              width={dims.width}
+              height={dims.height}
+              x={dims.x}
+              y={dims.y}
+              rx={CARD_RADIUS}
+              style={{
+                opacity: cardOpacity[cardNum],
+                transition: 'opacity 0.5s ease-in-out'
+              }}
+            />
+          );
+        })}
+
+        {/* Dynamic colored text that shows through the stencil cutout */}
+        <text
+          fill={textColor}
+          x={SVG_WIDTH / 2}
+          y={SVG_HEIGHT / 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="114"
+          fontWeight="900"
+          fontFamily="Quantify, system-ui, sans-serif"
+          letterSpacing="12"
+          style={{
+            transition: 'fill 0.5s ease-in-out'
+          }}
+        >
+          Tru8
+        </text>
+
+        {/* Foreground slate card with Tru8 cutout and inner perimeter shadow */}
+        <rect
+          fill="#1e293b"
+          width={fgDims.width}
+          height={fgDims.height}
+          x={fgDims.x}
+          y={fgDims.y}
+          rx={CARD_RADIUS}
+          mask="url(#tru8-stencil)"
+          filter="url(#card-inner-shadow)"
+        />
+
+        {/* Shadow glow around letters - only on grey surface, not on letters */}
+        <text
+          fill="rgba(0,0,0,0.75)"
+          x={SVG_WIDTH / 2}
+          y={SVG_HEIGHT / 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="114"
+          fontWeight="900"
+          fontFamily="Quantify, system-ui, sans-serif"
+          letterSpacing="12"
+          filter="url(#letter-glow)"
+          mask="url(#outer-shadow-mask)"
+        >
+          Tru8
+        </text>
+      </svg>
+    </section>
+  );
+}
+
+function HeroContent({ onOpenAuth }: { onOpenAuth: () => void }) {
+  return (
+    <section className="py-12 md:py-16 px-4">
+      <div className="container mx-auto max-w-4xl text-center">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6">
+          Stop Guessing. Start Knowing.
+        </h1>
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-300 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
+          In a world of misinformation, or fake news, verify what you read and share.
+          Quick fact-checking backed by credible sources you can cite.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 md:mb-12">
+          <button
+            onClick={onOpenAuth}
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg text-base sm:text-lg font-semibold transition-all hover:shadow-lg hover:shadow-[rgba(245,122,7,0.3)] cta-pulse btn-scale-hover"
+          >
+            Start Verifying Free
+          </button>
+          <button
+            onClick={() => scrollToSection('how-it-works')}
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent border-2 border-slate-600 hover:border-[#f57a07] text-white rounded-lg text-base sm:text-lg font-semibold transition-all btn-scale-hover"
+          >
+            See How It Works
+          </button>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm">
+          <div className="flex items-center gap-2 trust-badge-1">
+            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
+            <span className="text-slate-400">Verified Sources</span>
+          </div>
+          <div className="flex items-center gap-2 trust-badge-2">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
+            <span className="text-slate-400">Real-time Results</span>
+          </div>
+          <div className="flex items-center gap-2 trust-badge-3">
+            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
+            <span className="text-slate-400">Professional Grade</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function HeroSection() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
     <>
-      <section
-        id="hero"
-        className="relative min-h-screen flex items-center justify-center pt-16 pb-24 md:pb-20 px-4 overflow-hidden"
-      >
-        {/* Content Container with Backlight */}
-        <div className="relative max-w-6xl w-full mx-auto">
-          {/* Backlit container with multi-layer glow */}
-          <div className="hero-backlight hero-container-depth rounded-2xl md:rounded-3xl p-6 sm:p-10 md:p-16 lg:p-20 bg-[#1e293b] border border-slate-700/50">
-            {/* Inner wrapper for additional glow layers */}
-            <div>
-              {/* Content */}
-              <div className="text-center">
-                {/* Headline - Gradient text with swirling animation */}
-                <h1 className="hero-gradient-text text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black mb-4 md:mb-6 tracking-wider">
-                  Tru8
-                </h1>
-
-                {/* Subheadline */}
-                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white mb-4 md:mb-6">
-                  Stop Guessing. Start Knowing.
-                </h2>
-
-                {/* Description */}
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-300 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
-                  In a world of misinformation, or fake news, verify what you read and share. Quick fact-checking backed by credible sources you can cite.
-                </p>
-
-                {/* CTAs */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 md:mb-12">
-                  {/* Primary CTA - Opens Auth Modal */}
-                  <button
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg text-base sm:text-lg font-semibold transition-all hover:shadow-lg hover:shadow-[rgba(245,122,7,0.3)] cta-pulse btn-scale-hover"
-                    aria-label="Start verifying content for free"
-                  >
-                    Start Verifying Free
-                  </button>
-
-                  {/* Secondary CTA - Scroll to How It Works */}
-                  <button
-                    onClick={() => scrollToSection('how-it-works')}
-                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent border-2 border-slate-600 hover:border-[#f57a07] text-white rounded-lg text-base sm:text-lg font-semibold transition-all btn-scale-hover"
-                    aria-label="Learn how Tru8 works"
-                  >
-                    See How It Works
-                  </button>
-                </div>
-
-                {/* Trust Indicators */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm">
-                  {/* Verified Sources */}
-                  <div className="flex items-center gap-2 trust-badge-1">
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
-                    <span className="text-slate-400">Verified Sources</span>
-                  </div>
-
-                  {/* Real-time Results */}
-                  <div className="flex items-center gap-2 trust-badge-2">
-                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
-                    <span className="text-slate-400">Real-time Results</span>
-                  </div>
-
-                  {/* Professional Grade */}
-                  <div className="flex items-center gap-2 trust-badge-3">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#22d3ee]" />
-                    <span className="text-slate-400">Professional Grade</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
-
-      {/* Hero styles - global needed for class selectors to work */}
-      <style jsx global>{`
-        /* Gentle pulse animation - pulses intensity only */
-        @keyframes gentlePulse {
-          0%, 100% {
-            opacity: 0.8;
-            filter: brightness(1);
-          }
-          50% {
-            opacity: 1;
-            filter: brightness(1.15);
-          }
-        }
-
-        /* Sunburst rays - pulses outward from card (includes translate to maintain centering) */
-        @keyframes rayPulse {
-          0%, 100% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0.6;
-          }
-          50% {
-            transform: translate(-50%, -50%) scale(1.08);
-            opacity: 1;
-          }
-        }
-
-        /* Breathing animation - expands outer glow spread while keeping inner edge anchored */
-        @keyframes breathe {
-          0%, 100% {
-            box-shadow:
-              0 0 0 5px rgba(245, 122, 7, 1),
-              0 0 0 8px rgba(245, 122, 7, 0.95),
-              0 0 2px 10px rgba(245, 122, 7, 0.9),
-              0 0 4px 13px rgba(245, 122, 7, 0.85),
-              0 0 8px 16px rgba(245, 122, 7, 0.8),
-              0 0 12px 20px rgba(245, 122, 7, 0.75),
-              0 0 18px 25px rgba(245, 122, 7, 0.65),
-              0 0 25px 32px rgba(251, 146, 60, 0.5),
-              0 0 35px 40px rgba(251, 146, 60, 0.38),
-              0 0 48px 50px rgba(252, 165, 87, 0.28),
-              0 0 65px 62px rgba(253, 186, 116, 0.2),
-              0 0 85px 76px rgba(255, 220, 180, 0.14),
-              0 0 110px 92px rgba(255, 235, 215, 0.09),
-              0 0 140px 110px rgba(255, 245, 235, 0.05),
-              0 0 175px 130px rgba(255, 255, 255, 0.02);
-          }
-          50% {
-            box-shadow:
-              0 0 0 5px rgba(245, 122, 7, 1),
-              0 0 0 8px rgba(245, 122, 7, 0.95),
-              0 0 2px 10px rgba(245, 122, 7, 0.9),
-              0 0 4px 13px rgba(245, 122, 7, 0.85),
-              0 0 8px 16px rgba(245, 122, 7, 0.8),
-              0 0 12px 22px rgba(245, 122, 7, 0.75),
-              0 0 20px 28px rgba(245, 122, 7, 0.65),
-              0 0 30px 38px rgba(251, 146, 60, 0.55),
-              0 0 42px 48px rgba(251, 146, 60, 0.42),
-              0 0 58px 60px rgba(252, 165, 87, 0.32),
-              0 0 78px 75px rgba(253, 186, 116, 0.24),
-              0 0 100px 92px rgba(255, 220, 180, 0.18),
-              0 0 130px 112px rgba(255, 235, 215, 0.12),
-              0 0 165px 135px rgba(255, 245, 235, 0.07),
-              0 0 205px 160px rgba(255, 255, 255, 0.03);
-          }
-        }
-
-        /* Serene color rotation through orange/white spectrum */
-        @keyframes colorRotate {
-          0% {
-            filter: hue-rotate(0deg) brightness(1);
-          }
-          33% {
-            filter: hue-rotate(10deg) brightness(1.2);
-          }
-          66% {
-            filter: hue-rotate(-10deg) brightness(1.1);
-          }
-          100% {
-            filter: hue-rotate(0deg) brightness(1);
-          }
-        }
-
-        /* Swirling color animation - rotates the gradient BEHIND the text */
-        @keyframes swirlColors {
-          0% {
-            background-position: 50% 50%;
-          }
-          25% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 50% 100%;
-          }
-          75% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 50% 50%;
-          }
-        }
-
-        .hero-backlight {
-          position: relative;
-          overflow: visible;
-        }
-
-        /* Single glow layer - animates spread values directly for breathing effect */
-        .hero-backlight::before {
-          position: absolute;
-          content: "";
-          inset: 0;
-          z-index: -1;
-          border-radius: 3rem;
-          animation: breathe 10s ease-in-out infinite, colorRotate 20s ease-in-out infinite;
-        }
-
-        /* Sunburst rays - subtle god rays emanating from behind the card */
-        .hero-backlight::after {
-          position: absolute;
-          content: "";
-          top: 50%;
-          left: 50%;
-          width: 180%;
-          height: 180%;
-          transform: translate(-50%, -50%);
-          z-index: -2;
-          pointer-events: none;
-          background: conic-gradient(
-            from 0deg at 50% 50%,
-            transparent 0deg,
-            rgba(251, 146, 60, 0.18) 2deg,
-            transparent 5deg,
-            transparent 16deg,
-            rgba(245, 122, 7, 0.15) 18deg,
-            transparent 21deg,
-            transparent 34deg,
-            rgba(253, 186, 116, 0.2) 36deg,
-            transparent 39deg,
-            transparent 52deg,
-            rgba(251, 146, 60, 0.12) 54deg,
-            transparent 57deg,
-            transparent 72deg,
-            rgba(245, 122, 7, 0.18) 74deg,
-            transparent 77deg,
-            transparent 90deg,
-            rgba(253, 186, 116, 0.15) 92deg,
-            transparent 95deg,
-            transparent 110deg,
-            rgba(251, 146, 60, 0.2) 112deg,
-            transparent 115deg,
-            transparent 128deg,
-            rgba(245, 122, 7, 0.12) 130deg,
-            transparent 133deg,
-            transparent 148deg,
-            rgba(253, 186, 116, 0.18) 150deg,
-            transparent 153deg,
-            transparent 166deg,
-            rgba(251, 146, 60, 0.15) 168deg,
-            transparent 171deg,
-            transparent 186deg,
-            rgba(245, 122, 7, 0.2) 188deg,
-            transparent 191deg,
-            transparent 204deg,
-            rgba(253, 186, 116, 0.12) 206deg,
-            transparent 209deg,
-            transparent 224deg,
-            rgba(251, 146, 60, 0.18) 226deg,
-            transparent 229deg,
-            transparent 242deg,
-            rgba(245, 122, 7, 0.15) 244deg,
-            transparent 247deg,
-            transparent 262deg,
-            rgba(253, 186, 116, 0.2) 264deg,
-            transparent 267deg,
-            transparent 280deg,
-            rgba(251, 146, 60, 0.12) 282deg,
-            transparent 285deg,
-            transparent 300deg,
-            rgba(245, 122, 7, 0.18) 302deg,
-            transparent 305deg,
-            transparent 318deg,
-            rgba(253, 186, 116, 0.15) 320deg,
-            transparent 323deg,
-            transparent 338deg,
-            rgba(251, 146, 60, 0.18) 340deg,
-            transparent 343deg,
-            transparent 360deg
-          );
-          filter: blur(20px);
-          mask-image: radial-gradient(ellipse at center, transparent 10%, black 20%, black 50%, transparent 75%);
-          animation: rayPulse 8s ease-in-out infinite;
-        }
-
-        .hero-backlight > div {
-          position: relative;
-        }
-
-        /* Gradient text with swirling colors */
-        .hero-gradient-text {
-          background:
-            radial-gradient(ellipse at 20% 30%, #f57a07 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 70%, #fb923c 0%, transparent 50%),
-            radial-gradient(ellipse at 50% 50%, #fca55f 0%, transparent 40%),
-            radial-gradient(ellipse at 70% 20%, #fdc9a0 0%, transparent 45%),
-            radial-gradient(ellipse at 30% 80%, #ffffff 0%, transparent 50%),
-            linear-gradient(135deg,
-              #f57a07 0%,
-              #fb923c 20%,
-              #fca55f 40%,
-              #fdc9a0 60%,
-              #ffffff 80%,
-              #fca55f 100%
-            );
-          background-size: 400% 400%;
-          background-position: center;
-          animation: swirlColors 15s ease-in-out infinite;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          color: transparent;
-
-          /* Fine orange border/stroke for emphasis - subtle */
-          -webkit-text-stroke: 1px #f57a07;
-          text-stroke: 1px #f57a07;
-          paint-order: stroke fill;
-
-          /* Warm orange glow shadow */
-          filter: drop-shadow(0 4px 12px rgba(245, 122, 7, 0.6))
-                  drop-shadow(0 8px 24px rgba(251, 146, 60, 0.4))
-                  drop-shadow(0 12px 32px rgba(252, 165, 87, 0.3));
-        }
-
-        /* Hero container inner shadow for depth */
-        .hero-container-depth {
-          box-shadow: inset 0 3px 16px 0 rgba(0, 0, 0, 0.15),
-                      inset 0 6px 24px 0 rgba(0, 0, 0, 0.1),
-                      inset 0 -3px 16px 0 rgba(0, 0, 0, 0.15),
-                      inset 3px 0 16px 0 rgba(0, 0, 0, 0.15),
-                      inset -3px 0 16px 0 rgba(0, 0, 0, 0.15);
-        }
-
-        /* Respect reduced motion preference */
-        @media (prefers-reduced-motion: reduce) {
-          .hero-backlight::before,
-          .hero-backlight::after,
-          .hero-gradient-text {
-            animation: none;
-          }
-
-          .hero-gradient-text {
-            background-position: 0% 50%;
-          }
-        }
-      `}</style>
+      <HeroVisual />
+      <HeroContent onOpenAuth={() => setIsAuthModalOpen(true)} />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </>
   );
 }

@@ -306,10 +306,23 @@ async def create_check(
     # Get or create user (handles race conditions)
     user = await get_or_create_user(session, current_user)
 
-    # BETA TESTER CHECK - bypass credit limits for beta testers
+    # BETA TESTER CHECK - only beta testers can access pipeline during closed beta
     is_beta_tester = user.email.lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+
+    # During closed beta: block non-beta testers entirely
+    if settings.BETA_TESTER_EMAILS and not is_beta_tester:
+        logger.info(f"Non-beta tester {user.email} blocked from pipeline access")
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "message": "Tru8 is currently in closed beta. Join our waitlist to be notified when we launch!",
+                "code": "BETA_ACCESS_REQUIRED",
+                "waitlist": True
+            }
+        )
+
     if is_beta_tester:
-        logger.info(f"Beta tester {user.email} - bypassing credit limits")
+        logger.info(f"Beta tester {user.email} - full pipeline access granted")
 
     # MONTHLY USAGE LIMIT CHECK (applies in all modes, including DEBUG)
     # Get subscription to determine monthly limit (Subscription already imported at top)

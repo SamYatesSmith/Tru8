@@ -104,27 +104,25 @@ export function FeatureCarousel() {
 
   const getCardStyle = (offset: number) => {
     const absDiff = Math.abs(offset);
-
-    // Uniform scaling and positioning
     let scale = 1;
-
-    // Tighter spacing for mobile
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    let translateX = offset * (isMobile ? 100 : 220); // Much tighter on mobile
+    let blur = 0;
 
     if (absDiff === 0) {
-      scale = 1.0; // Center card - full size
+      scale = 1.0;
+      blur = 0;
     } else if (absDiff === 1) {
-      scale = isMobile ? 0.75 : 0.85; // Smaller adjacent cards on mobile
+      scale = 0.8;
+      blur = 2;
     } else if (absDiff === 2) {
-      scale = isMobile ? 0.5 : 0.7; // Far cards
+      scale = 0.6;
+      blur = 4;
     } else {
-      scale = 0.4; // Very far cards
+      scale = 0.4;
+      blur = 6;
     }
 
     const zIndex = 30 - absDiff * 5;
-
-    return { scale, translateX, zIndex };
+    return { scale, zIndex, offset, blur };
   };
 
   return (
@@ -143,42 +141,34 @@ export function FeatureCarousel() {
         {/* Carousel Container */}
         <div className="relative px-8 md:px-0">
           {/* 3D Perspective Container - Circular Rollerdeck */}
-          <div className="carousel-perspective relative h-[280px] md:h-[380px] flex items-center justify-center">
+          <div className="carousel-perspective relative h-[230px] md:h-[380px] flex items-center justify-center">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               const offset = getCircularOffset(index);
-              const { scale, translateX, zIndex } = getCardStyle(offset);
-
-              const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-              const cardWidth = isMobile ? 260 : 480;
-              const cardHeight = isMobile ? 240 : 320;
-              const cardPadding = isMobile ? 'p-4' : 'p-8';
+              const { scale, zIndex, blur } = getCardStyle(offset);
 
               return (
                 <div
                   key={index}
-                  className="carousel-card absolute transition-all duration-300 ease-in-out"
+                  className="carousel-card absolute transition-all duration-300 ease-in-out w-[270px] h-[205px] md:w-[480px] md:h-[320px] -ml-[135px] md:-ml-[240px] left-1/2"
                   style={{
-                    width: `${cardWidth}px`,
-                    height: `${cardHeight}px`,
-                    transform: `translateX(${translateX}px) scale(${scale})`,
-                    opacity: 1,
+                    '--offset': offset,
+                    '--scale': scale,
                     zIndex,
-                    left: '50%',
-                    marginLeft: `-${cardWidth / 2}px`, // Half of width to center
-                  }}
+                    filter: blur > 0 ? `blur(${blur}px)` : 'none',
+                  } as React.CSSProperties}
                 >
-                  <div className={`bg-[#1a1f2e] rounded-lg ${cardPadding} border border-slate-700 shadow-xl h-full flex flex-col`}>
+                  <div className="bg-[#1a1f2e] rounded-lg p-4 md:p-8 border border-slate-700 shadow-xl h-full flex flex-col">
                     {/* Icon */}
-                    <div className="mb-4 flex-shrink-0">
-                      <Icon className="w-12 h-12 text-[#22d3ee]" />
+                    <div className="mb-2 md:mb-4 flex-shrink-0">
+                      <Icon className="w-8 h-8 md:w-12 md:h-12 text-[#22d3ee]" />
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-xl font-semibold text-white mb-3 flex-shrink-0 min-h-[3.5rem] line-clamp-2">
+                    <h3 className="text-lg md:text-xl font-semibold text-white mb-2 md:mb-3 flex-shrink-0">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-400 leading-relaxed text-sm line-clamp-4 flex-grow">
+                    <p className="text-slate-400 leading-snug md:leading-relaxed text-sm md:text-sm flex-grow">
                       {feature.description}
                     </p>
                   </div>
@@ -236,6 +226,14 @@ export function FeatureCarousel() {
         .carousel-card {
           transform-style: preserve-3d;
           transition: all 300ms ease-in-out;
+          transform: translateX(calc(var(--offset) * 100px)) scale(var(--scale, 1));
+        }
+
+        /* Desktop spacing */
+        @media (min-width: 768px) {
+          .carousel-card {
+            transform: translateX(calc(var(--offset) * 220px)) scale(var(--scale, 1));
+          }
         }
 
         /* Respect reduced motion preference */

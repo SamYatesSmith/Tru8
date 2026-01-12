@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 interface SubscriptionsComingSoonProps {
   /** Where the user came from, for context in the waitlist signup */
-  source?: 'settings' | 'pricing' | 'upgrade-banner' | 'upgrade-modal';
+  source?: 'settings' | 'pricing' | 'upgrade-banner' | 'upgrade-modal' | 'beta-access';
   /** Optional callback when user dismisses or navigates away */
   onDismiss?: () => void;
   /** Show as modal overlay vs inline */
@@ -65,12 +65,14 @@ export function SubscriptionsComingSoon({
 
       {/* Heading */}
       <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-        Pro Subscriptions Coming Soon
+        {source === 'upgrade-modal' ? 'Closed Beta' : 'Pro Subscriptions Coming Soon'}
       </h2>
 
       <p className="text-slate-400 mb-8 max-w-md mx-auto">
-        We're currently in beta testing. Pro subscriptions with 40 monthly checks,
-        priority processing, and advanced features will be available soon.
+        {source === 'upgrade-modal'
+          ? "Tru8 is currently in closed beta with limited access. Join our waitlist to be notified when we open to the public!"
+          : "We're currently in beta testing. Pro subscriptions with 40 monthly checks, priority processing, and advanced features will be available soon."
+        }
       </p>
 
       {/* Waitlist Form */}
@@ -105,10 +107,10 @@ export function SubscriptionsComingSoon({
         <div className="max-w-sm mx-auto mb-8 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
           <div className="flex items-center justify-center gap-2 text-emerald-400">
             <Check className="w-5 h-5" />
-            <span className="font-medium">You're on the list!</span>
+            <span className="font-medium">You&apos;re on the list!</span>
           </div>
           <p className="text-slate-400 text-sm mt-1">
-            We'll email you when Pro subscriptions are available.
+            We&apos;ll email you when Pro subscriptions are available.
           </p>
         </div>
       )}
@@ -116,7 +118,7 @@ export function SubscriptionsComingSoon({
       {/* What's included preview */}
       <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 mb-8 text-left max-w-md mx-auto">
         <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-4">
-          What's coming with Pro
+          What&apos;s coming with Pro
         </h3>
         <ul className="space-y-3">
           {[

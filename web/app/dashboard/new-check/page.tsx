@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 import { PageHeader } from '../components/page-header';
 import { PrismGraphic } from '../components/prism-graphic';
+import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
 
 type TabType = 'url' | 'text';
 
@@ -26,6 +27,9 @@ export default function NewCheckPage() {
   // Usage limit state
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [usageInfo, setUsageInfo] = useState<{ used: number; limit: number } | null>(null);
+
+  // Beta access state
+  const [showBetaWaitlist, setShowBetaWaitlist] = useState(false);
 
   // Check usage limits on page load
   useEffect(() => {
@@ -102,8 +106,12 @@ export default function NewCheckPage() {
       // Redirect to check detail page
       router.push(`/dashboard/check/${result.check.id}`);
     } catch (err: any) {
+      // Check for 403 (beta access required)
+      if (err.message?.includes('403') || err.message?.includes('closed beta') || err.message?.includes('BETA_ACCESS_REQUIRED')) {
+        setShowBetaWaitlist(true);
+        setError(null);
       // Check for 402 (payment required / limit reached)
-      if (err.message?.includes('402') || err.message?.includes('limit')) {
+      } else if (err.message?.includes('402') || err.message?.includes('limit')) {
         setIsLimitReached(true);
         setError('Monthly limit reached. Please upgrade to continue.');
       } else {
@@ -151,7 +159,7 @@ export default function NewCheckPage() {
             <div className="flex-1">
               <h3 className="text-amber-400 font-bold text-base md:text-lg mb-2">Monthly Limit Reached</h3>
               <p className="text-amber-200 text-sm md:text-base mb-4">
-                You've used all {usageInfo?.limit || 3} checks available on your free plan this month.
+                You&apos;ve used all {usageInfo?.limit || 3} checks available on your free plan this month.
                 Upgrade to Pro for 40 checks per month and advanced features.
               </p>
               <Link
@@ -351,6 +359,15 @@ Leave this text field blank to proceed for a standard check on your article."
           </button>
         </div>
       </div>
+
+      {/* Beta Access Required Modal */}
+      {showBetaWaitlist && (
+        <SubscriptionsComingSoon
+          source="upgrade-modal"
+          variant="modal"
+          onDismiss={() => setShowBetaWaitlist(false)}
+        />
+      )}
     </div>
   );
 }

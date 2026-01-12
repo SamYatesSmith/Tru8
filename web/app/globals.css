@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Quantify font for Tru8 branding */
+@font-face {
+  font-family: 'Quantify';
+  src: url('/fonts/Quantify Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Animated glowing border effect - rotating beam */
 .glowing-border-wrapper {
   position: relative;

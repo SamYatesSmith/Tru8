@@ -55,7 +55,7 @@ export function FeedbackWidget() {
       const fetchCheckData = async () => {
         try {
           const token = await getToken();
-          const checkData = await apiClient.getCheckById(currentCheckId, token);
+          const checkData = await apiClient.getCheckById(currentCheckId, token) as any;
           if (checkData?.claims && Array.isArray(checkData.claims)) {
             setClaims(checkData.claims.map((c: any) => ({
               position: c.position,
@@ -186,7 +186,7 @@ export function FeedbackWidget() {
                   {/* Feedback Type Dropdown */}
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">
-                      What's this about?
+                      What&apos;s this about?
                     </label>
                     <select
                       value={feedbackType}

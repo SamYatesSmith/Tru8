@@ -43,42 +43,42 @@ export function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-20 px-4">
+    <section id="how-it-works" className="py-16 md:py-20 px-6 md:px-4">
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#f57a07] mb-4">
+        <div className="text-center mb-10 md:mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-[#f57a07] mb-3 md:mb-4">
             How Tru8 Works
           </h2>
-          <p className="text-xl text-slate-400">
+          <p className="text-base md:text-xl text-slate-400">
             Three simple steps to reliable fact-checking
           </p>
         </div>
 
         {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {steps.map((step) => {
             const Icon = step.icon;
             return (
               <div
                 key={step.number}
-                className="relative bg-[#1a1f2e]/80 backdrop-blur-sm rounded-lg p-8 border border-slate-700 hover:border-slate-600 transition-colors"
+                className="relative bg-[#1a1f2e]/80 backdrop-blur-sm rounded-xl p-5 md:p-8 border border-slate-700 hover:border-slate-600 transition-colors ml-2 md:ml-0"
               >
                 {/* Numbered Badge */}
-                <div className="absolute -top-4 -left-4 w-12 h-12 bg-[#f57a07] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                <div className="absolute -top-3 -left-3 md:-top-4 md:-left-4 w-10 h-10 md:w-12 md:h-12 bg-[#f57a07] rounded-full flex items-center justify-center text-white font-bold text-lg md:text-xl shadow-lg">
                   {step.number}
                 </div>
 
                 {/* Icon */}
-                <div className="mb-6 mt-4">
-                  <Icon className="w-12 h-12 text-[#22d3ee]" />
+                <div className="mb-4 md:mb-6 mt-2 md:mt-4">
+                  <Icon className="w-10 h-10 md:w-12 md:h-12 text-[#22d3ee]" />
                 </div>
 
                 {/* Content */}
-                <h3 className="text-2xl font-semibold text-white mb-3">
+                <h3 className="text-xl md:text-2xl font-semibold text-white mb-2 md:mb-3">
                   {step.title}
                 </h3>
-                <p className="text-slate-400 leading-relaxed">
+                <p className="text-sm md:text-base text-slate-400 leading-relaxed">
                   {step.description}
                 </p>
               </div>
