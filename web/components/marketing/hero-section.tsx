@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { CheckCircle, Clock, Users } from 'lucide-react';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { scrollToSection } from '@/lib/scroll-utils';
@@ -92,7 +93,7 @@ function HeroVisual() {
   }, []);
 
   return (
-    <section className="relative flex items-center justify-center pt-[7.5rem] pb-8 md:pt-52 md:pb-12 px-4">
+    <section className="relative flex items-center justify-center pt-12 pb-8 md:pt-52 md:pb-12 px-4">
       <svg
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl"
@@ -289,6 +290,16 @@ export function HeroSection() {
 
   return (
     <>
+      {/* Mobile Logo - only visible on mobile */}
+      <div className="flex justify-center pt-6 md:hidden">
+        <Image
+          src="/logo.proper.png"
+          alt="Tru8 Logo"
+          width={102}
+          height={34}
+          priority
+        />
+      </div>
       <HeroVisual />
       <HeroContent onOpenAuth={() => setIsAuthModalOpen(true)} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
