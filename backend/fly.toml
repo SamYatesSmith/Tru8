@@ -79,7 +79,7 @@ primary_region = 'lhr'
   processes = ['web']
 
 [[vm]]
-  memory = '4gb'
+  memory = '8gb'
   cpu_kind = 'shared'
   cpus = 2
   processes = ['worker']
