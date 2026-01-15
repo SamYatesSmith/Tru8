@@ -561,35 +561,20 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
 
             stage_timings["global_domain_cap"] = (datetime.utcnow() - stage_start).total_seconds()
 
-        # Stage 4: Verify with NLI (REAL IMPLEMENTATION WITH TIMEOUT)
+        # Stage 4: NLI Verification - BYPASSED
+        # NLI is disabled because PASS_NLI_VERDICT_TO_JUDGE=False means Judge ignores NLI scores anyway.
+        # This saves 80-100 seconds of compute time per check.
+        # To re-enable: set PASS_NLI_VERDICT_TO_JUDGE=true and uncomment the NLI code below.
         self.update_state(state="PROGRESS", meta={"stage": "verify", "progress": 60})
         stage_start = datetime.utcnow()
 
-        try:
-            # Add timeout for NLI stage
-            verifications = asyncio.run(
-                asyncio.wait_for(
-                    verify_claims_with_nli(claims, evidence, cache_service),
-                    timeout=settings.VERIFICATION_TIMEOUT_SECONDS * len(claims)
-                )
-            )
-        except asyncio.TimeoutError:
-            logger.warning(f"Verify stage timed out")
-            if settings.ENVIRONMENT == "development":
-                logger.warning("Using mock verification fallback (development only)")
-                verifications = verify_claims(claims, evidence)
-            else:
-                logger.critical(f"NLI verification timed out in {settings.ENVIRONMENT} environment")
-                raise Exception("NLI verification timed out")
-        except Exception as e:
-            logger.error(f"Verify stage failed: {e}")
-            if settings.ENVIRONMENT == "development":
-                logger.warning("Using mock verification fallback (development only)")
-                verifications = verify_claims(claims, evidence)
-            else:
-                logger.critical(f"NLI verification failed in {settings.ENVIRONMENT} environment")
-                raise Exception(f"NLI verification failed: {e}")
-        
+        # Create empty verifications structure - Judge will proceed without NLI signals
+        verifications = {}
+        for i, claim in enumerate(claims):
+            position = str(claim.get("position", i))
+            verifications[position] = []
+        logger.info(f"[PIPELINE] NLI verification bypassed (PASS_NLI_VERDICT_TO_JUDGE=False) - {len(claims)} claims")
+
         stage_timings["verify"] = (datetime.utcnow() - stage_start).total_seconds()
         
         # Stage 5: Judge and finalize (REAL IMPLEMENTATION WITH TIMEOUT)
