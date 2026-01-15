@@ -18,20 +18,22 @@ export function SubscriptionTab({
   onUpdate,
 }: SubscriptionTabProps) {
   const { getToken } = useAuth();
-  const [monthlyUsage, setMonthlyUsage] = useState(0);
+  const [periodUsage, setPeriodUsage] = useState(0);
+  const [isTrial, setIsTrial] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const isFree = !subscriptionData?.hasSubscription;
   const isPro = subscriptionData?.plan === 'pro';
   const subscriptionsEnabled = subscriptionData?.subscriptionsEnabled ?? false;
 
-  // Fetch monthly usage from backend
+  // Fetch usage from backend
   useEffect(() => {
     const fetchUsage = async () => {
       try {
         const token = await getToken();
         const usageData = await apiClient.getUsage(token) as any;
-        setMonthlyUsage(usageData.monthlyCreditsUsed || 0);
+        setPeriodUsage(usageData.periodCreditsUsed || 0);
+        setIsTrial(usageData.isTrial ?? true);
       } catch (error) {
         console.error('Failed to fetch usage:', error);
       }
@@ -87,22 +89,22 @@ export function SubscriptionTab({
           <h3 className="text-xl font-bold text-white mb-6">Your Current Plan</h3>
           <div className="space-y-4">
             <div>
-              <h4 className="text-2xl font-black text-white">Free (Beta)</h4>
-              <p className="text-slate-400 mt-1">3 free checks per month</p>
+              <h4 className="text-2xl font-black text-white">Free Trial</h4>
+              <p className="text-slate-400 mt-1">3 free checks to try Tru8</p>
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-slate-300">
-                  Usage this month: {monthlyUsage} / 3 checks
+                  Trial usage: {periodUsage} / 3 checks
                 </p>
                 <p className="text-sm font-bold text-slate-300">
-                  {Math.round((monthlyUsage / 3) * 100)}%
+                  {Math.round((periodUsage / 3) * 100)}%
                 </p>
               </div>
               <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] transition-all duration-500"
-                  style={{ width: `${Math.min((monthlyUsage / 3) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((periodUsage / 3) * 100, 100)}%` }}
                 />
               </div>
             </div>
@@ -125,10 +127,10 @@ export function SubscriptionTab({
           {/* Plan Name */}
           <div>
             <h4 className="text-2xl font-black text-white">
-              {isFree ? 'Free' : 'Professional'}
+              {isFree ? 'Free Trial' : 'Professional'}
             </h4>
             <p className="text-slate-400 mt-1">
-              {isFree ? '3 free checks' : '£7 per month · 40 checks'}
+              {isFree ? '3 free checks to try Tru8' : '£7 per month · 40 checks'}
             </p>
           </div>
 
@@ -137,16 +139,16 @@ export function SubscriptionTab({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-slate-300">
-                  Usage this month: {monthlyUsage} / 3 checks
+                  Trial usage: {periodUsage} / 3 checks
                 </p>
                 <p className="text-sm font-bold text-slate-300">
-                  {Math.round((monthlyUsage / 3) * 100)}%
+                  {Math.round((periodUsage / 3) * 100)}%
                 </p>
               </div>
               <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] transition-all duration-500"
-                  style={{ width: `${Math.min((monthlyUsage / 3) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((periodUsage / 3) * 100, 100)}%` }}
                 />
               </div>
             </div>
@@ -163,7 +165,7 @@ export function SubscriptionTab({
                   : 'N/A'}
               </p>
               <p className="text-sm text-slate-300">
-                Usage this month: {monthlyUsage} checks
+                Usage this month: {periodUsage} checks
               </p>
             </div>
           )}

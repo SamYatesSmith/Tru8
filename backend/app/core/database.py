@@ -5,7 +5,10 @@ from app.core.config import settings
 
 # Configure SSL for asyncpg connection
 # Set DATABASE_SSL=false for Fly.io internal network (no SSL needed)
-connect_args = {} if settings.DATABASE_SSL else {"ssl": False}
+async_connect_args = {} if settings.DATABASE_SSL else {"ssl": False}
+
+# psycopg2 uses different SSL params than asyncpg
+sync_connect_args = {} if settings.DATABASE_SSL else {"sslmode": "disable"}
 
 # Async engine and session for main app
 engine = create_async_engine(
@@ -15,7 +18,7 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,
-    connect_args=connect_args,
+    connect_args=async_connect_args,
 )
 
 async_session = sessionmaker(
@@ -23,13 +26,22 @@ async_session = sessionmaker(
 )
 
 # Sync engine and session for Celery tasks
+# Strip any SSL params from URL since we handle via connect_args
 sync_database_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
+# Remove ssl param if present in URL (psycopg2 doesn't support it in DSN)
+if "?ssl=" in sync_database_url or "&ssl=" in sync_database_url:
+    import re
+    sync_database_url = re.sub(r'[?&]ssl=[^&]*', '', sync_database_url)
+    # Clean up any doubled ? or trailing ?
+    sync_database_url = sync_database_url.replace('?&', '?').rstrip('?')
+
 sync_engine = create_engine(
     sync_database_url,
     echo=settings.DEBUG,
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
+    connect_args=sync_connect_args,
 )
 
 sync_session = sessionmaker(

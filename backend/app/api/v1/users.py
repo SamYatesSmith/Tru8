@@ -280,6 +280,9 @@ async def get_usage(
     """Get detailed usage statistics"""
     user = await get_or_create_user(session, current_user)
 
+    # Check if user is a beta tester (gets Pro-level credits)
+    is_beta_tester = user.email and user.email.lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+
     # Get subscription data
     sub_stmt = select(Subscription).where(
         Subscription.user_id == user.id,
@@ -288,24 +291,30 @@ async def get_usage(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    # Determine billing period start for monthly usage calculation
+    # Determine usage based on subscription status
     if subscription and subscription.current_period_start:
         # Subscriber: use subscription billing period
         period_start = subscription.current_period_start
-        credits_per_month = subscription.credits_per_month
-    else:
-        # Free user: use start of current calendar month
-        now = datetime.utcnow()
-        period_start = datetime(now.year, now.month, 1)
-        credits_per_month = 3
+        credits_per_period = subscription.credits_per_month
+        is_trial = False
 
-    # Calculate monthly usage by summing credits_used from checks in current period
-    usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-        Check.user_id == user.id,
-        Check.created_at >= period_start
-    )
-    usage_result = await session.execute(usage_stmt)
-    monthly_credits_used = usage_result.scalar() or 0
+        # Calculate monthly usage for subscribers
+        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+            Check.user_id == user.id,
+            Check.created_at >= period_start
+        )
+        usage_result = await session.execute(usage_stmt)
+        period_credits_used = usage_result.scalar() or 0
+    else:
+        # Free user: one-time trial (3 checks total, never resets)
+        credits_per_period = 3  # Trial limit
+        period_credits_used = user.total_credits_used  # Lifetime usage
+        is_trial = True
+
+    # Beta testers get Pro-level credits (40/month)
+    if is_beta_tester:
+        credits_per_period = 40
+        is_trial = False
 
     # Build subscription response
     if subscription:
@@ -316,19 +325,21 @@ async def get_usage(
             "periodStart": subscription.current_period_start.isoformat() if subscription.current_period_start else None,
         }
     else:
-        # No active subscription = free tier
+        # No active subscription = free trial
         subscription_data = {
-            "plan": "free",
-            "creditsPerMonth": 3,
-            "resetDate": None,
-            "periodStart": period_start.isoformat(),
+            "plan": "free_trial",
+            "creditsPerMonth": None,  # Trial doesn't reset monthly
+            "trialCredits": 3,
+            "resetDate": None,  # Never resets
+            "periodStart": None,
         }
 
     return {
         "creditsRemaining": user.credits,
         "totalCreditsUsed": user.total_credits_used,
-        "monthlyCreditsUsed": monthly_credits_used,
-        "creditsPerMonth": credits_per_month,
+        "periodCreditsUsed": period_credits_used,  # Renamed from monthlyCreditsUsed
+        "creditsPerPeriod": credits_per_period,  # Renamed from creditsPerMonth
+        "isTrial": is_trial,
         "subscription": subscription_data
     }
 

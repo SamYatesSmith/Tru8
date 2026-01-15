@@ -47,11 +47,11 @@ export const LIMITS = {
 
 // Plans
 export const PLANS = {
-  free: {
-    name: 'Free',
+  free_trial: {
+    name: 'Free Trial',
     price: 0,
     currency: 'GBP',
-    creditsPerMonth: 3,
+    trialCredits: 3,  // One-time trial, not monthly
     features: ['Fact-checking', 'Standard support'],
   },
   professional: {

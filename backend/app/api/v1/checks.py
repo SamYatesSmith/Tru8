@@ -333,32 +333,39 @@ async def create_check(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    # Determine billing period and monthly limit
+    # Determine usage limit based on subscription status
     if subscription and subscription.current_period_start:
+        # Paid subscriber: monthly limit that resets each billing period
         period_start = subscription.current_period_start
-        credits_per_month = subscription.credits_per_month
-    else:
-        # Free user: use start of current calendar month
-        from datetime import datetime
-        now = datetime.utcnow()
-        period_start = datetime(now.year, now.month, 1)
-        credits_per_month = 3  # Free tier limit
+        credits_limit = subscription.credits_per_month
 
-    # Calculate monthly usage
-    from sqlalchemy import func
-    usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-        Check.user_id == user.id,
-        Check.created_at >= period_start
-    )
-    usage_result = await session.execute(usage_stmt)
-    monthly_usage = usage_result.scalar() or 0
-
-    # Check if user has exceeded their monthly limit (skip for beta testers)
-    if not is_beta_tester and monthly_usage >= credits_per_month:
-        raise HTTPException(
-            status_code=402,
-            detail=f"Monthly limit reached ({monthly_usage}/{credits_per_month} checks used). Please upgrade your plan for more checks."
+        # Calculate monthly usage for subscribers
+        from sqlalchemy import func
+        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+            Check.user_id == user.id,
+            Check.created_at >= period_start
         )
+        usage_result = await session.execute(usage_stmt)
+        current_usage = usage_result.scalar() or 0
+        limit_type = "monthly"
+    else:
+        # Free user: one-time trial of 3 checks (never resets)
+        credits_limit = 3  # Trial limit
+        current_usage = user.total_credits_used  # Lifetime usage
+        limit_type = "trial"
+
+    # Check if user has exceeded their limit (skip for beta testers)
+    if not is_beta_tester and current_usage >= credits_limit:
+        if limit_type == "trial":
+            raise HTTPException(
+                status_code=402,
+                detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade to Pro for unlimited monthly checks."
+            )
+        else:
+            raise HTTPException(
+                status_code=402,
+                detail=f"Monthly limit reached ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks."
+            )
     
     # Validate input
     if body.input_type not in ["url", "text", "image", "video"]:

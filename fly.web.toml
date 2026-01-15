@@ -6,7 +6,7 @@ primary_region = 'lhr'
 
   [build.args]
     NEXT_PUBLIC_API_URL = "https://trueight-api.fly.dev"
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_c2ltcGxlLXBvbGVjYXQtOTguY2xlcmsuYWNjb3VudHMuZGV2JA"
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsudHJ1ZWlnaHQuY29tJA"
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_51SI7LMGZOxj6gubl2YSKRjKZzzYpYgV0NOdGnp6UUmUlmIJ2EnyMj5IBtmwnVAPlbOTXeGnvCRGWhVMQ386zPNOu00oPoRx8iD"
     NEXT_PUBLIC_STRIPE_PRICE_ID_PRO = "price_1SI8HgGZOxj6gublpqy6LImY"
     NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED = "false"

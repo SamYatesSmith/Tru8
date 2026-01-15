@@ -61,8 +61,8 @@ export default function SettingsPage() {
         });
         setSubscriptionData({
           hasSubscription: false,
-          plan: 'free',
-          creditsPerMonth: 3,
+          plan: 'free_trial',
+          creditsPerPeriod: 3,
         });
       } finally {
         setLoading(false);

@@ -23,10 +23,11 @@ interface Subscription {
 }
 
 interface UsageData {
-  monthlyCreditsUsed: number;
-  creditsPerMonth: number;
+  periodCreditsUsed: number;
+  creditsPerPeriod: number;
   creditsRemaining: number;
   totalCreditsUsed: number;
+  isTrial: boolean;
 }
 
 interface ChecksResponse {
@@ -57,12 +58,13 @@ export default async function DashboardPage({
     apiClient.getUserStats(token) as Promise<UserStats>,
   ]);
 
-  // Use server-calculated monthly usage
-  const monthlyUsage = usage.monthlyCreditsUsed;
-  const creditsPerMonth = usage.creditsPerMonth;
+  // Use server-calculated usage (monthly for subscribers, lifetime for trial)
+  const periodUsage = usage.periodCreditsUsed;
+  const creditsLimit = usage.creditsPerPeriod;
+  const isTrial = usage.isTrial;
 
-  // Show upgrade banner only for free users
-  const showUpgradeBanner = !subscription.hasSubscription || subscription.plan === 'free';
+  // Show upgrade banner for trial users or free plan
+  const showUpgradeBanner = isTrial || !subscription.hasSubscription || subscription.plan === 'free' || subscription.plan === 'free_trial';
 
   // Check for upgrade/cancellation status from URL params
   const isUpgraded = searchParams.upgraded === 'true';
@@ -73,7 +75,7 @@ export default async function DashboardPage({
       {/* Hero Section */}
       <PageHeader
         title="Tru8: Your truth companion"
-        subtitle="Instantly verify claims, URLs, and articles."
+        subtitle="Verify claims, URLs, and articles in minutes."
         ctaText="Start Verifying"
         ctaHref="/dashboard/new-check"
         graphic={<JusticeScalesGraphic />}
@@ -121,11 +123,11 @@ export default async function DashboardPage({
       {/* Two-Column Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <UsageCard
-          used={monthlyUsage}
-          total={creditsPerMonth}
-          label="Checks used this month"
+          used={periodUsage}
+          total={creditsLimit}
+          label={isTrial ? "Trial checks used" : "Checks used this month"}
         />
-        <QuickActionCard used={monthlyUsage} limit={creditsPerMonth} />
+        <QuickActionCard used={periodUsage} limit={creditsLimit} />
       </div>
 
       {/* Recent Checks */}

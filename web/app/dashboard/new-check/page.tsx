@@ -37,8 +37,8 @@ export default function NewCheckPage() {
       try {
         const token = await getToken();
         const usage = await apiClient.getUsage(token) as any;
-        const used = usage.monthlyCreditsUsed || 0;
-        const limit = usage.creditsPerMonth || 3;
+        const used = usage.periodCreditsUsed || 0;
+        const limit = usage.creditsPerPeriod || 3;
         setUsageInfo({ used, limit });
         if (used >= limit) {
           setIsLimitReached(true);
@@ -147,7 +147,7 @@ export default function NewCheckPage() {
     <div className="space-y-8">
       <PageHeader
         title="Create New Claim Check"
-        subtitle="Submit claims, URLs, or articles for instant verification"
+        subtitle="Submit claims, URLs, or articles for AI-powered verification"
         graphic={<PrismGraphic />}
       />
 

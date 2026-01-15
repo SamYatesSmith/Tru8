@@ -120,10 +120,15 @@ export interface UserProfileResponse {
 export interface UserUsageResponse {
   creditsRemaining: number;
   totalCreditsUsed: number;
+  periodCreditsUsed: number;  // Monthly for subscribers, lifetime for trial
+  creditsPerPeriod: number;   // Monthly limit for subscribers, trial limit for free
+  isTrial: boolean;           // True if user is on free trial (not subscriber)
   subscription: {
-    plan: string;
-    creditsPerMonth: number;
-    resetDate?: string;
+    plan: string;             // 'free_trial', 'starter', 'pro', etc.
+    creditsPerMonth?: number | null;  // null for trial users
+    trialCredits?: number;    // Only present for trial users
+    resetDate?: string | null;
+    periodStart?: string | null;
   };
 }
 
