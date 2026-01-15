@@ -280,7 +280,7 @@ async def get_usage(
     """Get detailed usage statistics"""
     user = await get_or_create_user(session, current_user)
 
-    # Check if user is a beta tester (gets Pro-level credits)
+    # Check if user is a beta tester (gets 40 checks/month)
     is_beta_tester = user.email and user.email.lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
 
     # Get subscription data
@@ -292,7 +292,22 @@ async def get_usage(
     subscription = sub_result.scalar_one_or_none()
 
     # Determine usage based on subscription status
-    if subscription and subscription.current_period_start:
+    if is_beta_tester:
+        # Beta testers: 40 checks per calendar month
+        from datetime import datetime
+        now = datetime.utcnow()
+        period_start = datetime(now.year, now.month, 1)  # First of current month
+        credits_per_period = 40
+        is_trial = False
+
+        # Calculate monthly usage for beta testers
+        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+            Check.user_id == user.id,
+            Check.created_at >= period_start
+        )
+        usage_result = await session.execute(usage_stmt)
+        period_credits_used = usage_result.scalar() or 0
+    elif subscription and subscription.current_period_start:
         # Subscriber: use subscription billing period
         period_start = subscription.current_period_start
         credits_per_period = subscription.credits_per_month
@@ -310,11 +325,6 @@ async def get_usage(
         credits_per_period = 3  # Trial limit
         period_credits_used = user.total_credits_used  # Lifetime usage
         is_trial = True
-
-    # Beta testers get Pro-level credits (40/month)
-    if is_beta_tester:
-        credits_per_period = 40
-        is_trial = False
 
     # Build subscription response
     if subscription:

@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
+import Image from 'next/image';
+import { Facebook, Instagram, Twitter, Youtube, ChevronLeft } from 'lucide-react';
 
 interface PageHeaderProps {
   title: string;
@@ -22,6 +24,8 @@ export function PageHeader({
   graphicScale = 2,
   titleSize = 'large'
 }: PageHeaderProps) {
+  const [socialsOpen, setSocialsOpen] = useState(false);
+
   const handleShare = async (platform: string) => {
     const url = window.location.origin;
     const titleText = 'Tru8 - Fact-Checking Platform';
@@ -57,20 +61,107 @@ export function PageHeader({
     : 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-6 md:mb-8 leading-tight';
 
   return (
-    <div className="relative mb-10 md:mb-20 py-10 md:py-20">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
-        {/* Left content */}
+    <div className="relative mb-6 md:mb-20 py-4 md:py-20">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-8">
+        {/* Left content - Mobile: Logo + CTA, Desktop: Title + Subtitle + CTA */}
         <div className="flex-1 max-w-3xl">
-          <h1 className={titleClasses}>
+          {/* Mobile: Show logo */}
+          <div className="md:hidden flex flex-col items-center gap-4 mb-2">
+            <Image
+              src="/logo.proper.png"
+              alt="Tru8"
+              width={160}
+              height={160}
+              className="object-contain"
+            />
+            {ctaText && ctaHref && (
+              <div className="white-rotating-border w-full">
+                <Link
+                  href={ctaHref}
+                  className="white-rotating-border-content flex items-center justify-center text-white font-bold px-8 py-4 transition-colors text-base"
+                >
+                  {ctaText}
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile: Expandable socials drawer - aligned top right */}
+          <div className="md:hidden fixed right-0 top-20 z-40 flex items-center">
+            {/* Expanded social icons panel */}
+            <div
+              className={`flex items-center gap-3 bg-[#1a1f2e] border border-slate-700 rounded-l-lg py-3 px-4 transition-all duration-300 ease-out ${
+                socialsOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'
+              }`}
+            >
+              <button
+                onClick={() => handleShare('facebook')}
+                className="text-slate-400 hover:text-white transition-colors p-2"
+                aria-label="Share on Facebook"
+              >
+                <Facebook size={20} />
+              </button>
+              <div className="w-px h-5 bg-slate-700"></div>
+              <button
+                onClick={() => handleShare('instagram')}
+                className="text-slate-400 hover:text-white transition-colors p-2"
+                aria-label="Share on Instagram"
+              >
+                <Instagram size={20} />
+              </button>
+              <div className="w-px h-5 bg-slate-700"></div>
+              <button
+                onClick={() => handleShare('twitter')}
+                className="text-slate-400 hover:text-white transition-colors p-2"
+                aria-label="Share on Twitter"
+              >
+                <Twitter size={20} />
+              </button>
+              <div className="w-px h-5 bg-slate-700"></div>
+              <button
+                onClick={() => handleShare('youtube')}
+                className="text-slate-400 hover:text-white transition-colors p-2"
+                aria-label="Share on YouTube"
+              >
+                <Youtube size={20} />
+              </button>
+            </div>
+
+            {/* Toggle button with vertical "Socials" text */}
+            <button
+              onClick={() => setSocialsOpen(!socialsOpen)}
+              className="bg-[#1a1f2e] border border-slate-700 border-r-0 rounded-l-lg py-3 px-2 flex flex-col items-center gap-1"
+              aria-label={socialsOpen ? 'Close socials' : 'Open socials'}
+            >
+              {/* Vertical "Socials" text */}
+              <div className="flex flex-col items-center text-slate-400 text-xs font-medium leading-none tracking-tight">
+                <span>S</span>
+                <span>o</span>
+                <span>c</span>
+                <span>i</span>
+                <span>a</span>
+                <span>l</span>
+                <span>s</span>
+              </div>
+              {/* Arrow pointing left */}
+              <ChevronLeft
+                size={16}
+                className={`text-[#f57a07] mt-1 transition-transform duration-300 ${socialsOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+          </div>
+
+          {/* Desktop: Show title and subtitle */}
+          <h1 className={`hidden md:block ${titleClasses}`}>
             {title}
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-slate-300 mb-6 md:mb-10 leading-relaxed">
+          <p className="hidden md:block text-lg sm:text-xl md:text-2xl lg:text-3xl text-slate-300 mb-6 md:mb-10 leading-relaxed">
             {subtitle}
           </p>
           {ctaText && ctaHref && (
             <Link
               href={ctaHref}
-              className="inline-block bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-8 md:px-12 py-4 md:py-5 rounded-xl transition-colors text-base md:text-xl"
+              className="hidden md:inline-block bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold px-8 md:px-12 py-4 md:py-5 rounded-xl transition-colors text-base md:text-xl"
             >
               {ctaText}
             </Link>
@@ -89,7 +180,7 @@ export function PageHeader({
       </div>
 
       {/* Social icons with vertical connecting lines - positioned further right */}
-      <div className="hidden xl:flex absolute right-0 top-1/2 -translate-y-1/2 flex-col items-center">
+      <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 flex-col items-center">
         <button
           onClick={() => handleShare('facebook')}
           className="text-slate-400 hover:text-white transition-colors relative z-10"

@@ -93,6 +93,59 @@
   100% { transform: rotate(360deg); }
 }
 
+/* White rotating border for CTA buttons */
+.white-rotating-border {
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.white-rotating-border::before {
+  content: '';
+  position: absolute;
+  inset: -150%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 60deg,
+    #ffffff 120deg,
+    #e2e8f0 180deg,
+    #ffffff 240deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  animation: gradient-rotate 3s linear infinite;
+  z-index: 0;
+}
+
+.white-rotating-border::after {
+  content: '';
+  position: absolute;
+  inset: -150%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 60deg,
+    #ffffff 120deg,
+    #e2e8f0 180deg,
+    #ffffff 240deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  animation: gradient-rotate 3s linear infinite;
+  filter: blur(15px);
+  opacity: 0.4;
+  z-index: 0;
+}
+
+.white-rotating-border-content {
+  position: relative;
+  z-index: 1;
+  background: #f57a07;
+  border-radius: calc(0.75rem - 2px);
+  margin: 2px;
+}
+
 .new-check-highlight {
   position: relative;
 }

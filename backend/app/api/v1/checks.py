@@ -334,7 +334,23 @@ async def create_check(
     subscription = sub_result.scalar_one_or_none()
 
     # Determine usage limit based on subscription status
-    if subscription and subscription.current_period_start:
+    if is_beta_tester:
+        # Beta testers: 40 checks per calendar month
+        from datetime import datetime
+        now = datetime.utcnow()
+        period_start = datetime(now.year, now.month, 1)  # First of current month
+        credits_limit = 40  # Beta tester monthly limit
+
+        # Calculate monthly usage for beta testers
+        from sqlalchemy import func
+        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+            Check.user_id == user.id,
+            Check.created_at >= period_start
+        )
+        usage_result = await session.execute(usage_stmt)
+        current_usage = usage_result.scalar() or 0
+        limit_type = "beta_monthly"
+    elif subscription and subscription.current_period_start:
         # Paid subscriber: monthly limit that resets each billing period
         period_start = subscription.current_period_start
         credits_limit = subscription.credits_per_month
@@ -354,12 +370,17 @@ async def create_check(
         current_usage = user.total_credits_used  # Lifetime usage
         limit_type = "trial"
 
-    # Check if user has exceeded their limit (skip for beta testers)
-    if not is_beta_tester and current_usage >= credits_limit:
+    # Check if user has exceeded their limit
+    if current_usage >= credits_limit:
         if limit_type == "trial":
             raise HTTPException(
                 status_code=402,
                 detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade to Pro for unlimited monthly checks."
+            )
+        elif limit_type == "beta_monthly":
+            raise HTTPException(
+                status_code=402,
+                detail=f"Beta monthly limit reached ({current_usage}/{credits_limit} checks used). Your limit resets on the 1st of next month."
             )
         else:
             raise HTTPException(
