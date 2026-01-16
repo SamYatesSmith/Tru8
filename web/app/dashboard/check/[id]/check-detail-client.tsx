@@ -52,11 +52,17 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   }, [getToken]);
 
   // Real-time progress updates via SSE
-  const { progress, currentStage, isConnected, message } = useCheckProgress(
+  const { progress: sseProgress, currentStage: sseStage, isConnected, message: sseMessage } = useCheckProgress(
     checkId,
     token,
     checkData.status === 'processing'
   );
+
+  // Use SSE progress when connected, otherwise use polling data from checkData
+  // This ensures progress updates even when SSE fails (service worker issues, etc.)
+  const progress = isConnected ? sseProgress : (checkData.progress ?? sseProgress);
+  const currentStage = isConnected ? sseStage : (checkData.currentStage ?? sseStage);
+  const message = isConnected ? sseMessage : (checkData.progressMessage ?? sseMessage);
 
   // Poll for updates when pending or processing
   useEffect(() => {

@@ -5,203 +5,417 @@
   <style>
     @page {
       size: A4;
-      margin: 1cm;
+      margin: 1.5cm;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Helvetica', 'Arial', sans-serif;
-      color: #1e293b;
-      line-height: 1.5;
+      color: #334155;
+      line-height: 1.6;
       font-size: 11px;
       background: #ffffff;
     }
 
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .header-title {
+      font-size: 32px;
+      font-weight: bold;
+      color: #1e40af;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .metadata {
+      background: #f8fafc;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      border-left: 3px solid #1e40af;
+    }
+
+    .metadata-row {
+      margin-bottom: 6px;
+    }
+
+    .metadata-label {
+      font-weight: bold;
+      color: #1e40af;
+      display: inline-block;
+      width: 120px;
+    }
+
+    .metadata-value {
+      color: #475569;
+    }
+
+    .summary-section {
+      margin-bottom: 28px;
+      padding: 20px;
+      background: #fafbfc;
+    }
+
+    .summary-header {
+      margin-bottom: 16px;
+    }
+
+    .summary-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #1e40af;
+      display: inline-block;
+    }
+
+    .credibility-score {
+      float: right;
+      text-align: right;
+    }
+
+    .score-value {
+      font-size: 28px;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 9px;
+      font-weight: bold;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .score-high { color: #059669; }
+    .score-medium { color: #d97706; }
+    .score-low { color: #dc2626; }
+
+    .summary-text {
+      font-size: 11px;
+      line-height: 1.7;
+      color: #475569;
+      clear: both;
+    }
+
+    .stats-row {
+      margin-bottom: 28px;
+    }
+
+    .stats-row table {
+      width: 100%;
+    }
+
+    .stat-cell {
+      text-align: center;
+      padding: 16px 12px;
+    }
+
+    .stat-cell-supported { background: #f0fdf4; }
+    .stat-cell-uncertain { background: #fffbeb; }
+    .stat-cell-contradicted { background: #fef2f2; }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
     .section-title {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: bold;
       color: #1e293b;
-      margin-top: 24px;
-      margin-bottom: 12px;
-      padding-bottom: 6px;
-      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
     }
 
     .claim-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      margin-bottom: 16px;
-      padding: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f1f5f9;
       page-break-inside: avoid;
     }
 
+    .claim-header {
+      margin-bottom: 12px;
+    }
+
+    .claim-label {
+      font-size: 9px;
+      font-weight: bold;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .claim-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.5;
+    }
+
+    .verdict-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 9px;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .verdict-supported { background: #059669; }
+    .verdict-contradicted { background: #dc2626; }
+    .verdict-uncertain { background: #d97706; }
+    .verdict-insufficient { background: #64748b; }
+
+    .confidence-text {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .confidence-bar {
+      height: 4px;
+      background: #e2e8f0;
+      margin: 10px 0;
+    }
+
+    .confidence-fill {
+      height: 4px;
+    }
+
+    .rationale-box {
+      background: #f8fafc;
+      padding: 12px 14px;
+      margin: 12px 0;
+      border-left: 2px solid #cbd5e1;
+    }
+
+    .rationale-text {
+      font-size: 10px;
+      color: #475569;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    .evidence-title {
+      font-size: 10px;
+      font-weight: bold;
+      color: #1e40af;
+      margin-bottom: 8px;
+    }
+
+    .evidence-item {
+      background: #fafafa;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+    }
+
+    .evidence-source {
+      font-size: 10px;
+      font-weight: bold;
+      color: #1e40af;
+      margin-bottom: 2px;
+    }
+
+    .evidence-source-title {
+      font-size: 9px;
+      color: #334155;
+      margin-bottom: 3px;
+    }
+
+    .evidence-snippet {
+      font-size: 9px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    .badge-api {
+      display: inline-block;
+      background: #059669;
+      color: #ffffff;
+      padding: 1px 4px;
+      font-size: 7px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-left: 4px;
+    }
+
+    .badge-factcheck {
+      display: inline-block;
+      background: #7c3aed;
+      color: #ffffff;
+      padding: 1px 4px;
+      font-size: 7px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-left: 4px;
+    }
+
     .footer {
-      margin-top: 40px;
+      margin-top: 32px;
       padding-top: 16px;
-      border-top: 2px solid #e2e8f0;
+      border-top: 1px solid #e2e8f0;
       text-align: center;
       color: #94a3b8;
-      font-size: 10px;
+      font-size: 9px;
+    }
+
+    .footer-brand {
+      font-weight: bold;
+      color: #1e40af;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .footer-disclaimer {
+      margin-top: 10px;
+      font-size: 8px;
+      color: #94a3b8;
     }
   </style>
 </head>
 <body>
   <!-- HEADER -->
-  <table width="100%" style="border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 20px;">
-    <tr>
-      <td width="60" valign="middle">
-        <img src="file:///{{ logo_path }}" alt="Tru8" width="50" height="50" />
-      </td>
-      <td valign="middle" style="padding-left: 12px;">
-        <div style="font-size: 28px; font-weight: bold; color: #1e40af; letter-spacing: 1px;">TRU8</div>
-        <div style="font-size: 11px; color: #64748b;">Independent AI-Powered Fact-Checking Report</div>
-      </td>
-    </tr>
-  </table>
+  <div class="header">
+    <div class="header-title">TRU8</div>
+    <div class="header-subtitle">Independent AI-Powered Fact-Checking Report</div>
+  </div>
 
-  <!-- METADATA BOX -->
-  <table width="100%" style="background: #f8fafc; border-left: 4px solid #1e40af; margin-bottom: 20px;">
-    <tr>
-      <td style="padding: 14px;">
-        <table width="100%">
-          <tr>
-            <td width="120" style="font-weight: bold; color: #1e40af; padding: 3px 0;">Source URL:</td>
-            <td style="color: #334155; padding: 3px 0;">{{ (check.input_url or 'User-submitted text')[:80] }}{% if check.input_url and check.input_url|length > 80 %}...{% endif %}</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; color: #1e40af; padding: 3px 0;">Date Checked:</td>
-            <td style="color: #334155; padding: 3px 0;">{{ check.created_at.strftime('%B %d, %Y at %H:%M UTC') }}</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; color: #1e40af; padding: 3px 0;">Report ID:</td>
-            <td style="color: #334155; padding: 3px 0;">{{ check.id[:8] }}</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; color: #1e40af; padding: 3px 0;">Processing Time:</td>
-            <td style="color: #334155; padding: 3px 0;">{{ (check.processing_time_ms / 1000)|round(1) }} seconds</td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+  <!-- METADATA -->
+  <div class="metadata">
+    <div class="metadata-row">
+      <span class="metadata-label">Source URL:</span>
+      <span class="metadata-value">{{ (check.input_url or 'User-submitted text')[:80] }}{% if check.input_url and check.input_url|length > 80 %}...{% endif %}</span>
+    </div>
+    <div class="metadata-row">
+      <span class="metadata-label">Date Checked:</span>
+      <span class="metadata-value">{{ check.created_at.strftime('%B %d, %Y at %H:%M UTC') }}</span>
+    </div>
+    <div class="metadata-row">
+      <span class="metadata-label">Report ID:</span>
+      <span class="metadata-value">{{ check.id[:8] }}</span>
+    </div>
+    <div class="metadata-row">
+      <span class="metadata-label">Processing Time:</span>
+      <span class="metadata-value">{{ (check.processing_time_ms / 1000)|round(1) }} seconds</span>
+    </div>
+  </div>
 
-  <!-- OVERALL SUMMARY BOX -->
-  <table width="100%" style="border: 2px solid #1e40af; margin-bottom: 20px;">
-    <tr>
-      <td style="padding: 18px;">
-        <table width="100%" style="margin-bottom: 12px;">
-          <tr>
-            <td valign="top">
-              <div style="font-size: 16px; font-weight: bold; color: #1e40af;">Overall Assessment</div>
-            </td>
-            <td align="right" valign="top">
-              {% set score = check.credibility_score or 0 %}
-              <div style="font-size: 32px; font-weight: bold; line-height: 1; {% if score >= 70 %}color: #059669;{% elif score >= 40 %}color: #d97706;{% else %}color: #dc2626;{% endif %}">{{ score }}/100</div>
-              <div style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Credibility Score</div>
-            </td>
-          </tr>
-        </table>
-        <div style="font-size: 12px; line-height: 1.6; color: #334155;">{{ check.overall_summary }}</div>
-      </td>
-    </tr>
-  </table>
+  <!-- OVERALL SUMMARY -->
+  <div class="summary-section">
+    <div class="summary-header">
+      <span class="summary-title">Overall Assessment</span>
+      {% set score = check.credibility_score or 0 %}
+      <div class="credibility-score">
+        <div class="score-value {% if score >= 70 %}score-high{% elif score >= 40 %}score-medium{% else %}score-low{% endif %}">{{ score }}/100</div>
+        <div class="score-label">Credibility Score</div>
+      </div>
+    </div>
+    <div class="summary-text">{{ check.overall_summary }}</div>
+  </div>
 
   <!-- STATS ROW -->
-  <table width="100%" style="margin-bottom: 22px; border: 1px solid #e2e8f0;">
-    <tr>
-      <td width="33.33%" align="center" style="padding: 14px 8px; background: #f0fdf4; border-right: 1px solid #e2e8f0;">
-        <div style="font-size: 36px; font-weight: bold; color: #059669; line-height: 1;">{{ check.claims_supported or 0 }}</div>
-        <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #059669; margin-top: 4px;">Supported</div>
-      </td>
-      <td width="33.33%" align="center" style="padding: 14px 8px; background: #fffbeb; border-right: 1px solid #e2e8f0;">
-        <div style="font-size: 36px; font-weight: bold; color: #d97706; line-height: 1;">{{ check.claims_uncertain or 0 }}</div>
-        <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #d97706; margin-top: 4px;">Uncertain</div>
-      </td>
-      <td width="33.34%" align="center" style="padding: 14px 8px; background: #fef2f2;">
-        <div style="font-size: 36px; font-weight: bold; color: #dc2626; line-height: 1;">{{ check.claims_contradicted or 0 }}</div>
-        <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #dc2626; margin-top: 4px;">Contradicted</div>
-      </td>
-    </tr>
-  </table>
+  <div class="stats-row">
+    <table cellspacing="0" cellpadding="0">
+      <tr>
+        <td class="stat-cell stat-cell-supported" width="33%">
+          <div class="stat-number score-high">{{ check.claims_supported or 0 }}</div>
+          <div class="stat-label score-high">Supported</div>
+        </td>
+        <td class="stat-cell stat-cell-uncertain" width="34%">
+          <div class="stat-number score-medium">{{ check.claims_uncertain or 0 }}</div>
+          <div class="stat-label score-medium">Uncertain</div>
+        </td>
+        <td class="stat-cell stat-cell-contradicted" width="33%">
+          <div class="stat-number score-low">{{ check.claims_contradicted or 0 }}</div>
+          <div class="stat-label score-low">Contradicted</div>
+        </td>
+      </tr>
+    </table>
+  </div>
 
-  <!-- CLAIMS DETAIL -->
+  <!-- CLAIMS SECTION -->
   <div class="section-title">Claims Analyzed ({{ claims|length }})</div>
 
   {% for claim in claims %}
   <div class="claim-card">
-    <table width="100%" style="margin-bottom: 10px;">
+    <!-- Claim Header -->
+    <table width="100%" class="claim-header">
       <tr>
-        <td valign="top" width="75%">
-          <div style="font-size: 10px; font-weight: bold; color: #64748b; margin-bottom: 4px;">CLAIM {{ loop.index }}</div>
-          <div style="font-size: 13px; font-weight: bold; color: #1e293b; line-height: 1.5;">{{ claim.text[:200] }}{% if claim.text|length > 200 %}...{% endif %}</div>
+        <td valign="top" width="70%">
+          <div class="claim-label">Claim {{ loop.index }}</div>
+          <div class="claim-text">{{ claim.text[:220] }}{% if claim.text|length > 220 %}...{% endif %}</div>
         </td>
-        <td valign="top" align="right" width="25%">
+        <td valign="top" align="right" width="30%">
           {% if claim.verdict == 'supported' %}
-          <div style="display: inline-block; background: #059669; color: #ffffff; padding: 5px 12px; font-size: 10px; font-weight: bold; text-transform: uppercase;">SUPPORTED</div>
+          <span class="verdict-badge verdict-supported">Supported</span>
           {% elif claim.verdict == 'contradicted' %}
-          <div style="display: inline-block; background: #dc2626; color: #ffffff; padding: 5px 12px; font-size: 10px; font-weight: bold; text-transform: uppercase;">CONTRADICTED</div>
+          <span class="verdict-badge verdict-contradicted">Contradicted</span>
           {% elif claim.verdict == 'uncertain' %}
-          <div style="display: inline-block; background: #d97706; color: #ffffff; padding: 5px 12px; font-size: 10px; font-weight: bold; text-transform: uppercase;">UNCERTAIN</div>
+          <span class="verdict-badge verdict-uncertain">Uncertain</span>
           {% elif claim.verdict == 'insufficient_evidence' %}
-          <div style="display: inline-block; background: #64748b; color: #ffffff; padding: 5px 12px; font-size: 10px; font-weight: bold; text-transform: uppercase;">INSUFFICIENT</div>
+          <span class="verdict-badge verdict-insufficient">Insufficient</span>
           {% else %}
-          <div style="display: inline-block; background: #94a3b8; color: #ffffff; padding: 5px 12px; font-size: 10px; font-weight: bold; text-transform: uppercase;">{{ claim.verdict|upper }}</div>
+          <span class="verdict-badge verdict-insufficient">{{ claim.verdict|upper }}</span>
           {% endif %}
-          <div style="font-size: 10px; color: #64748b; margin-top: 6px;">{{ claim.confidence }}% confidence</div>
+          <div class="confidence-text">{{ claim.confidence }}% confidence</div>
         </td>
       </tr>
     </table>
 
-    <table width="100%" style="margin-bottom: 10px;">
-      <tr>
-        <td>
-          <table width="100%" cellspacing="0" cellpadding="0" style="background: #e2e8f0; height: 6px;">
-            <tr>
-              {% if claim.verdict == 'supported' %}
-              <td style="width: {{ claim.confidence }}%; height: 6px; background: #059669;"></td>
-              {% elif claim.verdict == 'contradicted' %}
-              <td style="width: {{ claim.confidence }}%; height: 6px; background: #dc2626;"></td>
-              {% else %}
-              <td style="width: {{ claim.confidence }}%; height: 6px; background: #d97706;"></td>
-              {% endif %}
-              <td style="height: 6px;"></td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+    <!-- Confidence Bar -->
+    <div class="confidence-bar">
+      {% if claim.verdict == 'supported' %}
+      <div class="confidence-fill" style="width: {{ claim.confidence }}%; background: #059669;"></div>
+      {% elif claim.verdict == 'contradicted' %}
+      <div class="confidence-fill" style="width: {{ claim.confidence }}%; background: #dc2626;"></div>
+      {% else %}
+      <div class="confidence-fill" style="width: {{ claim.confidence }}%; background: #d97706;"></div>
+      {% endif %}
+    </div>
 
-    <table width="100%" style="background: #f8fafc; border-left: 3px solid #1e40af; margin-bottom: 10px;">
-      <tr>
-        <td style="padding: 10px 12px;">
-          <div style="font-size: 11px; color: #475569; line-height: 1.5; font-style: italic;">{{ claim.rationale }}</div>
-        </td>
-      </tr>
-    </table>
+    <!-- Rationale -->
+    <div class="rationale-box">
+      <div class="rationale-text">{{ claim.rationale }}</div>
+    </div>
 
+    <!-- Evidence Sources -->
     {% if claim.evidence %}
-    <div style="font-size: 11px; font-weight: bold; color: #1e40af; margin-bottom: 8px;">Evidence Sources ({{ claim.evidence|length }})</div>
-
+    <div class="evidence-title">Evidence Sources ({{ claim.evidence|length }})</div>
     {% for evidence in claim.evidence[:3] %}
-    <table width="100%" style="margin-bottom: 8px; border-left: 2px solid #e2e8f0; background: #fafafa;">
-      <tr>
-        <td style="padding: 8px 10px;">
-          <div style="font-size: 10px; font-weight: bold; color: #1e40af;">
-            {{ evidence.source }}
-            {% if evidence.external_source_provider %}
-            <span style="display: inline-block; background: #059669; color: #ffffff; padding: 1px 5px; font-size: 8px; font-weight: bold; text-transform: uppercase; margin-left: 6px; border-radius: 2px;">API</span>
-            {% elif evidence.is_factcheck %}
-            <span style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 1px 5px; font-size: 8px; font-weight: bold; text-transform: uppercase; margin-left: 6px; border-radius: 2px;">FACT-CHECK</span>
-            {% endif %}
-          </div>
-          <div style="font-size: 10px; color: #334155; margin-top: 2px;">{{ evidence.title[:80] }}{% if evidence.title|length > 80 %}...{% endif %}</div>
-          {% if evidence.snippet %}
-          <div style="font-size: 9px; color: #64748b; margin-top: 4px; line-height: 1.4;">{{ evidence.snippet[:120] }}{% if evidence.snippet|length > 120 %}...{% endif %}</div>
-          {% endif %}
-        </td>
-      </tr>
-    </table>
+    <div class="evidence-item">
+      <div class="evidence-source">
+        {{ evidence.source }}
+        {% if evidence.external_source_provider %}
+        <span class="badge-api">API</span>
+        {% elif evidence.is_factcheck %}
+        <span class="badge-factcheck">Fact-Check</span>
+        {% endif %}
+      </div>
+      <div class="evidence-source-title">{{ evidence.title[:90] }}{% if evidence.title|length > 90 %}...{% endif %}</div>
+      {% if evidence.snippet %}
+      <div class="evidence-snippet">{{ evidence.snippet[:140] }}{% if evidence.snippet|length > 140 %}...{% endif %}</div>
+      {% endif %}
+    </div>
     {% endfor %}
     {% endif %}
   </div>
@@ -209,11 +423,11 @@
 
   <!-- FOOTER -->
   <div class="footer">
-    <div style="font-weight: bold; color: #1e40af; font-size: 12px; margin-bottom: 4px;">TRU8</div>
+    <div class="footer-brand">TRU8</div>
     <div>This report was generated automatically using AI-powered fact-checking technology.</div>
     <div>For more information, visit https://tru8.com</div>
-    <div style="margin-top: 8px;">Report ID: {{ check.id[:8] }} | Generated on {{ now.strftime('%B %d, %Y at %H:%M UTC') }}</div>
-    <div style="margin-top: 8px; font-size: 9px;">
+    <div style="margin-top: 6px;">Report ID: {{ check.id[:8] }} | Generated on {{ now.strftime('%B %d, %Y at %H:%M UTC') }}</div>
+    <div class="footer-disclaimer">
       Disclaimer: This automated analysis is provided for informational purposes. Users should verify critical information independently.
     </div>
   </div>

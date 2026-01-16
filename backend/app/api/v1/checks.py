@@ -605,9 +605,46 @@ async def get_check(
     )
     result = await session.execute(stmt)
     check = result.scalar_one_or_none()
-    
+
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
+
+    # Get real-time progress from Redis/Celery when processing
+    current_stage = None
+    progress_percent = None
+    progress_message = None
+
+    if check.status == "processing":
+        try:
+            redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            task_id = redis_client.get(f"check-task:{check_id}")
+
+            if task_id:
+                task = celery_app.AsyncResult(task_id)
+
+                if task.state == "PROGRESS":
+                    info = task.info or {}
+                    current_stage = info.get('stage', 'processing')
+                    progress_percent = info.get('progress', 0)
+
+                    # Map stage to user-friendly message
+                    stage_messages = {
+                        'ingest': 'Processing input content...',
+                        'extract': 'Extracting factual claims...',
+                        'retrieve': 'Gathering evidence from sources...',
+                        'verify': 'Verifying claims against evidence...',
+                        'judge': 'Generating final verdicts...',
+                        'summary': 'Creating overall credibility assessment...'
+                    }
+                    progress_message = stage_messages.get(current_stage, f'Processing {current_stage}...')
+                elif task.state == "PENDING":
+                    current_stage = 'queued'
+                    progress_percent = 0
+                    progress_message = 'Check queued for processing'
+
+            redis_client.close()
+        except Exception as e:
+            logger.warning(f"Failed to get progress from Redis for check {check_id}: {e}")
     
     # Get claims with evidence
     claims_stmt = (
@@ -678,6 +715,10 @@ async def get_check(
         "claims": claims_data,
         "createdAt": check.created_at.isoformat(),
         "completedAt": check.completed_at.isoformat() if check.completed_at else None,
+        # Real-time progress fields (for polling fallback when SSE unavailable)
+        "currentStage": current_stage,
+        "progress": progress_percent,
+        "progressMessage": progress_message,
     }
 
 @router.get("/{check_id}/progress")
@@ -969,7 +1010,7 @@ async def get_check_sources(
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
 
-    # 2. Check Pro subscription (include trialing users per project pattern)
+    # 2. Check Pro subscription OR beta tester status
     sub_stmt = select(Subscription).where(
         Subscription.user_id == current_user["id"],
         Subscription.status.in_(["active", "trialing"])
@@ -977,7 +1018,9 @@ async def get_check_sources(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    is_pro = subscription and subscription.plan == "pro"
+    # Beta testers get full Pro access
+    is_beta_tester = current_user.get("email", "").lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+    is_pro = (subscription and subscription.plan == "pro") or is_beta_tester
 
     if not is_pro:
         # Return limited response for non-Pro users
@@ -1118,7 +1161,7 @@ async def export_check_sources(
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
 
-    # 2. Check Pro subscription (include trialing users per project pattern)
+    # 2. Check Pro subscription OR beta tester status
     sub_stmt = select(Subscription).where(
         Subscription.user_id == current_user["id"],
         Subscription.status.in_(["active", "trialing"])
@@ -1126,7 +1169,9 @@ async def export_check_sources(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    is_pro = subscription and subscription.plan == "pro"
+    # Beta testers get full Pro access
+    is_beta_tester = current_user.get("email", "").lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+    is_pro = (subscription and subscription.plan == "pro") or is_beta_tester
 
     if not is_pro:
         raise HTTPException(

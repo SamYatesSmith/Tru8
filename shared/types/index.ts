@@ -41,6 +41,10 @@ export interface Check {
   createdAt: string; // ISO string from backend, not Date object
   completedAt?: string; // ISO string from backend
   claimsCount?: number; // For list view
+  // Real-time progress fields (for polling fallback when SSE unavailable)
+  currentStage?: string; // Current pipeline stage: ingest, extract, retrieve, verify, judge, summary
+  progress?: number; // Progress percentage 0-100
+  progressMessage?: string; // User-friendly progress message
 }
 
 // For API responses that include user context

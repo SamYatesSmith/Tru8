@@ -25,7 +25,7 @@ primary_region = 'lhr'
   ENABLE_ARTICLE_CLASSIFICATION = 'true'
   ENABLE_CLAIM_CLASSIFICATION = 'true'
   ENABLE_CROSS_ENCODER_RERANK = 'true'
-  ENABLE_DEBERTA_NLI = 'true'
+  ENABLE_DEBERTA_NLI = 'false'
   ENABLE_DEDUPLICATION = 'true'
   ENABLE_DOMAIN_CAPPING = 'true'
   ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK = 'true'
@@ -79,7 +79,7 @@ primary_region = 'lhr'
   processes = ['web']
 
 [[vm]]
-  memory = '8gb'
+  memory = '4gb'
   cpu_kind = 'performance'
   cpus = 2
   processes = ['worker']

@@ -8,6 +8,10 @@ import { QuickActionCard } from './components/quick-action-card';
 import { RecentChecksList } from './components/recent-checks-list';
 import { UserInsightsCard } from './components/user-insights-card';
 
+// Force dynamic rendering - prevents Next.js from caching this page
+// Ensures fresh data (recent checks, usage stats) on every visit
+export const dynamic = 'force-dynamic';
+
 interface User {
   id: string;
   name: string | null;
