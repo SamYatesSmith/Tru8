@@ -1,48 +1,43 @@
-==> Building image with Depot   
---> build:  (​)
-[+] Building 1.5s (9/19)
- => [internal] load build definition from Dockerfile                                                                                                  0.2s
- => => transferring dockerfile: 1.69kB                                                                                                                0.2s 
- => [internal] load metadata for docker.io/library/node:20-alpine                                                                                     0.3s
- => [internal] load .dockerignore                                                                                                                     0.3s
- => => transferring context: 600B                                                                                                                     0.2s 
- => [internal] load build context                                                                                                                     0.6s
- => => transferring context: 297.21kB                                                                                                                 0.6s 
- => [builder  1/10] FROM docker.io/library/node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448                     0.0s 
- => => resolve docker.io/library/node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448                               0.0s 
- => CACHED [builder  2/10] WORKDIR /app                                                                                                               0.0s 
- => [runner 3/7] RUN addgroup --system --gid 1001 nodejs                                                                                              0.1s 
- => [runner 4/7] RUN adduser --system --uid 1001 nextjs                                                                                               0.1s
- => ERROR [builder  3/10] COPY package.json package-lock.json* ./                                                                                     0.0s
-------
- > [builder  3/10] COPY package.json package-lock.json* ./:
-------
-==> Building image
-Waiting for depot builder...
-Waiting for depot builder...
-Waiting for depot builder...
-Waiting for depot builder...
-==> Building image with Depot   
---> build:  (​)
-[+] Building 1.0s (9/19)
- => [internal] load build definition from Dockerfile                                                                                                  0.2s 
- => => transferring dockerfile: 1.69kB                                                                                                                0.2s
- => [internal] load metadata for docker.io/library/node:20-alpine                                                                                     0.2s
- => [internal] load .dockerignore                                                                                                                     0.2s
- => => transferring context: 600B                                                                                                                     0.2s 
- => [internal] load build context                                                                                                                     0.2s
- => => transferring context: 8.29kB                                                                                                                   0.2s 
- => [runner 1/7] FROM docker.io/library/node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448                        0.0s 
- => => resolve docker.io/library/node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448                               0.0s 
- => CACHED [runner 2/7] WORKDIR /app                                                                                                                  0.0s 
- => [runner 3/7] RUN addgroup --system --gid 1001 nodejs                                                                                              0.1s 
- => [runner 4/7] RUN adduser --system --uid 1001 nextjs                                                                                               0.1s
- => ERROR [builder  3/10] COPY package.json package-lock.json* ./                                                                                     0.0s
-------
- > [builder  3/10] COPY package.json package-lock.json* ./:
-------
-Error: failed to fetch an image or build from source: error building: failed to solve: failed to compute cache key: failed to calculate checksum of ref ptu52tlu9yntrlcbk269lfcsi::ygbjgx9cg0zcbmb8z9rrf18mk: "/package.json": not found
+Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+trueight-api.fly.dev/api/v1/checks/68bed7c8-1d86-4b38-a87e-3571619d5b97:1   Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+23-1dca4a946e13ff13.js:1  Failed to poll check status: TypeError: Failed to fetch
+    at r.request (295-0c0d9133456b4fb0.js:1:5552)
+    at r.getCheckById (295-0c0d9133456b4fb0.js:1:6586)
+    at page-ec7e6aefb72c6165.js:1:40375
+push.353.window.console.error @ 23-1dca4a946e13ff13.js:1
+trueight-api.fly.dev/api/v1/checks/68bed7c8-1d86-4b38-a87e-3571619d5b97:1   Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+23-1dca4a946e13ff13.js:1  Failed to poll check status: TypeError: Failed to fetch
+    at r.request (295-0c0d9133456b4fb0.js:1:5552)
+    at r.getCheckById (295-0c0d9133456b4fb0.js:1:6586)
+    at page-ec7e6aefb72c6165.js:1:40375
+push.353.window.console.error @ 23-1dca4a946e13ff13.js:1
+trueight-api.fly.dev/api/v1/checks/68bed7c8-1d86-4b38-a87e-3571619d5b97:1   Failed to load resource: net::ERR_NETWORK_CHANGED
+23-1dca4a946e13ff13.js:1  Failed to poll check status: TypeError: Failed to fetch
+    at r.request (295-0c0d9133456b4fb0.js:1:5552)
+    at r.getCheckById (295-0c0d9133456b4fb0.js:1:6586)
+    at page-ec7e6aefb72c6165.js:1:40375
+push.353.window.console.error @ 23-1dca4a946e13ff13.js:1
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Effect triggered: Object
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Exiting early - enabled: false token: false
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Effect triggered: Object
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Exiting early - enabled: false token: true
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Effect triggered: Object
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Exiting early - enabled: false token: false
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Effect triggered: Object
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Exiting early - enabled: false token: true
 
 
+Errors showed up i nthis run. 
 
+But not i nthis one below? 
+
+[PixelGrid] Generated 1600x2000 canvas: 0.23MB
+page-9e7c910cb499fce1.js:1 [PixelGrid] Generated 11 pop shapes
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Effect triggered: {enabled: false, hasToken: false, checkId: '1a4424fe-e872-4e1e-bc03-511051197924'}
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Exiting early - enabled: false token: false
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Effect triggered: {enabled: false, hasToken: true, checkId: '1a4424fe-e872-4e1e-bc03-511051197924'}
+page-ec7e6aefb72c6165.js:1 [useCheckProgress] Exiting early - enabled: false token: true
+
+
+Console from previous check.  No errors in this run. HOWEVER - Nothing was instigated, no pipeline tasks, seemingly, were carried out.  The process was just hanging on "Pending"
 

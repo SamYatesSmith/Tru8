@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ExternalLink, ChevronDown, ChevronUp, CheckCircle, XCircle, HelpCircle } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp, CheckCircle, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
 
 interface CheckCardProps {
@@ -30,6 +31,15 @@ interface CheckCardProps {
 export function CheckCard({ check, isNew = false }: CheckCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showNewHighlight, setShowNewHighlight] = useState(isNew);
+  const router = useRouter();
+
+  const handleRecheck = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (check.inputUrl) {
+      router.push(`/dashboard/new-check?url=${encodeURIComponent(check.inputUrl)}`);
+    }
+  };
 
   // Auto-dismiss the highlight after animation completes (5 rotations = 5 seconds)
   useEffect(() => {
@@ -148,19 +158,29 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
               {displayText}
             </p>
 
-            {/* URL if exists */}
+            {/* URL and Re-check button */}
             {check.inputUrl && (
-              <span
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  window.open(check.inputUrl!, '_blank', 'noopener,noreferrer');
-                }}
-                className="text-slate-400 text-sm flex items-center gap-1 hover:text-slate-300 cursor-pointer mt-2"
-              >
-                <ExternalLink size={14} />
-                <span className="truncate max-w-[300px]">{check.inputUrl}</span>
-              </span>
+              <div className="flex items-center gap-3 mt-2">
+                <span
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(check.inputUrl!, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="text-slate-400 text-sm flex items-center gap-1 hover:text-slate-300 cursor-pointer"
+                >
+                  <ExternalLink size={14} />
+                  <span className="truncate max-w-[250px]">{check.inputUrl}</span>
+                </span>
+                <button
+                  onClick={handleRecheck}
+                  className="flex items-center gap-1 text-xs text-slate-500 hover:text-[#f57a07] transition-colors px-2 py-1 rounded hover:bg-slate-700/50"
+                  title="Run this check again with fresh evidence"
+                >
+                  <RefreshCw size={12} />
+                  <span>Re-check</span>
+                </button>
+              </div>
             )}
           </div>
 

@@ -52,7 +52,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   }, [getToken]);
 
   // Real-time progress updates via SSE
-  const { progress: sseProgress, currentStage: sseStage, isConnected, message: sseMessage } = useCheckProgress(
+  const { progress: sseProgress, currentStage: sseStage, isConnected, message: sseMessage, timeEstimate } = useCheckProgress(
     checkId,
     token,
     checkData.status === 'processing'
@@ -63,6 +63,16 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   const progress = isConnected ? sseProgress : (checkData.progress ?? sseProgress);
   const currentStage = isConnected ? sseStage : (checkData.currentStage ?? sseStage);
   const message = isConnected ? sseMessage : (checkData.progressMessage ?? sseMessage);
+
+  // Calculate time estimate based on progress (fallback when SSE isn't connected)
+  const getTimeEstimateFromProgress = (prog: number): string => {
+    if (prog < 25) return 'within 2 minutes';
+    if (prog < 50) return 'within 90 seconds';
+    if (prog < 70) return 'within 1 minute';
+    if (prog < 90) return 'within 30 seconds';
+    return 'momentarily';
+  };
+  const effectiveTimeEstimate = timeEstimate ?? (progress > 0 ? getTimeEstimateFromProgress(progress) : 'within 2 minutes');
 
   // Poll for updates when pending or processing
   useEffect(() => {
@@ -142,7 +152,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
 
       {/* Status-based Rendering */}
       {checkData.status === 'processing' && (
-        <ProgressSection progress={progress} currentStage={currentStage} isConnected={isConnected} message={message} />
+        <ProgressSection progress={progress} currentStage={currentStage} isConnected={isConnected} message={message} timeEstimate={effectiveTimeEstimate} />
       )}
 
       {checkData.status === 'completed' && checkData.claims && checkData.claims.length > 0 && (
@@ -157,7 +167,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
               claims={checkData.claims}
             />
           )}
-          <ClaimsSection claims={checkData.claims} />
+          <ClaimsSection claims={checkData.claims} checkId={checkId} />
           {checkData.overallSummary && checkData.credibilityScore !== undefined && (
             <OverallSummaryCard check={checkData} />
           )}

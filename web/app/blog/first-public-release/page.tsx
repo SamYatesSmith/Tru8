@@ -171,7 +171,7 @@ export default function FirstPublicReleasePage() {
               Ready to try Tru8?
             </h3>
             <p className="text-slate-400 mb-6">
-              Start fact-checking with your first 3 checks free.
+              Start verifying claims with your first 3 checks free.
             </p>
             <Link
               href="/"

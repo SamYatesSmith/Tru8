@@ -41,7 +41,7 @@ export function UserInsightsCard({ stats }: UserInsightsCardProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-white">Your Insights</h2>
-          <p className="text-slate-400">Track your fact-checking patterns</p>
+          <p className="text-slate-400">Track your verification patterns</p>
         </div>
       </div>
 

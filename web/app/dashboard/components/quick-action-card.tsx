@@ -14,7 +14,7 @@ export function QuickActionCard({ used = 0, limit = 3 }: QuickActionCardProps) {
     <GlowingBorderCard className="h-full">
       <div className="p-8 h-full">
         <h3 className="text-xl font-bold text-white mb-2">Quick Action</h3>
-        <p className="text-slate-400 mb-6">Start a new fact-check verification</p>
+        <p className="text-slate-400 mb-6">Start a new claim verification</p>
 
         {isLimitReached ? (
           <div className="space-y-4">

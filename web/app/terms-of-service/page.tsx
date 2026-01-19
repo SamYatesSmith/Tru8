@@ -26,8 +26,8 @@ export default function TermsOfServicePage() {
           us improve the platform.
         </p>
         <p>
-          Tru8 provides AI-powered fact-checking services to verify claims using
-          publicly available sources. Our service:
+          Tru8 provides AI-powered claim verification services that cross-reference
+          claims against publicly available sources. Our service:
         </p>
         <ul>
           <li>Analyzes text, URLs, images, and videos for factual claims</li>
@@ -56,14 +56,14 @@ export default function TermsOfServicePage() {
 
         <h3>4.1 Free Plan</h3>
         <ul>
-          <li>3 free fact-checks upon signup</li>
+          <li>3 free verifications upon signup</li>
           <li>Basic verification features</li>
           <li>Standard support</li>
         </ul>
 
         <h3>4.2 Professional Plan (£7/month)</h3>
         <ul>
-          <li>40 fact-checks per month</li>
+          <li>40 verifications per month</li>
           <li>URL verification</li>
           <li>Comprehensive source citations</li>
           <li>Export to PDF/JSON/CSV</li>
@@ -155,11 +155,11 @@ export default function TermsOfServicePage() {
         <h3>7.2 Your Content</h3>
         <ul>
           <li>You retain ownership of content you submit</li>
-          <li>You grant us license to process content for fact-checking</li>
+          <li>You grant us license to process content for verification</li>
           <li>We may use anonymized data to improve our services</li>
         </ul>
 
-        <h3>7.3 Fact-Check Results</h3>
+        <h3>7.3 Verification Results</h3>
         <ul>
           <li>You may use results for personal/professional purposes</li>
           <li>Attribute Tru8 when sharing results publicly</li>

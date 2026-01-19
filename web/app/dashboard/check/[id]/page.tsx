@@ -64,7 +64,7 @@ export default async function CheckDetailPage({ params }: CheckDetailPageProps) 
       {/* Page Header */}
       <PageHeader
         title="Check Detail"
-        subtitle="View the results of your fact-check"
+        subtitle="View the results of your verification"
         graphic={<CompassGraphic />}
       />
 

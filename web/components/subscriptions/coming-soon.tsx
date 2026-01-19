@@ -122,7 +122,7 @@ export function SubscriptionsComingSoon({
         </h3>
         <ul className="space-y-3">
           {[
-            '40 fact-checks per month',
+            '40 verifications per month',
             'View all sources analysed per check',
             'Priority verification processing',
             'Advanced source analysis',

@@ -56,7 +56,7 @@ export function RecentChecksList({ checks }: RecentChecksListProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-white">Recent Checks</h2>
-          <p className="text-slate-400">Your latest fact-checking verifications</p>
+          <p className="text-slate-400">Your latest verifications</p>
         </div>
 
         <Link

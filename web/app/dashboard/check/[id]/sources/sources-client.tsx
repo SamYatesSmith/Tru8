@@ -13,6 +13,7 @@ import {
   Download,
   Filter
 } from 'lucide-react';
+import { SourceAnalytics } from './components/source-analytics';
 
 interface Source {
   id: string;
@@ -200,14 +201,13 @@ export function SourcesClient({ checkId, initialData }: SourcesClientProps) {
         </div>
       </div>
 
-      {/* Summary note - no internal breakdown shown */}
-      {sourcesData.filteredCount > 0 && (
-        <div className="p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl">
-          <p className="text-sm text-slate-400">
-            Sources are filtered based on relevance and editorial standards.
-            Only high-quality, relevant sources are included in the analysis.
-          </p>
-        </div>
+      {/* Source Analytics - Visual breakdown of evidence reviewed and publisher distribution */}
+      {sourcesData.totalSources > 0 && (
+        <SourceAnalytics
+          totalReviewed={sourcesData.totalSources}
+          totalCited={sourcesData.includedCount}
+          claims={sourcesData.claims}
+        />
       )}
 
       {/* Claims with Sources */}

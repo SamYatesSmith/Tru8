@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Globe, Search, Calendar, Shield, BarChart3, CheckCircle2, Heart } from 'lucide-react';
 
 /**
  * Feature Carousel Component
@@ -62,6 +62,11 @@ export function FeatureCarousel() {
       icon: Globe,
       title: 'Global Coverage',
       description: 'Access to international sources across languages and regions',
+    },
+    {
+      icon: Heart,
+      title: 'Built With You',
+      description: 'Solo founder project where your feedback shapes the product. Feature requests welcome — your voice genuinely matters here',
     },
   ];
 
@@ -131,7 +136,7 @@ export function FeatureCarousel() {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-[#f57a07] mb-4">
-            Professional Fact-Checking Tools
+            Professional Research Tools
           </h2>
           <p className="text-xl text-slate-400">
             Enterprise-grade verification powered by AI

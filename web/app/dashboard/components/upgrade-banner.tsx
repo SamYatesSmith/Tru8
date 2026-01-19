@@ -13,7 +13,7 @@ export function UpgradeBanner({ currentPlan, subscriptionsEnabled = false }: Upg
   const [isDismissed, setIsDismissed] = useState(false);
 
   const features = [
-    '40 fact-checks per month',
+    '40 verifications per month',
     'Priority verification processing',
     'Advanced source analysis',
     'Export reports and citations',

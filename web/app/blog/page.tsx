@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Blog | Tru8',
-  description: 'News, updates, and insights from Tru8 - the fact-checking platform.',
+  description: 'News, updates, and insights from Tru8 - the claim verification platform.',
 };
 
 // Blog posts data - add new posts here

@@ -7,9 +7,10 @@ interface ProgressSectionProps {
   currentStage: string;
   isConnected: boolean;
   message?: string | null;
+  timeEstimate?: string | null;
 }
 
-export function ProgressSection({ progress, currentStage, isConnected, message }: ProgressSectionProps) {
+export function ProgressSection({ progress, currentStage, isConnected, message, timeEstimate }: ProgressSectionProps) {
   const stages = [
     { key: 'ingest', label: 'Reading Content', description: 'Analyzing your submission' },
     { key: 'extract', label: 'Finding Claims', description: 'Identifying statements to verify' },
@@ -87,12 +88,19 @@ export function ProgressSection({ progress, currentStage, isConnected, message }
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-right text-sm text-slate-400 mt-2">{progress}%</p>
+        <div className="flex items-center justify-between mt-2">
+          {timeEstimate && progress < 100 ? (
+            <p className="text-sm text-slate-500">Usually completes {timeEstimate}</p>
+          ) : (
+            <span />
+          )}
+          <p className="text-sm text-slate-400">{progress}%</p>
+        </div>
       </div>
 
-      {/* Connection Status */}
-      {!isConnected && (
-        <p className="text-amber-400 text-sm mt-4">⚠ Connection lost. Reconnecting...</p>
+      {/* Connection Status - only show when no progress is happening */}
+      {!isConnected && progress === 0 && !currentStage && (
+        <p className="text-amber-400 text-sm mt-4">Connecting...</p>
       )}
     </div>
   );

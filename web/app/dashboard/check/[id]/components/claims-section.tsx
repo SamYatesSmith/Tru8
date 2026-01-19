@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ExternalLink, RefreshCw } from 'lucide-react';
+import { ChevronDown, ExternalLink, RefreshCw, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { apiClient } from '@/lib/api';
+import { useAuth } from '@clerk/nextjs';
 import { VerdictPill } from '@/app/dashboard/components/verdict-pill';
 import { ConfidenceBar } from '@/app/dashboard/components/confidence-bar';
 import { DecisionTrail } from '@/app/dashboard/components/decision-trail';
@@ -107,13 +109,39 @@ interface Evidence {
 
 interface ClaimsSectionProps {
   claims: Claim[];
+  checkId: string;
 }
 
-export function ClaimsSection({ claims }: ClaimsSectionProps) {
+export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
   const [expandedClaim, setExpandedClaim] = useState<string | null>(null);
+  const [feedbackGiven, setFeedbackGiven] = useState<Record<number, 'up' | 'down'>>({});
+  const { getToken } = useAuth();
 
   const toggleEvidence = (claimId: string) => {
     setExpandedClaim(expandedClaim === claimId ? null : claimId);
+  };
+
+  const handleVerdictFeedback = async (claimPosition: number, helpful: boolean) => {
+    // Prevent duplicate submissions
+    if (feedbackGiven[claimPosition]) return;
+
+    try {
+      const token = await getToken();
+      await apiClient.submitFeedback({
+        type: helpful ? 'verdict_helpful' : 'verdict_not_helpful',
+        message: helpful ? 'User found verdict helpful' : 'User found verdict not helpful',
+        checkId,
+        claimPosition,
+        pageUrl: window.location.href,
+      }, token);
+
+      setFeedbackGiven(prev => ({
+        ...prev,
+        [claimPosition]: helpful ? 'up' : 'down'
+      }));
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    }
   };
 
   return (
@@ -262,6 +290,33 @@ export function ClaimsSection({ claims }: ClaimsSectionProps) {
                 {claim.decisionTrail && (
                   <DecisionTrail decisionTrail={claim.decisionTrail} />
                 )}
+
+                {/* Inline Verdict Feedback */}
+                <div className="flex items-center gap-3 pt-2">
+                  <span className="text-xs text-slate-500">Was this verdict helpful?</span>
+                  {feedbackGiven[claim.position] ? (
+                    <span className="text-xs text-slate-400">
+                      {feedbackGiven[claim.position] === 'up' ? 'Thanks for your feedback!' : 'Thanks, we\'ll review this'}
+                    </span>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleVerdictFeedback(claim.position, true)}
+                        className="p-1.5 rounded hover:bg-emerald-500/20 text-slate-500 hover:text-emerald-400 transition-colors"
+                        title="Yes, helpful"
+                      >
+                        <ThumbsUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleVerdictFeedback(claim.position, false)}
+                        className="p-1.5 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors"
+                        title="No, not helpful"
+                      >
+                        <ThumbsDown size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             )}
 

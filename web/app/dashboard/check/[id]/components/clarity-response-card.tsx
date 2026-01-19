@@ -159,7 +159,7 @@ export function ClarityResponseCard({
         <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-4">
           <p className="text-red-200 text-sm">
             We couldn&apos;t find information addressing your question in the analyzed content or evidence sources.
-            The standard fact-check below may still contain relevant information.
+            The standard verification below may still contain relevant information.
           </p>
         </div>
       )}

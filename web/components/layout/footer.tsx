@@ -40,7 +40,7 @@ export function Footer() {
             <span className="text-2xl font-black text-white">Tru8</span>
           </div>
           <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-            Thorough fact-checking with credible sources. AI-powered analysis backed by multi-source verification.
+            Professional claim verification. See what the sources say with AI-powered, multi-source analysis.
           </p>
         </div>
 

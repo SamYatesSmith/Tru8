@@ -88,14 +88,18 @@ def warmup_ml_models():
     logger.info("[WORKER] Starting ML model warmup...")
 
     async def _warmup():
-        # Warmup NLI model (DeBERTa for natural language inference)
-        try:
-            from app.pipeline.verify import get_claim_verifier
-            verifier = await get_claim_verifier()
-            await verifier.nli_verifier.initialize()
-            logger.info("[WORKER] NLI model loaded successfully")
-        except Exception as e:
-            logger.error(f"[WORKER] NLI model warmup failed: {e}")
+        # Warmup NLI model (only if NLI verification is enabled)
+        # When PASS_NLI_VERDICT_TO_JUDGE=False, NLI is bypassed in the pipeline
+        if settings.PASS_NLI_VERDICT_TO_JUDGE:
+            try:
+                from app.pipeline.verify import get_claim_verifier
+                verifier = await get_claim_verifier()
+                await verifier.nli_verifier.initialize()
+                logger.info("[WORKER] NLI model loaded successfully")
+            except Exception as e:
+                logger.error(f"[WORKER] NLI model warmup failed: {e}")
+        else:
+            logger.info("[WORKER] Skipping NLI warmup (PASS_NLI_VERDICT_TO_JUDGE=False)")
 
         # Warmup embedding model (MiniLM for semantic similarity)
         try:

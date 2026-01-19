@@ -1413,7 +1413,7 @@ class EvidenceRetriever:
                     title=evidence.get("title", ""),
                     published_date=evidence.get("source_date"),
                     relevance_score=0.8,  # Default relevance for API sources
-                    word_count=len(evidence.get("snippet", "").split()),
+                    # word_count is calculated automatically in EvidenceSnippet.__init__
                     metadata={
                         **evidence.get("metadata", {}),
                         "external_source_provider": evidence.get("external_source_provider"),

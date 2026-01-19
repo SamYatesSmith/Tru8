@@ -28,8 +28,8 @@ export function PageHeader({
 
   const handleShare = async (platform: string) => {
     const url = window.location.origin;
-    const titleText = 'Tru8 - Fact-Checking Platform';
-    const text = 'Check out Tru8 - Thorough fact-checking with credible sources';
+    const titleText = 'Tru8 - Claim Verification Platform';
+    const text = 'Check out Tru8 - See what the sources say with professional verification';
 
     // Try native Web Share API first
     if (navigator.share && platform === 'native') {

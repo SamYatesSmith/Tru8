@@ -11,6 +11,42 @@ from app.pipeline.extract import ClaimExtractor  # Reuse LLM infrastructure
 
 logger = logging.getLogger(__name__)
 
+# Authoritative API source labels - helps Judge LLM understand source authority
+# These sources are queried via official APIs, not web scraping
+AUTHORITATIVE_SOURCE_LABELS = {
+    # Medical/Scientific Research
+    "PubMed": "Peer-Reviewed Medical Research (NIH)",
+    "Semantic Scholar": "Academic Research Database",
+    "OpenAlex": "Academic Research Database",
+
+    # Government Data (US)
+    "GovInfo.gov": "Official US Legislation/Statutes",
+    "FRED": "Official Economic Statistics (Federal Reserve)",
+    "NOAA CDO": "Official Climate Data (NOAA)",
+    "Congress.gov": "Official US Congressional Records",
+
+    # Government Data (UK)
+    "ONS Economic Statistics": "Official UK Statistics (ONS)",
+    "GOV.UK Content API": "Official UK Government",
+    "Companies House": "Official UK Company Registry",
+
+    # Sports/Finance
+    "Football-Data.org": "Official Football Statistics API",
+    "Transfermarkt": "Football Transfer Database",
+    "Alpha Vantage": "Financial Market Data API",
+
+    # Reference
+    "Wikipedia": "Wikipedia (Community-Edited)",
+    "Library of Congress": "US Library of Congress Archives",
+    "Internet Archive": "Internet Archive (Wayback Machine)",
+    "Wikidata": "Wikidata Knowledge Base",
+
+    # Science/Nature
+    "GBIF": "Global Biodiversity Database",
+    "WHO": "World Health Organization",
+    "WeatherAPI": "Weather Forecast API",
+}
+
 # Rhetorical context analyzer for detecting when sources describe sarcasm/mockery
 def _get_rhetorical_analysis(evidence: List[Dict[str, Any]], claim_text: str) -> Optional[Dict[str, Any]]:
     """Analyze evidence for rhetorical context markers (sarcasm, mockery, satire)"""
@@ -480,6 +516,26 @@ NOW JUDGE THE FOLLOWING CLAIM:
             url = ev.get("url", "")
             date = ev.get("published_date", "")
 
+            # Check for authoritative API source
+            api_provider = ev.get("external_source_provider") or ""
+            credibility_score = ev.get("credibility_score", 0.0)
+            tier = ev.get("tier", "")
+
+            # Build authoritative source indicator (helps LLM understand source quality)
+            authority_indicator = ""
+            if api_provider and api_provider in AUTHORITATIVE_SOURCE_LABELS:
+                source_label = AUTHORITATIVE_SOURCE_LABELS[api_provider]
+                authority_indicator = (
+                    f"[AUTHORITATIVE SOURCE] {source_label}\n"
+                    f"Source Type: Official API (not web-scraped)\n"
+                    f"Credibility: {credibility_score:.0%}\n"
+                )
+            elif tier == "authoritative_api":
+                authority_indicator = (
+                    f"[AUTHORITATIVE SOURCE] Official API Data\n"
+                    f"Credibility: {credibility_score:.0%}\n"
+                )
+
             # Check staleness from metadata (set during retrieval)
             staleness_check = ev.get("metadata", {}).get("staleness_check") if ev.get("metadata") else None
             claim_type = ev.get("metadata", {}).get("claim_type", "general") if ev.get("metadata") else "general"
@@ -492,13 +548,13 @@ NOW JUDGE THE FOLLOWING CLAIM:
                         stale_evidence_count += 1
                         age_days = staleness_check.get("age_days", "?")
                         max_age = staleness_check.get("max_age_days", "?")
-                        staleness_warning = f"⚠️ STALE ({age_days} days old, max {max_age} for {claim_type})"
+                        staleness_warning = f"[STALE] {age_days} days old (max {max_age} for {claim_type})"
                         stale_evidence_warnings.append(
                             f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} for {claim_type})"
                         )
                     elif staleness_check.get("is_warning"):
                         age_days = staleness_check.get("age_days", "?")
-                        staleness_warning = f"⏰ WARNING: {age_days} days old"
+                        staleness_warning = f"[AGE WARNING] {age_days} days old"
                 elif date:
                     # Fallback: Do basic staleness check if metadata not present
                     # Use default freshness (py = 365 days) since we don't have plan context
@@ -508,18 +564,28 @@ NOW JUDGE THE FOLLOWING CLAIM:
                         stale_evidence_count += 1
                         age_days = fallback_check.get("age_days", "?")
                         max_age = fallback_check.get("max_age_days", "?")
-                        staleness_warning = f"⚠️ STALE ({age_days} days old, max {max_age} days)"
+                        staleness_warning = f"[STALE] {age_days} days old (max {max_age} days)"
                         stale_evidence_warnings.append(
                             f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} days)"
                         )
 
-            evidence_summary.append(
-                f"Evidence {i+1}: {staleness_warning}\n"
+            # Build evidence entry with authority indicator if present
+            evidence_entry = f"Evidence {i+1}:"
+            if staleness_warning:
+                evidence_entry += f" {staleness_warning}"
+            evidence_entry += "\n"
+
+            if authority_indicator:
+                evidence_entry += authority_indicator
+
+            evidence_entry += (
                 f"Source: {source}\n"
                 f"Date: {date}\n"
                 f"Content: {snippet}...\n"
                 f"URL: {url}\n"
             )
+
+            evidence_summary.append(evidence_entry)
 
         # Verification signals summary
         signals = verification_signals
@@ -543,7 +609,7 @@ IMPORTANT: Use this article context to:
         temporal_warning = ""
         if is_temporal_claim:
             temporal_warning = """
-⚠️ TEMPORAL CLAIM DETECTED - DATE ARITHMETIC REQUIRED! ⚠️
+[TEMPORAL CLAIM] DATE ARITHMETIC REQUIRED
 This claim involves dates, contracts, or time calculations.
 The NLI verification signals below MAY BE WRONG because NLI models cannot do math.
 YOU MUST do the date arithmetic yourself:

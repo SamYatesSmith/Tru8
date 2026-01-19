@@ -6,7 +6,7 @@ import { BetaBanner } from '@/components/layout/beta-banner'
 
 export const metadata: Metadata = {
   title: 'Tru8 - AI-Powered Fact Verification',
-  description: 'AI-powered fact verification with multi-source evidence. Professional fact-checking platform for journalists, researchers, and content creators.',
+  description: 'Professional claim verification platform. See what the sources say with AI-powered, multi-source analysis for journalists, researchers, and professionals.',
   icons: {
     icon: '/favicon.proper.png',
   },

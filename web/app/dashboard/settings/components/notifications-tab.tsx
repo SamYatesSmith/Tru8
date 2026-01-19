@@ -196,7 +196,7 @@ export function NotificationsTab() {
             <div>
               <p className="text-sm font-medium text-white">Check Completion</p>
               <p className="text-xs text-slate-400 mt-1">
-                Get notified when your fact-checks are complete
+                Get notified when your verifications are complete
               </p>
             </div>
             <button
@@ -224,7 +224,7 @@ export function NotificationsTab() {
             <div>
               <p className="text-sm font-medium text-white">Check Failures</p>
               <p className="text-xs text-slate-400 mt-1">
-                Get notified if a fact-check encounters an issue
+                Get notified if a verification encounters an issue
               </p>
             </div>
             <button

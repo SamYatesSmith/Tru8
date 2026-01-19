@@ -43,7 +43,7 @@ export default async function SourcesPage({ params }: SourcesPageProps) {
       {/* Page Header */}
       <PageHeader
         title="Sources Reviewed"
-        subtitle={`${sourcesData.totalSources} sources analyzed during fact-checking`}
+        subtitle={`${sourcesData.totalSources} sources analysed during verification`}
         graphic={<CompassGraphic />}
       />
 

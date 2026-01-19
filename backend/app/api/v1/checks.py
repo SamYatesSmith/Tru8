@@ -748,8 +748,10 @@ async def stream_check_progress(
             # Connect to Redis for Celery task updates
             redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
             
-            # Initial connection event
+            # Initial connection event with time estimate
             yield f"data: {safe_json_dumps({'type': 'connected', 'checkId': check_id, 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+            # Send initial progress with time estimate immediately
+            yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': 'starting', 'progress': 0, 'message': 'Initialising fact-check...', 'timeEstimate': 'within 2 minutes'})}\n\n"
             
             # Check if task is already completed
             if check.status == "completed":
@@ -793,14 +795,14 @@ async def stream_check_progress(
                         
                         if task.state == "PENDING":
                             if last_progress == 0:
-                                yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': 'queued', 'progress': 0, 'message': 'Check queued for processing'})}\n\n"
+                                yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': 'queued', 'progress': 0, 'message': 'Check queued for processing', 'timeEstimate': 'within 2 minutes'})}\n\n"
                                 last_progress = 0
                         
                         elif task.state == "PROGRESS":
                             info = task.info or {}
                             stage = info.get('stage', 'processing')
                             progress = info.get('progress', 0)
-                            
+
                             if progress > last_progress:
                                 stage_messages = {
                                     'ingest': 'Processing input content...',
@@ -810,10 +812,23 @@ async def stream_check_progress(
                                     'judge': 'Generating final verdicts...',
                                     'summary': 'Creating overall credibility assessment...'
                                 }
-                                
+
+                                # Conservative time estimates based on stage progress
+                                # Uses proper British English phrasing
+                                if progress < 25:
+                                    time_estimate = "within 2 minutes"
+                                elif progress < 50:
+                                    time_estimate = "within 90 seconds"
+                                elif progress < 70:
+                                    time_estimate = "within 1 minute"
+                                elif progress < 90:
+                                    time_estimate = "within 30 seconds"
+                                else:
+                                    time_estimate = "momentarily"
+
                                 message = stage_messages.get(stage, f'Processing {stage}...')
-                                
-                                yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': stage, 'progress': progress, 'message': message})}\n\n"
+
+                                yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': stage, 'progress': progress, 'message': message, 'timeEstimate': time_estimate})}\n\n"
                                 last_progress = progress
                         
                         elif task.state == "SUCCESS":

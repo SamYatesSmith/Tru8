@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { Loader2, Facebook, Instagram, Twitter, Youtube, MessageCircle, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -14,6 +14,7 @@ type TabType = 'url' | 'text';
 
 export default function NewCheckPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { getToken } = useAuth();
 
   // Form state
@@ -23,6 +24,15 @@ export default function NewCheckPage() {
   const [queryInput, setQueryInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fill URL from query parameter (for re-check functionality)
+  useEffect(() => {
+    const urlParam = searchParams.get('url');
+    if (urlParam) {
+      setUrlInput(urlParam);
+      setActiveTab('url');
+    }
+  }, [searchParams]);
 
   // Usage limit state
   const [isLimitReached, setIsLimitReached] = useState(false);
@@ -123,8 +133,8 @@ export default function NewCheckPage() {
 
   const handleShare = (platform: string) => {
     const url = window.location.origin;
-    const title = 'Tru8 - Fact-Checking Platform';
-    const text = 'Check out Tru8 - Thorough fact-checking with credible sources';
+    const title = 'Tru8 - Claim Verification Platform';
+    const text = 'Check out Tru8 - See what the sources say with professional verification';
 
     const shareUrls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
@@ -240,7 +250,7 @@ export default function NewCheckPage() {
                 id="text-input"
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
-                placeholder="Paste or type the text you want to fact-check..."
+                placeholder="Paste or type the text you want to verify..."
                 rows={8}
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:border-[#f57a07] focus:outline-none transition-colors resize-vertical"
                 disabled={isSubmitting}
@@ -307,7 +317,7 @@ Leave this text field blank to proceed for a standard check on your article."
                 LIMIT REACHED - UPGRADE TO CONTINUE
               </>
             ) : (
-              'START FACT CHECK'
+              'START VERIFICATION'
             )}
           </button>
         </form>
@@ -317,7 +327,7 @@ Leave this text field blank to proceed for a standard check on your article."
       <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-4 sm:p-6 md:p-8 text-center">
         <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3">Share Your Results</h3>
         <p className="text-slate-300 text-sm md:text-base max-w-2xl mx-auto mb-4 md:mb-6">
-          Once your fact-check is complete, share the verified results with your network to help combat misinformation
+          Once your verification is complete, share the results with your network
         </p>
 
         {/* Social Icons - wrap on mobile */}

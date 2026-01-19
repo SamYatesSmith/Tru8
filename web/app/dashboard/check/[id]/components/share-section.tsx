@@ -16,14 +16,14 @@ export function ShareSection({ checkId }: ShareSectionProps) {
   const shareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/dashboard/check/${checkId}`
     : '';
-  const shareText = 'Check out this fact-check on Tru8';
+  const shareText = 'Check out this verification on Tru8';
 
   const handleShare = async (platform: string) => {
     // Try native Web Share API first
     if (platform === 'native' && navigator.share) {
       try {
         await navigator.share({
-          title: 'Tru8 Fact-Check',
+          title: 'Tru8 Verification',
           text: shareText,
           url: shareUrl,
         });
@@ -74,7 +74,7 @@ export function ShareSection({ checkId }: ShareSectionProps) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `tru8-factcheck-${checkId.slice(0, 8)}.pdf`;
+      a.download = `tru8-verification-${checkId.slice(0, 8)}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

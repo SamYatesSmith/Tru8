@@ -83,3 +83,7 @@ primary_region = 'lhr'
   cpu_kind = 'performance'
   cpus = 2
   processes = ['worker']
+
+# Worker processes without HTTP services don't auto-stop (they run until exit/crash)
+# To ensure at least 1 worker machine exists after deploy:
+#   fly scale count worker=1 -a trueight-api

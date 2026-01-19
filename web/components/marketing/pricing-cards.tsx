@@ -140,7 +140,7 @@ export function PricingCards() {
               Choose Your Plan
             </h2>
             <p className="text-2xl text-slate-400">
-              Fact-checking plans for every need
+              Verification plans for every need
             </p>
           </div>
 

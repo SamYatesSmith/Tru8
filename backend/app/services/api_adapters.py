@@ -300,7 +300,8 @@ class PubMedAdapter(GovernmentAPIClient):
                             abstract_parts.append(abstract_text.text)
 
                     abstract = " ".join(abstract_parts) if abstract_parts else "No abstract available."
-                    snippet = abstract[:300] + "..." if len(abstract) > 300 else abstract
+                    # Use longer snippet for peer-reviewed research (captures methodology + findings)
+                    snippet = abstract[:600] + "..." if len(abstract) > 600 else abstract
 
                     # Extract publication date
                     pub_date_elem = article.find('.//PubDate')

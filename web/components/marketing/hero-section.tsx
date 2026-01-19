@@ -249,8 +249,8 @@ function HeroContent({ onOpenAuth }: { onOpenAuth: () => void }) {
           Stop Guessing. Start Knowing.
         </h1>
         <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-300 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
-          In a world of misinformation, or fake news, verify what you read and share.
-          Quick fact-checking backed by credible sources you can cite.
+          In a world of misinformation, see what the sources say.
+          Professional claim verification backed by credible sources you can cite.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 md:mb-12">
           <button

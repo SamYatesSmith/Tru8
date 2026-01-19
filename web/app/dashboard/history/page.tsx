@@ -22,7 +22,7 @@ export default async function HistoryPage() {
       <div className="py-8">
         <PageHeader
           title="Check History"
-          subtitle="View, search, and manage all your fact-checking verifications in one place"
+          subtitle="View, search, and manage all your verifications in one place"
           ctaText="New Check"
           ctaHref="/dashboard/new-check"
           graphic={<CompassGraphic />}

@@ -10,6 +10,7 @@ interface ProgressData {
   message?: string;
   error?: string;
   timestamp?: string;
+  timeEstimate?: string;
 }
 
 interface UseCheckProgressReturn {
@@ -18,6 +19,7 @@ interface UseCheckProgressReturn {
   isConnected: boolean;
   error: string | null;
   message: string | null;
+  timeEstimate: string | null;
 }
 
 /**
@@ -35,6 +37,7 @@ export function useCheckProgress(
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [timeEstimate, setTimeEstimate] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -71,6 +74,9 @@ export function useCheckProgress(
               break;
 
             case 'progress':
+              // Receiving progress means we're connected
+              setIsConnected(true);
+              setError(null);
               if (data.stage) {
                 setCurrentStage(data.stage);
               }
@@ -79,6 +85,9 @@ export function useCheckProgress(
               }
               if (data.message) {
                 setMessage(data.message);
+              }
+              if (data.timeEstimate) {
+                setTimeEstimate(data.timeEstimate);
               }
               break;
 
@@ -142,5 +151,6 @@ export function useCheckProgress(
     isConnected,
     error,
     message,
+    timeEstimate,
   };
 }
