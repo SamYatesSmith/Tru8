@@ -59,6 +59,45 @@ def _get_rhetorical_analysis(evidence: List[Dict[str, Any]], claim_text: str) ->
         logger.warning(f"Rhetorical analysis failed (non-critical): {e}")
         return None
 
+
+def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3) -> List[Dict[str, Any]]:
+    """
+    Select most relevant evidence for display, prioritizing semantic similarity.
+
+    This ensures users see evidence that directly addresses their claim rather than
+    topically related but not evidential sources.
+
+    Args:
+        evidence: List of evidence items with semantic_similarity scores
+        max_items: Maximum number of evidence items to return (default: 3)
+
+    Returns:
+        List of evidence items sorted by relevance, filtered for minimum similarity
+    """
+    if not evidence:
+        return []
+
+    # Minimum similarity threshold for display (API sources bypass this)
+    MIN_DISPLAY_SIMILARITY = 0.40
+
+    # Sort by semantic_similarity (primary), then combined_score (fallback)
+    sorted_evidence = sorted(
+        evidence,
+        key=lambda x: (x.get('semantic_similarity', 0), x.get('combined_score', 0)),
+        reverse=True
+    )
+
+    # Filter: require minimum relevance OR API source (always trustworthy)
+    filtered = [
+        e for e in sorted_evidence
+        if e.get('semantic_similarity', 0) >= MIN_DISPLAY_SIMILARITY
+        or e.get('external_source_provider')  # API sources always shown
+    ]
+
+    # Return filtered if available, else top 1 as fallback (never show nothing)
+    return filtered[:max_items] if filtered else sorted_evidence[:1]
+
+
 class JudgmentResult:
     """Result of claim judgment with verdict and rationale"""
 
@@ -313,7 +352,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                     verdict=verdict,
                     confidence=0.0,  # No confidence when abstaining
                     rationale=reason,
-                    supporting_evidence=evidence[:3],
+                    supporting_evidence=_select_display_evidence(evidence),
                     evidence_summary={
                         **verification_signals,
                         'abstention_reason': reason,
@@ -360,7 +399,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 verdict=judgment_data.get("verdict", "uncertain"),
                 confidence=min(max(judgment_data.get("confidence", 50), 0), 100),
                 rationale=judgment_data.get("rationale", "Assessment based on available evidence"),
-                supporting_evidence=evidence[:3],  # Top 3 evidence pieces
+                supporting_evidence=_select_display_evidence(evidence),
                 evidence_summary=enriched_summary,
                 current_verified_data=temporal_comparison,
                 rhetorical_analysis=rhetorical_analysis
@@ -386,7 +425,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 verdict=fallback_data["verdict"],
                 confidence=fallback_data["confidence"],
                 rationale=fallback_data["rationale"],
-                supporting_evidence=evidence[:3],
+                supporting_evidence=_select_display_evidence(evidence),
                 evidence_summary=verification_signals,
                 current_verified_data=temporal_comparison,
                 rhetorical_analysis=rhetorical_analysis
@@ -1333,7 +1372,7 @@ class PipelineJudge:
                         "verdict": "uncertain",
                         "confidence": 30,
                         "rationale": "Judgment failed due to processing error. Evidence review inconclusive.",
-                        "evidence": evidence[:3],
+                        "evidence": _select_display_evidence(evidence),
                         "position": claim.get("position", i),
                         "verification_signals": {"error": "judgment_failed"}
                     }
@@ -1353,10 +1392,10 @@ class PipelineJudge:
                 
                 fallback_results.append({
                     "text": claim.get("text", ""),
-                    "verdict": "uncertain", 
+                    "verdict": "uncertain",
                     "confidence": 25,
                     "rationale": "Pipeline judgment service temporarily unavailable. Manual review recommended.",
-                    "evidence": evidence[:3],
+                    "evidence": _select_display_evidence(evidence),
                     "position": claim.get("position", i),
                     "verification_signals": {"error": "pipeline_error"}
                 })
