@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import json
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 import re
@@ -7,6 +8,7 @@ import httpx
 import trafilatura
 from readability import Document
 import bleach
+from bs4 import BeautifulSoup
 from app.services.search import SearchResult, SearchService
 from app.utils.url_utils import extract_domain
 from app.utils.domain_status_tracker import get_domain_tracker, DomainStatus
@@ -277,12 +279,19 @@ class EvidenceExtractor:
                     # Calculate relevance score
                     relevance_score = self._calculate_relevance(snippet_text, claim)
 
+                    # Extract date from HTML if not provided by search API
+                    published_date = search_result.published_date
+                    if not published_date:
+                        published_date = self._extract_date_from_html(response.text)
+                        if published_date:
+                            logger.debug(f"Extracted date from HTML: {published_date} for {search_result.url}")
+
                     return EvidenceSnippet(
                         text=snippet_text,
                         source=search_result.source,
                         url=search_result.url,
                         title=search_result.title,
-                        published_date=search_result.published_date,
+                        published_date=published_date,
                         relevance_score=relevance_score
                     )
                     
@@ -382,7 +391,115 @@ class EvidenceExtractor:
             content = re.sub(pattern, '', content, flags=re.IGNORECASE)
         
         return content.strip()
-    
+
+    def _extract_date_from_html(self, html: str) -> Optional[str]:
+        """
+        Extract publication date from HTML content.
+
+        Checks multiple sources in order of reliability:
+        1. JSON-LD structured data (most reliable)
+        2. Open Graph meta tags (article:published_time)
+        3. Standard meta tags (date, article:published)
+        4. Time elements with datetime attribute
+
+        Returns:
+            ISO format date string (YYYY-MM-DD) or None if not found
+        """
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+
+            # 1. Try JSON-LD structured data (most reliable)
+            for script in soup.find_all('script', type='application/ld+json'):
+                try:
+                    data = json.loads(script.string or '')
+                    # Handle both single objects and arrays
+                    items = data if isinstance(data, list) else [data]
+                    for item in items:
+                        if isinstance(item, dict):
+                            # Check for datePublished in various schema types
+                            date_published = item.get('datePublished') or item.get('dateCreated')
+                            if date_published:
+                                return self._normalize_date(date_published)
+                            # Check @graph array (common in WordPress sites)
+                            if '@graph' in item:
+                                for graph_item in item['@graph']:
+                                    if isinstance(graph_item, dict):
+                                        date_published = graph_item.get('datePublished') or graph_item.get('dateCreated')
+                                        if date_published:
+                                            return self._normalize_date(date_published)
+                except (json.JSONDecodeError, TypeError):
+                    continue
+
+            # 2. Try Open Graph meta tags
+            og_tags = [
+                ('property', 'article:published_time'),
+                ('property', 'og:article:published_time'),
+                ('property', 'article:published'),
+            ]
+            for attr, value in og_tags:
+                meta = soup.find('meta', {attr: value})
+                if meta and meta.get('content'):
+                    return self._normalize_date(meta['content'])
+
+            # 3. Try standard meta tags
+            meta_names = [
+                'date', 'article:published', 'pubdate', 'publishdate',
+                'publish_date', 'DC.date.issued', 'dcterms.date'
+            ]
+            for name in meta_names:
+                meta = soup.find('meta', {'name': name})
+                if meta and meta.get('content'):
+                    return self._normalize_date(meta['content'])
+
+            # 4. Try time elements with datetime
+            time_elem = soup.find('time', datetime=True)
+            if time_elem and time_elem.get('datetime'):
+                return self._normalize_date(time_elem['datetime'])
+
+            return None
+
+        except Exception as e:
+            logger.debug(f"Date extraction error: {e}")
+            return None
+
+    def _normalize_date(self, date_str: str) -> Optional[str]:
+        """Normalize date string to ISO format (YYYY-MM-DD)"""
+        if not date_str:
+            return None
+
+        try:
+            # Handle ISO format with time (2024-01-15T10:30:00Z)
+            if 'T' in date_str:
+                date_str = date_str.split('T')[0]
+
+            # Handle ISO format with timezone offset
+            if '+' in date_str and 'T' not in date_str:
+                date_str = date_str.split('+')[0]
+
+            # Validate it looks like a date
+            if re.match(r'^\d{4}-\d{2}-\d{2}', date_str):
+                return date_str[:10]  # Return YYYY-MM-DD portion
+
+            # Try parsing various formats
+            formats = [
+                '%Y-%m-%d',
+                '%Y/%m/%d',
+                '%d-%m-%Y',
+                '%d/%m/%Y',
+                '%B %d, %Y',
+                '%b %d, %Y',
+            ]
+            for fmt in formats:
+                try:
+                    parsed = datetime.strptime(date_str.strip(), fmt)
+                    return parsed.strftime('%Y-%m-%d')
+                except ValueError:
+                    continue
+
+            return None
+        except Exception:
+            return None
+
     async def _find_relevant_snippet(self, content: str, claim: str) -> Optional[str]:
         """
         Find the most relevant snippet from content for the claim.
