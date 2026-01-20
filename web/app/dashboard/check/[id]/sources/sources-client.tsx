@@ -26,7 +26,7 @@ interface Source {
   isIncluded: boolean;
   filterStage: string | null;
   filterReason: string | null;
-  tier: string | null;
+  // Note: tier is internal-only (not exposed to frontend)
   isFactcheck: boolean;
   externalSourceProvider: string | null;
 }

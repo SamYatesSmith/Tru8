@@ -706,6 +706,11 @@ async def get_check(
         "claimsSupported": check.claims_supported,
         "claimsContradicted": check.claims_contradicted,
         "claimsUncertain": check.claims_uncertain,
+        # Article classification (domain detection)
+        "articleDomain": check.article_domain,
+        "articleSecondaryDomains": check.article_secondary_domains,
+        "articleJurisdiction": check.article_jurisdiction,
+        "articleClassificationSource": check.article_classification_source,  # 'cache_pattern', 'llm_primary', 'fallback_general', etc.
         # Search Clarity fields
         "userQuery": check.user_query,
         "queryResponse": check.query_response,
@@ -1117,7 +1122,7 @@ async def get_check_sources(
             "isIncluded": raw_ev.is_included,
             "filterStage": raw_ev.filter_stage,
             "filterReason": raw_ev.filter_reason,
-            "tier": raw_ev.tier,
+            # Note: tier is intentionally NOT exposed to frontend (internal credibility weighting only)
             "isFactcheck": raw_ev.is_factcheck,
             "externalSourceProvider": raw_ev.external_source_provider
         }

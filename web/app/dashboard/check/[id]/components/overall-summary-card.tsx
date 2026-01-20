@@ -7,6 +7,8 @@ interface OverallSummaryCardProps {
     claimsSupported: number;
     claimsContradicted: number;
     claimsUncertain: number;
+    articleDomain?: string;
+    articleJurisdiction?: string;
   };
 }
 
@@ -25,8 +27,19 @@ export function OverallSummaryCard({ check }: OverallSummaryCardProps) {
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-black text-white mb-2">Overall Assessment</h2>
-        <div className={`${credibility.bg} ${credibility.color} px-4 py-2 rounded-lg font-bold text-sm inline-block`}>
-          {credibility.label}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className={`${credibility.bg} ${credibility.color} px-4 py-2 rounded-lg font-bold text-sm inline-block`}>
+            {credibility.label}
+          </div>
+          {check.articleDomain && check.articleDomain !== 'General' && (
+            <div className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-1.5">
+              <span className="text-slate-500">Domain:</span>
+              <span className="text-white">{check.articleDomain}</span>
+              {check.articleJurisdiction && check.articleJurisdiction !== 'Global' && (
+                <span className="text-slate-400">({check.articleJurisdiction})</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

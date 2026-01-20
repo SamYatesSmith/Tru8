@@ -185,6 +185,24 @@ ANALYSIS FRAMEWORK:
    - Historical facts (dates, legislation, established facts): Older evidence acceptable
    - If evidence is marked as STALE, treat it with EXTREME CAUTION - it may no longer be accurate
    - STALE evidence should NOT be used to support or contradict time-sensitive claims
+
+   **CRITICAL - Temporal Progression (Breaking News/Transfers/Negotiations):**
+   When evidence shows DIFFERENT STATES, this often represents PROGRESSION over time, NOT contradiction:
+   - "In talks" → "Agreement reached" → "Deal confirmed" = PROGRESSION (newer supersedes older)
+   - "Considering options" → "Decision made" = PROGRESSION
+   - "Negotiations ongoing" → "Contract signed" = PROGRESSION
+
+   For breaking news/transfer claims, PRIORITIZE THE MOST RECENT EVIDENCE:
+   - If ONE source says "agreement reached" and another says "in talks", check their dates
+   - Newer evidence showing a LATER stage supersedes older evidence showing an EARLIER stage
+   - Older evidence is NOT contradicting - it was true AT THAT TIME but has been superseded
+   - ALWAYS use the MOST RECENT credible source to determine the CURRENT status
+
+   Example:
+   ✗ WRONG: Claim "X agreed to join Y" + Evidence A: "in talks" + Evidence B: "agreement reached"
+     → Marking CONTRADICTED because A says "talks" not "agreed"
+   ✓ RIGHT: Check dates. If B is newer, the claim reflects CURRENT status = SUPPORTED
+
 5. Context & Numerical Precision: Consider nuances, qualifications, temporal factors, and apply appropriate numerical tolerance:
 
    APPLY TOLERANCE (±15-20%) when the claim text contains approximation language:

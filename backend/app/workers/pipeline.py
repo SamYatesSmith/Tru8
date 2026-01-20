@@ -306,6 +306,13 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                         nli_entailment=ev_data.get("nli_entailment"),
                         nli_contradiction=ev_data.get("nli_contradiction"),
 
+                        # Phase 3: Domain Credibility Framework
+                        tier=ev_data.get("tier"),
+                        risk_flags=ev_data.get("risk_flags"),
+                        credibility_reasoning=ev_data.get("credibility_reasoning"),
+                        risk_level=ev_data.get("risk_level"),
+                        risk_warning=ev_data.get("risk_warning"),
+
                         # Phase 5: Government API Integration
                         external_source_provider=ev_data.get("external_source_provider"),
                         api_metadata=metadata_dict

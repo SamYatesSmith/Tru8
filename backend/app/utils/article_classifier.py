@@ -491,7 +491,12 @@ async def _classify_with_llm(
         logger.error(f"Failed to parse LLM classification response: {e}")
         raise
     except Exception as e:
-        logger.error(f"LLM classification failed: {e}")
+        # Log detailed error information for debugging
+        import traceback
+        logger.error(
+            f"LLM classification failed for URL '{url[:100]}': {type(e).__name__}: {e}\n"
+            f"Traceback: {traceback.format_exc()}"
+        )
         raise
 
 
@@ -657,13 +662,18 @@ async def classify_article(
         logger.warning(f"Fallback LLM classification failed: {e}")
 
     # 5. Ultimate fallback - General domain
-    logger.warning(f"All classification methods failed, using General fallback for: {url[:50]}...")
+    logger.warning(
+        f"[CLASSIFICATION FALLBACK] All classification methods failed for: {url[:100]}\n"
+        f"  - Title: {title[:100] if title else 'EMPTY'}\n"
+        f"  - Content length: {len(content) if content else 0} chars\n"
+        f"  - Using 'General' domain with confidence=0"
+    )
     return ArticleClassification(
         primary_domain="General",
         secondary_domains=[],
         jurisdiction="Global",
         confidence=0,
-        reasoning="Classification failed, using fallback",
+        reasoning="Classification failed - LLM unavailable, using fallback",
         source="fallback_general",
         temporal_context="",
         key_entities=[],

@@ -27,6 +27,11 @@ interface CheckData {
   createdAt: string;
   completedAt?: string;
   rawSourcesCount?: number;  // Full Sources List feature
+  // Article classification
+  articleDomain?: string;
+  articleSecondaryDomains?: string[];
+  articleJurisdiction?: string;
+  articleClassificationSource?: string;
 }
 
 export default async function CheckDetailPage({ params }: CheckDetailPageProps) {
