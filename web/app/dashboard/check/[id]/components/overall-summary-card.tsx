@@ -31,9 +31,9 @@ export function OverallSummaryCard({ check }: OverallSummaryCardProps) {
           <div className={`${credibility.bg} ${credibility.color} px-4 py-2 rounded-lg font-bold text-sm inline-block`}>
             {credibility.label}
           </div>
-          {check.articleDomain && check.articleDomain !== 'General' && (
+          {check.articleDomain && (
             <div className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-1.5">
-              <span className="text-slate-500">Domain:</span>
+              <span className="text-slate-500">Genre:</span>
               <span className="text-white">{check.articleDomain}</span>
               {check.articleJurisdiction && check.articleJurisdiction !== 'Global' && (
                 <span className="text-slate-400">({check.articleJurisdiction})</span>
