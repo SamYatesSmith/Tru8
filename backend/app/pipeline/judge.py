@@ -67,6 +67,10 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
     This ensures users see evidence that directly addresses their claim rather than
     topically related but not evidential sources.
 
+    IMPORTANT: ALL evidence (including API sources) must pass semantic relevance threshold.
+    API sources are authoritative but may return data irrelevant to the specific claim
+    (e.g., league standings for a transfer claim).
+
     Args:
         evidence: List of evidence items with semantic_similarity scores
         max_items: Maximum number of evidence items to return (default: 3)
@@ -77,8 +81,11 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
     if not evidence:
         return []
 
-    # Minimum similarity threshold for display (API sources bypass this)
+    # Minimum similarity thresholds for display
+    # ALL sources must meet their respective threshold (authoritative != relevant)
     MIN_DISPLAY_SIMILARITY = 0.40
+    # Slightly lower threshold for API sources - structured data may not embed as well
+    MIN_API_DISPLAY_SIMILARITY = 0.30
 
     # Sort by semantic_similarity (primary), then combined_score (fallback)
     sorted_evidence = sorted(
@@ -87,12 +94,23 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
         reverse=True
     )
 
-    # Filter: require minimum relevance OR API source (always trustworthy)
-    filtered = [
-        e for e in sorted_evidence
-        if e.get('semantic_similarity', 0) >= MIN_DISPLAY_SIMILARITY
-        or e.get('external_source_provider')  # API sources always shown
-    ]
+    # Filter: ALL sources must meet relevance threshold (no more API bypass)
+    filtered = []
+    for e in sorted_evidence:
+        similarity = e.get('semantic_similarity', 0)
+        is_api_source = bool(e.get('external_source_provider'))
+
+        # Use appropriate threshold based on source type
+        threshold = MIN_API_DISPLAY_SIMILARITY if is_api_source else MIN_DISPLAY_SIMILARITY
+
+        if similarity >= threshold:
+            filtered.append(e)
+        elif is_api_source:
+            # Log filtered API sources for monitoring - helps identify relevance issues
+            logger.info(
+                f"[JUDGE] Filtered low-relevance API evidence: "
+                f"{e.get('external_source_provider')} (similarity={similarity:.3f} < {threshold})"
+            )
 
     # Return filtered if available, else top 1 as fallback (never show nothing)
     return filtered[:max_items] if filtered else sorted_evidence[:1]

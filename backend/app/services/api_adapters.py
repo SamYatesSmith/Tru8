@@ -3053,8 +3053,18 @@ class FootballDataAdapter(GovernmentAPIClient):
             if any(term in query_lower for term in ["top", "standing", "table", "points", "lead", "ahead", "behind", "position"]):
                 evidence.extend(self._get_standings(query_lower, entities))
 
-            # TYPE 2: Team info / squad
-            if any(term in query_lower for term in ["squad", "player", "signed", "transferred", "manager", "coach"]):
+            # TYPE 2: Team info / squad / transfers
+            # Extended with transfer-intent keywords to detect when claim is about player movements
+            # Note: Football-Data.org has limited transfer data, but team info may help
+            transfer_keywords = [
+                "squad", "player", "signed", "transferred", "manager", "coach",
+                # Transfer-intent keywords (helps detect transfer claims)
+                "transfer", "offload", "offloading", "exit", "departure", "departing",
+                "deal", "move", "moving", "loan", "loaned", "loaning",
+                "linked", "link", "target", "targeting", "interest", "interested",
+                "bid", "offer", "fee", "sell", "selling", "buy", "buying"
+            ]
+            if any(term in query_lower for term in transfer_keywords):
                 evidence.extend(self._get_team_info(query_lower, entities))
 
             # TYPE 3: Match results
@@ -3065,9 +3075,14 @@ class FootballDataAdapter(GovernmentAPIClient):
             if any(term in query_lower for term in ["scorer", "goals scored", "golden boot", "top goal", "leading scorer", "most goals"]):
                 evidence.extend(self._get_top_scorers(query_lower))
 
-            # If no specific type detected, try standings as default (most useful for fact-checking)
+            # DO NOT fall back to standings when no keywords match
+            # Better to return nothing than irrelevant data (e.g., standings for transfer claims)
+            # The semantic relevance filter in judge.py will handle cases where we return limited data
             if not evidence:
-                evidence.extend(self._get_standings(query_lower, entities))
+                logger.info(
+                    f"Football-Data.org: No keyword match for query '{query[:80]}...', "
+                    f"returning empty (claim may be about transfers which this API doesn't cover)"
+                )
 
             logger.info(f"Football-Data.org returned {len(evidence)} evidence items")
             return evidence[:self.max_results]
