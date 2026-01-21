@@ -82,10 +82,11 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
         return []
 
     # Minimum similarity thresholds for display
-    # ALL sources must meet their respective threshold (authoritative != relevant)
-    MIN_DISPLAY_SIMILARITY = 0.40
-    # Slightly lower threshold for API sources - structured data may not embed as well
-    MIN_API_DISPLAY_SIMILARITY = 0.30
+    # ALIGNED with TIER 1 (same as retrieve stage - unified threshold system!)
+    MIN_DISPLAY_SIMILARITY = getattr(settings, 'SIMILARITY_TIER1_LENIENT', 0.25)
+    # HIGHER threshold for API sources - keyword matches often return irrelevant data
+    # API results need to prove semantic relevance, not just keyword match
+    MIN_API_DISPLAY_SIMILARITY = MIN_DISPLAY_SIMILARITY + 0.10  # 0.35 - stricter for API
 
     # Sort by semantic_similarity (primary), then combined_score (fallback)
     sorted_evidence = sorted(

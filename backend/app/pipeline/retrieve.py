@@ -252,8 +252,9 @@ class EvidenceRetriever:
                 # Step 2: Merge and rank ALL evidence (web + API) using embeddings (bi-encoder)
                 all_evidence_snippets = evidence_snippets + self._convert_api_evidence_to_snippets(api_evidence_items)
 
-                # Fix 0c: Cap combined evidence before expensive ranking to prevent OOM
-                MAX_EVIDENCE_FOR_RANKING = 50
+                # Fix 0c: Cap combined evidence before expensive ranking
+                # Reduced from 50 to 30: focus on quality, not quantity
+                MAX_EVIDENCE_FOR_RANKING = 30
                 if len(all_evidence_snippets) > MAX_EVIDENCE_FOR_RANKING:
                     logger.info(f"[EVIDENCE CAP] Reducing {len(all_evidence_snippets)} items to {MAX_EVIDENCE_FOR_RANKING} before ranking")
                     # Sort by relevance_score and keep best
@@ -1367,8 +1368,9 @@ class EvidenceRetriever:
                 relevant_adapters.append(adapter)
                 logger.info(f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}...")
 
-            # Fix 0a: Limit adapters per claim to prevent OOM from too many API calls
-            MAX_ADAPTERS_PER_CLAIM = 5
+            # Fix 0a: Limit adapters per claim - most claims don't need 5+ API sources
+            # Reduced from 5 to 3: fewer irrelevant keyword matches, faster processing
+            MAX_ADAPTERS_PER_CLAIM = 3
             if len(relevant_adapters) > MAX_ADAPTERS_PER_CLAIM:
                 logger.info(f"[API LIMIT] Reducing {len(relevant_adapters)} adapters to {MAX_ADAPTERS_PER_CLAIM}")
                 relevant_adapters = relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]
@@ -1432,8 +1434,9 @@ class EvidenceRetriever:
                 logger.info(f"[API DEBUG]   - {api_stat['name']}: {api_stat.get('results', 0)} results" +
                            (f" (ERROR: {api_stat.get('error', '')})" if api_stat.get('error') else ""))
 
-            # Fix 0b: Cap total API evidence per claim to prevent memory bloat
-            MAX_API_EVIDENCE_PER_CLAIM = 30
+            # Fix 0b: Cap total API evidence per claim
+            # Reduced from 30 to 10: LLM judge has limited context, quality over quantity
+            MAX_API_EVIDENCE_PER_CLAIM = 10
             if len(all_api_evidence) > MAX_API_EVIDENCE_PER_CLAIM:
                 logger.info(f"[API CAP] Reducing {len(all_api_evidence)} API items to {MAX_API_EVIDENCE_PER_CLAIM}")
                 # Sort by credibility/score and keep best
