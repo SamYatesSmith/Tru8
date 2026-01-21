@@ -56,7 +56,7 @@ class TestGovInfoAdapter:
         assert metadata["year"] == "1952"
         assert metadata["jurisdiction"] == "US"
 
-    @patch('app.services.api_adapters.LegalSearchService')
+    @patch('app.services.api_adapters.legal.LegalSearchService')
     def test_adapter_search_calls_legal_service(self, mock_legal_service_class):
         """Test adapter search() method calls LegalSearchService correctly"""
         # Setup mock

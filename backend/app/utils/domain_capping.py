@@ -134,9 +134,21 @@ class DomainCapper:
             domain_evidence[domain].append(ev)
 
         total_evidence = len(all_evidence)
-        effective_max_count = min(
-            global_max_per_domain,
-            max(3, int(total_evidence * global_max_ratio))  # At least 3
+        num_claims = len(evidence_by_claim)
+
+        # Ensure at least 2 sources per claim can pass from any domain
+        # This prevents claims from getting 0 evidence due to aggressive capping
+        min_for_coverage = max(global_max_per_domain, num_claims * 2)
+        ratio_based = max(3, int(total_evidence * global_max_ratio))
+
+        # Fix 0d: Use AVERAGE of the two, capped at 15 (prevents runaway memory usage)
+        ABSOLUTE_MAX_PER_DOMAIN = 15
+        effective_max_count = min(ABSOLUTE_MAX_PER_DOMAIN, (min_for_coverage + ratio_based) // 2)
+
+        logger.info(
+            f"[GLOBAL CAP] Config: {num_claims} claims, "
+            f"min_for_coverage={min_for_coverage}, ratio_based={ratio_based}, "
+            f"effective_max={effective_max_count}"
         )
 
         # Check if any domain exceeds the cap

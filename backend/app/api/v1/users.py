@@ -280,6 +280,9 @@ async def get_usage(
     """Get detailed usage statistics"""
     user = await get_or_create_user(session, current_user)
 
+    # Check if user is an admin (unlimited credits)
+    is_admin = user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]
+
     # Check if user is a beta tester (gets 40 checks/month)
     is_beta_tester = user.email and user.email.lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
 
@@ -342,6 +345,23 @@ async def get_usage(
             "trialCredits": 3,
             "resetDate": None,  # Never resets
             "periodStart": None,
+        }
+
+    # Admin override: return unlimited credits
+    if is_admin:
+        return {
+            "creditsRemaining": 999999,
+            "totalCreditsUsed": user.total_credits_used,
+            "periodCreditsUsed": 0,  # Always show 0 used for admins
+            "creditsPerPeriod": 999999,  # Unlimited
+            "isTrial": False,
+            "isAdmin": True,
+            "subscription": {
+                "plan": "admin",
+                "creditsPerMonth": 999999,
+                "resetDate": None,
+                "periodStart": None,
+            }
         }
 
     return {

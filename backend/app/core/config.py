@@ -68,7 +68,13 @@ class Settings(BaseSettings):
         default=["http://localhost:3000", "http://localhost:3001", "http://localhost:8081", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
         env="CORS_ORIGINS"
     )
-    
+
+    # Admin emails that bypass credit limits (for testing)
+    ADMIN_EMAILS: List[str] = Field(
+        default=[],
+        env="ADMIN_EMAILS"
+    )
+
     # Rate Limits
     RATE_LIMIT_PER_MINUTE: int = Field(60, env="RATE_LIMIT_PER_MINUTE")
     MAX_CLAIMS_PER_CHECK: int = Field(12, env="MAX_CLAIMS_PER_CHECK")
@@ -81,6 +87,26 @@ class Settings(BaseSettings):
     NLI_CONFIDENCE_THRESHOLD: float = Field(0.7, env="NLI_CONFIDENCE_THRESHOLD")
     MAX_CONCURRENT_VERIFICATIONS: int = Field(5, env="MAX_CONCURRENT_VERIFICATIONS")
     VERIFICATION_TIMEOUT_SECONDS: int = Field(5, env="VERIFICATION_TIMEOUT_SECONDS")
+
+    # ========== UNIFIED PIPELINE THRESHOLDS ==========
+    # These thresholds are ALIGNED across all pipeline stages.
+    # Do NOT create separate thresholds in individual files.
+    # All stages should reference these values.
+
+    # TIER 1: Lenient - Used for initial retrieval/filtering
+    SIMILARITY_TIER1_LENIENT: float = Field(0.25, env="SIMILARITY_TIER1_LENIENT")
+
+    # TIER 2: Standard - Used for display selection
+    SIMILARITY_TIER2_STANDARD: float = Field(0.40, env="SIMILARITY_TIER2_STANDARD")
+
+    # TIER 3: Strict - Used for high-confidence operations
+    SIMILARITY_TIER3_STRICT: float = Field(0.60, env="SIMILARITY_TIER3_STRICT")
+
+    # Credibility: Unified across pipeline
+    CREDIBILITY_MINIMUM: float = Field(0.55, env="CREDIBILITY_MINIMUM")
+
+    # Unknown source default - MUST be >= CREDIBILITY_MINIMUM
+    UNKNOWN_SOURCE_CREDIBILITY: float = Field(0.55, env="UNKNOWN_SOURCE_CREDIBILITY")
     
     # Judge LLM
     JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
@@ -120,7 +146,8 @@ class Settings(BaseSettings):
 
     # Phase 3.5 - Source Quality Control (Week 9.5-10)
     ENABLE_SOURCE_VALIDATION: bool = Field(True, env="ENABLE_SOURCE_VALIDATION")
-    SOURCE_CREDIBILITY_THRESHOLD: float = Field(0.65, env="SOURCE_CREDIBILITY_THRESHOLD")
+    # Aligned with CREDIBILITY_MINIMUM (unified threshold)
+    SOURCE_CREDIBILITY_THRESHOLD: float = Field(0.55, env="SOURCE_CREDIBILITY_THRESHOLD")
 
     # Phase 4 - Legal Integration
     ENABLE_LEGAL_SEARCH: bool = Field(True, env="ENABLE_LEGAL_SEARCH")
@@ -141,7 +168,8 @@ class Settings(BaseSettings):
     # Filters out irrelevant evidence BEFORE it reaches the judge
     # Prevents generic landing pages (e.g., "how to fact check" guides) from being used as evidence
     ENABLE_SEMANTIC_RELEVANCE_FILTER: bool = Field(True, env="ENABLE_SEMANTIC_RELEVANCE_FILTER")
-    SEMANTIC_SIMILARITY_THRESHOLD: float = Field(0.35, env="SEMANTIC_SIMILARITY_THRESHOLD")  # Min semantic similarity (0-1)
+    # Aligned with SIMILARITY_TIER1_LENIENT (unified threshold)
+    SEMANTIC_SIMILARITY_THRESHOLD: float = Field(0.25, env="SEMANTIC_SIMILARITY_THRESHOLD")  # Min semantic similarity (0-1)
 
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")  # Allow 3 results per domain for better evidence coverage

@@ -330,8 +330,8 @@ class TestAdapterRegistry:
         for adapter in adapters:
             registry.register(adapter)
 
-        # Verify all registered
-        assert len(registry.get_all_adapters()) == 7
+        # Verify all registered (6 adapters in the list above)
+        assert len(registry.get_all_adapters()) == 6
 
     def test_get_adapters_for_finance_us(self):
         """Test getting relevant adapters for Finance + US domain."""

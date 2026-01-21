@@ -252,6 +252,14 @@ class EvidenceRetriever:
                 # Step 2: Merge and rank ALL evidence (web + API) using embeddings (bi-encoder)
                 all_evidence_snippets = evidence_snippets + self._convert_api_evidence_to_snippets(api_evidence_items)
 
+                # Fix 0c: Cap combined evidence before expensive ranking to prevent OOM
+                MAX_EVIDENCE_FOR_RANKING = 50
+                if len(all_evidence_snippets) > MAX_EVIDENCE_FOR_RANKING:
+                    logger.info(f"[EVIDENCE CAP] Reducing {len(all_evidence_snippets)} items to {MAX_EVIDENCE_FOR_RANKING} before ranking")
+                    # Sort by relevance_score and keep best
+                    all_evidence_snippets.sort(key=lambda x: x.relevance_score if hasattr(x, 'relevance_score') else 0.5, reverse=True)
+                    all_evidence_snippets = all_evidence_snippets[:MAX_EVIDENCE_FOR_RANKING]
+
                 ranked_evidence = await self._rank_evidence_with_embeddings(
                     claim_text,
                     all_evidence_snippets
@@ -648,7 +656,37 @@ class EvidenceRetriever:
 
             if filtered_count > 0:
                 logger.info(f"[RETRIEVE] Semantic filter: {filtered_count} low-relevance evidence items removed")
-            
+
+            # ALIGNED FALLBACK: Keep top 3 when all filtered (same pattern as credibility fallback)
+            if len(ranked_evidence) == 0 and len(ranked_results) > 0:
+                logger.warning(
+                    f"[RETRIEVE] SEMANTIC FALLBACK: All {len(ranked_results)} items below "
+                    f"TIER1 threshold ({settings.SEMANTIC_SIMILARITY_THRESHOLD}), keeping top 3"
+                )
+                sorted_results = sorted(ranked_results, key=lambda x: x[1], reverse=True)
+                for idx, similarity, text in sorted_results[:3]:
+                    if idx < len(evidence_snippets):
+                        snippet = evidence_snippets[idx]
+                        external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
+                        credibility = snippet.metadata.get("credibility_score", settings.UNKNOWN_SOURCE_CREDIBILITY) if snippet.metadata else settings.UNKNOWN_SOURCE_CREDIBILITY
+                        ranked_evidence.append({
+                            "id": f"evidence_{idx}",
+                            "text": snippet.text,
+                            "source": snippet.source,
+                            "url": snippet.url,
+                            "title": snippet.title,
+                            "published_date": snippet.published_date,
+                            "relevance_score": float(snippet.relevance_score),
+                            "semantic_similarity": float(similarity),
+                            "combined_score": float((snippet.relevance_score + similarity) / 2),
+                            "word_count": snippet.word_count,
+                            "credibility_score": credibility,
+                            "external_source_provider": external_source,
+                            "metadata": snippet.metadata,
+                            "is_semantic_fallback": True
+                        })
+                        logger.info(f"[RETRIEVE] FALLBACK: {snippet.source} (sim={similarity:.3f})")
+
             # Sort by combined score
             ranked_evidence.sort(key=lambda x: x["combined_score"], reverse=True)
             
@@ -820,7 +858,8 @@ class EvidenceRetriever:
                     url_to_raw[url]["relevance_score"] = base_score
 
             # Filter by credibility threshold + auto_exclude flag
-            MIN_CREDIBILITY = getattr(settings, 'SOURCE_CREDIBILITY_THRESHOLD', 0.70)
+            # Aligned with CREDIBILITY_MINIMUM (unified threshold)
+            MIN_CREDIBILITY = getattr(settings, 'SOURCE_CREDIBILITY_THRESHOLD', 0.55)
 
             # First, remove auto-excluded sources (social media, satire, etc.)
             before_auto_exclude = len(evidence_list)
@@ -1279,6 +1318,13 @@ class EvidenceRetriever:
                     confidence = article_classification.get("confidence", 0.0)
                     secondary_domains = article_classification.get("secondary_domains", [])
 
+                    # Warn if classification failed (using fallback "General")
+                    if article_classification.get("classification_failed"):
+                        logger.warning(
+                            f"[API ROUTING] Classification failed - using General domain, "
+                            f"API evidence may be less targeted"
+                        )
+
                     logger.debug(
                         f"[API ROUTING] Using article classification: "
                         f"domain={domain}, jurisdiction={jurisdiction}, "
@@ -1320,6 +1366,12 @@ class EvidenceRetriever:
             for adapter in keyword_adapters:
                 relevant_adapters.append(adapter)
                 logger.info(f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}...")
+
+            # Fix 0a: Limit adapters per claim to prevent OOM from too many API calls
+            MAX_ADAPTERS_PER_CLAIM = 5
+            if len(relevant_adapters) > MAX_ADAPTERS_PER_CLAIM:
+                logger.info(f"[API LIMIT] Reducing {len(relevant_adapters)} adapters to {MAX_ADAPTERS_PER_CLAIM}")
+                relevant_adapters = relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]
 
             # Log final adapter list
             adapter_names = [a.api_name for a in relevant_adapters]
@@ -1379,6 +1431,14 @@ class EvidenceRetriever:
             for api_stat in api_stats["apis_queried"]:
                 logger.info(f"[API DEBUG]   - {api_stat['name']}: {api_stat.get('results', 0)} results" +
                            (f" (ERROR: {api_stat.get('error', '')})" if api_stat.get('error') else ""))
+
+            # Fix 0b: Cap total API evidence per claim to prevent memory bloat
+            MAX_API_EVIDENCE_PER_CLAIM = 30
+            if len(all_api_evidence) > MAX_API_EVIDENCE_PER_CLAIM:
+                logger.info(f"[API CAP] Reducing {len(all_api_evidence)} API items to {MAX_API_EVIDENCE_PER_CLAIM}")
+                # Sort by credibility/score and keep best
+                all_api_evidence.sort(key=lambda x: x.get('credibility_score', 0.5), reverse=True)
+                all_api_evidence = all_api_evidence[:MAX_API_EVIDENCE_PER_CLAIM]
 
             return {
                 "evidence": all_api_evidence,

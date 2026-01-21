@@ -370,8 +370,10 @@ async def create_check(
         current_usage = user.total_credits_used  # Lifetime usage
         limit_type = "trial"
 
-    # Check if user has exceeded their limit
-    if current_usage >= credits_limit:
+    # Admin bypass - unlimited credits for testing (settings already imported at top)
+    if user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
+        logger.info(f"Admin bypass: {user.email} - skipping credit limit check")
+    elif current_usage >= credits_limit:
         if limit_type == "trial":
             raise HTTPException(
                 status_code=402,
