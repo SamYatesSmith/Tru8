@@ -45,6 +45,37 @@ class EvidenceSnippet:
 class EvidenceExtractor:
     """Extract relevant evidence snippets from web pages"""
 
+    # META-SOURCE DOMAINS: Sites about fact-checking methodology, tools, or aggregators
+    # These NEVER contain evidence about specific claims - only about fact-checking itself
+    META_SOURCE_DOMAINS = {
+        # Fact-checking tool directories and guides
+        'libguides.com',           # Library research guides (e.g., "Web Sites for Fact Checking")
+        'library.ucdavis.edu',     # Library guides about fact-checking
+        'guides.library.cornell.edu',  # Cornell fact-checking guides
+
+        # News aggregators (index pages, not actual news)
+        'newsnow.com',             # News aggregator index
+        'newsnow.co.uk',           # UK version
+
+        # Academic meta-research about misinformation (not evidence)
+        'misinforeview.hks.harvard.edu',  # HKS Misinformation Review (research ABOUT fact-checking)
+
+        # Tool/methodology pages
+        'toolbox.google.com',      # Google Fact Check Tools Explorer
+        'reporterslab.org',        # Duke Reporters' Lab (fact-checker directory)
+    }
+
+    # Title patterns that indicate meta-sources (case-insensitive)
+    META_SOURCE_TITLE_PATTERNS = [
+        r'web\s*sites?\s*for\s*fact\s*check',      # "Web Sites for Fact Checking"
+        r'fact[- ]?check(ing)?\s*tools?',          # "Fact Checking Tools", "Fact-Check Tools"
+        r'how\s+to\s+fact[- ]?check',              # "How to Fact Check"
+        r'guide\s+to\s+fact[- ]?check',            # "Guide to Fact Checking"
+        r'fact[- ]?check(ing)?\s+resources?',      # "Fact Checking Resources"
+        r'"fact[- ]?check(ing)?"\s+fact[- ]?check', # Meta: fact-checking fact-checkers
+        r'misinformation.*review',                  # Academic journals about misinformation
+    ]
+
     def __init__(self):
         self.search_service = SearchService()
         self.timeout = 15
@@ -54,12 +85,44 @@ class EvidenceExtractor:
         # Blocked domains - now dynamically populated from tracker
         self._init_blocked_domains()
 
+        # Compile meta-source title patterns for efficiency
+        self._meta_title_patterns = [
+            re.compile(pattern, re.IGNORECASE)
+            for pattern in self.META_SOURCE_TITLE_PATTERNS
+        ]
+
         # Common fact-checking terms to look for
         self.fact_indicators = [
             'according to', 'study shows', 'research indicates', 'data reveals',
             'statistics show', 'report states', 'findings suggest', 'analysis shows',
             'evidence indicates', 'survey found', 'poll shows', 'investigation revealed'
         ]
+
+    def _is_meta_source(self, url: str, title: str = "") -> bool:
+        """Check if a source is a meta-source (about fact-checking, not evidence).
+
+        Args:
+            url: The URL of the source
+            title: The title of the source (optional)
+
+        Returns:
+            True if this is a meta-source that should be filtered out
+        """
+        # Check domain
+        domain = extract_domain(url, fallback="").lower()
+        for meta_domain in self.META_SOURCE_DOMAINS:
+            if meta_domain in domain:
+                logger.debug(f"[META-SOURCE] Filtered by domain: {domain}")
+                return True
+
+        # Check title patterns
+        if title:
+            for pattern in self._meta_title_patterns:
+                if pattern.search(title):
+                    logger.debug(f"[META-SOURCE] Filtered by title pattern: {title[:50]}...")
+                    return True
+
+        return False
 
     def _init_blocked_domains(self) -> None:
         """Initialize blocked domains from tracker - only BOT_BLOCKED (403) domains.
@@ -157,6 +220,16 @@ class EvidenceExtractor:
                 filtered_count = original_count - len(search_results)
                 if filtered_count > 0:
                     logger.info(f"Excluded {filtered_count} search results from source domain: {excluded_domain}")
+
+            # Filter out meta-sources (fact-checking guides, aggregators, methodology pages)
+            original_count = len(search_results)
+            search_results = [
+                result for result in search_results
+                if not self._is_meta_source(result.url, result.title)
+            ]
+            meta_filtered = original_count - len(search_results)
+            if meta_filtered > 0:
+                logger.info(f"[META-SOURCE] Filtered {meta_filtered} meta-sources from search results")
 
             if not search_results:
                 logger.warning(f"No search results for claim: {claim[:50]}...")
