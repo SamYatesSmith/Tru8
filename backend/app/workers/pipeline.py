@@ -568,6 +568,34 @@ def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any])
 
             stage_timings["global_domain_cap"] = (datetime.utcnow() - stage_start).total_seconds()
 
+        # Stage 3.8: LLM Relevance Scoring
+        # Scores evidence by how well it actually helps verify/refute claims (not just topical similarity)
+        if settings.ENABLE_LLM_RELEVANCE_SCORER and evidence:
+            stage_start = datetime.utcnow()
+            try:
+                # Extract article context early (also used by judge later)
+                article_excerpt = content.get("content", "")[:5000]
+
+                from app.pipeline.relevance_scorer import score_evidence_batch
+
+                # Extract claim texts for the scorer
+                claim_texts = [c.get('text', '') for c in claims]
+
+                # Use asyncio.run() since Celery tasks are synchronous
+                evidence = asyncio.run(
+                    score_evidence_batch(
+                        claims=claim_texts,
+                        evidence=evidence,  # Dict[claim_position, List[evidence]]
+                        article_context=article_excerpt
+                    )
+                )
+                logger.info("[LLM SCORER] Evidence relevance scoring complete")
+            except Exception as e:
+                logger.warning(f"[LLM SCORER] LLM relevance scoring failed, continuing with unscored: {e}")
+                # Continue with unscored evidence - safe fallback
+
+            stage_timings["llm_relevance"] = (datetime.utcnow() - stage_start).total_seconds()
+
         # Stage 4: NLI Verification - BYPASSED
         # NLI is disabled because PASS_NLI_VERDICT_TO_JUDGE=False means Judge ignores NLI scores anyway.
         # This saves 80-100 seconds of compute time per check.

@@ -233,6 +233,85 @@
     "tier": "tier2"
   },
 
+  "news_nordic_broadcasters": {
+    "credibility": 0.90,
+    "description": "Nordic national public broadcasters - equivalent to BBC in their countries",
+    "domains": [
+      "dr.dk",
+      "tv2.dk",
+      "nrk.no",
+      "svt.se",
+      "sr.se",
+      "yle.fi",
+      "ruv.is"
+    ],
+    "tier": "tier1"
+  },
+
+  "news_nordic_newspapers": {
+    "credibility": 0.82,
+    "description": "Major Nordic quality newspapers and news outlets",
+    "domains": [
+      "politiken.dk",
+      "berlingske.dk",
+      "jyllands-posten.dk",
+      "information.dk",
+      "kristeligt-dagblad.dk",
+      "borsen.dk",
+      "bt.dk",
+      "ekstrabladet.dk",
+      "vg.no",
+      "aftenposten.no",
+      "dagbladet.no",
+      "dn.no",
+      "aftonbladet.se",
+      "dn.se",
+      "expressen.se",
+      "svd.se",
+      "gp.se",
+      "hs.fi",
+      "is.fi",
+      "iltalehti.fi",
+      "mbl.is",
+      "visir.is"
+    ],
+    "tier": "tier2"
+  },
+
+  "news_greenland": {
+    "credibility": 0.82,
+    "description": "Greenlandic media outlets - authoritative for Greenland-specific news",
+    "domains": [
+      "sermitsiaq.ag",
+      "knr.gl",
+      "ag.gl",
+      "nuuk.gl"
+    ],
+    "tier": "tier2"
+  },
+
+  "news_wire_services_regional": {
+    "credibility": 0.88,
+    "description": "Regional wire services and news agencies",
+    "domains": [
+      "ritzau.dk",
+      "tt.se",
+      "ntb.no",
+      "stt.fi",
+      "apa.at",
+      "keystone-sda.ch",
+      "ansa.it",
+      "efe.com",
+      "lusa.pt",
+      "pap.pl",
+      "bta.bg",
+      "mti.hu",
+      "tasr.sk",
+      "ctk.cz"
+    ],
+    "tier": "tier1"
+  },
+
   "news_tier3_regional": {
     "credibility": 0.68,
     "description": "Regional news outlets - reputable but less internationally recognized",
@@ -445,6 +524,28 @@
     "tier": "excluded"
   },
 
+  "climate_misinformation": {
+    "credibility": 0.15,
+    "description": "Known climate misinformation and denial sites - repeatedly fact-checked as misleading",
+    "domains": [
+      "wattsupwiththat.com",
+      "climatedepot.com",
+      "notrickszone.com",
+      "joannenova.com.au",
+      "realclimatescience.com",
+      "cfact.org",
+      "co2science.org",
+      "drroyspencer.com"
+    ],
+    "risk_flags": [
+      "climate_misinformation",
+      "repeatedly_debunked",
+      "cherry_picking"
+    ],
+    "auto_exclude": false,
+    "tier": "tier3"
+  },
+
   "tabloid": {
     "credibility": 0.55,
     "description": "Tabloid and entertainment-focused outlets",
@@ -517,7 +618,23 @@
       "worldcat.org",
       "ebsco.com",
       "gale.com",
-      "repository.library"
+      "repository.library",
+      "semanticscholar.org",
+      "openalex.org",
+      "crossref.org",
+      "pubmed.ncbi.nlm.nih.gov",
+      "scholar.google.com",
+      "researchgate.net",
+      "academia.edu",
+      "sciencedirect.com",
+      "springer.com",
+      "wiley.com",
+      "nature.com",
+      "science.org",
+      "arxiv.org",
+      "biorxiv.org",
+      "medrxiv.org",
+      "ssrn.com"
     ],
     "tier": "tier1"
   },
@@ -1040,7 +1157,17 @@
     "credibility": 0.95,
     "description": "Climate and atmospheric research institutions",
     "domains": [
-      "ncar.ucar.edu"
+      "ncar.ucar.edu",
+      "ncas.ac.uk",
+      "metoffice.gov.uk",
+      "ceda.ac.uk",
+      "bgs.ac.uk",
+      "reading.ac.uk",
+      "worldweatherattribution.org",
+      "realclimate.org",
+      "skepticalscience.com",
+      "copernicus.eu",
+      "ecmwf.int"
     ],
     "tier": "tier1"
   },

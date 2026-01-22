@@ -149,6 +149,10 @@ class Settings(BaseSettings):
     # Aligned with CREDIBILITY_MINIMUM (unified threshold)
     SOURCE_CREDIBILITY_THRESHOLD: float = Field(0.55, env="SOURCE_CREDIBILITY_THRESHOLD")
 
+    # Phase 6 - Source Diversity Enhancement
+    # Boost credibility for evidence corroborated by multiple independent sources
+    ENABLE_CORROBORATION_BOOST: bool = Field(True, env="ENABLE_CORROBORATION_BOOST")
+
     # Phase 4 - Legal Integration
     ENABLE_LEGAL_SEARCH: bool = Field(True, env="ENABLE_LEGAL_SEARCH")
     GOVINFO_API_KEY: Optional[str] = Field(None, env="GOVINFO_API_KEY")
@@ -194,6 +198,15 @@ class Settings(BaseSettings):
     # When False: Judge makes verdict decisions without seeing NLI verdict/confidence scores
     # NLI still runs for evidence relevance filtering, but doesn't bias Judge's decision
     PASS_NLI_VERDICT_TO_JUDGE: bool = Field(False, env="PASS_NLI_VERDICT_TO_JUDGE")
+
+    # ========== LLM RELEVANCE SCORER ==========
+    # Replaces embedding-based ranking with LLM-based understanding of evidential value
+    # Uses GPT-4o-mini to score evidence 1-5 based on how well it helps verify/refute claims
+    ENABLE_LLM_RELEVANCE_SCORER: bool = Field(True, env="ENABLE_LLM_RELEVANCE_SCORER")
+    LLM_RELEVANCE_MODEL: str = Field("gpt-4o-mini-2024-07-18", env="LLM_RELEVANCE_MODEL")
+    LLM_RELEVANCE_MIN_SCORE: int = Field(4, env="LLM_RELEVANCE_MIN_SCORE")  # Keep evidence with score >= 4
+    LLM_RELEVANCE_MAX_EVIDENCE: int = Field(50, env="LLM_RELEVANCE_MAX_EVIDENCE")  # Max items to score per call
+    LLM_RELEVANCE_CACHE_TTL: int = Field(3600, env="LLM_RELEVANCE_CACHE_TTL")  # Cache TTL in seconds (1 hour)
 
     # Rollout Controls
     FEATURE_ROLLOUT_PERCENTAGE: int = Field(0, env="FEATURE_ROLLOUT_PERCENTAGE")

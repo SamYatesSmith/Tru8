@@ -62,59 +62,88 @@ def _get_rhetorical_analysis(evidence: List[Dict[str, Any]], claim_text: str) ->
 
 def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3) -> List[Dict[str, Any]]:
     """
-    Select most relevant evidence for display, prioritizing semantic similarity.
+    Select most relevant evidence for display.
 
-    This ensures users see evidence that directly addresses their claim rather than
-    topically related but not evidential sources.
+    When LLM Relevance Scorer is enabled, uses llm_relevance_score (1-5).
+    Falls back to semantic_similarity for backwards compatibility.
 
-    IMPORTANT: ALL evidence (including API sources) must pass semantic relevance threshold.
+    IMPORTANT: ALL evidence (including API sources) must pass relevance threshold.
     API sources are authoritative but may return data irrelevant to the specific claim
     (e.g., league standings for a transfer claim).
 
     Args:
-        evidence: List of evidence items with semantic_similarity scores
+        evidence: List of evidence items with llm_relevance_score and/or semantic_similarity
         max_items: Maximum number of evidence items to return (default: 3)
 
     Returns:
-        List of evidence items sorted by relevance, filtered for minimum similarity
+        List of evidence items sorted by relevance, filtered for minimum threshold
     """
     if not evidence:
         return []
 
-    # Minimum similarity thresholds for display
-    # ALIGNED with TIER 1 (same as retrieve stage - unified threshold system!)
-    MIN_DISPLAY_SIMILARITY = getattr(settings, 'SIMILARITY_TIER1_LENIENT', 0.25)
-    # HIGHER threshold for API sources - keyword matches often return irrelevant data
-    # API results need to prove semantic relevance, not just keyword match
-    MIN_API_DISPLAY_SIMILARITY = MIN_DISPLAY_SIMILARITY + 0.10  # 0.35 - stricter for API
+    # Check if LLM relevance scores are present (indicates LLM scorer was used)
+    has_llm_scores = any(e.get('llm_relevance_score', 0) > 0 for e in evidence)
 
-    # Sort by semantic_similarity (primary), then combined_score (fallback)
-    sorted_evidence = sorted(
-        evidence,
-        key=lambda x: (x.get('semantic_similarity', 0), x.get('combined_score', 0)),
-        reverse=True
-    )
+    if has_llm_scores:
+        # Use LLM relevance scoring (score 1-5)
+        MIN_LLM_RELEVANCE = getattr(settings, 'LLM_RELEVANCE_MIN_SCORE', 4)
 
-    # Filter: ALL sources must meet relevance threshold (no more API bypass)
-    filtered = []
-    for e in sorted_evidence:
-        similarity = e.get('semantic_similarity', 0)
-        is_api_source = bool(e.get('external_source_provider'))
+        # Sort by llm_relevance_score (primary), then credibility_score (secondary)
+        sorted_evidence = sorted(
+            evidence,
+            key=lambda x: (x.get('llm_relevance_score', 0), x.get('credibility_score', 0)),
+            reverse=True
+        )
 
-        # Use appropriate threshold based on source type
-        threshold = MIN_API_DISPLAY_SIMILARITY if is_api_source else MIN_DISPLAY_SIMILARITY
+        # Filter by LLM relevance threshold
+        filtered = []
+        for e in sorted_evidence:
+            llm_score = e.get('llm_relevance_score', 0)
 
-        if similarity >= threshold:
-            filtered.append(e)
-        elif is_api_source:
-            # Log filtered API sources for monitoring - helps identify relevance issues
-            logger.info(
-                f"[JUDGE] Filtered low-relevance API evidence: "
-                f"{e.get('external_source_provider')} (similarity={similarity:.3f} < {threshold})"
-            )
+            if llm_score >= MIN_LLM_RELEVANCE:
+                filtered.append(e)
+            elif llm_score > 0:
+                # Log filtered evidence for monitoring
+                logger.debug(
+                    f"[JUDGE] Filtered low-relevance evidence: "
+                    f"{e.get('title', 'Unknown')[:50]}... (llm_score={llm_score} < {MIN_LLM_RELEVANCE})"
+                )
 
-    # Return filtered if available, else top 1 as fallback (never show nothing)
-    return filtered[:max_items] if filtered else sorted_evidence[:1]
+        # Return filtered if available, else top 1 as fallback (never show nothing)
+        return filtered[:max_items] if filtered else sorted_evidence[:1]
+
+    else:
+        # Fallback: Use semantic similarity scoring (legacy path)
+        MIN_DISPLAY_SIMILARITY = getattr(settings, 'SIMILARITY_TIER1_LENIENT', 0.25)
+        MIN_API_DISPLAY_SIMILARITY = MIN_DISPLAY_SIMILARITY + 0.10  # 0.35 - stricter for API
+
+        # Sort by semantic_similarity (primary), then combined_score (fallback)
+        sorted_evidence = sorted(
+            evidence,
+            key=lambda x: (x.get('semantic_similarity', 0), x.get('combined_score', 0)),
+            reverse=True
+        )
+
+        # Filter: ALL sources must meet relevance threshold (no more API bypass)
+        filtered = []
+        for e in sorted_evidence:
+            similarity = e.get('semantic_similarity', 0)
+            is_api_source = bool(e.get('external_source_provider'))
+
+            # Use appropriate threshold based on source type
+            threshold = MIN_API_DISPLAY_SIMILARITY if is_api_source else MIN_DISPLAY_SIMILARITY
+
+            if similarity >= threshold:
+                filtered.append(e)
+            elif is_api_source:
+                # Log filtered API sources for monitoring - helps identify relevance issues
+                logger.info(
+                    f"[JUDGE] Filtered low-relevance API evidence: "
+                    f"{e.get('external_source_provider')} (similarity={similarity:.3f} < {threshold})"
+                )
+
+        # Return filtered if available, else top 1 as fallback (never show nothing)
+        return filtered[:max_items] if filtered else sorted_evidence[:1]
 
 
 class JudgmentResult:

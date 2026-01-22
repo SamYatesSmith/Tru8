@@ -44,10 +44,21 @@ class CrossRefAdapter(GovernmentAPIClient):
         })
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """CrossRef covers academic papers across knowledge domains."""
+        """
+        CrossRef covers academic papers - only relevant for research-heavy domains.
+
+        NOT relevant for:
+        - Politics (current news, not academic papers)
+        - Law (legal news, not legal scholarship)
+        - Business/Entertainment (company news, not research)
+
+        Academic papers rarely help verify current news claims about meetings,
+        deals, statements, or events.
+        """
         return domain in [
-            "Science", "Climate", "History", "Health",
-            "Politics", "Law", "Demographics", "Animals"
+            "Science", "Climate", "Health"
+            # Removed: Politics, Law, History, Demographics, Animals
+            # These are better served by news sources for current events
         ]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
@@ -168,11 +179,15 @@ class SemanticScholarAdapter(GovernmentAPIClient):
         self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """Semantic Scholar covers academic research across all knowledge domains."""
-        # Academic papers exist for virtually all domains
+        """
+        Semantic Scholar covers academic papers - only for research-heavy domains.
+
+        NOT relevant for current news verification (Politics, Entertainment, Business).
+        Academic papers rarely help verify claims about recent events, meetings, or deals.
+        """
         return domain in [
-            "Science", "Climate", "History", "Health", "General",
-            "Politics", "Law", "Demographics", "Animals", "Entertainment"
+            "Science", "Climate", "Health"
+            # Removed: Politics, Law, History, Demographics, Animals, Entertainment, General
         ]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
@@ -272,11 +287,15 @@ class OpenAlexAdapter(GovernmentAPIClient):
         self.headers["User-Agent"] = "Tru8FactChecker/1.0 (mailto:contact@tru8.com)"
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """OpenAlex covers scholarly works across all knowledge domains."""
-        # Scholarly works exist for virtually all domains
+        """
+        OpenAlex covers scholarly works - only for research-heavy domains.
+
+        NOT relevant for current news verification (Politics, Entertainment, Business).
+        Scholarly papers rarely help verify claims about recent events, meetings, or deals.
+        """
         return domain in [
-            "Science", "Climate", "History", "Health", "General",
-            "Politics", "Law", "Demographics", "Animals", "Entertainment"
+            "Science", "Climate", "Health"
+            # Removed: Politics, Law, History, Demographics, Animals, Entertainment, General
         ]
 
     def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:

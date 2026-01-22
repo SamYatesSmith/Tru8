@@ -15,7 +15,76 @@ from functools import lru_cache
 from urllib.parse import urlparse
 import logging
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
+
+# Domain suffix to jurisdiction mapping for geographic boosting
+DOMAIN_JURISDICTION_MAP = {
+    # Nordic countries
+    ".dk": "DK",  # Denmark
+    ".gl": "GL",  # Greenland
+    ".ag": "GL",  # Greenland media (sermitsiaq.ag, etc.) - uses .ag TLD
+    ".no": "NO",  # Norway
+    ".se": "SE",  # Sweden
+    ".fi": "FI",  # Finland
+    ".is": "IS",  # Iceland
+    ".fo": "FO",  # Faroe Islands
+    # Major European
+    ".uk": "UK",
+    ".co.uk": "UK",
+    ".de": "DE",  # Germany
+    ".fr": "FR",  # France
+    ".es": "ES",  # Spain
+    ".it": "IT",  # Italy
+    ".nl": "NL",  # Netherlands
+    ".be": "BE",  # Belgium
+    ".at": "AT",  # Austria
+    ".ch": "CH",  # Switzerland
+    ".pl": "PL",  # Poland
+    ".ie": "IE",  # Ireland
+    ".pt": "PT",  # Portugal
+    ".gr": "GR",  # Greece
+    ".cz": "CZ",  # Czech Republic
+    ".hu": "HU",  # Hungary
+    # Americas
+    ".us": "US",
+    ".com": "US",  # Default .com to US (can be overridden)
+    ".ca": "CA",  # Canada
+    ".mx": "MX",  # Mexico
+    ".br": "BR",  # Brazil
+    ".ar": "AR",  # Argentina
+    # Asia-Pacific
+    ".au": "AU",  # Australia
+    ".nz": "NZ",  # New Zealand
+    ".jp": "JP",  # Japan
+    ".kr": "KR",  # South Korea
+    ".cn": "CN",  # China
+    ".in": "IN",  # India
+    ".sg": "SG",  # Singapore
+    # Middle East / Africa
+    ".il": "IL",  # Israel
+    ".za": "ZA",  # South Africa
+    ".ae": "AE",  # UAE
+    # International
+    ".eu": "EU",
+    ".int": "INTL",
+    ".org": "INTL",  # Many orgs are international
+}
+
+# Jurisdiction groupings for "near match" boosting
+JURISDICTION_GROUPS = {
+    # Nordic group - stories about one Nordic country benefit from other Nordic sources
+    "NORDIC": ["DK", "GL", "NO", "SE", "FI", "IS", "FO"],
+    # EU group
+    "EU": ["DE", "FR", "ES", "IT", "NL", "BE", "AT", "PL", "IE", "PT", "GR", "CZ", "HU", "DK", "SE", "FI"],
+    # Anglosphere
+    "ANGLO": ["UK", "US", "CA", "AU", "NZ", "IE"],
+}
+
+# Credibility boost amounts
+JURISDICTION_BOOST_EXACT = 0.12  # Source country matches story country exactly
+JURISDICTION_BOOST_GROUP = 0.06  # Source country is in same regional group
 
 
 class SourceCredibilityService:
@@ -38,17 +107,20 @@ class SourceCredibilityService:
         """Initialize service and load credibility configuration"""
         config_path = Path(__file__).parent.parent / "data" / "source_credibility.json"
 
+        # Get default credibility from unified config (aligned with CREDIBILITY_MINIMUM)
+        default_credibility = getattr(settings, 'UNKNOWN_SOURCE_CREDIBILITY', 0.55)
+
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 self.config = json.load(f)
             logger.info(f"Loaded source credibility config from {config_path}")
         except FileNotFoundError:
             logger.error(f"Credibility config not found at {config_path}")
-            # Fallback to minimal config
-            self.config = {"general": {"credibility": 0.6, "description": "Default", "tier": "general"}}
+            # Fallback to minimal config - uses unified UNKNOWN_SOURCE_CREDIBILITY
+            self.config = {"general": {"credibility": default_credibility, "description": "Default", "tier": "general"}}
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON in credibility config: {e}")
-            self.config = {"general": {"credibility": 0.6, "description": "Default", "tier": "general"}}
+            self.config = {"general": {"credibility": default_credibility, "description": "Default", "tier": "general"}}
 
         # Cache for performance (stores domain -> credibility info)
         self._domain_cache: Dict[str, Dict[str, Any]] = {}
@@ -246,15 +318,17 @@ class SourceCredibilityService:
 
     def _get_general_tier(self, reasoning: str) -> Dict[str, Any]:
         """Get default 'general' tier with custom reasoning"""
+        # Use unified UNKNOWN_SOURCE_CREDIBILITY for default (aligned with CREDIBILITY_MINIMUM)
+        default_cred = getattr(settings, 'UNKNOWN_SOURCE_CREDIBILITY', 0.55)
         general_config = self.config.get('general', {
-            'credibility': 0.6,
+            'credibility': default_cred,
             'description': 'Default for unmatched sources',
             'tier': 'general'
         })
 
         return {
             'tier': 'general',
-            'credibility': general_config.get('credibility', 0.6),
+            'credibility': general_config.get('credibility', default_cred),
             'risk_flags': [],
             'auto_exclude': False,
             'reasoning': reasoning,
@@ -380,6 +454,149 @@ class SourceCredibilityService:
             'should_flag': risk_info['should_flag_to_user'],
             'warning': risk_info['warning_message'],
             'auto_exclude': cred_info['auto_exclude']
+        }
+
+    def _get_source_jurisdiction(self, url: str) -> Optional[str]:
+        """
+        Extract jurisdiction (country code) from URL based on domain suffix.
+
+        Args:
+            url: URL to analyze
+
+        Returns:
+            Two-letter country code or None if unknown
+        """
+        try:
+            parsed = tldextract.extract(url)
+            domain = parsed.registered_domain.lower()
+            suffix = parsed.suffix.lower()
+
+            # Check full suffix first (e.g., .co.uk)
+            full_suffix = f".{suffix}"
+            if full_suffix in DOMAIN_JURISDICTION_MAP:
+                return DOMAIN_JURISDICTION_MAP[full_suffix]
+
+            # Check TLD only (e.g., .uk from .co.uk)
+            tld = suffix.split('.')[-1] if '.' in suffix else suffix
+            tld_key = f".{tld}"
+            if tld_key in DOMAIN_JURISDICTION_MAP:
+                return DOMAIN_JURISDICTION_MAP[tld_key]
+
+            return None
+        except Exception as e:
+            logger.debug(f"Failed to extract jurisdiction from {url}: {e}")
+            return None
+
+    def _calculate_jurisdiction_boost(
+        self,
+        source_jurisdiction: Optional[str],
+        story_jurisdiction: Optional[str]
+    ) -> Tuple[float, str]:
+        """
+        Calculate credibility boost based on geographic relevance.
+
+        Args:
+            source_jurisdiction: Country code of the source (e.g., "DK")
+            story_jurisdiction: Country/region of the story (e.g., "DK", "UK", "EU", "Global")
+
+        Returns:
+            Tuple of (boost_amount, reasoning)
+        """
+        if not source_jurisdiction or not story_jurisdiction:
+            return 0.0, ""
+
+        story_jurisdiction = story_jurisdiction.upper()
+
+        # Exact match - source is from the same country as the story
+        if source_jurisdiction == story_jurisdiction:
+            return JURISDICTION_BOOST_EXACT, f"local source (+{JURISDICTION_BOOST_EXACT:.0%})"
+
+        # Special case: Greenland stories - boost Danish sources too
+        if story_jurisdiction == "GL" and source_jurisdiction == "DK":
+            return JURISDICTION_BOOST_EXACT, f"Danish source for Greenland story (+{JURISDICTION_BOOST_EXACT:.0%})"
+
+        # Check if both are in the same regional group
+        for group_name, countries in JURISDICTION_GROUPS.items():
+            if source_jurisdiction in countries:
+                # Story jurisdiction might be a country code or group name
+                if story_jurisdiction in countries:
+                    return JURISDICTION_BOOST_GROUP, f"regional source ({group_name}, +{JURISDICTION_BOOST_GROUP:.0%})"
+                # Story jurisdiction might be the group itself (e.g., "EU")
+                if story_jurisdiction == group_name:
+                    return JURISDICTION_BOOST_GROUP, f"regional source ({group_name}, +{JURISDICTION_BOOST_GROUP:.0%})"
+
+        return 0.0, ""
+
+    def get_credibility_with_jurisdiction(
+        self,
+        source: str,
+        url: str,
+        story_jurisdiction: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Get credibility score with geographic/jurisdictional boosting.
+
+        Local sources get a credibility boost when covering stories in their region.
+        This helps ensure diverse, locally-relevant sources are included.
+
+        Args:
+            source: Source name (e.g., "BBC News")
+            url: Full URL to assess
+            story_jurisdiction: Jurisdiction of the story being fact-checked
+                               (e.g., "UK", "DK", "US", "EU", "Global")
+
+        Returns:
+            Credibility info with jurisdiction boost applied:
+                - tier: str - Category tier
+                - credibility: float - Base score 0.0-1.0
+                - boosted_credibility: float - Score with jurisdiction boost
+                - jurisdiction_boost: float - Amount of boost applied
+                - jurisdiction_reasoning: str - Why boost was applied
+                - source_jurisdiction: str - Detected source country
+                - ... (all other standard fields)
+
+        Example:
+            >>> service.get_credibility_with_jurisdiction(
+            ...     "Politiken", "https://politiken.dk/article", story_jurisdiction="DK"
+            ... )
+            {
+                'tier': 'news_nordic_newspapers',
+                'credibility': 0.82,
+                'boosted_credibility': 0.94,  # 0.82 + 0.12 boost
+                'jurisdiction_boost': 0.12,
+                'jurisdiction_reasoning': 'local source (+12%)',
+                'source_jurisdiction': 'DK',
+                ...
+            }
+        """
+        # Get base credibility
+        base_cred = self.get_credibility(source, url)
+
+        # Extract source jurisdiction
+        source_jurisdiction = self._get_source_jurisdiction(url)
+
+        # Calculate jurisdiction boost
+        boost, boost_reasoning = self._calculate_jurisdiction_boost(
+            source_jurisdiction, story_jurisdiction
+        )
+
+        # Calculate boosted credibility (capped at 1.0)
+        boosted_credibility = min(1.0, base_cred['credibility'] + boost)
+
+        # Log significant boosts for monitoring
+        if boost > 0:
+            logger.debug(
+                f"[JURISDICTION BOOST] {url[:50]}... "
+                f"({source_jurisdiction} for {story_jurisdiction} story): "
+                f"{base_cred['credibility']:.2f} -> {boosted_credibility:.2f}"
+            )
+
+        return {
+            **base_cred,
+            'boosted_credibility': boosted_credibility,
+            'jurisdiction_boost': boost,
+            'jurisdiction_reasoning': boost_reasoning,
+            'source_jurisdiction': source_jurisdiction
         }
 
 

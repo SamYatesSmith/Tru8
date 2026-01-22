@@ -261,16 +261,43 @@ class EvidenceRetriever:
                     all_evidence_snippets.sort(key=lambda x: x.relevance_score if hasattr(x, 'relevance_score') else 0.5, reverse=True)
                     all_evidence_snippets = all_evidence_snippets[:MAX_EVIDENCE_FOR_RANKING]
 
-                ranked_evidence = await self._rank_evidence_with_embeddings(
-                    claim_text,
-                    all_evidence_snippets
-                )
+                # If LLM scorer is enabled, skip embedding ranking (it's done later in pipeline)
+                # This saves ~1-2s of compute per claim and avoids redundant topical scoring
+                if getattr(settings, 'ENABLE_LLM_RELEVANCE_SCORER', True):
+                    # Pass evidence through without embedding ranking
+                    # LLM scorer will handle relevance scoring later
+                    logger.debug(f"[RETRIEVE] Skipping embedding ranking - LLM scorer enabled")
+                    ranked_evidence = []
+                    for idx, snippet in enumerate(all_evidence_snippets):
+                        external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
+                        credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
+                        ranked_evidence.append({
+                            "id": f"evidence_{idx}",
+                            "text": snippet.text,
+                            "source": snippet.source,
+                            "url": snippet.url,
+                            "title": snippet.title,
+                            "published_date": snippet.published_date,
+                            "relevance_score": float(snippet.relevance_score),
+                            "semantic_similarity": 0.0,  # Not computed - LLM scorer will score relevance
+                            "combined_score": 0.0,  # Not computed - LLM scorer will score relevance
+                            "word_count": snippet.word_count,
+                            "credibility_score": credibility,
+                            "external_source_provider": external_source,
+                            "metadata": snippet.metadata
+                        })
+                else:
+                    # Legacy path: Use embedding-based ranking
+                    ranked_evidence = await self._rank_evidence_with_embeddings(
+                        claim_text,
+                        all_evidence_snippets
+                    )
 
-                # Step 2.5: Cross-encoder reranking for precision (Phase 1.3)
-                ranked_evidence = await self._rerank_with_cross_encoder(
-                    claim_text,
-                    ranked_evidence
-                )
+                    # Step 2.5: Cross-encoder reranking for precision (Phase 1.3)
+                    ranked_evidence = await self._rerank_with_cross_encoder(
+                        claim_text,
+                        ranked_evidence
+                    )
 
                 # Step 3: Apply credibility and recency weighting (with raw evidence tracking)
                 result = self._apply_credibility_weighting(ranked_evidence, claim, track_raw_evidence=True)
@@ -832,12 +859,22 @@ class EvidenceRetriever:
             # Create URL -> raw_item lookup for efficient updates
             url_to_raw = {item["url"]: item for item in raw_evidence_tracking} if track_raw_evidence else {}
 
+            # Phase 6: Extract story jurisdiction for geographic boosting
+            story_jurisdiction = None
+            if claim:
+                article_classification = claim.get("article_classification", {})
+                if article_classification:
+                    story_jurisdiction = article_classification.get("jurisdiction")
+                    if story_jurisdiction and story_jurisdiction != "Global":
+                        logger.debug(f"[JURISDICTION] Using story jurisdiction: {story_jurisdiction}")
+
             for evidence in evidence_list:
                 source = evidence.get("source", "").lower()
                 url = evidence.get("url", "")
 
                 # Determine credibility tier (Phase 3: pass url and evidence for enrichment)
-                credibility_score = self._get_credibility_score(source, url, evidence)
+                # Phase 6: Include story jurisdiction for geographic boosting
+                credibility_score = self._get_credibility_score(source, url, evidence, story_jurisdiction)
 
                 # Apply recency weighting (favor recent content)
                 recency_score = self._get_recency_score(evidence.get("published_date"))
@@ -932,6 +969,16 @@ class EvidenceRetriever:
                 credibility_filtered_count = before_credibility - len(evidence_list)
 
             logger.info(f"[FILTER] Stage 1: {original_evidence_count} raw -> {before_auto_exclude - auto_excluded_count} after auto-exclude -> {len(evidence_list)} after cred filter (threshold={MIN_CREDIBILITY})")
+
+            # Stage 1.5: Corroboration boost - boost credibility for evidence corroborated by independent sources
+            if settings.ENABLE_CORROBORATION_BOOST and len(evidence_list) >= 2:
+                from app.utils.corroboration import apply_corroboration_boost
+                evidence_list, corroboration_stats = apply_corroboration_boost(evidence_list)
+                if corroboration_stats.get("items_boosted", 0) > 0:
+                    logger.info(
+                        f"[FILTER] Stage 1.5 (corroboration): {corroboration_stats['items_boosted']} items boosted "
+                        f"({corroboration_stats['corroboration_pairs']} corroborating pairs)"
+                    )
 
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
@@ -1035,7 +1082,13 @@ class EvidenceRetriever:
                 return evidence_list, []
             return evidence_list
 
-    def _get_credibility_score(self, source: str, url: str = None, evidence_item: Dict[str, Any] = None) -> float:
+    def _get_credibility_score(
+        self,
+        source: str,
+        url: str = None,
+        evidence_item: Dict[str, Any] = None,
+        story_jurisdiction: Optional[str] = None
+    ) -> float:
         """
         Determine credibility score for a source.
 
@@ -1044,13 +1097,18 @@ class EvidenceRetriever:
 
         TIER 1 IMPROVEMENT: Enhanced with primary source detection.
 
+        Phase 6: Geographic boosting - local sources get credibility boost
+        when covering stories in their region.
+
         Args:
             source: Source name
             url: Source URL (required for Phase 3)
             evidence_item: Evidence dict to enrich with metadata (optional)
+            story_jurisdiction: Jurisdiction of the story (e.g., "DK", "UK", "US")
+                               for geographic boosting
 
         Returns:
-            Credibility score 0.0-1.0
+            Credibility score 0.0-1.0 (with jurisdiction boost if applicable)
         """
         from app.core.config import settings
 
@@ -1073,19 +1131,33 @@ class EvidenceRetriever:
             return api_credibility
 
         # Phase 3: Use Domain Credibility Framework if enabled
+        # Phase 6: With jurisdiction boosting for local sources
         if settings.ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK and url:
             try:
                 from app.services.source_credibility import get_credibility_service
 
                 credibility_service = get_credibility_service()
-                cred_info = credibility_service.get_credibility(source, url)
+
+                # Use jurisdiction-aware method if story jurisdiction is known
+                if story_jurisdiction:
+                    cred_info = credibility_service.get_credibility_with_jurisdiction(
+                        source, url, story_jurisdiction
+                    )
+                else:
+                    cred_info = credibility_service.get_credibility(source, url)
 
                 # Enrich evidence item with credibility metadata if provided
                 if evidence_item is not None:
                     evidence_item['tier'] = cred_info.get('tier')
                     evidence_item['risk_flags'] = cred_info.get('risk_flags', [])
                     evidence_item['credibility_reasoning'] = cred_info.get('reasoning')
-                    evidence_item['auto_exclude'] = cred_info.get('auto_exclude', False)  # NEW: Pass through flag
+                    evidence_item['auto_exclude'] = cred_info.get('auto_exclude', False)
+
+                    # Phase 6: Track jurisdiction boost if applied
+                    if cred_info.get('jurisdiction_boost', 0) > 0:
+                        evidence_item['jurisdiction_boost'] = cred_info.get('jurisdiction_boost')
+                        evidence_item['source_jurisdiction'] = cred_info.get('source_jurisdiction')
+                        evidence_item['jurisdiction_reasoning'] = cred_info.get('jurisdiction_reasoning')
 
                     # Get risk assessment
                     risk_info = credibility_service.get_risk_assessment(url)
@@ -1112,7 +1184,8 @@ class EvidenceRetriever:
                     except Exception as e:
                         logger.warning(f"Failed to log unknown source {url}: {e}")
 
-                base_credibility = cred_info.get('credibility', 0.6)
+                # Use boosted_credibility if jurisdiction boost was applied, otherwise base credibility
+                base_credibility = cred_info.get('boosted_credibility', cred_info.get('credibility', 0.6))
 
             except Exception as e:
                 logger.warning(f"Credibility framework error for {url}: {e}, falling back to legacy")
