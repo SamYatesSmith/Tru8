@@ -158,6 +158,13 @@ async def _score_with_llm(
 
     model = getattr(settings, 'LLM_RELEVANCE_MODEL', 'gpt-4o-mini-2024-07-18')
 
+    # Calculate required output tokens: ~100 tokens per evidence item for score object
+    # Plus overhead for JSON structure
+    required_output_tokens = len(evidence_to_score) * 120 + 200
+    max_output_tokens = max(4000, min(required_output_tokens, 16000))  # Between 4K-16K
+
+    logger.debug(f"[LLM SCORER] Scoring {len(evidence_to_score)} items, max_tokens={max_output_tokens}")
+
     response = await client.chat.completions.create(
         model=model,
         messages=[
@@ -168,11 +175,27 @@ async def _score_with_llm(
             {"role": "user", "content": prompt}
         ],
         temperature=0.1,  # Low temperature for consistency
-        max_tokens=2000,   # Allow for scoring all evidence
+        max_tokens=max_output_tokens,  # Dynamic based on evidence count
         response_format={"type": "json_object"}
     )
 
     result_text = response.choices[0].message.content
+
+    # Check for truncation (finish_reason="length" means max_tokens was hit)
+    finish_reason = response.choices[0].finish_reason
+    if finish_reason == "length":
+        logger.error(
+            f"[LLM SCORER] Response truncated (max_tokens={max_output_tokens} insufficient). "
+            f"Evidence count: {len(evidence_to_score)}. Response length: {len(result_text)} chars"
+        )
+        # Try to parse anyway - might have partial valid JSON
+
+    # Log token usage for monitoring
+    if hasattr(response, 'usage') and response.usage:
+        logger.info(
+            f"[LLM SCORER] Token usage: input={response.usage.prompt_tokens}, "
+            f"output={response.usage.completion_tokens}, total={response.usage.total_tokens}"
+        )
 
     # Parse JSON response - handle both array and object formats
     try:
