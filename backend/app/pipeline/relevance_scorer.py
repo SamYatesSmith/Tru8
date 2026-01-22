@@ -22,11 +22,21 @@ logger = logging.getLogger(__name__)
 RELEVANCE_CACHE_TTL_SECONDS = getattr(settings, 'LLM_RELEVANCE_CACHE_TTL', 3600)
 
 
-RELEVANCE_SCORING_PROMPT = """You are a fact-checking evidence analyst. Your task is to score how well each piece of evidence helps VERIFY or REFUTE the given claims.
+RELEVANCE_SCORING_PROMPT = """You are a fact-checking evidence analyst. Score how well each evidence piece helps VERIFY or REFUTE the specific claims below.
 
-IMPORTANT: Score based on EVIDENTIAL VALUE, not topical similarity.
-- An evidence piece about "how to fact-check claims" is NOT relevant to a claim about climate data
-- An evidence piece must contain actual data, quotes, or facts that directly address the claim
+CRITICAL: Score based on EVIDENTIAL VALUE for the SPECIFIC CLAIMS, not topical similarity.
+
+AUTOMATIC SCORE 1 (always irrelevant - these NEVER help verify specific claims):
+- Pages ABOUT fact-checking tools, methodology, or how to fact-check (e.g., "Web Sites for Fact Checking", "How to verify claims")
+- News aggregator index pages or category listings (e.g., "Fact Check News | Latest Articles")
+- Academic papers about misinformation research or fact-checker analysis (e.g., "Fact-checking fact checkers", "Misinformation Review")
+- Generic guides, tutorials, or resource lists
+- Content about completely different topics/events than the claims
+
+SCORE 4-5 (actually relevant):
+- News articles reporting on the SAME EVENT mentioned in the claims
+- Official statements, press releases, or documents about the claimed facts
+- Statistics, data, or quotes that directly address what the claim asserts
 
 ARTICLE BEING FACT-CHECKED:
 {article_context}
@@ -37,32 +47,26 @@ CLAIMS TO VERIFY:
 EVIDENCE ITEMS TO SCORE:
 {evidence_text}
 
-SCORING RUBRIC (1-5):
-5 = Direct proof or refutation with specific data, statistics, quotes, or official statements
-4 = Strongly relevant - provides key supporting context or authoritative information
-3 = Somewhat relevant - partial information, tangentially addresses the claim
-2 = Weakly related - same topic but doesn't help verify the specific claim
-1 = Off-topic or irrelevant - doesn't help verify any claims
+SCORING RUBRIC:
+5 = Direct proof/refutation with specific data, quotes, or official statements about THIS event
+4 = Strongly relevant - reports on the same event or provides authoritative context
+3 = Partially relevant - related topic but missing specific details needed
+2 = Tangentially related - same general subject but different event/context
+1 = OFF-TOPIC or META-SOURCE - doesn't contain facts about the claimed events (includes all fact-checking guides, methodology pages, aggregator indexes)
 
-RESPONSE FORMAT:
-Return a JSON array with one object per evidence item:
+RESPONSE FORMAT (JSON array):
 [
-  {{
-    "evidence_index": 0,
-    "score": 5,
-    "rationale": "Brief explanation of why this score",
-    "relevant_claims": [0, 2]
-  }},
+  {{"evidence_index": 0, "score": 5, "rationale": "Brief explanation", "relevant_claims": [0, 2]}},
   ...
 ]
 
 Rules:
-- evidence_index: 0-based index matching the order of evidence items above
-- score: integer 1-5 using the rubric
-- rationale: 1-2 sentences explaining the score
-- relevant_claims: list of claim indices (0-based) this evidence helps verify/refute
+- evidence_index: 0-based index matching evidence order above
+- score: integer 1-5 per rubric (be STRICT - most meta-sources should be 1)
+- rationale: 1-2 sentences explaining score
+- relevant_claims: claim indices this evidence helps verify (empty [] if score <= 2)
 
-Return ONLY valid JSON array, no additional text."""
+Return ONLY valid JSON array."""
 
 
 async def _get_cached_relevance_scores(cache_key: str) -> Optional[List[Dict[str, Any]]]:
@@ -132,11 +136,12 @@ async def _score_with_llm(
 
     evidence_text_parts = []
     for i, ev in enumerate(evidence_to_score):
-        title = ev.get('title', 'Unknown')[:100]
+        title = ev.get('title', 'Unknown')[:150]
         # Try 'text' first (standard), then 'snippet' (alias), then 'content' (fallback)
-        snippet = ev.get('text', ev.get('snippet', ev.get('content', '')))[:300]
+        # Use 500 chars for better context to identify meta-sources
+        snippet = ev.get('text', ev.get('snippet', ev.get('content', '')))[:500]
         source = ev.get('source', ev.get('external_source_provider', 'Unknown'))
-        url = ev.get('url', '')[:100]
+        url = ev.get('url', '')[:150]
         evidence_text_parts.append(
             f"[Evidence {i}]:\n"
             f"  Source: {source}\n"
