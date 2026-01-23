@@ -50,9 +50,9 @@ EVIDENCE ITEMS TO SCORE:
 SCORING RUBRIC:
 5 = Direct proof/refutation with specific data, quotes, or official statements about THIS event
 4 = Strongly relevant - reports on the same event or provides authoritative context
-3 = Partially relevant - related topic but missing specific details needed
-2 = Tangentially related - same general subject but different event/context
-1 = OFF-TOPIC or META-SOURCE - doesn't contain facts about the claimed events (includes all fact-checking guides, methodology pages, aggregator indexes)
+3 = Moderately relevant - covers the topic/event, may lack some specific details
+2 = Weakly relevant - same general subject area but limited direct connection to claims
+1 = OFF-TOPIC or META-SOURCE - doesn't contain facts about the claimed events (includes fact-checking guides, methodology pages, aggregator indexes)
 
 RESPONSE FORMAT (JSON array):
 [
@@ -62,7 +62,7 @@ RESPONSE FORMAT (JSON array):
 
 Rules:
 - evidence_index: 0-based index matching evidence order above
-- score: integer 1-5 per rubric (be STRICT - most meta-sources should be 1)
+- score: integer 1-5 per rubric (score accurately based on evidential value)
 - rationale: 1-2 sentences explaining score
 - relevant_claims: claim indices this evidence helps verify (empty [] if score <= 2)
 
