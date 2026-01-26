@@ -87,55 +87,114 @@ export function ClaimCard({ claim, index }: ClaimCardProps) {
           </Text>
         </View>
 
-        {/* Evidence Sources */}
+        {/* Evidence Sources OR Unsupported Notice */}
         <View>
-          <Text style={{
-            color: Colors.gray800,
-            fontSize: Typography.textSm,
-            fontWeight: Typography.fontWeightSemibold,
-            marginBottom: Spacing.space3,
-          }}>
-            Sources:
-          </Text>
-          
-          <View style={{ gap: Spacing.space2 }}>
-            {/* Top evidence */}
-            {topEvidence.map((evidence) => (
-              <CitationChip
-                key={evidence.id}
-                evidence={evidence}
-                showCredibility={true}
-              />
-            ))}
-            
-            {/* View all sources button */}
-            {hasMoreEvidence && (
-              <TouchableOpacity
-                onPress={() => setEvidenceDrawerVisible(true)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: Spacing.space2,
-                  backgroundColor: Colors.gray50,
-                  borderWidth: 1,
-                  borderColor: Colors.gray200,
-                  borderRadius: BorderRadius.radiusMd,
-                  paddingHorizontal: Spacing.space3,
-                  paddingVertical: Spacing.space2,
-                  marginTop: Spacing.space1,
-                }}
-              >
-                <FileSearch size={14} color={Colors.gray600} />
-                <Text style={{
-                  color: Colors.gray600,
-                  fontSize: Typography.textSm,
-                  fontWeight: Typography.fontWeightMedium,
-                }}>
-                  View all {claim.evidence.length} sources
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          {claim.evidence.length > 0 ? (
+            <>
+              <Text style={{
+                color: Colors.gray800,
+                fontSize: Typography.textSm,
+                fontWeight: Typography.fontWeightSemibold,
+                marginBottom: Spacing.space3,
+              }}>
+                Sources:
+              </Text>
+
+              <View style={{ gap: Spacing.space2 }}>
+                {/* Top evidence */}
+                {topEvidence.map((evidence) => (
+                  <CitationChip
+                    key={evidence.id}
+                    evidence={evidence}
+                    showCredibility={true}
+                  />
+                ))}
+
+                {/* View all sources button */}
+                {hasMoreEvidence && (
+                  <TouchableOpacity
+                    onPress={() => setEvidenceDrawerVisible(true)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: Spacing.space2,
+                      backgroundColor: Colors.gray50,
+                      borderWidth: 1,
+                      borderColor: Colors.gray200,
+                      borderRadius: BorderRadius.radiusMd,
+                      paddingHorizontal: Spacing.space3,
+                      paddingVertical: Spacing.space2,
+                      marginTop: Spacing.space1,
+                    }}
+                  >
+                    <FileSearch size={14} color={Colors.gray600} />
+                    <Text style={{
+                      color: Colors.gray600,
+                      fontSize: Typography.textSm,
+                      fontWeight: Typography.fontWeightMedium,
+                    }}>
+                      View all {claim.evidence.length} sources
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </>
+          ) : (
+            /* Unsupported Claim Notice */
+            <View style={{
+              backgroundColor: '#fffbeb',
+              borderLeftWidth: 3,
+              borderLeftColor: '#d97706',
+              borderRadius: BorderRadius.radiusMd,
+              padding: Spacing.space3,
+            }}>
+              <Text style={{
+                color: '#92400e',
+                fontSize: Typography.textSm,
+                fontWeight: Typography.fontWeightSemibold,
+                marginBottom: Spacing.space1,
+              }}>
+                ⚠ Unsupported Claim
+              </Text>
+              {claim.sourcesReviewedCount && claim.sourcesReviewedCount > 0 ? (
+                <>
+                  <Text style={{
+                    color: '#78350f',
+                    fontSize: Typography.textXs,
+                    lineHeight: Typography.textXs * 1.5,
+                  }}>
+                    {claim.sourcesReviewedCount} source{claim.sourcesReviewedCount !== 1 ? 's were' : ' was'} reviewed but none met the quality threshold for display.
+                  </Text>
+                  <Text style={{
+                    color: '#a16207',
+                    fontSize: Typography.textXs,
+                    fontStyle: 'italic',
+                    marginTop: Spacing.space2,
+                  }}>
+                    View full source details on tru8.com
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text style={{
+                    color: '#78350f',
+                    fontSize: Typography.textXs,
+                    lineHeight: Typography.textXs * 1.5,
+                  }}>
+                    No credible sources were found to corroborate this claim. This suggests the assertion may be unfounded or inaccurate.
+                  </Text>
+                  <Text style={{
+                    color: '#a16207',
+                    fontSize: Typography.textXs,
+                    fontStyle: 'italic',
+                    marginTop: Spacing.space2,
+                  }}>
+                    The absence of evidence is itself a significant finding.
+                  </Text>
+                </>
+              )}
+            </View>
+          )}
         </View>
       </View>
 

@@ -115,7 +115,7 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
 
     if has_llm_scores:
         # Use LLM relevance scoring (score 1-5)
-        MIN_LLM_RELEVANCE = getattr(settings, 'LLM_RELEVANCE_MIN_SCORE', 4)
+        MIN_LLM_RELEVANCE = getattr(settings, 'LLM_RELEVANCE_MIN_SCORE', 2)  # Lowered to show weakly relevant sources
 
         # Sort by llm_relevance_score (primary), then credibility_score (secondary)
         sorted_evidence = sorted(
@@ -543,12 +543,50 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 'abstention_reason': None
             }
 
+            # Get display evidence FIRST to check if any passed filtering
+            display_evidence = _select_display_evidence(evidence, max_items=max_display_items)
+
+            # CRITICAL FIX: If no evidence passes display threshold, verdict CANNOT be "supported"
+            # This prevents the contradiction of "85% Supported" with "Unsupported Claim" notice
+            final_verdict = judgment_data.get("verdict", "uncertain")
+            final_confidence = min(max(judgment_data.get("confidence", 50), 0), 100)
+            final_rationale = judgment_data.get("rationale", "Assessment based on available evidence")
+
+            if not display_evidence and evidence:
+                # Check if evidence HAD relevance scores but none passed threshold
+                # vs. having no scores at all (test/dev scenario - should trust LLM judgment)
+                has_any_relevance_scores = any(
+                    e.get('llm_relevance_score', 0) > 0 or
+                    e.get('semantic_similarity', 0) > 0 or
+                    e.get('relevance_score', 0) > 0
+                    for e in evidence
+                )
+
+                if has_any_relevance_scores:
+                    # Evidence had scores but none passed threshold - genuine quality issue
+                    # Cannot claim support/contradiction without displayable evidence
+                    if final_verdict in ("supported", "contradicted"):
+                        logger.warning(
+                            f"[JUDGE] Verdict '{final_verdict}' changed to 'uncertain' - "
+                            f"no evidence passed display threshold (had {len(evidence)} items, 0 displayed)"
+                        )
+                        final_verdict = "uncertain"
+                        final_confidence = min(final_confidence, 40)  # Cap at 40% when no evidence shown
+                        final_rationale = (
+                            f"While some evidence was found, none met the quality threshold for display. "
+                            f"Original assessment: {final_rationale}"
+                        )
+                else:
+                    # No relevance scores at all (test/dev mode) - use evidence as-is for display
+                    logger.info(f"[JUDGE] No relevance scores on evidence - using raw evidence for display")
+                    display_evidence = evidence[:max_display_items]
+
             result = JudgmentResult(
                 claim_text=claim_text,
-                verdict=judgment_data.get("verdict", "uncertain"),
-                confidence=min(max(judgment_data.get("confidence", 50), 0), 100),
-                rationale=judgment_data.get("rationale", "Assessment based on available evidence"),
-                supporting_evidence=_select_display_evidence(evidence, max_items=max_display_items),
+                verdict=final_verdict,
+                confidence=final_confidence,
+                rationale=final_rationale,
+                supporting_evidence=display_evidence,
                 evidence_summary=enriched_summary,
                 current_verified_data=temporal_comparison,
                 rhetorical_analysis=rhetorical_analysis
@@ -569,12 +607,35 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             logger.error(f"LLM judgment failed for claim: {e}")
             # Return fallback judgment
             fallback_data = self._fallback_judgment(verification_signals)
+            fallback_display_evidence = _select_display_evidence(evidence, max_items=max_display_items)
+
+            # Apply same safeguard: no displayed evidence = uncertain verdict
+            # But only if evidence HAD relevance scores (genuine quality issue)
+            fallback_verdict = fallback_data["verdict"]
+            fallback_confidence = fallback_data["confidence"]
+            fallback_rationale = fallback_data["rationale"]
+
+            has_any_relevance_scores = any(
+                e.get('llm_relevance_score', 0) > 0 or
+                e.get('semantic_similarity', 0) > 0 or
+                e.get('relevance_score', 0) > 0
+                for e in evidence
+            ) if evidence else False
+
+            if not fallback_display_evidence and evidence:
+                if has_any_relevance_scores and fallback_verdict in ("supported", "contradicted"):
+                    fallback_verdict = "uncertain"
+                    fallback_confidence = min(fallback_confidence, 40)
+                elif not has_any_relevance_scores:
+                    # No scores = test/dev mode, use raw evidence
+                    fallback_display_evidence = evidence[:max_display_items]
+
             return JudgmentResult(
                 claim_text=claim_text,
-                verdict=fallback_data["verdict"],
-                confidence=fallback_data["confidence"],
-                rationale=fallback_data["rationale"],
-                supporting_evidence=_select_display_evidence(evidence, max_items=max_display_items),
+                verdict=fallback_verdict,
+                confidence=fallback_confidence,
+                rationale=fallback_rationale,
+                supporting_evidence=fallback_display_evidence,
                 evidence_summary=verification_signals,
                 current_verified_data=temporal_comparison,
                 rhetorical_analysis=rhetorical_analysis

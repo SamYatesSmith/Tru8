@@ -61,6 +61,7 @@ export interface Claim {
   rationale: string;
   evidence: Evidence[];
   position: number; // Order in the check
+  sourcesReviewedCount?: number; // Total sources reviewed (for "View sources" link when none displayed)
 }
 
 export interface Evidence {

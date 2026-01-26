@@ -22,9 +22,9 @@ class CacheService:
             "search_results": 3600,      # 1 hour
             "evidence_extract": 3600 * 24,  # 1 day
             "claim_extract": 3600 * 6,   # 6 hours
-            "embeddings": 3600 * 24 * 7, # 1 week
+            "embeddings": 3600 * 24 * 3, # 3 days (reduced from 1 week)
             "url_content": 3600 * 12,    # 12 hours
-            "pipeline_result": 3600 * 24 * 3,  # 3 days
+            "pipeline_result": 3600 * 24,  # 1 day (reduced from 3 days)
         }
     
     async def initialize(self):

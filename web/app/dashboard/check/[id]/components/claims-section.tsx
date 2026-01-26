@@ -49,6 +49,9 @@ interface Claim {
   position: number;
   evidence: Evidence[];
 
+  // Sources reviewed count (for "View sources" link when no evidence displayed)
+  sourcesReviewedCount?: number;
+
   // Classification fields (Phase 2)
   claimType?: string;
   isVerifiable?: boolean;
@@ -320,8 +323,8 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
               </>
             )}
 
-            {/* Evidence Toggle Button */}
-            {claim.evidence.length > 0 && (
+            {/* Evidence Toggle Button OR Unsupported Notice */}
+            {claim.evidence.length > 0 ? (
               <button
                 onClick={() => toggleEvidence(claim.id)}
                 className="flex items-center gap-2 text-sm text-[#f57a07] hover:text-[#ff8c1a] transition-colors font-medium"
@@ -332,6 +335,43 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
                   className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
                 />
               </button>
+            ) : (
+              /* Unsupported Claim Notice - No corroborating evidence found */
+              <div className="mt-2 p-4 bg-amber-900/20 border border-amber-600/30 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-amber-400 text-sm">⚠</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-amber-300">
+                      Unsupported Claim
+                    </h4>
+                    {claim.sourcesReviewedCount && claim.sourcesReviewedCount > 0 ? (
+                      <>
+                        <p className="mt-1 text-xs text-amber-200/80 leading-relaxed">
+                          {claim.sourcesReviewedCount} source{claim.sourcesReviewedCount !== 1 ? 's were' : ' was'} reviewed but none met the quality threshold for display as evidence.
+                        </p>
+                        <a
+                          href={`/dashboard/check/${checkId}/sources#claim-${claim.position}`}
+                          className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#f57a07] hover:text-[#ff8c1a] font-medium transition-colors"
+                        >
+                          <span>View {claim.sourcesReviewedCount} reviewed source{claim.sourcesReviewedCount !== 1 ? 's' : ''}</span>
+                          <ExternalLink size={12} />
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mt-1 text-xs text-amber-200/80 leading-relaxed">
+                          No credible sources were found to corroborate this claim. This suggests the assertion may be unfounded, inaccurate, or based on unreliable information.
+                        </p>
+                        <p className="mt-2 text-xs text-slate-400 italic">
+                          We searched multiple databases and news sources. The absence of supporting evidence is itself a significant finding.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Evidence List (Collapsible with Animation) */}

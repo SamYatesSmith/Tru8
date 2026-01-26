@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { CheckTabs } from '../components/check-tabs';
 import { apiClient } from '@/lib/api';
@@ -60,6 +60,23 @@ export function SourcesClient({ checkId, initialData }: SourcesClientProps) {
   const [showFiltered, setShowFiltered] = useState(true);
   const [sortBy, setSortBy] = useState<'relevance' | 'credibility' | 'date'>('relevance');
   const [exporting, setExporting] = useState(false);
+
+  // Handle deep linking: auto-expand and scroll to claim from URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#claim-')) {
+      const claimPosition = parseInt(hash.replace('#claim-', ''), 10);
+      if (!isNaN(claimPosition)) {
+        // Expand the linked claim
+        setExpandedClaims(new Set([claimPosition]));
+        // Scroll to it after a brief delay to ensure rendering
+        setTimeout(() => {
+          const element = document.getElementById(`claim-${claimPosition}`);
+          element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+  }, []);
 
   const toggleClaim = (position: number) => {
     const newExpanded = new Set(expandedClaims);
@@ -219,7 +236,8 @@ export function SourcesClient({ checkId, initialData }: SourcesClientProps) {
           return (
             <div
               key={claim.claimPosition}
-              className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden"
+              id={`claim-${claim.claimPosition}`}
+              className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden scroll-mt-4"
             >
               {/* Claim Header */}
               <button

@@ -656,7 +656,17 @@ async def get_check(
     )
     claims_result = await session.execute(claims_stmt)
     claims = claims_result.scalars().all()
-    
+
+    # Get per-claim raw source counts for "View sources" link
+    from app.models.check import RawEvidence
+    raw_counts_stmt = (
+        select(RawEvidence.claim_position, func.count(RawEvidence.id))
+        .where(RawEvidence.check_id == check.id)
+        .group_by(RawEvidence.claim_position)
+    )
+    raw_counts_result = await session.execute(raw_counts_stmt)
+    raw_counts_by_position = dict(raw_counts_result.all())
+
     claims_data = []
     for claim in claims:
         evidence_stmt = select(Evidence).where(Evidence.claim_id == claim.id)
@@ -675,6 +685,8 @@ async def get_check(
             "keyEntities": json.loads(claim.key_entities) if claim.key_entities else [],
             "sourceTitle": claim.source_title,
             "sourceUrl": claim.source_url,
+            # Sources reviewed count (for "View X sources" link when no evidence displayed)
+            "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
             "evidence": [
                 {
                     "id": ev.id,
@@ -727,25 +739,6 @@ async def get_check(
         "progress": progress_percent,
         "progressMessage": progress_message,
     }
-
-
-@router.options("/{check_id}/progress")
-async def progress_options(check_id: str):
-    """
-    Handle CORS preflight for SSE progress endpoint.
-
-    EventSource doesn't support custom headers, so browsers may send preflight
-    OPTIONS requests. This explicit handler ensures CORS works correctly.
-    """
-    return Response(
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Authorization, Content-Type, Cache-Control",
-            "Access-Control-Max-Age": "86400",  # Cache preflight for 24 hours
-        }
-    )
 
 
 @router.get("/{check_id}/progress")
@@ -897,10 +890,9 @@ async def stream_check_progress(
         event_stream(),
         media_type="text/event-stream",
         headers={
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
             "Connection": "keep-alive",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "Cache-Control"
+            "X-Accel-Buffering": "no",  # Disable nginx buffering for SSE
         }
     )
 
