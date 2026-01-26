@@ -60,6 +60,32 @@ def _get_rhetorical_analysis(evidence: List[Dict[str, Any]], claim_text: str) ->
         return None
 
 
+def calculate_max_display_items(total_claims: int) -> int:
+    """
+    Scale evidence per claim inversely with claim count.
+
+    Goal: ~15-20 total evidence items regardless of input type.
+    TEXT input (1-2 claims): More evidence per claim for depth
+    URL input (6-12 claims): Standard evidence per claim for breadth
+
+    Args:
+        total_claims: Total number of claims being judged
+
+    Returns:
+        Maximum evidence items to display per claim
+    """
+    if total_claims <= 1:
+        return 8   # Single claim gets rich detail (8 total)
+    elif total_claims == 2:
+        return 6   # 12 total
+    elif total_claims == 3:
+        return 5   # 15 total
+    elif total_claims <= 5:
+        return 4   # 16-20 total
+    else:
+        return 3   # Standard for articles with many claims
+
+
 def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3) -> List[Dict[str, Any]]:
     """
     Select most relevant evidence for display.
@@ -116,17 +142,21 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
         if filtered:
             return filtered[:max_items]
 
-        # Fallback: Only show top item if it has SOME relevance (score >= 2)
-        # Don't show completely irrelevant evidence (score 1) - better to show nothing
-        if sorted_evidence and sorted_evidence[0].get('llm_relevance_score', 0) >= 2:
+        # Fallback: Show top items even if below threshold (better than showing nothing)
+        # This ensures users see SOME evidence rather than empty results
+        # Filter to only items with SOME relevance (score >= 2) to exclude garbage
+        fallback_evidence = [e for e in sorted_evidence if e.get('llm_relevance_score', 0) >= 2]
+
+        if fallback_evidence:
             logger.warning(
                 f"[JUDGE] No evidence met threshold ({MIN_LLM_RELEVANCE}), "
-                f"showing top item with score {sorted_evidence[0].get('llm_relevance_score', 0)}"
+                f"showing {min(len(fallback_evidence), max_items)} items with lower scores: "
+                f"{[e.get('llm_relevance_score', 0) for e in fallback_evidence[:max_items]]}"
             )
-            return sorted_evidence[:1]
+            return fallback_evidence[:max_items]
 
-        # No relevant evidence at all
-        logger.warning("[JUDGE] No relevant evidence found - all items scored below minimum floor")
+        # No relevant evidence at all (all scored 1 = completely off-topic)
+        logger.warning("[JUDGE] No relevant evidence found - all items scored 1 (off-topic)")
         return []
 
     elif has_semantic_scores:
@@ -419,8 +449,17 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             self.cache_service = await get_cache_service()
     
     async def judge_claim(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
-                         evidence: List[Dict[str, Any]], article_context: Optional[str] = None) -> JudgmentResult:
-        """Judge a single claim based on verification signals and evidence with optional article context"""
+                         evidence: List[Dict[str, Any]], article_context: Optional[str] = None,
+                         max_display_items: int = 3) -> JudgmentResult:
+        """Judge a single claim based on verification signals and evidence with optional article context
+
+        Args:
+            claim: The claim to judge
+            verification_signals: Aggregated verification signals from NLI
+            evidence: List of evidence items for this claim
+            article_context: Optional context from the source article
+            max_display_items: Maximum evidence items to include in result (dynamic based on claim count)
+        """
         await self.initialize()
 
         claim_text = claim.get("text", "")
@@ -462,7 +501,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                     verdict=verdict,
                     confidence=0.0,  # No confidence when abstaining
                     rationale=reason,
-                    supporting_evidence=_select_display_evidence(evidence),
+                    supporting_evidence=_select_display_evidence(evidence, max_items=max_display_items),
                     evidence_summary={
                         **verification_signals,
                         'abstention_reason': reason,
@@ -509,7 +548,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 verdict=judgment_data.get("verdict", "uncertain"),
                 confidence=min(max(judgment_data.get("confidence", 50), 0), 100),
                 rationale=judgment_data.get("rationale", "Assessment based on available evidence"),
-                supporting_evidence=_select_display_evidence(evidence),
+                supporting_evidence=_select_display_evidence(evidence, max_items=max_display_items),
                 evidence_summary=enriched_summary,
                 current_verified_data=temporal_comparison,
                 rhetorical_analysis=rhetorical_analysis
@@ -535,7 +574,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 verdict=fallback_data["verdict"],
                 confidence=fallback_data["confidence"],
                 rationale=fallback_data["rationale"],
-                supporting_evidence=_select_display_evidence(evidence),
+                supporting_evidence=_select_display_evidence(evidence, max_items=max_display_items),
                 evidence_summary=verification_signals,
                 current_verified_data=temporal_comparison,
                 rhetorical_analysis=rhetorical_analysis
@@ -844,18 +883,22 @@ Max Contradiction Score: {signals.get('max_contradiction', 0.0):.2f}
 Evidence Quality: {signals.get('evidence_quality', 'low')}
 """
 
+        # CRITICAL FIX: Count only the evidence actually shown to the judge
+        # Previously, we showed NLI counts for ALL evidence (e.g., "10 pieces")
+        # but only showed 5 evidence details, causing the LLM to hallucinate sources
+        evidence_shown_count = len(evidence_summary)
+
         base_context = f"""
 CLAIM TO JUDGE:
 {claim_text}
 {temporal_warning}{stale_warning}{rhetorical_warning}{article_context_section}
 EVIDENCE ANALYSIS:
-Total Evidence Pieces: {signals.get('total_evidence', 0)}
-Supporting Evidence: {signals.get('supporting_count', 0)} pieces
-Contradicting Evidence: {signals.get('contradicting_count', 0)} pieces
-Neutral Evidence: {signals.get('neutral_count', 0)} pieces
+Evidence Pieces Provided: {evidence_shown_count}
 {verification_metrics}
 EVIDENCE DETAILS:
 {chr(10).join(evidence_summary)}
+
+CRITICAL: Your rationale MUST ONLY reference sources shown above. Do NOT mention sources like "The Guardian", "Al Jazeera", or "TIME" unless they appear in the EVIDENCE DETAILS above. Only reference [Evidence 1], [Evidence 2], etc. by their actual Source names shown.
 
 Based on this analysis, provide your final judgment."""
 
@@ -1405,11 +1448,17 @@ class PipelineJudge:
         """Judge all claims and return final results with optional article context for holistic judgment"""
         try:
             await self.claim_judge.initialize()
-            
+
+            # Calculate dynamic evidence allocation based on claim count
+            # TEXT inputs (1-2 claims) get more evidence per claim for depth
+            # URL inputs (6+ claims) get standard allocation for breadth
+            max_display_items = calculate_max_display_items(len(claims))
+            logger.info(f"[JUDGE] Dynamic evidence allocation: {len(claims)} claims → {max_display_items} evidence/claim")
+
             # Import verification aggregation from verify module
             from app.pipeline.verify import get_claim_verifier
             claim_verifier = await get_claim_verifier()
-            
+
             # Create judgment tasks with concurrency control
             semaphore = asyncio.Semaphore(self.max_concurrent_judgments)
             
@@ -1455,7 +1504,11 @@ class PipelineJudge:
                         signals["confidence"] = adjusted_confidence
 
                     # Get final judgment with ENRICHED evidence (now has NLI fields) and article context
-                    judgment = await self.claim_judge.judge_claim(claim, signals, enriched_evidence, article_context)
+                    # max_display_items scales inversely with claim count for richer TEXT input responses
+                    judgment = await self.claim_judge.judge_claim(
+                        claim, signals, enriched_evidence, article_context,
+                        max_display_items=max_display_items
+                    )
 
                     return {
                         **judgment.to_dict(),
@@ -1476,40 +1529,42 @@ class PipelineJudge:
                     claim = claims[i]
                     position = str(claim.get("position", i))
                     evidence = evidence_by_claim.get(position, [])
-                    
+
                     fallback_result = {
                         "text": claim.get("text", ""),
                         "verdict": "uncertain",
                         "confidence": 30,
                         "rationale": "Judgment failed due to processing error. Evidence review inconclusive.",
-                        "evidence": _select_display_evidence(evidence),
+                        "evidence": _select_display_evidence(evidence, max_items=max_display_items),
                         "position": claim.get("position", i),
                         "verification_signals": {"error": "judgment_failed"}
                     }
                     final_results.append(fallback_result)
                 else:
                     final_results.append(result)
-            
+
             return final_results
-            
+
         except Exception as e:
             logger.error(f"Pipeline judgment error: {e}")
             # Return fallback results for all claims
+            # Calculate max_display_items here since we're outside the try block
+            fallback_max_display = calculate_max_display_items(len(claims))
             fallback_results = []
             for i, claim in enumerate(claims):
                 position = str(claim.get("position", i))
                 evidence = evidence_by_claim.get(position, [])
-                
+
                 fallback_results.append({
                     "text": claim.get("text", ""),
                     "verdict": "uncertain",
                     "confidence": 25,
                     "rationale": "Pipeline judgment service temporarily unavailable. Manual review recommended.",
-                    "evidence": _select_display_evidence(evidence),
+                    "evidence": _select_display_evidence(evidence, max_items=fallback_max_display),
                     "position": claim.get("position", i),
                     "verification_signals": {"error": "pipeline_error"}
                 })
-            
+
             return fallback_results
 
 # Singleton instance

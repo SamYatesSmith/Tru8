@@ -728,6 +728,26 @@ async def get_check(
         "progressMessage": progress_message,
     }
 
+
+@router.options("/{check_id}/progress")
+async def progress_options(check_id: str):
+    """
+    Handle CORS preflight for SSE progress endpoint.
+
+    EventSource doesn't support custom headers, so browsers may send preflight
+    OPTIONS requests. This explicit handler ensures CORS works correctly.
+    """
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type, Cache-Control",
+            "Access-Control-Max-Age": "86400",  # Cache preflight for 24 hours
+        }
+    )
+
+
 @router.get("/{check_id}/progress")
 async def stream_check_progress(
     check_id: str,
