@@ -24,19 +24,30 @@ RELEVANCE_CACHE_TTL_SECONDS = getattr(settings, 'LLM_RELEVANCE_CACHE_TTL', 3600)
 
 RELEVANCE_SCORING_PROMPT = """You are a fact-checking evidence analyst. Score how well each evidence piece helps VERIFY or REFUTE the specific claims below.
 
-CRITICAL: Score based on EVIDENTIAL VALUE for the SPECIFIC CLAIMS, not topical similarity.
+CRITICAL: Score based on EVIDENTIAL VALUE for the SPECIFIC CLAIMS, considering both content relevance AND source authority.
 
-AUTOMATIC SCORE 1 (always irrelevant - these NEVER help verify specific claims):
-- Pages ABOUT fact-checking tools, methodology, or how to fact-check (e.g., "Web Sites for Fact Checking", "How to verify claims")
-- News aggregator index pages or category listings (e.g., "Fact Check News | Latest Articles")
-- Academic papers about misinformation research or fact-checker analysis (e.g., "Fact-checking fact checkers", "Misinformation Review")
-- Generic guides, tutorials, or resource lists
-- Content about completely different topics/events than the claims
+CLAIM TYPES - Recognize what kind of evidence each claim needs:
+1. EVENT CLAIMS (e.g., "5 healthcare workers infected") → Need news reports about that specific incident
+2. FACTUAL/REFERENCE CLAIMS (e.g., "virus has 40-75% fatality rate") → Need authoritative reference sources
 
-SCORE 4-5 (actually relevant):
-- News articles reporting on the SAME EVENT mentioned in the claims
-- Official statements, press releases, or documents about the claimed facts
-- Statistics, data, or quotes that directly address what the claim asserts
+SOURCE AUTHORITY - Match source type to claim type:
+- MEDICAL/HEALTH claims (mortality rates, symptoms, treatments) → Prefer WHO, CDC, NHS, medical journals
+  → Sources with "entertainment_focus" or "lifestyle_content" flags should score 1-2
+- SCIENTIFIC claims (statistics, research findings) → Prefer peer-reviewed, academic, government data
+  → Low-credibility sources (<50%) should score 1-2 for statistical claims
+- SPORTS claims → Sports news, league sites, tabloids all acceptable
+- ENTERTAINMENT/CELEBRITY claims → Tabloids and lifestyle magazines ARE appropriate
+
+CREDIBILITY SIGNALS IN EVIDENCE:
+- "tier: general" with low credibility = unknown/unvetted source, treat with skepticism
+- "risk_flags: entertainment_focus" = lifestyle magazine, inappropriate for medical claims
+- "risk_flags: sensationalism" = tabloid, deprioritize for scientific claims
+
+AUTOMATIC SCORE 1-2:
+- Pages ABOUT fact-checking tools (meta-sources)
+- News aggregator index pages
+- Sources with entertainment_focus/lifestyle_content flags FOR medical/scientific claims
+- Unknown sources (tier: general, <50% credibility) for factual/statistical claims
 
 ARTICLE BEING FACT-CHECKED:
 {article_context}
@@ -48,22 +59,24 @@ EVIDENCE ITEMS TO SCORE:
 {evidence_text}
 
 SCORING RUBRIC:
-5 = Direct proof/refutation with specific data, quotes, or official statements about THIS event
-4 = Strongly relevant - reports on the same event or provides authoritative context
-3 = Moderately relevant - covers the topic/event, may lack some specific details
-2 = Weakly relevant - same general subject area but limited direct connection to claims
-1 = OFF-TOPIC or META-SOURCE - doesn't contain facts about the claimed events (includes fact-checking guides, methodology pages, aggregator indexes)
+5 = Direct proof/refutation from authoritative source for this claim type
+4 = Strongly relevant from appropriate source
+3 = Relevant content BUT source questionable for this claim type
+2 = Weakly relevant OR inappropriate source type
+1 = OFF-TOPIC, META-SOURCE, or inappropriate source for claim type
+
+IMPORTANT: WHO, CDC, NIH, medical journals for medical claims should score 4-5. But lifestyle magazines (Cosmopolitan, etc.) for medical claims should score 1-2 regardless of content.
 
 RESPONSE FORMAT (JSON array):
 [
-  {{"evidence_index": 0, "score": 5, "rationale": "Brief explanation", "relevant_claims": [0, 2]}},
-  ...
+  {{"evidence_index": 0, "score": 5, "rationale": "WHO source authoritative for mortality claim", "relevant_claims": [0, 2]}},
+  {{"evidence_index": 1, "score": 2, "rationale": "Lifestyle magazine inappropriate for medical statistics", "relevant_claims": []}}
 ]
 
 Rules:
 - evidence_index: 0-based index matching evidence order above
-- score: integer 1-5 per rubric (score accurately based on evidential value)
-- rationale: 1-2 sentences explaining score
+- score: integer 1-5 per rubric (score accurately based on evidential value AND source authority)
+- rationale: 1-2 sentences explaining score, mention source appropriateness if relevant
 - relevant_claims: claim indices this evidence helps verify (empty [] if score <= 2)
 
 Return ONLY valid JSON array."""
@@ -107,13 +120,122 @@ def _generate_cache_key(claims: List[str], evidence_urls: List[str]) -> str:
     return f"relevance:{hashlib.md5(content.encode()).hexdigest()}"
 
 
+async def _score_with_google(
+    claims: List[str],
+    evidence_items: List[Dict[str, Any]],
+    article_context: str
+) -> Optional[List[Dict[str, Any]]]:
+    """
+    Score evidence relevance using Google Gemini (primary provider).
+
+    Args:
+        claims: List of claim texts to verify
+        evidence_items: Flattened list of all evidence items
+        article_context: Original article excerpt for context
+
+    Returns:
+        List of score dicts with evidence_index, score, rationale, relevant_claims, or None on failure
+    """
+    import httpx
+
+    google_ai_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
+    if not google_ai_key:
+        return None
+
+    google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
+
+    # Format claims for prompt
+    claims_text = "\n".join([f"[Claim {i}]: {claim}" for i, claim in enumerate(claims)])
+
+    # Format evidence for prompt (limit to prevent token overflow)
+    max_evidence = getattr(settings, 'LLM_RELEVANCE_MAX_EVIDENCE', 50)
+    evidence_to_score = evidence_items[:max_evidence]
+
+    evidence_text_parts = []
+    for i, ev in enumerate(evidence_to_score):
+        title = ev.get('title', 'Unknown')[:150]
+        snippet = ev.get('text', ev.get('snippet', ev.get('content', '')))[:500]
+        source = ev.get('source', ev.get('external_source_provider', 'Unknown'))
+        url = ev.get('url', '')[:150]
+
+        # Add credibility context for LLM decision-making
+        tier = ev.get('tier', 'general')
+        cred_score = ev.get('credibility_score', 0.4)
+        risk_flags = ev.get('risk_flags', [])
+        if isinstance(risk_flags, str):
+            risk_flags = [risk_flags] if risk_flags else []
+        risk_str = ', '.join(risk_flags) if risk_flags else 'None'
+
+        evidence_text_parts.append(
+            f"[Evidence {i}]:\n"
+            f"  Source: {source}\n"
+            f"  Credibility: {tier} ({cred_score:.0%})\n"
+            f"  Risk Flags: {risk_str}\n"
+            f"  Title: {title}\n"
+            f"  URL: {url}\n"
+            f"  Content: {snippet}"
+        )
+
+    evidence_text = "\n\n".join(evidence_text_parts)
+    article_excerpt = (article_context or "")[:2000]
+
+    prompt = RELEVANCE_SCORING_PROMPT.format(
+        article_context=article_excerpt,
+        claims_text=claims_text,
+        evidence_text=evidence_text
+    )
+
+    # Calculate required output tokens
+    required_output_tokens = len(evidence_to_score) * 120 + 200
+    max_output_tokens = max(4000, min(required_output_tokens, 16000))
+
+    full_prompt = f"You are a fact-checking evidence analyst. Return only valid JSON arrays.\n\n{prompt}"
+
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={google_ai_key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": full_prompt}]}],
+                    "generationConfig": {
+                        "temperature": 0.1,
+                        "maxOutputTokens": max_output_tokens,
+                        "responseMimeType": "application/json"
+                    }
+                }
+            )
+
+            if response.status_code != 200:
+                logger.error(f"Google AI relevance scoring error: {response.status_code}")
+                return None
+
+            result = response.json()
+            content_text = result["candidates"][0]["content"]["parts"][0]["text"]
+
+            # Parse JSON response
+            parsed = json.loads(content_text)
+            if isinstance(parsed, dict):
+                for key in ['scores', 'evidence_scores', 'results', 'items', 'evidence', 'data']:
+                    if key in parsed and isinstance(parsed[key], list):
+                        return parsed[key]
+                return []
+            elif isinstance(parsed, list):
+                return parsed
+            return []
+
+    except Exception as e:
+        logger.error(f"Google AI relevance scoring failed: {e}")
+        return None
+
+
 async def _score_with_llm(
     claims: List[str],
     evidence_items: List[Dict[str, Any]],
     article_context: str
 ) -> List[Dict[str, Any]]:
     """
-    Score evidence relevance using GPT-4o-mini.
+    Score evidence relevance using OpenAI GPT-4o-mini (fallback provider).
 
     Args:
         claims: List of claim texts to verify
@@ -142,9 +264,20 @@ async def _score_with_llm(
         snippet = ev.get('text', ev.get('snippet', ev.get('content', '')))[:500]
         source = ev.get('source', ev.get('external_source_provider', 'Unknown'))
         url = ev.get('url', '')[:150]
+
+        # Add credibility context for LLM decision-making
+        tier = ev.get('tier', 'general')
+        cred_score = ev.get('credibility_score', 0.4)
+        risk_flags = ev.get('risk_flags', [])
+        if isinstance(risk_flags, str):
+            risk_flags = [risk_flags] if risk_flags else []
+        risk_str = ', '.join(risk_flags) if risk_flags else 'None'
+
         evidence_text_parts.append(
             f"[Evidence {i}]:\n"
             f"  Source: {source}\n"
+            f"  Credibility: {tier} ({cred_score:.0%})\n"
+            f"  Risk Flags: {risk_str}\n"
             f"  Title: {title}\n"
             f"  URL: {url}\n"
             f"  Content: {snippet}"
@@ -280,14 +413,29 @@ async def score_evidence_batch(
         logger.info(f"[LLM SCORER] Using cached scores ({len(cached_scores)} items)")
         scores = cached_scores
     else:
-        # Call LLM for scoring
+        # Try Google first, then OpenAI as fallback
+        scores = None
+
+        # Primary: Google Gemini
         try:
-            scores = await _score_with_llm(claims, all_evidence, article_context)
+            scores = await _score_with_google(claims, all_evidence, article_context)
             if scores:
+                logger.info(f"[LLM SCORER] Scored with Google Gemini ({len(scores)} items)")
                 await _cache_relevance_scores(cache_key, scores)
         except Exception as e:
-            logger.warning(f"[LLM SCORER] LLM scoring failed: {e}, passing through unscored")
-            return evidence
+            logger.warning(f"[LLM SCORER] Google scoring failed: {e}")
+
+        # Fallback: OpenAI
+        if not scores:
+            try:
+                logger.info("[LLM SCORER] Attempting OpenAI scoring as fallback")
+                scores = await _score_with_llm(claims, all_evidence, article_context)
+                if scores:
+                    logger.info(f"[LLM SCORER] Scored with OpenAI fallback ({len(scores)} items)")
+                    await _cache_relevance_scores(cache_key, scores)
+            except Exception as e:
+                logger.warning(f"[LLM SCORER] OpenAI scoring failed: {e}, passing through unscored")
+                return evidence
 
     if not scores:
         logger.warning("[LLM SCORER] No scores returned, passing through unscored")
@@ -308,6 +456,9 @@ async def score_evidence_batch(
     kept_count = 0
     filtered_count = 0
 
+    # Track which evidence URLs are already in each claim to avoid duplicates
+    evidence_urls_by_claim = {pos: set() for pos in evidence.keys()}
+
     for flat_idx, ev in enumerate(all_evidence):
         score_data = score_lookup.get(flat_idx, {})
         llm_score = score_data.get('score', 0)
@@ -320,11 +471,33 @@ async def score_evidence_batch(
         ev['llm_relevant_claims'] = relevant_claims
 
         # Get original claim position
-        claim_pos, _ = evidence_positions[flat_idx]
+        original_claim_pos, _ = evidence_positions[flat_idx]
+        ev_url = ev.get('url', '')
 
         if llm_score >= min_score:
-            filtered_evidence[claim_pos].append(ev)
-            kept_count += 1
+            # Add to original claim
+            if ev_url not in evidence_urls_by_claim[original_claim_pos]:
+                filtered_evidence[original_claim_pos].append(ev)
+                evidence_urls_by_claim[original_claim_pos].add(ev_url)
+                kept_count += 1
+
+            # REDISTRIBUTE: Also add to other claims the LLM identified as relevant
+            # This ensures evidence retrieved for claim 1 can also support claims 7, 8, etc.
+            for relevant_claim_idx in relevant_claims:
+                relevant_claim_pos = str(relevant_claim_idx)
+                # Only add if: claim exists, not the original claim, and not a duplicate
+                if (relevant_claim_pos in filtered_evidence and
+                    relevant_claim_pos != original_claim_pos and
+                    ev_url not in evidence_urls_by_claim[relevant_claim_pos]):
+                    # Create a copy to avoid mutation issues
+                    ev_copy = dict(ev)
+                    ev_copy['redistributed_from_claim'] = original_claim_pos
+                    filtered_evidence[relevant_claim_pos].append(ev_copy)
+                    evidence_urls_by_claim[relevant_claim_pos].add(ev_url)
+                    logger.debug(
+                        f"[LLM SCORER] Redistributed evidence from claim {original_claim_pos} "
+                        f"to claim {relevant_claim_pos}: {ev.get('title', 'Unknown')[:40]}..."
+                    )
         else:
             filtered_count += 1
             if llm_score > 0:
@@ -333,23 +506,43 @@ async def score_evidence_batch(
                     f"{ev.get('title', 'Unknown')[:50]}..."
                 )
 
-    logger.info(
-        f"[LLM SCORER] Complete: kept {kept_count}, filtered {filtered_count} "
-        f"(threshold={min_score})"
+    # Count redistributed evidence
+    redistributed_count = sum(
+        1 for ev_list in filtered_evidence.values()
+        for ev in ev_list if ev.get('redistributed_from_claim')
     )
 
-    # If filtering removed ALL evidence, keep top items as fallback
+    logger.info(
+        f"[LLM SCORER] Complete: kept {kept_count}, filtered {filtered_count}, "
+        f"redistributed {redistributed_count} (threshold={min_score})"
+    )
+
+    # Per-claim fallback: ensure no claim ends up with 0 evidence if we had some
+    # This handles the case where some claims pass threshold but others don't
+    for claim_pos, ev_list in evidence.items():
+        if len(filtered_evidence[claim_pos]) == 0 and len(ev_list) > 0:
+            # This claim had evidence but all was filtered - keep top 2 by score
+            sorted_ev = sorted(
+                ev_list,
+                key=lambda x: x.get('llm_relevance_score', 0),
+                reverse=True
+            )
+            filtered_evidence[claim_pos] = sorted_ev[:2]
+            logger.warning(
+                f"[LLM SCORER] Claim {claim_pos} had all evidence filtered, "
+                f"keeping top 2 as fallback (scores: {[e.get('llm_relevance_score', 0) for e in sorted_ev[:2]]})"
+            )
+
+    # Global fallback: if ALL claims have 0 evidence, keep top items
     total_kept = sum(len(v) for v in filtered_evidence.values())
     if total_kept == 0 and all_evidence:
-        logger.warning("[LLM SCORER] All evidence filtered, keeping top items as fallback")
-        # Sort by score and keep best items per claim
+        logger.warning("[LLM SCORER] All evidence filtered globally, keeping top items as fallback")
         for claim_pos, ev_list in evidence.items():
             sorted_ev = sorted(
                 ev_list,
                 key=lambda x: x.get('llm_relevance_score', 0),
                 reverse=True
             )
-            # Keep top 2 as fallback
             filtered_evidence[claim_pos] = sorted_ev[:2]
 
     return filtered_evidence

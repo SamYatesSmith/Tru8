@@ -261,11 +261,11 @@ class TestSourceCredibilityService:
     # ========== FALLBACK & EDGE CASES ==========
 
     def test_general_fallback_for_unknown_domain(self):
-        """Should fallback to general tier for unknown domains"""
+        """Should fallback to general tier for unknown domains with lower credibility (unvetted)"""
         result = self.service.get_credibility("Unknown Blog", "https://randomblog.com/post")
 
         assert result['tier'] == 'general'
-        assert result['credibility'] == 0.6
+        assert result['credibility'] == 0.4  # Lower credibility for unvetted sources
         assert result['risk_flags'] == []
         assert result['auto_exclude'] is False
 
@@ -274,7 +274,7 @@ class TestSourceCredibilityService:
         result = self.service.get_credibility("Test", "not-a-url")
 
         assert result['tier'] == 'general'
-        assert result['credibility'] == 0.6
+        assert result['credibility'] == 0.4  # Lower credibility for unvetted sources
 
     def test_empty_url_handling(self):
         """Should handle empty URLs gracefully"""

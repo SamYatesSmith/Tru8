@@ -24,7 +24,11 @@ class Settings(BaseSettings):
     SERP_API_KEY: str = Field("", env="SERP_API_KEY")
     OPENAI_API_KEY: str = Field("", env="OPENAI_API_KEY")
     ANTHROPIC_API_KEY: str = Field("", env="ANTHROPIC_API_KEY")  # Deprecated - use GOOGLE_AI_API_KEY as backup
-    GOOGLE_AI_API_KEY: str = Field("", env="GOOGLE_AI_API_KEY")  # Google AI Studio (Gemini) - backup LLM provider
+    GOOGLE_AI_API_KEY: str = Field("", env="GOOGLE_AI_API_KEY")  # Google AI Studio (Gemini) - primary LLM provider
+
+    # LLM Provider Configuration
+    PRIMARY_LLM_PROVIDER: str = Field("google", env="PRIMARY_LLM_PROVIDER")  # "google" or "openai"
+    GOOGLE_LLM_MODEL: str = Field("gemini-2.5-flash-lite", env="GOOGLE_LLM_MODEL")  # Gemini model for all LLM calls
     GOOGLE_FACTCHECK_API_KEY: str = Field("", env="GOOGLE_FACTCHECK_API_KEY")
     FOOTBALL_DATA_API_KEY: str = Field("", env="FOOTBALL_DATA_API_KEY")  # Football-Data.org for sports stats
     NOAA_API_KEY: str = Field("", env="NOAA_API_KEY")  # NOAA CDO for climate data
@@ -105,8 +109,9 @@ class Settings(BaseSettings):
     # Credibility: Unified across pipeline
     CREDIBILITY_MINIMUM: float = Field(0.55, env="CREDIBILITY_MINIMUM")
 
-    # Unknown source default - MUST be >= CREDIBILITY_MINIMUM
-    UNKNOWN_SOURCE_CREDIBILITY: float = Field(0.55, env="UNKNOWN_SOURCE_CREDIBILITY")
+    # Unknown source default - lower than known sources to signal unvetted status
+    # Sources not in credibility database are treated with skepticism
+    UNKNOWN_SOURCE_CREDIBILITY: float = Field(0.40, env="UNKNOWN_SOURCE_CREDIBILITY")
     
     # Judge LLM
     JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
@@ -204,7 +209,7 @@ class Settings(BaseSettings):
     # Uses GPT-4o-mini to score evidence 1-5 based on how well it helps verify/refute claims
     ENABLE_LLM_RELEVANCE_SCORER: bool = Field(True, env="ENABLE_LLM_RELEVANCE_SCORER")
     LLM_RELEVANCE_MODEL: str = Field("gpt-4o-mini-2024-07-18", env="LLM_RELEVANCE_MODEL")
-    LLM_RELEVANCE_MIN_SCORE: int = Field(4, env="LLM_RELEVANCE_MIN_SCORE")  # Keep evidence with score >= 4
+    LLM_RELEVANCE_MIN_SCORE: int = Field(3, env="LLM_RELEVANCE_MIN_SCORE")  # Keep evidence with score >= 3 (includes "partially relevant")
     LLM_RELEVANCE_MAX_EVIDENCE: int = Field(50, env="LLM_RELEVANCE_MAX_EVIDENCE")  # Max items to score per call
     LLM_RELEVANCE_CACHE_TTL: int = Field(3600, env="LLM_RELEVANCE_CACHE_TTL")  # Cache TTL in seconds (1 hour)
 

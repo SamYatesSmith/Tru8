@@ -154,7 +154,9 @@
     "propublica.org",
     "cbc.ca",
     "abc.net.au",
-    "france24.com"
+    "france24.com",
+    "zeteo.com"
+
     ],
     "tier": "tier1"
   },
@@ -570,6 +572,44 @@
     "tier": "tier3"
   },
 
+  "lifestyle_entertainment": {
+    "credibility": 0.45,
+    "description": "Lifestyle, fashion, and entertainment magazines - appropriate for celebrity/lifestyle topics, not for medical/scientific claims",
+    "domains": [
+      "cosmopolitan.com",
+      "glamour.com",
+      "vogue.com",
+      "elle.com",
+      "harpersbazaar.com",
+      "marieclaire.com",
+      "instyle.com",
+      "allure.com",
+      "refinery29.com",
+      "bustle.com",
+      "popsugar.com",
+      "buzzfeed.com",
+      "huffpost.com",
+      "womenshealthmag.com",
+      "menshealth.com",
+      "self.com",
+      "shape.com",
+      "teenvogue.com",
+      "seventeen.com",
+      "gq.com",
+      "esquire.com",
+      "mindbodygreen.com",
+      "wellandgood.com",
+      "byrdie.com",
+      "thecut.com"
+    ],
+    "risk_flags": [
+      "entertainment_focus",
+      "lifestyle_content"
+    ],
+    "auto_exclude": false,
+    "tier": "tier3"
+  },
+
   "primary_documents": {
     "credibility": 1.0,
     "description": "Official government documents and legislative records",
@@ -917,6 +957,29 @@
       "occrp.org"
     ],
     "tier": "tier2"
+  },
+
+  "progressive_investigative": {
+    "credibility": 0.90,
+    "description": "Progressive independent media and investigative journalism outlets",
+    "domains": [
+      "zeteo.com",
+      "doubledownnews.com",
+      "dropsitenews.com",
+      "novaramedia.com",
+      "bellingcat.com",
+      "levernews.com",
+      "declassifieduk.org",
+      "democracynow.org",
+      "commondreams.org",
+      "thegrayzone.com",
+      "mintpressnews.com",
+      "newint.org",
+      "thenewhumanitarian.org",
+      "opendemocracy.net",
+      "theconversation.com"
+    ],
+    "tier": "tier1"
   },
 
   "government_apis": {
@@ -1779,8 +1842,8 @@
   },
 
   "general": {
-    "credibility": 0.6,
-    "description": "Default for unmatched sources",
+    "credibility": 0.4,
+    "description": "Default for unmatched/unknown sources - lower credibility signals unvetted status",
     "tier": "general"
   }
 }
