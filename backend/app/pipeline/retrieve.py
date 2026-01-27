@@ -21,6 +21,19 @@ print(f"[RETRIEVE MODULE LOADED] {_MODULE_LOAD_TIME} - Query Planning: {settings
 class EvidenceRetriever:
     """Retrieve and rank evidence for claims using search, embeddings, and vector storage"""
 
+    # Minimum evidence per claim - triggers recovery search if below this threshold
+    MIN_EVIDENCE_PER_CLAIM = 2
+
+    # Authoritative sources by domain for targeted recovery searches
+    AUTHORITATIVE_SOURCES_BY_DOMAIN = {
+        "health": ["who.int", "cdc.gov", "nih.gov", "nhs.uk", "pubmed.ncbi.nlm.nih.gov"],
+        "science": ["nature.com", "science.org", "ncbi.nlm.nih.gov", "arxiv.org"],
+        "government": ["gov.uk", "usa.gov", "congress.gov", "govinfo.gov"],
+        "finance": ["sec.gov", "federalreserve.gov", "imf.org", "worldbank.org"],
+        "sports": ["transfermarkt.com", "espn.com", "bbc.com/sport"],
+        "general": ["reuters.com", "apnews.com", "bbc.com"]
+    }
+
     # Mapping from temporal_window (from claim extraction) to Brave freshness parameter
     # temporal_window values: current_day, current_week, current_month, current_year, any, historical
     # Brave freshness values: pd (past day), pw (past week), pm (past month), py (past year), 2y (2 years)
@@ -125,13 +138,22 @@ class EvidenceRetriever:
                     # Legacy list format (backward compatibility)
                     evidence_by_claim[str(i)] = result if isinstance(result, list) else []
 
+            # RECOVERY: Ensure minimum evidence per claim
+            # This catches claims that ended up with insufficient evidence after initial retrieval
+            evidence_by_claim, recovery_raw = await self._ensure_minimum_evidence(
+                evidence_by_claim=evidence_by_claim,
+                claims=claims,
+                excluded_domain=excluded_domain
+            )
+            all_raw_evidence.extend(recovery_raw)
+
             # Return both filtered evidence and raw evidence
             return {
                 "evidence_by_claim": evidence_by_claim,
                 "raw_evidence": all_raw_evidence,
                 "raw_sources_count": len(all_raw_evidence)
             }
-            
+
         except Exception as e:
             logger.error(f"Evidence retrieval error: {e}")
             return {
@@ -140,6 +162,291 @@ class EvidenceRetriever:
                 "raw_sources_count": 0
             }
     
+    async def _ensure_minimum_evidence(
+        self,
+        evidence_by_claim: Dict[str, List[Dict[str, Any]]],
+        claims: List[Dict[str, Any]],
+        excluded_domain: Optional[str] = None
+    ) -> Tuple[Dict[str, List[Dict[str, Any]]], List[Dict[str, Any]]]:
+        """
+        Ensure each claim has minimum evidence, triggering recovery search if needed.
+
+        This runs AFTER initial retrieval to catch claims that ended up with
+        insufficient evidence. Recovery uses targeted authoritative-source queries.
+
+        Args:
+            evidence_by_claim: Current evidence dict (claim_position -> evidence list)
+            claims: List of claim dicts with text and metadata
+            excluded_domain: Domain to exclude from search
+
+        Returns:
+            Tuple of (updated evidence_by_claim, raw_evidence from recovery)
+        """
+        # Identify claims needing recovery
+        claims_needing_recovery = []
+        for claim in claims:
+            claim_pos = str(claim.get("position", 0))
+            current_evidence = evidence_by_claim.get(claim_pos, [])
+
+            if len(current_evidence) < self.MIN_EVIDENCE_PER_CLAIM:
+                claims_needing_recovery.append({
+                    "claim": claim,
+                    "position": claim_pos,
+                    "current_count": len(current_evidence)
+                })
+
+        if not claims_needing_recovery:
+            return evidence_by_claim, []
+
+        logger.warning(
+            f"[RECOVERY] {len(claims_needing_recovery)} claims below minimum evidence "
+            f"(min={self.MIN_EVIDENCE_PER_CLAIM}): positions {[c['position'] for c in claims_needing_recovery]}"
+        )
+
+        # Collect existing URLs to avoid duplicates
+        existing_urls = set()
+        for ev_list in evidence_by_claim.values():
+            for ev in ev_list:
+                if ev.get("url"):
+                    existing_urls.add(ev.get("url"))
+
+        # Run recovery for all claims in parallel (with rate limiting via semaphore)
+        all_recovery_raw = []
+        semaphore = asyncio.Semaphore(2)  # Limit concurrent recovery searches
+
+        async def recover_single_claim(claim_info):
+            async with semaphore:
+                return await self._recover_evidence_for_claim(
+                    claim=claim_info["claim"],
+                    claim_position=claim_info["position"],
+                    existing_urls=existing_urls,
+                    excluded_domain=excluded_domain
+                )
+
+        recovery_tasks = [recover_single_claim(c) for c in claims_needing_recovery]
+        recovery_results = await asyncio.gather(*recovery_tasks, return_exceptions=True)
+
+        # Process recovery results
+        for claim_info, result in zip(claims_needing_recovery, recovery_results):
+            claim_pos = claim_info["position"]
+
+            if isinstance(result, Exception):
+                logger.error(f"[RECOVERY] Failed for claim {claim_pos}: {result}")
+                continue
+
+            recovered_evidence, raw_evidence = result
+
+            if recovered_evidence:
+                # Add recovered evidence to the claim
+                if claim_pos not in evidence_by_claim:
+                    evidence_by_claim[claim_pos] = []
+                evidence_by_claim[claim_pos].extend(recovered_evidence)
+
+                # Add URLs to existing set to prevent duplicates in subsequent claims
+                for ev in recovered_evidence:
+                    if ev.get("url"):
+                        existing_urls.add(ev.get("url"))
+
+                logger.info(
+                    f"[RECOVERY] Claim {claim_pos}: recovered {len(recovered_evidence)} items "
+                    f"(now has {len(evidence_by_claim[claim_pos])} total)"
+                )
+            else:
+                logger.warning(f"[RECOVERY] Claim {claim_pos}: no evidence recovered")
+
+            all_recovery_raw.extend(raw_evidence)
+
+        return evidence_by_claim, all_recovery_raw
+
+    async def _recover_evidence_for_claim(
+        self,
+        claim: Dict[str, Any],
+        claim_position: str,
+        existing_urls: set,
+        excluded_domain: Optional[str] = None
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """
+        Run targeted recovery search for a single claim with insufficient evidence.
+
+        Uses authoritative-source-focused queries based on claim domain.
+
+        Args:
+            claim: Claim dict with text and metadata
+            claim_position: Position string for logging
+            existing_urls: URLs already in evidence pool (for deduplication)
+            excluded_domain: Domain to exclude
+
+        Returns:
+            Tuple of (filtered_evidence, raw_evidence_metadata)
+        """
+        claim_text = claim.get("text", "")
+        if not claim_text:
+            return [], []
+
+        try:
+            # Determine domain for authoritative source selection
+            article_classification = claim.get("article_classification", {})
+            primary_domain = article_classification.get("primary_domain", "general").lower()
+
+            # Map to our domain categories
+            domain_key = "general"
+            if any(d in primary_domain for d in ["health", "medical", "disease", "virus"]):
+                domain_key = "health"
+            elif any(d in primary_domain for d in ["science", "research", "study"]):
+                domain_key = "science"
+            elif any(d in primary_domain for d in ["government", "politics", "law"]):
+                domain_key = "government"
+            elif any(d in primary_domain for d in ["finance", "economic", "market"]):
+                domain_key = "finance"
+            elif any(d in primary_domain for d in ["sport"]):
+                domain_key = "sports"
+
+            authoritative_sources = self.AUTHORITATIVE_SOURCES_BY_DOMAIN.get(domain_key, [])
+
+            logger.info(
+                f"[RECOVERY] Claim {claim_position}: domain={domain_key}, "
+                f"authoritative sources={authoritative_sources[:3]}"
+            )
+
+            # Generate targeted queries
+            # Query 1: Direct claim text with site filter for authoritative sources
+            # Query 2: Simplified key phrase extraction
+            queries = self._generate_recovery_queries(claim_text, authoritative_sources)
+
+            if not queries:
+                logger.warning(f"[RECOVERY] No queries generated for claim {claim_position}")
+                return [], []
+
+            # Execute searches
+            all_snippets = []
+            for query in queries[:2]:  # Limit to 2 queries to control latency
+                try:
+                    results = await self.search_service.search_for_evidence(
+                        query,
+                        max_results=5,
+                        freshness="py"  # Past year - stable facts
+                    )
+                    if results:
+                        # Convert SearchResult to EvidenceSnippet format
+                        for r in results:
+                            # Skip if URL already exists
+                            url = getattr(r, 'url', '') if hasattr(r, 'url') else r.get('url', '')
+                            if url in existing_urls:
+                                continue
+
+                            snippet = EvidenceSnippet(
+                                text=getattr(r, 'snippet', '') if hasattr(r, 'snippet') else r.get('snippet', ''),
+                                source=getattr(r, 'source', '') if hasattr(r, 'source') else r.get('source', ''),
+                                url=url,
+                                title=getattr(r, 'title', '') if hasattr(r, 'title') else r.get('title', ''),
+                                published_date=getattr(r, 'published_date', None) if hasattr(r, 'published_date') else r.get('published_date'),
+                                relevance_score=0.5,  # Neutral score, let LLM scorer decide
+                                word_count=len(str(getattr(r, 'snippet', '') if hasattr(r, 'snippet') else r.get('snippet', '')).split()),
+                                metadata={"recovery_search": True, "domain_key": domain_key}
+                            )
+                            all_snippets.append(snippet)
+
+                except Exception as e:
+                    logger.warning(f"[RECOVERY] Search failed for query '{query[:50]}...': {e}")
+                    continue
+
+            if not all_snippets:
+                return [], []
+
+            # Apply same credibility weighting/filtering as main retrieval
+            # This ensures domain capping, credibility scoring, etc. are applied
+            ranked_evidence = []
+            for idx, snippet in enumerate(all_snippets[:10]):  # Cap at 10 for processing
+                credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
+                ranked_evidence.append({
+                    "id": f"recovery_{claim_position}_{idx}",
+                    "text": snippet.text,
+                    "source": snippet.source,
+                    "url": snippet.url,
+                    "title": snippet.title,
+                    "published_date": snippet.published_date,
+                    "relevance_score": float(snippet.relevance_score),
+                    "semantic_similarity": 0.0,
+                    "combined_score": 0.0,
+                    "word_count": snippet.word_count,
+                    "credibility_score": credibility,
+                    "metadata": snippet.metadata,
+                    "is_recovery": True
+                })
+
+            # Apply credibility weighting (includes domain capping)
+            result = self._apply_credibility_weighting(
+                ranked_evidence,
+                claim,
+                track_raw_evidence=True
+            )
+            final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
+
+            # Mark raw evidence as from recovery
+            for raw_item in raw_evidence:
+                raw_item["is_recovery"] = True
+                raw_item["claim_position"] = claim_position
+
+            return final_evidence, raw_evidence
+
+        except Exception as e:
+            logger.error(f"[RECOVERY] Error recovering evidence for claim {claim_position}: {e}")
+            return [], []
+
+    def _generate_recovery_queries(
+        self,
+        claim_text: str,
+        authoritative_sources: List[str]
+    ) -> List[str]:
+        """
+        Generate targeted queries for recovery search.
+
+        Focuses on authoritative sources and simplified query formulation.
+
+        Args:
+            claim_text: Original claim text
+            authoritative_sources: List of authoritative domains for this claim type
+
+        Returns:
+            List of search queries
+        """
+        import re
+
+        queries = []
+
+        # Extract key phrases (nouns, numbers, proper nouns)
+        # Simple extraction: words > 3 chars, exclude common words
+        stop_words = {
+            'the', 'and', 'for', 'are', 'was', 'were', 'been', 'have', 'has', 'had',
+            'will', 'would', 'could', 'should', 'this', 'that', 'with', 'from', 'they',
+            'their', 'there', 'what', 'when', 'where', 'which', 'about', 'into', 'than',
+            'then', 'can', 'may', 'also', 'some', 'only', 'more', 'most', 'other'
+        }
+
+        words = re.findall(r'\b[a-zA-Z]{4,}\b', claim_text)
+        key_words = [w for w in words if w.lower() not in stop_words][:6]
+
+        # Also extract numbers (important for factual claims)
+        numbers = re.findall(r'\b\d+(?:\.\d+)?%?\b', claim_text)
+
+        # Query 1: Key words + numbers (general search)
+        base_query = " ".join(key_words[:4])
+        if numbers:
+            base_query += " " + " ".join(numbers[:2])
+        queries.append(base_query)
+
+        # Query 2: With site filter for top authoritative source
+        if authoritative_sources:
+            site_query = f"{base_query} site:{authoritative_sources[0]}"
+            queries.append(site_query)
+
+        # Query 3: Alternative formulation with "official" or "fact sheet"
+        if key_words:
+            alt_query = f"{key_words[0]} official information"
+            queries.append(alt_query)
+
+        return queries
+
     async def _retrieve_evidence_for_single_claim(
         self,
         claim: Dict[str, Any],
