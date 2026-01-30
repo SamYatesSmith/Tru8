@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { Loader2, Facebook, Instagram, Twitter, Youtube, MessageCircle, Lock } from 'lucide-react';
+import { Loader2, Twitter, Linkedin, MessageCircle, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 import { PageHeader } from '../components/page-header';
@@ -133,15 +133,12 @@ export default function NewCheckPage() {
 
   const handleShare = (platform: string) => {
     const url = window.location.origin;
-    const title = 'Tru8 - Claim Verification Platform';
     const text = 'Check out Tru8 - See what the sources say with professional verification';
 
     const shareUrls: Record<string, string> = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
-      instagram: url,
-      youtube: url,
-      message: `sms:?&body=${encodeURIComponent(text + ' ' + url)}`,
+      x: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
     };
 
     const shareUrl = shareUrls[platform];
@@ -333,37 +330,23 @@ Leave this text field blank to proceed for a standard check on your article."
         {/* Social Icons - wrap on mobile */}
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
           <button
-            onClick={() => handleShare('facebook')}
+            onClick={() => handleShare('x')}
             className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
-            aria-label="Share on Facebook"
-          >
-            <Facebook size={20} className="sm:w-6 sm:h-6" />
-          </button>
-          <button
-            onClick={() => handleShare('instagram')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
-            aria-label="Share on Instagram"
-          >
-            <Instagram size={20} className="sm:w-6 sm:h-6" />
-          </button>
-          <button
-            onClick={() => handleShare('twitter')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
-            aria-label="Share on Twitter"
+            aria-label="Share on X"
           >
             <Twitter size={20} className="sm:w-6 sm:h-6" />
           </button>
           <button
-            onClick={() => handleShare('youtube')}
+            onClick={() => handleShare('linkedin')}
             className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
-            aria-label="Share on YouTube"
+            aria-label="Share on LinkedIn"
           >
-            <Youtube size={20} className="sm:w-6 sm:h-6" />
+            <Linkedin size={20} className="sm:w-6 sm:h-6" />
           </button>
           <button
-            onClick={() => handleShare('message')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
-            aria-label="Share via Message"
+            onClick={() => handleShare('whatsapp')}
+            className="bg-slate-800 hover:bg-[#25D366] text-slate-400 hover:text-white p-2.5 sm:p-3 rounded-full transition-colors"
+            aria-label="Share on WhatsApp"
           >
             <MessageCircle size={20} className="sm:w-6 sm:h-6" />
           </button>

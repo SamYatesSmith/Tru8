@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Facebook, Instagram, Twitter, Youtube, ChevronLeft } from 'lucide-react';
+import { Twitter, Linkedin, MessageCircle, ChevronLeft } from 'lucide-react';
 
 interface PageHeaderProps {
   title: string;
@@ -43,10 +43,9 @@ export function PageHeader({
 
     // Fallback to platform-specific URLs
     const shareUrls: Record<string, string> = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
-      instagram: url,
-      youtube: url,
+      x: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
     };
 
     const shareUrl = shareUrls[platform];
@@ -95,35 +94,27 @@ export function PageHeader({
               }`}
             >
               <button
-                onClick={() => handleShare('facebook')}
+                onClick={() => handleShare('x')}
                 className="text-slate-400 hover:text-white transition-colors p-2"
-                aria-label="Share on Facebook"
-              >
-                <Facebook size={20} />
-              </button>
-              <div className="w-px h-5 bg-slate-700"></div>
-              <button
-                onClick={() => handleShare('instagram')}
-                className="text-slate-400 hover:text-white transition-colors p-2"
-                aria-label="Share on Instagram"
-              >
-                <Instagram size={20} />
-              </button>
-              <div className="w-px h-5 bg-slate-700"></div>
-              <button
-                onClick={() => handleShare('twitter')}
-                className="text-slate-400 hover:text-white transition-colors p-2"
-                aria-label="Share on Twitter"
+                aria-label="Share on X"
               >
                 <Twitter size={20} />
               </button>
               <div className="w-px h-5 bg-slate-700"></div>
               <button
-                onClick={() => handleShare('youtube')}
+                onClick={() => handleShare('linkedin')}
                 className="text-slate-400 hover:text-white transition-colors p-2"
-                aria-label="Share on YouTube"
+                aria-label="Share on LinkedIn"
               >
-                <Youtube size={20} />
+                <Linkedin size={20} />
+              </button>
+              <div className="w-px h-5 bg-slate-700"></div>
+              <button
+                onClick={() => handleShare('whatsapp')}
+                className="text-slate-400 hover:text-[#25D366] transition-colors p-2"
+                aria-label="Share on WhatsApp"
+              >
+                <MessageCircle size={20} />
               </button>
             </div>
 
@@ -182,31 +173,9 @@ export function PageHeader({
       {/* Social icons with vertical connecting lines - positioned further right */}
       <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 flex-col items-center">
         <button
-          onClick={() => handleShare('facebook')}
+          onClick={() => handleShare('x')}
           className="text-slate-400 hover:text-white transition-colors relative z-10"
-          aria-label="Share on Facebook"
-        >
-          <Facebook size={20} />
-        </button>
-
-        {/* Vertical line */}
-        <div className="w-px h-8 bg-slate-700 my-1"></div>
-
-        <button
-          onClick={() => handleShare('instagram')}
-          className="text-slate-400 hover:text-white transition-colors relative z-10"
-          aria-label="Share on Instagram"
-        >
-          <Instagram size={20} />
-        </button>
-
-        {/* Vertical line */}
-        <div className="w-px h-8 bg-slate-700 my-1"></div>
-
-        <button
-          onClick={() => handleShare('twitter')}
-          className="text-slate-400 hover:text-white transition-colors relative z-10"
-          aria-label="Share on Twitter"
+          aria-label="Share on X"
         >
           <Twitter size={20} />
         </button>
@@ -215,11 +184,22 @@ export function PageHeader({
         <div className="w-px h-8 bg-slate-700 my-1"></div>
 
         <button
-          onClick={() => handleShare('youtube')}
+          onClick={() => handleShare('linkedin')}
           className="text-slate-400 hover:text-white transition-colors relative z-10"
-          aria-label="Share on YouTube"
+          aria-label="Share on LinkedIn"
         >
-          <Youtube size={20} />
+          <Linkedin size={20} />
+        </button>
+
+        {/* Vertical line */}
+        <div className="w-px h-8 bg-slate-700 my-1"></div>
+
+        <button
+          onClick={() => handleShare('whatsapp')}
+          className="text-slate-400 hover:text-[#25D366] transition-colors relative z-10"
+          aria-label="Share on WhatsApp"
+        >
+          <MessageCircle size={20} />
         </button>
       </div>
     </div>

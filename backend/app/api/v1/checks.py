@@ -1167,6 +1167,227 @@ async def get_check_sources(
     }
 
 
+# ============================================================================
+# PUBLIC ENDPOINT - For OG Image Generation (no auth required)
+# ============================================================================
+
+@router.get("/public/{check_id}")
+async def get_public_check(
+    check_id: str,
+    detailed: bool = False,
+    session: AsyncSession = Depends(get_session)
+):
+    """Get public check data. No auth required.
+
+    Query params:
+    - detailed: If true, returns full check data for public report page.
+                If false (default), returns minimal data for OG card generation.
+
+    Only returns completed checks.
+    """
+    # Get check from database (no user verification - public endpoint)
+    stmt = select(Check).where(Check.id == check_id)
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    if check.status != "completed":
+        raise HTTPException(status_code=404, detail="Check not found or not completed")
+
+    # Get claims for this check
+    claims_stmt = (
+        select(Claim)
+        .where(Claim.check_id == check_id)
+        .order_by(Claim.position)
+    )
+    claims_result = await session.execute(claims_stmt)
+    claims = claims_result.scalars().all()
+
+    # Get all evidence for this check to calculate stats
+    all_evidence = []
+    top_sources_set = set()
+    source_tiers_count = {"tier1": 0, "tier2": 0, "tier3": 0}
+
+    for claim in claims:
+        evidence_stmt = (
+            select(Evidence)
+            .where(Evidence.claim_id == claim.id)
+            .order_by(desc(Evidence.relevance_score))
+        )
+        evidence_result = await session.execute(evidence_stmt)
+        evidence_list = evidence_result.scalars().all()
+        all_evidence.extend(evidence_list)
+
+        # Collect unique sources and categorize by tier
+        for ev in evidence_list:
+            if ev.source:
+                top_sources_set.add(ev.source)
+            # Categorize by credibility tier
+            if ev.credibility_score and ev.credibility_score >= 0.8:
+                source_tiers_count["tier1"] += 1
+            elif ev.credibility_score and ev.credibility_score >= 0.6:
+                source_tiers_count["tier2"] += 1
+            else:
+                source_tiers_count["tier3"] += 1
+
+    # Calculate source tier percentages
+    total_evidence = len(all_evidence) or 1  # Avoid division by zero
+    source_tiers = []
+
+    if source_tiers_count["tier1"] > 0:
+        source_tiers.append({
+            "label": "Official Sources",
+            "description": "Government and institutional sources",
+            "percentage": round((source_tiers_count["tier1"] / total_evidence) * 100)
+        })
+    if source_tiers_count["tier2"] > 0:
+        source_tiers.append({
+            "label": "Quality News",
+            "description": "Established news organizations",
+            "percentage": round((source_tiers_count["tier2"] / total_evidence) * 100)
+        })
+    if source_tiers_count["tier3"] > 0 and len(source_tiers) < 2:
+        source_tiers.append({
+            "label": "Other Sources",
+            "description": "Various online sources",
+            "percentage": round((source_tiers_count["tier3"] / total_evidence) * 100)
+        })
+
+    # Extract source domain and title from URL
+    source_domain = None
+    title = None
+
+    if check.input_url:
+        try:
+            from urllib.parse import urlparse
+            import re
+
+            parsed = urlparse(check.input_url)
+            source_domain = parsed.netloc.replace('www.', '')
+
+            # Extract title from URL slug (last path segment)
+            path_parts = [p for p in parsed.path.split('/') if p and len(p) > 3]
+            if path_parts:
+                slug = path_parts[-1]
+                # Remove file extensions
+                slug = re.sub(r'\.\w+$', '', slug)
+                # Remove trailing IDs (various patterns: -b2895946, -12345678, _abc123)
+                slug = re.sub(r'[-_][a-zA-Z]?\d{5,}$', '', slug)  # -b2895946, -12345678
+                slug = re.sub(r'[-_]\d+$', '', slug)  # Trailing numbers
+                slug = re.sub(r'[-_][a-f0-9]{8,}$', '', slug, flags=re.IGNORECASE)  # UUIDs/hashes
+                # Convert slug to title case
+                title = slug.replace('-', ' ').replace('_', ' ').title()
+        except Exception:
+            pass
+
+    # Fallback title options
+    if not title or len(title) < 10:
+        if check.article_excerpt:
+            # Use first sentence of article excerpt
+            first_sentence = check.article_excerpt.split('.')[0]
+            title = first_sentence[:70] + '...' if len(first_sentence) > 70 else first_sentence
+        elif source_domain:
+            title = f"Report from {source_domain}"
+
+    # Minimal response for OG card generation
+    base_response = {
+        "id": check.id,
+        "title": title,
+        "sourceUrl": check.input_url,
+        "sourceDomain": source_domain,
+        "claimsCount": len(claims),
+        "sourcesCount": check.raw_sources_count or len(top_sources_set),
+        "evidenceCount": len(all_evidence),
+        "credibilityScore": check.credibility_score,
+        "topSources": list(top_sources_set)[:5]
+    }
+
+    # If not detailed, return minimal response for OG card
+    if not detailed:
+        return base_response
+
+    # Build detailed response for public report page
+    # Build claims with evidence
+    claims_data = []
+    for claim in claims:
+        # Get evidence for this claim
+        evidence_stmt = (
+            select(Evidence)
+            .where(Evidence.claim_id == claim.id)
+            .order_by(desc(Evidence.relevance_score))
+        )
+        evidence_result = await session.execute(evidence_stmt)
+        evidence_list = evidence_result.scalars().all()
+
+        evidence_data = []
+        for ev in evidence_list:
+            evidence_data.append({
+                "id": ev.id,
+                "source": ev.source,
+                "url": ev.url,
+                "title": ev.title,
+                "snippet": ev.snippet,
+                "publishedDate": ev.published_date.isoformat() if ev.published_date else None,
+                "relevanceScore": ev.relevance_score,
+                "credibilityScore": ev.credibility_score,
+                "isFactcheck": ev.is_factcheck,
+                "factcheckPublisher": ev.factcheck_publisher,
+                "factcheckRating": ev.factcheck_rating,
+                "nliStance": ev.nli_stance,
+                "nliConfidence": ev.nli_confidence,
+                "contextBefore": ev.context_before,
+                "contextAfter": ev.context_after,
+            })
+
+        claims_data.append({
+            "id": claim.id,
+            "text": claim.text,
+            "verdict": claim.verdict,
+            "confidence": claim.confidence,
+            "rationale": claim.rationale,
+            "position": claim.position,
+            "claimType": claim.claim_type,
+            "isVerifiable": claim.is_verifiable,
+            "verifiabilityReason": claim.verifiability_reason,
+            "isTimeSensitive": claim.is_time_sensitive,
+            "timeReference": claim.time_reference,
+            "uncertaintyExplanation": claim.uncertainty_explanation,
+            "confidenceBreakdown": claim.confidence_breakdown,
+            "decisionTrail": claim.decision_trail,
+            "evidence": evidence_data,
+            "sourcesReviewedCount": claim.sources_reviewed_count,
+        })
+
+    # Calculate verdict counts
+    claims_supported = sum(1 for c in claims if c.verdict == "supported")
+    claims_contradicted = sum(1 for c in claims if c.verdict == "contradicted")
+    claims_uncertain = sum(1 for c in claims if c.verdict == "uncertain")
+
+    return {
+        **base_response,
+        # Full check metadata
+        "inputType": check.input_type,
+        "inputUrl": check.input_url,
+        "inputContent": check.input_content,
+        "articleExcerpt": check.article_excerpt,
+        "articleDomain": check.article_domain,
+        "articleJurisdiction": check.article_jurisdiction,
+        "createdAt": check.created_at.isoformat() if check.created_at else None,
+        "completedAt": check.completed_at.isoformat() if check.completed_at else None,
+        # Overall assessment
+        "overallSummary": check.overall_summary,
+        "claimsSupported": claims_supported,
+        "claimsContradicted": claims_contradicted,
+        "claimsUncertain": claims_uncertain,
+        # Source tiers breakdown
+        "sourceTiers": source_tiers,
+        # Full claims with evidence
+        "claims": claims_data,
+    }
+
+
 @router.get("/{check_id}/sources/export")
 async def export_check_sources(
     check_id: str,

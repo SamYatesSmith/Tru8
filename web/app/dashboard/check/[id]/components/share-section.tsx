@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { Facebook, Twitter, Linkedin, Link as LinkIcon, Check, Download } from 'lucide-react';
+import { Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Download } from 'lucide-react';
 
 interface ShareSectionProps {
   checkId: string;
@@ -13,17 +13,18 @@ export function ShareSection({ checkId }: ShareSectionProps) {
   const [copied, setCopied] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
+  // Use public URL for sharing (not dashboard URL)
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/dashboard/check/${checkId}`
+    ? `${window.location.origin}/r/${checkId}`
     : '';
-  const shareText = 'Check out this verification on Tru8';
+  const shareText = 'Check out this evidence report on Tru8';
 
   const handleShare = async (platform: string) => {
     // Try native Web Share API first
     if (platform === 'native' && navigator.share) {
       try {
         await navigator.share({
-          title: 'Tru8 Verification',
+          title: 'Tru8 Evidence Report',
           text: shareText,
           url: shareUrl,
         });
@@ -35,9 +36,9 @@ export function ShareSection({ checkId }: ShareSectionProps) {
 
     // Platform-specific URLs
     const shareUrls: Record<string, string> = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
+      x: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
     };
 
     if (platform in shareUrls) {
@@ -102,20 +103,11 @@ export function ShareSection({ checkId }: ShareSectionProps) {
       </button>
 
       <div className="flex items-center gap-3">
-        {/* Facebook */}
+        {/* X (Twitter) */}
         <button
-          onClick={() => handleShare('facebook')}
+          onClick={() => handleShare('x')}
           className="flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-          aria-label="Share on Facebook"
-        >
-          <Facebook size={20} />
-        </button>
-
-        {/* Twitter */}
-        <button
-          onClick={() => handleShare('twitter')}
-          className="flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-          aria-label="Share on Twitter"
+          aria-label="Share on X"
         >
           <Twitter size={20} />
         </button>
@@ -127,6 +119,15 @@ export function ShareSection({ checkId }: ShareSectionProps) {
           aria-label="Share on LinkedIn"
         >
           <Linkedin size={20} />
+        </button>
+
+        {/* WhatsApp */}
+        <button
+          onClick={() => handleShare('whatsapp')}
+          className="flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-[#25D366] text-white rounded-lg transition-colors"
+          aria-label="Share on WhatsApp"
+        >
+          <MessageCircle size={20} />
         </button>
 
         {/* Copy Link */}

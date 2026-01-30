@@ -144,6 +144,7 @@ function CheckResultsContent() {
       }
       
       shareText += `Verified by Tru8 - Thorough fact-checking with credible sources`;
+      shareText += `\n\nView full report: https://tru8.app/r/${check.id}`;
       
       if (await Sharing.isAvailableAsync()) {
         // Create a temporary text file to share
