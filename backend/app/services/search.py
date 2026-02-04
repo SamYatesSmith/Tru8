@@ -122,6 +122,7 @@ class BraveSearchProvider(BaseSearchProvider):
 
     async def search(self, query: str, **kwargs) -> List[SearchResult]:
         """Search using Brave Search API"""
+        logger.info(f"[BRAVE DEBUG] search called, api_key present: {bool(self.api_key)}, api_key length: {len(self.api_key) if self.api_key else 0}")
         if not self.api_key:
             logger.warning("Brave API key not configured")
             return []
@@ -302,6 +303,15 @@ class BraveSearchProvider(BaseSearchProvider):
 class SerpAPIProvider(BaseSearchProvider):
     """SerpAPI Google Search implementation"""
 
+    # Mapping from Brave freshness to Google tbs parameter
+    FRESHNESS_TO_TBS = {
+        "pd": "qdr:d",   # past day
+        "pw": "qdr:w",   # past week
+        "pm": "qdr:m",   # past month
+        "py": "qdr:y",   # past year
+        "2y": "qdr:y2",  # 2 years (default)
+    }
+
     def __init__(self):
         super().__init__()
         self.api_key = settings.SERP_API_KEY
@@ -368,6 +378,10 @@ class SerpAPIProvider(BaseSearchProvider):
     async def _execute_search(self, query: str, **kwargs) -> List[SearchResult]:
         """Execute the actual search request (called within rate limit lock)"""
         try:
+            # Map freshness parameter to Google tbs format
+            freshness = kwargs.get("freshness", "2y")
+            tbs_value = self.FRESHNESS_TO_TBS.get(freshness, "qdr:y2")
+
             params = {
                 "q": query,
                 "engine": "google",
@@ -375,7 +389,7 @@ class SerpAPIProvider(BaseSearchProvider):
                 "num": min(kwargs.get("max_results", self.max_results), 20),
                 "gl": "gb",  # UK geolocation
                 "hl": "en",  # English language
-                "tbs": "qdr:y2"  # Last 2 years
+                "tbs": tbs_value  # Dynamic freshness based on query requirements
             }
 
             # Use persistent client instead of creating new one each time

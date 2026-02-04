@@ -245,10 +245,12 @@ async def rank_evidence_by_similarity(claim: str, evidence_snippets: List[str],
         )
         
         # Return with evidence text
+        # Normalize similarity from [-1, 1] to [0, 1] to match config threshold expectations
         ranked_evidence = []
         for idx, similarity in similar_indices:
             if idx < len(evidence_snippets):
-                ranked_evidence.append((idx, similarity, evidence_snippets[idx]))
+                normalized_similarity = (similarity + 1.0) / 2.0
+                ranked_evidence.append((idx, normalized_similarity, evidence_snippets[idx]))
         
         return ranked_evidence
         

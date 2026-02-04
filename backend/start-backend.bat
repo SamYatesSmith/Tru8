@@ -17,7 +17,7 @@ if errorlevel 1 (
 )
 
 REM Check if Redis is running
-echo [1/4] Checking Redis connection...
+echo [1/3] Checking Redis connection...
 python -c "import redis; r = redis.Redis(host='localhost', port=6379, decode_responses=True); r.ping(); print('Redis is running')" 2>nul
 if %errorlevel% == 0 (
     echo ✓ Redis is running
@@ -38,19 +38,19 @@ if %errorlevel% == 0 (
 
 REM Check if virtual environment should be activated
 if exist "venv\Scripts\activate.bat" (
-    echo [2/4] Activating virtual environment...
+    echo [2/3] Activating virtual environment...
     call venv\Scripts\activate.bat
     echo ✓ Virtual environment activated
 ) else if exist ".venv\Scripts\activate.bat" (
-    echo [2/4] Activating virtual environment...
-    call .venv\Scripts\activate.bat  
+    echo [2/3] Activating virtual environment...
+    call .venv\Scripts\activate.bat
     echo ✓ Virtual environment activated
 ) else (
-    echo [2/4] No virtual environment found, using system Python
+    echo [2/3] No virtual environment found, using system Python
 )
 
 REM Check and install ALL required dependencies systematically
-echo [3/4] Checking and installing dependencies...
+echo [3/3] Checking and installing dependencies...
 echo This may take a few moments on first run...
 
 REM Core Web Framework
@@ -65,8 +65,7 @@ python -c "import sqlmodel" 2>nul || pip install -q sqlmodel
 python -c "import asyncpg" 2>nul || pip install -q asyncpg
 python -c "import alembic" 2>nul || pip install -q alembic
 
-REM Task Queue & Cache
-python -c "import celery" 2>nul || pip install -q celery
+REM Cache
 python -c "import redis" 2>nul || pip install -q redis
 
 REM Authentication
@@ -101,30 +100,17 @@ REM pip install sentence-transformers torch transformers scikit-learn
 
 echo ✓ Essential dependencies installed
 
-echo [4/4] Starting services...
 echo.
 echo =======================================
-echo  Starting Tru8 Backend Services  
+echo  Starting Tru8 Backend
 echo =======================================
 echo.
 echo ✓ FastAPI will start on: http://localhost:8000
 echo ✓ API docs available at: http://localhost:8000/api/docs
-echo ✓ Celery worker will handle fact-checking tasks
+echo ✓ Pipeline runs inline with SSE streaming (no separate worker)
 echo.
-echo Press Ctrl+C to stop all services
+echo Press Ctrl+C to stop
 echo.
-
-REM Start Celery worker in background (use python -m to ensure it's found)
-echo Starting Celery worker...
-REM Write logs to backend directory so we can see errors immediately
-set CELERY_LOG=celery-worker.log
-REM CRITICAL: Use solo pool for Windows compatibility AND correct module path
-start "Tru8 Celery Worker" cmd /c "python -m celery -A app.workers.celery_app worker --pool=solo --loglevel=info --logfile=%CELERY_LOG% 2>&1"
-echo Celery logs: %CELERY_LOG%
-echo [Memory Safe] Using solo pool for Windows compatibility
-
-REM Wait a moment for worker to start
-timeout /t 2 /nobreak >nul
 
 REM Start FastAPI server (use python -m to ensure it's found)
 REM Use --reload-dir to limit file watching scope

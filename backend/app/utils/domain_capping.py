@@ -45,30 +45,50 @@ class DomainCapper:
         if not evidence:
             return []
 
-        # Group evidence by domain with credibility tracking
+        # Group evidence by domain FIRST to check for diversity
         domain_evidence = defaultdict(list)
         for ev in evidence:
             domain = extract_domain(ev.get('url', ''), fallback="unknown")
             domain_evidence[domain].append(ev)
 
-        # Calculate domain caps based on credibility
+        # Check if any single domain dominates
+        max_from_single_domain = max(len(ev_list) for ev_list in domain_evidence.values())
+        num_unique_domains = len(domain_evidence)
+
+        # EDGE CASE: For very small evidence sets WITH DIVERSITY, skip aggressive capping
+        # Only skip if: (1) fewer than 4 items AND (2) no domain has more than 2 items
+        # If one domain dominates a small set, we MUST still cap to prevent bias appearance
+        if len(evidence) < 4 and max_from_single_domain <= 2:
+            logger.info(f"Small diverse evidence set ({len(evidence)} items, {num_unique_domains} domains) - skipping capping")
+            return evidence
+
+        # If we have 3+ items from same domain, we MUST cap regardless of total count
+        if max_from_single_domain > 2:
+            logger.info(f"Domain dominance detected ({max_from_single_domain} from one domain) - applying strict cap")
+
+        # Calculate domain caps - STRICT per-claim diversity
+        # Problem: Having 3 sources from NYTimes in ONE claim looks like bias
+        # Solution: Max 2 per domain per claim, regardless of credibility
+        #
+        # This forces the system to find diverse sources for each claim
+        STRICT_PER_CLAIM_MAX = 2  # Hard cap: no more than 2 from any domain per claim
+
         domain_caps = {}
         for domain, ev_list in domain_evidence.items():
-            # Use max credibility from domain (best source determines cap)
             max_credibility = max(ev.get('credibility_score', 0.6) for ev in ev_list)
 
             if max_credibility >= outstanding_threshold:
-                # Outstanding: allow up to target_count (e.g., all 5)
-                domain_caps[domain] = target_count
-                logger.info(f"Domain '{domain}' is OUTSTANDING (credibility {max_credibility:.2f}), cap: {target_count}")
+                # Outstanding (credibility >= 0.95): Still cap at 2 to avoid appearance of bias
+                domain_caps[domain] = STRICT_PER_CLAIM_MAX
+                logger.info(f"Domain '{domain}' is OUTSTANDING (credibility {max_credibility:.2f}), cap: {STRICT_PER_CLAIM_MAX}")
             elif max_credibility >= 0.8:
-                # Good: standard cap (3)
-                domain_caps[domain] = min(self.max_per_domain, int(target_count * self.max_domain_ratio))
-                logger.info(f"Domain '{domain}' is GOOD (credibility {max_credibility:.2f}), cap: {domain_caps[domain]}")
+                # Good: cap at 2
+                domain_caps[domain] = STRICT_PER_CLAIM_MAX
+                logger.info(f"Domain '{domain}' is GOOD (credibility {max_credibility:.2f}), cap: {STRICT_PER_CLAIM_MAX}")
             else:
-                # Mediocre: strict cap (2)
-                domain_caps[domain] = max(2, min(self.max_per_domain - 1, int(target_count * 0.4)))
-                logger.info(f"Domain '{domain}' is MEDIOCRE (credibility {max_credibility:.2f}), cap: {domain_caps[domain]}")
+                # Mediocre: cap at 1 (need more diverse sources for low-quality)
+                domain_caps[domain] = 1
+                logger.info(f"Domain '{domain}' is MEDIOCRE (credibility {max_credibility:.2f}), cap: 1")
 
         # Apply caps
         domain_counts = defaultdict(int)
@@ -136,18 +156,23 @@ class DomainCapper:
         total_evidence = len(all_evidence)
         num_claims = len(evidence_by_claim)
 
-        # Ensure at least 2 sources per claim can pass from any domain
-        # This prevents claims from getting 0 evidence due to aggressive capping
-        min_for_coverage = max(global_max_per_domain, num_claims * 2)
-        ratio_based = max(3, int(total_evidence * global_max_ratio))
+        # STRICT domain cap enforcement to prevent appearance of bias
+        #
+        # Problem: Users see 5/9 sources from NYTimes and think Tru8 is biased
+        # Solution: Hard cap at configured limit (GLOBAL_MAX_PER_DOMAIN = 3)
+        #
+        # No buffers, no exceptions - the config limit IS the limit
 
-        # Fix 0d: Use AVERAGE of the two, capped at 15 (prevents runaway memory usage)
-        ABSOLUTE_MAX_PER_DOMAIN = 15
-        effective_max_count = min(ABSOLUTE_MAX_PER_DOMAIN, (min_for_coverage + ratio_based) // 2)
+        # Ratio-based: max X% of total evidence from any domain
+        ratio_based = max(2, int(total_evidence * global_max_ratio))
+
+        # STRICT: Take the MORE RESTRICTIVE of config limit vs ratio limit
+        # This ensures we respect BOTH the hard cap AND the percentage cap
+        effective_max_count = min(global_max_per_domain, ratio_based)
 
         logger.info(
-            f"[GLOBAL CAP] Config: {num_claims} claims, "
-            f"min_for_coverage={min_for_coverage}, ratio_based={ratio_based}, "
+            f"[GLOBAL CAP] STRICT: {num_claims} claims, {total_evidence} evidence, "
+            f"config_limit={global_max_per_domain}, ratio_limit={ratio_based}, "
             f"effective_max={effective_max_count}"
         )
 

@@ -123,10 +123,10 @@ class TestAPIPerformance:
             result = await retriever._retrieve_from_government_apis(claim_text, claim)
             latency_ms = (time.time() - start_time) * 1000
 
-                # If sequential: ~1000ms (2 * 500ms)
-                # If parallel: ~500ms
-                # Allow some overhead, assert < 800ms
-                assert latency_ms < 800, f"Parallel API calls took {latency_ms:.0f}ms (expected ~500ms for parallel)"
+            # If sequential: ~1000ms (2 * 500ms)
+            # If parallel: ~500ms
+            # Allow some overhead, assert < 800ms
+            assert latency_ms < 800, f"Parallel API calls took {latency_ms:.0f}ms (expected ~500ms for parallel)"
 
     @pytest.mark.asyncio
     @pytest.mark.performance

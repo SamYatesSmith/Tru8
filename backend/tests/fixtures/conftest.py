@@ -487,24 +487,6 @@ def temp_file(tmp_path):
     return _create_temp_file
 
 
-@pytest.fixture
-def mock_celery_task():
-    """
-    Mock Celery task for testing pipeline orchestration
-
-    Created: 2025-11-03
-    Usage: def test_pipeline(mock_celery_task): ...
-    """
-    mock_task = Mock()
-    mock_task.delay = Mock(return_value=Mock(id="task_123"))
-    mock_task.AsyncResult = Mock(return_value=Mock(
-        state="SUCCESS",
-        result={"status": "completed"}
-    ))
-
-    return mock_task
-
-
 @pytest.fixture(scope="session")
 def event_loop():
     """

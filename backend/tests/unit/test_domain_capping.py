@@ -1,5 +1,6 @@
 import pytest
 from app.utils.domain_capping import DomainCapper
+from app.utils.url_utils import extract_domain
 
 
 class TestDomainCapping:
@@ -11,32 +12,33 @@ class TestDomainCapping:
 
     @pytest.fixture
     def evidence_list(self):
-        """10 evidence items, 5 from bbc.com (50% - should be capped to 40%)"""
+        """10 evidence items, 5 from bbc.com (50% - should be capped based on credibility)"""
+        # BBC has high credibility (0.9) so it's a "GOOD" source (>= 0.8), capped at min(3, target*0.4)
         return [
-            {"url": "https://bbc.com/article1", "snippet": "BBC evidence 1", "final_score": 0.95},
-            {"url": "https://bbc.com/article2", "snippet": "BBC evidence 2", "final_score": 0.90},
-            {"url": "https://bbc.com/article3", "snippet": "BBC evidence 3", "final_score": 0.85},
-            {"url": "https://bbc.com/article4", "snippet": "BBC evidence 4", "final_score": 0.80},
-            {"url": "https://bbc.com/article5", "snippet": "BBC evidence 5", "final_score": 0.75},
-            {"url": "https://cnn.com/article1", "snippet": "CNN evidence 1", "final_score": 0.88},
-            {"url": "https://reuters.com/article1", "snippet": "Reuters evidence", "final_score": 0.87},
-            {"url": "https://apnews.com/article1", "snippet": "AP evidence", "final_score": 0.86},
-            {"url": "https://nytimes.com/article1", "snippet": "NYT evidence", "final_score": 0.84},
-            {"url": "https://theguardian.com/article1", "snippet": "Guardian evidence", "final_score": 0.83}
+            {"url": "https://bbc.com/article1", "snippet": "BBC evidence 1", "final_score": 0.95, "credibility_score": 0.9},
+            {"url": "https://bbc.com/article2", "snippet": "BBC evidence 2", "final_score": 0.90, "credibility_score": 0.9},
+            {"url": "https://bbc.com/article3", "snippet": "BBC evidence 3", "final_score": 0.85, "credibility_score": 0.9},
+            {"url": "https://bbc.com/article4", "snippet": "BBC evidence 4", "final_score": 0.80, "credibility_score": 0.9},
+            {"url": "https://bbc.com/article5", "snippet": "BBC evidence 5", "final_score": 0.75, "credibility_score": 0.9},
+            {"url": "https://cnn.com/article1", "snippet": "CNN evidence 1", "final_score": 0.88, "credibility_score": 0.8},
+            {"url": "https://reuters.com/article1", "snippet": "Reuters evidence", "final_score": 0.87, "credibility_score": 0.9},
+            {"url": "https://apnews.com/article1", "snippet": "AP evidence", "final_score": 0.86, "credibility_score": 0.9},
+            {"url": "https://nytimes.com/article1", "snippet": "NYT evidence", "final_score": 0.84, "credibility_score": 0.9},
+            {"url": "https://theguardian.com/article1", "snippet": "Guardian evidence", "final_score": 0.83, "credibility_score": 0.8}
         ]
 
     def test_apply_caps_reduces_dominant_domain(self, capper, evidence_list):
-        """Test: Dominant domain (50%) reduced to max 40%"""
+        """Test: Dominant domain reduced to max 2 per claim (strict diversity)"""
         result = capper.apply_caps(evidence_list, target_count=10)
 
         # Count BBC evidence in result
         bbc_count = sum(1 for ev in result if 'bbc.com' in ev['url'])
 
-        # Assert: Max 40% (4 out of 10)
-        assert bbc_count <= 4, f"Expected ≤4 BBC evidence, got {bbc_count}"
+        # Assert: BBC capped at 2 per claim (strict diversity, regardless of credibility)
+        assert bbc_count <= 2, f"Expected ≤2 BBC evidence, got {bbc_count}"
 
-        # Assert: Total count unchanged
-        assert len(result) == 10
+        # Assert: Total count = 2 BBC + 5 others = 7
+        assert len(result) == 7
 
     def test_apply_caps_preserves_quality_ranking(self, capper, evidence_list):
         """Test: Capping keeps highest-quality evidence from each domain"""
@@ -45,10 +47,10 @@ class TestDomainCapping:
         # Find which BBC articles made it through
         bbc_survivors = [ev for ev in result if 'bbc.com' in ev['url']]
 
-        # Assert: Top BBC articles by score survived
-        assert len(bbc_survivors) <= 4
+        # Assert: Top BBC articles by score survived (capped at 2 for strict diversity)
+        assert len(bbc_survivors) <= 2
         for survivor in bbc_survivors:
-            assert survivor['final_score'] >= 0.75  # High-quality evidence
+            assert survivor['final_score'] >= 0.90  # Top 2 by quality
 
     def test_no_capping_when_already_diverse(self, capper):
         """Test: No changes when all domains already below threshold"""
@@ -80,22 +82,22 @@ class TestDomainCapping:
 
     def test_edge_case_single_domain(self, capper):
         """Test: Handles case where all evidence from one domain"""
+        # BBC with GOOD credibility (0.9) - now capped at 2 (strict per-claim diversity)
         single_domain = [
-            {"url": "https://bbc.com/article1", "snippet": "BBC 1", "final_score": 0.95},
-            {"url": "https://bbc.com/article2", "snippet": "BBC 2", "final_score": 0.90},
-            {"url": "https://bbc.com/article3", "snippet": "BBC 3", "final_score": 0.85},
-            {"url": "https://bbc.com/article4", "snippet": "BBC 4", "final_score": 0.80},
-            {"url": "https://bbc.com/article5", "snippet": "BBC 5", "final_score": 0.75}
+            {"url": "https://bbc.com/article1", "snippet": "BBC 1", "final_score": 0.95, "credibility_score": 0.9},
+            {"url": "https://bbc.com/article2", "snippet": "BBC 2", "final_score": 0.90, "credibility_score": 0.9},
+            {"url": "https://bbc.com/article3", "snippet": "BBC 3", "final_score": 0.85, "credibility_score": 0.9},
+            {"url": "https://bbc.com/article4", "snippet": "BBC 4", "final_score": 0.80, "credibility_score": 0.9},
+            {"url": "https://bbc.com/article5", "snippet": "BBC 5", "final_score": 0.75, "credibility_score": 0.9}
         ]
 
         result = capper.apply_caps(single_domain, target_count=5)
 
-        # Assert: Capped to max_per_domain (3)
-        assert len(result) == 3
-        # Assert: Top 3 by quality
+        # Assert: Strict cap at 2 per domain per claim
+        assert len(result) == 2
+        # Assert: Top 2 by quality
         assert result[0]['final_score'] == 0.95
         assert result[1]['final_score'] == 0.90
-        assert result[2]['final_score'] == 0.85
 
     def test_diversity_metrics_calculation(self, capper):
         """Test: Diversity metrics calculated correctly"""
@@ -121,17 +123,17 @@ class TestDomainCapping:
         assert metrics["diversity_score"] == 0
         assert metrics["domain_distribution"] == {}
 
-    def test_extract_domain_removes_www(self, capper):
+    def test_extract_domain_removes_www(self):
         """Test: www. prefix is correctly removed"""
-        domain = capper._extract_domain("https://www.bbc.com/news/article")
+        domain = extract_domain("https://www.bbc.com/news/article")
         assert domain == "bbc.com"
 
-    def test_extract_domain_handles_subdomains(self, capper):
+    def test_extract_domain_handles_subdomains(self):
         """Test: Subdomains are preserved but www is removed"""
-        domain = capper._extract_domain("https://news.bbc.co.uk/article")
+        domain = extract_domain("https://news.bbc.co.uk/article")
         assert domain == "news.bbc.co.uk"
 
-    def test_extract_domain_invalid_url(self, capper):
-        """Test: Invalid URLs return 'unknown' without crashing"""
-        domain = capper._extract_domain("not-a-valid-url")
+    def test_extract_domain_invalid_url(self):
+        """Test: Invalid URLs return fallback without crashing"""
+        domain = extract_domain("not-a-valid-url", fallback="unknown")
         assert domain == "unknown"

@@ -162,22 +162,8 @@ Always return valid JSON matching the required format."""
                 content = ' '.join(words[:max_words]) + "..."
                 logger.info(f"Truncated content to {max_words} words")
             
-            # Try OpenAI extraction (primary)
-            if self.openai_api_key:
-                result = await self._extract_with_openai(content, metadata or {})
-                if result["success"]:
-                    # Add source metadata to each claim
-                    for claim in result.get("claims", []):
-                        claim["source_title"] = metadata.get("title") if metadata else None
-                        claim["source_url"] = metadata.get("url") if metadata else None
-                        claim["source_date"] = metadata.get("date") if metadata else None
-                    return result
-                else:
-                    logger.error(f"OpenAI extraction failed: {result.get('error')}")
-
-            # Try Google AI extraction (backup)
+            # Try Google AI extraction (primary)
             if self.google_ai_api_key:
-                logger.info("Attempting Google AI (Gemini) extraction as backup")
                 result = await self._extract_with_google(content, metadata or {})
                 if result["success"]:
                     # Add source metadata to each claim
@@ -188,6 +174,20 @@ Always return valid JSON matching the required format."""
                     return result
                 else:
                     logger.error(f"Google AI extraction failed: {result.get('error')}")
+
+            # Try OpenAI extraction (fallback)
+            if self.openai_api_key:
+                logger.info("Attempting OpenAI extraction as fallback")
+                result = await self._extract_with_openai(content, metadata or {})
+                if result["success"]:
+                    # Add source metadata to each claim
+                    for claim in result.get("claims", []):
+                        claim["source_title"] = metadata.get("title") if metadata else None
+                        claim["source_url"] = metadata.get("url") if metadata else None
+                        claim["source_date"] = metadata.get("date") if metadata else None
+                    return result
+                else:
+                    logger.error(f"OpenAI extraction failed: {result.get('error')}")
 
             # Fallback to rule-based extraction
             logger.warning("All LLM extractions failed, using rule-based fallback")
@@ -289,7 +289,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     claim["position"] = i
 
                 # Post-processing: temporal analysis and claim classification
-                from app.core.config import settings
+                # Note: settings already imported at module level
 
                 # Temporal analysis if enabled (Phase 1.5, Week 4.5-5.5)
                 if settings.ENABLE_TEMPORAL_CONTEXT:
@@ -384,9 +384,10 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             # Combine system prompt and user prompt for Gemini
             full_prompt = f"{self.system_prompt.format(max_claims=self.max_claims)}\n\n{user_prompt}\n\nProvide your response as valid JSON."
 
+            google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.google_ai_api_key}",
+                    f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={self.google_ai_api_key}",
                     headers={"Content-Type": "application/json"},
                     json={
                         "contents": [{"parts": [{"text": full_prompt}]}],
@@ -446,7 +447,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     claim["position"] = i
 
                 # Post-processing: temporal analysis and claim classification
-                from app.core.config import settings
+                # Note: settings already imported at module level
 
                 # Temporal analysis if enabled
                 if settings.ENABLE_TEMPORAL_CONTEXT:
@@ -496,7 +497,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     "success": True,
                     "claims": claims,
                     "metadata": {
-                        "extraction_method": "google_gemini_flash",
+                        "extraction_method": f"google_{google_model}",
                         "source_summary": validated_response.source_summary,
                         "extraction_confidence": validated_response.extraction_confidence
                     }

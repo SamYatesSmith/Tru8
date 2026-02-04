@@ -25,7 +25,7 @@ async_session = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )
 
-# Sync engine and session for Celery tasks
+# Sync engine and session for synchronous operations
 # Strip any SSL params from URL since we handle via connect_args
 sync_database_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
 # Remove ssl param if present in URL (psycopg2 doesn't support it in DSN)

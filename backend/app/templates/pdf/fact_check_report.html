@@ -398,7 +398,7 @@
       <div class="rationale-text">{{ claim.rationale }}</div>
     </div>
 
-    <!-- Evidence Sources -->
+    <!-- Evidence Sources OR Unsupported Notice -->
     {% if claim.evidence %}
     <div class="evidence-title">Evidence Sources ({{ claim.evidence|length }})</div>
     {% for evidence in claim.evidence[:3] %}
@@ -417,6 +417,19 @@
       {% endif %}
     </div>
     {% endfor %}
+    {% else %}
+    <!-- Unsupported Claim Notice -->
+    <div style="background: #fffbeb; border-left: 3px solid #d97706; padding: 12px 14px; margin-top: 8px;">
+      <div style="font-size: 10px; font-weight: bold; color: #92400e; margin-bottom: 4px;">
+        ⚠ Unsupported Claim
+      </div>
+      <div style="font-size: 9px; color: #78350f; line-height: 1.5;">
+        No credible sources were found to corroborate this claim. This suggests the assertion may be unfounded, inaccurate, or based on unreliable information.
+      </div>
+      <div style="font-size: 8px; color: #a16207; margin-top: 6px; font-style: italic;">
+        The absence of supporting evidence is itself a significant finding.
+      </div>
+    </div>
     {% endif %}
   </div>
   {% endfor %}

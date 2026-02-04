@@ -13,7 +13,7 @@ stripe==10.8.0
 sqlmodel==0.0.14
 alembic==1.13.1
 asyncpg==0.29.0
-psycopg2-binary==2.9.9  # Required for sync database sessions (Celery workers, email notifications)
+psycopg2-binary==2.9.9  # Required for sync database sessions
 redis==5.0.1
 
 # ML & Processing
@@ -22,10 +22,6 @@ onnxruntime==1.20.0
 scikit-learn==1.5.0  # Updated from 1.3.2 (PYSEC-2024-110)
 spacy>=3.8,<3.9  # Phase 5: Government API domain classification
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl  # spaCy English model
-
-# Task Queue
-celery==5.3.4
-flower==2.0.1
 
 # Auth
 python-jose[cryptography]==3.4.0  # Updated from 3.3.0 (PYSEC-2024-232, PYSEC-2024-233)

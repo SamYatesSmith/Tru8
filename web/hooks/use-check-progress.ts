@@ -17,6 +17,7 @@ interface UseCheckProgressReturn {
   progress: number;
   currentStage: string;
   isConnected: boolean;
+  isCompleted: boolean;  // True when SSE received 'completed' event
   error: string | null;
   message: string | null;
   timeEstimate: string | null;
@@ -35,6 +36,7 @@ export function useCheckProgress(
   const [progress, setProgress] = useState(0);
   const [currentStage, setCurrentStage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [timeEstimate, setTimeEstimate] = useState<string | null>(null);
@@ -93,7 +95,9 @@ export function useCheckProgress(
 
             case 'completed':
               setProgress(100);
-              setCurrentStage('completed');
+              setCurrentStage('judge');  // Show final stage as complete, not 'completed'
+              setMessage('Fact-check completed successfully');
+              setIsCompleted(true);  // Signal to parent that completion was received
               // Close connection on completion
               eventSource.close();
               break;
@@ -118,10 +122,17 @@ export function useCheckProgress(
         }
       };
 
-      eventSource.onerror = () => {
+      eventSource.onerror = (e) => {
+        // Don't immediately close - EventSource has built-in reconnect
+        // Only mark as disconnected so UI can show appropriate state
+        console.log('[useCheckProgress] SSE error, will attempt reconnect');
         setIsConnected(false);
-        setError('Connection lost');
-        eventSource.close();
+        // Don't set error immediately - give reconnect a chance
+        // EventSource automatically reconnects after errors
+        // Only close if readyState is CLOSED (terminal error)
+        if (eventSource.readyState === EventSource.CLOSED) {
+          setError('Connection closed');
+        }
       };
 
       return () => {
@@ -149,6 +160,7 @@ export function useCheckProgress(
     progress,
     currentStage,
     isConnected,
+    isCompleted,
     error,
     message,
     timeEstimate,

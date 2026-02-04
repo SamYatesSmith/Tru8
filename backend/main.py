@@ -20,6 +20,52 @@ from app.core.logging import setup_logging
 
 setup_logging()
 
+import logging
+import time
+
+logger = logging.getLogger(__name__)
+
+
+async def warmup_ml_models():
+    """
+    Preload ML models to avoid cold-start failures on first claim.
+
+    Cold-start issue: NLI (~400MB) and embedding (~90MB) models are lazy-loaded,
+    causing the first claim to timeout (5s limit vs 10-30s load time).
+
+    This warmup runs at app startup, ensuring models are ready before
+    the first fact-check request arrives.
+    """
+    start_time = time.time()
+    logger.info("[STARTUP] Starting ML model warmup...")
+
+    # Warmup NLI model (only if NLI verification is enabled)
+    # When PASS_NLI_VERDICT_TO_JUDGE=False, NLI is bypassed in the pipeline
+    if settings.PASS_NLI_VERDICT_TO_JUDGE:
+        try:
+            from app.pipeline.verify import get_claim_verifier
+            verifier = await get_claim_verifier()
+            await verifier.nli_verifier.initialize()
+            logger.info("[STARTUP] NLI model loaded successfully")
+        except Exception as e:
+            logger.error(f"[STARTUP] NLI model warmup failed: {e}")
+    else:
+        logger.info("[STARTUP] Skipping NLI warmup (PASS_NLI_VERDICT_TO_JUDGE=False)")
+
+    # Warmup embedding model (MiniLM for semantic similarity)
+    try:
+        from app.services.embeddings import get_embedding_service
+        embedding_service = await get_embedding_service()
+        # Trigger model load by embedding a test string
+        await embedding_service.embed_text("warmup test")
+        logger.info("[STARTUP] Embedding model loaded successfully")
+    except Exception as e:
+        logger.error(f"[STARTUP] Embedding model warmup failed: {e}")
+
+    elapsed = time.time() - start_time
+    logger.info(f"[STARTUP] ML model warmup complete in {elapsed:.1f}s")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
@@ -28,6 +74,13 @@ async def lifespan(app: FastAPI):
     if settings.ENABLE_API_RETRIEVAL:
         from app.services.api_adapters import initialize_adapters
         initialize_adapters()
+
+    # Warmup search providers to prevent cold-start delay on first claim
+    from app.services.search import warmup_search_providers
+    warmup_search_providers()
+
+    # Warmup ML models (NLI + embeddings) to prevent cold-start failures
+    await warmup_ml_models()
 
     yield
 
@@ -79,7 +132,7 @@ app.add_middleware(
         "Origin",
         "X-Requested-With",
     ],
-    expose_headers=["X-Request-Id", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-Correlation-ID"],
+    expose_headers=["X-Request-Id", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-Correlation-ID", "X-Check-Id"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 

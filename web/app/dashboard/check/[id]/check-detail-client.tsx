@@ -52,17 +52,36 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   }, [getToken]);
 
   // Real-time progress updates via SSE
-  const { progress: sseProgress, currentStage: sseStage, isConnected, message: sseMessage, timeEstimate } = useCheckProgress(
+  const { progress: sseProgress, currentStage: sseStage, isConnected, isCompleted: sseCompleted, message: sseMessage, timeEstimate } = useCheckProgress(
     checkId,
     token,
     checkData.status === 'processing'
   );
 
-  // Use SSE progress when connected, otherwise use polling data from checkData
-  // This ensures progress updates even when SSE fails (service worker issues, etc.)
-  const progress = isConnected ? sseProgress : (checkData.progress ?? sseProgress);
-  const currentStage = isConnected ? sseStage : (checkData.currentStage ?? sseStage);
-  const message = isConnected ? sseMessage : (checkData.progressMessage ?? sseMessage);
+  // When SSE indicates completion, immediately fetch updated data (don't wait for 3s poll)
+  useEffect(() => {
+    if (sseCompleted && checkData.status === 'processing') {
+      console.log('[CHECK DETAIL] SSE reported completion, fetching updated data');
+      const fetchUpdatedData = async () => {
+        try {
+          const currentToken = await getToken();
+          const updated = await apiClient.getCheckById(checkId, currentToken) as any;
+          setCheckData(updated);
+        } catch (error) {
+          console.error('Failed to fetch updated check data:', error);
+        }
+      };
+      fetchUpdatedData();
+    }
+  }, [sseCompleted, checkData.status, checkId, getToken]);
+
+  // Use the best available progress data:
+  // 1. If SSE has meaningful data (progress > 0), use it (even if disconnected - preserves last known state)
+  // 2. Otherwise fall back to polling data from checkData
+  // 3. Finally fall back to SSE values (which start at 0)
+  const progress = sseProgress > 0 ? sseProgress : (checkData.progress ?? sseProgress);
+  const currentStage = sseStage ? sseStage : (checkData.currentStage ?? sseStage);
+  const message = sseMessage ? sseMessage : (checkData.progressMessage ?? sseMessage);
 
   // Calculate time estimate based on progress (fallback when SSE isn't connected)
   const getTimeEstimateFromProgress = (prog: number): string => {

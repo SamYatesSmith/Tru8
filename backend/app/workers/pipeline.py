@@ -1,4 +1,10 @@
-from celery import Task
+"""
+Pipeline helper functions for inline SSE execution.
+
+This module contains the core pipeline stage functions used by both
+the inline runner (app/pipeline/runner.py) and other components.
+Celery has been removed - all processing happens inline with SSE streaming.
+"""
 from typing import Dict, List, Any, Optional
 import asyncio
 import logging
@@ -6,7 +12,6 @@ import hashlib
 import json
 import httpx
 from datetime import datetime
-from app.workers import celery_app
 from app.utils.date_utils import parse_date
 from app.utils.article_classifier import classify_article
 from app.pipeline.ingest import UrlIngester, ImageIngester, VideoIngester
@@ -21,64 +26,9 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-class PipelineTask(Task):
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.error(f"Task {task_id} failed: {exc}")
-        # Get check_id from kwargs since task is called with keyword arguments
-        check_id = kwargs.get("check_id") if kwargs else None
-        user_id = kwargs.get("user_id") if kwargs else None
-
-        if check_id:
-            # Refund the user's credit for the failed check
-            credit_refunded = False
-            if user_id:
-                credit_refunded = refund_check_credit_sync(check_id, user_id)
-
-            # Build error message with refund status
-            error_msg = str(exc)
-            if credit_refunded:
-                error_msg = f"{error_msg}. Your credit has been returned."
-
-            # Update check status using SYNC version to avoid event loop issues in Celery
-            update_check_status_sync(check_id, "failed", error_msg)
-
-            # Send failure notification using SYNC version to avoid event loop issues
-            if user_id:
-                try:
-                    push_notification_service.send_check_failed_notification_sync(
-                        user_id=user_id,
-                        check_id=check_id,
-                        error_message=error_msg[:100]  # Truncate error message
-                    )
-                except Exception as notif_error:
-                    # Push notification failure should not crash the failure handler
-                    logger.warning(f"Failed to send push notification: {notif_error}")
-
-                # Email notification
-                try:
-                    email_notification_service.send_check_failed_email_sync(
-                        user_id=user_id,
-                        check_id=check_id,
-                        error_message=error_msg[:200]
-                    )
-                except Exception as email_error:
-                    # Email notification failure should not crash the failure handler
-                    logger.warning(f"Failed to send email notification: {email_error}")
-
-    def on_success(self, retval, task_id, args, kwargs):
-        logger.info(f"Task {task_id} completed successfully")
-        # Get check_id from kwargs since task is called with keyword arguments
-        check_id = kwargs.get("check_id") if kwargs else None
-        if check_id and retval.get("status") == "completed":
-            # Simply log successful completion - pipeline already completed successfully
-            # The main issue was tasks not completing, which is now fixed
-            logger.info(f"Task {task_id} for check {check_id} completed successfully with processing time {retval.get('processing_time_ms', 0)}ms")
-
-            # We'll handle database updates through the main process instead of callbacks
-            # This avoids all event loop and threading issues completely
 
 async def update_check_status(check_id: str, status: str, error_message: str = None):
-    """Update check status in database (async version - DO NOT USE IN CELERY)"""
+    """Update check status in database (async version)"""
     try:
         from app.core.database import async_session
         from app.models import Check
@@ -103,7 +53,7 @@ async def update_check_status(check_id: str, status: str, error_message: str = N
         logger.error(f"Failed to update check status: {e}")
 
 def update_check_status_sync(check_id: str, status: str, error_message: str = None):
-    """Update check status in database (synchronous for Celery)"""
+    """Update check status in database (synchronous version)"""
     try:
         from app.core.database import sync_session
         from app.models import Check
@@ -129,7 +79,7 @@ def update_check_status_sync(check_id: str, status: str, error_message: str = No
 
 def refund_check_credit_sync(check_id: str, user_id: str) -> bool:
     """
-    Refund the credit used for a failed check (synchronous for Celery).
+    Refund the credit used for a failed check (synchronous version).
 
     Returns True if refund was successful, False otherwise.
     """
@@ -180,7 +130,7 @@ def refund_check_credit_sync(check_id: str, user_id: str) -> bool:
         return False
 
 def save_check_results_sync(check_id: str, results: Dict[str, Any]):
-    """Save pipeline results to database (synchronous for Celery)"""
+    """Save pipeline results to database (synchronous version)"""
     try:
         from app.core.database import sync_session
         from app.models import Check, Claim, Evidence, RawEvidence
@@ -368,523 +318,6 @@ async def save_check_results(check_id: str, results: Dict[str, Any]):
     """Save pipeline results to database (async version for compatibility)"""
     return save_check_results_sync(check_id, results)
 
-@celery_app.task(base=PipelineTask, bind=True, max_retries=2, default_retry_delay=60)
-def process_check(self, check_id: str, user_id: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Main pipeline task that processes a fact-check request.
-    Full pipeline with real LLM, search, embeddings, and caching!
-    Enhanced with circuit breakers and retry logic.
-    """
-    start_time = datetime.utcnow()
-    stage_timings = {}
-    
-    try:
-        print(f"[PIPELINE] process_check started for {check_id}", flush=True)
-        # Set processing status (using sync version to avoid event loop issues)
-        update_check_status_sync(check_id, "processing")
-        print(f"[PIPELINE] Status updated to processing", flush=True)
-
-        # DISABLED: Cache service causing event loop issues in Celery - set to None for now
-        cache_service = None
-
-        # DISABLED: Checking cached results (cache_service is None)
-        # cached_result = asyncio.run(cache_service.get_cached_pipeline_result(check_id))
-        # if cached_result:
-        #     logger.info(f"Returning cached result for check {check_id}")
-        #     return cached_result
-
-        print(f"[PIPELINE DEBUG] About to start Stage 1: Ingest for check {check_id}", flush=True)
-        logger.info(f"About to start Stage 1: Ingest for check {check_id}")
-
-        # Stage 1: Ingest (REAL IMPLEMENTATION WITH CIRCUIT BREAKER)
-        self.update_state(state="PROGRESS", meta={"stage": "ingest", "progress": 10})
-        print(f"[PIPELINE DEBUG] Task state updated to PROGRESS for check {check_id}", flush=True)
-        logger.info(f"Task state updated to PROGRESS for check {check_id}")
-        stage_start = datetime.utcnow()
-        
-        try:
-            logger.info(f"Ingesting content for check {check_id}, input_type: {input_data.get('input_type')}")
-            logger.info(f"Input content length: {len(input_data.get('content') or '')}")
-            content = asyncio.run(ingest_content_async(input_data))
-            if not content.get("success"):
-                # Use user-friendly message if available, otherwise fall back to error code
-                error_msg = content.get('message') or content.get('error', 'Unknown error')
-                error_code = content.get('error', '')
-
-                # Don't retry for certain errors (cookie walls, paywalls) - retrying won't help
-                if error_code in ('cookie_consent_wall', 'paywall'):
-                    raise Exception(error_msg)
-                raise Exception(f"Ingest failed: {error_msg}")
-            logger.info(f"Ingested content length: {len(content.get('content') or '')}")
-        except Exception as e:
-            logger.error(f"Ingest stage failed: {e}")
-            # Don't retry cookie/paywall errors
-            error_str = str(e).lower()
-            if 'cookie' in error_str or 'paywall' in error_str or 'consent' in error_str:
-                raise Exception(str(e))
-            if self.request.retries < self.max_retries:
-                raise self.retry(countdown=60, exc=e)
-            raise Exception(f"Ingest stage failed after retries: {e}")
-        
-        stage_timings["ingest"] = (datetime.utcnow() - stage_start).total_seconds()
-            
-        # Stage 2: Extract claims (REAL LLM IMPLEMENTATION WITH CACHING)
-        self.update_state(state="PROGRESS", meta={"stage": "extract", "progress": 25})
-        stage_start = datetime.utcnow()
-
-        extract_content = content.get("content", "")
-        extract_metadata = content.get("metadata", {})
-
-        # Run article classification FIRST (at pipeline level) - ensures fallback claims get it too
-        article_classification = None
-        if settings.ENABLE_ARTICLE_CLASSIFICATION:
-            try:
-                article_classification = asyncio.run(classify_article(
-                    title=extract_metadata.get("title", "") if extract_metadata else "",
-                    url=extract_metadata.get("url", "") if extract_metadata else "",
-                    content=extract_content[:2000]  # First 2000 chars for classification
-                ))
-                logger.info(
-                    f"[PIPELINE] Article classified: {article_classification.primary_domain} "
-                    f"(confidence: {article_classification.confidence:.2f})"
-                )
-            except Exception as e:
-                logger.warning(f"Article classification failed, continuing without: {e}")
-
-        try:
-            logger.info(f"Extracting claims from content of length: {len(extract_content)}")
-            logger.info(f"First 100 chars of content: {extract_content[:100]}")
-            claims = asyncio.run(extract_claims_with_cache(
-                extract_content,
-                extract_metadata,
-                cache_service
-            ))
-            logger.info(f"Extracted {len(claims)} claims")
-            if not claims:
-                raise Exception("No claims extracted from content")
-        except Exception as e:
-            logger.error(f"Extract stage failed: {e}")
-            # Try fallback extraction
-            claims = extract_claims_fallback(extract_content)
-            logger.info(f"Fallback extraction returned {len(claims)} claims")
-            if not claims:
-                logger.error(f"Both primary and fallback extraction failed for content: {extract_content[:200]}")
-                raise Exception(f"Extract stage failed completely: {e}")
-
-        # Attach article classification to ALL claims (main or fallback)
-        # This ensures API routing works correctly regardless of extraction method
-        if article_classification:
-            for claim in claims:
-                claim["article_classification"] = article_classification.to_dict()
-            logger.info(f"[PIPELINE] Attached {article_classification.primary_domain} classification to {len(claims)} claims")
-        
-        stage_timings["extract"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Stage 2.5: Fact-check lookup (if enabled)
-        factcheck_evidence = {}
-        if settings.ENABLE_FACTCHECK_API:
-            self.update_state(state="PROGRESS", meta={"stage": "factcheck", "progress": 35})
-            stage_start = datetime.utcnow()
-            try:
-                factcheck_evidence = asyncio.run(search_factchecks_for_claims(claims))
-                logger.info(f"Found {sum(len(v) for v in factcheck_evidence.values())} fact-checks")
-            except Exception as e:
-                logger.warning(f"Fact-check lookup failed (non-critical): {e}")
-            stage_timings["factcheck"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Stage 3: Retrieve evidence (REAL IMPLEMENTATION WITH CACHING)
-        self.update_state(state="PROGRESS", meta={"stage": "retrieve", "progress": 40})
-        stage_start = datetime.utcnow()
-
-        # Raw evidence for Full Sources List Pro feature
-        raw_evidence_data = []
-        raw_sources_count = 0
-
-        try:
-            # Extract source URL for self-citation filtering
-            source_url = content.get("metadata", {}).get("url")
-            retrieval_result = asyncio.run(retrieve_evidence_with_cache(claims, cache_service, factcheck_evidence, source_url=source_url))
-
-            # Extract evidence and raw evidence from new structure
-            if isinstance(retrieval_result, dict) and "evidence_by_claim" in retrieval_result:
-                evidence = retrieval_result["evidence_by_claim"]
-                raw_evidence_data = retrieval_result.get("raw_evidence", [])
-                raw_sources_count = retrieval_result.get("raw_sources_count", 0)
-                logger.info(f"[RAW_EVIDENCE] Captured {raw_sources_count} raw sources for Full Sources List")
-            else:
-                # Backward compatibility
-                evidence = retrieval_result
-        except Exception as e:
-            logger.error(f"Retrieve stage failed: {e}")
-            # Try fallback evidence (development only)
-            if settings.ENVIRONMENT == "development":
-                logger.warning("Using mock evidence fallback (development only)")
-                evidence = retrieve_evidence(claims, factcheck_evidence)
-            else:
-                # Production: fail the check properly with clear error
-                logger.critical(f"Evidence retrieval failed in {settings.ENVIRONMENT} environment, cannot continue")
-                raise Exception(f"Evidence retrieval failed: {e}")
-
-        stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Stage 3.5: Parse fact-check evidence (CONDITIONAL IMPLEMENTATION)
-        if settings.ENABLE_FACTCHECK_PARSING:
-            self.update_state(state="PROGRESS", meta={"stage": "factcheck_parse", "progress": 50})
-            stage_start = datetime.utcnow()
-            try:
-                from app.services.factcheck_parser import get_factcheck_parser
-                parser = get_factcheck_parser()
-                evidence = asyncio.run(parser.parse_factcheck_evidence(claims, evidence))
-
-                # Count parsed fact-checks
-                parsed_count = sum(
-                    1 for ev_list in evidence.values()
-                    for ev in ev_list
-                    if ev.get('factcheck_parse_success')
-                )
-                logger.info(f"Fact-check parsing: {parsed_count} articles parsed successfully")
-
-            except Exception as e:
-                logger.warning(f"Fact-check parsing failed (non-critical): {e}")
-                # Continue with unparsed evidence - safe fallback
-
-            stage_timings["factcheck_parse"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Stage 3.7: Global Domain Capping (cross-claim diversity enforcement)
-        if settings.ENABLE_GLOBAL_DOMAIN_CAPPING and evidence:
-            stage_start = datetime.utcnow()
-            try:
-                from app.utils.domain_capping import DomainCapper
-                global_capper = DomainCapper()
-                evidence = global_capper.apply_global_caps(
-                    evidence,
-                    global_max_per_domain=settings.GLOBAL_MAX_PER_DOMAIN,
-                    global_max_ratio=settings.GLOBAL_MAX_DOMAIN_RATIO
-                )
-                logger.info("[GLOBAL CAP] Applied global domain diversity enforcement")
-            except Exception as e:
-                logger.warning(f"Global domain capping failed (non-critical): {e}")
-                # Continue with uncapped evidence - safe fallback
-
-            stage_timings["global_domain_cap"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Stage 3.8: LLM Relevance Scoring
-        # Scores evidence by how well it actually helps verify/refute claims (not just topical similarity)
-        if settings.ENABLE_LLM_RELEVANCE_SCORER and evidence:
-            stage_start = datetime.utcnow()
-            try:
-                # Extract article context early (also used by judge later)
-                article_excerpt = content.get("content", "")[:5000]
-
-                from app.pipeline.relevance_scorer import score_evidence_batch
-
-                # Extract claim texts for the scorer
-                claim_texts = [c.get('text', '') for c in claims]
-
-                # Use asyncio.run() since Celery tasks are synchronous
-                evidence = asyncio.run(
-                    score_evidence_batch(
-                        claims=claim_texts,
-                        evidence=evidence,  # Dict[claim_position, List[evidence]]
-                        article_context=article_excerpt
-                    )
-                )
-                logger.info("[LLM SCORER] Evidence relevance scoring complete")
-            except Exception as e:
-                logger.warning(f"[LLM SCORER] LLM relevance scoring failed, continuing with unscored: {e}")
-                # Continue with unscored evidence - safe fallback
-
-            stage_timings["llm_relevance"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Stage 4: NLI Verification - BYPASSED
-        # NLI is disabled because PASS_NLI_VERDICT_TO_JUDGE=False means Judge ignores NLI scores anyway.
-        # This saves 80-100 seconds of compute time per check.
-        # To re-enable: set PASS_NLI_VERDICT_TO_JUDGE=true and uncomment the NLI code below.
-        self.update_state(state="PROGRESS", meta={"stage": "verify", "progress": 60})
-        stage_start = datetime.utcnow()
-
-        # Create empty verifications structure - Judge will proceed without NLI signals
-        verifications = {}
-        for i, claim in enumerate(claims):
-            position = str(claim.get("position", i))
-            verifications[position] = []
-        logger.info(f"[PIPELINE] NLI verification bypassed (PASS_NLI_VERDICT_TO_JUDGE=False) - {len(claims)} claims")
-
-        stage_timings["verify"] = (datetime.utcnow() - stage_start).total_seconds()
-        
-        # Stage 5: Judge and finalize (REAL IMPLEMENTATION WITH TIMEOUT)
-        self.update_state(state="PROGRESS", meta={"stage": "judge", "progress": 80})
-        stage_start = datetime.utcnow()
-
-        try:
-            # Add timeout for judge stage
-            # Adjust timeout: 15s per claim with 120s max cap to prevent exceeding pipeline timeout
-            judge_timeout = min(15 * len(claims), 120)
-            logger.info(f"Judge stage timeout set to {judge_timeout}s for {len(claims)} claims")
-
-            # Extract article excerpt for context-aware judgment
-            article_excerpt = content.get("content", "")[:5000]
-
-            results = asyncio.run(
-                asyncio.wait_for(
-                    judge_claims_with_llm(claims, verifications, evidence, article_context=article_excerpt),
-                    timeout=judge_timeout
-                )
-            )
-        except asyncio.TimeoutError:
-            logger.warning(f"Judge stage timed out")
-            if settings.ENVIRONMENT == "development":
-                logger.warning("Using mock judgment fallback (development only)")
-                results = judge_claims(claims, verifications, evidence)
-            else:
-                logger.critical(f"LLM judgment timed out in {settings.ENVIRONMENT} environment")
-                raise Exception("LLM judgment timed out")
-        except Exception as e:
-            logger.error(f"Judge stage failed: {e}")
-            if settings.ENVIRONMENT == "development":
-                logger.warning("Using mock judgment fallback (development only)")
-                results = judge_claims(claims, verifications, evidence)
-            else:
-                logger.critical(f"LLM judgment failed in {settings.ENVIRONMENT} environment")
-                raise Exception(f"LLM judgment failed: {e}")
-        
-        stage_timings["judge"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Stage 5.5: Query Answering (OPTIONAL - if user_query exists)
-        query_response_data = None
-        if input_data.get("user_query") and settings.ENABLE_SEARCH_CLARITY:
-            self.update_state(state="PROGRESS", meta={"stage": "query", "progress": 85})
-            stage_start = datetime.utcnow()
-
-            try:
-                from app.pipeline.query_answer import get_query_answerer
-
-                user_query = input_data.get("user_query")
-                logger.info(f"Answering user query: {user_query}")
-
-                # Call async function using asyncio.run (same pattern as ingest stage)
-                async def run_query_answering():
-                    query_answerer = await get_query_answerer()
-                    return await query_answerer.answer_query(
-                        user_query=user_query,
-                        claims=claims,
-                        evidence_by_claim=evidence,
-                        original_text=content.get("content", "")[:1000]  # First 1000 chars for context
-                    )
-
-                query_result = asyncio.run(run_query_answering())
-
-                # Store query response
-                query_response_data = {
-                    "answer": query_result["answer"],
-                    "confidence": query_result["confidence"],
-                    "source_ids": query_result["source_ids"],  # Already full objects
-                    "related_claims": query_result["related_claims"],
-                    "found_answer": query_result["found_answer"]
-                }
-
-                logger.info(f"Query answered: confidence={query_result['confidence']}%, found_answer={query_result['found_answer']}")
-
-            except Exception as e:
-                logger.error(f"Query answering failed (non-critical): {e}", exc_info=True)
-                query_response_data = None
-
-            stage_timings["query"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Stage 6: Enhanced Explainability (Phase 2, Week 6.5-7.5)
-        if settings.ENABLE_ENHANCED_EXPLAINABILITY:
-            from app.utils.explainability import ExplainabilityEnhancer
-            explainer = ExplainabilityEnhancer()
-
-            # Add explainability to each claim
-            for i, result in enumerate(results):
-                position = result.get("position", i)
-                claim_evidence = evidence.get(position, [])
-                claim_verifications = verifications.get(position, [])
-
-                # Create verification signals summary
-                verification_signals = {
-                    "supporting_count": sum(1 for v in claim_verifications if v.get("label") == "SUPPORTS"),
-                    "contradicting_count": sum(1 for v in claim_verifications if v.get("label") == "CONTRADICTS"),
-                    "neutral_count": sum(1 for v in claim_verifications if v.get("label") == "NEUTRAL")
-                }
-
-                # Add uncertainty explanation if verdict is uncertain or abstention
-                abstention_verdicts = ['insufficient_evidence', 'conflicting_expert_opinion',
-                                      'outdated_claim', 'needs_primary_source', 'lacks_context']
-                if result.get("verdict", "").lower() in ["uncertain", "unclear"] or result.get("verdict") in abstention_verdicts:
-                    uncertainty_explanation = explainer.create_uncertainty_explanation(
-                        result.get("verdict", ""),
-                        verification_signals,
-                        claim_evidence
-                    )
-                    results[i]["uncertainty_explanation"] = uncertainty_explanation
-
-                # Add confidence breakdown
-                confidence_breakdown = explainer.create_confidence_breakdown(
-                    result,
-                    claim_evidence,
-                    verification_signals
-                )
-                results[i]["confidence_breakdown"] = confidence_breakdown
-
-            # Create overall decision trail for the check
-            decision_trail = {
-                "total_claims": len(claims),
-                "claims_processed": len(results),
-                "stage_timings": stage_timings,
-                "features_enabled": {
-                    "domain_capping": settings.ENABLE_DOMAIN_CAPPING,
-                    "global_domain_capping": settings.ENABLE_GLOBAL_DOMAIN_CAPPING,
-                    "deduplication": settings.ENABLE_DEDUPLICATION,
-                    "temporal_context": settings.ENABLE_TEMPORAL_CONTEXT,
-                    "factcheck_api": settings.ENABLE_FACTCHECK_API,
-                    "claim_classification": settings.ENABLE_CLAIM_CLASSIFICATION
-                }
-            }
-
-            logger.info(f"Added explainability for {len(results)} claims")
-
-        # Stage 6.5: Generate Overall Assessment (Summary + Credibility Score)
-        self.update_state(state="PROGRESS", meta={"stage": "summary", "progress": 90})
-        stage_start = datetime.utcnow()
-
-        try:
-            logger.info(f"Generating overall assessment for {len(results)} claims")
-            assessment = asyncio.run(generate_overall_assessment(
-                results,
-                input_data.get('url') or input_data.get('content', '')[:100],  # Pass URL or content preview
-                evidence_by_claim=evidence  # Pass evidence for confidence weighting
-            ))
-            logger.info(f"Overall assessment generated: credibility_score={assessment['credibility_score']}")
-        except Exception as e:
-            logger.error(f"Assessment generation failed, using fallback: {e}")
-            # Fallback assessment
-            total = len(results)
-            supported = sum(1 for c in results if c.get('verdict') == 'supported')
-            contradicted = sum(1 for c in results if c.get('verdict') == 'contradicted')
-            # Include abstention verdicts in uncertain count
-            abstention_verdicts = ['insufficient_evidence', 'conflicting_expert_opinion',
-                                  'outdated_claim', 'needs_primary_source', 'lacks_context']
-            uncertain = sum(1 for c in results if c.get('verdict') == 'uncertain' or
-                           c.get('verdict') in abstention_verdicts)
-            assessment = {
-                "summary": f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain.",
-                "credibility_score": int((supported * 100 + uncertain * 50) / total) if total > 0 else 50,
-                "claims_supported": supported,
-                "claims_contradicted": contradicted,
-                "claims_uncertain": uncertain
-            }
-
-        stage_timings["summary"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        # Phase 5: Aggregate API statistics across all claims
-        api_stats = aggregate_api_stats(claims, evidence)
-
-        # Calculate processing time
-        processing_time_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
-
-        # Prepare final result with enhanced metrics
-        final_result = {
-            "check_id": check_id,
-            "status": "completed",
-            "claims": results,
-            "overall_summary": assessment["summary"],
-            "credibility_score": assessment["credibility_score"],
-            "claims_supported": assessment["claims_supported"],
-            "claims_contradicted": assessment["claims_contradicted"],
-            "claims_uncertain": assessment["claims_uncertain"],
-            "processing_time_ms": processing_time_ms,
-            "ingest_metadata": content.get("metadata", {}),
-            "query_response": query_response_data,  # Search Clarity
-            "api_stats": api_stats,  # Phase 5: Government API Integration
-            "article_excerpt": content.get("content", "")[:5000],  # First 5000 chars for judge context
-            # Article classification for domain stats
-            "article_classification": article_classification.to_dict() if article_classification else None,
-            # Full Sources List Pro feature
-            "raw_evidence": raw_evidence_data,
-            "raw_sources_count": raw_sources_count,
-            "pipeline_stats": {
-                "claims_extracted": len(claims),
-                "evidence_sources": sum(len(ev) for ev in evidence.values()),
-                "raw_sources_reviewed": raw_sources_count,  # NEW: Total sources reviewed
-                "cache_hits": getattr(cache_service, '_cache_hits', 0),
-                "stage_timings": stage_timings,
-                "total_stage_time": sum(stage_timings.values()),
-                "pipeline_version": "week4_optimized"
-            },
-            "performance_metrics": {
-                "under_10s_target": processing_time_ms < 10000,
-                "avg_time_per_claim": processing_time_ms / max(len(claims), 1),
-                "efficiency_score": min(100, (10000 / max(processing_time_ms, 1000)) * 100)
-            }
-        }
-
-        # DISABLED: Cache the complete pipeline result (cache_service is None)
-        # asyncio.run(cache_service.cache_pipeline_result(check_id, final_result))
-
-        # Save all results to database (claims, evidence, and check status)
-        try:
-            save_check_results_sync(check_id, final_result)
-
-            # Send check completion email notification
-            try:
-                # Extract enhanced data for email
-                input_url = input_data.get('url') or content.get('metadata', {}).get('url')
-                input_title = content.get('metadata', {}).get('title')
-                # Use raw_sources_count (all sources reviewed) to match website display
-                total_sources = raw_sources_count if raw_sources_count > 0 else sum(len(ev) for ev in evidence.values())
-
-                # Build top claims (max 2 for email) - prioritize definitive verdicts
-                # Order: contradicted first (most important), then supported, uncertain last
-                sorted_claims = sorted(
-                    results,
-                    key=lambda c: (
-                        0 if c.get("verdict") == "contradicted" else
-                        1 if c.get("verdict") == "supported" else
-                        2  # uncertain/other
-                    )
-                )
-                top_claims = [
-                    {"text": c.get("claim_text", c.get("text", "")), "verdict": c.get("verdict", "uncertain")}
-                    for c in sorted_claims[:2]
-                ]
-
-                # Calculate average confidence
-                confidences = [c.get("confidence", 50) for c in results]
-                avg_confidence = int(sum(confidences) / len(confidences)) if confidences else 50
-
-                email_notification_service.send_check_completed_email_sync(
-                    user_id=user_id,
-                    check_id=check_id,
-                    claims_count=len(results),
-                    supported=assessment["claims_supported"],
-                    contradicted=assessment["claims_contradicted"],
-                    uncertain=assessment["claims_uncertain"],
-                    credibility_score=assessment["credibility_score"],
-                    # Enhanced parameters
-                    input_url=input_url,
-                    input_title=input_title,
-                    total_sources=total_sources,
-                    top_claims=top_claims,
-                    avg_confidence=avg_confidence
-                )
-            except Exception as email_error:
-                # Email notification failure should not crash the pipeline
-                logger.warning(f"Failed to send check completion email: {email_error}")
-
-        except Exception as db_error:
-            logger.error(f"Failed to save check results to database for check {check_id}: {db_error}")
-            import traceback
-            logger.error(f"Full database error traceback: {traceback.format_exc()}")
-
-        return final_result
-
-    except Exception as e:
-        logger.error(f"Pipeline failed for check {check_id}: {e}")
-        raise
-
-
 def aggregate_api_stats(
     claims: List[Dict[str, Any]],
     evidence: Dict[str, List[Dict[str, Any]]]
@@ -1071,38 +504,74 @@ When referencing specific claims, use the format "Claim X" where X is the claim 
 For example: "However, Claim 3 contradicts multiple fact-checking sources."
 """
 
-    try:
-        # Use OpenAI API (same pattern as judge.py)
-        async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "gpt-4o-mini-2024-07-18",
-                    "messages": [
-                        {"role": "system", "content": "You are a fact-checking expert providing concise overall assessments."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 250,
-                    "temperature": 0.3
-                }
-            )
+    # Try Google first, then OpenAI as fallback
+    summary = None
+    system_prompt = "You are a fact-checking expert providing concise overall assessments."
+    fallback_summary = f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain. Overall credibility score: {credibility_score}/100."
 
-            if response.status_code == 200:
-                result = response.json()
-                summary = result["choices"][0]["message"]["content"].strip()
-            else:
-                logger.error(f"OpenAI API error for summary: {response.status_code}")
-                # Fallback summary
-                summary = f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain. Overall credibility score: {credibility_score}/100."
+    google_ai_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
+    google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
 
-    except Exception as e:
-        logger.error(f"LLM summary generation failed: {e}")
-        # Fallback summary
-        summary = f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain. Overall credibility score: {credibility_score}/100."
+    # Primary: Google Gemini
+    if google_ai_key:
+        try:
+            full_prompt = f"{system_prompt}\n\n{prompt}"
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={google_ai_key}",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "contents": [{"parts": [{"text": full_prompt}]}],
+                        "generationConfig": {
+                            "temperature": 0.3,
+                            "maxOutputTokens": 250
+                        }
+                    }
+                )
+
+                if response.status_code == 200:
+                    result = response.json()
+                    summary = result["candidates"][0]["content"]["parts"][0]["text"].strip()
+                    logger.info("Generated overall assessment with Google Gemini")
+                else:
+                    logger.warning(f"Google AI API error for summary: {response.status_code}")
+        except Exception as e:
+            logger.warning(f"Google summary generation failed: {e}")
+
+    # Fallback: OpenAI
+    if summary is None and settings.OPENAI_API_KEY:
+        try:
+            logger.info("Attempting OpenAI summary generation as fallback")
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "gpt-4o-mini-2024-07-18",
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "max_tokens": 250,
+                        "temperature": 0.3
+                    }
+                )
+
+                if response.status_code == 200:
+                    result = response.json()
+                    summary = result["choices"][0]["message"]["content"].strip()
+                    logger.info("Generated overall assessment with OpenAI fallback")
+                else:
+                    logger.error(f"OpenAI API error for summary: {response.status_code}")
+        except Exception as e:
+            logger.error(f"OpenAI summary generation failed: {e}")
+
+    # Use fallback summary if both LLMs failed
+    if summary is None:
+        summary = fallback_summary
 
     return {
         "summary": summary,
@@ -1228,16 +697,26 @@ async def retrieve_evidence_with_cache(
         - raw_evidence: List[Dict] - All sources reviewed with filtering metadata
         - raw_sources_count: int - Total count of raw sources
     """
+    import time as _time
+    _wrapper_start = _time.time()
+    print(f"\n[WRAPPER ENTRY] retrieve_evidence_with_cache v2 called with {len(claims)} claims at {_wrapper_start:.2f}", flush=True)
+
     if factcheck_evidence is None:
         factcheck_evidence = {}
 
     try:
+        print(f"[WRAPPER] Creating EvidenceRetriever...", flush=True)
+        logger.info(f"[EVIDENCE DEBUG] Starting retrieve_evidence_with_cache for {len(claims)} claims")
         retriever = EvidenceRetriever()
+        print(f"[WRAPPER] EvidenceRetriever created", flush=True)
+        logger.info(f"[EVIDENCE DEBUG] EvidenceRetriever created, search_service providers: {[p.__class__.__name__ for p in retriever.search_service.providers]}")
 
         # Check if we have cached evidence for each claim
         cached_evidence = {}
         uncached_claims = []
 
+        print(f"[WRAPPER] Checking cache for {len(claims)} claims...", flush=True)
+        _cache_start = _time.time()
         for claim in claims:
             claim_text = claim.get("text", "")
             # Check cache if available
@@ -1250,19 +729,36 @@ async def retrieve_evidence_with_cache(
             # If no cache or no cached result, add to uncached list
             uncached_claims.append(claim)
 
+        _cache_elapsed = _time.time() - _cache_start
+        print(f"[WRAPPER] Cache check done in {_cache_elapsed:.2f}s: {len(cached_evidence)} cached, {len(uncached_claims)} uncached", flush=True)
+        logger.info(f"[EVIDENCE DEBUG] Cache check: {len(cached_evidence)} cached, {len(uncached_claims)} uncached")
+
         # Retrieve evidence for uncached claims
         all_raw_evidence = []
         if uncached_claims:
-            logger.info(f"Retrieving evidence for {len(uncached_claims)} uncached claims")
+            print(f"[WRAPPER] Calling retrieve_evidence_for_claims for {len(uncached_claims)} uncached claims...", flush=True)
+            logger.info(f"[EVIDENCE DEBUG] Retrieving evidence for {len(uncached_claims)} uncached claims")
+            _retrieve_start = _time.time()
             retrieval_result = await retriever.retrieve_evidence_for_claims(
                 uncached_claims,
                 exclude_source_url=source_url
             )
+            _retrieve_elapsed = _time.time() - _retrieve_start
+            print(f"[WRAPPER] retrieve_evidence_for_claims returned in {_retrieve_elapsed:.2f}s, type: {type(retrieval_result)}", flush=True)
+            logger.info(f"[EVIDENCE DEBUG] retrieve_evidence_for_claims returned type: {type(retrieval_result)}")
 
             # Extract evidence and raw evidence from new structure
             if isinstance(retrieval_result, dict) and "evidence_by_claim" in retrieval_result:
                 new_evidence = retrieval_result["evidence_by_claim"]
                 all_raw_evidence = retrieval_result.get("raw_evidence", [])
+
+                # CRITICAL DIAGNOSTIC: Log evidence counts per claim
+                total_ev = sum(len(ev) for ev in new_evidence.values())
+                logger.critical(f"[EVIDENCE CRITICAL] Retrieved {total_ev} total evidence items for {len(new_evidence)} claims")
+                for pos, ev_list in new_evidence.items():
+                    logger.info(f"[EVIDENCE DEBUG] Claim {pos}: {len(ev_list)} evidence items")
+                    if ev_list:
+                        logger.info(f"[EVIDENCE DEBUG] First item: source={ev_list[0].get('source', 'N/A')}, url={ev_list[0].get('url', 'N/A')[:60]}")
             else:
                 # Backward compatibility: old format returned Dict[str, List]
                 new_evidence = retrieval_result if isinstance(retrieval_result, dict) else {}

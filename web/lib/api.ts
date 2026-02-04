@@ -1,6 +1,18 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 /**
+ * SSE Progress event from streaming endpoint
+ */
+export interface StreamingProgressEvent {
+  type: 'progress';
+  checkId: string;
+  stage: 'starting' | 'ingest' | 'extract' | 'factcheck' | 'retrieve' | 'verify' | 'judge' | 'query' | 'summary';
+  progress: number;
+  message: string;
+  timeEstimate: string;
+}
+
+/**
  * User statistics for dashboard insights
  */
 export interface UserStats {
@@ -142,7 +154,7 @@ class ApiClient {
 
   /**
    * POST /api/v1/checks
-   * Create a new fact-check
+   * Create a new fact-check (Celery-based, legacy)
    */
   async createCheck(
     data: {
@@ -158,6 +170,141 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(data),
     }, token);
+  }
+
+  /**
+   * POST /api/v1/checks/stream
+   * Create a new fact-check with inline SSE streaming.
+   *
+   * This endpoint runs the pipeline inline and streams progress directly.
+   * No Celery worker required - eliminates infrastructure costs.
+   *
+   * @param data - Check input data
+   * @param token - Auth token
+   * @param onProgress - Callback for progress events
+   * @param onComplete - Callback when check completes
+   * @param onError - Callback on error
+   * @returns Promise that resolves when stream ends
+   */
+  async createCheckStreaming(
+    data: {
+      input_type: 'url' | 'text' | 'image' | 'video';
+      content?: string;
+      url?: string;
+      file_path?: string;
+      user_query?: string;
+    },
+    token: string | null,
+    callbacks: {
+      onProgress?: (event: StreamingProgressEvent) => void;
+      onComplete?: (checkId: string) => void;
+      onError?: (error: string, checkId?: string) => void;
+      onConnected?: (checkId: string) => void;
+    }
+  ): Promise<{ checkId: string }> {
+    const response = await fetch(`${this.baseUrl}/api/v1/checks/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(data),
+    });
+
+    console.log('[SSE] Response received, status:', response.status);
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+      throw new Error(error.detail || `API error: ${response.status}`);
+    }
+
+    // Get check ID from header - this is available immediately
+    const checkId = response.headers.get('X-Check-Id') || '';
+    console.log('[SSE] Check ID from header:', checkId);
+
+    // CRITICAL: If we have a checkId from header, trigger onConnected immediately
+    // This ensures redirect happens even if SSE stream has buffering issues
+    if (checkId && callbacks.onConnected) {
+      console.log('[SSE] Triggering onConnected immediately with header checkId:', checkId);
+      callbacks.onConnected(checkId);
+      // Return early - the page will redirect and we don't need to process the stream
+      return { checkId };
+    }
+
+    // Parse SSE stream (fallback if header wasn't available)
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('Response body is not readable');
+    }
+    console.log('[SSE] Reader obtained, starting to read stream...');
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let connectedFired = false;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        console.log('[SSE] Read chunk:', { done, hasValue: !!value, valueLength: value?.length });
+
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        console.log('[SSE] Buffer now:', buffer.substring(0, 200));
+
+        // Parse SSE events from buffer
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const eventData = JSON.parse(line.slice(6));
+              const eventCheckId = eventData.checkId || checkId;
+              console.log('[SSE] Parsed event:', eventData.type, eventData);
+
+              switch (eventData.type) {
+                case 'connected':
+                  if (!connectedFired) {
+                    console.log('[SSE] Calling onConnected callback');
+                    callbacks.onConnected?.(eventCheckId);
+                    connectedFired = true;
+                  }
+                  break;
+                case 'progress':
+                  console.log('[SSE] Calling onProgress callback');
+                  callbacks.onProgress?.({
+                    type: 'progress',
+                    checkId: eventCheckId,
+                    stage: eventData.stage,
+                    progress: eventData.progress,
+                    message: eventData.message,
+                    timeEstimate: eventData.timeEstimate,
+                  });
+                  break;
+                case 'completed':
+                  console.log('[SSE] Calling onComplete callback');
+                  callbacks.onComplete?.(eventCheckId);
+                  break;
+                case 'error':
+                  console.log('[SSE] Calling onError callback:', eventData.error);
+                  callbacks.onError?.(eventData.error, eventCheckId);
+                  break;
+                case 'heartbeat':
+                  // Ignore heartbeats
+                  break;
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse SSE event:', line);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    return { checkId };
   }
 
   /**

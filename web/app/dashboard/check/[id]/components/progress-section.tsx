@@ -23,7 +23,13 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
     const stageIndex = stages.findIndex((s) => s.key === stageKey);
     const currentIndex = stages.findIndex((s) => s.key === currentStage);
 
-    if (currentIndex === -1) return 'pending';
+    // If progress is 100%, all stages are complete
+    if (progress >= 100) return 'completed';
+
+    // If current stage is 'completed' (legacy) or not found, show all as pending
+    // unless we're at 100% progress
+    if (currentIndex === -1) return progress > 0 ? 'completed' : 'pending';
+
     if (stageIndex < currentIndex) return 'completed';
     if (stageIndex === currentIndex) return 'processing';
     return 'pending';
@@ -75,8 +81,14 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
 
       {/* Current Stage Message */}
       {message && (
-        <div className="mb-6 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
-          <p className="text-sm text-blue-300 font-medium">{message}</p>
+        <div className={`mb-6 p-3 rounded-lg ${
+          progress >= 100
+            ? 'bg-emerald-900/20 border border-emerald-700/30'
+            : 'bg-blue-900/20 border border-blue-700/30'
+        }`}>
+          <p className={`text-sm font-medium ${
+            progress >= 100 ? 'text-emerald-300' : 'text-blue-300'
+          }`}>{message}</p>
         </div>
       )}
 
@@ -84,7 +96,11 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
       <div className="relative">
         <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500"
+            className={`h-full transition-all duration-500 ${
+              progress >= 100
+                ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                : 'bg-gradient-to-r from-blue-500 to-blue-400'
+            }`}
             style={{ width: `${progress}%` }}
           />
         </div>

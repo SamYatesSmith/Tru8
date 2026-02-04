@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Tru8 Backend Startup Script
-# Starts Redis check, Celery worker, and FastAPI server
+# Starts Redis check and FastAPI server (inline pipeline, no Celery)
 
 set -e  # Exit on any error
 
@@ -32,7 +32,7 @@ if ! command -v python3 &> /dev/null; then
     PYTHON_CMD="python"
 fi
 
-echo "[1/4] Checking Redis connection..."
+echo "[1/3] Checking Redis connection..."
 if $PYTHON_CMD -c "import redis; r = redis.Redis(host='localhost', port=6379); r.ping(); print('✓ Redis is running')" 2>/dev/null; then
     echo -e "${GREEN}✓ Redis is running${NC}"
 else
@@ -47,68 +47,38 @@ fi
 
 # Check if virtual environment should be activated
 if [ -f "venv/bin/activate" ]; then
-    echo "[2/4] Activating virtual environment..."
+    echo "[2/3] Activating virtual environment..."
     source venv/bin/activate
     echo -e "${GREEN}✓ Virtual environment activated${NC}"
 elif [ -f ".venv/bin/activate" ]; then
-    echo "[2/4] Activating virtual environment..."
+    echo "[2/3] Activating virtual environment..."
     source .venv/bin/activate
     echo -e "${GREEN}✓ Virtual environment activated${NC}"
 else
-    echo "[2/4] No virtual environment found, using system Python"
+    echo "[2/3] No virtual environment found, using system Python"
 fi
 
 # Install dependencies if needed
 if [ ! -f "requirements.txt" ]; then
     echo -e "${YELLOW}⚠ requirements.txt not found, skipping dependency check${NC}"
 else
-    echo "[3/4] Checking dependencies..."
+    echo "[3/3] Checking dependencies..."
     pip install -q -r requirements.txt
     echo -e "${GREEN}✓ Dependencies checked${NC}"
 fi
 
-echo "[4/4] Starting services..."
 echo
 echo "======================================="
-echo "  Starting Tru8 Backend Services"
+echo "  Starting Tru8 Backend"
 echo "======================================="
 echo
 echo -e "${GREEN}✓ FastAPI will start on: http://localhost:8000${NC}"
 echo -e "${GREEN}✓ API docs available at: http://localhost:8000/api/docs${NC}"
-echo -e "${GREEN}✓ Celery worker will handle fact-checking tasks${NC}"
+echo -e "${GREEN}✓ Pipeline runs inline with SSE streaming (no separate worker)${NC}"
 echo
-echo "Press Ctrl+C to stop all services"
+echo "Press Ctrl+C to stop"
 echo
 
-# Function to cleanup background processes
-cleanup() {
-    echo
-    echo "Shutting down services..."
-    if [ ! -z "$CELERY_PID" ]; then
-        kill $CELERY_PID 2>/dev/null || true
-        echo "✓ Celery worker stopped"
-    fi
-    echo "✓ FastAPI server stopped"
-    exit 0
-}
-
-# Set up signal handling
-trap cleanup SIGINT SIGTERM
-
-# Start Celery worker in background
-echo "Starting Celery worker..."
-# CRITICAL: Limit to 2 workers to prevent memory exhaustion (defaults to CPU count)
-# On Linux/Mac we can use prefork, but on Windows use solo pool
-celery -A app.workers worker --concurrency=2 --loglevel=info --logfile=celery.log &
-CELERY_PID=$!
-echo "[Memory Safe] Using only 2 Celery workers"
-
-# Wait a moment for worker to start
-sleep 2
-
-# Start FastAPI server (this will block)
+# Start FastAPI server
 echo "Starting FastAPI server..."
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
-
-# If we get here, uvicorn exited, so cleanup
-cleanup

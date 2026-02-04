@@ -141,8 +141,10 @@ RESPOND WITH JSON:
 
     def __init__(self):
         self.openai_api_key = settings.OPENAI_API_KEY
+        self.google_ai_api_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
         self.timeout = settings.QUERY_PLANNING_TIMEOUT
-        self.model = settings.QUERY_PLANNING_MODEL
+        self.model = settings.QUERY_PLANNING_MODEL  # OpenAI fallback model
+        self.google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
 
     async def plan_queries_batch(
         self,
@@ -220,70 +222,68 @@ Generate query plans for each of these {len(claims)} claims:
 For EACH claim, provide: queries, freshness (pd/pw/pm/py), source_hints, and reasoning.
 Return a JSON object with "plans" array containing exactly {len(claims)} plan objects."""
 
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {self.openai_api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": self.SYSTEM_PROMPT},
-                            {"role": "user", "content": user_prompt}
-                        ],
-                        "temperature": 0.1,
-                        "max_tokens": 3000,
-                        "response_format": {"type": "json_object"}
-                    }
-                )
+            # Try Google first, then OpenAI as fallback
+            parsed = None
 
-                if response.status_code != 200:
-                    logger.error(f"Query planning API error: {response.status_code} - {response.text}")
+            if self.google_ai_api_key:
+                try:
+                    parsed = await self._plan_with_google(user_prompt)
+                    if parsed:
+                        logger.info("[QUERY_PLANNER] Using Google Gemini for query planning")
+                except Exception as e:
+                    logger.warning(f"[QUERY_PLANNER] Google planning failed: {e}")
+
+            if parsed is None and self.openai_api_key:
+                logger.info("[QUERY_PLANNER] Attempting OpenAI query planning as fallback")
+                try:
+                    parsed = await self._plan_with_openai(user_prompt)
+                except Exception as e:
+                    logger.error(f"[QUERY_PLANNER] OpenAI planning failed: {e}")
                     return None
 
-                result = response.json()
-                content = result["choices"][0]["message"]["content"]
+            if parsed is None:
+                logger.error("[QUERY_PLANNER] Both LLM providers failed")
+                return None
 
-                # Parse response
-                parsed = json.loads(content)
-                logger.debug(f"[QUERY_PLANNER] Raw response keys: {list(parsed.keys()) if isinstance(parsed, dict) else 'array'}")
+            logger.debug(f"[QUERY_PLANNER] Raw response keys: {list(parsed.keys()) if isinstance(parsed, dict) else 'array'}")
 
-                # Extract plans array from response
-                query_plans = None
-                if isinstance(parsed, dict) and "plans" in parsed:
-                    query_plans = parsed["plans"]
-                elif isinstance(parsed, dict) and "claims" in parsed:
-                    query_plans = parsed["claims"]
-                elif isinstance(parsed, dict) and "query_plans" in parsed:
-                    query_plans = parsed["query_plans"]
-                elif isinstance(parsed, list):
-                    query_plans = parsed
+            # Extract plans array from response
+            query_plans = None
+            if isinstance(parsed, dict) and "plans" in parsed:
+                query_plans = parsed["plans"]
+            elif isinstance(parsed, dict) and "claims" in parsed:
+                query_plans = parsed["claims"]
+            elif isinstance(parsed, dict) and "query_plans" in parsed:
+                query_plans = parsed["query_plans"]
+            elif isinstance(parsed, list):
+                query_plans = parsed
+            else:
+                # Try to find any array of dicts in the response
+                for key, value in parsed.items():
+                    if isinstance(value, list) and len(value) > 0 and isinstance(value[0], dict):
+                        query_plans = value
+                        logger.debug(f"[QUERY_PLANNER] Found plans under key: {key}")
+                        break
                 else:
-                    # Try to find any array of dicts in the response
-                    for key, value in parsed.items():
-                        if isinstance(value, list) and len(value) > 0 and isinstance(value[0], dict):
-                            query_plans = value
-                            logger.debug(f"[QUERY_PLANNER] Found plans under key: {key}")
-                            break
-                    else:
-                        logger.error(f"[QUERY_PLANNER] No plans array found. Keys: {list(parsed.keys())}")
-                        return None
-
-                if not query_plans:
-                    logger.error(f"[QUERY_PLANNER] Empty plans array")
+                    logger.error(f"[QUERY_PLANNER] No plans array found. Keys: {list(parsed.keys())}")
                     return None
 
-                # Validate structure
-                validated_plans = self._validate_plans(query_plans, len(claims))
+            if not query_plans:
+                logger.error(f"[QUERY_PLANNER] Empty plans array")
+                return None
 
-                # Check if we got enough plans
-                if len(validated_plans) < len(claims):
-                    logger.warning(f"[QUERY_PLANNER] Only {len(validated_plans)} plans for {len(claims)} claims - some claims will use fallback")
+            # Extract claim texts for relevance validation
+            claim_texts = [c.get("text", "") for c in claims]
 
-                logger.info(f"[QUERY_PLANNER] SUCCESS: {len(validated_plans)} plans for {len(claims)} claims")
-                return validated_plans
+            # Validate structure and filter irrelevant queries
+            validated_plans = self._validate_plans(query_plans, len(claims), claim_texts)
+
+            # Check if we got enough plans
+            if len(validated_plans) < len(claims):
+                logger.warning(f"[QUERY_PLANNER] Only {len(validated_plans)} plans for {len(claims)} claims - some claims will use fallback")
+
+            logger.info(f"[QUERY_PLANNER] SUCCESS: {len(validated_plans)} plans for {len(claims)} claims")
+            return validated_plans
 
         except httpx.TimeoutException:
             logger.warning("[QUERY_PLANNER] TIMEOUT: API call took too long")
@@ -295,7 +295,67 @@ Return a JSON object with "plans" array containing exactly {len(claims)} plan ob
             logger.error(f"[QUERY_PLANNER] EXCEPTION: {type(e).__name__}: {e}", exc_info=True)
             return None
 
-    def _validate_plans(self, plans: List[Any], expected_count: int) -> List[Dict[str, Any]]:
+    async def _plan_with_google(self, user_prompt: str) -> Optional[Dict[str, Any]]:
+        """Plan queries using Google Gemini (primary provider)"""
+        full_prompt = f"{self.SYSTEM_PROMPT}\n\n{user_prompt}\n\nProvide your response as valid JSON."
+
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{self.google_model}:generateContent?key={self.google_ai_api_key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": full_prompt}]}],
+                    "generationConfig": {
+                        "temperature": 0.1,
+                        "maxOutputTokens": 3000,
+                        "responseMimeType": "application/json"
+                    }
+                }
+            )
+
+            if response.status_code != 200:
+                logger.error(f"Google AI query planning error: {response.status_code}")
+                return None
+
+            result = response.json()
+            content_text = result["candidates"][0]["content"]["parts"][0]["text"]
+            return json.loads(content_text)
+
+    async def _plan_with_openai(self, user_prompt: str) -> Optional[Dict[str, Any]]:
+        """Plan queries using OpenAI (fallback provider)"""
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.openai_api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": self.model,
+                    "messages": [
+                        {"role": "system", "content": self.SYSTEM_PROMPT},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    "temperature": 0.1,
+                    "max_tokens": 3000,
+                    "response_format": {"type": "json_object"}
+                }
+            )
+
+            if response.status_code != 200:
+                logger.error(f"OpenAI query planning error: {response.status_code}")
+                return None
+
+            result = response.json()
+            content = result["choices"][0]["message"]["content"]
+            return json.loads(content)
+
+    def _validate_plans(
+        self,
+        plans: List[Any],
+        expected_count: int,
+        claim_texts: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
         """Validate and normalize query plans with freshness decisions."""
         validated = []
         valid_freshness = {"pd", "pw", "pm", "py", "2y"}
@@ -341,6 +401,13 @@ Return a JSON object with "plans" array containing exactly {len(claims)} plan ob
             # Limit queries to 4 per claim
             validated_plan["queries"] = validated_plan["queries"][:4]
 
+            # Validate query relevance to claim (filter garbage queries)
+            if claim_texts and i < len(claim_texts):
+                validated_plan["queries"] = self._validate_query_relevance_sync(
+                    validated_plan["queries"],
+                    claim_texts[i]
+                )
+
             validated.append(validated_plan)
 
         return validated
@@ -380,6 +447,62 @@ Return a JSON object with "plans" array containing exactly {len(claims)} plan ob
             fixed_queries.append(query)
 
         return fixed_queries
+
+    def _validate_query_relevance_sync(
+        self,
+        queries: List[str],
+        claim_text: str,
+        min_similarity: float = 0.15
+    ) -> List[str]:
+        """
+        Filter queries with no keyword overlap with claim.
+
+        Uses lightweight keyword overlap (Jaccard similarity) to catch egregiously
+        irrelevant queries without requiring embedding computation.
+
+        Args:
+            queries: Generated search queries
+            claim_text: Original claim text
+            min_similarity: Minimum keyword overlap ratio (0-1)
+
+        Returns:
+            Filtered list of relevant queries (at least 1 kept)
+        """
+        import re
+
+        stop_words = {'the', 'and', 'for', 'are', 'was', 'were', 'been', 'have',
+                      'has', 'had', 'will', 'would', 'could', 'should', 'this',
+                      'that', 'with', 'from', 'they', 'their', 'there', 'what',
+                      'when', 'where', 'which', 'about', 'into', 'than', 'then'}
+
+        def extract_keywords(text: str) -> set:
+            words = re.findall(r'\b[a-zA-Z]{4,}\b', text.lower())
+            return {w for w in words if w not in stop_words}
+
+        claim_keywords = extract_keywords(claim_text)
+        if not claim_keywords:
+            return queries  # Can't validate, pass through
+
+        relevant = []
+        for query in queries:
+            query_keywords = extract_keywords(query)
+            if not query_keywords:
+                relevant.append(query)
+                continue
+
+            overlap = len(claim_keywords & query_keywords)
+            union = len(claim_keywords | query_keywords)
+            similarity = overlap / union if union > 0 else 0
+
+            if similarity >= min_similarity:
+                relevant.append(query)
+            else:
+                logger.warning(
+                    f"[QUERY_PLANNER] Filtered irrelevant query: '{query}' "
+                    f"(similarity={similarity:.2f} < {min_similarity})"
+                )
+
+        return relevant if relevant else queries[:1]  # Keep at least 1
 
     def get_site_filter(self, priority_sources: List[str], claim_type: str = "") -> str:
         """

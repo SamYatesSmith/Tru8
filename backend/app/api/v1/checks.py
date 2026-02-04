@@ -11,8 +11,6 @@ from app.core.database import get_session
 from app.core.auth import get_current_user, get_current_user_sse
 from app.core.config import settings
 from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription
-from app.workers.pipeline import process_check
-from app.workers import celery_app
 from datetime import datetime, timezone
 import uuid
 import json
@@ -31,6 +29,156 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.get("/test/search-diagnostic")
+async def test_search_diagnostic():
+    """
+    DIAGNOSTIC ENDPOINT: Test if Brave Search API is working.
+    Visit: http://localhost:8000/api/v1/checks/test/search-diagnostic
+    """
+    import traceback
+    from app.services.search import SearchService, warmup_search_providers
+
+    results = {
+        "brave_api_key_configured": bool(settings.BRAVE_API_KEY),
+        "brave_api_key_length": len(settings.BRAVE_API_KEY) if settings.BRAVE_API_KEY else 0,
+        "serp_api_key_configured": bool(settings.SERP_API_KEY),
+        "test_query": "Earth age billion years",
+        "search_results": [],
+        "error": None,
+    }
+
+    try:
+        warmup_search_providers()
+        results["warmup"] = "completed"
+
+        search_service = SearchService()
+        results["providers"] = [p.__class__.__name__ for p in search_service.providers]
+
+        if not search_service.providers:
+            results["error"] = "No search providers available"
+            return results
+
+        search_results = await search_service.search_for_evidence(
+            "Earth age billion years",
+            max_results=3
+        )
+
+        results["search_results"] = [
+            {"title": r.title, "url": r.url, "snippet": r.snippet[:150], "source": r.source}
+            for r in search_results
+        ]
+        results["result_count"] = len(search_results)
+
+    except Exception as e:
+        results["error"] = f"{type(e).__name__}: {str(e)}"
+        results["traceback"] = traceback.format_exc()
+
+    return results
+
+
+@router.get("/test/full-diagnostic")
+async def test_full_diagnostic():
+    """
+    COMPREHENSIVE DIAGNOSTIC: Test web search AND API adapters.
+    Visit: http://localhost:8000/api/v1/checks/test/full-diagnostic
+    """
+    import traceback
+    from app.services.search import SearchService, warmup_search_providers
+    from app.services.government_api_client import get_api_registry
+    from app.pipeline.retrieve import EvidenceRetriever
+
+    results = {
+        "web_search": {
+            "brave_key_configured": bool(settings.BRAVE_API_KEY),
+            "serp_key_configured": bool(settings.SERP_API_KEY),
+            "providers": [],
+            "test_results": 0,
+            "error": None,
+        },
+        "api_adapters": {
+            "registered_count": 0,
+            "adapter_names": [],
+            "test_results": {},
+            "error": None,
+        },
+        "evidence_retriever": {
+            "initialized": False,
+            "error": None,
+        }
+    }
+
+    # Test 1: Web Search
+    try:
+        warmup_search_providers()
+        search_service = SearchService()
+        results["web_search"]["providers"] = [p.__class__.__name__ for p in search_service.providers]
+
+        if search_service.providers:
+            search_results = await search_service.search_for_evidence(
+                "climate change statistics 2024",
+                max_results=3
+            )
+            results["web_search"]["test_results"] = len(search_results)
+            if search_results:
+                results["web_search"]["sample"] = {
+                    "title": search_results[0].title,
+                    "url": search_results[0].url[:80]
+                }
+    except Exception as e:
+        results["web_search"]["error"] = f"{type(e).__name__}: {str(e)}"
+
+    # Test 2: API Adapters
+    try:
+        registry = get_api_registry()
+        adapters = registry.get_all_adapters()
+        results["api_adapters"]["registered_count"] = len(adapters)
+        results["api_adapters"]["adapter_names"] = [a.api_name for a in adapters]
+
+        # Test Wikipedia (should always work - no API key needed)
+        for adapter in adapters:
+            if adapter.api_name == "Wikipedia":
+                try:
+                    wiki_results = adapter.search("Earth age", "Science", "Global", [])
+                    results["api_adapters"]["test_results"]["Wikipedia"] = len(wiki_results)
+                    if wiki_results:
+                        results["api_adapters"]["test_results"]["Wikipedia_sample"] = {
+                            "title": wiki_results[0].get("title", "N/A")[:50],
+                            "has_snippet": bool(wiki_results[0].get("snippet"))
+                        }
+                except Exception as e:
+                    results["api_adapters"]["test_results"]["Wikipedia_error"] = str(e)
+                break
+    except Exception as e:
+        results["api_adapters"]["error"] = f"{type(e).__name__}: {str(e)}"
+
+    # Test 3: Evidence Retriever initialization
+    try:
+        retriever = EvidenceRetriever()
+        results["evidence_retriever"]["initialized"] = True
+        results["evidence_retriever"]["search_providers"] = [
+            p.__class__.__name__ for p in retriever.search_service.providers
+        ]
+    except Exception as e:
+        results["evidence_retriever"]["error"] = f"{type(e).__name__}: {str(e)}"
+
+    # Summary
+    results["summary"] = {
+        "web_search_working": results["web_search"]["test_results"] > 0,
+        "api_adapters_registered": results["api_adapters"]["registered_count"] > 0,
+        "evidence_retriever_ready": results["evidence_retriever"]["initialized"],
+    }
+
+    if not results["summary"]["web_search_working"] and not results["api_adapters"]["test_results"]:
+        results["diagnosis"] = "CRITICAL: Neither web search nor API adapters are returning results. Check API keys in .env"
+    elif not results["summary"]["web_search_working"]:
+        results["diagnosis"] = "WARNING: Web search not working. Set BRAVE_API_KEY or SERP_API_KEY. API adapters may still provide some evidence."
+    else:
+        results["diagnosis"] = "OK: Evidence retrieval should be working."
+
+    return results
+
 
 # Setup Jinja2 environment for PDF templates
 template_dir = Path(__file__).parent.parent.parent / "templates"
@@ -106,113 +254,45 @@ async def upload_file(
             detail="Failed to save uploaded file"
         )
 
-class CreateCheckTestRequest(BaseModel):
-    """Test-only request model that accepts a URL without authentication"""
-    url: str
-    mode: str = "standard"
 
-@router.post("/test", status_code=201)
-async def create_check_test(
-    request: CreateCheckTestRequest,
-    session: AsyncSession = Depends(get_session)
-):
-    """TEST-ONLY ENDPOINT: Create a fact-check without authentication (DEBUG mode only)"""
+@router.get("/test/stream-mock", status_code=200)
+async def test_stream_mock():
+    """
+    Mock streaming endpoint for testing SSE mechanism.
+    DEBUG mode only. Returns fake progress events.
+    """
     if not settings.DEBUG:
-        raise HTTPException(
-            status_code=404,
-            detail="Test endpoint only available in DEBUG mode"
-        )
+        raise HTTPException(status_code=404, detail="Test endpoint only available in DEBUG mode")
 
-    # Create or get test user
-    test_user_id = "test-user-consistency"
-    stmt = select(User).where(User.id == test_user_id)
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
+    from app.pipeline.progress import ProgressReporter
 
-    if not user:
-        user = User(
-            id=test_user_id,
-            email="test@consistency.local",
-            name="Consistency Test User",
-            credits=1000000  # Unlimited credits for testing
-        )
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
+    check_id = str(uuid.uuid4())
+    reporter = ProgressReporter(check_id)
 
-    # Create check request in the same format as the main endpoint
-    check_request = CreateCheckRequest(
-        input_type="url",
-        url=request.url,
-        content=None,
-        file_path=None,
-        user_query=None
+    async def mock_pipeline():
+        """Simulate pipeline stages with delays."""
+        stages = ["ingest", "extract", "retrieve", "verify", "judge", "summary"]
+        for stage in stages:
+            await asyncio.sleep(1)  # Simulate work
+            await reporter.report_progress(stage)
+        await asyncio.sleep(0.5)
+        await reporter.report_completed()
+
+    async def mock_stream():
+        task = asyncio.create_task(mock_pipeline())
+        async for event in reporter.events(task):
+            yield event
+        await task
+
+    return StreamingResponse(
+        mock_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Check-Id": check_id,
+        }
     )
 
-    # Validate and normalize URL
-    if not check_request.url:
-        raise HTTPException(status_code=400, detail="URL is required")
-
-    if not check_request.url.startswith(("http://", "https://")):
-        check_request.url = f"https://{check_request.url}"
-        logger.info(f"Normalized URL to: {check_request.url}")
-
-    check_request.url = check_request.url.strip()
-
-    # Create check record
-    check = Check(
-        id=str(uuid.uuid4()),
-        user_id=user.id,
-        input_type="url",
-        input_content=json.dumps({
-            "content": None,
-            "url": check_request.url,
-            "file_path": None
-        }),
-        input_url=check_request.url,
-        status="pending",
-        credits_used=0,  # Don't charge for test checks
-        user_query=None
-    )
-
-    session.add(check)
-    await session.commit()
-    await session.refresh(check)
-
-    # Start pipeline processing
-    try:
-        logger.info(f"[TEST] Dispatching task for check {check.id}")
-
-        task = process_check.delay(
-            check_id=check.id,
-            user_id=user.id,
-            input_data={
-                "input_type": "url",
-                "content": None,
-                "url": check_request.url,
-                "file_path": None,
-                "user_query": None
-            }
-        )
-        logger.info(f"[TEST] Task dispatched: {task.id}")
-
-        # Store task ID mapping
-        r = redis.Redis.from_url(settings.REDIS_URL)
-        r.set(f"check-task:{check.id}", task.id, ex=300)
-
-    except Exception as e:
-        logger.error(f"[TEST] Failed to dispatch task: {e}")
-        check.status = "failed"
-        check.error_message = f"Task dispatch failed: {str(e)}"
-        session.add(check)
-        await session.commit()
-        raise HTTPException(status_code=500, detail="Failed to start fact-checking pipeline")
-
-    return {
-        "check_id": check.id,
-        "status": check.status,
-        "task_id": task.id
-    }
 
 @router.get("/test/{check_id}")
 async def get_check_test(
@@ -293,25 +373,192 @@ async def get_check_test(
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("", status_code=201)
-@router.post("/", status_code=201)
-@limiter.limit("10/minute")  # Rate limit: 10 checks per minute per IP
-async def create_check(
-    body: CreateCheckRequest,
-    request: Request,  # Required for rate limiting (must be named 'request' for slowapi)
-    current_user: dict = Depends(get_current_user),
+
+class CreateCheckTestStreamRequest(BaseModel):
+    """Test-only request for streaming endpoint"""
+    input_type: str = "text"
+    content: Optional[str] = None
+    url: Optional[str] = None
+
+
+@router.post("/test/stream", status_code=200)
+async def create_check_test_streaming(
+    body: CreateCheckTestStreamRequest,
     session: AsyncSession = Depends(get_session)
 ):
-    """Create a new fact-check request"""
+    """
+    TEST-ONLY ENDPOINT: Create a streaming fact-check without authentication.
+    DEBUG mode only. Uses test user with unlimited credits.
+
+    Example:
+        curl -N -X POST http://localhost:8000/api/v1/checks/test/stream \\
+          -H "Content-Type: application/json" \\
+          -d '{"input_type": "text", "content": "The Earth is flat."}'
+    """
+    if not settings.DEBUG:
+        raise HTTPException(
+            status_code=404,
+            detail="Test endpoint only available in DEBUG mode"
+        )
+
+    from app.core.database import async_session
+    from app.pipeline.progress import ProgressReporter
+    from app.pipeline.runner import (
+        run_pipeline,
+        save_check_results_async,
+        handle_pipeline_failure,
+        send_success_notifications,
+        PipelineError
+    )
+
+    # Create or get test user
+    test_user_id = "test-user-streaming"
+    stmt = select(User).where(User.id == test_user_id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        user = User(
+            id=test_user_id,
+            email="test-stream@consistency.local",
+            name="Streaming Test User",
+            credits=1000000
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+
+    # Normalize URL if provided
+    if body.input_type == "url" and body.url:
+        if not body.url.startswith(("http://", "https://")):
+            body.url = f"https://{body.url}"
+
+    # Validate
+    if body.input_type == "text" and not body.content:
+        raise HTTPException(status_code=400, detail="Content required for text input")
+    if body.input_type == "url" and not body.url:
+        raise HTTPException(status_code=400, detail="URL required for url input")
+
+    # Create check record
+    check = Check(
+        id=str(uuid.uuid4()),
+        user_id=user.id,
+        input_type=body.input_type,
+        input_content=json.dumps({
+            "content": body.content,
+            "url": body.url,
+            "file_path": None
+        }),
+        input_url=body.url,
+        status="processing",
+        credits_used=0,  # Don't charge for test
+        user_query=None
+    )
+
+    session.add(check)
+    await session.commit()
+    await session.refresh(check)
+
+    logger.info(f"[TEST STREAM] Created check {check.id}")
+
+    # Prepare input data
+    input_data = {
+        "input_type": body.input_type,
+        "content": body.content,
+        "url": body.url,
+        "file_path": None,
+        "user_query": None
+    }
+
+    progress_reporter = ProgressReporter(check.id)
+
+    async def run_pipeline_and_save():
+        """Background task that runs pipeline and saves results independently."""
+        try:
+            logger.info(f"[TEST STREAM] Starting pipeline for check {check.id}")
+            result = await asyncio.wait_for(
+                run_pipeline(check.id, user.id, input_data, progress_reporter),
+                timeout=300
+            )
+
+            async with async_session() as save_session:
+                await save_check_results_async(check.id, result, save_session)
+                await save_session.commit()
+
+            await progress_reporter.report_completed()
+            logger.info(f"[TEST STREAM] Check {check.id} completed successfully")
+
+        except asyncio.TimeoutError:
+            logger.error(f"[TEST STREAM] Pipeline timed out for check {check.id}")
+            await handle_pipeline_failure(check.id, user.id, Exception("Pipeline timed out"))
+            await progress_reporter.report_error("Pipeline timed out")
+
+        except PipelineError as e:
+            logger.error(f"[TEST STREAM] Pipeline error: {e}")
+            await handle_pipeline_failure(check.id, user.id, e)
+            await progress_reporter.report_error(str(e))
+
+        except Exception as e:
+            logger.error(f"[TEST STREAM] Unexpected error: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            await handle_pipeline_failure(check.id, user.id, e)
+            await progress_reporter.report_error(str(e))
+
+    # Start pipeline as fire-and-forget background task
+    pipeline_task = asyncio.create_task(run_pipeline_and_save())
+
+    async def pipeline_stream():
+        """Generator that yields SSE events - pipeline runs independently."""
+        async for event in progress_reporter.events(pipeline_task, max_duration_seconds=300):
+            yield event
+
+    return StreamingResponse(
+        pipeline_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+            "X-Check-Id": check.id,
+        }
+    )
+
+
+
+@router.post("/stream", status_code=200)
+@limiter.limit("10/minute")
+async def create_check_streaming(
+    body: CreateCheckRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user_sse),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Create a new fact-check with inline SSE streaming.
+
+    This endpoint runs the pipeline inline (no Celery) and streams progress
+    directly to the client. Eliminates worker infrastructure costs.
+
+    Returns: StreamingResponse with SSE events
+    """
+    from app.core.database import async_session
+    from app.pipeline.progress import ProgressReporter
+    from app.pipeline.runner import (
+        run_pipeline,
+        save_check_results_async,
+        handle_pipeline_failure,
+        send_success_notifications,
+        PipelineError
+    )
+
     # Get or create user (handles race conditions)
     user = await get_or_create_user(session, current_user)
 
-    # BETA TESTER CHECK - only beta testers can access pipeline during closed beta
+    # BETA TESTER CHECK (skip in DEBUG mode)
     is_beta_tester = user.email.lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
 
-    # During closed beta: block non-beta testers entirely
-    if settings.BETA_TESTER_EMAILS and not is_beta_tester:
-        logger.info(f"Non-beta tester {user.email} blocked from pipeline access")
+    if not settings.DEBUG and settings.BETA_TESTER_EMAILS and not is_beta_tester:
         raise HTTPException(
             status_code=403,
             detail={
@@ -321,11 +568,7 @@ async def create_check(
             }
         )
 
-    if is_beta_tester:
-        logger.info(f"Beta tester {user.email} - full pipeline access granted")
-
-    # MONTHLY USAGE LIMIT CHECK (applies in all modes, including DEBUG)
-    # Get subscription to determine monthly limit (Subscription already imported at top)
+    # MONTHLY USAGE LIMIT CHECK
     sub_stmt = select(Subscription).where(
         Subscription.user_id == user.id,
         Subscription.status.in_(["active", "trialing"])
@@ -333,16 +576,12 @@ async def create_check(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    # Determine usage limit based on subscription status
+    # Determine usage limit
     if is_beta_tester:
-        # Beta testers: 40 checks per calendar month
-        from datetime import datetime
         now = datetime.utcnow()
-        period_start = datetime(now.year, now.month, 1)  # First of current month
-        credits_limit = 40  # Beta tester monthly limit
+        period_start = datetime(now.year, now.month, 1)
+        credits_limit = 40
 
-        # Calculate monthly usage for beta testers
-        from sqlalchemy import func
         usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
             Check.user_id == user.id,
             Check.created_at >= period_start
@@ -351,12 +590,9 @@ async def create_check(
         current_usage = usage_result.scalar() or 0
         limit_type = "beta_monthly"
     elif subscription and subscription.current_period_start:
-        # Paid subscriber: monthly limit that resets each billing period
         period_start = subscription.current_period_start
         credits_limit = subscription.credits_per_month
 
-        # Calculate monthly usage for subscribers
-        from sqlalchemy import func
         usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
             Check.user_id == user.id,
             Check.created_at >= period_start
@@ -365,13 +601,14 @@ async def create_check(
         current_usage = usage_result.scalar() or 0
         limit_type = "monthly"
     else:
-        # Free user: one-time trial of 3 checks (never resets)
-        credits_limit = 3  # Trial limit
-        current_usage = user.total_credits_used  # Lifetime usage
+        credits_limit = 3
+        current_usage = user.total_credits_used
         limit_type = "trial"
 
-    # Admin bypass - unlimited credits for testing (settings already imported at top)
-    if user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
+    # Admin bypass OR DEBUG mode bypass
+    if settings.DEBUG:
+        logger.info(f"DEBUG mode: {user.email} - skipping credit limit check")
+    elif user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
         logger.info(f"Admin bypass: {user.email} - skipping credit limit check")
     elif current_usage >= credits_limit:
         if limit_type == "trial":
@@ -389,7 +626,7 @@ async def create_check(
                 status_code=402,
                 detail=f"Monthly limit reached ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks."
             )
-    
+
     # Validate input
     if body.input_type not in ["url", "text", "image", "video"]:
         raise HTTPException(status_code=400, detail="Invalid input type")
@@ -397,11 +634,9 @@ async def create_check(
     if body.input_type == "url" and not body.url:
         raise HTTPException(status_code=400, detail="URL is required for url input type")
 
-    # Normalize URL (add https:// if missing protocol)
     if body.input_type in ["url", "video"] and body.url:
         if not body.url.startswith(("http://", "https://")):
             body.url = f"https://{body.url}"
-            logger.info(f"Normalized URL to: {body.url}")
 
     if body.input_type == "text" and not body.content:
         raise HTTPException(status_code=400, detail="Content is required for text input type")
@@ -412,7 +647,7 @@ async def create_check(
     if body.input_type == "video" and not body.url:
         raise HTTPException(status_code=400, detail="URL is required for video input type")
 
-    # Sanitize inputs (trim whitespace)
+    # Sanitize inputs
     if body.url:
         body.url = body.url.strip()
     if body.content:
@@ -420,21 +655,16 @@ async def create_check(
 
     # Search Clarity validation
     if body.user_query:
-        # Check feature flag
         if not settings.ENABLE_SEARCH_CLARITY:
             raise HTTPException(
                 status_code=503,
                 detail="Search Clarity feature is temporarily disabled"
             )
-
-        # Validate query length
         if len(body.user_query) > 200:
             raise HTTPException(
                 status_code=400,
                 detail="Query must be 200 characters or less"
             )
-
-        # Sanitize query (prevent prompt injection)
         body.user_query = body.user_query.strip()
 
     # Create check record
@@ -448,78 +678,116 @@ async def create_check(
             "file_path": body.file_path
         }),
         input_url=body.url,
-        status="pending",
+        status="processing",  # Start as processing (no pending state for inline)
         credits_used=1,
-        user_query=body.user_query  # Search Clarity feature
+        user_query=body.user_query
     )
-    
+
     session.add(check)
 
-    # Reserve credits and track usage
+    # Reserve credits
     user.credits -= 1
     user.total_credits_used += 1
     await session.commit()
     await session.refresh(check)
-    
-    # Start pipeline processing
-    try:
-        logger.info(f"Attempting to dispatch task for check {check.id}")
-        logger.info(f"Redis URL: {settings.REDIS_URL}")
 
-        # Test Redis connection first
-        import redis
-        try:
-            r = redis.Redis.from_url(settings.REDIS_URL)
-            r.ping()
-            logger.info("Redis connection successful")
-        except Exception as redis_error:
-            logger.error(f"Redis connection failed: {redis_error}")
-            raise redis_error
-
-        task = process_check.delay(
-            check_id=check.id,
-            user_id=user.id,
-            input_data={
-                "input_type": body.input_type,
-                "content": body.content,
-                "url": body.url,
-                "file_path": body.file_path,
-                "user_query": body.user_query  # Search Clarity feature
-            }
-        )
-        logger.info(f"Task dispatched successfully: {task.id} for check {check.id}")
-        logger.info(f"Task state immediately after dispatch: {task.state}")
-
-        # Store task ID mapping in Redis for progress tracking
-        r.set(f"check-task:{check.id}", task.id, ex=300)  # Expire after 5 minutes
-        logger.info(f"Stored task mapping check-task:{check.id} -> {task.id}")
-
-        # Verify task is in Redis queue
-        queue_length = r.llen("celery")
-        logger.info(f"Queue length after dispatch: {queue_length}")
-
-    except Exception as e:
-        import traceback
-        logger.error(f"Failed to dispatch task for check {check.id}: {e}")
-        logger.error(f"Full traceback: {traceback.format_exc()}")
-        # Update check status to failed
-        check.status = "failed"
-        check.error_message = f"Task dispatch failed: {str(e)}"
-        session.add(check)
-        await session.commit()
-        raise HTTPException(status_code=500, detail="Failed to start fact-checking pipeline")
-    
-    return {
-        "check": {
-            "id": check.id,
-            "status": check.status,
-            "inputType": check.input_type,
-            "createdAt": check.created_at.isoformat(),
-            "creditsUsed": check.credits_used,
-        },
-        "remainingCredits": user.credits,
-        "taskId": task.id
+    # Prepare input data for pipeline
+    input_data = {
+        "input_type": body.input_type,
+        "content": body.content,
+        "url": body.url,
+        "file_path": body.file_path,
+        "user_query": body.user_query
     }
+
+    # Create progress reporter
+    progress_reporter = ProgressReporter(check.id)
+
+    async def run_pipeline_and_save():
+        """
+        Background task that runs the pipeline and saves results.
+        This runs INDEPENDENTLY of the SSE stream - results are saved
+        even if the client disconnects.
+        """
+        try:
+            logger.info(f"[PIPELINE TASK] Starting pipeline for check {check.id}")
+            result = await asyncio.wait_for(
+                run_pipeline(check.id, user.id, input_data, progress_reporter),
+                timeout=300  # 5 minute hard timeout
+            )
+            logger.info(f"[PIPELINE TASK] Pipeline completed for check {check.id}")
+
+            # Save results to database
+            async with async_session() as save_session:
+                await save_check_results_async(check.id, result, save_session)
+                await save_session.commit()
+            logger.info(f"[PIPELINE TASK] Results saved for check {check.id}")
+
+            # Send success notifications
+            content_data = {
+                "metadata": result.get("ingest_metadata", {})
+            }
+            await send_success_notifications(
+                user.id, check.id, result, input_data, content_data
+            )
+
+            # Signal completion
+            await progress_reporter.report_completed()
+            logger.info(f"[PIPELINE TASK] Check {check.id} fully completed")
+
+        except asyncio.TimeoutError:
+            logger.error(f"[PIPELINE TASK] Pipeline timed out for check {check.id}")
+            await handle_pipeline_failure(check.id, user.id, Exception("Pipeline timed out after 5 minutes"))
+            await progress_reporter.report_error("Pipeline timed out. Your credit has been returned.")
+
+        except PipelineError as e:
+            logger.error(f"[PIPELINE TASK] Pipeline error for check {check.id}: {e}")
+            await handle_pipeline_failure(check.id, user.id, e)
+            await progress_reporter.report_error(str(e))
+
+        except Exception as e:
+            logger.error(f"[PIPELINE TASK] Unexpected error for check {check.id}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            await handle_pipeline_failure(check.id, user.id, e)
+            await progress_reporter.report_error(str(e))
+
+    # Start pipeline as fire-and-forget background task
+    # This ensures results are saved even if client disconnects
+    pipeline_task = asyncio.create_task(run_pipeline_and_save())
+    logger.info(f"[SSE STREAM] Background pipeline task created for check {check.id}")
+
+    async def pipeline_stream():
+        """
+        Async generator that yields SSE events.
+        The actual pipeline runs independently - this just streams events.
+        """
+        logger.info(f"[SSE STREAM] Starting event stream for check {check.id}")
+        event_count = 0
+
+        try:
+            async for event in progress_reporter.events(pipeline_task, max_duration_seconds=300):
+                event_count += 1
+                if event_count <= 5 or event_count % 10 == 0:  # Log first 5 and every 10th
+                    logger.info(f"[SSE STREAM] Event #{event_count} for check {check.id}")
+                yield event
+        except Exception as e:
+            logger.error(f"[SSE STREAM] Error streaming events for check {check.id}: {e}")
+        finally:
+            logger.info(f"[SSE STREAM] Stream ended for check {check.id} after {event_count} events")
+            # Note: We do NOT cancel the pipeline task here - it should complete independently
+
+    return StreamingResponse(
+        pipeline_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+            "X-Check-Id": check.id,  # Include check ID in headers for client
+        }
+    )
+
 
 @router.get("")
 @router.get("/")
@@ -611,7 +879,7 @@ async def get_check(
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
 
-    # Get real-time progress from Redis/Celery when processing
+    # Get real-time progress from Redis when processing (inline SSE pipeline)
     current_stage = None
     progress_percent = None
     progress_message = None
@@ -619,30 +887,13 @@ async def get_check(
     if check.status == "processing":
         try:
             redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
-            task_id = redis_client.get(f"check-task:{check_id}")
+            progress_data = redis_client.get(f"inline-progress:{check_id}")
 
-            if task_id:
-                task = celery_app.AsyncResult(task_id)
-
-                if task.state == "PROGRESS":
-                    info = task.info or {}
-                    current_stage = info.get('stage', 'processing')
-                    progress_percent = info.get('progress', 0)
-
-                    # Map stage to user-friendly message
-                    stage_messages = {
-                        'ingest': 'Processing input content...',
-                        'extract': 'Extracting factual claims...',
-                        'retrieve': 'Gathering evidence from sources...',
-                        'verify': 'Verifying claims against evidence...',
-                        'judge': 'Generating final verdicts...',
-                        'summary': 'Creating overall credibility assessment...'
-                    }
-                    progress_message = stage_messages.get(current_stage, f'Processing {current_stage}...')
-                elif task.state == "PENDING":
-                    current_stage = 'queued'
-                    progress_percent = 0
-                    progress_message = 'Check queued for processing'
+            if progress_data:
+                data = json.loads(progress_data)
+                current_stage = data.get('stage', 'processing')
+                progress_percent = data.get('progress', 0)
+                progress_message = data.get('message', 'Processing...')
 
             redis_client.close()
         except Exception as e:
@@ -761,124 +1012,78 @@ async def stream_check_progress(
         raise HTTPException(status_code=404, detail="Check not found")
     
     def event_stream():
-        """Generate SSE events for pipeline progress"""
+        """Generate SSE events for pipeline progress - reads from Redis"""
         import time
         redis_client = None
         try:
-            # Connect to Redis for Celery task updates
             redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
-            
-            # Initial connection event with time estimate
+            progress_key = f"inline-progress:{check_id}"
+
+            # Initial connection event
             yield f"data: {safe_json_dumps({'type': 'connected', 'checkId': check_id, 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
-            # Send initial progress with time estimate immediately
-            yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': 'starting', 'progress': 0, 'message': 'Initialising fact-check...', 'timeEstimate': 'within 2 minutes'})}\n\n"
-            
-            # Check if task is already completed
+
+            # Check if already completed/failed in database
             if check.status == "completed":
                 yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100})}\n\n"
                 return
             elif check.status == "failed":
                 yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': check.error_message})}\n\n"
                 return
-            
-            # Monitor task progress
-            task_key_pattern = f"celery-task-meta-*"
-            last_progress = 0
+
+            # Poll Redis for inline pipeline progress
+            last_progress = -1
+            last_stage = ""
             timeout_counter = 0
-            max_timeout = 200  # 3+ minutes timeout (longer than task timeout)
-            
+            max_timeout = 300  # 5 minutes
+            # Current state (persists between iterations for heartbeats)
+            current_stage = "starting"
+            current_progress = 0
+            current_message = "Initializing..."
+            current_time_estimate = "within 2 minutes"
+
             while timeout_counter < max_timeout:
                 try:
-                    # Get task ID from Redis mapping
-                    task_id = redis_client.get(f"check-task:{check_id}")
+                    # Read progress from Redis (written by ProgressReporter)
+                    progress_data = redis_client.get(progress_key)
 
-                    if not task_id:
-                        # Fallback: Find task ID by scanning Redis keys
-                        keys = redis_client.keys(task_key_pattern)
-                        for key in keys:
-                            try:
-                                task_data = redis_client.get(key)
-                                if task_data:
-                                    task_info = json.loads(task_data)
-                                    # Check if this task relates to our check
-                                    if isinstance(task_info, dict) and 'kwargs' in task_info:
-                                        kwargs = task_info.get('kwargs', {})
-                                        if kwargs.get('check_id') == check_id:
-                                            task_id = key.replace("celery-task-meta-", "")
-                                            break
-                            except (json.JSONDecodeError, Exception):
-                                continue
-                    
-                    if task_id:
-                        # Get task result
-                        task = celery_app.AsyncResult(task_id)
-                        
-                        if task.state == "PENDING":
-                            if last_progress == 0:
-                                yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': 'queued', 'progress': 0, 'message': 'Check queued for processing', 'timeEstimate': 'within 2 minutes'})}\n\n"
-                                last_progress = 0
-                        
-                        elif task.state == "PROGRESS":
-                            info = task.info or {}
-                            stage = info.get('stage', 'processing')
-                            progress = info.get('progress', 0)
+                    if progress_data:
+                        data = json.loads(progress_data)
+                        status = data.get("status", "processing")
+                        current_progress = data.get("progress", 0)
+                        current_stage = data.get("stage", "processing")
+                        current_message = data.get("message", "Processing...")
+                        current_time_estimate = data.get("timeEstimate", "within 2 minutes")
 
-                            if progress > last_progress:
-                                stage_messages = {
-                                    'ingest': 'Processing input content...',
-                                    'extract': 'Extracting factual claims...',
-                                    'retrieve': 'Gathering evidence from sources...',
-                                    'verify': 'Verifying claims against evidence...',
-                                    'judge': 'Generating final verdicts...',
-                                    'summary': 'Creating overall credibility assessment...'
-                                }
-
-                                # Conservative time estimates based on stage progress
-                                # Uses proper British English phrasing
-                                if progress < 25:
-                                    time_estimate = "within 2 minutes"
-                                elif progress < 50:
-                                    time_estimate = "within 90 seconds"
-                                elif progress < 70:
-                                    time_estimate = "within 1 minute"
-                                elif progress < 90:
-                                    time_estimate = "within 30 seconds"
-                                else:
-                                    time_estimate = "momentarily"
-
-                                message = stage_messages.get(stage, f'Processing {stage}...')
-
-                                yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': stage, 'progress': progress, 'message': message, 'timeEstimate': time_estimate})}\n\n"
-                                last_progress = progress
-                        
-                        elif task.state == "SUCCESS":
+                        if status == "completed":
                             yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100, 'message': 'Fact-check completed successfully'})}\n\n"
                             break
-                        
-                        elif task.state == "FAILURE":
-                            error_message = str(task.info) if task.info else "Processing failed"
-                            yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error_message})}\n\n"
+                        elif status == "failed":
+                            error = data.get("error", "Processing failed")
+                            yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error})}\n\n"
                             break
-                    
-                    # Skip database status check - rely on Celery task status
-                    # Database updates are handled by the pipeline itself
-                    
-                    # Send heartbeat
-                    if timeout_counter % 10 == 0:  # Every 10 seconds
-                        yield f"data: {safe_json_dumps({'type': 'heartbeat', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
-                    
+                        elif current_progress > last_progress or current_stage != last_stage:
+                            # Send progress update when progress OR stage changes
+                            yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': current_stage, 'progress': current_progress, 'message': current_message, 'timeEstimate': current_time_estimate})}\n\n"
+                            last_progress = current_progress
+                            last_stage = current_stage
+
+                    # Send progress-heartbeat every 5 seconds to keep frontend in sync
+                    # Include current progress so frontend always has latest state
+                    if timeout_counter > 0 and timeout_counter % 5 == 0:
+                        yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': current_stage, 'progress': current_progress, 'message': current_message, 'timeEstimate': current_time_estimate})}\n\n"
+
                     time.sleep(1)
                     timeout_counter += 1
-                    
+
                 except Exception as e:
                     logger.error(f"SSE error for check {check_id}: {e}")
                     yield f"data: {json.dumps({'type': 'error', 'error': 'Connection error occurred'})}\n\n"
                     break
-            
+
             # Timeout reached
             if timeout_counter >= max_timeout:
                 yield f"data: {json.dumps({'type': 'timeout', 'checkId': check_id, 'message': 'Connection timeout - please refresh'})}\n\n"
-            
+
         except Exception as e:
             logger.error(f"SSE stream error: {e}")
             yield f"data: {json.dumps({'type': 'error', 'error': 'Stream connection failed'})}\n\n"

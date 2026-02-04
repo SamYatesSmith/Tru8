@@ -265,7 +265,9 @@ class EvidenceExtractor:
             return ranked_snippets[:max_sources]
             
         except Exception as e:
-            logger.error(f"Evidence extraction error for claim: {e}")
+            import traceback
+            logger.error(f"[EVIDENCE DEBUG] Evidence extraction EXCEPTION: {type(e).__name__}: {e}")
+            logger.error(f"[EVIDENCE DEBUG] Full traceback:\n{traceback.format_exc()}")
             return []
     
     async def _extract_from_page(self, search_result: SearchResult, claim: str,

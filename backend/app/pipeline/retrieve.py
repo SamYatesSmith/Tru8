@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 # Module load timestamp for debugging stale worker issues
 import time as _time
 _MODULE_LOAD_TIME = _time.strftime("%Y-%m-%d %H:%M:%S")
-print(f"[RETRIEVE MODULE LOADED] {_MODULE_LOAD_TIME} - Query Planning: {settings.ENABLE_QUERY_PLANNING}", flush=True)
+_MODULE_VERSION = "v3-per-claim-timeout"  # Added 45s per-claim timeout to prevent hangs
+print(f"[RETRIEVE MODULE LOADED] {_MODULE_LOAD_TIME} - Version: {_MODULE_VERSION} - Query Planning: {settings.ENABLE_QUERY_PLANNING}", flush=True)
 
 class EvidenceRetriever:
     """Retrieve and rank evidence for claims using search, embeddings, and vector storage"""
@@ -72,6 +73,10 @@ class EvidenceRetriever:
         exclude_source_url: Optional[str] = None
     ) -> Dict[str, List[Dict[str, Any]]]:
         """Retrieve evidence for multiple claims concurrently"""
+        import time as _time
+        _func_start = _time.time()
+        print(f"\n[RETRIEVER ENTRY] retrieve_evidence_for_claims called with {len(claims)} claims at {_func_start:.2f}", flush=True)
+        logger.info(f"[RETRIEVER DEBUG] retrieve_evidence_for_claims called with {len(claims)} claims")
         try:
             # Extract excluded domain if provided
             excluded_domain = None
@@ -81,11 +86,15 @@ class EvidenceRetriever:
 
             # Query Planning Agent: Generate targeted queries for all claims (single LLM call)
             query_plans = None
+            print(f"[RETRIEVER] QUERY_PLANNING_ENABLED: {settings.ENABLE_QUERY_PLANNING}", flush=True)
             logger.info(f"[RETRIEVE] QUERY_PLANNING_ENABLED: {settings.ENABLE_QUERY_PLANNING}")
             if settings.ENABLE_QUERY_PLANNING:
                 try:
+                    print(f"[RETRIEVER] Importing query_planner...", flush=True)
                     from app.utils.query_planner import get_query_planner
+                    print(f"[RETRIEVER] Getting query planner instance...", flush=True)
                     planner = get_query_planner()
+                    print(f"[RETRIEVER] Query planner ready, preparing article context...", flush=True)
 
                     # Phase 4: Pass article context to query planner for dynamic freshness decisions
                     article_context = None
@@ -93,7 +102,11 @@ class EvidenceRetriever:
                         article_context = claims[0]["article_classification"]
                         logger.info(f"[RETRIEVE] Passing article context to query planner: domain={article_context.get('primary_domain')}")
 
+                    print(f"[RETRIEVER] Calling plan_queries_batch for {len(claims)} claims... (this is an LLM call)", flush=True)
+                    _qp_start = _time.time()
                     query_plans = await planner.plan_queries_batch(claims, article_context=article_context)
+                    _qp_elapsed = _time.time() - _qp_start
+                    print(f"[RETRIEVER] Query planning returned in {_qp_elapsed:.2f}s", flush=True)
                     if query_plans:
                         logger.info(f"Query planning complete: {len(query_plans)} plans for {len(claims)} claims")
                         # Attach query plans to claims
@@ -104,7 +117,10 @@ class EvidenceRetriever:
                     else:
                         logger.warning("Query planning returned no plans, using fallback")
                 except Exception as e:
+                    print(f"[RETRIEVER] Query planning FAILED: {type(e).__name__}: {e}", flush=True)
                     logger.warning(f"Query planning failed: {e}, using fallback")
+            else:
+                print(f"[RETRIEVER] Query planning disabled, skipping...", flush=True)
 
             # Process claims with concurrency limit
             semaphore = asyncio.Semaphore(self.max_concurrent_claims)
@@ -113,7 +129,23 @@ class EvidenceRetriever:
                 for claim in claims
             ]
             
+            import time as _time
+            _gather_start = _time.time()
+            print(f"\n[RETRIEVER] Starting gather for {len(tasks)} tasks at {_gather_start:.2f}", flush=True)
+            logger.info(f"[RETRIEVER DEBUG] Gathering results for {len(tasks)} tasks")
             results = await asyncio.gather(*tasks, return_exceptions=True)
+            _gather_elapsed = _time.time() - _gather_start
+            print(f"[RETRIEVER] Gather complete in {_gather_elapsed:.2f}s - {len(results)} results", flush=True)
+            logger.info(f"[RETRIEVER DEBUG] Gather complete in {_gather_elapsed:.2f}s. Results count: {len(results)}")
+
+            # Log each result type
+            for i, r in enumerate(results):
+                if isinstance(r, Exception):
+                    logger.error(f"[RETRIEVER DEBUG] Result {i}: EXCEPTION {type(r).__name__}: {r}")
+                elif isinstance(r, dict):
+                    logger.info(f"[RETRIEVER DEBUG] Result {i}: dict with {len(r.get('filtered_evidence', []))} filtered, {len(r.get('raw_evidence', []))} raw")
+                else:
+                    logger.info(f"[RETRIEVER DEBUG] Result {i}: type={type(r)}, len={len(r) if hasattr(r, '__len__') else 'N/A'}")
 
             # Organize results by claim position
             evidence_by_claim = {}
@@ -140,14 +172,21 @@ class EvidenceRetriever:
 
             # RECOVERY: Ensure minimum evidence per claim
             # This catches claims that ended up with insufficient evidence after initial retrieval
+            _recovery_start = _time.time()
+            print(f"[RETRIEVER] Starting recovery search for claims with <{self.MIN_EVIDENCE_PER_CLAIM} evidence...", flush=True)
             evidence_by_claim, recovery_raw = await self._ensure_minimum_evidence(
                 evidence_by_claim=evidence_by_claim,
                 claims=claims,
                 excluded_domain=excluded_domain
             )
+            _recovery_elapsed = _time.time() - _recovery_start
+            print(f"[RETRIEVER] Recovery complete in {_recovery_elapsed:.2f}s - added {len(recovery_raw)} raw items", flush=True)
             all_raw_evidence.extend(recovery_raw)
 
             # Return both filtered evidence and raw evidence
+            _func_elapsed = _time.time() - _func_start
+            total_evidence = sum(len(ev) for ev in evidence_by_claim.values())
+            print(f"[RETRIEVER EXIT] Returning {total_evidence} total evidence items for {len(evidence_by_claim)} claims in {_func_elapsed:.2f}s", flush=True)
             return {
                 "evidence_by_claim": evidence_by_claim,
                 "raw_evidence": all_raw_evidence,
@@ -155,7 +194,9 @@ class EvidenceRetriever:
             }
 
         except Exception as e:
-            logger.error(f"Evidence retrieval error: {e}")
+            import traceback
+            logger.error(f"[RETRIEVER DEBUG] Evidence retrieval EXCEPTION: {type(e).__name__}: {e}")
+            logger.error(f"[RETRIEVER DEBUG] Full traceback:\n{traceback.format_exc()}")
             return {
                 "evidence_by_claim": {},
                 "raw_evidence": [],
@@ -341,7 +382,7 @@ class EvidenceRetriever:
                                 title=getattr(r, 'title', '') if hasattr(r, 'title') else r.get('title', ''),
                                 published_date=getattr(r, 'published_date', None) if hasattr(r, 'published_date') else r.get('published_date'),
                                 relevance_score=0.5,  # Neutral score, let LLM scorer decide
-                                word_count=len(str(getattr(r, 'snippet', '') if hasattr(r, 'snippet') else r.get('snippet', '')).split()),
+                                # word_count is calculated automatically in EvidenceSnippet.__init__
                                 metadata={"recovery_search": True, "domain_key": domain_key}
                             )
                             all_snippets.append(snippet)
@@ -520,19 +561,33 @@ class EvidenceRetriever:
                 # Phase 5: Government API retrieval (parallel with web search)
                 api_results_task = self._retrieve_from_government_apis(claim_text, claim)
 
-                # Await both tasks concurrently
-                web_evidence_snippets, api_evidence = await asyncio.gather(
-                    web_search_task,
-                    api_results_task,
-                    return_exceptions=True
-                )
+                # Await both tasks concurrently with per-claim timeout
+                # This prevents any single claim from hanging the entire pipeline
+                CLAIM_TIMEOUT = 45  # seconds per claim
+                logger.info(f"[SINGLE CLAIM DEBUG] Awaiting web search + API tasks for claim {claim_position} (timeout={CLAIM_TIMEOUT}s)")
+                try:
+                    web_evidence_snippets, api_evidence = await asyncio.wait_for(
+                        asyncio.gather(
+                            web_search_task,
+                            api_results_task,
+                            return_exceptions=True
+                        ),
+                        timeout=CLAIM_TIMEOUT
+                    )
+                except asyncio.TimeoutError:
+                    logger.error(f"[SINGLE CLAIM DEBUG] TIMEOUT for claim {claim_position} after {CLAIM_TIMEOUT}s - using empty results")
+                    print(f"[CLAIM {claim_position}] TIMEOUT after {CLAIM_TIMEOUT}s - continuing with empty evidence", flush=True)
+                    web_evidence_snippets = []
+                    api_evidence = {"evidence": [], "api_stats": {"timeout": True}}
+                logger.info(f"[SINGLE CLAIM DEBUG] Tasks complete for claim {claim_position}")
 
                 # Handle exceptions
                 if isinstance(web_evidence_snippets, Exception):
-                    logger.error(f"Web search failed: {web_evidence_snippets}")
+                    import traceback
+                    logger.error(f"[SINGLE CLAIM DEBUG] Web search EXCEPTION: {type(web_evidence_snippets).__name__}: {web_evidence_snippets}")
                     web_evidence_snippets = []
                 if isinstance(api_evidence, Exception):
-                    logger.error(f"API retrieval failed: {api_evidence}")
+                    logger.error(f"[SINGLE CLAIM DEBUG] API retrieval EXCEPTION: {type(api_evidence).__name__}: {api_evidence}")
                     api_evidence = {"evidence": [], "api_stats": {}}
 
                 # Merge web search and API results
@@ -541,6 +596,15 @@ class EvidenceRetriever:
 
                 # Store API stats in claim for later tracking
                 claim["api_stats"] = api_evidence.get("api_stats", {})
+
+                # CRITICAL STDOUT DIAGNOSTIC: Ensure visibility even if logging fails
+                print(f"\n{'='*60}", flush=True)
+                print(f"[CLAIM {claim_position}] WEB SEARCH: {len(evidence_snippets) if isinstance(evidence_snippets, list) else 'ERROR'} snippets", flush=True)
+                print(f"[CLAIM {claim_position}] API EVIDENCE: {len(api_evidence_items)} items", flush=True)
+                print(f"[CLAIM {claim_position}] API STATS: {api_evidence.get('api_stats', {})}", flush=True)
+                if api_evidence_items:
+                    print(f"[CLAIM {claim_position}] First API item: {api_evidence_items[0].get('title', 'N/A')[:50]}", flush=True)
+                print(f"{'='*60}\n", flush=True)
 
                 # Log evidence counts (single consolidated log)
                 web_count = len(web_evidence_snippets) if isinstance(web_evidence_snippets, list) else 0
@@ -557,7 +621,9 @@ class EvidenceRetriever:
                     }
 
                 # Step 2: Merge and rank ALL evidence (web + API) using embeddings (bi-encoder)
-                all_evidence_snippets = evidence_snippets + self._convert_api_evidence_to_snippets(api_evidence_items)
+                api_snippets = self._convert_api_evidence_to_snippets(api_evidence_items)
+                logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(evidence_snippets)} web snippets + {len(api_snippets)} API snippets (from {len(api_evidence_items)} API items)")
+                all_evidence_snippets = evidence_snippets + api_snippets
 
                 # Fix 0c: Cap combined evidence before expensive ranking
                 # Reduced from 50 to 30: focus on quality, not quantity
@@ -607,8 +673,10 @@ class EvidenceRetriever:
                     )
 
                 # Step 3: Apply credibility and recency weighting (with raw evidence tracking)
+                logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(ranked_evidence)} items BEFORE credibility weighting")
                 result = self._apply_credibility_weighting(ranked_evidence, claim, track_raw_evidence=True)
                 final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
+                logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(final_evidence)} items AFTER credibility weighting")
 
                 # Step 4: Store in vector database for future retrieval
                 await self._store_evidence_embeddings(claim, final_evidence)
@@ -1823,6 +1891,11 @@ class EvidenceRetriever:
                 all_api_evidence.sort(key=lambda x: x.get('credibility_score', 0.5), reverse=True)
                 all_api_evidence = all_api_evidence[:MAX_API_EVIDENCE_PER_CLAIM]
 
+            # CRITICAL DIAGNOSTIC: Log final API evidence count
+            logger.critical(f"[API RETRIEVAL] Returning {len(all_api_evidence)} evidence items from {api_stats['total_api_calls']} API calls")
+            if all_api_evidence:
+                logger.info(f"[API RETRIEVAL] First item: {all_api_evidence[0].get('source', 'N/A')} - {all_api_evidence[0].get('title', 'N/A')[:50]}")
+
             return {
                 "evidence": all_api_evidence,
                 "api_stats": api_stats
@@ -1846,11 +1919,18 @@ class EvidenceRetriever:
             List of EvidenceSnippet objects
         """
         snippets = []
+        conversion_failures = 0
 
-        for evidence in api_evidence:
+        for i, evidence in enumerate(api_evidence):
             try:
+                text = evidence.get("snippet", "")
+                if not text:
+                    logger.warning(f"[API CONVERT] Item {i}: Empty snippet, source={evidence.get('source', 'N/A')}")
+                    conversion_failures += 1
+                    continue
+
                 snippet = EvidenceSnippet(
-                    text=evidence.get("snippet", ""),
+                    text=text,
                     source=evidence.get("source", "Unknown API"),
                     url=evidence.get("url", ""),
                     title=evidence.get("title", ""),
@@ -1865,8 +1945,12 @@ class EvidenceRetriever:
                 )
                 snippets.append(snippet)
             except Exception as e:
-                logger.warning(f"Failed to convert API evidence to snippet: {e}")
+                logger.warning(f"[API CONVERT] Item {i}: Failed to convert - {e}")
+                conversion_failures += 1
                 continue
+
+        if conversion_failures > 0:
+            logger.warning(f"[API CONVERT] {conversion_failures}/{len(api_evidence)} items failed conversion")
 
         return snippets
     

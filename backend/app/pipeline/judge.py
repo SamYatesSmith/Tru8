@@ -524,13 +524,20 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             claim, verification_signals, evidence, article_context, rhetorical_analysis
         )
 
-        # Get LLM judgment
+        # Get LLM judgment - try Google first, OpenAI as fallback
         try:
-            if self.openai_api_key:
+            judgment_data = None
+            if self.google_ai_api_key:
+                try:
+                    judgment_data = await self._judge_with_google(context)
+                except Exception as e:
+                    logger.warning(f"Google AI judgment failed, trying OpenAI fallback: {e}")
+
+            if judgment_data is None and self.openai_api_key:
+                logger.info("Attempting OpenAI judgment as fallback")
                 judgment_data = await self._judge_with_openai(context)
-            elif self.google_ai_api_key:
-                judgment_data = await self._judge_with_google(context)
-            else:
+
+            if judgment_data is None:
                 # Fallback to rule-based judgment
                 judgment_data = self._fallback_judgment(verification_signals)
             
@@ -1005,14 +1012,12 @@ Based on this analysis, provide your final judgment."""
             raise
     
     async def _judge_with_google(self, context: str) -> Dict[str, Any]:
-        """Make judgment using Google AI (Gemini) API as backup provider"""
+        """Make judgment using Google AI (Gemini) API as primary provider"""
         try:
+            google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                # Use Gemini 1.5 Flash for fast, cost-effective judgment
-                # Gemini 1.5 Flash: Fast responses, good for structured output
-                # Gemini 1.5 Pro: More capable but slower/costlier (use for complex cases)
                 response = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.google_ai_api_key}",
+                    f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={self.google_ai_api_key}",
                     headers={
                         "Content-Type": "application/json"
                     },

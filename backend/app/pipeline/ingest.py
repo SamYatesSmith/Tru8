@@ -294,6 +294,25 @@ class UrlIngester(BaseIngester):
                     "metadata": {"url": url, "status_code": status_code}
                 }
 
+        except requests.exceptions.ConnectionError as e:
+            # Connection errors (site dropped connection, DNS failure, etc.)
+            error_str = str(e)
+            if 'RemoteDisconnected' in error_str or 'Connection aborted' in error_str:
+                logger.warning(f"Site {urlparse(url).netloc} dropped connection: {e}")
+                return {
+                    "success": False,
+                    "error": f"Site refused connection - {urlparse(url).netloc} may be blocking automated access. Try pasting the article text directly.",
+                    "content": "",
+                    "metadata": {"blocked": True, "url": url}
+                }
+            else:
+                logger.error(f"Connection error for URL {url}: {e}")
+                return {
+                    "success": False,
+                    "error": "Connection failed - unable to reach the website. Please check the URL and try again.",
+                    "content": ""
+                }
+
         except Exception as e:
             logger.error(f"Error processing URL {url}: {e}")
             return {"success": False, "error": str(e), "content": ""}

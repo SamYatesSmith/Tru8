@@ -38,8 +38,10 @@ def parse_date(date_value: Any) -> Optional[datetime]:
     if date_value is None:
         return None
 
-    # Already a datetime
+    # Already a datetime - strip timezone if present (DB uses naive datetimes)
     if isinstance(date_value, datetime):
+        if date_value.tzinfo is not None:
+            return date_value.replace(tzinfo=None)
         return date_value
 
     # String date
@@ -47,7 +49,11 @@ def parse_date(date_value: Any) -> Optional[datetime]:
         # Try ISO format (most common from APIs)
         try:
             # Handle both "2025-01-28" and "2025-01-28T10:30:00Z"
-            return datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+            parsed = datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+            # Strip timezone - DB uses TIMESTAMP WITHOUT TIME ZONE
+            if parsed.tzinfo is not None:
+                parsed = parsed.replace(tzinfo=None)
+            return parsed
         except:
             pass
 

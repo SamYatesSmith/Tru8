@@ -41,6 +41,7 @@ class ArticleClassification:
     temporal_context: str = ""              # "December 2024, mid-season Premier League"
     key_entities: List[str] = None          # ["Arsenal", "Chelsea", "Premier League"]
     evidence_guidance: str = ""             # "League standings change weekly after each matchweek"
+    classification_failed: bool = False     # True when all LLM methods failed, using fallback
 
     def __post_init__(self):
         """Initialize mutable defaults"""
@@ -63,7 +64,8 @@ class ArticleClassification:
             source=data.get("source", "unknown"),
             temporal_context=data.get("temporal_context", ""),
             key_entities=data.get("key_entities", []),
-            evidence_guidance=data.get("evidence_guidance", "")
+            evidence_guidance=data.get("evidence_guidance", ""),
+            classification_failed=data.get("classification_failed", False)
         )
 
 
@@ -143,6 +145,13 @@ URL_PATTERN_CACHE = [
     (r".*bbc\.co\.uk/news/science.*environment.*", "Climate", "UK"),
     (r".*noaa\.gov.*", "Climate", "US"),
     (r".*ipcc\.ch.*", "Climate", "Global"),
+    # UK Climate Research Institutions
+    (r".*ncas\.ac\.uk.*", "Climate", "UK"),  # National Centre for Atmospheric Science
+    (r".*metoffice\.gov\.uk.*", "Climate", "UK"),  # Met Office (duplicate for safety)
+    (r".*carbonbrief\.org.*", "Climate", "UK"),  # Carbon Brief
+    (r".*climate\.gov.*", "Climate", "US"),  # NOAA Climate
+    (r".*nasa\.gov.*climate.*", "Climate", "US"),  # NASA Climate
+    (r".*copernicus\.eu.*climate.*", "Climate", "Global"),  # Copernicus Climate
 
     # ==================== ANIMALS ====================
     # Biodiversity & Conservation
@@ -506,10 +515,10 @@ async def _classify_with_fallback_llm(
     content: str
 ) -> Optional[ArticleClassification]:
     """
-    Fallback LLM classification using Google AI (Gemini).
+    Primary LLM classification using Google AI (Gemini).
 
-    Uses Gemini 1.5 Flash for fast, cost-effective classification when
-    primary OpenAI provider fails.
+    Uses Gemini 2.5 Flash-Lite for fast, cost-effective classification.
+    Falls back to OpenAI if Google API is unavailable.
     """
     google_ai_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
     if not google_ai_key:
@@ -536,9 +545,10 @@ async def _classify_with_fallback_llm(
 
         full_prompt = f"You are a Tru8 fact-checking specialist. Always respond with valid JSON only, no markdown.\n\n{prompt}"
 
+        google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={google_ai_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={google_ai_key}",
                 headers={"Content-Type": "application/json"},
                 json={
                     "contents": [{"parts": [{"text": full_prompt}]}],
@@ -637,29 +647,30 @@ async def classify_article(
         logger.info(f"Article classified via URL cache: {cached_url.primary_domain} ({url[:50]}...)")
         return cached_url
 
-    # 3. Primary LLM classification (gpt-4o-mini)
+    # 3. Primary LLM classification (Google Gemini)
     try:
-        classification = await _classify_with_llm(title, url, content, provider="openai")
-        classification.source = "llm_primary"
-        await cache_classification(url, classification)  # Cache for 24h
-        logger.info(
-            f"Article classified via LLM: {classification.primary_domain} "
-            f"(confidence: {classification.confidence:.2f}, {url[:50]}...)"
-        )
-        return classification
+        classification = await _classify_with_fallback_llm(title, url, content)
+        if classification:
+            classification.source = "llm_primary"
+            await cache_classification(url, classification)  # Cache for 24h
+            logger.info(
+                f"Article classified via Google Gemini: {classification.primary_domain} "
+                f"(confidence: {classification.confidence:.2f}, {url[:50]}...)"
+            )
+            return classification
     except Exception as e:
-        logger.warning(f"Primary LLM classification failed: {e}")
+        logger.warning(f"Primary LLM (Google) classification failed: {e}")
 
-    # 4. Fallback LLM (placeholder - returns None until configured)
+    # 4. Fallback LLM (OpenAI gpt-4o-mini)
     try:
-        fallback_result = await _classify_with_fallback_llm(title, url, content)
+        fallback_result = await _classify_with_llm(title, url, content, provider="openai")
         if fallback_result:
             fallback_result.source = "llm_fallback"
             await cache_classification(url, fallback_result)
-            logger.info(f"Article classified via fallback LLM: {fallback_result.primary_domain}")
+            logger.info(f"Article classified via OpenAI fallback: {fallback_result.primary_domain}")
             return fallback_result
     except Exception as e:
-        logger.warning(f"Fallback LLM classification failed: {e}")
+        logger.warning(f"Fallback LLM (OpenAI) classification failed: {e}")
 
     # 5. Ultimate fallback - General domain
     logger.warning(
@@ -677,7 +688,8 @@ async def classify_article(
         source="fallback_general",
         temporal_context="",
         key_entities=[],
-        evidence_guidance=""
+        evidence_guidance="",
+        classification_failed=True  # Explicit flag for downstream handling
     )
 
 

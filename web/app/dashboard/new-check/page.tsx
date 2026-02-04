@@ -25,6 +25,8 @@ export default function NewCheckPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Streaming progress now handled by check detail page after redirect
+
   // Pre-fill URL from query parameter (for re-check functionality)
   useEffect(() => {
     const urlParam = searchParams.get('url');
@@ -106,15 +108,47 @@ export default function NewCheckPage() {
     try {
       const token = await getToken();
 
-      const result = await apiClient.createCheck({
+      // Use streaming endpoint with immediate redirect
+      // We MUST await this to ensure the SSE stream is processed
+      const result = await apiClient.createCheckStreaming({
         input_type: activeTab,
         url: activeTab === 'url' ? urlInput.trim() : undefined,
         content: activeTab === 'text' ? textInput.trim() : undefined,
-        user_query: queryInput.trim() || undefined,  // Search Clarity
-      }, token) as any;
+        user_query: queryInput.trim() || undefined,
+      }, token, {
+        onConnected: (checkId) => {
+          console.log('[NEW-CHECK] onConnected - redirecting to:', checkId);
+          // Redirect immediately - check detail page handles processing/completed/failed states
+          window.location.href = `/dashboard/check/${checkId}`;
+        },
+        onProgress: (event) => {
+          console.log('[NEW-CHECK] onProgress:', event.stage, event.progress);
+          // Progress handled by check detail page after redirect
+        },
+        onComplete: (checkId) => {
+          console.log('[NEW-CHECK] onComplete:', checkId);
+          // Fallback redirect if onConnected didn't fire
+          if (checkId) {
+            window.location.href = `/dashboard/check/${checkId}`;
+          }
+        },
+        onError: (errorMsg, checkId) => {
+          console.error('[NEW-CHECK] onError:', errorMsg, checkId);
+          if (checkId) {
+            // Redirect to check page which will show the error
+            window.location.href = `/dashboard/check/${checkId}`;
+          } else {
+            setError(errorMsg || 'Failed to create check. Please try again.');
+            setIsSubmitting(false);
+          }
+        },
+      });
 
-      // Redirect to check detail page
-      router.push(`/dashboard/check/${result.check.id}`);
+      // Fallback: if stream completed but no redirect happened, use returned checkId
+      console.log('[NEW-CHECK] Stream ended, result:', result);
+      if (result?.checkId) {
+        window.location.href = `/dashboard/check/${result.checkId}`;
+      }
     } catch (err: any) {
       // Check for 403 (beta access required)
       if (err.message?.includes('403') || err.message?.includes('closed beta') || err.message?.includes('BETA_ACCESS_REQUIRED')) {
@@ -290,7 +324,7 @@ Leave this text field blank to proceed for a standard check on your article."
             </div>
           </div>
 
-          {/* Error Message */}
+          {/* Error Message - shown only if redirect fails */}
           {error && (
             <div className="bg-red-900/20 border border-red-600 rounded-lg px-4 py-3 text-red-400 text-sm">
               {error}

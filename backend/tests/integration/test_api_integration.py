@@ -21,7 +21,7 @@ from app.services.api_adapters import (
     ONSAdapter, PubMedAdapter, FREDAdapter, WHOAdapter,
     CrossRefAdapter, GovUKAdapter, initialize_adapters
 )
-from app.utils.article_classifier import ArticleClassifier
+from app.utils.article_classifier import ArticleClassification
 
 
 class TestAPIAdapterRegistration:
@@ -224,9 +224,7 @@ class TestPipelineAPIStats:
 
     def test_aggregate_api_stats_single_claim(self):
         """Test aggregating API stats from a single claim."""
-        from app.workers.pipeline import PipelineTask
-
-        task = PipelineTask()
+        from app.workers.pipeline import aggregate_api_stats
 
         claims = [
             {
@@ -250,7 +248,7 @@ class TestPipelineAPIStats:
             ]
         }
 
-        stats = task._aggregate_api_stats(claims, evidence)
+        stats = aggregate_api_stats(claims, evidence)
 
         assert stats["total_api_calls"] == 1
         assert stats["total_api_results"] == 3
@@ -260,9 +258,7 @@ class TestPipelineAPIStats:
 
     def test_aggregate_api_stats_multiple_claims(self):
         """Test aggregating API stats from multiple claims."""
-        from app.workers.pipeline import PipelineTask
-
-        task = PipelineTask()
+        from app.workers.pipeline import aggregate_api_stats
 
         claims = [
             {
@@ -302,7 +298,7 @@ class TestPipelineAPIStats:
             ]
         }
 
-        stats = task._aggregate_api_stats(claims, evidence)
+        stats = aggregate_api_stats(claims, evidence)
 
         assert stats["total_api_calls"] == 3  # 1 + 2
         assert stats["total_api_results"] == 10  # 2 + 8
@@ -318,9 +314,7 @@ class TestPipelineAPIStats:
 
     def test_aggregate_api_stats_no_api_evidence(self):
         """Test aggregating stats when no API evidence was retrieved."""
-        from app.workers.pipeline import PipelineTask
-
-        task = PipelineTask()
+        from app.workers.pipeline import aggregate_api_stats
 
         claims = [
             {
@@ -337,7 +331,7 @@ class TestPipelineAPIStats:
             ]
         }
 
-        stats = task._aggregate_api_stats(claims, evidence)
+        stats = aggregate_api_stats(claims, evidence)
 
         assert stats["total_api_calls"] == 0
         assert stats["total_api_results"] == 0
