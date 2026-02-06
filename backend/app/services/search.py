@@ -586,6 +586,7 @@ class SearchService:
             "-site:snopes.com",
             "-site:factcheck.org",
             "-site:politifact.com",
+            "-site:wikipedia.org",  # Reference encyclopedia, not evidence - wastes search slots
         ]
 
         # Only add exclusions that aren't already present

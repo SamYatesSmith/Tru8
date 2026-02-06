@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -194,6 +194,9 @@ class CreateCheckRequest(BaseModel):
     url: Optional[str] = None
     file_path: Optional[str] = None  # For uploaded files
     user_query: Optional[str] = None  # Search Clarity feature
+    frozen_urls: Optional[Dict[str, List[Dict[str, str]]]] = None  # Frozen URL replay: {"0": [{"url": "...", "title": "...", "snippet": "..."}, ...]}
+    frozen_claim_texts: Optional[Dict[str, str]] = None  # Expected claim texts for mismatch guard: {"0": "The speed of light..."}
+    frozen_evidence: Optional[Dict[str, List[Dict[str, Any]]]] = None  # Frozen evidence replay (v2): full pre-weighting evidence dicts
 
 @router.post("/upload")
 @limiter.limit("10/minute")  # Rate limit uploads
@@ -697,7 +700,10 @@ async def create_check_streaming(
         "content": body.content,
         "url": body.url,
         "file_path": body.file_path,
-        "user_query": body.user_query
+        "user_query": body.user_query,
+        "frozen_urls": body.frozen_urls,
+        "frozen_claim_texts": body.frozen_claim_texts,
+        "frozen_evidence": body.frozen_evidence,
     }
 
     # Create progress reporter

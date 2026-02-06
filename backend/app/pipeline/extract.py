@@ -80,7 +80,19 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
 
 7. PRESENT IN SOURCE - Extract only explicitly stated or directly implied claims
 8. Maximum {max_claims} claims for Quick mode
-9. EXTRACT COMPREHENSIVELY - Extract ALL distinct verifiable facts, not just the main headline.
+9. AVOID OVERLAPPING CLAIMS - Do NOT extract multiple variations of the same allegation:
+   ✗ BAD: Three claims about EU censorship from different angles
+     - "EU Commission conducted censorship campaign"
+     - "EU pressured platforms to censor content"
+     - "EU targeted US political content"
+   ✓ GOOD: ONE comprehensive claim covering the allegation:
+     - "The EU Commission has pressured social media platforms to censor content, including targeting US political speech"
+
+   If an article makes the SAME core allegation multiple ways, merge them into ONE claim.
+   Different aspects of the SAME event/allegation = ONE claim.
+   TRULY DIFFERENT allegations (different events, different subjects) = separate claims.
+
+10. EXTRACT COMPREHENSIVELY - Extract ALL distinct verifiable facts, not just the main headline.
    Each of these deserves a separate claim:
    - Dates/timelines ("completed in 2019", "happened last week")
    - Costs/figures (monetary amounts, statistics, quantities)
@@ -516,6 +528,85 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             return {"success": False, "error": str(e)}
 
     def _validate_and_refine_claims(self, claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Filter out unverifiable claims, refine problematic ones, and dedupe similar claims"""
+        validated_claims = []
+        filtered_count = 0
+
+        # First pass: validate individual claims
+        pre_dedup_claims = self._validate_individual_claims(claims)
+
+        # Second pass: deduplicate semantically similar claims
+        validated_claims = self._deduplicate_similar_claims(pre_dedup_claims)
+
+        return validated_claims
+
+    def _deduplicate_similar_claims(self, claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Remove semantically similar claims using embedding similarity"""
+        if len(claims) <= 1:
+            return claims
+
+        try:
+            from app.services.embeddings import get_embeddings
+            import numpy as np
+
+            # Get embeddings for all claims
+            claim_texts = [c["text"] for c in claims]
+            embeddings = get_embeddings(claim_texts)
+
+            if embeddings is None or len(embeddings) == 0:
+                logger.warning("[EXTRACT] Embedding service unavailable, skipping deduplication")
+                return claims
+
+            # Find similar pairs (cosine similarity > 0.85)
+            SIMILARITY_THRESHOLD = 0.85
+            to_remove = set()
+
+            for i in range(len(embeddings)):
+                if i in to_remove:
+                    continue
+                for j in range(i + 1, len(embeddings)):
+                    if j in to_remove:
+                        continue
+
+                    # Cosine similarity
+                    sim = np.dot(embeddings[i], embeddings[j]) / (
+                        np.linalg.norm(embeddings[i]) * np.linalg.norm(embeddings[j])
+                    )
+
+                    if sim > SIMILARITY_THRESHOLD:
+                        # Keep the longer/more detailed claim, remove the shorter one
+                        if len(claims[i]["text"]) >= len(claims[j]["text"]):
+                            to_remove.add(j)
+                            logger.info(
+                                f"[EXTRACT] CLAIM DEDUP: Removed similar claim (sim={sim:.2f})"
+                            )
+                            logger.info(f"   Kept: {claims[i]['text'][:60]}...")
+                            logger.info(f"   Removed: {claims[j]['text'][:60]}...")
+                        else:
+                            to_remove.add(i)
+                            logger.info(
+                                f"[EXTRACT] CLAIM DEDUP: Removed similar claim (sim={sim:.2f})"
+                            )
+                            logger.info(f"   Kept: {claims[j]['text'][:60]}...")
+                            logger.info(f"   Removed: {claims[i]['text'][:60]}...")
+                            break  # i was removed, move to next i
+
+            # Build deduplicated list
+            deduped = [c for idx, c in enumerate(claims) if idx not in to_remove]
+
+            if len(to_remove) > 0:
+                logger.info(f"[EXTRACT] CLAIM DEDUP: {len(claims)} → {len(deduped)} claims ({len(to_remove)} duplicates removed)")
+
+            return deduped
+
+        except ImportError:
+            logger.warning("[EXTRACT] Embeddings module not available, skipping deduplication")
+            return claims
+        except Exception as e:
+            logger.warning(f"[EXTRACT] Claim deduplication failed: {e}, continuing without")
+            return claims
+
+    def _validate_individual_claims(self, claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Filter out unverifiable claims and refine problematic ones"""
         validated_claims = []
         filtered_count = 0

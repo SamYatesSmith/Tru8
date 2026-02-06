@@ -1,9 +1,12 @@
+import copy
 import logging
 import asyncio
+import re
 from typing import List, Dict, Any, Optional, Tuple, Union
-from datetime import datetime
+from datetime import datetime, timezone
 import numpy as np
-from app.services.search import SearchService
+import os
+from app.services.search import SearchService, SearchResult
 from app.services.evidence import EvidenceExtractor, EvidenceSnippet
 from app.services.embeddings import get_embedding_service, rank_evidence_by_similarity
 from app.services.vector_store import get_vector_store
@@ -150,6 +153,7 @@ class EvidenceRetriever:
             # Organize results by claim position
             evidence_by_claim = {}
             all_raw_evidence = []
+            pre_weighting_by_claim = {}
 
             for i, result in enumerate(results):
                 if isinstance(result, Exception):
@@ -158,6 +162,7 @@ class EvidenceRetriever:
                 elif isinstance(result, dict):
                     # New structure with raw evidence
                     evidence_by_claim[str(i)] = result.get("filtered_evidence", [])
+                    pre_weighting_by_claim[str(i)] = result.get("pre_weighting_evidence", [])
                     raw_evidence = result.get("raw_evidence", [])
                     claim_position = result.get("claim_position", i)
                     claim_text = result.get("claim_text", "")
@@ -190,7 +195,8 @@ class EvidenceRetriever:
             return {
                 "evidence_by_claim": evidence_by_claim,
                 "raw_evidence": all_raw_evidence,
-                "raw_sources_count": len(all_raw_evidence)
+                "raw_sources_count": len(all_raw_evidence),
+                "pre_weighting_evidence": pre_weighting_by_claim,
             }
 
         except Exception as e:
@@ -509,6 +515,154 @@ class EvidenceRetriever:
 
                 logger.debug(f"Processing claim {claim_position}")
 
+                # FROZEN EVIDENCE REPLAY: Skip ALL network, construct evidence directly
+                frozen_evidence_items = claim.get("frozen_evidence")
+                if frozen_evidence_items is not None:
+                    logger.info(f"[FROZEN EVIDENCE REPLAY] Claim {claim_position}: "
+                                f"replaying {len(frozen_evidence_items)} frozen evidence items (zero network)")
+
+                    if not frozen_evidence_items:
+                        return {
+                            "filtered_evidence": [],
+                            "raw_evidence": [],
+                            "pre_weighting_evidence": [],
+                            "claim_position": claim_position,
+                            "claim_text": claim_text[:500] if claim_text else "",
+                            "search_mode": "frozen_evidence_replay"
+                        }
+
+                    # Reconstruct ranked_evidence from frozen data (same shape as lines 763-777)
+                    ranked_evidence = []
+                    for idx, item in enumerate(frozen_evidence_items):
+                        text = item.get("text", "")
+                        ranked_evidence.append({
+                            "id": f"evidence_{idx}",
+                            "text": text,
+                            "source": item.get("source", ""),
+                            "url": item.get("url", ""),
+                            "title": item.get("title", ""),
+                            "published_date": item.get("published_date"),
+                            "relevance_score": float(item.get("relevance_score", 0.0)),
+                            "semantic_similarity": 0.0,
+                            "combined_score": 0.0,
+                            "word_count": len(text.split()) if text else 0,
+                            "external_source_provider": item.get("external_source_provider"),
+                            "is_factcheck": item.get("is_factcheck", False),
+                            "source_type": item.get("source_type"),
+                            "metadata": item.get("metadata", {}),
+                        })
+
+                    # Run through credibility weighting — SAME path as normal pipeline
+                    result = self._apply_credibility_weighting(ranked_evidence, claim, track_raw_evidence=True)
+                    final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
+
+                    return {
+                        "filtered_evidence": final_evidence[:self.max_sources_per_claim],
+                        "raw_evidence": raw_evidence,
+                        "pre_weighting_evidence": ranked_evidence,
+                        "claim_position": claim_position,
+                        "claim_text": claim_text[:500] if claim_text else "",
+                        "search_mode": "frozen_evidence_replay"
+                    }
+
+                # FROZEN REPLAY: Skip web search, use pre-set URLs
+                frozen_url_data = claim.get("frozen_urls")  # List[Dict] with url/title/snippet
+                if frozen_url_data is not None:
+                    logger.info(f"[FROZEN REPLAY] Claim {claim_position}: replaying {len(frozen_url_data)} frozen URLs")
+
+                    # Create SearchResult objects with stored metadata
+                    synthetic_results = []
+                    for item in frozen_url_data:
+                        url = item.get("url", "") if isinstance(item, dict) else str(item)
+                        if not url or not url.startswith("http"):
+                            continue
+                        title = item.get("title", "") if isinstance(item, dict) else ""
+                        snippet = item.get("snippet", "") if isinstance(item, dict) else ""
+                        synthetic_results.append(SearchResult(title=title, url=url, snippet=snippet))
+
+                    # Extract content from frozen URLs (same path as normal pipeline)
+                    frozen_semaphore = asyncio.Semaphore(3)
+                    extraction_tasks = [
+                        self.evidence_extractor._extract_from_page(sr, claim_text, frozen_semaphore)
+                        for sr in synthetic_results
+                    ]
+                    extracted = await asyncio.gather(*extraction_tasks, return_exceptions=True)
+                    web_evidence_snippets = [r for r in extracted if isinstance(r, EvidenceSnippet)]
+
+                    # Government APIs: run by default (matches normal pipeline behavior)
+                    api_evidence = {"evidence": [], "api_stats": {}}
+                    skip_gov_apis = os.environ.get("FROZEN_REPLAY_SKIP_GOV_APIS", "0") == "1"
+                    if not skip_gov_apis:
+                        try:
+                            api_evidence = await asyncio.wait_for(
+                                self._retrieve_from_government_apis(claim_text, claim),
+                                timeout=15
+                            )
+                        except (asyncio.TimeoutError, Exception) as e:
+                            logger.warning(f"[FROZEN REPLAY] Gov API failed for claim {claim_position}: {e}")
+
+                    logger.info(f"[FROZEN REPLAY] Claim {claim_position}: {len(web_evidence_snippets)} extracted + {len(api_evidence.get('evidence', []))} API")
+
+                    # Merge web + API evidence through the same ranking/credibility path
+                    api_snippets = self._convert_api_evidence_to_snippets(api_evidence.get("evidence", []))
+                    all_evidence_snippets = list(web_evidence_snippets) + api_snippets
+                    claim["api_stats"] = api_evidence.get("api_stats", {})
+
+                    if not all_evidence_snippets:
+                        return {
+                            "filtered_evidence": [],
+                            "raw_evidence": [],
+                            "claim_position": claim_position,
+                            "claim_text": claim_text[:500] if claim_text else "",
+                            "search_mode": "frozen_replay"
+                        }
+
+                    # Apply same ranking/credibility path as normal pipeline
+                    MAX_EVIDENCE_FOR_RANKING = 30
+                    if len(all_evidence_snippets) > MAX_EVIDENCE_FOR_RANKING:
+                        all_evidence_snippets.sort(key=lambda x: x.relevance_score if hasattr(x, 'relevance_score') else 0.5, reverse=True)
+                        all_evidence_snippets = all_evidence_snippets[:MAX_EVIDENCE_FOR_RANKING]
+
+                    if getattr(settings, 'ENABLE_LLM_RELEVANCE_SCORER', True):
+                        ranked_evidence = []
+                        for idx, snippet_item in enumerate(all_evidence_snippets):
+                            external_source = snippet_item.metadata.get("external_source_provider") if snippet_item.metadata else None
+                            credibility = snippet_item.metadata.get("credibility_score", 0.6) if snippet_item.metadata else 0.6
+                            ranked_evidence.append({
+                                "id": f"evidence_{idx}",
+                                "text": snippet_item.text,
+                                "source": snippet_item.source,
+                                "url": snippet_item.url,
+                                "title": snippet_item.title,
+                                "published_date": snippet_item.published_date,
+                                "relevance_score": float(snippet_item.relevance_score),
+                                "semantic_similarity": 0.0,
+                                "combined_score": 0.0,
+                                "word_count": snippet_item.word_count,
+                                "credibility_score": credibility,
+                                "external_source_provider": external_source,
+                                "metadata": snippet_item.metadata
+                            })
+                    else:
+                        ranked_evidence = await self._rank_evidence_with_embeddings(claim_text, all_evidence_snippets)
+                        ranked_evidence = await self._rerank_with_cross_encoder(claim_text, ranked_evidence)
+
+                    pre_weighting_snapshot = copy.deepcopy(ranked_evidence)
+
+                    result = self._apply_credibility_weighting(ranked_evidence, claim, track_raw_evidence=True)
+                    final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
+
+                    await self._store_evidence_embeddings(claim, final_evidence)
+
+                    return {
+                        "filtered_evidence": final_evidence[:self.max_sources_per_claim],
+                        "raw_evidence": raw_evidence,
+                        "pre_weighting_evidence": pre_weighting_snapshot,
+                        "claim_position": claim_position,
+                        "claim_text": claim_text[:500] if claim_text else "",
+                        "search_mode": "frozen_replay"
+                    }
+
                 # Step 1: Parallel retrieval from web search AND government APIs
                 subject_context = claim.get("subject_context")
                 key_entities = claim.get("key_entities", [])
@@ -562,33 +716,52 @@ class EvidenceRetriever:
                 api_results_task = self._retrieve_from_government_apis(claim_text, claim)
 
                 # Await both tasks concurrently with per-claim timeout
-                # This prevents any single claim from hanging the entire pipeline
+                # IMPORTANT: Use asyncio.wait instead of wait_for+gather to preserve partial results
+                # If one task completes but the other times out, we keep the completed results
                 CLAIM_TIMEOUT = 45  # seconds per claim
                 logger.info(f"[SINGLE CLAIM DEBUG] Awaiting web search + API tasks for claim {claim_position} (timeout={CLAIM_TIMEOUT}s)")
-                try:
-                    web_evidence_snippets, api_evidence = await asyncio.wait_for(
-                        asyncio.gather(
-                            web_search_task,
-                            api_results_task,
-                            return_exceptions=True
-                        ),
-                        timeout=CLAIM_TIMEOUT
-                    )
-                except asyncio.TimeoutError:
-                    logger.error(f"[SINGLE CLAIM DEBUG] TIMEOUT for claim {claim_position} after {CLAIM_TIMEOUT}s - using empty results")
-                    print(f"[CLAIM {claim_position}] TIMEOUT after {CLAIM_TIMEOUT}s - continuing with empty evidence", flush=True)
-                    web_evidence_snippets = []
-                    api_evidence = {"evidence": [], "api_stats": {"timeout": True}}
-                logger.info(f"[SINGLE CLAIM DEBUG] Tasks complete for claim {claim_position}")
 
-                # Handle exceptions
-                if isinstance(web_evidence_snippets, Exception):
-                    import traceback
-                    logger.error(f"[SINGLE CLAIM DEBUG] Web search EXCEPTION: {type(web_evidence_snippets).__name__}: {web_evidence_snippets}")
-                    web_evidence_snippets = []
-                if isinstance(api_evidence, Exception):
-                    logger.error(f"[SINGLE CLAIM DEBUG] API retrieval EXCEPTION: {type(api_evidence).__name__}: {api_evidence}")
-                    api_evidence = {"evidence": [], "api_stats": {}}
+                # Wrap coroutines in named tasks so we can identify them after wait()
+                web_task = asyncio.create_task(web_search_task, name="web_search")
+                api_task = asyncio.create_task(api_results_task, name="api_retrieval")
+
+                # Wait for tasks with timeout - returns (done, pending) sets
+                done, pending = await asyncio.wait(
+                    {web_task, api_task},
+                    timeout=CLAIM_TIMEOUT,
+                    return_when=asyncio.ALL_COMPLETED
+                )
+
+                # Extract results from completed tasks, use defaults for timed-out ones
+                web_evidence_snippets = []
+                api_evidence = {"evidence": [], "api_stats": {}}
+                timed_out_tasks = []
+
+                for task in done:
+                    try:
+                        result = task.result()
+                        if task.get_name() == "web_search":
+                            web_evidence_snippets = result if not isinstance(result, Exception) else []
+                            if isinstance(result, Exception):
+                                logger.error(f"[CLAIM {claim_position}] Web search exception: {result}")
+                        elif task.get_name() == "api_retrieval":
+                            api_evidence = result if not isinstance(result, Exception) else {"evidence": [], "api_stats": {}}
+                            if isinstance(result, Exception):
+                                logger.error(f"[CLAIM {claim_position}] API retrieval exception: {result}")
+                    except Exception as e:
+                        logger.error(f"[CLAIM {claim_position}] Error extracting task result: {e}")
+
+                # Cancel any still-pending tasks and log what timed out
+                for task in pending:
+                    task.cancel()
+                    timed_out_tasks.append(task.get_name())
+
+                if timed_out_tasks:
+                    logger.warning(f"[CLAIM {claim_position}] Tasks timed out after {CLAIM_TIMEOUT}s: {timed_out_tasks}")
+                    print(f"[CLAIM {claim_position}] Partial timeout - {timed_out_tasks} timed out, keeping completed results", flush=True)
+                    api_evidence["api_stats"]["timeout"] = True
+                else:
+                    logger.info(f"[SINGLE CLAIM DEBUG] All tasks complete for claim {claim_position}")
 
                 # Merge web search and API results
                 evidence_snippets = web_evidence_snippets
@@ -674,6 +847,7 @@ class EvidenceRetriever:
 
                 # Step 3: Apply credibility and recency weighting (with raw evidence tracking)
                 logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(ranked_evidence)} items BEFORE credibility weighting")
+                pre_weighting_snapshot = copy.deepcopy(ranked_evidence)
                 result = self._apply_credibility_weighting(ranked_evidence, claim, track_raw_evidence=True)
                 final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
                 logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(final_evidence)} items AFTER credibility weighting")
@@ -685,6 +859,7 @@ class EvidenceRetriever:
                 return {
                     "filtered_evidence": final_evidence[:self.max_sources_per_claim],
                     "raw_evidence": raw_evidence,
+                    "pre_weighting_evidence": pre_weighting_snapshot,
                     "claim_position": claim_position,
                     "claim_text": claim_text[:500] if claim_text else ""
                 }
@@ -1630,20 +1805,35 @@ class EvidenceRetriever:
             return 0.8  # Default for unknown dates
 
         try:
-            # Parse date (handle different formats)
-            if '2024' in published_date or '2025' in published_date:
-                return 1.0  # Most recent
-            elif '2023' in published_date:
+            source_year = None
+
+            # Pass 1: ISO-like prefix (YYYY-MM-DD or YYYY/MM/DD)
+            iso_match = re.match(r'^(\d{4})[-/]', published_date)
+            if iso_match:
+                source_year = int(iso_match.group(1))
+
+            # Pass 2: fallback regex scan for 4-digit year (19xx/20xx)
+            if source_year is None:
+                year_match = re.search(r'(?:19|20)\d{2}', published_date)
+                if not year_match:
+                    return 0.8
+                source_year = int(year_match.group(0))
+
+            current_year = datetime.now(timezone.utc).year
+            age_years = max(0, current_year - source_year)  # Future dates → 0
+
+            if age_years <= 1:
+                return 1.0
+            elif age_years == 2:
                 return 0.95
-            elif '2022' in published_date:
-                return 0.9
-            elif '2021' in published_date:
+            elif age_years == 3:
+                return 0.90
+            elif age_years == 4:
                 return 0.85
             else:
-                return 0.8  # Older content
-
+                return 0.80
         except Exception:
-            return 0.8  # Default for parsing errors
+            return 0.8
 
     def _label_entities_for_api(self, key_entities: List[str]) -> List[Dict[str, str]]:
         """

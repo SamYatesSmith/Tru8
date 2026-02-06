@@ -22,6 +22,7 @@ from app.models import Check, Claim, Evidence, RawEvidence, User
 from app.pipeline.progress import ProgressReporter
 from app.services.push_notifications import push_notification_service
 from app.services.email_notifications import email_notification_service
+from app.services.cache import get_cache_service
 from app.utils.date_utils import parse_date
 
 import httpx  # For synchronous HTTP calls in threads
@@ -315,7 +316,20 @@ async def run_pipeline(
 
     start_time = datetime.utcnow()
     stage_timings = {}
-    cache_service = None  # Caching disabled (same as Celery task)
+
+    # Evidence Loss Ledger (PR 0 — observability only, no logic changes)
+    from app.pipeline.evidence_ledger import get_ledger
+    ledger = get_ledger(check_id)
+
+    # Initialize cache service for evidence caching
+    # This reduces non-determinism by reusing good quality evidence for identical claims
+    # Quality gates in retrieve_evidence_with_cache ensure only good results are cached
+    try:
+        cache_service = await get_cache_service()
+        logger.info(f"[INLINE PIPELINE] Cache service initialized successfully")
+    except Exception as e:
+        logger.warning(f"[INLINE PIPELINE] Cache service initialization failed, continuing without cache: {e}")
+        cache_service = None
 
     logger.info(f"[INLINE PIPELINE] Starting for check {check_id}")
 
@@ -384,14 +398,111 @@ async def run_pipeline(
         for claim in claims:
             claim["article_classification"] = article_classification.to_dict()
 
+    # FROZEN EVIDENCE REPLAY: Attach frozen evidence to claims (zero network)
+    import hashlib
+
+    def _claim_key(text: str) -> str:
+        """Stable claim identifier: sha1 of normalized text."""
+        normalized = " ".join(text.lower().split())
+        return hashlib.sha1(normalized.encode()).hexdigest()
+
+    frozen_evidence = input_data.get("frozen_evidence")  # Dict[claim_key_or_pos, List[Dict]]
+    frozen_evidence_claim_texts = input_data.get("frozen_claim_texts") or {}
+    _replay_temp_token = None
+
+    if frozen_evidence:
+        attached_count = 0
+        frozen_replay_mismatches = 0
+        for claim in claims:
+            pos = str(claim.get("position", 0))
+            claim_text = claim.get("text", "")
+            key = _claim_key(claim_text)
+
+            # Match by claim_key first, position fallback
+            evidence_items = frozen_evidence.get(key) or frozen_evidence.get(pos)
+            if evidence_items is None:
+                logger.warning(f"[FROZEN EVIDENCE REPLAY] No frozen evidence for claim {pos} (key={key[:12]})")
+                continue
+
+            # Mismatch guard: verify claim text matches
+            expected_text = frozen_evidence_claim_texts.get(key, frozen_evidence_claim_texts.get(pos, ""))
+            if expected_text:
+                norm_expected = " ".join(expected_text.lower().split())
+                norm_actual = " ".join(claim_text.lower().split())
+                if norm_expected != norm_actual:
+                    frozen_replay_mismatches += 1
+                    logger.warning(f"[FROZEN EVIDENCE REPLAY MISMATCH] Claim {pos}: "
+                                   f"expected='{expected_text[:80]}...' actual='{claim_text[:80]}...'")
+                    continue
+
+            claim["frozen_evidence"] = evidence_items
+            attached_count += 1
+
+        # Request-scoped temperature override (concurrency-safe)
+        from app.pipeline.replay_context import frozen_replay_temperature
+        _replay_temp_token = frozen_replay_temperature.set(0.0)
+
+        logger.info(f"[FROZEN EVIDENCE REPLAY] Attached to {attached_count}/{len(claims)} claims"
+                     f"{f', {frozen_replay_mismatches} mismatches' if frozen_replay_mismatches else ''}")
+
+        if ledger:
+            ledger.record("frozen_evidence_replay", attached=attached_count,
+                           mismatches=frozen_replay_mismatches)
+
+    # FROZEN REPLAY: Attach frozen URLs to claims for deterministic replay
+    frozen_urls = input_data.get("frozen_urls")
+    frozen_claim_texts = input_data.get("frozen_claim_texts") or {}
+    frozen_replay_mismatches = 0
+    _frozen_temp_overrides = {}
+    if frozen_urls:
+        attached_count = 0
+        for claim in claims:
+            pos = str(claim.get("position", 0))
+            if pos in frozen_urls:
+                # Mismatch guard: verify stored claim text matches extracted claim text
+                expected_text = frozen_claim_texts.get(pos, "")
+                actual_text = claim.get("text", "")
+                if expected_text:
+                    norm_expected = " ".join(expected_text.lower().split())
+                    norm_actual = " ".join(actual_text.lower().split())
+                    if norm_expected != norm_actual:
+                        frozen_replay_mismatches += 1
+                        logger.warning(
+                            f"[FROZEN REPLAY MISMATCH] Claim {pos}: "
+                            f"expected='{expected_text[:80]}...' "
+                            f"actual='{actual_text[:80]}...' — skipping freeze for this claim"
+                        )
+                        continue  # Skip freeze, run normal search
+                claim["frozen_urls"] = frozen_urls[pos]
+                attached_count += 1
+        logger.info(f"[FROZEN REPLAY] Attached frozen URLs to {attached_count}/{len(claims)} claims"
+                     f"{f', {frozen_replay_mismatches} mismatches skipped' if frozen_replay_mismatches else ''}")
+
+        # Force deterministic settings for frozen replay
+        import os
+        for env_key in ("JUDGE_TEMPERATURE", "LLM_RELEVANCE_TEMPERATURE"):
+            _frozen_temp_overrides[env_key] = os.environ.get(env_key)
+            os.environ[env_key] = "0"
+        # Auto-skip gov APIs to eliminate non-frozen variance
+        _frozen_temp_overrides["FROZEN_REPLAY_SKIP_GOV_APIS"] = os.environ.get("FROZEN_REPLAY_SKIP_GOV_APIS")
+        os.environ["FROZEN_REPLAY_SKIP_GOV_APIS"] = "1"
+        logger.info("[FROZEN REPLAY] Forced temperature=0 + skip gov APIs for determinism")
+
+        if ledger:
+            ledger.record("frozen_replay", attached=attached_count,
+                          mismatches=frozen_replay_mismatches,
+                          total_positions=len(frozen_urls))
+
     stage_timings["extract"] = (datetime.utcnow() - stage_start).total_seconds()
     logger.info(f"[INLINE PIPELINE] Extracted {len(claims)} claims")
 
     # =========================================================================
-    # Stage 2.5: Fact-check Lookup (optional)
+    # Stage 2.5: Fact-check Lookup (optional, skipped for frozen replay)
     # =========================================================================
     factcheck_evidence = {}
-    if settings.ENABLE_FACTCHECK_API:
+    if frozen_urls or frozen_evidence:
+        logger.info("[FROZEN REPLAY] Skipping fact-check API for deterministic replay")
+    elif settings.ENABLE_FACTCHECK_API:
         await progress_reporter.report_progress("factcheck")
         stage_start = datetime.utcnow()
         try:
@@ -480,6 +591,11 @@ async def run_pipeline(
 
     stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
 
+    # Save pre-weighting evidence to ledger (for freeze capture)
+    pre_weighting_evidence = retrieval_result.get("pre_weighting_evidence", {}) if isinstance(retrieval_result, dict) else {}
+    if ledger and pre_weighting_evidence:
+        ledger.record("pre_weighting_evidence", evidence=pre_weighting_evidence)
+
     # DIAGNOSTIC: Log evidence counts per claim to debug filtering
     total_evidence = sum(len(ev) for ev in evidence.values())
     logger.critical(f"[INLINE PIPELINE] *** EVIDENCE SUMMARY: {total_evidence} total items for {len(evidence)} claims ***")
@@ -489,6 +605,39 @@ async def run_pipeline(
     if total_evidence == 0:
         logger.critical(f"[INLINE PIPELINE] CRITICAL: No evidence retrieved for any claim! Check search providers.")
         print(f"[INLINE PIPELINE STDOUT] CRITICAL: Zero evidence retrieved!", flush=True)
+
+    if ledger:
+        ledger.record("retrieve", total=total_evidence,
+                       per_claim={pos: len(ev) for pos, ev in evidence.items()})
+        # Aggregate per-claim filter stats from raw evidence tracking
+        if raw_evidence_data:
+            from collections import Counter
+            claim_filter_counts: dict = {}
+            for raw_item in raw_evidence_data:
+                pos = str(raw_item.get("claim_position", "?"))
+                if pos not in claim_filter_counts:
+                    claim_filter_counts[pos] = {"total_raw": 0, "included": 0, "excluded_by_stage": Counter()}
+                claim_filter_counts[pos]["total_raw"] += 1
+                if raw_item.get("is_included"):
+                    claim_filter_counts[pos]["included"] += 1
+                elif raw_item.get("filter_stage"):
+                    claim_filter_counts[pos]["excluded_by_stage"][raw_item["filter_stage"]] += 1
+            # Count unknown-domain items filtered at credibility stage
+            unknown_domain_filtered = 0
+            for raw_item in raw_evidence_data:
+                if not raw_item.get("is_included"):
+                    cred = raw_item.get("credibility_score")
+                    if isinstance(cred, (int, float)) and cred <= 0.40:
+                        unknown_domain_filtered += 1
+            for pos, stats in claim_filter_counts.items():
+                ledger.record_claim(pos, "credibility_weighting",
+                                    total_raw=stats["total_raw"],
+                                    included=stats["included"],
+                                    excluded_by_stage=dict(stats["excluded_by_stage"]))
+            ledger.record("credibility_filtering",
+                          unknown_domain_filtered=unknown_domain_filtered,
+                          total_raw=sum(s["total_raw"] for s in claim_filter_counts.values()),
+                          total_included=sum(s["included"] for s in claim_filter_counts.values()))
 
     # =========================================================================
     # Stage 3.5: Fact-check Parsing (optional)
@@ -505,27 +654,84 @@ async def run_pipeline(
         stage_timings["factcheck_parse"] = (datetime.utcnow() - stage_start).total_seconds()
 
     # =========================================================================
-    # Stage 3.7: Global Domain Capping (optional)
+    # Stage 3.6: Cross-Claim URL Deduplication
     # =========================================================================
-    if settings.ENABLE_GLOBAL_DOMAIN_CAPPING and evidence:
+    # IMPORTANT: Same article URL must only appear ONCE across all claims.
+    # This prevents the same source being used to "prove" multiple claims,
+    # which creates appearance of bias and reduces source diversity.
+    # This runs BEFORE global domain capping so the capper works with clean data.
+    if evidence:
         stage_start = datetime.utcnow()
         try:
-            from app.utils.domain_capping import DomainCapper
-            global_capper = DomainCapper()
-            evidence = global_capper.apply_global_caps(
-                evidence,
-                global_max_per_domain=settings.GLOBAL_MAX_PER_DOMAIN,
-                global_max_ratio=settings.GLOBAL_MAX_DOMAIN_RATIO
-            )
+            # Flatten all evidence with claim tracking
+            url_to_evidence = {}  # url -> (claim_pos, evidence_item, score)
+            dedup_losers = [] if ledger else None  # Track casualties for ledger
+
+            for claim_pos, ev_list in evidence.items():
+                for ev in ev_list:
+                    url = ev.get('url', '')
+                    if not url:
+                        continue
+
+                    score = ev.get('final_score', ev.get('combined_score', ev.get('credibility_score', 0)))
+
+                    if url not in url_to_evidence:
+                        # First occurrence - keep it
+                        url_to_evidence[url] = (claim_pos, ev, score)
+                    else:
+                        # Duplicate URL - keep the one with higher score
+                        existing_pos, existing_ev, existing_score = url_to_evidence[url]
+                        if score > existing_score:
+                            url_to_evidence[url] = (claim_pos, ev, score)
+                            logger.debug(f"[URL DEDUP] Replacing {url[:60]} from claim {existing_pos} with claim {claim_pos} (score {existing_score:.2f} → {score:.2f})")
+                            if dedup_losers is not None:
+                                dedup_losers.append({"url": url[:120], "loser": existing_pos, "winner": claim_pos})
+                        else:
+                            if dedup_losers is not None:
+                                dedup_losers.append({"url": url[:120], "loser": claim_pos, "winner": existing_pos})
+
+            # Rebuild evidence_by_claim with only unique URLs
+            deduped_evidence = {pos: [] for pos in evidence.keys()}
+            for url, (claim_pos, ev, score) in url_to_evidence.items():
+                deduped_evidence[claim_pos].append(ev)
+
+            # Count what was removed
+            before_count = sum(len(ev_list) for ev_list in evidence.values())
+            after_count = sum(len(ev_list) for ev_list in deduped_evidence.values())
+            removed_count = before_count - after_count
+
+            if removed_count > 0:
+                logger.info(f"[URL DEDUP] Removed {removed_count} duplicate URLs across claims: {before_count} → {after_count}")
+                print(f"[PIPELINE] Cross-claim URL dedup: removed {removed_count} duplicates", flush=True)
+            else:
+                logger.info(f"[URL DEDUP] No cross-claim duplicates found ({after_count} unique URLs)")
+
+            evidence = deduped_evidence
+
+            if ledger:
+                casualties_per_claim = {}
+                if dedup_losers:
+                    for entry in dedup_losers:
+                        lc = entry["loser"]
+                        if lc not in casualties_per_claim:
+                            casualties_per_claim[lc] = []
+                        casualties_per_claim[lc].append({"url": entry["url"], "won_by": entry["winner"]})
+                ledger.record("url_dedup", in_count=before_count, out_count=after_count,
+                              removed=removed_count, casualties_per_claim=casualties_per_claim)
+
         except Exception as e:
-            logger.warning(f"Global domain capping failed (non-critical): {e}")
-        stage_timings["global_domain_cap"] = (datetime.utcnow() - stage_start).total_seconds()
+            logger.warning(f"Cross-claim URL deduplication failed (non-critical): {e}")
+        stage_timings["url_dedup"] = (datetime.utcnow() - stage_start).total_seconds()
 
     # =========================================================================
-    # Stage 3.8: LLM Relevance Scoring (optional)
+    # Stage 3.7: LLM Relevance Scoring with Reassignment
     # =========================================================================
+    # IMPORTANT: This stage now REASSIGNS evidence to correct claims based on
+    # what the LLM determines each evidence actually helps verify.
+    # This runs BEFORE domain capping so capping operates on correctly-assigned evidence.
     if settings.ENABLE_LLM_RELEVANCE_SCORER and evidence:
         stage_start = datetime.utcnow()
+        count_before_scoring = sum(len(ev_list) for ev_list in evidence.values())
         try:
             from app.pipeline.relevance_scorer import score_evidence_batch
             article_excerpt = content.get("content", "")[:5000]
@@ -536,9 +742,77 @@ async def run_pipeline(
                 evidence=evidence,
                 article_context=article_excerpt
             )
+
+            count_after_scoring = sum(len(ev_list) for ev_list in evidence.values())
+            # Note: Count may increase due to reassignment (evidence can go to multiple claims)
+            # Domain capping in the next stage will handle this
+            logger.info(f"[LLM SCORER] Evidence after scoring/reassignment: {count_before_scoring} → {count_after_scoring}")
+
+            if ledger:
+                ledger.record("llm_scoring", in_count=count_before_scoring, out_count=count_after_scoring)
+
         except Exception as e:
             logger.warning(f"LLM relevance scoring failed (non-critical): {e}")
         stage_timings["llm_relevance"] = (datetime.utcnow() - stage_start).total_seconds()
+
+    # =========================================================================
+    # Stage 3.8: Global Domain Capping
+    # =========================================================================
+    # IMPORTANT: This limits any single domain to appear at most GLOBAL_MAX_PER_DOMAIN
+    # times (default 3) or GLOBAL_MAX_DOMAIN_RATIO of total evidence (default 15%).
+    # This prevents bias where one source dominates the fact-check.
+    # Runs AFTER LLM scoring so it operates on correctly-assigned evidence.
+    if settings.ENABLE_GLOBAL_DOMAIN_CAPPING and evidence:
+        stage_start = datetime.utcnow()
+        try:
+            from app.utils.domain_capping import DomainCapper
+            from app.utils.url_utils import extract_domain
+
+            # Log domain distribution BEFORE capping
+            domain_counts_before = {}
+            for ev_list in evidence.values():
+                for ev in ev_list:
+                    domain = extract_domain(ev.get('url', ''), fallback='unknown')
+                    domain_counts_before[domain] = domain_counts_before.get(domain, 0) + 1
+
+            total_before = sum(domain_counts_before.values())
+            logger.info(f"[GLOBAL CAP] BEFORE: {total_before} evidence items, domains: {dict(sorted(domain_counts_before.items(), key=lambda x: -x[1])[:5])}")
+            print(f"[PIPELINE] Domain cap BEFORE: {total_before} items, top domains: {dict(sorted(domain_counts_before.items(), key=lambda x: -x[1])[:3])}", flush=True)
+
+            global_capper = DomainCapper()
+            evidence = global_capper.apply_global_caps(
+                evidence,
+                global_max_per_domain=settings.GLOBAL_MAX_PER_DOMAIN,
+                global_max_ratio=settings.GLOBAL_MAX_DOMAIN_RATIO
+            )
+
+            # Log domain distribution AFTER capping
+            domain_counts_after = {}
+            for ev_list in evidence.values():
+                for ev in ev_list:
+                    domain = extract_domain(ev.get('url', ''), fallback='unknown')
+                    domain_counts_after[domain] = domain_counts_after.get(domain, 0) + 1
+
+            total_after = sum(domain_counts_after.values())
+            removed = total_before - total_after
+            logger.info(f"[GLOBAL CAP] AFTER: {total_after} evidence items (removed {removed}), domains: {dict(sorted(domain_counts_after.items(), key=lambda x: -x[1])[:5])}")
+            print(f"[PIPELINE] Domain cap AFTER: {total_after} items (removed {removed})", flush=True)
+
+            if ledger:
+                # Record which domains were capped
+                caps_applied = {d: {"before": domain_counts_before.get(d, 0), "after": domain_counts_after.get(d, 0)}
+                                for d in domain_counts_before if domain_counts_before[d] != domain_counts_after.get(d, 0)}
+                ledger.record("global_domain_cap", in_count=total_before, out_count=total_after,
+                               removed=removed, caps_applied=caps_applied)
+
+        except Exception as e:
+            logger.warning(f"Global domain capping failed (non-critical): {e}")
+            import traceback
+            logger.debug(f"Global domain capping traceback: {traceback.format_exc()}")
+        stage_timings["global_domain_cap"] = (datetime.utcnow() - stage_start).total_seconds()
+    elif not settings.ENABLE_GLOBAL_DOMAIN_CAPPING:
+        logger.warning("[GLOBAL CAP] DISABLED via settings - domain diversity not enforced!")
+        print("[PIPELINE] WARNING: Global domain capping is DISABLED", flush=True)
 
     # =========================================================================
     # Stage 4: NLI Verification - BYPASSED (same as Celery)
@@ -557,6 +831,61 @@ async def run_pipeline(
     # =========================================================================
     await progress_reporter.report_progress("judge")
     stage_start = datetime.utcnow()
+
+    # FINAL EVIDENCE SUMMARY - Log what the Judge will use
+    # This confirms the diversity cascade (URL dedup → domain cap → relevance filter) worked
+    from app.utils.url_utils import extract_domain
+    final_evidence_count = sum(len(ev_list) for ev_list in evidence.values())
+    final_domains = {}
+    final_urls = set()
+    for ev_list in evidence.values():
+        for ev in ev_list:
+            domain = extract_domain(ev.get('url', ''), fallback='unknown')
+            final_domains[domain] = final_domains.get(domain, 0) + 1
+            final_urls.add(ev.get('url', ''))
+
+    logger.info(f"[JUDGE INPUT] Final evidence for judge: {final_evidence_count} items, {len(final_urls)} unique URLs, {len(final_domains)} domains")
+    logger.info(f"[JUDGE INPUT] Domain distribution: {dict(sorted(final_domains.items(), key=lambda x: -x[1]))}")
+    print(f"[PIPELINE] JUDGE INPUT: {final_evidence_count} evidence items from {len(final_domains)} domains", flush=True)
+
+    # Warn if any domain still appears too many times (indicates capping may have failed)
+    max_domain_count = max(final_domains.values()) if final_domains else 0
+    if max_domain_count > settings.GLOBAL_MAX_PER_DOMAIN:
+        logger.warning(f"[JUDGE INPUT] WARNING: Domain appears {max_domain_count} times, exceeds cap of {settings.GLOBAL_MAX_PER_DOMAIN}")
+
+    if ledger:
+        snippet_fallback_count = 0
+        snippet_reasons = {"403": 0, "429": 0, "timeout": 0, "js_required": 0, "other": 0}
+        title_only_count = 0
+        unknown_domain_count = 0
+        for ev_list in evidence.values():
+            for ev in ev_list:
+                meta = ev.get("metadata") or {}
+                if meta.get("is_snippet_fallback"):
+                    snippet_fallback_count += 1
+                    reason = (meta.get("fallback_reason") or "").lower()
+                    if "403" in reason or "forbidden" in reason:
+                        snippet_reasons["403"] += 1
+                    elif "429" in reason:
+                        snippet_reasons["429"] += 1
+                    elif "timeout" in reason:
+                        snippet_reasons["timeout"] += 1
+                    elif "js" in reason or "javascript" in reason:
+                        snippet_reasons["js_required"] += 1
+                    else:
+                        snippet_reasons["other"] += 1
+                if not ev.get("text") and ev.get("title"):
+                    title_only_count += 1
+                cred = ev.get("credibility_score", 1.0)
+                if isinstance(cred, (int, float)) and cred <= 0.40:
+                    unknown_domain_count += 1
+        ledger.record("judge_input", total=final_evidence_count,
+                       unique_urls=len(final_urls),
+                       domains=dict(sorted(final_domains.items(), key=lambda x: -x[1])),
+                       snippet_fallbacks=snippet_fallback_count,
+                       snippet_fallback_reasons=snippet_reasons,
+                       title_only_items=title_only_count,
+                       unknown_domain_items=unknown_domain_count)
 
     article_excerpt = content.get("content", "")[:5000]
     judge_timeout = min(15 * len(claims), 120)  # Same timeout as Celery
@@ -676,6 +1005,30 @@ async def run_pipeline(
             "pipeline_version": "inline_sse_v2"
         },
     }
+
+    # Evidence Loss Ledger: save artifact and attach to result
+    if ledger:
+        try:
+            ledger.save()
+            final_result["evidence_ledger"] = ledger.to_dict()
+        except Exception as e:
+            logger.warning(f"[LEDGER] Failed to save ledger: {e}")
+
+    # FROZEN REPLAY: Restore original temperature settings
+    if frozen_urls and _frozen_temp_overrides:
+        import os
+        for env_key, original_val in _frozen_temp_overrides.items():
+            if original_val is None:
+                os.environ.pop(env_key, None)
+            else:
+                os.environ[env_key] = original_val
+        logger.info("[FROZEN REPLAY] Restored original temperature settings")
+
+    # FROZEN EVIDENCE REPLAY: Reset context var temperature override
+    if frozen_evidence and _replay_temp_token is not None:
+        from app.pipeline.replay_context import frozen_replay_temperature
+        frozen_replay_temperature.reset(_replay_temp_token)
+        logger.info("[FROZEN EVIDENCE REPLAY] Reset temperature override")
 
     logger.info(f"[INLINE PIPELINE] Completed in {processing_time_ms}ms for check {check_id}")
     return final_result

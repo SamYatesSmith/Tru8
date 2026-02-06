@@ -31,8 +31,9 @@ class WikipediaAdapter(GovernmentAPIClient):
             api_name="Wikipedia",
             base_url="https://en.wikipedia.org/api/rest_v1",
             api_key=None,  # No API key required
-            timeout=15,
-            max_results=max_results
+            timeout=5,  # Reduced from 15s - prevents blocking claim timeout (45s)
+            max_results=max_results,
+            max_retries=2  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max
         )
         # Required: Identify our application per Wikipedia API etiquette
         self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
@@ -171,8 +172,9 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
             base_url="https://www.loc.gov",
             api_key=None,
             cache_ttl=86400 * 7,  # 7 days (historical content is stable)
-            timeout=15,
-            max_results=max_results
+            timeout=5,  # Reduced from 15s - was causing 48s total with retries, exceeding 45s claim timeout
+            max_results=max_results,
+            max_retries=2  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max vs previous 48s
         )
         self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
 
@@ -368,8 +370,9 @@ class InternetArchiveAdapter(GovernmentAPIClient):
             base_url="https://archive.org",
             api_key=None,
             cache_ttl=86400 * 7,  # 7 days
-            timeout=20,  # Archive can be slow
-            max_results=max_results
+            timeout=5,  # Reduced from 20s - was causing 63s total with retries, exceeding 45s claim timeout
+            max_results=max_results,
+            max_retries=2  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max
         )
         self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
 

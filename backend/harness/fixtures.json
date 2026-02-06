@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "science-speed-of-light",
+    "input_type": "text",
+    "tag": "core_determinism",
+    "content": "The speed of light in a vacuum is approximately 299,792,458 metres per second, making it the fastest speed at which energy or information can travel."
+  },
+  {
+    "slug": "history-moon-landing",
+    "input_type": "text",
+    "tag": "core_determinism",
+    "content": "NASA's Apollo 11 mission successfully landed the first humans on the Moon on 20 July 1969. Neil Armstrong and Buzz Aldrin spent approximately two and a half hours outside the spacecraft."
+  },
+  {
+    "slug": "science-nasa-temperature",
+    "input_type": "text",
+    "tag": "core_determinism",
+    "content": "NASA confirmed that 2023 was the hottest year on record, with global temperatures 1.2 degrees Celsius above pre-industrial levels."
+  },
+  {
+    "slug": "health-who-malaria",
+    "input_type": "text",
+    "tag": "core_determinism",
+    "content": "The World Health Organisation reported that malaria deaths decreased by 50 percent between 2000 and 2023, primarily due to increased distribution of insecticide-treated bed nets."
+  },
+  {
+    "slug": "climate-paris-agreement",
+    "input_type": "text",
+    "tag": "core_determinism",
+    "content": "The Paris Agreement was adopted by 196 parties at COP21 in December 2015. It aims to limit global warming to well below 2 degrees Celsius above pre-industrial levels."
+  },
+  {
+    "slug": "sports-olympics-paris-2024",
+    "input_type": "text",
+    "tag": "core_determinism",
+    "content": "The 2024 Summer Olympics were held in Paris, France, from 26 July to 11 August 2024. The United States topped the medal table with the most gold medals."
+  },
+  {
+    "slug": "science-earth-age",
+    "input_type": "text",
+    "tag": "core_determinism",
+    "content": "Scientists estimate the age of the Earth to be approximately 4.54 billion years, based on radiometric dating of meteorite material and consistent with dating of the oldest known terrestrial and lunar samples."
+  },
+  {
+    "slug": "politics-eu-sanctions",
+    "input_type": "text",
+    "tag": "time_sensitive",
+    "content": "The European Union imposed new sanctions on Russia in March 2024, targeting 200 individuals and 30 entities involved in the conflict in Ukraine."
+  },
+  {
+    "slug": "finance-sp500",
+    "input_type": "text",
+    "tag": "time_sensitive",
+    "content": "The S&P 500 index reached an all-time high of 6,000 points in November 2024, driven by strong tech sector earnings."
+  },
+  {
+    "slug": "finance-inflation-2023",
+    "input_type": "text",
+    "tag": "time_sensitive",
+    "content": "US inflation as measured by the Consumer Price Index fell from 6.5 percent in January 2023 to 3.4 percent by December 2023, though it remained above the Federal Reserve's 2 percent target."
+  },
+  {
+    "slug": "sports-transfer",
+    "input_type": "text",
+    "tag": "time_sensitive",
+    "content": "Liverpool FC signed a new forward from Borussia Dortmund for a reported fee of 75 million euros in the January 2025 transfer window."
+  },
+  {
+    "slug": "tech-openai-gpt4",
+    "input_type": "text",
+    "tag": "time_sensitive",
+    "content": "OpenAI released GPT-4 in March 2023, claiming it achieved human-level performance on various professional and academic benchmarks including passing the bar exam in the top 10 percent of test takers."
+  },
+  {
+    "slug": "health-vaccine-autism",
+    "input_type": "text",
+    "tag": "contentious",
+    "content": "Multiple large-scale studies involving millions of children have found no link between vaccines and autism. The original 1998 study by Andrew Wakefield was retracted and Wakefield was struck off the medical register for ethical violations."
+  },
+  {
+    "slug": "politics-immigration-crime",
+    "input_type": "text",
+    "tag": "contentious",
+    "content": "Studies from the Cato Institute and multiple academic researchers have found that immigrants in the United States commit crimes at lower rates than native-born citizens, though the data varies by region and type of immigration status."
+  },
+  {
+    "slug": "climate-extreme-weather",
+    "input_type": "text",
+    "tag": "contentious",
+    "content": "The IPCC Sixth Assessment Report states that human-caused climate change has increased the frequency and intensity of extreme weather events including heatwaves, heavy precipitation, and droughts in many regions worldwide."
+  }
+]

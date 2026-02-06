@@ -226,7 +226,9 @@ class JudgmentResult:
     def __init__(self, claim_text: str, verdict: str, confidence: float, rationale: str,
                  supporting_evidence: List[Dict[str, Any]], evidence_summary: Dict[str, Any],
                  current_verified_data: Optional[Dict[str, Any]] = None,
-                 rhetorical_analysis: Optional[Dict[str, Any]] = None):
+                 rhetorical_analysis: Optional[Dict[str, Any]] = None,
+                 uncertainty_reason: Optional[str] = None,
+                 uncertainty_details: Optional[str] = None):
         self.claim_text = claim_text
         self.verdict = verdict  # 'supported', 'contradicted', 'uncertain'
         self.confidence = confidence  # 0-100
@@ -235,6 +237,8 @@ class JudgmentResult:
         self.evidence_summary = evidence_summary
         self.current_verified_data = current_verified_data  # Temporal drift comparison data
         self.rhetorical_analysis = rhetorical_analysis  # Rhetorical context from source analysis
+        self.uncertainty_reason = uncertainty_reason  # Machine-readable reason when uncertain
+        self.uncertainty_details = uncertainty_details  # Human-readable details for uncertain verdict
         self.created_at = datetime.utcnow()
 
     def to_dict(self) -> Dict[str, Any]:
@@ -247,6 +251,11 @@ class JudgmentResult:
             "evidence_summary": self.evidence_summary,
             "timestamp": self.created_at.isoformat()
         }
+        # Include uncertainty reason when verdict is uncertain
+        if self.verdict == "uncertain" and self.uncertainty_reason:
+            result["uncertainty_reason"] = self.uncertainty_reason
+            if self.uncertainty_details:
+                result["uncertainty_details"] = self.uncertainty_details
         # Include temporal comparison data if present
         if self.current_verified_data:
             result["current_verified_data"] = self.current_verified_data
@@ -266,6 +275,9 @@ class ClaimJudge:
         self.judge_max_tokens = getattr(settings, 'JUDGE_MAX_TOKENS', 1000)
         self.temperature = getattr(settings, 'JUDGE_TEMPERATURE', 0.3)
         self.timeout = 30
+        # Import replay context for temperature override
+        from app.pipeline.replay_context import frozen_replay_temperature
+        self._frozen_replay_temperature = frozen_replay_temperature
         self.cache_service = None
         
         # Judge system prompt optimized for final verdicts
@@ -432,7 +444,7 @@ RESPONSE FORMAT: Respond with a valid JSON object containing:
 {
   "verdict": "supported|contradicted|uncertain",
   "confidence": 85,
-  "rationale": "Clear explanation of reasoning based on evidence analysis",
+  "rationale": "2-3 sentence explanation citing sources BY NAME (e.g., 'According to Reuters, the event occurred on...'). NEVER use index notation like [Evidence 1].",
   "key_evidence_points": ["point 1", "point 2", "point 3"],
   "certainty_factors": {
     "source_quality": "high|medium|low",
@@ -441,7 +453,19 @@ RESPONSE FORMAT: Respond with a valid JSON object containing:
   }
 }
 
+RATIONALE WRITING RULES:
+- GOOD: "Reuters and The Washington Post both confirm the legislation was signed on March 15th."
+- GOOD: "According to NASA's official statement, the launch occurred at 3:55 PM EST."
+- BAD: "[Evidence 1] supports this claim while [Evidence 2] provides context."
+- BAD: "Multiple sources suggest..." (too vague - name the actual sources)
+
 Be precise, objective, and transparent about uncertainty. Always return valid JSON."""
+
+    @property
+    def effective_temperature(self) -> float:
+        """Return temperature, respecting frozen replay override if set."""
+        override = self._frozen_replay_temperature.get()
+        return override if override is not None else self.temperature
 
     async def initialize(self):
         """Initialize judge service"""
@@ -492,14 +516,17 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
         if settings.ENABLE_ABSTENTION_LOGIC:
             abstention_check = self._should_abstain(evidence, verification_signals, claim_text)
             if abstention_check:
-                verdict, reason, consensus_strength = abstention_check
-                logger.info(f"Abstaining from verdict: {verdict} - {reason}")
+                raw_verdict, reason, consensus_strength = abstention_check
+                # Normalize to 3-way taxonomy
+                norm_verdict, uncertainty_reason = self._normalize_verdict(raw_verdict)
+                # Cap confidence for non-insufficient abstentions
+                abstention_confidence = 0.0 if uncertainty_reason == "insufficient_evidence" else min(45.0, 40.0)
+                logger.info(f"Abstaining: verdict={norm_verdict}, reason={uncertainty_reason} - {reason}")
 
-                # Return abstention result
                 return JudgmentResult(
                     claim_text=claim_text,
-                    verdict=verdict,
-                    confidence=0.0,  # No confidence when abstaining
+                    verdict=norm_verdict,
+                    confidence=abstention_confidence,
                     rationale=reason,
                     supporting_evidence=_select_display_evidence(evidence, max_items=max_display_items),
                     evidence_summary={
@@ -508,7 +535,9 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                         'min_requirements_met': False,
                         'consensus_strength': consensus_strength
                     },
-                    current_verified_data=temporal_comparison
+                    current_verified_data=temporal_comparison,
+                    uncertainty_reason=uncertainty_reason,
+                    uncertainty_details=reason,
                 )
 
         # Analyze rhetorical context (detect if sources describe sarcasm/mockery)
@@ -553,11 +582,13 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             # Get display evidence FIRST to check if any passed filtering
             display_evidence = _select_display_evidence(evidence, max_items=max_display_items)
 
-            # CRITICAL FIX: If no evidence passes display threshold, verdict CANNOT be "supported"
-            # This prevents the contradiction of "85% Supported" with "Unsupported Claim" notice
-            final_verdict = judgment_data.get("verdict", "uncertain")
+            # Normalize LLM verdict to strict 3-way taxonomy
+            raw_verdict = judgment_data.get("verdict", "uncertain")
+            llm_uncertainty_reason = judgment_data.get("uncertainty_reason")
+            final_verdict, uncertainty_reason = self._normalize_verdict(raw_verdict, llm_uncertainty_reason)
             final_confidence = min(max(judgment_data.get("confidence", 50), 0), 100)
             final_rationale = judgment_data.get("rationale", "Assessment based on available evidence")
+            uncertainty_details = None
 
             if not display_evidence and evidence:
                 # Check if evidence HAD relevance scores but none passed threshold
@@ -571,14 +602,17 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
 
                 if has_any_relevance_scores:
                     # Evidence had scores but none passed threshold - genuine quality issue
-                    # Cannot claim support/contradiction without displayable evidence
                     if final_verdict in ("supported", "contradicted"):
                         logger.warning(
                             f"[JUDGE] Verdict '{final_verdict}' changed to 'uncertain' - "
                             f"no evidence passed display threshold (had {len(evidence)} items, 0 displayed)"
                         )
                         final_verdict = "uncertain"
-                        final_confidence = min(final_confidence, 40)  # Cap at 40% when no evidence shown
+                        uncertainty_reason = "off_topic_evidence"
+                        uncertainty_details = (
+                            f"Evidence found ({len(evidence)} items) but none met quality threshold for display."
+                        )
+                        final_confidence = min(final_confidence, 40)
                         final_rationale = (
                             f"While some evidence was found, none met the quality threshold for display. "
                             f"Original assessment: {final_rationale}"
@@ -588,6 +622,33 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                     logger.info(f"[JUDGE] No relevance scores on evidence - using raw evidence for display")
                     display_evidence = evidence[:max_display_items]
 
+            # Staleness enforcement: cap confidence for time-sensitive claims with stale evidence
+            staleness = self._assess_staleness(claim, evidence)
+            if staleness["should_cap"]:
+                if final_confidence > self.STALE_EVIDENCE_CONFIDENCE_CAP:
+                    logger.info(
+                        f"[JUDGE] Staleness cap: confidence {final_confidence} -> {self.STALE_EVIDENCE_CONFIDENCE_CAP} "
+                        f"({staleness['stale_count']} stale + {staleness['undated_count']} undated "
+                        f"of {staleness['total']} evidence)"
+                    )
+                    final_confidence = self.STALE_EVIDENCE_CONFIDENCE_CAP
+                if final_verdict in ("supported", "contradicted"):
+                    logger.info(
+                        f"[JUDGE] Staleness override: verdict '{final_verdict}' -> 'uncertain' "
+                        f"(time-sensitive claim with predominantly stale evidence)"
+                    )
+                    final_verdict = "uncertain"
+                    uncertainty_reason = "outdated_evidence"
+                    uncertainty_details = (
+                        f"{staleness['stale_count']} stale + {staleness['undated_count']} undated "
+                        f"of {staleness['total']} evidence items assessed."
+                    )
+
+            # Enforce: non-uncertain verdicts must NOT carry uncertainty_reason
+            if final_verdict != "uncertain":
+                uncertainty_reason = None
+                uncertainty_details = None
+
             result = JudgmentResult(
                 claim_text=claim_text,
                 verdict=final_verdict,
@@ -596,9 +657,11 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 supporting_evidence=display_evidence,
                 evidence_summary=enriched_summary,
                 current_verified_data=temporal_comparison,
-                rhetorical_analysis=rhetorical_analysis
+                rhetorical_analysis=rhetorical_analysis,
+                uncertainty_reason=uncertainty_reason,
+                uncertainty_details=uncertainty_details,
             )
-            
+
             # Cache result
             if self.cache_service:
                 await self.cache_service.set(
@@ -612,15 +675,14 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             
         except Exception as e:
             logger.error(f"LLM judgment failed for claim: {e}")
-            # Return fallback judgment
+            # Return fallback judgment with processing_error reason
             fallback_data = self._fallback_judgment(verification_signals)
             fallback_display_evidence = _select_display_evidence(evidence, max_items=max_display_items)
 
-            # Apply same safeguard: no displayed evidence = uncertain verdict
-            # But only if evidence HAD relevance scores (genuine quality issue)
             fallback_verdict = fallback_data["verdict"]
             fallback_confidence = fallback_data["confidence"]
             fallback_rationale = fallback_data["rationale"]
+            fb_uncertainty_reason = "processing_error" if fallback_verdict == "uncertain" else None
 
             has_any_relevance_scores = any(
                 e.get('llm_relevance_score', 0) > 0 or
@@ -633,6 +695,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 if has_any_relevance_scores and fallback_verdict in ("supported", "contradicted"):
                     fallback_verdict = "uncertain"
                     fallback_confidence = min(fallback_confidence, 40)
+                    fb_uncertainty_reason = "processing_error"
                 elif not has_any_relevance_scores:
                     # No scores = test/dev mode, use raw evidence
                     fallback_display_evidence = evidence[:max_display_items]
@@ -645,7 +708,9 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 supporting_evidence=fallback_display_evidence,
                 evidence_summary=verification_signals,
                 current_verified_data=temporal_comparison,
-                rhetorical_analysis=rhetorical_analysis
+                rhetorical_analysis=rhetorical_analysis,
+                uncertainty_reason=fb_uncertainty_reason,
+                uncertainty_details=f"LLM judgment failed: {str(e)[:200]}",
             )
 
     def _get_few_shot_examples(self) -> str:
@@ -666,7 +731,7 @@ EVIDENCE:
 
 VERDICT: supported
 CONFIDENCE: 95
-RATIONALE: Multiple high-credibility sources (NASA official + Reuters) confirm exact date. No contradicting evidence. Clean consensus.
+RATIONALE: NASA's official confirmation and Reuters both report the landing occurred on February 18, 2021 at 3:55 PM EST. No conflicting sources found.
 
 ---
 
@@ -682,7 +747,7 @@ EVIDENCE:
 
 VERDICT: contradicted
 CONFIDENCE: 80
-RATIONALE: Claim states "exactly 500" requiring precision. High-quality official source reports 487. Second source estimates 480-490. Both contradict the exact figure. Clear mismatch.
+RATIONALE: The Conference Official Site reports 487 registered participants, and Industry Journal estimates 480-490. Both contradict the claimed figure of "exactly 500".
 
 ---
 
@@ -696,9 +761,9 @@ EVIDENCE:
 [2] "Sources suggest blockchain company raising capital"
     Source: crypto-news-aggregator.net, Credibility: 0.50, Published: 2024-11-02
 
-VERDICT: insufficient_evidence
+VERDICT: uncertain
 CONFIDENCE: 0
-RATIONALE: Only low-credibility sources (blog rumors, aggregator). No authoritative sources (company announcement, financial press, SEC filing). Cannot verify funding claim. Abstaining is appropriate.
+RATIONALE: Only unverified sources found (startup-rumors-blog.com and crypto-news-aggregator.net). No authoritative confirmation from the company, SEC filings, or reputable financial press.
 
 ---
 
@@ -714,7 +779,7 @@ EVIDENCE:
 
 VERDICT: supported
 CONFIDENCE: 85
-RATIONALE: Claim uses "roughly" indicating approximation. Evidence shows $320M (official gov source) and $350M (news source). Within reasonable tolerance for approximate language. High-credibility sources support the claim.
+RATIONALE: The Department of Transportation allocated $320 million and Reuters reports $350M in federal grants. Given the claim uses "roughly," both figures are within acceptable tolerance.
 
 ---
 
@@ -734,13 +799,115 @@ Contradicting Evidence: 2 pieces (NLI saw "2027" vs "2026" - WRONG CONCLUSION!)
 
 VERDICT: supported
 CONFIDENCE: 90
-RATIONALE: Contract expires 30/06/2027. The LAST YEAR of a contract begins 12 months before expiry. 30/06/2027 minus 12 months = 01/07/2026 (July 2026). The claim says "July 2026" which MATCHES. NLI models cannot do date arithmetic and incorrectly marked this as contradicted because they saw "2027" vs "2026" as different numbers. Doing the math: SUPPORTED.
+RATIONALE: Transfermarkt shows Adeyemi's contract expires 30/06/2027. The final year begins 12 months prior (July 2026), exactly matching the claim. The dates align correctly.
 
 ---
 
 NOW JUDGE THE FOLLOWING CLAIM:
 
 """
+
+    # Maximum confidence for time-sensitive claims when evidence is predominantly stale
+    STALE_EVIDENCE_CONFIDENCE_CAP = 45
+
+    # Strict 3-way verdict vocabulary
+    VALID_VERDICTS = {"supported", "contradicted", "uncertain"}
+
+    # Valid uncertainty reasons (machine-readable)
+    VALID_UNCERTAINTY_REASONS = {
+        "insufficient_evidence",
+        "conflicting_expert_opinion",
+        "outdated_evidence",
+        "low_quality_sources",
+        "off_topic_evidence",
+        "processing_error",
+    }
+
+    # Map non-3-way abstention verdicts to (verdict, uncertainty_reason)
+    _ABSTENTION_VERDICT_MAP = {
+        "insufficient_evidence": ("uncertain", "insufficient_evidence"),
+        "conflicting_expert_opinion": ("uncertain", "conflicting_expert_opinion"),
+        "outdated_claim": ("uncertain", "outdated_evidence"),
+        "outdated": ("uncertain", "outdated_evidence"),
+    }
+
+    @staticmethod
+    def _normalize_verdict(
+        verdict: str,
+        uncertainty_reason: Optional[str] = None,
+    ) -> tuple:
+        """Normalize any verdict to the 3-way taxonomy.
+
+        Returns:
+            (verdict, uncertainty_reason) where verdict is one of
+            "supported", "contradicted", "uncertain".
+        """
+        v = verdict.lower().strip()
+
+        if v in ("supported", "contradicted"):
+            return v, None
+
+        if v == "uncertain":
+            return v, uncertainty_reason
+
+        # Map known abstention verdicts
+        mapped = ClaimJudge._ABSTENTION_VERDICT_MAP.get(v)
+        if mapped:
+            return mapped
+
+        # Unknown verdict → treat as uncertain with processing_error
+        logger.warning(f"[JUDGE] Unknown verdict '{verdict}' normalized to 'uncertain'")
+        return "uncertain", "processing_error"
+
+    def _assess_staleness(self, claim: Dict[str, Any], evidence: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Check if time-sensitive claim has predominantly stale or undated evidence.
+
+        Returns dict with:
+            is_time_sensitive: bool
+            stale_count: int — evidence items flagged stale
+            undated_count: int — evidence items missing published_date
+            total: int — evidence items assessed (top 5)
+            should_cap: bool — True if confidence should be capped
+        """
+        temporal_window = claim.get("temporal_window", "")
+        claim_type = claim.get("claim_type", "")
+        is_timeless = temporal_window == "timeless" or claim_type == "timeless_fact"
+        is_time_sensitive = not is_timeless and temporal_window in (
+            "current_day", "current_week", "current_month", "current_year",
+        )
+
+        assessed = evidence[:5]
+        total = len(assessed)
+        if not is_time_sensitive or total == 0:
+            return {
+                "is_time_sensitive": is_time_sensitive,
+                "stale_count": 0,
+                "undated_count": 0,
+                "total": total,
+                "should_cap": False,
+            }
+
+        stale_count = 0
+        undated_count = 0
+        for ev in assessed:
+            meta = ev.get("metadata") or {}
+            staleness_check = meta.get("staleness_check")
+            if staleness_check and staleness_check.get("is_stale"):
+                stale_count += 1
+            elif not ev.get("published_date"):
+                undated_count += 1
+
+        # Cap when majority of evidence is stale or undated
+        problematic = stale_count + undated_count
+        should_cap = problematic > total / 2
+
+        return {
+            "is_time_sensitive": is_time_sensitive,
+            "stale_count": stale_count,
+            "undated_count": undated_count,
+            "total": total,
+            "should_cap": should_cap,
+        }
 
     def _prepare_judgment_context(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
                                  evidence: List[Dict[str, Any]], article_context: Optional[str] = None,
@@ -764,6 +931,7 @@ NOW JUDGE THE FOLLOWING CLAIM:
         evidence_summary = []
         stale_evidence_count = 0
         stale_evidence_warnings = []
+        snippet_only_count = 0
 
         for i, ev in enumerate(evidence[:5]):  # Top 5 pieces
             source = ev.get("source", "Unknown")
@@ -825,11 +993,44 @@ NOW JUDGE THE FOLLOWING CLAIM:
                             f"Evidence {i+1}: {source} is {age_days} days old (max {max_age} days)"
                         )
 
+            # Detect snippet-only evidence (full page extraction failed)
+            ev_meta = ev.get("metadata") or {}
+            is_snippet_only = bool(
+                ev.get("is_snippet_fallback") or ev_meta.get("is_snippet_fallback")
+            )
+            snippet_only_tag = ""
+            if is_snippet_only:
+                snippet_only_count += 1
+                raw_reason = (
+                    ev.get("snippet_fallback_reason")
+                    or ev_meta.get("snippet_fallback_reason")
+                    or ev_meta.get("fallback_reason")
+                    or "unknown"
+                )
+                # Classify reason into canonical categories
+                raw_lower = raw_reason.lower()
+                if "403" in raw_lower or "forbidden" in raw_lower:
+                    reason_label = "403"
+                elif "429" in raw_lower:
+                    reason_label = "429"
+                elif "timeout" in raw_lower:
+                    reason_label = "timeout"
+                elif "js" in raw_lower or "javascript" in raw_lower:
+                    reason_label = "js_required"
+                elif "paywall" in raw_lower:
+                    reason_label = "paywall"
+                else:
+                    reason_label = "unknown"
+                snippet_only_tag = f"[SNIPPET ONLY \u2014 full page unavailable: {reason_label}]\n"
+
             # Build evidence entry with authority indicator if present
             evidence_entry = f"Evidence {i+1}:"
             if staleness_warning:
                 evidence_entry += f" {staleness_warning}"
             evidence_entry += "\n"
+
+            if snippet_only_tag:
+                evidence_entry += snippet_only_tag
 
             if authority_indicator:
                 evidence_entry += authority_indicator
@@ -892,6 +1093,17 @@ reduce confidence significantly if relying on outdated sources.
 
 """
 
+        # Add snippet-only evidence warning
+        snippet_only_warning = ""
+        evidence_shown_count = len(evidence_summary)
+        if snippet_only_count > 0:
+            snippet_only_warning = f"""
+\U0001f7e1 SNIPPET-ONLY EVIDENCE WARNING
+{snippet_only_count} of {evidence_shown_count} evidence items are snippets (full page unavailable).
+Treat snippet-only evidence as weaker than full extracts.
+
+"""
+
         # Add rhetorical context warning if sources describe sarcasm/mockery/satire
         rhetorical_warning = ""
         if rhetorical_analysis and rhetorical_analysis.get("has_rhetorical_context"):
@@ -951,22 +1163,22 @@ Max Contradiction Score: {signals.get('max_contradiction', 0.0):.2f}
 Evidence Quality: {signals.get('evidence_quality', 'low')}
 """
 
-        # CRITICAL FIX: Count only the evidence actually shown to the judge
-        # Previously, we showed NLI counts for ALL evidence (e.g., "10 pieces")
-        # but only showed 5 evidence details, causing the LLM to hallucinate sources
-        evidence_shown_count = len(evidence_summary)
-
         base_context = f"""
 CLAIM TO JUDGE:
 {claim_text}
-{temporal_warning}{stale_warning}{rhetorical_warning}{article_context_section}
+{temporal_warning}{stale_warning}{snippet_only_warning}{rhetorical_warning}{article_context_section}
 EVIDENCE ANALYSIS:
 Evidence Pieces Provided: {evidence_shown_count}
 {verification_metrics}
 EVIDENCE DETAILS:
 {chr(10).join(evidence_summary)}
 
-CRITICAL: Your rationale MUST ONLY reference sources shown above. Do NOT mention sources like "The Guardian", "Al Jazeera", or "TIME" unless they appear in the EVIDENCE DETAILS above. Only reference [Evidence 1], [Evidence 2], etc. by their actual Source names shown.
+CRITICAL RATIONALE RULES:
+1. Reference sources BY NAME ONLY - say "According to Reuters..." or "The BBC reports..." NOT "[Evidence 1]" or "Evidence 2 shows..."
+2. NEVER use index notation like [Evidence 1], [Evidence 2], [Source 1] - users cannot see these indices
+3. Only mention sources that appear in EVIDENCE DETAILS above - do not invent or hallucinate sources
+4. Be CONCISE: 2-3 sentences maximum explaining the key finding and why it supports/contradicts/is uncertain
+5. Be SPECIFIC: Name the exact source and what it says, not vague phrases like "multiple sources suggest"
 
 Based on this analysis, provide your final judgment."""
 
@@ -994,7 +1206,7 @@ Based on this analysis, provide your final judgment."""
                             {"role": "user", "content": context}
                         ],
                         "max_tokens": self.judge_max_tokens,
-                        "temperature": self.temperature,
+                        "temperature": self.effective_temperature,
                         "response_format": {"type": "json_object"}
                     }
                 )
@@ -1030,7 +1242,7 @@ Based on this analysis, provide your final judgment."""
                             }
                         ],
                         "generationConfig": {
-                            "temperature": self.temperature,
+                            "temperature": self.effective_temperature,
                             "maxOutputTokens": self.judge_max_tokens,
                             "responseMimeType": "application/json"
                         }
@@ -1072,15 +1284,15 @@ Based on this analysis, provide your final judgment."""
         if supporting > contradicting and max_entailment > 0.75 and quality in ['high', 'medium']:
             verdict = "supported"
             confidence = min(80, int(max_entailment * 85))
-            rationale = f"Evidence analysis shows {supporting} supporting sources with high confidence scores. The strongest supporting evidence has {max_entailment:.2f} entailment score."
+            rationale = f"The available evidence supports this claim. Analysis found {supporting} corroborating source(s) with strong alignment to the claim."
         elif contradicting > supporting and max_contradiction > 0.75 and quality in ['high', 'medium']:
             verdict = "contradicted"
             confidence = min(80, int(max_contradiction * 85))
-            rationale = f"Evidence analysis shows {contradicting} contradicting sources with high confidence scores. The strongest contradicting evidence has {max_contradiction:.2f} contradiction score."
+            rationale = f"The available evidence contradicts this claim. Analysis found {contradicting} source(s) that dispute the claim's accuracy."
         else:
             verdict = "uncertain"
             confidence = 40
-            rationale = f"Evidence analysis is inconclusive. Found {supporting} supporting and {contradicting} contradicting sources with mixed confidence levels."
+            rationale = f"The evidence is inconclusive. Sources provide mixed or insufficient information to confidently verify this claim."
         
         return {
             "verdict": verdict,
@@ -1497,7 +1709,9 @@ Based on this analysis, provide your final judgment."""
             rationale=data["rationale"],
             supporting_evidence=data.get("evidence", []),
             evidence_summary=data.get("evidence_summary", {}),
-            current_verified_data=data.get("current_verified_data")
+            current_verified_data=data.get("current_verified_data"),
+            uncertainty_reason=data.get("uncertainty_reason"),
+            uncertainty_details=data.get("uncertainty_details"),
         )
 
 class PipelineJudge:
@@ -1603,7 +1817,8 @@ class PipelineJudge:
                         "rationale": "Judgment failed due to processing error. Evidence review inconclusive.",
                         "evidence": _select_display_evidence(evidence, max_items=max_display_items),
                         "position": claim.get("position", i),
-                        "verification_signals": {"error": "judgment_failed"}
+                        "verification_signals": {"error": "judgment_failed"},
+                        "uncertainty_reason": "processing_error",
                     }
                     final_results.append(fallback_result)
                 else:
@@ -1628,7 +1843,8 @@ class PipelineJudge:
                     "rationale": "Pipeline judgment service temporarily unavailable. Manual review recommended.",
                     "evidence": _select_display_evidence(evidence, max_items=fallback_max_display),
                     "position": claim.get("position", i),
-                    "verification_signals": {"error": "pipeline_error"}
+                    "verification_signals": {"error": "pipeline_error"},
+                    "uncertainty_reason": "processing_error",
                 })
 
             return fallback_results

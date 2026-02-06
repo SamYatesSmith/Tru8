@@ -719,12 +719,17 @@ async def retrieve_evidence_with_cache(
         _cache_start = _time.time()
         for claim in claims:
             claim_text = claim.get("text", "")
+            position = str(claim.get("position", 0))
+            # Frozen claims bypass cache — must go through extraction
+            if claim.get("frozen_urls"):
+                uncached_claims.append(claim)
+                continue
             # Check cache if available
             if cache_service:
                 cached_result = await cache_service.get_cached_evidence_extraction(claim_text)
                 if cached_result:
-                    position = str(claim.get("position", 0))
                     cached_evidence[position] = cached_result
+                    logger.info(f"[CACHE HIT] Claim {position}: retrieved {len(cached_result)} cached evidence items")
                     continue
             # If no cache or no cached result, add to uncached list
             uncached_claims.append(claim)
@@ -764,13 +769,34 @@ async def retrieve_evidence_with_cache(
                 new_evidence = retrieval_result if isinstance(retrieval_result, dict) else {}
                 all_raw_evidence = []
 
-            # Cache the new evidence if cache is available
+            # Quality-gated caching: only cache evidence that meets quality thresholds
+            # This prevents poor results (from rate limiting, timeouts, etc.) from being cached
             if cache_service:
                 for claim in uncached_claims:
                     claim_text = claim.get("text", "")
                     position = str(claim.get("position", 0))
-                    if position in new_evidence:
-                        await cache_service.cache_evidence_extraction(claim_text, new_evidence[position])
+                    evidence_list = new_evidence.get(position, [])
+
+                    # Quality gate 1: Minimum evidence count
+                    if len(evidence_list) < settings.MIN_SOURCES_FOR_VERDICT:
+                        logger.info(f"[CACHE SKIP] Claim {position}: insufficient evidence ({len(evidence_list)} < {settings.MIN_SOURCES_FOR_VERDICT})")
+                        continue
+
+                    # Quality gate 2: Average credibility threshold
+                    avg_credibility = sum(e.get("credibility_score", 0.6) for e in evidence_list) / len(evidence_list)
+                    if avg_credibility < settings.SOURCE_CREDIBILITY_THRESHOLD:
+                        logger.info(f"[CACHE SKIP] Claim {position}: avg credibility too low ({avg_credibility:.2f} < {settings.SOURCE_CREDIBILITY_THRESHOLD})")
+                        continue
+
+                    # Quality gate 3: At least one strong source (credibility >= 0.7)
+                    has_strong_source = any(e.get("credibility_score", 0) >= 0.7 for e in evidence_list)
+                    if not has_strong_source:
+                        logger.info(f"[CACHE SKIP] Claim {position}: no strong source (none with credibility >= 0.7)")
+                        continue
+
+                    # All quality gates passed - cache this evidence
+                    await cache_service.cache_evidence_extraction(claim_text, evidence_list)
+                    logger.info(f"[CACHE OK] Claim {position}: cached {len(evidence_list)} evidence items (avg_cred={avg_credibility:.2f})")
 
             # Merge cached and new evidence
             cached_evidence.update(new_evidence)

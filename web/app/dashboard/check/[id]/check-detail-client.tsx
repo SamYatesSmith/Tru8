@@ -190,7 +190,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
           {checkData.overallSummary && checkData.credibilityScore !== undefined && (
             <OverallSummaryCard check={checkData} />
           )}
-          <ShareSection checkId={checkId} />
+          <ShareSection checkId={checkId} inputUrl={checkData.inputUrl} title={checkData.title} />
           <NavigationSection />
         </>
       )}

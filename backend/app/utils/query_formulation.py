@@ -107,6 +107,11 @@ class QueryFormulator:
             # Exclude fact-check meta-content (avoid circular fact-checking)
             query += ' -site:snopes.com -site:factcheck.org -"fact check"'
 
+            # Exclude Wikipedia - it's a reference encyclopedia, not evidence for claims
+            # Always gets domain-capped to 3, then often fails validation anyway
+            # Better to let those search slots go to actual news sources
+            query += ' -site:wikipedia.org'
+
             # Enforce API limit
             final_query = query[:250]
 
@@ -403,7 +408,8 @@ class QueryFormulator:
         query = " ".join(query_parts)
 
         # Add basic filters
-        query += ' -site:snopes.com -site:factcheck.org'
+        # Exclude fact-check sites (circular fact-checking) and Wikipedia (reference, not evidence)
+        query += ' -site:snopes.com -site:factcheck.org -site:wikipedia.org'
 
         return query[:250]
 

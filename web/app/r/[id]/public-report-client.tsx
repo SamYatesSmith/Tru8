@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, ExternalLink, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, ExternalLink, ChevronDown, Reply } from 'lucide-react';
+import { isTweetUrl, extractTweetId, buildTwitterReplyUrl } from '@/lib/twitter-utils';
 import { VerdictPill } from '@/app/dashboard/components/verdict-pill';
 import { ConfidenceBar } from '@/app/dashboard/components/confidence-bar';
 import { DecisionTrail } from '@/app/dashboard/components/decision-trail';
@@ -34,6 +35,10 @@ function generateNliExplanation(stance: string, confidence?: number): string {
 export function PublicReportClient({ check, highlightClaim }: PublicReportClientProps) {
   const [expandedClaim, setExpandedClaim] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Detect if source is a tweet
+  const isSourceTweet = isTweetUrl(check.inputUrl);
+  const tweetId = isSourceTweet ? extractTweetId(check.inputUrl) : null;
 
   // Scroll to highlighted claim on mount
   useEffect(() => {
@@ -77,6 +82,12 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
     } catch (error) {
       console.error('Copy failed:', error);
     }
+  };
+
+  const handleReplyOnTwitter = () => {
+    if (!tweetId) return;
+    const replyUrl = buildTwitterReplyUrl(tweetId, shareUrl, shareText);
+    window.open(replyUrl, '_blank', 'width=600,height=400');
   };
 
   const toggleEvidence = (claimId: string) => {
@@ -430,6 +441,25 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
       <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
         <h3 className="text-xl font-bold text-white mb-4">Share This Report</h3>
 
+        {/* Reply on X Section (only when source is a tweet) */}
+        {isSourceTweet && tweetId && (
+          <div className="mb-6">
+            <p className="text-sm text-slate-400 mb-3">Reply to the original post:</p>
+            <button
+              onClick={handleReplyOnTwitter}
+              className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg font-bold transition-all shadow-lg hover:shadow-xl"
+            >
+              <Reply size={20} />
+              Reply on X
+            </button>
+            <p className="text-xs text-slate-500 mt-2">Post your findings in the original thread</p>
+          </div>
+        )}
+
+        {/* Share Icons Section */}
+        <p className="text-sm text-slate-400 mb-3">
+          {isSourceTweet ? 'Share as a new post:' : 'Share your findings:'}
+        </p>
         <div className="flex items-center gap-3 flex-wrap">
           {/* X (Twitter) */}
           <button

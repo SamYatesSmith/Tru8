@@ -26,6 +26,13 @@ RELEVANCE_SCORING_PROMPT = """You are a fact-checking evidence analyst. Score ho
 
 CRITICAL: Score based on EVIDENTIAL VALUE for the SPECIFIC CLAIMS, considering both content relevance AND source authority.
 
+CLAIM-EVIDENCE MATCHING IS ESSENTIAL:
+- Each piece of evidence may only help verify SOME claims, not all
+- An article about "Topic X" only helps verify claims that SPECIFICALLY discuss Topic X
+- Generic background information about a topic does NOT help verify specific factual claims
+- The "relevant_claims" field MUST list ONLY the claims that evidence DIRECTLY addresses
+- If evidence is about a DIFFERENT aspect of the same topic, it is NOT relevant to that claim
+
 CLAIM TYPES - Recognize what kind of evidence each claim needs:
 1. EVENT CLAIMS (e.g., "5 healthcare workers infected") → Need news reports about that specific incident
 2. FACTUAL/REFERENCE CLAIMS (e.g., "virus has 40-75% fatality rate") → Need authoritative reference sources
@@ -73,11 +80,31 @@ RESPONSE FORMAT (JSON array):
   {{"evidence_index": 1, "score": 2, "rationale": "Lifestyle magazine inappropriate for medical statistics", "relevant_claims": []}}
 ]
 
+EXAMPLE OF CORRECT CLAIM-EVIDENCE MATCHING:
+Claims:
+[Claim 0]: "The company laid off 500 employees in January 2024"
+[Claim 1]: "The CEO announced record profits for Q4 2023"
+[Claim 2]: "The company's stock price fell 20% after the announcement"
+
+Evidence about "Company announces layoffs":
+- Relevant to Claim 0 (layoffs) = YES, score 4-5, relevant_claims: [0]
+- Relevant to Claim 1 (profits) = NO, different topic
+- Relevant to Claim 2 (stock price) = MAYBE if it mentions market reaction, otherwise NO
+
+Evidence about "Company Q4 earnings report":
+- Relevant to Claim 0 (layoffs) = NO, different topic
+- Relevant to Claim 1 (profits) = YES, score 4-5, relevant_claims: [1]
+- Relevant to Claim 2 (stock price) = MAYBE if it mentions stock movement
+
 Rules:
 - evidence_index: 0-based index matching evidence order above
 - score: integer 1-5 per rubric (score accurately based on evidential value AND source authority)
 - rationale: 1-2 sentences explaining score, mention source appropriateness if relevant
-- relevant_claims: claim indices this evidence helps verify (empty [] if score <= 2)
+- relevant_claims: CRITICAL - list ONLY the specific claim indices (0, 1, 2...) that this evidence DIRECTLY helps verify or refute
+  * If evidence discusses "Event A" but claim is about "Event B", relevant_claims should NOT include that claim
+  * Only list claims where the evidence provides DIRECT proof, refutation, or context for THAT SPECIFIC claim
+  * An article about the same general topic is NOT automatically relevant to all claims about that topic
+  * Empty [] only if score <= 2 (off-topic evidence)
 
 Return ONLY valid JSON array."""
 
@@ -456,8 +483,10 @@ async def score_evidence_batch(
     kept_count = 0
     filtered_count = 0
 
-    # Track which evidence URLs are already in each claim to avoid duplicates
-    evidence_urls_by_claim = {pos: set() for pos in evidence.keys()}
+    # Track which evidence URLs have been assigned GLOBALLY (across ALL claims)
+    # This is CRITICAL: once a URL is assigned to ANY claim, it cannot be assigned to others
+    # This prevents the same article appearing for multiple claims
+    assigned_urls_globally = set()
 
     for flat_idx, ev in enumerate(all_evidence):
         score_data = score_lookup.get(flat_idx, {})
@@ -470,34 +499,51 @@ async def score_evidence_batch(
         ev['llm_relevance_rationale'] = llm_rationale
         ev['llm_relevant_claims'] = relevant_claims
 
-        # Get original claim position
+        # Get original claim position (as integer for comparison with relevant_claims)
         original_claim_pos, _ = evidence_positions[flat_idx]
+        original_claim_idx = int(original_claim_pos) if original_claim_pos.isdigit() else -1
         ev_url = ev.get('url', '')
 
         if llm_score >= min_score:
-            # Add to original claim
-            if ev_url not in evidence_urls_by_claim[original_claim_pos]:
-                filtered_evidence[original_claim_pos].append(ev)
-                evidence_urls_by_claim[original_claim_pos].add(ev_url)
-                kept_count += 1
+            # SINGLE-CLAIM ASSIGNMENT: Each evidence goes to ONE claim only (best match)
+            # This prevents the same article appearing for multiple claims.
+            # Priority: original claim if it's in relevant_claims, else first relevant claim
 
-            # REDISTRIBUTE: Also add to other claims the LLM identified as relevant
-            # This ensures evidence retrieved for claim 1 can also support claims 7, 8, etc.
-            for relevant_claim_idx in relevant_claims:
-                relevant_claim_pos = str(relevant_claim_idx)
-                # Only add if: claim exists, not the original claim, and not a duplicate
-                if (relevant_claim_pos in filtered_evidence and
-                    relevant_claim_pos != original_claim_pos and
-                    ev_url not in evidence_urls_by_claim[relevant_claim_pos]):
-                    # Create a copy to avoid mutation issues
-                    ev_copy = dict(ev)
-                    ev_copy['redistributed_from_claim'] = original_claim_pos
-                    filtered_evidence[relevant_claim_pos].append(ev_copy)
-                    evidence_urls_by_claim[relevant_claim_pos].add(ev_url)
+            target_claim = None
+
+            if len(relevant_claims) > 0:
+                # Check if original claim is in the relevant list - prefer it for stability
+                if original_claim_idx in relevant_claims:
+                    target_claim = original_claim_pos
+                else:
+                    # Use the first claim in relevant_claims that exists
+                    for claim_idx in relevant_claims:
+                        claim_pos_str = str(claim_idx)
+                        if claim_pos_str in filtered_evidence:
+                            target_claim = claim_pos_str
+                            break
+            else:
+                # LLM didn't specify - keep in original claim
+                target_claim = original_claim_pos
+
+            # Assign to target claim ONLY if URL not already assigned to ANY claim
+            # This is the critical single-assignment enforcement
+            if target_claim and ev_url not in assigned_urls_globally:
+                ev_copy = dict(ev) if target_claim != original_claim_pos else ev
+                if target_claim != original_claim_pos:
+                    ev_copy['reassigned_from_claim'] = original_claim_pos
                     logger.debug(
-                        f"[LLM SCORER] Redistributed evidence from claim {original_claim_pos} "
-                        f"to claim {relevant_claim_pos}: {ev.get('title', 'Unknown')[:40]}..."
+                        f"[LLM SCORER] Reassigned evidence from claim {original_claim_pos} to claim {target_claim}: "
+                        f"{ev.get('title', 'Unknown')[:50]}..."
                     )
+                filtered_evidence[target_claim].append(ev_copy)
+                assigned_urls_globally.add(ev_url)  # Mark as used GLOBALLY
+                kept_count += 1
+            elif target_claim and ev_url in assigned_urls_globally:
+                # URL already assigned to another claim - skip this duplicate
+                logger.debug(
+                    f"[LLM SCORER] SKIPPED duplicate URL (already assigned): {ev.get('title', 'Unknown')[:50]}..."
+                )
         else:
             filtered_count += 1
             if llm_score > 0:
@@ -506,43 +552,88 @@ async def score_evidence_batch(
                     f"{ev.get('title', 'Unknown')[:50]}..."
                 )
 
-    # Count redistributed evidence
-    redistributed_count = sum(
-        1 for ev_list in filtered_evidence.values()
-        for ev in ev_list if ev.get('redistributed_from_claim')
-    )
-
     logger.info(
         f"[LLM SCORER] Complete: kept {kept_count}, filtered {filtered_count}, "
-        f"redistributed {redistributed_count} (threshold={min_score})"
+        f"globally unique URLs: {len(assigned_urls_globally)} "
+        f"(threshold={min_score})"
     )
 
-    # Per-claim fallback: ensure no claim ends up with 0 evidence if we had some
-    # This handles the case where some claims pass threshold but others don't
+    # Log per-claim summary to verify diversity
+    for cp, ev_list in filtered_evidence.items():
+        urls = [e.get('url', '')[:60] for e in ev_list]
+        logger.info(f"[LLM SCORER] Claim {cp}: {len(ev_list)} evidence items")
+
+    # Per-claim fallback: ensure no claim ends up with 0 evidence if we had REASONABLE evidence
+    # CRITICAL: Only use fallback if evidence scored at least 3 (somewhat relevant)
+    # Scores 1-2 = off-topic garbage (e.g., "CIA PROPAGANDA GUIDELINES" for EU censorship claim)
+    # It's better to show "insufficient evidence" than completely irrelevant garbage
+    FALLBACK_MIN_SCORE = 3  # Must be at least "somewhat relevant"
+
     for claim_pos, ev_list in evidence.items():
         if len(filtered_evidence[claim_pos]) == 0 and len(ev_list) > 0:
-            # This claim had evidence but all was filtered - keep top 2 by score
+            # Sort by score
             sorted_ev = sorted(
                 ev_list,
                 key=lambda x: x.get('llm_relevance_score', 0),
                 reverse=True
             )
-            filtered_evidence[claim_pos] = sorted_ev[:2]
-            logger.warning(
-                f"[LLM SCORER] Claim {claim_pos} had all evidence filtered, "
-                f"keeping top 2 as fallback (scores: {[e.get('llm_relevance_score', 0) for e in sorted_ev[:2]]})"
-            )
+            # Only keep fallback evidence that:
+            # 1. Scored >= 3 (somewhat relevant)
+            # 2. NOT already assigned to another claim (respect global uniqueness)
+            reasonable_fallback = [
+                e for e in sorted_ev
+                if e.get('llm_relevance_score', 0) >= FALLBACK_MIN_SCORE
+                and e.get('url', '') not in assigned_urls_globally
+            ]
 
-    # Global fallback: if ALL claims have 0 evidence, keep top items
+            if reasonable_fallback:
+                fallback_to_add = reasonable_fallback[:2]
+                filtered_evidence[claim_pos] = fallback_to_add
+                # Track these URLs globally
+                for fb_ev in fallback_to_add:
+                    assigned_urls_globally.add(fb_ev.get('url', ''))
+                logger.warning(
+                    f"[LLM SCORER] Claim {claim_pos} using fallback evidence "
+                    f"(scores: {[e.get('llm_relevance_score', 0) for e in fallback_to_add]})"
+                )
+            else:
+                # ALL evidence either scored < 3 OR already used by another claim
+                logger.warning(
+                    f"[LLM SCORER] Claim {claim_pos} has NO relevant evidence - "
+                    f"all {len(ev_list)} items either scored below {FALLBACK_MIN_SCORE} or already assigned "
+                    f"(top scores: {[e.get('llm_relevance_score', 0) for e in sorted_ev[:3]]})"
+                )
+
+    # Global fallback: if ALL claims have 0 evidence, only keep items that scored >= 3
+    # and haven't been used elsewhere
     total_kept = sum(len(v) for v in filtered_evidence.values())
     if total_kept == 0 and all_evidence:
-        logger.warning("[LLM SCORER] All evidence filtered globally, keeping top items as fallback")
+        logger.warning("[LLM SCORER] All evidence filtered globally, checking for reasonable fallback")
+        any_reasonable = False
         for claim_pos, ev_list in evidence.items():
             sorted_ev = sorted(
                 ev_list,
                 key=lambda x: x.get('llm_relevance_score', 0),
                 reverse=True
             )
-            filtered_evidence[claim_pos] = sorted_ev[:2]
+            # Only keep if scored >= 3 AND not already assigned
+            reasonable = [
+                e for e in sorted_ev
+                if e.get('llm_relevance_score', 0) >= FALLBACK_MIN_SCORE
+                and e.get('url', '') not in assigned_urls_globally
+            ]
+            if reasonable:
+                fallback_to_add = reasonable[:2]
+                filtered_evidence[claim_pos] = fallback_to_add
+                # Track globally
+                for fb_ev in fallback_to_add:
+                    assigned_urls_globally.add(fb_ev.get('url', ''))
+                any_reasonable = True
+
+        if not any_reasonable:
+            logger.error(
+                "[LLM SCORER] NO relevant evidence found for ANY claim - "
+                "all evidence scored below minimum threshold. This indicates a search quality issue."
+            )
 
     return filtered_evidence

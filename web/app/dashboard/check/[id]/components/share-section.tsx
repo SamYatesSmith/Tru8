@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Download } from 'lucide-react';
+import { Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Download, Reply } from 'lucide-react';
+import { isTweetUrl, extractTweetId, buildTwitterReplyUrl } from '@/lib/twitter-utils';
 
 interface ShareSectionProps {
   checkId: string;
+  inputUrl?: string | null;
+  title?: string | null;
 }
 
-export function ShareSection({ checkId }: ShareSectionProps) {
+export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
   const { getToken } = useAuth();
   const [copied, setCopied] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
@@ -17,7 +20,13 @@ export function ShareSection({ checkId }: ShareSectionProps) {
   const shareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/r/${checkId}`
     : '';
-  const shareText = 'Check out this evidence report on Tru8';
+  const shareText = title
+    ? `Evidence Report: ${title}`
+    : 'Check out this evidence report on Tru8';
+
+  // Detect if source is a tweet
+  const isSourceTweet = isTweetUrl(inputUrl);
+  const tweetId = isSourceTweet ? extractTweetId(inputUrl) : null;
 
   const handleShare = async (platform: string) => {
     // Try native Web Share API first
@@ -44,6 +53,12 @@ export function ShareSection({ checkId }: ShareSectionProps) {
     if (platform in shareUrls) {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
+  };
+
+  const handleReplyOnTwitter = () => {
+    if (!tweetId) return;
+    const replyUrl = buildTwitterReplyUrl(tweetId, shareUrl, shareText);
+    window.open(replyUrl, '_blank', 'width=600,height=400');
   };
 
   const handleCopyLink = async () => {
@@ -102,6 +117,25 @@ export function ShareSection({ checkId }: ShareSectionProps) {
         {downloadingPdf ? 'Generating PDF...' : 'Download PDF Report'}
       </button>
 
+      {/* Reply on X Section (only when source is a tweet) */}
+      {isSourceTweet && tweetId && (
+        <div className="mb-6">
+          <p className="text-sm text-slate-400 mb-3">Reply to the original post:</p>
+          <button
+            onClick={handleReplyOnTwitter}
+            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg font-bold transition-all shadow-lg hover:shadow-xl"
+          >
+            <Reply size={20} />
+            Reply on X
+          </button>
+          <p className="text-xs text-slate-500 mt-2">Post your findings in the original thread</p>
+        </div>
+      )}
+
+      {/* Share Section */}
+      <p className="text-sm text-slate-400 mb-3">
+        {isSourceTweet ? 'Share as a new post:' : 'Share your findings:'}
+      </p>
       <div className="flex items-center gap-3">
         {/* X (Twitter) */}
         <button
