@@ -112,6 +112,8 @@ class Settings(BaseSettings):
     # Unknown source default - lower than known sources to signal unvetted status
     # Sources not in credibility database are treated with skepticism
     UNKNOWN_SOURCE_CREDIBILITY: float = Field(0.40, env="UNKNOWN_SOURCE_CREDIBILITY")
+    # Max unknown-tier sources to keep per claim via probation (0 = hard-drop all)
+    MAX_UNKNOWN_SOURCES_PER_CLAIM: int = Field(2, env="MAX_UNKNOWN_SOURCES_PER_CLAIM")
     
     # Judge LLM
     JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
@@ -190,6 +192,14 @@ class Settings(BaseSettings):
     ENABLE_GLOBAL_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_GLOBAL_DOMAIN_CAPPING")
     GLOBAL_MAX_PER_DOMAIN: int = Field(3, env="GLOBAL_MAX_PER_DOMAIN")  # Max sources from any domain across ALL claims
     GLOBAL_MAX_DOMAIN_RATIO: float = Field(0.15, env="GLOBAL_MAX_DOMAIN_RATIO")  # Max 15% from any single domain
+
+    # Per-claim domain capping (True = current behavior; set False via env to remove double-cap)
+    # When False, only global domain cap applies — per-claim DomainCapper.apply_caps() is skipped
+    ENABLE_PER_CLAIM_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_PER_CLAIM_DOMAIN_CAPPING")
+
+    # Max claims a single URL can appear in during cross-claim dedup (1 = current behavior)
+    # Setting to 2 allows a URL to legitimately support 2 related claims
+    MAX_CLAIMS_PER_URL: int = Field(1, env="MAX_CLAIMS_PER_URL")
 
     # Abstention Thresholds (Phase 3)
     # Lowered from 0.70 -> 0.60 and 0.65 -> 0.50 to reduce fence-sitting

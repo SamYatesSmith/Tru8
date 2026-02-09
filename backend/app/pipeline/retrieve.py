@@ -1515,8 +1515,43 @@ class EvidenceRetriever:
                             url_to_raw[url]["filter_stage"] = None
                             url_to_raw[url]["filter_reason"] = None
             else:
-                evidence_list = passing_cred
+                # PROBATION: Keep top N unknown-tier sources even if below threshold
+                # Prevents accuracy loss from legitimate outlets not in source_credibility.json
+                max_unknown = getattr(settings, 'MAX_UNKNOWN_SOURCES_PER_CLAIM', 2)
+                probation_kept = []
+                if max_unknown > 0:
+                    # Only unknown-tier (never auto-excluded, never known-bad-tier)
+                    unknown_candidates = [
+                        e for e in failing_cred
+                        if e.get("tier") == "general" and not e.get("auto_exclude", False)
+                    ]
+                    # Best unknowns first (final_score incorporates NLI + recency + credibility)
+                    unknown_candidates.sort(key=lambda x: x.get("final_score", 0), reverse=True)
+                    probation_kept = unknown_candidates[:max_unknown]
+
+                    if probation_kept:
+                        logger.info(
+                            f"[FILTER] UNKNOWN PROBATION: Keeping {len(probation_kept)}/{len(unknown_candidates)} "
+                            f"unknown-tier sources (max {max_unknown}/claim)"
+                        )
+                        for e in probation_kept:
+                            logger.info(
+                                f"[FILTER] PROBATION KEPT: {e.get('source')} "
+                                f"(cred={e.get('credibility_score', 0.4):.2f}, "
+                                f"final={e.get('final_score', 0):.3f})"
+                            )
+
+                evidence_list = passing_cred + probation_kept
                 credibility_filtered_count = before_credibility - len(evidence_list)
+
+                # RAW EVIDENCE TRACKING: Un-mark probation sources (already marked excluded above)
+                if track_raw_evidence:
+                    for e in probation_kept:
+                        url = e.get("url", "")
+                        if url in url_to_raw:
+                            url_to_raw[url]["is_included"] = True
+                            url_to_raw[url]["filter_stage"] = None
+                            url_to_raw[url]["filter_reason"] = None
 
             logger.info(f"[FILTER] Stage 1: {original_evidence_count} raw -> {before_auto_exclude - auto_excluded_count} after auto-exclude -> {len(evidence_list)} after cred filter (threshold={MIN_CREDIBILITY})")
 
@@ -1529,6 +1564,10 @@ class EvidenceRetriever:
                         f"[FILTER] Stage 1.5 (corroboration): {corroboration_stats['items_boosted']} items boosted "
                         f"({corroboration_stats['corroboration_pairs']} corroborating pairs)"
                     )
+                    # Recompute final_score for boosted items so ordering reflects updated credibility
+                    for ev in evidence_list:
+                        if ev.get("corroboration_boost", 0) > 0:
+                            ev["final_score"] = ev.get("combined_score", 0.5) * ev["credibility_score"] * ev.get("recency_score", 1.0)
 
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
@@ -1587,7 +1626,7 @@ class EvidenceRetriever:
             # Apply domain capping if enabled
             before_domain_cap = len(evidence_list)
             before_domain_cap_list = list(evidence_list) if track_raw_evidence else []
-            if settings.ENABLE_DOMAIN_CAPPING:
+            if settings.ENABLE_DOMAIN_CAPPING and getattr(settings, 'ENABLE_PER_CLAIM_DOMAIN_CAPPING', True):
                 from app.utils.domain_capping import DomainCapper
                 capper = DomainCapper(
                     max_per_domain=settings.MAX_EVIDENCE_PER_DOMAIN,
@@ -1598,6 +1637,8 @@ class EvidenceRetriever:
                     target_count=self.max_sources_per_claim,
                     outstanding_threshold=getattr(settings, 'OUTSTANDING_SOURCE_THRESHOLD', 0.95)
                 )
+            elif settings.ENABLE_DOMAIN_CAPPING:
+                logger.info(f"[FILTER] Stage 5 (domain cap): SKIPPED per-claim (global cap handles diversity)")
             mark_excluded(before_domain_cap_list, evidence_list, "domain_cap",
                           lambda e: f"Domain cap reached for {e.get('source', 'this domain')} (max {settings.MAX_EVIDENCE_PER_DOMAIN} per domain)")
             logger.info(f"[FILTER] Stage 5 (domain cap, max={settings.MAX_EVIDENCE_PER_DOMAIN}): {before_domain_cap} -> {len(evidence_list)}")

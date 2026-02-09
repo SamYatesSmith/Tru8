@@ -483,10 +483,10 @@ async def score_evidence_batch(
     kept_count = 0
     filtered_count = 0
 
-    # Track which evidence URLs have been assigned GLOBALLY (across ALL claims)
-    # This is CRITICAL: once a URL is assigned to ANY claim, it cannot be assigned to others
-    # This prevents the same article appearing for multiple claims
-    assigned_urls_globally = set()
+    # Track how many claims each URL has been assigned to GLOBALLY
+    # Allows up to MAX_CLAIMS_PER_URL assignments (default 1 = old behavior)
+    max_claims_per_url = getattr(settings, 'MAX_CLAIMS_PER_URL', 1)
+    assigned_url_counts = {}  # url -> int (number of claims assigned to)
 
     for flat_idx, ev in enumerate(all_evidence):
         score_data = score_lookup.get(flat_idx, {})
@@ -526,9 +526,8 @@ async def score_evidence_batch(
                 # LLM didn't specify - keep in original claim
                 target_claim = original_claim_pos
 
-            # Assign to target claim ONLY if URL not already assigned to ANY claim
-            # This is the critical single-assignment enforcement
-            if target_claim and ev_url not in assigned_urls_globally:
+            # Assign to target claim ONLY if URL hasn't exceeded MAX_CLAIMS_PER_URL
+            if target_claim and assigned_url_counts.get(ev_url, 0) < max_claims_per_url:
                 ev_copy = dict(ev) if target_claim != original_claim_pos else ev
                 if target_claim != original_claim_pos:
                     ev_copy['reassigned_from_claim'] = original_claim_pos
@@ -537,12 +536,12 @@ async def score_evidence_batch(
                         f"{ev.get('title', 'Unknown')[:50]}..."
                     )
                 filtered_evidence[target_claim].append(ev_copy)
-                assigned_urls_globally.add(ev_url)  # Mark as used GLOBALLY
+                assigned_url_counts[ev_url] = assigned_url_counts.get(ev_url, 0) + 1
                 kept_count += 1
-            elif target_claim and ev_url in assigned_urls_globally:
-                # URL already assigned to another claim - skip this duplicate
+            elif target_claim and assigned_url_counts.get(ev_url, 0) >= max_claims_per_url:
+                # URL already assigned to max claims - skip this duplicate
                 logger.debug(
-                    f"[LLM SCORER] SKIPPED duplicate URL (already assigned): {ev.get('title', 'Unknown')[:50]}..."
+                    f"[LLM SCORER] SKIPPED URL (assigned to {assigned_url_counts.get(ev_url, 0)} claims, max={max_claims_per_url}): {ev.get('title', 'Unknown')[:50]}..."
                 )
         else:
             filtered_count += 1
@@ -554,7 +553,7 @@ async def score_evidence_batch(
 
     logger.info(
         f"[LLM SCORER] Complete: kept {kept_count}, filtered {filtered_count}, "
-        f"globally unique URLs: {len(assigned_urls_globally)} "
+        f"globally assigned URLs: {len(assigned_url_counts)} (max {max_claims_per_url} claims/URL) "
         f"(threshold={min_score})"
     )
 
@@ -579,11 +578,11 @@ async def score_evidence_batch(
             )
             # Only keep fallback evidence that:
             # 1. Scored >= 3 (somewhat relevant)
-            # 2. NOT already assigned to another claim (respect global uniqueness)
+            # 2. Not already at MAX_CLAIMS_PER_URL assignments
             reasonable_fallback = [
                 e for e in sorted_ev
                 if e.get('llm_relevance_score', 0) >= FALLBACK_MIN_SCORE
-                and e.get('url', '') not in assigned_urls_globally
+                and assigned_url_counts.get(e.get('url', ''), 0) < max_claims_per_url
             ]
 
             if reasonable_fallback:
@@ -591,7 +590,8 @@ async def score_evidence_batch(
                 filtered_evidence[claim_pos] = fallback_to_add
                 # Track these URLs globally
                 for fb_ev in fallback_to_add:
-                    assigned_urls_globally.add(fb_ev.get('url', ''))
+                    fb_url = fb_ev.get('url', '')
+                    assigned_url_counts[fb_url] = assigned_url_counts.get(fb_url, 0) + 1
                 logger.warning(
                     f"[LLM SCORER] Claim {claim_pos} using fallback evidence "
                     f"(scores: {[e.get('llm_relevance_score', 0) for e in fallback_to_add]})"

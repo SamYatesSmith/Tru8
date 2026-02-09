@@ -696,7 +696,9 @@ async def run_pipeline(
         stage_start = datetime.utcnow()
         try:
             # Flatten all evidence with claim tracking
-            url_to_evidence = {}  # url -> (claim_pos, evidence_item, score)
+            # Allow each URL to appear in up to MAX_CLAIMS_PER_URL claims (default 1 = old behavior)
+            max_claims_per_url = getattr(settings, 'MAX_CLAIMS_PER_URL', 1)
+            url_claims = {}  # url -> [(claim_pos, evidence_item, score), ...]
             dedup_losers = [] if ledger else None  # Track casualties for ledger
 
             for claim_pos, ev_list in evidence.items():
@@ -707,25 +709,28 @@ async def run_pipeline(
 
                     score = ev.get('final_score', ev.get('combined_score', ev.get('credibility_score', 0)))
 
-                    if url not in url_to_evidence:
-                        # First occurrence - keep it
-                        url_to_evidence[url] = (claim_pos, ev, score)
+                    if url not in url_claims:
+                        url_claims[url] = [(claim_pos, ev, score)]
+                    elif len(url_claims[url]) < max_claims_per_url:
+                        # Under the limit — keep this copy too
+                        url_claims[url].append((claim_pos, ev, score))
                     else:
-                        # Duplicate URL - keep the one with higher score
-                        existing_pos, existing_ev, existing_score = url_to_evidence[url]
-                        if score > existing_score:
-                            url_to_evidence[url] = (claim_pos, ev, score)
-                            logger.debug(f"[URL DEDUP] Replacing {url[:60]} from claim {existing_pos} with claim {claim_pos} (score {existing_score:.2f} → {score:.2f})")
-                            if dedup_losers is not None:
-                                dedup_losers.append({"url": url[:120], "loser": existing_pos, "winner": claim_pos})
-                        else:
-                            if dedup_losers is not None:
-                                dedup_losers.append({"url": url[:120], "loser": claim_pos, "winner": existing_pos})
+                        # At the limit — drop the weakest copy (keep-best)
+                        # Deterministic tie-break: lower claim_pos wins
+                        entries = url_claims[url] + [(claim_pos, ev, score)]
+                        entries.sort(key=lambda x: (-x[2], x[0]))  # score DESC, claim_pos ASC
+                        url_claims[url] = entries[:max_claims_per_url]
+                        loser = entries[max_claims_per_url]
+                        winner = entries[0]
+                        logger.debug(f"[URL DEDUP] Dropped {url[:60]} from claim {loser[0]} (score {loser[2]:.2f}), kept in {[e[0] for e in entries[:max_claims_per_url]]}")
+                        if dedup_losers is not None:
+                            dedup_losers.append({"url": url[:120], "loser": loser[0], "winner": winner[0]})
 
-            # Rebuild evidence_by_claim with only unique URLs
+            # Rebuild evidence_by_claim from url_claims
             deduped_evidence = {pos: [] for pos in evidence.keys()}
-            for url, (claim_pos, ev, score) in url_to_evidence.items():
-                deduped_evidence[claim_pos].append(ev)
+            for url, entries in url_claims.items():
+                for claim_pos, ev, score in entries:
+                    deduped_evidence[claim_pos].append(ev)
 
             # Count what was removed
             before_count = sum(len(ev_list) for ev_list in evidence.values())
