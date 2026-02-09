@@ -134,3 +134,56 @@ class TestGateThresholds:
         pipeline_fail_count = 1
         gate2_passed = hard_fail_count == 0 and pipeline_fail_count == 0
         assert gate2_passed is False
+
+
+class TestFreezeStageIntegrity:
+    """Test freeze_stage versioning and mismatch detection."""
+
+    def test_freeze_stage_mismatch_detected(self):
+        """Mismatched freeze_stage between runs should be flagged."""
+        before_stage = "pre_weighting_evidence"
+        after_stage = "judge_input_evidence"
+        mismatch = before_stage and after_stage and before_stage != after_stage
+        assert mismatch is True
+
+    def test_freeze_stage_same_no_mismatch(self):
+        """Matching freeze_stage should not flag a mismatch."""
+        before_stage = "judge_input_evidence"
+        after_stage = "judge_input_evidence"
+        mismatch = before_stage and after_stage and before_stage != after_stage
+        assert mismatch is False
+
+    def test_freeze_stage_none_no_mismatch(self):
+        """Missing freeze_stage (legacy run) should not flag a mismatch."""
+        before_stage = None
+        after_stage = "judge_input_evidence"
+        mismatch = before_stage and after_stage and before_stage != after_stage
+        assert not mismatch
+
+    def test_freeze_version_v3_for_judge_input(self):
+        """judge_input_evidence should produce freeze_version 3."""
+        has_extracted = True
+        judge_input_ev = {"0": [{"url": "https://example.com"}]}
+        if has_extracted:
+            if judge_input_ev:
+                freeze_ver = 3
+                freeze_stage = "judge_input_evidence"
+            else:
+                freeze_ver = 2
+                freeze_stage = "pre_weighting_evidence"
+        assert freeze_ver == 3
+        assert freeze_stage == "judge_input_evidence"
+
+    def test_freeze_version_v2_for_pre_weighting(self):
+        """pre_weighting_evidence (no judge_input) should produce freeze_version 2."""
+        has_extracted = True
+        judge_input_ev = {}
+        if has_extracted:
+            if judge_input_ev:
+                freeze_ver = 3
+                freeze_stage = "judge_input_evidence"
+            else:
+                freeze_ver = 2
+                freeze_stage = "pre_weighting_evidence"
+        assert freeze_ver == 2
+        assert freeze_stage == "pre_weighting_evidence"

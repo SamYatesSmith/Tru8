@@ -316,13 +316,25 @@ def save_freeze_data(run_dir, results):
             for claim_info in claims_data.values()
         )
 
+        # Determine freeze stage: judge_input_evidence (v3) or pre_weighting (v2) or urls-only (v1)
+        freeze_stage = None
+        freeze_ver = 1
+        if has_extracted:
+            if judge_input_ev:
+                freeze_stage = "judge_input_evidence"
+                freeze_ver = 3
+            else:
+                freeze_stage = "pre_weighting_evidence"
+                freeze_ver = 2
+
         freeze[slug] = {
             "claims": claims_data,
             "verdicts": artifact.get("verdicts", {}),
             "claim_count": artifact.get("total_claims", 0),
             # Keep flat evidence_urls for backward compat with compare_runs.py
             "evidence_urls": artifact.get("evidence_urls", {}),
-            "freeze_version": 2 if has_extracted else 1,
+            "freeze_version": freeze_ver,
+            "freeze_stage": freeze_stage,
         }
 
     path = run_dir / "_freeze.json"
@@ -435,10 +447,15 @@ def main():
         "failed": sum(1 for r in results if r.get("status") != "completed"),
         "fingerprint": fingerprint,
         "freeze_from": str(args.freeze_from) if args.freeze_from else None,
-        "freeze_version": 2 if (freeze_data and any(
-            slug_data.get("freeze_version", 0) >= 2
-            for slug_data in freeze_data.values()
-        )) else (1 if freeze_data else None),
+        "freeze_version": max(
+            (slug_data.get("freeze_version", 0) for slug_data in freeze_data.values()),
+            default=0
+        ) if freeze_data else None,
+        "freeze_stage": next(
+            (slug_data.get("freeze_stage") for slug_data in freeze_data.values()
+             if slug_data.get("freeze_stage")),
+            None
+        ) if freeze_data else None,
     }
     with open(run_dir / "_summary.json", "w") as f:
         json.dump(summary, f, indent=2)

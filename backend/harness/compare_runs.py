@@ -110,6 +110,16 @@ def compare(before_dir: Path, after_dir: Path):
     is_frozen_evidence = after_summary.get("freeze_version", 0) >= 2
     is_frozen = bool(after_summary.get("freeze_from")) and not is_frozen_evidence
 
+    # Warn on freeze_stage mismatch (e.g. pre_weighting vs judge_input_evidence)
+    before_stage = before_summary.get("freeze_stage")
+    after_stage = after_summary.get("freeze_stage")
+    freeze_stage_mismatch = (
+        before_stage and after_stage and before_stage != after_stage
+    )
+    if freeze_stage_mismatch:
+        print(f"  WARNING: freeze_stage mismatch: before={before_stage}, after={after_stage}")
+        print(f"           Results may not be comparable — re-run baseline with current code.")
+
     # Check if hash data is available (enables two-gate system)
     has_hash_data = False
 
@@ -358,8 +368,13 @@ def compare(before_dir: Path, after_dir: Path):
         gate2_passed = flip_rate <= flip_threshold
 
     out("Guardrails:")
+    if freeze_stage_mismatch:
+        out(f"  [WARNING] freeze_stage mismatch: {before_stage} vs {after_stage}")
+        out(f"            Results may not be comparable — re-run baseline with current code.")
     if is_frozen_evidence:
         out(f"  [FROZEN EVIDENCE REPLAY] Zero-network deterministic")
+        if after_stage:
+            out(f"  [FREEZE STAGE] {after_stage} (v{after_summary.get('freeze_version', '?')})")
     elif is_frozen:
         out(f"  [FROZEN REPLAY] Search variance eliminated")
 
@@ -404,6 +419,7 @@ def compare(before_dir: Path, after_dir: Path):
         is_frozen_evidence=is_frozen_evidence, use_two_gate=use_two_gate,
         hard_fail_count=hard_fail_count, pipeline_fail_count=pipeline_fail_count,
         llm_noise_count=llm_noise_count,
+        freeze_stage=after_stage, freeze_stage_mismatch=freeze_stage_mismatch,
     )
     report_path = after_dir / "_diff_report.md"
     with open(report_path, "w", encoding="utf-8") as f:
@@ -421,6 +437,7 @@ def _build_markdown_report(
     b_fp, a_fp, jaccard_threshold=MIN_EVIDENCE_JACCARD, is_frozen=False,
     is_frozen_evidence=False, use_two_gate=False,
     hard_fail_count=0, pipeline_fail_count=0, llm_noise_count=0,
+    freeze_stage=None, freeze_stage_mismatch=False,
 ):
     """Build PR-reviewable markdown diff report."""
     md = []
@@ -449,8 +466,11 @@ def _build_markdown_report(
     result_label = "PASS" if all_pass else "FAIL"
     md.append(f"**Result: {result_label}** | {fixture_count} fixtures | {total_claims} claims\n")
 
+    if freeze_stage_mismatch:
+        md.append("> **WARNING:** freeze_stage mismatch — results may not be comparable.\n")
     if is_frozen_evidence:
-        md.append("> **Frozen Evidence Replay** — zero network, fully deterministic.\n")
+        stage_label = f" (`{freeze_stage}`)" if freeze_stage else ""
+        md.append(f"> **Frozen Evidence Replay{stage_label}** — zero network, fully deterministic.\n")
     elif is_frozen:
         md.append("> **Frozen URL Replay** — search variance eliminated.\n")
 
