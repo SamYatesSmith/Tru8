@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -944,6 +944,8 @@ async def get_check(
             "sourceUrl": claim.source_url,
             # Sources reviewed count (for "View X sources" link when no evidence displayed)
             "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
+            # Judge input hash for harness determinism tracking
+            "judge_input_hash": claim.judge_input_hash,
             "evidence": [
                 {
                     "id": ev.id,

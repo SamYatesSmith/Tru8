@@ -9,3 +9,9 @@ import contextvars
 frozen_replay_temperature = contextvars.ContextVar(
     'frozen_replay_temperature', default=None
 )
+
+# When True, V2 frozen evidence replay is active — skip LLM scoring/reassignment
+# to keep evidence in its original claim buckets for full determinism.
+frozen_evidence_replay = contextvars.ContextVar(
+    'frozen_evidence_replay', default=False
+)

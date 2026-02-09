@@ -220,6 +220,10 @@ def run_fixture(fixture, api_url, token, fingerprint, frozen_claim_data=None):
             for i, c in enumerate(claims)
         },
         "evidence_counts": {str(c.get("position", i)): len(c.get("evidence", [])) for i, c in enumerate(claims)},
+        "judge_input_hashes": {
+            str(c.get("position", i)): c.get("judge_input_hash", "")
+            for i, c in enumerate(claims)
+        },
         "total_claims": len(claims),
         "credibility_score": check_data.get("credibilityScore"),
         "evidence_ledger": ledger_data,
@@ -262,7 +266,12 @@ def save_freeze_data(run_dir, results):
         check_data = artifact.get("_check_data", {})
         api_claims = check_data.get("claims", [])
         ledger_data = artifact.get("evidence_ledger", {})
-        pre_weighting = ledger_data.get("stages", {}).get(
+        # Prefer judge_input_evidence (post-filtering, what judge actually saw)
+        # over pre_weighting_evidence (pre-filtering) for deterministic V2 replay
+        judge_input_ev = ledger_data.get("stages", {}).get(
+            "judge_input_evidence", {}
+        ).get("evidence", {})
+        pre_weighting = judge_input_ev or ledger_data.get("stages", {}).get(
             "pre_weighting_evidence", {}
         ).get("evidence", {})
 

@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import asyncio
 import re
@@ -228,7 +229,8 @@ class JudgmentResult:
                  current_verified_data: Optional[Dict[str, Any]] = None,
                  rhetorical_analysis: Optional[Dict[str, Any]] = None,
                  uncertainty_reason: Optional[str] = None,
-                 uncertainty_details: Optional[str] = None):
+                 uncertainty_details: Optional[str] = None,
+                 judge_input_hash: Optional[str] = None):
         self.claim_text = claim_text
         self.verdict = verdict  # 'supported', 'contradicted', 'uncertain'
         self.confidence = confidence  # 0-100
@@ -239,6 +241,7 @@ class JudgmentResult:
         self.rhetorical_analysis = rhetorical_analysis  # Rhetorical context from source analysis
         self.uncertainty_reason = uncertainty_reason  # Machine-readable reason when uncertain
         self.uncertainty_details = uncertainty_details  # Human-readable details for uncertain verdict
+        self.judge_input_hash = judge_input_hash
         self.created_at = datetime.utcnow()
 
     def to_dict(self) -> Dict[str, Any]:
@@ -264,7 +267,25 @@ class JudgmentResult:
             result["rhetorical_analysis"] = self.rhetorical_analysis
             result["has_rhetorical_context"] = self.rhetorical_analysis.get("has_rhetorical_context", False)
             result["rhetorical_style"] = self.rhetorical_analysis.get("primary_style")
+        if self.judge_input_hash:
+            result["judge_input_hash"] = self.judge_input_hash
         return result
+
+
+def _canonicalize_for_hash(text: str) -> str:
+    """Canonicalize text for deterministic hashing (strip trailing whitespace, collapse blank lines)."""
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    lines = [line.rstrip() for line in lines]
+    canonical = "\n".join(lines)
+    canonical = re.sub(r"\n{3,}", "\n\n", canonical)
+    return canonical
+
+
+def _compute_judge_input_hash(context: str) -> str:
+    """Compute a short SHA256 hash of the canonicalized judge input context."""
+    canonical = _canonicalize_for_hash(context)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+
 
 class ClaimJudge:
     """LLM-powered claim judge that makes final verdicts based on verification signals"""
@@ -553,6 +574,9 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
             claim, verification_signals, evidence, article_context, rhetorical_analysis
         )
 
+        # Compute judge input hash for determinism tracking
+        judge_input_hash = _compute_judge_input_hash(context)
+
         # Get LLM judgment - try Google first, OpenAI as fallback
         try:
             judgment_data = None
@@ -660,6 +684,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 rhetorical_analysis=rhetorical_analysis,
                 uncertainty_reason=uncertainty_reason,
                 uncertainty_details=uncertainty_details,
+                judge_input_hash=judge_input_hash,
             )
 
             # Cache result
@@ -711,6 +736,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 rhetorical_analysis=rhetorical_analysis,
                 uncertainty_reason=fb_uncertainty_reason,
                 uncertainty_details=f"LLM judgment failed: {str(e)[:200]}",
+                judge_input_hash=judge_input_hash,
             )
 
     def _get_few_shot_examples(self) -> str:
@@ -1697,7 +1723,6 @@ Based on this analysis, provide your final judgment."""
             "evidence_urls": [ev.get("url", "")[:50] for ev in evidence[:3]]
         }
         content = json.dumps(key_data, sort_keys=True)
-        import hashlib
         return hashlib.md5(content.encode()).hexdigest()
     
     def _result_from_dict(self, data: Dict[str, Any]) -> JudgmentResult:
@@ -1712,6 +1737,7 @@ Based on this analysis, provide your final judgment."""
             current_verified_data=data.get("current_verified_data"),
             uncertainty_reason=data.get("uncertainty_reason"),
             uncertainty_details=data.get("uncertainty_details"),
+            judge_input_hash=data.get("judge_input_hash"),
         )
 
 class PipelineJudge:

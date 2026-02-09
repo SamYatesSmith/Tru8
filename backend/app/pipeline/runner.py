@@ -409,6 +409,7 @@ async def run_pipeline(
     frozen_evidence = input_data.get("frozen_evidence")  # Dict[claim_key_or_pos, List[Dict]]
     frozen_evidence_claim_texts = input_data.get("frozen_claim_texts") or {}
     _replay_temp_token = None
+    _replay_evidence_token = None
 
     if frozen_evidence:
         attached_count = 0
@@ -438,9 +439,10 @@ async def run_pipeline(
             claim["frozen_evidence"] = evidence_items
             attached_count += 1
 
-        # Request-scoped temperature override (concurrency-safe)
-        from app.pipeline.replay_context import frozen_replay_temperature
+        # Request-scoped overrides (concurrency-safe)
+        from app.pipeline.replay_context import frozen_replay_temperature, frozen_evidence_replay
         _replay_temp_token = frozen_replay_temperature.set(0.0)
+        _replay_evidence_token = frozen_evidence_replay.set(True)
 
         logger.info(f"[FROZEN EVIDENCE REPLAY] Attached to {attached_count}/{len(claims)} claims"
                      f"{f', {frozen_replay_mismatches} mismatches' if frozen_replay_mismatches else ''}")
@@ -522,79 +524,101 @@ async def run_pipeline(
     source_url = content.get("metadata", {}).get("url")
     retrieve_timeout = 180  # 180 seconds (3 min) for evidence retrieval - increased from 90s
 
-    # Track when retrieve actually starts
-    import time as _time
-    _retrieve_start = _time.time()
+    # V2 FROZEN EVIDENCE REPLAY: Build evidence dict directly from frozen data,
+    # bypassing retrieve entirely. The frozen evidence is already post-filtering
+    # (captured at judge_input stage), so no further processing is needed.
+    _v2_frozen_bypass = frozen_evidence and any(claim.get("frozen_evidence") for claim in claims)
 
-    # CRITICAL DIAGNOSTIC: Print to stdout to ensure visibility even if logging fails
-    print(f"\n{'#'*70}", flush=True)
-    print(f"[RETRIEVE STAGE] Starting for check {check_id} at {_retrieve_start:.2f}", flush=True)
-    print(f"[RETRIEVE STAGE] Claims to process: {len(claims)}", flush=True)
-    print(f"[RETRIEVE STAGE] Timeout set to: {retrieve_timeout}s", flush=True)
-
-    # Check search provider configuration
-    from app.services.search import SearchService
-    _diag_search = SearchService()
-    _diag_providers = [p.__class__.__name__ for p in _diag_search.providers]
-    print(f"[RETRIEVE STAGE] WEB SEARCH PROVIDERS: {_diag_providers if _diag_providers else '*** NONE CONFIGURED ***'}", flush=True)
-    if not _diag_providers:
-        print(f"[RETRIEVE STAGE] WARNING: Set BRAVE_API_KEY or SERP_API_KEY for web search!", flush=True)
-
-    # Check API adapter configuration
-    from app.services.government_api_client import get_api_registry
-    _diag_registry = get_api_registry()
-    _diag_adapters = [a.api_name for a in _diag_registry.get_all_adapters()]
-    print(f"[RETRIEVE STAGE] API ADAPTERS: {len(_diag_adapters)} configured - {_diag_adapters[:5]}{'...' if len(_diag_adapters) > 5 else ''}", flush=True)
-    print(f"{'#'*70}\n", flush=True)
-
-    logger.critical(f"[RETRIEVE STAGE] Starting for check {check_id} with {len(claims)} claims")
-
-    try:
-        logger.info(f"[INLINE PIPELINE] Starting evidence retrieval with {retrieve_timeout}s timeout")
-        # Use asyncio.wait_for directly instead of thread pool - simpler and more reliable
-        # Thread pool was causing issues with async httpx clients
-        retrieval_result = await asyncio.wait_for(
-            retrieve_evidence_with_cache(
-                claims,
-                cache_service,
-                factcheck_evidence,
-                source_url=source_url
-            ),
-            timeout=retrieve_timeout
-        )
-        _retrieve_elapsed = _time.time() - _retrieve_start
-        print(f"\n[RETRIEVE SUCCESS] Completed in {_retrieve_elapsed:.2f}s", flush=True)
-        logger.info(f"[INLINE PIPELINE] Evidence retrieval completed in {_retrieve_elapsed:.2f}s")
-    except asyncio.TimeoutError:
-        _retrieve_elapsed = _time.time() - _retrieve_start
-        print(f"\n[RETRIEVE TIMEOUT] Timed out after {_retrieve_elapsed:.2f}s (limit was {retrieve_timeout}s)", flush=True)
-        logger.warning(f"[INLINE PIPELINE] Evidence retrieval timed out after {_retrieve_elapsed:.2f}s (limit={retrieve_timeout}s), continuing with empty evidence")
-        retrieval_result = {"evidence_by_claim": {}, "raw_evidence": [], "raw_sources_count": 0}
-    except Exception as e:
-        logger.error(f"[INLINE PIPELINE] Evidence retrieval failed: {e}")
-        import traceback
-        logger.error(f"[INLINE PIPELINE] Full traceback: {traceback.format_exc()}")
-        if settings.ENVIRONMENT == "development":
-            retrieval_result = {"evidence_by_claim": {}, "raw_evidence": [], "raw_sources_count": 0}
-        else:
-            raise PipelineError(f"Evidence retrieval failed: {e}", stage="retrieve")
-
-    # Handle result format
-    if isinstance(retrieval_result, dict) and "evidence_by_claim" in retrieval_result:
-        evidence = retrieval_result["evidence_by_claim"]
-        raw_evidence_data = retrieval_result.get("raw_evidence", [])
-        raw_sources_count = retrieval_result.get("raw_sources_count", 0)
-    else:
-        evidence = retrieval_result if isinstance(retrieval_result, dict) else {}
+    if _v2_frozen_bypass:
+        evidence = {}
+        for claim in claims:
+            pos = str(claim.get("position", 0))
+            frozen_items = claim.get("frozen_evidence", [])
+            evidence[pos] = frozen_items  # Already post-filtering, use as-is
         raw_evidence_data = []
         raw_sources_count = 0
+        total_frozen = sum(len(ev) for ev in evidence.values())
+        logger.info(f"[FROZEN EVIDENCE REPLAY] Built evidence directly: {total_frozen} items for {len(evidence)} claims (retrieve bypassed)")
+        print(f"[FROZEN EVIDENCE REPLAY] Direct evidence injection: {total_frozen} items (retrieve bypassed)", flush=True)
+        stage_timings["retrieve"] = 0.0
+        if ledger:
+            ledger.record("retrieve", total=total_frozen,
+                           per_claim={pos: len(ev) for pos, ev in evidence.items()},
+                           mode="frozen_evidence_direct")
+    else:
+        # Track when retrieve actually starts
+        import time as _time
+        _retrieve_start = _time.time()
 
-    stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
+        # CRITICAL DIAGNOSTIC: Print to stdout to ensure visibility even if logging fails
+        print(f"\n{'#'*70}", flush=True)
+        print(f"[RETRIEVE STAGE] Starting for check {check_id} at {_retrieve_start:.2f}", flush=True)
+        print(f"[RETRIEVE STAGE] Claims to process: {len(claims)}", flush=True)
+        print(f"[RETRIEVE STAGE] Timeout set to: {retrieve_timeout}s", flush=True)
 
-    # Save pre-weighting evidence to ledger (for freeze capture)
-    pre_weighting_evidence = retrieval_result.get("pre_weighting_evidence", {}) if isinstance(retrieval_result, dict) else {}
-    if ledger and pre_weighting_evidence:
-        ledger.record("pre_weighting_evidence", evidence=pre_weighting_evidence)
+        # Check search provider configuration
+        from app.services.search import SearchService
+        _diag_search = SearchService()
+        _diag_providers = [p.__class__.__name__ for p in _diag_search.providers]
+        print(f"[RETRIEVE STAGE] WEB SEARCH PROVIDERS: {_diag_providers if _diag_providers else '*** NONE CONFIGURED ***'}", flush=True)
+        if not _diag_providers:
+            print(f"[RETRIEVE STAGE] WARNING: Set BRAVE_API_KEY or SERP_API_KEY for web search!", flush=True)
+
+        # Check API adapter configuration
+        from app.services.government_api_client import get_api_registry
+        _diag_registry = get_api_registry()
+        _diag_adapters = [a.api_name for a in _diag_registry.get_all_adapters()]
+        print(f"[RETRIEVE STAGE] API ADAPTERS: {len(_diag_adapters)} configured - {_diag_adapters[:5]}{'...' if len(_diag_adapters) > 5 else ''}", flush=True)
+        print(f"{'#'*70}\n", flush=True)
+
+        logger.critical(f"[RETRIEVE STAGE] Starting for check {check_id} with {len(claims)} claims")
+
+        try:
+            logger.info(f"[INLINE PIPELINE] Starting evidence retrieval with {retrieve_timeout}s timeout")
+            # Use asyncio.wait_for directly instead of thread pool - simpler and more reliable
+            # Thread pool was causing issues with async httpx clients
+            retrieval_result = await asyncio.wait_for(
+                retrieve_evidence_with_cache(
+                    claims,
+                    cache_service,
+                    factcheck_evidence,
+                    source_url=source_url
+                ),
+                timeout=retrieve_timeout
+            )
+            _retrieve_elapsed = _time.time() - _retrieve_start
+            print(f"\n[RETRIEVE SUCCESS] Completed in {_retrieve_elapsed:.2f}s", flush=True)
+            logger.info(f"[INLINE PIPELINE] Evidence retrieval completed in {_retrieve_elapsed:.2f}s")
+        except asyncio.TimeoutError:
+            _retrieve_elapsed = _time.time() - _retrieve_start
+            print(f"\n[RETRIEVE TIMEOUT] Timed out after {_retrieve_elapsed:.2f}s (limit was {retrieve_timeout}s)", flush=True)
+            logger.warning(f"[INLINE PIPELINE] Evidence retrieval timed out after {_retrieve_elapsed:.2f}s (limit={retrieve_timeout}s), continuing with empty evidence")
+            retrieval_result = {"evidence_by_claim": {}, "raw_evidence": [], "raw_sources_count": 0}
+        except Exception as e:
+            logger.error(f"[INLINE PIPELINE] Evidence retrieval failed: {e}")
+            import traceback
+            logger.error(f"[INLINE PIPELINE] Full traceback: {traceback.format_exc()}")
+            if settings.ENVIRONMENT == "development":
+                retrieval_result = {"evidence_by_claim": {}, "raw_evidence": [], "raw_sources_count": 0}
+            else:
+                raise PipelineError(f"Evidence retrieval failed: {e}", stage="retrieve")
+
+        # Handle result format
+        if isinstance(retrieval_result, dict) and "evidence_by_claim" in retrieval_result:
+            evidence = retrieval_result["evidence_by_claim"]
+            raw_evidence_data = retrieval_result.get("raw_evidence", [])
+            raw_sources_count = retrieval_result.get("raw_sources_count", 0)
+        else:
+            evidence = retrieval_result if isinstance(retrieval_result, dict) else {}
+            raw_evidence_data = []
+            raw_sources_count = 0
+
+        stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
+
+        # Save pre-weighting evidence to ledger (for freeze capture)
+        pre_weighting_evidence = retrieval_result.get("pre_weighting_evidence", {}) if isinstance(retrieval_result, dict) else {}
+        if ledger and pre_weighting_evidence:
+            ledger.record("pre_weighting_evidence", evidence=pre_weighting_evidence)
 
     # DIAGNOSTIC: Log evidence counts per claim to debug filtering
     total_evidence = sum(len(ev) for ev in evidence.values())
@@ -660,7 +684,15 @@ async def run_pipeline(
     # This prevents the same source being used to "prove" multiple claims,
     # which creates appearance of bias and reduces source diversity.
     # This runs BEFORE global domain capping so the capper works with clean data.
-    if evidence:
+    #
+    # V2 frozen evidence replay: skip Stages 3.6, 3.7, 3.8 entirely.
+    # Frozen evidence is already post-filtering (captured at judge_input stage).
+    from app.pipeline.replay_context import frozen_evidence_replay as _fer_var
+    _is_frozen_evidence_replay = _fer_var.get(False)
+
+    if _is_frozen_evidence_replay and evidence:
+        logger.info(f"[URL DEDUP] SKIPPED — V2 frozen evidence replay (deterministic bypass)")
+    elif evidence:
         stage_start = datetime.utcnow()
         try:
             # Flatten all evidence with claim tracking
@@ -729,7 +761,17 @@ async def run_pipeline(
     # IMPORTANT: This stage now REASSIGNS evidence to correct claims based on
     # what the LLM determines each evidence actually helps verify.
     # This runs BEFORE domain capping so capping operates on correctly-assigned evidence.
-    if settings.ENABLE_LLM_RELEVANCE_SCORER and evidence:
+    #
+    # SKIP during V2 frozen evidence replay: frozen evidence is already in
+    # correct claim buckets from the baseline run. Re-scoring would introduce
+    # LLM nondeterminism and break evidence determinism.
+    if _is_frozen_evidence_replay and evidence:
+        logger.info(f"[LLM SCORER] SKIPPED — V2 frozen evidence replay (deterministic bypass)")
+        if ledger:
+            count_frozen = sum(len(ev_list) for ev_list in evidence.values())
+            ledger.record("llm_scoring", in_count=count_frozen, out_count=count_frozen,
+                          note="skipped_frozen_replay")
+    elif settings.ENABLE_LLM_RELEVANCE_SCORER and evidence:
         stage_start = datetime.utcnow()
         count_before_scoring = sum(len(ev_list) for ev_list in evidence.values())
         try:
@@ -762,7 +804,12 @@ async def run_pipeline(
     # times (default 3) or GLOBAL_MAX_DOMAIN_RATIO of total evidence (default 15%).
     # This prevents bias where one source dominates the fact-check.
     # Runs AFTER LLM scoring so it operates on correctly-assigned evidence.
-    if settings.ENABLE_GLOBAL_DOMAIN_CAPPING and evidence:
+    #
+    # SKIP during V2 frozen evidence replay: frozen evidence is already
+    # post-capping (captured at judge_input stage).
+    if _is_frozen_evidence_replay and evidence:
+        logger.info(f"[GLOBAL CAP] SKIPPED — V2 frozen evidence replay (deterministic bypass)")
+    elif settings.ENABLE_GLOBAL_DOMAIN_CAPPING and evidence:
         stage_start = datetime.utcnow()
         try:
             from app.utils.domain_capping import DomainCapper
@@ -886,6 +933,10 @@ async def run_pipeline(
                        snippet_fallback_reasons=snippet_reasons,
                        title_only_items=title_only_count,
                        unknown_domain_items=unknown_domain_count)
+        # Record actual evidence dicts for V2 frozen replay (judge sees these exact items)
+        ledger.record("judge_input_evidence", evidence={
+            pos: [dict(ev) for ev in ev_list] for pos, ev_list in evidence.items()
+        })
 
     article_excerpt = content.get("content", "")[:5000]
     judge_timeout = min(15 * len(claims), 120)  # Same timeout as Celery
@@ -1024,11 +1075,13 @@ async def run_pipeline(
                 os.environ[env_key] = original_val
         logger.info("[FROZEN REPLAY] Restored original temperature settings")
 
-    # FROZEN EVIDENCE REPLAY: Reset context var temperature override
+    # FROZEN EVIDENCE REPLAY: Reset context var overrides
     if frozen_evidence and _replay_temp_token is not None:
-        from app.pipeline.replay_context import frozen_replay_temperature
+        from app.pipeline.replay_context import frozen_replay_temperature, frozen_evidence_replay
         frozen_replay_temperature.reset(_replay_temp_token)
-        logger.info("[FROZEN EVIDENCE REPLAY] Reset temperature override")
+        if _replay_evidence_token is not None:
+            frozen_evidence_replay.reset(_replay_evidence_token)
+        logger.info("[FROZEN EVIDENCE REPLAY] Reset replay overrides")
 
     logger.info(f"[INLINE PIPELINE] Completed in {processing_time_ms}ms for check {check_id}")
     return final_result
@@ -1200,7 +1253,8 @@ async def save_check_results_async(
                 current_verified_data=claim_data.get("current_verified_data"),
                 rhetorical_context=claim_data.get("rhetorical_analysis"),
                 has_rhetorical_context=claim_data.get("has_rhetorical_context", False),
-                rhetorical_style=claim_data.get("rhetorical_style")
+                rhetorical_style=claim_data.get("rhetorical_style"),
+                judge_input_hash=claim_data.get("judge_input_hash")
             )
             session.add(claim)
             await session.flush()

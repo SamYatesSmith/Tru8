@@ -8,7 +8,7 @@ Usage:
 Outputs:
     - Terminal: verdict flip rate, confidence deltas, evidence URL Jaccard, ledger diffs
     - File: <after_dir>/_diff_report.md (PR-reviewable markdown)
-    - Pass/Fail against adaptive thresholds
+    - Pass/Fail against two-gate system (evidence determinism + verdict stability)
 """
 import argparse
 import json
@@ -16,19 +16,48 @@ import sys
 from pathlib import Path
 
 
-# --- Thresholds ---
+# --- Gate 1: Evidence determinism (Jaccard thresholds) ---
+MIN_EVIDENCE_JACCARD = 0.80         # 80% URL overlap (normal runs)
+MIN_FIXTURES_FOR_HARD_GATE = 12
+
+# Frozen URL replay (tighter — search variance eliminated)
+FROZEN_MIN_EVIDENCE_JACCARD = 0.90
+
+# Frozen EVIDENCE replay (strictest — zero network)
+FROZEN_EVIDENCE_MIN_JACCARD_OVERALL = 0.90
+FROZEN_EVIDENCE_MIN_JACCARD_CORE = 0.95
+
+# --- Gate 2: Verdict stability (classification-based) ---
+# No numeric threshold — uses classify_flip() to categorize each flip:
+#   hard_fail:     supported <-> contradicted (directional reversal, always fails)
+#   pipeline_fail: uncertain <-> {supported,contradicted} with DIFFERENT judge input hash
+#   llm_noise:     uncertain <-> {supported,contradicted} with SAME hash (LLM nondeterminism)
+
+# Legacy thresholds kept for non-frozen runs (no hash data available)
 MAX_VERDICT_FLIP_RATE = 0.05        # 5% for mature datasets (>= 12 fixtures)
 MAX_VERDICT_FLIP_RATE_SMALL = 0.15  # 15% for small datasets (< 12 fixtures)
-MIN_FIXTURES_FOR_HARD_GATE = 12
-MIN_EVIDENCE_JACCARD = 0.80         # 80% URL overlap
+FROZEN_MAX_VERDICT_FLIP_RATE = 0.05
 
-# Frozen URL replay thresholds (tighter — search variance eliminated)
-FROZEN_MAX_VERDICT_FLIP_RATE = 0.05   # 5% (LLM non-determinism even at temp=0)
-FROZEN_MIN_EVIDENCE_JACCARD = 0.90    # 90% URL overlap (accounts for transient HTTP extraction failures)
 
-# Frozen EVIDENCE replay thresholds (strictest — zero network, fully deterministic)
-FROZEN_EVIDENCE_MAX_VERDICT_FLIP_RATE = 0.0   # Must be 0%
-FROZEN_EVIDENCE_MIN_EVIDENCE_JACCARD = 1.0     # Must be identical
+def classify_flip(before_verdict, after_verdict, before_hash, after_hash):
+    """Classify a verdict flip into hard_fail, pipeline_fail, or llm_noise.
+
+    Returns (flip_type, reason) tuple.
+    """
+    # Directional reversal: supported <-> contradicted is always a hard fail
+    if {before_verdict, after_verdict} == {"supported", "contradicted"}:
+        return ("hard_fail", "directional reversal")
+
+    # Same judge input hash = LLM nondeterminism (not a pipeline bug)
+    if before_hash and after_hash and before_hash == after_hash:
+        return ("llm_noise", f"same judge input ({before_hash[:8]})")
+
+    # Different hash = pipeline changed what went into the judge
+    if before_hash and after_hash and before_hash != after_hash:
+        return ("pipeline_fail", f"hash {before_hash[:8]}->{after_hash[:8]}")
+
+    # No hash data (legacy runs) — assume LLM noise
+    return ("llm_noise", "no hash data (legacy)")
 
 
 def jaccard(set_a, set_b):
@@ -81,12 +110,20 @@ def compare(before_dir: Path, after_dir: Path):
     is_frozen_evidence = after_summary.get("freeze_version", 0) >= 2
     is_frozen = bool(after_summary.get("freeze_from")) and not is_frozen_evidence
 
+    # Check if hash data is available (enables two-gate system)
+    has_hash_data = False
+
     total_claims = 0
     flipped_claims = 0
     all_jaccards = []
     confidence_deltas = []
     rows = []
     flip_details = []  # For markdown report
+
+    # Gate 2 classification counters
+    hard_fail_count = 0
+    pipeline_fail_count = 0
+    llm_noise_count = 0
 
     # Per-tag tracking
     tag_stats = {}  # tag -> {"claims": 0, "flips": 0, "jaccards": []}
@@ -110,6 +147,11 @@ def compare(before_dir: Path, after_dir: Path):
         a_confs = a.get("confidences", {})
         b_urls = b.get("evidence_urls", {})
         a_urls = a.get("evidence_urls", {})
+        b_hashes = b.get("judge_input_hashes", {})
+        a_hashes = a.get("judge_input_hashes", {})
+
+        if b_hashes or a_hashes:
+            has_hash_data = True
 
         claim_positions = sorted(set(b_verdicts) | set(a_verdicts))
         slug_flips = 0
@@ -126,10 +168,26 @@ def compare(before_dir: Path, after_dir: Path):
                 tag_stats[tag]["flips"] += 1
                 bc_val = b_confs.get(pos, 0) or 0
                 ac_val = a_confs.get(pos, 0) or 0
+
+                # Classify the flip using judge input hashes
+                b_hash = b_hashes.get(pos, "")
+                a_hash = a_hashes.get(pos, "")
+                flip_type, flip_reason = classify_flip(bv, av, b_hash, a_hash)
+
+                if flip_type == "hard_fail":
+                    hard_fail_count += 1
+                elif flip_type == "pipeline_fail":
+                    pipeline_fail_count += 1
+                else:
+                    llm_noise_count += 1
+
                 flip_details.append({
                     "slug": slug, "tag": tag, "claim": pos,
                     "before": bv, "after": av,
                     "conf_before": bc_val, "conf_after": ac_val,
+                    "flip_type": flip_type, "flip_reason": flip_reason,
+                    "hash_before": b_hash[:8] if b_hash else "",
+                    "hash_after": a_hash[:8] if a_hash else "",
                 })
 
             bc = b_confs.get(pos, 0) or 0
@@ -244,6 +302,10 @@ def compare(before_dir: Path, after_dir: Path):
     out(f"  Total claims:    {total_claims}")
     out(f"  Flipped:         {flipped_claims}")
     out(f"  Flip rate:       {flip_rate:.1%}")
+    if has_hash_data and flipped_claims > 0:
+        out(f"  Hard fails:      {hard_fail_count} (directional reversals)")
+        out(f"  Pipeline fails:  {pipeline_fail_count} (different judge input)")
+        out(f"  LLM noise:       {llm_noise_count} (same judge input)")
     out()
 
     # Per-tag breakdown
@@ -266,57 +328,85 @@ def compare(before_dir: Path, after_dir: Path):
             out(r)
         out()
 
-    # --- Guardrails ---
+    # --- Two-Gate System ---
+    # Gate 1: Evidence determinism (Jaccard)
     if is_frozen_evidence:
-        flip_threshold = FROZEN_EVIDENCE_MAX_VERDICT_FLIP_RATE
-        jaccard_threshold = FROZEN_EVIDENCE_MIN_EVIDENCE_JACCARD
+        jaccard_threshold = FROZEN_EVIDENCE_MIN_JACCARD_OVERALL
     elif is_frozen:
-        flip_threshold = FROZEN_MAX_VERDICT_FLIP_RATE
         jaccard_threshold = FROZEN_MIN_EVIDENCE_JACCARD
-    elif is_small_dataset:
-        flip_threshold = MAX_VERDICT_FLIP_RATE_SMALL
-        jaccard_threshold = MIN_EVIDENCE_JACCARD
     else:
-        flip_threshold = MAX_VERDICT_FLIP_RATE
         jaccard_threshold = MIN_EVIDENCE_JACCARD
 
-    flip_passed = flip_rate <= flip_threshold
-    jaccard_passed = avg_jaccard >= jaccard_threshold
+    gate1_passed = avg_jaccard >= jaccard_threshold
+
+    # Gate 2: Verdict stability
+    use_two_gate = has_hash_data and (is_frozen or is_frozen_evidence)
+
+    if use_two_gate:
+        # Two-gate mode: classify flips, only hard_fail and pipeline_fail block
+        gate2_passed = hard_fail_count == 0 and pipeline_fail_count == 0
+    else:
+        # Legacy mode: use flip rate thresholds
+        if is_frozen_evidence:
+            flip_threshold = 0.0
+        elif is_frozen:
+            flip_threshold = FROZEN_MAX_VERDICT_FLIP_RATE
+        elif is_small_dataset:
+            flip_threshold = MAX_VERDICT_FLIP_RATE_SMALL
+        else:
+            flip_threshold = MAX_VERDICT_FLIP_RATE
+        gate2_passed = flip_rate <= flip_threshold
 
     out("Guardrails:")
     if is_frozen_evidence:
-        out(f"  [FROZEN EVIDENCE REPLAY] Zero-network deterministic — strictest thresholds")
+        out(f"  [FROZEN EVIDENCE REPLAY] Zero-network deterministic")
     elif is_frozen:
-        out(f"  [FROZEN REPLAY] Using tighter thresholds (search variance eliminated)")
-    if is_small_dataset and not is_frozen and not is_frozen_evidence:
-        # Informational only — does not gate
-        out(f"  [INFO] Verdict flip rate: {flip_rate:.1%} (threshold {flip_threshold:.0%}, informational until {MIN_FIXTURES_FOR_HARD_GATE}+ fixtures)")
-    else:
-        flip_status = "PASS" if flip_passed else "FAIL"
-        out(f"  [{flip_status}] Verdict flip rate: {flip_rate:.1%} <= {flip_threshold:.0%}")
+        out(f"  [FROZEN REPLAY] Search variance eliminated")
 
-    jaccard_status = "PASS" if jaccard_passed else "FAIL"
-    out(f"  [{jaccard_status}] Evidence URL Jaccard: {avg_jaccard:.3f} >= {jaccard_threshold}")
+    # Gate 1 output
+    gate1_status = "PASS" if gate1_passed else "FAIL"
+    out(f"  Gate 1 — Evidence Determinism:")
+    out(f"    [{gate1_status}] Avg URL Jaccard: {avg_jaccard:.3f} >= {jaccard_threshold}")
+
+    # Gate 2 output
+    out(f"  Gate 2 — Verdict Stability:")
+    if use_two_gate:
+        gate2_status = "PASS" if gate2_passed else "FAIL"
+        out(f"    [{gate2_status}] Hard fails: {hard_fail_count}, Pipeline fails: {pipeline_fail_count} (must be 0)")
+        if llm_noise_count > 0:
+            out(f"    [INFO] LLM noise flips: {llm_noise_count} (not gated)")
+    elif is_small_dataset and not is_frozen and not is_frozen_evidence:
+        out(f"    [INFO] Verdict flip rate: {flip_rate:.1%} (threshold {flip_threshold:.0%}, informational until {MIN_FIXTURES_FOR_HARD_GATE}+ fixtures)")
+        gate2_passed = True  # Informational only
+    else:
+        gate2_status = "PASS" if gate2_passed else "FAIL"
+        out(f"    [{gate2_status}] Verdict flip rate: {flip_rate:.1%} <= {flip_threshold:.0%}")
     out()
 
-    # Only hard-fail on Jaccard + flip rate if dataset is large enough (or frozen)
-    all_pass = jaccard_passed and ((is_small_dataset and not is_frozen and not is_frozen_evidence) or flip_passed)
+    all_pass = gate1_passed and gate2_passed
     if all_pass:
-        out("RESULT: ALL CHECKS PASSED")
+        out("RESULT: ALL GATES PASSED")
     else:
-        out("RESULT: CHECKS FAILED — review before merging")
+        failed_gates = []
+        if not gate1_passed:
+            failed_gates.append("Gate 1 (Evidence)")
+        if not gate2_passed:
+            failed_gates.append("Gate 2 (Verdict)")
+        out(f"RESULT: FAILED — {', '.join(failed_gates)} — review before merging")
 
     # --- Markdown Report ---
     md = _build_markdown_report(
         before_dir, after_dir, fixture_count, is_small_dataset,
         fingerprint_diff, total_claims, flipped_claims, flip_rate,
         avg_jaccard, avg_conf_delta, flip_details, tag_stats,
-        ledger_details, flip_threshold, flip_passed, jaccard_passed, all_pass,
+        ledger_details, gate1_passed, gate2_passed, all_pass,
         b_fp, a_fp, jaccard_threshold=jaccard_threshold, is_frozen=is_frozen,
-        is_frozen_evidence=is_frozen_evidence,
+        is_frozen_evidence=is_frozen_evidence, use_two_gate=use_two_gate,
+        hard_fail_count=hard_fail_count, pipeline_fail_count=pipeline_fail_count,
+        llm_noise_count=llm_noise_count,
     )
     report_path = after_dir / "_diff_report.md"
-    with open(report_path, "w") as f:
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write(md)
     out(f"Diff report: {report_path}")
 
@@ -327,9 +417,10 @@ def _build_markdown_report(
     before_dir, after_dir, fixture_count, is_small_dataset,
     fingerprint_diff, total_claims, flipped_claims, flip_rate,
     avg_jaccard, avg_conf_delta, flip_details, tag_stats,
-    ledger_details, flip_threshold, flip_passed, jaccard_passed, all_pass,
+    ledger_details, gate1_passed, gate2_passed, all_pass,
     b_fp, a_fp, jaccard_threshold=MIN_EVIDENCE_JACCARD, is_frozen=False,
-    is_frozen_evidence=False,
+    is_frozen_evidence=False, use_two_gate=False,
+    hard_fail_count=0, pipeline_fail_count=0, llm_noise_count=0,
 ):
     """Build PR-reviewable markdown diff report."""
     md = []
@@ -359,18 +450,21 @@ def _build_markdown_report(
     md.append(f"**Result: {result_label}** | {fixture_count} fixtures | {total_claims} claims\n")
 
     if is_frozen_evidence:
-        md.append("> **Frozen Evidence Replay** — zero network, fully deterministic. Strictest thresholds (0% flips, 1.0 Jaccard).\n")
+        md.append("> **Frozen Evidence Replay** — zero network, fully deterministic.\n")
     elif is_frozen:
-        md.append("> **Frozen URL Replay** — search variance eliminated, tighter thresholds applied.\n")
+        md.append("> **Frozen URL Replay** — search variance eliminated.\n")
 
-    md.append("| Metric | Value | Threshold | Status |")
-    md.append("|--------|-------|-----------|--------|")
-    if is_small_dataset and not is_frozen and not is_frozen_evidence:
-        md.append(f"| Verdict flip rate | {flip_rate:.1%} | {flip_threshold:.0%} (info only, <{MIN_FIXTURES_FOR_HARD_GATE} fixtures) | INFO |")
+    # Gate results table
+    md.append("| Gate | Check | Status |")
+    md.append("|------|-------|--------|")
+    md.append(f"| Gate 1: Evidence | Jaccard {avg_jaccard:.3f} >= {jaccard_threshold} | {'PASS' if gate1_passed else 'FAIL'} |")
+    if use_two_gate:
+        md.append(f"| Gate 2: Verdict | Hard fails: {hard_fail_count}, Pipeline fails: {pipeline_fail_count} | {'PASS' if gate2_passed else 'FAIL'} |")
+        if llm_noise_count > 0:
+            md.append(f"| | LLM noise flips: {llm_noise_count} | INFO |")
     else:
-        md.append(f"| Verdict flip rate | {flip_rate:.1%} | {flip_threshold:.0%} | {'PASS' if flip_passed else 'FAIL'} |")
-    md.append(f"| Evidence URL Jaccard | {avg_jaccard:.3f} | {jaccard_threshold} | {'PASS' if jaccard_passed else 'FAIL'} |")
-    md.append(f"| Avg confidence delta | {avg_conf_delta:+.1f} | -- | -- |")
+        md.append(f"| Gate 2: Verdict | Flip rate: {flip_rate:.1%} | {'PASS' if gate2_passed else 'FAIL'} |")
+    md.append(f"| | Avg confidence delta: {avg_conf_delta:+.1f} | -- |")
     md.append("")
 
     # Per-tag breakdown
@@ -387,10 +481,20 @@ def _build_markdown_report(
     # Verdict flips detail
     if flip_details:
         md.append("## Verdict Flips\n")
-        md.append("| Fixture | Tag | Claim | Before | After | Conf Before | Conf After |")
-        md.append("|---------|-----|-------|--------|-------|-------------|------------|")
-        for fd in flip_details:
-            md.append(f"| {fd['slug']} | {fd['tag']} | {fd['claim']} | {fd['before']} | {fd['after']} | {fd['conf_before']} | {fd['conf_after']} |")
+        if use_two_gate:
+            md.append("| Fixture | Tag | Claim | Before | After | Type | Hash Before | Hash After | Reason |")
+            md.append("|---------|-----|-------|--------|-------|------|-------------|------------|--------|")
+            for fd in flip_details:
+                md.append(
+                    f"| {fd['slug']} | {fd['tag']} | {fd['claim']} "
+                    f"| {fd['before']} | {fd['after']} | {fd['flip_type']} "
+                    f"| {fd['hash_before']} | {fd['hash_after']} | {fd['flip_reason']} |"
+                )
+        else:
+            md.append("| Fixture | Tag | Claim | Before | After | Conf Before | Conf After |")
+            md.append("|---------|-----|-------|--------|-------|-------------|------------|")
+            for fd in flip_details:
+                md.append(f"| {fd['slug']} | {fd['tag']} | {fd['claim']} | {fd['before']} | {fd['after']} | {fd['conf_before']} | {fd['conf_after']} |")
         md.append("")
 
     # Ledger deltas

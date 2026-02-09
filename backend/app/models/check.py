@@ -177,6 +177,13 @@ class Claim(SQLModel, table=True):
         description="Primary rhetorical style detected (sarcasm, mockery, satire, joking, inflammatory, hyperbole)"
     )
 
+    # Judge input hash for determinism tracking (harness gate system)
+    judge_input_hash: Optional[str] = Field(
+        default=None,
+        max_length=16,
+        description="SHA256 hash of canonicalized judge input context (first 16 hex chars)"
+    )
+
     # Relationships
     check: Check = Relationship(back_populates="claims")
     evidence: List["Evidence"] = Relationship(back_populates="claim")
