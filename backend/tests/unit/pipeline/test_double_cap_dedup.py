@@ -311,15 +311,14 @@ class TestLLMScorerUrlGate:
 class TestConfigDefaults:
     """Verify config flags default to backward-compatible values."""
 
-    def test_default_per_claim_capping_enabled(self):
-        """Default: ENABLE_PER_CLAIM_DOMAIN_CAPPING=True (old behavior)."""
+    def test_default_per_claim_capping_disabled(self):
+        """Default: ENABLE_PER_CLAIM_DOMAIN_CAPPING=False (global cap only)."""
         from app.core.config import Settings
-        # Check the Field default
         field = Settings.model_fields['ENABLE_PER_CLAIM_DOMAIN_CAPPING']
-        assert field.default is True
+        assert field.default is False
 
     def test_default_max_claims_per_url(self):
-        """Default: MAX_CLAIMS_PER_URL=1 (old one-URL-one-claim behavior)."""
+        """Default: MAX_CLAIMS_PER_URL=2 (URL can support 2 related claims)."""
         from app.core.config import Settings
         field = Settings.model_fields['MAX_CLAIMS_PER_URL']
-        assert field.default == 1
+        assert field.default == 2

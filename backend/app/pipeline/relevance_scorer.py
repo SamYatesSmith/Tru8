@@ -7,7 +7,8 @@ Understands whether evidence actually helps verify claims, not just topical over
 Architecture:
 - ONE API call for all claims + all evidence (efficient batching)
 - Returns evidence items with llm_relevance_score (1-5)
-- Filters to score >= 4 (configurable via LLM_RELEVANCE_MIN_SCORE)
+- Filters to score >= LLM_RELEVANCE_MIN_SCORE (default 3)
+- Fair round-robin selection ensures all claims get evidence evaluated under MAX cap
 """
 import json
 import logging
@@ -145,6 +146,106 @@ def _generate_cache_key(claims: List[str], evidence_urls: List[str]) -> str:
     """Generate a cache key from claims and evidence URLs."""
     content = json.dumps({"claims": claims, "urls": sorted(evidence_urls)}, sort_keys=True)
     return f"relevance:{hashlib.md5(content.encode()).hexdigest()}"
+
+
+def _fair_select_evidence(
+    all_evidence: List[Dict[str, Any]],
+    evidence_positions: List[tuple],
+    max_evidence: int,
+    evidence_by_claim: Dict[str, List[Dict[str, Any]]]
+) -> tuple:
+    """
+    Fair round-robin selection of evidence items under the MAX cap.
+
+    Instead of sequential truncation (which starves late-position claims),
+    allocates slots evenly across claims, then fills remainder by claim size.
+
+    Args:
+        all_evidence: Flattened list of all evidence items
+        evidence_positions: List of (claim_pos, index_in_claim) tuples
+        max_evidence: Maximum items to send to LLM
+        evidence_by_claim: Original evidence dict (claim_pos -> list)
+
+    Returns:
+        (selected_evidence, selected_positions, selected_indices_set)
+        - selected_evidence: List of evidence items to score
+        - selected_positions: Corresponding (claim_pos, idx) tuples
+        - selected_indices_set: Set of flat indices that were selected
+    """
+    if len(all_evidence) <= max_evidence:
+        return all_evidence, evidence_positions, set(range(len(all_evidence)))
+
+    # Build per-claim index lists from the flat array
+    claim_indices = {}  # claim_pos -> [flat_idx, ...]
+    for flat_idx, (claim_pos, _) in enumerate(evidence_positions):
+        if claim_pos not in claim_indices:
+            claim_indices[claim_pos] = []
+        claim_indices[claim_pos].append(flat_idx)
+
+    num_claims = len(claim_indices)
+
+    # Two-pass allocation: first pass distributes evenly, second pass redistributes unused slots
+    # Sort claims by evidence count descending — larger claims absorb leftover slots
+    sorted_claims = sorted(claim_indices.keys(), key=lambda cp: len(claim_indices[cp]), reverse=True)
+
+    # Pass 1: allocate base slots evenly
+    base_per_claim = max_evidence // num_claims
+    remainder = max_evidence - (base_per_claim * num_claims)
+
+    claim_slots = {}
+    for i, claim_pos in enumerate(sorted_claims):
+        claim_slots[claim_pos] = base_per_claim + (1 if i < remainder else 0)
+
+    # Pass 2: redistribute unused slots (when a claim has fewer items than allocated)
+    redistributed = True
+    while redistributed:
+        redistributed = False
+        surplus = 0
+        for cp in sorted_claims:
+            available = len(claim_indices[cp])
+            if claim_slots[cp] > available:
+                surplus += claim_slots[cp] - available
+                claim_slots[cp] = available
+                redistributed = True
+        if surplus > 0:
+            # Give surplus to claims that still have unused evidence
+            for cp in sorted_claims:
+                if surplus <= 0:
+                    break
+                available = len(claim_indices[cp])
+                can_take = available - claim_slots[cp]
+                if can_take > 0:
+                    give = min(can_take, surplus)
+                    claim_slots[cp] += give
+                    surplus -= give
+
+    selected_indices = set()
+    for claim_pos in sorted_claims:
+        indices = claim_indices[claim_pos]
+        for idx in indices[:claim_slots[claim_pos]]:
+            selected_indices.add(idx)
+
+    # Build output in original flat order (preserves evidence_index alignment)
+    selected_evidence = []
+    selected_positions = []
+    for flat_idx in sorted(selected_indices):
+        selected_evidence.append(all_evidence[flat_idx])
+        selected_positions.append(evidence_positions[flat_idx])
+
+    logger.info(
+        f"[LLM SCORER] Fair selection: {len(all_evidence)} total → {len(selected_evidence)} selected "
+        f"(cap={max_evidence}, {num_claims} claims, ~{base_per_claim}/claim)"
+    )
+
+    # Log per-claim selection stats
+    for claim_pos in sorted(claim_indices.keys(), key=lambda x: int(x) if x.isdigit() else 999):
+        total = len(claim_indices[claim_pos])
+        sent = sum(1 for idx in claim_indices[claim_pos] if idx in selected_indices)
+        skipped = total - sent
+        if skipped > 0:
+            logger.info(f"[LLM SCORER] Claim {claim_pos}: {sent}/{total} selected ({skipped} truncated)")
+
+    return selected_evidence, selected_positions, selected_indices
 
 
 async def _score_with_google(
@@ -431,8 +532,14 @@ async def score_evidence_batch(
 
     logger.info(f"[LLM SCORER] Scoring {len(all_evidence)} evidence items for {len(claims)} claims")
 
+    # Fair selection: round-robin across claims instead of sequential truncation
+    max_evidence = getattr(settings, 'LLM_RELEVANCE_MAX_EVIDENCE', 50)
+    selected_evidence, selected_positions, selected_indices = _fair_select_evidence(
+        all_evidence, evidence_positions, max_evidence, evidence
+    )
+
     # Check cache first
-    evidence_urls = [ev.get('url', '') for ev in all_evidence]
+    evidence_urls = [ev.get('url', '') for ev in selected_evidence]
     cache_key = _generate_cache_key(claims, evidence_urls)
 
     cached_scores = await _get_cached_relevance_scores(cache_key)
@@ -445,7 +552,7 @@ async def score_evidence_batch(
 
         # Primary: Google Gemini
         try:
-            scores = await _score_with_google(claims, all_evidence, article_context)
+            scores = await _score_with_google(claims, selected_evidence, article_context)
             if scores:
                 logger.info(f"[LLM SCORER] Scored with Google Gemini ({len(scores)} items)")
                 await _cache_relevance_scores(cache_key, scores)
@@ -456,7 +563,7 @@ async def score_evidence_batch(
         if not scores:
             try:
                 logger.info("[LLM SCORER] Attempting OpenAI scoring as fallback")
-                scores = await _score_with_llm(claims, all_evidence, article_context)
+                scores = await _score_with_llm(claims, selected_evidence, article_context)
                 if scores:
                     logger.info(f"[LLM SCORER] Scored with OpenAI fallback ({len(scores)} items)")
                     await _cache_relevance_scores(cache_key, scores)
@@ -468,62 +575,81 @@ async def score_evidence_batch(
         logger.warning("[LLM SCORER] No scores returned, passing through unscored")
         return evidence
 
-    # Create a lookup for scores by evidence index
+    # Build a mapping from selected_evidence index -> score data
+    # LLM returns evidence_index based on the selected_evidence ordering (0..len-1)
     score_lookup = {}
     for score_item in scores:
         idx = score_item.get('evidence_index')
         if idx is not None:
             score_lookup[idx] = score_item
 
+    # Map selected indices back to flat indices for score application
+    # selected_evidence[i] corresponds to all_evidence[sorted(selected_indices)[i]]
+    selected_flat_indices = sorted(selected_indices)
+    selected_to_flat = {sel_idx: flat_idx for sel_idx, flat_idx in enumerate(selected_flat_indices)}
+
+    # Build flat_idx -> score_data lookup
+    flat_score_lookup = {}
+    for sel_idx, score_data in score_lookup.items():
+        if sel_idx in selected_to_flat:
+            flat_score_lookup[selected_to_flat[sel_idx]] = score_data
+
     # Apply scores to evidence items and filter
-    min_score = getattr(settings, 'LLM_RELEVANCE_MIN_SCORE', 4)
+    min_score = getattr(settings, 'LLM_RELEVANCE_MIN_SCORE', 3)
 
     # Rebuild evidence dict with scored and filtered items
     filtered_evidence = {pos: [] for pos in evidence.keys()}
     kept_count = 0
     filtered_count = 0
+    unscored_count = 0
 
     # Track how many claims each URL has been assigned to GLOBALLY
-    # Allows up to MAX_CLAIMS_PER_URL assignments (default 1 = old behavior)
     max_claims_per_url = getattr(settings, 'MAX_CLAIMS_PER_URL', 1)
     assigned_url_counts = {}  # url -> int (number of claims assigned to)
 
     for flat_idx, ev in enumerate(all_evidence):
-        score_data = score_lookup.get(flat_idx, {})
-        llm_score = score_data.get('score', 0)
-        llm_rationale = score_data.get('rationale', '')
-        relevant_claims = score_data.get('relevant_claims', [])
+        score_data = flat_score_lookup.get(flat_idx)
+
+        if score_data is not None:
+            # Item was sent to LLM and got a score
+            llm_score = score_data.get('score', None)
+            llm_rationale = score_data.get('rationale', '')
+            relevant_claims = score_data.get('relevant_claims', [])
+        elif flat_idx in selected_indices:
+            # Item was sent to LLM but LLM didn't return a score for it
+            llm_score = None
+            llm_rationale = 'LLM did not return score for this item'
+            relevant_claims = []
+        else:
+            # Item was NOT sent to LLM (truncated by fair selection)
+            llm_score = None
+            llm_rationale = 'Not evaluated (exceeded MAX_EVIDENCE cap)'
+            relevant_claims = []
 
         # Add LLM relevance data to evidence item
         ev['llm_relevance_score'] = llm_score
         ev['llm_relevance_rationale'] = llm_rationale
         ev['llm_relevant_claims'] = relevant_claims
 
-        # Get original claim position (as integer for comparison with relevant_claims)
+        # Get original claim position
         original_claim_pos, _ = evidence_positions[flat_idx]
         original_claim_idx = int(original_claim_pos) if original_claim_pos.isdigit() else -1
         ev_url = ev.get('url', '')
 
-        if llm_score >= min_score:
+        if llm_score is not None and llm_score >= min_score:
             # SINGLE-CLAIM ASSIGNMENT: Each evidence goes to ONE claim only (best match)
-            # This prevents the same article appearing for multiple claims.
-            # Priority: original claim if it's in relevant_claims, else first relevant claim
-
             target_claim = None
 
             if len(relevant_claims) > 0:
-                # Check if original claim is in the relevant list - prefer it for stability
                 if original_claim_idx in relevant_claims:
                     target_claim = original_claim_pos
                 else:
-                    # Use the first claim in relevant_claims that exists
                     for claim_idx in relevant_claims:
                         claim_pos_str = str(claim_idx)
                         if claim_pos_str in filtered_evidence:
                             target_claim = claim_pos_str
                             break
             else:
-                # LLM didn't specify - keep in original claim
                 target_claim = original_claim_pos
 
             # Assign to target claim ONLY if URL hasn't exceeded MAX_CLAIMS_PER_URL
@@ -539,10 +665,11 @@ async def score_evidence_batch(
                 assigned_url_counts[ev_url] = assigned_url_counts.get(ev_url, 0) + 1
                 kept_count += 1
             elif target_claim and assigned_url_counts.get(ev_url, 0) >= max_claims_per_url:
-                # URL already assigned to max claims - skip this duplicate
                 logger.debug(
                     f"[LLM SCORER] SKIPPED URL (assigned to {assigned_url_counts.get(ev_url, 0)} claims, max={max_claims_per_url}): {ev.get('title', 'Unknown')[:50]}..."
                 )
+        elif llm_score is None:
+            unscored_count += 1
         else:
             filtered_count += 1
             if llm_score > 0:
@@ -552,82 +679,97 @@ async def score_evidence_batch(
                 )
 
     logger.info(
-        f"[LLM SCORER] Complete: kept {kept_count}, filtered {filtered_count}, "
+        f"[LLM SCORER] Complete: kept {kept_count}, filtered {filtered_count}, unscored {unscored_count}, "
         f"globally assigned URLs: {len(assigned_url_counts)} (max {max_claims_per_url} claims/URL) "
         f"(threshold={min_score})"
     )
 
-    # Log per-claim summary to verify diversity
+    # Log per-claim summary
     for cp, ev_list in filtered_evidence.items():
-        urls = [e.get('url', '')[:60] for e in ev_list]
         logger.info(f"[LLM SCORER] Claim {cp}: {len(ev_list)} evidence items")
 
-    # Per-claim fallback: ensure no claim ends up with 0 evidence if we had REASONABLE evidence
-    # CRITICAL: Only use fallback if evidence scored at least 3 (somewhat relevant)
-    # Scores 1-2 = off-topic garbage (e.g., "CIA PROPAGANDA GUIDELINES" for EU censorship claim)
-    # It's better to show "insufficient evidence" than completely irrelevant garbage
-    FALLBACK_MIN_SCORE = 3  # Must be at least "somewhat relevant"
+    # Per-claim fallback: rescue claims with 0 evidence
+    # Considers both scored-but-reasonable items AND unscored items (which may be relevant
+    # but were never evaluated due to MAX_EVIDENCE cap or LLM response gaps)
+    FALLBACK_MIN_SCORE = 3  # Must be at least "somewhat relevant" for scored items
 
     for claim_pos, ev_list in evidence.items():
         if len(filtered_evidence[claim_pos]) == 0 and len(ev_list) > 0:
-            # Sort by score
-            sorted_ev = sorted(
-                ev_list,
-                key=lambda x: x.get('llm_relevance_score', 0),
-                reverse=True
-            )
-            # Only keep fallback evidence that:
-            # 1. Scored >= 3 (somewhat relevant)
-            # 2. Not already at MAX_CLAIMS_PER_URL assignments
-            reasonable_fallback = [
-                e for e in sorted_ev
-                if e.get('llm_relevance_score', 0) >= FALLBACK_MIN_SCORE
-                and assigned_url_counts.get(e.get('url', ''), 0) < max_claims_per_url
-            ]
+            # Separate scored and unscored items
+            scored_reasonable = []
+            unscored_items = []
+            for e in ev_list:
+                score = e.get('llm_relevance_score')
+                url = e.get('url', '')
+                url_available = assigned_url_counts.get(url, 0) < max_claims_per_url
+                if not url_available:
+                    continue
+                if score is None:
+                    unscored_items.append(e)
+                elif score >= FALLBACK_MIN_SCORE:
+                    scored_reasonable.append(e)
 
-            if reasonable_fallback:
-                fallback_to_add = reasonable_fallback[:2]
+            # Priority: scored items first (we know they're relevant), then unscored
+            # Sort scored by score desc, unscored by final_score desc (best available signal)
+            scored_reasonable.sort(key=lambda x: x.get('llm_relevance_score', 0), reverse=True)
+            unscored_items.sort(key=lambda x: x.get('final_score', 0), reverse=True)
+            rescue_pool = scored_reasonable + unscored_items
+
+            if rescue_pool:
+                fallback_to_add = rescue_pool[:2]
                 filtered_evidence[claim_pos] = fallback_to_add
-                # Track these URLs globally
                 for fb_ev in fallback_to_add:
                     fb_url = fb_ev.get('url', '')
                     assigned_url_counts[fb_url] = assigned_url_counts.get(fb_url, 0) + 1
+                score_info = [e.get('llm_relevance_score') for e in fallback_to_add]
                 logger.warning(
                     f"[LLM SCORER] Claim {claim_pos} using fallback evidence "
-                    f"(scores: {[e.get('llm_relevance_score', 0) for e in fallback_to_add]})"
+                    f"(scores: {score_info})"
                 )
             else:
-                # ALL evidence either scored < 3 OR already used by another claim
+                scored_items = [e for e in ev_list if e.get('llm_relevance_score') is not None]
+                top_scores = sorted(
+                    [e.get('llm_relevance_score', 0) for e in scored_items],
+                    reverse=True
+                )[:3] if scored_items else []
+                unscored_n = sum(1 for e in ev_list if e.get('llm_relevance_score') is None)
                 logger.warning(
                     f"[LLM SCORER] Claim {claim_pos} has NO relevant evidence - "
-                    f"all {len(ev_list)} items either scored below {FALLBACK_MIN_SCORE} or already assigned "
-                    f"(top scores: {[e.get('llm_relevance_score', 0) for e in sorted_ev[:3]]})"
+                    f"{len(scored_items)} scored (top: {top_scores}), {unscored_n} unscored, "
+                    f"all either below {FALLBACK_MIN_SCORE} or URL already assigned"
                 )
 
-    # Global fallback: if ALL claims have 0 evidence, only keep items that scored >= 3
-    # and haven't been used elsewhere
+    # Global fallback: if ALL claims have 0 evidence
     total_kept = sum(len(v) for v in filtered_evidence.values())
     if total_kept == 0 and all_evidence:
         logger.warning("[LLM SCORER] All evidence filtered globally, checking for reasonable fallback")
         any_reasonable = False
         for claim_pos, ev_list in evidence.items():
-            sorted_ev = sorted(
-                ev_list,
-                key=lambda x: x.get('llm_relevance_score', 0),
+            # Combine scored-reasonable and unscored items
+            rescue_pool = []
+            for e in ev_list:
+                score = e.get('llm_relevance_score')
+                url = e.get('url', '')
+                url_available = assigned_url_counts.get(url, 0) < max_claims_per_url
+                if not url_available:
+                    continue
+                if score is None or score >= FALLBACK_MIN_SCORE:
+                    rescue_pool.append(e)
+            # Sort: scored items by score desc, then unscored by final_score desc
+            rescue_pool.sort(
+                key=lambda x: (
+                    0 if x.get('llm_relevance_score') is None else 1,
+                    x.get('llm_relevance_score') or 0,
+                    x.get('final_score', 0)
+                ),
                 reverse=True
             )
-            # Only keep if scored >= 3 AND not already assigned
-            reasonable = [
-                e for e in sorted_ev
-                if e.get('llm_relevance_score', 0) >= FALLBACK_MIN_SCORE
-                and e.get('url', '') not in assigned_urls_globally
-            ]
-            if reasonable:
-                fallback_to_add = reasonable[:2]
+            if rescue_pool:
+                fallback_to_add = rescue_pool[:2]
                 filtered_evidence[claim_pos] = fallback_to_add
-                # Track globally
                 for fb_ev in fallback_to_add:
-                    assigned_urls_globally.add(fb_ev.get('url', ''))
+                    fb_url = fb_ev.get('url', '')
+                    assigned_url_counts[fb_url] = assigned_url_counts.get(fb_url, 0) + 1
                 any_reasonable = True
 
         if not any_reasonable:

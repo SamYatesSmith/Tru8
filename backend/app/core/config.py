@@ -195,15 +195,15 @@ class Settings(BaseSettings):
     # Tightened from 5/25% to 3/15% to prevent single-source dominance (e.g., NYTimes appearing 5x)
     ENABLE_GLOBAL_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_GLOBAL_DOMAIN_CAPPING")
     GLOBAL_MAX_PER_DOMAIN: int = Field(3, env="GLOBAL_MAX_PER_DOMAIN")  # Max sources from any domain across ALL claims
-    GLOBAL_MAX_DOMAIN_RATIO: float = Field(0.15, env="GLOBAL_MAX_DOMAIN_RATIO")  # Max 15% from any single domain
+    GLOBAL_MAX_DOMAIN_RATIO: float = Field(0.20, env="GLOBAL_MAX_DOMAIN_RATIO")  # Max 20% from any single domain
 
     # Per-claim domain capping (True = current behavior; set False via env to remove double-cap)
     # When False, only global domain cap applies — per-claim DomainCapper.apply_caps() is skipped
-    ENABLE_PER_CLAIM_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_PER_CLAIM_DOMAIN_CAPPING")
+    ENABLE_PER_CLAIM_DOMAIN_CAPPING: bool = Field(False, env="ENABLE_PER_CLAIM_DOMAIN_CAPPING")
 
     # Max claims a single URL can appear in during cross-claim dedup (1 = current behavior)
     # Setting to 2 allows a URL to legitimately support 2 related claims
-    MAX_CLAIMS_PER_URL: int = Field(1, env="MAX_CLAIMS_PER_URL")
+    MAX_CLAIMS_PER_URL: int = Field(2, env="MAX_CLAIMS_PER_URL")
 
     # Abstention Thresholds (Phase 3)
     # Lowered from 0.70 -> 0.60 and 0.65 -> 0.50 to reduce fence-sitting
