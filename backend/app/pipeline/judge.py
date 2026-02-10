@@ -87,6 +87,30 @@ def calculate_max_display_items(total_claims: int) -> int:
         return 3   # Standard for articles with many claims
 
 
+def _select_judge_evidence(evidence: List[Dict[str, Any]], max_items: int = 5,
+                           max_snippet_only: int = 2) -> List[Dict[str, Any]]:
+    """Select evidence for judge LLM context, preferring extracted over snippet-only.
+
+    Extracted items fill first (preserving original order), then snippet-only
+    items up to max_snippet_only.  When ALL evidence is snippet-only the cap
+    is lifted so the judge still gets something to work with.
+    """
+    def _is_snippet(ev):
+        meta = ev.get("metadata") or {}
+        return bool(ev.get("is_snippet_fallback") or meta.get("is_snippet_fallback"))
+
+    extracted = [e for e in evidence if not _is_snippet(e)]
+    snippet_only = [e for e in evidence if _is_snippet(e)]
+
+    if not extracted:
+        # All snippet-only — no cap, pass through
+        return snippet_only[:max_items]
+
+    snippet_slots = min(max_snippet_only, max_items - len(extracted[:max_items]))
+    selected = extracted[:max_items] + snippet_only[:snippet_slots]
+    return selected[:max_items]
+
+
 def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3) -> List[Dict[str, Any]]:
     """
     Select most relevant evidence for display.
@@ -959,7 +983,11 @@ NOW JUDGE THE FOLLOWING CLAIM:
         stale_evidence_warnings = []
         snippet_only_count = 0
 
-        for i, ev in enumerate(evidence[:5]):  # Top 5 pieces
+        max_snippet_for_judge = getattr(settings, 'MAX_SNIPPET_EVIDENCE_FOR_JUDGE', 2)
+        judge_evidence = _select_judge_evidence(evidence, max_items=5,
+                                                max_snippet_only=max_snippet_for_judge)
+
+        for i, ev in enumerate(judge_evidence):
             source = ev.get("source", "Unknown")
             # Use configurable snippet length (increased from 150 to 400 to preserve context)
             snippet = ev.get("snippet", ev.get("text", ""))[:settings.EVIDENCE_SNIPPET_LENGTH]
@@ -1106,7 +1134,7 @@ YOU MUST do the date arithmetic yourself:
         stale_warning = ""
         if stale_evidence_count > 0:
             stale_warning = f"""
-🚨 STALE EVIDENCE WARNING - {stale_evidence_count} of {len(evidence[:5])} pieces are outdated! 🚨
+🚨 STALE EVIDENCE WARNING - {stale_evidence_count} of {evidence_shown_count} pieces are outdated! 🚨
 {chr(10).join(stale_evidence_warnings)}
 
 IMPORTANT: Stale evidence may no longer reflect current reality, especially for:
@@ -1122,7 +1150,15 @@ reduce confidence significantly if relying on outdated sources.
         # Add snippet-only evidence warning
         snippet_only_warning = ""
         evidence_shown_count = len(evidence_summary)
-        if snippet_only_count > 0:
+        if snippet_only_count > 0 and snippet_only_count == evidence_shown_count:
+            snippet_only_warning = f"""
+\U0001f7e1 SNIPPET-ONLY EVIDENCE WARNING — ALL EVIDENCE IS SNIPPET-ONLY
+All {evidence_shown_count} evidence items are search snippets (full pages unavailable).
+These snippets are brief summaries, NOT full article extracts.
+Reduce verdict confidence significantly — treat as preliminary/weak evidence only.
+
+"""
+        elif snippet_only_count > 0:
             snippet_only_warning = f"""
 \U0001f7e1 SNIPPET-ONLY EVIDENCE WARNING
 {snippet_only_count} of {evidence_shown_count} evidence items are snippets (full page unavailable).

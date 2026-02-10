@@ -175,6 +175,10 @@ class Settings(BaseSettings):
     ENABLE_EVIDENCE_RELEVANCE_FILTER: bool = Field(False, env="ENABLE_EVIDENCE_RELEVANCE_FILTER")  # Filter low-relevance evidence
     RELEVANCE_THRESHOLD: float = Field(0.65, env="RELEVANCE_THRESHOLD")  # Minimum relevance score (0-1)
 
+    # Snippet-only evidence cap for judge context (PR 2-D)
+    # When extracted evidence exists, at most this many snippet-only items in judge's top 5
+    MAX_SNIPPET_EVIDENCE_FOR_JUDGE: int = Field(2, env="MAX_SNIPPET_EVIDENCE_FOR_JUDGE")
+
     # Semantic Similarity Filtering (Retrieve Stage)
     # Filters out irrelevant evidence BEFORE it reaches the judge
     # Prevents generic landing pages (e.g., "how to fact check" guides) from being used as evidence
