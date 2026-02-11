@@ -93,5 +93,20 @@ media/
 *.crt
 *.pfx
 secrets/
-credentials/nul
-backend/MODULE_RELOADED.txt
+credentials/
+
+# Runtime output
+backend/logs/
+backend/data/ledger/
+nul
+
+# Harness artifacts
+backend/harness/runs/*/
+backend/harness/clerk_*.json
+backend/harness/jwt_token.txt
+
+# Generated output
+backend/tests/coverage.json
+
+# Audit output
+audit/
