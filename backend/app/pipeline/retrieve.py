@@ -46,7 +46,7 @@ class EvidenceRetriever:
     def __init__(self):
         self.search_service = SearchService()
         self.evidence_extractor = EvidenceExtractor()
-        self.max_sources_per_claim = 10
+        self.max_sources_per_claim = 20
         self.max_concurrent_claims = 3
 
         # Phase 5: Government API Integration
@@ -1150,306 +1150,126 @@ class EvidenceRetriever:
         claim: Dict[str, Any] = None,
         track_raw_evidence: bool = False
     ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]] | List[Dict[str, Any]]:
-        """Apply credibility and recency weighting to evidence.
+        """Apply credibility scoring and minimal filtering to evidence.
+
+        Three stages:
+        1. Credibility scoring — annotate each item with quality metadata
+        2. Auto-exclude — remove blacklisted sources (satire, social media)
+        3. Content dedup — remove identical/syndicated content
+        Plus corroboration boost (annotation, not a filter).
 
         Args:
-            evidence_list: List of evidence items to filter
-            claim: Claim dict for context-aware filtering
+            evidence_list: List of evidence items
+            claim: Claim dict for context-aware scoring
             track_raw_evidence: If True, returns tuple (filtered, raw_evidence_metadata)
 
         Returns:
-            If track_raw_evidence=False: List of filtered evidence (backward compatible)
+            If track_raw_evidence=False: List of filtered evidence
             If track_raw_evidence=True: Tuple of (filtered_evidence, raw_evidence_metadata)
         """
         try:
             from app.core.config import settings
-            import copy
 
-            # Store original count for safety check
             original_evidence_count = len(evidence_list)
 
-            # RAW EVIDENCE TRACKING: Create deep copy of all evidence before filtering
+            # --- RAW EVIDENCE TRACKING: snapshot before any filtering ---
             raw_evidence_tracking = []
             if track_raw_evidence:
                 for ev in evidence_list:
-                    raw_item = {
+                    raw_evidence_tracking.append({
                         "source": ev.get("source", ""),
                         "url": ev.get("url", ""),
                         "title": ev.get("title", ""),
                         "snippet": ev.get("snippet", ""),
                         "published_date": ev.get("published_date"),
-                        "is_included": True,  # Starts as included, may be filtered
+                        "is_included": True,
                         "filter_stage": None,
                         "filter_reason": None,
                         "tier": None,
                         "is_factcheck": ev.get("is_factcheck", False),
                         "external_source_provider": ev.get("external_source_provider"),
                         "relevance_score": ev.get("combined_score", 0.0),
-                        "credibility_score": 0.6,  # Will be updated
-                    }
-                    raw_evidence_tracking.append(raw_item)
-
-            # Create URL -> raw_item lookup for efficient updates
+                        "credibility_score": 0.6,
+                    })
             url_to_raw = {item["url"]: item for item in raw_evidence_tracking} if track_raw_evidence else {}
 
-            # Phase 6: Extract story jurisdiction for geographic boosting
+            # --- STAGE 1: Credibility + recency scoring (annotation only) ---
             story_jurisdiction = None
             if claim:
                 article_classification = claim.get("article_classification", {})
                 if article_classification:
                     story_jurisdiction = article_classification.get("jurisdiction")
-                    if story_jurisdiction and story_jurisdiction != "Global":
-                        logger.debug(f"[JURISDICTION] Using story jurisdiction: {story_jurisdiction}")
 
             for evidence in evidence_list:
                 source = evidence.get("source", "").lower()
                 url = evidence.get("url", "")
-
-                # Determine credibility tier (Phase 3: pass url and evidence for enrichment)
-                # Phase 6: Include story jurisdiction for geographic boosting
                 credibility_score = self._get_credibility_score(source, url, evidence, story_jurisdiction)
-
-                # Apply recency weighting (favor recent content)
                 recency_score = self._get_recency_score(evidence.get("published_date"))
-
-                # Calculate final weighted score
                 base_score = evidence.get("combined_score", 0.5)
-                weighted_score = base_score * credibility_score * recency_score
-
                 evidence.update({
                     "credibility_score": credibility_score,
                     "recency_score": recency_score,
-                    "final_score": weighted_score
+                    "final_score": base_score * credibility_score * recency_score,
                 })
-
-                # RAW EVIDENCE TRACKING: Update credibility and tier info
                 if track_raw_evidence and url in url_to_raw:
                     url_to_raw[url]["credibility_score"] = credibility_score
                     url_to_raw[url]["tier"] = evidence.get("tier")
                     url_to_raw[url]["relevance_score"] = base_score
 
-            # Filter by credibility threshold + auto_exclude flag
-            # Aligned with CREDIBILITY_MINIMUM (unified threshold)
-            MIN_CREDIBILITY = getattr(settings, 'SOURCE_CREDIBILITY_THRESHOLD', 0.55)
-
-            # First, remove auto-excluded sources (social media, satire, etc.)
+            # --- STAGE 2: Auto-exclude (satire, social media blacklist) ---
             before_auto_exclude = len(evidence_list)
             auto_excluded = [e for e in evidence_list if e.get("auto_exclude", False)]
             evidence_list = [e for e in evidence_list if not e.get("auto_exclude", False)]
-            auto_excluded_count = before_auto_exclude - len(evidence_list)
-
-            # RAW EVIDENCE TRACKING: Mark auto-excluded sources
             if track_raw_evidence:
                 for e in auto_excluded:
                     url = e.get("url", "")
                     if url in url_to_raw:
                         url_to_raw[url]["is_included"] = False
-                        url_to_raw[url]["filter_stage"] = "credibility"
+                        url_to_raw[url]["filter_stage"] = "auto_exclude"
                         url_to_raw[url]["filter_reason"] = f"Auto-excluded: {e.get('tier', 'blacklist')} source"
+            logger.info(f"[FILTER] Auto-exclude: {before_auto_exclude} -> {len(evidence_list)}")
 
-            # Then, filter by minimum credibility
-            before_credibility = len(evidence_list)
-            # Log sources being filtered for debugging
-            low_cred_sources = [e for e in evidence_list if e.get("credibility_score", 0.6) < MIN_CREDIBILITY]
-            for e in low_cred_sources[:3]:  # Show first 3 filtered
-                logger.info(f"[FILTER] LOW-CRED: {e.get('source')} (cred={e.get('credibility_score', 0.6):.2f} < {MIN_CREDIBILITY}) - {e.get('url', '')[:60]}")
-
-            passing_cred = [e for e in evidence_list if e.get("credibility_score", 0.6) >= MIN_CREDIBILITY]
-            failing_cred = [e for e in evidence_list if e.get("credibility_score", 0.6) < MIN_CREDIBILITY]
-
-            # RAW EVIDENCE TRACKING: Mark credibility-filtered sources
-            if track_raw_evidence:
-                for e in failing_cred:
-                    url = e.get("url", "")
-                    if url in url_to_raw:
-                        url_to_raw[url]["is_included"] = False
-                        url_to_raw[url]["filter_stage"] = "credibility"
-                        url_to_raw[url]["filter_reason"] = f"Below credibility threshold ({e.get('credibility_score', 0.6):.2f} < {MIN_CREDIBILITY})"
-
-            # ADAPTIVE FALLBACK: If ALL evidence would be filtered, keep top 3 by credibility score
-            # This prevents returning 0 evidence when all sources are unknown (0.60 default)
-            if len(passing_cred) == 0 and len(evidence_list) > 0:
-                # Sort by credibility and take top 3
-                evidence_list.sort(key=lambda x: x.get("credibility_score", 0.6), reverse=True)
-                fallback_count = min(3, len(evidence_list))
-                fallback_kept = evidence_list[:fallback_count]
-                fallback_excluded = evidence_list[fallback_count:]
-                evidence_list = fallback_kept
-                logger.warning(
-                    f"[FILTER] ADAPTIVE FALLBACK: All {before_credibility} sources below threshold "
-                    f"({MIN_CREDIBILITY}), keeping top {fallback_count} by credibility"
-                )
-                for e in evidence_list:
-                    logger.info(f"[FILTER] FALLBACK KEPT: {e.get('source')} (cred={e.get('credibility_score', 0.6):.2f})")
-
-                # RAW EVIDENCE TRACKING: Mark fallback-excluded sources (adaptive fallback didn't keep them)
+            # --- STAGE 3: Content dedup ---
+            before_dedup = len(evidence_list)
+            if settings.ENABLE_DEDUPLICATION:
+                from app.utils.deduplication import EvidenceDeduplicator
+                deduplicator = EvidenceDeduplicator()
+                before_dedup_list = list(evidence_list) if track_raw_evidence else []
+                evidence_list, dedup_stats = deduplicator.deduplicate(evidence_list)
                 if track_raw_evidence:
-                    for e in fallback_excluded:
+                    after_urls = {e.get("url") for e in evidence_list}
+                    for e in before_dedup_list:
                         url = e.get("url", "")
-                        if url in url_to_raw:
+                        if url not in after_urls and url in url_to_raw:
                             url_to_raw[url]["is_included"] = False
-                            url_to_raw[url]["filter_stage"] = "credibility"
-                            url_to_raw[url]["filter_reason"] = f"Adaptive fallback: only top {fallback_count} kept by credibility"
-                    # Also re-mark the ones we're keeping as included
-                    for e in fallback_kept:
-                        url = e.get("url", "")
-                        if url in url_to_raw:
-                            url_to_raw[url]["is_included"] = True
-                            url_to_raw[url]["filter_stage"] = None
-                            url_to_raw[url]["filter_reason"] = None
-            else:
-                # PROBATION: Keep top N unknown-tier sources even if below threshold
-                # Prevents accuracy loss from legitimate outlets not in source_credibility.json
-                max_unknown = getattr(settings, 'MAX_UNKNOWN_SOURCES_PER_CLAIM', 2)
-                probation_kept = []
-                if max_unknown > 0:
-                    # Only unknown-tier (never auto-excluded, never known-bad-tier)
-                    unknown_candidates = [
-                        e for e in failing_cred
-                        if e.get("tier") == "general" and not e.get("auto_exclude", False)
-                    ]
-                    # Best unknowns first (final_score incorporates NLI + recency + credibility)
-                    unknown_candidates.sort(key=lambda x: x.get("final_score", 0), reverse=True)
-                    probation_kept = unknown_candidates[:max_unknown]
+                            url_to_raw[url]["filter_stage"] = "dedup"
+                            url_to_raw[url]["filter_reason"] = "Duplicate content"
+            logger.info(f"[FILTER] Dedup: {before_dedup} -> {len(evidence_list)}")
 
-                    if probation_kept:
-                        logger.info(
-                            f"[FILTER] UNKNOWN PROBATION: Keeping {len(probation_kept)}/{len(unknown_candidates)} "
-                            f"unknown-tier sources (max {max_unknown}/claim)"
-                        )
-                        for e in probation_kept:
-                            logger.info(
-                                f"[FILTER] PROBATION KEPT: {e.get('source')} "
-                                f"(cred={e.get('credibility_score', 0.4):.2f}, "
-                                f"final={e.get('final_score', 0):.3f})"
-                            )
-
-                evidence_list = passing_cred + probation_kept
-                credibility_filtered_count = before_credibility - len(evidence_list)
-
-                # RAW EVIDENCE TRACKING: Un-mark probation sources (already marked excluded above)
-                if track_raw_evidence:
-                    for e in probation_kept:
-                        url = e.get("url", "")
-                        if url in url_to_raw:
-                            url_to_raw[url]["is_included"] = True
-                            url_to_raw[url]["filter_stage"] = None
-                            url_to_raw[url]["filter_reason"] = None
-
-            logger.info(f"[FILTER] Stage 1: {original_evidence_count} raw -> {before_auto_exclude - auto_excluded_count} after auto-exclude -> {len(evidence_list)} after cred filter (threshold={MIN_CREDIBILITY})")
-
-            # Stage 1.5: Corroboration boost - boost credibility for evidence corroborated by independent sources
+            # --- Corroboration boost (annotation + score recompute) ---
             if settings.ENABLE_CORROBORATION_BOOST and len(evidence_list) >= 2:
                 from app.utils.corroboration import apply_corroboration_boost
                 evidence_list, corroboration_stats = apply_corroboration_boost(evidence_list)
                 if corroboration_stats.get("items_boosted", 0) > 0:
                     logger.info(
-                        f"[FILTER] Stage 1.5 (corroboration): {corroboration_stats['items_boosted']} items boosted "
-                        f"({corroboration_stats['corroboration_pairs']} corroborating pairs)"
+                        f"[FILTER] Corroboration: {corroboration_stats['items_boosted']} items boosted "
+                        f"({corroboration_stats['corroboration_pairs']} pairs)"
                     )
-                    # Recompute final_score for boosted items so ordering reflects updated credibility
                     for ev in evidence_list:
                         if ev.get("corroboration_boost", 0) > 0:
                             ev["final_score"] = ev.get("combined_score", 0.5) * ev["credibility_score"] * ev.get("recency_score", 1.0)
 
             # Sort by final weighted score
-            evidence_list.sort(key=lambda x: x["final_score"], reverse=True)
+            evidence_list.sort(key=lambda x: x.get("final_score", 0), reverse=True)
 
-            # Helper to track excluded evidence
-            def mark_excluded(before_list, after_list, stage, reason_fn):
-                """Mark sources that were filtered out."""
-                if not track_raw_evidence:
-                    return
-                after_urls = {e.get("url") for e in after_list}
-                for e in before_list:
-                    url = e.get("url", "")
-                    if url not in after_urls and url in url_to_raw:
-                        url_to_raw[url]["is_included"] = False
-                        url_to_raw[url]["filter_stage"] = stage
-                        url_to_raw[url]["filter_reason"] = reason_fn(e)
-
-            # DEPRECATED: Temporal filtering via TemporalAnalyzer (now disabled, Query Planner handles freshness)
-            # This happens BEFORE deduplication to filter out old evidence first
-            before_temporal = len(evidence_list)
-            before_temporal_list = list(evidence_list) if track_raw_evidence else []
-            if claim and settings.ENABLE_TEMPORAL_CONTEXT and claim.get("temporal_analysis"):
-                from app.utils.temporal import TemporalAnalyzer
-                temporal_analyzer = TemporalAnalyzer()
-                evidence_list = temporal_analyzer.filter_evidence_by_time(
-                    evidence_list,
-                    claim["temporal_analysis"]
-                )
-            mark_excluded(before_temporal_list, evidence_list, "temporal",
-                          lambda e: f"Outdated for time-sensitive claim (date: {e.get('published_date', 'unknown')})")
-            logger.info(f"[FILTER] Stage 2 (temporal): {before_temporal} -> {len(evidence_list)}")
-
-            # NEW: Apply deduplication if enabled
-            before_dedup = len(evidence_list)
-            before_dedup_list = list(evidence_list) if track_raw_evidence else []
-            if settings.ENABLE_DEDUPLICATION:
-                from app.utils.deduplication import EvidenceDeduplicator
-                deduplicator = EvidenceDeduplicator()
-                evidence_list, dedup_stats = deduplicator.deduplicate(evidence_list)
-            mark_excluded(before_dedup_list, evidence_list, "dedup",
-                          lambda e: f"Duplicate content (syndicated from {e.get('original_source_url', 'other source')[:50]})" if e.get('is_syndicated') else "Duplicate content")
-            logger.info(f"[FILTER] Stage 3 (dedup): {before_dedup} -> {len(evidence_list)}")
-
-            # Apply source independence checking if enabled
-            before_diversity = len(evidence_list)
-            before_diversity_list = list(evidence_list) if track_raw_evidence else []
-            if settings.ENABLE_SOURCE_DIVERSITY:
-                from app.utils.source_independence import SourceIndependenceChecker
-                independence_checker = SourceIndependenceChecker()
-                evidence_list = independence_checker.enrich_evidence(evidence_list)
-                diversity_score, passes = independence_checker.check_diversity(evidence_list)
-            mark_excluded(before_diversity_list, evidence_list, "diversity",
-                          lambda e: f"Same ownership group as other sources ({e.get('parent_company', 'unknown')})")
-            logger.info(f"[FILTER] Stage 4 (diversity): {before_diversity} -> {len(evidence_list)}")
-
-            # Apply domain capping if enabled
-            before_domain_cap = len(evidence_list)
-            before_domain_cap_list = list(evidence_list) if track_raw_evidence else []
-            if settings.ENABLE_DOMAIN_CAPPING and getattr(settings, 'ENABLE_PER_CLAIM_DOMAIN_CAPPING', True):
-                from app.utils.domain_capping import DomainCapper
-                capper = DomainCapper(
-                    max_per_domain=settings.MAX_EVIDENCE_PER_DOMAIN,
-                    max_domain_ratio=settings.DOMAIN_DIVERSITY_THRESHOLD
-                )
-                evidence_list = capper.apply_caps(
-                    evidence_list,
-                    target_count=self.max_sources_per_claim,
-                    outstanding_threshold=getattr(settings, 'OUTSTANDING_SOURCE_THRESHOLD', 0.95)
-                )
-            elif settings.ENABLE_DOMAIN_CAPPING:
-                logger.info(f"[FILTER] Stage 5 (domain cap): SKIPPED per-claim (global cap handles diversity)")
-            mark_excluded(before_domain_cap_list, evidence_list, "domain_cap",
-                          lambda e: f"Domain cap reached for {e.get('source', 'this domain')} (max {settings.MAX_EVIDENCE_PER_DOMAIN} per domain)")
-            logger.info(f"[FILTER] Stage 5 (domain cap, max={settings.MAX_EVIDENCE_PER_DOMAIN}): {before_domain_cap} -> {len(evidence_list)}")
-
-            # Apply source validation if enabled (Phase 1)
-            before_validation = len(evidence_list)
-            before_validation_list = list(evidence_list) if track_raw_evidence else []
-            if settings.ENABLE_SOURCE_VALIDATION:
-                from app.utils.source_validator import get_source_validator
-                validator = get_source_validator()
-                evidence_list, validation_stats = validator.validate_sources(evidence_list)
-            mark_excluded(before_validation_list, evidence_list, "validation",
-                          lambda e: "Failed source validation (URL unreachable or content mismatch)")
-            logger.info(f"[FILTER] Stage 6 (validation): {before_validation} -> {len(evidence_list)} FINAL")
-
-            # Safety check: Warn if all evidence eliminated
+            # Safety check
             if len(evidence_list) == 0 and original_evidence_count > 0:
-                logger.warning(
-                    f"All evidence eliminated by filters for claim. "
-                    f"This suggests filters are too aggressive. "
-                    f"Original count: {original_evidence_count}"
-                )
+                logger.warning(f"All {original_evidence_count} evidence items eliminated by filters")
 
-            # Return with or without raw evidence tracking
             if track_raw_evidence:
                 return evidence_list, raw_evidence_tracking
             return evidence_list
-            
+
         except Exception as e:
             logger.error(f"Credibility weighting error: {e}")
             if track_raw_evidence:

@@ -19,7 +19,6 @@ from datetime import datetime, timedelta
 def enable_all_features(monkeypatch):
     """Enable all pipeline improvement features"""
     monkeypatch.setenv("ENABLE_EVIDENCE_DEDUPLICATION", "true")
-    monkeypatch.setenv("ENABLE_SOURCE_DIVERSITY", "true")
     monkeypatch.setenv("ENABLE_FACTCHECK_INTEGRATION", "true")
     monkeypatch.setenv("ENABLE_TEMPORAL_CONTEXT", "true")
     monkeypatch.setenv("ENABLE_CLAIM_CLASSIFICATION", "true")

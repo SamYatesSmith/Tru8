@@ -1,18 +1,14 @@
-"""Tests for PR 2-C: Double domain capping + cross-claim URL dedup fix.
+"""Tests for cross-claim URL dedup and LLM scorer URL gate.
 
 Verifies:
-1. Per-claim domain cap skipped when ENABLE_PER_CLAIM_DOMAIN_CAPPING=False
-2. Per-claim domain cap runs when ENABLE_PER_CLAIM_DOMAIN_CAPPING=True
-3. Global cap still enforced regardless of per-claim setting
-4. URL shared across 2 claims kept when MAX_CLAIMS_PER_URL=2
-5. URL in 3 claims capped at MAX_CLAIMS_PER_URL=2 (weakest dropped)
-6. Single-claim URL behavior unchanged
-7. Keep-best selection drops weakest when exceeding K
-8. Ledger records casualties from dedup
+1. URL shared across 2 claims kept when MAX_CLAIMS_PER_URL=2
+2. URL in 3 claims capped at MAX_CLAIMS_PER_URL=2 (weakest dropped)
+3. Single-claim URL behavior unchanged
+4. Keep-best selection drops weakest when exceeding K
+5. Ledger records casualties from dedup
 """
 import pytest
 import copy
-from unittest.mock import patch, MagicMock, PropertyMock
 
 from app.pipeline.evidence_ledger import EvidenceLedger
 
@@ -191,54 +187,6 @@ class TestCrossClaimUrlDedup:
 
 
 # ---------------------------------------------------------------------------
-# Per-claim domain capping flag tests
-# ---------------------------------------------------------------------------
-
-class TestPerClaimDomainCapping:
-    """Test the per-claim domain capping flag in retrieve.py."""
-
-    @patch("app.pipeline.retrieve.SearchService")
-    @patch("app.pipeline.retrieve.EvidenceExtractor")
-    @patch("app.pipeline.retrieve.get_api_registry")
-    def _make_retriever(self, mock_registry, mock_extractor, mock_search):
-        mock_registry.return_value = MagicMock()
-        from app.pipeline.retrieve import EvidenceRetriever
-        return EvidenceRetriever()
-
-    @patch("app.pipeline.retrieve.settings")
-    @patch("app.utils.domain_capping.DomainCapper.apply_caps")
-    def test_per_claim_cap_skipped_when_disabled(self, mock_apply_caps, mock_settings):
-        """With ENABLE_PER_CLAIM_DOMAIN_CAPPING=False, apply_caps is not called."""
-        mock_settings.ENABLE_DOMAIN_CAPPING = True
-        mock_settings.ENABLE_PER_CLAIM_DOMAIN_CAPPING = False
-
-        # The guard condition checks both flags — when per-claim is False, apply_caps should NOT run.
-        # We verify this by checking that the import and call don't happen.
-        # Since the actual retriever flow is complex, we test the condition directly.
-        should_run = mock_settings.ENABLE_DOMAIN_CAPPING and getattr(mock_settings, 'ENABLE_PER_CLAIM_DOMAIN_CAPPING', True)
-        assert should_run is False, "Per-claim cap should not run when flag is False"
-        mock_apply_caps.assert_not_called()
-
-    @patch("app.pipeline.retrieve.settings")
-    def test_per_claim_cap_runs_when_enabled(self, mock_settings):
-        """With ENABLE_PER_CLAIM_DOMAIN_CAPPING=True, condition evaluates to True."""
-        mock_settings.ENABLE_DOMAIN_CAPPING = True
-        mock_settings.ENABLE_PER_CLAIM_DOMAIN_CAPPING = True
-
-        should_run = mock_settings.ENABLE_DOMAIN_CAPPING and getattr(mock_settings, 'ENABLE_PER_CLAIM_DOMAIN_CAPPING', True)
-        assert should_run is True, "Per-claim cap should run when both flags are True"
-
-    @patch("app.pipeline.retrieve.settings")
-    def test_per_claim_cap_skipped_when_domain_capping_disabled(self, mock_settings):
-        """With ENABLE_DOMAIN_CAPPING=False, per-claim cap is also skipped."""
-        mock_settings.ENABLE_DOMAIN_CAPPING = False
-        mock_settings.ENABLE_PER_CLAIM_DOMAIN_CAPPING = True
-
-        should_run = mock_settings.ENABLE_DOMAIN_CAPPING and getattr(mock_settings, 'ENABLE_PER_CLAIM_DOMAIN_CAPPING', True)
-        assert should_run is False, "Per-claim cap should not run when domain capping is disabled"
-
-
-# ---------------------------------------------------------------------------
 # LLM Scorer URL gate tests
 # ---------------------------------------------------------------------------
 
@@ -310,12 +258,6 @@ class TestLLMScorerUrlGate:
 
 class TestConfigDefaults:
     """Verify config flags default to backward-compatible values."""
-
-    def test_default_per_claim_capping_disabled(self):
-        """Default: ENABLE_PER_CLAIM_DOMAIN_CAPPING=False (global cap only)."""
-        from app.core.config import Settings
-        field = Settings.model_fields['ENABLE_PER_CLAIM_DOMAIN_CAPPING']
-        assert field.default is False
 
     def test_default_max_claims_per_url(self):
         """Default: MAX_CLAIMS_PER_URL=2 (URL can support 2 related claims)."""

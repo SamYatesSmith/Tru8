@@ -110,8 +110,6 @@ class Settings(BaseSettings):
     # Unknown source default - lower than known sources to signal unvetted status
     # Sources not in credibility database are treated with skepticism
     UNKNOWN_SOURCE_CREDIBILITY: float = Field(0.40, env="UNKNOWN_SOURCE_CREDIBILITY")
-    # Max unknown-tier sources to keep per claim via probation (0 = hard-drop all)
-    MAX_UNKNOWN_SOURCES_PER_CLAIM: int = Field(2, env="MAX_UNKNOWN_SOURCES_PER_CLAIM")
     
     # Judge LLM
     JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
@@ -122,7 +120,6 @@ class Settings(BaseSettings):
     # Phase 1 - Structural Integrity
     ENABLE_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_DOMAIN_CAPPING")
     ENABLE_DEDUPLICATION: bool = Field(True, env="ENABLE_DEDUPLICATION")
-    ENABLE_SOURCE_DIVERSITY: bool = Field(True, env="ENABLE_SOURCE_DIVERSITY")
     ENABLE_CONTEXT_PRESERVATION: bool = Field(True, env="ENABLE_CONTEXT_PRESERVATION")
 
     # Search Clarity Feature (MVP)
@@ -146,9 +143,7 @@ class Settings(BaseSettings):
     ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK: bool = Field(True, env="ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK")
     ENABLE_ABSTENTION_LOGIC: bool = Field(True, env="ENABLE_ABSTENTION_LOGIC")
 
-    # Phase 3.5 - Source Quality Control (Week 9.5-10)
-    ENABLE_SOURCE_VALIDATION: bool = Field(True, env="ENABLE_SOURCE_VALIDATION")
-    # Aligned with CREDIBILITY_MINIMUM (unified threshold)
+    # Source credibility threshold (used for cache skip in workers)
     SOURCE_CREDIBILITY_THRESHOLD: float = Field(0.55, env="SOURCE_CREDIBILITY_THRESHOLD")
 
     # Phase 6 - Source Diversity Enhancement
@@ -173,18 +168,12 @@ class Settings(BaseSettings):
 
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")  # Allow 3 results per domain for better evidence coverage
-    DOMAIN_DIVERSITY_THRESHOLD: float = Field(0.6, env="DOMAIN_DIVERSITY_THRESHOLD")
-    OUTSTANDING_SOURCE_THRESHOLD: float = Field(0.95, env="OUTSTANDING_SOURCE_THRESHOLD")
 
     # Global Domain Capping (cross-claim diversity enforcement)
     # Tightened from 5/25% to 3/15% to prevent single-source dominance (e.g., NYTimes appearing 5x)
     ENABLE_GLOBAL_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_GLOBAL_DOMAIN_CAPPING")
     GLOBAL_MAX_PER_DOMAIN: int = Field(3, env="GLOBAL_MAX_PER_DOMAIN")  # Max sources from any domain across ALL claims
     GLOBAL_MAX_DOMAIN_RATIO: float = Field(0.20, env="GLOBAL_MAX_DOMAIN_RATIO")  # Max 20% from any single domain
-
-    # Per-claim domain capping (True = current behavior; set False via env to remove double-cap)
-    # When False, only global domain cap applies — per-claim DomainCapper.apply_caps() is skipped
-    ENABLE_PER_CLAIM_DOMAIN_CAPPING: bool = Field(False, env="ENABLE_PER_CLAIM_DOMAIN_CAPPING")
 
     # Max claims a single URL can appear in during cross-claim dedup (1 = current behavior)
     # Setting to 2 allows a URL to legitimately support 2 related claims

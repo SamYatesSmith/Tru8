@@ -192,12 +192,7 @@ class TestCorroborationFinalScoreConsistency:
              patch("app.core.config.settings") as mock_settings:
 
             mock_settings.ENABLE_CORROBORATION_BOOST = False
-            mock_settings.SOURCE_CREDIBILITY_THRESHOLD = 0.55
-            mock_settings.ENABLE_TEMPORAL_CONTEXT = False
             mock_settings.ENABLE_DEDUPLICATION = False
-            mock_settings.ENABLE_SOURCE_DIVERSITY = False
-            mock_settings.ENABLE_DOMAIN_CAPPING = False
-            mock_settings.ENABLE_SOURCE_VALIDATION = False
 
             result = retriever._apply_credibility_weighting(evidence, track_raw_evidence=False)
 
