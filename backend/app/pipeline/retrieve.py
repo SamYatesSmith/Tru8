@@ -1112,23 +1112,22 @@ class EvidenceRetriever:
 
             # --- STAGE 3: Content dedup ---
             before_dedup = len(evidence_list)
-            if settings.ENABLE_DEDUPLICATION:
-                from app.utils.deduplication import EvidenceDeduplicator
-                deduplicator = EvidenceDeduplicator()
-                before_dedup_list = list(evidence_list) if track_raw_evidence else []
-                evidence_list, dedup_stats = deduplicator.deduplicate(evidence_list)
-                if track_raw_evidence:
-                    after_urls = {e.get("url") for e in evidence_list}
-                    for e in before_dedup_list:
-                        url = e.get("url", "")
-                        if url not in after_urls and url in url_to_raw:
-                            url_to_raw[url]["is_included"] = False
-                            url_to_raw[url]["filter_stage"] = "dedup"
-                            url_to_raw[url]["filter_reason"] = "Duplicate content"
+            from app.utils.deduplication import EvidenceDeduplicator
+            deduplicator = EvidenceDeduplicator()
+            before_dedup_list = list(evidence_list) if track_raw_evidence else []
+            evidence_list, dedup_stats = deduplicator.deduplicate(evidence_list)
+            if track_raw_evidence:
+                after_urls = {e.get("url") for e in evidence_list}
+                for e in before_dedup_list:
+                    url = e.get("url", "")
+                    if url not in after_urls and url in url_to_raw:
+                        url_to_raw[url]["is_included"] = False
+                        url_to_raw[url]["filter_stage"] = "dedup"
+                        url_to_raw[url]["filter_reason"] = "Duplicate content"
             logger.info(f"[FILTER] Dedup: {before_dedup} -> {len(evidence_list)}")
 
             # --- Corroboration boost (annotation + score recompute) ---
-            if settings.ENABLE_CORROBORATION_BOOST and len(evidence_list) >= 2:
+            if len(evidence_list) >= 2:
                 from app.utils.corroboration import apply_corroboration_boost
                 evidence_list, corroboration_stats = apply_corroboration_boost(evidence_list)
                 if corroboration_stats.get("items_boosted", 0) > 0:
@@ -1207,7 +1206,7 @@ class EvidenceRetriever:
 
         # Phase 3: Use Domain Credibility Framework if enabled
         # Phase 6: With jurisdiction boosting for local sources
-        if settings.ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK and url:
+        if url:
             try:
                 from app.services.source_credibility import get_credibility_service
 

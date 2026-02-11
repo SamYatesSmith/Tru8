@@ -898,10 +898,9 @@ async def run_pipeline(
     # =========================================================================
     # Stage 6: Enhanced Explainability (optional)
     # =========================================================================
-    if settings.ENABLE_ENHANCED_EXPLAINABILITY:
-        from app.utils.explainability import ExplainabilityEnhancer
-        explainer = ExplainabilityEnhancer()
-        results = _add_explainability(results, evidence, explainer)
+    from app.utils.explainability import ExplainabilityEnhancer
+    explainer = ExplainabilityEnhancer()
+    results = _add_explainability(results, evidence, explainer)
 
     # =========================================================================
     # Stage 6.5: Overall Assessment

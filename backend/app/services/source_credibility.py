@@ -107,7 +107,7 @@ class SourceCredibilityService:
         """Initialize service and load credibility configuration"""
         config_path = Path(__file__).parent.parent / "data" / "source_credibility.json"
 
-        # Get default credibility from unified config (aligned with CREDIBILITY_MINIMUM)
+        # Get default credibility from unified config (UNKNOWN_SOURCE_CREDIBILITY)
         default_credibility = getattr(settings, 'UNKNOWN_SOURCE_CREDIBILITY', 0.55)
 
         try:
@@ -318,7 +318,7 @@ class SourceCredibilityService:
 
     def _get_general_tier(self, reasoning: str) -> Dict[str, Any]:
         """Get default 'general' tier with custom reasoning"""
-        # Use unified UNKNOWN_SOURCE_CREDIBILITY for default (aligned with CREDIBILITY_MINIMUM)
+        # Use unified UNKNOWN_SOURCE_CREDIBILITY for default (UNKNOWN_SOURCE_CREDIBILITY)
         default_cred = getattr(settings, 'UNKNOWN_SOURCE_CREDIBILITY', 0.55)
         general_config = self.config.get('general', {
             'credibility': default_cred,

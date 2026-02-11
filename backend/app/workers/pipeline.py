@@ -19,58 +19,6 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
-def refund_check_credit_sync(check_id: str, user_id: str) -> bool:
-    """
-    Refund the credit used for a failed check (synchronous version).
-
-    Returns True if refund was successful, False otherwise.
-    """
-    try:
-        from app.core.database import sync_session
-        from app.models import Check, User
-        from sqlalchemy import select
-
-        with sync_session() as session:
-            # Get the check
-            check_stmt = select(Check).where(Check.id == check_id)
-            check_result = session.execute(check_stmt)
-            check = check_result.scalar_one_or_none()
-
-            if not check:
-                logger.error(f"Cannot refund: Check {check_id} not found")
-                return False
-
-            # Check if already refunded (credits_used = 0)
-            if check.credits_used == 0:
-                logger.info(f"Check {check_id} already refunded or no credits used")
-                return True
-
-            credits_to_refund = check.credits_used
-
-            # Get the user
-            user_stmt = select(User).where(User.id == user_id)
-            user_result = session.execute(user_stmt)
-            user = user_result.scalar_one_or_none()
-
-            if not user:
-                logger.error(f"Cannot refund: User {user_id} not found")
-                return False
-
-            # Refund the credit
-            user.credits += credits_to_refund
-            # Note: We keep total_credits_used as-is to track attempted usage
-
-            # Mark check as refunded
-            check.credits_used = 0
-
-            session.commit()
-            logger.info(f"Refunded {credits_to_refund} credit(s) to user {user_id} for failed check {check_id}")
-            return True
-
-    except Exception as e:
-        logger.error(f"Failed to refund credit for check {check_id}: {e}")
-        return False
-
 async def ingest_content_async(input_data: Dict[str, Any]) -> Dict[str, Any]:
     """Real ingest implementation using pipeline classes"""
     input_type = input_data.get("input_type")
@@ -297,21 +245,10 @@ async def retrieve_evidence_with_cache(
 
     except Exception as e:
         logger.error(f"Evidence retrieval error: {e}")
-        # Fallback to mock evidence (development only)
-        if settings.ENVIRONMENT == "development":
-            logger.warning("Using mock evidence fallback (development only)")
-            mock_evidence = retrieve_evidence(claims, factcheck_evidence)
-            return {
-                "evidence_by_claim": mock_evidence,
-                "raw_evidence": [],
-                "raw_sources_count": 0
-            }
-        else:
-            # Production: return empty evidence dict, let judge handle insufficient evidence
-            logger.critical(f"Evidence retrieval failed in {settings.ENVIRONMENT} environment: {e}")
-            return {
-                "evidence_by_claim": {},
-                "raw_evidence": [],
+        logger.critical(f"Evidence retrieval failed in {settings.ENVIRONMENT} environment: {e}")
+        return {
+            "evidence_by_claim": {},
+            "raw_evidence": [],
                 "raw_sources_count": 0
             }
 
@@ -372,39 +309,4 @@ def extract_claims_fallback(content: str) -> List[Dict[str, Any]]:
     
     return claims
 
-def retrieve_evidence(claims: List[Dict[str, Any]], factcheck_evidence: Dict = None) -> Dict[str, List[Dict[str, Any]]]:
-    """Mock evidence retrieval fallback"""
-    if factcheck_evidence is None:
-        factcheck_evidence = {}
-
-    evidence = {}
-
-    for i, claim in enumerate(claims):
-        # Generate realistic mock evidence
-        sources = [
-            ("BBC", "2024-01-15", "https://bbc.com/example"),
-            ("Reuters", "2024-01-10", "https://reuters.com/example"),
-            ("Scientific American", "2023-12-20", "https://sciam.com/example"),
-        ]
-        
-        position = str(claim.get("position", i))
-        evidence[position] = []
-        for source, date, url in sources:
-            evidence[position].append({
-                "id": f"evidence_{i}_{source.lower().replace(' ', '_')}",
-                "text": f"Supporting evidence snippet for the claim: {claim['text'][:50]}...",
-                "source": source,
-                "url": url,
-                "title": f"Article about: {claim['text'][:50]}...",
-                "published_date": date,
-                "relevance_score": 0.85 + (i * 0.05),  # Vary scores
-                "semantic_similarity": 0.75 + (i * 0.03),
-                "combined_score": 0.8 + (i * 0.04),
-                "credibility_score": 0.9,
-                "recency_score": 1.0,
-                "final_score": 0.85 + (i * 0.05),
-                "word_count": 150 + (i * 20)
-            })
-    
-    return evidence
 

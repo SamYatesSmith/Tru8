@@ -104,9 +104,6 @@ class Settings(BaseSettings):
     # TIER 2: Standard - Used for display selection
     SIMILARITY_TIER2_STANDARD: float = Field(0.40, env="SIMILARITY_TIER2_STANDARD")
 
-    # Credibility: Unified across pipeline
-    CREDIBILITY_MINIMUM: float = Field(0.55, env="CREDIBILITY_MINIMUM")
-
     # Unknown source default - lower than known sources to signal unvetted status
     # Sources not in credibility database are treated with skepticism
     UNKNOWN_SOURCE_CREDIBILITY: float = Field(0.40, env="UNKNOWN_SOURCE_CREDIBILITY")
@@ -117,10 +114,6 @@ class Settings(BaseSettings):
     MAX_CONCURRENT_JUDGMENTS: int = Field(5, env="MAX_CONCURRENT_JUDGMENTS")
 
     # ========== PIPELINE IMPROVEMENT FEATURE FLAGS ==========
-    # Phase 1 - Structural Integrity
-    ENABLE_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_DOMAIN_CAPPING")
-    ENABLE_DEDUPLICATION: bool = Field(True, env="ENABLE_DEDUPLICATION")
-    ENABLE_CONTEXT_PRESERVATION: bool = Field(True, env="ENABLE_CONTEXT_PRESERVATION")
 
     # Search Clarity Feature (MVP)
     ENABLE_SEARCH_CLARITY: bool = Field(default=True, env="ENABLE_SEARCH_CLARITY")
@@ -132,18 +125,12 @@ class Settings(BaseSettings):
 
     # Phase 2 - User Experience & Trust
     ENABLE_CLAIM_CLASSIFICATION: bool = Field(True, env="ENABLE_CLAIM_CLASSIFICATION")
-    ENABLE_ENHANCED_EXPLAINABILITY: bool = Field(True, env="ENABLE_ENHANCED_EXPLAINABILITY")
 
     # Phase 3 - Critical Credibility Enhancements
-    ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK: bool = Field(True, env="ENABLE_DOMAIN_CREDIBILITY_FRAMEWORK")
     ENABLE_ABSTENTION_LOGIC: bool = Field(True, env="ENABLE_ABSTENTION_LOGIC")
 
     # Source credibility threshold (used for cache skip in workers)
     SOURCE_CREDIBILITY_THRESHOLD: float = Field(0.55, env="SOURCE_CREDIBILITY_THRESHOLD")
-
-    # Phase 6 - Source Diversity Enhancement
-    # Boost credibility for evidence corroborated by multiple independent sources
-    ENABLE_CORROBORATION_BOOST: bool = Field(True, env="ENABLE_CORROBORATION_BOOST")
 
     # Phase 4 - Legal Integration
     ENABLE_LEGAL_SEARCH: bool = Field(True, env="ENABLE_LEGAL_SEARCH")
@@ -234,12 +221,6 @@ class Settings(BaseSettings):
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails
     ALLOW_SNIPPET_FALLBACK: bool = Field(True, env="ALLOW_SNIPPET_FALLBACK")
-
-    # ========== DOMAIN-AWARE EVIDENCE FRESHNESS ==========
-    # Enable claim-type-based freshness filtering for evidence retrieval
-    # When enabled, squad_composition claims get fresher evidence (1-2 weeks)
-    # vs contract_info claims which can use older evidence (up to 6 months)
-    ENABLE_FRESHNESS_BY_CLAIM_TYPE: bool = Field(True, env="ENABLE_FRESHNESS_BY_CLAIM_TYPE")
 
     class Config:
         env_file = ".env"

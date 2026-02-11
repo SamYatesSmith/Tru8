@@ -4,7 +4,6 @@ Verifies:
 A) If corroboration_boost is applied, final_score updates to reflect boosted credibility_score.
 B) If no corroboration boost, final_score remains unchanged.
 C) Formula invariant: final_score == combined_score * credibility_score * recency_score (within tolerance).
-D) If ENABLE_CORROBORATION_BOOST is disabled, nothing changes.
 """
 import pytest
 import copy
@@ -180,29 +179,6 @@ class TestCorroborationFinalScoreConsistency:
             expected = ev.get("combined_score", 0.5) * ev["credibility_score"] * ev.get("recency_score", 1.0)
             assert ev["final_score"] == pytest.approx(expected, abs=1e-9)
             assert ev.get("corroboration_boost", 0) == 0
-
-    def test_disabled_flag_skips_corroboration(self, retriever):
-        """D) ENABLE_CORROBORATION_BOOST=False → corroboration never called."""
-        evidence = [copy.deepcopy(EVIDENCE_A), copy.deepcopy(EVIDENCE_B)]
-
-        with patch.object(retriever, '_get_credibility_score',
-                          side_effect=lambda s, u, e, j: CRED_MAP.get(s, 0.6)), \
-             patch.object(retriever, '_get_recency_score', return_value=FIXED_RECENCY), \
-             patch("app.utils.corroboration.apply_corroboration_boost") as mock_boost, \
-             patch("app.core.config.settings") as mock_settings:
-
-            mock_settings.ENABLE_CORROBORATION_BOOST = False
-            mock_settings.ENABLE_DEDUPLICATION = False
-
-            result = retriever._apply_credibility_weighting(evidence, track_raw_evidence=False)
-
-        weighted = result if isinstance(result, list) else result[0]
-
-        mock_boost.assert_not_called()
-        for ev in weighted:
-            expected = ev.get("combined_score", 0.5) * ev["credibility_score"] * ev.get("recency_score", 1.0)
-            assert ev["final_score"] == pytest.approx(expected, abs=1e-9)
-            assert "corroboration_boost" not in ev
 
     def test_boost_changes_sort_order(self, retriever):
         """Corroboration boost can change evidence ordering via recomputed final_score.

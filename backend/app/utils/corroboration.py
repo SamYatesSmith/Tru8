@@ -242,9 +242,6 @@ def apply_corroboration_boost(
         - Updated evidence list with boosted scores
         - Stats about corroboration boosts applied
     """
-    if not getattr(settings, 'ENABLE_CORROBORATION_BOOST', True):
-        return evidence_list, {"enabled": False}
-
     if len(evidence_list) < 2:
         return evidence_list, {"enabled": True, "items_boosted": 0}
 

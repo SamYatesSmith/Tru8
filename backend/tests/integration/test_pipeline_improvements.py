@@ -22,7 +22,6 @@ def enable_all_features(monkeypatch):
     monkeypatch.setenv("ENABLE_FACTCHECK_INTEGRATION", "true")
     monkeypatch.setenv("ENABLE_TEMPORAL_CONTEXT", "true")
     monkeypatch.setenv("ENABLE_CLAIM_CLASSIFICATION", "true")
-    monkeypatch.setenv("ENABLE_ENHANCED_EXPLAINABILITY", "true")
 
 
 @pytest.fixture
