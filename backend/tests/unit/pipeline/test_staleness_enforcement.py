@@ -28,10 +28,10 @@ def judge():
         mock_settings.JUDGE_MAX_TOKENS = 1000
         mock_settings.JUDGE_TEMPERATURE = 0.3
         mock_settings.EVIDENCE_SNIPPET_LENGTH = 400
-        mock_settings.PASS_NLI_VERDICT_TO_JUDGE = False
         mock_settings.ENABLE_JUDGE_FEW_SHOT = False
         mock_settings.ENABLE_RHETORICAL_CONTEXT = False
         mock_settings.ENABLE_ABSTENTION_LOGIC = False
+        mock_settings.MAX_SNIPPET_EVIDENCE_FOR_JUDGE = 2
         mock_settings.MIN_SOURCES_FOR_VERDICT = 2
         mock_settings.MIN_CREDIBILITY_THRESHOLD = 0.60
         mock_settings.MIN_CONSENSUS_STRENGTH = 0.50
@@ -221,7 +221,7 @@ class TestStalenessConfidenceCap:
                                         "rationale": "Reuters confirms this."}), \
              patch.object(judge, "initialize", new_callable=AsyncMock):
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         assert result.verdict == "uncertain"
         assert result.confidence <= 45
@@ -241,7 +241,7 @@ class TestStalenessConfidenceCap:
                                         "rationale": "Reuters confirms this."}), \
              patch.object(judge, "initialize", new_callable=AsyncMock):
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         assert result.verdict == "supported"
         assert result.confidence == 85
@@ -261,7 +261,7 @@ class TestStalenessConfidenceCap:
                                         "rationale": "Insufficient evidence."}), \
              patch.object(judge, "initialize", new_callable=AsyncMock):
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         # Verdict stays uncertain, confidence still capped
         assert result.verdict == "uncertain"
@@ -282,7 +282,7 @@ class TestStalenessConfidenceCap:
                                         "rationale": "Confirmed."}), \
              patch.object(judge, "initialize", new_callable=AsyncMock):
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         assert result.verdict == "supported"
         assert result.confidence == 90

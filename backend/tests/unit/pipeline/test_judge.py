@@ -124,7 +124,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - access JudgmentResult object attributes
         assert result.verdict == "supported"
@@ -197,7 +197,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         assert result.verdict == "contradicted"
@@ -259,10 +259,11 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
-        # Assert
-        assert result.verdict == "insufficient_evidence"
+        # Assert — LLM returns "insufficient_evidence", normalized to "uncertain" with reason
+        assert result.verdict == "uncertain"
+        assert result.uncertainty_reason == "insufficient_evidence"
         assert result.confidence < 0.50, "Insufficient evidence should have low confidence"
         assert result.rationale is not None
 
@@ -327,11 +328,11 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
-        # Assert
-        # May return conflicting_evidence OR conflicting_expert_opinion depending on abstention logic
-        assert result.verdict in ["conflicting_evidence", "conflicting_expert_opinion"]
+        # Assert — LLM returns "conflicting_expert_opinion", normalized to "uncertain" with reason
+        assert result.verdict == "uncertain"
+        assert result.uncertainty_reason == "conflicting_expert_opinion"
         assert result.confidence < 0.70, "Conflicting evidence should have lower confidence"
         assert result.rationale is not None
         # Should mention both sides
@@ -393,11 +394,11 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type, "is_verifiable": claim.is_verifiable}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
-        # Assert
-        # May return not_verifiable OR insufficient_evidence for opinion claims
-        assert result.verdict in ["not_verifiable", "insufficient_evidence"]
+        # Assert — LLM returns "insufficient_evidence", normalized to "uncertain" with reason
+        assert result.verdict == "uncertain"
+        assert result.uncertainty_reason == "insufficient_evidence"
         assert result.rationale is not None
 
     @pytest.mark.asyncio
@@ -456,7 +457,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         assert result.verdict == "uncertain"
@@ -524,7 +525,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         # High-credibility evidence should lead to SUPPORTED verdict
@@ -599,7 +600,7 @@ class TestJudgeStage:
                 "temporal_markers": claim.temporal_markers
             }
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         assert result.verdict == "supported"
@@ -670,7 +671,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         assert result.verdict == "supported"
@@ -734,7 +735,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - verify httpx.post was called if LLM path was taken
         if mock_client.post.call_count > 0:
@@ -796,7 +797,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - result is a JudgmentResult object
         assert result.verdict is not None
@@ -849,7 +850,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - should gracefully handle malformed response
         assert result.verdict is not None
@@ -894,7 +895,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - should gracefully handle API error
         assert result.verdict is not None
@@ -953,7 +954,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - if LLM was called, check token limits
         if mock_client.post.call_count > 0:
@@ -1019,7 +1020,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         assert result.supporting_evidence is not None
@@ -1078,7 +1079,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         reasoning = result.rationale
@@ -1138,7 +1139,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type, "is_verifiable": claim.is_verifiable}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         # Predictions should be NOT_VERIFIABLE or UNCERTAIN
@@ -1191,7 +1192,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert
         assert result.verdict == "supported"
@@ -1238,7 +1239,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - if LLM was called, check temperature
         if mock_client.post.call_count > 0:
@@ -1289,7 +1290,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim.text, "claim_type": claim.claim_type}
 
-            await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - if LLM was called, check model selection
         if mock_client.post.call_count > 0:
@@ -1351,7 +1352,7 @@ class TestJudgeStage:
             # Convert claim to dict
             claim_dict = {"text": claim_high.text, "claim_type": claim_high.claim_type}
 
-            result_high = await judge.judge_claim(claim_dict, nli_high, evidence_high)
+            result_high = await judge.judge_claim(claim_dict, evidence_high)
 
         # Assert
         assert result_high.confidence >= 0.70, "High-quality unanimous evidence should yield reasonably high confidence"
@@ -1454,7 +1455,7 @@ class TestJudgeStage:
                 "is_time_sensitive": claim.is_time_sensitive
             }
 
-            result = await judge.judge_claim(claim_dict, nli_results, evidence_list)
+            result = await judge.judge_claim(claim_dict, evidence_list)
 
         # Assert - Complete validation
         assert result is not None, "Should return result"

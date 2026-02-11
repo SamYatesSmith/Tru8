@@ -22,10 +22,10 @@ def judge():
         mock_settings.JUDGE_MAX_TOKENS = 1000
         mock_settings.JUDGE_TEMPERATURE = 0.3
         mock_settings.EVIDENCE_SNIPPET_LENGTH = 400
-        mock_settings.PASS_NLI_VERDICT_TO_JUDGE = False
         mock_settings.ENABLE_JUDGE_FEW_SHOT = False
         mock_settings.ENABLE_RHETORICAL_CONTEXT = False
         mock_settings.ENABLE_ABSTENTION_LOGIC = False
+        mock_settings.MAX_SNIPPET_EVIDENCE_FOR_JUDGE = 2
         mock_settings.MIN_SOURCES_FOR_VERDICT = 2
         mock_settings.MIN_CREDIBILITY_THRESHOLD = 0.60
         mock_settings.MIN_CONSENSUS_STRENGTH = 0.50
@@ -35,16 +35,6 @@ def judge():
 
 def _make_claim(text="Test claim about something"):
     return {"text": text, "position": 0}
-
-
-def _make_signals():
-    return {
-        "overall_verdict": "uncertain",
-        "confidence": 0.5,
-        "max_entailment": 0.5,
-        "max_contradiction": 0.3,
-        "evidence_quality": "medium",
-    }
 
 
 def _make_evidence(source="reuters.com", url="https://reuters.com/article",
@@ -90,7 +80,7 @@ class TestSnippetOnlyMarkerInContext:
             ),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "[SNIPPET ONLY \u2014 full page unavailable: 429]" in context
 
@@ -105,7 +95,7 @@ class TestSnippetOnlyMarkerInContext:
             ),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         marker = "[SNIPPET ONLY \u2014 full page unavailable: 403]"
         marker_pos = context.index(marker)
@@ -118,7 +108,7 @@ class TestSnippetOnlyMarkerInContext:
             _make_evidence(is_snippet_fallback=True, fallback_reason="ReadTimeout: connection timed out"),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "full page unavailable: timeout]" in context
 
@@ -128,7 +118,7 @@ class TestSnippetOnlyMarkerInContext:
             _make_evidence(is_snippet_fallback=True, fallback_reason="JavaScript required to render"),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "full page unavailable: js_required]" in context
 
@@ -138,7 +128,7 @@ class TestSnippetOnlyMarkerInContext:
             _make_evidence(is_snippet_fallback=True, fallback_reason="Something weird happened"),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "full page unavailable: unknown]" in context
 
@@ -148,7 +138,7 @@ class TestSnippetOnlyMarkerInContext:
             _make_evidence(is_snippet_fallback=True, fallback_reason=None),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "full page unavailable: unknown]" in context
 
@@ -167,7 +157,7 @@ class TestSnippetOnlyMarkerFromMetadata:
             ),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "[SNIPPET ONLY \u2014 full page unavailable: timeout]" in context
 
@@ -181,7 +171,7 @@ class TestSnippetOnlyMarkerFromMetadata:
             ),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "full page unavailable: 403]" in context
 
@@ -198,7 +188,7 @@ class TestNoMarkerForFullExtract:
             ),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "[SNIPPET ONLY" not in context
 
@@ -213,7 +203,7 @@ class TestNoMarkerForFullExtract:
             "metadata": {},
         }]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "[SNIPPET ONLY" not in context
 
@@ -227,7 +217,7 @@ class TestSnippetOnlyWarningBlock:
             _make_evidence(source="bbc.com", url="https://bbc.com/news", is_snippet_fallback=False),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "SNIPPET-ONLY EVIDENCE WARNING" in context
         assert "1 of 2 evidence items are snippets" in context
@@ -239,7 +229,7 @@ class TestSnippetOnlyWarningBlock:
             _make_evidence(source="bbc.com", url="https://bbc.com/news", is_snippet_fallback=False),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "SNIPPET-ONLY EVIDENCE WARNING" not in context
 
@@ -251,6 +241,6 @@ class TestSnippetOnlyWarningBlock:
             _make_evidence(source="c.com", url="https://c.com/3", is_snippet_fallback=False),
         ]
         context = judge._prepare_judgment_context(
-            _make_claim(), _make_signals(), evidence
+            _make_claim(), evidence
         )
         assert "2 of 3 evidence items are snippets" in context

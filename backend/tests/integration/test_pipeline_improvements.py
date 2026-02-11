@@ -106,7 +106,6 @@ class TestPipelineWithAllFeatures:
         """
         from app.pipeline.extract import ClaimExtractor
         from app.pipeline.retrieve import EvidenceRetriever
-        from app.pipeline.verify import ClaimVerifier
         from app.pipeline.judge import PipelineJudge
         from app.utils.explainability import ExplainabilityEnhancer
 
@@ -148,17 +147,9 @@ class TestPipelineWithAllFeatures:
             # Diversity fields should be populated
             assert any(e.get("parent_company") for e in evidence)
 
-        # Test verification
-        verifier = ClaimVerifier()
-        verifications_result = await verifier.verify_claim_against_evidence(factual_claim["text"], evidence)
-        verifications = [{"label": v.stance.value if hasattr(v, 'stance') else "NEUTRAL"} for v in verifications_result]
-        assert len(verifications) > 0
-
         # Test judgment with explainability
         judge = PipelineJudge()
-        # Create NLI results format expected by judge
-        nli_results = {"evidence_stances": verifications_result}
-        judgment_result = await judge.judge_claim(claim_dict, nli_results, evidence)
+        judgment_result = await judge.claim_judge.judge_claim(claim_dict, evidence)
         judgment = {"verdict": judgment_result.verdict, "confidence": judgment_result.confidence}
 
         # Should have enhanced explainability fields
@@ -167,14 +158,14 @@ class TestPipelineWithAllFeatures:
         # Generate decision trail
         explainer = ExplainabilityEnhancer()
 
-        verification_signals = {
-            "supporting_count": sum(1 for v in verifications if v.get("label") == "SUPPORTS"),
-            "contradicting_count": sum(1 for v in verifications if v.get("label") == "CONTRADICTS"),
-            "neutral_count": sum(1 for v in verifications if v.get("label") == "NEUTRAL")
+        empty_signals = {
+            "supporting_count": 0,
+            "contradicting_count": 0,
+            "neutral_count": 0
         }
 
         trail = explainer.create_decision_trail(
-            factual_claim, evidence, verification_signals, judgment
+            factual_claim, evidence, empty_signals, judgment
         )
 
         # Verify decision trail structure

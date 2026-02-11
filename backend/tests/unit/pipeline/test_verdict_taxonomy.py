@@ -28,10 +28,10 @@ def judge():
         mock_settings.JUDGE_MAX_TOKENS = 1000
         mock_settings.JUDGE_TEMPERATURE = 0.3
         mock_settings.EVIDENCE_SNIPPET_LENGTH = 400
-        mock_settings.PASS_NLI_VERDICT_TO_JUDGE = False
         mock_settings.ENABLE_JUDGE_FEW_SHOT = False
         mock_settings.ENABLE_RHETORICAL_CONTEXT = False
         mock_settings.ENABLE_ABSTENTION_LOGIC = True
+        mock_settings.MAX_SNIPPET_EVIDENCE_FOR_JUDGE = 2
         mock_settings.MIN_SOURCES_FOR_VERDICT = 2
         mock_settings.MIN_CREDIBILITY_THRESHOLD = 0.60
         mock_settings.MIN_CONSENSUS_STRENGTH = 0.50
@@ -154,7 +154,7 @@ class TestAbstentionMapsToUncertain:
 
         with patch.object(judge, "initialize", new_callable=AsyncMock):
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         assert result.verdict == "uncertain"
         assert result.uncertainty_reason == "insufficient_evidence"
@@ -176,7 +176,7 @@ class TestAbstentionMapsToUncertain:
                                         "High-credibility sources disagree.", 0.3)), \
              patch.object(judge, "initialize", new_callable=AsyncMock):
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         assert result.verdict == "uncertain"
         assert result.uncertainty_reason == "conflicting_expert_opinion"
@@ -197,7 +197,7 @@ class TestAbstentionMapsToUncertain:
                                         "Claim may have been accurate historically.", 0.4)), \
              patch.object(judge, "initialize", new_callable=AsyncMock):
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         assert result.verdict == "uncertain"
         assert result.uncertainty_reason == "outdated_evidence"
@@ -227,13 +227,13 @@ class TestProcessingErrorReason:
             mock_settings.JUDGE_MAX_TOKENS = 1000
             mock_settings.JUDGE_TEMPERATURE = 0.3
             mock_settings.EVIDENCE_SNIPPET_LENGTH = 400
-            mock_settings.PASS_NLI_VERDICT_TO_JUDGE = False
             mock_settings.ENABLE_JUDGE_FEW_SHOT = False
             mock_settings.ENABLE_RHETORICAL_CONTEXT = False
             mock_settings.ENABLE_ABSTENTION_LOGIC = False
             mock_settings.MIN_SOURCES_FOR_VERDICT = 2
             mock_settings.MIN_CREDIBILITY_THRESHOLD = 0.60
             mock_settings.MIN_CONSENSUS_STRENGTH = 0.50
+            mock_settings.MAX_SNIPPET_EVIDENCE_FOR_JUDGE = 2
 
             judge2 = ClaimJudge()
 
@@ -243,7 +243,7 @@ class TestProcessingErrorReason:
                               side_effect=Exception("API timeout")), \
                  patch.object(judge2, "initialize", new_callable=AsyncMock):
                 judge2.cache_service = None
-                result = await judge2.judge_claim(claim, signals, evidence)
+                result = await judge2.judge_claim(claim, evidence)
 
         assert result.verdict == "uncertain"
         assert result.uncertainty_reason == "processing_error"
@@ -273,11 +273,11 @@ class TestNonUncertainNoReason:
             # Disable abstention for this test
             ms.ENABLE_ABSTENTION_LOGIC = False
             ms.ENABLE_RHETORICAL_CONTEXT = False
-            ms.PASS_NLI_VERDICT_TO_JUDGE = False
             ms.ENABLE_JUDGE_FEW_SHOT = False
             ms.EVIDENCE_SNIPPET_LENGTH = 400
+            ms.MAX_SNIPPET_EVIDENCE_FOR_JUDGE = 2
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         assert result.verdict == "supported"
         assert result.uncertainty_reason is None
@@ -302,11 +302,11 @@ class TestNonUncertainNoReason:
              patch("app.pipeline.judge.settings") as ms:
             ms.ENABLE_ABSTENTION_LOGIC = False
             ms.ENABLE_RHETORICAL_CONTEXT = False
-            ms.PASS_NLI_VERDICT_TO_JUDGE = False
             ms.ENABLE_JUDGE_FEW_SHOT = False
             ms.EVIDENCE_SNIPPET_LENGTH = 400
+            ms.MAX_SNIPPET_EVIDENCE_FOR_JUDGE = 2
             judge.cache_service = None
-            result = await judge.judge_claim(claim, signals, evidence)
+            result = await judge.judge_claim(claim, evidence)
 
         assert result.verdict == "contradicted"
         assert result.uncertainty_reason is None
