@@ -104,9 +104,6 @@ class Settings(BaseSettings):
     # TIER 2: Standard - Used for display selection
     SIMILARITY_TIER2_STANDARD: float = Field(0.40, env="SIMILARITY_TIER2_STANDARD")
 
-    # TIER 3: Strict - Used for high-confidence operations
-    SIMILARITY_TIER3_STRICT: float = Field(0.60, env="SIMILARITY_TIER3_STRICT")
-
     # Credibility: Unified across pipeline
     CREDIBILITY_MINIMUM: float = Field(0.55, env="CREDIBILITY_MINIMUM")
 
@@ -173,13 +170,6 @@ class Settings(BaseSettings):
     # Snippet-only evidence cap for judge context (PR 2-D)
     # When extracted evidence exists, at most this many snippet-only items in judge's top 5
     MAX_SNIPPET_EVIDENCE_FOR_JUDGE: int = Field(2, env="MAX_SNIPPET_EVIDENCE_FOR_JUDGE")
-
-    # Semantic Similarity Filtering (Retrieve Stage)
-    # Filters out irrelevant evidence BEFORE it reaches the judge
-    # Prevents generic landing pages (e.g., "how to fact check" guides) from being used as evidence
-    ENABLE_SEMANTIC_RELEVANCE_FILTER: bool = Field(True, env="ENABLE_SEMANTIC_RELEVANCE_FILTER")
-    # Aligned with SIMILARITY_TIER1_LENIENT (unified threshold)
-    SEMANTIC_SIMILARITY_THRESHOLD: float = Field(0.25, env="SEMANTIC_SIMILARITY_THRESHOLD")  # Min semantic similarity (0-1)
 
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")  # Allow 3 results per domain for better evidence coverage

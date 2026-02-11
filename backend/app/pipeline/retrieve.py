@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import os
 from app.services.search import SearchService, SearchResult
 from app.services.evidence import EvidenceExtractor, EvidenceSnippet
-from app.services.embeddings import get_embedding_service, rank_evidence_by_similarity
+from app.services.embeddings import get_embedding_service
 from app.services.vector_store import get_vector_store
 from app.utils.url_utils import extract_domain
 from app.services.government_api_client import get_api_registry
@@ -616,29 +616,25 @@ class EvidenceRetriever:
                         all_evidence_snippets.sort(key=lambda x: x.relevance_score if hasattr(x, 'relevance_score') else 0.5, reverse=True)
                         all_evidence_snippets = all_evidence_snippets[:MAX_EVIDENCE_FOR_RANKING]
 
-                    if getattr(settings, 'ENABLE_LLM_RELEVANCE_SCORER', True):
-                        ranked_evidence = []
-                        for idx, snippet_item in enumerate(all_evidence_snippets):
-                            external_source = snippet_item.metadata.get("external_source_provider") if snippet_item.metadata else None
-                            credibility = snippet_item.metadata.get("credibility_score", 0.6) if snippet_item.metadata else 0.6
-                            ranked_evidence.append({
-                                "id": f"evidence_{idx}",
-                                "text": snippet_item.text,
-                                "source": snippet_item.source,
-                                "url": snippet_item.url,
-                                "title": snippet_item.title,
-                                "published_date": snippet_item.published_date,
-                                "relevance_score": float(snippet_item.relevance_score),
-                                "semantic_similarity": 0.0,
-                                "combined_score": 0.0,
-                                "word_count": snippet_item.word_count,
-                                "credibility_score": credibility,
-                                "external_source_provider": external_source,
-                                "metadata": snippet_item.metadata
-                            })
-                    else:
-                        ranked_evidence = await self._rank_evidence_with_embeddings(claim_text, all_evidence_snippets)
-                        ranked_evidence = await self._rerank_with_cross_encoder(claim_text, ranked_evidence)
+                    ranked_evidence = []
+                    for idx, snippet_item in enumerate(all_evidence_snippets):
+                        external_source = snippet_item.metadata.get("external_source_provider") if snippet_item.metadata else None
+                        credibility = snippet_item.metadata.get("credibility_score", 0.6) if snippet_item.metadata else 0.6
+                        ranked_evidence.append({
+                            "id": f"evidence_{idx}",
+                            "text": snippet_item.text,
+                            "source": snippet_item.source,
+                            "url": snippet_item.url,
+                            "title": snippet_item.title,
+                            "published_date": snippet_item.published_date,
+                            "relevance_score": float(snippet_item.relevance_score),
+                            "semantic_similarity": 0.0,
+                            "combined_score": 0.0,
+                            "word_count": snippet_item.word_count,
+                            "credibility_score": credibility,
+                            "external_source_provider": external_source,
+                            "metadata": snippet_item.metadata
+                        })
 
                     pre_weighting_snapshot = copy.deepcopy(ranked_evidence)
 
@@ -800,43 +796,26 @@ class EvidenceRetriever:
                     all_evidence_snippets.sort(key=lambda x: x.relevance_score if hasattr(x, 'relevance_score') else 0.5, reverse=True)
                     all_evidence_snippets = all_evidence_snippets[:MAX_EVIDENCE_FOR_RANKING]
 
-                # If LLM scorer is enabled, skip embedding ranking (it's done later in pipeline)
-                # This saves ~1-2s of compute per claim and avoids redundant topical scoring
-                if getattr(settings, 'ENABLE_LLM_RELEVANCE_SCORER', True):
-                    # Pass evidence through without embedding ranking
-                    # LLM scorer will handle relevance scoring later
-                    logger.debug(f"[RETRIEVE] Skipping embedding ranking - LLM scorer enabled")
-                    ranked_evidence = []
-                    for idx, snippet in enumerate(all_evidence_snippets):
-                        external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
-                        credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
-                        ranked_evidence.append({
-                            "id": f"evidence_{idx}",
-                            "text": snippet.text,
-                            "source": snippet.source,
-                            "url": snippet.url,
-                            "title": snippet.title,
-                            "published_date": snippet.published_date,
-                            "relevance_score": float(snippet.relevance_score),
-                            "semantic_similarity": 0.0,  # Not computed - LLM scorer will score relevance
-                            "combined_score": 0.0,  # Not computed - LLM scorer will score relevance
-                            "word_count": snippet.word_count,
-                            "credibility_score": credibility,
-                            "external_source_provider": external_source,
-                            "metadata": snippet.metadata
-                        })
-                else:
-                    # Legacy path: Use embedding-based ranking
-                    ranked_evidence = await self._rank_evidence_with_embeddings(
-                        claim_text,
-                        all_evidence_snippets
-                    )
-
-                    # Step 2.5: Cross-encoder reranking for precision (Phase 1.3)
-                    ranked_evidence = await self._rerank_with_cross_encoder(
-                        claim_text,
-                        ranked_evidence
-                    )
+                # Build evidence dicts (LLM scorer handles relevance downstream in Stage 3.7)
+                ranked_evidence = []
+                for idx, snippet in enumerate(all_evidence_snippets):
+                    external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
+                    credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
+                    ranked_evidence.append({
+                        "id": f"evidence_{idx}",
+                        "text": snippet.text,
+                        "source": snippet.source,
+                        "url": snippet.url,
+                        "title": snippet.title,
+                        "published_date": snippet.published_date,
+                        "relevance_score": float(snippet.relevance_score),
+                        "semantic_similarity": 0.0,
+                        "combined_score": 0.0,
+                        "word_count": snippet.word_count,
+                        "credibility_score": credibility,
+                        "external_source_provider": external_source,
+                        "metadata": snippet.metadata
+                    })
 
                 # Step 3: Apply credibility and recency weighting (with raw evidence tracking)
                 logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(ranked_evidence)} items BEFORE credibility weighting")
@@ -1164,132 +1143,6 @@ class EvidenceRetriever:
                 # Other failure or fallback disabled: Drop
                 logger.debug(f"Dropping failed extraction for {search_result.url}: {e}")
                 return None
-
-    async def _rank_evidence_with_embeddings(self, claim: str,
-                                           evidence_snippets: List[EvidenceSnippet]) -> List[Dict[str, Any]]:
-        """Rank evidence using semantic similarity"""
-        try:
-            if not evidence_snippets:
-                return []
-            
-            # Prepare evidence texts for embedding
-            evidence_texts = [snippet.text for snippet in evidence_snippets]
-            
-            # Get similarity rankings
-            ranked_results = await rank_evidence_by_similarity(
-                claim, 
-                evidence_texts, 
-                top_k=len(evidence_texts)
-            )
-            
-            # Convert to evidence format with similarity scores
-            ranked_evidence = []
-            filtered_count = 0
-
-            for idx, similarity, text in ranked_results:
-                if idx < len(evidence_snippets):
-                    snippet = evidence_snippets[idx]
-
-                    # SEMANTIC RELEVANCE FILTER: Skip evidence below similarity threshold
-                    # This prevents generic landing pages (e.g., "how to fact check" guides)
-                    # from being used as evidence when they have no relevance to the claim
-                    if settings.ENABLE_SEMANTIC_RELEVANCE_FILTER:
-                        if similarity < settings.SEMANTIC_SIMILARITY_THRESHOLD:
-                            filtered_count += 1
-                            logger.info(
-                                f"[RETRIEVE] FILTERED (low relevance): {snippet.source} "
-                                f"(similarity={similarity:.3f} < {settings.SEMANTIC_SIMILARITY_THRESHOLD}) "
-                                f"- {snippet.title[:60]}..."
-                            )
-                            continue
-
-                    # Extract API-specific fields from metadata (if present)
-                    # Issue #6 Fix: Preserve external_source_provider at top level
-                    external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
-                    credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
-
-                    evidence_item = {
-                        "id": f"evidence_{idx}",
-                        "text": snippet.text,
-                        "source": snippet.source,
-                        "url": snippet.url,
-                        "title": snippet.title,
-                        "published_date": snippet.published_date,
-                        "relevance_score": float(snippet.relevance_score),
-                        "semantic_similarity": float(similarity),
-                        "combined_score": float((snippet.relevance_score + similarity) / 2),
-                        "word_count": snippet.word_count,
-                        "credibility_score": credibility,  # Add at top level
-                        "external_source_provider": external_source,  # Add at top level for Issue #6 fix
-                        "metadata": snippet.metadata  # Phase 2: Include PDF metadata (page_number, context)
-                    }
-                    ranked_evidence.append(evidence_item)
-
-            if filtered_count > 0:
-                logger.info(f"[RETRIEVE] Semantic filter: {filtered_count} low-relevance evidence items removed")
-
-            # ALIGNED FALLBACK: Keep top 3 when all filtered (same pattern as credibility fallback)
-            if len(ranked_evidence) == 0 and len(ranked_results) > 0:
-                logger.warning(
-                    f"[RETRIEVE] SEMANTIC FALLBACK: All {len(ranked_results)} items below "
-                    f"TIER1 threshold ({settings.SEMANTIC_SIMILARITY_THRESHOLD}), keeping top 3"
-                )
-                sorted_results = sorted(ranked_results, key=lambda x: x[1], reverse=True)
-                for idx, similarity, text in sorted_results[:3]:
-                    if idx < len(evidence_snippets):
-                        snippet = evidence_snippets[idx]
-                        external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
-                        credibility = snippet.metadata.get("credibility_score", settings.UNKNOWN_SOURCE_CREDIBILITY) if snippet.metadata else settings.UNKNOWN_SOURCE_CREDIBILITY
-                        ranked_evidence.append({
-                            "id": f"evidence_{idx}",
-                            "text": snippet.text,
-                            "source": snippet.source,
-                            "url": snippet.url,
-                            "title": snippet.title,
-                            "published_date": snippet.published_date,
-                            "relevance_score": float(snippet.relevance_score),
-                            "semantic_similarity": float(similarity),
-                            "combined_score": float((snippet.relevance_score + similarity) / 2),
-                            "word_count": snippet.word_count,
-                            "credibility_score": credibility,
-                            "external_source_provider": external_source,
-                            "metadata": snippet.metadata,
-                            "is_semantic_fallback": True
-                        })
-                        logger.info(f"[RETRIEVE] FALLBACK: {snippet.source} (sim={similarity:.3f})")
-
-            # Sort by combined score
-            ranked_evidence.sort(key=lambda x: x["combined_score"], reverse=True)
-            
-            logger.debug(f"Ranked {len(ranked_evidence)} evidence items by similarity")
-            return ranked_evidence
-            
-        except Exception as e:
-            logger.error(f"Evidence ranking error: {e}")
-            # Fallback: return evidence without embedding ranking
-            fallback_evidence = []
-            for i, snippet in enumerate(evidence_snippets):
-                # Extract API fields (same pattern as main code)
-                external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
-                credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
-
-                fallback_evidence.append({
-                    "id": f"evidence_{i}",
-                    "text": snippet.text,
-                    "source": snippet.source,
-                    "url": snippet.url,
-                    "title": snippet.title,
-                    "published_date": snippet.published_date,
-                    "relevance_score": float(snippet.relevance_score),
-                    "semantic_similarity": 0.5,
-                    "combined_score": float(snippet.relevance_score),
-                    "word_count": snippet.word_count,
-                    "credibility_score": credibility,  # Add at top level
-                    "external_source_provider": external_source,  # Add at top level for Issue #6 fix
-                    "metadata": snippet.metadata  # Phase 2: Include PDF metadata (page_number, context)
-                })
-
-            return fallback_evidence
 
     def _apply_credibility_weighting(
         self,
