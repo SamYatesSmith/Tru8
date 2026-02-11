@@ -304,15 +304,6 @@ async def run_pipeline(
     # (Same as Celery worker does at startup - critical for inline execution)
     warmup_search_providers()
 
-    # DIAGNOSTIC: Check if search API keys are configured
-    from app.services.search import SearchService
-    search_svc = SearchService()
-    provider_names = [p.__class__.__name__ for p in search_svc.providers]
-    if not search_svc.providers:
-        logger.warning(f"[INLINE PIPELINE] WARNING: No search providers configured! Set BRAVE_API_KEY or SERP_API_KEY")
-    else:
-        logger.info(f"[INLINE PIPELINE] Search providers available: {provider_names}")
-
     start_time = datetime.utcnow()
     stage_timings = {}
 
@@ -450,50 +441,6 @@ async def run_pipeline(
             ledger.record("frozen_evidence_replay", attached=attached_count,
                            mismatches=frozen_replay_mismatches)
 
-    # FROZEN REPLAY: Attach frozen URLs to claims for deterministic replay
-    frozen_urls = input_data.get("frozen_urls")
-    frozen_claim_texts = input_data.get("frozen_claim_texts") or {}
-    frozen_replay_mismatches = 0
-    _frozen_temp_overrides = {}
-    if frozen_urls:
-        attached_count = 0
-        for claim in claims:
-            pos = str(claim.get("position", 0))
-            if pos in frozen_urls:
-                # Mismatch guard: verify stored claim text matches extracted claim text
-                expected_text = frozen_claim_texts.get(pos, "")
-                actual_text = claim.get("text", "")
-                if expected_text:
-                    norm_expected = " ".join(expected_text.lower().split())
-                    norm_actual = " ".join(actual_text.lower().split())
-                    if norm_expected != norm_actual:
-                        frozen_replay_mismatches += 1
-                        logger.warning(
-                            f"[FROZEN REPLAY MISMATCH] Claim {pos}: "
-                            f"expected='{expected_text[:80]}...' "
-                            f"actual='{actual_text[:80]}...' — skipping freeze for this claim"
-                        )
-                        continue  # Skip freeze, run normal search
-                claim["frozen_urls"] = frozen_urls[pos]
-                attached_count += 1
-        logger.info(f"[FROZEN REPLAY] Attached frozen URLs to {attached_count}/{len(claims)} claims"
-                     f"{f', {frozen_replay_mismatches} mismatches skipped' if frozen_replay_mismatches else ''}")
-
-        # Force deterministic settings for frozen replay
-        import os
-        for env_key in ("JUDGE_TEMPERATURE", "LLM_RELEVANCE_TEMPERATURE"):
-            _frozen_temp_overrides[env_key] = os.environ.get(env_key)
-            os.environ[env_key] = "0"
-        # Auto-skip gov APIs to eliminate non-frozen variance
-        _frozen_temp_overrides["FROZEN_REPLAY_SKIP_GOV_APIS"] = os.environ.get("FROZEN_REPLAY_SKIP_GOV_APIS")
-        os.environ["FROZEN_REPLAY_SKIP_GOV_APIS"] = "1"
-        logger.info("[FROZEN REPLAY] Forced temperature=0 + skip gov APIs for determinism")
-
-        if ledger:
-            ledger.record("frozen_replay", attached=attached_count,
-                          mismatches=frozen_replay_mismatches,
-                          total_positions=len(frozen_urls))
-
     stage_timings["extract"] = (datetime.utcnow() - stage_start).total_seconds()
     logger.info(f"[INLINE PIPELINE] Extracted {len(claims)} claims")
 
@@ -501,8 +448,8 @@ async def run_pipeline(
     # Stage 2.5: Fact-check Lookup (optional, skipped for frozen replay)
     # =========================================================================
     factcheck_evidence = {}
-    if frozen_urls or frozen_evidence:
-        logger.info("[FROZEN REPLAY] Skipping fact-check API for deterministic replay")
+    if frozen_evidence:
+        logger.info("[FROZEN EVIDENCE REPLAY] Skipping fact-check API for deterministic replay")
     elif settings.ENABLE_FACTCHECK_API:
         await progress_reporter.report_progress("factcheck")
         stage_start = datetime.utcnow()
@@ -538,39 +485,16 @@ async def run_pipeline(
         raw_sources_count = 0
         total_frozen = sum(len(ev) for ev in evidence.values())
         logger.info(f"[FROZEN EVIDENCE REPLAY] Built evidence directly: {total_frozen} items for {len(evidence)} claims (retrieve bypassed)")
-        print(f"[FROZEN EVIDENCE REPLAY] Direct evidence injection: {total_frozen} items (retrieve bypassed)", flush=True)
         stage_timings["retrieve"] = 0.0
         if ledger:
             ledger.record("retrieve", total=total_frozen,
                            per_claim={pos: len(ev) for pos, ev in evidence.items()},
                            mode="frozen_evidence_direct")
     else:
-        # Track when retrieve actually starts
         import time as _time
         _retrieve_start = _time.time()
 
-        # CRITICAL DIAGNOSTIC: Print to stdout to ensure visibility even if logging fails
-        print(f"\n{'#'*70}", flush=True)
-        print(f"[RETRIEVE STAGE] Starting for check {check_id} at {_retrieve_start:.2f}", flush=True)
-        print(f"[RETRIEVE STAGE] Claims to process: {len(claims)}", flush=True)
-        print(f"[RETRIEVE STAGE] Timeout set to: {retrieve_timeout}s", flush=True)
-
-        # Check search provider configuration
-        from app.services.search import SearchService
-        _diag_search = SearchService()
-        _diag_providers = [p.__class__.__name__ for p in _diag_search.providers]
-        print(f"[RETRIEVE STAGE] WEB SEARCH PROVIDERS: {_diag_providers if _diag_providers else '*** NONE CONFIGURED ***'}", flush=True)
-        if not _diag_providers:
-            print(f"[RETRIEVE STAGE] WARNING: Set BRAVE_API_KEY or SERP_API_KEY for web search!", flush=True)
-
-        # Check API adapter configuration
-        from app.services.government_api_client import get_api_registry
-        _diag_registry = get_api_registry()
-        _diag_adapters = [a.api_name for a in _diag_registry.get_all_adapters()]
-        print(f"[RETRIEVE STAGE] API ADAPTERS: {len(_diag_adapters)} configured - {_diag_adapters[:5]}{'...' if len(_diag_adapters) > 5 else ''}", flush=True)
-        print(f"{'#'*70}\n", flush=True)
-
-        logger.critical(f"[RETRIEVE STAGE] Starting for check {check_id} with {len(claims)} claims")
+        logger.info(f"[RETRIEVE STAGE] Starting for check {check_id} with {len(claims)} claims, timeout={retrieve_timeout}s")
 
         try:
             logger.info(f"[INLINE PIPELINE] Starting evidence retrieval with {retrieve_timeout}s timeout")
@@ -586,11 +510,9 @@ async def run_pipeline(
                 timeout=retrieve_timeout
             )
             _retrieve_elapsed = _time.time() - _retrieve_start
-            print(f"\n[RETRIEVE SUCCESS] Completed in {_retrieve_elapsed:.2f}s", flush=True)
             logger.info(f"[INLINE PIPELINE] Evidence retrieval completed in {_retrieve_elapsed:.2f}s")
         except asyncio.TimeoutError:
             _retrieve_elapsed = _time.time() - _retrieve_start
-            print(f"\n[RETRIEVE TIMEOUT] Timed out after {_retrieve_elapsed:.2f}s (limit was {retrieve_timeout}s)", flush=True)
             logger.warning(f"[INLINE PIPELINE] Evidence retrieval timed out after {_retrieve_elapsed:.2f}s (limit={retrieve_timeout}s), continuing with empty evidence")
             retrieval_result = {"evidence_by_claim": {}, "raw_evidence": [], "raw_sources_count": 0}
         except Exception as e:
@@ -621,13 +543,11 @@ async def run_pipeline(
 
     # DIAGNOSTIC: Log evidence counts per claim to debug filtering
     total_evidence = sum(len(ev) for ev in evidence.values())
-    logger.critical(f"[INLINE PIPELINE] *** EVIDENCE SUMMARY: {total_evidence} total items for {len(evidence)} claims ***")
-    print(f"[INLINE PIPELINE STDOUT] *** EVIDENCE: {total_evidence} total items for {len(evidence)} claims ***", flush=True)
+    logger.info(f"[INLINE PIPELINE] Evidence summary: {total_evidence} total items for {len(evidence)} claims")
     for pos, ev_list in evidence.items():
         logger.info(f"[INLINE PIPELINE] Claim {pos}: {len(ev_list)} evidence items")
     if total_evidence == 0:
         logger.critical(f"[INLINE PIPELINE] CRITICAL: No evidence retrieved for any claim! Check search providers.")
-        print(f"[INLINE PIPELINE STDOUT] CRITICAL: Zero evidence retrieved!", flush=True)
 
     if ledger:
         ledger.record("retrieve", total=total_evidence,
@@ -661,20 +581,6 @@ async def run_pipeline(
                           unknown_domain_filtered=unknown_domain_filtered,
                           total_raw=sum(s["total_raw"] for s in claim_filter_counts.values()),
                           total_included=sum(s["included"] for s in claim_filter_counts.values()))
-
-    # =========================================================================
-    # Stage 3.5: Fact-check Parsing (optional)
-    # =========================================================================
-    if settings.ENABLE_FACTCHECK_PARSING and evidence:
-        stage_start = datetime.utcnow()
-        try:
-            from app.services.factcheck_parser import get_factcheck_parser
-            parser = get_factcheck_parser()
-            # Direct await - parse_factcheck_evidence is async
-            evidence = await parser.parse_factcheck_evidence(claims, evidence)
-        except Exception as e:
-            logger.warning(f"Fact-check parsing failed (non-critical): {e}")
-        stage_timings["factcheck_parse"] = (datetime.utcnow() - stage_start).total_seconds()
 
     # =========================================================================
     # Stage 3.6: Cross-Claim URL Deduplication
@@ -738,7 +644,6 @@ async def run_pipeline(
 
             if removed_count > 0:
                 logger.info(f"[URL DEDUP] Removed {removed_count} duplicate URLs across claims: {before_count} → {after_count}")
-                print(f"[PIPELINE] Cross-claim URL dedup: removed {removed_count} duplicates", flush=True)
             else:
                 logger.info(f"[URL DEDUP] No cross-claim duplicates found ({after_count} unique URLs)")
 
@@ -828,7 +733,6 @@ async def run_pipeline(
 
             total_before = sum(domain_counts_before.values())
             logger.info(f"[GLOBAL CAP] BEFORE: {total_before} evidence items, domains: {dict(sorted(domain_counts_before.items(), key=lambda x: -x[1])[:5])}")
-            print(f"[PIPELINE] Domain cap BEFORE: {total_before} items, top domains: {dict(sorted(domain_counts_before.items(), key=lambda x: -x[1])[:3])}", flush=True)
 
             global_capper = DomainCapper()
             evidence = global_capper.apply_global_caps(
@@ -847,7 +751,6 @@ async def run_pipeline(
             total_after = sum(domain_counts_after.values())
             removed = total_before - total_after
             logger.info(f"[GLOBAL CAP] AFTER: {total_after} evidence items (removed {removed}), domains: {dict(sorted(domain_counts_after.items(), key=lambda x: -x[1])[:5])}")
-            print(f"[PIPELINE] Domain cap AFTER: {total_after} items (removed {removed})", flush=True)
 
             if ledger:
                 # Record which domains were capped
@@ -863,7 +766,6 @@ async def run_pipeline(
         stage_timings["global_domain_cap"] = (datetime.utcnow() - stage_start).total_seconds()
     elif not settings.ENABLE_GLOBAL_DOMAIN_CAPPING:
         logger.warning("[GLOBAL CAP] DISABLED via settings - domain diversity not enforced!")
-        print("[PIPELINE] WARNING: Global domain capping is DISABLED", flush=True)
 
     # =========================================================================
     # Stage 5: Judge Claims
@@ -885,7 +787,6 @@ async def run_pipeline(
 
     logger.info(f"[JUDGE INPUT] Final evidence for judge: {final_evidence_count} items, {len(final_urls)} unique URLs, {len(final_domains)} domains")
     logger.info(f"[JUDGE INPUT] Domain distribution: {dict(sorted(final_domains.items(), key=lambda x: -x[1]))}")
-    print(f"[PIPELINE] JUDGE INPUT: {final_evidence_count} evidence items from {len(final_domains)} domains", flush=True)
 
     # Warn if any domain still appears too many times (indicates capping may have failed)
     max_domain_count = max(final_domains.values()) if final_domains else 0
@@ -1065,16 +966,6 @@ async def run_pipeline(
             final_result["evidence_ledger"] = ledger.to_dict()
         except Exception as e:
             logger.warning(f"[LEDGER] Failed to save ledger: {e}")
-
-    # FROZEN REPLAY: Restore original temperature settings
-    if frozen_urls and _frozen_temp_overrides:
-        import os
-        for env_key, original_val in _frozen_temp_overrides.items():
-            if original_val is None:
-                os.environ.pop(env_key, None)
-            else:
-                os.environ[env_key] = original_val
-        logger.info("[FROZEN REPLAY] Restored original temperature settings")
 
     # FROZEN EVIDENCE REPLAY: Reset context var overrides
     if frozen_evidence and _replay_temp_token is not None:

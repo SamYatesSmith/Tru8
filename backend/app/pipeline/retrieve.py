@@ -71,7 +71,6 @@ class EvidenceRetriever:
         """Retrieve evidence for multiple claims concurrently"""
         import time as _time
         _func_start = _time.time()
-        print(f"\n[RETRIEVER ENTRY] retrieve_evidence_for_claims called with {len(claims)} claims at {_func_start:.2f}", flush=True)
         logger.info(f"[RETRIEVER DEBUG] retrieve_evidence_for_claims called with {len(claims)} claims")
         try:
             # Extract excluded domain if provided
@@ -82,15 +81,11 @@ class EvidenceRetriever:
 
             # Query Planning Agent: Generate targeted queries for all claims (single LLM call)
             query_plans = None
-            print(f"[RETRIEVER] QUERY_PLANNING_ENABLED: {settings.ENABLE_QUERY_PLANNING}", flush=True)
             logger.info(f"[RETRIEVE] QUERY_PLANNING_ENABLED: {settings.ENABLE_QUERY_PLANNING}")
             if settings.ENABLE_QUERY_PLANNING:
                 try:
-                    print(f"[RETRIEVER] Importing query_planner...", flush=True)
                     from app.utils.query_planner import get_query_planner
-                    print(f"[RETRIEVER] Getting query planner instance...", flush=True)
                     planner = get_query_planner()
-                    print(f"[RETRIEVER] Query planner ready, preparing article context...", flush=True)
 
                     # Phase 4: Pass article context to query planner for dynamic freshness decisions
                     article_context = None
@@ -98,11 +93,9 @@ class EvidenceRetriever:
                         article_context = claims[0]["article_classification"]
                         logger.info(f"[RETRIEVE] Passing article context to query planner: domain={article_context.get('primary_domain')}")
 
-                    print(f"[RETRIEVER] Calling plan_queries_batch for {len(claims)} claims... (this is an LLM call)", flush=True)
                     _qp_start = _time.time()
                     query_plans = await planner.plan_queries_batch(claims, article_context=article_context)
                     _qp_elapsed = _time.time() - _qp_start
-                    print(f"[RETRIEVER] Query planning returned in {_qp_elapsed:.2f}s", flush=True)
                     if query_plans:
                         logger.info(f"Query planning complete: {len(query_plans)} plans for {len(claims)} claims")
                         # Attach query plans to claims
@@ -113,10 +106,7 @@ class EvidenceRetriever:
                     else:
                         logger.warning("Query planning returned no plans, using fallback")
                 except Exception as e:
-                    print(f"[RETRIEVER] Query planning FAILED: {type(e).__name__}: {e}", flush=True)
                     logger.warning(f"Query planning failed: {e}, using fallback")
-            else:
-                print(f"[RETRIEVER] Query planning disabled, skipping...", flush=True)
 
             # Process claims with concurrency limit
             semaphore = asyncio.Semaphore(self.max_concurrent_claims)
@@ -127,11 +117,9 @@ class EvidenceRetriever:
             
             import time as _time
             _gather_start = _time.time()
-            print(f"\n[RETRIEVER] Starting gather for {len(tasks)} tasks at {_gather_start:.2f}", flush=True)
             logger.info(f"[RETRIEVER DEBUG] Gathering results for {len(tasks)} tasks")
             results = await asyncio.gather(*tasks, return_exceptions=True)
             _gather_elapsed = _time.time() - _gather_start
-            print(f"[RETRIEVER] Gather complete in {_gather_elapsed:.2f}s - {len(results)} results", flush=True)
             logger.info(f"[RETRIEVER DEBUG] Gather complete in {_gather_elapsed:.2f}s. Results count: {len(results)}")
 
             # Log each result type
@@ -171,20 +159,17 @@ class EvidenceRetriever:
             # RECOVERY: Ensure minimum evidence per claim
             # This catches claims that ended up with insufficient evidence after initial retrieval
             _recovery_start = _time.time()
-            print(f"[RETRIEVER] Starting recovery search for claims with <{self.MIN_EVIDENCE_PER_CLAIM} evidence...", flush=True)
             evidence_by_claim, recovery_raw = await self._ensure_minimum_evidence(
                 evidence_by_claim=evidence_by_claim,
                 claims=claims,
                 excluded_domain=excluded_domain
             )
             _recovery_elapsed = _time.time() - _recovery_start
-            print(f"[RETRIEVER] Recovery complete in {_recovery_elapsed:.2f}s - added {len(recovery_raw)} raw items", flush=True)
             all_raw_evidence.extend(recovery_raw)
 
             # Return both filtered evidence and raw evidence
             _func_elapsed = _time.time() - _func_start
             total_evidence = sum(len(ev) for ev in evidence_by_claim.values())
-            print(f"[RETRIEVER EXIT] Returning {total_evidence} total evidence items for {len(evidence_by_claim)} claims in {_func_elapsed:.2f}s", flush=True)
             return {
                 "evidence_by_claim": evidence_by_claim,
                 "raw_evidence": all_raw_evidence,
@@ -558,100 +543,6 @@ class EvidenceRetriever:
                         "search_mode": "frozen_evidence_replay"
                     }
 
-                # FROZEN REPLAY: Skip web search, use pre-set URLs
-                frozen_url_data = claim.get("frozen_urls")  # List[Dict] with url/title/snippet
-                if frozen_url_data is not None:
-                    logger.info(f"[FROZEN REPLAY] Claim {claim_position}: replaying {len(frozen_url_data)} frozen URLs")
-
-                    # Create SearchResult objects with stored metadata
-                    synthetic_results = []
-                    for item in frozen_url_data:
-                        url = item.get("url", "") if isinstance(item, dict) else str(item)
-                        if not url or not url.startswith("http"):
-                            continue
-                        title = item.get("title", "") if isinstance(item, dict) else ""
-                        snippet = item.get("snippet", "") if isinstance(item, dict) else ""
-                        synthetic_results.append(SearchResult(title=title, url=url, snippet=snippet))
-
-                    # Extract content from frozen URLs (same path as normal pipeline)
-                    frozen_semaphore = asyncio.Semaphore(3)
-                    extraction_tasks = [
-                        self.evidence_extractor._extract_from_page(sr, claim_text, frozen_semaphore)
-                        for sr in synthetic_results
-                    ]
-                    extracted = await asyncio.gather(*extraction_tasks, return_exceptions=True)
-                    web_evidence_snippets = [r for r in extracted if isinstance(r, EvidenceSnippet)]
-
-                    # Government APIs: run by default (matches normal pipeline behavior)
-                    api_evidence = {"evidence": [], "api_stats": {}}
-                    skip_gov_apis = os.environ.get("FROZEN_REPLAY_SKIP_GOV_APIS", "0") == "1"
-                    if not skip_gov_apis:
-                        try:
-                            api_evidence = await asyncio.wait_for(
-                                self._retrieve_from_government_apis(claim_text, claim),
-                                timeout=15
-                            )
-                        except (asyncio.TimeoutError, Exception) as e:
-                            logger.warning(f"[FROZEN REPLAY] Gov API failed for claim {claim_position}: {e}")
-
-                    logger.info(f"[FROZEN REPLAY] Claim {claim_position}: {len(web_evidence_snippets)} extracted + {len(api_evidence.get('evidence', []))} API")
-
-                    # Merge web + API evidence through the same ranking/credibility path
-                    api_snippets = self._convert_api_evidence_to_snippets(api_evidence.get("evidence", []))
-                    all_evidence_snippets = list(web_evidence_snippets) + api_snippets
-                    claim["api_stats"] = api_evidence.get("api_stats", {})
-
-                    if not all_evidence_snippets:
-                        return {
-                            "filtered_evidence": [],
-                            "raw_evidence": [],
-                            "claim_position": claim_position,
-                            "claim_text": claim_text[:500] if claim_text else "",
-                            "search_mode": "frozen_replay"
-                        }
-
-                    # Apply same ranking/credibility path as normal pipeline
-                    MAX_EVIDENCE_FOR_RANKING = 30
-                    if len(all_evidence_snippets) > MAX_EVIDENCE_FOR_RANKING:
-                        all_evidence_snippets.sort(key=lambda x: x.relevance_score if hasattr(x, 'relevance_score') else 0.5, reverse=True)
-                        all_evidence_snippets = all_evidence_snippets[:MAX_EVIDENCE_FOR_RANKING]
-
-                    ranked_evidence = []
-                    for idx, snippet_item in enumerate(all_evidence_snippets):
-                        external_source = snippet_item.metadata.get("external_source_provider") if snippet_item.metadata else None
-                        credibility = snippet_item.metadata.get("credibility_score", 0.6) if snippet_item.metadata else 0.6
-                        ranked_evidence.append({
-                            "id": f"evidence_{idx}",
-                            "text": snippet_item.text,
-                            "source": snippet_item.source,
-                            "url": snippet_item.url,
-                            "title": snippet_item.title,
-                            "published_date": snippet_item.published_date,
-                            "relevance_score": float(snippet_item.relevance_score),
-                            "semantic_similarity": 0.0,
-                            "combined_score": 0.0,
-                            "word_count": snippet_item.word_count,
-                            "credibility_score": credibility,
-                            "external_source_provider": external_source,
-                            "metadata": snippet_item.metadata
-                        })
-
-                    pre_weighting_snapshot = copy.deepcopy(ranked_evidence)
-
-                    result = self._apply_credibility_weighting(ranked_evidence, claim, track_raw_evidence=True)
-                    final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
-
-                    await self._store_evidence_embeddings(claim, final_evidence)
-
-                    return {
-                        "filtered_evidence": final_evidence[:self.max_sources_per_claim],
-                        "raw_evidence": raw_evidence,
-                        "pre_weighting_evidence": pre_weighting_snapshot,
-                        "claim_position": claim_position,
-                        "claim_text": claim_text[:500] if claim_text else "",
-                        "search_mode": "frozen_replay"
-                    }
-
                 # Step 1: Parallel retrieval from web search AND government APIs
                 subject_context = claim.get("subject_context")
                 key_entities = claim.get("key_entities", [])
@@ -747,7 +638,6 @@ class EvidenceRetriever:
 
                 if timed_out_tasks:
                     logger.warning(f"[CLAIM {claim_position}] Tasks timed out after {CLAIM_TIMEOUT}s: {timed_out_tasks}")
-                    print(f"[CLAIM {claim_position}] Partial timeout - {timed_out_tasks} timed out, keeping completed results", flush=True)
                     api_evidence["api_stats"]["timeout"] = True
                 else:
                     logger.info(f"[SINGLE CLAIM DEBUG] All tasks complete for claim {claim_position}")
@@ -758,15 +648,6 @@ class EvidenceRetriever:
 
                 # Store API stats in claim for later tracking
                 claim["api_stats"] = api_evidence.get("api_stats", {})
-
-                # CRITICAL STDOUT DIAGNOSTIC: Ensure visibility even if logging fails
-                print(f"\n{'='*60}", flush=True)
-                print(f"[CLAIM {claim_position}] WEB SEARCH: {len(evidence_snippets) if isinstance(evidence_snippets, list) else 'ERROR'} snippets", flush=True)
-                print(f"[CLAIM {claim_position}] API EVIDENCE: {len(api_evidence_items)} items", flush=True)
-                print(f"[CLAIM {claim_position}] API STATS: {api_evidence.get('api_stats', {})}", flush=True)
-                if api_evidence_items:
-                    print(f"[CLAIM {claim_position}] First API item: {api_evidence_items[0].get('title', 'N/A')[:50]}", flush=True)
-                print(f"{'='*60}\n", flush=True)
 
                 # Log evidence counts (single consolidated log)
                 web_count = len(web_evidence_snippets) if isinstance(web_evidence_snippets, list) else 0

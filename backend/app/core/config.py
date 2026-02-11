@@ -130,11 +130,6 @@ class Settings(BaseSettings):
     ENABLE_FACTCHECK_API: bool = Field(True, env="ENABLE_FACTCHECK_API")
     ENABLE_TEMPORAL_CONTEXT: bool = Field(True, env="ENABLE_TEMPORAL_CONTEXT")  # Enabled: Extracts temporal markers from claims for date-specific queries
 
-    # Fact-Check Parser (Programmatic parsing of fact-check articles)
-    ENABLE_FACTCHECK_PARSING: bool = Field(False, env="ENABLE_FACTCHECK_PARSING")  # Parse fact-check articles for target claim extraction
-    FACTCHECK_SIMILARITY_THRESHOLD: float = Field(0.7, env="FACTCHECK_SIMILARITY_THRESHOLD")  # Min similarity to keep fact-check evidence
-    FACTCHECK_LOW_RELEVANCE_PENALTY: float = Field(0.1, env="FACTCHECK_LOW_RELEVANCE_PENALTY")  # Penalty for low-similarity fact-checks
-
     # Phase 2 - User Experience & Trust
     ENABLE_CLAIM_CLASSIFICATION: bool = Field(True, env="ENABLE_CLAIM_CLASSIFICATION")
     ENABLE_ENHANCED_EXPLAINABILITY: bool = Field(True, env="ENABLE_ENHANCED_EXPLAINABILITY")

@@ -189,31 +189,22 @@ async def retrieve_evidence_with_cache(
     """
     import time as _time
     _wrapper_start = _time.time()
-    print(f"\n[WRAPPER ENTRY] retrieve_evidence_with_cache v2 called with {len(claims)} claims at {_wrapper_start:.2f}", flush=True)
-
     if factcheck_evidence is None:
         factcheck_evidence = {}
 
     try:
-        print(f"[WRAPPER] Creating EvidenceRetriever...", flush=True)
         logger.info(f"[EVIDENCE DEBUG] Starting retrieve_evidence_with_cache for {len(claims)} claims")
         retriever = EvidenceRetriever()
-        print(f"[WRAPPER] EvidenceRetriever created", flush=True)
         logger.info(f"[EVIDENCE DEBUG] EvidenceRetriever created, search_service providers: {[p.__class__.__name__ for p in retriever.search_service.providers]}")
 
         # Check if we have cached evidence for each claim
         cached_evidence = {}
         uncached_claims = []
 
-        print(f"[WRAPPER] Checking cache for {len(claims)} claims...", flush=True)
         _cache_start = _time.time()
         for claim in claims:
             claim_text = claim.get("text", "")
             position = str(claim.get("position", 0))
-            # Frozen claims bypass cache — must go through extraction
-            if claim.get("frozen_urls"):
-                uncached_claims.append(claim)
-                continue
             # Check cache if available
             if cache_service:
                 cached_result = await cache_service.get_cached_evidence_extraction(claim_text)
@@ -225,14 +216,12 @@ async def retrieve_evidence_with_cache(
             uncached_claims.append(claim)
 
         _cache_elapsed = _time.time() - _cache_start
-        print(f"[WRAPPER] Cache check done in {_cache_elapsed:.2f}s: {len(cached_evidence)} cached, {len(uncached_claims)} uncached", flush=True)
         logger.info(f"[EVIDENCE DEBUG] Cache check: {len(cached_evidence)} cached, {len(uncached_claims)} uncached")
 
         # Retrieve evidence for uncached claims
         all_raw_evidence = []
         pre_weighting_by_claim = {}
         if uncached_claims:
-            print(f"[WRAPPER] Calling retrieve_evidence_for_claims for {len(uncached_claims)} uncached claims...", flush=True)
             logger.info(f"[EVIDENCE DEBUG] Retrieving evidence for {len(uncached_claims)} uncached claims")
             _retrieve_start = _time.time()
             retrieval_result = await retriever.retrieve_evidence_for_claims(
@@ -240,7 +229,6 @@ async def retrieve_evidence_with_cache(
                 exclude_source_url=source_url
             )
             _retrieve_elapsed = _time.time() - _retrieve_start
-            print(f"[WRAPPER] retrieve_evidence_for_claims returned in {_retrieve_elapsed:.2f}s, type: {type(retrieval_result)}", flush=True)
             logger.info(f"[EVIDENCE DEBUG] retrieve_evidence_for_claims returned type: {type(retrieval_result)}")
 
             # Extract evidence and raw evidence from new structure

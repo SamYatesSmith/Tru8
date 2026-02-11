@@ -124,7 +124,7 @@ def run_fixture(fixture, api_url, token, fingerprint, frozen_claim_data=None):
 
     Args:
         frozen_claim_data: Optional dict of claim position -> {"claim_text": ..., "evidence": [...]}
-            from a previous run's _freeze.json. When provided, sends frozen_urls to the API.
+            from a previous run's _freeze.json. When provided, sends frozen_evidence to the API.
     """
     slug = fixture["slug"]
     tag = fixture.get("tag", "untagged")
@@ -133,48 +133,23 @@ def run_fixture(fixture, api_url, token, fingerprint, frozen_claim_data=None):
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     body = {"input_type": fixture["input_type"], "content": fixture.get("content"), "url": fixture.get("url")}
 
-    # Frozen replay: send frozen_evidence (v2) or frozen_urls (v1) to API
+    # Frozen replay: send frozen_evidence (v2) to API
     if frozen_claim_data:
-        import hashlib
-
-        has_extracted = any(
-            claim_info.get("extracted_evidence")
-            for claim_info in frozen_claim_data.values()
-        )
-
-        if has_extracted:
-            # V2: frozen_evidence (zero network)
-            frozen_evidence = {}
-            frozen_claim_texts = {}
-            for pos, claim_info in frozen_claim_data.items():
-                claim_key = claim_info.get("claim_key", pos)
-                extracted = claim_info.get("extracted_evidence", [])
-                frozen_evidence[claim_key] = extracted
-                # Also key by position as fallback
-                frozen_evidence[pos] = extracted
-                claim_text = claim_info.get("claim_text", "")
-                if claim_text:
-                    frozen_claim_texts[claim_key] = claim_text
-                    frozen_claim_texts[pos] = claim_text
-            body["frozen_evidence"] = frozen_evidence
-            if frozen_claim_texts:
-                body["frozen_claim_texts"] = frozen_claim_texts
-            print(f" [FROZEN-V2: {len(frozen_claim_data)} claims]", end="", flush=True)
-        else:
-            # V1 fallback: frozen_urls
-            frozen_urls = {}
-            frozen_claim_texts = {}
-            for pos, claim_info in frozen_claim_data.items():
-                evidence_list = claim_info.get("evidence", [])
-                frozen_urls[pos] = evidence_list  # Include empty lists (0 frozen evidence)
-                claim_text = claim_info.get("claim_text", "")
-                if claim_text:
-                    frozen_claim_texts[pos] = claim_text
-            if frozen_urls:
-                body["frozen_urls"] = frozen_urls
-                if frozen_claim_texts:
-                    body["frozen_claim_texts"] = frozen_claim_texts
-                print(f" [FROZEN-V1: {len(frozen_urls)} claims]", end="", flush=True)
+        frozen_evidence = {}
+        frozen_claim_texts = {}
+        for pos, claim_info in frozen_claim_data.items():
+            claim_key = claim_info.get("claim_key", pos)
+            extracted = claim_info.get("extracted_evidence", [])
+            frozen_evidence[claim_key] = extracted
+            frozen_evidence[pos] = extracted
+            claim_text = claim_info.get("claim_text", "")
+            if claim_text:
+                frozen_claim_texts[claim_key] = claim_text
+                frozen_claim_texts[pos] = claim_text
+        body["frozen_evidence"] = frozen_evidence
+        if frozen_claim_texts:
+            body["frozen_claim_texts"] = frozen_claim_texts
+        print(f" [FROZEN-V2: {len(frozen_claim_data)} claims]", end="", flush=True)
 
     t0 = time.time()
     resp = requests.post(f"{api_url}/api/v1/checks/stream", json=body, headers=headers, stream=True, timeout=300)
