@@ -1,302 +1,131 @@
-# Tru8 - Fact-Checking Platform Configuration
+# Tru8 — Engineering Context
 
-## Project Context
-**Project:** Tru8 - AI-powered fact verification with multi-source evidence
-**Stage:** Production-ready (Phase 5-6 complete)
-**Architecture:** Mobile (React Native/Expo) + Web (Next.js 14) + API (FastAPI) + ML Pipeline
+## What This Is
+AI-powered evidence research platform. Users submit a URL or claim, the pipeline extracts claims, retrieves evidence from multiple sources, and presents organized evidence.
 
-## Quick Commands
+**Active refactor in progress.** See `audit/PROGRESS.md` for the master tracker.
 
-### Backend (FastAPI)
+## Active Refactor: Two-Track Approach
+
+### Track A (in progress): Infrastructure Cleanup
+Clean the retrieval pipeline. 5 PRs removing dead code, dead paths, and redundant filters.
+- PR-01: Dead code & dead flags (~700 lines)
+- PR-02: Legacy embedding path (~200 lines)
+- PR-03: Gut filter cascade (~400 lines)
+- PR-05: Clean runner.py + V1 replay (~300 lines)
+- PR-06: Consolidate workers + config (~500 lines)
+
+**Detailed specs:** `audit/PR-01-dead-code-removal.md` through `audit/PR-06-consolidate-workers-config.md`
+
+### Track B (planned after Track A): Product Pivot
+Replace the judge/verdict system with an evidence analyzer. New API contract, schema migration, frontend rebuild. Track B has its own design phase — do NOT start Track B work during Track A.
+
+### What NOT to Touch During Track A
+- `judge.py` — messy, has two code paths (legacy + PATH_A). Left intentionally for Track B to replace wholesale.
+- `relevance_scorer.py` — has filter mode that Track B will remove. Don't clean it now.
+- Verdict-related config flags (`ENABLE_PATH_A`, `ENABLE_ABSTENTION_LOGIC`, etc.) — Track B removes these.
+- Frontend verdict components — Track B redesigns these.
+
+## Build & Test Commands
+
 ```bash
+# Backend
 cd backend
-uvicorn app.main:app --reload              # Start API server (port 8000)
-celery -A app.workers.pipeline worker -l info  # Start Celery worker
-pytest tests/ -v                           # Run all tests
-pytest tests/unit/ -v                      # Unit tests only
-pytest tests/integration/ -v               # Integration tests
-alembic upgrade head                       # Run migrations
-alembic revision --autogenerate -m "msg"   # Create migration
-```
+uvicorn app.main:app --reload                    # API server (port 8000)
+pytest tests/ -v                                 # All tests
+pytest tests/unit/pipeline/ -v                   # Pipeline unit tests only
+pytest tests/integration/ -v                     # Integration tests
+alembic upgrade head                             # Run migrations
 
-### Web (Next.js)
-```bash
+# Web
 cd web
-npm run dev                         # Start dev server (port 3000)
-npm run build && npm run start      # Production build
-npm run lint && npm run typecheck   # Validate code
+npm run dev                                      # Dev server (port 3000)
+npm run build && npm run start                   # Production build
+
+# Infrastructure
+docker-compose up -d                             # Postgres, Redis, Qdrant, MinIO
 ```
 
-### Mobile (React Native/Expo)
-```bash
-cd mobile
-npx expo start                      # Start Expo
-npx expo run:ios                    # iOS simulator
-npx expo run:android                # Android emulator
-eas build --platform all            # Build for stores
-```
-
-### Infrastructure (Docker)
-```bash
-docker-compose up -d                # Start Postgres, Redis, Qdrant, MinIO
-docker-compose down                 # Stop services
-docker-compose logs -f postgres     # View logs
-```
-
-## Project Structure
-```
-/
-├── backend/                    # FastAPI + ML Pipeline (60+ Python files)
-│   ├── app/
-│   │   ├── api/v1/            # API endpoints (auth, checks, users, payments, feedback, health)
-│   │   ├── core/              # Config, database, auth, logging
-│   │   ├── models/            # SQLModel schemas (User, Check, Claim, Evidence)
-│   │   ├── pipeline/          # 7-stage verification pipeline
-│   │   ├── services/          # 16 service modules (search, embeddings, cache, etc.)
-│   │   ├── utils/             # 15+ utility modules
-│   │   └── workers/           # Celery task orchestration (1400+ lines)
-│   ├── tests/                 # 30+ test modules (unit/integration/performance)
-│   ├── alembic/               # 20+ database migrations
-│   └── requirements.txt
-├── web/                        # Next.js 14 frontend
-│   ├── app/                   # App Router (dashboard, history, settings)
-│   ├── components/            # React components (auth, marketing, layout)
-│   └── lib/                   # API client, utilities
-├── mobile/                     # React Native/Expo (12 route files)
-│   ├── app/                   # Expo Router (tabs, auth flows)
-│   ├── components/            # Native components (VerdictPill, ClaimCard, etc.)
-│   └── services/              # API client
-├── shared/                     # Shared TypeScript types & constants
-│   ├── types/index.ts         # API types (Check, Claim, Evidence, User)
-│   └── constants/index.ts     # Colors, limits, plans, feature flags
-└── docker-compose.yml          # Postgres, Redis, Qdrant, MinIO, Flower
-```
-
-## Verification Pipeline (7 Stages)
+## Pipeline Architecture (current state)
 
 ```
-1. INGEST      → Fetch URL content, OCR images, YouTube transcripts
-2. EXTRACT     → LLM atomizes content into max 12 verifiable claims
-3. CLASSIFY    → LLM categorizes article domain (sports, politics, science, etc.)
-4. PLAN        → LLM generates targeted search queries per claim
-5. RETRIEVE    → Multi-source search with deduplication & credibility scoring
-6. VERIFY      → NLI model (BART/DeBERTa) scores entailment/contradiction
-7. JUDGE       → LLM weighs evidence, generates final verdict + rationale
+Stage 1:   INGEST       → Fetch URL / OCR / transcript
+Stage 2:   EXTRACT      → LLM atomizes into ≤12 claims
+Stage 2.1: CLASSIFY     → LLM article classification
+Stage 2.5: FACTCHECK    → Google Fact-Check API lookup
+Stage 3:   RETRIEVE     → Multi-source search (Brave, SerpAPI, gov APIs)
+Stage 3.5: FILTER       → Auto-exclude + content dedup + corroboration boost
+Stage 3.6: URL DEDUP    → Cross-claim URL deduplication
+Stage 3.7: LLM SCORER   → Relevance scoring (has filter mode + advisory mode)
+Stage 3.8: DOMAIN CAP   → Global domain capping (max 3/domain)
+Stage 5:   JUDGE        → LLM verdict (Track B replaces this)
+Stage 6:   SUMMARY      → Overall assessment (Track B replaces this)
 ```
 
-### Evidence Sources (Phase 5 Complete)
-- **Web Search:** Brave Search, SerpAPI
-- **Fact-Check:** Google Fact-Check API, programmatic parsing
-- **Government APIs:** NOAA (climate), Alpha Vantage (stocks/forex/crypto), FRED (economics), Football-Data.org (sports), Weather API, Companies House (UK), Congress API, GovInfo (legal)
-- **Vector Store:** Qdrant for semantic similarity
+**Known issues being fixed in Track A:**
+- 9 filter stages in `_apply_credibility_weighting` (Track A PR-03 reduces to 3)
+- ~50 diagnostic `print()` statements in runner.py (Track A PR-05 removes)
+- V1 frozen URL replay (dead, Track A PR-05 removes)
+- ~10 dead feature flags (Track A PR-01 removes)
+- Dead embedding ranking path (Track A PR-02 removes)
 
-## Database Models (SQLModel + PostgreSQL JSONB)
+## Key Files (accurate line counts)
 
-### Core Tables
-```python
-User           # Clerk ID, email, credits, push_token, notification prefs
-Subscription   # plan, credits_per_month, stripe_id, revenuecat_id
-Check          # input_type, status, decision_trail (JSONB), transparency_score
-Claim          # text, verdict, confidence, temporal_markers (JSONB), rhetorical_context
-Evidence       # url, credibility_score, tier, is_factcheck, risk_flags (JSONB)
-RawEvidence    # All sources before filtering (for transparency)
-UnknownSource  # Track domains not in credibility database
-```
+### Pipeline Core (Track A touches these)
+| File | Lines | What It Does |
+|------|-------|-------------|
+| `backend/app/pipeline/runner.py` | 1470 | Pipeline orchestrator. SSE streaming. V2 frozen replay. |
+| `backend/app/pipeline/retrieve.py` | 2242 | Evidence retrieval. `_apply_credibility_weighting` (lines 1364-1674) is the filter cascade. |
+| `backend/app/pipeline/relevance_scorer.py` | 807 | LLM relevance scoring. `_fair_select_evidence` (round-robin). |
+| `backend/app/core/config.py` | 292 | Feature flags. ~39 flags, ~10 dead, ~9 always-on. |
+| `backend/app/workers/pipeline.py` | 925 | Helper functions. ~465 lines are dead/superseded. |
+| `backend/app/utils/domain_capping.py` | 275 | Global domain cap logic. |
+| `backend/app/pipeline/evidence_ledger.py` | 75 | Stage tracking for evidence flow. |
+| `backend/app/pipeline/replay_context.py` | 17 | ContextVars for V2 frozen replay. |
 
-## Feature Flag System (25+ Phases)
+### Pipeline Core (Track B replaces these)
+| File | Lines | What It Does |
+|------|-------|-------------|
+| `backend/app/pipeline/judge.py` | 1875 | Two judge paths: legacy (lines 675-876) and PATH_A (lines 583-672). Track B replaces entirely. |
 
-Located in `backend/app/core/config.py`:
+### API / Schema / Frontend
+| File | Lines | What It Does |
+|------|-------|-------------|
+| `backend/app/api/v1/checks.py` | 1738 | Check endpoints. Verdict-coupled. Track B changes. |
+| `backend/app/models/check.py` | 318 | DB schema (Check, Claim, Evidence). Verdict columns. Track B migrates. |
+| `shared/types/index.ts` | 157 | TypeScript types. VerdictType is canonical. Track B replaces. |
+| `shared/constants/index.ts` | 100 | Colors, limits, plans. Verdict colors. Track B updates. |
+| `web/lib/api.ts` | 538 | Frontend API client. |
 
-| Phase | Features |
-|-------|----------|
-| 1 | Domain capping, deduplication, source diversity |
-| 1.5 | Temporal context, fact-check API integration |
-| 2 | Claim classification, explainability, decision trails |
-| 3 | Credibility framework, abstention logic, source validation |
-| 3.5 | Source quality control, tiered credibility |
-| 4 | Legal integration (GovInfo, Congress API) |
-| 5 | Government API integration (8 APIs) |
-| 6 | Judge improvements, enhanced prompts |
-| Tier 1 | Query expansion, semantic snippets, primary source detection |
+## Evidence Sources
+- **Web:** Brave Search, SerpAPI
+- **Fact-Check:** Google Fact-Check API
+- **Government:** NOAA, Alpha Vantage, FRED, Football-Data.org, Weather API, Companies House, Congress API, GovInfo
+- **Vector Store:** Qdrant
 
-### Key Thresholds
-```python
-NLI_CONFIDENCE_THRESHOLD = 0.7
-SOURCE_CREDIBILITY_THRESHOLD = 0.65
-MIN_SOURCES_FOR_VERDICT = 2
-MAX_EVIDENCE_PER_DOMAIN = 3
-GLOBAL_DOMAIN_CAP = 5
-```
+## V2 Frozen Evidence Replay (harness)
+Determinism testing system. Freezes evidence at `judge_input_evidence` (post-filtering), injects directly before judge, skips Stages 3.6/3.7/3.8.
+- **Gate 1:** URL Jaccard >= 0.90
+- **Gate 2:** 0 hard_fail + 0 pipeline_fail (llm_noise OK)
+- **Judge input hash:** SHA256(canonicalized context)[:16]
+- **Files:** `runner.py` (bypass), `replay_context.py` (contextvars), `judge.py` (hash), `harness/compare_runs.py` (gates), `harness/run_golden_dataset.py` (runner)
 
-## Services Layer (16 Modules)
+## Critical Invariants
+1. **Score mutations must recompute downstream.** If `credibility_score` changes, `final_score` must be recomputed.
+2. **Track URLs globally, not per-claim.** Cross-claim dedup uses global URL tracking.
+3. **Stage order matters.** Scoring (3.7) before capping (3.8), always.
+4. **LLM truncation uses round-robin, not sequential slicing.** Sequential slicing starves tail claims.
+5. **Freeze evidence at the latest stage.** `judge_input_evidence`, not `pre_weighting`.
 
-| Service | Purpose |
-|---------|---------|
-| `search.py` | Brave Search, SerpAPI, Qdrant integration |
-| `embeddings.py` | Sentence-transformers for semantic similarity |
-| `evidence.py` | HTML extraction, snippet generation |
-| `vector_store.py` | Qdrant vector database operations |
-| `factcheck_api.py` | Google Fact-Check API |
-| `government_api_client.py` | 8 government APIs |
-| `source_credibility.py` | Tier1/Tier2/Tier3 domain scoring |
-| `cache.py` | Redis caching with TTL |
-| `circuit_breaker.py` | Resilience pattern for external APIs |
-| `email_notifications.py` | Resend email service |
-| `push_notifications.py` | Expo push notifications |
-| `pdf_evidence.py` | PDF extraction and report generation |
-
-## Utils Layer (15+ Modules)
-
-| Utility | Purpose |
-|---------|---------|
-| `article_classifier.py` | LLM-based domain classification |
-| `claim_keyword_router.py` | Route claims to appropriate APIs |
-| `query_planner.py` | LLM generates search queries |
-| `rhetorical_analyzer.py` | Sarcasm/mockery detection |
-| `source_credibility.py` | Tiered source classification |
-| `legal_claim_detector.py` | Identify legal/court claims |
-| `deduplication.py` | Content-hash based dedup |
-| `domain_capping.py` | Limit sources per domain |
-| `source_independence.py` | Media ownership analysis |
-| `source_type_classifier.py` | Detect factcheck/news/academic |
-| `temporal.py` | Date/time extraction |
-| `explainability.py` | Decision trail generation |
-
-## Design System
-
-**Reference:** `DESIGN_SYSTEM.md`
-
-### Colors (CSS Variables)
-```css
---tru8-primary: #1E40AF;           /* Deep Blue */
---gradient-primary: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%);
---verdict-supported: #059669;       /* Emerald */
---verdict-contradicted: #DC2626;    /* Red */
---verdict-uncertain: #D97706;       /* Amber */
-```
-
-### Mandatory Components
-1. **VerdictPill** - Semantic verdict badges
-2. **ConfidenceBar** - Animated progress bars
-3. **CitationChip** - `Publisher · Date · Credibility`
-4. **ClaimCard** - Claim display with evidence drawer
-
-## Testing Structure
-
-```
-tests/
-├── unit/pipeline/           # Pipeline stage tests
-│   ├── test_extract.py
-│   ├── test_ingest.py
-│   ├── test_judge.py
-│   └── test_verify.py
-├── integration/             # API + pipeline E2E
-│   ├── test_api_integration.py
-│   └── test_api_pipeline_e2e.py
-├── performance/             # Load and timing tests
-│   ├── test_api_performance.py
-│   └── test_cache_monitoring.py
-└── mocks/                   # Test fixtures
-    ├── database.py
-    ├── search_results.py
-    └── llm_responses.py
-```
-
-## Infrastructure
-
-### Docker Services (docker-compose.yml)
-| Service | Port | Purpose |
-|---------|------|---------|
-| postgres:16 | 5433 | Primary database |
-| redis:7 | 6379 | Cache + Celery broker |
-| qdrant | 6333 | Vector database |
-| minio | 9000/9001 | Local S3 storage |
-| flower | 5555 | Celery monitoring |
-
-### External Services
-- **Auth:** Clerk (JWT with JWKS caching)
+## Database
+- **PostgreSQL 16** (port 5433) via SQLModel
+- **Redis 7** (port 6379) — cache + Celery broker
+- **Qdrant** (port 6333) — vector similarity
+- **Auth:** Clerk (JWT + JWKS)
 - **Payments:** Stripe + RevenueCat
-- **Email:** Resend
-- **Push:** Expo notifications
-- **Monitoring:** Sentry, Prometheus, OpenTelemetry
-- **Analytics:** PostHog
 
-## Development Guidelines
-
-### API Development
-- Async-first with `async/await`
-- Pydantic models for validation
-- Auto-create user on first API call
-- Credit refunds on pipeline failure
-- Rate limiting per user & IP
-
-### Pipeline Development
-- Each stage must be idempotent
-- Structured logging throughout
-- Circuit breakers for external APIs
-- Feature flags for gradual rollout
-- Monitor token usage and costs
-
-### Frontend Development
-- Mobile-first responsive design
-- SSE for real-time progress updates
-- React Query for caching
-- Shared types from `shared/` package
-
-## Performance Targets
-- **Pipeline latency:** <10s
-- **API response:** <200ms p95
-- **Web Core Vitals:** LCP <2.5s, FID <100ms
-- **Mobile app size:** <50MB
-- **Token cost:** <$0.02 per check
-
-## Security (Implemented)
-- [x] Clerk JWT validation with JWKS caching
-- [x] Rate limiting by user & IP
-- [x] CORS configuration
-- [x] Connection pooling (10 min, 20 max overflow)
-- [x] Credit reservation before processing
-- [x] Automatic refunds on failure
-- [ ] GDPR compliance endpoints (planned)
-- [ ] Prompt injection guards (in progress)
-
-## Critical Files
-
-| File | Lines | Purpose |
-|------|-------|---------|
-| `backend/app/workers/pipeline.py` | 1452 | Celery task orchestration |
-| `backend/app/pipeline/judge.py` | 1307 | LLM verdict generation |
-| `backend/app/core/config.py` | 232 | Feature flags & settings |
-| `backend/app/models/check.py` | 230+ | Database schema |
-| `web/lib/api.ts` | 100+ | Backend API client |
-| `shared/types/index.ts` | 100+ | Type definitions |
-
-## Deployment
-
-```bash
-# Backend (Fly.io)
-cd backend && fly deploy
-
-# Web (Fly.io) - deploy from project root with workspace support
-fly deploy --config fly.web.toml
-
-# Mobile (Expo EAS)
-cd mobile && eas build --auto-submit
-```
-
-## Current Priorities
-
-### Active Development
-- Beta feedback collection and iteration
-- Source credibility refinements
-- Query planning optimization
-- Government API coverage expansion
-
-### Next Phases
-- Enhanced analysis depth options
-- Reverse image search integration
-- Long video support (>10 min)
-- Light theme option
-
----
-*Tru8 - Production-ready fact-checking platform*
+## Code Style
+- Python: async/await, type hints on public functions, `black` for formatting
+- TypeScript: React Query for data fetching, SSE for real-time updates
+- All pipeline stages must be idempotent
+- Structured logging (`logger.*`), never `print()` in pipeline code

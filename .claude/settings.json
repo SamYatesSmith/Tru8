@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pytest:*)",
+      "Bash(black:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(wc -l:*)",
+      "Bash(alembic:*)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(drop table:*)",
+      "Bash(drop database:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import sys,json; d=json.loads(sys.stdin.read()); f=d.get('tool_input',{}).get('file_path','') or d.get('tool_input',{}).get('file_path',''); exec('import subprocess; subprocess.run([\\\"black\\\",\\\"-q\\\",f]) if f.endswith(\\\".py\\\") else None') if f else None\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import sys,json; d=json.loads(sys.stdin.read()); f=d.get('tool_input',{}).get('file_path',''); sys.exit(2) if f and '.env' in f.lower() else sys.exit(0)\""
+          }
+        ]
+      }
+    ]
+  }
+}
