@@ -8,10 +8,6 @@ Models are cached on the volume so subsequent startups are instant.
 
 NOTE: Only the Celery worker needs ML models. The web process (uvicorn)
 only serves the API and delegates ML inference to the worker.
-
-NOTE: NLI model download is skipped - NLI verification stage is bypassed
-in the pipeline (PASS_NLI_VERDICT_TO_JUDGE=False). To re-enable NLI,
-uncomment the NLI download section below.
 """
 import os
 import sys
@@ -27,7 +23,6 @@ def is_worker_process():
 
 def models_cached():
     """Check if required models already exist on the volume."""
-    # NLI model not included - NLI verification is bypassed in pipeline
     paths = [
         f"{HF_HOME}/hub/models--sentence-transformers--all-MiniLM-L6-v2",
         f"{HF_HOME}/hub/models--cross-encoder--ms-marco-MiniLM-L-6-v2",
@@ -48,16 +43,6 @@ def download_models():
     print("  [1/2] Downloading all-MiniLM-L6-v2 (embeddings)...")
     SentenceTransformer("all-MiniLM-L6-v2")
     print("        Done.")
-
-    # NLI model download SKIPPED - NLI verification is bypassed in pipeline
-    # To re-enable NLI, uncomment the following:
-    # from transformers import AutoTokenizer, AutoModelForSequenceClassification
-    # NLI_MODEL = "facebook/bart-large-mnli"  # or DeBERTa if ENABLE_DEBERTA_NLI=true
-    # print(f"  [2/3] Downloading {NLI_MODEL} (NLI verification)...")
-    # AutoTokenizer.from_pretrained(NLI_MODEL)
-    # AutoModelForSequenceClassification.from_pretrained(NLI_MODEL)
-    # print("        Done.")
-    print("  [SKIP] NLI model - verification stage bypassed in pipeline")
 
     print("  [2/2] Downloading cross-encoder/ms-marco-MiniLM-L-6-v2 (reranking)...")
     CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")

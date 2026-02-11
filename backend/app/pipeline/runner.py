@@ -867,18 +867,6 @@ async def run_pipeline(
         print("[PIPELINE] WARNING: Global domain capping is DISABLED", flush=True)
 
     # =========================================================================
-    # Stage 4: NLI Verification - BYPASSED (same as Celery)
-    # =========================================================================
-    await progress_reporter.report_progress("verify")
-    stage_start = datetime.utcnow()
-
-    # NLI is bypassed - same as Celery task (PASS_NLI_VERDICT_TO_JUDGE=False)
-    verifications = {str(claim.get("position", i)): [] for i, claim in enumerate(claims)}
-    logger.info(f"[INLINE PIPELINE] NLI verification bypassed - {len(claims)} claims")
-
-    stage_timings["verify"] = (datetime.utcnow() - stage_start).total_seconds()
-
-    # =========================================================================
     # Stage 5: Judge Claims
     # =========================================================================
     await progress_reporter.report_progress("judge")
@@ -946,12 +934,21 @@ async def run_pipeline(
     article_excerpt = content.get("content", "")[:5000]
     judge_timeout = min(15 * len(claims), 120)  # Same timeout as Celery
 
+    # PATH_A logging: show what the judge is about to receive
+    if getattr(settings, 'ENABLE_PATH_A', False):
+        judge_input_count = sum(len(ev_list) for ev_list in evidence.items())
+        per_claim = {pos: len(ev_list) for pos, ev_list in evidence.items()}
+        logger.info(
+            f"[PATH_A] Judge receiving {judge_input_count} evidence items "
+            f"(no relevance veto, no pre-judge abstention). Per-claim: {per_claim}"
+        )
+
     try:
         logger.info(f"[INLINE PIPELINE] Starting judge with {judge_timeout}s timeout for {len(claims)} claims")
         # Direct await with asyncio.wait_for for timeout - judge_claims_with_llm is async
         results = await asyncio.wait_for(
             judge_claims_with_llm(
-                claims, verifications, evidence, article_context=article_excerpt
+                claims, evidence, article_context=article_excerpt
             ),
             timeout=judge_timeout
         )
@@ -1004,7 +1001,7 @@ async def run_pipeline(
     if settings.ENABLE_ENHANCED_EXPLAINABILITY:
         from app.utils.explainability import ExplainabilityEnhancer
         explainer = ExplainabilityEnhancer()
-        results = _add_explainability(results, evidence, verifications, explainer)
+        results = _add_explainability(results, evidence, explainer)
 
     # =========================================================================
     # Stage 6.5: Overall Assessment
@@ -1095,7 +1092,6 @@ async def run_pipeline(
 def _add_explainability(
     results: List[Dict[str, Any]],
     evidence: Dict[str, List[Dict[str, Any]]],
-    verifications: Dict[str, List[Dict[str, Any]]],
     explainer
 ) -> List[Dict[str, Any]]:
     """Add explainability to claim results."""
@@ -1104,25 +1100,20 @@ def _add_explainability(
         "outdated_claim", "needs_primary_source", "lacks_context"
     ]
 
+    empty_signals = {"supporting_count": 0, "contradicting_count": 0, "neutral_count": 0}
+
     for i, result in enumerate(results):
         position = result.get("position", i)
         claim_evidence = evidence.get(str(position), [])
-        claim_verifications = verifications.get(str(position), [])
-
-        verification_signals = {
-            "supporting_count": sum(1 for v in claim_verifications if v.get("label") == "SUPPORTS"),
-            "contradicting_count": sum(1 for v in claim_verifications if v.get("label") == "CONTRADICTS"),
-            "neutral_count": sum(1 for v in claim_verifications if v.get("label") == "NEUTRAL")
-        }
 
         verdict = result.get("verdict", "").lower()
         if verdict in ["uncertain", "unclear"] or result.get("verdict") in abstention_verdicts:
             results[i]["uncertainty_explanation"] = explainer.create_uncertainty_explanation(
-                result.get("verdict", ""), verification_signals, claim_evidence
+                result.get("verdict", ""), empty_signals, claim_evidence
             )
 
         results[i]["confidence_breakdown"] = explainer.create_confidence_breakdown(
-            result, claim_evidence, verification_signals
+            result, claim_evidence, empty_signals
         )
 
     return results
@@ -1282,10 +1273,6 @@ async def save_check_results_async(
                     page_number=metadata_dict.get("page_number") if metadata_dict else None,
                     context_before=metadata_dict.get("context_before") if metadata_dict else None,
                     context_after=metadata_dict.get("context_after") if metadata_dict else None,
-                    nli_stance=ev_data.get("nli_stance"),
-                    nli_confidence=ev_data.get("nli_confidence"),
-                    nli_entailment=ev_data.get("nli_entailment"),
-                    nli_contradiction=ev_data.get("nli_contradiction"),
                     tier=ev_data.get("tier"),
                     risk_flags=ev_data.get("risk_flags"),
                     credibility_reasoning=ev_data.get("credibility_reasoning"),

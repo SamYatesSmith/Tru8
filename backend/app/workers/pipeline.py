@@ -17,7 +17,6 @@ from app.utils.article_classifier import classify_article
 from app.pipeline.ingest import UrlIngester, ImageIngester, VideoIngester
 from app.pipeline.extract import ClaimExtractor
 from app.pipeline.retrieve import EvidenceRetriever
-from app.pipeline.verify import get_claim_verifier
 from app.pipeline.judge import get_pipeline_judge
 from app.services.cache import get_cache_service
 from app.services.push_notifications import push_notification_service
@@ -249,12 +248,6 @@ def save_check_results_sync(check_id: str, results: Dict[str, Any]):
                         page_number=metadata_dict.get("page_number") if metadata_dict else None,
                         context_before=metadata_dict.get("context_before") if metadata_dict else None,
                         context_after=metadata_dict.get("context_after") if metadata_dict else None,
-
-                        # NLI Context (Phase 2 - enriched in judge.py)
-                        nli_stance=ev_data.get("nli_stance"),
-                        nli_confidence=ev_data.get("nli_confidence"),
-                        nli_entailment=ev_data.get("nli_entailment"),
-                        nli_contradiction=ev_data.get("nli_contradiction"),
 
                         # Phase 3: Domain Credibility Framework
                         tier=ev_data.get("tier"),
@@ -740,6 +733,7 @@ async def retrieve_evidence_with_cache(
 
         # Retrieve evidence for uncached claims
         all_raw_evidence = []
+        pre_weighting_by_claim = {}
         if uncached_claims:
             print(f"[WRAPPER] Calling retrieve_evidence_for_claims for {len(uncached_claims)} uncached claims...", flush=True)
             logger.info(f"[EVIDENCE DEBUG] Retrieving evidence for {len(uncached_claims)} uncached claims")
@@ -756,6 +750,7 @@ async def retrieve_evidence_with_cache(
             if isinstance(retrieval_result, dict) and "evidence_by_claim" in retrieval_result:
                 new_evidence = retrieval_result["evidence_by_claim"]
                 all_raw_evidence = retrieval_result.get("raw_evidence", [])
+                pre_weighting_by_claim = retrieval_result.get("pre_weighting_evidence", {})
 
                 # CRITICAL DIAGNOSTIC: Log evidence counts per claim
                 total_ev = sum(len(ev) for ev in new_evidence.values())
@@ -811,7 +806,8 @@ async def retrieve_evidence_with_cache(
         return {
             "evidence_by_claim": cached_evidence,
             "raw_evidence": all_raw_evidence,
-            "raw_sources_count": len(all_raw_evidence)
+            "raw_sources_count": len(all_raw_evidence),
+            "pre_weighting_evidence": pre_weighting_by_claim,
         }
 
     except Exception as e:
@@ -834,92 +830,37 @@ async def retrieve_evidence_with_cache(
                 "raw_sources_count": 0
             }
 
-async def verify_claims_with_nli(claims: List[Dict[str, Any]], evidence_by_claim: Dict[str, List[Dict[str, Any]]], 
-                                cache_service) -> Dict[str, List[Dict[str, Any]]]:
-    """Verify claims using real NLI with caching"""
-    try:
-        claim_verifier = await get_claim_verifier()
-        
-        # Check cache for each claim's verification
-        cached_verifications = {}
-        uncached_claims = []
-        
-        for claim in claims:
-            claim_text = claim.get("text", "")
-            position = str(claim.get("position", 0))
-            
-            if cache_service:
-                cache_key = hashlib.md5(claim_text.encode()).hexdigest()
-                cached_result = await cache_service.get("nli_verification", cache_key)
-                if cached_result:
-                    cached_verifications[position] = cached_result
-                    continue
-            
-            uncached_claims.append(claim)
-        
-        # Verify uncached claims
-        if uncached_claims:
-            logger.info(f"Running NLI verification for {len(uncached_claims)} uncached claims")
-            
-            # Create evidence subset for uncached claims
-            uncached_evidence = {}
-            for claim in uncached_claims:
-                position = str(claim.get("position", 0))
-                uncached_evidence[position] = evidence_by_claim.get(position, [])
-            
-            new_verifications = await claim_verifier.verify_claims_with_evidence(uncached_claims, uncached_evidence)
-            
-            # Cache new verifications
-            if cache_service:
-                for claim in uncached_claims:
-                    claim_text = claim.get("text", "")
-                    position = str(claim.get("position", 0))
-                    cache_key = hashlib.md5(claim_text.encode()).hexdigest()
-                    
-                    if position in new_verifications:
-                        await cache_service.set(
-                            "nli_verification",
-                            cache_key,
-                            new_verifications[position],
-                            3600 * 12  # 12 hours
-                        )
-            
-            # Merge cached and new verifications
-            cached_verifications.update(new_verifications)
-        
-        return cached_verifications
-        
-    except Exception as e:
-        logger.error(f"NLI verification error: {e}")
-        # Fallback to mock verification (development only)
-        if settings.ENVIRONMENT == "development":
-            logger.warning("Using mock verification fallback (development only)")
-            return verify_claims(claims, evidence_by_claim)
-        else:
-            # Production: return empty verifications, will trigger abstention
-            logger.critical(f"NLI verification failed in {settings.ENVIRONMENT} environment: {e}")
-            return {}
-
-async def judge_claims_with_llm(claims: List[Dict[str, Any]], verifications_by_claim: Dict[str, List[Dict[str, Any]]],
+async def judge_claims_with_llm(claims: List[Dict[str, Any]],
                                evidence_by_claim: Dict[str, List[Dict[str, Any]]], article_context: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Judge claims using real LLM with verification signals and article context"""
+    """Judge claims using real LLM with article context"""
     try:
         pipeline_judge = await get_pipeline_judge()
 
         logger.info(f"Running LLM judgment for {len(claims)} claims with article context: {bool(article_context)}")
-        results = await pipeline_judge.judge_all_claims(claims, verifications_by_claim, evidence_by_claim, article_context=article_context)
-        
+        results = await pipeline_judge.judge_all_claims(claims, evidence_by_claim, article_context=article_context)
+
         # Sort results by position to maintain order
         results.sort(key=lambda x: x.get("position", 0))
-        
+
         return results
-        
+
     except Exception as e:
         logger.error(f"LLM judgment error: {e}")
-        # Fallback to mock judgment (development only)
+        # Fallback to simple uncertain results (development only)
         if settings.ENVIRONMENT == "development":
-            logger.warning("Using mock judgment fallback (development only)")
-            return judge_claims(claims, verifications_by_claim, evidence_by_claim)
+            logger.warning("Using fallback judgment (development only)")
+            results = []
+            for claim in claims:
+                position = str(claim.get("position", 0))
+                results.append({
+                    "text": claim.get("text", ""),
+                    "verdict": "uncertain",
+                    "confidence": 30,
+                    "rationale": "LLM judgment unavailable. Manual review recommended.",
+                    "evidence": evidence_by_claim.get(position, [])[:3],
+                    "position": claim.get("position", 0),
+                })
+            return results
         else:
             # Production: fail properly
             logger.critical(f"LLM judgment failed in {settings.ENVIRONMENT} environment: {e}")
@@ -982,57 +923,3 @@ def retrieve_evidence(claims: List[Dict[str, Any]], factcheck_evidence: Dict = N
     
     return evidence
 
-def verify_claims(claims: List[Dict[str, Any]], evidence: Dict) -> Dict[str, List[Dict[str, Any]]]:
-    """Mock NLI verification - Week 3 implementation"""
-    verdicts = ["supported", "contradicted", "uncertain"]
-    verifications = {}
-
-    for i, claim in enumerate(claims):
-        # Mock realistic confidence based on content
-        confidence = 85.0 + (i * 3.0) % 30  # Vary confidence
-        verdict = verdicts[i % len(verdicts)]
-
-        position = str(claim.get("position", i))
-        verifications[position] = [{
-            "verdict": verdict,
-            "confidence": confidence,
-            "evidence_id": f"mock_evidence_{i}",
-            "similarity_score": 0.8 + (i * 0.02) % 0.2
-        }]
-
-    return verifications
-
-def judge_claims(claims: List[Dict[str, Any]], verifications: Dict[str, List[Dict[str, Any]]],
-                evidence: Dict) -> List[Dict[str, Any]]:
-    """Mock judge stage - Week 4 implementation"""
-    rationales = {
-        "supported": "This claim is well-supported by multiple reliable sources with consistent reporting.",
-        "contradicted": "Evidence from credible sources contradicts this claim with factual information.",
-        "uncertain": "Available evidence is mixed or insufficient to make a definitive determination.",
-    }
-    
-    results = []
-    for claim in claims:
-        position = str(claim.get("position", 0))
-        claim_verifications = verifications.get(position, [])
-
-        if claim_verifications:
-            # Use the first verification result
-            verification = claim_verifications[0]
-            verdict = verification["verdict"]
-            confidence = verification["confidence"]
-        else:
-            # Fallback for claims without verification
-            verdict = "uncertain"
-            confidence = 0.0
-
-        results.append({
-            "text": claim["text"],
-            "verdict": verdict,
-            "confidence": confidence,
-            "rationale": rationales.get(verdict, "Assessment based on available evidence."),
-            "evidence": evidence.get(position, [])[:3],  # Top 3 sources
-            "position": claim.get("position", 0),
-        })
-    
-    return results

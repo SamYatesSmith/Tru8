@@ -13,29 +13,6 @@ _logging_configured = False
 LOG_FILE_PATH = Path(__file__).parent.parent.parent / "logs" / "pipeline.log"
 
 
-class TeeStream:
-    """Write to both a file and the original stream (for capturing print statements)."""
-
-    def __init__(self, original_stream, log_file):
-        self.original_stream = original_stream
-        self.log_file = log_file
-
-    def write(self, text):
-        self.original_stream.write(text)
-        if text.strip():  # Don't write empty lines
-            try:
-                self.log_file.write(text)
-                self.log_file.flush()
-            except Exception:
-                pass  # Don't let logging errors break the app
-
-    def flush(self):
-        self.original_stream.flush()
-        try:
-            self.log_file.flush()
-        except Exception:
-            pass
-
 
 def setup_logging():
     """
@@ -73,6 +50,14 @@ def setup_logging():
     # Create file handler with rotation (10MB max, keep 3 backups)
     try:
         LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+        # On Windows, RotatingFileHandler.doRollover() calls os.rename() which
+        # fails if ANY other handle holds the file open.  Truncate oversized
+        # files *before* opening the handler so the very first emit() does not
+        # immediately trigger a rotation that races with other processes.
+        if LOG_FILE_PATH.exists() and LOG_FILE_PATH.stat().st_size > 10 * 1024 * 1024:
+            LOG_FILE_PATH.write_text("", encoding="utf-8")
+
         file_handler = logging.handlers.RotatingFileHandler(
             LOG_FILE_PATH,
             maxBytes=10 * 1024 * 1024,  # 10MB
@@ -82,10 +67,6 @@ def setup_logging():
         file_handler.setFormatter(formatter)
         file_handler.setLevel(logging.DEBUG)  # Capture everything to file
         file_handler.addFilter(CorrelationIdFilter())
-
-        # Also capture print() statements to the log file
-        log_file = open(LOG_FILE_PATH, 'a', encoding='utf-8')
-        sys.stdout = TeeStream(sys.__stdout__, log_file)
 
         print(f"\n{'='*60}", flush=True)
         print(f"[LOGGING] Pipeline log file: {LOG_FILE_PATH}", flush=True)
@@ -113,7 +94,6 @@ def setup_logging():
         "app.pipeline",
         "app.pipeline.extract",
         "app.pipeline.retrieve",
-        "app.pipeline.verify",
         "app.pipeline.judge",
         "app.pipeline.runner",
         "app.pipeline.progress",

@@ -596,6 +596,32 @@ async def score_evidence_batch(
 
     # Apply scores to evidence items and filter
     min_score = getattr(settings, 'LLM_RELEVANCE_MIN_SCORE', 3)
+    path_a = getattr(settings, 'ENABLE_PATH_A', False)
+
+    # PATH_A: Annotate all items with scores but do NOT filter.
+    # Return all evidence with llm_relevance_score attached (advisory only).
+    if path_a:
+        for flat_idx, ev in enumerate(all_evidence):
+            score_data = flat_score_lookup.get(flat_idx)
+            if score_data is not None:
+                ev['llm_relevance_score'] = score_data.get('score')
+                ev['llm_relevance_rationale'] = score_data.get('rationale', '')
+                ev['llm_relevant_claims'] = score_data.get('relevant_claims', [])
+            elif flat_idx not in selected_indices:
+                ev['llm_relevance_score'] = None
+                ev['llm_relevance_rationale'] = 'Not evaluated (exceeded MAX_EVIDENCE cap)'
+                ev['llm_relevant_claims'] = []
+            else:
+                ev['llm_relevance_score'] = None
+                ev['llm_relevance_rationale'] = 'LLM did not return score for this item'
+                ev['llm_relevant_claims'] = []
+        scored_n = sum(1 for ev in all_evidence if ev.get('llm_relevance_score') is not None)
+        total_n = len(all_evidence)
+        logger.info(
+            f"[LLM SCORER][PATH_A] Advisory mode: annotated {scored_n}/{total_n} items, "
+            f"returning ALL {total_n} items (no filtering)"
+        )
+        return evidence  # Return original dict with scores annotated in-place
 
     # Rebuild evidence dict with scored and filtered items
     filtered_evidence = {pos: [] for pos in evidence.keys()}

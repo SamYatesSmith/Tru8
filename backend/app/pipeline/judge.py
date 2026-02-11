@@ -134,7 +134,7 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
         return []
 
     # Check which relevance scores are available
-    has_llm_scores = any(e.get('llm_relevance_score', 0) > 0 for e in evidence)
+    has_llm_scores = any((e.get('llm_relevance_score') or 0) > 0 for e in evidence)
     has_semantic_scores = any(e.get('semantic_similarity', 0) > 0 for e in evidence)
     has_relevance_scores = any(e.get('relevance_score', 0) > 0 for e in evidence)
 
@@ -145,14 +145,14 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
         # Sort by llm_relevance_score (primary), then credibility_score (secondary)
         sorted_evidence = sorted(
             evidence,
-            key=lambda x: (x.get('llm_relevance_score', 0), x.get('credibility_score', 0)),
+            key=lambda x: (x.get('llm_relevance_score') or 0, x.get('credibility_score', 0)),
             reverse=True
         )
 
         # Filter by LLM relevance threshold
         filtered = []
         for e in sorted_evidence:
-            llm_score = e.get('llm_relevance_score', 0)
+            llm_score = e.get('llm_relevance_score') or 0
 
             if llm_score >= MIN_LLM_RELEVANCE:
                 filtered.append(e)
@@ -170,7 +170,7 @@ def _select_display_evidence(evidence: List[Dict[str, Any]], max_items: int = 3)
         # Fallback: Show top items even if below threshold (better than showing nothing)
         # This ensures users see SOME evidence rather than empty results
         # Filter to only items with SOME relevance (score >= 2) to exclude garbage
-        fallback_evidence = [e for e in sorted_evidence if e.get('llm_relevance_score', 0) >= 2]
+        fallback_evidence = [e for e in sorted_evidence if (e.get('llm_relevance_score') or 0) >= 2]
 
         if fallback_evidence:
             logger.warning(
@@ -506,6 +506,30 @@ RATIONALE WRITING RULES:
 
 Be precise, objective, and transparent about uncertainty. Always return valid JSON."""
 
+        # PATH_A: Concise judge prompt with E-ID citation system
+        self.path_a_system_prompt = """You are a fact-checking judge. Analyze evidence and determine a verdict.
+
+VERDICTS:
+- "supported": Evidence confirms the claim is true/accurate
+- "contradicted": Evidence shows the claim is false/inaccurate
+- "uncertain": Evidence is insufficient, conflicting, or irrelevant to the claim
+
+RULES:
+1. Cite evidence using its ID (E1, E2, ...) from the evidence list
+2. Only cite evidence that DIRECTLY supports your reasoning
+3. If evidence is irrelevant to the claim, ignore it — don't force a verdict
+4. Apply ±10% numerical tolerance unless the claim says "exactly"
+5. For temporal claims, do date arithmetic (expires 2027 → last year starts 2026)
+6. Name the source AND its ID in your rationale (e.g. "Reuters (E3) reports...")
+
+RESPOND WITH VALID JSON:
+{
+  "verdict": "supported|contradicted|uncertain",
+  "confidence": 0-100,
+  "cited_evidence_ids": ["E1", "E3"],
+  "rationale": "2-3 sentences referencing sources by name and ID."
+}"""
+
     @property
     def effective_temperature(self) -> float:
         """Return temperature, respecting frozen replay override if set."""
@@ -517,14 +541,13 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
         if self.cache_service is None:
             self.cache_service = await get_cache_service()
     
-    async def judge_claim(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
+    async def judge_claim(self, claim: Dict[str, Any],
                          evidence: List[Dict[str, Any]], article_context: Optional[str] = None,
                          max_display_items: int = 3) -> JudgmentResult:
-        """Judge a single claim based on verification signals and evidence with optional article context
+        """Judge a single claim based on evidence with optional article context
 
         Args:
             claim: The claim to judge
-            verification_signals: Aggregated verification signals from NLI
             evidence: List of evidence items for this claim
             article_context: Optional context from the source article
             max_display_items: Maximum evidence items to include in result (dynamic based on claim count)
@@ -534,7 +557,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
         claim_text = claim.get("text", "")
 
         # Check cache first
-        cache_key = self._make_judgment_cache_key(claim_text, verification_signals, evidence)
+        cache_key = self._make_judgment_cache_key(claim_text, {}, evidence)
         if self.cache_service:
             cached_result = await self.cache_service.get("judgment", cache_key)
             if cached_result:
@@ -557,9 +580,101 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                     f"(severity: {temporal_comparison.get('drift_severity')})"
                 )
 
+        # ──── PATH_A: Judge-led pipeline (no abstention, ID-based citations) ────
+        if getattr(settings, 'ENABLE_PATH_A', False):
+            context = self._prepare_path_a_context(claim, evidence)
+            judge_input_hash = _compute_judge_input_hash(context)
+            logger.info(
+                f"[PATH_A] Judging claim with {len(evidence)} evidence items "
+                f"(no abstention, no display filter). Hash: {judge_input_hash}"
+            )
+
+            try:
+                judgment_data = None
+                if self.google_ai_api_key:
+                    try:
+                        judgment_data = await self._judge_with_google(
+                            context, system_prompt=self.path_a_system_prompt
+                        )
+                    except Exception as e:
+                        logger.warning(f"[PATH_A] Google AI failed, trying OpenAI: {e}")
+
+                if judgment_data is None and self.openai_api_key:
+                    judgment_data = await self._judge_with_openai(
+                        context, system_prompt=self.path_a_system_prompt
+                    )
+
+                if judgment_data is None:
+                    judgment_data = self._fallback_judgment(evidence)
+
+                raw_verdict = judgment_data.get("verdict", "uncertain")
+                final_verdict, uncertainty_reason = self._normalize_verdict(raw_verdict)
+                final_confidence = min(max(judgment_data.get("confidence", 50), 0), 100)
+                final_rationale = judgment_data.get("rationale", "Assessment based on available evidence")
+
+                # Map cited_evidence_ids → actual evidence items for display
+                cited_ids = judgment_data.get("cited_evidence_ids") or []
+                display_evidence = self._resolve_cited_evidence(cited_ids, evidence)
+
+                if not display_evidence and evidence:
+                    # Fallback: show top items by score (judge didn't return parseable IDs)
+                    display_evidence = sorted(
+                        evidence,
+                        key=lambda x: (x.get('llm_relevance_score') or 0, x.get('credibility_score', 0)),
+                        reverse=True
+                    )[:max_display_items]
+                    logger.warning(
+                        f"[PATH_A] No valid cited_evidence_ids in response, "
+                        f"falling back to top {len(display_evidence)} by score"
+                    )
+
+                if final_verdict != "uncertain":
+                    uncertainty_reason = None
+
+                result = JudgmentResult(
+                    claim_text=claim_text,
+                    verdict=final_verdict,
+                    confidence=final_confidence,
+                    rationale=final_rationale,
+                    supporting_evidence=display_evidence,
+                    evidence_summary={'path_a': True, 'total_evidence': len(evidence),
+                                      'cited_ids': cited_ids},
+                    current_verified_data=temporal_comparison,
+                    uncertainty_reason=uncertainty_reason,
+                    judge_input_hash=judge_input_hash,
+                )
+
+                if self.cache_service:
+                    await self.cache_service.set("judgment", cache_key, result.to_dict(), 3600 * 6)
+
+                return result
+
+            except Exception as e:
+                logger.error(f"[PATH_A] LLM judgment failed: {e}")
+                fb_evidence = sorted(
+                    evidence,
+                    key=lambda x: (x.get('llm_relevance_score') or 0, x.get('credibility_score', 0)),
+                    reverse=True
+                )[:max_display_items] if evidence else []
+                return JudgmentResult(
+                    claim_text=claim_text,
+                    verdict="uncertain",
+                    confidence=30,
+                    rationale=f"Judgment processing failed. {len(evidence)} evidence items were available.",
+                    supporting_evidence=fb_evidence,
+                    evidence_summary={'path_a': True, 'error': True},
+                    current_verified_data=temporal_comparison,
+                    uncertainty_reason="processing_error",
+                    uncertainty_details=f"LLM judgment failed: {str(e)[:200]}",
+                    judge_input_hash=_compute_judge_input_hash(
+                        self._prepare_path_a_context(claim, evidence)
+                    ) if evidence else None,
+                )
+        # ──── End PATH_A ────
+
         # PHASE 3: Check for abstention BEFORE making a judgment
         if settings.ENABLE_ABSTENTION_LOGIC:
-            abstention_check = self._should_abstain(evidence, verification_signals, claim_text)
+            abstention_check = self._should_abstain(evidence, claim_text)
             if abstention_check:
                 raw_verdict, reason, consensus_strength = abstention_check
                 # Normalize to 3-way taxonomy
@@ -575,7 +690,6 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                     rationale=reason,
                     supporting_evidence=_select_display_evidence(evidence, max_items=max_display_items),
                     evidence_summary={
-                        **verification_signals,
                         'abstention_reason': reason,
                         'min_requirements_met': False,
                         'consensus_strength': consensus_strength
@@ -595,7 +709,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
 
         # Prepare judgment context with optional article context and rhetorical analysis
         context = self._prepare_judgment_context(
-            claim, verification_signals, evidence, article_context, rhetorical_analysis
+            claim, evidence, article_context, rhetorical_analysis
         )
 
         # Compute judge input hash for determinism tracking
@@ -616,14 +730,12 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
 
             if judgment_data is None:
                 # Fallback to rule-based judgment
-                judgment_data = self._fallback_judgment(verification_signals)
+                judgment_data = self._fallback_judgment(evidence)
             
             # Create result
             # Phase 3: Enrich evidence summary with consensus data
             enriched_summary = {
-                **verification_signals,
                 'min_requirements_met': True,
-                'consensus_strength': self._calculate_consensus_strength(evidence, verification_signals) if settings.ENABLE_ABSTENTION_LOGIC else None,
                 'abstention_reason': None
             }
 
@@ -642,7 +754,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 # Check if evidence HAD relevance scores but none passed threshold
                 # vs. having no scores at all (test/dev scenario - should trust LLM judgment)
                 has_any_relevance_scores = any(
-                    e.get('llm_relevance_score', 0) > 0 or
+                    (e.get('llm_relevance_score') or 0) > 0 or
                     e.get('semantic_similarity', 0) > 0 or
                     e.get('relevance_score', 0) > 0
                     for e in evidence
@@ -725,7 +837,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
         except Exception as e:
             logger.error(f"LLM judgment failed for claim: {e}")
             # Return fallback judgment with processing_error reason
-            fallback_data = self._fallback_judgment(verification_signals)
+            fallback_data = self._fallback_judgment(evidence)
             fallback_display_evidence = _select_display_evidence(evidence, max_items=max_display_items)
 
             fallback_verdict = fallback_data["verdict"]
@@ -755,7 +867,7 @@ Be precise, objective, and transparent about uncertainty. Always return valid JS
                 confidence=fallback_confidence,
                 rationale=fallback_rationale,
                 supporting_evidence=fallback_display_evidence,
-                evidence_summary=verification_signals,
+                evidence_summary={},
                 current_verified_data=temporal_comparison,
                 rhetorical_analysis=rhetorical_analysis,
                 uncertainty_reason=fb_uncertainty_reason,
@@ -959,14 +1071,68 @@ NOW JUDGE THE FOLLOWING CLAIM:
             "should_cap": should_cap,
         }
 
-    def _prepare_judgment_context(self, claim: Dict[str, Any], verification_signals: Dict[str, Any],
+    def _prepare_path_a_context(self, claim: Dict[str, Any],
+                               evidence: List[Dict[str, Any]]) -> str:
+        """Build E-ID numbered evidence context for PATH_A judge.
+
+        Format: E1: Source | domain | date | credibility | advisory LLM score
+                Content: snippet (max 300 chars)
+                URL: ...
+        """
+        claim_text = claim.get("text", "")
+        snippet_len = min(getattr(settings, 'EVIDENCE_SNIPPET_LENGTH', 400), 300)
+
+        lines = [f"CLAIM: {claim_text}", "", "EVIDENCE:"]
+
+        for i, ev in enumerate(evidence):
+            eid = f"E{i + 1}"
+            source = ev.get("source", "Unknown")
+            url = ev.get("url", "")
+            date = ev.get("published_date", "")
+            cred = ev.get("credibility_score", 0)
+            llm_score = ev.get("llm_relevance_score")
+            snippet = (ev.get("snippet") or ev.get("text") or "")[:snippet_len]
+
+            score_part = f" | LLM relevance: {llm_score}/5" if llm_score is not None else ""
+            lines.append(f"\n{eid}: {source} | Credibility: {cred:.0%} | {date}{score_part}")
+            lines.append(f"Content: {snippet}")
+            lines.append(f"URL: {url}")
+
+        lines.append(f"\nTotal evidence items: {len(evidence)}")
+        lines.append("Provide your judgment as JSON.")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _resolve_cited_evidence(cited_ids: List[str],
+                                evidence: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Map cited_evidence_ids (E1, E2, ...) back to evidence items."""
+        result = []
+        seen = set()
+        for eid in cited_ids:
+            try:
+                idx = int(eid.strip().lstrip("Ee")) - 1
+                if 0 <= idx < len(evidence) and idx not in seen:
+                    result.append(evidence[idx])
+                    seen.add(idx)
+            except (ValueError, IndexError):
+                logger.warning(f"[PATH_A] Invalid cited evidence ID: {eid}")
+        return result
+
+    def _prepare_judgment_context(self, claim: Dict[str, Any],
                                  evidence: List[Dict[str, Any]], article_context: Optional[str] = None,
                                  rhetorical_analysis: Optional[Dict[str, Any]] = None) -> str:
         """Prepare context for LLM judgment with optional article context and rhetorical analysis"""
         claim_text = claim.get("text", "")
 
         # Check if this is a temporal/date claim that requires math reasoning
-        is_temporal_claim = self._requires_llm_reasoning(claim_text, evidence)
+        import re
+        _temporal_patterns = [
+            r'\b(last|final|remaining)\s+(year|month|season)',
+            r'\b(contract|deal|agreement)\s+.{0,30}(expires?|ends?|runs?\s+out)',
+            r'\b(born|age|years?\s+old)\b',
+            r'\b(20\d{2})\b',
+        ]
+        is_temporal_claim = any(re.search(p, claim_text.lower()) for p in _temporal_patterns)
 
         # Check if this is a TIMELESS claim (established scientific facts that don't need fresh evidence)
         # For timeless claims, evidence age doesn't matter - scientific consensus is stable
@@ -1098,9 +1264,6 @@ NOW JUDGE THE FOLLOWING CLAIM:
 
             evidence_summary.append(evidence_entry)
 
-        # Verification signals summary
-        signals = verification_signals
-
         # Add article context section if provided
         article_context_section = ""
         if article_context:
@@ -1122,13 +1285,14 @@ IMPORTANT: Use this article context to:
             temporal_warning = """
 [TEMPORAL CLAIM] DATE ARITHMETIC REQUIRED
 This claim involves dates, contracts, or time calculations.
-The NLI verification signals below MAY BE WRONG because NLI models cannot do math.
 YOU MUST do the date arithmetic yourself:
 - "Contract expires June 2027" means "last year starts July 2026" (12 months before)
-- IGNORE the Overall Verdict Signal for date claims - reason independently!
 - See Example 5 in the training examples for how to handle this.
 
 """
+
+        # Count evidence shown (needed for warnings below)
+        evidence_shown_count = len(evidence_summary)
 
         # Add stale evidence warning if any evidence is too old for the claim type
         stale_warning = ""
@@ -1149,7 +1313,6 @@ reduce confidence significantly if relying on outdated sources.
 
         # Add snippet-only evidence warning
         snippet_only_warning = ""
-        evidence_shown_count = len(evidence_summary)
         if snippet_only_count > 0 and snippet_only_count == evidence_shown_count:
             snippet_only_warning = f"""
 \U0001f7e1 SNIPPET-ONLY EVIDENCE WARNING — ALL EVIDENCE IS SNIPPET-ONLY
@@ -1210,28 +1373,13 @@ CRITICAL GUIDANCE:
 
 """
 
-        # Build verification metrics conditionally based on feature flag
-        # When disabled (default): Judge makes verdict decisions without NLI bias
-        # NLI still runs for evidence relevance filtering
-        verification_metrics = ""
-        if settings.PASS_NLI_VERDICT_TO_JUDGE:
-            temporal_suffix = "  ⚠️ MAY BE INCORRECT FOR DATE CLAIMS - DO THE MATH!" if is_temporal_claim else ""
-            verification_metrics = f"""
-VERIFICATION METRICS:
-Overall Verdict Signal: {signals.get('overall_verdict', 'uncertain')}{temporal_suffix}
-Signal Confidence: {signals.get('confidence', 0.0):.2f}
-Max Entailment Score: {signals.get('max_entailment', 0.0):.2f}
-Max Contradiction Score: {signals.get('max_contradiction', 0.0):.2f}
-Evidence Quality: {signals.get('evidence_quality', 'low')}
-"""
-
         base_context = f"""
 CLAIM TO JUDGE:
 {claim_text}
 {temporal_warning}{stale_warning}{snippet_only_warning}{rhetorical_warning}{article_context_section}
 EVIDENCE ANALYSIS:
 Evidence Pieces Provided: {evidence_shown_count}
-{verification_metrics}
+
 EVIDENCE DETAILS:
 {chr(10).join(evidence_summary)}
 
@@ -1251,8 +1399,9 @@ Based on this analysis, provide your final judgment."""
 
         return base_context
     
-    async def _judge_with_openai(self, context: str) -> Dict[str, Any]:
+    async def _judge_with_openai(self, context: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
         """Make judgment using OpenAI API"""
+        prompt = system_prompt or self.system_prompt
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
@@ -1264,7 +1413,7 @@ Based on this analysis, provide your final judgment."""
                     json={
                         "model": "gpt-4o-mini-2024-07-18",
                         "messages": [
-                            {"role": "system", "content": self.system_prompt},
+                            {"role": "system", "content": prompt},
                             {"role": "user", "content": context}
                         ],
                         "max_tokens": self.judge_max_tokens,
@@ -1285,8 +1434,9 @@ Based on this analysis, provide your final judgment."""
             logger.error(f"OpenAI judgment error: {e}")
             raise
     
-    async def _judge_with_google(self, context: str) -> Dict[str, Any]:
+    async def _judge_with_google(self, context: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
         """Make judgment using Google AI (Gemini) API as primary provider"""
+        prompt = system_prompt or self.system_prompt
         try:
             google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
             async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -1299,7 +1449,7 @@ Based on this analysis, provide your final judgment."""
                         "contents": [
                             {
                                 "parts": [
-                                    {"text": f"{self.system_prompt}\n\n{context}\n\nProvide your judgment as JSON."}
+                                    {"text": f"{prompt}\n\n{context}\n\nProvide your judgment as JSON."}
                                 ]
                             }
                         ],
@@ -1331,48 +1481,42 @@ Based on this analysis, provide your final judgment."""
             logger.error(f"Google AI judgment error: {e}")
             raise
     
-    def _fallback_judgment(self, verification_signals: Dict[str, Any]) -> Dict[str, Any]:
+    def _fallback_judgment(self, evidence: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Rule-based fallback judgment when LLM is unavailable"""
-        signals = verification_signals
-        
-        supporting = signals.get('supporting_count', 0)
-        contradicting = signals.get('contradicting_count', 0)
-        total = signals.get('total_evidence', 0)
-        max_entailment = signals.get('max_entailment', 0.0)
-        max_contradiction = signals.get('max_contradiction', 0.0)
-        quality = signals.get('evidence_quality', 'low')
-        
-        # Rule-based verdict
-        if supporting > contradicting and max_entailment > 0.75 and quality in ['high', 'medium']:
-            verdict = "supported"
-            confidence = min(80, int(max_entailment * 85))
-            rationale = f"The available evidence supports this claim. Analysis found {supporting} corroborating source(s) with strong alignment to the claim."
-        elif contradicting > supporting and max_contradiction > 0.75 and quality in ['high', 'medium']:
-            verdict = "contradicted"
-            confidence = min(80, int(max_contradiction * 85))
-            rationale = f"The available evidence contradicts this claim. Analysis found {contradicting} source(s) that dispute the claim's accuracy."
+        total = len(evidence)
+        min_sources = getattr(settings, 'MIN_SOURCES_FOR_VERDICT', 2)
+
+        if total >= min_sources:
+            verdict = "uncertain"
+            confidence = 50
+            rationale = (
+                f"LLM judgment unavailable. {total} evidence source(s) found but "
+                f"automated verdict requires human review."
+            )
         else:
             verdict = "uncertain"
-            confidence = 40
-            rationale = f"The evidence is inconclusive. Sources provide mixed or insufficient information to confidently verify this claim."
-        
+            confidence = 30
+            rationale = (
+                f"LLM judgment unavailable and only {total} evidence source(s) found. "
+                f"Insufficient information for reliable verdict."
+            )
+
         return {
             "verdict": verdict,
             "confidence": confidence,
             "rationale": rationale,
             "key_evidence_points": [
                 f"Analyzed {total} evidence sources",
-                f"Evidence quality rated as {quality}",
-                f"Verification confidence: {signals.get('confidence', 0.0):.2f}"
+                "LLM judgment unavailable — rule-based fallback used"
             ],
             "certainty_factors": {
-                "source_quality": quality,
-                "evidence_consensus": "strong" if abs(supporting - contradicting) >= 2 else "mixed",
+                "source_quality": "unknown",
+                "evidence_consensus": "unknown",
                 "temporal_relevance": "current"
             }
         }
 
-    def _should_abstain(self, evidence: List[Dict[str, Any]], verification_signals: Dict[str, Any],
+    def _should_abstain(self, evidence: List[Dict[str, Any]],
                         claim_text: str = "") -> Optional[tuple]:
         """
         Determine if we should abstain from making a verdict.
@@ -1386,7 +1530,6 @@ Based on this analysis, provide your final judgment."""
         # Configuration thresholds (see config.py for rationale)
         MIN_SOURCES = settings.MIN_SOURCES_FOR_VERDICT  # Default: 2
         MIN_HIGH_CRED = settings.MIN_CREDIBILITY_THRESHOLD  # Default: 0.60
-        MIN_CONSENSUS = settings.MIN_CONSENSUS_STRENGTH  # Default: 0.50
 
         # Check 1: Too few sources
         if len(evidence) < MIN_SOURCES:
@@ -1407,114 +1550,8 @@ Based on this analysis, provide your final judgment."""
                 0.0
             )
 
-        # CRITICAL: Check if claim requires temporal/mathematical reasoning
-        # NLI models CANNOT do date math, so we must let Judge LLM reason about these
-        requires_llm_reasoning = self._requires_llm_reasoning(claim_text, evidence)
-
-        if requires_llm_reasoning:
-            logger.info(f"[JUDGE] Bypassing NLI-based abstention - claim requires LLM reasoning: {claim_text[:80]}...")
-            # Don't abstain based on NLI signals - let the Judge LLM handle it
-            return None
-
-        # Check 3: Calculate consensus strength (only when NLI signals are passed to judge)
-        # When PASS_NLI_VERDICT_TO_JUDGE=False, skip NLI-based abstention checks
-        consensus_strength = 0.0
-        if settings.PASS_NLI_VERDICT_TO_JUDGE:
-            consensus_strength = self._calculate_consensus_strength(evidence, verification_signals)
-            if consensus_strength < MIN_CONSENSUS:
-                return (
-                    "conflicting_expert_opinion",
-                    f"Evidence shows weak consensus ({consensus_strength:.0%}). "
-                    f"High-credibility sources disagree on this claim.",
-                    consensus_strength
-                )
-
-        # Check 4: Conflicting high-credibility sources
-        supporting = verification_signals.get('supporting_count', 0)
-        contradicting = verification_signals.get('contradicting_count', 0)
-
-        high_cred_supporting = sum(1 for e in high_cred_sources
-                                   if verification_signals.get(f"evidence_{e.get('id', '')}_stance") == 'supporting')
-        high_cred_contradicting = sum(1 for e in high_cred_sources
-                                      if verification_signals.get(f"evidence_{e.get('id', '')}_stance") == 'contradicting')
-
-        # CRITICAL FIX: Only abstain if contradictions are STRONG and NUMEROUS
-        # Don't abstain on 1 false contradiction - require at least 2 contradicting sources
-        # AND contradictions must be equal to or outnumber supporting sources
-        if high_cred_contradicting >= 2 and high_cred_contradicting >= high_cred_supporting:
-            return (
-                "conflicting_expert_opinion",
-                f"High-credibility sources conflict: {high_cred_supporting} support, "
-                f"{high_cred_contradicting} contradict. Expert opinion divided.",
-                consensus_strength
-            )
-
-        # Check 5: Temporal issues (if temporal markers present)
-        if verification_signals.get('temporal_flag') == 'outdated':
-            return (
-                "outdated_claim",
-                "Claim may have been accurate historically, but circumstances have changed. "
-                "Evidence suggests this is no longer current.",
-                consensus_strength
-            )
-
         # No abstention needed - minimum requirements met
         return None
-
-    def _requires_llm_reasoning(self, claim_text: str, evidence: List[Dict[str, Any]]) -> bool:
-        """
-        Detect if a claim requires LLM reasoning that NLI cannot perform.
-
-        NLI models are good at textual entailment but CANNOT:
-        - Do date/temporal arithmetic (expires 2027 → last year starts 2026)
-        - Calculate ages from birth dates
-        - Compare rankings that require inference
-        - Reason about contract durations
-
-        When we detect these patterns, we bypass NLI-based abstention and let
-        the Judge LLM reason about the evidence.
-        """
-        import re
-
-        claim_lower = claim_text.lower()
-
-        # Temporal/Date patterns in claim that require arithmetic
-        temporal_patterns = [
-            r'\b(last|final|remaining)\s+(year|month|season)',  # "last year of contract"
-            r'\b(contract|deal|agreement)\s+.{0,30}(expires?|ends?|runs?\s+out)',  # contract expiry
-            r'\b(enter|entering|begin|beginning|start)\s+.{0,20}(year|phase|period)',  # "enter last year"
-            r'\b(20\d{2})\b',  # Any year mentioned (needs context comparison)
-            r'\b(born|age|years?\s+old)\b',  # Age calculations
-            r'\b(joined|signed|transferred)\s+.{0,20}(ago|in\s+20\d{2})',  # Duration calculations
-        ]
-
-        has_temporal_claim = any(re.search(p, claim_lower) for p in temporal_patterns)
-
-        if not has_temporal_claim:
-            return False
-
-        # Check if evidence contains dates/contract info that would need reasoning
-        evidence_text = " ".join([
-            e.get('text', '') + " " + e.get('snippet', '')
-            for e in evidence
-        ]).lower()
-
-        date_patterns = [
-            r'contract\s+expires?',
-            r'expires?:\s*\d',
-            r'\d{2}/\d{2}/20\d{2}',  # Date format DD/MM/YYYY
-            r'20\d{2}[-/]20\d{2}',   # Season format 2024-25 or 2024/25
-            r'(joined|signed):\s*\d',
-            r'until\s+20\d{2}',
-        ]
-
-        has_date_evidence = any(re.search(p, evidence_text) for p in date_patterns)
-
-        if has_temporal_claim and has_date_evidence:
-            logger.debug(f"[JUDGE] Temporal claim detected with date evidence - requires LLM reasoning")
-            return True
-
-        return False
 
     def _extract_claimed_statistics(self, claim_text: str) -> Optional[Dict[str, Any]]:
         """
@@ -1701,53 +1738,6 @@ Based on this analysis, provide your final judgment."""
         else:
             return "significant"
 
-    def _calculate_consensus_strength(self, evidence: List[Dict[str, Any]],
-                                     verification_signals: Dict[str, Any]) -> float:
-        """
-        Calculate consensus strength using credibility-weighted agreement.
-
-        Neutral stances are counted as weak support (40% weight) to avoid
-        falsely flagging tangentially-related evidence as "conflicting opinion".
-
-        Returns:
-            Float 0-1 representing strength of consensus
-        """
-        if not evidence:
-            return 0.0
-
-        # Weight for neutral evidence (weak support, not disagreement)
-        NEUTRAL_SUPPORT_WEIGHT = 0.4
-
-        # Weight votes by credibility score
-        supporting_weight = 0.0
-        contradicting_weight = 0.0
-
-        for ev in evidence:
-            cred_score = ev.get('credibility_score', 0.6)
-            ev_id = ev.get('id', '')
-
-            # Get stance from verification signals (None if missing)
-            stance = verification_signals.get(f'evidence_{ev_id}_stance')
-
-            if stance == 'supporting':
-                supporting_weight += cred_score
-            elif stance == 'contradicting':
-                contradicting_weight += cred_score
-            elif stance == 'neutral':
-                # Neutral evidence that discusses topic = weak support
-                supporting_weight += cred_score * NEUTRAL_SUPPORT_WEIGHT
-
-        total_weight = supporting_weight + contradicting_weight
-
-        if total_weight == 0:
-            return 0.0
-
-        # Consensus = majority weight / total weight
-        majority_weight = max(supporting_weight, contradicting_weight)
-        consensus = majority_weight / total_weight
-
-        return consensus
-
     def _make_judgment_cache_key(self, claim: str, signals: Dict[str, Any], evidence: List[Dict[str, Any]]) -> str:
         """Create cache key for judgment result"""
         # Include key signal values and evidence URLs for cache invalidation
@@ -1784,7 +1774,6 @@ class PipelineJudge:
         self.max_concurrent_judgments = getattr(settings, 'MAX_CONCURRENT_JUDGMENTS', 5)
     
     async def judge_all_claims(self, claims: List[Dict[str, Any]],
-                              verifications_by_claim: Dict[str, List[Dict[str, Any]]],
                               evidence_by_claim: Dict[str, List[Dict[str, Any]]],
                               article_context: Optional[str] = None) -> List[Dict[str, Any]]:
         """Judge all claims and return final results with optional article context for holistic judgment"""
@@ -1797,65 +1786,24 @@ class PipelineJudge:
             max_display_items = calculate_max_display_items(len(claims))
             logger.info(f"[JUDGE] Dynamic evidence allocation: {len(claims)} claims → {max_display_items} evidence/claim")
 
-            # Import verification aggregation from verify module
-            from app.pipeline.verify import get_claim_verifier
-            claim_verifier = await get_claim_verifier()
-
             # Create judgment tasks with concurrency control
             semaphore = asyncio.Semaphore(self.max_concurrent_judgments)
-            
+
             async def judge_single_claim(claim: Dict[str, Any]) -> Dict[str, Any]:
                 async with semaphore:
                     position = str(claim.get("position", 0))
-                    verifications = verifications_by_claim.get(position, [])
                     evidence = evidence_by_claim.get(position, [])
 
-                    # Phase 2: Enrich evidence with NLI verification data (Section 2.6a)
-                    enriched_evidence = []
-                    for i, ev in enumerate(evidence):
-                        ev_copy = ev.copy()  # Don't mutate original
-
-                        # Attach NLI data if verification exists for this evidence
-                        if i < len(verifications):
-                            verification = verifications[i]
-                            relationship = verification.get("relationship", "neutral")
-
-                            # Map NLI relationship to user-friendly stance
-                            ev_copy["nli_stance"] = (
-                                "supporting" if relationship == "entails" else
-                                "contradicting" if relationship == "contradicts" else
-                                "neutral"
-                            )
-                            ev_copy["nli_confidence"] = verification.get("confidence", 0.0)
-                            ev_copy["nli_entailment"] = verification.get("entailment_score", 0.0)
-                            ev_copy["nli_contradiction"] = verification.get("contradiction_score", 0.0)
-
-                        enriched_evidence.append(ev_copy)
-
-                    # Aggregate verification signals
-                    signals = claim_verifier.aggregate_verification_signals(verifications)
-
-                    # Adjust confidence for claim complexity (multi-part claims with partial evidence)
-                    claim_text = claim.get("text", "")
-                    if claim_text and verifications:
-                        adjusted_confidence = claim_verifier.adjust_confidence_for_claim_complexity(
-                            claim_text,
-                            signals.get("confidence", 0.0),
-                            verifications
-                        )
-                        signals["confidence"] = adjusted_confidence
-
-                    # Get final judgment with ENRICHED evidence (now has NLI fields) and article context
+                    # Get final judgment with article context
                     # max_display_items scales inversely with claim count for richer TEXT input responses
                     judgment = await self.claim_judge.judge_claim(
-                        claim, signals, enriched_evidence, article_context,
+                        claim, evidence, article_context,
                         max_display_items=max_display_items
                     )
 
                     return {
                         **judgment.to_dict(),
                         "position": claim.get("position", 0),
-                        "verification_signals": signals
                     }
             
             # Run judgments with controlled concurrency
@@ -1872,14 +1820,17 @@ class PipelineJudge:
                     position = str(claim.get("position", i))
                     evidence = evidence_by_claim.get(position, [])
 
+                    if getattr(settings, 'ENABLE_PATH_A', False):
+                        fb_ev = evidence[:max_display_items]
+                    else:
+                        fb_ev = _select_display_evidence(evidence, max_items=max_display_items)
                     fallback_result = {
                         "text": claim.get("text", ""),
                         "verdict": "uncertain",
                         "confidence": 30,
                         "rationale": "Judgment failed due to processing error. Evidence review inconclusive.",
-                        "evidence": _select_display_evidence(evidence, max_items=max_display_items),
+                        "evidence": fb_ev,
                         "position": claim.get("position", i),
-                        "verification_signals": {"error": "judgment_failed"},
                         "uncertainty_reason": "processing_error",
                     }
                     final_results.append(fallback_result)
@@ -1898,14 +1849,17 @@ class PipelineJudge:
                 position = str(claim.get("position", i))
                 evidence = evidence_by_claim.get(position, [])
 
+                if getattr(settings, 'ENABLE_PATH_A', False):
+                    fb_ev = evidence[:fallback_max_display]
+                else:
+                    fb_ev = _select_display_evidence(evidence, max_items=fallback_max_display)
                 fallback_results.append({
                     "text": claim.get("text", ""),
                     "verdict": "uncertain",
                     "confidence": 25,
                     "rationale": "Pipeline judgment service temporarily unavailable. Manual review recommended.",
-                    "evidence": _select_display_evidence(evidence, max_items=fallback_max_display),
+                    "evidence": fb_ev,
                     "position": claim.get("position", i),
-                    "verification_signals": {"error": "pipeline_error"},
                     "uncertainty_reason": "processing_error",
                 })
 

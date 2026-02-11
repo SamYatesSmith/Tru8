@@ -1548,8 +1548,6 @@ async def get_public_check(
                 "isFactcheck": ev.is_factcheck,
                 "factcheckPublisher": ev.factcheck_publisher,
                 "factcheckRating": ev.factcheck_rating,
-                "nliStance": ev.nli_stance,
-                "nliConfidence": ev.nli_confidence,
                 "contextBefore": ev.context_before,
                 "contextAfter": ev.context_after,
             })

@@ -87,10 +87,11 @@ class Settings(BaseSettings):
     PIPELINE_TIMEOUT_SECONDS: int = Field(180, env="PIPELINE_TIMEOUT_SECONDS")
     CACHE_TTL_SECONDS: int = Field(3600, env="CACHE_TTL_SECONDS")
     
-    # NLI & Verification
-    NLI_CONFIDENCE_THRESHOLD: float = Field(0.7, env="NLI_CONFIDENCE_THRESHOLD")
-    MAX_CONCURRENT_VERIFICATIONS: int = Field(5, env="MAX_CONCURRENT_VERIFICATIONS")
-    VERIFICATION_TIMEOUT_SECONDS: int = Field(5, env="VERIFICATION_TIMEOUT_SECONDS")
+    # ========== PATH A: JUDGE-LED PIPELINE ==========
+    # When enabled, the pipeline stops filtering evidence before the judge.
+    # The LLM relevance scorer annotates but does NOT veto.
+    # Pre-judge abstention is disabled. Display shows judge-cited evidence only.
+    ENABLE_PATH_A: bool = Field(False, env="ENABLE_PATH_A")
 
     # ========== UNIFIED PIPELINE THRESHOLDS ==========
     # These thresholds are ALIGNED across all pipeline stages.
@@ -172,9 +173,6 @@ class Settings(BaseSettings):
 
     # Phase 6 - Judge Improvements (Week 12)
     EVIDENCE_SNIPPET_LENGTH: int = Field(400, env="EVIDENCE_SNIPPET_LENGTH")  # Increased from 150 to preserve context
-    ENABLE_EVIDENCE_RELEVANCE_FILTER: bool = Field(False, env="ENABLE_EVIDENCE_RELEVANCE_FILTER")  # Filter low-relevance evidence
-    RELEVANCE_THRESHOLD: float = Field(0.65, env="RELEVANCE_THRESHOLD")  # Minimum relevance score (0-1)
-
     # Snippet-only evidence cap for judge context (PR 2-D)
     # When extracted evidence exists, at most this many snippet-only items in judge's top 5
     MAX_SNIPPET_EVIDENCE_FOR_JUDGE: int = Field(2, env="MAX_SNIPPET_EVIDENCE_FOR_JUDGE")
@@ -213,11 +211,6 @@ class Settings(BaseSettings):
     MIN_CREDIBILITY_THRESHOLD: float = Field(0.60, env="MIN_CREDIBILITY_THRESHOLD")
     MIN_CONSENSUS_STRENGTH: float = Field(0.50, env="MIN_CONSENSUS_STRENGTH")
 
-    # NLI Signal Control (Phase 3 - Redundancy Removal)
-    # When False: Judge makes verdict decisions without seeing NLI verdict/confidence scores
-    # NLI still runs for evidence relevance filtering, but doesn't bias Judge's decision
-    PASS_NLI_VERDICT_TO_JUDGE: bool = Field(False, env="PASS_NLI_VERDICT_TO_JUDGE")
-
     # ========== LLM RELEVANCE SCORER ==========
     # Replaces embedding-based ranking with LLM-based understanding of evidential value
     # Uses GPT-4o-mini to score evidence 1-5 based on how well it helps verify/refute claims
@@ -241,9 +234,6 @@ class Settings(BaseSettings):
     SUBSCRIPTIONS_ENABLED: bool = Field(False, env="SUBSCRIPTIONS_ENABLED")
 
     # ========== PHASE 1: ACCURACY IMPROVEMENTS ==========
-    # DeBERTa NLI Model Swap (Phase 1.1)
-    ENABLE_DEBERTA_NLI: bool = Field(False, env="ENABLE_DEBERTA_NLI")
-
     # Judge Few-Shot Prompting (Phase 1.2)
     ENABLE_JUDGE_FEW_SHOT: bool = Field(True, env="ENABLE_JUDGE_FEW_SHOT")  # ENABLED: Provides concrete examples to guide judge reasoning
 
@@ -295,18 +285,9 @@ class Settings(BaseSettings):
     # vs contract_info claims which can use older evidence (up to 6 months)
     ENABLE_FRESHNESS_BY_CLAIM_TYPE: bool = Field(True, env="ENABLE_FRESHNESS_BY_CLAIM_TYPE")
 
-    @property
-    def nli_model_name(self) -> str:
-        """Dynamic NLI model selection based on feature flag"""
-        if self.ENABLE_DEBERTA_NLI:
-            # Using DeBERTa-v3-LARGE for better FEVER-trained fact-checking
-            # Trained on MNLI, FEVER, ANLI, LingNLI, WANLI (SNLI excluded for quality)
-            # Better at distinguishing "NOT ENOUGH INFO" from "CONTRADICTION"
-            return "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
-        return "facebook/bart-large-mnli"
-
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"
 
 settings = Settings()

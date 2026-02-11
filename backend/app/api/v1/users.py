@@ -766,8 +766,6 @@ async def export_user_data(
                     "credibility_score": ev.credibility_score,
                     "is_factcheck": ev.is_factcheck,
                     "tier": ev.tier,
-                    "nli_verdict": ev.nli_verdict,
-                    "nli_confidence": ev.nli_confidence,
                 }
                 for ev in evidence_list
             ]

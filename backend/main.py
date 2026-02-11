@@ -1,3 +1,6 @@
+import os
+os.environ.setdefault("DEBUG_EVIDENCE_LEDGER", "1")  # Enable evidence ledger for V2 frozen replay
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,19 +41,6 @@ async def warmup_ml_models():
     """
     start_time = time.time()
     logger.info("[STARTUP] Starting ML model warmup...")
-
-    # Warmup NLI model (only if NLI verification is enabled)
-    # When PASS_NLI_VERDICT_TO_JUDGE=False, NLI is bypassed in the pipeline
-    if settings.PASS_NLI_VERDICT_TO_JUDGE:
-        try:
-            from app.pipeline.verify import get_claim_verifier
-            verifier = await get_claim_verifier()
-            await verifier.nli_verifier.initialize()
-            logger.info("[STARTUP] NLI model loaded successfully")
-        except Exception as e:
-            logger.error(f"[STARTUP] NLI model warmup failed: {e}")
-    else:
-        logger.info("[STARTUP] Skipping NLI warmup (PASS_NLI_VERDICT_TO_JUDGE=False)")
 
     # Warmup embedding model (MiniLM for semantic similarity)
     try:

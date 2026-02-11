@@ -1,17 +1,15 @@
 # Pipeline package
-# 
-# Note: Classes are NOT imported here to prevent heavy ML libraries (transformers, torch)
+#
+# Note: Classes are NOT imported here to prevent heavy ML libraries
 # from loading at startup. Each module should be imported directly when needed.
 #
 # Usage:
-#   from app.pipeline.verify import get_claim_verifier
 #   from app.pipeline.extract import ClaimExtractor
 #   etc.
 
 __all__ = [
     "ingest",
-    "extract", 
+    "extract",
     "retrieve",
-    "verify",
     "judge"
 ]
