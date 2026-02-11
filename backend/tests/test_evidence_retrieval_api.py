@@ -8,7 +8,7 @@ during evidence processing, causing API statistics to always show 0%.
 """
 import pytest
 from app.pipeline.retrieve import EvidenceRetriever
-from app.workers.pipeline import aggregate_api_stats
+from app.pipeline.runner import _aggregate_api_stats as aggregate_api_stats
 from app.services.evidence import EvidenceSnippet
 
 

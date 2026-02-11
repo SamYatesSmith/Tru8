@@ -127,9 +127,6 @@ class Settings(BaseSettings):
     ENABLE_DEDUPLICATION: bool = Field(True, env="ENABLE_DEDUPLICATION")
     ENABLE_SOURCE_DIVERSITY: bool = Field(True, env="ENABLE_SOURCE_DIVERSITY")
     ENABLE_CONTEXT_PRESERVATION: bool = Field(True, env="ENABLE_CONTEXT_PRESERVATION")
-    ENABLE_SAFETY_CHECKING: bool = Field(False, env="ENABLE_SAFETY_CHECKING")
-    ENABLE_CITATION_ARCHIVAL: bool = Field(False, env="ENABLE_CITATION_ARCHIVAL")
-    ENABLE_VERDICT_MONITORING: bool = Field(False, env="ENABLE_VERDICT_MONITORING")
 
     # Search Clarity Feature (MVP)
     ENABLE_SEARCH_CLARITY: bool = Field(default=True, env="ENABLE_SEARCH_CLARITY")
@@ -220,10 +217,6 @@ class Settings(BaseSettings):
     LLM_RELEVANCE_MAX_EVIDENCE: int = Field(50, env="LLM_RELEVANCE_MAX_EVIDENCE")  # Max items to score per call
     LLM_RELEVANCE_CACHE_TTL: int = Field(3600, env="LLM_RELEVANCE_CACHE_TTL")  # Cache TTL in seconds (1 hour)
 
-    # Rollout Controls
-    FEATURE_ROLLOUT_PERCENTAGE: int = Field(0, env="FEATURE_ROLLOUT_PERCENTAGE")
-    INTERNAL_USER_IDS: List[str] = Field([], env="INTERNAL_USER_IDS")
-
     # ========== BETA TESTING CONFIGURATION ==========
     # Comma-separated list of email addresses that get unlimited checks during beta
     # Example: BETA_TESTER_EMAILS=["alice@example.com","bob@example.com"]
@@ -237,24 +230,13 @@ class Settings(BaseSettings):
     # Judge Few-Shot Prompting (Phase 1.2)
     ENABLE_JUDGE_FEW_SHOT: bool = Field(True, env="ENABLE_JUDGE_FEW_SHOT")  # ENABLED: Provides concrete examples to guide judge reasoning
 
-    # Cross-Encoder Evidence Reranking (Phase 1.3)
-    ENABLE_CROSS_ENCODER_RERANK: bool = Field(False, env="ENABLE_CROSS_ENCODER_RERANK")
-
     # ========== TIER 1 IMPROVEMENTS (2025-01-17) ==========
-    # Query Formulation Enhancement
-    ENABLE_QUERY_EXPANSION: bool = Field(False, env="ENABLE_QUERY_EXPANSION")
-    QUERY_EXPANSION_SYNONYMS: int = Field(2, env="QUERY_EXPANSION_SYNONYMS")
     QUERY_TEMPORAL_BOOST: bool = Field(True, env="QUERY_TEMPORAL_BOOST")
 
     # Semantic Snippet Extraction
     ENABLE_SEMANTIC_SNIPPET_EXTRACTION: bool = Field(True, env="ENABLE_SEMANTIC_SNIPPET_EXTRACTION")  # ENABLED: Extract claim-relevant sentences using embeddings
     SNIPPET_SEMANTIC_THRESHOLD: float = Field(0.65, env="SNIPPET_SEMANTIC_THRESHOLD")
     SNIPPET_CONTEXT_SENTENCES: int = Field(2, env="SNIPPET_CONTEXT_SENTENCES")
-
-    # Primary Source Prioritization
-    ENABLE_PRIMARY_SOURCE_DETECTION: bool = Field(False, env="ENABLE_PRIMARY_SOURCE_DETECTION")
-    PRIMARY_SOURCE_BOOST: float = Field(0.25, env="PRIMARY_SOURCE_BOOST")
-    SECONDARY_SOURCE_PENALTY: float = Field(0.15, env="SECONDARY_SOURCE_PENALTY")
 
     # ========== RHETORICAL CONTEXT DETECTION ==========
     # Detect when evidence sources describe rhetorical intent (sarcasm, mockery, satire)

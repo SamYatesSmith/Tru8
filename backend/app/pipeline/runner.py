@@ -294,7 +294,6 @@ async def run_pipeline(
         extract_claims_with_cache,
         retrieve_evidence_with_cache,
         judge_claims_with_llm,
-        generate_overall_assessment,
         search_factchecks_for_claims,
     )
     from app.utils.article_classifier import classify_article

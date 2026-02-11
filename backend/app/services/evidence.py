@@ -177,32 +177,15 @@ class EvidenceExtractor:
             # TIER 1 IMPROVEMENT: Enhanced query formulation
             from app.core.config import settings
 
-            if settings.ENABLE_QUERY_EXPANSION:
-                from app.utils.query_formulation import get_query_formulator
-                formulator = get_query_formulator()
-                search_query = formulator.formulate_query(
-                    claim,
-                    subject_context,
-                    key_entities,
-                    temporal_analysis,
-                    article_title,
-                    article_date
-                )
-                logger.info(f"🔎 QUERY EXPANDED | Claim: '{claim[:60]}...'")
-                logger.info(f"🔎 QUERY RESULT  | Query: '{search_query}'")
-            else:
-                # FALLBACK: Existing logic (preserve backward compatibility)
-                search_query = claim
-                logger.info(f"🔎 QUERY BASIC | Using claim as-is: '{search_query[:80]}...')")
-                if subject_context and key_entities:
-                    # Only add entities that AREN'T already in the claim text (avoid duplication)
-                    unique_entities = [e for e in key_entities[:3] if e.lower() not in claim.lower()]
-                    if unique_entities:
-                        entities_str = " ".join(unique_entities[:2])  # Max 2 additional entities
-                        search_query = f"{claim} {entities_str}"
-                        logger.info(f"Context-enriched search with {len(unique_entities)} unique entities: '{search_query}'")
-                    else:
-                        logger.info(f"No context enrichment needed (entities already in claim)")
+            search_query = claim
+            logger.info(f"Search query: '{search_query[:80]}...'")
+            if subject_context and key_entities:
+                # Only add entities that AREN'T already in the claim text (avoid duplication)
+                unique_entities = [e for e in key_entities[:3] if e.lower() not in claim.lower()]
+                if unique_entities:
+                    entities_str = " ".join(unique_entities[:2])  # Max 2 additional entities
+                    search_query = f"{claim} {entities_str}"
+                    logger.info(f"Context-enriched search with {len(unique_entities)} unique entities: '{search_query}'")
 
             # Step 2: Search for relevant pages
             search_results = await self.search_service.search_for_evidence(search_query, max_results=max_sources * 2)
@@ -752,58 +735,26 @@ class EvidenceExtractor:
         """
         Rank evidence snippets by relevance and credibility.
 
-        TIER 1 IMPROVEMENT: Enhanced with primary source detection.
         """
-        from app.core.config import settings
 
         def scoring_function(snippet: EvidenceSnippet) -> float:
             # Base relevance score
             score = snippet.relevance_score
 
-            # TIER 1 IMPROVEMENT: Primary source detection and boosting
-            if settings.ENABLE_PRIMARY_SOURCE_DETECTION:
-                from app.utils.source_type_classifier import get_source_type_classifier
-                classifier = get_source_type_classifier()
-
-                source_info = classifier.classify_source(
-                    snippet.url,
-                    snippet.title,
-                    snippet.text
-                )
-
-                # Store in metadata for transparency
-                snippet.metadata['source_type'] = source_info['source_type']
-                snippet.metadata['primary_indicators'] = source_info['primary_indicators']
-                snippet.metadata['is_original_research'] = source_info['is_original_research']
-
-                # Apply credibility boost/penalty
-                score += source_info['credibility_boost']
-
-                # Extra boost for original research
-                if source_info['is_original_research']:
-                    score += 0.15
-                    logger.info(f"Original research detected: {snippet.source}")
-
-                logger.debug(
-                    f"Source classification: {source_info['source_type']} "
-                    f"(boost: {source_info['credibility_boost']:+.2f})"
-                )
-
-            # EXISTING: Detect and deprioritize fact-check meta-content
+            # Detect and deprioritize fact-check meta-content
             factcheck_sites = ['snopes', 'factcheck.org', 'politifact', 'fullfact']
             is_factcheck = any(site in snippet.source.lower() or site in snippet.url.lower()
                              for site in factcheck_sites)
             if is_factcheck:
                 score *= 0.3  # Heavily deprioritize fact-check sites
 
-            # EXISTING: Domain credibility boost for primary sources (kept as fallback)
-            if not settings.ENABLE_PRIMARY_SOURCE_DETECTION:
-                primary_sources = [
-                    '.edu', '.gov', '.org', 'bbc', 'reuters', 'nature', 'science',
-                    'pnas.org', 'nasa.gov', 'noaa.gov', 'who.int', 'nhs.uk'
-                ]
-                if any(indicator in snippet.source.lower() for indicator in primary_sources):
-                    score += 0.3  # Increased boost for primary sources
+            # Domain credibility boost for primary sources
+            primary_sources = [
+                '.edu', '.gov', '.org', 'bbc', 'reuters', 'nature', 'science',
+                'pnas.org', 'nasa.gov', 'noaa.gov', 'who.int', 'nhs.uk'
+            ]
+            if any(indicator in snippet.source.lower() for indicator in primary_sources):
+                score += 0.3
 
             # EXISTING: Recent content boost
             if snippet.published_date:
