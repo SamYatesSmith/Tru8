@@ -3,28 +3,32 @@
 ## What This Is
 AI-powered evidence research platform. Users submit a URL or claim, the pipeline extracts claims, retrieves evidence from multiple sources, and presents organized evidence.
 
-**Active refactor in progress.** See `audit/PROGRESS.md` for the master tracker.
+**Active refactor in progress.** See `audit/track-b/PROGRESS.md` for the master tracker.
 
 ## Active Refactor: Two-Track Approach
 
-### Track A (in progress): Infrastructure Cleanup
-Clean the retrieval pipeline. 5 PRs removing dead code, dead paths, and redundant filters.
-- PR-01: Dead code & dead flags (~700 lines)
-- PR-02: Legacy embedding path (~200 lines)
-- PR-03: Gut filter cascade (~400 lines)
-- PR-05: Clean runner.py + V1 replay (~300 lines)
-- PR-06: Consolidate workers + config (~500 lines)
+### Track A: COMPLETE
+Infrastructure cleanup. 5 PRs, ~2,100 lines removed. Commit `041b55f`.
+**Specs:** `audit/track-a/PR-01-dead-code-removal.md` through `audit/track-a/PR-06-consolidate-workers-config.md`
 
-**Detailed specs:** `audit/PR-01-dead-code-removal.md` through `audit/PR-06-consolidate-workers-config.md`
+### Track B (in progress): Product Pivot — Claim Map System
+Replace the judge/verdict system with the Claim Map evidence analyzer. 8 PRs.
+- B01: Foundation — types, schema migration, config flags
+- B02: Claim Map analyzer + claim selector (new modules)
+- B03: Evidence ID + element-level retrieval (direct replacement)
+- B04: Pipeline wiring — new stages replace judge/summary/explainability
+- B05: Harness adaptation — validate new path
+- B06: API response shapes + peripheral services
+- B07: Verdict system deletion (~2,500 lines)
+- B08: Test suite overhaul
 
-### Track B (planned after Track A): Product Pivot
-Replace the judge/verdict system with an evidence analyzer. New API contract, schema migration, frontend rebuild. Track B has its own design phase — do NOT start Track B work during Track A.
+**Specs:** `audit/track-b/PR-B01-foundation.md` through `audit/track-b/PR-B08-test-suite-overhaul.md`
+**Contract:** `audit/track-b/2026-02-12_claim-map-contract.md`
+**Strategy:** Direct replacement. Pipeline offline during Track B — no feature gate. B05/B06 parallelizable after B04.
 
-### What NOT to Touch During Track A
-- `judge.py` — messy, has two code paths (legacy + PATH_A). Left intentionally for Track B to replace wholesale.
-- `relevance_scorer.py` — has filter mode that Track B will remove. Don't clean it now.
-- Verdict-related config flags (`ENABLE_PATH_A`, `ENABLE_ABSTENTION_LOGIC`, etc.) — Track B removes these.
-- Frontend verdict components — Track B redesigns these.
+### What NOT to Touch During Track B
+- Frontend verdict components — Track C redesigns these (39 files across web + mobile)
+- `VerdictType` in `shared/types/index.ts` — frontend needs it until Track C
 
 ## Build & Test Commands
 
@@ -62,31 +66,40 @@ Stage 5:   JUDGE        → LLM verdict (Track B replaces this)
 Stage 6:   SUMMARY      → Overall assessment (Track B replaces this)
 ```
 
-**Known issues being fixed in Track A:**
-- 9 filter stages in `_apply_credibility_weighting` (Track A PR-03 reduces to 3)
-- ~50 diagnostic `print()` statements in runner.py (Track A PR-05 removes)
-- V1 frozen URL replay (dead, Track A PR-05 removes)
-- ~10 dead feature flags (Track A PR-01 removes)
-- Dead embedding ranking path (Track A PR-02 removes)
+**Track B changes to pipeline:**
+- NEW Stage: CLAIM SELECTION (article mode, rank + select ≤5 claims)
+- NEW Stage: DECOMPOSITION (claim → 1-5 elements, new LLM call)
+- Stage 3 RETRIEVE becomes per-element instead of per-claim
+- Stage 3.7 SCORER becomes advisory-only (filter mode removed)
+- Stage 5 JUDGE → EVIDENCE MAPPING (map evidence to elements + assign states)
+- Stage 6 SUMMARY → removed (orientation line is mechanical)
 
-## Key Files (accurate line counts)
+## Key Files (post-Track A line counts)
 
-### Pipeline Core (Track A touches these)
-| File | Lines | What It Does |
-|------|-------|-------------|
-| `backend/app/pipeline/runner.py` | 1470 | Pipeline orchestrator. SSE streaming. V2 frozen replay. |
-| `backend/app/pipeline/retrieve.py` | 2242 | Evidence retrieval. `_apply_credibility_weighting` (lines 1364-1674) is the filter cascade. |
-| `backend/app/pipeline/relevance_scorer.py` | 807 | LLM relevance scoring. `_fair_select_evidence` (round-robin). |
-| `backend/app/core/config.py` | 292 | Feature flags. ~39 flags, ~10 dead, ~9 always-on. |
-| `backend/app/workers/pipeline.py` | 925 | Helper functions. ~465 lines are dead/superseded. |
-| `backend/app/utils/domain_capping.py` | 275 | Global domain cap logic. |
-| `backend/app/pipeline/evidence_ledger.py` | 75 | Stage tracking for evidence flow. |
-| `backend/app/pipeline/replay_context.py` | 17 | ContextVars for V2 frozen replay. |
+### Pipeline Core (Track B modifies these)
+| File | Lines | Track B Change |
+|------|-------|---------------|
+| `backend/app/pipeline/runner.py` | ~1,359 | New stages, gate logic, remove judge/summary |
+| `backend/app/pipeline/retrieve.py` | ~1,700 | Element-level retrieval, evidence_id |
+| `backend/app/pipeline/relevance_scorer.py` | 807 | Element-level scoring, remove filter mode |
+| `backend/app/pipeline/query_planner.py` | 655 | Element-level query generation |
+| `backend/app/core/config.py` | 229 | Remove verdict flags, add analyzer flags |
+| `backend/app/utils/domain_capping.py` | 275 | Element-aware capping |
+| `backend/app/pipeline/evidence_ledger.py` | 75 | New stage names |
+| `backend/app/workers/pipeline.py` | 312 | Update retrieval helper |
 
-### Pipeline Core (Track B replaces these)
-| File | Lines | What It Does |
-|------|-------|-------------|
-| `backend/app/pipeline/judge.py` | 1875 | Two judge paths: legacy (lines 675-876) and PATH_A (lines 583-672). Track B replaces entirely. |
+### Pipeline Core (Track B deletes these)
+| File | Lines | Reason |
+|------|-------|--------|
+| `backend/app/pipeline/judge.py` | 1,875 | Replaced by claim_map_analyzer.py |
+| `backend/app/utils/explainability.py` | 193 | ClaimMap IS the explainability |
+
+### Pipeline Core (Track B adds these)
+| File | Purpose |
+|------|---------|
+| `backend/app/pipeline/claim_map_analyzer.py` | Decompose + map + derive orientation |
+| `backend/app/pipeline/claim_selector.py` | Article mode claim ranking |
+| `backend/app/models/claim_map.py` | ClaimMap types + enums |
 
 ### API / Schema / Frontend
 | File | Lines | What It Does |

@@ -99,3 +99,24 @@ export const VERDICT_ICONS = {
 
 // Verdict type (for TypeScript)
 export type VerdictType = keyof typeof VERDICT_LABELS;
+
+// --- Claim Map constants (Track B) ---
+export const ELEMENT_STATE_COLORS = {
+  supported: '#22c55e',
+  disputed: '#f59e0b',
+  unresolved: '#94a3b8',
+} as const;
+
+export const ELEMENT_STATE_LABELS = {
+  supported: 'Supported',
+  disputed: 'Disputed',
+  unresolved: 'Unresolved',
+} as const;
+
+export const CLAIM_TYPE_LABELS = {
+  empirical: 'Empirical',
+  definitional: 'Definitional',
+  causal_interpretive: 'Causal / Interpretive',
+  predictive: 'Predictive',
+  normative_flagged: 'Normative (flagged)',
+} as const;

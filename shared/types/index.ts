@@ -156,3 +156,35 @@ export interface ApiError {
   details?: Record<string, any>;
   statusCode: number;
 }
+
+// --- Claim Map types (Track B) ---
+export type ClaimType = 'empirical' | 'definitional' | 'causal_interpretive' | 'predictive' | 'normative_flagged';
+export type ElementState = 'supported' | 'disputed' | 'unresolved';
+export type EvidenceRelationship = 'supports' | 'challenges' | 'context';
+
+export interface EvidenceRef {
+  evidenceId: string;
+  relationship: EvidenceRelationship;
+}
+
+export interface ClaimElement {
+  elementId: string;
+  description: string;
+  evidenceRefs: EvidenceRef[];
+  state: ElementState | null;
+  uncertainty: string | null;
+}
+
+export interface ClaimMap {
+  claimId: string;
+  normalisedClaim: string;
+  claimType: ClaimType;
+  elements: ClaimElement[];
+  orientation: string | null;
+  metadata: {
+    decompositionModel: string;
+    mappingModel: string | null;
+    elementCount: number;
+    completedAt: string | null;
+  };
+}

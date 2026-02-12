@@ -2,42 +2,65 @@ from typing import List, Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
+
 class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = Field(..., env="DATABASE_URL")
-    DATABASE_SSL: bool = Field(True, env="DATABASE_SSL")  # Set False for Fly.io internal network
-    
+    DATABASE_SSL: bool = Field(
+        True, env="DATABASE_SSL"
+    )  # Set False for Fly.io internal network
+
     # Redis
     REDIS_URL: str = Field("redis://localhost:6379/0", env="REDIS_URL")
-    
+
     # Qdrant
     QDRANT_URL: str = Field("http://localhost:6333", env="QDRANT_URL")
     QDRANT_API_KEY: str = Field("", env="QDRANT_API_KEY")
-    
+
     # Auth
     CLERK_SECRET_KEY: str = Field(..., env="CLERK_SECRET_KEY")
     CLERK_PUBLISHABLE_KEY: str = Field(..., env="CLERK_PUBLISHABLE_KEY")
     CLERK_JWT_ISSUER: str = Field(..., env="CLERK_JWT_ISSUER")
-    
+
     # APIs
     BRAVE_API_KEY: str = Field("", env="BRAVE_API_KEY")
     SERP_API_KEY: str = Field("", env="SERP_API_KEY")
     OPENAI_API_KEY: str = Field("", env="OPENAI_API_KEY")
-    ANTHROPIC_API_KEY: str = Field("", env="ANTHROPIC_API_KEY")  # Deprecated - use GOOGLE_AI_API_KEY as backup
-    GOOGLE_AI_API_KEY: str = Field("", env="GOOGLE_AI_API_KEY")  # Google AI Studio (Gemini) - primary LLM provider
+    ANTHROPIC_API_KEY: str = Field(
+        "", env="ANTHROPIC_API_KEY"
+    )  # Deprecated - use GOOGLE_AI_API_KEY as backup
+    GOOGLE_AI_API_KEY: str = Field(
+        "", env="GOOGLE_AI_API_KEY"
+    )  # Google AI Studio (Gemini) - primary LLM provider
 
     # LLM Provider Configuration
-    PRIMARY_LLM_PROVIDER: str = Field("google", env="PRIMARY_LLM_PROVIDER")  # "google" or "openai"
-    GOOGLE_LLM_MODEL: str = Field("gemini-2.5-flash-lite", env="GOOGLE_LLM_MODEL")  # Gemini model for all LLM calls
+    PRIMARY_LLM_PROVIDER: str = Field(
+        "google", env="PRIMARY_LLM_PROVIDER"
+    )  # "google" or "openai"
+    GOOGLE_LLM_MODEL: str = Field(
+        "gemini-2.5-flash-lite", env="GOOGLE_LLM_MODEL"
+    )  # Gemini model for all LLM calls
     GOOGLE_FACTCHECK_API_KEY: str = Field("", env="GOOGLE_FACTCHECK_API_KEY")
-    FOOTBALL_DATA_API_KEY: str = Field("", env="FOOTBALL_DATA_API_KEY")  # Football-Data.org for sports stats
+    FOOTBALL_DATA_API_KEY: str = Field(
+        "", env="FOOTBALL_DATA_API_KEY"
+    )  # Football-Data.org for sports stats
     NOAA_API_KEY: str = Field("", env="NOAA_API_KEY")  # NOAA CDO for climate data
-    ALPHA_VANTAGE_API_KEY: str = Field("", env="ALPHA_VANTAGE_API_KEY")  # Alpha Vantage for stocks, forex, crypto
-    MARKETAUX_API_KEY: str = Field("", env="MARKETAUX_API_KEY")  # Marketaux for financial news
-    FRED_API_KEY: str = Field("", env="FRED_API_KEY")  # FRED for economic data (interest rates, GDP, unemployment)
-    WEATHER_API_KEY: str = Field("", env="WEATHER_API_KEY")  # WeatherAPI.com for weather forecasts
-    COMPANIES_HOUSE_API_KEY: str = Field("", env="COMPANIES_HOUSE_API_KEY")  # UK company filings, directors
-    
+    ALPHA_VANTAGE_API_KEY: str = Field(
+        "", env="ALPHA_VANTAGE_API_KEY"
+    )  # Alpha Vantage for stocks, forex, crypto
+    MARKETAUX_API_KEY: str = Field(
+        "", env="MARKETAUX_API_KEY"
+    )  # Marketaux for financial news
+    FRED_API_KEY: str = Field(
+        "", env="FRED_API_KEY"
+    )  # FRED for economic data (interest rates, GDP, unemployment)
+    WEATHER_API_KEY: str = Field(
+        "", env="WEATHER_API_KEY"
+    )  # WeatherAPI.com for weather forecasts
+    COMPANIES_HOUSE_API_KEY: str = Field(
+        "", env="COMPANIES_HOUSE_API_KEY"
+    )  # UK company filings, directors
+
     # Storage
     S3_BUCKET: str = Field("tru8-uploads", env="S3_BUCKET")
     S3_ACCESS_KEY: str = Field("", env="S3_ACCESS_KEY")
@@ -60,8 +83,10 @@ class Settings(BaseSettings):
     # Monitoring
     SENTRY_DSN: str = Field("", env="SENTRY_DSN")
     POSTHOG_API_KEY: str = Field("", env="POSTHOG_API_KEY")
-    OTLP_ENDPOINT: str = Field("", env="OTLP_ENDPOINT")  # OpenTelemetry collector endpoint (e.g., http://localhost:4317)
-    
+    OTLP_ENDPOINT: str = Field(
+        "", env="OTLP_ENDPOINT"
+    )  # OpenTelemetry collector endpoint (e.g., http://localhost:4317)
+
     # App
     ENVIRONMENT: str = Field("development", env="ENVIRONMENT")
     DEBUG: bool = Field(False, env="DEBUG")  # MUST be False in production
@@ -69,24 +94,27 @@ class Settings(BaseSettings):
     # CORS_ORIGINS: Set via env var in production (e.g., '["https://tru8.com","https://app.tru8.com"]')
     # Default is localhost only - MUST override in production
     CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:3001", "http://localhost:8081", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
-        env="CORS_ORIGINS"
+        default=[
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:8081",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:3001",
+        ],
+        env="CORS_ORIGINS",
     )
 
     # Admin emails that bypass credit limits (for testing)
-    ADMIN_EMAILS: List[str] = Field(
-        default=[],
-        env="ADMIN_EMAILS"
-    )
+    ADMIN_EMAILS: List[str] = Field(default=[], env="ADMIN_EMAILS")
 
     # Rate Limits
     RATE_LIMIT_PER_MINUTE: int = Field(60, env="RATE_LIMIT_PER_MINUTE")
     MAX_CLAIMS_PER_CHECK: int = Field(12, env="MAX_CLAIMS_PER_CHECK")
-    
+
     # Pipeline
     PIPELINE_TIMEOUT_SECONDS: int = Field(180, env="PIPELINE_TIMEOUT_SECONDS")
     CACHE_TTL_SECONDS: int = Field(3600, env="CACHE_TTL_SECONDS")
-    
+
     # ========== PATH A: JUDGE-LED PIPELINE ==========
     # When enabled, the pipeline stops filtering evidence before the judge.
     # The LLM relevance scorer annotates but does NOT veto.
@@ -107,7 +135,7 @@ class Settings(BaseSettings):
     # Unknown source default - lower than known sources to signal unvetted status
     # Sources not in credibility database are treated with skepticism
     UNKNOWN_SOURCE_CREDIBILITY: float = Field(0.40, env="UNKNOWN_SOURCE_CREDIBILITY")
-    
+
     # Judge LLM
     JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
     JUDGE_TEMPERATURE: float = Field(0.3, env="JUDGE_TEMPERATURE")
@@ -117,11 +145,15 @@ class Settings(BaseSettings):
 
     # Search Clarity Feature (MVP)
     ENABLE_SEARCH_CLARITY: bool = Field(default=True, env="ENABLE_SEARCH_CLARITY")
-    QUERY_CONFIDENCE_THRESHOLD: float = Field(default=40.0, env="QUERY_CONFIDENCE_THRESHOLD")
+    QUERY_CONFIDENCE_THRESHOLD: float = Field(
+        default=40.0, env="QUERY_CONFIDENCE_THRESHOLD"
+    )
 
     # Phase 1.5 - Semantic Intelligence
     ENABLE_FACTCHECK_API: bool = Field(True, env="ENABLE_FACTCHECK_API")
-    ENABLE_TEMPORAL_CONTEXT: bool = Field(True, env="ENABLE_TEMPORAL_CONTEXT")  # Enabled: Extracts temporal markers from claims for date-specific queries
+    ENABLE_TEMPORAL_CONTEXT: bool = Field(
+        True, env="ENABLE_TEMPORAL_CONTEXT"
+    )  # Enabled: Extracts temporal markers from claims for date-specific queries
 
     # Phase 2 - User Experience & Trust
     ENABLE_CLAIM_CLASSIFICATION: bool = Field(True, env="ENABLE_CLAIM_CLASSIFICATION")
@@ -130,7 +162,9 @@ class Settings(BaseSettings):
     ENABLE_ABSTENTION_LOGIC: bool = Field(True, env="ENABLE_ABSTENTION_LOGIC")
 
     # Source credibility threshold (used for cache skip in workers)
-    SOURCE_CREDIBILITY_THRESHOLD: float = Field(0.55, env="SOURCE_CREDIBILITY_THRESHOLD")
+    SOURCE_CREDIBILITY_THRESHOLD: float = Field(
+        0.55, env="SOURCE_CREDIBILITY_THRESHOLD"
+    )
 
     # Phase 4 - Legal Integration
     ENABLE_LEGAL_SEARCH: bool = Field(True, env="ENABLE_LEGAL_SEARCH")
@@ -143,19 +177,27 @@ class Settings(BaseSettings):
     ENABLE_API_RETRIEVAL: bool = Field(True, env="ENABLE_API_RETRIEVAL")
 
     # Phase 6 - Judge Improvements (Week 12)
-    EVIDENCE_SNIPPET_LENGTH: int = Field(400, env="EVIDENCE_SNIPPET_LENGTH")  # Increased from 150 to preserve context
+    EVIDENCE_SNIPPET_LENGTH: int = Field(
+        400, env="EVIDENCE_SNIPPET_LENGTH"
+    )  # Increased from 150 to preserve context
     # Snippet-only evidence cap for judge context (PR 2-D)
     # When extracted evidence exists, at most this many snippet-only items in judge's top 5
     MAX_SNIPPET_EVIDENCE_FOR_JUDGE: int = Field(2, env="MAX_SNIPPET_EVIDENCE_FOR_JUDGE")
 
     # Domain Capping Configuration
-    MAX_EVIDENCE_PER_DOMAIN: int = Field(3, env="MAX_EVIDENCE_PER_DOMAIN")  # Allow 3 results per domain for better evidence coverage
+    MAX_EVIDENCE_PER_DOMAIN: int = Field(
+        3, env="MAX_EVIDENCE_PER_DOMAIN"
+    )  # Allow 3 results per domain for better evidence coverage
 
     # Global Domain Capping (cross-claim diversity enforcement)
     # Tightened from 5/25% to 3/15% to prevent single-source dominance (e.g., NYTimes appearing 5x)
     ENABLE_GLOBAL_DOMAIN_CAPPING: bool = Field(True, env="ENABLE_GLOBAL_DOMAIN_CAPPING")
-    GLOBAL_MAX_PER_DOMAIN: int = Field(3, env="GLOBAL_MAX_PER_DOMAIN")  # Max sources from any domain across ALL claims
-    GLOBAL_MAX_DOMAIN_RATIO: float = Field(0.20, env="GLOBAL_MAX_DOMAIN_RATIO")  # Max 20% from any single domain
+    GLOBAL_MAX_PER_DOMAIN: int = Field(
+        3, env="GLOBAL_MAX_PER_DOMAIN"
+    )  # Max sources from any domain across ALL claims
+    GLOBAL_MAX_DOMAIN_RATIO: float = Field(
+        0.20, env="GLOBAL_MAX_DOMAIN_RATIO"
+    )  # Max 20% from any single domain
 
     # Max claims a single URL can appear in during cross-claim dedup (1 = current behavior)
     # Setting to 2 allows a URL to legitimately support 2 related claims
@@ -173,10 +215,18 @@ class Settings(BaseSettings):
     # Replaces embedding-based ranking with LLM-based understanding of evidential value
     # Uses GPT-4o-mini to score evidence 1-5 based on how well it helps verify/refute claims
     ENABLE_LLM_RELEVANCE_SCORER: bool = Field(True, env="ENABLE_LLM_RELEVANCE_SCORER")
-    LLM_RELEVANCE_MODEL: str = Field("gpt-4o-mini-2024-07-18", env="LLM_RELEVANCE_MODEL")
-    LLM_RELEVANCE_MIN_SCORE: int = Field(3, env="LLM_RELEVANCE_MIN_SCORE")  # Keep evidence with score >= 3 (includes "partially relevant")
-    LLM_RELEVANCE_MAX_EVIDENCE: int = Field(50, env="LLM_RELEVANCE_MAX_EVIDENCE")  # Max items to score per call
-    LLM_RELEVANCE_CACHE_TTL: int = Field(3600, env="LLM_RELEVANCE_CACHE_TTL")  # Cache TTL in seconds (1 hour)
+    LLM_RELEVANCE_MODEL: str = Field(
+        "gpt-4o-mini-2024-07-18", env="LLM_RELEVANCE_MODEL"
+    )
+    LLM_RELEVANCE_MIN_SCORE: int = Field(
+        3, env="LLM_RELEVANCE_MIN_SCORE"
+    )  # Keep evidence with score >= 3 (includes "partially relevant")
+    LLM_RELEVANCE_MAX_EVIDENCE: int = Field(
+        50, env="LLM_RELEVANCE_MAX_EVIDENCE"
+    )  # Max items to score per call
+    LLM_RELEVANCE_CACHE_TTL: int = Field(
+        3600, env="LLM_RELEVANCE_CACHE_TTL"
+    )  # Cache TTL in seconds (1 hour)
 
     # ========== BETA TESTING CONFIGURATION ==========
     # Comma-separated list of email addresses that get unlimited checks during beta
@@ -189,13 +239,17 @@ class Settings(BaseSettings):
 
     # ========== PHASE 1: ACCURACY IMPROVEMENTS ==========
     # Judge Few-Shot Prompting (Phase 1.2)
-    ENABLE_JUDGE_FEW_SHOT: bool = Field(True, env="ENABLE_JUDGE_FEW_SHOT")  # ENABLED: Provides concrete examples to guide judge reasoning
+    ENABLE_JUDGE_FEW_SHOT: bool = Field(
+        True, env="ENABLE_JUDGE_FEW_SHOT"
+    )  # ENABLED: Provides concrete examples to guide judge reasoning
 
     # ========== TIER 1 IMPROVEMENTS (2025-01-17) ==========
     QUERY_TEMPORAL_BOOST: bool = Field(True, env="QUERY_TEMPORAL_BOOST")
 
     # Semantic Snippet Extraction
-    ENABLE_SEMANTIC_SNIPPET_EXTRACTION: bool = Field(True, env="ENABLE_SEMANTIC_SNIPPET_EXTRACTION")  # ENABLED: Extract claim-relevant sentences using embeddings
+    ENABLE_SEMANTIC_SNIPPET_EXTRACTION: bool = Field(
+        True, env="ENABLE_SEMANTIC_SNIPPET_EXTRACTION"
+    )  # ENABLED: Extract claim-relevant sentences using embeddings
     SNIPPET_SEMANTIC_THRESHOLD: float = Field(0.65, env="SNIPPET_SEMANTIC_THRESHOLD")
     SNIPPET_CONTEXT_SENTENCES: int = Field(2, env="SNIPPET_CONTEXT_SENTENCES")
 
@@ -207,14 +261,20 @@ class Settings(BaseSettings):
     # ========== ARTICLE-LEVEL CLASSIFICATION ==========
     # LLM-based article classification (runs once per check, not per claim)
     # Replaces per-claim spaCy NER domain detection with ~95% accuracy
-    ENABLE_ARTICLE_CLASSIFICATION: bool = Field(True, env="ENABLE_ARTICLE_CLASSIFICATION")
-    ARTICLE_CLASSIFICATION_MODEL: str = Field("gpt-4o-mini-2024-07-18", env="ARTICLE_CLASSIFICATION_MODEL")
+    ENABLE_ARTICLE_CLASSIFICATION: bool = Field(
+        True, env="ENABLE_ARTICLE_CLASSIFICATION"
+    )
+    ARTICLE_CLASSIFICATION_MODEL: str = Field(
+        "gpt-4o-mini-2024-07-18", env="ARTICLE_CLASSIFICATION_MODEL"
+    )
 
     # ========== QUERY PLANNING AGENT ==========
     # LLM-powered batch query planning for semantic claim understanding
     # Generates targeted queries based on claim type (squad, stats, contract, etc.)
     ENABLE_QUERY_PLANNING: bool = Field(True, env="ENABLE_QUERY_PLANNING")
-    QUERY_PLANNING_MODEL: str = Field("gpt-4o-mini-2024-07-18", env="QUERY_PLANNING_MODEL")
+    QUERY_PLANNING_MODEL: str = Field(
+        "gpt-4o-mini-2024-07-18", env="QUERY_PLANNING_MODEL"
+    )
     QUERY_PLANNING_TIMEOUT: int = Field(30, env="QUERY_PLANNING_TIMEOUT")
 
     # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?
@@ -222,9 +282,28 @@ class Settings(BaseSettings):
     # False = Drop sources entirely if content extraction fails
     ALLOW_SNIPPET_FALLBACK: bool = Field(True, env="ALLOW_SNIPPET_FALLBACK")
 
+    # ========== CLAIM MAP SYSTEM (Track B) ==========
+    MAX_SELECTED_CLAIMS: int = Field(
+        5, env="MAX_SELECTED_CLAIMS"
+    )  # Article mode: max claims for full analysis
+    MAX_ELEMENTS_PER_CLAIM: int = Field(
+        5, env="MAX_ELEMENTS_PER_CLAIM"
+    )  # Decomposition cap
+    DECOMPOSITION_MODEL: str = Field(
+        "gpt-4o", env="DECOMPOSITION_MODEL"
+    )  # LLM for claim decomposition
+    DECOMPOSITION_TEMPERATURE: float = Field(0.2, env="DECOMPOSITION_TEMPERATURE")
+    ANALYZER_MODEL: str = Field(
+        "gpt-4o", env="ANALYZER_MODEL"
+    )  # LLM for evidence mapping
+    ANALYZER_TEMPERATURE: float = Field(0.2, env="ANALYZER_TEMPERATURE")
+    ANALYZER_MAX_TOKENS: int = Field(4000, env="ANALYZER_MAX_TOKENS")
+    MAX_CONCURRENT_ANALYSES: int = Field(3, env="MAX_CONCURRENT_ANALYSES")
+
     class Config:
         env_file = ".env"
         case_sensitive = True
         extra = "ignore"
+
 
 settings = Settings()
