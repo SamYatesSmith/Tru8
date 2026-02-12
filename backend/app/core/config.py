@@ -115,10 +115,9 @@ class Settings(BaseSettings):
     PIPELINE_TIMEOUT_SECONDS: int = Field(180, env="PIPELINE_TIMEOUT_SECONDS")
     CACHE_TTL_SECONDS: int = Field(3600, env="CACHE_TTL_SECONDS")
 
-    # ========== PATH A: JUDGE-LED PIPELINE ==========
-    # When enabled, the pipeline stops filtering evidence before the judge.
-    # The LLM relevance scorer annotates but does NOT veto.
-    # Pre-judge abstention is disabled. Display shows judge-cited evidence only.
+    # ========== SCORING MODE ==========
+    # LLM relevance scorer is advisory-only: annotates scores but never vetoes evidence.
+    # ENABLE_PATH_A kept for backward compatibility but no longer checked by scorer.
     ENABLE_PATH_A: bool = Field(False, env="ENABLE_PATH_A")
 
     # ========== UNIFIED PIPELINE THRESHOLDS ==========
@@ -218,9 +217,7 @@ class Settings(BaseSettings):
     LLM_RELEVANCE_MODEL: str = Field(
         "gpt-4o-mini-2024-07-18", env="LLM_RELEVANCE_MODEL"
     )
-    LLM_RELEVANCE_MIN_SCORE: int = Field(
-        3, env="LLM_RELEVANCE_MIN_SCORE"
-    )  # Keep evidence with score >= 3 (includes "partially relevant")
+    # LLM_RELEVANCE_MIN_SCORE removed — scorer is advisory-only, no threshold filtering
     LLM_RELEVANCE_MAX_EVIDENCE: int = Field(
         50, env="LLM_RELEVANCE_MAX_EVIDENCE"
     )  # Max items to score per call

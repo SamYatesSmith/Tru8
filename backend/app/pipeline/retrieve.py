@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import logging
 import asyncio
 import re
@@ -15,6 +16,7 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class EvidenceRetriever:
     """Retrieve and rank evidence for claims using search, embeddings, and vector storage"""
 
@@ -23,24 +25,30 @@ class EvidenceRetriever:
 
     # Authoritative sources by domain for targeted recovery searches
     AUTHORITATIVE_SOURCES_BY_DOMAIN = {
-        "health": ["who.int", "cdc.gov", "nih.gov", "nhs.uk", "pubmed.ncbi.nlm.nih.gov"],
+        "health": [
+            "who.int",
+            "cdc.gov",
+            "nih.gov",
+            "nhs.uk",
+            "pubmed.ncbi.nlm.nih.gov",
+        ],
         "science": ["nature.com", "science.org", "ncbi.nlm.nih.gov", "arxiv.org"],
         "government": ["gov.uk", "usa.gov", "congress.gov", "govinfo.gov"],
         "finance": ["sec.gov", "federalreserve.gov", "imf.org", "worldbank.org"],
         "sports": ["transfermarkt.com", "espn.com", "bbc.com/sport"],
-        "general": ["reuters.com", "apnews.com", "bbc.com"]
+        "general": ["reuters.com", "apnews.com", "bbc.com"],
     }
 
     # Mapping from temporal_window (from claim extraction) to Brave freshness parameter
     # temporal_window values: current_day, current_week, current_month, current_year, any, historical
     # Brave freshness values: pd (past day), pw (past week), pm (past month), py (past year), 2y (2 years)
     TEMPORAL_TO_FRESHNESS = {
-        "current_day": "pd",      # Past day - breaking news, live events
-        "current_week": "pw",     # Past week - recent developments
-        "current_month": "pm",    # Past month - recent news
-        "current_year": "py",     # Past year - annual events, seasons
-        "any": "2y",              # Default 2 years
-        "historical": "2y",       # Historical claims - use 2 years
+        "current_day": "pd",  # Past day - breaking news, live events
+        "current_week": "pw",  # Past week - recent developments
+        "current_month": "pm",  # Past month - recent news
+        "current_year": "py",  # Past year - annual events, seasons
+        "any": "2y",  # Default 2 years
+        "historical": "2y",  # Historical claims - use 2 years
     }
 
     def __init__(self):
@@ -55,23 +63,24 @@ class EvidenceRetriever:
 
         # Credibility weights for different source types
         self.credibility_weights = {
-            'academic': 1.0,      # .edu, .org, peer-reviewed
-            'news_tier1': 0.9,    # BBC, Reuters, AP
-            'news_tier2': 0.8,    # Guardian, Telegraph, Independent
-            'government': 0.85,   # .gov domains
-            'scientific': 0.95,   # Nature, Science journals
-            'general': 0.6        # Other sources
+            "academic": 1.0,  # .edu, .org, peer-reviewed
+            "news_tier1": 0.9,  # BBC, Reuters, AP
+            "news_tier2": 0.8,  # Guardian, Telegraph, Independent
+            "government": 0.85,  # .gov domains
+            "scientific": 0.95,  # Nature, Science journals
+            "general": 0.6,  # Other sources
         }
-    
+
     async def retrieve_evidence_for_claims(
-        self,
-        claims: List[Dict[str, Any]],
-        exclude_source_url: Optional[str] = None
+        self, claims: List[Dict[str, Any]], exclude_source_url: Optional[str] = None
     ) -> Dict[str, List[Dict[str, Any]]]:
         """Retrieve evidence for multiple claims concurrently"""
         import time as _time
+
         _func_start = _time.time()
-        logger.info(f"[RETRIEVER DEBUG] retrieve_evidence_for_claims called with {len(claims)} claims")
+        logger.info(
+            f"[RETRIEVER DEBUG] retrieve_evidence_for_claims called with {len(claims)} claims"
+        )
         try:
             # Extract excluded domain if provided
             excluded_domain = None
@@ -81,55 +90,130 @@ class EvidenceRetriever:
 
             # Query Planning Agent: Generate targeted queries for all claims (single LLM call)
             query_plans = None
-            logger.info(f"[RETRIEVE] QUERY_PLANNING_ENABLED: {settings.ENABLE_QUERY_PLANNING}")
+            logger.info(
+                f"[RETRIEVE] QUERY_PLANNING_ENABLED: {settings.ENABLE_QUERY_PLANNING}"
+            )
             if settings.ENABLE_QUERY_PLANNING:
                 try:
                     from app.utils.query_planner import get_query_planner
+
                     planner = get_query_planner()
 
                     # Phase 4: Pass article context to query planner for dynamic freshness decisions
                     article_context = None
                     if claims and claims[0].get("article_classification"):
                         article_context = claims[0]["article_classification"]
-                        logger.info(f"[RETRIEVE] Passing article context to query planner: domain={article_context.get('primary_domain')}")
+                        logger.info(
+                            f"[RETRIEVE] Passing article context to query planner: domain={article_context.get('primary_domain')}"
+                        )
+
+                    # Build claims_with_elements for element-level query planning
+                    claims_with_elements = []
+                    for i, claim in enumerate(claims):
+                        elements = claim.get("elements", [])
+                        if elements:
+                            elem_list = [
+                                {
+                                    "element_id": el.get("element_id", f"e{j+1}"),
+                                    "description": el.get("description", ""),
+                                }
+                                for j, el in enumerate(elements)
+                            ]
+                        else:
+                            # Pre-decomposition: synthetic single element from claim text
+                            elem_list = [
+                                {
+                                    "element_id": "e1",
+                                    "description": claim.get("text", ""),
+                                }
+                            ]
+                        claims_with_elements.append(
+                            {
+                                "text": claim.get("text", ""),
+                                "claim_index": i,
+                                "elements": elem_list,
+                            }
+                        )
 
                     _qp_start = _time.time()
-                    query_plans = await planner.plan_queries_batch(claims, article_context=article_context)
+                    query_plans = await planner.plan_queries_batch(
+                        claims_with_elements, article_context=article_context
+                    )
                     _qp_elapsed = _time.time() - _qp_start
                     if query_plans:
-                        logger.info(f"Query planning complete: {len(query_plans)} plans for {len(claims)} claims")
-                        # Attach query plans to claims
-                        for i, plan in enumerate(query_plans):
-                            claim_idx = plan.get("claim_index", i)
+                        logger.info(
+                            f"Query planning complete: {len(query_plans)} element plans "
+                            f"for {len(claims)} claims"
+                        )
+                        # Group plans by claim_index and build merged query plans
+                        plans_by_claim = {}
+                        for plan in query_plans:
+                            idx = plan.get("claim_index", 0)
+                            if idx not in plans_by_claim:
+                                plans_by_claim[idx] = []
+                            plans_by_claim[idx].append(plan)
+
+                        for claim_idx, plans in plans_by_claim.items():
                             if claim_idx < len(claims):
-                                claims[claim_idx]["query_plan"] = plan
+                                # Merge element plans into one query_plan with element tracking
+                                merged_queries = []
+                                query_element_ids = []
+                                for p in plans:
+                                    element_id = p.get("element_id", "e1")
+                                    for q in p.get("queries", []):
+                                        merged_queries.append(q)
+                                        query_element_ids.append(element_id)
+                                claims[claim_idx]["query_plan"] = {
+                                    "queries": merged_queries,
+                                    "query_element_ids": query_element_ids,
+                                    "claim_index": claim_idx,
+                                    "freshness": plans[0].get("freshness", "py"),
+                                    "source_hints": plans[0].get("source_hints", []),
+                                    "priority_sources": plans[0].get(
+                                        "priority_sources", []
+                                    ),
+                                    "reasoning": plans[0].get("reasoning", ""),
+                                }
                     else:
-                        logger.warning("Query planning returned no plans, using fallback")
+                        logger.warning(
+                            "Query planning returned no plans, using fallback"
+                        )
                 except Exception as e:
                     logger.warning(f"Query planning failed: {e}, using fallback")
 
             # Process claims with concurrency limit
             semaphore = asyncio.Semaphore(self.max_concurrent_claims)
             tasks = [
-                self._retrieve_evidence_for_single_claim(claim, semaphore, excluded_domain)
+                self._retrieve_evidence_for_single_claim(
+                    claim, semaphore, excluded_domain
+                )
                 for claim in claims
             ]
-            
+
             import time as _time
+
             _gather_start = _time.time()
             logger.info(f"[RETRIEVER DEBUG] Gathering results for {len(tasks)} tasks")
             results = await asyncio.gather(*tasks, return_exceptions=True)
             _gather_elapsed = _time.time() - _gather_start
-            logger.info(f"[RETRIEVER DEBUG] Gather complete in {_gather_elapsed:.2f}s. Results count: {len(results)}")
+            logger.info(
+                f"[RETRIEVER DEBUG] Gather complete in {_gather_elapsed:.2f}s. Results count: {len(results)}"
+            )
 
             # Log each result type
             for i, r in enumerate(results):
                 if isinstance(r, Exception):
-                    logger.error(f"[RETRIEVER DEBUG] Result {i}: EXCEPTION {type(r).__name__}: {r}")
+                    logger.error(
+                        f"[RETRIEVER DEBUG] Result {i}: EXCEPTION {type(r).__name__}: {r}"
+                    )
                 elif isinstance(r, dict):
-                    logger.info(f"[RETRIEVER DEBUG] Result {i}: dict with {len(r.get('filtered_evidence', []))} filtered, {len(r.get('raw_evidence', []))} raw")
+                    logger.info(
+                        f"[RETRIEVER DEBUG] Result {i}: dict with {len(r.get('filtered_evidence', []))} filtered, {len(r.get('raw_evidence', []))} raw"
+                    )
                 else:
-                    logger.info(f"[RETRIEVER DEBUG] Result {i}: type={type(r)}, len={len(r) if hasattr(r, '__len__') else 'N/A'}")
+                    logger.info(
+                        f"[RETRIEVER DEBUG] Result {i}: type={type(r)}, len={len(r) if hasattr(r, '__len__') else 'N/A'}"
+                    )
 
             # Organize results by claim position
             evidence_by_claim = {}
@@ -143,7 +227,9 @@ class EvidenceRetriever:
                 elif isinstance(result, dict):
                     # New structure with raw evidence
                     evidence_by_claim[str(i)] = result.get("filtered_evidence", [])
-                    pre_weighting_by_claim[str(i)] = result.get("pre_weighting_evidence", [])
+                    pre_weighting_by_claim[str(i)] = result.get(
+                        "pre_weighting_evidence", []
+                    )
                     raw_evidence = result.get("raw_evidence", [])
                     claim_position = result.get("claim_position", i)
                     claim_text = result.get("claim_text", "")
@@ -154,7 +240,9 @@ class EvidenceRetriever:
                     all_raw_evidence.extend(raw_evidence)
                 else:
                     # Legacy list format (backward compatibility)
-                    evidence_by_claim[str(i)] = result if isinstance(result, list) else []
+                    evidence_by_claim[str(i)] = (
+                        result if isinstance(result, list) else []
+                    )
 
             # RECOVERY: Ensure minimum evidence per claim
             # This catches claims that ended up with insufficient evidence after initial retrieval
@@ -162,7 +250,7 @@ class EvidenceRetriever:
             evidence_by_claim, recovery_raw = await self._ensure_minimum_evidence(
                 evidence_by_claim=evidence_by_claim,
                 claims=claims,
-                excluded_domain=excluded_domain
+                excluded_domain=excluded_domain,
             )
             _recovery_elapsed = _time.time() - _recovery_start
             all_raw_evidence.extend(recovery_raw)
@@ -179,19 +267,18 @@ class EvidenceRetriever:
 
         except Exception as e:
             import traceback
-            logger.error(f"[RETRIEVER DEBUG] Evidence retrieval EXCEPTION: {type(e).__name__}: {e}")
+
+            logger.error(
+                f"[RETRIEVER DEBUG] Evidence retrieval EXCEPTION: {type(e).__name__}: {e}"
+            )
             logger.error(f"[RETRIEVER DEBUG] Full traceback:\n{traceback.format_exc()}")
-            return {
-                "evidence_by_claim": {},
-                "raw_evidence": [],
-                "raw_sources_count": 0
-            }
-    
+            return {"evidence_by_claim": {}, "raw_evidence": [], "raw_sources_count": 0}
+
     async def _ensure_minimum_evidence(
         self,
         evidence_by_claim: Dict[str, List[Dict[str, Any]]],
         claims: List[Dict[str, Any]],
-        excluded_domain: Optional[str] = None
+        excluded_domain: Optional[str] = None,
     ) -> Tuple[Dict[str, List[Dict[str, Any]]], List[Dict[str, Any]]]:
         """
         Ensure each claim has minimum evidence, triggering recovery search if needed.
@@ -214,11 +301,13 @@ class EvidenceRetriever:
             current_evidence = evidence_by_claim.get(claim_pos, [])
 
             if len(current_evidence) < self.MIN_EVIDENCE_PER_CLAIM:
-                claims_needing_recovery.append({
-                    "claim": claim,
-                    "position": claim_pos,
-                    "current_count": len(current_evidence)
-                })
+                claims_needing_recovery.append(
+                    {
+                        "claim": claim,
+                        "position": claim_pos,
+                        "current_count": len(current_evidence),
+                    }
+                )
 
         if not claims_needing_recovery:
             return evidence_by_claim, []
@@ -245,7 +334,7 @@ class EvidenceRetriever:
                     claim=claim_info["claim"],
                     claim_position=claim_info["position"],
                     existing_urls=existing_urls,
-                    excluded_domain=excluded_domain
+                    excluded_domain=excluded_domain,
                 )
 
         recovery_tasks = [recover_single_claim(c) for c in claims_needing_recovery]
@@ -288,7 +377,7 @@ class EvidenceRetriever:
         claim: Dict[str, Any],
         claim_position: str,
         existing_urls: set,
-        excluded_domain: Optional[str] = None
+        excluded_domain: Optional[str] = None,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
         Run targeted recovery search for a single claim with insufficient evidence.
@@ -311,11 +400,15 @@ class EvidenceRetriever:
         try:
             # Determine domain for authoritative source selection
             article_classification = claim.get("article_classification", {})
-            primary_domain = article_classification.get("primary_domain", "general").lower()
+            primary_domain = article_classification.get(
+                "primary_domain", "general"
+            ).lower()
 
             # Map to our domain categories
             domain_key = "general"
-            if any(d in primary_domain for d in ["health", "medical", "disease", "virus"]):
+            if any(
+                d in primary_domain for d in ["health", "medical", "disease", "virus"]
+            ):
                 domain_key = "health"
             elif any(d in primary_domain for d in ["science", "research", "study"]):
                 domain_key = "science"
@@ -326,7 +419,9 @@ class EvidenceRetriever:
             elif any(d in primary_domain for d in ["sport"]):
                 domain_key = "sports"
 
-            authoritative_sources = self.AUTHORITATIVE_SOURCES_BY_DOMAIN.get(domain_key, [])
+            authoritative_sources = self.AUTHORITATIVE_SOURCES_BY_DOMAIN.get(
+                domain_key, []
+            )
 
             logger.info(
                 f"[RECOVERY] Claim {claim_position}: domain={domain_key}, "
@@ -339,7 +434,9 @@ class EvidenceRetriever:
             queries = self._generate_recovery_queries(claim_text, authoritative_sources)
 
             if not queries:
-                logger.warning(f"[RECOVERY] No queries generated for claim {claim_position}")
+                logger.warning(
+                    f"[RECOVERY] No queries generated for claim {claim_position}"
+                )
                 return [], []
 
             # Execute searches
@@ -347,32 +444,55 @@ class EvidenceRetriever:
             for query in queries[:2]:  # Limit to 2 queries to control latency
                 try:
                     results = await self.search_service.search_for_evidence(
-                        query,
-                        max_results=5,
-                        freshness="py"  # Past year - stable facts
+                        query, max_results=5, freshness="py"  # Past year - stable facts
                     )
                     if results:
                         # Convert SearchResult to EvidenceSnippet format
                         for r in results:
                             # Skip if URL already exists
-                            url = getattr(r, 'url', '') if hasattr(r, 'url') else r.get('url', '')
+                            url = (
+                                getattr(r, "url", "")
+                                if hasattr(r, "url")
+                                else r.get("url", "")
+                            )
                             if url in existing_urls:
                                 continue
 
                             snippet = EvidenceSnippet(
-                                text=getattr(r, 'snippet', '') if hasattr(r, 'snippet') else r.get('snippet', ''),
-                                source=getattr(r, 'source', '') if hasattr(r, 'source') else r.get('source', ''),
+                                text=(
+                                    getattr(r, "snippet", "")
+                                    if hasattr(r, "snippet")
+                                    else r.get("snippet", "")
+                                ),
+                                source=(
+                                    getattr(r, "source", "")
+                                    if hasattr(r, "source")
+                                    else r.get("source", "")
+                                ),
                                 url=url,
-                                title=getattr(r, 'title', '') if hasattr(r, 'title') else r.get('title', ''),
-                                published_date=getattr(r, 'published_date', None) if hasattr(r, 'published_date') else r.get('published_date'),
+                                title=(
+                                    getattr(r, "title", "")
+                                    if hasattr(r, "title")
+                                    else r.get("title", "")
+                                ),
+                                published_date=(
+                                    getattr(r, "published_date", None)
+                                    if hasattr(r, "published_date")
+                                    else r.get("published_date")
+                                ),
                                 relevance_score=0.5,  # Neutral score, let LLM scorer decide
                                 # word_count is calculated automatically in EvidenceSnippet.__init__
-                                metadata={"recovery_search": True, "domain_key": domain_key}
+                                metadata={
+                                    "recovery_search": True,
+                                    "domain_key": domain_key,
+                                },
                             )
                             all_snippets.append(snippet)
 
                 except Exception as e:
-                    logger.warning(f"[RECOVERY] Search failed for query '{query[:50]}...': {e}")
+                    logger.warning(
+                        f"[RECOVERY] Search failed for query '{query[:50]}...': {e}"
+                    )
                     continue
 
             if not all_snippets:
@@ -381,31 +501,42 @@ class EvidenceRetriever:
             # Apply same credibility weighting/filtering as main retrieval
             # This ensures domain capping, credibility scoring, etc. are applied
             ranked_evidence = []
-            for idx, snippet in enumerate(all_snippets[:10]):  # Cap at 10 for processing
-                credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
-                ranked_evidence.append({
-                    "id": f"recovery_{claim_position}_{idx}",
-                    "text": snippet.text,
-                    "source": snippet.source,
-                    "url": snippet.url,
-                    "title": snippet.title,
-                    "published_date": snippet.published_date,
-                    "relevance_score": float(snippet.relevance_score),
-                    "semantic_similarity": 0.0,
-                    "combined_score": 0.0,
-                    "word_count": snippet.word_count,
-                    "credibility_score": credibility,
-                    "metadata": snippet.metadata,
-                    "is_recovery": True
-                })
+            for idx, snippet in enumerate(
+                all_snippets[:10]
+            ):  # Cap at 10 for processing
+                credibility = (
+                    snippet.metadata.get("credibility_score", 0.6)
+                    if snippet.metadata
+                    else 0.6
+                )
+                ev_hash = hashlib.sha256((snippet.url or "").encode()).hexdigest()[:8]
+                ranked_evidence.append(
+                    {
+                        "id": f"recovery_{claim_position}_{idx}",
+                        "evidence_id": f"ev-rec-{claim_position}_{idx}_{ev_hash}",
+                        "element_ids": [],
+                        "text": snippet.text,
+                        "source": snippet.source,
+                        "url": snippet.url,
+                        "title": snippet.title,
+                        "published_date": snippet.published_date,
+                        "relevance_score": float(snippet.relevance_score),
+                        "semantic_similarity": 0.0,
+                        "combined_score": 0.0,
+                        "word_count": snippet.word_count,
+                        "credibility_score": credibility,
+                        "metadata": snippet.metadata,
+                        "is_recovery": True,
+                    }
+                )
 
             # Apply credibility weighting (includes domain capping)
             result = self._apply_credibility_weighting(
-                ranked_evidence,
-                claim,
-                track_raw_evidence=True
+                ranked_evidence, claim, track_raw_evidence=True
             )
-            final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
+            final_evidence, raw_evidence = (
+                result if isinstance(result, tuple) else (result, [])
+            )
 
             # Mark raw evidence as from recovery
             for raw_item in raw_evidence:
@@ -415,13 +546,13 @@ class EvidenceRetriever:
             return final_evidence, raw_evidence
 
         except Exception as e:
-            logger.error(f"[RECOVERY] Error recovering evidence for claim {claim_position}: {e}")
+            logger.error(
+                f"[RECOVERY] Error recovering evidence for claim {claim_position}: {e}"
+            )
             return [], []
 
     def _generate_recovery_queries(
-        self,
-        claim_text: str,
-        authoritative_sources: List[str]
+        self, claim_text: str, authoritative_sources: List[str]
     ) -> List[str]:
         """
         Generate targeted queries for recovery search.
@@ -442,17 +573,50 @@ class EvidenceRetriever:
         # Extract key phrases (nouns, numbers, proper nouns)
         # Simple extraction: words > 3 chars, exclude common words
         stop_words = {
-            'the', 'and', 'for', 'are', 'was', 'were', 'been', 'have', 'has', 'had',
-            'will', 'would', 'could', 'should', 'this', 'that', 'with', 'from', 'they',
-            'their', 'there', 'what', 'when', 'where', 'which', 'about', 'into', 'than',
-            'then', 'can', 'may', 'also', 'some', 'only', 'more', 'most', 'other'
+            "the",
+            "and",
+            "for",
+            "are",
+            "was",
+            "were",
+            "been",
+            "have",
+            "has",
+            "had",
+            "will",
+            "would",
+            "could",
+            "should",
+            "this",
+            "that",
+            "with",
+            "from",
+            "they",
+            "their",
+            "there",
+            "what",
+            "when",
+            "where",
+            "which",
+            "about",
+            "into",
+            "than",
+            "then",
+            "can",
+            "may",
+            "also",
+            "some",
+            "only",
+            "more",
+            "most",
+            "other",
         }
 
-        words = re.findall(r'\b[a-zA-Z]{4,}\b', claim_text)
+        words = re.findall(r"\b[a-zA-Z]{4,}\b", claim_text)
         key_words = [w for w in words if w.lower() not in stop_words][:6]
 
         # Also extract numbers (important for factual claims)
-        numbers = re.findall(r'\b\d+(?:\.\d+)?%?\b', claim_text)
+        numbers = re.findall(r"\b\d+(?:\.\d+)?%?\b", claim_text)
 
         # Query 1: Key words + numbers (general search)
         base_query = " ".join(key_words[:4])
@@ -476,7 +640,7 @@ class EvidenceRetriever:
         self,
         claim: Dict[str, Any],
         semaphore: asyncio.Semaphore,
-        excluded_domain: Optional[str] = None
+        excluded_domain: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Retrieve evidence for a single claim.
 
@@ -496,8 +660,10 @@ class EvidenceRetriever:
                 # FROZEN EVIDENCE REPLAY: Skip ALL network, construct evidence directly
                 frozen_evidence_items = claim.get("frozen_evidence")
                 if frozen_evidence_items is not None:
-                    logger.info(f"[FROZEN EVIDENCE REPLAY] Claim {claim_position}: "
-                                f"replaying {len(frozen_evidence_items)} frozen evidence items (zero network)")
+                    logger.info(
+                        f"[FROZEN EVIDENCE REPLAY] Claim {claim_position}: "
+                        f"replaying {len(frozen_evidence_items)} frozen evidence items (zero network)"
+                    )
 
                     if not frozen_evidence_items:
                         return {
@@ -506,47 +672,66 @@ class EvidenceRetriever:
                             "pre_weighting_evidence": [],
                             "claim_position": claim_position,
                             "claim_text": claim_text[:500] if claim_text else "",
-                            "search_mode": "frozen_evidence_replay"
+                            "search_mode": "frozen_evidence_replay",
                         }
 
                     # Reconstruct ranked_evidence from frozen data (same shape as lines 763-777)
                     ranked_evidence = []
                     for idx, item in enumerate(frozen_evidence_items):
                         text = item.get("text", "")
-                        ranked_evidence.append({
-                            "id": f"evidence_{idx}",
-                            "text": text,
-                            "source": item.get("source", ""),
-                            "url": item.get("url", ""),
-                            "title": item.get("title", ""),
-                            "published_date": item.get("published_date"),
-                            "relevance_score": float(item.get("relevance_score", 0.0)),
-                            "semantic_similarity": 0.0,
-                            "combined_score": 0.0,
-                            "word_count": len(text.split()) if text else 0,
-                            "external_source_provider": item.get("external_source_provider"),
-                            "is_factcheck": item.get("is_factcheck", False),
-                            "source_type": item.get("source_type"),
-                            "metadata": item.get("metadata", {}),
-                        })
+                        ranked_evidence.append(
+                            {
+                                "id": f"evidence_{idx}",
+                                "evidence_id": item.get(
+                                    "evidence_id",
+                                    f"ev-{hashlib.sha256((item.get('url', '') + item.get('text', '')).encode()).hexdigest()[:12]}",
+                                ),
+                                "element_ids": item.get("element_ids", []),
+                                "text": text,
+                                "source": item.get("source", ""),
+                                "url": item.get("url", ""),
+                                "title": item.get("title", ""),
+                                "published_date": item.get("published_date"),
+                                "relevance_score": float(
+                                    item.get("relevance_score", 0.0)
+                                ),
+                                "semantic_similarity": 0.0,
+                                "combined_score": 0.0,
+                                "word_count": len(text.split()) if text else 0,
+                                "external_source_provider": item.get(
+                                    "external_source_provider"
+                                ),
+                                "is_factcheck": item.get("is_factcheck", False),
+                                "source_type": item.get("source_type"),
+                                "metadata": item.get("metadata", {}),
+                            }
+                        )
 
                     # Run through credibility weighting — SAME path as normal pipeline
-                    result = self._apply_credibility_weighting(ranked_evidence, claim, track_raw_evidence=True)
-                    final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
+                    result = self._apply_credibility_weighting(
+                        ranked_evidence, claim, track_raw_evidence=True
+                    )
+                    final_evidence, raw_evidence = (
+                        result if isinstance(result, tuple) else (result, [])
+                    )
 
                     return {
-                        "filtered_evidence": final_evidence[:self.max_sources_per_claim],
+                        "filtered_evidence": final_evidence[
+                            : self.max_sources_per_claim
+                        ],
                         "raw_evidence": raw_evidence,
                         "pre_weighting_evidence": ranked_evidence,
                         "claim_position": claim_position,
                         "claim_text": claim_text[:500] if claim_text else "",
-                        "search_mode": "frozen_evidence_replay"
+                        "search_mode": "frozen_evidence_replay",
                     }
 
                 # Step 1: Parallel retrieval from web search AND government APIs
                 subject_context = claim.get("subject_context")
                 key_entities = claim.get("key_entities", [])
-                temporal_analysis = claim.get("temporal_analysis")  # TIER 1: For query refinement
+                temporal_analysis = claim.get(
+                    "temporal_analysis"
+                )  # TIER 1: For query refinement
 
                 # Article context grounding (Phase 4)
                 article_title = claim.get("source_title")
@@ -554,7 +739,9 @@ class EvidenceRetriever:
 
                 # Context logging moved to DEBUG to reduce noise
                 if subject_context:
-                    logger.debug(f"Using context: '{subject_context}' with entities: {key_entities[:3]}")
+                    logger.debug(
+                        f"Using context: '{subject_context}' with entities: {key_entities[:3]}"
+                    )
 
                 # Check for query plan (from Query Planning Agent)
                 query_plan = claim.get("query_plan")
@@ -565,7 +752,9 @@ class EvidenceRetriever:
                     temporal_window = temporal_analysis.get("temporal_window", "any")
                     freshness = self.TEMPORAL_TO_FRESHNESS.get(temporal_window, "2y")
                     if freshness != "2y":
-                        logger.info(f"[RETRIEVE] FRESHNESS | Claim {claim_position} | temporal_window={temporal_window} -> freshness={freshness}")
+                        logger.info(
+                            f"[RETRIEVE] FRESHNESS | Claim {claim_position} | temporal_window={temporal_window} -> freshness={freshness}"
+                        )
 
                 # Run web search and API retrieval in parallel
                 if query_plan and query_plan.get("queries"):
@@ -575,31 +764,38 @@ class EvidenceRetriever:
                         query_plan,
                         excluded_domain=excluded_domain,
                         max_sources=self.max_sources_per_claim * 2,
-                        freshness=freshness
+                        freshness=freshness,
                     )
-                    queries_preview = query_plan['queries'][:2]  # Show first 2 queries
-                    logger.info(f"[RETRIEVE] QUERY PLAN | Claim {claim_position} | Type: {query_plan.get('claim_type')} | Queries: {queries_preview}")
+                    queries_preview = query_plan["queries"][:2]  # Show first 2 queries
+                    logger.info(
+                        f"[RETRIEVE] QUERY PLAN | Claim {claim_position} | Type: {query_plan.get('claim_type')} | Queries: {queries_preview}"
+                    )
                 else:
                     # Fallback: Standard query formulation
                     web_search_task = self.evidence_extractor.extract_evidence_for_claim(
                         claim_text,
-                        max_sources=self.max_sources_per_claim * 2,  # Get extra for filtering
+                        max_sources=self.max_sources_per_claim
+                        * 2,  # Get extra for filtering
                         subject_context=subject_context,
                         key_entities=key_entities,
                         excluded_domain=excluded_domain,
                         temporal_analysis=temporal_analysis,  # TIER 1: Pass to query formulation
                         article_title=article_title,  # Article context grounding
-                        article_date=article_date  # Article context grounding
+                        article_date=article_date,  # Article context grounding
                     )
 
                 # Phase 5: Government API retrieval (parallel with web search)
-                api_results_task = self._retrieve_from_government_apis(claim_text, claim)
+                api_results_task = self._retrieve_from_government_apis(
+                    claim_text, claim
+                )
 
                 # Await both tasks concurrently with per-claim timeout
                 # IMPORTANT: Use asyncio.wait instead of wait_for+gather to preserve partial results
                 # If one task completes but the other times out, we keep the completed results
                 CLAIM_TIMEOUT = 45  # seconds per claim
-                logger.info(f"[SINGLE CLAIM DEBUG] Awaiting web search + API tasks for claim {claim_position} (timeout={CLAIM_TIMEOUT}s)")
+                logger.info(
+                    f"[SINGLE CLAIM DEBUG] Awaiting web search + API tasks for claim {claim_position} (timeout={CLAIM_TIMEOUT}s)"
+                )
 
                 # Wrap coroutines in named tasks so we can identify them after wait()
                 web_task = asyncio.create_task(web_search_task, name="web_search")
@@ -609,7 +805,7 @@ class EvidenceRetriever:
                 done, pending = await asyncio.wait(
                     {web_task, api_task},
                     timeout=CLAIM_TIMEOUT,
-                    return_when=asyncio.ALL_COMPLETED
+                    return_when=asyncio.ALL_COMPLETED,
                 )
 
                 # Extract results from completed tasks, use defaults for timed-out ones
@@ -621,15 +817,27 @@ class EvidenceRetriever:
                     try:
                         result = task.result()
                         if task.get_name() == "web_search":
-                            web_evidence_snippets = result if not isinstance(result, Exception) else []
+                            web_evidence_snippets = (
+                                result if not isinstance(result, Exception) else []
+                            )
                             if isinstance(result, Exception):
-                                logger.error(f"[CLAIM {claim_position}] Web search exception: {result}")
+                                logger.error(
+                                    f"[CLAIM {claim_position}] Web search exception: {result}"
+                                )
                         elif task.get_name() == "api_retrieval":
-                            api_evidence = result if not isinstance(result, Exception) else {"evidence": [], "api_stats": {}}
+                            api_evidence = (
+                                result
+                                if not isinstance(result, Exception)
+                                else {"evidence": [], "api_stats": {}}
+                            )
                             if isinstance(result, Exception):
-                                logger.error(f"[CLAIM {claim_position}] API retrieval exception: {result}")
+                                logger.error(
+                                    f"[CLAIM {claim_position}] API retrieval exception: {result}"
+                                )
                     except Exception as e:
-                        logger.error(f"[CLAIM {claim_position}] Error extracting task result: {e}")
+                        logger.error(
+                            f"[CLAIM {claim_position}] Error extracting task result: {e}"
+                        )
 
                 # Cancel any still-pending tasks and log what timed out
                 for task in pending:
@@ -637,10 +845,14 @@ class EvidenceRetriever:
                     timed_out_tasks.append(task.get_name())
 
                 if timed_out_tasks:
-                    logger.warning(f"[CLAIM {claim_position}] Tasks timed out after {CLAIM_TIMEOUT}s: {timed_out_tasks}")
+                    logger.warning(
+                        f"[CLAIM {claim_position}] Tasks timed out after {CLAIM_TIMEOUT}s: {timed_out_tasks}"
+                    )
                     api_evidence["api_stats"]["timeout"] = True
                 else:
-                    logger.info(f"[SINGLE CLAIM DEBUG] All tasks complete for claim {claim_position}")
+                    logger.info(
+                        f"[SINGLE CLAIM DEBUG] All tasks complete for claim {claim_position}"
+                    )
 
                 # Merge web search and API results
                 evidence_snippets = web_evidence_snippets
@@ -650,9 +862,15 @@ class EvidenceRetriever:
                 claim["api_stats"] = api_evidence.get("api_stats", {})
 
                 # Log evidence counts (single consolidated log)
-                web_count = len(web_evidence_snippets) if isinstance(web_evidence_snippets, list) else 0
+                web_count = (
+                    len(web_evidence_snippets)
+                    if isinstance(web_evidence_snippets, list)
+                    else 0
+                )
                 api_count = len(api_evidence_items)
-                logger.info(f"[RETRIEVE] Claim {claim_position}: {web_count} web + {api_count} API sources")
+                logger.info(
+                    f"[RETRIEVE] Claim {claim_position}: {web_count} web + {api_count} API sources"
+                )
 
                 if not evidence_snippets and not api_evidence_items:
                     logger.warning(f"[RETRIEVE] NO EVIDENCE for claim {claim_position}")
@@ -660,70 +878,112 @@ class EvidenceRetriever:
                         "filtered_evidence": [],
                         "raw_evidence": [],
                         "claim_position": claim_position,
-                        "claim_text": claim_text[:500] if claim_text else ""
+                        "claim_text": claim_text[:500] if claim_text else "",
                     }
 
                 # Step 2: Merge and rank ALL evidence (web + API) using embeddings (bi-encoder)
-                api_snippets = self._convert_api_evidence_to_snippets(api_evidence_items)
-                logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(evidence_snippets)} web snippets + {len(api_snippets)} API snippets (from {len(api_evidence_items)} API items)")
+                api_snippets = self._convert_api_evidence_to_snippets(
+                    api_evidence_items
+                )
+                logger.critical(
+                    f"[EVIDENCE TRACE] Claim {claim_position}: {len(evidence_snippets)} web snippets + {len(api_snippets)} API snippets (from {len(api_evidence_items)} API items)"
+                )
                 all_evidence_snippets = evidence_snippets + api_snippets
 
                 # Fix 0c: Cap combined evidence before expensive ranking
                 # Reduced from 50 to 30: focus on quality, not quantity
                 MAX_EVIDENCE_FOR_RANKING = 30
                 if len(all_evidence_snippets) > MAX_EVIDENCE_FOR_RANKING:
-                    logger.info(f"[EVIDENCE CAP] Reducing {len(all_evidence_snippets)} items to {MAX_EVIDENCE_FOR_RANKING} before ranking")
+                    logger.info(
+                        f"[EVIDENCE CAP] Reducing {len(all_evidence_snippets)} items to {MAX_EVIDENCE_FOR_RANKING} before ranking"
+                    )
                     # Sort by relevance_score and keep best
-                    all_evidence_snippets.sort(key=lambda x: x.relevance_score if hasattr(x, 'relevance_score') else 0.5, reverse=True)
-                    all_evidence_snippets = all_evidence_snippets[:MAX_EVIDENCE_FOR_RANKING]
+                    all_evidence_snippets.sort(
+                        key=lambda x: (
+                            x.relevance_score if hasattr(x, "relevance_score") else 0.5
+                        ),
+                        reverse=True,
+                    )
+                    all_evidence_snippets = all_evidence_snippets[
+                        :MAX_EVIDENCE_FOR_RANKING
+                    ]
 
                 # Build evidence dicts (LLM scorer handles relevance downstream in Stage 3.7)
                 ranked_evidence = []
                 for idx, snippet in enumerate(all_evidence_snippets):
-                    external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
-                    credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
-                    ranked_evidence.append({
-                        "id": f"evidence_{idx}",
-                        "text": snippet.text,
-                        "source": snippet.source,
-                        "url": snippet.url,
-                        "title": snippet.title,
-                        "published_date": snippet.published_date,
-                        "relevance_score": float(snippet.relevance_score),
-                        "semantic_similarity": 0.0,
-                        "combined_score": 0.0,
-                        "word_count": snippet.word_count,
-                        "credibility_score": credibility,
-                        "external_source_provider": external_source,
-                        "metadata": snippet.metadata
-                    })
+                    external_source = (
+                        snippet.metadata.get("external_source_provider")
+                        if snippet.metadata
+                        else None
+                    )
+                    credibility = (
+                        snippet.metadata.get("credibility_score", 0.6)
+                        if snippet.metadata
+                        else 0.6
+                    )
+                    ev_hash = hashlib.sha256(
+                        (snippet.url + snippet.text).encode()
+                    ).hexdigest()[:12]
+                    ranked_evidence.append(
+                        {
+                            "id": f"evidence_{idx}",
+                            "evidence_id": f"ev-{ev_hash}",
+                            "element_ids": (
+                                snippet.metadata.get("element_ids", [])
+                                if snippet.metadata
+                                else []
+                            ),
+                            "text": snippet.text,
+                            "source": snippet.source,
+                            "url": snippet.url,
+                            "title": snippet.title,
+                            "published_date": snippet.published_date,
+                            "relevance_score": float(snippet.relevance_score),
+                            "semantic_similarity": 0.0,
+                            "combined_score": 0.0,
+                            "word_count": snippet.word_count,
+                            "credibility_score": credibility,
+                            "external_source_provider": external_source,
+                            "metadata": snippet.metadata,
+                        }
+                    )
 
                 # Step 3: Apply credibility and recency weighting (with raw evidence tracking)
-                logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(ranked_evidence)} items BEFORE credibility weighting")
+                logger.critical(
+                    f"[EVIDENCE TRACE] Claim {claim_position}: {len(ranked_evidence)} items BEFORE credibility weighting"
+                )
                 pre_weighting_snapshot = copy.deepcopy(ranked_evidence)
-                result = self._apply_credibility_weighting(ranked_evidence, claim, track_raw_evidence=True)
-                final_evidence, raw_evidence = result if isinstance(result, tuple) else (result, [])
-                logger.critical(f"[EVIDENCE TRACE] Claim {claim_position}: {len(final_evidence)} items AFTER credibility weighting")
+                result = self._apply_credibility_weighting(
+                    ranked_evidence, claim, track_raw_evidence=True
+                )
+                final_evidence, raw_evidence = (
+                    result if isinstance(result, tuple) else (result, [])
+                )
+                logger.critical(
+                    f"[EVIDENCE TRACE] Claim {claim_position}: {len(final_evidence)} items AFTER credibility weighting"
+                )
 
                 # Step 4: Store in vector database for future retrieval
                 await self._store_evidence_embeddings(claim, final_evidence)
 
                 # Return top evidence along with raw evidence metadata
                 return {
-                    "filtered_evidence": final_evidence[:self.max_sources_per_claim],
+                    "filtered_evidence": final_evidence[: self.max_sources_per_claim],
                     "raw_evidence": raw_evidence,
                     "pre_weighting_evidence": pre_weighting_snapshot,
                     "claim_position": claim_position,
-                    "claim_text": claim_text[:500] if claim_text else ""
+                    "claim_text": claim_text[:500] if claim_text else "",
                 }
-                
+
             except Exception as e:
                 logger.error(f"Single claim evidence retrieval error: {e}")
                 return {
                     "filtered_evidence": [],
                     "raw_evidence": [],
                     "claim_position": claim.get("position", 0),
-                    "claim_text": claim.get("text", "")[:500] if claim.get("text") else ""
+                    "claim_text": (
+                        claim.get("text", "")[:500] if claim.get("text") else ""
+                    ),
                 }
 
     async def _execute_planned_queries(
@@ -732,7 +992,7 @@ class EvidenceRetriever:
         query_plan: Dict[str, Any],
         excluded_domain: Optional[str] = None,
         max_sources: int = 20,
-        freshness: Optional[str] = None
+        freshness: Optional[str] = None,
     ) -> List[EvidenceSnippet]:
         """
         Execute multiple targeted queries from Query Planning Agent.
@@ -750,7 +1010,9 @@ class EvidenceRetriever:
         try:
             queries = query_plan.get("queries", [])
             priority_sources = query_plan.get("priority_sources", [])
-            claim_type = query_plan.get("claim_type", "general")  # Keep for metadata/backward compat
+            claim_type = query_plan.get(
+                "claim_type", "general"
+            )  # Keep for metadata/backward compat
 
             # ============================================================
             # DYNAMIC FRESHNESS: Use LLM-decided freshness from query plan
@@ -773,6 +1035,7 @@ class EvidenceRetriever:
 
             # Get site filter from query planner
             from app.utils.query_planner import get_query_planner
+
             planner = get_query_planner()
             site_filter = planner.get_site_filter(priority_sources, claim_type)
 
@@ -780,7 +1043,9 @@ class EvidenceRetriever:
 
             # Execute all queries concurrently
             query_tasks = []
-            sources_per_query = max(3, max_sources // len(queries))  # Distribute sources across queries
+            sources_per_query = max(
+                3, max_sources // len(queries)
+            )  # Distribute sources across queries
 
             for query in queries:
                 # Only append site filter if query doesn't already have one (LLM may include it)
@@ -791,7 +1056,7 @@ class EvidenceRetriever:
                 task = self.evidence_extractor.search_service.search_for_evidence(
                     full_query,
                     max_results=sources_per_query,
-                    freshness=effective_freshness  # Use domain-aware freshness
+                    freshness=effective_freshness,  # Use domain-aware freshness
                 )
                 query_tasks.append(task)
 
@@ -799,7 +1064,9 @@ class EvidenceRetriever:
             all_results = await asyncio.gather(*query_tasks, return_exceptions=True)
 
             # Merge and deduplicate search results by URL
-            seen_urls = set()
+            # Track element associations so cross-element URL dedup preserves all element_ids
+            query_element_ids = query_plan.get("query_element_ids", [])
+            seen_urls = {}  # URL -> search result reference
             unique_search_results = []
 
             for i, results in enumerate(all_results):
@@ -807,37 +1074,59 @@ class EvidenceRetriever:
                     logger.warning(f"Query {i+1} failed: {results}")
                     continue
 
+                element_id = (
+                    query_element_ids[i] if i < len(query_element_ids) else None
+                )
+
                 for result in results:
                     # Skip excluded domain
-                    if excluded_domain and extract_domain(result.url) == excluded_domain:
+                    if (
+                        excluded_domain
+                        and extract_domain(result.url) == excluded_domain
+                    ):
                         continue
 
-                    # Deduplicate by URL
+                    # Deduplicate by URL, but accumulate element associations
                     if result.url in seen_urls:
+                        if element_id:
+                            seen_urls[result.url]._element_ids.add(element_id)
                         continue
-                    seen_urls.add(result.url)
 
                     # Attach query metadata to result for later preservation
                     result._query_index = i
                     result._query_used = queries[i]
                     result._claim_type = claim_type
                     result._freshness = effective_freshness  # For staleness check
+                    result._element_ids = {element_id} if element_id else set()
+                    seen_urls[result.url] = result
                     unique_search_results.append(result)
 
             # BALANCED FRESHNESS FALLBACK when 0 results
             if not unique_search_results:
                 fallback_progression = ["pw", "pm", "py"]
-                current_idx = fallback_progression.index(effective_freshness) if effective_freshness in fallback_progression else -1
+                current_idx = (
+                    fallback_progression.index(effective_freshness)
+                    if effective_freshness in fallback_progression
+                    else -1
+                )
 
                 # FALLBACK 1: Try WITHOUT site filter (same freshness)
                 if site_filter:
-                    logger.info(f"[FRESHNESS FALLBACK] 0 results. Trying without site filter (freshness={effective_freshness})")
+                    logger.info(
+                        f"[FRESHNESS FALLBACK] 0 results. Trying without site filter (freshness={effective_freshness})"
+                    )
                     for query in queries:
                         try:
                             results = await self.evidence_extractor.search_service.search_for_evidence(
-                                query, max_results=sources_per_query, freshness=effective_freshness)
+                                query,
+                                max_results=sources_per_query,
+                                freshness=effective_freshness,
+                            )
                             for result in results:
-                                if excluded_domain and extract_domain(result.url) == excluded_domain:
+                                if (
+                                    excluded_domain
+                                    and extract_domain(result.url) == excluded_domain
+                                ):
                                     continue
                                 if result.url not in seen_urls:
                                     seen_urls.add(result.url)
@@ -849,35 +1138,56 @@ class EvidenceRetriever:
                         except Exception as e:
                             logger.warning(f"Fallback query failed: {e}")
                     if unique_search_results:
-                        logger.info(f"[FRESHNESS FALLBACK] Found {len(unique_search_results)} without site filter")
+                        logger.info(
+                            f"[FRESHNESS FALLBACK] Found {len(unique_search_results)} without site filter"
+                        )
 
                 # FALLBACK 2: Progressively relax freshness (pw->pm->py, never 2y)
-                if not unique_search_results and current_idx >= 0 and current_idx < len(fallback_progression) - 1:
-                    for fallback_freshness in fallback_progression[current_idx + 1:]:
-                        logger.info(f"[FRESHNESS FALLBACK] Relaxing: {effective_freshness} -> {fallback_freshness}")
+                if (
+                    not unique_search_results
+                    and current_idx >= 0
+                    and current_idx < len(fallback_progression) - 1
+                ):
+                    for fallback_freshness in fallback_progression[current_idx + 1 :]:
+                        logger.info(
+                            f"[FRESHNESS FALLBACK] Relaxing: {effective_freshness} -> {fallback_freshness}"
+                        )
                         for query in queries:
                             try:
                                 results = await self.evidence_extractor.search_service.search_for_evidence(
-                                    query, max_results=sources_per_query, freshness=fallback_freshness)
+                                    query,
+                                    max_results=sources_per_query,
+                                    freshness=fallback_freshness,
+                                )
                                 for result in results:
-                                    if excluded_domain and extract_domain(result.url) == excluded_domain:
+                                    if (
+                                        excluded_domain
+                                        and extract_domain(result.url)
+                                        == excluded_domain
+                                    ):
                                         continue
                                     if result.url not in seen_urls:
                                         seen_urls.add(result.url)
                                         result._query_index = queries.index(query)
                                         result._query_used = query
                                         result._claim_type = claim_type
-                                        result._freshness = fallback_freshness  # Use fallback freshness
+                                        result._freshness = (
+                                            fallback_freshness  # Use fallback freshness
+                                        )
                                         result._freshness_fallback = fallback_freshness
                                         unique_search_results.append(result)
                             except Exception as e:
                                 logger.warning(f"Fallback query failed: {e}")
                         if unique_search_results:
-                            logger.info(f"[FRESHNESS FALLBACK] Found {len(unique_search_results)} with {fallback_freshness}")
+                            logger.info(
+                                f"[FRESHNESS FALLBACK] Found {len(unique_search_results)} with {fallback_freshness}"
+                            )
                             break
 
                 if not unique_search_results:
-                    logger.warning(f"[FRESHNESS FALLBACK] No results after all attempts")
+                    logger.warning(
+                        f"[FRESHNESS FALLBACK] No results after all attempts"
+                    )
                     return []
 
             # ============================================================
@@ -889,7 +1199,9 @@ class EvidenceRetriever:
                 for result in unique_search_results[:max_sources]
             ]
 
-            extracted_results = await asyncio.gather(*extraction_tasks, return_exceptions=True)
+            extracted_results = await asyncio.gather(
+                *extraction_tasks, return_exceptions=True
+            )
 
             # Filter successful extractions and track fallback stats
             evidence_snippets = []
@@ -923,15 +1235,11 @@ class EvidenceRetriever:
             logger.error(f"Planned query execution failed: {e}")
             # Fallback to standard search with claim text
             return await self.evidence_extractor.extract_evidence_for_claim(
-                claim_text,
-                max_sources=max_sources
+                claim_text, max_sources=max_sources
             )
 
     async def _extract_with_fallback(
-        self,
-        search_result,
-        claim_text: str,
-        semaphore: asyncio.Semaphore
+        self, search_result, claim_text: str, semaphore: asyncio.Semaphore
     ) -> Optional[EvidenceSnippet]:
         """
         Extract content from a search result with nuanced fallback policy.
@@ -951,17 +1259,16 @@ class EvidenceRetriever:
             EvidenceSnippet with extracted content, or None if dropped
         """
         # Preserve query planning metadata
-        query_index = getattr(search_result, '_query_index', None)
-        query_used = getattr(search_result, '_query_used', None)
-        claim_type = getattr(search_result, '_claim_type', 'general')
-        freshness = getattr(search_result, '_freshness', 'py')  # For staleness check
+        query_index = getattr(search_result, "_query_index", None)
+        query_used = getattr(search_result, "_query_used", None)
+        claim_type = getattr(search_result, "_claim_type", "general")
+        freshness = getattr(search_result, "_freshness", "py")  # For staleness check
+        element_ids = list(getattr(search_result, "_element_ids", set()))
 
         try:
             # Attempt full content extraction
             snippet = await self.evidence_extractor._extract_from_page(
-                search_result,
-                claim_text,
-                semaphore
+                search_result, claim_text, semaphore
             )
 
             if snippet is not None:
@@ -973,16 +1280,20 @@ class EvidenceRetriever:
                 snippet.metadata["source_path"] = "query_planning"
                 snippet.metadata["extraction_status"] = "success"
                 snippet.metadata["is_snippet_fallback"] = False
+                snippet.metadata["element_ids"] = element_ids
 
                 # Add staleness check for time-sensitive claims (using dynamic freshness)
                 from app.utils.query_planner import check_evidence_staleness
+
                 staleness = check_evidence_staleness(
                     evidence_date=snippet.published_date,
-                    freshness=freshness  # Use LLM-decided freshness from query plan
+                    freshness=freshness,  # Use LLM-decided freshness from query plan
                 )
                 snippet.metadata["staleness_check"] = staleness
                 if staleness["is_stale"]:
-                    logger.warning(f"[STALE EVIDENCE] {staleness['message']} - URL: {snippet.url}")
+                    logger.warning(
+                        f"[STALE EVIDENCE] {staleness['message']} - URL: {snippet.url}"
+                    )
 
                 return snippet
 
@@ -995,13 +1306,19 @@ class EvidenceRetriever:
         except Exception as e:
             # Extraction failed - check if we should use snippet fallback
             error_str = str(e).lower()
-            is_blocked = "403" in error_str or "429" in error_str or "forbidden" in error_str
+            is_blocked = (
+                "403" in error_str or "429" in error_str or "forbidden" in error_str
+            )
             is_timeout = "timeout" in error_str
 
             if (is_blocked or is_timeout) and settings.ALLOW_SNIPPET_FALLBACK:
                 # Transient failure: Use snippet as fallback with lower score
-                extraction_status = "fallback_blocked" if is_blocked else "fallback_timeout"
-                logger.debug(f"Using snippet fallback ({extraction_status}) for {search_result.url}")
+                extraction_status = (
+                    "fallback_blocked" if is_blocked else "fallback_timeout"
+                )
+                logger.debug(
+                    f"Using snippet fallback ({extraction_status}) for {search_result.url}"
+                )
 
                 return EvidenceSnippet(
                     text=search_result.snippet or "",
@@ -1017,8 +1334,9 @@ class EvidenceRetriever:
                         "source_path": "query_planning",
                         "extraction_status": extraction_status,
                         "is_snippet_fallback": True,
-                        "fallback_reason": str(e)[:100]
-                    }
+                        "fallback_reason": str(e)[:100],
+                        "element_ids": element_ids,
+                    },
                 )
             else:
                 # Other failure or fallback disabled: Drop
@@ -1029,7 +1347,7 @@ class EvidenceRetriever:
         self,
         evidence_list: List[Dict[str, Any]],
         claim: Dict[str, Any] = None,
-        track_raw_evidence: bool = False
+        track_raw_evidence: bool = False,
     ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]] | List[Dict[str, Any]]:
         """Apply credibility scoring and minimal filtering to evidence.
 
@@ -1057,22 +1375,30 @@ class EvidenceRetriever:
             raw_evidence_tracking = []
             if track_raw_evidence:
                 for ev in evidence_list:
-                    raw_evidence_tracking.append({
-                        "source": ev.get("source", ""),
-                        "url": ev.get("url", ""),
-                        "title": ev.get("title", ""),
-                        "snippet": ev.get("snippet", ""),
-                        "published_date": ev.get("published_date"),
-                        "is_included": True,
-                        "filter_stage": None,
-                        "filter_reason": None,
-                        "tier": None,
-                        "is_factcheck": ev.get("is_factcheck", False),
-                        "external_source_provider": ev.get("external_source_provider"),
-                        "relevance_score": ev.get("combined_score", 0.0),
-                        "credibility_score": 0.6,
-                    })
-            url_to_raw = {item["url"]: item for item in raw_evidence_tracking} if track_raw_evidence else {}
+                    raw_evidence_tracking.append(
+                        {
+                            "source": ev.get("source", ""),
+                            "url": ev.get("url", ""),
+                            "title": ev.get("title", ""),
+                            "snippet": ev.get("snippet", ""),
+                            "published_date": ev.get("published_date"),
+                            "is_included": True,
+                            "filter_stage": None,
+                            "filter_reason": None,
+                            "tier": None,
+                            "is_factcheck": ev.get("is_factcheck", False),
+                            "external_source_provider": ev.get(
+                                "external_source_provider"
+                            ),
+                            "relevance_score": ev.get("combined_score", 0.0),
+                            "credibility_score": 0.6,
+                        }
+                    )
+            url_to_raw = (
+                {item["url"]: item for item in raw_evidence_tracking}
+                if track_raw_evidence
+                else {}
+            )
 
             # --- STAGE 1: Credibility + recency scoring (annotation only) ---
             story_jurisdiction = None
@@ -1084,14 +1410,18 @@ class EvidenceRetriever:
             for evidence in evidence_list:
                 source = evidence.get("source", "").lower()
                 url = evidence.get("url", "")
-                credibility_score = self._get_credibility_score(source, url, evidence, story_jurisdiction)
+                credibility_score = self._get_credibility_score(
+                    source, url, evidence, story_jurisdiction
+                )
                 recency_score = self._get_recency_score(evidence.get("published_date"))
                 base_score = evidence.get("combined_score", 0.5)
-                evidence.update({
-                    "credibility_score": credibility_score,
-                    "recency_score": recency_score,
-                    "final_score": base_score * credibility_score * recency_score,
-                })
+                evidence.update(
+                    {
+                        "credibility_score": credibility_score,
+                        "recency_score": recency_score,
+                        "final_score": base_score * credibility_score * recency_score,
+                    }
+                )
                 if track_raw_evidence and url in url_to_raw:
                     url_to_raw[url]["credibility_score"] = credibility_score
                     url_to_raw[url]["tier"] = evidence.get("tier")
@@ -1100,19 +1430,26 @@ class EvidenceRetriever:
             # --- STAGE 2: Auto-exclude (satire, social media blacklist) ---
             before_auto_exclude = len(evidence_list)
             auto_excluded = [e for e in evidence_list if e.get("auto_exclude", False)]
-            evidence_list = [e for e in evidence_list if not e.get("auto_exclude", False)]
+            evidence_list = [
+                e for e in evidence_list if not e.get("auto_exclude", False)
+            ]
             if track_raw_evidence:
                 for e in auto_excluded:
                     url = e.get("url", "")
                     if url in url_to_raw:
                         url_to_raw[url]["is_included"] = False
                         url_to_raw[url]["filter_stage"] = "auto_exclude"
-                        url_to_raw[url]["filter_reason"] = f"Auto-excluded: {e.get('tier', 'blacklist')} source"
-            logger.info(f"[FILTER] Auto-exclude: {before_auto_exclude} -> {len(evidence_list)}")
+                        url_to_raw[url][
+                            "filter_reason"
+                        ] = f"Auto-excluded: {e.get('tier', 'blacklist')} source"
+            logger.info(
+                f"[FILTER] Auto-exclude: {before_auto_exclude} -> {len(evidence_list)}"
+            )
 
             # --- STAGE 3: Content dedup ---
             before_dedup = len(evidence_list)
             from app.utils.deduplication import EvidenceDeduplicator
+
             deduplicator = EvidenceDeduplicator()
             before_dedup_list = list(evidence_list) if track_raw_evidence else []
             evidence_list, dedup_stats = deduplicator.deduplicate(evidence_list)
@@ -1129,7 +1466,10 @@ class EvidenceRetriever:
             # --- Corroboration boost (annotation + score recompute) ---
             if len(evidence_list) >= 2:
                 from app.utils.corroboration import apply_corroboration_boost
-                evidence_list, corroboration_stats = apply_corroboration_boost(evidence_list)
+
+                evidence_list, corroboration_stats = apply_corroboration_boost(
+                    evidence_list
+                )
                 if corroboration_stats.get("items_boosted", 0) > 0:
                     logger.info(
                         f"[FILTER] Corroboration: {corroboration_stats['items_boosted']} items boosted "
@@ -1137,14 +1477,20 @@ class EvidenceRetriever:
                     )
                     for ev in evidence_list:
                         if ev.get("corroboration_boost", 0) > 0:
-                            ev["final_score"] = ev.get("combined_score", 0.5) * ev["credibility_score"] * ev.get("recency_score", 1.0)
+                            ev["final_score"] = (
+                                ev.get("combined_score", 0.5)
+                                * ev["credibility_score"]
+                                * ev.get("recency_score", 1.0)
+                            )
 
             # Sort by final weighted score
             evidence_list.sort(key=lambda x: x.get("final_score", 0), reverse=True)
 
             # Safety check
             if len(evidence_list) == 0 and original_evidence_count > 0:
-                logger.warning(f"All {original_evidence_count} evidence items eliminated by filters")
+                logger.warning(
+                    f"All {original_evidence_count} evidence items eliminated by filters"
+                )
 
             if track_raw_evidence:
                 return evidence_list, raw_evidence_tracking
@@ -1161,7 +1507,7 @@ class EvidenceRetriever:
         source: str,
         url: str = None,
         evidence_item: Dict[str, Any] = None,
-        story_jurisdiction: Optional[str] = None
+        story_jurisdiction: Optional[str] = None,
     ) -> float:
         """
         Determine credibility score for a source.
@@ -1194,14 +1540,18 @@ class EvidenceRetriever:
             api_credibility = evidence_item.get("credibility_score", 0.95)
 
             # Enrich evidence with API-specific metadata
-            evidence_item['tier'] = 'authoritative_api'
-            evidence_item['risk_flags'] = []
-            evidence_item['credibility_reasoning'] = f"Authoritative API source: {api_provider}"
-            evidence_item['auto_exclude'] = False
-            evidence_item['risk_level'] = 'none'
-            evidence_item['risk_warning'] = None
+            evidence_item["tier"] = "authoritative_api"
+            evidence_item["risk_flags"] = []
+            evidence_item["credibility_reasoning"] = (
+                f"Authoritative API source: {api_provider}"
+            )
+            evidence_item["auto_exclude"] = False
+            evidence_item["risk_level"] = "none"
+            evidence_item["risk_warning"] = None
 
-            logger.debug(f"[CREDIBILITY] API source '{api_provider}' using embedded credibility: {api_credibility}")
+            logger.debug(
+                f"[CREDIBILITY] API source '{api_provider}' using embedded credibility: {api_credibility}"
+            )
             return api_credibility
 
         # Phase 3: Use Domain Credibility Framework if enabled
@@ -1222,24 +1572,30 @@ class EvidenceRetriever:
 
                 # Enrich evidence item with credibility metadata if provided
                 if evidence_item is not None:
-                    evidence_item['tier'] = cred_info.get('tier')
-                    evidence_item['risk_flags'] = cred_info.get('risk_flags', [])
-                    evidence_item['credibility_reasoning'] = cred_info.get('reasoning')
-                    evidence_item['auto_exclude'] = cred_info.get('auto_exclude', False)
+                    evidence_item["tier"] = cred_info.get("tier")
+                    evidence_item["risk_flags"] = cred_info.get("risk_flags", [])
+                    evidence_item["credibility_reasoning"] = cred_info.get("reasoning")
+                    evidence_item["auto_exclude"] = cred_info.get("auto_exclude", False)
 
                     # Phase 6: Track jurisdiction boost if applied
-                    if cred_info.get('jurisdiction_boost', 0) > 0:
-                        evidence_item['jurisdiction_boost'] = cred_info.get('jurisdiction_boost')
-                        evidence_item['source_jurisdiction'] = cred_info.get('source_jurisdiction')
-                        evidence_item['jurisdiction_reasoning'] = cred_info.get('jurisdiction_reasoning')
+                    if cred_info.get("jurisdiction_boost", 0) > 0:
+                        evidence_item["jurisdiction_boost"] = cred_info.get(
+                            "jurisdiction_boost"
+                        )
+                        evidence_item["source_jurisdiction"] = cred_info.get(
+                            "source_jurisdiction"
+                        )
+                        evidence_item["jurisdiction_reasoning"] = cred_info.get(
+                            "jurisdiction_reasoning"
+                        )
 
                     # Get risk assessment
                     risk_info = credibility_service.get_risk_assessment(url)
-                    evidence_item['risk_level'] = risk_info.get('risk_level')
-                    evidence_item['risk_warning'] = risk_info.get('warning_message')
+                    evidence_item["risk_level"] = risk_info.get("risk_level")
+                    evidence_item["risk_warning"] = risk_info.get("warning_message")
 
                 # Log unknown sources for progressive curation (Phase 1)
-                if cred_info.get('tier') == 'general' and evidence_item is not None:
+                if cred_info.get("tier") == "general" and evidence_item is not None:
                     try:
                         from app.services.source_monitor import get_source_monitor
                         from app.core.database import sync_session
@@ -1248,21 +1604,29 @@ class EvidenceRetriever:
                             monitor = get_source_monitor(db)
                             monitor.log_unknown_source(
                                 url=url,
-                                claim_topic=evidence_item.get('claim_text', '')[:200] if 'claim_text' in evidence_item else None,
-                                evidence_title=evidence_item.get('title'),
-                                evidence_snippet=evidence_item.get('snippet'),
-                                has_https=url.startswith('https://'),
+                                claim_topic=(
+                                    evidence_item.get("claim_text", "")[:200]
+                                    if "claim_text" in evidence_item
+                                    else None
+                                ),
+                                evidence_title=evidence_item.get("title"),
+                                evidence_snippet=evidence_item.get("snippet"),
+                                has_https=url.startswith("https://"),
                                 has_author_byline=None,  # Could be enriched later
-                                has_primary_sources=None  # Could be enriched later
+                                has_primary_sources=None,  # Could be enriched later
                             )
                     except Exception as e:
                         logger.warning(f"Failed to log unknown source {url}: {e}")
 
                 # Use boosted_credibility if jurisdiction boost was applied, otherwise base credibility
-                base_credibility = cred_info.get('boosted_credibility', cred_info.get('credibility', 0.6))
+                base_credibility = cred_info.get(
+                    "boosted_credibility", cred_info.get("credibility", 0.6)
+                )
 
             except Exception as e:
-                logger.warning(f"Credibility framework error for {url}: {e}, falling back to legacy")
+                logger.warning(
+                    f"Credibility framework error for {url}: {e}, falling back to legacy"
+                )
                 base_credibility = None  # Fall through to legacy logic
 
         else:
@@ -1271,33 +1635,48 @@ class EvidenceRetriever:
         # Legacy fallback: Hardcoded pattern matching
         if base_credibility is None:
             # Academic/research institutions
-            if any(domain in source for domain in ['.edu', '.ac.uk', 'university', 'research']):
-                base_credibility = self.credibility_weights['academic']
+            if any(
+                domain in source
+                for domain in [".edu", ".ac.uk", "university", "research"]
+            ):
+                base_credibility = self.credibility_weights["academic"]
 
             # Scientific journals
-            elif any(journal in source for journal in ['nature', 'science', 'cell', 'lancet', 'nejm']):
-                base_credibility = self.credibility_weights['scientific']
+            elif any(
+                journal in source
+                for journal in ["nature", "science", "cell", "lancet", "nejm"]
+            ):
+                base_credibility = self.credibility_weights["scientific"]
 
             # Government sources
-            elif any(domain in source for domain in ['.gov', 'nhs.uk', 'who.int']):
-                base_credibility = self.credibility_weights['government']
+            elif any(domain in source for domain in [".gov", "nhs.uk", "who.int"]):
+                base_credibility = self.credibility_weights["government"]
 
             # Tier 1 news
-            elif any(outlet in source for outlet in ['bbc', 'reuters', 'ap.org', 'apnews']):
-                base_credibility = self.credibility_weights['news_tier1']
+            elif any(
+                outlet in source for outlet in ["bbc", "reuters", "ap.org", "apnews"]
+            ):
+                base_credibility = self.credibility_weights["news_tier1"]
 
             # Tier 2 news
-            elif any(outlet in source for outlet in [
-                'guardian', 'telegraph', 'independent', 'economist', 'ft.com'
-            ]):
-                base_credibility = self.credibility_weights['news_tier2']
+            elif any(
+                outlet in source
+                for outlet in [
+                    "guardian",
+                    "telegraph",
+                    "independent",
+                    "economist",
+                    "ft.com",
+                ]
+            ):
+                base_credibility = self.credibility_weights["news_tier2"]
 
             # Default
             else:
-                base_credibility = self.credibility_weights['general']
+                base_credibility = self.credibility_weights["general"]
 
         return base_credibility
-    
+
     def _get_recency_score(self, published_date: Optional[str]) -> float:
         """Calculate recency score (more recent = higher score)"""
         if not published_date:
@@ -1307,13 +1686,13 @@ class EvidenceRetriever:
             source_year = None
 
             # Pass 1: ISO-like prefix (YYYY-MM-DD or YYYY/MM/DD)
-            iso_match = re.match(r'^(\d{4})[-/]', published_date)
+            iso_match = re.match(r"^(\d{4})[-/]", published_date)
             if iso_match:
                 source_year = int(iso_match.group(1))
 
             # Pass 2: fallback regex scan for 4-digit year (19xx/20xx)
             if source_year is None:
-                year_match = re.search(r'(?:19|20)\d{2}', published_date)
+                year_match = re.search(r"(?:19|20)\d{2}", published_date)
                 if not year_match:
                     return 0.8
                 source_year = int(year_match.group(0))
@@ -1350,18 +1729,58 @@ class EvidenceRetriever:
         """
         # Common sports organization suffixes
         org_suffixes = (
-            "FC", "United", "City", "Rovers", "Wanderers", "Athletic",
-            "Dortmund", "Arsenal", "Chelsea", "Munich", "Madrid", "Barcelona",
-            "Milan", "Inter", "Juventus", "PSG", "Bayern", "Liverpool",
-            "Tottenham", "Spurs", "Hotspur", "Rangers", "Celtic",
-            "Club", "Association", "Federation", "League", "UEFA", "FIFA",
-            "Inc", "Ltd", "Corp", "Company", "Organization", "Government"
+            "FC",
+            "United",
+            "City",
+            "Rovers",
+            "Wanderers",
+            "Athletic",
+            "Dortmund",
+            "Arsenal",
+            "Chelsea",
+            "Munich",
+            "Madrid",
+            "Barcelona",
+            "Milan",
+            "Inter",
+            "Juventus",
+            "PSG",
+            "Bayern",
+            "Liverpool",
+            "Tottenham",
+            "Spurs",
+            "Hotspur",
+            "Rangers",
+            "Celtic",
+            "Club",
+            "Association",
+            "Federation",
+            "League",
+            "UEFA",
+            "FIFA",
+            "Inc",
+            "Ltd",
+            "Corp",
+            "Company",
+            "Organization",
+            "Government",
         )
 
         # Common title prefixes that indicate PERSON
         person_prefixes = (
-            "Mr", "Mrs", "Ms", "Dr", "Prof", "Sir", "Lord", "Lady",
-            "President", "Prime Minister", "Minister", "Senator", "Governor"
+            "Mr",
+            "Mrs",
+            "Ms",
+            "Dr",
+            "Prof",
+            "Sir",
+            "Lord",
+            "Lady",
+            "President",
+            "Prime Minister",
+            "Minister",
+            "Senator",
+            "Governor",
         )
 
         labeled = []
@@ -1376,9 +1795,11 @@ class EvidenceRetriever:
             if any(entity_stripped.endswith(suffix) for suffix in org_suffixes):
                 labeled.append({"text": entity_stripped, "label": "ORG"})
             # Check for person name patterns (2+ capitalized words, not org)
-            elif (len(words) >= 2 and
-                  all(w[0].isupper() for w in words if w) and
-                  not any(suffix in entity_stripped for suffix in org_suffixes)):
+            elif (
+                len(words) >= 2
+                and all(w[0].isupper() for w in words if w)
+                and not any(suffix in entity_stripped for suffix in org_suffixes)
+            ):
                 labeled.append({"text": entity_stripped, "label": "PERSON"})
             # Check for title prefix
             elif any(entity_stripped.startswith(prefix) for prefix in person_prefixes):
@@ -1391,9 +1812,7 @@ class EvidenceRetriever:
         return labeled
 
     async def _retrieve_from_government_apis(
-        self,
-        claim_text: str,
-        claim: Dict[str, Any]
+        self, claim_text: str, claim: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Retrieve evidence from government APIs based on claim domain/jurisdiction.
@@ -1412,9 +1831,13 @@ class EvidenceRetriever:
         from app.core.config import settings
 
         # Check feature flag
-        api_flag = getattr(settings, 'ENABLE_API_RETRIEVAL', False)
-        logger.info(f"[API DEBUG] ENABLE_API_RETRIEVAL={api_flag}, self.enable_api_retrieval={self.enable_api_retrieval}")
-        logger.info(f"[API DEBUG] Registry adapter count: {len(self.api_registry.adapters)}")
+        api_flag = getattr(settings, "ENABLE_API_RETRIEVAL", False)
+        logger.info(
+            f"[API DEBUG] ENABLE_API_RETRIEVAL={api_flag}, self.enable_api_retrieval={self.enable_api_retrieval}"
+        )
+        logger.info(
+            f"[API DEBUG] Registry adapter count: {len(self.api_registry.adapters)}"
+        )
 
         if not api_flag or not self.enable_api_retrieval:
             logger.warning("[API DEBUG] API retrieval DISABLED by feature flag")
@@ -1422,10 +1845,15 @@ class EvidenceRetriever:
 
         # Safety check: if registry is empty, adapters weren't initialized
         if len(self.api_registry.adapters) == 0:
-            logger.error("[API DEBUG] CRITICAL: Registry has 0 adapters! Initializing now...")
+            logger.error(
+                "[API DEBUG] CRITICAL: Registry has 0 adapters! Initializing now..."
+            )
             from app.services.api_adapters import initialize_adapters
+
             initialize_adapters()
-            logger.info(f"[API DEBUG] After emergency init: {len(self.api_registry.adapters)} adapters")
+            logger.info(
+                f"[API DEBUG] After emergency init: {len(self.api_registry.adapters)} adapters"
+            )
 
         try:
             # PRIORITY 1: Check if claim was classified as legal during extraction
@@ -1454,7 +1882,9 @@ class EvidenceRetriever:
                     domain = article_classification.get("primary_domain", "General")
                     jurisdiction = article_classification.get("jurisdiction", "Global")
                     confidence = article_classification.get("confidence", 0.0)
-                    secondary_domains = article_classification.get("secondary_domains", [])
+                    secondary_domains = article_classification.get(
+                        "secondary_domains", []
+                    )
 
                     # Warn if classification failed (using fallback "General")
                     if article_classification.get("classification_failed"):
@@ -1476,40 +1906,50 @@ class EvidenceRetriever:
                     jurisdiction = "Global"
                     confidence = 0.0
                     secondary_domains = []
-                    logger.warning("[API ROUTING] No article classification, defaulting to General")
-
+                    logger.warning(
+                        "[API ROUTING] No article classification, defaulting to General"
+                    )
 
             # Get relevant API adapters for primary domain
-            relevant_adapters = self.api_registry.get_adapters_for_domain(domain, jurisdiction)
+            relevant_adapters = self.api_registry.get_adapters_for_domain(
+                domain, jurisdiction
+            )
 
             # Also query secondary domain adapters (for cross-domain articles)
-            if 'secondary_domains' in dir() and secondary_domains:
+            if "secondary_domains" in dir() and secondary_domains:
                 for sec_domain in secondary_domains:
-                    sec_adapters = self.api_registry.get_adapters_for_domain(sec_domain, jurisdiction)
+                    sec_adapters = self.api_registry.get_adapters_for_domain(
+                        sec_domain, jurisdiction
+                    )
                     # Add unique adapters (avoid duplicates)
                     for adapter in sec_adapters:
                         if adapter not in relevant_adapters:
                             relevant_adapters.append(adapter)
-                            logger.debug(f"[API ROUTING] Added secondary domain adapter: {adapter.api_name} ({sec_domain})")
+                            logger.debug(
+                                f"[API ROUTING] Added secondary domain adapter: {adapter.api_name} ({sec_domain})"
+                            )
 
             # Claim-level keyword routing: add adapters based on claim text keywords
             # This catches cross-domain claims (e.g., oil prices in Politics articles)
             from app.utils.claim_keyword_router import get_keyword_router
+
             keyword_router = get_keyword_router()
             keyword_adapters = keyword_router.get_additional_adapters(
-                claim_text,
-                relevant_adapters,
-                self.api_registry
+                claim_text, relevant_adapters, self.api_registry
             )
             for adapter in keyword_adapters:
                 relevant_adapters.append(adapter)
-                logger.info(f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}...")
+                logger.info(
+                    f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}..."
+                )
 
             # Fix 0a: Limit adapters per claim - most claims don't need 5+ API sources
             # Reduced from 5 to 3: fewer irrelevant keyword matches, faster processing
             MAX_ADAPTERS_PER_CLAIM = 3
             if len(relevant_adapters) > MAX_ADAPTERS_PER_CLAIM:
-                logger.info(f"[API LIMIT] Reducing {len(relevant_adapters)} adapters to {MAX_ADAPTERS_PER_CLAIM}")
+                logger.info(
+                    f"[API LIMIT] Reducing {len(relevant_adapters)} adapters to {MAX_ADAPTERS_PER_CLAIM}"
+                )
                 relevant_adapters = relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]
 
             # Log final adapter list
@@ -1517,7 +1957,9 @@ class EvidenceRetriever:
             logger.info(f"[API DEBUG] Final adapters to query: {adapter_names}")
 
             if not relevant_adapters:
-                logger.warning(f"[API] No adapters found for domain={domain}, jurisdiction={jurisdiction}")
+                logger.warning(
+                    f"[API] No adapters found for domain={domain}, jurisdiction={jurisdiction}"
+                )
                 return {"evidence": [], "api_stats": {}}
 
             # Query all relevant APIs concurrently
@@ -1530,14 +1972,13 @@ class EvidenceRetriever:
                     claim_text,
                     domain,
                     jurisdiction,
-                    entities
+                    entities,
                 )
                 api_tasks.append((adapter.api_name, task))
 
             # Gather all API results
             api_results = await asyncio.gather(
-                *[task for _, task in api_tasks],
-                return_exceptions=True
+                *[task for _, task in api_tasks], return_exceptions=True
             )
 
             # Collect evidence and statistics
@@ -1545,7 +1986,7 @@ class EvidenceRetriever:
             api_stats = {
                 "apis_queried": [],
                 "total_api_calls": 0,
-                "total_api_results": 0
+                "total_api_results": 0,
             }
 
             for i, (api_name, _) in enumerate(api_tasks):
@@ -1553,12 +1994,16 @@ class EvidenceRetriever:
 
                 if isinstance(result, Exception):
                     logger.error(f"{api_name} API call failed: {result}")
-                    api_stats["apis_queried"].append({"name": api_name, "results": 0, "error": str(result)})
+                    api_stats["apis_queried"].append(
+                        {"name": api_name, "results": 0, "error": str(result)}
+                    )
                     continue
 
                 if result:
                     all_api_evidence.extend(result)
-                    api_stats["apis_queried"].append({"name": api_name, "results": len(result)})
+                    api_stats["apis_queried"].append(
+                        {"name": api_name, "results": len(result)}
+                    )
                     api_stats["total_api_results"] += len(result)
                 else:
                     api_stats["apis_queried"].append({"name": api_name, "results": 0})
@@ -1566,37 +2011,49 @@ class EvidenceRetriever:
             api_stats["total_api_calls"] = len(api_tasks)
 
             # Log API results summary
-            logger.info(f"[API DEBUG] Results: {api_stats['total_api_calls']} APIs queried, {api_stats['total_api_results']} total results")
+            logger.info(
+                f"[API DEBUG] Results: {api_stats['total_api_calls']} APIs queried, {api_stats['total_api_results']} total results"
+            )
             for api_stat in api_stats["apis_queried"]:
-                logger.info(f"[API DEBUG]   - {api_stat['name']}: {api_stat.get('results', 0)} results" +
-                           (f" (ERROR: {api_stat.get('error', '')})" if api_stat.get('error') else ""))
+                logger.info(
+                    f"[API DEBUG]   - {api_stat['name']}: {api_stat.get('results', 0)} results"
+                    + (
+                        f" (ERROR: {api_stat.get('error', '')})"
+                        if api_stat.get("error")
+                        else ""
+                    )
+                )
 
             # Fix 0b: Cap total API evidence per claim
             # Reduced from 30 to 10: LLM judge has limited context, quality over quantity
             MAX_API_EVIDENCE_PER_CLAIM = 10
             if len(all_api_evidence) > MAX_API_EVIDENCE_PER_CLAIM:
-                logger.info(f"[API CAP] Reducing {len(all_api_evidence)} API items to {MAX_API_EVIDENCE_PER_CLAIM}")
+                logger.info(
+                    f"[API CAP] Reducing {len(all_api_evidence)} API items to {MAX_API_EVIDENCE_PER_CLAIM}"
+                )
                 # Sort by credibility/score and keep best
-                all_api_evidence.sort(key=lambda x: x.get('credibility_score', 0.5), reverse=True)
+                all_api_evidence.sort(
+                    key=lambda x: x.get("credibility_score", 0.5), reverse=True
+                )
                 all_api_evidence = all_api_evidence[:MAX_API_EVIDENCE_PER_CLAIM]
 
             # CRITICAL DIAGNOSTIC: Log final API evidence count
-            logger.critical(f"[API RETRIEVAL] Returning {len(all_api_evidence)} evidence items from {api_stats['total_api_calls']} API calls")
+            logger.critical(
+                f"[API RETRIEVAL] Returning {len(all_api_evidence)} evidence items from {api_stats['total_api_calls']} API calls"
+            )
             if all_api_evidence:
-                logger.info(f"[API RETRIEVAL] First item: {all_api_evidence[0].get('source', 'N/A')} - {all_api_evidence[0].get('title', 'N/A')[:50]}")
+                logger.info(
+                    f"[API RETRIEVAL] First item: {all_api_evidence[0].get('source', 'N/A')} - {all_api_evidence[0].get('title', 'N/A')[:50]}"
+                )
 
-            return {
-                "evidence": all_api_evidence,
-                "api_stats": api_stats
-            }
+            return {"evidence": all_api_evidence, "api_stats": api_stats}
 
         except Exception as e:
             logger.error(f"Government API retrieval error: {e}", exc_info=True)
             return {"evidence": [], "api_stats": {}}
 
     def _convert_api_evidence_to_snippets(
-        self,
-        api_evidence: List[Dict[str, Any]]
+        self, api_evidence: List[Dict[str, Any]]
     ) -> List[EvidenceSnippet]:
         """
         Convert API evidence dictionaries to EvidenceSnippet objects.
@@ -1614,7 +2071,9 @@ class EvidenceRetriever:
             try:
                 text = evidence.get("snippet", "")
                 if not text:
-                    logger.warning(f"[API CONVERT] Item {i}: Empty snippet, source={evidence.get('source', 'N/A')}")
+                    logger.warning(
+                        f"[API CONVERT] Item {i}: Empty snippet, source={evidence.get('source', 'N/A')}"
+                    )
                     conversion_failures += 1
                     continue
 
@@ -1628,9 +2087,11 @@ class EvidenceRetriever:
                     # word_count is calculated automatically in EvidenceSnippet.__init__
                     metadata={
                         **evidence.get("metadata", {}),
-                        "external_source_provider": evidence.get("external_source_provider"),
-                        "credibility_score": evidence.get("credibility_score", 0.95)
-                    }
+                        "external_source_provider": evidence.get(
+                            "external_source_provider"
+                        ),
+                        "credibility_score": evidence.get("credibility_score", 0.95),
+                    },
                 )
                 snippets.append(snippet)
             except Exception as e:
@@ -1639,24 +2100,27 @@ class EvidenceRetriever:
                 continue
 
         if conversion_failures > 0:
-            logger.warning(f"[API CONVERT] {conversion_failures}/{len(api_evidence)} items failed conversion")
+            logger.warning(
+                f"[API CONVERT] {conversion_failures}/{len(api_evidence)} items failed conversion"
+            )
 
         return snippets
-    
-    async def _store_evidence_embeddings(self, claim: Dict[str, Any], 
-                                       evidence_list: List[Dict[str, Any]]):
+
+    async def _store_evidence_embeddings(
+        self, claim: Dict[str, Any], evidence_list: List[Dict[str, Any]]
+    ):
         """Store evidence embeddings in vector database for future use"""
         try:
             if not evidence_list:
                 return
-            
+
             embedding_service = await get_embedding_service()
             vector_store = await get_vector_store()
-            
+
             # Generate embeddings for evidence texts
             evidence_texts = [evidence["text"] for evidence in evidence_list]
             embeddings = await embedding_service.embed_batch(evidence_texts)
-            
+
             # Prepare data for vector storage
             evidence_data = []
             for evidence, embedding in zip(evidence_list, embeddings):
@@ -1665,37 +2129,37 @@ class EvidenceRetriever:
                     "embedding": embedding,
                     "claim_text": claim.get("text"),
                     "claim_position": claim.get("position"),
-                    "created_at": datetime.utcnow().isoformat()
+                    "created_at": datetime.utcnow().isoformat(),
                 }
                 evidence_data.append(evidence_item)
-            
+
             # Store embeddings
             stored_ids = await vector_store.store_evidence_embeddings(evidence_data)
             logger.debug(f"Stored {len(stored_ids)} embeddings")
-            
+
         except Exception as e:
             logger.warning(f"Evidence storage error: {e}")
             # Don't fail the pipeline if storage fails
-    
-    async def retrieve_from_vector_store(self, claim: str, limit: int = 5) -> List[Dict[str, Any]]:
+
+    async def retrieve_from_vector_store(
+        self, claim: str, limit: int = 5
+    ) -> List[Dict[str, Any]]:
         """Retrieve similar evidence from vector store"""
         try:
             embedding_service = await get_embedding_service()
             vector_store = await get_vector_store()
-            
+
             # Generate claim embedding
             claim_embedding = await embedding_service.embed_text(claim)
-            
+
             # Search for similar evidence
             similar_evidence = await vector_store.search_similar_evidence(
-                query_embedding=claim_embedding,
-                limit=limit,
-                score_threshold=0.7
+                query_embedding=claim_embedding, limit=limit, score_threshold=0.7
             )
-            
+
             logger.debug(f"Vector store: {len(similar_evidence)} items")
             return similar_evidence
-            
+
         except Exception as e:
             logger.error(f"Vector store retrieval error: {e}")
             return []

@@ -13,9 +13,9 @@ Infrastructure cleanup. 5 PRs, ~2,100 lines removed. Commit `041b55f`.
 
 ### Track B (in progress): Product Pivot — Claim Map System
 Replace the judge/verdict system with the Claim Map evidence analyzer. 8 PRs.
-- B01: Foundation — types, schema migration, config flags
-- B02: Claim Map analyzer + claim selector (new modules)
-- B03: Evidence ID + element-level retrieval (direct replacement)
+- B01: Foundation — types, schema migration, config flags — **DONE** `1f04f7b`
+- B02: Claim Map analyzer + claim selector (new modules) — **DONE** `79708ed`
+- B03: Evidence ID + element-level retrieval (direct replacement) — **DONE**
 - B04: Pipeline wiring — new stages replace judge/summary/explainability
 - B05: Harness adaptation — validate new path
 - B06: API response shapes + peripheral services

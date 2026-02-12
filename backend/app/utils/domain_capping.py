@@ -5,6 +5,7 @@ from app.utils.url_utils import extract_domain
 
 logger = logging.getLogger(__name__)
 
+
 class DomainCapper:
     """Enforce maximum evidence per domain to prevent single-source dominance"""
 
@@ -23,7 +24,7 @@ class DomainCapper:
         self,
         evidence: List[Dict[str, Any]],
         target_count: int = 5,
-        outstanding_threshold: float = 0.95
+        outstanding_threshold: float = 0.95,
     ) -> List[Dict[str, Any]]:
         """
         Apply per-domain caps to evidence list with credibility awareness.
@@ -48,23 +49,29 @@ class DomainCapper:
         # Group evidence by domain FIRST to check for diversity
         domain_evidence = defaultdict(list)
         for ev in evidence:
-            domain = extract_domain(ev.get('url', ''), fallback="unknown")
+            domain = extract_domain(ev.get("url", ""), fallback="unknown")
             domain_evidence[domain].append(ev)
 
         # Check if any single domain dominates
-        max_from_single_domain = max(len(ev_list) for ev_list in domain_evidence.values())
+        max_from_single_domain = max(
+            len(ev_list) for ev_list in domain_evidence.values()
+        )
         num_unique_domains = len(domain_evidence)
 
         # EDGE CASE: For very small evidence sets WITH DIVERSITY, skip aggressive capping
         # Only skip if: (1) fewer than 4 items AND (2) no domain has more than 2 items
         # If one domain dominates a small set, we MUST still cap to prevent bias appearance
         if len(evidence) < 4 and max_from_single_domain <= 2:
-            logger.info(f"Small diverse evidence set ({len(evidence)} items, {num_unique_domains} domains) - skipping capping")
+            logger.info(
+                f"Small diverse evidence set ({len(evidence)} items, {num_unique_domains} domains) - skipping capping"
+            )
             return evidence
 
         # If we have 3+ items from same domain, we MUST cap regardless of total count
         if max_from_single_domain > 2:
-            logger.info(f"Domain dominance detected ({max_from_single_domain} from one domain) - applying strict cap")
+            logger.info(
+                f"Domain dominance detected ({max_from_single_domain} from one domain) - applying strict cap"
+            )
 
         # Calculate domain caps - STRICT per-claim diversity
         # Problem: Having 3 sources from NYTimes in ONE claim looks like bias
@@ -75,39 +82,54 @@ class DomainCapper:
 
         domain_caps = {}
         for domain, ev_list in domain_evidence.items():
-            max_credibility = max(ev.get('credibility_score', 0.6) for ev in ev_list)
+            max_credibility = max(ev.get("credibility_score", 0.6) for ev in ev_list)
 
             if max_credibility >= outstanding_threshold:
                 # Outstanding (credibility >= 0.95): Still cap at 2 to avoid appearance of bias
                 domain_caps[domain] = STRICT_PER_CLAIM_MAX
-                logger.info(f"Domain '{domain}' is OUTSTANDING (credibility {max_credibility:.2f}), cap: {STRICT_PER_CLAIM_MAX}")
+                logger.info(
+                    f"Domain '{domain}' is OUTSTANDING (credibility {max_credibility:.2f}), cap: {STRICT_PER_CLAIM_MAX}"
+                )
             elif max_credibility >= 0.8:
                 # Good: cap at 2
                 domain_caps[domain] = STRICT_PER_CLAIM_MAX
-                logger.info(f"Domain '{domain}' is GOOD (credibility {max_credibility:.2f}), cap: {STRICT_PER_CLAIM_MAX}")
+                logger.info(
+                    f"Domain '{domain}' is GOOD (credibility {max_credibility:.2f}), cap: {STRICT_PER_CLAIM_MAX}"
+                )
             else:
                 # Mediocre: cap at 1 (need more diverse sources for low-quality)
                 domain_caps[domain] = 1
-                logger.info(f"Domain '{domain}' is MEDIOCRE (credibility {max_credibility:.2f}), cap: 1")
+                logger.info(
+                    f"Domain '{domain}' is MEDIOCRE (credibility {max_credibility:.2f}), cap: 1"
+                )
 
-        # Apply caps
+        # Apply caps — allow same URL across elements within a claim
         domain_counts = defaultdict(int)
+        domain_urls_seen = defaultdict(set)  # domain -> set of URLs already counted
         capped_evidence = []
 
         # Evidence should already be sorted by score (descending)
         for ev in evidence:
-            domain = extract_domain(ev.get('url', ''), fallback="unknown")
+            url = ev.get("url", "")
+            domain = extract_domain(url, fallback="unknown")
             cap = domain_caps.get(domain, 2)  # Default to 2 if not calculated
 
-            if domain_counts[domain] < cap:
+            # Same URL serving different elements doesn't count against cap again
+            if url and url in domain_urls_seen[domain]:
+                capped_evidence.append(ev)
+            elif domain_counts[domain] < cap:
                 capped_evidence.append(ev)
                 domain_counts[domain] += 1
+                if url:
+                    domain_urls_seen[domain].add(url)
 
             if len(capped_evidence) >= target_count:
                 break
 
-        logger.info(f"Credibility-aware domain capping: {len(evidence)} → {len(capped_evidence)} sources. "
-                   f"Distribution: {dict(domain_counts)}")
+        logger.info(
+            f"Credibility-aware domain capping: {len(evidence)} → {len(capped_evidence)} sources. "
+            f"Distribution: {dict(domain_counts)}"
+        )
 
         return capped_evidence
 
@@ -115,7 +137,7 @@ class DomainCapper:
         self,
         evidence_by_claim: Dict[str, List[Dict[str, Any]]],
         global_max_per_domain: int = 5,
-        global_max_ratio: float = 0.25
+        global_max_ratio: float = 0.25,
     ) -> Dict[str, List[Dict[str, Any]]]:
         """
         Apply global domain capping across ALL claims to ensure source diversity.
@@ -139,19 +161,22 @@ class DomainCapper:
         for position, ev_list in evidence_by_claim.items():
             for ev in ev_list:
                 ev_copy = dict(ev)
-                ev_copy['_claim_position'] = position
+                ev_copy["_claim_position"] = position
                 all_evidence.append(ev_copy)
 
         if not all_evidence:
             return evidence_by_claim
 
-        # Calculate current domain distribution
-        domain_counts = defaultdict(int)
+        # Calculate current domain distribution (count unique URLs per domain
+        # so same URL serving multiple elements doesn't inflate the count)
+        domain_urls = defaultdict(set)
         domain_evidence = defaultdict(list)
         for ev in all_evidence:
-            domain = extract_domain(ev.get('url', ''), fallback="unknown")
-            domain_counts[domain] += 1
+            url = ev.get("url", "")
+            domain = extract_domain(url, fallback="unknown")
+            domain_urls[domain].add(url or f"_no_url_{id(ev)}")
             domain_evidence[domain].append(ev)
+        domain_counts = {d: len(urls) for d, urls in domain_urls.items()}
 
         total_evidence = len(all_evidence)
         num_claims = len(evidence_by_claim)
@@ -187,30 +212,41 @@ class DomainCapper:
                 )
 
         if not capped_domains:
-            logger.info(f"[GLOBAL CAP] All domains within limits (max={effective_max_count})")
+            logger.info(
+                f"[GLOBAL CAP] All domains within limits (max={effective_max_count})"
+            )
             return evidence_by_claim
 
         # Sort evidence within each domain by score (descending) to keep best ones
         for domain in capped_domains:
             domain_evidence[domain].sort(
-                key=lambda x: x.get('final_score', x.get('combined_score', 0)),
-                reverse=True
+                key=lambda x: x.get("final_score", x.get("combined_score", 0)),
+                reverse=True,
             )
 
         # Rebuild evidence_by_claim with global caps enforced
+        # Count unique URLs per domain so same URL across elements doesn't inflate count
         global_domain_counts = defaultdict(int)
+        global_domain_urls_seen = defaultdict(set)
         new_evidence_by_claim = {pos: [] for pos in evidence_by_claim.keys()}
 
         # Process evidence in order of score (best first across all claims)
         all_evidence_sorted = sorted(
             all_evidence,
-            key=lambda x: x.get('final_score', x.get('combined_score', 0)),
-            reverse=True
+            key=lambda x: x.get("final_score", x.get("combined_score", 0)),
+            reverse=True,
         )
 
         for ev in all_evidence_sorted:
-            domain = extract_domain(ev.get('url', ''), fallback="unknown")
-            position = ev.get('_claim_position')
+            url = ev.get("url", "")
+            domain = extract_domain(url, fallback="unknown")
+            position = ev.get("_claim_position")
+
+            # Same URL serving different elements passes through without counting again
+            if url and url in global_domain_urls_seen[domain]:
+                ev_clean = {k: v for k, v in ev.items() if not k.startswith("_")}
+                new_evidence_by_claim[position].append(ev_clean)
+                continue
 
             # Check global domain cap
             if global_domain_counts[domain] >= effective_max_count:
@@ -220,9 +256,11 @@ class DomainCapper:
                 continue
 
             # Remove tracking field and add to result
-            ev_clean = {k: v for k, v in ev.items() if not k.startswith('_')}
+            ev_clean = {k: v for k, v in ev.items() if not k.startswith("_")}
             new_evidence_by_claim[position].append(ev_clean)
             global_domain_counts[domain] += 1
+            if url:
+                global_domain_urls_seen[domain].add(url)
 
         # Log results
         total_before = sum(len(v) for v in evidence_by_claim.values())
@@ -254,10 +292,12 @@ class DomainCapper:
                 "unique_domains": 0,
                 "max_domain_ratio": 0,
                 "diversity_score": 0,
-                "domain_distribution": {}
+                "domain_distribution": {},
             }
 
-        domains = [extract_domain(ev.get('url', ''), fallback="unknown") for ev in evidence]
+        domains = [
+            extract_domain(ev.get("url", ""), fallback="unknown") for ev in evidence
+        ]
         domain_counts = defaultdict(int)
         for domain in domains:
             domain_counts[domain] += 1
@@ -271,5 +311,5 @@ class DomainCapper:
             "unique_domains": unique_domains,
             "max_domain_ratio": round(max_domain_ratio, 2),
             "diversity_score": round(diversity_score, 2),
-            "domain_distribution": dict(domain_counts)
+            "domain_distribution": dict(domain_counts),
         }
