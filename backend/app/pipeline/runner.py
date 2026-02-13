@@ -945,6 +945,43 @@ async def run_pipeline(
             },
         )
 
+    # Compute claim_map_input_hash BEFORE evidence mapping (determinism tracking)
+    import hashlib as _hashlib
+
+    def _compute_claim_map_input_hash(
+        claim_map_scaffold: dict, evidence_list: list
+    ) -> str:
+        """Canonicalize scaffold + evidence, return SHA256[:16] hex."""
+        elements_canon = sorted(
+            [
+                {"element_id": e["element_id"], "description": e["description"]}
+                for e in claim_map_scaffold.get("elements", [])
+            ],
+            key=lambda x: x["element_id"],
+        )
+        evidence_canon = sorted(
+            [
+                {"evidence_id": e.get("evidence_id", ""), "url": e.get("url", "")}
+                for e in evidence_list
+            ],
+            key=lambda x: x["evidence_id"],
+        )
+        blob = json.dumps(
+            {"elements": elements_canon, "evidence": evidence_canon},
+            sort_keys=True,
+            ensure_ascii=True,
+        )
+        return _hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+    for claim in selected_claims:
+        pos = str(claim.get("position", 0))
+        scaffold = claim.get("claim_map")
+        ev_list = evidence.get(pos, [])
+        if scaffold:
+            claim["claim_map_input_hash"] = _compute_claim_map_input_hash(
+                scaffold, ev_list
+            )
+
     article_excerpt = content.get("content", "")[:5000]
     analyze_timeout = min(15 * len(selected_claims), 120)
 
@@ -1050,6 +1087,7 @@ async def run_pipeline(
             "has_rhetorical_context": claim.get("has_rhetorical_context", False),
             "rhetorical_style": claim.get("rhetorical_style"),
             "article_classification": claim.get("article_classification"),
+            "claim_map_input_hash": claim.get("claim_map_input_hash"),
         }
         results.append(result)
 
@@ -1259,6 +1297,8 @@ async def save_check_results_async(
                 rhetorical_context=claim_data.get("rhetorical_analysis"),
                 has_rhetorical_context=claim_data.get("has_rhetorical_context", False),
                 rhetorical_style=claim_data.get("rhetorical_style"),
+                # Reusing judge_input_hash column for claim_map_input_hash — column renamed in B07 migration
+                judge_input_hash=claim_data.get("claim_map_input_hash"),
                 # Claim Map system fields
                 claim_map=claim_map_data,
                 new_claim_type=new_claim_type,

@@ -6,9 +6,9 @@ Usage:
     python compare_runs.py runs/20260206T120000_baseline-v1 runs/20260206T130000_after-PR-1A
 
 Outputs:
-    - Terminal: verdict flip rate, confidence deltas, evidence URL Jaccard, ledger diffs
+    - Terminal: Claim Map divergences, evidence URL Jaccard, ledger diffs
     - File: <after_dir>/_diff_report.md (PR-reviewable markdown)
-    - Pass/Fail against two-gate system (evidence determinism + verdict stability)
+    - Pass/Fail against two-gate system (evidence determinism + Claim Map stability)
 """
 import argparse
 import json
@@ -17,7 +17,7 @@ from pathlib import Path
 
 
 # --- Gate 1: Evidence determinism (Jaccard thresholds) ---
-MIN_EVIDENCE_JACCARD = 0.80         # 80% URL overlap (normal runs)
+MIN_EVIDENCE_JACCARD = 0.80  # 80% URL overlap (normal runs)
 MIN_FIXTURES_FOR_HARD_GATE = 12
 
 # Frozen URL replay (tighter — search variance eliminated)
@@ -27,37 +27,98 @@ FROZEN_MIN_EVIDENCE_JACCARD = 0.90
 FROZEN_EVIDENCE_MIN_JACCARD_OVERALL = 0.90
 FROZEN_EVIDENCE_MIN_JACCARD_CORE = 0.95
 
-# --- Gate 2: Verdict stability (classification-based) ---
-# No numeric threshold — uses classify_flip() to categorize each flip:
-#   hard_fail:     supported <-> contradicted (directional reversal, always fails)
-#   pipeline_fail: uncertain <-> {supported,contradicted} with DIFFERENT judge input hash
-#   llm_noise:     uncertain <-> {supported,contradicted} with SAME hash (LLM nondeterminism)
-
-# Legacy thresholds kept for non-frozen runs (no hash data available)
-MAX_VERDICT_FLIP_RATE = 0.05        # 5% for mature datasets (>= 12 fixtures)
-MAX_VERDICT_FLIP_RATE_SMALL = 0.15  # 15% for small datasets (< 12 fixtures)
-FROZEN_MAX_VERDICT_FLIP_RATE = 0.05
+# --- Gate 2: Claim Map stability (classification-based) ---
+# No numeric threshold — uses compare_claim_maps() to categorize each divergence:
+#   hard_fail:     element count mismatch (structural divergence)
+#   pipeline_fail: orientation differs but element states are identical (mechanical bug)
+#   llm_noise:     element state flip, evidence mapping change, or claim type change
 
 
-def classify_flip(before_verdict, after_verdict, before_hash, after_hash):
-    """Classify a verdict flip into hard_fail, pipeline_fail, or llm_noise.
+def compare_claim_maps(baseline_cm, current_cm):
+    """Compare two ClaimMap dicts for determinism testing.
 
-    Returns (flip_type, reason) tuple.
+    Returns (status, reason, details) where status is one of:
+        'pass', 'hard_fail', 'pipeline_fail', 'llm_noise'
     """
-    # Directional reversal: supported <-> contradicted is always a hard fail
-    if {before_verdict, after_verdict} == {"supported", "contradicted"}:
-        return ("hard_fail", "directional reversal")
+    if not baseline_cm or not current_cm:
+        if not baseline_cm and not current_cm:
+            return ("pass", "both_empty", {})
+        return ("hard_fail", "missing_claim_map", {})
 
-    # Same judge input hash = LLM nondeterminism (not a pipeline bug)
-    if before_hash and after_hash and before_hash == after_hash:
-        return ("llm_noise", f"same judge input ({before_hash[:8]})")
+    b_elements = baseline_cm.get("elements", [])
+    c_elements = current_cm.get("elements", [])
 
-    # Different hash = pipeline changed what went into the judge
-    if before_hash and after_hash and before_hash != after_hash:
-        return ("pipeline_fail", f"hash {before_hash[:8]}->{after_hash[:8]}")
+    # 1. Element count mismatch → hard_fail
+    if len(b_elements) != len(c_elements):
+        return (
+            "hard_fail",
+            "element_count_mismatch",
+            {"baseline": len(b_elements), "current": len(c_elements)},
+        )
 
-    # No hash data (legacy runs) — assume LLM noise
-    return ("llm_noise", "no hash data (legacy)")
+    # 2. Per-element state comparison
+    state_flips = []
+    for b_elem, c_elem in zip(b_elements, c_elements):
+        if b_elem.get("state") != c_elem.get("state"):
+            state_flips.append(
+                {
+                    "element_id": b_elem.get("element_id", "?"),
+                    "baseline_state": b_elem.get("state"),
+                    "current_state": c_elem.get("state"),
+                }
+            )
+
+    # 3. Evidence mapping comparison (informational)
+    mapping_diffs = []
+    for b_elem, c_elem in zip(b_elements, c_elements):
+        b_refs = {r.get("evidence_id") for r in b_elem.get("evidence_refs", [])}
+        c_refs = {r.get("evidence_id") for r in c_elem.get("evidence_refs", [])}
+        if b_refs != c_refs:
+            mapping_diffs.append(
+                {
+                    "element_id": b_elem.get("element_id", "?"),
+                    "only_baseline": sorted(b_refs - c_refs),
+                    "only_current": sorted(c_refs - b_refs),
+                }
+            )
+
+    # 4. Claim type comparison
+    claim_type_diff = None
+    b_ct = baseline_cm.get("claim_type")
+    c_ct = current_cm.get("claim_type")
+    if b_ct != c_ct:
+        claim_type_diff = {"baseline": b_ct, "current": c_ct}
+
+    # 5. Orientation comparison
+    b_orient = baseline_cm.get("orientation")
+    c_orient = current_cm.get("orientation")
+    orientation_diff = b_orient != c_orient
+
+    details = {
+        "state_flips": state_flips,
+        "mapping_diffs": mapping_diffs,
+        "claim_type_diff": claim_type_diff,
+        "orientation_diff": orientation_diff,
+    }
+
+    # Classification rules:
+    # - Element state flip → llm_noise
+    if state_flips:
+        return ("llm_noise", "element_state_flip", details)
+
+    # - Orientation differs but states match → pipeline_fail (mechanical bug)
+    if orientation_diff and not state_flips:
+        return ("pipeline_fail", "orientation_mismatch_with_same_states", details)
+
+    # - Evidence mapping differs → llm_noise
+    if mapping_diffs:
+        return ("llm_noise", "evidence_mapping_diff", details)
+
+    # - Claim type differs → llm_noise
+    if claim_type_diff:
+        return ("llm_noise", "claim_type_diff", details)
+
+    return ("pass", "all_match", details)
 
 
 def jaccard(set_a, set_b):
@@ -110,25 +171,26 @@ def compare(before_dir: Path, after_dir: Path):
     is_frozen_evidence = after_summary.get("freeze_version", 0) >= 2
     is_frozen = bool(after_summary.get("freeze_from")) and not is_frozen_evidence
 
-    # Warn on freeze_stage mismatch (e.g. pre_weighting vs judge_input_evidence)
+    # Warn on freeze_stage mismatch
     before_stage = before_summary.get("freeze_stage")
     after_stage = after_summary.get("freeze_stage")
-    freeze_stage_mismatch = (
-        before_stage and after_stage and before_stage != after_stage
-    )
+    freeze_stage_mismatch = before_stage and after_stage and before_stage != after_stage
     if freeze_stage_mismatch:
-        print(f"  WARNING: freeze_stage mismatch: before={before_stage}, after={after_stage}")
-        print(f"           Results may not be comparable — re-run baseline with current code.")
+        print(
+            f"  WARNING: freeze_stage mismatch: before={before_stage}, after={after_stage}"
+        )
+        print(
+            f"           Results may not be comparable — re-run baseline with current code."
+        )
 
     # Check if hash data is available (enables two-gate system)
     has_hash_data = False
 
     total_claims = 0
-    flipped_claims = 0
+    divergent_claims = 0
     all_jaccards = []
-    confidence_deltas = []
     rows = []
-    flip_details = []  # For markdown report
+    divergence_details = []  # For markdown report
 
     # Gate 2 classification counters
     hard_fail_count = 0
@@ -136,7 +198,7 @@ def compare(before_dir: Path, after_dir: Path):
     llm_noise_count = 0
 
     # Per-tag tracking
-    tag_stats = {}  # tag -> {"claims": 0, "flips": 0, "jaccards": []}
+    tag_stats = {}  # tag -> {"claims": 0, "divergences": 0, "jaccards": []}
 
     for slug in common_slugs:
         b = before[slug]
@@ -144,65 +206,61 @@ def compare(before_dir: Path, after_dir: Path):
         tag = a.get("tag", b.get("tag", "untagged"))
 
         if tag not in tag_stats:
-            tag_stats[tag] = {"claims": 0, "flips": 0, "jaccards": []}
+            tag_stats[tag] = {"claims": 0, "divergences": 0, "jaccards": []}
 
         # Skip errored runs
         if b.get("status") != "completed" or a.get("status") != "completed":
-            rows.append(f"  {slug} [{tag}]: SKIPPED (status: {b.get('status')}/{a.get('status')})")
+            rows.append(
+                f"  {slug} [{tag}]: SKIPPED (status: {b.get('status')}/{a.get('status')})"
+            )
             continue
 
-        b_verdicts = b.get("verdicts", {})
-        a_verdicts = a.get("verdicts", {})
-        b_confs = b.get("confidences", {})
-        a_confs = a.get("confidences", {})
+        b_claim_maps = b.get("claim_maps", {})
+        a_claim_maps = a.get("claim_maps", {})
         b_urls = b.get("evidence_urls", {})
         a_urls = a.get("evidence_urls", {})
-        b_hashes = b.get("judge_input_hashes", {})
-        a_hashes = a.get("judge_input_hashes", {})
+        b_hashes = b.get("claim_map_input_hashes", {})
+        a_hashes = a.get("claim_map_input_hashes", {})
 
         if b_hashes or a_hashes:
             has_hash_data = True
 
-        claim_positions = sorted(set(b_verdicts) | set(a_verdicts))
-        slug_flips = 0
+        claim_positions = sorted(set(b_claim_maps) | set(a_claim_maps))
+        slug_divergences = 0
 
         for pos in claim_positions:
             total_claims += 1
             tag_stats[tag]["claims"] += 1
-            bv = b_verdicts.get(pos, "?")
-            av = a_verdicts.get(pos, "?")
 
-            if bv != av:
-                flipped_claims += 1
-                slug_flips += 1
-                tag_stats[tag]["flips"] += 1
-                bc_val = b_confs.get(pos, 0) or 0
-                ac_val = a_confs.get(pos, 0) or 0
+            b_cm = b_claim_maps.get(pos)
+            a_cm = a_claim_maps.get(pos)
 
-                # Classify the flip using judge input hashes
-                b_hash = b_hashes.get(pos, "")
-                a_hash = a_hashes.get(pos, "")
-                flip_type, flip_reason = classify_flip(bv, av, b_hash, a_hash)
+            status, reason, details = compare_claim_maps(b_cm, a_cm)
 
-                if flip_type == "hard_fail":
+            if status != "pass":
+                divergent_claims += 1
+                slug_divergences += 1
+                tag_stats[tag]["divergences"] += 1
+
+                if status == "hard_fail":
                     hard_fail_count += 1
-                elif flip_type == "pipeline_fail":
+                elif status == "pipeline_fail":
                     pipeline_fail_count += 1
                 else:
                     llm_noise_count += 1
 
-                flip_details.append({
-                    "slug": slug, "tag": tag, "claim": pos,
-                    "before": bv, "after": av,
-                    "conf_before": bc_val, "conf_after": ac_val,
-                    "flip_type": flip_type, "flip_reason": flip_reason,
-                    "hash_before": b_hash[:8] if b_hash else "",
-                    "hash_after": a_hash[:8] if a_hash else "",
-                })
-
-            bc = b_confs.get(pos, 0) or 0
-            ac = a_confs.get(pos, 0) or 0
-            confidence_deltas.append(ac - bc)
+                divergence_details.append(
+                    {
+                        "slug": slug,
+                        "tag": tag,
+                        "claim": pos,
+                        "status": status,
+                        "reason": reason,
+                        "state_flips": details.get("state_flips", []),
+                        "hash_before": (b_hashes.get(pos, "") or "")[:8],
+                        "hash_after": (a_hashes.get(pos, "") or "")[:8],
+                    }
+                )
 
             bu = set(b_urls.get(pos, []))
             au = set(a_urls.get(pos, []))
@@ -210,8 +268,12 @@ def compare(before_dir: Path, after_dir: Path):
             all_jaccards.append(j)
             tag_stats[tag]["jaccards"].append(j)
 
-        flip_indicator = f" FLIPS={slug_flips}" if slug_flips else ""
-        rows.append(f"  {slug} [{tag}]: {len(claim_positions)} claims{flip_indicator}")
+        divergence_indicator = (
+            f" DIVERGENCES={slug_divergences}" if slug_divergences else ""
+        )
+        rows.append(
+            f"  {slug} [{tag}]: {len(claim_positions)} claims{divergence_indicator}"
+        )
 
     # --- Ledger comparison ---
     ledger_rows = []
@@ -230,12 +292,19 @@ def compare(before_dir: Path, after_dir: Path):
             return (as_.get(key, 0) or 0) - (bs.get(key, 0) or 0)
 
         d_entered = delta("evidence_entered_pipeline")
-        d_judge = delta("evidence_reached_judge")
-        d_snippets = delta("snippet_fallbacks_at_judge")
+        d_analyzer = delta("evidence_reached_analyzer")
+        d_snippets = delta("snippet_fallbacks_at_analyzer")
 
         # Stage diffs
         stage_diffs = []
-        for stage_name in ["url_dedup", "llm_scoring", "global_domain_cap", "credibility_filtering", "frozen_replay", "frozen_evidence_replay"]:
+        for stage_name in [
+            "url_dedup",
+            "llm_scoring",
+            "global_domain_cap",
+            "credibility_filtering",
+            "frozen_replay",
+            "frozen_evidence_replay",
+        ]:
             b_stage = bl.get("stages", {}).get(stage_name, {})
             a_stage = al.get("stages", {}).get(stage_name, {})
             b_rem = b_stage.get("removed", 0) or 0
@@ -249,12 +318,23 @@ def compare(before_dir: Path, after_dir: Path):
                 if b_mm or a_mm:
                     stage_diffs.append(f"frozen_mismatches: {b_mm}/{a_mm}")
 
-        parts = [f"entered:{d_entered:+d}", f"judge:{d_judge:+d}", f"snippets:{d_snippets:+d}"]
+        parts = [
+            f"entered:{d_entered:+d}",
+            f"analyzer:{d_analyzer:+d}",
+            f"snippets:{d_snippets:+d}",
+        ]
         if stage_diffs:
             parts.append("stages=[" + ", ".join(stage_diffs) + "]")
         ledger_rows.append(f"  {slug}: {' | '.join(parts)}")
-        ledger_details.append({"slug": slug, "entered": d_entered, "judge": d_judge,
-                               "snippets": d_snippets, "stages": stage_diffs})
+        ledger_details.append(
+            {
+                "slug": slug,
+                "entered": d_entered,
+                "analyzer": d_analyzer,
+                "snippets": d_snippets,
+                "stages": stage_diffs,
+            }
+        )
 
     # --- Fingerprint comparison ---
     b_fp = before_summary.get("fingerprint", {})
@@ -262,19 +342,26 @@ def compare(before_dir: Path, after_dir: Path):
     fingerprint_diff = {}
     if b_fp and a_fp:
         if b_fp.get("git_commit") != a_fp.get("git_commit"):
-            fingerprint_diff["git"] = f"{b_fp.get('git_commit', '?')[:10]} -> {a_fp.get('git_commit', '?')[:10]}"
+            fingerprint_diff["git"] = (
+                f"{b_fp.get('git_commit', '?')[:10]} -> {a_fp.get('git_commit', '?')[:10]}"
+            )
         # Flag differences
         b_flags = b_fp.get("flags", {})
         a_flags = a_fp.get("flags", {})
-        changed_flags = {k: f"{b_flags.get(k, 'unset')} -> {v}" for k, v in a_flags.items() if b_flags.get(k) != v}
-        changed_flags.update({k: f"{v} -> unset" for k, v in b_flags.items() if k not in a_flags})
+        changed_flags = {
+            k: f"{b_flags.get(k, 'unset')} -> {v}"
+            for k, v in a_flags.items()
+            if b_flags.get(k) != v
+        }
+        changed_flags.update(
+            {k: f"{v} -> unset" for k, v in b_flags.items() if k not in a_flags}
+        )
         if changed_flags:
             fingerprint_diff["flags"] = changed_flags
 
     # --- Metrics ---
-    flip_rate = flipped_claims / total_claims if total_claims else 0
+    divergence_rate = divergent_claims / total_claims if total_claims else 0
     avg_jaccard = sum(all_jaccards) / len(all_jaccards) if all_jaccards else 1.0
-    avg_conf_delta = sum(confidence_deltas) / len(confidence_deltas) if confidence_deltas else 0
 
     # --- Terminal Report ---
     lines = []
@@ -284,13 +371,15 @@ def compare(before_dir: Path, after_dir: Path):
         lines.append(s)
 
     out("=" * 60)
-    out("EVIDENCE LOSS LEDGER — RUN COMPARISON")
+    out("CLAIM MAP COMPARISON — RUN COMPARISON")
     out("=" * 60)
     out(f"Before: {before_dir.name}")
     out(f"After:  {after_dir.name}")
     out(f"Slugs compared: {fixture_count}")
     if is_small_dataset:
-        out(f"NOTE: Small dataset ({fixture_count} < {MIN_FIXTURES_FOR_HARD_GATE}) — flip-rate is INFORMATIONAL")
+        out(
+            f"NOTE: Small dataset ({fixture_count} < {MIN_FIXTURES_FOR_HARD_GATE}) — divergence rate is INFORMATIONAL"
+        )
     out()
 
     if fingerprint_diff:
@@ -308,28 +397,35 @@ def compare(before_dir: Path, after_dir: Path):
         out(r)
     out()
 
-    out("Verdicts:")
+    out("Claim Maps:")
     out(f"  Total claims:    {total_claims}")
-    out(f"  Flipped:         {flipped_claims}")
-    out(f"  Flip rate:       {flip_rate:.1%}")
-    if has_hash_data and flipped_claims > 0:
-        out(f"  Hard fails:      {hard_fail_count} (directional reversals)")
-        out(f"  Pipeline fails:  {pipeline_fail_count} (different judge input)")
-        out(f"  LLM noise:       {llm_noise_count} (same judge input)")
+    out(f"  Divergences:     {divergent_claims}")
+    out(f"  Divergence rate: {divergence_rate:.1%}")
+    if divergent_claims > 0:
+        out(f"  Hard fails:      {hard_fail_count} (element count mismatch)")
+        out(f"  Pipeline fails:  {pipeline_fail_count} (orientation bug)")
+        out(f"  LLM noise:       {llm_noise_count} (state/mapping/type changes)")
     out()
 
     # Per-tag breakdown
     if len(tag_stats) > 1:
         out("Per-tag:")
         for tag, stats in sorted(tag_stats.items()):
-            tag_flip_rate = stats["flips"] / stats["claims"] if stats["claims"] else 0
-            tag_jaccard = sum(stats["jaccards"]) / len(stats["jaccards"]) if stats["jaccards"] else 1.0
-            out(f"  {tag}: {stats['claims']} claims, {stats['flips']} flips ({tag_flip_rate:.0%}), Jaccard={tag_jaccard:.3f}")
+            tag_div_rate = (
+                stats["divergences"] / stats["claims"] if stats["claims"] else 0
+            )
+            tag_jaccard = (
+                sum(stats["jaccards"]) / len(stats["jaccards"])
+                if stats["jaccards"]
+                else 1.0
+            )
+            out(
+                f"  {tag}: {stats['claims']} claims, {stats['divergences']} divergences ({tag_div_rate:.0%}), Jaccard={tag_jaccard:.3f}"
+            )
         out()
 
     out("Evidence:")
     out(f"  Avg URL Jaccard: {avg_jaccard:.3f}")
-    out(f"  Avg conf delta:  {avg_conf_delta:+.1f}")
     out()
 
     if ledger_rows:
@@ -349,53 +445,39 @@ def compare(before_dir: Path, after_dir: Path):
 
     gate1_passed = avg_jaccard >= jaccard_threshold
 
-    # Gate 2: Verdict stability
-    use_two_gate = has_hash_data and (is_frozen or is_frozen_evidence)
-
-    if use_two_gate:
-        # Two-gate mode: classify flips, only hard_fail and pipeline_fail block
-        gate2_passed = hard_fail_count == 0 and pipeline_fail_count == 0
-    else:
-        # Legacy mode: use flip rate thresholds
-        if is_frozen_evidence:
-            flip_threshold = 0.0
-        elif is_frozen:
-            flip_threshold = FROZEN_MAX_VERDICT_FLIP_RATE
-        elif is_small_dataset:
-            flip_threshold = MAX_VERDICT_FLIP_RATE_SMALL
-        else:
-            flip_threshold = MAX_VERDICT_FLIP_RATE
-        gate2_passed = flip_rate <= flip_threshold
+    # Gate 2: Claim Map stability — hard_fail and pipeline_fail must be 0
+    gate2_passed = hard_fail_count == 0 and pipeline_fail_count == 0
 
     out("Guardrails:")
     if freeze_stage_mismatch:
         out(f"  [WARNING] freeze_stage mismatch: {before_stage} vs {after_stage}")
-        out(f"            Results may not be comparable — re-run baseline with current code.")
+        out(
+            f"            Results may not be comparable — re-run baseline with current code."
+        )
     if is_frozen_evidence:
         out(f"  [FROZEN EVIDENCE REPLAY] Zero-network deterministic")
         if after_stage:
-            out(f"  [FREEZE STAGE] {after_stage} (v{after_summary.get('freeze_version', '?')})")
+            out(
+                f"  [FREEZE STAGE] {after_stage} (v{after_summary.get('freeze_version', '?')})"
+            )
     elif is_frozen:
         out(f"  [FROZEN REPLAY] Search variance eliminated")
 
     # Gate 1 output
     gate1_status = "PASS" if gate1_passed else "FAIL"
     out(f"  Gate 1 — Evidence Determinism:")
-    out(f"    [{gate1_status}] Avg URL Jaccard: {avg_jaccard:.3f} >= {jaccard_threshold}")
+    out(
+        f"    [{gate1_status}] Avg URL Jaccard: {avg_jaccard:.3f} >= {jaccard_threshold}"
+    )
 
     # Gate 2 output
-    out(f"  Gate 2 — Verdict Stability:")
-    if use_two_gate:
-        gate2_status = "PASS" if gate2_passed else "FAIL"
-        out(f"    [{gate2_status}] Hard fails: {hard_fail_count}, Pipeline fails: {pipeline_fail_count} (must be 0)")
-        if llm_noise_count > 0:
-            out(f"    [INFO] LLM noise flips: {llm_noise_count} (not gated)")
-    elif is_small_dataset and not is_frozen and not is_frozen_evidence:
-        out(f"    [INFO] Verdict flip rate: {flip_rate:.1%} (threshold {flip_threshold:.0%}, informational until {MIN_FIXTURES_FOR_HARD_GATE}+ fixtures)")
-        gate2_passed = True  # Informational only
-    else:
-        gate2_status = "PASS" if gate2_passed else "FAIL"
-        out(f"    [{gate2_status}] Verdict flip rate: {flip_rate:.1%} <= {flip_threshold:.0%}")
+    gate2_status = "PASS" if gate2_passed else "FAIL"
+    out(f"  Gate 2 — Claim Map Stability:")
+    out(
+        f"    [{gate2_status}] Hard fails: {hard_fail_count}, Pipeline fails: {pipeline_fail_count} (must be 0)"
+    )
+    if llm_noise_count > 0:
+        out(f"    [INFO] LLM noise divergences: {llm_noise_count} (not gated)")
     out()
 
     all_pass = gate1_passed and gate2_passed
@@ -406,20 +488,36 @@ def compare(before_dir: Path, after_dir: Path):
         if not gate1_passed:
             failed_gates.append("Gate 1 (Evidence)")
         if not gate2_passed:
-            failed_gates.append("Gate 2 (Verdict)")
+            failed_gates.append("Gate 2 (Claim Map)")
         out(f"RESULT: FAILED — {', '.join(failed_gates)} — review before merging")
 
     # --- Markdown Report ---
     md = _build_markdown_report(
-        before_dir, after_dir, fixture_count, is_small_dataset,
-        fingerprint_diff, total_claims, flipped_claims, flip_rate,
-        avg_jaccard, avg_conf_delta, flip_details, tag_stats,
-        ledger_details, gate1_passed, gate2_passed, all_pass,
-        b_fp, a_fp, jaccard_threshold=jaccard_threshold, is_frozen=is_frozen,
-        is_frozen_evidence=is_frozen_evidence, use_two_gate=use_two_gate,
-        hard_fail_count=hard_fail_count, pipeline_fail_count=pipeline_fail_count,
+        before_dir,
+        after_dir,
+        fixture_count,
+        is_small_dataset,
+        fingerprint_diff,
+        total_claims,
+        divergent_claims,
+        divergence_rate,
+        avg_jaccard,
+        divergence_details,
+        tag_stats,
+        ledger_details,
+        gate1_passed,
+        gate2_passed,
+        all_pass,
+        b_fp,
+        a_fp,
+        jaccard_threshold=jaccard_threshold,
+        is_frozen=is_frozen,
+        is_frozen_evidence=is_frozen_evidence,
+        hard_fail_count=hard_fail_count,
+        pipeline_fail_count=pipeline_fail_count,
         llm_noise_count=llm_noise_count,
-        freeze_stage=after_stage, freeze_stage_mismatch=freeze_stage_mismatch,
+        freeze_stage=after_stage,
+        freeze_stage_mismatch=freeze_stage_mismatch,
     )
     report_path = after_dir / "_diff_report.md"
     with open(report_path, "w", encoding="utf-8") as f:
@@ -430,14 +528,31 @@ def compare(before_dir: Path, after_dir: Path):
 
 
 def _build_markdown_report(
-    before_dir, after_dir, fixture_count, is_small_dataset,
-    fingerprint_diff, total_claims, flipped_claims, flip_rate,
-    avg_jaccard, avg_conf_delta, flip_details, tag_stats,
-    ledger_details, gate1_passed, gate2_passed, all_pass,
-    b_fp, a_fp, jaccard_threshold=MIN_EVIDENCE_JACCARD, is_frozen=False,
-    is_frozen_evidence=False, use_two_gate=False,
-    hard_fail_count=0, pipeline_fail_count=0, llm_noise_count=0,
-    freeze_stage=None, freeze_stage_mismatch=False,
+    before_dir,
+    after_dir,
+    fixture_count,
+    is_small_dataset,
+    fingerprint_diff,
+    total_claims,
+    divergent_claims,
+    divergence_rate,
+    avg_jaccard,
+    divergence_details,
+    tag_stats,
+    ledger_details,
+    gate1_passed,
+    gate2_passed,
+    all_pass,
+    b_fp,
+    a_fp,
+    jaccard_threshold=MIN_EVIDENCE_JACCARD,
+    is_frozen=False,
+    is_frozen_evidence=False,
+    hard_fail_count=0,
+    pipeline_fail_count=0,
+    llm_noise_count=0,
+    freeze_stage=None,
+    freeze_stage_mismatch=False,
 ):
     """Build PR-reviewable markdown diff report."""
     md = []
@@ -464,67 +579,85 @@ def _build_markdown_report(
     # Summary
     md.append("## Summary\n")
     result_label = "PASS" if all_pass else "FAIL"
-    md.append(f"**Result: {result_label}** | {fixture_count} fixtures | {total_claims} claims\n")
+    md.append(
+        f"**Result: {result_label}** | {fixture_count} fixtures | {total_claims} claims\n"
+    )
 
     if freeze_stage_mismatch:
-        md.append("> **WARNING:** freeze_stage mismatch — results may not be comparable.\n")
+        md.append(
+            "> **WARNING:** freeze_stage mismatch — results may not be comparable.\n"
+        )
     if is_frozen_evidence:
         stage_label = f" (`{freeze_stage}`)" if freeze_stage else ""
-        md.append(f"> **Frozen Evidence Replay{stage_label}** — zero network, fully deterministic.\n")
+        md.append(
+            f"> **Frozen Evidence Replay{stage_label}** — zero network, fully deterministic.\n"
+        )
     elif is_frozen:
         md.append("> **Frozen URL Replay** — search variance eliminated.\n")
 
     # Gate results table
     md.append("| Gate | Check | Status |")
     md.append("|------|-------|--------|")
-    md.append(f"| Gate 1: Evidence | Jaccard {avg_jaccard:.3f} >= {jaccard_threshold} | {'PASS' if gate1_passed else 'FAIL'} |")
-    if use_two_gate:
-        md.append(f"| Gate 2: Verdict | Hard fails: {hard_fail_count}, Pipeline fails: {pipeline_fail_count} | {'PASS' if gate2_passed else 'FAIL'} |")
-        if llm_noise_count > 0:
-            md.append(f"| | LLM noise flips: {llm_noise_count} | INFO |")
-    else:
-        md.append(f"| Gate 2: Verdict | Flip rate: {flip_rate:.1%} | {'PASS' if gate2_passed else 'FAIL'} |")
-    md.append(f"| | Avg confidence delta: {avg_conf_delta:+.1f} | -- |")
+    md.append(
+        f"| Gate 1: Evidence | Jaccard {avg_jaccard:.3f} >= {jaccard_threshold} | {'PASS' if gate1_passed else 'FAIL'} |"
+    )
+    md.append(
+        f"| Gate 2: Claim Map | Hard fails: {hard_fail_count}, Pipeline fails: {pipeline_fail_count} | {'PASS' if gate2_passed else 'FAIL'} |"
+    )
+    if llm_noise_count > 0:
+        md.append(f"| | LLM noise divergences: {llm_noise_count} | INFO |")
     md.append("")
 
     # Per-tag breakdown
     if len(tag_stats) > 1:
         md.append("## Per-Tag Breakdown\n")
-        md.append("| Tag | Claims | Flips | Flip Rate | Avg Jaccard |")
-        md.append("|-----|--------|-------|-----------|-------------|")
+        md.append("| Tag | Claims | Divergences | Divergence Rate | Avg Jaccard |")
+        md.append("|-----|--------|-------------|-----------------|-------------|")
         for tag, stats in sorted(tag_stats.items()):
-            tfr = stats["flips"] / stats["claims"] if stats["claims"] else 0
-            tj = sum(stats["jaccards"]) / len(stats["jaccards"]) if stats["jaccards"] else 1.0
-            md.append(f"| {tag} | {stats['claims']} | {stats['flips']} | {tfr:.0%} | {tj:.3f} |")
+            tdr = stats["divergences"] / stats["claims"] if stats["claims"] else 0
+            tj = (
+                sum(stats["jaccards"]) / len(stats["jaccards"])
+                if stats["jaccards"]
+                else 1.0
+            )
+            md.append(
+                f"| {tag} | {stats['claims']} | {stats['divergences']} | {tdr:.0%} | {tj:.3f} |"
+            )
         md.append("")
 
-    # Verdict flips detail
-    if flip_details:
-        md.append("## Verdict Flips\n")
-        if use_two_gate:
-            md.append("| Fixture | Tag | Claim | Before | After | Type | Hash Before | Hash After | Reason |")
-            md.append("|---------|-----|-------|--------|-------|------|-------------|------------|--------|")
-            for fd in flip_details:
-                md.append(
-                    f"| {fd['slug']} | {fd['tag']} | {fd['claim']} "
-                    f"| {fd['before']} | {fd['after']} | {fd['flip_type']} "
-                    f"| {fd['hash_before']} | {fd['hash_after']} | {fd['flip_reason']} |"
+    # Claim Map divergences detail
+    if divergence_details:
+        md.append("## Claim Map Divergences\n")
+        md.append(
+            "| Fixture | Tag | Claim | Status | Reason | Hash Before | Hash After | State Flips |"
+        )
+        md.append(
+            "|---------|-----|-------|--------|--------|-------------|------------|-------------|"
+        )
+        for dd in divergence_details:
+            flips_str = ""
+            if dd["state_flips"]:
+                flips_str = "; ".join(
+                    f"{f['element_id']}: {f['baseline_state']}->{f['current_state']}"
+                    for f in dd["state_flips"]
                 )
-        else:
-            md.append("| Fixture | Tag | Claim | Before | After | Conf Before | Conf After |")
-            md.append("|---------|-----|-------|--------|-------|-------------|------------|")
-            for fd in flip_details:
-                md.append(f"| {fd['slug']} | {fd['tag']} | {fd['claim']} | {fd['before']} | {fd['after']} | {fd['conf_before']} | {fd['conf_after']} |")
+            md.append(
+                f"| {dd['slug']} | {dd['tag']} | {dd['claim']} "
+                f"| {dd['status']} | {dd['reason']} "
+                f"| {dd['hash_before']} | {dd['hash_after']} | {flips_str} |"
+            )
         md.append("")
 
     # Ledger deltas
     if ledger_details:
         md.append("## Evidence Pipeline Deltas\n")
-        md.append("| Fixture | Entered | Judge | Snippets | Stage Changes |")
-        md.append("|---------|---------|-------|----------|---------------|")
+        md.append("| Fixture | Entered | Analyzer | Snippets | Stage Changes |")
+        md.append("|---------|---------|----------|----------|---------------|")
         for ld in ledger_details:
             stages_str = ", ".join(ld["stages"]) if ld["stages"] else "--"
-            md.append(f"| {ld['slug']} | {ld['entered']:+d} | {ld['judge']:+d} | {ld['snippets']:+d} | {stages_str} |")
+            md.append(
+                f"| {ld['slug']} | {ld['entered']:+d} | {ld['analyzer']:+d} | {ld['snippets']:+d} | {stages_str} |"
+            )
         md.append("")
 
     md.append("---\n*Generated by `compare_runs.py`*\n")

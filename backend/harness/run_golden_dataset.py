@@ -33,7 +33,10 @@ def refresh_clerk_jwt(clerk_secret_key, session_id):
     """Get a fresh JWT from Clerk Backend API. Tokens expire in ~60s."""
     resp = requests.post(
         f"https://api.clerk.com/v1/sessions/{session_id}/tokens",
-        headers={"Authorization": f"Bearer {clerk_secret_key}", "Content-Type": "application/json"},
+        headers={
+            "Authorization": f"Bearer {clerk_secret_key}",
+            "Content-Type": "application/json",
+        },
         timeout=10,
     )
     resp.raise_for_status()
@@ -47,9 +50,11 @@ def capture_fingerprint():
         git_hash = subprocess.check_output(
             ["git", "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL
         ).strip()
-        git_dirty = bool(subprocess.check_output(
-            ["git", "status", "--porcelain"], text=True, stderr=subprocess.DEVNULL
-        ).strip())
+        git_dirty = bool(
+            subprocess.check_output(
+                ["git", "status", "--porcelain"], text=True, stderr=subprocess.DEVNULL
+            ).strip()
+        )
     except Exception:
         git_hash = "unknown"
         git_dirty = False
@@ -69,9 +74,15 @@ def capture_fingerprint():
 
     # LLM params
     llm_params = {}
-    for key in ["JUDGE_TEMPERATURE", "JUDGE_MAX_TOKENS", "LLM_RELEVANCE_MIN_SCORE",
-                "LLM_RELEVANCE_MAX_EVIDENCE", "EVIDENCE_SNIPPET_LENGTH",
-                "PRIMARY_LLM_PROVIDER", "GOOGLE_LLM_MODEL"]:
+    for key in [
+        "JUDGE_TEMPERATURE",
+        "JUDGE_MAX_TOKENS",
+        "LLM_RELEVANCE_MIN_SCORE",
+        "LLM_RELEVANCE_MAX_EVIDENCE",
+        "EVIDENCE_SNIPPET_LENGTH",
+        "PRIMARY_LLM_PROVIDER",
+        "GOOGLE_LLM_MODEL",
+    ]:
         val = os.environ.get(key)
         if val is not None:
             llm_params[key] = val
@@ -131,7 +142,11 @@ def run_fixture(fixture, api_url, token, fingerprint, frozen_claim_data=None):
     print(f"  [{slug}] ({tag}) Submitting...", end="", flush=True)
 
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    body = {"input_type": fixture["input_type"], "content": fixture.get("content"), "url": fixture.get("url")}
+    body = {
+        "input_type": fixture["input_type"],
+        "content": fixture.get("content"),
+        "url": fixture.get("url"),
+    }
 
     # Frozen replay: send frozen_evidence (v2) to API
     if frozen_claim_data:
@@ -152,22 +167,43 @@ def run_fixture(fixture, api_url, token, fingerprint, frozen_claim_data=None):
         print(f" [FROZEN-V2: {len(frozen_claim_data)} claims]", end="", flush=True)
 
     t0 = time.time()
-    resp = requests.post(f"{api_url}/api/v1/checks/stream", json=body, headers=headers, stream=True, timeout=300)
+    resp = requests.post(
+        f"{api_url}/api/v1/checks/stream",
+        json=body,
+        headers=headers,
+        stream=True,
+        timeout=300,
+    )
 
     if resp.status_code != 200:
         print(f" FAILED (HTTP {resp.status_code})")
-        return {"slug": slug, "tag": tag, "error": f"HTTP {resp.status_code}: {resp.text[:200]}", "fingerprint": fingerprint}
+        return {
+            "slug": slug,
+            "tag": tag,
+            "error": f"HTTP {resp.status_code}: {resp.text[:200]}",
+            "fingerprint": fingerprint,
+        }
 
     check_id, events, status = parse_sse_stream(resp)
     elapsed = time.time() - t0
     print(f" {status} in {elapsed:.1f}s (check={check_id[:8]}...)", flush=True)
 
     if status != "completed":
-        return {"slug": slug, "tag": tag, "check_id": check_id, "status": status, "elapsed_s": elapsed, "events": events, "fingerprint": fingerprint}
+        return {
+            "slug": slug,
+            "tag": tag,
+            "check_id": check_id,
+            "status": status,
+            "elapsed_s": elapsed,
+            "events": events,
+            "fingerprint": fingerprint,
+        }
 
     # Fetch full check result from API
     print(f"  [{slug}] Fetching result...", end="", flush=True)
-    detail_resp = requests.get(f"{api_url}/api/v1/checks/{check_id}", headers=headers, timeout=30)
+    detail_resp = requests.get(
+        f"{api_url}/api/v1/checks/{check_id}", headers=headers, timeout=30
+    )
     check_data = detail_resp.json() if detail_resp.status_code == 200 else {}
 
     # Read ledger file if it exists
@@ -188,15 +224,21 @@ def run_fixture(fixture, api_url, token, fingerprint, frozen_claim_data=None):
         "check_id": check_id,
         "status": status,
         "elapsed_s": round(elapsed, 2),
-        "verdicts": {str(c.get("position", i)): c.get("verdict") for i, c in enumerate(claims)},
-        "confidences": {str(c.get("position", i)): c.get("confidence") for i, c in enumerate(claims)},
+        "claim_maps": {
+            str(c.get("position", i)): c.get("claim_map") for i, c in enumerate(claims)
+        },
+        "claim_map_input_hashes": {
+            str(c.get("position", i)): c.get(
+                "claim_map_input_hash", c.get("judge_input_hash", "")
+            )
+            for i, c in enumerate(claims)
+        },
         "evidence_urls": {
             str(c.get("position", i)): [e.get("url", "") for e in c.get("evidence", [])]
             for i, c in enumerate(claims)
         },
-        "evidence_counts": {str(c.get("position", i)): len(c.get("evidence", [])) for i, c in enumerate(claims)},
-        "judge_input_hashes": {
-            str(c.get("position", i)): c.get("judge_input_hash", "")
+        "evidence_counts": {
+            str(c.get("position", i)): len(c.get("evidence", []))
             for i, c in enumerate(claims)
         },
         "total_claims": len(claims),
@@ -208,11 +250,11 @@ def run_fixture(fixture, api_url, token, fingerprint, frozen_claim_data=None):
 
 
 def save_freeze_data(run_dir, results):
-    """Save evidence URLs, metadata, verdicts, and claim texts for frozen replay.
+    """Save evidence, ClaimMap scaffolds, and claim texts for frozen replay.
 
-    v2 format includes extracted_evidence (full pre-weighting dicts) from the ledger,
-    enabling zero-network frozen evidence replay. Falls back to v1 format (URLs only)
-    when ledger data is unavailable.
+    v4 format includes two freeze points:
+      1. decomposition_output — element scaffolds (enables testing mapping in isolation)
+      2. analyzer_input_evidence — evidence per element post-filtering
 
     Format:
     {
@@ -221,12 +263,16 @@ def save_freeze_data(run_dir, results):
           "0": {
             "claim_text": "...",
             "claim_key": "<sha1>",
-            "evidence": [{"url": "...", "title": "...", "snippet": "..."}, ...],
-            "extracted_evidence": [<full pre-weighting dicts>]
+            "evidence": [...],
+            "extracted_evidence": [<full post-filtering dicts>],
+            "decomposition_output": {<claim_map scaffold from Phase 1>}
           }
         },
-        "verdicts": {"0": "supported"},
-        "claim_count": 2
+        "claim_maps": {"0": {<completed ClaimMap>}},
+        "claim_count": 2,
+        "evidence_urls": {"0": [...]},
+        "freeze_version": 4,
+        "freeze_stage": "analyzer_input_evidence"
       }
     }
     """
@@ -241,14 +287,24 @@ def save_freeze_data(run_dir, results):
         check_data = artifact.get("_check_data", {})
         api_claims = check_data.get("claims", [])
         ledger_data = artifact.get("evidence_ledger", {})
-        # Prefer judge_input_evidence (post-filtering, what judge actually saw)
-        # over pre_weighting_evidence (pre-filtering) for deterministic V2 replay
-        judge_input_ev = ledger_data.get("stages", {}).get(
-            "judge_input_evidence", {}
-        ).get("evidence", {})
-        pre_weighting = judge_input_ev or ledger_data.get("stages", {}).get(
-            "pre_weighting_evidence", {}
-        ).get("evidence", {})
+        # Prefer analyzer_input_evidence (post-filtering, what analyzer actually saw)
+        analyzer_input_ev = (
+            ledger_data.get("stages", {})
+            .get("analyzer_input_evidence", {})
+            .get("evidence", {})
+        )
+        # Fallback chain: analyzer_input_evidence -> judge_input_evidence -> pre_weighting
+        judge_input_ev = (
+            ledger_data.get("stages", {})
+            .get("judge_input_evidence", {})
+            .get("evidence", {})
+        )
+        post_filter_ev = analyzer_input_ev or judge_input_ev
+        pre_weighting = post_filter_ev or (
+            ledger_data.get("stages", {})
+            .get("pre_weighting_evidence", {})
+            .get("evidence", {})
+        )
 
         for pos, urls in artifact.get("evidence_urls", {}).items():
             # Get claim text from API response
@@ -262,49 +318,71 @@ def save_freeze_data(run_dir, results):
                 for ev in claim_obj.get("evidence", []):
                     ev_url = ev.get("url", "")
                     if ev_url:
-                        evidence_meta.append({
-                            "url": ev_url,
-                            "title": ev.get("title", ""),
-                            "snippet": ev.get("snippet", ev.get("text", ""))[:300],
-                        })
+                        evidence_meta.append(
+                            {
+                                "url": ev_url,
+                                "title": ev.get("title", ""),
+                                "snippet": ev.get("snippet", ev.get("text", ""))[:300],
+                            }
+                        )
 
             # Fallback: if we couldn't get metadata from API, use bare URLs
             if not evidence_meta:
-                evidence_meta = [{"url": u, "title": "", "snippet": ""} for u in urls if u]
+                evidence_meta = [
+                    {"url": u, "title": "", "snippet": ""} for u in urls if u
+                ]
 
-            # v2: pre-weighting evidence from ledger (full dicts)
+            # Post-filtering evidence from ledger (full dicts)
             extracted = pre_weighting.get(pos, [])
 
             # Compute stable claim key
             normalized = " ".join(claim_text.lower().split()) if claim_text else ""
-            claim_key = hashlib.sha1(normalized.encode()).hexdigest() if claim_text else pos
+            claim_key = (
+                hashlib.sha1(normalized.encode()).hexdigest() if claim_text else pos
+            )
+
+            # Decomposition output (Phase 1 scaffold) from ClaimMap
+            claim_map = artifact.get("claim_maps", {}).get(pos)
+            decomposition_output = None
+            if claim_map and isinstance(claim_map, dict):
+                decomposition_output = {
+                    "normalised_claim": claim_map.get("normalised_claim"),
+                    "claim_type": claim_map.get("claim_type"),
+                    "elements": [
+                        {
+                            "element_id": e.get("element_id"),
+                            "description": e.get("description"),
+                        }
+                        for e in claim_map.get("elements", [])
+                    ],
+                }
 
             claims_data[pos] = {
                 "claim_text": claim_text,
                 "claim_key": claim_key,
-                "evidence": evidence_meta,                # v1 compat
-                "extracted_evidence": extracted,            # v2: full pre-weighting dicts
+                "evidence": evidence_meta,
+                "extracted_evidence": extracted,
+                "decomposition_output": decomposition_output,
             }
 
         has_extracted = any(
-            claim_info.get("extracted_evidence")
-            for claim_info in claims_data.values()
+            claim_info.get("extracted_evidence") for claim_info in claims_data.values()
         )
 
-        # Determine freeze stage: judge_input_evidence (v3) or pre_weighting (v2) or urls-only (v1)
+        # Determine freeze stage and version
         freeze_stage = None
         freeze_ver = 1
         if has_extracted:
-            if judge_input_ev:
-                freeze_stage = "judge_input_evidence"
-                freeze_ver = 3
+            if analyzer_input_ev or judge_input_ev:
+                freeze_stage = "analyzer_input_evidence"
+                freeze_ver = 4
             else:
                 freeze_stage = "pre_weighting_evidence"
                 freeze_ver = 2
 
         freeze[slug] = {
             "claims": claims_data,
-            "verdicts": artifact.get("verdicts", {}),
+            "claim_maps": artifact.get("claim_maps", {}),
             "claim_count": artifact.get("total_claims", 0),
             # Keep flat evidence_urls for backward compat with compare_runs.py
             "evidence_urls": artifact.get("evidence_urls", {}),
@@ -322,7 +400,10 @@ def load_freeze_data(freeze_from_dir):
     """Load freeze data from a previous run."""
     freeze_path = Path(freeze_from_dir) / "_freeze.json"
     if not freeze_path.exists():
-        print(f"WARNING: No _freeze.json in {freeze_from_dir}. Run without --freeze-from first.", file=sys.stderr)
+        print(
+            f"WARNING: No _freeze.json in {freeze_from_dir}. Run without --freeze-from first.",
+            file=sys.stderr,
+        )
         return {}
     with open(freeze_path) as f:
         return json.load(f)
@@ -330,13 +411,33 @@ def load_freeze_data(freeze_from_dir):
 
 def main():
     parser = argparse.ArgumentParser(description="Run golden dataset against Tru8 API")
-    parser.add_argument("--tag", required=True, help="Run tag (e.g. baseline-v1, after-PR-1A)")
-    parser.add_argument("--api-url", default="http://localhost:8000", help="Backend API URL")
-    parser.add_argument("--token", default=os.environ.get("TRU8_TOKEN", ""), help="Clerk JWT token")
-    parser.add_argument("--clerk-session", default=os.environ.get("CLERK_SESSION_ID", ""), help="Clerk session ID for auto-refresh (tokens expire ~60s)")
-    parser.add_argument("--clerk-secret", default=os.environ.get("CLERK_SECRET_KEY", ""), help="Clerk secret key for token refresh")
-    parser.add_argument("--fixtures", default=str(FIXTURES_PATH), help="Path to fixtures JSON")
-    parser.add_argument("--freeze-from", default=None, help="Path to previous run dir for freshness freeze comparison")
+    parser.add_argument(
+        "--tag", required=True, help="Run tag (e.g. baseline-v1, after-PR-1A)"
+    )
+    parser.add_argument(
+        "--api-url", default="http://localhost:8000", help="Backend API URL"
+    )
+    parser.add_argument(
+        "--token", default=os.environ.get("TRU8_TOKEN", ""), help="Clerk JWT token"
+    )
+    parser.add_argument(
+        "--clerk-session",
+        default=os.environ.get("CLERK_SESSION_ID", ""),
+        help="Clerk session ID for auto-refresh (tokens expire ~60s)",
+    )
+    parser.add_argument(
+        "--clerk-secret",
+        default=os.environ.get("CLERK_SECRET_KEY", ""),
+        help="Clerk secret key for token refresh",
+    )
+    parser.add_argument(
+        "--fixtures", default=str(FIXTURES_PATH), help="Path to fixtures JSON"
+    )
+    parser.add_argument(
+        "--freeze-from",
+        default=None,
+        help="Path to previous run dir for freshness freeze comparison",
+    )
     args = parser.parse_args()
 
     # Token refresh setup
@@ -345,7 +446,10 @@ def main():
         args.token = refresh_clerk_jwt(args.clerk_secret, args.clerk_session)
         print(f"Auth: auto-refresh via Clerk session {args.clerk_session[:16]}...")
     elif not args.token:
-        print("ERROR: No auth token. Set TRU8_TOKEN or use --clerk-session + --clerk-secret.", file=sys.stderr)
+        print(
+            "ERROR: No auth token. Set TRU8_TOKEN or use --clerk-session + --clerk-secret.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     with open(args.fixtures) as f:
@@ -363,7 +467,9 @@ def main():
     run_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Running {len(fixtures)} fixtures with tag '{args.tag}'")
-    print(f"Git: {fingerprint['git_commit'][:10]}{'*' if fingerprint['git_dirty'] else ''}")
+    print(
+        f"Git: {fingerprint['git_commit'][:10]}{'*' if fingerprint['git_dirty'] else ''}"
+    )
     if freeze_data:
         print(f"Freeze baseline: {args.freeze_from} ({len(freeze_data)} slugs)")
     print(f"Output: {run_dir}\n")
@@ -386,11 +492,22 @@ def main():
             # Fallback for old freeze format (flat evidence_urls without claim text)
             if not frozen_claim_data and "evidence_urls" in freeze_data[slug]:
                 frozen_claim_data = {
-                    pos: {"claim_text": "", "evidence": [{"url": u, "title": "", "snippet": ""} for u in urls]}
+                    pos: {
+                        "claim_text": "",
+                        "evidence": [
+                            {"url": u, "title": "", "snippet": ""} for u in urls
+                        ],
+                    }
                     for pos, urls in freeze_data[slug]["evidence_urls"].items()
                 }
 
-        artifact = run_fixture(fixture, args.api_url, args.token, fingerprint, frozen_claim_data=frozen_claim_data)
+        artifact = run_fixture(
+            fixture,
+            args.api_url,
+            args.token,
+            fingerprint,
+            frozen_claim_data=frozen_claim_data,
+        )
 
         # Attach frozen baseline for comparison
         if freeze_data and slug in freeze_data:
@@ -422,15 +539,29 @@ def main():
         "failed": sum(1 for r in results if r.get("status") != "completed"),
         "fingerprint": fingerprint,
         "freeze_from": str(args.freeze_from) if args.freeze_from else None,
-        "freeze_version": max(
-            (slug_data.get("freeze_version", 0) for slug_data in freeze_data.values()),
-            default=0
-        ) if freeze_data else None,
-        "freeze_stage": next(
-            (slug_data.get("freeze_stage") for slug_data in freeze_data.values()
-             if slug_data.get("freeze_stage")),
-            None
-        ) if freeze_data else None,
+        "freeze_version": (
+            max(
+                (
+                    slug_data.get("freeze_version", 0)
+                    for slug_data in freeze_data.values()
+                ),
+                default=0,
+            )
+            if freeze_data
+            else None
+        ),
+        "freeze_stage": (
+            next(
+                (
+                    slug_data.get("freeze_stage")
+                    for slug_data in freeze_data.values()
+                    if slug_data.get("freeze_stage")
+                ),
+                None,
+            )
+            if freeze_data
+            else None
+        ),
     }
     with open(run_dir / "_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
