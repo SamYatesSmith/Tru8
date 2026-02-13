@@ -117,8 +117,6 @@ class Settings(BaseSettings):
 
     # ========== SCORING MODE ==========
     # LLM relevance scorer is advisory-only: annotates scores but never vetoes evidence.
-    # ENABLE_PATH_A kept for backward compatibility but no longer checked by scorer.
-    ENABLE_PATH_A: bool = Field(False, env="ENABLE_PATH_A")
 
     # ========== UNIFIED PIPELINE THRESHOLDS ==========
     # These thresholds are ALIGNED across all pipeline stages.
@@ -134,11 +132,6 @@ class Settings(BaseSettings):
     # Unknown source default - lower than known sources to signal unvetted status
     # Sources not in credibility database are treated with skepticism
     UNKNOWN_SOURCE_CREDIBILITY: float = Field(0.40, env="UNKNOWN_SOURCE_CREDIBILITY")
-
-    # Judge LLM
-    JUDGE_MAX_TOKENS: int = Field(1000, env="JUDGE_MAX_TOKENS")
-    JUDGE_TEMPERATURE: float = Field(0.3, env="JUDGE_TEMPERATURE")
-    MAX_CONCURRENT_JUDGMENTS: int = Field(5, env="MAX_CONCURRENT_JUDGMENTS")
 
     # ========== PIPELINE IMPROVEMENT FEATURE FLAGS ==========
 
@@ -157,9 +150,6 @@ class Settings(BaseSettings):
     # Phase 2 - User Experience & Trust
     ENABLE_CLAIM_CLASSIFICATION: bool = Field(True, env="ENABLE_CLAIM_CLASSIFICATION")
 
-    # Phase 3 - Critical Credibility Enhancements
-    ENABLE_ABSTENTION_LOGIC: bool = Field(True, env="ENABLE_ABSTENTION_LOGIC")
-
     # Source credibility threshold (used for cache skip in workers)
     SOURCE_CREDIBILITY_THRESHOLD: float = Field(
         0.55, env="SOURCE_CREDIBILITY_THRESHOLD"
@@ -175,13 +165,10 @@ class Settings(BaseSettings):
     # Phase 5 - Government API Integration
     ENABLE_API_RETRIEVAL: bool = Field(True, env="ENABLE_API_RETRIEVAL")
 
-    # Phase 6 - Judge Improvements (Week 12)
+    # Evidence snippet length
     EVIDENCE_SNIPPET_LENGTH: int = Field(
         400, env="EVIDENCE_SNIPPET_LENGTH"
     )  # Increased from 150 to preserve context
-    # Snippet-only evidence cap for judge context (PR 2-D)
-    # When extracted evidence exists, at most this many snippet-only items in judge's top 5
-    MAX_SNIPPET_EVIDENCE_FOR_JUDGE: int = Field(2, env="MAX_SNIPPET_EVIDENCE_FOR_JUDGE")
 
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(
@@ -202,13 +189,8 @@ class Settings(BaseSettings):
     # Setting to 2 allows a URL to legitimately support 2 related claims
     MAX_CLAIMS_PER_URL: int = Field(2, env="MAX_CLAIMS_PER_URL")
 
-    # Abstention Thresholds (Phase 3)
-    # Lowered from 0.70 -> 0.60 and 0.65 -> 0.50 to reduce fence-sitting
-    # MIN_SOURCES lowered from 3 to 2: For established scientific facts with
-    # high-credibility sources, 2 sources is sufficient to take a position.
-    MIN_SOURCES_FOR_VERDICT: int = Field(2, env="MIN_SOURCES_FOR_VERDICT")
-    MIN_CREDIBILITY_THRESHOLD: float = Field(0.60, env="MIN_CREDIBILITY_THRESHOLD")
-    MIN_CONSENSUS_STRENGTH: float = Field(0.50, env="MIN_CONSENSUS_STRENGTH")
+    # Minimum evidence thresholds (used by cache quality gate)
+    MIN_SOURCES_FOR_CACHE: int = Field(2, env="MIN_SOURCES_FOR_CACHE")
 
     # ========== LLM RELEVANCE SCORER ==========
     # Replaces embedding-based ranking with LLM-based understanding of evidential value
@@ -233,12 +215,6 @@ class Settings(BaseSettings):
     # When False, subscription endpoints return "coming soon" message
     # Set to True when ready to accept paid subscriptions
     SUBSCRIPTIONS_ENABLED: bool = Field(False, env="SUBSCRIPTIONS_ENABLED")
-
-    # ========== PHASE 1: ACCURACY IMPROVEMENTS ==========
-    # Judge Few-Shot Prompting (Phase 1.2)
-    ENABLE_JUDGE_FEW_SHOT: bool = Field(
-        True, env="ENABLE_JUDGE_FEW_SHOT"
-    )  # ENABLED: Provides concrete examples to guide judge reasoning
 
     # ========== TIER 1 IMPROVEMENTS (2025-01-17) ==========
     QUERY_TEMPORAL_BOOST: bool = Field(True, env="QUERY_TEMPORAL_BOOST")

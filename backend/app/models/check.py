@@ -27,36 +27,11 @@ class Check(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
 
-    # Article context for holistic judgment
+    # Article context
     article_excerpt: Optional[str] = Field(
         default=None,
         max_length=5000,
         description="First 5000 characters of article for context-aware fact-checking",
-    )
-
-    # Explainability fields (Phase 2, Week 6.5-7.5)
-    decision_trail: Optional[str] = Field(
-        default=None, sa_column=Column(JSONB)
-    )  # Full decision trail
-    transparency_score: Optional[float] = Field(
-        default=None, ge=0, le=1
-    )  # How explainable the verdict is (0-1)
-
-    # Overall Summary fields (for PDF & UI display)
-    overall_summary: Optional[str] = Field(
-        default=None, description="LLM-generated executive summary of all claims"
-    )
-    credibility_score: Optional[int] = Field(
-        default=None, ge=0, le=100, description="Overall credibility score 0-100"
-    )
-    claims_supported: Optional[int] = Field(
-        default=0, description="Count of supported claims"
-    )
-    claims_contradicted: Optional[int] = Field(
-        default=0, description="Count of contradicted claims"
-    )
-    claims_uncertain: Optional[int] = Field(
-        default=0, description="Count of uncertain claims"
     )
 
     # Search Clarity fields (MVP Feature)
@@ -145,9 +120,6 @@ class Claim(SQLModel, table=True):
     id: str = Field(default_factory=generate_uuid, primary_key=True)
     check_id: str = Field(foreign_key="check.id", index=True)
     text: str
-    verdict: str  # 'supported', 'contradicted', 'uncertain', 'insufficient_evidence', 'conflicting_expert_opinion', 'needs_primary_source', 'outdated_claim', 'lacks_context'
-    confidence: float = Field(ge=0, le=100)  # 0-100
-    rationale: str
     position: int  # Order in the check
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -162,34 +134,9 @@ class Claim(SQLModel, table=True):
         default=False
     )  # True if claim requires temporal context
 
-    # Classification fields (Phase 2, Week 5.5-6.5)
-    claim_type: Optional[str] = (
-        None  # 'factual', 'opinion', 'prediction', 'personal_experience', 'legal'
-    )
-    is_verifiable: bool = Field(
-        default=True
-    )  # False for opinions, predictions, personal experiences
-    verifiability_reason: Optional[str] = (
-        None  # Explanation of why claim is/isn't verifiable
-    )
     legal_metadata: Optional[str] = Field(
         default=None, sa_column=Column(JSONB)
     )  # Legal citations, jurisdiction, etc. for legal claims
-
-    # Explainability fields (Phase 2, Week 6.5-7.5)
-    uncertainty_explanation: Optional[str] = None  # Explanation for uncertain verdicts
-    confidence_breakdown: Optional[str] = Field(
-        default=None, sa_column=Column(JSONB)
-    )  # Detailed confidence factors
-
-    # Consensus & Abstention fields (Phase 3, Week 8)
-    abstention_reason: Optional[str] = None  # Why we abstained from making a verdict
-    min_requirements_met: bool = Field(
-        default=False
-    )  # Did evidence meet minimum quality requirements
-    consensus_strength: Optional[float] = Field(
-        default=None, ge=0, le=1
-    )  # Credibility-weighted agreement (0-1)
 
     # Context Preservation (Context Improvement)
     subject_context: Optional[str] = Field(
@@ -231,20 +178,18 @@ class Claim(SQLModel, table=True):
         description="Primary rhetorical style detected (sarcasm, mockery, satire, joking, inflammatory, hyperbole)",
     )
 
-    # Judge input hash for determinism tracking (harness gate system)
-    judge_input_hash: Optional[str] = Field(
+    # Claim Map system (Track B)
+    claim_map_input_hash: Optional[str] = Field(
         default=None,
         max_length=16,
-        description="SHA256 hash of canonicalized judge input context (first 16 hex chars)",
+        description="SHA256 hash of canonicalized analyzer input (first 16 hex chars)",
     )
-
-    # Claim Map system (Track B)
     claim_map: Optional[str] = Field(
         default=None,
         sa_column=Column(JSONB),
         description="Completed ClaimMap object (JSON)",
     )
-    new_claim_type: Optional[str] = Field(
+    claim_type: Optional[str] = Field(
         default=None,
         max_length=30,
         description="5-way taxonomy: empirical|definitional|causal_interpretive|predictive|normative_flagged",

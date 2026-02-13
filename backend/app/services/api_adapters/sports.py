@@ -40,7 +40,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
             api_key=None,  # No API key required
             cache_ttl=3600,  # 1 hour (historical data stable)
             timeout=15,
-            max_results=5
+            max_results=5,
         )
         # NO HARDCODED LISTS - use NER entities passed from pipeline
 
@@ -53,7 +53,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
         query: str,
         domain: str,
         jurisdiction: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        entities: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Search Transfermarkt for historical football data.
@@ -86,25 +86,67 @@ class TransfermarktAdapter(GovernmentAPIClient):
             # Detect query type and fetch appropriate data
 
             # TYPE 1: Transfer history
-            if any(term in query_lower for term in ["transfer", "signed for", "joined", "left", "fee", "moved to", "sold"]):
-                player_evidence = self._search_player_with_transfers(query_lower, entities)
+            if any(
+                term in query_lower
+                for term in [
+                    "transfer",
+                    "signed for",
+                    "joined",
+                    "left",
+                    "fee",
+                    "moved to",
+                    "sold",
+                ]
+            ):
+                player_evidence = self._search_player_with_transfers(
+                    query_lower, entities
+                )
                 if player_evidence:
                     evidence.extend(player_evidence)
 
             # TYPE 2: Achievements / Trophies
-            elif any(term in query_lower for term in ["won", "winner", "champion", "trophy", "title", "ballon d'or", "golden boot", "best player"]):
-                player_evidence = self._search_player_with_achievements(query_lower, entities)
+            elif any(
+                term in query_lower
+                for term in [
+                    "won",
+                    "winner",
+                    "champion",
+                    "trophy",
+                    "title",
+                    "ballon d'or",
+                    "golden boot",
+                    "best player",
+                ]
+            ):
+                player_evidence = self._search_player_with_achievements(
+                    query_lower, entities
+                )
                 if player_evidence:
                     evidence.extend(player_evidence)
 
             # TYPE 3: Career stats
-            elif any(term in query_lower for term in ["career", "total goals", "all-time", "scored for", "appearances", "caps", "scored", "goals"]):
+            elif any(
+                term in query_lower
+                for term in [
+                    "career",
+                    "total goals",
+                    "all-time",
+                    "scored for",
+                    "appearances",
+                    "caps",
+                    "scored",
+                    "goals",
+                ]
+            ):
                 player_evidence = self._search_player_with_stats(query_lower, entities)
                 if player_evidence:
                     evidence.extend(player_evidence)
 
             # TYPE 4: Market value
-            elif any(term in query_lower for term in ["worth", "value", "valued at", "market value", "price"]):
+            elif any(
+                term in query_lower
+                for term in ["worth", "value", "valued at", "market value", "price"]
+            ):
                 player_evidence = self._search_player_with_value(query_lower, entities)
                 if player_evidence:
                     evidence.extend(player_evidence)
@@ -116,13 +158,17 @@ class TransfermarktAdapter(GovernmentAPIClient):
                     evidence.extend(club_evidence)
 
             logger.info(f"Transfermarkt returned {len(evidence)} evidence items")
-            return evidence[:self.max_results]
+            return evidence[: self.max_results]
 
         except Exception as e:
-            logger.error(f"Transfermarkt search failed for '{query}': {e}", exc_info=True)
+            logger.error(
+                f"Transfermarkt search failed for '{query}': {e}", exc_info=True
+            )
             return []
 
-    def _extract_person_names(self, entities: Optional[List[Dict[str, str]]]) -> List[str]:
+    def _extract_person_names(
+        self, entities: Optional[List[Dict[str, str]]]
+    ) -> List[str]:
         """
         Extract PERSON entity names from NER results.
 
@@ -152,10 +198,20 @@ class TransfermarktAdapter(GovernmentAPIClient):
                     # Fallback: Check if it looks like a person name
                     # (2+ words, all capitalized, no org-like suffixes)
                     words = text.split()
-                    org_indicators = ("FC", "United", "City", "Club", "League", "Inc", "Ltd")
-                    if (len(words) >= 2 and
-                        all(w[0].isupper() for w in words if w) and
-                        not any(ind in text for ind in org_indicators)):
+                    org_indicators = (
+                        "FC",
+                        "United",
+                        "City",
+                        "Club",
+                        "League",
+                        "Inc",
+                        "Ltd",
+                    )
+                    if (
+                        len(words) >= 2
+                        and all(w[0].isupper() for w in words if w)
+                        and not any(ind in text for ind in org_indicators)
+                    ):
                         entity_fallbacks.append(text)
 
         # Use PERSON entities first, fall back to ENTITY if none found
@@ -179,10 +235,29 @@ class TransfermarktAdapter(GovernmentAPIClient):
 
         # Common sports/org indicators
         org_indicators = (
-            "FC", "United", "City", "Rovers", "Athletic", "Club",
-            "Dortmund", "Arsenal", "Chelsea", "Munich", "Madrid", "Barcelona",
-            "Milan", "Inter", "Juventus", "PSG", "Bayern", "Liverpool",
-            "League", "Association", "Federation", "UEFA", "FIFA"
+            "FC",
+            "United",
+            "City",
+            "Rovers",
+            "Athletic",
+            "Club",
+            "Dortmund",
+            "Arsenal",
+            "Chelsea",
+            "Munich",
+            "Madrid",
+            "Barcelona",
+            "Milan",
+            "Inter",
+            "Juventus",
+            "PSG",
+            "Bayern",
+            "Liverpool",
+            "League",
+            "Association",
+            "Federation",
+            "UEFA",
+            "FIFA",
         )
 
         if entities:
@@ -204,9 +279,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
         return orgs if orgs else entity_fallbacks
 
     def _search_player_with_transfers(
-        self,
-        query_lower: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Search for player and return transfer history using NER entities."""
         person_names = self._extract_person_names(entities)
@@ -233,7 +306,9 @@ class TransfermarktAdapter(GovernmentAPIClient):
                 player_name_full = player.get("name", player_name)
 
                 # Get transfer history
-                transfers_response = self._make_request(f"/players/{player_id}/transfers")
+                transfers_response = self._make_request(
+                    f"/players/{player_id}/transfers"
+                )
                 if not transfers_response or "transfers" not in transfers_response:
                     continue
 
@@ -249,34 +324,38 @@ class TransfermarktAdapter(GovernmentAPIClient):
 
                     transfer_text += f"- {date}: {from_club} → {to_club} ({fee})\n"
 
-                all_evidence.append(self._create_evidence_dict(
-                    title=f"{player_name_full} - Transfer History",
-                    snippet=transfer_text.strip(),
-                    url=f"https://www.transfermarkt.com/player/{player_id}",
-                    source_date=datetime.utcnow(),
-                    metadata={
-                        "api_source": "Transfermarkt",
-                        "player_id": player_id,
-                        "data_type": "transfers",
-                        "transfer_count": len(transfers)
-                    }
-                ))
+                all_evidence.append(
+                    self._create_evidence_dict(
+                        title=f"{player_name_full} - Transfer History",
+                        snippet=transfer_text.strip(),
+                        url=f"https://www.transfermarkt.com/player/{player_id}",
+                        source_date=datetime.utcnow(),
+                        metadata={
+                            "api_source": "Transfermarkt",
+                            "player_id": player_id,
+                            "data_type": "transfers",
+                            "transfer_count": len(transfers),
+                        },
+                    )
+                )
 
             except Exception as e:
-                logger.error(f"Transfermarkt player transfer search failed for {player_name}: {e}")
+                logger.error(
+                    f"Transfermarkt player transfer search failed for {player_name}: {e}"
+                )
                 continue
 
         return all_evidence
 
     def _search_player_with_achievements(
-        self,
-        query_lower: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Search for player and return achievements/trophies using NER entities."""
         person_names = self._extract_person_names(entities)
         if not person_names:
-            logger.debug("Transfermarkt: No PERSON entities found for achievements search")
+            logger.debug(
+                "Transfermarkt: No PERSON entities found for achievements search"
+            )
             return []
 
         all_evidence = []
@@ -297,8 +376,13 @@ class TransfermarktAdapter(GovernmentAPIClient):
                 player_name_full = player.get("name", player_name)
 
                 # Get achievements
-                achievements_response = self._make_request(f"/players/{player_id}/achievements")
-                if not achievements_response or "achievements" not in achievements_response:
+                achievements_response = self._make_request(
+                    f"/players/{player_id}/achievements"
+                )
+                if (
+                    not achievements_response
+                    or "achievements" not in achievements_response
+                ):
                     continue
 
                 achievements = achievements_response.get("achievements", [])
@@ -314,29 +398,31 @@ class TransfermarktAdapter(GovernmentAPIClient):
                     else:
                         achievements_text += f"- {title}\n"
 
-                all_evidence.append(self._create_evidence_dict(
-                    title=f"{player_name_full} - Career Achievements",
-                    snippet=achievements_text.strip(),
-                    url=f"https://www.transfermarkt.com/player/{player_id}",
-                    source_date=datetime.utcnow(),
-                    metadata={
-                        "api_source": "Transfermarkt",
-                        "player_id": player_id,
-                        "data_type": "achievements",
-                        "achievement_count": len(achievements)
-                    }
-                ))
+                all_evidence.append(
+                    self._create_evidence_dict(
+                        title=f"{player_name_full} - Career Achievements",
+                        snippet=achievements_text.strip(),
+                        url=f"https://www.transfermarkt.com/player/{player_id}",
+                        source_date=datetime.utcnow(),
+                        metadata={
+                            "api_source": "Transfermarkt",
+                            "player_id": player_id,
+                            "data_type": "achievements",
+                            "achievement_count": len(achievements),
+                        },
+                    )
+                )
 
             except Exception as e:
-                logger.error(f"Transfermarkt player achievements search failed for {player_name}: {e}")
+                logger.error(
+                    f"Transfermarkt player achievements search failed for {player_name}: {e}"
+                )
                 continue
 
         return all_evidence
 
     def _search_player_with_stats(
-        self,
-        query_lower: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Search for player and return career statistics using NER entities."""
         person_names = self._extract_person_names(entities)
@@ -389,31 +475,33 @@ class TransfermarktAdapter(GovernmentAPIClient):
 
                 stats_text += f"\nCareer Totals: {total_apps} appearances, {total_goals} goals, {total_assists} assists"
 
-                all_evidence.append(self._create_evidence_dict(
-                    title=f"{player_name_full} - Career Statistics",
-                    snippet=stats_text.strip(),
-                    url=f"https://www.transfermarkt.com/player/{player_id}",
-                    source_date=datetime.utcnow(),
-                    metadata={
-                        "api_source": "Transfermarkt",
-                        "player_id": player_id,
-                        "data_type": "career_stats",
-                        "total_goals": total_goals,
-                        "total_assists": total_assists,
-                        "total_appearances": total_apps
-                    }
-                ))
+                all_evidence.append(
+                    self._create_evidence_dict(
+                        title=f"{player_name_full} - Career Statistics",
+                        snippet=stats_text.strip(),
+                        url=f"https://www.transfermarkt.com/player/{player_id}",
+                        source_date=datetime.utcnow(),
+                        metadata={
+                            "api_source": "Transfermarkt",
+                            "player_id": player_id,
+                            "data_type": "career_stats",
+                            "total_goals": total_goals,
+                            "total_assists": total_assists,
+                            "total_appearances": total_apps,
+                        },
+                    )
+                )
 
             except Exception as e:
-                logger.error(f"Transfermarkt player stats search failed for {player_name}: {e}")
+                logger.error(
+                    f"Transfermarkt player stats search failed for {player_name}: {e}"
+                )
                 continue
 
         return all_evidence
 
     def _search_player_with_value(
-        self,
-        query_lower: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Search for player and return market value history using NER entities."""
         person_names = self._extract_person_names(entities)
@@ -440,7 +528,9 @@ class TransfermarktAdapter(GovernmentAPIClient):
                 current_value = player.get("marketValue", "Unknown")
 
                 # Get market value history
-                value_response = self._make_request(f"/players/{player_id}/market_value")
+                value_response = self._make_request(
+                    f"/players/{player_id}/market_value"
+                )
 
                 value_text = f"Market Value for {player_name_full}:\n"
                 value_text += f"Current Value: {current_value}\n"
@@ -455,29 +545,31 @@ class TransfermarktAdapter(GovernmentAPIClient):
                             club = h.get("clubName", "Unknown")
                             value_text += f"- {date}: {value} ({club})\n"
 
-                all_evidence.append(self._create_evidence_dict(
-                    title=f"{player_name_full} - Market Value",
-                    snippet=value_text.strip(),
-                    url=f"https://www.transfermarkt.com/player/{player_id}",
-                    source_date=datetime.utcnow(),
-                    metadata={
-                        "api_source": "Transfermarkt",
-                        "player_id": player_id,
-                        "data_type": "market_value",
-                        "current_value": current_value
-                    }
-                ))
+                all_evidence.append(
+                    self._create_evidence_dict(
+                        title=f"{player_name_full} - Market Value",
+                        snippet=value_text.strip(),
+                        url=f"https://www.transfermarkt.com/player/{player_id}",
+                        source_date=datetime.utcnow(),
+                        metadata={
+                            "api_source": "Transfermarkt",
+                            "player_id": player_id,
+                            "data_type": "market_value",
+                            "current_value": current_value,
+                        },
+                    )
+                )
 
             except Exception as e:
-                logger.error(f"Transfermarkt player value search failed for {player_name}: {e}")
+                logger.error(
+                    f"Transfermarkt player value search failed for {player_name}: {e}"
+                )
                 continue
 
         return all_evidence
 
     def _search_club(
-        self,
-        query_lower: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Search for club and return profile using NER entities - NO HARDCODED LISTS!"""
         org_names = self._extract_org_names(entities)
@@ -508,18 +600,20 @@ class TransfermarktAdapter(GovernmentAPIClient):
                 club_text += f"Squad Size: {squad_size} players\n"
                 club_text += f"Total Market Value: {market_value}\n"
 
-                all_evidence.append(self._create_evidence_dict(
-                    title=f"{club_name_full} - Club Profile",
-                    snippet=club_text.strip(),
-                    url=f"https://www.transfermarkt.com/club/{club_id}",
-                    source_date=datetime.utcnow(),
-                    metadata={
-                        "api_source": "Transfermarkt",
-                        "club_id": club_id,
-                        "data_type": "club_profile",
-                        "market_value": market_value
-                    }
-                ))
+                all_evidence.append(
+                    self._create_evidence_dict(
+                        title=f"{club_name_full} - Club Profile",
+                        snippet=club_text.strip(),
+                        url=f"https://www.transfermarkt.com/club/{club_id}",
+                        source_date=datetime.utcnow(),
+                        metadata={
+                            "api_source": "Transfermarkt",
+                            "club_id": club_id,
+                            "data_type": "club_profile",
+                            "market_value": market_value,
+                        },
+                    )
+                )
 
             except Exception as e:
                 logger.error(f"Transfermarkt club search failed for {club_name}: {e}")
@@ -557,7 +651,7 @@ class FootballDataAdapter(GovernmentAPIClient):
             api_key=api_key,
             cache_ttl=300,  # 5 minutes - sports data changes frequently
             timeout=10,
-            max_results=10
+            max_results=10,
         )
 
         # Football-Data.org uses X-Auth-Token header
@@ -595,7 +689,7 @@ class FootballDataAdapter(GovernmentAPIClient):
         query: str,
         domain: str,
         jurisdiction: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        entities: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Search Football-Data.org for sports statistics.
@@ -630,34 +724,94 @@ class FootballDataAdapter(GovernmentAPIClient):
             # Detect query type and fetch appropriate data
 
             # TYPE 1: League standings (most common for fact-checking)
-            if any(term in query_lower for term in ["top", "standing", "table", "points", "lead", "ahead", "behind", "position"]):
+            if any(
+                term in query_lower
+                for term in [
+                    "top",
+                    "standing",
+                    "table",
+                    "points",
+                    "lead",
+                    "ahead",
+                    "behind",
+                    "position",
+                ]
+            ):
                 evidence.extend(self._get_standings(query_lower, entities))
 
             # TYPE 2: Team info / squad / transfers
             # Extended with transfer-intent keywords to detect when claim is about player movements
             # Note: Football-Data.org has limited transfer data, but team info may help
             transfer_keywords = [
-                "squad", "player", "signed", "transferred", "manager", "coach",
+                "squad",
+                "player",
+                "signed",
+                "transferred",
+                "manager",
+                "coach",
                 # Transfer-intent keywords (helps detect transfer claims)
-                "transfer", "offload", "offloading", "exit", "departure", "departing",
-                "deal", "move", "moving", "loan", "loaned", "loaning",
-                "linked", "link", "target", "targeting", "interest", "interested",
-                "bid", "offer", "fee", "sell", "selling", "buy", "buying"
+                "transfer",
+                "offload",
+                "offloading",
+                "exit",
+                "departure",
+                "departing",
+                "deal",
+                "move",
+                "moving",
+                "loan",
+                "loaned",
+                "loaning",
+                "linked",
+                "link",
+                "target",
+                "targeting",
+                "interest",
+                "interested",
+                "bid",
+                "offer",
+                "fee",
+                "sell",
+                "selling",
+                "buy",
+                "buying",
             ]
             if any(term in query_lower for term in transfer_keywords):
                 evidence.extend(self._get_team_info(query_lower, entities))
 
             # TYPE 3: Match results
-            if any(term in query_lower for term in ["beat", "won", "lost", "draw", "match", "game", "vs", "versus"]):
+            if any(
+                term in query_lower
+                for term in [
+                    "beat",
+                    "won",
+                    "lost",
+                    "draw",
+                    "match",
+                    "game",
+                    "vs",
+                    "versus",
+                ]
+            ):
                 evidence.extend(self._get_match_results(query_lower))
 
             # TYPE 4: Top scorers / goal statistics
-            if any(term in query_lower for term in ["scorer", "goals scored", "golden boot", "top goal", "leading scorer", "most goals"]):
+            if any(
+                term in query_lower
+                for term in [
+                    "scorer",
+                    "goals scored",
+                    "golden boot",
+                    "top goal",
+                    "leading scorer",
+                    "most goals",
+                ]
+            ):
                 evidence.extend(self._get_top_scorers(query_lower))
 
             # DO NOT fall back to standings when no keywords match
             # Better to return nothing than irrelevant data (e.g., standings for transfer claims)
-            # The semantic relevance filter in judge.py will handle cases where we return limited data
+            # The semantic relevance filter will handle cases where we return limited data
             if not evidence:
                 logger.info(
                     f"Football-Data.org: No keyword match for query '{query[:80]}...', "
@@ -665,10 +819,12 @@ class FootballDataAdapter(GovernmentAPIClient):
                 )
 
             logger.info(f"Football-Data.org returned {len(evidence)} evidence items")
-            return evidence[:self.max_results]
+            return evidence[: self.max_results]
 
         except Exception as e:
-            logger.error(f"Football-Data.org search failed for '{query}': {e}", exc_info=True)
+            logger.error(
+                f"Football-Data.org search failed for '{query}': {e}", exc_info=True
+            )
             return []
 
     def _extract_org_names(self, entities: Optional[List[Dict[str, str]]]) -> List[str]:
@@ -689,10 +845,29 @@ class FootballDataAdapter(GovernmentAPIClient):
 
         # Common sports/org indicators
         org_indicators = (
-            "FC", "United", "City", "Rovers", "Athletic", "Club",
-            "Dortmund", "Arsenal", "Chelsea", "Munich", "Madrid", "Barcelona",
-            "Milan", "Inter", "Juventus", "PSG", "Bayern", "Liverpool",
-            "League", "Association", "Federation", "UEFA", "FIFA"
+            "FC",
+            "United",
+            "City",
+            "Rovers",
+            "Athletic",
+            "Club",
+            "Dortmund",
+            "Arsenal",
+            "Chelsea",
+            "Munich",
+            "Madrid",
+            "Barcelona",
+            "Milan",
+            "Inter",
+            "Juventus",
+            "PSG",
+            "Bayern",
+            "Liverpool",
+            "League",
+            "Association",
+            "Federation",
+            "UEFA",
+            "FIFA",
         )
 
         if entities:
@@ -714,9 +889,7 @@ class FootballDataAdapter(GovernmentAPIClient):
         return orgs if orgs else entity_fallbacks
 
     def _get_standings(
-        self,
-        query_lower: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Get league standings for fact-checking using NER entities."""
         evidence = []
@@ -757,7 +930,9 @@ class FootballDataAdapter(GovernmentAPIClient):
             top_teams = total_standings[:6]  # Top 6 teams
 
             # Create main standings evidence
-            standings_text = f"Current {competition_name} standings (Matchday {current_matchday}):\n"
+            standings_text = (
+                f"Current {competition_name} standings (Matchday {current_matchday}):\n"
+            )
             for team in top_teams:
                 pos = team.get("position")
                 name = team.get("team", {}).get("name", "Unknown")
@@ -778,18 +953,20 @@ class FootballDataAdapter(GovernmentAPIClient):
                 gap = leader.get("points", 0) - second.get("points", 0)
                 standings_text += f"\n{leader.get('team', {}).get('name', 'Leader')} leads by {gap} points over {second.get('team', {}).get('name', 'Second')}."
 
-            evidence.append(self._create_evidence_dict(
-                title=f"{competition_name} Standings - Matchday {current_matchday}",
-                snippet=standings_text.strip(),
-                url=f"https://www.football-data.org/competition/{competition_code}",
-                source_date=datetime.utcnow(),
-                metadata={
-                    "api_source": "Football-Data.org",
-                    "competition": competition_code,
-                    "matchday": current_matchday,
-                    "data_type": "standings"
-                }
-            ))
+            evidence.append(
+                self._create_evidence_dict(
+                    title=f"{competition_name} Standings - Matchday {current_matchday}",
+                    snippet=standings_text.strip(),
+                    url=f"https://www.football-data.org/competition/{competition_code}",
+                    source_date=datetime.utcnow(),
+                    metadata={
+                        "api_source": "Football-Data.org",
+                        "competition": competition_code,
+                        "matchday": current_matchday,
+                        "data_type": "standings",
+                    },
+                )
+            )
 
             # Add individual team evidence for teams mentioned via NER entities
             for team in total_standings[:20]:  # Check more teams
@@ -814,19 +991,21 @@ class FootballDataAdapter(GovernmentAPIClient):
                     points = team.get("points")
                     played = team.get("playedGames")
 
-                    evidence.append(self._create_evidence_dict(
-                        title=f"{team_name} - {competition_name} Position",
-                        snippet=f"{team_name} is currently {pos}{'st' if pos == 1 else 'nd' if pos == 2 else 'rd' if pos == 3 else 'th'} in the {competition_name} with {points} points from {played} matches.",
-                        url=f"https://www.football-data.org/team/{team.get('team', {}).get('id')}",
-                        source_date=datetime.utcnow(),
-                        metadata={
-                            "api_source": "Football-Data.org",
-                            "team_id": team.get("team", {}).get("id"),
-                            "position": pos,
-                            "points": points,
-                            "data_type": "team_standing"
-                        }
-                    ))
+                    evidence.append(
+                        self._create_evidence_dict(
+                            title=f"{team_name} - {competition_name} Position",
+                            snippet=f"{team_name} is currently {pos}{'st' if pos == 1 else 'nd' if pos == 2 else 'rd' if pos == 3 else 'th'} in the {competition_name} with {points} points from {played} matches.",
+                            url=f"https://www.football-data.org/team/{team.get('team', {}).get('id')}",
+                            source_date=datetime.utcnow(),
+                            metadata={
+                                "api_source": "Football-Data.org",
+                                "team_id": team.get("team", {}).get("id"),
+                                "position": pos,
+                                "points": points,
+                                "data_type": "team_standing",
+                            },
+                        )
+                    )
 
             return evidence
 
@@ -835,9 +1014,7 @@ class FootballDataAdapter(GovernmentAPIClient):
             return []
 
     def _get_team_info(
-        self,
-        query_lower: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Get team/squad information using NER entities - NO HARDCODED LISTS!"""
         evidence = []
@@ -901,7 +1078,12 @@ class FootballDataAdapter(GovernmentAPIClient):
                 squad_text += f"Manager: {coach.get('name', 'Unknown')}\n\n"
 
                 # Group by position
-                positions = {"Goalkeeper": [], "Defence": [], "Midfield": [], "Offence": []}
+                positions = {
+                    "Goalkeeper": [],
+                    "Defence": [],
+                    "Midfield": [],
+                    "Offence": [],
+                }
                 for player in squad:
                     pos = player.get("position", "Unknown")
                     if pos in positions:
@@ -911,18 +1093,22 @@ class FootballDataAdapter(GovernmentAPIClient):
                     if players:
                         squad_text += f"{pos}: {', '.join(players[:5])}\n"
 
-                evidence.append(self._create_evidence_dict(
-                    title=f"{team_info.get('name')} Squad Information",
-                    snippet=squad_text.strip(),
-                    url=team_info.get("website", f"https://www.football-data.org/team/{team_id}"),
-                    source_date=datetime.utcnow(),
-                    metadata={
-                        "api_source": "Football-Data.org",
-                        "team_id": team_id,
-                        "squad_size": len(squad),
-                        "data_type": "squad"
-                    }
-                ))
+                evidence.append(
+                    self._create_evidence_dict(
+                        title=f"{team_info.get('name')} Squad Information",
+                        snippet=squad_text.strip(),
+                        url=team_info.get(
+                            "website", f"https://www.football-data.org/team/{team_id}"
+                        ),
+                        source_date=datetime.utcnow(),
+                        metadata={
+                            "api_source": "Football-Data.org",
+                            "team_id": team_id,
+                            "squad_size": len(squad),
+                            "data_type": "squad",
+                        },
+                    )
+                )
 
             return evidence
 
@@ -942,10 +1128,10 @@ class FootballDataAdapter(GovernmentAPIClient):
                 break
 
         try:
-            response = self._make_request(f"/competitions/{competition_code}/matches", params={
-                "status": "FINISHED",
-                "limit": 10
-            })
+            response = self._make_request(
+                f"/competitions/{competition_code}/matches",
+                params={"status": "FINISHED", "limit": 10},
+            )
 
             if not response or "matches" not in response:
                 return []
@@ -963,18 +1149,24 @@ class FootballDataAdapter(GovernmentAPIClient):
 
                 result_text = f"{home} {home_goals} - {away_goals} {away}"
 
-                evidence.append(self._create_evidence_dict(
-                    title=f"{competition_name} Result: {home} vs {away}",
-                    snippet=result_text,
-                    url=f"https://www.football-data.org/match/{match.get('id')}",
-                    source_date=datetime.fromisoformat(match_date.replace("Z", "+00:00")) if match_date else None,
-                    metadata={
-                        "api_source": "Football-Data.org",
-                        "competition": competition_code,
-                        "match_id": match.get("id"),
-                        "data_type": "match_result"
-                    }
-                ))
+                evidence.append(
+                    self._create_evidence_dict(
+                        title=f"{competition_name} Result: {home} vs {away}",
+                        snippet=result_text,
+                        url=f"https://www.football-data.org/match/{match.get('id')}",
+                        source_date=(
+                            datetime.fromisoformat(match_date.replace("Z", "+00:00"))
+                            if match_date
+                            else None
+                        ),
+                        metadata={
+                            "api_source": "Football-Data.org",
+                            "competition": competition_code,
+                            "match_id": match.get("id"),
+                            "data_type": "match_result",
+                        },
+                    )
+                )
 
             return evidence
 
@@ -994,16 +1186,18 @@ class FootballDataAdapter(GovernmentAPIClient):
                 break
 
         try:
-            response = self._make_request(f"/competitions/{competition_code}/scorers", params={
-                "limit": 10
-            })
+            response = self._make_request(
+                f"/competitions/{competition_code}/scorers", params={"limit": 10}
+            )
 
             if not response or "scorers" not in response:
                 logger.warning(f"Top scorers not available for {competition_code}")
                 return []
 
             scorers = response.get("scorers", [])
-            competition_name = response.get("competition", {}).get("name", self.competitions.get(competition_code, "League"))
+            competition_name = response.get("competition", {}).get(
+                "name", self.competitions.get(competition_code, "League")
+            )
             season = response.get("season", {})
 
             # Build top scorers summary
@@ -1024,18 +1218,20 @@ class FootballDataAdapter(GovernmentAPIClient):
                     scorers_text += f", {assists} assists"
                 scorers_text += f" in {played} matches\n"
 
-            evidence.append(self._create_evidence_dict(
-                title=f"{competition_name} Top Scorers",
-                snippet=scorers_text.strip(),
-                url=f"https://www.football-data.org/competition/{competition_code}",
-                source_date=datetime.utcnow(),
-                metadata={
-                    "api_source": "Football-Data.org",
-                    "competition": competition_code,
-                    "data_type": "top_scorers",
-                    "season": f"{season.get('startDate', '')[:4]}/{season.get('endDate', '')[:4]}"
-                }
-            ))
+            evidence.append(
+                self._create_evidence_dict(
+                    title=f"{competition_name} Top Scorers",
+                    snippet=scorers_text.strip(),
+                    url=f"https://www.football-data.org/competition/{competition_code}",
+                    source_date=datetime.utcnow(),
+                    metadata={
+                        "api_source": "Football-Data.org",
+                        "competition": competition_code,
+                        "data_type": "top_scorers",
+                        "season": f"{season.get('startDate', '')[:4]}/{season.get('endDate', '')[:4]}",
+                    },
+                )
+            )
 
             # Also add individual scorer evidence for players mentioned in query
             for scorer in scorers[:10]:
@@ -1043,25 +1239,29 @@ class FootballDataAdapter(GovernmentAPIClient):
                 player_name = player.get("name", "").lower()
 
                 # Check if this player is mentioned in the query
-                if any(word in player_name for word in query_lower.split() if len(word) > 3):
+                if any(
+                    word in player_name for word in query_lower.split() if len(word) > 3
+                ):
                     team = scorer.get("team", {})
                     goals = scorer.get("goals", 0)
                     assists = scorer.get("assists", 0)
                     played = scorer.get("playedMatches", 0)
 
-                    evidence.append(self._create_evidence_dict(
-                        title=f"{player.get('name')} - {competition_name} Stats",
-                        snippet=f"{player.get('name')} ({team.get('name')}) has scored {goals} goals and provided {assists or 0} assists in {played} matches this season.",
-                        url=f"https://www.football-data.org/player/{player.get('id')}",
-                        source_date=datetime.utcnow(),
-                        metadata={
-                            "api_source": "Football-Data.org",
-                            "player_id": player.get("id"),
-                            "goals": goals,
-                            "assists": assists,
-                            "data_type": "player_stats"
-                        }
-                    ))
+                    evidence.append(
+                        self._create_evidence_dict(
+                            title=f"{player.get('name')} - {competition_name} Stats",
+                            snippet=f"{player.get('name')} ({team.get('name')}) has scored {goals} goals and provided {assists or 0} assists in {played} matches this season.",
+                            url=f"https://www.football-data.org/player/{player.get('id')}",
+                            source_date=datetime.utcnow(),
+                            metadata={
+                                "api_source": "Football-Data.org",
+                                "player_id": player.get("id"),
+                                "goals": goals,
+                                "assists": assists,
+                                "data_type": "player_stats",
+                            },
+                        )
+                    )
 
             return evidence
 

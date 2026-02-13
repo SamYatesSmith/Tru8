@@ -16,7 +16,9 @@ class FactCheckAPI:
         self.cache = {}  # Simple in-memory cache
         self.cache_ttl = timedelta(hours=24)
 
-    async def search_fact_checks(self, claim_text: str, language: str = "en") -> List[Dict[str, Any]]:
+    async def search_fact_checks(
+        self, claim_text: str, language: str = "en"
+    ) -> List[Dict[str, Any]]:
         """
         Search for existing fact-checks for a claim.
 
@@ -44,7 +46,7 @@ class FactCheckAPI:
                 params = {
                     "key": self.api_key,
                     "query": claim_text,
-                    "languageCode": language
+                    "languageCode": language,
                 }
 
                 response = await client.get(self.base_url, params=params)
@@ -63,7 +65,9 @@ class FactCheckAPI:
                 # Cache results
                 self.cache[cache_key] = (results, datetime.utcnow())
 
-                logger.info(f"Found {len(results)} fact-checks for claim: {claim_text[:50]}")
+                logger.info(
+                    f"Found {len(results)} fact-checks for claim: {claim_text[:50]}"
+                )
                 return results
 
         except httpx.HTTPStatusError as e:
@@ -97,56 +101,76 @@ class FactCheckAPI:
                 "url": review.get("url", ""),
                 "title": review.get("title", ""),
                 "rating": rating,
-                "normalized_verdict": self._normalize_verdict(rating),
+                "normalized_rating": self._normalize_rating(rating),
                 "review_date": review.get("reviewDate"),
-                "language": review.get("languageCode", "en")
+                "language": review.get("languageCode", "en"),
             }
         except Exception as e:
             logger.warning(f"Failed to parse fact-check result: {e}")
             return None
 
-    def _normalize_verdict(self, rating: str) -> str:
+    def _normalize_rating(self, rating: str) -> str:
         """
-        Normalize different fact-check rating formats to standard verdicts.
+        Normalize different fact-check rating formats to standard categories.
 
-        Maps various fact-checker ratings to:
+        Maps various external fact-checker ratings to:
         - SUPPORTED (true, mostly true, correct)
         - CONTRADICTED (false, mostly false, incorrect, pants on fire)
         - UNCERTAIN (mixture, unproven, needs context)
 
         Args:
-            rating: Original textual rating
+            rating: Original textual rating from external fact-checker
 
         Returns:
-            Normalized verdict string
+            Normalized rating category string
         """
         rating_lower = rating.lower()
 
         # Supported/True
-        if any(keyword in rating_lower for keyword in [
-            "true", "correct", "accurate", "verified", "confirmed"
-        ]):
+        if any(
+            keyword in rating_lower
+            for keyword in ["true", "correct", "accurate", "verified", "confirmed"]
+        ):
             return "SUPPORTED"
 
         # Contradicted/False
-        if any(keyword in rating_lower for keyword in [
-            "false", "incorrect", "inaccurate", "debunked", "pants on fire",
-            "misleading", "wrong"
-        ]):
+        if any(
+            keyword in rating_lower
+            for keyword in [
+                "false",
+                "incorrect",
+                "inaccurate",
+                "debunked",
+                "pants on fire",
+                "misleading",
+                "wrong",
+            ]
+        ):
             return "CONTRADICTED"
 
         # Uncertain/Mixed
-        if any(keyword in rating_lower for keyword in [
-            "mixture", "mixed", "half true", "mostly", "unproven",
-            "needs context", "unclear", "unsubstantiated"
-        ]):
+        if any(
+            keyword in rating_lower
+            for keyword in [
+                "mixture",
+                "mixed",
+                "half true",
+                "mostly",
+                "unproven",
+                "needs context",
+                "unclear",
+                "unsubstantiated",
+            ]
+        ):
             return "UNCERTAIN"
 
         # Default to uncertain if we can't classify
         logger.debug(f"Unknown rating format: {rating}, defaulting to UNCERTAIN")
         return "UNCERTAIN"
 
-    def convert_to_evidence(self, fact_check: Dict[str, Any], claim_text: str) -> Dict[str, Any]:
+    def convert_to_evidence(
+        self, fact_check: Dict[str, Any], claim_text: str
+    ) -> Dict[str, Any]:
         """
         Convert fact-check result to Evidence format for pipeline integration.
 
@@ -161,7 +185,7 @@ class FactCheckAPI:
             "source": fact_check.get("publisher", "Unknown"),
             "url": fact_check.get("url", ""),
             "title": fact_check.get("title", ""),
-            "snippet": f"Fact-check verdict: {fact_check.get('rating', 'Unknown')}",
+            "snippet": f"Fact-check rating: {fact_check.get('rating', 'Unknown')}",
             "published_date": fact_check.get("review_date"),
             "relevance_score": 1.0,  # Fact-checks are highly relevant
             "credibility_score": 0.95,  # Fact-checks from IFCN signatories are high credibility
@@ -169,14 +193,14 @@ class FactCheckAPI:
             "factcheck_publisher": fact_check.get("publisher"),
             "factcheck_rating": fact_check.get("rating"),
             "factcheck_date": fact_check.get("review_date"),
-            "source_type": "factcheck"
+            "source_type": "factcheck",
         }
 
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics for monitoring"""
         return {
             "cache_size": len(self.cache),
-            "cache_ttl_hours": self.cache_ttl.total_seconds() / 3600
+            "cache_ttl_hours": self.cache_ttl.total_seconds() / 3600,
         }
 
     def clear_cache(self):

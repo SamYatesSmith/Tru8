@@ -1271,18 +1271,14 @@ async def save_check_results_async(
 
             # Extract claim_type from ClaimMap if available
             claim_map_data = claim_data.get("claim_map")
-            new_claim_type = None
+            resolved_claim_type = None
             if claim_map_data and isinstance(claim_map_data, dict):
                 ct = claim_map_data.get("claim_type")
-                new_claim_type = ct.value if hasattr(ct, "value") else ct
+                resolved_claim_type = ct.value if hasattr(ct, "value") else ct
 
             claim = Claim(
                 check_id=check_id,
                 text=claim_data.get("text", ""),
-                # Verdict columns still exist (removed in B07) — set defaults
-                verdict="pending",
-                confidence=0.0,
-                rationale="",
                 position=int(position_val) if position_val is not None else 0,
                 subject_context=claim_data.get("subject_context"),
                 key_entities=(
@@ -1297,11 +1293,10 @@ async def save_check_results_async(
                 rhetorical_context=claim_data.get("rhetorical_analysis"),
                 has_rhetorical_context=claim_data.get("has_rhetorical_context", False),
                 rhetorical_style=claim_data.get("rhetorical_style"),
-                # Reusing judge_input_hash column for claim_map_input_hash — column renamed in B07 migration
-                judge_input_hash=claim_data.get("claim_map_input_hash"),
+                claim_map_input_hash=claim_data.get("claim_map_input_hash"),
                 # Claim Map system fields
                 claim_map=claim_map_data,
-                new_claim_type=new_claim_type,
+                claim_type=resolved_claim_type,
                 significance_rank=claim_data.get("significance_rank"),
                 significance_score=claim_data.get("significance_score"),
                 is_selected=claim_data.get("is_selected"),

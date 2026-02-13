@@ -13,7 +13,6 @@ _logging_configured = False
 LOG_FILE_PATH = Path(__file__).parent.parent.parent / "logs" / "pipeline.log"
 
 
-
 def setup_logging():
     """
     Configure logging for the application.
@@ -62,7 +61,7 @@ def setup_logging():
             LOG_FILE_PATH,
             maxBytes=10 * 1024 * 1024,  # 10MB
             backupCount=3,
-            encoding='utf-8'
+            encoding="utf-8",
         )
         file_handler.setFormatter(formatter)
         file_handler.setLevel(logging.DEBUG)  # Capture everything to file
@@ -94,7 +93,8 @@ def setup_logging():
         "app.pipeline",
         "app.pipeline.extract",
         "app.pipeline.retrieve",
-        "app.pipeline.judge",
+        "app.pipeline.claim_map_analyzer",
+        "app.pipeline.claim_selector",
         "app.pipeline.runner",
         "app.pipeline.progress",
         "app.services",
@@ -134,7 +134,7 @@ def clear_log_file():
     """
     try:
         if LOG_FILE_PATH.exists():
-            with open(LOG_FILE_PATH, 'w', encoding='utf-8') as f:
+            with open(LOG_FILE_PATH, "w", encoding="utf-8") as f:
                 f.write(f"{'='*60}\n")
                 f.write(f"[LOG CLEARED] New logging session started\n")
                 f.write(f"{'='*60}\n\n")

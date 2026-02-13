@@ -288,7 +288,15 @@ async def test_stream_mock():
 
     async def mock_pipeline():
         """Simulate pipeline stages with delays."""
-        stages = ["ingest", "extract", "retrieve", "verify", "judge", "summary"]
+        stages = [
+            "ingest",
+            "extract",
+            "select",
+            "decompose",
+            "retrieve",
+            "analyze",
+            "complete",
+        ]
         for stage in stages:
             await asyncio.sleep(1)  # Simulate work
             await reporter.report_progress(stage)
@@ -348,27 +356,12 @@ async def get_check_test(check_id: str, session: AsyncSession = Depends(get_sess
 
                 # Calculate statistics
                 total_claims = len(claims)
-                supported = sum(1 for c in claims if c.verdict == "supported")
-                contradicted = sum(1 for c in claims if c.verdict == "contradicted")
-                uncertain = sum(1 for c in claims if c.verdict == "uncertain")
-                insufficient = sum(
-                    1 for c in claims if c.verdict == "insufficient_evidence"
-                )
-
-                # Calculate overall score
-                if total_claims > 0:
-                    overall_score = int((supported / total_claims) * 100)
-                else:
-                    overall_score = 0
+                selected_claims = sum(1 for c in claims if c.is_selected)
 
                 response.update(
                     {
-                        "overall_score": overall_score,
                         "claims_analyzed": total_claims,
-                        "claims_supported": supported,
-                        "claims_contradicted": contradicted,
-                        "claims_uncertain": uncertain,
-                        "claims_insufficient": insufficient,
+                        "selected_claims": selected_claims,
                     }
                 )
             except Exception as e:
@@ -877,7 +870,7 @@ async def get_checks(
                     "id": first_claim.id,
                     "text": first_claim.text,
                     "position": first_claim.position,
-                    "claimType": first_claim.new_claim_type,
+                    "claimType": first_claim.claim_type,
                     "elementCount": (
                         len(claim_map.get("elements", [])) if claim_map else 0
                     ),
@@ -977,7 +970,7 @@ async def get_check(
                 "position": claim.position,
                 # ClaimMap fields
                 "claimMap": json.loads(claim.claim_map) if claim.claim_map else None,
-                "claimType": claim.new_claim_type,
+                "claimType": claim.claim_type,
                 "isSelected": claim.is_selected,
                 "significanceRank": claim.significance_rank,
                 # Context preservation fields (Context Improvement - Phase 5)
@@ -1211,7 +1204,7 @@ async def export_check_pdf(
         claims_with_evidence.append(
             {
                 "text": claim.text,
-                "claim_type": claim.new_claim_type,
+                "claim_type": claim.claim_type,
                 "claim_map": claim_map,
                 "orientation": claim_map.get("orientation") if claim_map else None,
                 "elements": claim_map.get("elements", []) if claim_map else [],
@@ -1634,7 +1627,7 @@ async def get_public_check(
                 "text": claim.text,
                 "position": claim.position,
                 "claimMap": claim_map,
-                "claimType": claim.new_claim_type,
+                "claimType": claim.claim_type,
                 "isSelected": claim.is_selected,
                 "isVerifiable": claim.is_verifiable,
                 "isTimeSensitive": claim.is_time_sensitive,

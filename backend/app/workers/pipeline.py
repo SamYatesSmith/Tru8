@@ -240,9 +240,9 @@ async def retrieve_evidence_with_cache(
                     evidence_list = new_evidence.get(position, [])
 
                     # Quality gate 1: Minimum evidence count
-                    if len(evidence_list) < settings.MIN_SOURCES_FOR_VERDICT:
+                    if len(evidence_list) < settings.MIN_SOURCES_FOR_CACHE:
                         logger.info(
-                            f"[CACHE SKIP] Claim {position}: insufficient evidence ({len(evidence_list)} < {settings.MIN_SOURCES_FOR_VERDICT})"
+                            f"[CACHE SKIP] Claim {position}: insufficient evidence ({len(evidence_list)} < {settings.MIN_SOURCES_FOR_CACHE})"
                         )
                         continue
 

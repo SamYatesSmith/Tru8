@@ -11,5 +11,6 @@ __all__ = [
     "ingest",
     "extract",
     "retrieve",
-    "judge"
+    "claim_map_analyzer",
+    "claim_selector",
 ]

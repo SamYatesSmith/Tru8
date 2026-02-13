@@ -92,9 +92,7 @@ class RhetoricalContextAnalyzer:
         ]
 
     def analyze_evidence_for_rhetorical_context(
-        self,
-        evidence_list: List[Dict[str, Any]],
-        claim_text: str = ""
+        self, evidence_list: List[Dict[str, Any]], claim_text: str = ""
     ) -> Dict[str, Any]:
         """
         Analyze evidence snippets for rhetorical context markers.
@@ -115,32 +113,37 @@ class RhetoricalContextAnalyzer:
             combined_text = f"{title} {snippet}".lower()
 
             # Check for rhetorical markers
-            evidence_markers = self._find_markers(combined_text, self.rhetorical_markers)
+            evidence_markers = self._find_markers(
+                combined_text, self.rhetorical_markers
+            )
             if evidence_markers:
                 all_markers_found.extend(evidence_markers)
-                sources_describing_rhetoric.append({
-                    "source": source,
-                    "title": title[:100],
-                    "markers_found": evidence_markers,
-                    "url": evidence.get("url", "")
-                })
+                sources_describing_rhetoric.append(
+                    {
+                        "source": source,
+                        "title": title[:100],
+                        "markers_found": evidence_markers,
+                        "url": evidence.get("url", ""),
+                    }
+                )
 
             # Check for intent conflict markers
             for pattern in self.intent_conflict_markers:
                 if re.search(pattern, combined_text, re.IGNORECASE):
-                    intent_conflicts_found.append({
-                        "source": source,
-                        "pattern": pattern,
-                        "snippet_excerpt": snippet[:200] if snippet else ""
-                    })
+                    intent_conflicts_found.append(
+                        {
+                            "source": source,
+                            "pattern": pattern,
+                            "snippet_excerpt": snippet[:200] if snippet else "",
+                        }
+                    )
 
             # Check for sincerity questioning
             for pattern in self.sincerity_question_markers:
                 if re.search(pattern, combined_text, re.IGNORECASE):
-                    sincerity_questions_found.append({
-                        "source": source,
-                        "pattern": pattern
-                    })
+                    sincerity_questions_found.append(
+                        {"source": source, "pattern": pattern}
+                    )
 
         # Determine overall rhetorical context
         has_rhetorical_context = bool(all_markers_found) or bool(intent_conflicts_found)
@@ -179,15 +182,11 @@ class RhetoricalContextAnalyzer:
                 unique_sources,
                 all_markers_found,
                 intent_conflicts_found,
-                sincerity_questions_found
-            )
+                sincerity_questions_found,
+            ),
         }
 
-    def _find_markers(
-        self,
-        text: str,
-        marker_dict: Dict[str, List[str]]
-    ) -> List[str]:
+    def _find_markers(self, text: str, marker_dict: Dict[str, List[str]]) -> List[str]:
         """Find all rhetorical markers in text"""
         found = []
         for marker_type, patterns in marker_dict.items():
@@ -204,10 +203,18 @@ class RhetoricalContextAnalyzer:
 
         # Count occurrences
         from collections import Counter
+
         counts = Counter(markers)
 
         # Return most common, with preference order for ties
-        preference_order = ["sarcasm", "mockery", "satire", "joking", "inflammatory", "hyperbole"]
+        preference_order = [
+            "sarcasm",
+            "mockery",
+            "satire",
+            "joking",
+            "inflammatory",
+            "hyperbole",
+        ]
         max_count = max(counts.values()) if counts else 0
 
         for style in preference_order:
@@ -223,7 +230,7 @@ class RhetoricalContextAnalyzer:
         source_count: int,
         markers: List[str],
         intent_conflicts: List[Dict],
-        sincerity_questions: List[Dict]
+        sincerity_questions: List[Dict],
     ) -> str:
         """Generate human-readable explanation of rhetorical context"""
         if not has_context:
@@ -238,57 +245,60 @@ class RhetoricalContextAnalyzer:
                 "satire": "satirical",
                 "joking": "made in jest or not serious",
                 "inflammatory": "inflammatory or provocative",
-                "hyperbole": "hyperbolic or exaggerated"
+                "hyperbole": "hyperbolic or exaggerated",
             }
             style_desc = style_descriptions.get(primary_style, primary_style)
-            parts.append(f"{source_count} source(s) describe this statement as {style_desc}")
+            parts.append(
+                f"{source_count} source(s) describe this statement as {style_desc}"
+            )
 
         if intent_conflicts:
-            parts.append("Sources indicate a conflict between literal words and intended meaning")
+            parts.append(
+                "Sources indicate a conflict between literal words and intended meaning"
+            )
 
         if sincerity_questions:
             parts.append("Sources question whether the statement was sincere")
 
         return ". ".join(parts) + "." if parts else "Rhetorical context detected."
 
-    def get_judge_guidance(self, analysis: Dict[str, Any]) -> str:
+    def get_evidence_annotation(self, analysis: Dict[str, Any]) -> str:
         """
-        Generate guidance for the judge based on rhetorical analysis.
+        Generate rhetorical context annotation for evidence mapping.
 
-        This helps the LLM judge understand why evidence might conflict
+        This helps the analyzer understand why evidence might conflict
         and how to handle literal-vs-intent discrepancies.
         """
         if not analysis.get("has_rhetorical_context"):
             return ""
 
-        guidance_parts = []
+        parts = []
 
         primary_style = analysis.get("primary_style")
         if primary_style:
-            guidance_parts.append(
+            parts.append(
                 f"RHETORICAL CONTEXT WARNING: {analysis['unique_sources_flagging']} evidence source(s) "
                 f"characterize this statement as {primary_style}."
             )
 
         if analysis.get("intent_conflicts_detected"):
-            guidance_parts.append(
+            parts.append(
                 "Evidence suggests a discrepancy between the LITERAL words used and the "
-                "INTENDED meaning. When judging, consider that the speaker may have meant "
+                "INTENDED meaning. Consider that the speaker may have meant "
                 "the opposite of what was literally said."
             )
 
         if analysis.get("sincerity_questioned"):
-            guidance_parts.append(
+            parts.append(
                 "Sources question whether this statement was made sincerely. "
                 "Consider this when evaluating claims about what was 'said' vs what was 'meant'."
             )
 
-        # Add specific guidance based on style
-        style_guidance = {
+        # Add specific annotation based on style
+        style_notes = {
             "sarcasm": (
-                "For sarcastic statements, verify the LITERAL words were said (likely true), "
-                "but note that the intended meaning may be the opposite. The verdict should "
-                "acknowledge this context."
+                "For sarcastic statements, the LITERAL words were likely said, "
+                "but the intended meaning may be the opposite."
             ),
             "mockery": (
                 "This appears to be mockery. The literal claim about what was said may be true, "
@@ -299,21 +309,20 @@ class RhetoricalContextAnalyzer:
                 "but the speaker may not have meant it literally."
             ),
             "joking": (
-                "Sources indicate this was said in jest. Claims about exact words may be supported, "
+                "Sources indicate this was said in jest. Claims about exact words may hold, "
                 "but claims about sincerity or belief should be approached carefully."
             ),
         }
 
-        if primary_style in style_guidance:
-            guidance_parts.append(style_guidance[primary_style])
+        if primary_style in style_notes:
+            parts.append(style_notes[primary_style])
 
-        return "\n\n".join(guidance_parts)
+        return "\n\n".join(parts)
 
 
 # Convenience function for pipeline integration
 def analyze_rhetorical_context(
-    evidence_list: List[Dict[str, Any]],
-    claim_text: str = ""
+    evidence_list: List[Dict[str, Any]], claim_text: str = ""
 ) -> Dict[str, Any]:
     """
     Convenience function to analyze evidence for rhetorical context.

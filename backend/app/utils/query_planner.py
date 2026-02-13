@@ -635,7 +635,7 @@ def check_evidence_staleness(
     Check if evidence is stale based on freshness requirements.
 
     Freshness is determined dynamically by the LLM query planner. This function
-    validates evidence age against the freshness decision for judge warnings.
+    validates evidence age against the freshness decision for staleness warnings.
 
     Args:
         evidence_date: The published date of the evidence (ISO format or partial)

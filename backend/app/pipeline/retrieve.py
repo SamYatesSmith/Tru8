@@ -2025,7 +2025,7 @@ class EvidenceRetriever:
                 )
 
             # Fix 0b: Cap total API evidence per claim
-            # Reduced from 30 to 10: LLM judge has limited context, quality over quantity
+            # Reduced from 30 to 10: analyzer has limited context, quality over quantity
             MAX_API_EVIDENCE_PER_CLAIM = 10
             if len(all_api_evidence) > MAX_API_EVIDENCE_PER_CLAIM:
                 logger.info(

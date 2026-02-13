@@ -230,14 +230,14 @@ async def get_user_stats(
 
     # Claim type distribution (new 5-way taxonomy)
     claim_type_stmt = (
-        select(Claim.new_claim_type, func.count(Claim.id))
+        select(Claim.claim_type, func.count(Claim.id))
         .join(Check)
         .where(
             Check.user_id == user_id,
             Check.status == "completed",
-            Claim.new_claim_type.isnot(None),
+            Claim.claim_type.isnot(None),
         )
-        .group_by(Claim.new_claim_type)
+        .group_by(Claim.claim_type)
     )
     claim_type_result = await session.execute(claim_type_stmt)
     claim_type_rows = claim_type_result.all()
@@ -808,7 +808,7 @@ async def export_user_data(
                 {
                     "id": str(claim.id),
                     "text": claim.text,
-                    "claim_type": claim.new_claim_type,
+                    "claim_type": claim.claim_type,
                     "is_selected": claim.is_selected,
                     "significance_rank": claim.significance_rank,
                     "orientation": orientation,
