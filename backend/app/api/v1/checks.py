@@ -42,7 +42,9 @@ async def test_search_diagnostic():
 
     results = {
         "brave_api_key_configured": bool(settings.BRAVE_API_KEY),
-        "brave_api_key_length": len(settings.BRAVE_API_KEY) if settings.BRAVE_API_KEY else 0,
+        "brave_api_key_length": (
+            len(settings.BRAVE_API_KEY) if settings.BRAVE_API_KEY else 0
+        ),
         "serp_api_key_configured": bool(settings.SERP_API_KEY),
         "test_query": "Earth age billion years",
         "search_results": [],
@@ -61,12 +63,16 @@ async def test_search_diagnostic():
             return results
 
         search_results = await search_service.search_for_evidence(
-            "Earth age billion years",
-            max_results=3
+            "Earth age billion years", max_results=3
         )
 
         results["search_results"] = [
-            {"title": r.title, "url": r.url, "snippet": r.snippet[:150], "source": r.source}
+            {
+                "title": r.title,
+                "url": r.url,
+                "snippet": r.snippet[:150],
+                "source": r.source,
+            }
             for r in search_results
         ]
         results["result_count"] = len(search_results)
@@ -106,25 +112,26 @@ async def test_full_diagnostic():
         "evidence_retriever": {
             "initialized": False,
             "error": None,
-        }
+        },
     }
 
     # Test 1: Web Search
     try:
         warmup_search_providers()
         search_service = SearchService()
-        results["web_search"]["providers"] = [p.__class__.__name__ for p in search_service.providers]
+        results["web_search"]["providers"] = [
+            p.__class__.__name__ for p in search_service.providers
+        ]
 
         if search_service.providers:
             search_results = await search_service.search_for_evidence(
-                "climate change statistics 2024",
-                max_results=3
+                "climate change statistics 2024", max_results=3
             )
             results["web_search"]["test_results"] = len(search_results)
             if search_results:
                 results["web_search"]["sample"] = {
                     "title": search_results[0].title,
-                    "url": search_results[0].url[:80]
+                    "url": search_results[0].url[:80],
                 }
     except Exception as e:
         results["web_search"]["error"] = f"{type(e).__name__}: {str(e)}"
@@ -141,11 +148,13 @@ async def test_full_diagnostic():
             if adapter.api_name == "Wikipedia":
                 try:
                     wiki_results = adapter.search("Earth age", "Science", "Global", [])
-                    results["api_adapters"]["test_results"]["Wikipedia"] = len(wiki_results)
+                    results["api_adapters"]["test_results"]["Wikipedia"] = len(
+                        wiki_results
+                    )
                     if wiki_results:
                         results["api_adapters"]["test_results"]["Wikipedia_sample"] = {
                             "title": wiki_results[0].get("title", "N/A")[:50],
-                            "has_snippet": bool(wiki_results[0].get("snippet"))
+                            "has_snippet": bool(wiki_results[0].get("snippet")),
                         }
                 except Exception as e:
                     results["api_adapters"]["test_results"]["Wikipedia_error"] = str(e)
@@ -170,10 +179,17 @@ async def test_full_diagnostic():
         "evidence_retriever_ready": results["evidence_retriever"]["initialized"],
     }
 
-    if not results["summary"]["web_search_working"] and not results["api_adapters"]["test_results"]:
-        results["diagnosis"] = "CRITICAL: Neither web search nor API adapters are returning results. Check API keys in .env"
+    if (
+        not results["summary"]["web_search_working"]
+        and not results["api_adapters"]["test_results"]
+    ):
+        results["diagnosis"] = (
+            "CRITICAL: Neither web search nor API adapters are returning results. Check API keys in .env"
+        )
     elif not results["summary"]["web_search_working"]:
-        results["diagnosis"] = "WARNING: Web search not working. Set BRAVE_API_KEY or SERP_API_KEY. API adapters may still provide some evidence."
+        results["diagnosis"] = (
+            "WARNING: Web search not working. Set BRAVE_API_KEY or SERP_API_KEY. API adapters may still provide some evidence."
+        )
     else:
         results["diagnosis"] = "OK: Evidence retrieval should be working."
 
@@ -184,9 +200,11 @@ async def test_full_diagnostic():
 template_dir = Path(__file__).parent.parent.parent / "templates"
 jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
 
+
 def safe_json_dumps(data: dict) -> str:
     """Safely serialize JSON for SSE with ASCII encoding"""
-    return json.dumps(data, ensure_ascii=True, separators=(',', ':'))
+    return json.dumps(data, ensure_ascii=True, separators=(",", ":"))
+
 
 class CreateCheckRequest(BaseModel):
     input_type: str  # 'url', 'text', 'image', 'video'
@@ -194,42 +212,41 @@ class CreateCheckRequest(BaseModel):
     url: Optional[str] = None
     file_path: Optional[str] = None  # For uploaded files
     user_query: Optional[str] = None  # Search Clarity feature
-    frozen_evidence: Optional[Dict[str, List[Dict[str, Any]]]] = None  # Frozen evidence replay (v2): full pre-weighting evidence dicts
+    frozen_evidence: Optional[Dict[str, List[Dict[str, Any]]]] = (
+        None  # Frozen evidence replay (v2): full pre-weighting evidence dicts
+    )
+
 
 @router.post("/upload")
 @limiter.limit("10/minute")  # Rate limit uploads
 async def upload_file(
     request: Request,  # Required for rate limiting
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
     """Upload a file for fact-checking (images only)"""
-    
+
     # Validate file type
-    if not file.content_type or not file.content_type.startswith('image/'):
-        raise HTTPException(
-            status_code=400, 
-            detail="Only image files are supported"
-        )
-    
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are supported")
+
     # Check file size (6MB limit from project requirements)
     max_size = 6 * 1024 * 1024  # 6MB
     content = await file.read()
     if len(content) > max_size:
         raise HTTPException(
-            status_code=413,
-            detail="File too large. Maximum size is 6MB."
+            status_code=413, detail="File too large. Maximum size is 6MB."
         )
-    
+
     # Generate unique filename
     file_id = str(uuid.uuid4())
     file_extension = Path(file.filename).suffix.lower()
-    if file_extension not in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
+    if file_extension not in [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"]:
         raise HTTPException(
             status_code=400,
-            detail="Unsupported image format. Supported: jpg, jpeg, png, gif, bmp, webp"
+            detail="Unsupported image format. Supported: jpg, jpeg, png, gif, bmp, webp",
         )
-    
+
     filename = f"{file_id}{file_extension}"
 
     try:
@@ -245,15 +262,12 @@ async def upload_file(
             "filePath": file_path,
             "filename": file.filename,
             "contentType": file.content_type,
-            "size": len(content)
+            "size": len(content),
         }
 
     except Exception as e:
         logger.error(f"File upload error: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to save uploaded file"
-        )
+        raise HTTPException(status_code=500, detail="Failed to save uploaded file")
 
 
 @router.get("/test/stream-mock", status_code=200)
@@ -263,7 +277,9 @@ async def test_stream_mock():
     DEBUG mode only. Returns fake progress events.
     """
     if not settings.DEBUG:
-        raise HTTPException(status_code=404, detail="Test endpoint only available in DEBUG mode")
+        raise HTTPException(
+            status_code=404, detail="Test endpoint only available in DEBUG mode"
+        )
 
     from app.pipeline.progress import ProgressReporter
 
@@ -291,20 +307,16 @@ async def test_stream_mock():
         headers={
             "Cache-Control": "no-cache",
             "X-Check-Id": check_id,
-        }
+        },
     )
 
 
 @router.get("/test/{check_id}")
-async def get_check_test(
-    check_id: str,
-    session: AsyncSession = Depends(get_session)
-):
+async def get_check_test(check_id: str, session: AsyncSession = Depends(get_session)):
     """TEST-ONLY ENDPOINT: Get check status without authentication (DEBUG mode only)"""
     if not settings.DEBUG:
         raise HTTPException(
-            status_code=404,
-            detail="Test endpoint only available in DEBUG mode"
+            status_code=404, detail="Test endpoint only available in DEBUG mode"
         )
 
     try:
@@ -339,7 +351,9 @@ async def get_check_test(
                 supported = sum(1 for c in claims if c.verdict == "supported")
                 contradicted = sum(1 for c in claims if c.verdict == "contradicted")
                 uncertain = sum(1 for c in claims if c.verdict == "uncertain")
-                insufficient = sum(1 for c in claims if c.verdict == "insufficient_evidence")
+                insufficient = sum(
+                    1 for c in claims if c.verdict == "insufficient_evidence"
+                )
 
                 # Calculate overall score
                 if total_claims > 0:
@@ -347,14 +361,16 @@ async def get_check_test(
                 else:
                     overall_score = 0
 
-                response.update({
-                    "overall_score": overall_score,
-                    "claims_analyzed": total_claims,
-                    "claims_supported": supported,
-                    "claims_contradicted": contradicted,
-                    "claims_uncertain": uncertain,
-                    "claims_insufficient": insufficient,
-                })
+                response.update(
+                    {
+                        "overall_score": overall_score,
+                        "claims_analyzed": total_claims,
+                        "claims_supported": supported,
+                        "claims_contradicted": contradicted,
+                        "claims_uncertain": uncertain,
+                        "claims_insufficient": insufficient,
+                    }
+                )
             except Exception as e:
                 logger.error(f"[TEST] Error getting claims for check {check_id}: {e}")
                 # Return basic response without claims data
@@ -371,12 +387,14 @@ async def get_check_test(
     except Exception as e:
         logger.error(f"[TEST] Error in get_check_test for {check_id}: {e}")
         import traceback
+
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 class CreateCheckTestStreamRequest(BaseModel):
     """Test-only request for streaming endpoint"""
+
     input_type: str = "text"
     content: Optional[str] = None
     url: Optional[str] = None
@@ -384,8 +402,7 @@ class CreateCheckTestStreamRequest(BaseModel):
 
 @router.post("/test/stream", status_code=200)
 async def create_check_test_streaming(
-    body: CreateCheckTestStreamRequest,
-    session: AsyncSession = Depends(get_session)
+    body: CreateCheckTestStreamRequest, session: AsyncSession = Depends(get_session)
 ):
     """
     TEST-ONLY ENDPOINT: Create a streaming fact-check without authentication.
@@ -398,8 +415,7 @@ async def create_check_test_streaming(
     """
     if not settings.DEBUG:
         raise HTTPException(
-            status_code=404,
-            detail="Test endpoint only available in DEBUG mode"
+            status_code=404, detail="Test endpoint only available in DEBUG mode"
         )
 
     from app.core.database import async_session
@@ -409,7 +425,7 @@ async def create_check_test_streaming(
         save_check_results_async,
         handle_pipeline_failure,
         send_success_notifications,
-        PipelineError
+        PipelineError,
     )
 
     # Create or get test user
@@ -423,7 +439,7 @@ async def create_check_test_streaming(
             id=test_user_id,
             email="test-stream@consistency.local",
             name="Streaming Test User",
-            credits=1000000
+            credits=1000000,
         )
         session.add(user)
         await session.commit()
@@ -445,15 +461,13 @@ async def create_check_test_streaming(
         id=str(uuid.uuid4()),
         user_id=user.id,
         input_type=body.input_type,
-        input_content=json.dumps({
-            "content": body.content,
-            "url": body.url,
-            "file_path": None
-        }),
+        input_content=json.dumps(
+            {"content": body.content, "url": body.url, "file_path": None}
+        ),
         input_url=body.url,
         status="processing",
         credits_used=0,  # Don't charge for test
-        user_query=None
+        user_query=None,
     )
 
     session.add(check)
@@ -468,7 +482,7 @@ async def create_check_test_streaming(
         "content": body.content,
         "url": body.url,
         "file_path": None,
-        "user_query": None
+        "user_query": None,
     }
 
     progress_reporter = ProgressReporter(check.id)
@@ -479,7 +493,7 @@ async def create_check_test_streaming(
             logger.info(f"[TEST STREAM] Starting pipeline for check {check.id}")
             result = await asyncio.wait_for(
                 run_pipeline(check.id, user.id, input_data, progress_reporter),
-                timeout=300
+                timeout=300,
             )
 
             async with async_session() as save_session:
@@ -491,7 +505,9 @@ async def create_check_test_streaming(
 
         except asyncio.TimeoutError:
             logger.error(f"[TEST STREAM] Pipeline timed out for check {check.id}")
-            await handle_pipeline_failure(check.id, user.id, Exception("Pipeline timed out"))
+            await handle_pipeline_failure(
+                check.id, user.id, Exception("Pipeline timed out")
+            )
             await progress_reporter.report_error("Pipeline timed out")
 
         except PipelineError as e:
@@ -502,6 +518,7 @@ async def create_check_test_streaming(
         except Exception as e:
             logger.error(f"[TEST STREAM] Unexpected error: {e}")
             import traceback
+
             logger.error(traceback.format_exc())
             await handle_pipeline_failure(check.id, user.id, e)
             await progress_reporter.report_error(str(e))
@@ -511,7 +528,9 @@ async def create_check_test_streaming(
 
     async def pipeline_stream():
         """Generator that yields SSE events - pipeline runs independently."""
-        async for event in progress_reporter.events(pipeline_task, max_duration_seconds=300):
+        async for event in progress_reporter.events(
+            pipeline_task, max_duration_seconds=300
+        ):
             yield event
 
     return StreamingResponse(
@@ -522,9 +541,8 @@ async def create_check_test_streaming(
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
             "X-Check-Id": check.id,
-        }
+        },
     )
-
 
 
 @router.post("/stream", status_code=200)
@@ -533,7 +551,7 @@ async def create_check_streaming(
     body: CreateCheckRequest,
     request: Request,
     current_user: dict = Depends(get_current_user_sse),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """
     Create a new fact-check with inline SSE streaming.
@@ -550,14 +568,16 @@ async def create_check_streaming(
         save_check_results_async,
         handle_pipeline_failure,
         send_success_notifications,
-        PipelineError
+        PipelineError,
     )
 
     # Get or create user (handles race conditions)
     user = await get_or_create_user(session, current_user)
 
     # BETA TESTER CHECK (skip in DEBUG mode)
-    is_beta_tester = user.email.lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+    is_beta_tester = user.email.lower() in [
+        e.lower() for e in settings.BETA_TESTER_EMAILS
+    ]
 
     if not settings.DEBUG and settings.BETA_TESTER_EMAILS and not is_beta_tester:
         raise HTTPException(
@@ -565,14 +585,13 @@ async def create_check_streaming(
             detail={
                 "message": "Tru8 is currently in closed beta. Join our waitlist to be notified when we launch!",
                 "code": "BETA_ACCESS_REQUIRED",
-                "waitlist": True
-            }
+                "waitlist": True,
+            },
         )
 
     # MONTHLY USAGE LIMIT CHECK
     sub_stmt = select(Subscription).where(
-        Subscription.user_id == user.id,
-        Subscription.status.in_(["active", "trialing"])
+        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
     )
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
@@ -584,8 +603,7 @@ async def create_check_streaming(
         credits_limit = 40
 
         usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id,
-            Check.created_at >= period_start
+            Check.user_id == user.id, Check.created_at >= period_start
         )
         usage_result = await session.execute(usage_stmt)
         current_usage = usage_result.scalar() or 0
@@ -595,8 +613,7 @@ async def create_check_streaming(
         credits_limit = subscription.credits_per_month
 
         usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id,
-            Check.created_at >= period_start
+            Check.user_id == user.id, Check.created_at >= period_start
         )
         usage_result = await session.execute(usage_stmt)
         current_usage = usage_result.scalar() or 0
@@ -609,23 +626,25 @@ async def create_check_streaming(
     # Admin bypass OR DEBUG mode bypass
     if settings.DEBUG:
         logger.info(f"DEBUG mode: {user.email} - skipping credit limit check")
-    elif user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
+    elif user.email and user.email.lower() in [
+        e.lower() for e in settings.ADMIN_EMAILS
+    ]:
         logger.info(f"Admin bypass: {user.email} - skipping credit limit check")
     elif current_usage >= credits_limit:
         if limit_type == "trial":
             raise HTTPException(
                 status_code=402,
-                detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade to Pro for unlimited monthly checks."
+                detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade to Pro for unlimited monthly checks.",
             )
         elif limit_type == "beta_monthly":
             raise HTTPException(
                 status_code=402,
-                detail=f"Beta monthly limit reached ({current_usage}/{credits_limit} checks used). Your limit resets on the 1st of next month."
+                detail=f"Beta monthly limit reached ({current_usage}/{credits_limit} checks used). Your limit resets on the 1st of next month.",
             )
         else:
             raise HTTPException(
                 status_code=402,
-                detail=f"Monthly limit reached ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks."
+                detail=f"Monthly limit reached ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
             )
 
     # Validate input
@@ -633,20 +652,28 @@ async def create_check_streaming(
         raise HTTPException(status_code=400, detail="Invalid input type")
 
     if body.input_type == "url" and not body.url:
-        raise HTTPException(status_code=400, detail="URL is required for url input type")
+        raise HTTPException(
+            status_code=400, detail="URL is required for url input type"
+        )
 
     if body.input_type in ["url", "video"] and body.url:
         if not body.url.startswith(("http://", "https://")):
             body.url = f"https://{body.url}"
 
     if body.input_type == "text" and not body.content:
-        raise HTTPException(status_code=400, detail="Content is required for text input type")
+        raise HTTPException(
+            status_code=400, detail="Content is required for text input type"
+        )
 
     if body.input_type == "image" and not body.file_path:
-        raise HTTPException(status_code=400, detail="File path is required for image input type")
+        raise HTTPException(
+            status_code=400, detail="File path is required for image input type"
+        )
 
     if body.input_type == "video" and not body.url:
-        raise HTTPException(status_code=400, detail="URL is required for video input type")
+        raise HTTPException(
+            status_code=400, detail="URL is required for video input type"
+        )
 
     # Sanitize inputs
     if body.url:
@@ -658,13 +685,11 @@ async def create_check_streaming(
     if body.user_query:
         if not settings.ENABLE_SEARCH_CLARITY:
             raise HTTPException(
-                status_code=503,
-                detail="Search Clarity feature is temporarily disabled"
+                status_code=503, detail="Search Clarity feature is temporarily disabled"
             )
         if len(body.user_query) > 200:
             raise HTTPException(
-                status_code=400,
-                detail="Query must be 200 characters or less"
+                status_code=400, detail="Query must be 200 characters or less"
             )
         body.user_query = body.user_query.strip()
 
@@ -673,15 +698,13 @@ async def create_check_streaming(
         id=str(uuid.uuid4()),
         user_id=user.id,
         input_type=body.input_type,
-        input_content=json.dumps({
-            "content": body.content,
-            "url": body.url,
-            "file_path": body.file_path
-        }),
+        input_content=json.dumps(
+            {"content": body.content, "url": body.url, "file_path": body.file_path}
+        ),
         input_url=body.url,
         status="processing",  # Start as processing (no pending state for inline)
         credits_used=1,
-        user_query=body.user_query
+        user_query=body.user_query,
     )
 
     session.add(check)
@@ -715,7 +738,7 @@ async def create_check_streaming(
             logger.info(f"[PIPELINE TASK] Starting pipeline for check {check.id}")
             result = await asyncio.wait_for(
                 run_pipeline(check.id, user.id, input_data, progress_reporter),
-                timeout=300  # 5 minute hard timeout
+                timeout=300,  # 5 minute hard timeout
             )
             logger.info(f"[PIPELINE TASK] Pipeline completed for check {check.id}")
 
@@ -726,9 +749,7 @@ async def create_check_streaming(
             logger.info(f"[PIPELINE TASK] Results saved for check {check.id}")
 
             # Send success notifications
-            content_data = {
-                "metadata": result.get("ingest_metadata", {})
-            }
+            content_data = {"metadata": result.get("ingest_metadata", {})}
             await send_success_notifications(
                 user.id, check.id, result, input_data, content_data
             )
@@ -739,8 +760,12 @@ async def create_check_streaming(
 
         except asyncio.TimeoutError:
             logger.error(f"[PIPELINE TASK] Pipeline timed out for check {check.id}")
-            await handle_pipeline_failure(check.id, user.id, Exception("Pipeline timed out after 5 minutes"))
-            await progress_reporter.report_error("Pipeline timed out. Your credit has been returned.")
+            await handle_pipeline_failure(
+                check.id, user.id, Exception("Pipeline timed out after 5 minutes")
+            )
+            await progress_reporter.report_error(
+                "Pipeline timed out. Your credit has been returned."
+            )
 
         except PipelineError as e:
             logger.error(f"[PIPELINE TASK] Pipeline error for check {check.id}: {e}")
@@ -750,6 +775,7 @@ async def create_check_streaming(
         except Exception as e:
             logger.error(f"[PIPELINE TASK] Unexpected error for check {check.id}: {e}")
             import traceback
+
             logger.error(traceback.format_exc())
             await handle_pipeline_failure(check.id, user.id, e)
             await progress_reporter.report_error(str(e))
@@ -768,15 +794,25 @@ async def create_check_streaming(
         event_count = 0
 
         try:
-            async for event in progress_reporter.events(pipeline_task, max_duration_seconds=300):
+            async for event in progress_reporter.events(
+                pipeline_task, max_duration_seconds=300
+            ):
                 event_count += 1
-                if event_count <= 5 or event_count % 10 == 0:  # Log first 5 and every 10th
-                    logger.info(f"[SSE STREAM] Event #{event_count} for check {check.id}")
+                if (
+                    event_count <= 5 or event_count % 10 == 0
+                ):  # Log first 5 and every 10th
+                    logger.info(
+                        f"[SSE STREAM] Event #{event_count} for check {check.id}"
+                    )
                 yield event
         except Exception as e:
-            logger.error(f"[SSE STREAM] Error streaming events for check {check.id}: {e}")
+            logger.error(
+                f"[SSE STREAM] Error streaming events for check {check.id}: {e}"
+            )
         finally:
-            logger.info(f"[SSE STREAM] Stream ended for check {check.id} after {event_count} events")
+            logger.info(
+                f"[SSE STREAM] Stream ended for check {check.id} after {event_count} events"
+            )
             # Note: We do NOT cancel the pipeline task here - it should complete independently
 
     return StreamingResponse(
@@ -787,7 +823,7 @@ async def create_check_streaming(
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
             "X-Check-Id": check.id,  # Include check ID in headers for client
-        }
+        },
     )
 
 
@@ -797,7 +833,7 @@ async def get_checks(
     skip: int = 0,
     limit: int = 20,
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Get user's check history"""
     stmt = (
@@ -809,7 +845,7 @@ async def get_checks(
     )
     result = await session.execute(stmt)
     checks = result.scalars().all()
-    
+
     # Get claims for each check (including first claim for preview)
     check_data = []
     for check in checks:
@@ -824,56 +860,63 @@ async def get_checks(
         first_claim = first_claim_result.scalar_one_or_none()
 
         # Count total claims
-        claims_count_stmt = select(func.count(Claim.id)).where(Claim.check_id == check.id)
+        claims_count_stmt = select(func.count(Claim.id)).where(
+            Claim.check_id == check.id
+        )
         claims_count_result = await session.execute(claims_count_stmt)
         claims_count = claims_count_result.scalar() or 0
 
         # Build claims array with first claim details
         claims_array = []
         if first_claim:
-            claims_array.append({
-                "id": first_claim.id,
-                "text": first_claim.text,
-                "verdict": first_claim.verdict,
-                "confidence": first_claim.confidence,
-                "position": first_claim.position,
-            })
+            claim_map = (
+                json.loads(first_claim.claim_map) if first_claim.claim_map else None
+            )
+            claims_array.append(
+                {
+                    "id": first_claim.id,
+                    "text": first_claim.text,
+                    "position": first_claim.position,
+                    "claimType": first_claim.new_claim_type,
+                    "elementCount": (
+                        len(claim_map.get("elements", [])) if claim_map else 0
+                    ),
+                    "orientation": claim_map.get("orientation") if claim_map else None,
+                }
+            )
 
-        check_data.append({
-            "id": check.id,
-            "inputType": check.input_type,
-            "inputUrl": check.input_url,
-            "status": check.status,
-            "creditsUsed": check.credits_used,
-            "processingTimeMs": check.processing_time_ms,
-            "createdAt": check.created_at.isoformat(),
-            "completedAt": check.completed_at.isoformat() if check.completed_at else None,
-            "claimsCount": claims_count,
-            "claims": claims_array,  # First claim for preview
-            # Synopsis fields for dashboard cards
-            "overallSummary": check.overall_summary,
-            "credibilityScore": check.credibility_score,
-            "claimsSupported": check.claims_supported or 0,
-            "claimsContradicted": check.claims_contradicted or 0,
-            "claimsUncertain": check.claims_uncertain or 0,
-            "articleDomain": check.article_domain,
-        })
+        check_data.append(
+            {
+                "id": check.id,
+                "inputType": check.input_type,
+                "inputUrl": check.input_url,
+                "status": check.status,
+                "creditsUsed": check.credits_used,
+                "processingTimeMs": check.processing_time_ms,
+                "createdAt": check.created_at.isoformat(),
+                "completedAt": (
+                    check.completed_at.isoformat() if check.completed_at else None
+                ),
+                "claimsCount": claims_count,
+                "claims": claims_array,  # First claim for preview
+                "entryMode": check.entry_mode,
+                "selectedClaimsCount": check.selected_claims_count,
+                "articleDomain": check.article_domain,
+            }
+        )
 
-    return {
-        "checks": check_data,
-        "total": len(checks)
-    }
+    return {"checks": check_data, "total": len(checks)}
+
 
 @router.get("/{check_id}")
 async def get_check(
     check_id: str,
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Get a specific check with all claims and evidence"""
     stmt = select(Check).where(
-        Check.id == check_id,
-        Check.user_id == current_user["id"]
+        Check.id == check_id, Check.user_id == current_user["id"]
     )
     result = await session.execute(stmt)
     check = result.scalar_one_or_none()
@@ -893,25 +936,26 @@ async def get_check(
 
             if progress_data:
                 data = json.loads(progress_data)
-                current_stage = data.get('stage', 'processing')
-                progress_percent = data.get('progress', 0)
-                progress_message = data.get('message', 'Processing...')
+                current_stage = data.get("stage", "processing")
+                progress_percent = data.get("progress", 0)
+                progress_message = data.get("message", "Processing...")
 
             redis_client.close()
         except Exception as e:
-            logger.warning(f"Failed to get progress from Redis for check {check_id}: {e}")
-    
+            logger.warning(
+                f"Failed to get progress from Redis for check {check_id}: {e}"
+            )
+
     # Get claims with evidence
     claims_stmt = (
-        select(Claim)
-        .where(Claim.check_id == check.id)
-        .order_by(Claim.position)
+        select(Claim).where(Claim.check_id == check.id).order_by(Claim.position)
     )
     claims_result = await session.execute(claims_stmt)
     claims = claims_result.scalars().all()
 
     # Get per-claim raw source counts for "View sources" link
     from app.models.check import RawEvidence
+
     raw_counts_stmt = (
         select(RawEvidence.claim_position, func.count(RawEvidence.id))
         .where(RawEvidence.check_id == check.id)
@@ -925,42 +969,49 @@ async def get_check(
         evidence_stmt = select(Evidence).where(Evidence.claim_id == claim.id)
         evidence_result = await session.execute(evidence_stmt)
         evidence = evidence_result.scalars().all()
-        
-        claims_data.append({
-            "id": claim.id,
-            "text": claim.text,
-            "verdict": claim.verdict,
-            "confidence": claim.confidence,
-            "rationale": claim.rationale,
-            "position": claim.position,
-            # Context preservation fields (Context Improvement - Phase 5)
-            "subjectContext": claim.subject_context,
-            "keyEntities": json.loads(claim.key_entities) if claim.key_entities else [],
-            "sourceTitle": claim.source_title,
-            "sourceUrl": claim.source_url,
-            # Sources reviewed count (for "View X sources" link when no evidence displayed)
-            "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
-            # Judge input hash for harness determinism tracking
-            "judge_input_hash": claim.judge_input_hash,
-            "evidence": [
-                {
-                    "id": ev.id,
-                    "source": ev.source,
-                    "url": ev.url,
-                    "title": ev.title,
-                    "snippet": ev.snippet,
-                    "publishedDate": ev.published_date.isoformat() if ev.published_date else None,
-                    "relevanceScore": ev.relevance_score,
-                    "credibilityScore": ev.credibility_score,
-                    # Source type fields
-                    "isFactcheck": ev.is_factcheck,
-                    "externalSourceProvider": ev.external_source_provider,
-                    "sourceType": ev.source_type,
-                }
-                for ev in evidence
-            ]
-        })
-    
+
+        claims_data.append(
+            {
+                "id": claim.id,
+                "text": claim.text,
+                "position": claim.position,
+                # ClaimMap fields
+                "claimMap": json.loads(claim.claim_map) if claim.claim_map else None,
+                "claimType": claim.new_claim_type,
+                "isSelected": claim.is_selected,
+                "significanceRank": claim.significance_rank,
+                # Context preservation fields (Context Improvement - Phase 5)
+                "subjectContext": claim.subject_context,
+                "keyEntities": (
+                    json.loads(claim.key_entities) if claim.key_entities else []
+                ),
+                "sourceTitle": claim.source_title,
+                "sourceUrl": claim.source_url,
+                # Sources reviewed count (for "View X sources" link when no evidence displayed)
+                "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
+                "evidence": [
+                    {
+                        "id": ev.id,
+                        "evidenceId": ev.evidence_id,
+                        "source": ev.source,
+                        "url": ev.url,
+                        "title": ev.title,
+                        "snippet": ev.snippet,
+                        "publishedDate": (
+                            ev.published_date.isoformat() if ev.published_date else None
+                        ),
+                        "relevanceScore": ev.relevance_score,
+                        "credibilityScore": ev.credibility_score,
+                        # Source type fields
+                        "isFactcheck": ev.is_factcheck,
+                        "externalSourceProvider": ev.external_source_provider,
+                        "sourceType": ev.source_type,
+                    }
+                    for ev in evidence
+                ],
+            }
+        )
+
     return {
         "id": check.id,
         "inputType": check.input_type,
@@ -970,11 +1021,8 @@ async def get_check(
         "creditsUsed": check.credits_used,
         "processingTimeMs": check.processing_time_ms,
         "errorMessage": check.error_message,
-        "overallSummary": check.overall_summary,
-        "credibilityScore": check.credibility_score,
-        "claimsSupported": check.claims_supported,
-        "claimsContradicted": check.claims_contradicted,
-        "claimsUncertain": check.claims_uncertain,
+        "entryMode": check.entry_mode,
+        "selectedClaimsCount": check.selected_claims_count,
         # Article classification (domain detection)
         "articleDomain": check.article_domain,
         "articleSecondaryDomains": check.article_secondary_domains,
@@ -984,8 +1032,14 @@ async def get_check(
         "userQuery": check.user_query,
         "queryResponse": check.query_response,
         "queryConfidence": check.query_confidence,
-        "querySources": check.query_sources.get("sources", []) if check.query_sources else None,
-        "queryRelatedClaims": check.query_sources.get("related_claims", []) if check.query_sources else None,
+        "querySources": (
+            check.query_sources.get("sources", []) if check.query_sources else None
+        ),
+        "queryRelatedClaims": (
+            check.query_sources.get("related_claims", [])
+            if check.query_sources
+            else None
+        ),
         "claims": claims_data,
         "createdAt": check.created_at.isoformat(),
         "completedAt": check.completed_at.isoformat() if check.completed_at else None,
@@ -1000,24 +1054,24 @@ async def get_check(
 async def stream_check_progress(
     check_id: str,
     current_user: dict = Depends(get_current_user_sse),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Stream real-time progress updates via SSE"""
-    
+
     # Verify check belongs to user
     stmt = select(Check).where(
-        Check.id == check_id,
-        Check.user_id == current_user["id"]
+        Check.id == check_id, Check.user_id == current_user["id"]
     )
     result = await session.execute(stmt)
     check = result.scalar_one_or_none()
-    
+
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
-    
+
     def event_stream():
         """Generate SSE events for pipeline progress - reads from Redis"""
         import time
+
         redis_client = None
         try:
             redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -1056,7 +1110,9 @@ async def stream_check_progress(
                         current_progress = data.get("progress", 0)
                         current_stage = data.get("stage", "processing")
                         current_message = data.get("message", "Processing...")
-                        current_time_estimate = data.get("timeEstimate", "within 2 minutes")
+                        current_time_estimate = data.get(
+                            "timeEstimate", "within 2 minutes"
+                        )
 
                         if status == "completed":
                             yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100, 'message': 'Fact-check completed successfully'})}\n\n"
@@ -1065,7 +1121,10 @@ async def stream_check_progress(
                             error = data.get("error", "Processing failed")
                             yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error})}\n\n"
                             break
-                        elif current_progress > last_progress or current_stage != last_stage:
+                        elif (
+                            current_progress > last_progress
+                            or current_stage != last_stage
+                        ):
                             # Send progress update when progress OR stage changes
                             yield f"data: {json.dumps({'type': 'progress', 'checkId': check_id, 'stage': current_stage, 'progress': current_progress, 'message': current_message, 'timeEstimate': current_time_estimate})}\n\n"
                             last_progress = current_progress
@@ -1094,7 +1153,7 @@ async def stream_check_progress(
         finally:
             if redis_client:
                 redis_client.close()
-    
+
     return StreamingResponse(
         event_stream(),
         media_type="text/event-stream",
@@ -1102,21 +1161,21 @@ async def stream_check_progress(
             "Cache-Control": "no-cache, no-store, must-revalidate",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",  # Disable nginx buffering for SSE
-        }
+        },
     )
+
 
 @router.get("/{check_id}/export/pdf")
 async def export_check_pdf(
     check_id: str,
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Export fact-check as PDF report"""
 
     # Fetch check with user verification
     stmt = select(Check).where(
-        Check.id == check_id,
-        Check.user_id == current_user["id"]
+        Check.id == check_id, Check.user_id == current_user["id"]
     )
     result = await session.execute(stmt)
     check = result.scalar_one_or_none()
@@ -1126,15 +1185,12 @@ async def export_check_pdf(
 
     if check.status != "completed":
         raise HTTPException(
-            status_code=400,
-            detail="PDF export only available for completed checks"
+            status_code=400, detail="PDF export only available for completed checks"
         )
 
     # Fetch claims ordered by position
     claims_stmt = (
-        select(Claim)
-        .where(Claim.check_id == check_id)
-        .order_by(Claim.position)
+        select(Claim).where(Claim.check_id == check_id).order_by(Claim.position)
     )
     claims_result = await session.execute(claims_stmt)
     claims = claims_result.scalars().all()
@@ -1151,37 +1207,32 @@ async def export_check_pdf(
         evidence_result = await session.execute(evidence_stmt)
         evidence_list = evidence_result.scalars().all()
 
-        claims_with_evidence.append({
-            "text": claim.text,
-            "verdict": claim.verdict,
-            "confidence": claim.confidence,
-            "rationale": claim.rationale,
-            "evidence": evidence_list
-        })
+        claim_map = json.loads(claim.claim_map) if claim.claim_map else None
+        claims_with_evidence.append(
+            {
+                "text": claim.text,
+                "claim_type": claim.new_claim_type,
+                "claim_map": claim_map,
+                "orientation": claim_map.get("orientation") if claim_map else None,
+                "elements": claim_map.get("elements", []) if claim_map else [],
+                "evidence": evidence_list,
+            }
+        )
 
     # Render HTML template
     try:
         template = jinja_env.get_template("pdf/fact_check_report.html")
         html_content = template.render(
-            check=check,
-            claims=claims_with_evidence,
-            now=datetime.utcnow()
+            check=check, claims=claims_with_evidence, now=datetime.utcnow()
         )
     except Exception as e:
         logger.error(f"Template rendering failed: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to generate PDF template"
-        )
+        raise HTTPException(status_code=500, detail="Failed to generate PDF template")
 
     # Generate PDF with xhtml2pdf
     try:
         pdf_buffer = BytesIO()
-        pisa_status = pisa.CreatePDF(
-            html_content,
-            dest=pdf_buffer,
-            encoding='utf-8'
-        )
+        pisa_status = pisa.CreatePDF(html_content, dest=pdf_buffer, encoding="utf-8")
 
         if pisa_status.err:
             raise Exception(f"PDF generation error: {pisa_status.err}")
@@ -1191,8 +1242,7 @@ async def export_check_pdf(
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
         raise HTTPException(
-            status_code=500,
-            detail="Failed to generate PDF. Please try again."
+            status_code=500, detail="Failed to generate PDF. Please try again."
         )
 
     # Return PDF as downloadable file
@@ -1202,8 +1252,8 @@ async def export_check_pdf(
         media_type="application/pdf",
         headers={
             "Content-Disposition": f"attachment; filename={filename}",
-            "Cache-Control": "no-cache"
-        }
+            "Cache-Control": "no-cache",
+        },
     )
 
 
@@ -1211,8 +1261,10 @@ async def export_check_pdf(
 # FULL SOURCES LIST - Pro Feature
 # ============================================================================
 
+
 class SourcesResponse(BaseModel):
     """Response model for check sources endpoint"""
+
     checkId: str
     totalSources: int
     includedCount: int
@@ -1229,7 +1281,7 @@ async def get_check_sources(
     include_filtered: bool = True,
     sort_by: str = "relevance",  # relevance, credibility, date
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Get all sources reviewed for a check (Pro feature).
 
@@ -1244,8 +1296,7 @@ async def get_check_sources(
 
     # 1. Verify check belongs to user
     stmt = select(Check).where(
-        Check.id == check_id,
-        Check.user_id == current_user["id"]
+        Check.id == check_id, Check.user_id == current_user["id"]
     )
     result = await session.execute(stmt)
     check = result.scalar_one_or_none()
@@ -1256,13 +1307,15 @@ async def get_check_sources(
     # 2. Check Pro subscription OR beta tester status
     sub_stmt = select(Subscription).where(
         Subscription.user_id == current_user["id"],
-        Subscription.status.in_(["active", "trialing"])
+        Subscription.status.in_(["active", "trialing"]),
     )
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
     # Beta testers get full Pro access
-    is_beta_tester = current_user.get("email", "").lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+    is_beta_tester = current_user.get("email", "").lower() in [
+        e.lower() for e in settings.BETA_TESTER_EMAILS
+    ]
     is_pro = (subscription and subscription.plan == "pro") or is_beta_tester
 
     if not is_pro:
@@ -1272,11 +1325,12 @@ async def get_check_sources(
             "totalSources": check.raw_sources_count or 0,
             "includedCount": 0,
             "filteredCount": 0,
-            "legacyCheck": check.raw_sources_count is None or check.raw_sources_count == 0,
+            "legacyCheck": check.raw_sources_count is None
+            or check.raw_sources_count == 0,
             "message": "Upgrade to Pro to see all sources reviewed during fact-checking",
             "claims": None,
             "filterBreakdown": None,
-            "requiresUpgrade": True
+            "requiresUpgrade": True,
         }
 
     # 3. Query RawEvidence for this check
@@ -1297,7 +1351,9 @@ async def get_check_sources(
     raw_evidence = raw_result.scalars().all()
 
     # Check for legacy check (no raw evidence stored)
-    if not raw_evidence and (check.raw_sources_count is None or check.raw_sources_count == 0):
+    if not raw_evidence and (
+        check.raw_sources_count is None or check.raw_sources_count == 0
+    ):
         return {
             "checkId": check_id,
             "totalSources": 0,
@@ -1306,7 +1362,7 @@ async def get_check_sources(
             "legacyCheck": True,
             "message": "Source data not available for checks created before this feature.",
             "claims": None,
-            "filterBreakdown": None
+            "filterBreakdown": None,
         }
 
     # 4. Group sources by claim
@@ -1318,7 +1374,7 @@ async def get_check_sources(
         "diversity": 0,
         "domain_cap": 0,
         "validation": 0,
-        "extraction_failed": 0
+        "extraction_failed": 0,
     }
 
     included_count = 0
@@ -1331,7 +1387,7 @@ async def get_check_sources(
                 "claimPosition": claim_pos,
                 "claimText": raw_ev.claim_text,
                 "sourcesCount": 0,
-                "sources": []
+                "sources": [],
             }
 
         source_data = {
@@ -1339,7 +1395,9 @@ async def get_check_sources(
             "source": raw_ev.source,
             "title": raw_ev.title,
             "url": raw_ev.url,
-            "publishedDate": raw_ev.published_date.isoformat() if raw_ev.published_date else None,
+            "publishedDate": (
+                raw_ev.published_date.isoformat() if raw_ev.published_date else None
+            ),
             "credibilityScore": raw_ev.credibility_score,
             "relevanceScore": raw_ev.relevance_score,
             "isIncluded": raw_ev.is_included,
@@ -1347,7 +1405,7 @@ async def get_check_sources(
             "filterReason": raw_ev.filter_reason,
             # Note: tier is intentionally NOT exposed to frontend (internal credibility weighting only)
             "isFactcheck": raw_ev.is_factcheck,
-            "externalSourceProvider": raw_ev.external_source_provider
+            "externalSourceProvider": raw_ev.external_source_provider,
         }
 
         claims_dict[claim_pos]["sources"].append(source_data)
@@ -1372,7 +1430,7 @@ async def get_check_sources(
         "filteredCount": filtered_count,
         "legacyCheck": False,
         "claims": claims_list,
-        "filterBreakdown": filter_breakdown
+        "filterBreakdown": filter_breakdown,
     }
 
 
@@ -1380,11 +1438,10 @@ async def get_check_sources(
 # PUBLIC ENDPOINT - For OG Image Generation (no auth required)
 # ============================================================================
 
+
 @router.get("/public/{check_id}")
 async def get_public_check(
-    check_id: str,
-    detailed: bool = False,
-    session: AsyncSession = Depends(get_session)
+    check_id: str, detailed: bool = False, session: AsyncSession = Depends(get_session)
 ):
     """Get public check data. No auth required.
 
@@ -1407,9 +1464,7 @@ async def get_public_check(
 
     # Get claims for this check
     claims_stmt = (
-        select(Claim)
-        .where(Claim.check_id == check_id)
-        .order_by(Claim.position)
+        select(Claim).where(Claim.check_id == check_id).order_by(Claim.position)
     )
     claims_result = await session.execute(claims_stmt)
     claims = claims_result.scalars().all()
@@ -1446,23 +1501,35 @@ async def get_public_check(
     source_tiers = []
 
     if source_tiers_count["tier1"] > 0:
-        source_tiers.append({
-            "label": "Official Sources",
-            "description": "Government and institutional sources",
-            "percentage": round((source_tiers_count["tier1"] / total_evidence) * 100)
-        })
+        source_tiers.append(
+            {
+                "label": "Official Sources",
+                "description": "Government and institutional sources",
+                "percentage": round(
+                    (source_tiers_count["tier1"] / total_evidence) * 100
+                ),
+            }
+        )
     if source_tiers_count["tier2"] > 0:
-        source_tiers.append({
-            "label": "Quality News",
-            "description": "Established news organizations",
-            "percentage": round((source_tiers_count["tier2"] / total_evidence) * 100)
-        })
+        source_tiers.append(
+            {
+                "label": "Quality News",
+                "description": "Established news organizations",
+                "percentage": round(
+                    (source_tiers_count["tier2"] / total_evidence) * 100
+                ),
+            }
+        )
     if source_tiers_count["tier3"] > 0 and len(source_tiers) < 2:
-        source_tiers.append({
-            "label": "Other Sources",
-            "description": "Various online sources",
-            "percentage": round((source_tiers_count["tier3"] / total_evidence) * 100)
-        })
+        source_tiers.append(
+            {
+                "label": "Other Sources",
+                "description": "Various online sources",
+                "percentage": round(
+                    (source_tiers_count["tier3"] / total_evidence) * 100
+                ),
+            }
+        )
 
     # Extract source domain and title from URL
     source_domain = None
@@ -1474,20 +1541,22 @@ async def get_public_check(
             import re
 
             parsed = urlparse(check.input_url)
-            source_domain = parsed.netloc.replace('www.', '')
+            source_domain = parsed.netloc.replace("www.", "")
 
             # Extract title from URL slug (last path segment)
-            path_parts = [p for p in parsed.path.split('/') if p and len(p) > 3]
+            path_parts = [p for p in parsed.path.split("/") if p and len(p) > 3]
             if path_parts:
                 slug = path_parts[-1]
                 # Remove file extensions
-                slug = re.sub(r'\.\w+$', '', slug)
+                slug = re.sub(r"\.\w+$", "", slug)
                 # Remove trailing IDs (various patterns: -b2895946, -12345678, _abc123)
-                slug = re.sub(r'[-_][a-zA-Z]?\d{5,}$', '', slug)  # -b2895946, -12345678
-                slug = re.sub(r'[-_]\d+$', '', slug)  # Trailing numbers
-                slug = re.sub(r'[-_][a-f0-9]{8,}$', '', slug, flags=re.IGNORECASE)  # UUIDs/hashes
+                slug = re.sub(r"[-_][a-zA-Z]?\d{5,}$", "", slug)  # -b2895946, -12345678
+                slug = re.sub(r"[-_]\d+$", "", slug)  # Trailing numbers
+                slug = re.sub(
+                    r"[-_][a-f0-9]{8,}$", "", slug, flags=re.IGNORECASE
+                )  # UUIDs/hashes
                 # Convert slug to title case
-                title = slug.replace('-', ' ').replace('_', ' ').title()
+                title = slug.replace("-", " ").replace("_", " ").title()
         except Exception:
             pass
 
@@ -1495,8 +1564,12 @@ async def get_public_check(
     if not title or len(title) < 10:
         if check.article_excerpt:
             # Use first sentence of article excerpt
-            first_sentence = check.article_excerpt.split('.')[0]
-            title = first_sentence[:70] + '...' if len(first_sentence) > 70 else first_sentence
+            first_sentence = check.article_excerpt.split(".")[0]
+            title = (
+                first_sentence[:70] + "..."
+                if len(first_sentence) > 70
+                else first_sentence
+            )
         elif source_domain:
             title = f"Report from {source_domain}"
 
@@ -1509,8 +1582,9 @@ async def get_public_check(
         "claimsCount": len(claims),
         "sourcesCount": check.raw_sources_count or len(top_sources_set),
         "evidenceCount": len(all_evidence),
-        "credibilityScore": check.credibility_score,
-        "topSources": list(top_sources_set)[:5]
+        "entryMode": check.entry_mode,
+        "selectedClaimsCount": check.selected_claims_count,
+        "topSources": list(top_sources_set)[:5],
     }
 
     # If not detailed, return minimal response for OG card
@@ -1532,45 +1606,42 @@ async def get_public_check(
 
         evidence_data = []
         for ev in evidence_list:
-            evidence_data.append({
-                "id": ev.id,
-                "source": ev.source,
-                "url": ev.url,
-                "title": ev.title,
-                "snippet": ev.snippet,
-                "publishedDate": ev.published_date.isoformat() if ev.published_date else None,
-                "relevanceScore": ev.relevance_score,
-                "credibilityScore": ev.credibility_score,
-                "isFactcheck": ev.is_factcheck,
-                "factcheckPublisher": ev.factcheck_publisher,
-                "factcheckRating": ev.factcheck_rating,
-                "contextBefore": ev.context_before,
-                "contextAfter": ev.context_after,
-            })
+            evidence_data.append(
+                {
+                    "id": ev.id,
+                    "evidenceId": ev.evidence_id,
+                    "source": ev.source,
+                    "url": ev.url,
+                    "title": ev.title,
+                    "snippet": ev.snippet,
+                    "publishedDate": (
+                        ev.published_date.isoformat() if ev.published_date else None
+                    ),
+                    "relevanceScore": ev.relevance_score,
+                    "credibilityScore": ev.credibility_score,
+                    "isFactcheck": ev.is_factcheck,
+                    "factcheckPublisher": ev.factcheck_publisher,
+                    "factcheckRating": ev.factcheck_rating,
+                    "contextBefore": ev.context_before,
+                    "contextAfter": ev.context_after,
+                }
+            )
 
-        claims_data.append({
-            "id": claim.id,
-            "text": claim.text,
-            "verdict": claim.verdict,
-            "confidence": claim.confidence,
-            "rationale": claim.rationale,
-            "position": claim.position,
-            "claimType": claim.claim_type,
-            "isVerifiable": claim.is_verifiable,
-            "verifiabilityReason": claim.verifiability_reason,
-            "isTimeSensitive": claim.is_time_sensitive,
-            "timeReference": claim.time_reference,
-            "uncertaintyExplanation": claim.uncertainty_explanation,
-            "confidenceBreakdown": claim.confidence_breakdown,
-            "decisionTrail": claim.decision_trail,
-            "evidence": evidence_data,
-            "sourcesReviewedCount": claim.sources_reviewed_count,
-        })
-
-    # Calculate verdict counts
-    claims_supported = sum(1 for c in claims if c.verdict == "supported")
-    claims_contradicted = sum(1 for c in claims if c.verdict == "contradicted")
-    claims_uncertain = sum(1 for c in claims if c.verdict == "uncertain")
+        claim_map = json.loads(claim.claim_map) if claim.claim_map else None
+        claims_data.append(
+            {
+                "id": claim.id,
+                "text": claim.text,
+                "position": claim.position,
+                "claimMap": claim_map,
+                "claimType": claim.new_claim_type,
+                "isSelected": claim.is_selected,
+                "isVerifiable": claim.is_verifiable,
+                "isTimeSensitive": claim.is_time_sensitive,
+                "timeReference": claim.time_reference,
+                "evidence": evidence_data,
+            }
+        )
 
     return {
         **base_response,
@@ -1583,11 +1654,6 @@ async def get_public_check(
         "articleJurisdiction": check.article_jurisdiction,
         "createdAt": check.created_at.isoformat() if check.created_at else None,
         "completedAt": check.completed_at.isoformat() if check.completed_at else None,
-        # Overall assessment
-        "overallSummary": check.overall_summary,
-        "claimsSupported": claims_supported,
-        "claimsContradicted": claims_contradicted,
-        "claimsUncertain": claims_uncertain,
         # Source tiers breakdown
         "sourceTiers": source_tiers,
         # Full claims with evidence
@@ -1601,7 +1667,7 @@ async def export_check_sources(
     format: str = "csv",  # csv, bibtex, apa
     include_filtered: bool = False,
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Export sources as CSV, BibTeX, or APA format (Pro feature).
 
@@ -1614,8 +1680,7 @@ async def export_check_sources(
 
     # 1. Verify check belongs to user
     stmt = select(Check).where(
-        Check.id == check_id,
-        Check.user_id == current_user["id"]
+        Check.id == check_id, Check.user_id == current_user["id"]
     )
     result = await session.execute(stmt)
     check = result.scalar_one_or_none()
@@ -1626,19 +1691,20 @@ async def export_check_sources(
     # 2. Check Pro subscription OR beta tester status
     sub_stmt = select(Subscription).where(
         Subscription.user_id == current_user["id"],
-        Subscription.status.in_(["active", "trialing"])
+        Subscription.status.in_(["active", "trialing"]),
     )
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
     # Beta testers get full Pro access
-    is_beta_tester = current_user.get("email", "").lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+    is_beta_tester = current_user.get("email", "").lower() in [
+        e.lower() for e in settings.BETA_TESTER_EMAILS
+    ]
     is_pro = (subscription and subscription.plan == "pro") or is_beta_tester
 
     if not is_pro:
         raise HTTPException(
-            status_code=403,
-            detail="Source export is a Pro feature. Upgrade to access."
+            status_code=403, detail="Source export is a Pro feature. Upgrade to access."
         )
 
     # 3. Query RawEvidence
@@ -1647,16 +1713,15 @@ async def export_check_sources(
     if not include_filtered:
         raw_stmt = raw_stmt.where(RawEvidence.is_included == True)
 
-    raw_stmt = raw_stmt.order_by(RawEvidence.claim_position, desc(RawEvidence.relevance_score))
+    raw_stmt = raw_stmt.order_by(
+        RawEvidence.claim_position, desc(RawEvidence.relevance_score)
+    )
 
     raw_result = await session.execute(raw_stmt)
     raw_evidence = raw_result.scalars().all()
 
     if not raw_evidence:
-        raise HTTPException(
-            status_code=404,
-            detail="No sources available for export"
-        )
+        raise HTTPException(status_code=404, detail="No sources available for export")
 
     # 4. Generate export based on format
     # NOTE: We intentionally exclude internal scoring metrics (credibility_score,
@@ -1665,19 +1730,21 @@ async def export_check_sources(
     if format == "csv":
         output = StringIO()
         writer = csv.writer(output)
-        writer.writerow([
-            "Claim", "Source", "Title", "URL", "Published Date", "Used in Analysis"
-        ])
+        writer.writerow(
+            ["Claim", "Source", "Title", "URL", "Published Date", "Used in Analysis"]
+        )
 
         for ev in raw_evidence:
-            writer.writerow([
-                ev.claim_text or "",
-                ev.source,
-                ev.title,
-                ev.url,
-                ev.published_date.strftime("%Y-%m-%d") if ev.published_date else "",
-                "Yes" if ev.is_included else "No"
-            ])
+            writer.writerow(
+                [
+                    ev.claim_text or "",
+                    ev.source,
+                    ev.title,
+                    ev.url,
+                    ev.published_date.strftime("%Y-%m-%d") if ev.published_date else "",
+                    "Yes" if ev.is_included else "No",
+                ]
+            )
 
         content = output.getvalue()
         media_type = "text/csv"
@@ -1711,7 +1778,9 @@ async def export_check_sources(
         lines = []
         for ev in raw_evidence:
             # APA 7th edition format for web pages
-            pub_date = ev.published_date.strftime("%Y, %B %d") if ev.published_date else "n.d."
+            pub_date = (
+                ev.published_date.strftime("%Y, %B %d") if ev.published_date else "n.d."
+            )
             entry = f"{ev.source}. ({pub_date}). {ev.title}. Retrieved from {ev.url}"
             lines.append(entry)
 
@@ -1721,8 +1790,7 @@ async def export_check_sources(
 
     else:
         raise HTTPException(
-            status_code=400,
-            detail="Invalid format. Supported: csv, bibtex, apa"
+            status_code=400, detail="Invalid format. Supported: csv, bibtex, apa"
         )
 
     return Response(
@@ -1730,6 +1798,6 @@ async def export_check_sources(
         media_type=media_type,
         headers={
             "Content-Disposition": f"attachment; filename={filename}",
-            "Cache-Control": "no-cache"
-        }
+            "Cache-Control": "no-cache",
+        },
     )

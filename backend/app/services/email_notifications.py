@@ -1,6 +1,7 @@
 """
 Email notification service using Resend API
 """
+
 import logging
 from typing import Optional
 from app.core.config import settings
@@ -21,20 +22,18 @@ class EmailNotificationService:
         if self._resend is None:
             try:
                 import resend
+
                 if self.api_key:
                     resend.api_key = self.api_key
                 self._resend = resend
             except ImportError:
-                logger.warning("Resend package not installed - email notifications disabled")
+                logger.warning(
+                    "Resend package not installed - email notifications disabled"
+                )
                 return None
         return self._resend
 
-    def _send_email(
-        self,
-        to_email: str,
-        subject: str,
-        html_content: str
-    ) -> bool:
+    def _send_email(self, to_email: str, subject: str, html_content: str) -> bool:
         """Send an email via Resend API (synchronous)"""
         if not self.enabled or not self.api_key:
             logger.info(f"Email notifications disabled, skipping email to {to_email}")
@@ -53,7 +52,11 @@ class EmailNotificationService:
             }
 
             response = resend.Emails.send(params)
-            email_id = response.get('id') if isinstance(response, dict) else getattr(response, 'id', 'unknown')
+            email_id = (
+                response.get("id")
+                if isinstance(response, dict)
+                else getattr(response, "id", "unknown")
+            )
             logger.info(f"Email sent successfully to {to_email}, id: {email_id}")
             return True
         except Exception as e:
@@ -67,16 +70,13 @@ class EmailNotificationService:
         user_id: str,
         check_id: str,
         claims_count: int,
-        supported: int,
-        contradicted: int,
-        uncertain: int,
-        credibility_score: int,
-        # Enhanced parameters
+        # ClaimMap parameters
+        entry_mode: Optional[str] = None,
+        selected_claims_count: int = 0,
         input_url: Optional[str] = None,
         input_title: Optional[str] = None,
         total_sources: int = 0,
-        top_claims: Optional[list] = None,
-        avg_confidence: int = 0
+        claims_analyzed: Optional[list] = None,
     ) -> bool:
         """
         Send email when a fact-check is completed (SYNC version for Celery workers).
@@ -97,7 +97,10 @@ class EmailNotificationService:
                     logger.info(f"User {user_id} not found")
                     return False
 
-                if not user.email_notifications_enabled or not user.email_check_completion:
+                if (
+                    not user.email_notifications_enabled
+                    or not user.email_check_completion
+                ):
                     logger.info(f"User {user_id} has check completion emails disabled")
                     return False
 
@@ -106,32 +109,26 @@ class EmailNotificationService:
                 html_content = self._render_check_completed_template(
                     check_id=check_id,
                     claims_count=claims_count,
-                    supported=supported,
-                    contradicted=contradicted,
-                    uncertain=uncertain,
-                    credibility_score=credibility_score,
+                    entry_mode=entry_mode,
+                    selected_claims_count=selected_claims_count,
                     input_url=input_url,
                     input_title=input_title,
                     total_sources=total_sources,
-                    top_claims=top_claims or [],
-                    avg_confidence=avg_confidence
+                    claims_analyzed=claims_analyzed or [],
                 )
 
                 return self._send_email(
-                    to_email=user.email,
-                    subject=subject,
-                    html_content=html_content
+                    to_email=user.email, subject=subject, html_content=html_content
                 )
 
         except Exception as e:
-            logger.error(f"Failed to send check completion email to user {user_id}: {e}")
+            logger.error(
+                f"Failed to send check completion email to user {user_id}: {e}"
+            )
             return False
 
     def send_check_failed_email_sync(
-        self,
-        user_id: str,
-        check_id: str,
-        error_message: str
+        self, user_id: str, check_id: str, error_message: str
     ) -> bool:
         """
         Send email when a fact-check fails (SYNC version for Celery workers).
@@ -159,14 +156,11 @@ class EmailNotificationService:
                 subject = "Your Tru8 fact-check encountered an issue"
 
                 html_content = self._render_check_failed_template(
-                    check_id=check_id,
-                    error_message=error_message
+                    check_id=check_id, error_message=error_message
                 )
 
                 return self._send_email(
-                    to_email=user.email,
-                    subject=subject,
-                    html_content=html_content
+                    to_email=user.email, subject=subject, html_content=html_content
                 )
 
         except Exception as e:
@@ -180,16 +174,13 @@ class EmailNotificationService:
         user_id: str,
         check_id: str,
         claims_count: int,
-        supported: int,
-        contradicted: int,
-        uncertain: int,
-        credibility_score: int,
-        # Enhanced parameters
+        # ClaimMap parameters
+        entry_mode: Optional[str] = None,
+        selected_claims_count: int = 0,
         input_url: Optional[str] = None,
         input_title: Optional[str] = None,
         total_sources: int = 0,
-        top_claims: Optional[list] = None,
-        avg_confidence: int = 0
+        claims_analyzed: Optional[list] = None,
     ) -> bool:
         """Send email when a fact-check is completed (async wrapper)"""
         # For now, delegate to sync version - Resend SDK is synchronous
@@ -197,28 +188,20 @@ class EmailNotificationService:
             user_id=user_id,
             check_id=check_id,
             claims_count=claims_count,
-            supported=supported,
-            contradicted=contradicted,
-            uncertain=uncertain,
-            credibility_score=credibility_score,
+            entry_mode=entry_mode,
+            selected_claims_count=selected_claims_count,
             input_url=input_url,
             input_title=input_title,
             total_sources=total_sources,
-            top_claims=top_claims,
-            avg_confidence=avg_confidence
+            claims_analyzed=claims_analyzed,
         )
 
     async def send_check_failed_email(
-        self,
-        user_id: str,
-        check_id: str,
-        error_message: str
+        self, user_id: str, check_id: str, error_message: str
     ) -> bool:
         """Send email when a fact-check fails (async wrapper)"""
         return self.send_check_failed_email_sync(
-            user_id=user_id,
-            check_id=check_id,
-            error_message=error_message
+            user_id=user_id, check_id=check_id, error_message=error_message
         )
 
     # ========== EMAIL TEMPLATES ==========
@@ -227,40 +210,20 @@ class EmailNotificationService:
         self,
         check_id: str,
         claims_count: int,
-        supported: int,
-        contradicted: int,
-        uncertain: int,
-        credibility_score: int,
+        entry_mode: Optional[str] = None,
+        selected_claims_count: int = 0,
         input_url: Optional[str] = None,
         input_title: Optional[str] = None,
         total_sources: int = 0,
-        top_claims: Optional[list] = None,
-        avg_confidence: int = 0
+        claims_analyzed: Optional[list] = None,
     ) -> str:
         """Render check completion email HTML"""
-        # Score-based color
-        if credibility_score >= 70:
-            score_color = "#059669"  # Emerald
-        elif credibility_score >= 40:
-            score_color = "#D97706"  # Amber
-        else:
-            score_color = "#DC2626"  # Red
-
-        # Confidence color
-        if avg_confidence >= 80:
-            confidence_color = "#059669"
-        elif avg_confidence >= 60:
-            confidence_color = "#D97706"
-        else:
-            confidence_color = "#64748b"
-
         frontend_url = settings.FRONTEND_URL
 
         # Build source info section
         source_section = ""
         if input_url or input_title:
             display_title = input_title or input_url
-            # No truncation - show full title, email layout will wrap naturally
             source_section = f"""
           <!-- Source Info -->
           <div style="background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;">
@@ -269,46 +232,41 @@ class EmailNotificationService:
           </div>
 """
 
-        # Build top claims section
-        top_claims_section = ""
-        if top_claims and len(top_claims) > 0:
+        # Build analyzed claims section with orientation lines
+        claims_section = ""
+        if claims_analyzed and len(claims_analyzed) > 0:
             claims_html = ""
-            for claim in top_claims[:2]:  # Max 2 claims
-                verdict = claim.get("verdict", "uncertain")
+            for claim in claims_analyzed[:3]:  # Max 3 claims
                 claim_text = claim.get("text", "")
-                if len(claim_text) > 100:
-                    claim_text = claim_text[:97] + "..."
+                if len(claim_text) > 120:
+                    claim_text = claim_text[:117] + "..."
+                element_count = claim.get("element_count", 0)
+                orientation = claim.get("orientation", "")
 
-                # Verdict colors and labels
-                if verdict == "supported":
-                    verdict_bg = "#dcfce7"
-                    verdict_color = "#059669"
-                    verdict_label = "✓ Supported"
-                elif verdict == "contradicted":
-                    verdict_bg = "#fee2e2"
-                    verdict_color = "#DC2626"
-                    verdict_label = "✗ Contradicted"
-                else:
-                    verdict_bg = "#fef3c7"
-                    verdict_color = "#D97706"
-                    verdict_label = "? Uncertain"
+                orientation_html = ""
+                if orientation:
+                    orientation_html = f"""
+                <div style="color: #64748b; font-size: 11px; font-style: italic; margin-top: 6px;">{orientation}</div>
+"""
 
                 claims_html += f"""
             <div style="background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div style="color: #1e293b; font-size: 13px; flex: 1; margin-right: 12px;">{claim_text}</div>
-                <div style="background: {verdict_bg}; color: {verdict_color}; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 4px; white-space: nowrap;">{verdict_label}</div>
-              </div>
+              <div style="color: #1e293b; font-size: 13px; margin-bottom: 4px;">{claim_text}</div>
+              <div style="color: #94a3b8; font-size: 11px;">{element_count} element{'s' if element_count != 1 else ''} analyzed</div>{orientation_html}
             </div>
 """
 
-            top_claims_section = f"""
-          <!-- Key Claims -->
+            claims_section = f"""
+          <!-- Claims Analyzed -->
           <div style="margin-bottom: 20px;">
-            <div style="color: #64748b; font-size: 12px; margin-bottom: 8px; font-weight: 600;">KEY CLAIMS</div>
+            <div style="color: #64748b; font-size: 12px; margin-bottom: 8px; font-weight: 600;">CLAIMS ANALYZED</div>
             {claims_html}
           </div>
 """
+
+        # Summary stats
+        analyzed_count = selected_claims_count or claims_count
+        mode_label = "article" if entry_mode == "article" else "focused"
 
         return f"""
 <!DOCTYPE html>
@@ -328,47 +286,35 @@ class EmailNotificationService:
 
         <!-- Main Card -->
         <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <h2 style="color: #1e293b; font-size: 20px; margin: 0 0 16px 0;">Your fact-check is complete!</h2>
+          <h2 style="color: #1e293b; font-size: 20px; margin: 0 0 16px 0;">Your evidence research is complete!</h2>
 
           {source_section}
 
           <p style="color: #64748b; margin: 0 0 20px 0;">
-            We analyzed <strong>{claims_count} claim{'s' if claims_count != 1 else ''}</strong> against <strong>{total_sources} sources</strong>.
+            We analyzed <strong>{analyzed_count} claim{'s' if analyzed_count != 1 else ''}</strong> against <strong>{total_sources} sources</strong> in <strong>{mode_label}</strong> mode.
           </p>
 
-          <!-- Confidence Badge (Primary Metric) -->
-          <div style="text-align: center; margin-bottom: 24px;">
-            <div style="display: inline-block; background: {confidence_color}20; border-radius: 12px; padding: 16px 32px;">
-              <div style="font-size: 48px; font-weight: bold; color: {confidence_color};">{avg_confidence}%</div>
-              <div style="color: #64748b; font-size: 14px;">Average Confidence</div>
-            </div>
-          </div>
-
-          <!-- Stats Table -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+          <!-- Stats -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
             <tr>
-              <td style="text-align: center; padding: 8px;">
-                <div style="font-size: 24px; font-weight: bold; color: #059669;">{supported}</div>
-                <div style="color: #64748b; font-size: 12px;">Supported</div>
+              <td style="text-align: center; padding: 12px; background: #f0f9ff; border-radius: 8px;" width="33%">
+                <div style="font-size: 28px; font-weight: bold; color: #1E40AF;">{analyzed_count}</div>
+                <div style="color: #64748b; font-size: 11px;">Claims Analyzed</div>
               </td>
-              <td style="text-align: center; padding: 8px;">
-                <div style="font-size: 24px; font-weight: bold; color: #DC2626;">{contradicted}</div>
-                <div style="color: #64748b; font-size: 12px;">Contradicted</div>
+              <td width="4%"></td>
+              <td style="text-align: center; padding: 12px; background: #f0f9ff; border-radius: 8px;" width="33%">
+                <div style="font-size: 28px; font-weight: bold; color: #1E40AF;">{total_sources}</div>
+                <div style="color: #64748b; font-size: 11px;">Sources Gathered</div>
               </td>
-              <td style="text-align: center; padding: 8px;">
-                <div style="font-size: 24px; font-weight: bold; color: #D97706;">{uncertain}</div>
-                <div style="color: #64748b; font-size: 12px;">Uncertain</div>
+              <td width="4%"></td>
+              <td style="text-align: center; padding: 12px; background: #f0f9ff; border-radius: 8px;" width="26%">
+                <div style="font-size: 28px; font-weight: bold; color: #1E40AF;">{claims_count}</div>
+                <div style="color: #64748b; font-size: 11px;">Total Claims</div>
               </td>
             </tr>
           </table>
 
-          <!-- Credibility Score (Secondary) -->
-          <div style="text-align: center; margin-bottom: 24px;">
-            <span style="color: #64748b; font-size: 13px;">Credibility Score: </span>
-            <span style="color: {score_color}; font-size: 13px; font-weight: 600;">{credibility_score}/100</span>
-          </div>
-
-          {top_claims_section}
+          {claims_section}
 
           <!-- CTA Button -->
           <div style="text-align: center;">
@@ -380,7 +326,7 @@ class EmailNotificationService:
 
         <!-- Footer -->
         <div style="text-align: center; margin-top: 24px; color: #94a3b8; font-size: 12px;">
-          <p style="margin: 0 0 8px 0;">Tru8 - Thorough fact-checking with credible sources</p>
+          <p style="margin: 0 0 8px 0;">Tru8 - Evidence-based research with credible sources</p>
           <p style="margin: 0;">
             <a href="{frontend_url}/dashboard/settings?tab=notifications" style="color: #64748b;">Manage notification preferences</a>
           </p>
@@ -392,11 +338,7 @@ class EmailNotificationService:
 </html>
 """
 
-    def _render_check_failed_template(
-        self,
-        check_id: str,
-        error_message: str
-    ) -> str:
+    def _render_check_failed_template(self, check_id: str, error_message: str) -> str:
         """Render check failed email HTML"""
         frontend_url = settings.FRONTEND_URL
 

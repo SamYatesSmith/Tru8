@@ -95,8 +95,8 @@ export function useCheckProgress(
 
             case 'completed':
               setProgress(100);
-              setCurrentStage('judge');  // Show final stage as complete, not 'completed'
-              setMessage('Fact-check completed successfully');
+              setCurrentStage('complete');  // Show final stage as complete
+              setMessage('Evidence research completed successfully');
               setIsCompleted(true);  // Signal to parent that completion was received
               // Close connection on completion
               eventSource.close();

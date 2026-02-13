@@ -44,27 +44,32 @@ async def get_or_create_user(session: AsyncSession, current_user: dict) -> User:
     if not email:
         raise HTTPException(
             status_code=500,
-            detail="Unable to retrieve user email from authentication provider"
+            detail="Unable to retrieve user email from authentication provider",
         )
 
     # Use INSERT ON CONFLICT to handle race conditions
     # If email already exists (from old Clerk ID), update the ID to new one
-    insert_stmt = insert(User).values(
-        id=user_id,
-        email=email,
-        name=name,
-        credits=3,  # Free tier
-        total_credits_used=0,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
-    ).on_conflict_do_update(
-        index_elements=['email'],  # Conflict on email unique constraint
-        set_={
-            'id': user_id,  # Update to new Clerk ID
-            'name': name,
-            'updated_at': datetime.utcnow()
-        }
-    ).returning(User)
+    insert_stmt = (
+        insert(User)
+        .values(
+            id=user_id,
+            email=email,
+            name=name,
+            credits=3,  # Free tier
+            total_credits_used=0,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        .on_conflict_do_update(
+            index_elements=["email"],  # Conflict on email unique constraint
+            set_={
+                "id": user_id,  # Update to new Clerk ID
+                "name": name,
+                "updated_at": datetime.utcnow(),
+            },
+        )
+        .returning(User)
+    )
 
     try:
         result = await session.execute(insert_stmt)
@@ -83,14 +88,15 @@ async def get_or_create_user(session: AsyncSession, current_user: dict) -> User:
             return user
         raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
 
+
 @router.get("/profile")
 async def get_profile(
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Get user profile with usage stats"""
     user = await get_or_create_user(session, current_user)
-    
+
     # Get check stats
     checks_stmt = select(Check).where(Check.user_id == user.id)
     checks_result = await session.execute(checks_stmt)
@@ -98,8 +104,7 @@ async def get_profile(
 
     # Get subscription data
     sub_stmt = select(Subscription).where(
-        Subscription.user_id == user.id,
-        Subscription.status.in_(["active", "trialing"])
+        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
     )
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
@@ -110,7 +115,11 @@ async def get_profile(
             "plan": subscription.plan,
             "status": subscription.status,
             "creditsPerMonth": subscription.credits_per_month,
-            "currentPeriodEnd": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
+            "currentPeriodEnd": (
+                subscription.current_period_end.isoformat()
+                if subscription.current_period_end
+                else None
+            ),
         }
     else:
         # No active subscription = free tier
@@ -136,6 +145,7 @@ async def get_profile(
         "createdAt": user.created_at.isoformat(),
     }
 
+
 class ProfileUpdateRequest(BaseModel):
     name: str | None = None
 
@@ -144,7 +154,7 @@ class ProfileUpdateRequest(BaseModel):
 async def update_profile(
     request: ProfileUpdateRequest,
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Update user profile (name, etc.)"""
     stmt = select(User).where(User.id == current_user["id"])
@@ -163,20 +173,22 @@ async def update_profile(
         await session.refresh(user)
     except Exception as e:
         await session.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update profile: {str(e)}"
+        )
 
     return {
         "id": user.id,
         "email": user.email,
         "name": user.name,
-        "message": "Profile updated successfully"
+        "message": "Profile updated successfully",
     }
 
 
 @router.get("/stats")
 async def get_user_stats(
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Get aggregated user statistics for dashboard insights"""
     user = await get_or_create_user(session, current_user)
@@ -184,8 +196,7 @@ async def get_user_stats(
 
     # Total completed checks
     total_checks_stmt = select(func.count(Check.id)).where(
-        Check.user_id == user_id,
-        Check.status == "completed"
+        Check.user_id == user_id, Check.status == "completed"
     )
     total_checks_result = await session.execute(total_checks_stmt)
     total_checks = total_checks_result.scalar() or 0
@@ -196,50 +207,56 @@ async def get_user_stats(
     checks_this_month_stmt = select(func.count(Check.id)).where(
         Check.user_id == user_id,
         Check.status == "completed",
-        Check.created_at >= start_of_month
+        Check.created_at >= start_of_month,
     )
     checks_this_month_result = await session.execute(checks_this_month_stmt)
     checks_this_month = checks_this_month_result.scalar() or 0
 
     # Total sources analyzed (sum of raw_sources_count)
     sources_stmt = select(func.coalesce(func.sum(Check.raw_sources_count), 0)).where(
-        Check.user_id == user_id,
-        Check.status == "completed"
+        Check.user_id == user_id, Check.status == "completed"
     )
     sources_result = await session.execute(sources_stmt)
     total_sources_analyzed = sources_result.scalar() or 0
 
-    # Average confidence across all claims
-    avg_confidence_stmt = select(func.avg(Claim.confidence)).join(Check).where(
-        Check.user_id == user_id,
-        Check.status == "completed"
+    # Total claims analyzed
+    total_claims_stmt = (
+        select(func.count(Claim.id))
+        .join(Check)
+        .where(Check.user_id == user_id, Check.status == "completed")
     )
-    avg_confidence_result = await session.execute(avg_confidence_stmt)
-    avg_confidence = avg_confidence_result.scalar()
-    average_confidence = round(float(avg_confidence), 1) if avg_confidence else 0.0
+    total_claims_result = await session.execute(total_claims_stmt)
+    total_claims = total_claims_result.scalar() or 0
 
-    # Verdict breakdown (count by verdict type)
-    verdict_stmt = select(Claim.verdict, func.count(Claim.id)).join(Check).where(
-        Check.user_id == user_id,
-        Check.status == "completed"
-    ).group_by(Claim.verdict)
-    verdict_result = await session.execute(verdict_stmt)
-    verdict_rows = verdict_result.all()
+    # Claim type distribution (new 5-way taxonomy)
+    claim_type_stmt = (
+        select(Claim.new_claim_type, func.count(Claim.id))
+        .join(Check)
+        .where(
+            Check.user_id == user_id,
+            Check.status == "completed",
+            Claim.new_claim_type.isnot(None),
+        )
+        .group_by(Claim.new_claim_type)
+    )
+    claim_type_result = await session.execute(claim_type_stmt)
+    claim_type_rows = claim_type_result.all()
 
-    verdict_breakdown = {"supported": 0, "contradicted": 0, "uncertain": 0}
-    for verdict, count in verdict_rows:
-        if verdict in verdict_breakdown:
-            verdict_breakdown[verdict] = count
-        elif verdict in ["insufficient_evidence", "conflicting_expert_opinion", "needs_primary_source", "outdated_claim", "lacks_context"]:
-            # Group other verdicts under uncertain
-            verdict_breakdown["uncertain"] += count
+    claim_type_breakdown = {}
+    for claim_type, count in claim_type_rows:
+        if claim_type:
+            claim_type_breakdown[claim_type] = count
 
     # Domain breakdown (count by article_domain)
-    domain_stmt = select(Check.article_domain, func.count(Check.id)).where(
-        Check.user_id == user_id,
-        Check.status == "completed",
-        Check.article_domain.isnot(None)
-    ).group_by(Check.article_domain)
+    domain_stmt = (
+        select(Check.article_domain, func.count(Check.id))
+        .where(
+            Check.user_id == user_id,
+            Check.status == "completed",
+            Check.article_domain.isnot(None),
+        )
+        .group_by(Check.article_domain)
+    )
     domain_result = await session.execute(domain_stmt)
     domain_rows = domain_result.all()
 
@@ -253,43 +270,39 @@ async def get_user_stats(
     if domain_breakdown:
         top_domain = max(domain_breakdown, key=domain_breakdown.get)
 
-    # Calculate misinformation rate (% of claims that were contradicted)
-    total_claims = sum(verdict_breakdown.values())
-    misinformation_rate = 0.0
-    if total_claims > 0:
-        misinformation_rate = round((verdict_breakdown["contradicted"] / total_claims) * 100, 1)
-
     return {
         "totalChecks": total_checks,
         "checksThisMonth": checks_this_month,
         "totalSourcesAnalyzed": total_sources_analyzed,
-        "averageConfidence": average_confidence,
-        "verdictBreakdown": verdict_breakdown,
+        "totalClaimsAnalyzed": total_claims,
+        "claimTypeBreakdown": claim_type_breakdown,
         "domainBreakdown": domain_breakdown,
         "topDomain": top_domain,
-        "misinformationRate": misinformation_rate,
-        "memberSince": user.created_at.isoformat() if user.created_at else None
+        "memberSince": user.created_at.isoformat() if user.created_at else None,
     }
 
 
 @router.get("/usage")
 async def get_usage(
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Get detailed usage statistics"""
     user = await get_or_create_user(session, current_user)
 
     # Check if user is an admin (unlimited credits)
-    is_admin = user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]
+    is_admin = user.email and user.email.lower() in [
+        e.lower() for e in settings.ADMIN_EMAILS
+    ]
 
     # Check if user is a beta tester (gets 40 checks/month)
-    is_beta_tester = user.email and user.email.lower() in [e.lower() for e in settings.BETA_TESTER_EMAILS]
+    is_beta_tester = user.email and user.email.lower() in [
+        e.lower() for e in settings.BETA_TESTER_EMAILS
+    ]
 
     # Get subscription data
     sub_stmt = select(Subscription).where(
-        Subscription.user_id == user.id,
-        Subscription.status.in_(["active", "trialing"])
+        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
     )
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
@@ -298,6 +311,7 @@ async def get_usage(
     if is_beta_tester:
         # Beta testers: 40 checks per calendar month
         from datetime import datetime
+
         now = datetime.utcnow()
         period_start = datetime(now.year, now.month, 1)  # First of current month
         credits_per_period = 40
@@ -305,8 +319,7 @@ async def get_usage(
 
         # Calculate monthly usage for beta testers
         usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id,
-            Check.created_at >= period_start
+            Check.user_id == user.id, Check.created_at >= period_start
         )
         usage_result = await session.execute(usage_stmt)
         period_credits_used = usage_result.scalar() or 0
@@ -318,8 +331,7 @@ async def get_usage(
 
         # Calculate monthly usage for subscribers
         usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id,
-            Check.created_at >= period_start
+            Check.user_id == user.id, Check.created_at >= period_start
         )
         usage_result = await session.execute(usage_stmt)
         period_credits_used = usage_result.scalar() or 0
@@ -334,8 +346,16 @@ async def get_usage(
         subscription_data = {
             "plan": subscription.plan,
             "creditsPerMonth": subscription.credits_per_month,
-            "resetDate": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
-            "periodStart": subscription.current_period_start.isoformat() if subscription.current_period_start else None,
+            "resetDate": (
+                subscription.current_period_end.isoformat()
+                if subscription.current_period_end
+                else None
+            ),
+            "periodStart": (
+                subscription.current_period_start.isoformat()
+                if subscription.current_period_start
+                else None
+            ),
         }
     else:
         # No active subscription = free trial
@@ -361,7 +381,7 @@ async def get_usage(
                 "creditsPerMonth": 999999,
                 "resetDate": None,
                 "periodStart": None,
-            }
+            },
         }
 
     return {
@@ -370,7 +390,7 @@ async def get_usage(
         "periodCreditsUsed": period_credits_used,  # Renamed from monthlyCreditsUsed
         "creditsPerPeriod": credits_per_period,  # Renamed from creditsPerMonth
         "isTrial": is_trial,
-        "subscription": subscription_data
+        "subscription": subscription_data,
     }
 
 
@@ -395,12 +415,12 @@ async def register_push_token(
         user_id=current_user["id"],
         push_token=request.push_token,
         platform=request.platform,
-        device_id=request.device_id
+        device_id=request.device_id,
     )
-    
+
     if not success:
         raise HTTPException(status_code=500, detail="Failed to register push token")
-    
+
     return {"success": True, "message": "Push token registered successfully"}
 
 
@@ -412,10 +432,10 @@ async def unregister_push_token(
     success = await push_notification_service.unregister_push_token(
         user_id=current_user["id"]
     )
-    
+
     if not success:
         raise HTTPException(status_code=500, detail="Failed to unregister push token")
-    
+
     return {"success": True, "message": "Push token unregistered successfully"}
 
 
@@ -426,20 +446,21 @@ async def update_notification_preferences(
 ):
     """Update user's push notification preferences"""
     success = await push_notification_service.update_notification_preferences(
-        user_id=current_user["id"],
-        enabled=request.notifications
+        user_id=current_user["id"], enabled=request.notifications
     )
-    
+
     if not success:
-        raise HTTPException(status_code=500, detail="Failed to update notification preferences")
-    
+        raise HTTPException(
+            status_code=500, detail="Failed to update notification preferences"
+        )
+
     return {"success": True, "message": "Notification preferences updated successfully"}
 
 
 @router.get("/notification-preferences")
 async def get_notification_preferences(
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Get user's push notification preferences"""
     stmt = select(User).where(User.id == current_user["id"])
@@ -452,14 +473,14 @@ async def get_notification_preferences(
     return {
         "notifications": user.push_notifications_enabled,
         "hasPushToken": bool(user.push_token),
-        "platform": user.platform
+        "platform": user.platform,
     }
 
 
 @router.delete("/me")
 async def delete_user_account(
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """
     Delete user account and all associated data
@@ -483,14 +504,13 @@ async def delete_user_account(
 
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
 
         # 2. Cancel active Stripe subscriptions
         subscription_stmt = select(Subscription).where(
             Subscription.user_id == user_id,
-            Subscription.status.in_(["active", "trialing", "past_due"])
+            Subscription.status.in_(["active", "trialing", "past_due"]),
         )
         subscription_result = await session.execute(subscription_stmt)
         active_subscriptions = subscription_result.scalars().all()
@@ -500,12 +520,18 @@ async def delete_user_account(
                 try:
                     # Cancel immediately (not at period end)
                     stripe.Subscription.delete(sub.stripe_subscription_id)
-                    logger.info(f"Cancelled Stripe subscription {sub.stripe_subscription_id} for user {user_id}")
+                    logger.info(
+                        f"Cancelled Stripe subscription {sub.stripe_subscription_id} for user {user_id}"
+                    )
                 except stripe.error.StripeError as e:
                     # Log but don't block deletion if Stripe cancellation fails
-                    logger.error(f"Failed to cancel Stripe subscription {sub.stripe_subscription_id}: {e}")
+                    logger.error(
+                        f"Failed to cancel Stripe subscription {sub.stripe_subscription_id}: {e}"
+                    )
                 except Exception as e:
-                    logger.error(f"Unexpected error cancelling subscription {sub.stripe_subscription_id}: {e}")
+                    logger.error(
+                        f"Unexpected error cancelling subscription {sub.stripe_subscription_id}: {e}"
+                    )
 
         # 3. Delete all evidence records (must be done first due to foreign keys)
         # Get all claim IDs for this user's checks
@@ -527,9 +553,7 @@ async def delete_user_account(
                 logger.info(f"Deleted evidence for {len(claim_ids)} claims")
 
             # Delete all claims for these checks
-            await session.execute(
-                delete(Claim).where(Claim.check_id.in_(check_ids))
-            )
+            await session.execute(delete(Claim).where(Claim.check_id.in_(check_ids)))
             logger.info(f"Deleted {len(claim_ids)} claims")
 
         # 4. Delete all checks
@@ -550,10 +574,7 @@ async def delete_user_account(
 
         logger.info(f"Successfully deleted user account {user_id}")
 
-        return {
-            "message": "Account successfully deleted",
-            "userId": user_id
-        }
+        return {"message": "Account successfully deleted", "userId": user_id}
 
     except HTTPException:
         await session.rollback()
@@ -563,10 +584,12 @@ async def delete_user_account(
         logger.error(f"Failed to delete user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete account. Please contact support at support@tru8.com"
+            detail="Failed to delete account. Please contact support at support@tru8.com",
         )
 
+
 # ========== EMAIL NOTIFICATION PREFERENCES ==========
+
 
 class EmailPreferencesRequest(BaseModel):
     email_notifications_enabled: bool | None = None
@@ -579,7 +602,7 @@ class EmailPreferencesRequest(BaseModel):
 @router.get("/email-preferences")
 async def get_email_preferences(
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Get user's email notification preferences"""
     stmt = select(User).where(User.id == current_user["id"])
@@ -594,7 +617,7 @@ async def get_email_preferences(
         "checkCompletion": user.email_check_completion,
         "checkFailure": user.email_check_failure,
         "weeklyDigest": user.email_weekly_digest,
-        "marketing": user.email_marketing
+        "marketing": user.email_marketing,
     }
 
 
@@ -602,7 +625,7 @@ async def get_email_preferences(
 async def update_email_preferences(
     request: EmailPreferencesRequest,
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """Update user's email notification preferences"""
     stmt = select(User).where(User.id == current_user["id"])
@@ -636,7 +659,9 @@ async def update_email_preferences(
         logger.info(f"Email preferences updated for user {user.id}")
     except Exception as e:
         await session.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update preferences: {str(e)}"
+        )
 
     return {
         "success": True,
@@ -646,12 +671,13 @@ async def update_email_preferences(
             "checkCompletion": user.email_check_completion,
             "checkFailure": user.email_check_failure,
             "weeklyDigest": user.email_weekly_digest,
-            "marketing": user.email_marketing
-        }
+            "marketing": user.email_marketing,
+        },
     }
 
 
 # ========== GDPR DATA EXPORT ==========
+
 
 def _serialize_datetime(dt: datetime | None) -> str | None:
     """Convert datetime to ISO format string."""
@@ -674,7 +700,7 @@ def _serialize_dict(d: dict | None) -> dict | None:
 async def export_user_data(
     request: Request,  # Required for rate limiting
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
 ):
     """
     Export all user data (GDPR Article 20 - Right to data portability).
@@ -715,7 +741,7 @@ async def export_user_data(
             "email_check_failure": user.email_check_failure,
             "email_weekly_digest": user.email_weekly_digest,
             "email_marketing": user.email_marketing,
-        }
+        },
     }
 
     # Export subscriptions
@@ -737,7 +763,9 @@ async def export_user_data(
     ]
 
     # Export checks with claims and evidence
-    checks_stmt = select(Check).where(Check.user_id == user_id).order_by(desc(Check.created_at))
+    checks_stmt = (
+        select(Check).where(Check.user_id == user_id).order_by(desc(Check.created_at))
+    )
     checks_result = await session.execute(checks_stmt)
     checks = checks_result.scalars().all()
 
@@ -758,9 +786,10 @@ async def export_user_data(
             evidence_data = [
                 {
                     "id": str(ev.id),
+                    "evidence_id": ev.evidence_id,
                     "url": ev.url,
                     "title": ev.title,
-                    "publisher": ev.publisher,
+                    "source": ev.source,
                     "snippet": ev.snippet,
                     "published_date": _serialize_datetime(ev.published_date),
                     "credibility_score": ev.credibility_score,
@@ -770,31 +799,39 @@ async def export_user_data(
                 for ev in evidence_list
             ]
 
-            claims_data.append({
-                "id": str(claim.id),
-                "text": claim.text,
-                "verdict": claim.verdict,
-                "confidence": claim.confidence,
-                "rationale": claim.rationale,
-                "claim_type": claim.claim_type,
-                "evidence": evidence_data,
-            })
+            # Extract orientation from claim_map JSONB if present
+            orientation = None
+            if claim.claim_map and isinstance(claim.claim_map, dict):
+                orientation = claim.claim_map.get("orientation")
 
-        checks_data.append({
-            "id": str(check.id),
-            "input_type": check.input_type,
-            "status": check.status,
-            "url": check.url,
-            "title": check.title,
-            "mode": check.mode,
-            "credits_used": check.credits_used,
-            "article_domain": check.article_domain,
-            "transparency_score": check.transparency_score,
-            "processing_time_ms": check.processing_time_ms,
-            "created_at": _serialize_datetime(check.created_at),
-            "completed_at": _serialize_datetime(check.completed_at),
-            "claims": claims_data,
-        })
+            claims_data.append(
+                {
+                    "id": str(claim.id),
+                    "text": claim.text,
+                    "claim_type": claim.new_claim_type,
+                    "is_selected": claim.is_selected,
+                    "significance_rank": claim.significance_rank,
+                    "orientation": orientation,
+                    "evidence": evidence_data,
+                }
+            )
+
+        checks_data.append(
+            {
+                "id": str(check.id),
+                "input_type": check.input_type,
+                "status": check.status,
+                "input_url": check.input_url,
+                "entry_mode": check.entry_mode,
+                "selected_claims_count": check.selected_claims_count,
+                "credits_used": check.credits_used,
+                "article_domain": check.article_domain,
+                "processing_time_ms": check.processing_time_ms,
+                "created_at": _serialize_datetime(check.created_at),
+                "completed_at": _serialize_datetime(check.completed_at),
+                "claims": claims_data,
+            }
+        )
 
     # Build complete export
     export_data = {
@@ -812,7 +849,7 @@ async def export_user_data(
                 for claim in c["claims"]
                 for ev in [claim["evidence"]]
             ),
-        }
+        },
     }
 
     logger.info(f"GDPR data export generated for user {user_id}")
@@ -822,5 +859,5 @@ async def export_user_data(
         content=export_data,
         headers={
             "Content-Disposition": f'attachment; filename="tru8_data_export_{user_id[:8]}_{datetime.utcnow().strftime("%Y%m%d")}.json"'
-        }
+        },
     )

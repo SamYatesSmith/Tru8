@@ -41,8 +41,10 @@ export interface Check {
   createdAt: string; // ISO string from backend, not Date object
   completedAt?: string; // ISO string from backend
   claimsCount?: number; // For list view
+  entryMode?: string; // 'focused' or 'article'
+  selectedClaimsCount?: number; // Article mode: claims selected for full analysis
   // Real-time progress fields (for polling fallback when SSE unavailable)
-  currentStage?: string; // Current pipeline stage: ingest, extract, retrieve, verify, judge, summary
+  currentStage?: string; // Current pipeline stage: ingest, extract, retrieve, select, decompose, analyze, complete
   progress?: number; // Progress percentage 0-100
   progressMessage?: string; // User-friendly progress message
 }
@@ -56,17 +58,22 @@ export interface Claim {
   id: string;
   checkId: string;
   text: string;
-  verdict: VerdictType;
-  confidence: number; // 0-100
-  rationale: string;
+  verdict?: VerdictType; // Legacy — kept for frontend until Track C
+  confidence?: number; // Legacy — kept for frontend until Track C
+  rationale?: string; // Legacy — kept for frontend until Track C
   evidence: Evidence[];
   position: number; // Order in the check
   sourcesReviewedCount?: number; // Total sources reviewed (for "View sources" link when none displayed)
+  claimMap?: ClaimMap; // Full ClaimMap object (detail/public endpoints)
+  claimType?: ClaimType; // 5-way taxonomy from decomposition
+  isSelected?: boolean; // Article mode: selected for full analysis
+  significanceRank?: number; // Article mode: position in significance ranking
 }
 
 export interface Evidence {
   id: string;
   claimId?: string; // Optional in some contexts
+  evidenceId?: string; // Stable ID for cross-referencing with ClaimMap evidence_refs
   source: string; // Publisher name
   url: string;
   title: string;
@@ -144,7 +151,7 @@ export type UserUsage = UserUsageResponse;
 // Pipeline stages
 export interface PipelineProgress {
   checkId: string;
-  stage: 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'complete';
+  stage: 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'select' | 'decompose' | 'analyze' | 'complete';
   progress: number; // 0-100
   message?: string;
 }
