@@ -17,8 +17,10 @@ from enum import Enum
 # Enum Types
 # ============================================================================
 
+
 class StanceLabel(str, Enum):
     """NLI stance labels for verification results"""
+
     SUPPORTS = "supports"
     CONTRADICTS = "contradicts"
     NEUTRAL = "neutral"
@@ -27,31 +29,21 @@ class StanceLabel(str, Enum):
     ERROR = "error"
 
 
-class VerdictType(str, Enum):
-    """Final verdict types from judge stage"""
-    SUPPORTED = "SUPPORTED"
-    CONTRADICTED = "CONTRADICTED"
-    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
-    CONFLICTING_EVIDENCE = "CONFLICTING_EVIDENCE"
-    NOT_VERIFIABLE = "NOT_VERIFIABLE"
-    UNCERTAIN = "UNCERTAIN"
-    ERROR = "ERROR"
-
-
 # ============================================================================
 # Data Models
 # ============================================================================
+
 
 @dataclass
 class Claim:
     """
     Represents a factual claim to be verified
 
-    Used in test_extract.py, test_retrieve.py, test_verify.py, test_judge.py
+    Used in test_extract.py, test_retrieve.py
     """
+
     text: str
-    claim_type: str = "factual"  # factual, opinion, prediction
-    confidence: float = 0.0
+    claim_type: str = "empirical"  # 5-way taxonomy
     subject_context: Optional[str] = None
     key_entities: List[str] = field(default_factory=list)
     temporal_markers: List[str] = field(default_factory=list)
@@ -65,8 +57,9 @@ class Evidence:
     """
     Represents a piece of evidence from a source
 
-    Used in test_retrieve.py, test_verify.py, test_judge.py
+    Used in test_retrieve.py, test_verify.py
     """
+
     text: str
     url: str
     credibility_score: float
@@ -86,6 +79,7 @@ class Query:
 
     Used in test_query_answer.py
     """
+
     text: str
     query_type: str = "factual"  # factual, complex, philosophical
     is_time_sensitive: bool = False
@@ -96,19 +90,18 @@ class Query:
 # Utility functions for tests
 # ============================================================================
 
+
 def create_mock_claim(text: str, **kwargs) -> Claim:
     """Helper function to create mock claims in tests"""
     return Claim(text=text, **kwargs)
 
 
-def create_mock_evidence(text: str, url: str, credibility: float, publisher: str, **kwargs) -> Evidence:
+def create_mock_evidence(
+    text: str, url: str, credibility: float, publisher: str, **kwargs
+) -> Evidence:
     """Helper function to create mock evidence in tests"""
     return Evidence(
-        text=text,
-        url=url,
-        credibility_score=credibility,
-        publisher=publisher,
-        **kwargs
+        text=text, url=url, credibility_score=credibility, publisher=publisher, **kwargs
     )
 
 

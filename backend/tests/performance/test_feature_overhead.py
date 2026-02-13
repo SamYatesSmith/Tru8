@@ -5,6 +5,7 @@ Measures latency impact of each feature to validate against targets:
 - Total pipeline target: <12s p95
 - Individual feature budgets defined in FEATURE_ROLLOUT_PLAN.md
 """
+
 import pytest
 import time
 from typing import List, Dict
@@ -22,7 +23,10 @@ class TestFeaturePerformance:
             {"text": "I think chocolate is the best flavor.", "position": 1},
             {"text": "The stock market will crash by 2030.", "position": 2},
             {"text": "I saw a celebrity at the mall yesterday.", "position": 3},
-            {"text": "COVID-19 vaccines were approved in December 2020.", "position": 4}
+            {
+                "text": "COVID-19 vaccines were approved in December 2020.",
+                "position": 4,
+            },
         ]
 
     @pytest.fixture
@@ -36,7 +40,7 @@ class TestFeaturePerformance:
                 "snippet": "The Earth is a sphere that orbits the Sun. This has been proven by countless observations.",
                 "published_date": "2024-01-15",
                 "relevance_score": 0.92,
-                "credibility_score": 0.9
+                "credibility_score": 0.9,
             },
             {
                 "source": "CNN",
@@ -45,7 +49,7 @@ class TestFeaturePerformance:
                 "snippet": "The Earth is a sphere that orbits the Sun. This has been proven by countless observations.",  # Duplicate
                 "published_date": "2024-01-16",
                 "relevance_score": 0.90,
-                "credibility_score": 0.85
+                "credibility_score": 0.85,
             },
             {
                 "source": "Reuters",
@@ -54,7 +58,7 @@ class TestFeaturePerformance:
                 "snippet": "Planets orbit the Sun in elliptical paths. Earth is the third planet.",
                 "published_date": "2024-02-20",
                 "relevance_score": 0.88,
-                "credibility_score": 0.9
+                "credibility_score": 0.9,
             },
             {
                 "source": "The Guardian",
@@ -63,7 +67,7 @@ class TestFeaturePerformance:
                 "snippet": "Earth completes one orbit around the Sun every 365.25 days.",
                 "published_date": "2023-12-10",
                 "relevance_score": 0.85,
-                "credibility_score": 0.88
+                "credibility_score": 0.88,
             },
             {
                 "source": "Snopes",
@@ -72,8 +76,8 @@ class TestFeaturePerformance:
                 "snippet": "True - Earth orbits the Sun, not the other way around.",
                 "published_date": "2024-03-05",
                 "relevance_score": 0.95,
-                "credibility_score": 0.95
-            }
+                "credibility_score": 0.95,
+            },
         ]
 
     def benchmark_operation(self, operation, iterations: int = 100) -> Dict[str, float]:
@@ -92,7 +96,7 @@ class TestFeaturePerformance:
             "p95": statistics.quantiles(times, n=20)[18],  # 95th percentile
             "min": min(times),
             "max": max(times),
-            "iterations": iterations
+            "iterations": iterations,
         }
 
     @pytest.mark.performance
@@ -117,7 +121,9 @@ class TestFeaturePerformance:
         print(f"P95: {stats['p95']:.2f}ms")
         print(f"Target: <200ms")
 
-        assert stats['p95'] < 200, f"Deduplication p95 {stats['p95']:.2f}ms exceeds 200ms target"
+        assert (
+            stats["p95"] < 200
+        ), f"Deduplication p95 {stats['p95']:.2f}ms exceeds 200ms target"
 
     @pytest.mark.performance
     def test_source_independence_overhead(self, sample_evidence):
@@ -141,7 +147,9 @@ class TestFeaturePerformance:
         print(f"P95: {stats['p95']:.2f}ms")
         print(f"Target: <100ms")
 
-        assert stats['p95'] < 100, f"Source independence p95 {stats['p95']:.2f}ms exceeds 100ms target"
+        assert (
+            stats["p95"] < 100
+        ), f"Source independence p95 {stats['p95']:.2f}ms exceeds 100ms target"
 
     @pytest.mark.performance
     def test_factcheck_detection_overhead(self, sample_evidence):
@@ -167,7 +175,9 @@ class TestFeaturePerformance:
         print(f"P95: {stats['p95']:.2f}ms")
         print(f"Target: <50ms (detection only)")
 
-        assert stats['p95'] < 50, f"Fact-check detection p95 {stats['p95']:.2f}ms exceeds 50ms target"
+        assert (
+            stats["p95"] < 50
+        ), f"Fact-check detection p95 {stats['p95']:.2f}ms exceeds 50ms target"
 
     @pytest.mark.performance
     def test_temporal_analysis_overhead(self, sample_claims):
@@ -192,7 +202,9 @@ class TestFeaturePerformance:
         print(f"P95: {stats['p95']:.2f}ms")
         print(f"Target: <150ms (for 5 claims)")
 
-        assert stats['p95'] < 150, f"Temporal analysis p95 {stats['p95']:.2f}ms exceeds 150ms target"
+        assert (
+            stats["p95"] < 150
+        ), f"Temporal analysis p95 {stats['p95']:.2f}ms exceeds 150ms target"
 
     @pytest.mark.performance
     def test_claim_classification_overhead(self, sample_claims):
@@ -217,50 +229,9 @@ class TestFeaturePerformance:
         print(f"P95: {stats['p95']:.2f}ms")
         print(f"Target: <100ms (for 5 claims)")
 
-        assert stats['p95'] < 100, f"Claim classification p95 {stats['p95']:.2f}ms exceeds 100ms target"
-
-    @pytest.mark.performance
-    def test_explainability_overhead(self, sample_claims, sample_evidence):
-        """
-        Test: Explainability generation time
-
-        Target: <200ms overhead
-        """
-        from app.utils.explainability import ExplainabilityEnhancer
-
-        explainer = ExplainabilityEnhancer()
-
-        claim = sample_claims[0]
-        signals = {
-            "supporting_count": 4,
-            "contradicting_count": 0,
-            "neutral_count": 1
-        }
-        judgment = {
-            "verdict": "supported",
-            "confidence": 90,
-            "rationale": "Multiple reliable sources confirm the claim"
-        }
-
-        def operation():
-            # Decision trail
-            explainer.create_decision_trail(claim, sample_evidence, signals, judgment)
-
-            # Confidence breakdown
-            explainer.create_confidence_breakdown(judgment, sample_evidence, signals)
-
-            # Uncertainty explanation (if needed)
-            explainer.create_uncertainty_explanation("supported", signals, sample_evidence)
-
-        stats = self.benchmark_operation(operation, iterations=100)
-
-        print(f"\n=== Explainability Performance ===")
-        print(f"Mean: {stats['mean']:.2f}ms")
-        print(f"Median: {stats['median']:.2f}ms")
-        print(f"P95: {stats['p95']:.2f}ms")
-        print(f"Target: <200ms")
-
-        assert stats['p95'] < 200, f"Explainability p95 {stats['p95']:.2f}ms exceeds 200ms target"
+        assert (
+            stats["p95"] < 100
+        ), f"Claim classification p95 {stats['p95']:.2f}ms exceeds 100ms target"
 
     @pytest.mark.performance
     def test_domain_capping_overhead(self, sample_evidence):
@@ -285,7 +256,9 @@ class TestFeaturePerformance:
         print(f"P95: {stats['p95']:.2f}ms")
         print(f"Target: <50ms")
 
-        assert stats['p95'] < 50, f"Domain capping p95 {stats['p95']:.2f}ms exceeds 50ms target"
+        assert (
+            stats["p95"] < 50
+        ), f"Domain capping p95 {stats['p95']:.2f}ms exceeds 50ms target"
 
     @pytest.mark.performance
     def test_combined_overhead(self, sample_claims, sample_evidence):
@@ -299,7 +272,6 @@ class TestFeaturePerformance:
         from app.utils.factcheck import FactCheckDetector
         from app.utils.temporal import TemporalAnalyzer
         from app.utils.legal_claim_detector import LegalClaimDetector
-        from app.utils.explainability import ExplainabilityEnhancer
         from app.pipeline.retrieve import apply_domain_cap
 
         # Initialize all utilities
@@ -308,7 +280,6 @@ class TestFeaturePerformance:
         factcheck_detector = FactCheckDetector()
         temporal_analyzer = TemporalAnalyzer()
         detector = LegalClaimDetector()
-        explainer = ExplainabilityEnhancer()
 
         def operation():
             # Simulate full pipeline with all features
@@ -334,32 +305,28 @@ class TestFeaturePerformance:
             # Domain capping
             evidence = apply_domain_cap(evidence, max_per_domain=3)
 
-            # 3. Explainability (judge stage)
-            signals = {"supporting_count": 3, "contradicting_count": 0, "neutral_count": 1}
-            judgment = {"verdict": "supported", "confidence": 85, "rationale": "Strong evidence"}
-
-            explainer.create_decision_trail(sample_claims[0], evidence, signals, judgment)
-            explainer.create_confidence_breakdown(judgment, evidence, signals)
-
-        stats = self.benchmark_operation(operation, iterations=50)  # Fewer iterations for combined test
+        stats = self.benchmark_operation(
+            operation, iterations=50
+        )  # Fewer iterations for combined test
 
         print(f"\n=== COMBINED OVERHEAD (All Features) ===")
         print(f"Mean: {stats['mean']:.2f}ms")
         print(f"Median: {stats['median']:.2f}ms")
         print(f"P95: {stats['p95']:.2f}ms")
-        print(f"Target: <1300ms")
+        print(f"Target: <1100ms")
         print(f"\nBreakdown estimate:")
         print(f"  Deduplication:        ~200ms")
         print(f"  Source independence:  ~100ms")
         print(f"  Fact-check detection:  ~50ms")
         print(f"  Temporal analysis:    ~150ms")
         print(f"  Classification:       ~100ms")
-        print(f"  Explainability:       ~200ms")
         print(f"  Domain capping:        ~50ms")
         print(f"  Misc overhead:        ~450ms")
-        print(f"  Total budget:        1300ms")
+        print(f"  Total budget:        1100ms")
 
-        assert stats['p95'] < 1300, f"Combined overhead p95 {stats['p95']:.2f}ms exceeds 1300ms target"
+        assert (
+            stats["p95"] < 1100
+        ), f"Combined overhead p95 {stats['p95']:.2f}ms exceeds 1100ms target"
 
     @pytest.mark.performance
     def test_memory_footprint(self, sample_claims, sample_evidence):
@@ -374,7 +341,6 @@ class TestFeaturePerformance:
         from app.utils.source_independence import SourceIndependenceChecker
         from app.utils.temporal import TemporalAnalyzer
         from app.utils.legal_claim_detector import LegalClaimDetector
-        from app.utils.explainability import ExplainabilityEnhancer
 
         tracemalloc.start()
 
@@ -387,23 +353,18 @@ class TestFeaturePerformance:
             independence = SourceIndependenceChecker()
             temporal = TemporalAnalyzer()
             detector = LegalClaimDetector()
-            explainer = ExplainabilityEnhancer()
 
             # Do some work
             deduplicator.deduplicate(sample_evidence.copy())
             independence.analyze_evidence(sample_evidence.copy())
             temporal.analyze_claim(sample_claims[0]["text"])
-            classifier.classify(sample_claims[0]["text"])
-
-            signals = {"supporting_count": 3, "contradicting_count": 0}
-            judgment = {"verdict": "supported", "confidence": 85}
-            explainer.create_decision_trail(sample_claims[0], sample_evidence, signals, judgment)
+            detector.classify(sample_claims[0]["text"])
 
         # Snapshot after
         snapshot_after = tracemalloc.take_snapshot()
 
         # Calculate difference
-        top_stats = snapshot_after.compare_to(snapshot_before, 'lineno')
+        top_stats = snapshot_after.compare_to(snapshot_before, "lineno")
 
         total_diff = sum(stat.size_diff for stat in top_stats)
         total_diff_mb = total_diff / (1024 * 1024)
@@ -415,7 +376,9 @@ class TestFeaturePerformance:
         tracemalloc.stop()
 
         # Should not leak more than 10MB over 100 iterations
-        assert total_diff_mb < 10, f"Memory increase {total_diff_mb:.2f}MB exceeds 10MB threshold"
+        assert (
+            total_diff_mb < 10
+        ), f"Memory increase {total_diff_mb:.2f}MB exceeds 10MB threshold"
 
 
 @pytest.mark.performance
@@ -433,7 +396,7 @@ class TestScalability:
             "url": "https://example.com/article",
             "title": "Article Title",
             "snippet": "Article content here",
-            "relevance_score": 0.8
+            "relevance_score": 0.8,
         }
 
         for size in [10, 50, 100, 200]:
@@ -465,7 +428,7 @@ class TestScalability:
             "42 USC 1983 protects civil rights.",
             "The National Historic Preservation Act of 1966 exempts the White House.",
             "A 1952 federal law requires submission.",
-            "Water boils at 100 degrees Celsius."
+            "Water boils at 100 degrees Celsius.",
         ]
 
         for claim_count in [5, 10, 25, 50]:

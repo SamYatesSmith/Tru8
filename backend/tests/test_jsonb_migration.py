@@ -5,6 +5,7 @@ Ensures that JSON to JSONB conversion preserves all data correctly.
 
 Issue #4: Inconsistent JSONB Usage
 """
+
 import pytest
 from app.core.database import sync_session
 from app.models import Check, Claim, Evidence
@@ -21,23 +22,17 @@ class TestJSONBMigration:
                 "text": "Test claim with nested data for JSONB migration test",
                 "metadata": {
                     "key": "value",
-                    "nested": {"deep": "value", "array": [1, 2, 3]}
-                }
+                    "nested": {"deep": "value", "array": [1, 2, 3]},
+                },
             },
             "api_sources_used": [
                 {"name": "ONS", "results": 5},
-                {"name": "PubMed", "results": 3}
+                {"name": "PubMed", "results": 3},
             ],
             "query_sources": {
                 "sources": ["source1", "source2"],
-                "related_claims": [1, 2, 3]
+                "related_claims": [1, 2, 3],
             },
-            "decision_trail": {
-                "steps": [
-                    {"stage": "ingest", "duration_ms": 100},
-                    {"stage": "extract", "duration_ms": 200}
-                ]
-            }
         }
 
         with sync_session() as session:
@@ -48,7 +43,6 @@ class TestJSONBMigration:
                 status="completed",
                 api_sources_used=test_data["api_sources_used"],
                 query_sources=test_data["query_sources"],
-                decision_trail=test_data["decision_trail"]
             )
             session.add(check)
             session.commit()
@@ -70,9 +64,6 @@ class TestJSONBMigration:
             assert retrieved.query_sources == test_data["query_sources"]
             assert len(retrieved.query_sources["sources"]) == 2
 
-            assert retrieved.decision_trail == test_data["decision_trail"]
-            assert retrieved.decision_trail["steps"][0]["stage"] == "ingest"
-
             # Cleanup
             session.delete(retrieved)
             session.commit()
@@ -86,7 +77,7 @@ class TestJSONBMigration:
                 user_id="test_jsonb_user",
                 input_type="text",
                 input_content={"text": "test"},
-                status="completed"
+                status="completed",
             )
             session.add(check)
             session.commit()
@@ -95,24 +86,16 @@ class TestJSONBMigration:
             claim = Claim(
                 check_id=check.id,
                 text="Test claim",
-                verdict="supported",
-                confidence=85,
-                rationale="Test rationale",
                 position=0,
                 key_entities=["UK", "ONS", "unemployment", "2024"],
                 temporal_markers=[
                     {"type": "year", "value": "2024"},
-                    {"type": "quarter", "value": "Q4"}
+                    {"type": "quarter", "value": "Q4"},
                 ],
-                confidence_breakdown={
-                    "evidence_strength": 0.9,
-                    "source_credibility": 0.85,
-                    "temporal_relevance": 0.95
-                },
                 legal_metadata={
                     "jurisdiction": "UK",
-                    "legislation": ["Employment Rights Act 1996"]
-                }
+                    "legislation": ["Employment Rights Act 1996"],
+                },
             )
             session.add(claim)
             session.commit()
@@ -131,7 +114,6 @@ class TestJSONBMigration:
             assert retrieved.temporal_markers[1]["value"] == "Q4"
 
             # Test objects
-            assert retrieved.confidence_breakdown["evidence_strength"] == 0.9
             assert retrieved.legal_metadata["jurisdiction"] == "UK"
             assert len(retrieved.legal_metadata["legislation"]) == 1
 
@@ -149,14 +131,11 @@ class TestJSONBMigration:
             "pmid": "38123456",
             "authors": [
                 {"name": "John Smith", "affiliation": "Harvard"},
-                {"name": "Jane Doe", "affiliation": "MIT"}
+                {"name": "Jane Doe", "affiliation": "MIT"},
             ],
-            "citations": {
-                "count": 42,
-                "recent": ["12345", "67890"]
-            },
+            "citations": {"count": 42, "recent": ["12345", "67890"]},
             "keywords": ["health", "research", "COVID-19"],
-            "publication_date": {"year": 2024, "month": "January"}
+            "publication_date": {"year": 2024, "month": "January"},
         }
 
         with sync_session() as session:
@@ -165,7 +144,7 @@ class TestJSONBMigration:
                 user_id="test_jsonb_user",
                 input_type="text",
                 input_content={"text": "test"},
-                status="completed"
+                status="completed",
             )
             session.add(check)
             session.commit()
@@ -173,10 +152,7 @@ class TestJSONBMigration:
             claim = Claim(
                 check_id=check.id,
                 text="Test",
-                verdict="supported",
-                confidence=85,
-                rationale="Test",
-                position=0
+                position=0,
             )
             session.add(claim)
             session.commit()
@@ -194,8 +170,8 @@ class TestJSONBMigration:
                 api_metadata=complex_metadata,
                 risk_flags=[
                     {"type": "retracted", "severity": "high"},
-                    {"type": "preprint", "severity": "medium"}
-                ]
+                    {"type": "preprint", "severity": "medium"},
+                ],
             )
             session.add(evidence)
             session.commit()
@@ -234,7 +210,7 @@ class TestJSONBMigration:
                 user_id="test_jsonb_null",
                 input_type="text",
                 input_content={"text": "test"},
-                status="completed"
+                status="completed",
                 # All optional JSONB fields left as None
             )
             session.add(check)
@@ -247,7 +223,6 @@ class TestJSONBMigration:
             # Verify None values are handled correctly
             assert retrieved.api_sources_used is None
             assert retrieved.query_sources is None
-            assert retrieved.decision_trail is None
 
             # Cleanup
             session.delete(retrieved)
@@ -264,7 +239,6 @@ class TestJSONBMigration:
                 status="completed",
                 api_sources_used=[],  # Empty array
                 query_sources={},  # Empty object
-                decision_trail={"steps": []}  # Object with empty array
             )
             session.add(check)
             session.commit()
@@ -275,7 +249,6 @@ class TestJSONBMigration:
 
             assert retrieved.api_sources_used == []
             assert retrieved.query_sources == {}
-            assert retrieved.decision_trail == {"steps": []}
 
             # Cleanup
             session.delete(retrieved)
@@ -287,11 +260,8 @@ class TestJSONBMigration:
         special_data = {
             "unicode": "日本語テキスト",
             "emoji": "🚀✅❌",
-            "special_chars": "Quote: \"test\" | Backslash: \\ | Newline: \n",
-            "nested": {
-                "greek": "Αλφάβητο",
-                "russian": "Алфавит"
-            }
+            "special_chars": 'Quote: "test" | Backslash: \\ | Newline: \n',
+            "nested": {"greek": "Αλφάβητο", "russian": "Алфавит"},
         }
 
         with sync_session() as session:
@@ -299,7 +269,7 @@ class TestJSONBMigration:
                 user_id="test_jsonb_unicode",
                 input_type="text",
                 input_content=special_data,
-                status="completed"
+                status="completed",
             )
             session.add(check)
             session.commit()
@@ -327,7 +297,7 @@ class TestJSONBMigration:
             f"level1_{i}": {
                 f"level2_{j}": {
                     "data": [k for k in range(10)],
-                    "metadata": {"index": i * 100 + j}
+                    "metadata": {"index": i * 100 + j},
                 }
                 for j in range(5)
             }
@@ -339,7 +309,7 @@ class TestJSONBMigration:
                 user_id="test_jsonb_large",
                 input_type="text",
                 input_content=large_structure,
-                status="completed"
+                status="completed",
             )
             session.add(check)
             session.commit()
@@ -352,8 +322,13 @@ class TestJSONBMigration:
             assert len(retrieved.input_content.keys()) == 10
             assert "level1_0" in retrieved.input_content
             assert "level2_0" in retrieved.input_content["level1_0"]
-            assert retrieved.input_content["level1_0"]["level2_0"]["data"] == [k for k in range(10)]
-            assert retrieved.input_content["level1_5"]["level2_3"]["metadata"]["index"] == 503
+            assert retrieved.input_content["level1_0"]["level2_0"]["data"] == [
+                k for k in range(10)
+            ]
+            assert (
+                retrieved.input_content["level1_5"]["level2_3"]["metadata"]["index"]
+                == 503
+            )
 
             # Cleanup
             session.delete(retrieved)
@@ -380,9 +355,8 @@ class TestJSONBTypeConsistency:
         # Check table
         check_json_columns = [
             "input_content",
-            "decision_trail",
             "query_sources",
-            "api_sources_used"
+            "api_sources_used",
         ]
 
         for col_name in check_json_columns:
@@ -390,7 +364,7 @@ class TestJSONBTypeConsistency:
             # Note: After migration, database has JSONB, but model inspection
             # will show the type we declared in sa_column
             # This test verifies the declaration
-            assert hasattr(col.type, '__class__'), f"{col_name} should have a type"
+            assert hasattr(col.type, "__class__"), f"{col_name} should have a type"
 
         # Similar checks for Claim and Evidence tables
         # This ensures consistency after migration

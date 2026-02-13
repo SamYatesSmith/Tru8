@@ -41,7 +41,7 @@ from mocks.search_results import (
     MOCK_SEARCH_RESULTS_DOMAIN_DOMINATED,
     MOCK_SEARCH_RESULTS_TEMPORAL,
     get_search_results_by_credibility,
-    create_search_result
+    create_search_result,
 )
 from mocks.factcheck_data import (
     MOCK_FACTCHECK_TRUE,
@@ -50,7 +50,7 @@ from mocks.factcheck_data import (
     MOCK_FACTCHECK_CONFLICTING,
     MOCK_FACTCHECK_RECENT,
     get_factcheck_by_rating,
-    create_factcheck_claim
+    create_factcheck_claim,
 )
 from mocks.sample_content import SAMPLE_CLAIMS
 
@@ -85,7 +85,7 @@ class TestEvidenceRetrieval:
             subject_context="Climate agreement",
             key_entities=["195 countries", "45%", "2030"],
             is_time_sensitive=True,
-            claim_type="factual"
+            claim_type="factual",
         )
 
         # Create mock evidence snippets
@@ -96,15 +96,17 @@ class TestEvidenceRetrieval:
                 url=f"https://source{i}.org",
                 title=f"Title {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(5)
         ]
 
         # Act - Mock services at module level
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
@@ -114,7 +116,7 @@ class TestEvidenceRetrieval:
                 "key_entities": claim.key_entities,
                 "is_time_sensitive": claim.is_time_sensitive,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
             result = await retriever.retrieve_evidence_for_claims([claim_dict])
             evidence_list = result.get("0", [])  # Use position key, not claim text
@@ -127,9 +129,11 @@ class TestEvidenceRetrieval:
             assert "text" in evidence
             assert "url" in evidence
             assert "credibility_score" in evidence
-            assert "source" in evidence  # Implementation returns 'source' not 'publisher'
+            assert (
+                "source" in evidence
+            )  # Implementation returns 'source' not 'publisher'
             assert 0 <= evidence["credibility_score"] <= 1.0  # 0-1 scale not 0-100
-            assert evidence["url"].startswith('http')
+            assert evidence["url"].startswith("http")
 
     @pytest.mark.asyncio
     @pytest.mark.critical
@@ -138,7 +142,7 @@ class TestEvidenceRetrieval:
         Test: Evidence credibility scoring based on source
         Created: 2025-11-03
 
-        CRITICAL: Credibility scoring affects verdict accuracy
+        CRITICAL: Credibility scoring affects evidence mapping accuracy
 
         High credibility sources (80-100):
         - Government (.gov)
@@ -159,8 +163,7 @@ class TestEvidenceRetrieval:
         from app.services.evidence import EvidenceSnippet
 
         claim = Claim(
-            text="Climate change is caused by human activity",
-            claim_type="factual"
+            text="Climate change is caused by human activity", claim_type="factual"
         )
 
         # Create mock high-credibility evidence
@@ -171,7 +174,7 @@ class TestEvidenceRetrieval:
                 url="https://nasa.gov/climate",
                 title="NASA Climate Study",
                 published_date="2024-11-01",
-                relevance_score=0.95
+                relevance_score=0.95,
             ),
             EvidenceSnippet(
                 text="IPCC report on climate change",
@@ -179,7 +182,7 @@ class TestEvidenceRetrieval:
                 url="https://ipcc.ch/report",
                 title="IPCC Report",
                 published_date="2024-10-01",
-                relevance_score=0.93
+                relevance_score=0.93,
             ),
             EvidenceSnippet(
                 text="UK Met Office research",
@@ -187,39 +190,56 @@ class TestEvidenceRetrieval:
                 url="https://metoffice.gov.uk/research",
                 title="Met Office Research",
                 published_date="2024-09-01",
-                relevance_score=0.90
-            )
+                relevance_score=0.90,
+            ),
         ]
 
         # Act
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
             result = await retriever.retrieve_evidence_for_claims([claim_dict])
             evidence_list = result.get("0", [])
 
         # Assert - Credibility score is 0-1 scale, so >= 0.80 for high credibility
-        high_cred_sources = [e for e in evidence_list if e.get("credibility_score", 0) >= 0.80]
+        high_cred_sources = [
+            e for e in evidence_list if e.get("credibility_score", 0) >= 0.80
+        ]
         assert len(high_cred_sources) > 0, "Should identify high-credibility sources"
 
         for evidence in high_cred_sources:
             # Check if source is recognized as high credibility
-            domain_indicators = ['.gov', '.edu', 'nasa.gov', 'ipcc.ch', '.ac.uk', 'metoffice.gov.uk']
-            source_indicators = ['NASA', 'IPCC', 'Met Office', 'Nature', 'Science']
+            domain_indicators = [
+                ".gov",
+                ".edu",
+                "nasa.gov",
+                "ipcc.ch",
+                ".ac.uk",
+                "metoffice.gov.uk",
+            ]
+            source_indicators = ["NASA", "IPCC", "Met Office", "Nature", "Science"]
 
-            has_credible_domain = any(indicator in evidence.get("url", "") for indicator in domain_indicators)
-            has_credible_source = any(indicator in evidence.get("source", "") for indicator in source_indicators)
+            has_credible_domain = any(
+                indicator in evidence.get("url", "") for indicator in domain_indicators
+            )
+            has_credible_source = any(
+                indicator in evidence.get("source", "")
+                for indicator in source_indicators
+            )
 
-            assert has_credible_domain or has_credible_source, \
-                f"High credibility source should have recognized domain/source: {evidence.get('url', '')}"
+            assert (
+                has_credible_domain or has_credible_source
+            ), f"High credibility source should have recognized domain/source: {evidence.get('url', '')}"
 
     @pytest.mark.asyncio
     async def test_duplicate_evidence_deduplication(self):
@@ -245,21 +265,23 @@ class TestEvidenceRetrieval:
                 url=f"https://source{i}.org",
                 title=f"Title {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(8)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -278,8 +300,9 @@ class TestEvidenceRetrieval:
             content_hashes.append(content_preview)
 
         # Should not have exact duplicates
-        assert len(content_hashes) == len(set(content_hashes)), \
-            "Should not return evidence with identical content"
+        assert len(content_hashes) == len(
+            set(content_hashes)
+        ), "Should not return evidence with identical content"
 
     @pytest.mark.asyncio
     async def test_temporal_filtering_for_time_sensitive_claims(self):
@@ -301,7 +324,7 @@ class TestEvidenceRetrieval:
             text="Unemployment rate is at 5.2% as of October 2025",
             is_time_sensitive=True,
             temporal_markers=["October 2025"],
-            claim_type="factual"
+            claim_type="factual",
         )
 
         # Create recent evidence
@@ -313,15 +336,17 @@ class TestEvidenceRetrieval:
                 url=f"https://bls.gov/data{i}",
                 title=f"Recent Data {i}",
                 published_date=recent_date,
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(3)
         ]
 
         # Act
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
@@ -330,13 +355,15 @@ class TestEvidenceRetrieval:
                 "is_time_sensitive": claim.is_time_sensitive,
                 "temporal_markers": claim.temporal_markers,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
             result = await retriever.retrieve_evidence_for_claims([claim_dict])
             evidence_list = result.get("0", [])
 
         # Assert
-        assert len(evidence_list) > 0, "Should find recent evidence for time-sensitive claim"
+        assert (
+            len(evidence_list) > 0
+        ), "Should find recent evidence for time-sensitive claim"
 
         # Check that evidence has dates
         for evidence in evidence_list:
@@ -345,10 +372,21 @@ class TestEvidenceRetrieval:
         # Recent evidence should be prioritized
         if len(evidence_list) >= 3:
             top_3 = evidence_list[:3]
-            recent_in_top_3 = sum(1 for e in top_3
-                                 if e.get("published_date") and
-                                 (datetime.utcnow() - datetime.fromisoformat(e.get("published_date").replace('Z', '+00:00'))).days <= 30)
-            assert recent_in_top_3 >= 1, "Recent evidence should be prioritized for time-sensitive claims"
+            recent_in_top_3 = sum(
+                1
+                for e in top_3
+                if e.get("published_date")
+                and (
+                    datetime.utcnow()
+                    - datetime.fromisoformat(
+                        e.get("published_date").replace("Z", "+00:00")
+                    )
+                ).days
+                <= 30
+            )
+            assert (
+                recent_in_top_3 >= 1
+            ), "Recent evidence should be prioritized for time-sensitive claims"
 
     @pytest.mark.asyncio
     async def test_factcheck_api_integration(self, mock_factcheck_api):
@@ -366,10 +404,7 @@ class TestEvidenceRetrieval:
         """
         # Arrange
         retriever = EvidenceRetriever()
-        claim = Claim(
-            text="Vaccines cause autism",
-            claim_type="factual"
-        )
+        claim = Claim(text="Vaccines cause autism", claim_type="factual")
 
         mock_factcheck_api.search = AsyncMock(return_value=MOCK_FACTCHECK_FALSE)
 
@@ -384,20 +419,22 @@ class TestEvidenceRetrieval:
                 url="https://snopes.com/vaccines-autism",
                 title="Fact Check: Vaccines Autism",
                 published_date="2024-11-01",
-                relevance_score=0.95
+                relevance_score=0.95,
             )
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
             result = await retriever.retrieve_evidence_for_claims([claim_dict])
             evidence_list = result.get("0", [])
@@ -407,7 +444,9 @@ class TestEvidenceRetrieval:
 
         # Fact-check sources should have high credibility
         for evidence in evidence_list:
-            assert evidence.get("credibility_score", 0) >= 0.65, "Fact-check evidence should meet credibility threshold"
+            assert (
+                evidence.get("credibility_score", 0) >= 0.65
+            ), "Fact-check evidence should meet credibility threshold"
             assert "source" in evidence, "Should include source"
 
     @pytest.mark.asyncio
@@ -434,7 +473,7 @@ class TestEvidenceRetrieval:
                 url="https://politifact.com/covid-vaccines",
                 title="Fact Check: COVID Vaccines",
                 published_date="2024-11-01",
-                relevance_score=0.95
+                relevance_score=0.95,
             ),
             EvidenceSnippet(
                 text="Fact-check: Vaccines proven safe - Snopes",
@@ -442,21 +481,23 @@ class TestEvidenceRetrieval:
                 url="https://snopes.com/covid-vaccines",
                 title="Fact Check: Vaccine Safety",
                 published_date="2024-10-28",
-                relevance_score=0.93
-            )
+                relevance_score=0.93,
+            ),
         ]
 
         # Act
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
             result = await retriever.retrieve_evidence_for_claims([claim_dict])
             evidence_list = result.get("0", [])
@@ -485,7 +526,9 @@ class TestEvidenceRetrieval:
         retriever = EvidenceRetriever()
         claim = Claim(text="Test claim for diversity", claim_type="factual")
 
-        mock_search_api.search = AsyncMock(return_value=MOCK_SEARCH_RESULTS_DOMAIN_DOMINATED)
+        mock_search_api.search = AsyncMock(
+            return_value=MOCK_SEARCH_RESULTS_DOMAIN_DOMINATED
+        )
 
         # Act
         claim_dict = {
@@ -493,13 +536,13 @@ class TestEvidenceRetrieval:
             "subject_context": claim.subject_context,
             "key_entities": claim.key_entities,
             "is_time_sensitive": claim.is_time_sensitive,
-            "claim_type": claim.claim_type
+            "claim_type": claim.claim_type,
         }
         result = await retriever.retrieve_evidence_for_claims([claim_dict])
         evidence_list = result.get("0", [])
 
         # Assert
-        domains = [e.get("url").split('/')[2] for e in evidence_list]  # Extract domain
+        domains = [e.get("url").split("/")[2] for e in evidence_list]  # Extract domain
         domain_counts = {}
         for domain in domains:
             domain_counts[domain] = domain_counts.get(domain, 0) + 1
@@ -509,8 +552,9 @@ class TestEvidenceRetrieval:
         total_count = len(evidence_list)
 
         if total_count >= 4:
-            assert max_count <= total_count * 0.5, \
-                f"Single domain has {max_count}/{total_count} evidence items (>50%)"
+            assert (
+                max_count <= total_count * 0.5
+            ), f"Single domain has {max_count}/{total_count} evidence items (>50%)"
 
     @pytest.mark.asyncio
     async def test_max_evidence_limit_10_items(self):
@@ -537,36 +581,45 @@ class TestEvidenceRetrieval:
                 url=f"https://source{i}.org",
                 title=f"Title {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9 - (i * 0.02)  # Descending relevance
+                relevance_score=0.9 - (i * 0.02),  # Descending relevance
             )
             for i in range(20)
         ]
 
         # Act
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
             result = await retriever.retrieve_evidence_for_claims([claim_dict])
             evidence_list = result.get("0", [])
 
         # Assert
-        assert len(evidence_list) <= 10, f"Should return max 10 evidence items, got {len(evidence_list)}"
+        assert (
+            len(evidence_list) <= 10
+        ), f"Should return max 10 evidence items, got {len(evidence_list)}"
         assert len(evidence_list) >= 3, "Should return at least some evidence"
 
         # Top results should have highest credibility scores
         if len(evidence_list) >= 3:
-            avg_top_3_credibility = sum(e.get("credibility_score", 0) for e in evidence_list[:3]) / 3
-            avg_bottom_3_credibility = sum(e.get("credibility_score", 0) for e in evidence_list[-3:]) / 3
-            assert avg_top_3_credibility >= avg_bottom_3_credibility - 0.1, \
-                "Top evidence should have similar or higher credibility than bottom evidence"
+            avg_top_3_credibility = (
+                sum(e.get("credibility_score", 0) for e in evidence_list[:3]) / 3
+            )
+            avg_bottom_3_credibility = (
+                sum(e.get("credibility_score", 0) for e in evidence_list[-3:]) / 3
+            )
+            assert (
+                avg_top_3_credibility >= avg_bottom_3_credibility - 0.1
+            ), "Top evidence should have similar or higher credibility than bottom evidence"
 
     @pytest.mark.asyncio
     async def test_search_query_optimization(self):
@@ -586,7 +639,7 @@ class TestEvidenceRetrieval:
             text="According to recent studies, approximately 195 countries agreed to reduce carbon emissions by 45% by 2030",
             subject_context="Climate agreement",
             key_entities=["195 countries", "carbon emissions", "45%", "2030"],
-            claim_type="factual"
+            claim_type="factual",
         )
 
         # Mock evidence with relevant content
@@ -597,15 +650,17 @@ class TestEvidenceRetrieval:
                 url="https://climate.org/agreement",
                 title="Climate Agreement",
                 published_date="2024-11-01",
-                relevance_score=0.95
+                relevance_score=0.95,
             )
             for i in range(5)
         ]
 
         # Act
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
@@ -614,7 +669,7 @@ class TestEvidenceRetrieval:
                 "subject_context": claim.subject_context,
                 "key_entities": claim.key_entities,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
             result = await retriever.retrieve_evidence_for_claims([claim_dict])
             evidence_list = result.get("0", [])
@@ -655,21 +710,23 @@ class TestEvidenceRetrieval:
                 url=f"https://source{i}.org",
                 title=f"Title {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -704,20 +761,22 @@ class TestEvidenceRetrieval:
                 url="https://fallback.org",
                 title="Fallback Title",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -725,7 +784,9 @@ class TestEvidenceRetrieval:
             evidence_list = result.get("0", [])
 
         # Assert
-        assert isinstance(evidence_list, list), "Should return list even when search fails"
+        assert isinstance(
+            evidence_list, list
+        ), "Should return list even when search fails"
         assert len(evidence_list) >= 1, "Should have fallback evidence"
 
     @pytest.mark.asyncio
@@ -742,21 +803,25 @@ class TestEvidenceRetrieval:
         from app.services.evidence import EvidenceSnippet
 
         # Arrange
-        claim = Claim(text="Extremely obscure claim with no evidence", claim_type="factual")
+        claim = Claim(
+            text="Extremely obscure claim with no evidence", claim_type="factual"
+        )
 
         # Mock empty evidence
         mock_snippets = []
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -765,7 +830,9 @@ class TestEvidenceRetrieval:
 
         # Assert
         assert isinstance(evidence_list, list), "Should return list (may be empty)"
-        assert len(evidence_list) == 0, "Should return empty list when no evidence found"
+        assert (
+            len(evidence_list) == 0
+        ), "Should return empty list when no evidence found"
 
     @pytest.mark.asyncio
     async def test_relevance_scoring(self):
@@ -785,7 +852,7 @@ class TestEvidenceRetrieval:
         claim = Claim(
             text="Paris Agreement set goal to limit global warming to 1.5°C",
             key_entities=["Paris Agreement", "1.5°C", "global warming"],
-            claim_type="factual"
+            claim_type="factual",
         )
 
         # Create mock evidence with varying relevance scores
@@ -796,14 +863,16 @@ class TestEvidenceRetrieval:
                 url=f"https://source{i}.org",
                 title=f"Title {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9 - (i * 0.1)  # Descending relevance
+                relevance_score=0.9 - (i * 0.1),  # Descending relevance
             )
             for i in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
@@ -811,7 +880,7 @@ class TestEvidenceRetrieval:
                 "text": claim.text,
                 "key_entities": claim.key_entities,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -821,15 +890,19 @@ class TestEvidenceRetrieval:
         # Assert
         for evidence in evidence_list:
             assert "relevance_score" in evidence, "Evidence should have relevance score"
-            assert 0 <= evidence.get("relevance_score", 0) <= 1.0, "Relevance score should be 0-1"
+            assert (
+                0 <= evidence.get("relevance_score", 0) <= 1.0
+            ), "Relevance score should be 0-1"
 
         # Evidence mentioning key entities should have higher relevance
         if len(evidence_list) >= 2:
             # Check that evidence is sorted by some combination of credibility and relevance
             # Top evidence should be high quality
             top_evidence = evidence_list[0]
-            assert top_evidence["credibility_score"] >= 0.5 or top_evidence.get("relevance_score", 0) >= 0.5, \
-                "Top evidence should have good credibility or relevance"
+            assert (
+                top_evidence["credibility_score"] >= 0.5
+                or top_evidence.get("relevance_score", 0) >= 0.5
+            ), "Top evidence should have good credibility or relevance"
 
     @pytest.mark.asyncio
     async def test_publisher_metadata_extraction(self):
@@ -857,21 +930,23 @@ class TestEvidenceRetrieval:
                 url=f"https://publisher{i}.org/article",
                 title=f"Title {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -880,11 +955,14 @@ class TestEvidenceRetrieval:
 
         # Assert
         for evidence in evidence_list:
-            assert "source" in evidence, f"Evidence missing source: {evidence.get('url')}"
+            assert (
+                "source" in evidence
+            ), f"Evidence missing source: {evidence.get('url')}"
             assert "url" in evidence, "Evidence missing URL"
-            assert evidence["source"] is not None and len(evidence["source"]) > 0, \
-                "Source should not be empty"
-            assert evidence["url"].startswith('http'), "URL should be valid"
+            assert (
+                evidence["source"] is not None and len(evidence["source"]) > 0
+            ), "Source should not be empty"
+            assert evidence["url"].startswith("http"), "URL should be valid"
 
     @pytest.mark.asyncio
     async def test_rate_limiting_respect(self):
@@ -902,10 +980,7 @@ class TestEvidenceRetrieval:
         from app.services.evidence import EvidenceSnippet
 
         # Arrange
-        claims = [
-            Claim(text=f"Test claim {i}", claim_type="factual")
-            for i in range(5)
-        ]
+        claims = [Claim(text=f"Test claim {i}", claim_type="factual") for i in range(5)]
 
         mock_snippets = [
             EvidenceSnippet(
@@ -914,13 +989,15 @@ class TestEvidenceRetrieval:
                 url="https://source.org",
                 title="Title",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
@@ -929,12 +1006,14 @@ class TestEvidenceRetrieval:
                 claim_dict = {
                     "text": claim.text,
                     "claim_type": claim.claim_type,
-                    "position": i
+                    "position": i,
                 }
                 result = await retriever.retrieve_evidence_for_claims([claim_dict])
 
             # Assert
-            assert mock_extractor.extract_evidence_for_claim.call_count == 5, "Should make one call per claim"
+            assert (
+                mock_extractor.extract_evidence_for_claim.call_count == 5
+            ), "Should make one call per claim"
 
     @pytest.mark.asyncio
     async def test_cache_usage_for_duplicate_queries(self):
@@ -959,21 +1038,23 @@ class TestEvidenceRetrieval:
                 url="https://climate.org",
                 title="Climate Title",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for _ in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act - retrieve same claim twice
@@ -1002,7 +1083,7 @@ class TestEvidenceRetrieval:
         claim = Claim(
             text="The Mona Lisa is the most beautiful painting",
             claim_type="opinion",
-            is_verifiable=False
+            is_verifiable=False,
         )
 
         mock_search_api.search = AsyncMock(return_value=MOCK_SEARCH_RESULTS_STANDARD)
@@ -1013,14 +1094,16 @@ class TestEvidenceRetrieval:
             "subject_context": claim.subject_context,
             "key_entities": claim.key_entities,
             "is_time_sensitive": claim.is_time_sensitive,
-            "claim_type": claim.claim_type
+            "claim_type": claim.claim_type,
         }
         result = await retriever.retrieve_evidence_for_claims([claim_dict])
         evidence_list = result.get("0", [])
 
         # Assert
         # Should attempt to retrieve evidence even for opinions
-        assert isinstance(evidence_list, list), "Should return evidence list for opinion claims"
+        assert isinstance(
+            evidence_list, list
+        ), "Should return evidence list for opinion claims"
         # Evidence may be limited or empty, both are valid
 
     @pytest.mark.asyncio
@@ -1040,7 +1123,7 @@ class TestEvidenceRetrieval:
             text="Global temperature will rise by 2°C by 2050",
             claim_type="prediction",
             temporal_markers=["by 2050"],
-            is_time_sensitive=True
+            is_time_sensitive=True,
         )
 
         mock_search_api.search = AsyncMock(return_value=MOCK_SEARCH_RESULTS_STANDARD)
@@ -1051,7 +1134,7 @@ class TestEvidenceRetrieval:
             "subject_context": claim.subject_context,
             "key_entities": claim.key_entities,
             "is_time_sensitive": claim.is_time_sensitive,
-            "claim_type": claim.claim_type
+            "claim_type": claim.claim_type,
         }
         result = await retriever.retrieve_evidence_for_claims([claim_dict])
         evidence_list = result.get("0", [])
@@ -1077,7 +1160,7 @@ class TestEvidenceRetrieval:
         claim = Claim(
             text="Unemployment rate decreased from 8.2% to 5.4% in 2024",
             key_entities=["8.2%", "5.4%", "2024", "unemployment rate"],
-            claim_type="factual"
+            claim_type="factual",
         )
 
         # Create mock evidence with numerical values
@@ -1088,14 +1171,16 @@ class TestEvidenceRetrieval:
                 url=f"https://econ{i}.org",
                 title=f"Unemployment Statistics {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
@@ -1103,7 +1188,7 @@ class TestEvidenceRetrieval:
                 "text": claim.text,
                 "key_entities": claim.key_entities,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -1115,8 +1200,10 @@ class TestEvidenceRetrieval:
         mock_extractor.extract_evidence_for_claim.assert_called_once()
 
         # Verify evidence contains numerical information
-        assert any("8.2%" in e.get("text", "") or "5.4%" in e.get("text", "") for e in evidence_list), \
-            "Evidence should contain numerical values from claim"
+        assert any(
+            "8.2%" in e.get("text", "") or "5.4%" in e.get("text", "")
+            for e in evidence_list
+        ), "Evidence should contain numerical values from claim"
 
     @pytest.mark.asyncio
     async def test_special_characters_in_claim(self):
@@ -1136,7 +1223,7 @@ class TestEvidenceRetrieval:
         # Arrange
         claim = Claim(
             text="Apple's stock price increased by 25% to $175.50, making it worth $2.8T",
-            claim_type="factual"
+            claim_type="factual",
         )
 
         # Create mock evidence for special characters test
@@ -1147,21 +1234,23 @@ class TestEvidenceRetrieval:
                 url=f"https://finance{i}.org",
                 title=f"Stock Market Update {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -1169,7 +1258,9 @@ class TestEvidenceRetrieval:
             evidence_list = result.get("0", [])
 
         # Assert
-        assert isinstance(evidence_list, list), "Should handle special characters without errors"
+        assert isinstance(
+            evidence_list, list
+        ), "Should handle special characters without errors"
         assert len(evidence_list) >= 3
         mock_extractor.extract_evidence_for_claim.assert_called_once()
 
@@ -1189,9 +1280,7 @@ class TestEvidenceRetrieval:
         # Arrange
         long_text = "Climate change " + "is a significant issue " * 50  # ~1000 chars
         claim = Claim(
-            text=long_text,
-            key_entities=["climate change"],
-            claim_type="factual"
+            text=long_text, key_entities=["climate change"], claim_type="factual"
         )
 
         # Create mock evidence
@@ -1202,14 +1291,16 @@ class TestEvidenceRetrieval:
                 url=f"https://climate{i}.org",
                 title=f"Climate Study {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
@@ -1217,7 +1308,7 @@ class TestEvidenceRetrieval:
                 "text": claim.text,
                 "key_entities": claim.key_entities,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -1245,7 +1336,7 @@ class TestEvidenceRetrieval:
         # Arrange
         claim = Claim(
             text="São Paulo's temperature reached 35°C in été 2024",
-            claim_type="factual"
+            claim_type="factual",
         )
 
         # Create mock evidence with unicode
@@ -1256,21 +1347,23 @@ class TestEvidenceRetrieval:
                 url=f"https://weather{i}.org",
                 title=f"Temperature Report {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -1307,21 +1400,23 @@ class TestEvidenceRetrieval:
                 url=f"https://source{i}.org",
                 title=f"Title {i}",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for i in range(5)
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -1333,12 +1428,14 @@ class TestEvidenceRetrieval:
         for evidence in evidence_list:
             if evidence.get("published_date") is not None:
                 # published_date is stored as string in format YYYY-MM-DD
-                assert isinstance(evidence.get("published_date"), str), \
-                    "Published date should be string in YYYY-MM-DD format"
+                assert isinstance(
+                    evidence.get("published_date"), str
+                ), "Published date should be string in YYYY-MM-DD format"
                 # Verify date format
                 date_str = evidence.get("published_date")
-                assert len(date_str) == 10 and date_str[4] == '-' and date_str[7] == '-', \
-                    "Date should be in YYYY-MM-DD format"
+                assert (
+                    len(date_str) == 10 and date_str[4] == "-" and date_str[7] == "-"
+                ), "Date should be in YYYY-MM-DD format"
 
     @pytest.mark.asyncio
     async def test_evidence_text_extraction_from_search_result(self, mock_search_api):
@@ -1364,7 +1461,7 @@ class TestEvidenceRetrieval:
             "subject_context": claim.subject_context,
             "key_entities": claim.key_entities,
             "is_time_sensitive": claim.is_time_sensitive,
-            "claim_type": claim.claim_type
+            "claim_type": claim.claim_type,
         }
         result = await retriever.retrieve_evidence_for_claims([claim_dict])
         evidence_list = result.get("0", [])
@@ -1373,11 +1470,17 @@ class TestEvidenceRetrieval:
         for evidence in evidence_list:
             assert "text" in evidence, "Evidence should have text field"
             assert len(evidence["text"]) > 0, "Evidence text should not be empty"
-            assert len(evidence["text"]) <= 1000, "Evidence text should be reasonably concise"
+            assert (
+                len(evidence["text"]) <= 1000
+            ), "Evidence text should be reasonably concise"
 
             # Should not contain HTML tags
-            assert '<html' not in evidence["text"].lower(), "Evidence text should not contain HTML"
-            assert '<script' not in evidence["text"].lower(), "Evidence text should not contain scripts"
+            assert (
+                "<html" not in evidence["text"].lower()
+            ), "Evidence text should not contain HTML"
+            assert (
+                "<script" not in evidence["text"].lower()
+            ), "Evidence text should not contain scripts"
 
     @pytest.mark.asyncio
     async def test_conflicting_factchecks_handling(self):
@@ -1388,7 +1491,7 @@ class TestEvidenceRetrieval:
         When different fact-checkers give different ratings:
         - Include all fact-checks
         - Note conflict in metadata
-        - Let verify/judge stages handle conflict
+        - Let downstream stages handle conflict
         """
         from app.services.evidence import EvidenceSnippet
 
@@ -1403,7 +1506,7 @@ class TestEvidenceRetrieval:
                 url="https://factchecka.org/check1",
                 title="Fact Check A",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             ),
             EvidenceSnippet(
                 text="Fact-check rating: False",
@@ -1411,7 +1514,7 @@ class TestEvidenceRetrieval:
                 url="https://factcheckb.org/check2",
                 title="Fact Check B",
                 published_date="2024-11-01",
-                relevance_score=0.9
+                relevance_score=0.9,
             ),
             EvidenceSnippet(
                 text="Fact-check rating: Partly True",
@@ -1419,20 +1522,22 @@ class TestEvidenceRetrieval:
                 url="https://factcheckc.org/check3",
                 title="Fact Check C",
                 published_date="2024-11-01",
-                relevance_score=0.9
-            )
+                relevance_score=0.9,
+            ),
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
             claim_dict = {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -1440,7 +1545,9 @@ class TestEvidenceRetrieval:
             evidence_list = result.get("0", [])
 
         # Assert - should include multiple pieces of evidence even if they conflict
-        assert len(evidence_list) >= 2, "Should include multiple fact-checks even if conflicting"
+        assert (
+            len(evidence_list) >= 2
+        ), "Should include multiple fact-checks even if conflicting"
 
         # Verify different sources are included
         sources = [e.get("source") for e in evidence_list]
@@ -1479,13 +1586,15 @@ class TestEvidenceRetrieval:
             "subject_context": claim.subject_context,
             "key_entities": claim.key_entities,
             "is_time_sensitive": claim.is_time_sensitive,
-            "claim_type": claim.claim_type
+            "claim_type": claim.claim_type,
         }
         result = await retriever.retrieve_evidence_for_claims([claim_dict])
         evidence_list = result.get("0", [])
 
         # Assert
-        assert isinstance(evidence_list, list), "Should return list even with malformed data"
+        assert isinstance(
+            evidence_list, list
+        ), "Should return list even with malformed data"
         # Should filter out invalid items
         for evidence in evidence_list:
             assert "url" in evidence, "All returned evidence should have URL"
@@ -1518,7 +1627,7 @@ class TestEvidenceRetrieval:
             temporal_markers=["2015"],
             is_time_sensitive=False,
             claim_type="factual",
-            is_verifiable=True
+            is_verifiable=True,
         )
 
         # Create comprehensive mock evidence for end-to-end test
@@ -1529,14 +1638,16 @@ class TestEvidenceRetrieval:
                 url=f"https://crediblesource{i}.org/paris-agreement",
                 title=f"Paris Agreement Article {i}",
                 published_date="2015-12-12",
-                relevance_score=0.95 - (i * 0.05)
+                relevance_score=0.95 - (i * 0.05),
             )
             for i in range(12)  # Create 12 to test 10-item limit
         ]
 
-        with patch('app.pipeline.retrieve.EvidenceExtractor') as MockExtractor:
+        with patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor:
             mock_extractor = MockExtractor.return_value
-            mock_extractor.extract_evidence_for_claim = AsyncMock(return_value=mock_snippets)
+            mock_extractor.extract_evidence_for_claim = AsyncMock(
+                return_value=mock_snippets
+            )
 
             retriever = EvidenceRetriever()
 
@@ -1546,7 +1657,7 @@ class TestEvidenceRetrieval:
                 "key_entities": claim.key_entities,
                 "is_time_sensitive": claim.is_time_sensitive,
                 "claim_type": claim.claim_type,
-                "position": 0
+                "position": 0,
             }
 
             # Act
@@ -1562,12 +1673,18 @@ class TestEvidenceRetrieval:
         for evidence in evidence_list:
             assert "text" in evidence, "Evidence must have text"
             assert "url" in evidence, "Evidence must have URL"
-            assert "credibility_score" in evidence, "Evidence must have credibility score"
+            assert (
+                "credibility_score" in evidence
+            ), "Evidence must have credibility score"
             assert "source" in evidence, "Evidence must have source"
-            assert 0 <= evidence["credibility_score"] <= 1.0, "Credibility score must be 0-1"
+            assert (
+                0 <= evidence["credibility_score"] <= 1.0
+            ), "Credibility score must be 0-1"
 
         # Validate high-credibility sources present
-        high_cred_count = sum(1 for e in evidence_list if e.get("credibility_score", 0) >= 0.7)
+        high_cred_count = sum(
+            1 for e in evidence_list if e.get("credibility_score", 0) >= 0.7
+        )
         assert high_cred_count >= 0, "Should have credibility scores"
 
         # Validate sorting (highest credibility/relevance first)

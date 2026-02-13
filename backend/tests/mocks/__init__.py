@@ -24,11 +24,9 @@ __created__ = "2025-11-03"
 try:
     from .llm_responses import (
         MOCK_CLAIM_EXTRACTION,
-        MOCK_JUDGMENT_SUPPORTED,
         MOCK_QUERY_ANSWER_HIGH_CONFIDENCE,
         get_mock_extraction,
-        get_mock_judgment,
-        get_mock_query_answer
+        get_mock_query_answer,
     )
 except ImportError:
     pass
@@ -37,7 +35,7 @@ try:
     from .search_results import (
         MOCK_SEARCH_RESULTS,
         MOCK_HIGH_CREDIBILITY_RESULTS,
-        get_search_results_by_credibility
+        get_search_results_by_credibility,
     )
 except ImportError:
     pass
@@ -46,7 +44,7 @@ try:
     from .factcheck_data import (
         MOCK_FACTCHECK_RESULTS,
         get_factcheck_by_rating,
-        normalize_rating
+        normalize_rating,
     )
 except ImportError:
     pass
@@ -58,7 +56,7 @@ try:
         SAMPLE_EVIDENCE,
         get_sample_content,
         get_sample_claims,
-        get_sample_evidence
+        get_sample_evidence,
     )
 except ImportError:
     pass
@@ -70,7 +68,7 @@ try:
         create_test_claim,
         create_test_evidence,
         create_check_with_full_pipeline_data,
-        cleanup_test_data
+        cleanup_test_data,
     )
 except ImportError:
     pass
@@ -78,10 +76,8 @@ except ImportError:
 __all__ = [
     # LLM Responses
     "MOCK_CLAIM_EXTRACTION",
-    "MOCK_JUDGMENT_SUPPORTED",
     "MOCK_QUERY_ANSWER_HIGH_CONFIDENCE",
     "get_mock_extraction",
-    "get_mock_judgment",
     "get_mock_query_answer",
     # Search Results
     "MOCK_SEARCH_RESULTS",
@@ -104,5 +100,5 @@ __all__ = [
     "create_test_claim",
     "create_test_evidence",
     "create_check_with_full_pipeline_data",
-    "cleanup_test_data"
+    "cleanup_test_data",
 ]

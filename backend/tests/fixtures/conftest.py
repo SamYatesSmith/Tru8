@@ -48,10 +48,12 @@ except ImportError:
 
 # ==================== PYTEST CONFIGURATION ====================
 
+
 def pytest_configure(config):
     """Configure pytest with custom settings"""
     # Set testing mode
     import os
+
     os.environ["TESTING"] = "True"
     os.environ["PYTEST_RUNNING"] = "True"
 
@@ -76,6 +78,7 @@ def pytest_collection_modifyitems(config, items):
 
 # ==================== DATABASE FIXTURES ====================
 
+
 @pytest.fixture(scope="session")
 def test_db_engine():
     """
@@ -92,7 +95,7 @@ def test_db_engine():
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
-        echo=False  # Set to True for SQL debugging
+        echo=False,  # Set to True for SQL debugging
     )
 
     # Create all tables
@@ -159,6 +162,7 @@ def clean_db(db_session):
 
 # ==================== MOCK API FIXTURES ====================
 
+
 @pytest.fixture
 def mock_openai_client():
     """
@@ -172,7 +176,7 @@ def mock_openai_client():
 
     # Import mock responses
     try:
-        from llm_responses import MOCK_CLAIM_EXTRACTION, MOCK_JUDGMENT, MOCK_QUERY_ANSWER
+        from llm_responses import MOCK_CLAIM_EXTRACTION
 
         # Configure mock responses
         mock_client.chat.completions.create = AsyncMock(
@@ -183,9 +187,7 @@ def mock_openai_client():
     except ImportError:
         # Fallback if mock library not yet created
         mock_client.chat.completions.create = AsyncMock(
-            return_value=Mock(
-                choices=[Mock(message=Mock(content='{"claims": []}'))]
-            )
+            return_value=Mock(choices=[Mock(message=Mock(content='{"claims": []}'))])
         )
 
     return mock_client
@@ -204,6 +206,7 @@ def mock_search_api():
 
     try:
         from search_results import MOCK_SEARCH_RESULTS
+
         mock_api.search = Mock(return_value=MOCK_SEARCH_RESULTS)
     except ImportError:
         # Fallback
@@ -225,6 +228,7 @@ def mock_factcheck_api():
 
     try:
         from factcheck_data import MOCK_FACTCHECK_RESULTS
+
         mock_api.search = Mock(return_value=MOCK_FACTCHECK_RESULTS)
     except ImportError:
         # Fallback
@@ -246,11 +250,7 @@ def mock_nli_model():
 
     # Mock entailment scores
     mock_model.predict = Mock(
-        return_value={
-            "entailment": 0.85,
-            "contradiction": 0.10,
-            "neutral": 0.05
-        }
+        return_value={"entailment": 0.85, "contradiction": 0.10, "neutral": 0.05}
     )
 
     return mock_model
@@ -294,6 +294,7 @@ def mock_redis_client():
 
 # ==================== SAMPLE DATA FIXTURES ====================
 
+
 @pytest.fixture
 def sample_url():
     """Sample URL for testing"""
@@ -333,6 +334,7 @@ def sample_claims():
     """
     try:
         from sample_content import SAMPLE_CLAIMS
+
         return SAMPLE_CLAIMS
     except ImportError:
         # Fallback
@@ -343,7 +345,7 @@ def sample_claims():
                 "subject_context": "Climate agreement",
                 "key_entities": ["195 countries", "45%", "2030"],
                 "is_verifiable": True,
-                "claim_type": "factual"
+                "claim_type": "factual",
             },
             {
                 "text": "Global temperatures have risen by 1.1°C since pre-industrial times",
@@ -351,8 +353,8 @@ def sample_claims():
                 "subject_context": "Climate change",
                 "key_entities": ["1.1°C", "pre-industrial times"],
                 "is_verifiable": True,
-                "claim_type": "factual"
-            }
+                "claim_type": "factual",
+            },
         ]
 
 
@@ -366,6 +368,7 @@ def sample_evidence():
     """
     try:
         from sample_content import SAMPLE_EVIDENCE
+
         return SAMPLE_EVIDENCE
     except ImportError:
         # Fallback
@@ -378,7 +381,7 @@ def sample_evidence():
                 "published_date": "2024-11-01",
                 "relevance_score": 0.95,
                 "credibility_score": 0.90,
-                "is_factcheck": False
+                "is_factcheck": False,
             },
             {
                 "source": "Reuters",
@@ -388,8 +391,8 @@ def sample_evidence():
                 "published_date": "2024-11-01",
                 "relevance_score": 0.92,
                 "credibility_score": 0.88,
-                "is_factcheck": False
-            }
+                "is_factcheck": False,
+            },
         ]
 
 
@@ -410,7 +413,7 @@ def sample_check(db_session):
         input_type="text",
         input_content="Sample text for testing",
         status="pending",
-        created_at=datetime.utcnow()
+        created_at=datetime.utcnow(),
     )
     db_session.add(check)
     db_session.commit()
@@ -435,7 +438,7 @@ def sample_user(db_session):
         email="test@example.com",
         credits=10,
         monthly_checks_used=0,
-        created_at=datetime.utcnow()
+        created_at=datetime.utcnow(),
     )
     db_session.add(user)
     db_session.commit()
@@ -445,6 +448,7 @@ def sample_user(db_session):
 
 
 # ==================== UTILITY FIXTURES ====================
+
 
 @pytest.fixture
 def freeze_time():
@@ -466,7 +470,7 @@ def freeze_time():
 
         def __call__(self, time_str):
             self.frozen_time = datetime.fromisoformat(time_str)
-            return patch('datetime.datetime', return_value=self.frozen_time)
+            return patch("datetime.datetime", return_value=self.frozen_time)
 
     return TimeFreezer()
 
@@ -479,6 +483,7 @@ def temp_file(tmp_path):
     Created: 2025-11-03
     Usage: def test_file_upload(temp_file): ...
     """
+
     def _create_temp_file(content: str, filename: str = "test.txt"):
         file_path = tmp_path / filename
         file_path.write_text(content)
@@ -501,6 +506,7 @@ def event_loop():
 
 
 # ==================== PERFORMANCE FIXTURES ====================
+
 
 @pytest.fixture
 def performance_timer():
@@ -567,6 +573,7 @@ def memory_tracker():
 
 
 # ==================== PYTEST HOOKS ====================
+
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):

@@ -90,7 +90,9 @@ SAMPLE_SHORT_TEXT = "Climate change is real."
 # Long text (edge case - very long)
 SAMPLE_LONG_TEXT = """
 [This would be an extremely long article - 5000+ words covering multiple topics]
-""" + " ".join([f"Paragraph {i} about climate science." for i in range(1, 200)])
+""" + " ".join(
+    [f"Paragraph {i} about climate science." for i in range(1, 200)]
+)
 
 # Text with predictions (not verifiable)
 SAMPLE_PREDICTION_TEXT = """
@@ -128,7 +130,7 @@ SAMPLE_CLAIMS = [
         "is_verifiable": True,
         "claim_type": "factual",
         "temporal_markers": ["by 2030"],
-        "is_time_sensitive": True
+        "is_time_sensitive": True,
     },
     {
         "text": "Global temperatures have risen by 1.1°C since pre-industrial times",
@@ -138,7 +140,7 @@ SAMPLE_CLAIMS = [
         "is_verifiable": True,
         "claim_type": "factual",
         "temporal_markers": ["since pre-industrial times"],
-        "is_time_sensitive": False
+        "is_time_sensitive": False,
     },
     {
         "text": "The agreement includes $100 billion in annual funding for developing nations",
@@ -148,7 +150,7 @@ SAMPLE_CLAIMS = [
         "is_verifiable": True,
         "claim_type": "factual",
         "temporal_markers": ["annual"],
-        "is_time_sensitive": True
+        "is_time_sensitive": True,
     },
     {
         "text": "Renewable energy capacity grew by 9.6% in 2023",
@@ -158,8 +160,8 @@ SAMPLE_CLAIMS = [
         "is_verifiable": True,
         "claim_type": "factual",
         "temporal_markers": ["in 2023"],
-        "is_time_sensitive": True
-    }
+        "is_time_sensitive": True,
+    },
 ]
 
 # Claims with various types
@@ -167,18 +169,18 @@ SAMPLE_MIXED_CLAIMS = [
     {
         "text": "195 countries agreed to emissions cuts",
         "claim_type": "factual",
-        "is_verifiable": True
+        "is_verifiable": True,
     },
     {
         "text": "The climate targets are insufficient",
         "claim_type": "opinion",
-        "is_verifiable": False
+        "is_verifiable": False,
     },
     {
         "text": "Temperatures will rise by 2°C by 2050",
         "claim_type": "prediction",
-        "is_verifiable": False
-    }
+        "is_verifiable": False,
+    },
 ]
 
 # ==================== SAMPLE EVIDENCE ====================
@@ -194,7 +196,7 @@ SAMPLE_EVIDENCE = [
         "credibility_score": 0.90,
         "tier": "tier1_news",
         "is_factcheck": False,
-        "domain": "bbc.com"
+        "domain": "bbc.com",
     },
     {
         "source": "Reuters",
@@ -206,7 +208,7 @@ SAMPLE_EVIDENCE = [
         "credibility_score": 0.88,
         "tier": "tier1_news",
         "is_factcheck": False,
-        "domain": "reuters.com"
+        "domain": "reuters.com",
     },
     {
         "source": "The Guardian",
@@ -218,7 +220,7 @@ SAMPLE_EVIDENCE = [
         "credibility_score": 0.85,
         "tier": "tier1_news",
         "is_factcheck": False,
-        "domain": "theguardian.com"
+        "domain": "theguardian.com",
     },
     {
         "source": "NASA",
@@ -230,7 +232,7 @@ SAMPLE_EVIDENCE = [
         "credibility_score": 0.95,
         "tier": "academic",
         "is_factcheck": False,
-        "domain": "nasa.gov"
+        "domain": "nasa.gov",
     },
     {
         "source": "PolitiFact",
@@ -243,8 +245,8 @@ SAMPLE_EVIDENCE = [
         "tier": "factcheck",
         "is_factcheck": True,
         "domain": "politifact.com",
-        "factcheck_rating": "True"
-    }
+        "factcheck_rating": "True",
+    },
 ]
 
 # ==================== IMAGE CONTENT ====================
@@ -264,9 +266,21 @@ SAMPLE_YOUTUBE_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 SAMPLE_VIDEO_ID = "dQw4w9WgXcQ"
 SAMPLE_TRANSCRIPT = [
     {"text": "Welcome to today's climate report.", "start": 0.0, "duration": 3.5},
-    {"text": "Global temperatures have risen significantly.", "start": 3.5, "duration": 4.0},
-    {"text": "Scientists confirm 1.1 degrees Celsius of warming.", "start": 7.5, "duration": 4.5},
-    {"text": "This is based on data from multiple sources.", "start": 12.0, "duration": 3.8}
+    {
+        "text": "Global temperatures have risen significantly.",
+        "start": 3.5,
+        "duration": 4.0,
+    },
+    {
+        "text": "Scientists confirm 1.1 degrees Celsius of warming.",
+        "start": 7.5,
+        "duration": 4.5,
+    },
+    {
+        "text": "This is based on data from multiple sources.",
+        "start": 12.0,
+        "duration": 3.8,
+    },
 ]
 
 # ==================== USER QUERIES (Search Clarity) ====================
@@ -276,7 +290,7 @@ SAMPLE_USER_QUERIES = [
     "What is the temperature increase since pre-industrial times?",
     "How much funding is included in the agreement?",
     "When is the emissions reduction deadline?",
-    "What percentage of emissions will be reduced?"
+    "What percentage of emissions will be reduced?",
 ]
 
 # ==================== METADATA ====================
@@ -287,44 +301,40 @@ SAMPLE_METADATA = {
     "date": "2024-11-01",
     "url": SAMPLE_NEWS_URL,
     "publisher": "BBC News",
-    "word_count": 450
+    "word_count": 450,
 }
 
 # ==================== TEST SCENARIOS ====================
 
-# Scenario 1: All claims supported
+# Scenario 1: All claims with evidence
 SCENARIO_ALL_SUPPORTED = {
     "content": SAMPLE_ARTICLE_TEXT,
     "claims": SAMPLE_CLAIMS,
     "evidence": SAMPLE_EVIDENCE,
-    "expected_verdict": "supported"
 }
 
-# Scenario 2: Mixed verdicts
-SCENARIO_MIXED_VERDICTS = {
+# Scenario 2: Mixed claim types
+SCENARIO_MIXED_CLAIMS = {
     "content": SAMPLE_OPINION_ARTICLE,
     "claims": SAMPLE_MIXED_CLAIMS,
-    "expected_verdicts": ["supported", "uncertain", "insufficient_evidence"]
 }
 
 # Scenario 3: Insufficient evidence
 SCENARIO_INSUFFICIENT_EVIDENCE = {
     "content": "A very obscure claim about a niche topic with no mainstream coverage.",
-    "expected_verdict": "insufficient_evidence"
 }
 
 # Scenario 4: Time-sensitive claim
 SCENARIO_TIME_SENSITIVE = {
     "content": "The S&P 500 closed at 4,783.45 today.",
     "is_time_sensitive": True,
-    "expected_challenge": "temporal_relevance"
+    "expected_challenge": "temporal_relevance",
 }
 
 # Scenario 5: Non-verifiable (predictions)
 SCENARIO_PREDICTIONS = {
     "content": SAMPLE_PREDICTION_TEXT,
     "expected_claim_types": ["prediction"],
-    "expected_verdict": "non_verifiable"
 }
 
 # ==================== EDGE CASES ====================
@@ -370,6 +380,7 @@ SAMPLE_LONG_SENTENCE = "The global climate summit, which was attended by represe
 
 # ==================== HELPER FUNCTIONS ====================
 
+
 def get_sample_content(content_type: str = "article") -> str:
     """
     Get sample content by type
@@ -393,13 +404,15 @@ def get_sample_content(content_type: str = "article") -> str:
         "whitespace": SAMPLE_WHITESPACE_CONTENT,
         "special_chars": SAMPLE_SPECIAL_CHARS,
         "unicode": SAMPLE_UNICODE_CONTENT,
-        "html": SAMPLE_HTML_CONTENT
+        "html": SAMPLE_HTML_CONTENT,
     }
 
     return content_map.get(content_type, SAMPLE_ARTICLE_TEXT)
 
 
-def get_sample_claims(num_claims: int = 4, claim_type: str = "factual") -> List[Dict[str, Any]]:
+def get_sample_claims(
+    num_claims: int = 4, claim_type: str = "factual"
+) -> List[Dict[str, Any]]:
     """
     Get sample claims
 
@@ -419,7 +432,9 @@ def get_sample_claims(num_claims: int = 4, claim_type: str = "factual") -> List[
     return filtered[:num_claims]
 
 
-def get_sample_evidence(credibility_level: str = "high", count: int = 5) -> List[Dict[str, Any]]:
+def get_sample_evidence(
+    credibility_level: str = "high", count: int = 5
+) -> List[Dict[str, Any]]:
     """
     Get sample evidence filtered by credibility
 
@@ -472,7 +487,6 @@ Usage Examples:
 5. Scenario Testing:
     from sample_content import SCENARIO_ALL_SUPPORTED
     result = pipeline.process(SCENARIO_ALL_SUPPORTED["content"])
-    assert result.verdict == SCENARIO_ALL_SUPPORTED["expected_verdict"]
 
 6. Edge Cases:
     from sample_content import SAMPLE_EMPTY_CONTENT, SAMPLE_UNICODE_CONTENT
