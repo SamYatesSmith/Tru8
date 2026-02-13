@@ -7,6 +7,7 @@ Activated by DEBUG_EVIDENCE_LEDGER=1 environment variable.
 Produces a structured JSON artifact per check run with evidence_in/out
 counts per stage, exclusion reasons, and corruption indicators.
 """
+
 import json
 import os
 import logging
@@ -39,16 +40,16 @@ class EvidenceLedger:
 
     def to_dict(self) -> dict:
         retrieve_in = self.stages.get("retrieve", {}).get("total", 0)
-        judge_in = self.stages.get("judge_input", {}).get("total", 0)
-        snippet_fb = self.stages.get("judge_input", {}).get("snippet_fallbacks", 0)
+        analyzer_in = self.stages.get("analyzer_input", {}).get("total", 0)
+        snippet_fb = self.stages.get("analyzer_input", {}).get("snippet_fallbacks", 0)
         return {
             "check_id": self.check_id,
             "timestamp": self.timestamp,
             "summary": {
                 "evidence_entered_pipeline": retrieve_in,
-                "evidence_reached_judge": judge_in,
-                "total_dropped": max(0, retrieve_in - judge_in),
-                "snippet_fallbacks_at_judge": snippet_fb,
+                "evidence_reached_analyzer": analyzer_in,
+                "total_dropped": max(0, retrieve_in - analyzer_in),
+                "snippet_fallbacks_at_analyzer": snippet_fb,
             },
             "stages": self.stages,
             "per_claim": self.per_claim,
@@ -56,9 +57,7 @@ class EvidenceLedger:
 
     def save(self) -> str:
         """Write ledger JSON to backend/data/ledger/{check_id}.json."""
-        out_dir = os.path.join(
-            os.path.dirname(__file__), "..", "..", "data", "ledger"
-        )
+        out_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data", "ledger")
         os.makedirs(out_dir, exist_ok=True)
         path = os.path.join(out_dir, f"{self.check_id}.json")
         with open(path, "w") as f:

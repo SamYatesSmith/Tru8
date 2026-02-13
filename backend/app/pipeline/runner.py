@@ -26,8 +26,6 @@ from app.services.email_notifications import email_notification_service
 from app.services.cache import get_cache_service
 from app.utils.date_utils import parse_date
 
-import httpx  # For synchronous HTTP calls in threads
-
 logger = logging.getLogger(__name__)
 
 # Thread pool for running async functions with isolated event loops
@@ -82,204 +80,6 @@ async def run_in_executor_with_timeout(async_func, timeout: float, *args, **kwar
     return await loop.run_in_executor(_executor, func)
 
 
-def generate_summary_sync(
-    claims: List[Dict[str, Any]],
-    check_url: Optional[str] = None,
-    evidence_by_claim: Optional[Dict[str, List[Dict[str, Any]]]] = None,
-) -> Dict[str, Any]:
-    """
-    Synchronous summary generation using httpx.Client (sync) with strict timeout.
-    This is more reliable in thread pool than async version.
-    """
-    import json as _json  # Local import to avoid issues
-
-    # Calculate statistics
-    total = len(claims)
-    supported = sum(1 for c in claims if c.get("verdict") == "supported")
-    contradicted = sum(1 for c in claims if c.get("verdict") == "contradicted")
-
-    abstention_verdicts = [
-        "insufficient_evidence",
-        "conflicting_expert_opinion",
-        "outdated_claim",
-        "needs_primary_source",
-        "lacks_context",
-    ]
-    uncertain = sum(
-        1
-        for c in claims
-        if c.get("verdict") == "uncertain" or c.get("verdict") in abstention_verdicts
-    )
-
-    avg_confidence = (
-        sum(c.get("confidence", 0) for c in claims) / total if total > 0 else 0
-    )
-
-    # Calculate credibility score
-    if evidence_by_claim and total > 0:
-        weighted_score = 0.0
-        total_weight = 0.0
-
-        for i, claim in enumerate(claims):
-            confidence = claim.get("confidence", 50) / 100.0
-            position = claim.get("position", i)
-            claim_evidence = evidence_by_claim.get(str(position), [])
-
-            if claim_evidence:
-                avg_evidence_cred = sum(
-                    e.get("credibility_score", 0.6) for e in claim_evidence
-                ) / len(claim_evidence)
-            else:
-                avg_evidence_cred = 0.7
-
-            claim_weight = max(0.1, confidence * avg_evidence_cred)
-            verdict = claim.get("verdict", "")
-
-            if verdict == "supported":
-                verdict_value = 100
-            elif verdict == "contradicted":
-                verdict_value = 0
-            elif verdict in abstention_verdicts:
-                verdict_value = 30
-            else:
-                verdict_value = 40
-
-            weighted_score += verdict_value * claim_weight
-            total_weight += claim_weight
-
-        credibility_score = (
-            int(weighted_score / total_weight) if total_weight > 0 else 50
-        )
-    else:
-        credibility_score = int(
-            (supported * 100 + uncertain * 50 + contradicted * 0) / total
-            if total > 0
-            else 50
-        )
-
-    fallback_summary = f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain. Overall credibility score: {credibility_score}/100."
-
-    # Build claims summary for LLM
-    claims_summary = []
-    for i, claim in enumerate(claims, 1):
-        claims_summary.append(
-            {
-                "number": i,
-                "text": claim.get("text", "")[:200],
-                "verdict": claim.get("verdict"),
-                "confidence": claim.get("confidence"),
-            }
-        )
-
-    system_prompt = (
-        "You are a fact-checking expert providing concise overall assessments."
-    )
-    prompt = f"""SOURCE: {check_url or 'User-submitted content'}
-
-CLAIMS ANALYZED: {total}
-- Supported: {supported} ({supported/total*100:.1f}%)
-- Contradicted: {contradicted} ({contradicted/total*100:.1f}%)
-- Uncertain: {uncertain} ({uncertain/total*100:.1f}%)
-- Average Confidence: {avg_confidence:.1f}%
-
-CLAIM DETAILS:
-{_json.dumps(claims_summary, indent=2)}
-
-Generate a concise overall assessment in 2-3 sentences."""
-
-    summary = None
-
-    # Use synchronous httpx with strict timeout (20 seconds total)
-    timeout_config = httpx.Timeout(20.0, connect=5.0)
-
-    google_ai_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
-    google_model = getattr(settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite")
-
-    # Try Google Gemini first
-    if google_ai_key:
-        try:
-            full_prompt = f"{system_prompt}\n\n{prompt}"
-            with httpx.Client(timeout=timeout_config) as client:
-                response = client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={google_ai_key}",
-                    headers={"Content-Type": "application/json"},
-                    json={
-                        "contents": [{"parts": [{"text": full_prompt}]}],
-                        "generationConfig": {
-                            "temperature": 0.3,
-                            "maxOutputTokens": 250,
-                        },
-                    },
-                )
-
-                if response.status_code == 200:
-                    result = response.json()
-                    summary = result["candidates"][0]["content"]["parts"][0][
-                        "text"
-                    ].strip()
-                    logger.info(
-                        "Generated overall assessment with Google Gemini (sync)"
-                    )
-                else:
-                    logger.warning(
-                        f"Google AI API error for summary: {response.status_code}"
-                    )
-        except httpx.TimeoutException:
-            logger.warning("Google API timed out for summary")
-        except Exception as e:
-            logger.warning(f"Google summary generation failed: {e}")
-
-    # Fallback: OpenAI
-    if summary is None and settings.OPENAI_API_KEY:
-        try:
-            logger.info("Attempting OpenAI summary generation as fallback (sync)")
-            with httpx.Client(timeout=timeout_config) as client:
-                response = client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": "gpt-4o-mini-2024-07-18",
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": prompt},
-                        ],
-                        "max_tokens": 250,
-                        "temperature": 0.3,
-                    },
-                )
-
-                if response.status_code == 200:
-                    result = response.json()
-                    summary = result["choices"][0]["message"]["content"].strip()
-                    logger.info(
-                        "Generated overall assessment with OpenAI fallback (sync)"
-                    )
-                else:
-                    logger.error(
-                        f"OpenAI API error for summary: {response.status_code}"
-                    )
-        except httpx.TimeoutException:
-            logger.warning("OpenAI API timed out for summary")
-        except Exception as e:
-            logger.error(f"OpenAI summary generation failed: {e}")
-
-    # Use fallback if both failed
-    if summary is None:
-        summary = fallback_summary
-        logger.info("Using fallback summary (no LLM response)")
-
-    return {
-        "summary": summary,
-        "credibility_score": credibility_score,
-        "claims_supported": supported,
-        "claims_contradicted": contradicted,
-        "claims_uncertain": uncertain,
-    }
-
-
 # User-friendly error messages
 USER_FRIENDLY_ERRORS = {
     "cookie_consent_wall": "This website requires cookie consent which we cannot bypass. Please try pasting the article text directly.",
@@ -326,11 +126,9 @@ async def run_pipeline(
         ingest_content_async,
         extract_claims_with_cache,
         retrieve_evidence_with_cache,
-        judge_claims_with_llm,
         search_factchecks_for_claims,
     )
     from app.utils.article_classifier import classify_article
-    from app.pipeline.judge import get_pipeline_judge
     from app.services.search import warmup_search_providers
 
     # Warmup search providers to prevent 10s cold-start delay
@@ -503,6 +301,11 @@ async def run_pipeline(
     logger.info(f"[INLINE PIPELINE] Extracted {len(claims)} claims")
 
     # =========================================================================
+    # Determine entry mode
+    # =========================================================================
+    entry_mode = "focused" if len(claims) == 1 else "article"
+
+    # =========================================================================
     # Stage 2.5: Fact-check Lookup (optional, skipped for frozen replay)
     # =========================================================================
     factcheck_evidence = {}
@@ -524,7 +327,106 @@ async def run_pipeline(
         stage_timings["factcheck"] = (datetime.utcnow() - stage_start).total_seconds()
 
     # =========================================================================
-    # Stage 3: Retrieve Evidence
+    # Stage 2.6: Claim Selection (article mode only)
+    # =========================================================================
+    from app.pipeline.claim_selector import ClaimSelector
+    from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
+
+    selected_claims = claims
+
+    if entry_mode == "article":
+        await progress_reporter.report_progress("select")
+        stage_start = datetime.utcnow()
+
+        try:
+            selector = ClaimSelector()
+            claims = await selector.rank_claims_by_significance(
+                claims,
+                article_context={
+                    "domain": (
+                        article_classification.primary_domain
+                        if article_classification
+                        else "unknown"
+                    ),
+                    "classification": (
+                        article_classification.to_dict()
+                        if article_classification
+                        else {}
+                    ),
+                    "excerpt": extract_content[:500],
+                },
+            )
+            claims = selector.select_claims(claims)
+            selected_claims = [c for c in claims if c.get("is_selected")]
+            logger.info(
+                f"[INLINE PIPELINE] Selected {len(selected_claims)}/{len(claims)} "
+                f"claims for analysis"
+            )
+        except Exception as e:
+            logger.warning(f"Claim selection failed (non-critical): {e}")
+            # Fallback: select all claims up to cap
+            for i, c in enumerate(claims):
+                c["is_selected"] = i < settings.MAX_SELECTED_CLAIMS
+                c["significance_rank"] = i + 1
+                c["significance_score"] = 0.5
+            selected_claims = [c for c in claims if c.get("is_selected")]
+
+        stage_timings["select"] = (datetime.utcnow() - stage_start).total_seconds()
+
+        if ledger:
+            ledger.record(
+                "claim_selection",
+                total_claims=len(claims),
+                selected_claims=len(selected_claims),
+            )
+    else:
+        # Focused mode: single claim, always selected
+        claims[0]["is_selected"] = True
+        claims[0]["significance_rank"] = 1
+        claims[0]["significance_score"] = 1.0
+        selected_claims = claims
+
+    # =========================================================================
+    # Stage 3: Decompose Claims into Elements
+    # =========================================================================
+    await progress_reporter.report_progress("decompose")
+    stage_start = datetime.utcnow()
+
+    analyzer = ClaimMapAnalyzer()
+    max_concurrent = settings.MAX_CONCURRENT_ANALYSES
+    _decompose_sem = asyncio.Semaphore(max_concurrent)
+
+    async def _decompose_one(claim):
+        async with _decompose_sem:
+            claim_id = str(claim.get("position", 0))
+            claim_map = await analyzer.decompose_claim(claim["text"], claim_id)
+            claim["claim_map"] = claim_map
+
+    try:
+        await asyncio.gather(*[_decompose_one(c) for c in selected_claims])
+        logger.info(
+            f"[INLINE PIPELINE] Decomposed {len(selected_claims)} claims into elements"
+        )
+    except Exception as e:
+        logger.error(f"[INLINE PIPELINE] Decomposition failed: {e}")
+        raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose")
+
+    stage_timings["decompose"] = (datetime.utcnow() - stage_start).total_seconds()
+
+    if ledger:
+        ledger.record(
+            "decomposition",
+            claims_decomposed=len(selected_claims),
+            elements_per_claim={
+                str(c.get("position", 0)): len(
+                    c.get("claim_map", {}).get("elements", [])
+                )
+                for c in selected_claims
+            },
+        )
+
+    # =========================================================================
+    # Stage 4: Retrieve Evidence
     # =========================================================================
     await progress_reporter.report_progress("retrieve")
     stage_start = datetime.utcnow()
@@ -536,7 +438,7 @@ async def run_pipeline(
 
     # V2 FROZEN EVIDENCE REPLAY: Build evidence dict directly from frozen data,
     # bypassing retrieve entirely. The frozen evidence is already post-filtering
-    # (captured at judge_input stage), so no further processing is needed.
+    # (captured at analyzer_input stage), so no further processing is needed.
     _v2_frozen_bypass = frozen_evidence and any(
         claim.get("frozen_evidence") for claim in claims
     )
@@ -703,7 +605,7 @@ async def run_pipeline(
     # This runs BEFORE global domain capping so the capper works with clean data.
     #
     # V2 frozen evidence replay: skip Stages 3.6, 3.7, 3.8 entirely.
-    # Frozen evidence is already post-filtering (captured at judge_input stage).
+    # Frozen evidence is already post-filtering (captured at analyzer_input stage).
     from app.pipeline.replay_context import frozen_evidence_replay as _fer_var
 
     _is_frozen_evidence_replay = _fer_var.get(False)
@@ -885,7 +787,7 @@ async def run_pipeline(
     # Runs AFTER LLM scoring so it operates on correctly-assigned evidence.
     #
     # SKIP during V2 frozen evidence replay: frozen evidence is already
-    # post-capping (captured at judge_input stage).
+    # post-capping (captured at analyzer_input stage).
     if _is_frozen_evidence_replay and evidence:
         logger.info(
             f"[GLOBAL CAP] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
@@ -962,13 +864,12 @@ async def run_pipeline(
         )
 
     # =========================================================================
-    # Stage 5: Judge Claims
+    # Stage 5: Evidence Mapping (replaces Judge)
     # =========================================================================
-    await progress_reporter.report_progress("judge")
+    await progress_reporter.report_progress("analyze")
     stage_start = datetime.utcnow()
 
-    # FINAL EVIDENCE SUMMARY - Log what the Judge will use
-    # This confirms the diversity cascade (URL dedup → domain cap → relevance filter) worked
+    # FINAL EVIDENCE SUMMARY — log what the analyzer will use
     from app.utils.url_utils import extract_domain
 
     final_evidence_count = sum(len(ev_list) for ev_list in evidence.values())
@@ -981,17 +882,18 @@ async def run_pipeline(
             final_urls.add(ev.get("url", ""))
 
     logger.info(
-        f"[JUDGE INPUT] Final evidence for judge: {final_evidence_count} items, {len(final_urls)} unique URLs, {len(final_domains)} domains"
+        f"[ANALYZER INPUT] Final evidence: {final_evidence_count} items, "
+        f"{len(final_urls)} unique URLs, {len(final_domains)} domains"
     )
     logger.info(
-        f"[JUDGE INPUT] Domain distribution: {dict(sorted(final_domains.items(), key=lambda x: -x[1]))}"
+        f"[ANALYZER INPUT] Domain distribution: {dict(sorted(final_domains.items(), key=lambda x: -x[1]))}"
     )
 
-    # Warn if any domain still appears too many times (indicates capping may have failed)
     max_domain_count = max(final_domains.values()) if final_domains else 0
     if max_domain_count > settings.GLOBAL_MAX_PER_DOMAIN:
         logger.warning(
-            f"[JUDGE INPUT] WARNING: Domain appears {max_domain_count} times, exceeds cap of {settings.GLOBAL_MAX_PER_DOMAIN}"
+            f"[ANALYZER INPUT] Domain appears {max_domain_count} times, "
+            f"exceeds cap of {settings.GLOBAL_MAX_PER_DOMAIN}"
         )
 
     if ledger:
@@ -1027,7 +929,7 @@ async def run_pipeline(
                 if isinstance(cred, (int, float)) and cred <= 0.40:
                     unknown_domain_count += 1
         ledger.record(
-            "judge_input",
+            "analyzer_input",
             total=final_evidence_count,
             unique_urls=len(final_urls),
             domains=dict(sorted(final_domains.items(), key=lambda x: -x[1])),
@@ -1036,46 +938,63 @@ async def run_pipeline(
             title_only_items=title_only_count,
             unknown_domain_items=unknown_domain_count,
         )
-        # Record actual evidence dicts for V2 frozen replay (judge sees these exact items)
         ledger.record(
-            "judge_input_evidence",
+            "analyzer_input_evidence",
             evidence={
                 pos: [dict(ev) for ev in ev_list] for pos, ev_list in evidence.items()
             },
         )
 
     article_excerpt = content.get("content", "")[:5000]
-    judge_timeout = min(15 * len(claims), 120)  # Same timeout as Celery
+    analyze_timeout = min(15 * len(selected_claims), 120)
 
-    # PATH_A logging: show what the judge is about to receive
-    if getattr(settings, "ENABLE_PATH_A", False):
-        judge_input_count = sum(len(ev_list) for ev_list in evidence.items())
-        per_claim = {pos: len(ev_list) for pos, ev_list in evidence.items()}
-        logger.info(
-            f"[PATH_A] Judge receiving {judge_input_count} evidence items "
-            f"(no relevance veto, no pre-judge abstention). Per-claim: {per_claim}"
-        )
+    # Map evidence to elements for each selected claim (concurrent, capped)
+    _analyze_sem = asyncio.Semaphore(max_concurrent)
+
+    async def _map_evidence_for_claim(claim):
+        async with _analyze_sem:
+            pos = str(claim.get("position", 0))
+            claim_evidence = evidence.get(pos, [])
+            if claim.get("claim_map"):
+                completed = await analyzer.map_evidence_to_elements(
+                    claim["claim_map"], claim_evidence
+                )
+                claim["claim_map"] = completed
+                # Attach evidence list to claim for DB save
+                claim["evidence"] = claim_evidence
 
     try:
         logger.info(
-            f"[INLINE PIPELINE] Starting judge with {judge_timeout}s timeout for {len(claims)} claims"
+            f"[INLINE PIPELINE] Starting evidence mapping for {len(selected_claims)} claims "
+            f"with {analyze_timeout}s timeout"
         )
-        # Direct await with asyncio.wait_for for timeout - judge_claims_with_llm is async
-        results = await asyncio.wait_for(
-            judge_claims_with_llm(claims, evidence, article_context=article_excerpt),
-            timeout=judge_timeout,
+        await asyncio.wait_for(
+            asyncio.gather(*[_map_evidence_for_claim(c) for c in selected_claims]),
+            timeout=analyze_timeout,
         )
-        logger.info(f"[INLINE PIPELINE] Judge completed successfully")
+        logger.info(f"[INLINE PIPELINE] Evidence mapping completed successfully")
     except asyncio.TimeoutError:
-        logger.error(f"[INLINE PIPELINE] Judge timed out after {judge_timeout}s")
-        raise PipelineError("LLM judgment timed out", stage="judge")
+        logger.error(
+            f"[INLINE PIPELINE] Evidence mapping timed out after {analyze_timeout}s"
+        )
+        raise PipelineError("Evidence mapping timed out", stage="analyze")
     except Exception as e:
-        logger.error(f"[INLINE PIPELINE] Judge failed: {e}")
-        raise PipelineError(f"LLM judgment failed: {e}", stage="judge")
+        logger.error(f"[INLINE PIPELINE] Evidence mapping failed: {e}")
+        raise PipelineError(f"Evidence mapping failed: {e}", stage="analyze")
 
-    results.sort(key=lambda x: x.get("position", 0))
-    stage_timings["judge"] = (datetime.utcnow() - stage_start).total_seconds()
-    logger.info(f"[INLINE PIPELINE] Judged {len(results)} claims")
+    if ledger:
+        ledger.record(
+            "evidence_mapping",
+            claims_mapped=len(selected_claims),
+            evidence_per_claim={
+                str(c.get("position", 0)): len(
+                    evidence.get(str(c.get("position", 0)), [])
+                )
+                for c in selected_claims
+            },
+        )
+
+    stage_timings["analyze"] = (datetime.utcnow() - stage_start).total_seconds()
 
     # =========================================================================
     # Stage 5.5: Query Answering (optional)
@@ -1088,7 +1007,6 @@ async def run_pipeline(
         try:
             from app.pipeline.query_answer import get_query_answerer
 
-            # Direct await - get_query_answerer and answer_query are async
             query_answerer = await get_query_answerer()
             query_result = await query_answerer.answer_query(
                 user_query=input_data.get("user_query"),
@@ -1109,41 +1027,34 @@ async def run_pipeline(
         stage_timings["query"] = (datetime.utcnow() - stage_start).total_seconds()
 
     # =========================================================================
-    # Stage 6: Enhanced Explainability (optional)
-    # =========================================================================
-    from app.utils.explainability import ExplainabilityEnhancer
-
-    explainer = ExplainabilityEnhancer()
-    results = _add_explainability(results, evidence, explainer)
-
-    # =========================================================================
-    # Stage 6.5: Overall Assessment
-    # =========================================================================
-    await progress_reporter.report_progress("summary")
-    stage_start = datetime.utcnow()
-
-    # Use fallback summary (LLM summary hangs in thread pool executor)
-    # TODO: Fix generate_summary_sync to work with run_in_executor
-    total = len(results)
-    supported = sum(1 for c in results if c.get("verdict") == "supported")
-    contradicted = sum(1 for c in results if c.get("verdict") == "contradicted")
-    uncertain = total - supported - contradicted
-    assessment = {
-        "summary": f"Analysis of {total} claims found {supported} supported, {contradicted} contradicted, and {uncertain} uncertain. Review the individual claims for detailed verdicts and evidence.",
-        "credibility_score": (
-            int((supported * 100 + uncertain * 50) / total) if total > 0 else 50
-        ),
-        "claims_supported": supported,
-        "claims_contradicted": contradicted,
-        "claims_uncertain": uncertain,
-    }
-    logger.info(f"[INLINE PIPELINE] Summary generation completed (fallback)")
-
-    stage_timings["summary"] = (datetime.utcnow() - stage_start).total_seconds()
-
-    # =========================================================================
     # Build Final Result
     # =========================================================================
+    # Build claim results with ClaimMap data
+    results = []
+    for claim in claims:
+        pos = str(claim.get("position", 0))
+        result = {
+            "text": claim.get("text", ""),
+            "position": claim.get("position", 0),
+            "is_selected": claim.get("is_selected", False),
+            "significance_rank": claim.get("significance_rank"),
+            "significance_score": claim.get("significance_score"),
+            "claim_map": claim.get("claim_map"),
+            "evidence": evidence.get(pos, []),
+            "subject_context": claim.get("subject_context"),
+            "key_entities": claim.get("key_entities"),
+            "source_title": claim.get("source_title"),
+            "source_url": claim.get("source_url"),
+            "source_date": claim.get("source_date"),
+            "rhetorical_analysis": claim.get("rhetorical_analysis"),
+            "has_rhetorical_context": claim.get("has_rhetorical_context", False),
+            "rhetorical_style": claim.get("rhetorical_style"),
+            "article_classification": claim.get("article_classification"),
+        }
+        results.append(result)
+
+    results.sort(key=lambda x: x.get("position", 0))
+
     api_stats = _aggregate_api_stats(claims, evidence)
     processing_time_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
 
@@ -1151,11 +1062,8 @@ async def run_pipeline(
         "check_id": check_id,
         "status": "completed",
         "claims": results,
-        "overall_summary": assessment["summary"],
-        "credibility_score": assessment["credibility_score"],
-        "claims_supported": assessment["claims_supported"],
-        "claims_contradicted": assessment["claims_contradicted"],
-        "claims_uncertain": assessment["claims_uncertain"],
+        "entry_mode": entry_mode,
+        "selected_claims_count": len(selected_claims),
         "processing_time_ms": processing_time_ms,
         "ingest_metadata": content.get("metadata", {}),
         "query_response": query_response_data,
@@ -1168,11 +1076,12 @@ async def run_pipeline(
         "raw_sources_count": raw_sources_count,
         "pipeline_stats": {
             "claims_extracted": len(claims),
+            "claims_selected": len(selected_claims),
             "evidence_sources": sum(len(ev) for ev in evidence.values()),
             "raw_sources_reviewed": raw_sources_count,
             "stage_timings": stage_timings,
             "total_stage_time": sum(stage_timings.values()),
-            "pipeline_version": "inline_sse_v2",
+            "pipeline_version": "inline_sse_v3",
         },
     }
 
@@ -1200,46 +1109,6 @@ async def run_pipeline(
         f"[INLINE PIPELINE] Completed in {processing_time_ms}ms for check {check_id}"
     )
     return final_result
-
-
-def _add_explainability(
-    results: List[Dict[str, Any]], evidence: Dict[str, List[Dict[str, Any]]], explainer
-) -> List[Dict[str, Any]]:
-    """Add explainability to claim results."""
-    abstention_verdicts = [
-        "insufficient_evidence",
-        "conflicting_expert_opinion",
-        "outdated_claim",
-        "needs_primary_source",
-        "lacks_context",
-    ]
-
-    empty_signals = {
-        "supporting_count": 0,
-        "contradicting_count": 0,
-        "neutral_count": 0,
-    }
-
-    for i, result in enumerate(results):
-        position = result.get("position", i)
-        claim_evidence = evidence.get(str(position), [])
-
-        verdict = result.get("verdict", "").lower()
-        if (
-            verdict in ["uncertain", "unclear"]
-            or result.get("verdict") in abstention_verdicts
-        ):
-            results[i]["uncertainty_explanation"] = (
-                explainer.create_uncertainty_explanation(
-                    result.get("verdict", ""), empty_signals, claim_evidence
-                )
-            )
-
-        results[i]["confidence_breakdown"] = explainer.create_confidence_breakdown(
-            result, claim_evidence, empty_signals
-        )
-
-    return results
 
 
 def _aggregate_api_stats(
@@ -1318,12 +1187,9 @@ async def save_check_results_async(
         check.status = "completed"
         check.completed_at = datetime.utcnow()
         check.processing_time_ms = results.get("processing_time_ms", 0)
-        check.overall_summary = results.get("overall_summary")
-        check.credibility_score = results.get("credibility_score")
-        check.claims_supported = results.get("claims_supported", 0)
-        check.claims_contradicted = results.get("claims_contradicted", 0)
-        check.claims_uncertain = results.get("claims_uncertain", 0)
         check.article_excerpt = results.get("article_excerpt")
+        check.entry_mode = results.get("entry_mode")
+        check.selected_claims_count = results.get("selected_claims_count")
 
         # API stats
         api_stats = results.get("api_stats")
@@ -1363,14 +1229,22 @@ async def save_check_results_async(
 
         for claim_data in claims_data:
             # Ensure numeric fields are properly typed (avoid string '0' issues)
-            confidence_val = claim_data.get("confidence", 0)
             position_val = claim_data.get("position", 0)
+
+            # Extract claim_type from ClaimMap if available
+            claim_map_data = claim_data.get("claim_map")
+            new_claim_type = None
+            if claim_map_data and isinstance(claim_map_data, dict):
+                ct = claim_map_data.get("claim_type")
+                new_claim_type = ct.value if hasattr(ct, "value") else ct
+
             claim = Claim(
                 check_id=check_id,
                 text=claim_data.get("text", ""),
-                verdict=claim_data.get("verdict", "uncertain"),
-                confidence=float(confidence_val) if confidence_val is not None else 0.0,
-                rationale=claim_data.get("rationale", ""),
+                # Verdict columns still exist (removed in B07) — set defaults
+                verdict="pending",
+                confidence=0.0,
+                rationale="",
                 position=int(position_val) if position_val is not None else 0,
                 subject_context=claim_data.get("subject_context"),
                 key_entities=(
@@ -1385,7 +1259,12 @@ async def save_check_results_async(
                 rhetorical_context=claim_data.get("rhetorical_analysis"),
                 has_rhetorical_context=claim_data.get("has_rhetorical_context", False),
                 rhetorical_style=claim_data.get("rhetorical_style"),
-                judge_input_hash=claim_data.get("judge_input_hash"),
+                # Claim Map system fields
+                claim_map=claim_map_data,
+                new_claim_type=new_claim_type,
+                significance_rank=claim_data.get("significance_rank"),
+                significance_score=claim_data.get("significance_score"),
+                is_selected=claim_data.get("is_selected"),
             )
             session.add(claim)
             await session.flush()
@@ -1398,6 +1277,7 @@ async def save_check_results_async(
                 rel_score = ev_data.get("relevance_score", 0.0)
                 evidence = Evidence(
                     claim_id=claim.id,
+                    evidence_id=ev_data.get("evidence_id"),
                     source=ev_data.get("source", "Unknown"),
                     url=ev_data.get("url", ""),
                     title=ev_data.get("title", ""),
@@ -1568,46 +1448,35 @@ async def send_success_notifications(
         input_title = content.get("metadata", {}).get("title")
         raw_sources_count = results.get("raw_sources_count", 0)
         claims = results.get("claims", [])
+        selected = [c for c in claims if c.get("is_selected")]
         total_sources = (
             raw_sources_count
             if raw_sources_count > 0
             else sum(len(c.get("evidence", [])) for c in claims)
         )
 
-        # Top claims (max 2)
-        sorted_claims = sorted(
-            claims,
-            key=lambda c: (
-                0
-                if c.get("verdict") == "contradicted"
-                else 1 if c.get("verdict") == "supported" else 2
-            ),
-        )
-        top_claims = [
-            {
-                "text": c.get("claim_text", c.get("text", "")),
-                "verdict": c.get("verdict", "uncertain"),
-            }
-            for c in sorted_claims[:2]
-        ]
-
-        # Average confidence
-        confidences = [c.get("confidence", 50) for c in claims]
-        avg_confidence = int(sum(confidences) / len(confidences)) if confidences else 50
+        # Build claims summary from ClaimMap data
+        claims_analyzed = []
+        for c in selected:
+            cm = c.get("claim_map") or {}
+            claims_analyzed.append(
+                {
+                    "text": c.get("text", ""),
+                    "element_count": len(cm.get("elements", [])),
+                    "orientation": cm.get("orientation", ""),
+                }
+            )
 
         email_notification_service.send_check_completed_email_sync(
             user_id=user_id,
             check_id=check_id,
             claims_count=len(claims),
-            supported=results.get("claims_supported", 0),
-            contradicted=results.get("claims_contradicted", 0),
-            uncertain=results.get("claims_uncertain", 0),
-            credibility_score=results.get("credibility_score", 50),
+            entry_mode=results.get("entry_mode", "focused"),
+            selected_claims_count=results.get("selected_claims_count", len(selected)),
             input_url=input_url,
             input_title=input_title,
             total_sources=total_sources,
-            top_claims=top_claims,
-            avg_confidence=avg_confidence,
+            claims_analyzed=claims_analyzed,
         )
     except Exception as e:
         logger.warning(f"Failed to send completion email: {e}")
