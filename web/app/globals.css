@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Claim Map design tokens (Track C) */
+:root {
+  --accent-orange: #FF5D00;
+  --state-supported: #22c55e;
+  --state-disputed: #f59e0b;
+  --state-unresolved: #64748b;
+  --danger-red: #ef4444;
+  --relevance-blue: #3b82f6;
+  --surface-raised: #F8FAFC;
+  --silver-accent: #E2E8F0;
+}
+
 /* Mobile-first responsive typography - smaller text on mobile */
 @layer base {
   html {

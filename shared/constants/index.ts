@@ -120,3 +120,15 @@ export const CLAIM_TYPE_LABELS = {
   predictive: 'Predictive',
   normative_flagged: 'Normative (flagged)',
 } as const;
+
+// --- Claim Map CSS variable names (Track C) ---
+export const ELEMENT_STATE_CSS_VARS = {
+  supported: '--state-supported',
+  disputed: '--state-disputed',
+  unresolved: '--state-unresolved',
+} as const;
+
+export const CLAIM_MAP_CSS_VARS = {
+  accentOrange: '--accent-orange',
+  relevanceBlue: '--relevance-blue',
+} as const;

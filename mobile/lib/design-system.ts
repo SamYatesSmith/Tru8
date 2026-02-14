@@ -241,6 +241,39 @@ export const getVerdictStyle = (verdict: 'supported' | 'contradicted' | 'uncerta
   }
 };
 
+// --- Element State tokens (Track C) ---
+export const ElementStateColors = {
+  supported: '#22c55e',
+  supportedBg: 'rgba(34, 197, 94, 0.1)',
+  supportedBorder: 'rgba(34, 197, 94, 0.3)',
+  disputed: '#f59e0b',
+  disputedBg: 'rgba(245, 158, 11, 0.1)',
+  disputedBorder: 'rgba(245, 158, 11, 0.3)',
+  unresolved: '#64748b',
+  unresolvedBg: 'rgba(100, 116, 139, 0.1)',
+  unresolvedBorder: 'rgba(100, 116, 139, 0.3)',
+} as const;
+
+export const AccentColors = {
+  orange: '#FF5D00',
+  relevanceBlue: '#3b82f6',
+} as const;
+
+export const Fonts = {
+  mono: 'JetBrains Mono',
+} as const;
+
+export function getElementStateStyle(state: 'supported' | 'disputed' | 'unresolved') {
+  switch (state) {
+    case 'supported':
+      return { color: ElementStateColors.supported, bg: ElementStateColors.supportedBg, border: ElementStateColors.supportedBorder, label: 'Supported' };
+    case 'disputed':
+      return { color: ElementStateColors.disputed, bg: ElementStateColors.disputedBg, border: ElementStateColors.disputedBorder, label: 'Disputed' };
+    case 'unresolved':
+      return { color: ElementStateColors.unresolved, bg: ElementStateColors.unresolvedBg, border: ElementStateColors.unresolvedBorder, label: 'Unresolved' };
+  }
+}
+
 // Export everything as default for convenience
 export default {
   Colors,
@@ -251,4 +284,8 @@ export default {
   ComponentStyles,
   VerdictStyles,
   getVerdictStyle,
+  ElementStateColors,
+  AccentColors,
+  Fonts,
+  getElementStateStyle,
 };
