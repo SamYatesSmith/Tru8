@@ -17,15 +17,14 @@ interface Check {
   createdAt: string;
   claimsCount: number;
   overallSummary: string | null;
-  credibilityScore: number | null;
-  claimsSupported: number;
-  claimsContradicted: number;
-  claimsUncertain: number;
   articleDomain: string | null;
   claims: Array<{
     text: string;
-    verdict: 'supported' | 'contradicted' | 'uncertain';
-    confidence: number;
+    claimMap?: {
+      elements: Array<{
+        state: 'supported' | 'disputed' | 'unresolved' | null;
+      }>;
+    };
   }>;
 }
 
@@ -45,7 +44,7 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
-  const [verdictFilter, setVerdictFilter] = useState('all');
+  const [elementStateFilter, setElementStateFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Track seen checks - highlight newest if it's different from last seen
@@ -92,12 +91,26 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
         if (!matchesText && !matchesUrl) return false;
       }
 
-      // Verdict filter
-      if (verdictFilter !== 'all') {
-        const hasVerdict = check.claims?.some((claim) =>
-          claim.verdict === verdictFilter
-        );
-        if (!hasVerdict) return false;
+      // Element state filter
+      if (elementStateFilter !== 'all') {
+        const allElements = check.claims?.flatMap(
+          (claim) => claim.claimMap?.elements ?? []
+        ) ?? [];
+
+        if (allElements.length === 0) return false;
+
+        if (elementStateFilter === 'has_disputed') {
+          const hasDisputed = allElements.some((el) => el.state === 'disputed');
+          if (!hasDisputed) return false;
+        } else if (elementStateFilter === 'has_unresolved') {
+          const hasUnresolved = allElements.some(
+            (el) => el.state === 'unresolved' || el.state === null
+          );
+          if (!hasUnresolved) return false;
+        } else if (elementStateFilter === 'all_supported') {
+          const allSupported = allElements.every((el) => el.state === 'supported');
+          if (!allSupported) return false;
+        }
       }
 
       // Status filter
@@ -107,10 +120,10 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
 
       return true;
     });
-  }, [checks, searchQuery, verdictFilter, statusFilter]);
+  }, [checks, searchQuery, elementStateFilter, statusFilter]);
 
   const hasMore = checks.length < total;
-  const isFiltering = searchQuery || verdictFilter !== 'all' || statusFilter !== 'all';
+  const isFiltering = searchQuery || elementStateFilter !== 'all' || statusFilter !== 'all';
 
   return (
     <div className="space-y-8">
@@ -118,7 +131,7 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
       <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-6">
         <div className="mb-4">
           <h3 className="text-xl font-bold text-white">Search & Filter</h3>
-          <p className="text-slate-400 text-sm">Find specific verifications quickly</p>
+          <p className="text-slate-400 text-sm">Find specific checks quickly</p>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4">
@@ -134,16 +147,16 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
             />
           </div>
 
-          {/* Verdict Filter */}
+          {/* Element State Filter */}
           <select
-            value={verdictFilter}
-            onChange={(e) => setVerdictFilter(e.target.value)}
+            value={elementStateFilter}
+            onChange={(e) => setElementStateFilter(e.target.value)}
             className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-slate-600"
           >
-            <option value="all">All Verdicts</option>
-            <option value="supported">Supported</option>
-            <option value="contradicted">Contradicted</option>
-            <option value="uncertain">Uncertain</option>
+            <option value="all">All States</option>
+            <option value="has_disputed">Has Disputed</option>
+            <option value="has_unresolved">Has Unresolved</option>
+            <option value="all_supported">All Supported</option>
           </select>
 
           {/* Status Filter */}

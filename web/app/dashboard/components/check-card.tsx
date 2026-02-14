@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ExternalLink, ChevronDown, ChevronUp, CheckCircle, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
+import type { ElementState } from '@shared/types';
 
 interface CheckCardProps {
   check: {
@@ -14,15 +15,14 @@ interface CheckCardProps {
     createdAt: string;
     claimsCount: number;
     overallSummary: string | null;
-    credibilityScore: number | null;
-    claimsSupported: number;
-    claimsContradicted: number;
-    claimsUncertain: number;
     articleDomain: string | null;
     claims: Array<{
       text: string;
-      verdict: 'supported' | 'contradicted' | 'uncertain';
-      confidence: number;
+      claimMap?: {
+        elements: Array<{
+          state: ElementState | null;
+        }>;
+      };
     }>;
   };
   isNew?: boolean;  // Highlight as newest check with rotating border
@@ -51,6 +51,27 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
     }
   }, [isNew]);
 
+  // Compute element state counts from all claims' claimMap elements
+  const stateCounts = useMemo(() => {
+    let supported = 0;
+    let disputed = 0;
+    let unresolved = 0;
+
+    if (check.claims) {
+      for (const claim of check.claims) {
+        if (claim.claimMap?.elements) {
+          for (const el of claim.claimMap.elements) {
+            if (el.state === 'supported') supported++;
+            else if (el.state === 'disputed') disputed++;
+            else unresolved++;
+          }
+        }
+      }
+    }
+
+    return { supported, disputed, unresolved };
+  }, [check.claims]);
+
   // Only show completed checks with claims
   if (check.status !== 'completed' || !check.claims || check.claims.length === 0) {
     return null;
@@ -62,27 +83,7 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
   const displayText = check.overallSummary || firstClaim.text;
   const isLongText = displayText.length > 150;
 
-  // Calculate score from verdict breakdown (supported percentage)
-  const getDisplayScore = () => {
-    const { claimsSupported, claimsContradicted, claimsUncertain } = check;
-    const total = claimsSupported + claimsContradicted + claimsUncertain;
-
-    if (total > 0) {
-      return Math.round((claimsSupported / total) * 100);
-    }
-
-    // Fallback to first claim confidence only if no verdict breakdown
-    return Math.round(firstClaim.confidence);
-  };
-
-  const displayScore = getDisplayScore();
-
-  // Score color based on score value
-  const getScoreColor = () => {
-    if (displayScore >= 70) return 'text-emerald-400';
-    if (displayScore >= 40) return 'text-amber-400';
-    return 'text-red-400';
-  };
+  const hasElements = stateCounts.supported + stateCounts.disputed + stateCounts.unresolved > 0;
 
   return (
     <div className={`border rounded-xl hover:border-slate-600 transition-colors relative ${
@@ -119,7 +120,7 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
         <div className="flex items-start justify-between gap-6">
           {/* Left: Synopsis info */}
           <div className="flex-1 min-w-0">
-            {/* Date + Domain + Verdict indicators */}
+            {/* Date + Domain + Element state indicators */}
             <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-3">
               <span className="text-slate-400 text-sm">
                 {formatDate(check.createdAt)}
@@ -130,27 +131,29 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
                   {check.articleDomain}
                 </span>
               )}
-              {/* Mini verdict breakdown */}
-              <div className="flex items-center gap-2 text-xs">
-                {check.claimsSupported > 0 && (
-                  <span className="flex items-center gap-0.5 text-emerald-400">
-                    <CheckCircle size={12} />
-                    <span>{check.claimsSupported}</span>
-                  </span>
-                )}
-                {check.claimsContradicted > 0 && (
-                  <span className="flex items-center gap-0.5 text-red-400">
-                    <XCircle size={12} />
-                    <span>{check.claimsContradicted}</span>
-                  </span>
-                )}
-                {check.claimsUncertain > 0 && (
-                  <span className="flex items-center gap-0.5 text-amber-400">
-                    <HelpCircle size={12} />
-                    <span>{check.claimsUncertain}</span>
-                  </span>
-                )}
-              </div>
+              {/* Element state dot indicators */}
+              {hasElements && (
+                <div className="flex items-center gap-3 text-xs font-mono">
+                  {stateCounts.supported > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-state-supported" />
+                      <span className="text-state-supported">{stateCounts.supported}</span>
+                    </span>
+                  )}
+                  {stateCounts.disputed > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-state-disputed" />
+                      <span className="text-state-disputed">{stateCounts.disputed}</span>
+                    </span>
+                  )}
+                  {stateCounts.unresolved > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-state-unresolved" />
+                      <span className="text-state-unresolved">{stateCounts.unresolved}</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Synopsis text */}
@@ -184,12 +187,14 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
             )}
           </div>
 
-          {/* Right: Score */}
+          {/* Right: Claims count */}
           <div className="flex-shrink-0 text-right">
-            <span className={`text-3xl font-bold ${getScoreColor()} block`}>
-              {displayScore}%
+            <span className="text-3xl font-bold text-slate-300 block">
+              {check.claimsCount}
             </span>
-            <span className="text-slate-400 text-sm block">Supported</span>
+            <span className="text-slate-400 text-sm block">
+              {check.claimsCount === 1 ? 'Claim' : 'Claims'}
+            </span>
           </div>
         </div>
       </Link>

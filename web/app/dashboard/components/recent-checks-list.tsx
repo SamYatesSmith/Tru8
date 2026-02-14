@@ -15,15 +15,14 @@ interface Check {
   createdAt: string;
   claimsCount: number;
   overallSummary: string | null;
-  credibilityScore: number | null;
-  claimsSupported: number;
-  claimsContradicted: number;
-  claimsUncertain: number;
   articleDomain: string | null;
   claims: Array<{
     text: string;
-    verdict: 'supported' | 'contradicted' | 'uncertain';
-    confidence: number;
+    claimMap?: {
+      elements: Array<{
+        state: 'supported' | 'disputed' | 'unresolved' | null;
+      }>;
+    };
   }>;
 }
 

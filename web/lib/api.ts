@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 export interface StreamingProgressEvent {
   type: 'progress';
   checkId: string;
-  stage: 'starting' | 'ingest' | 'extract' | 'factcheck' | 'retrieve' | 'verify' | 'judge' | 'query' | 'summary';
+  stage: 'starting' | 'ingest' | 'extract' | 'factcheck' | 'retrieve' | 'select' | 'decompose' | 'analyze' | 'query';
   progress: number;
   message: string;
   timeEstimate: string;
@@ -19,15 +19,14 @@ export interface UserStats {
   totalChecks: number;
   checksThisMonth: number;
   totalSourcesAnalyzed: number;
-  averageConfidence: number;
-  verdictBreakdown: {
+  totalElementsAnalysed: number;
+  elementStateBreakdown: {
     supported: number;
-    contradicted: number;
-    uncertain: number;
+    disputed: number;
+    unresolved: number;
   };
   domainBreakdown: Record<string, number>;
   topDomain: string | null;
-  misinformationRate: number;
   memberSince: string | null;
 }
 

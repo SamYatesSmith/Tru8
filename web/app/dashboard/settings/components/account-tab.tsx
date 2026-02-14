@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import Image from 'next/image';
-import { User, Shield, Trash2, Check, X, Pencil, BarChart3, CheckCircle, XCircle, HelpCircle } from 'lucide-react';
+import { User, Shield, Trash2, Check, X, Pencil, BarChart3 } from 'lucide-react';
 import { apiClient, UserStats } from '@/lib/api';
 import { useAuth, useUser } from '@clerk/nextjs';
 
@@ -264,32 +264,34 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
                 <div className="text-xs text-slate-400 mt-1">Sources Analyzed</div>
               </div>
               <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-white">{Math.round(stats.averageConfidence)}%</div>
-                <div className="text-xs text-slate-400 mt-1">Avg Confidence</div>
+                <div className="text-2xl font-bold text-white">{stats.totalElementsAnalysed ?? 0}</div>
+                <div className="text-xs text-slate-400 mt-1">Elements Analysed</div>
               </div>
             </div>
 
-            {/* Verdict Breakdown */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-slate-400">Verdict Breakdown</h4>
-              <div className="flex items-center gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" />
-                  <span className="text-slate-300">{stats.verdictBreakdown.supported}</span>
-                  <span className="text-slate-500">Supported</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <XCircle className="w-4 h-4 text-red-400" />
-                  <span className="text-slate-300">{stats.verdictBreakdown.contradicted}</span>
-                  <span className="text-slate-500">Contradicted</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4 text-amber-400" />
-                  <span className="text-slate-300">{stats.verdictBreakdown.uncertain}</span>
-                  <span className="text-slate-500">Uncertain</span>
+            {/* Analysis Overview */}
+            {stats.elementStateBreakdown && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-slate-400">Analysis Overview</h4>
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-state-supported" />
+                    <span className="text-slate-300">{stats.elementStateBreakdown.supported}</span>
+                    <span className="text-slate-500">Supported</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-state-disputed" />
+                    <span className="text-slate-300">{stats.elementStateBreakdown.disputed}</span>
+                    <span className="text-slate-500">Disputed</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-state-unresolved" />
+                    <span className="text-slate-300">{stats.elementStateBreakdown.unresolved}</span>
+                    <span className="text-slate-500">Unresolved</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Member Since */}
             <div className="pt-4 border-t border-slate-700/50 text-sm text-slate-400">

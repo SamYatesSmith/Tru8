@@ -1,24 +1,24 @@
 import { UserStats } from '@/lib/api';
-import { CheckCircle, XCircle, HelpCircle, BarChart3 } from 'lucide-react';
 
 interface UserInsightsCardProps {
   stats: UserStats;
 }
 
 export function UserInsightsCard({ stats }: UserInsightsCardProps) {
-  const totalClaims = stats.verdictBreakdown.supported +
-    stats.verdictBreakdown.contradicted +
-    stats.verdictBreakdown.uncertain;
+  const breakdown = stats.elementStateBreakdown;
+  const totalElements = breakdown
+    ? breakdown.supported + breakdown.disputed + breakdown.unresolved
+    : 0;
 
-  // Calculate percentages for verdict breakdown
-  const supportedPct = totalClaims > 0
-    ? Math.round((stats.verdictBreakdown.supported / totalClaims) * 100)
+  // Calculate percentages for element state breakdown
+  const supportedPct = totalElements > 0
+    ? Math.round((breakdown.supported / totalElements) * 100)
     : 0;
-  const contradictedPct = totalClaims > 0
-    ? Math.round((stats.verdictBreakdown.contradicted / totalClaims) * 100)
+  const disputedPct = totalElements > 0
+    ? Math.round((breakdown.disputed / totalElements) * 100)
     : 0;
-  const uncertainPct = totalClaims > 0
-    ? Math.round((stats.verdictBreakdown.uncertain / totalClaims) * 100)
+  const unresolvedPct = totalElements > 0
+    ? Math.round((breakdown.unresolved / totalElements) * 100)
     : 0;
 
   // Get top 4 domains sorted by count
@@ -41,7 +41,7 @@ export function UserInsightsCard({ stats }: UserInsightsCardProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-white">Your Insights</h2>
-          <p className="text-slate-400">Track your verification patterns</p>
+          <p className="text-slate-400">Track your analysis patterns</p>
         </div>
       </div>
 
@@ -51,48 +51,52 @@ export function UserInsightsCard({ stats }: UserInsightsCardProps) {
       <div className="grid grid-cols-3 gap-4">
         <StatBox
           value={stats.totalChecks}
-          label="Claims Verified"
+          label="Total Checks"
         />
         <StatBox
           value={stats.totalSourcesAnalyzed}
           label="Sources Analyzed"
         />
         <StatBox
-          value={`${Math.round(stats.averageConfidence)}%`}
-          label="Avg Confidence"
+          value={stats.totalElementsAnalysed ?? totalElements}
+          label="Elements Analysed"
         />
       </div>
 
       {/* Two Column Layout */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Verdict Breakdown */}
+        {/* Analysis Insights */}
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">
-            Verdict Breakdown
+            Analysis Insights
           </h4>
-          <div className="space-y-2">
-            <VerdictBar
-              icon={<CheckCircle className="w-4 h-4 text-emerald-400" />}
-              label="Supported"
-              count={stats.verdictBreakdown.supported}
-              percentage={supportedPct}
-              color="bg-emerald-500"
-            />
-            <VerdictBar
-              icon={<XCircle className="w-4 h-4 text-red-400" />}
-              label="Contradicted"
-              count={stats.verdictBreakdown.contradicted}
-              percentage={contradictedPct}
-              color="bg-red-500"
-            />
-            <VerdictBar
-              icon={<HelpCircle className="w-4 h-4 text-amber-400" />}
-              label="Uncertain"
-              count={stats.verdictBreakdown.uncertain}
-              percentage={uncertainPct}
-              color="bg-amber-500"
-            />
-          </div>
+          {totalElements > 0 ? (
+            <div className="space-y-2">
+              <StateBar
+                label="Supported"
+                count={breakdown.supported}
+                percentage={supportedPct}
+                barClass="bg-state-supported"
+                textClass="text-state-supported"
+              />
+              <StateBar
+                label="Disputed"
+                count={breakdown.disputed}
+                percentage={disputedPct}
+                barClass="bg-state-disputed"
+                textClass="text-state-disputed"
+              />
+              <StateBar
+                label="Unresolved"
+                count={breakdown.unresolved}
+                percentage={unresolvedPct}
+                barClass="bg-state-unresolved"
+                textClass="text-state-unresolved"
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No element data yet</p>
+          )}
         </div>
 
         {/* Domain Breakdown */}
@@ -120,11 +124,6 @@ export function UserInsightsCard({ stats }: UserInsightsCardProps) {
         {/* Footer Stats */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 text-sm text-slate-400">
           <span>Member since {memberSince}</span>
-          {stats.misinformationRate > 0 && (
-            <span>
-              <span className="text-red-400 font-medium">{stats.misinformationRate}%</span> misinformation detected
-            </span>
-          )}
         </div>
       </div>
     </div>
@@ -141,23 +140,23 @@ function StatBox({ value, label }: { value: string | number; label: string }) {
   );
 }
 
-// Verdict Progress Bar Component
-function VerdictBar({
-  icon,
+// Element State Progress Bar Component
+function StateBar({
   label,
   count,
   percentage,
-  color
+  barClass,
+  textClass
 }: {
-  icon: React.ReactNode;
   label: string;
   count: number;
   percentage: number;
-  color: string;
+  barClass: string;
+  textClass: string;
 }) {
   return (
     <div className="flex items-center gap-3">
-      {icon}
+      <span className={`w-2 h-2 rounded-full ${barClass} flex-shrink-0`} />
       <div className="flex-1">
         <div className="flex items-center justify-between mb-1">
           <span className="text-sm text-slate-300">{label}</span>
@@ -165,7 +164,7 @@ function VerdictBar({
         </div>
         <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
           <div
-            className={`h-full ${color} transition-all duration-500`}
+            className={`h-full ${barClass} transition-all duration-500`}
             style={{ width: `${percentage}%` }}
           />
         </div>
