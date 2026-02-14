@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, RefreshCw, AlertTriangle } from 'lucide-react-native';
-import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
+import { Colors, Spacing, Typography, BorderRadius, ElementStateColors } from '@/lib/design-system';
 import { useRevenueCat } from '@/providers/RevenueCatProvider';
 import { PricingCard } from '@/components/PricingCard';
 import { MOBILE_PRODUCTS, MobilePlan } from '@/lib/revenuecat';
@@ -153,7 +153,7 @@ export default function SubscriptionScreen() {
           gap: Spacing.space4,
           padding: Spacing.space6,
         }}>
-          <AlertTriangle size={48} color={Colors.verdictContradicted} />
+          <AlertTriangle size={48} color={'#ef4444'} />
           <Text style={{
             color: Colors.lightGrey,
             fontSize: Typography.textXl,
@@ -237,15 +237,15 @@ export default function SubscriptionScreen() {
         {/* Current Status */}
         {hasActiveSubscription && currentPlan && (
           <View style={{
-            backgroundColor: Colors.verdictSupported + '20',
+            backgroundColor: ElementStateColors.supported + '20',
             borderRadius: BorderRadius.radiusLg,
             padding: Spacing.space4,
             borderLeftWidth: 4,
-            borderLeftColor: Colors.verdictSupported,
+            borderLeftColor: ElementStateColors.supported,
             marginBottom: Spacing.space4,
           }}>
             <Text style={{
-              color: Colors.verdictSupported,
+              color: ElementStateColors.supported,
               fontSize: Typography.textBase,
               fontWeight: Typography.fontWeightBold,
               marginBottom: Spacing.space1,

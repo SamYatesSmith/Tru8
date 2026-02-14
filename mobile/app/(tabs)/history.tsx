@@ -4,9 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { Clock, CheckCircle, AlertTriangle, ExternalLink, FileText, Image as ImageIcon, Video, RefreshCw } from 'lucide-react-native';
-import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
+import { Colors, Spacing, Typography, BorderRadius, ElementStateColors, AccentColors } from '@/lib/design-system';
 import { getChecks } from '@/lib/api';
-import type { Check } from '@shared/types';
+import type { Check, ElementState } from '@shared/types';
 
 export default function HistoryScreen() {
   const { getToken } = useAuth();
@@ -54,20 +54,25 @@ export default function HistoryScreen() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle size={16} color={Colors.verdictSupported} />;
-      case 'failed': return <AlertTriangle size={16} color={Colors.verdictContradicted} />;
+      case 'completed': return <CheckCircle size={16} color={ElementStateColors.supported} />;
+      case 'failed': return <AlertTriangle size={16} color={'#ef4444'} />;
       default: return <Clock size={16} color={Colors.coolGrey} />;
     }
   };
 
-  const getVerdictColor = (verdict?: string) => {
-    if (!verdict) return Colors.coolGrey;
-    switch (verdict) {
-      case 'supported': return Colors.verdictSupported;
-      case 'contradicted': return Colors.verdictContradicted;
-      case 'uncertain': return Colors.verdictUncertain;
-      default: return Colors.coolGrey;
+  const getElementStateCounts = (check: Check): Record<ElementState, number> => {
+    const counts: Record<ElementState, number> = { supported: 0, disputed: 0, unresolved: 0 };
+    if (!check.claims) return counts;
+    for (const claim of check.claims) {
+      if (claim.claimMap?.elements) {
+        for (const el of claim.claimMap.elements) {
+          if (el.state && el.state in counts) {
+            counts[el.state]++;
+          }
+        }
+      }
     }
+    return counts;
   };
 
   const formatDate = (dateString: string) => {
@@ -113,7 +118,7 @@ export default function HistoryScreen() {
           gap: Spacing.space4,
           padding: Spacing.space6,
         }}>
-          <AlertTriangle size={48} color={Colors.verdictContradicted} />
+          <AlertTriangle size={48} color={'#ef4444'} />
           <Text style={{
             color: Colors.lightGrey,
             fontSize: Typography.textXl,
@@ -286,7 +291,7 @@ export default function HistoryScreen() {
                   )}
                 </View>
 
-                {/* Status and Verdict Row */}
+                {/* Status and Evidence Row */}
                 <View style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -299,11 +304,10 @@ export default function HistoryScreen() {
                   }}>
                     {getStatusIcon(check.status)}
                     <Text style={{
-                      color: Colors.coolGrey,
+                      color: check.status === 'processing' ? AccentColors.orange : (check.status === 'completed' ? ElementStateColors.supported : Colors.coolGrey),
                       fontSize: Typography.textSm,
-                      textTransform: 'capitalize',
                     }}>
-                      {check.status === 'processing' ? 'Processing...' : check.status}
+                      {check.status === 'processing' ? 'Status: Processing...' : `Status: ${check.status.charAt(0).toUpperCase() + check.status.slice(1)}`}
                     </Text>
                   </View>
 
@@ -313,38 +317,22 @@ export default function HistoryScreen() {
                       alignItems: 'center',
                       gap: Spacing.space3,
                     }}>
-                      {/* Show primary verdict */}
+                      {/* Element state summary dots */}
                       {(() => {
-                        const primaryClaim = check.claims[0];
-                        if (primaryClaim) {
-                          return (
-                            <View style={{
-                              paddingHorizontal: Spacing.space2,
-                              paddingVertical: Spacing.space1,
-                              borderRadius: BorderRadius.radiusSm,
-                              backgroundColor: `${getVerdictColor(primaryClaim.verdict)}20`,
-                            }}>
-                              <Text style={{
-                                color: getVerdictColor(primaryClaim.verdict),
-                                fontSize: Typography.textSm,
-                                fontWeight: Typography.fontWeightMedium,
-                                textTransform: 'capitalize',
-                              }}>
-                                {primaryClaim.verdict}
-                              </Text>
-                            </View>
-                          );
-                        }
+                        const counts = getElementStateCounts(check);
+                        const items: { label: string; count: number; color: string }[] = [];
+                        if (counts.supported > 0) items.push({ label: 'supported', count: counts.supported, color: ElementStateColors.supported });
+                        if (counts.disputed > 0) items.push({ label: 'disputed', count: counts.disputed, color: ElementStateColors.disputed });
+                        if (counts.unresolved > 0) items.push({ label: 'unresolved', count: counts.unresolved, color: ElementStateColors.unresolved });
+                        return items.map((item) => (
+                          <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.space1 }}>
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: item.color }} />
+                            <Text style={{ color: item.color, fontSize: Typography.textXs, fontWeight: Typography.fontWeightMedium }}>
+                              {item.count} {item.label}
+                            </Text>
+                          </View>
+                        ));
                       })()}
-                      
-                      {check.claimsCount && check.claimsCount > 1 && (
-                        <Text style={{
-                          color: Colors.coolGrey,
-                          fontSize: Typography.textSm,
-                        }}>
-                          +{check.claimsCount - 1} more
-                        </Text>
-                      )}
                     </View>
                   )}
                 </View>

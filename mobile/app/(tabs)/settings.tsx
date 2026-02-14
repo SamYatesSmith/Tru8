@@ -12,7 +12,7 @@ import {
   Database,
   AlertTriangle
 } from 'lucide-react-native';
-import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
+import { Colors, Spacing, Typography, BorderRadius, ElementStateColors } from '@/lib/design-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@clerk/clerk-expo';
 
@@ -167,13 +167,13 @@ export default function SettingsScreen() {
     >
       <Icon 
         size={20} 
-        color={destructive ? Colors.verdictContradicted : Colors.lightGrey} 
+        color={destructive ? '#ef4444' : Colors.lightGrey} 
         style={{ marginRight: Spacing.space3 }} 
       />
       
       <View style={{ flex: 1 }}>
         <Text style={{
-          color: destructive ? Colors.verdictContradicted : Colors.lightGrey,
+          color: destructive ? '#ef4444' : Colors.lightGrey,
           fontSize: Typography.textBase,
           fontWeight: Typography.fontWeightMedium,
           marginBottom: description ? Spacing.space1 : 0,
@@ -195,8 +195,8 @@ export default function SettingsScreen() {
         <Switch
           value={value}
           onValueChange={onToggle}
-          trackColor={{ false: Colors.coolGrey + '40', true: Colors.verdictSupported + '60' }}
-          thumbColor={value ? Colors.verdictSupported : Colors.coolGrey}
+          trackColor={{ false: Colors.coolGrey + '40', true: ElementStateColors.supported + '60' }}
+          thumbColor={value ? ElementStateColors.supported : Colors.coolGrey}
           ios_backgroundColor={Colors.coolGrey + '40'}
         />
       )}
@@ -372,13 +372,13 @@ export default function SettingsScreen() {
 
         {/* Warning Section */}
         <View style={{
-          backgroundColor: Colors.verdictUncertain + '20',
+          backgroundColor: '#d97706' + '20',
           marginTop: Spacing.space6,
           marginHorizontal: Spacing.space4,
           borderRadius: BorderRadius.radiusLg,
           padding: Spacing.space4,
           borderLeftWidth: 4,
-          borderLeftColor: Colors.verdictUncertain,
+          borderLeftColor: '#d97706',
           marginBottom: Spacing.space6,
         }}>
           <View style={{
@@ -386,7 +386,7 @@ export default function SettingsScreen() {
             alignItems: 'flex-start',
             gap: Spacing.space3,
           }}>
-            <AlertTriangle size={20} color={Colors.verdictUncertain} style={{ marginTop: 2 }} />
+            <AlertTriangle size={20} color={'#d97706'} style={{ marginTop: 2 }} />
             <View style={{ flex: 1 }}>
               <Text style={{
                 color: Colors.lightGrey,

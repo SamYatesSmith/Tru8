@@ -287,10 +287,10 @@ export default function AccountScreen() {
             }}
             onPress={handleSignOut}
           >
-            <LogOut size={20} color={Colors.verdictContradicted} />
+            <LogOut size={20} color={'#ef4444'} />
             <Text style={{
               flex: 1,
-              color: Colors.verdictContradicted,
+              color: '#ef4444',
               fontSize: Typography.textBase,
               fontWeight: Typography.fontWeightMedium,
             }}>

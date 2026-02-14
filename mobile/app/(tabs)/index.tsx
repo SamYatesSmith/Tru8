@@ -2,7 +2,7 @@ import { ScrollView, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CreateCheckForm } from '@/components/CreateCheckForm';
 import { router } from 'expo-router';
-import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
+import { Colors, Spacing, Typography, BorderRadius, ElementStateColors } from '@/lib/design-system';
 import { useNetwork } from '@/hooks/use-network';
 import { useState, useEffect } from 'react';
 import OfflineQueueManager from '@/lib/offline-queue';
@@ -57,7 +57,7 @@ export default function HomeScreen() {
             borderRadius: BorderRadius.radiusLg,
             padding: Spacing.space4,
             borderLeftWidth: 4,
-            borderLeftColor: isOnline ? Colors.verdictSupported : Colors.verdictContradicted,
+            borderLeftColor: isOnline ? ElementStateColors.supported : '#ef4444',
           }}>
             <Text style={{
               color: Colors.lightGrey,
