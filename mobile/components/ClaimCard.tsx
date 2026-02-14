@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FileSearch } from 'lucide-react-native';
 import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
-import { VerdictPill } from './VerdictPill';
-import { ConfidenceBar } from './ConfidenceBar';
+import { ClaimMapView } from '@/components/ClaimMapView';
 import { CitationChip } from './CitationChip';
 import { EvidenceDrawer } from './EvidenceDrawer';
 import type { Claim } from '@shared/types';
@@ -21,86 +20,31 @@ export function ClaimCard({ claim, index }: ClaimCardProps) {
 
   return (
     <>
-      <View style={{
-        backgroundColor: Colors.white,
-        borderRadius: BorderRadius.radiusLg,
-        borderWidth: 1,
-        borderColor: Colors.gray200,
-        padding: Spacing.space4,
-        marginBottom: Spacing.space4,
-        shadowColor: Colors.gray900,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-        elevation: 2,
-      }}>
+      <View style={styles.card}>
         {/* Header */}
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: Spacing.space3,
-        }}>
-          <VerdictPill 
-            verdict={claim.verdict}
-            confidence={claim.confidence}
-            size="md"
-          />
-          <Text style={{
-            color: Colors.gray500,
-            fontSize: Typography.textSm,
-            fontWeight: Typography.fontWeightMedium,
-          }}>
+        <View style={styles.header}>
+          <Text style={styles.claimLabel}>
             Claim {index !== undefined ? index + 1 : claim.position + 1}
           </Text>
         </View>
 
         {/* Claim Text */}
-        <Text style={{
-          color: Colors.gray900,
-          fontSize: Typography.textBase,
-          fontWeight: Typography.fontWeightMedium,
-          lineHeight: Typography.textBase * 1.5,
-          marginBottom: Spacing.space4,
-        }}>
+        <Text style={styles.claimText}>
           {claim.text}
         </Text>
 
-        {/* Confidence Bar */}
-        <View style={{ marginBottom: Spacing.space4 }}>
-          <ConfidenceBar
-            confidence={claim.confidence}
-            verdict={claim.verdict}
-            size="md"
-            animated={true}
-          />
-        </View>
+        {/* Claim Map View */}
+        <ClaimMapView claim={claim} />
 
-        {/* Rationale */}
-        <View style={{ marginBottom: Spacing.space4 }}>
-          <Text style={{
-            color: Colors.gray700,
-            fontSize: Typography.textSm,
-            lineHeight: Typography.textSm * 1.4,
-          }}>
-            {claim.rationale}
-          </Text>
-        </View>
-
-        {/* Evidence Sources OR Unsupported Notice */}
+        {/* Evidence Sources */}
         <View>
           {claim.evidence.length > 0 ? (
             <>
-              <Text style={{
-                color: Colors.gray800,
-                fontSize: Typography.textSm,
-                fontWeight: Typography.fontWeightSemibold,
-                marginBottom: Spacing.space3,
-              }}>
+              <Text style={styles.sourcesLabel}>
                 Sources:
               </Text>
 
-              <View style={{ gap: Spacing.space2 }}>
+              <View style={styles.sourcesContainer}>
                 {/* Top evidence */}
                 {topEvidence.map((evidence) => (
                   <CitationChip
@@ -114,25 +58,10 @@ export function ClaimCard({ claim, index }: ClaimCardProps) {
                 {hasMoreEvidence && (
                   <TouchableOpacity
                     onPress={() => setEvidenceDrawerVisible(true)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: Spacing.space2,
-                      backgroundColor: Colors.gray50,
-                      borderWidth: 1,
-                      borderColor: Colors.gray200,
-                      borderRadius: BorderRadius.radiusMd,
-                      paddingHorizontal: Spacing.space3,
-                      paddingVertical: Spacing.space2,
-                      marginTop: Spacing.space1,
-                    }}
+                    style={styles.viewAllButton}
                   >
                     <FileSearch size={14} color={Colors.gray600} />
-                    <Text style={{
-                      color: Colors.gray600,
-                      fontSize: Typography.textSm,
-                      fontWeight: Typography.fontWeightMedium,
-                    }}>
+                    <Text style={styles.viewAllText}>
                       View all {claim.evidence.length} sources
                     </Text>
                   </TouchableOpacity>
@@ -140,58 +69,24 @@ export function ClaimCard({ claim, index }: ClaimCardProps) {
               </View>
             </>
           ) : (
-            /* Unsupported Claim Notice */
-            <View style={{
-              backgroundColor: '#fffbeb',
-              borderLeftWidth: 3,
-              borderLeftColor: '#d97706',
-              borderRadius: BorderRadius.radiusMd,
-              padding: Spacing.space3,
-            }}>
-              <Text style={{
-                color: '#92400e',
-                fontSize: Typography.textSm,
-                fontWeight: Typography.fontWeightSemibold,
-                marginBottom: Spacing.space1,
-              }}>
-                ⚠ Unsupported Claim
+            /* No evidence notice */
+            <View style={styles.noEvidenceNotice}>
+              <Text style={styles.noEvidenceTitle}>
+                No Evidence Found
               </Text>
               {claim.sourcesReviewedCount && claim.sourcesReviewedCount > 0 ? (
                 <>
-                  <Text style={{
-                    color: '#78350f',
-                    fontSize: Typography.textXs,
-                    lineHeight: Typography.textXs * 1.5,
-                  }}>
+                  <Text style={styles.noEvidenceBody}>
                     {claim.sourcesReviewedCount} source{claim.sourcesReviewedCount !== 1 ? 's were' : ' was'} reviewed but none met the quality threshold for display.
                   </Text>
-                  <Text style={{
-                    color: '#a16207',
-                    fontSize: Typography.textXs,
-                    fontStyle: 'italic',
-                    marginTop: Spacing.space2,
-                  }}>
+                  <Text style={styles.noEvidenceHint}>
                     View full source details on tru8.com
                   </Text>
                 </>
               ) : (
-                <>
-                  <Text style={{
-                    color: '#78350f',
-                    fontSize: Typography.textXs,
-                    lineHeight: Typography.textXs * 1.5,
-                  }}>
-                    No credible sources were found to corroborate this claim. This suggests the assertion may be unfounded or inaccurate.
-                  </Text>
-                  <Text style={{
-                    color: '#a16207',
-                    fontSize: Typography.textXs,
-                    fontStyle: 'italic',
-                    marginTop: Spacing.space2,
-                  }}>
-                    The absence of evidence is itself a significant finding.
-                  </Text>
-                </>
+                <Text style={styles.noEvidenceBody}>
+                  No relevant sources were found for this claim.
+                </Text>
               )}
             </View>
           )}
@@ -203,7 +98,7 @@ export function ClaimCard({ claim, index }: ClaimCardProps) {
         <EvidenceDrawer
           evidence={claim.evidence}
           claimText={claim.text}
-          verdict={claim.verdict}
+          claimMap={claim.claimMap ?? null}
           visible={evidenceDrawerVisible}
           onClose={() => setEvidenceDrawerVisible(false)}
         />
@@ -211,3 +106,86 @@ export function ClaimCard({ claim, index }: ClaimCardProps) {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.radiusLg,
+    borderWidth: 1,
+    borderColor: Colors.gray200,
+    padding: Spacing.space4,
+    marginBottom: Spacing.space4,
+    shadowColor: Colors.gray900,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    gap: Spacing.space4,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'flex-start',
+  },
+  claimLabel: {
+    color: Colors.gray500,
+    fontSize: Typography.textSm,
+    fontWeight: Typography.fontWeightMedium,
+  },
+  claimText: {
+    color: Colors.gray900,
+    fontSize: Typography.textBase,
+    fontWeight: Typography.fontWeightMedium,
+    lineHeight: Typography.textBase * 1.5,
+  },
+  sourcesLabel: {
+    color: Colors.gray800,
+    fontSize: Typography.textSm,
+    fontWeight: Typography.fontWeightSemibold,
+    marginBottom: Spacing.space3,
+  },
+  sourcesContainer: {
+    gap: Spacing.space2,
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.space2,
+    backgroundColor: Colors.gray50,
+    borderWidth: 1,
+    borderColor: Colors.gray200,
+    borderRadius: BorderRadius.radiusMd,
+    paddingHorizontal: Spacing.space3,
+    paddingVertical: Spacing.space2,
+    marginTop: Spacing.space1,
+  },
+  viewAllText: {
+    color: Colors.gray600,
+    fontSize: Typography.textSm,
+    fontWeight: Typography.fontWeightMedium,
+  },
+  noEvidenceNotice: {
+    backgroundColor: Colors.gray50,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.gray400,
+    borderRadius: BorderRadius.radiusMd,
+    padding: Spacing.space3,
+  },
+  noEvidenceTitle: {
+    color: Colors.gray700,
+    fontSize: Typography.textSm,
+    fontWeight: Typography.fontWeightSemibold,
+    marginBottom: Spacing.space1,
+  },
+  noEvidenceBody: {
+    color: Colors.gray600,
+    fontSize: Typography.textXs,
+    lineHeight: Typography.textXs * 1.5,
+  },
+  noEvidenceHint: {
+    color: Colors.gray500,
+    fontSize: Typography.textXs,
+    fontStyle: 'italic',
+    marginTop: Spacing.space2,
+  },
+});

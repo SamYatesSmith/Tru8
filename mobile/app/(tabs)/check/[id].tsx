@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
-import { ArrowLeft, ExternalLink, Clock, CheckCircle, AlertTriangle, Share2 } from 'lucide-react-native';
+import { ArrowLeft, ExternalLink, AlertTriangle, Share2 } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
-import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
+import { Colors, Spacing, Typography, BorderRadius, Fonts, ElementStateColors } from '@/lib/design-system';
 import { getCheck } from '@/lib/api';
 import { ClaimCard } from '@/components/ClaimCard';
+import { OrientationLine } from '@/components/OrientationLine';
 import { ScreenErrorBoundary } from '@/components/ErrorBoundary';
 import { useApiError } from '@/contexts/ErrorContext';
 import { useErrorReporting } from '@/services/error-reporting';
@@ -50,7 +51,7 @@ function CheckResultsContent() {
 
   const fetchCheck = async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
       const token = await getToken();
@@ -58,7 +59,7 @@ function CheckResultsContent() {
         handleError('authentication', 'Please sign in to continue');
         return;
       }
-      
+
       trackUserAction('check_fetch_started', { checkId: id });
       const result = await getCheck(id, token);
       setCheck(result);
@@ -67,7 +68,7 @@ function CheckResultsContent() {
     } catch (err: any) {
       console.error('Failed to fetch check:', err);
       trackUserAction('check_fetch_failed', { checkId: id, error: err.message });
-      
+
       if (err.name === 'ApiError') {
         reportAPIError(err.status, err.message, `/checks/${id}`);
       } else if (err.name === 'NetworkError') {
@@ -77,28 +78,10 @@ function CheckResultsContent() {
         handleError('api', err.message || 'Failed to load check', true, () => fetchCheck());
         return;
       }
-      
+
       setError(err.message || 'Failed to load check');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getVerdictColor = (verdict?: string) => {
-    switch (verdict) {
-      case 'supported': return Colors.verdictSupported;
-      case 'contradicted': return Colors.verdictContradicted;
-      case 'uncertain': return Colors.verdictUncertain;
-      default: return Colors.coolGrey;
-    }
-  };
-
-  const getVerdictIcon = (verdict?: string) => {
-    switch (verdict) {
-      case 'supported': return <CheckCircle size={20} color={Colors.verdictSupported} />;
-      case 'contradicted': return <AlertTriangle size={20} color={Colors.verdictContradicted} />;
-      case 'uncertain': return <Clock size={20} color={Colors.verdictUncertain} />;
-      default: return <Clock size={20} color={Colors.coolGrey} />;
     }
   };
 
@@ -113,53 +96,57 @@ function CheckResultsContent() {
 
   const handleShare = async () => {
     if (!check) return;
-    
-    let shareText = `Fact-Check Results from Tru8\n\n`;
-    
+
+    let shareText = `Evidence Report from Tru8\n\n`;
+
     try {
       trackUserAction('check_share_started', { checkId: check.id });
-      
+
       // Add original content
       if (check.inputType === 'url' && check.inputUrl) {
         shareText += `Original: ${check.inputUrl}\n\n`;
       } else if (check.inputContent) {
-        const content = typeof check.inputContent === 'string' 
-          ? check.inputContent 
+        const content = typeof check.inputContent === 'string'
+          ? check.inputContent
           : check.inputContent?.content || 'Content not available';
         shareText += `Original: ${content.slice(0, 200)}...\n\n`;
       }
-      
-      // Add claims and verdicts if available
+
+      // Add claims with orientation + element count
       if (check.claims && check.claims.length > 0) {
         shareText += `Claims Analyzed: ${check.claims.length}\n\n`;
-        
+
         check.claims.forEach((claim, index) => {
           shareText += `Claim ${index + 1}: ${claim.text}\n`;
-          shareText += `Verdict: ${claim.verdict.toUpperCase()} (${Math.round(claim.confidence)}% confidence)\n`;
-          if (claim.rationale) {
-            shareText += `Rationale: ${claim.rationale}\n`;
+          if (claim.claimMap) {
+            const elementCount = claim.claimMap.elements.length;
+            shareText += `Elements: ${elementCount}\n`;
+            if (claim.claimMap.orientation) {
+              shareText += `Orientation: ${claim.claimMap.orientation}\n`;
+            }
           }
+          shareText += `Sources: ${claim.evidence.length}\n`;
           shareText += `\n`;
         });
       }
-      
-      shareText += `Verified by Tru8 - Thorough fact-checking with credible sources`;
+
+      shareText += `Evidence collected by Tru8 - Thorough research with credible sources`;
       shareText += `\n\nView full report: https://tru8.app/r/${check.id}`;
-      
+
       if (await Sharing.isAvailableAsync()) {
         // Create a temporary text file to share
-        const filename = `fact-check-${check.id.slice(0, 8)}.txt`;
+        const filename = `evidence-report-${check.id.slice(0, 8)}.txt`;
         const fileUri = `${FileSystem.documentDirectory}${filename}`;
-        
+
         await FileSystem.writeAsStringAsync(fileUri, shareText, {
           encoding: FileSystem.EncodingType.UTF8,
         });
-        
+
         await Sharing.shareAsync(fileUri, {
           mimeType: 'text/plain',
-          dialogTitle: 'Share Fact-Check Results',
+          dialogTitle: 'Share Evidence Report',
         });
-        
+
         trackUserAction('check_share_success', { checkId: check.id, method: 'file' });
       } else {
         // Fallback to system share if Expo sharing not available
@@ -170,27 +157,31 @@ function CheckResultsContent() {
       console.error('Share failed:', error);
       trackUserAction('check_share_failed', { checkId: check.id, error: error instanceof Error ? error.message : String(error) });
       handleError('system', 'Failed to share results. Please try again.');
-      
+
       // Fallback to copy to clipboard or alert
       Alert.alert('Share Results', shareText);
     }
   };
 
+  // Helper: compute total sources across all claims
+  const getTotalSources = (): number => {
+    if (!check?.claims) return 0;
+    return check.claims.reduce((sum, c) => sum + c.evidence.length, 0);
+  };
+
+  // Helper: format processing time
+  const formatTime = (ms?: number): string => {
+    if (!ms) return '--';
+    if (ms < 1000) return `${ms}ms`;
+    return `${(ms / 1000).toFixed(1)}s`;
+  };
+
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.darkIndigo }}>
-        <View style={{ 
-          flex: 1, 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          gap: Spacing.space4 
-        }}>
+      <SafeAreaView style={styles.loadingContainer}>
+        <View style={styles.loadingContent}>
           <ActivityIndicator size="large" color={Colors.lightGrey} />
-          <Text style={{
-            color: Colors.lightGrey,
-            fontSize: Typography.textLg,
-            fontWeight: Typography.fontWeightMedium,
-          }}>
+          <Text style={styles.loadingText}>
             Loading check results...
           </Text>
         </View>
@@ -200,45 +191,20 @@ function CheckResultsContent() {
 
   if (error || !check) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.darkIndigo }}>
-        <View style={{ 
-          flex: 1, 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          gap: Spacing.space4,
-          padding: Spacing.space6,
-        }}>
+      <SafeAreaView style={styles.errorContainer}>
+        <View style={styles.errorContent}>
           <AlertTriangle size={48} color={Colors.verdictContradicted} />
-          <Text style={{
-            color: Colors.lightGrey,
-            fontSize: Typography.textXl,
-            fontWeight: Typography.fontWeightBold,
-            textAlign: 'center',
-          }}>
+          <Text style={styles.errorTitle}>
             Failed to Load Check
           </Text>
-          <Text style={{
-            color: Colors.coolGrey,
-            fontSize: Typography.textBase,
-            textAlign: 'center',
-          }}>
+          <Text style={styles.errorMessage}>
             {error || 'Check not found'}
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => router.back()}
-            style={{
-              backgroundColor: Colors.lightGrey,
-              paddingVertical: Spacing.space3,
-              paddingHorizontal: Spacing.space6,
-              borderRadius: BorderRadius.radiusLg,
-              marginTop: Spacing.space4,
-            }}
+            style={styles.goBackButton}
           >
-            <Text style={{
-              color: Colors.darkIndigo,
-              fontSize: Typography.textBase,
-              fontWeight: Typography.fontWeightSemibold,
-            }}>
+            <Text style={styles.goBackText}>
               Go Back
             </Text>
           </TouchableOpacity>
@@ -247,33 +213,25 @@ function CheckResultsContent() {
     );
   }
 
+  // Get the first claim's orientation for the summary card
+  const firstClaimOrientation = check.claims?.[0]?.claimMap?.orientation ?? null;
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.darkIndigo }}>
+    <SafeAreaView style={styles.screen}>
       {/* Header */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: Spacing.space4,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.deepPurpleGrey,
-      }}>
-        <TouchableOpacity 
+      <View style={styles.header}>
+        <TouchableOpacity
           onPress={() => router.back()}
           style={{ marginRight: Spacing.space4 }}
         >
           <ArrowLeft size={24} color={Colors.lightGrey} />
         </TouchableOpacity>
-        <Text style={{
-          flex: 1,
-          color: Colors.lightGrey,
-          fontSize: Typography.textLg,
-          fontWeight: Typography.fontWeightSemibold,
-        }}>
-          Fact-Check Results
+        <Text style={styles.headerTitle}>
+          Evidence Report
         </Text>
-        
+
         {check.status === 'completed' && (
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleShare}
             style={{ marginLeft: Spacing.space2 }}
           >
@@ -282,27 +240,14 @@ function CheckResultsContent() {
         )}
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: Spacing.space4, gap: Spacing.space6 }}
       >
-        {/* Status & Verdict */}
-        <View style={{
-          backgroundColor: Colors.deepPurpleGrey,
-          borderRadius: BorderRadius.radiusLg,
-          padding: Spacing.space4,
-        }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: Spacing.space3,
-          }}>
-            <Text style={{
-              color: Colors.lightGrey,
-              fontSize: Typography.textBase,
-              fontWeight: Typography.fontWeightMedium,
-            }}>
+        {/* Status Card */}
+        <View style={styles.statusCard}>
+          <View style={styles.statusRow}>
+            <Text style={styles.statusText}>
               Status: {getStatusText(check.status)}
             </Text>
             {check.status === 'processing' && (
@@ -310,57 +255,48 @@ function CheckResultsContent() {
             )}
           </View>
 
-          {check.claims && check.claims.length > 0 && (
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: Spacing.space2,
-            }}>
-              {getVerdictIcon(check.claims[0].verdict)}
-              <Text style={{
-                color: getVerdictColor(check.claims[0].verdict),
-                fontSize: Typography.textLg,
-                fontWeight: Typography.fontWeightBold,
-                textTransform: 'capitalize',
-              }}>
-                {check.claims[0].verdict}
-              </Text>
-              <Text style={{
-                color: Colors.coolGrey,
-                fontSize: Typography.textSm,
-              }}>
-                ({Math.round(check.claims[0].confidence)}% confidence)
-              </Text>
-              {check.claims.length > 1 && (
-                <Text style={{
-                  color: Colors.coolGrey,
-                  fontSize: Typography.textSm,
-                }}>
-                  +{check.claims.length - 1} more claims
-                </Text>
+          {check.status === 'completed' && (
+            <>
+              {/* Completed badge */}
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedBadgeText}>Completed</Text>
+              </View>
+
+              {/* Monospace metadata: REF / SOURCES / TIME */}
+              <View style={styles.metadataRow}>
+                <View style={styles.metadataItem}>
+                  <Text style={styles.metadataLabel}>REF</Text>
+                  <Text style={styles.metadataValue}>{check.id.slice(0, 8)}</Text>
+                </View>
+                <View style={styles.metadataItem}>
+                  <Text style={styles.metadataLabel}>SOURCES</Text>
+                  <Text style={styles.metadataValue}>{getTotalSources()}</Text>
+                </View>
+                <View style={styles.metadataItem}>
+                  <Text style={styles.metadataLabel}>TIME</Text>
+                  <Text style={styles.metadataValue}>{formatTime(check.processingTimeMs)}</Text>
+                </View>
+              </View>
+
+              {/* Orientation from first claim */}
+              {firstClaimOrientation && (
+                <View style={styles.orientationContainer}>
+                  <OrientationLine orientation={firstClaimOrientation} />
+                </View>
               )}
-            </View>
+            </>
           )}
         </View>
 
         {/* Original Content */}
         <View>
-          <Text style={{
-            color: Colors.lightGrey,
-            fontSize: Typography.textLg,
-            fontWeight: Typography.fontWeightBold,
-            marginBottom: Spacing.space3,
-          }}>
+          <Text style={styles.sectionHeading}>
             Original {check.inputType === 'url' ? 'Link' : check.inputType}
           </Text>
-          
-          <View style={{
-            backgroundColor: Colors.deepPurpleGrey,
-            borderRadius: BorderRadius.radiusLg,
-            padding: Spacing.space4,
-          }}>
+
+          <View style={styles.contentCard}>
             {check.inputType === 'url' && check.inputUrl ? (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -368,22 +304,14 @@ function CheckResultsContent() {
                 }}
               >
                 <ExternalLink size={16} color={Colors.coolGrey} />
-                <Text style={{
-                  flex: 1,
-                  color: Colors.lightGrey,
-                  fontSize: Typography.textBase,
-                }}>
+                <Text style={styles.urlText}>
                   {check.inputUrl}
                 </Text>
               </TouchableOpacity>
             ) : (
-              <Text style={{
-                color: Colors.lightGrey,
-                fontSize: Typography.textBase,
-                lineHeight: Typography.textBase * 1.5,
-              }}>
-                {typeof check.inputContent === 'string' 
-                  ? check.inputContent 
+              <Text style={styles.contentText}>
+                {typeof check.inputContent === 'string'
+                  ? check.inputContent
                   : check.inputContent?.content || 'Content not available'}
               </Text>
             )}
@@ -393,15 +321,10 @@ function CheckResultsContent() {
         {/* Claims */}
         {check.claims && check.claims.length > 0 && (
           <View>
-            <Text style={{
-              color: Colors.lightGrey,
-              fontSize: Typography.textLg,
-              fontWeight: Typography.fontWeightBold,
-              marginBottom: Spacing.space4,
-            }}>
+            <Text style={styles.sectionHeading}>
               Claims Analyzed ({check.claims.length})
             </Text>
-            
+
             <View>
               {check.claims.map((claim, index) => (
                 <ClaimCard
@@ -410,88 +333,6 @@ function CheckResultsContent() {
                   index={index}
                 />
               ))}
-            </View>
-          </View>
-        )}
-
-        {/* Evidence - Show evidence from all claims */}
-        {check.claims && check.claims.some(claim => claim.evidence.length > 0) && (
-          <View>
-            <Text style={{
-              color: Colors.lightGrey,
-              fontSize: Typography.textLg,
-              fontWeight: Typography.fontWeightBold,
-              marginBottom: Spacing.space3,
-            }}>
-              Supporting Evidence
-            </Text>
-            
-            <View style={{ gap: Spacing.space3 }}>
-              {check.claims.map((claim) => 
-                claim.evidence.map((evidence, evidenceIndex) => (
-                  <TouchableOpacity
-                    key={`${claim.id}-${evidenceIndex}`}
-                    style={{
-                      backgroundColor: Colors.deepPurpleGrey,
-                      borderRadius: BorderRadius.radiusLg,
-                      padding: Spacing.space4,
-                      borderLeftWidth: 3,
-                      borderLeftColor: Colors.lightGrey,
-                    }}
-                  >
-                    <View style={{
-                      flexDirection: 'row',
-                      alignItems: 'flex-start',
-                      gap: Spacing.space2,
-                      marginBottom: Spacing.space2,
-                    }}>
-                      <ExternalLink size={14} color={Colors.coolGrey} />
-                      <Text style={{
-                        flex: 1,
-                        color: Colors.lightGrey,
-                        fontSize: Typography.textBase,
-                        fontWeight: Typography.fontWeightMedium,
-                      }}>
-                        {evidence.title}
-                      </Text>
-                    </View>
-                    
-                    <Text style={{
-                      color: Colors.coolGrey,
-                      fontSize: Typography.textSm,
-                      marginBottom: Spacing.space1,
-                    }}>
-                      {evidence.source}
-                    </Text>
-                    
-                    {evidence.publishedDate && (
-                      <Text style={{
-                        color: Colors.coolGrey,
-                        fontSize: Typography.textSm,
-                        marginBottom: Spacing.space2,
-                      }}>
-                        {new Date(evidence.publishedDate).toLocaleDateString()}
-                      </Text>
-                    )}
-                    
-                    <Text style={{
-                      color: Colors.coolGrey,
-                      fontSize: Typography.textSm,
-                      lineHeight: Typography.textSm * 1.4,
-                    }}>
-                      {evidence.snippet}
-                    </Text>
-                    
-                    <Text style={{
-                      color: Colors.coolGrey,
-                      fontSize: Typography.textXs,
-                      marginTop: Spacing.space1,
-                    }}>
-                      Relevance: {Math.round(evidence.relevanceScore * 100)}%
-                    </Text>
-                  </TouchableOpacity>
-                ))
-              )}
             </View>
           </View>
         )}
@@ -507,3 +348,154 @@ export default function CheckResults() {
     </ScreenErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  // Loading state
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: Colors.darkIndigo,
+  },
+  loadingContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.space4,
+  },
+  loadingText: {
+    color: Colors.lightGrey,
+    fontSize: Typography.textLg,
+    fontWeight: Typography.fontWeightMedium,
+  },
+  // Error state
+  errorContainer: {
+    flex: 1,
+    backgroundColor: Colors.darkIndigo,
+  },
+  errorContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.space4,
+    padding: Spacing.space6,
+  },
+  errorTitle: {
+    color: Colors.lightGrey,
+    fontSize: Typography.textXl,
+    fontWeight: Typography.fontWeightBold,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    color: Colors.coolGrey,
+    fontSize: Typography.textBase,
+    textAlign: 'center',
+  },
+  goBackButton: {
+    backgroundColor: Colors.lightGrey,
+    paddingVertical: Spacing.space3,
+    paddingHorizontal: Spacing.space6,
+    borderRadius: BorderRadius.radiusLg,
+    marginTop: Spacing.space4,
+  },
+  goBackText: {
+    color: Colors.darkIndigo,
+    fontSize: Typography.textBase,
+    fontWeight: Typography.fontWeightSemibold,
+  },
+  // Main screen
+  screen: {
+    flex: 1,
+    backgroundColor: Colors.darkIndigo,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.space4,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.deepPurpleGrey,
+  },
+  headerTitle: {
+    flex: 1,
+    color: Colors.lightGrey,
+    fontSize: Typography.textLg,
+    fontWeight: Typography.fontWeightSemibold,
+  },
+  // Status card
+  statusCard: {
+    backgroundColor: Colors.deepPurpleGrey,
+    borderRadius: BorderRadius.radiusLg,
+    padding: Spacing.space4,
+    gap: Spacing.space3,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statusText: {
+    color: Colors.lightGrey,
+    fontSize: Typography.textBase,
+    fontWeight: Typography.fontWeightMedium,
+  },
+  completedBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: ElementStateColors.supportedBg,
+    borderRadius: BorderRadius.radiusSm,
+    paddingHorizontal: Spacing.space2,
+    paddingVertical: 3,
+  },
+  completedBadgeText: {
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '700',
+    color: ElementStateColors.supported,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  metadataRow: {
+    flexDirection: 'row',
+    gap: Spacing.space4,
+  },
+  metadataItem: {
+    gap: 2,
+  },
+  metadataLabel: {
+    fontFamily: Fonts.mono,
+    fontSize: 9,
+    fontWeight: '600',
+    color: Colors.coolGrey,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+  metadataValue: {
+    fontFamily: Fonts.mono,
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.lightGrey,
+  },
+  orientationContainer: {
+    marginTop: Spacing.space1,
+  },
+  // Sections
+  sectionHeading: {
+    color: Colors.lightGrey,
+    fontSize: Typography.textLg,
+    fontWeight: Typography.fontWeightBold,
+    marginBottom: Spacing.space3,
+  },
+  // Content card
+  contentCard: {
+    backgroundColor: Colors.deepPurpleGrey,
+    borderRadius: BorderRadius.radiusLg,
+    padding: Spacing.space4,
+  },
+  urlText: {
+    flex: 1,
+    color: Colors.lightGrey,
+    fontSize: Typography.textBase,
+  },
+  contentText: {
+    color: Colors.lightGrey,
+    fontSize: Typography.textBase,
+    lineHeight: Typography.textBase * 1.5,
+  },
+});
