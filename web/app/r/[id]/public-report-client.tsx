@@ -4,12 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, ExternalLink, ChevronDown, Reply } from 'lucide-react';
 import { isTweetUrl, extractTweetId, buildTwitterReplyUrl } from '@/lib/twitter-utils';
-import { VerdictPill } from '@/app/dashboard/components/verdict-pill';
-import { ConfidenceBar } from '@/app/dashboard/components/confidence-bar';
-import { DecisionTrail } from '@/app/dashboard/components/decision-trail';
-import { ConfidenceBreakdown } from '@/app/dashboard/components/confidence-breakdown';
-import { UncertaintyExplanation } from '@/app/dashboard/components/uncertainty-explanation';
-import { NonVerifiableNotice } from '@/app/dashboard/components/non-verifiable-notice';
+import { ClaimMapView, OrientationLine } from '@/components/claim-map';
 import { FactCheckBadge } from '@/app/dashboard/components/fact-check-badge';
 import { TimeSensitiveIndicator } from '@/app/dashboard/components/time-sensitive-indicator';
 import { formatMonthYear, formatRelativeTime } from '@/lib/utils';
@@ -94,15 +89,6 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
     setExpandedClaim(expandedClaim === claimId ? null : claimId);
   };
 
-  // Calculate credibility level
-  const getCredibilityLevel = (score: number) => {
-    if (score >= 80) return { label: 'High Credibility', color: 'text-emerald-400', bg: 'bg-emerald-500/20' };
-    if (score >= 60) return { label: 'Moderate Credibility', color: 'text-amber-400', bg: 'bg-amber-500/20' };
-    return { label: 'Low Credibility', color: 'text-red-400', bg: 'bg-red-500/20' };
-  };
-
-  const credibility = check.credibilityScore ? getCredibilityLevel(check.credibilityScore) : null;
-
   // Get content display
   const getContentDisplay = () => {
     if (check.inputUrl || check.sourceUrl) {
@@ -168,17 +154,11 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
       </div>
 
       {/* Overall Summary Card */}
-      {check.overallSummary && check.credibilityScore !== undefined && (
+      {check.claims && check.claims.length > 0 && (
         <div className="bg-gradient-to-br from-blue-950/50 to-purple-950/50 border-2 border-blue-500/30 rounded-xl p-6 md:p-8">
-          {/* Header */}
           <div className="mb-6">
             <h2 className="text-2xl font-black text-white mb-2">Overall Assessment</h2>
             <div className="flex flex-wrap items-center gap-2">
-              {credibility && (
-                <div className={`${credibility.bg} ${credibility.color} px-4 py-2 rounded-lg font-bold text-sm inline-block`}>
-                  {credibility.label}
-                </div>
-              )}
               {check.articleDomain && (
                 <div className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-1.5">
                   <span className="text-slate-500">Genre:</span>
@@ -191,28 +171,46 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
             </div>
           </div>
 
-          {/* Summary Text */}
-          <div className="bg-slate-900/50 rounded-lg p-6 mb-6">
-            <p className="text-white/90 text-lg leading-relaxed">
-              {check.overallSummary}
-            </p>
-          </div>
+          {(() => {
+            const firstOrientation = check.claims.find((c: any) => c.claimMap?.orientation)?.claimMap?.orientation ?? null;
+            return firstOrientation ? (
+              <div className="bg-slate-900/50 rounded-lg p-6 mb-6">
+                <OrientationLine orientation={firstOrientation} />
+              </div>
+            ) : null;
+          })()}
 
-          {/* Claims Breakdown */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 text-center">
-              <div className="text-3xl font-black text-emerald-400">{check.claimsSupported || 0}</div>
-              <div className="text-sm text-emerald-400/70 font-medium">Supported</div>
-            </div>
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 text-center">
-              <div className="text-3xl font-black text-amber-400">{check.claimsUncertain || 0}</div>
-              <div className="text-sm text-amber-400/70 font-medium">Uncertain</div>
-            </div>
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center">
-              <div className="text-3xl font-black text-red-400">{check.claimsContradicted || 0}</div>
-              <div className="text-sm text-red-400/70 font-medium">Contradicted</div>
-            </div>
-          </div>
+          {(() => {
+            let supported = 0;
+            let disputed = 0;
+            let unresolved = 0;
+            for (const claim of check.claims) {
+              if (!claim.claimMap?.elements) continue;
+              for (const el of claim.claimMap.elements) {
+                if (el.state === 'supported') supported++;
+                else if (el.state === 'disputed') disputed++;
+                else unresolved++;
+              }
+            }
+            const total = supported + disputed + unresolved;
+            if (total === 0) return null;
+            return (
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-state-supported/10 border border-state-supported/20 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-black text-state-supported">{supported}</div>
+                  <div className="text-sm text-state-supported/70 font-medium">Supported</div>
+                </div>
+                <div className="bg-state-disputed/10 border border-state-disputed/20 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-black text-state-disputed">{disputed}</div>
+                  <div className="text-sm text-state-disputed/70 font-medium">Disputed</div>
+                </div>
+                <div className="bg-state-unresolved/10 border border-state-unresolved/20 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-black text-state-unresolved">{unresolved}</div>
+                  <div className="text-sm text-state-unresolved/70 font-medium">Unresolved</div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -264,49 +262,7 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
                 {/* Claim Text */}
                 <p className="text-lg font-medium text-white">&quot;{claim.text}&quot;</p>
 
-                {/* Non-Verifiable Notice OR Normal Verdict */}
-                {claim.isVerifiable === false ? (
-                  <NonVerifiableNotice
-                    claimType={claim.claimType || 'unknown'}
-                    reason={claim.verifiabilityReason || 'This claim cannot be fact-checked.'}
-                  />
-                ) : (
-                  <>
-                    {/* Header: Verdict + Confidence */}
-                    <div className="flex items-start justify-between">
-                      <VerdictPill verdict={claim.verdict} />
-                      <span className="text-2xl font-bold text-white">
-                        {Math.round(claim.confidence)}%
-                      </span>
-                    </div>
-
-                    {/* Confidence Bar */}
-                    <ConfidenceBar
-                      confidence={claim.confidence}
-                      verdict={claim.verdict}
-                    />
-
-                    {/* Rationale */}
-                    {claim.rationale && (
-                      <p className="text-sm text-slate-400">{claim.rationale}</p>
-                    )}
-
-                    {/* Uncertainty Explanation (if uncertain) */}
-                    {claim.verdict === 'uncertain' && claim.uncertaintyExplanation && (
-                      <UncertaintyExplanation explanation={claim.uncertaintyExplanation} />
-                    )}
-
-                    {/* Confidence Breakdown */}
-                    {claim.confidenceBreakdown && (
-                      <ConfidenceBreakdown breakdown={claim.confidenceBreakdown} />
-                    )}
-
-                    {/* Decision Trail */}
-                    {claim.decisionTrail && (
-                      <DecisionTrail decisionTrail={claim.decisionTrail} />
-                    )}
-                  </>
-                )}
+                <ClaimMapView claim={claim} />
 
                 {/* Evidence Toggle Button */}
                 {claim.evidence && claim.evidence.length > 0 ? (
