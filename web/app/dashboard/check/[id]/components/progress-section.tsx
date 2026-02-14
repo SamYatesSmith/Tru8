@@ -13,10 +13,11 @@ interface ProgressSectionProps {
 export function ProgressSection({ progress, currentStage, isConnected, message, timeEstimate }: ProgressSectionProps) {
   const stages = [
     { key: 'ingest', label: 'Reading Content', description: 'Analyzing your submission' },
-    { key: 'extract', label: 'Finding Claims', description: 'Identifying statements to verify' },
+    { key: 'extract', label: 'Finding Claims', description: 'Identifying claims to analyze' },
     { key: 'retrieve', label: 'Gathering Evidence', description: 'Searching trusted sources' },
-    { key: 'verify', label: 'Cross-Checking Facts', description: 'Comparing claims against evidence' },
-    { key: 'judge', label: 'Generating Verdict', description: 'Creating final assessment' },
+    { key: 'select', label: 'Selecting Claims', description: 'Ranking claims for analysis' },
+    { key: 'decompose', label: 'Decomposing Claims', description: 'Breaking claims into elements' },
+    { key: 'analyze', label: 'Mapping Evidence', description: 'Connecting evidence to elements' },
   ];
 
   const getStageStatus = (stageKey: string) => {
@@ -37,7 +38,7 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
 
   return (
     <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-      <h3 className="text-xl font-bold text-white mb-6">Verification Progress</h3>
+      <h3 className="text-xl font-bold text-white mb-6">Analysis Progress</h3>
 
       {/* Stage List */}
       <div className="space-y-4 mb-6">

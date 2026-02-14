@@ -2,7 +2,7 @@ import { View, Text } from 'react-native';
 import { CheckCircle, Clock, Circle } from 'lucide-react-native';
 import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
 
-type PipelineStage = 'pending' | 'processing' | 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'completed' | 'failed';
+type PipelineStage = 'pending' | 'processing' | 'ingest' | 'extract' | 'retrieve' | 'select' | 'decompose' | 'analyze' | 'completed' | 'failed';
 
 interface ProgressStepperProps {
   currentStage: PipelineStage;
@@ -22,22 +22,27 @@ const stages = [
   { 
     key: 'extract' as const, 
     label: 'Extracting', 
-    description: 'Finding claims to fact-check...' 
+    description: 'Identifying claims to analyze...' 
   },
-  { 
-    key: 'retrieve' as const, 
-    label: 'Researching', 
-    description: 'Gathering evidence from sources...' 
+  {
+    key: 'retrieve' as const,
+    label: 'Researching',
+    description: 'Gathering evidence from sources...'
   },
-  { 
-    key: 'verify' as const, 
-    label: 'Verifying', 
-    description: 'Checking claims against evidence...' 
+  {
+    key: 'select' as const,
+    label: 'Selecting',
+    description: 'Ranking claims for analysis...'
   },
-  { 
-    key: 'judge' as const, 
-    label: 'Analyzing', 
-    description: 'Generating verdict and rationale...' 
+  {
+    key: 'decompose' as const,
+    label: 'Decomposing',
+    description: 'Breaking claims into elements...'
+  },
+  {
+    key: 'analyze' as const,
+    label: 'Mapping Evidence',
+    description: 'Mapping evidence to claim elements...'
   },
 ];
 
@@ -76,11 +81,11 @@ export function ProgressStepper({
           width: 8,
           height: 8,
           borderRadius: 4,
-          backgroundColor: isConnected 
-            ? connectionMode === 'realtime' 
-              ? Colors.verdictSupported 
-              : Colors.verdictUncertain
-            : Colors.verdictContradicted,
+          backgroundColor: isConnected
+            ? connectionMode === 'realtime'
+              ? '#059669'
+              : '#D97706'
+            : '#DC2626',
         }} />
         <Text style={{
           color: Colors.coolGrey,
@@ -132,10 +137,10 @@ export function ProgressStepper({
           <View style={{
             height: '100%',
             width: `${progress}%`,
-            backgroundColor: isFailed 
-              ? Colors.verdictContradicted 
-              : isComplete 
-                ? Colors.verdictSupported 
+            backgroundColor: isFailed
+              ? '#DC2626'
+              : isComplete
+                ? '#059669'
                 : Colors.lightGrey,
             borderRadius: BorderRadius.radiusFull,
           }} />
@@ -151,7 +156,7 @@ export function ProgressStepper({
         )}
         {error && (
           <Text style={{
-            color: Colors.verdictContradicted,
+            color: '#DC2626',
             fontSize: Typography.textSm,
           }}>
             {error}
@@ -182,14 +187,14 @@ export function ProgressStepper({
                   : isCompleted
                     ? Colors.coolGrey
                     : isStepFailed
-                      ? Colors.verdictContradicted
+                      ? '#DC2626'
                       : Colors.coolGrey + '50',
                 backgroundColor: isCurrent
                   ? Colors.lightGrey + '20'
                   : isCompleted
                     ? Colors.deepPurpleGrey + '80'
                     : isStepFailed
-                      ? Colors.verdictContradicted + '20'
+                      ? '#DC262620'
                       : 'transparent',
               }}
             >
@@ -199,7 +204,7 @@ export function ProgressStepper({
                 ) : isCurrent ? (
                   <Clock size={20} color={Colors.lightGrey} />
                 ) : isStepFailed ? (
-                  <Circle size={20} color={Colors.verdictContradicted} />
+                  <Circle size={20} color={'#DC2626'} />
                 ) : (
                   <Circle size={20} color={Colors.coolGrey} />
                 )}
@@ -212,7 +217,7 @@ export function ProgressStepper({
                     : isCompleted 
                       ? Colors.lightGrey
                       : isStepFailed
-                        ? Colors.verdictContradicted
+                        ? '#DC2626'
                         : Colors.coolGrey,
                   fontSize: Typography.textBase,
                   fontWeight: Typography.fontWeightMedium,
@@ -257,7 +262,7 @@ export function ProgressStepper({
                 fontSize: Typography.textSm,
                 marginTop: Spacing.space1,
               }}>
-                Your fact-check results are ready.
+                Your analysis results are ready.
               </Text>
             </View>
           </View>
@@ -272,13 +277,13 @@ export function ProgressStepper({
             padding: Spacing.space3,
             borderRadius: BorderRadius.radiusLg,
             borderWidth: 2,
-            borderColor: Colors.verdictContradicted,
-            backgroundColor: Colors.verdictContradicted + '20',
+            borderColor: '#DC2626',
+            backgroundColor: '#DC262620',
           }}>
-            <Circle size={20} color={Colors.verdictContradicted} style={{ marginTop: 2 }} />
+            <Circle size={20} color={'#DC2626'} style={{ marginTop: 2 }} />
             <View>
               <Text style={{
-                color: Colors.verdictContradicted,
+                color: '#DC2626',
                 fontSize: Typography.textBase,
                 fontWeight: Typography.fontWeightMedium,
               }}>

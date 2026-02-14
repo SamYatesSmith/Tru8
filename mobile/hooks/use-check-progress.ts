@@ -3,7 +3,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { getCheck } from '@/lib/api';
 import type { Check } from '@shared/types';
 
-type PipelineStage = 'pending' | 'processing' | 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'completed' | 'failed';
+type PipelineStage = 'pending' | 'processing' | 'ingest' | 'extract' | 'retrieve' | 'select' | 'decompose' | 'analyze' | 'completed' | 'failed';
 
 interface ProgressState {
   check?: Check;
@@ -17,25 +17,27 @@ interface ProgressState {
 
 const STAGE_PROGRESS = {
   pending: 0,
-  processing: 10,
-  ingest: 20,
-  extract: 40,
-  retrieve: 60,
-  verify: 75,
-  judge: 90,
+  processing: 5,
+  ingest: 10,
+  extract: 25,
+  retrieve: 40,
+  select: 55,
+  decompose: 70,
+  analyze: 85,
   completed: 100,
   failed: 0,
 };
 
 const STAGE_MESSAGES = {
   pending: 'Queued for processing...',
-  processing: 'Starting fact-check...',
+  processing: 'Starting analysis...',
   ingest: 'Processing your content...',
-  extract: 'Finding claims to fact-check...',
+  extract: 'Identifying claims...',
   retrieve: 'Gathering evidence from sources...',
-  verify: 'Checking claims against evidence...',
-  judge: 'Generating verdict and rationale...',
-  completed: 'Fact-check complete!',
+  select: 'Ranking claims for analysis...',
+  decompose: 'Breaking claims into elements...',
+  analyze: 'Mapping evidence to claim elements...',
+  completed: 'Analysis complete!',
   failed: 'Processing failed',
 };
 
@@ -83,23 +85,29 @@ export function useCheckProgress(checkId: string | null) {
       } else if (check.status === 'processing') {
         // Estimate stage based on whether we have claims/results
         if (check.claims && check.claims.length > 0) {
-          stage = 'judge'; // Has results, likely in final judgment
-          progress = 90;
+          stage = 'analyze'; // Has results, likely in final analysis
+          progress = 85;
         } else {
           // Still processing, estimate based on processing time
           const processingTime = check.processingTimeMs || 0;
-          if (processingTime > 8000) {
-            stage = 'verify';
-            progress = 75;
+          if (processingTime > 12000) {
+            stage = 'analyze';
+            progress = 85;
+          } else if (processingTime > 10000) {
+            stage = 'decompose';
+            progress = 70;
+          } else if (processingTime > 8000) {
+            stage = 'select';
+            progress = 55;
           } else if (processingTime > 5000) {
             stage = 'retrieve';
-            progress = 60;
+            progress = 40;
           } else if (processingTime > 2000) {
             stage = 'extract';
-            progress = 40;
+            progress = 25;
           } else {
             stage = 'ingest';
-            progress = 20;
+            progress = 10;
           }
         }
       } else {

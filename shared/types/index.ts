@@ -151,7 +151,7 @@ export type UserUsage = UserUsageResponse;
 // Pipeline stages
 export interface PipelineProgress {
   checkId: string;
-  stage: 'ingest' | 'extract' | 'retrieve' | 'verify' | 'judge' | 'select' | 'decompose' | 'analyze' | 'complete';
+  stage: 'ingest' | 'extract' | 'retrieve' | 'select' | 'decompose' | 'analyze' | 'complete';
   progress: number; // 0-100
   message?: string;
 }
