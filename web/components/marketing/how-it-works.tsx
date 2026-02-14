@@ -11,7 +11,7 @@ import { Upload, Zap, FileText } from 'lucide-react';
  * 2. AI Verification (Zap icon)
  *    - "Our AI analyzes content against thousands of verified sources in real-time"
  * 3. Get Results (FileText icon)
- *    - "Receive detailed reports with evidence, sources, and confidence scores"
+ *    - "Receive detailed reports with evidence, sources, and evidence mapping"
  *
  * Design:
  * - Orange heading
@@ -37,7 +37,7 @@ export function HowItWorks() {
     {
       number: 3,
       title: 'Get Results',
-      description: 'Receive detailed reports with evidence, sources, and confidence scores',
+      description: 'Receive detailed reports with evidence, sources, and evidence mapping',
       icon: FileText,
     },
   ];

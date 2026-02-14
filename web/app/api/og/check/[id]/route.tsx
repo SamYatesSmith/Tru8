@@ -23,7 +23,6 @@ interface PublicCheckData {
   claimsCount: number;
   sourcesCount: number;
   evidenceCount: number;
-  credibilityScore?: number;
   topSources: string[];
 }
 
@@ -78,7 +77,6 @@ export async function GET(
         claimsCount={check.claimsCount}
         sourcesCount={check.sourcesCount}
         evidenceCount={check.evidenceCount}
-        credibilityScore={check.credibilityScore}
         topSources={check.topSources}
         baseUrl={baseUrl}
       />,

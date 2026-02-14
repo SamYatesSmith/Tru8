@@ -18,7 +18,7 @@ interface ClaimSources {
 
 interface SourceAnalyticsProps {
   totalReviewed: number;  // All sources reviewed during fact-check
-  totalCited: number;     // Sources included in final verdict
+  totalCited: number;     // Sources included in analysis
   claims: ClaimSources[];
 }
 

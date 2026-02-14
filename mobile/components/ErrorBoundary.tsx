@@ -111,14 +111,14 @@ export class ErrorBoundary extends Component<Props, State> {
               width: '100%',
             }}>
               <View style={{
-                backgroundColor: Colors.verdictContradicted + '20',
+                backgroundColor: '#ef4444' + '20',
                 borderRadius: BorderRadius.radiusFull,
                 padding: Spacing.space4,
                 marginBottom: Spacing.space6,
               }}>
                 <AlertTriangle 
                   size={48} 
-                  color={Colors.verdictContradicted} 
+                  color={'#ef4444'} 
                 />
               </View>
 

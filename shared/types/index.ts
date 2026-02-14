@@ -1,6 +1,3 @@
-// Verdict types
-export type VerdictType = 'supported' | 'contradicted' | 'uncertain';
-
 // Check status
 export type CheckStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
@@ -58,9 +55,6 @@ export interface Claim {
   id: string;
   checkId: string;
   text: string;
-  verdict?: VerdictType; // Legacy — kept for frontend until Track C
-  confidence?: number; // Legacy — kept for frontend until Track C
-  rationale?: string; // Legacy — kept for frontend until Track C
   evidence: Evidence[];
   position: number; // Order in the check
   sourcesReviewedCount?: number; // Total sources reviewed (for "View sources" link when none displayed)

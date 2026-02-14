@@ -5,8 +5,6 @@
  */
 
 export { Logo } from './logo';
-export { VerdictBadge } from './verdict-badge';
-export type { Verdict } from './verdict-badge';
 export { SourceChip, MoreChip } from './source-chip';
 export { StatsBlock } from './stats-block';
 export { SourceTierBar } from './source-tier-bar';

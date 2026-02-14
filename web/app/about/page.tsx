@@ -123,7 +123,7 @@ export default function AboutPage() {
               Ready to try Tru8?
             </h3>
             <p className="text-slate-400 mb-6 max-w-lg mx-auto">
-              Start verifying claims with confidence. Your first 3 checks are free.
+              Start researching claims with evidence. Your first 3 checks are free.
             </p>
             <Link
               href="/"

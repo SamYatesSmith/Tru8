@@ -59,7 +59,7 @@ export function PricingCard({
           position: 'absolute',
           top: -12,
           left: Spacing.space4,
-          backgroundColor: Colors.verdictSupported,
+          backgroundColor: '#22c55e',
           paddingHorizontal: Spacing.space3,
           paddingVertical: Spacing.space1,
           borderRadius: BorderRadius.radiusFull,
@@ -131,7 +131,7 @@ export function PricingCard({
               marginBottom: Spacing.space3,
             }}
           >
-            <Check size={16} color={Colors.verdictSupported} style={{ marginTop: 2 }} />
+            <Check size={16} color={'#22c55e'} style={{ marginTop: 2 }} />
             <Text style={{
               flex: 1,
               color: Colors.lightGrey,

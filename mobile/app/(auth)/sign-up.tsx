@@ -62,7 +62,7 @@ export default function SignUp() {
           <Text className="text-coolGrey text-center">
             {pendingVerification 
               ? "We've sent a verification code to your email"
-              : "Join the fight against misinformation"}
+              : "Research the evidence behind any claim"}
           </Text>
         </View>
 

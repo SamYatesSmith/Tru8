@@ -1,6 +1,6 @@
 import { TouchableOpacity, Text, View, Linking, Alert } from 'react-native';
 import { ExternalLink, Shield, AlertCircle, Info } from 'lucide-react-native';
-import { Colors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
+import { Colors, ElementStateColors, Spacing, Typography, BorderRadius } from '@/lib/design-system';
 import type { Evidence } from '@shared/types';
 
 interface CitationChipProps {
@@ -38,9 +38,9 @@ export function CitationChip({
     if (trustedSources.some(trusted => sourceLower.includes(trusted))) {
       return { 
         icon: Shield, 
-        color: Colors.verdictSupported, 
+        color: ElementStateColors.supported,
         label: 'Trusted',
-        backgroundColor: Colors.verdictSupportedBg 
+        backgroundColor: ElementStateColors.supportedBg
       };
     }
     

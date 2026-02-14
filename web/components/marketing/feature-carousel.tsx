@@ -55,8 +55,8 @@ export function FeatureCarousel() {
     },
     {
       icon: BarChart3,
-      title: 'Confidence Scoring',
-      description: 'Transparent confidence metrics showing verification strength for each claim',
+      title: 'Evidence Mapping',
+      description: 'Transparent evidence mapping showing how sources relate to each element of a claim',
     },
     {
       icon: Globe,

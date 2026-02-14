@@ -103,9 +103,9 @@ export function RealTimeProgressScreen({
       {/* Connection Status Banner */}
       {!isConnected && (
         <View style={{
-          backgroundColor: Colors.verdictContradicted + '20',
+          backgroundColor: '#ef4444' + '20',
           borderBottomWidth: 1,
-          borderBottomColor: Colors.verdictContradicted + '50',
+          borderBottomColor: '#ef4444' + '50',
           paddingHorizontal: Spacing.space4,
           paddingVertical: Spacing.space3,
         }}>
@@ -116,7 +116,7 @@ export function RealTimeProgressScreen({
           }}>
             <View style={{ flex: 1 }}>
               <Text style={{
-                color: Colors.verdictContradicted,
+                color: '#ef4444',
                 fontSize: Typography.textSm,
                 fontWeight: Typography.fontWeightMedium,
               }}>
@@ -135,7 +135,7 @@ export function RealTimeProgressScreen({
             </View>
             
             {isLoading && (
-              <ActivityIndicator size="small" color={Colors.verdictContradicted} />
+              <ActivityIndicator size="small" color={'#ef4444'} />
             )}
           </View>
         </View>

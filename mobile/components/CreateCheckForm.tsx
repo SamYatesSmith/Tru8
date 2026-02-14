@@ -235,8 +235,8 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
       {/* Offline Status */}
       {!isOnline && (
         <View style={{
-          backgroundColor: Colors.verdictContradicted + '20',
-          borderColor: Colors.verdictContradicted,
+          backgroundColor: '#ef4444' + '20',
+          borderColor: '#ef4444',
           borderWidth: 1,
           borderRadius: BorderRadius.radiusLg,
           padding: Spacing.space3,
@@ -244,9 +244,9 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
           alignItems: 'center',
           gap: Spacing.space2,
         }}>
-          <WifiOff size={20} color={Colors.verdictContradicted} />
+          <WifiOff size={20} color={'#ef4444'} />
           <Text style={{
-            color: Colors.verdictContradicted,
+            color: '#ef4444',
             fontSize: Typography.textSm,
             fontWeight: Typography.fontWeightMedium,
             flex: 1,
@@ -453,7 +453,7 @@ export function CreateCheckForm({ onSuccess }: CreateCheckFormProps) {
                 alignItems: 'center',
                 gap: Spacing.space2,
               }}>
-                <Upload size={32} color={Colors.verdictSupported} />
+                <Upload size={32} color={'#22c55e'} />
                 <Text style={{
                   color: Colors.lightGrey,
                   fontSize: Typography.textBase,

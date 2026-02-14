@@ -9,7 +9,6 @@ import { apiClient } from '@/lib/api';
 interface Claim {
   position: number;
   text: string;
-  verdict?: string;
 }
 
 const FEEDBACK_TYPES = [
@@ -60,7 +59,6 @@ export function FeedbackWidget() {
             setClaims(checkData.claims.map((c: any) => ({
               position: c.position,
               text: c.claimText || c.text || '',
-              verdict: c.verdict,
             })));
           }
         } catch (err) {

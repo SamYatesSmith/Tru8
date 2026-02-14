@@ -9,19 +9,6 @@ export const COLORS = {
   primaryLight: '#3B82F6',
   primaryDark: '#1E3A8A',
   
-  // Semantic verdict colors - HIGH CONTRAST
-  verdictSupported: '#059669',      // Emerald Green
-  verdictContradicted: '#DC2626',   // Strong Red
-  verdictUncertain: '#D97706',      // Warning Amber
-  
-  // Verdict backgrounds
-  verdictSupportedBg: '#ECFDF5',
-  verdictSupportedBorder: '#A7F3D0',
-  verdictContradictedBg: '#FEF2F2',
-  verdictContradictedBorder: '#FECACA',
-  verdictUncertainBg: '#FFFBEB',
-  verdictUncertainBorder: '#FDE68A',
-  
   // Neutral palette
   gray900: '#111827',
   gray800: '#1F2937',
@@ -76,29 +63,6 @@ export const FEATURES = {
   lightTheme: false,
   localPrivacyMode: false,
 } as const;
-
-// Verdict labels
-export const VERDICT_LABELS = {
-  supported: 'Supported',
-  contradicted: 'Contradicted',
-  uncertain: 'Uncertain',
-  insufficient_evidence: 'Insufficient Evidence',
-  conflicting_expert_opinion: 'Conflicting Opinions',
-  outdated_claim: 'Outdated',
-} as const;
-
-// Verdict icons
-export const VERDICT_ICONS = {
-  supported: '✓',
-  contradicted: '!',
-  uncertain: '?',
-  insufficient_evidence: '?',
-  conflicting_expert_opinion: '⚖',
-  outdated_claim: '⏱',
-} as const;
-
-// Verdict type (for TypeScript)
-export type VerdictType = keyof typeof VERDICT_LABELS;
 
 // --- Claim Map constants (Track B) ---
 export const ELEMENT_STATE_COLORS = {

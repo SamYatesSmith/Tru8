@@ -53,7 +53,7 @@ export function TransparencyScore({ score, className = '' }: TransparencyScorePr
       </div>
 
       <p className="text-xs text-slate-400 mt-2">
-        How explainable this verdict is based on evidence quality and consensus
+        How transparent this analysis is based on evidence quality and consensus
       </p>
     </div>
   );

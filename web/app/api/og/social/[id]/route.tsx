@@ -26,7 +26,6 @@ interface PublicCheckData {
   claimsCount: number;
   sourcesCount: number;
   evidenceCount: number;
-  credibilityScore?: number;
   topSources: string[];
 }
 

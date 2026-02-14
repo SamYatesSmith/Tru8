@@ -3,7 +3,6 @@
 interface ClarityResponseProps {
   userQuery: string;
   queryResponse?: string;
-  queryConfidence?: number;
   querySources?: Array<{
     id: string;
     source: string;
@@ -11,7 +10,6 @@ interface ClarityResponseProps {
     title: string;
     snippet: string;
     publishedDate?: string;
-    credibilityScore: number;
   }>;
   relatedClaims?: number[];
   claims?: any[];
@@ -20,12 +18,11 @@ interface ClarityResponseProps {
 export function ClarityResponseCard({
   userQuery,
   queryResponse,
-  queryConfidence,
   querySources,
   relatedClaims,
   claims
 }: ClarityResponseProps) {
-  const hasDirectAnswer = queryConfidence !== undefined && queryConfidence >= 40;
+  const hasDirectAnswer = !!queryResponse;
 
   return (
     <div className="bg-gradient-to-r from-[#1E40AF05] to-[#7C3AED05] border-l-4 border-[#1E40AF] rounded-xl p-6 space-y-4">
@@ -52,25 +49,6 @@ export function ClarityResponseCard({
             </p>
           </div>
 
-          {/* Confidence Bar */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-semibold text-slate-300">Confidence</span>
-              <span className="text-sm font-bold text-white">{Math.round(queryConfidence!)}%</span>
-            </div>
-            <div className="w-full bg-slate-700 rounded-full h-3">
-              <div
-                className="bg-gradient-to-r from-[#1E40AF] to-[#7C3AED] h-3 rounded-full transition-all duration-1000"
-                style={{ width: `${queryConfidence}%` }}
-              />
-            </div>
-            {queryConfidence! < 70 && (
-              <p className="text-xs text-slate-400 mt-1">
-                ℹ️ Moderate confidence - limited sources available
-              </p>
-            )}
-          </div>
-
           {/* Sources */}
           {querySources && querySources.length > 0 && (
             <div>
@@ -95,10 +73,6 @@ export function ClarityResponseCard({
                         <span className="text-sm text-slate-400">{source.publishedDate}</span>
                       </>
                     )}
-                    <span className="text-slate-500 mx-2">·</span>
-                    <span className="text-sm text-slate-400">
-                      Credibility: {Math.round(source.credibilityScore * 100)}%
-                    </span>
                   </div>
                 ))}
               </div>
@@ -140,7 +114,7 @@ export function ClarityResponseCard({
                         → Claim {position + 1}: {claim.text}
                       </p>
                       <span className="ml-4 text-xs font-semibold text-slate-400">
-                        {claim.verdict.toUpperCase()} ({claim.confidence}%)
+                        {claim.claimMap?.orientation || 'Analysis pending'}
                       </span>
                     </div>
                     <p className="text-sm text-[#f57a07] mt-2 hover:underline">

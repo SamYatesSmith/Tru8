@@ -193,7 +193,7 @@ function CheckResultsContent() {
     return (
       <SafeAreaView style={styles.errorContainer}>
         <View style={styles.errorContent}>
-          <AlertTriangle size={48} color={Colors.verdictContradicted} />
+          <AlertTriangle size={48} color={'#ef4444'} />
           <Text style={styles.errorTitle}>
             Failed to Load Check
           </Text>

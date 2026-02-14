@@ -20,7 +20,6 @@ export interface FullReportCardProps {
   claimsCount: number;
   sourcesCount: number;
   evidenceCount: number;
-  credibilityScore?: number;
   topSources: string[];
   baseUrl?: string;
 }
@@ -43,7 +42,6 @@ export function FullReportCard({
   claimsCount,
   sourcesCount,
   evidenceCount,
-  credibilityScore,
   topSources,
   baseUrl,
 }: FullReportCardProps) {
@@ -161,7 +159,7 @@ export function FullReportCard({
         <StatsBlock label="Evidence Pieces" value={evidenceCount} />
       </div>
 
-      {/* Bottom section: Credibility + Sources */}
+      {/* Bottom section: Sources */}
       <div
         style={{
           display: 'flex',
@@ -169,84 +167,7 @@ export function FullReportCard({
           gap: '64px',
         }}
       >
-        {/* Left: Average Source Credibility */}
-        {credibilityScore !== undefined && (
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}
-          >
-            <span
-              style={{
-                color: COLORS.white40,
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Average Source Credibility
-            </span>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <span
-                  style={{
-                    color: COLORS.white,
-                    fontSize: 16,
-                    fontWeight: 600,
-                  }}
-                >
-                  Based on {sourcesCount} sources analyzed
-                </span>
-                <span
-                  style={{
-                    color: COLORS.primary,
-                    fontSize: 16,
-                    fontWeight: 700,
-                  }}
-                >
-                  {credibilityScore}%
-                </span>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  width: '100%',
-                  height: '8px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${credibilityScore}%`,
-                    height: '100%',
-                    backgroundColor: COLORS.primary,
-                    borderRadius: 4,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Right: Top Sources */}
+        {/* Top Sources */}
         <div
           style={{
             width: '320px',

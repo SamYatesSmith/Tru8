@@ -180,7 +180,6 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
             <ClarityResponseCard
               userQuery={checkData.userQuery}
               queryResponse={checkData.queryResponse}
-              queryConfidence={checkData.queryConfidence}
               querySources={checkData.querySources}
               relatedClaims={checkData.queryRelatedClaims}
               claims={checkData.claims}

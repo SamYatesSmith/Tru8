@@ -21,7 +21,6 @@ interface Source {
   title: string;
   url: string;
   publishedDate: string | null;
-  credibilityScore: number;
   relevanceScore: number;
   isIncluded: boolean;
   filterStage: string | null;

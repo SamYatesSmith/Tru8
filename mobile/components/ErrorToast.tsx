@@ -51,13 +51,13 @@ function ErrorToast({ error, onDismiss }: ErrorToastProps) {
   const getErrorColor = () => {
     switch (error.type) {
       case 'network':
-        return Colors.verdictUncertain;
+        return '#d97706';
       case 'auth':
-        return Colors.verdictContradicted;
+        return '#ef4444';
       case 'api':
         return Colors.coolGrey;
       default:
-        return Colors.verdictContradicted;
+        return '#ef4444';
     }
   };
 

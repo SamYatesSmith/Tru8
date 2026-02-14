@@ -10,19 +10,6 @@ export const Colors = {
   primaryLight: '#3B82F6',   // Bright Blue - CTAs, links
   primaryDark: '#1E3A8A',    // Navy - headings, emphasis
   
-  // Semantic verdict colors - HIGH CONTRAST
-  verdictSupported: '#059669',      // Emerald Green
-  verdictContradicted: '#DC2626',   // Strong Red
-  verdictUncertain: '#D97706',      // Warning Amber
-  
-  // Verdict backgrounds
-  verdictSupportedBg: '#ECFDF5',
-  verdictSupportedBorder: '#A7F3D0',
-  verdictContradictedBg: '#FEF2F2',
-  verdictContradictedBorder: '#FECACA',
-  verdictUncertainBg: '#FFFBEB',
-  verdictUncertainBorder: '#FDE68A',
-  
   // Neutral palette (Information Hierarchy)
   gray900: '#111827',  // Primary headings
   gray800: '#1F2937',  // Body text
@@ -182,65 +169,6 @@ export const ComponentStyles = {
   },
 } as const;
 
-// Verdict-specific styles
-export const VerdictStyles = {
-  pillSupported: {
-    backgroundColor: Colors.verdictSupportedBg,
-    borderColor: Colors.verdictSupportedBorder,
-    borderWidth: 1,
-  },
-  pillContradicted: {
-    backgroundColor: Colors.verdictContradictedBg,
-    borderColor: Colors.verdictContradictedBorder,
-    borderWidth: 1,
-  },
-  pillUncertain: {
-    backgroundColor: Colors.verdictUncertainBg,
-    borderColor: Colors.verdictUncertainBorder,
-    borderWidth: 1,
-  },
-  
-  textSupported: {
-    color: Colors.verdictSupported,
-  },
-  textContradicted: {
-    color: Colors.verdictContradicted,
-  },
-  textUncertain: {
-    color: Colors.verdictUncertain,
-  },
-} as const;
-
-// Utility functions
-export const getVerdictStyle = (verdict: 'supported' | 'contradicted' | 'uncertain') => {
-  switch (verdict) {
-    case 'supported':
-      return {
-        pill: VerdictStyles.pillSupported,
-        text: VerdictStyles.textSupported,
-        color: Colors.verdictSupported,
-      };
-    case 'contradicted':
-      return {
-        pill: VerdictStyles.pillContradicted,
-        text: VerdictStyles.textContradicted,
-        color: Colors.verdictContradicted,
-      };
-    case 'uncertain':
-      return {
-        pill: VerdictStyles.pillUncertain,
-        text: VerdictStyles.textUncertain,
-        color: Colors.verdictUncertain,
-      };
-    default:
-      return {
-        pill: VerdictStyles.pillUncertain,
-        text: VerdictStyles.textUncertain,
-        color: Colors.verdictUncertain,
-      };
-  }
-};
-
 // --- Element State tokens (Track C) ---
 export const ElementStateColors = {
   supported: '#22c55e',
@@ -282,8 +210,6 @@ export default {
   BorderRadius,
   Shadows,
   ComponentStyles,
-  VerdictStyles,
-  getVerdictStyle,
   ElementStateColors,
   AccentColors,
   Fonts,

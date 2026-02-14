@@ -32,7 +32,7 @@ export default function TermsOfServicePage() {
         <ul>
           <li>Analyzes text, URLs, images, and videos for factual claims</li>
           <li>Searches credible sources for supporting or contradicting evidence</li>
-          <li>Provides dated citations and confidence scores</li>
+          <li>Provides dated citations and evidence references</li>
           <li>Provides verification results with source citations</li>
         </ul>
 
