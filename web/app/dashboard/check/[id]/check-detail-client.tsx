@@ -146,7 +146,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       {/* Metadata Card - Always shown (now includes transparency score) */}
       <CheckMetadataCard check={checkData} />
 
-      {/* Tab Toggle for Verdict/Sources (only shown when completed) */}
+      {/* Tab Toggle for Evidence Map/Sources (only shown when completed) */}
       {checkData.status === 'completed' && (
         <CheckTabs
           checkId={checkId}
@@ -187,9 +187,12 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
             />
           )}
           <ClaimsSection claims={checkData.claims} checkId={checkId} />
-          {checkData.overallSummary && checkData.credibilityScore !== undefined && (
-            <OverallSummaryCard check={checkData} />
-          )}
+          <OverallSummaryCard
+            claims={checkData.claims}
+            checkId={checkId}
+            sourcesCount={sourcesCount}
+            processingTimeMs={checkData.processingTimeMs}
+          />
           <ShareSection checkId={checkId} inputUrl={checkData.inputUrl} title={checkData.title} />
           <NavigationSection />
         </>

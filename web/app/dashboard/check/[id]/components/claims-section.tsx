@@ -1,18 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ExternalLink, RefreshCw, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { apiClient } from '@/lib/api';
-import { useAuth } from '@clerk/nextjs';
-import { VerdictPill } from '@/app/dashboard/components/verdict-pill';
-import { ConfidenceBar } from '@/app/dashboard/components/confidence-bar';
-import { DecisionTrail } from '@/app/dashboard/components/decision-trail';
-import { ConfidenceBreakdown } from '@/app/dashboard/components/confidence-breakdown';
-import { UncertaintyExplanation } from '@/app/dashboard/components/uncertainty-explanation';
-import { NonVerifiableNotice } from '@/app/dashboard/components/non-verifiable-notice';
+import { ChevronDown, ExternalLink, RefreshCw } from 'lucide-react';
+import { ClaimMapView } from '@/components/claim-map';
 import { FactCheckBadge } from '@/app/dashboard/components/fact-check-badge';
 import { TimeSensitiveIndicator } from '@/app/dashboard/components/time-sensitive-indicator';
 import { formatMonthYear } from '@/lib/utils';
+import type { ClaimMap } from '@shared/types';
 
 // Phase 2: Helper function for NLI explanations
 function generateNliExplanation(stance: string, confidence?: number): string {
@@ -43,29 +37,22 @@ interface CurrentVerifiedData {
 interface Claim {
   id: string;
   text: string;
-  verdict: 'supported' | 'contradicted' | 'uncertain';
-  confidence: number;
-  rationale: string;
   position: number;
   evidence: Evidence[];
 
   // Sources reviewed count (for "View sources" link when no evidence displayed)
   sourcesReviewedCount?: number;
 
-  // Classification fields (Phase 2)
+  // Classification fields
   claimType?: string;
-  isVerifiable?: boolean;
-  verifiabilityReason?: string;
 
-  // Temporal fields (Phase 1.5)
+  // Temporal fields
   isTimeSensitive?: boolean;
   timeReference?: string;
   temporalMarkers?: any;
 
-  // Explainability fields (Phase 2)
-  uncertaintyExplanation?: string;
-  confidenceBreakdown?: any;
-  decisionTrail?: any;
+  // Claim Map (Track B)
+  claimMap?: ClaimMap;
 
   // Temporal drift comparison (current API data vs claimed values)
   currentVerifiedData?: CurrentVerifiedData;
@@ -117,34 +104,9 @@ interface ClaimsSectionProps {
 
 export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
   const [expandedClaim, setExpandedClaim] = useState<string | null>(null);
-  const [feedbackGiven, setFeedbackGiven] = useState<Record<number, 'up' | 'down'>>({});
-  const { getToken } = useAuth();
 
   const toggleEvidence = (claimId: string) => {
     setExpandedClaim(expandedClaim === claimId ? null : claimId);
-  };
-
-  const handleVerdictFeedback = async (claimPosition: number, helpful: boolean) => {
-    // Prevent duplicate submissions
-    if (feedbackGiven[claimPosition]) return;
-
-    try {
-      const token = await getToken();
-      await apiClient.submitFeedback({
-        type: helpful ? 'verdict_helpful' : 'verdict_not_helpful',
-        message: helpful ? 'User found verdict helpful' : 'User found verdict not helpful',
-        checkId,
-        claimPosition,
-        pageUrl: window.location.href,
-      }, token);
-
-      setFeedbackGiven(prev => ({
-        ...prev,
-        [claimPosition]: helpful ? 'up' : 'down'
-      }));
-    } catch (error) {
-      console.error('Failed to submit feedback:', error);
-    }
   };
 
   return (
@@ -196,131 +158,62 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
             {/* Claim Text */}
             <p className="text-lg font-medium text-white">&quot;{claim.text}&quot;</p>
 
-            {/* Non-Verifiable Notice OR Normal Verdict */}
-            {claim.isVerifiable === false ? (
-              <NonVerifiableNotice
-                claimType={claim.claimType || 'unknown'}
-                reason={claim.verifiabilityReason || 'This claim cannot be fact-checked.'}
-              />
-            ) : (
-              <>
-                {/* Header: Verdict + Confidence */}
-                <div className="flex items-start justify-between">
-                  <VerdictPill verdict={claim.verdict} />
-                  <span className="text-2xl font-bold text-white">
-                    {Math.round(claim.confidence)}%
-                  </span>
+            <ClaimMapView claim={claim} />
+
+            {/* Current Data Comparison - Show when temporal drift detected */}
+            {claim.currentVerifiedData?.drift_detected && (
+              <div className="mt-3 p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+                <div className="flex items-center gap-2 text-sm text-blue-300 mb-3">
+                  <RefreshCw size={14} className="animate-none" />
+                  <span className="font-semibold">Data Has Changed Since Publication</span>
+                  <span className="text-blue-500">·</span>
+                  <span className="text-blue-400 text-xs">{claim.currentVerifiedData.source}</span>
                 </div>
 
-                {/* Confidence Bar */}
-                <ConfidenceBar
-                  confidence={claim.confidence}
-                  verdict={claim.verdict}
-                />
-
-                {/* Rationale */}
-                {claim.rationale && (
-                  <p className="text-sm text-slate-400">{claim.rationale}</p>
-                )}
-
-                {/* Current Data Comparison - Show when temporal drift detected */}
-                {claim.currentVerifiedData?.drift_detected && (
-                  <div className="mt-3 p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
-                    <div className="flex items-center gap-2 text-sm text-blue-300 mb-3">
-                      <RefreshCw size={14} className="animate-none" />
-                      <span className="font-semibold">Data Has Changed Since Publication</span>
-                      <span className="text-blue-500">·</span>
-                      <span className="text-blue-400 text-xs">{claim.currentVerifiedData.source}</span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="p-3 bg-slate-800/50 rounded-lg">
-                        <span className="text-xs text-slate-500 uppercase tracking-wide">Article Claimed</span>
-                        <div className="mt-1 text-slate-300 font-medium">
-                          {Object.entries(claim.currentVerifiedData.claim_values).map(([k, v]) => (
-                            <div key={k} className="flex justify-between">
-                              <span className="capitalize">{k.replace('_', ' ')}:</span>
-                              <span>{v}</span>
-                            </div>
-                          ))}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="p-3 bg-slate-800/50 rounded-lg">
+                    <span className="text-xs text-slate-500 uppercase tracking-wide">Article Claimed</span>
+                    <div className="mt-1 text-slate-300 font-medium">
+                      {Object.entries(claim.currentVerifiedData.claim_values).map(([k, v]) => (
+                        <div key={k} className="flex justify-between">
+                          <span className="capitalize">{k.replace('_', ' ')}:</span>
+                          <span>{v}</span>
                         </div>
-                      </div>
-                      <div className="p-3 bg-emerald-900/30 border border-emerald-600/20 rounded-lg">
-                        <span className="text-xs text-emerald-400 uppercase tracking-wide">Current Data</span>
-                        <div className="mt-1 text-emerald-300 font-semibold">
-                          {Object.entries(claim.currentVerifiedData.current_values).map(([k, v]) => (
-                            <div key={k} className="flex justify-between">
-                              <span className="capitalize">{k.replace('_', ' ')}:</span>
-                              <span>{v}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
+                  </div>
+                  <div className="p-3 bg-emerald-900/30 border border-emerald-600/20 rounded-lg">
+                    <span className="text-xs text-emerald-400 uppercase tracking-wide">Current Data</span>
+                    <div className="mt-1 text-emerald-300 font-semibold">
+                      {Object.entries(claim.currentVerifiedData.current_values).map(([k, v]) => (
+                        <div key={k} className="flex justify-between">
+                          <span className="capitalize">{k.replace('_', ' ')}:</span>
+                          <span>{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-                    {claim.currentVerifiedData.drift_summary && (
-                      <div className="mt-3 flex items-center gap-2 text-xs">
-                        <span className={`px-2 py-1 rounded font-medium ${
-                          claim.currentVerifiedData.drift_severity === 'minor'
-                            ? 'bg-amber-500/20 text-amber-400'
-                            : 'bg-orange-500/20 text-orange-400'
-                        }`}>
-                          {claim.currentVerifiedData.drift_severity === 'minor' ? 'Minor Update' : 'Significant Change'}
-                        </span>
-                        <span className="text-slate-400">
-                          {claim.currentVerifiedData.drift_summary}
-                        </span>
-                      </div>
-                    )}
-
-                    <p className="mt-2 text-xs text-slate-500 italic">
-                      The claim may have been accurate when published. Current data retrieved from {claim.currentVerifiedData.source}.
-                    </p>
+                {claim.currentVerifiedData.drift_summary && (
+                  <div className="mt-3 flex items-center gap-2 text-xs">
+                    <span className={`px-2 py-1 rounded font-medium ${
+                      claim.currentVerifiedData.drift_severity === 'minor'
+                        ? 'bg-amber-500/20 text-amber-400'
+                        : 'bg-orange-500/20 text-orange-400'
+                    }`}>
+                      {claim.currentVerifiedData.drift_severity === 'minor' ? 'Minor Update' : 'Significant Change'}
+                    </span>
+                    <span className="text-slate-400">
+                      {claim.currentVerifiedData.drift_summary}
+                    </span>
                   </div>
                 )}
 
-                {/* Uncertainty Explanation (if uncertain) */}
-                {claim.verdict === 'uncertain' && claim.uncertaintyExplanation && (
-                  <UncertaintyExplanation explanation={claim.uncertaintyExplanation} />
-                )}
-
-                {/* Confidence Breakdown */}
-                {claim.confidenceBreakdown && (
-                  <ConfidenceBreakdown breakdown={claim.confidenceBreakdown} />
-                )}
-
-                {/* Decision Trail */}
-                {claim.decisionTrail && (
-                  <DecisionTrail decisionTrail={claim.decisionTrail} />
-                )}
-
-                {/* Inline Verdict Feedback */}
-                <div className="flex items-center gap-3 pt-2">
-                  <span className="text-xs text-slate-500">Was this verdict helpful?</span>
-                  {feedbackGiven[claim.position] ? (
-                    <span className="text-xs text-slate-400">
-                      {feedbackGiven[claim.position] === 'up' ? 'Thanks for your feedback!' : 'Thanks, we\'ll review this'}
-                    </span>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleVerdictFeedback(claim.position, true)}
-                        className="p-1.5 rounded hover:bg-emerald-500/20 text-slate-500 hover:text-emerald-400 transition-colors"
-                        title="Yes, helpful"
-                      >
-                        <ThumbsUp size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleVerdictFeedback(claim.position, false)}
-                        className="p-1.5 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors"
-                        title="No, not helpful"
-                      >
-                        <ThumbsDown size={14} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </>
+                <p className="mt-2 text-xs text-slate-500 italic">
+                  The claim may have been accurate when published. Current data retrieved from {claim.currentVerifiedData.source}.
+                </p>
+              </div>
             )}
 
             {/* Evidence Toggle Button OR Unsupported Notice */}

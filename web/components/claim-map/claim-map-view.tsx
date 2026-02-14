@@ -1,12 +1,12 @@
 'use client';
 
-import type { Claim } from '@shared/types';
+import type { ClaimMap } from '@shared/types';
 import { ClaimTypeBadge } from './claim-type-badge';
 import { ElementList } from './element-list';
 import { OrientationLine } from './orientation-line';
 
 interface ClaimMapViewProps {
-  claim: Claim;
+  claim: { claimMap?: ClaimMap };
 }
 
 export function ClaimMapView({ claim }: ClaimMapViewProps) {

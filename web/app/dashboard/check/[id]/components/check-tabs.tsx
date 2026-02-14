@@ -23,7 +23,7 @@ export function CheckTabs({ checkId, sourcesCount, isPro, isCompleted = true }: 
   return (
     <div className="border-b border-slate-700 mb-6">
       <div className="flex gap-8">
-        {/* Verdict Tab */}
+        {/* Evidence Map Tab */}
         <Link
           href={`/dashboard/check/${checkId}`}
           className={`
@@ -34,7 +34,7 @@ export function CheckTabs({ checkId, sourcesCount, isPro, isCompleted = true }: 
             }
           `}
         >
-          VERDICT
+          EVIDENCE MAP
         </Link>
 
         {/* Sources Tab */}

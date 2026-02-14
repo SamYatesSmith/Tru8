@@ -1,69 +1,61 @@
 'use client';
 
+import { OrientationLine } from '@/components/claim-map';
+import { ElementStateBadge } from '@/components/claim-map';
+import type { Claim, ElementState } from '@shared/types';
+
 interface OverallSummaryCardProps {
-  check: {
-    overallSummary: string;
-    credibilityScore: number;
-    claimsSupported: number;
-    claimsContradicted: number;
-    claimsUncertain: number;
-    articleDomain?: string;
-    articleJurisdiction?: string;
-  };
+  claims: Claim[];
+  processingTimeMs?: number;
+  checkId: string;
+  sourcesCount: number;
 }
 
-export function OverallSummaryCard({ check }: OverallSummaryCardProps) {
-  // Calculate credibility level
-  const getCredibilityLevel = (score: number) => {
-    if (score >= 80) return { label: 'High Credibility', color: 'text-emerald-400', bg: 'bg-emerald-500/20' };
-    if (score >= 60) return { label: 'Moderate Credibility', color: 'text-amber-400', bg: 'bg-amber-500/20' };
-    return { label: 'Low Credibility', color: 'text-red-400', bg: 'bg-red-500/20' };
-  };
+export function OverallSummaryCard({ claims, processingTimeMs, checkId, sourcesCount }: OverallSummaryCardProps) {
+  const stateCounts: Record<ElementState, number> = { supported: 0, disputed: 0, unresolved: 0 };
 
-  const credibility = getCredibilityLevel(check.credibilityScore);
+  for (const claim of claims) {
+    if (!claim.claimMap) continue;
+    for (const el of claim.claimMap.elements) {
+      if (el.state && el.state in stateCounts) {
+        stateCounts[el.state]++;
+      }
+    }
+  }
+
+  const firstOrientation = claims[0]?.claimMap?.orientation ?? null;
+
+  const formatTime = (ms: number) => {
+    if (ms < 1000) return `${ms}ms`;
+    return `${(ms / 1000).toFixed(1)}s`;
+  };
 
   return (
     <div className="bg-gradient-to-br from-blue-950/50 to-purple-950/50 border-2 border-blue-500/30 rounded-xl p-8 mb-8">
-      {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-black text-white mb-2">Overall Assessment</h2>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className={`${credibility.bg} ${credibility.color} px-4 py-2 rounded-lg font-bold text-sm inline-block`}>
-            {credibility.label}
+        <h2 className="text-2xl font-black text-white mb-4">Overall Assessment</h2>
+        <OrientationLine orientation={firstOrientation} />
+      </div>
+
+      <div className="flex items-center gap-4 mb-6">
+        {(['supported', 'disputed', 'unresolved'] as ElementState[]).map((state) => (
+          <div key={state} className="flex items-center gap-2">
+            <ElementStateBadge state={state} size="sm" />
+            <span className="text-sm font-bold text-white">{stateCounts[state]}</span>
           </div>
-          {check.articleDomain && (
-            <div className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-1.5">
-              <span className="text-slate-500">Genre:</span>
-              <span className="text-white">{check.articleDomain}</span>
-              {check.articleJurisdiction && check.articleJurisdiction !== 'Global' && (
-                <span className="text-slate-400">({check.articleJurisdiction})</span>
-              )}
-            </div>
-          )}
-        </div>
+        ))}
       </div>
 
-      {/* Summary Text */}
-      <div className="bg-slate-900/50 rounded-lg p-6 mb-6">
-        <p className="text-white/90 text-lg leading-relaxed">
-          {check.overallSummary}
-        </p>
-      </div>
-
-      {/* Claims Breakdown */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 text-center">
-          <div className="text-3xl font-black text-emerald-400">{check.claimsSupported}</div>
-          <div className="text-sm text-emerald-400/70 font-medium">Supported</div>
-        </div>
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 text-center">
-          <div className="text-3xl font-black text-amber-400">{check.claimsUncertain}</div>
-          <div className="text-sm text-amber-400/70 font-medium">Uncertain</div>
-        </div>
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center">
-          <div className="text-3xl font-black text-red-400">{check.claimsContradicted}</div>
-          <div className="text-sm text-red-400/70 font-medium">Contradicted</div>
-        </div>
+      <div className="flex items-center gap-4 text-xs font-mono text-slate-500">
+        <span>REF {checkId.slice(0, 8).toUpperCase()}</span>
+        <span>·</span>
+        <span>{sourcesCount} SOURCES</span>
+        {processingTimeMs !== undefined && (
+          <>
+            <span>·</span>
+            <span>{formatTime(processingTimeMs)}</span>
+          </>
+        )}
       </div>
     </div>
   );
