@@ -138,8 +138,8 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
   return (
     <div className="space-y-8">
       {/* Profile Section */}
-      <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+      <section className="bg-white border border-zinc-200 p-6">
+        <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
           <User size={20} />
           Profile Information
         </h3>
@@ -156,7 +156,7 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
                 className="rounded-full"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-slate-600 flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-20 h-20 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 text-2xl font-bold">
                 {initials}
               </div>
             )}
@@ -164,7 +164,7 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
 
           {/* Name - Inline editable */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-2">
               Name
             </label>
             {isEditingName ? (
@@ -175,7 +175,7 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
                     value={nameValue}
                     onChange={(e) => setNameValue(e.target.value)}
                     placeholder="Enter your name"
-                    className="flex-1 px-4 py-3 bg-slate-900 border border-[#f57a07] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#f57a07]/50"
+                    className="flex-1 px-4 py-3 bg-white border-2 border-black text-zinc-900 focus:outline-none"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveName();
@@ -185,7 +185,7 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
                   <button
                     onClick={handleSaveName}
                     disabled={savingName}
-                    className="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-600 text-white rounded-lg transition-colors"
+                    className="px-4 py-3 bg-zinc-900 hover:bg-zinc-800 disabled:bg-zinc-300 text-white transition-colors"
                     title="Save"
                   >
                     {savingName ? (
@@ -197,24 +197,24 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
                   <button
                     onClick={handleCancelEdit}
                     disabled={savingName}
-                    className="px-4 py-3 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white rounded-lg transition-colors"
+                    className="px-4 py-3 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 transition-colors"
                     title="Cancel"
                   >
                     <X size={20} />
                   </button>
                 </div>
                 {nameError && (
-                  <p className="text-sm text-red-400">{nameError}</p>
+                  <p className="text-sm text-red-600">{nameError}</p>
                 )}
               </div>
             ) : (
               <button
                 onClick={() => setIsEditingName(true)}
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white text-left hover:border-[#f57a07] hover:bg-slate-800 transition-colors group"
+                className="w-full px-4 py-3 bg-white border border-zinc-200 text-zinc-900 text-left hover:border-black transition-colors group"
               >
                 <span className="flex items-center justify-between">
                   <span>{nameValue || 'Click to add your name'}</span>
-                  <Pencil size={16} className="text-slate-500 group-hover:text-[#f57a07]" />
+                  <Pencil size={16} className="text-zinc-400 group-hover:text-zinc-900" />
                 </span>
               </button>
             )}
@@ -222,16 +222,16 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-2">
               Email
             </label>
             <input
               type="email"
               value={clerkUser?.primaryEmailAddress?.emailAddress || ''}
               disabled
-              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-500 cursor-not-allowed"
+              className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 text-zinc-400 cursor-not-allowed"
             />
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-zinc-400 mt-1">
               Email is managed by your authentication provider
             </p>
           </div>
@@ -240,74 +240,74 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
       </section>
 
       {/* Activity Section */}
-      <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+      <section className="bg-white border border-zinc-200 p-6">
+        <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
           <BarChart3 size={20} />
           Your Activity
         </h3>
 
         {statsLoading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-6 h-6 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-            <span className="ml-3 text-slate-400">Loading stats...</span>
+            <div className="w-6 h-6 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+            <span className="ml-3 text-zinc-400">Loading stats...</span>
           </div>
         ) : stats ? (
           <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-white">{stats.totalChecks}</div>
-                <div className="text-xs text-slate-400 mt-1">Total Checks</div>
+              <div className="bg-zinc-50 p-4 text-center">
+                <div className="text-2xl font-bold text-zinc-900">{stats.totalChecks}</div>
+                <div className="font-mono text-[10px] text-zinc-400 mt-1">Total Checks</div>
               </div>
-              <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-white">{stats.totalSourcesAnalyzed}</div>
-                <div className="text-xs text-slate-400 mt-1">Sources Analyzed</div>
+              <div className="bg-zinc-50 p-4 text-center">
+                <div className="text-2xl font-bold text-zinc-900">{stats.totalSourcesAnalyzed}</div>
+                <div className="font-mono text-[10px] text-zinc-400 mt-1">Sources Analyzed</div>
               </div>
-              <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-white">{stats.totalElementsAnalysed ?? 0}</div>
-                <div className="text-xs text-slate-400 mt-1">Elements Analysed</div>
+              <div className="bg-zinc-50 p-4 text-center">
+                <div className="text-2xl font-bold text-zinc-900">{stats.totalElementsAnalysed ?? 0}</div>
+                <div className="font-mono text-[10px] text-zinc-400 mt-1">Elements Analysed</div>
               </div>
             </div>
 
             {/* Analysis Overview */}
             {stats.elementStateBreakdown && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-slate-400">Analysis Overview</h4>
+                <h4 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400">Analysis Overview</h4>
                 <div className="flex items-center gap-6 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-state-supported" />
-                    <span className="text-slate-300">{stats.elementStateBreakdown.supported}</span>
-                    <span className="text-slate-500">Supported</span>
+                    <span className="text-zinc-900 font-mono">{stats.elementStateBreakdown.supported}</span>
+                    <span className="text-zinc-500">Supported</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-state-disputed" />
-                    <span className="text-slate-300">{stats.elementStateBreakdown.disputed}</span>
-                    <span className="text-slate-500">Disputed</span>
+                    <span className="text-zinc-900 font-mono">{stats.elementStateBreakdown.disputed}</span>
+                    <span className="text-zinc-500">Disputed</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-state-unresolved" />
-                    <span className="text-slate-300">{stats.elementStateBreakdown.unresolved}</span>
-                    <span className="text-slate-500">Unresolved</span>
+                    <span className="text-zinc-900 font-mono">{stats.elementStateBreakdown.unresolved}</span>
+                    <span className="text-zinc-500">Unresolved</span>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Member Since */}
-            <div className="pt-4 border-t border-slate-700/50 text-sm text-slate-400">
+            <div className="pt-4 border-t border-zinc-100 text-sm text-zinc-400">
               Member since {stats.memberSince
                 ? new Date(stats.memberSince).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
                 : 'Unknown'}
             </div>
           </div>
         ) : (
-          <p className="text-slate-400 text-sm">Unable to load activity stats</p>
+          <p className="text-zinc-400 text-sm">Unable to load activity stats</p>
         )}
       </section>
 
       {/* Security Section */}
-      <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+      <section className="bg-white border border-zinc-200 p-6">
+        <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
           <Shield size={20} />
           Security
         </h3>
@@ -316,12 +316,12 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
           {/* Password */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-300">Password</p>
-              <p className="text-xs text-slate-400">••••••••</p>
+              <p className="text-sm font-medium text-zinc-700">Password</p>
+              <p className="text-xs text-zinc-400">••••••••</p>
             </div>
             <button
               onClick={handleChangePassword}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
             >
               Change Password
             </button>
@@ -330,16 +330,16 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
       </section>
 
       {/* Danger Zone */}
-      <section className="bg-red-900/10 border border-red-700 rounded-xl p-6">
-        <h3 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
+      <section className="border border-red-100 bg-red-50/30 p-6">
+        <h3 className="text-lg font-bold text-red-700 mb-4 flex items-center gap-2">
           <Trash2 size={20} />
           Danger Zone
         </h3>
 
         <div className="space-y-4">
           <div>
-            <p className="text-sm font-medium text-slate-300">Delete Account</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-sm font-medium text-red-700">Delete Account</p>
+            <p className="text-xs text-red-600/70 mt-1">
               Once you delete your account, there is no going back. Please be certain.
             </p>
           </div>
@@ -347,7 +347,7 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
           <button
             onClick={handleDeleteAccount}
             disabled={deleting}
-            className="px-6 py-3 bg-red-900/30 hover:bg-red-900/50 text-red-400 border border-red-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {deleting ? 'Deleting...' : 'Delete Account'}
           </button>

@@ -26,14 +26,14 @@ export default function TermsOfServicePage() {
           us improve the platform.
         </p>
         <p>
-          Tru8 provides AI-powered claim verification services that cross-reference
+          Tru8 provides AI-powered evidence research services that cross-reference
           claims against publicly available sources. Our service:
         </p>
         <ul>
           <li>Analyzes text, URLs, images, and videos for factual claims</li>
-          <li>Searches credible sources for supporting or contradicting evidence</li>
+          <li>Searches credible sources for relevant evidence</li>
           <li>Provides dated citations and evidence references</li>
-          <li>Provides verification results with source citations</li>
+          <li>Provides analysis results with source citations</li>
         </ul>
 
         <h2>3. User Accounts</h2>

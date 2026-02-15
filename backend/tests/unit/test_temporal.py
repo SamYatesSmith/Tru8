@@ -16,7 +16,7 @@ class TestTemporalAnalyzer:
             "The president is currently in office",
             "The iPhone costs $999 today",
             "Water is now safe to drink in 2025",
-            "This year's election results are in"
+            "This year's election results are in",
         ]
 
         for claim in test_cases:
@@ -32,7 +32,7 @@ class TestTemporalAnalyzer:
             "The company announced layoffs yesterday",
             "Last week the policy changed",
             "Recently, scientists discovered",
-            "Last month the data showed"
+            "Last month the data showed",
         ]
 
         for claim in test_cases:
@@ -47,7 +47,7 @@ class TestTemporalAnalyzer:
         test_cases = [
             "In 2020, the pandemic started",
             "During 2018, unemployment was low",
-            "The law passed in 2022"
+            "The law passed in 2022",
         ]
 
         for claim in test_cases:
@@ -62,14 +62,16 @@ class TestTemporalAnalyzer:
         test_cases = [
             "AI will replace most jobs",
             "The company is going to expand next year",
-            "In 2026, the treaty expires",
-            "Scientists predict this in the future"
+            "In 2028, the treaty expires",
+            "Scientists predict this in the future",
         ]
 
         for claim in test_cases:
             result = analyzer.analyze_claim(claim)
             assert result["is_time_sensitive"] == True
-            assert "future" in result["temporal_markers"]
+            assert (
+                "future" in result["temporal_markers"]
+            ), f"Missing 'future' marker for: {claim}"
             assert result["claim_type"] == "prediction"
 
     def test_timeless_claims(self, analyzer):
@@ -78,7 +80,7 @@ class TestTemporalAnalyzer:
             "The Earth orbits the Sun",
             "Water boils at 100 degrees Celsius",
             "Shakespeare wrote Hamlet",
-            "Paris is the capital of France"
+            "Paris is the capital of France",
         ]
 
         for claim in test_cases:
@@ -94,7 +96,7 @@ class TestTemporalAnalyzer:
             ("The stock market is rising now", "current_state"),
             ("In 2019, GDP grew 3%", "historical_fact"),
             ("Inflation will increase next year", "prediction"),
-            ("Water freezes at 0 degrees", "timeless_fact")
+            ("Water freezes at 0 degrees", "timeless_fact"),
         ]
 
         for claim, expected_type in test_data:
@@ -110,17 +112,23 @@ class TestTemporalAnalyzer:
     def test_evidence_filtering_recent(self, analyzer):
         """Test: Filters evidence based on temporal requirements"""
         # Create temporal analysis for present tense claim
-        temporal_analysis = {
-            "is_time_sensitive": True,
-            "max_evidence_age_days": 30
-        }
+        temporal_analysis = {"is_time_sensitive": True, "max_evidence_age_days": 30}
 
         # Create evidence with various dates
         now = datetime.now()
         evidence = [
-            {"url": "a.com", "published_date": (now - timedelta(days=10)).isoformat()},  # Recent
-            {"url": "b.com", "published_date": (now - timedelta(days=60)).isoformat()},  # Old
-            {"url": "c.com", "published_date": (now - timedelta(days=5)).isoformat()},   # Recent
+            {
+                "url": "a.com",
+                "published_date": (now - timedelta(days=10)).isoformat(),
+            },  # Recent
+            {
+                "url": "b.com",
+                "published_date": (now - timedelta(days=60)).isoformat(),
+            },  # Old
+            {
+                "url": "c.com",
+                "published_date": (now - timedelta(days=5)).isoformat(),
+            },  # Recent
             {"url": "d.com", "published_date": None},  # No date
         ]
 
@@ -137,16 +145,16 @@ class TestTemporalAnalyzer:
 
     def test_evidence_filtering_no_filtering_for_timeless(self, analyzer):
         """Test: No filtering applied for timeless claims"""
-        temporal_analysis = {
-            "is_time_sensitive": False,
-            "max_evidence_age_days": None
-        }
+        temporal_analysis = {"is_time_sensitive": False, "max_evidence_age_days": None}
 
         now = datetime.now()
         evidence = [
             {"url": "a.com", "published_date": (now - timedelta(days=10)).isoformat()},
             {"url": "b.com", "published_date": (now - timedelta(days=365)).isoformat()},
-            {"url": "c.com", "published_date": (now - timedelta(days=1000)).isoformat()},
+            {
+                "url": "c.com",
+                "published_date": (now - timedelta(days=1000)).isoformat(),
+            },
         ]
 
         filtered = analyzer.filter_evidence_by_time(evidence, temporal_analysis)
@@ -190,7 +198,7 @@ class TestTemporalAnalyzer:
         test_cases = [
             "The President is CURRENTLY in office",
             "YESTERDAY the news broke",
-            "In 2020, THE EVENT occurred"
+            "In 2020, THE EVENT occurred",
         ]
 
         for claim in test_cases:
@@ -199,15 +207,18 @@ class TestTemporalAnalyzer:
 
     def test_evidence_datetime_object_handling(self, analyzer):
         """Test: Handles datetime objects in evidence published_date"""
-        temporal_analysis = {
-            "is_time_sensitive": True,
-            "max_evidence_age_days": 30
-        }
+        temporal_analysis = {"is_time_sensitive": True, "max_evidence_age_days": 30}
 
         now = datetime.now()
         evidence = [
-            {"url": "a.com", "published_date": now - timedelta(days=10)},  # datetime object
-            {"url": "b.com", "published_date": (now - timedelta(days=60)).isoformat()},  # ISO string
+            {
+                "url": "a.com",
+                "published_date": now - timedelta(days=10),
+            },  # datetime object
+            {
+                "url": "b.com",
+                "published_date": (now - timedelta(days=60)).isoformat(),
+            },  # ISO string
         ]
 
         filtered = analyzer.filter_evidence_by_time(evidence, temporal_analysis)

@@ -12,7 +12,7 @@ interface Claim {
 }
 
 const FEEDBACK_TYPES = [
-  { value: 'fact-check', label: 'A fact-check result', icon: '📊' },
+  { value: 'fact-check', label: 'An analysis result', icon: '📊' },
   { value: 'ui', label: 'The design / UI', icon: '🎨' },
   { value: 'bug', label: "Something's broken", icon: '🐛' },
   { value: 'suggestion', label: 'Feature suggestion', icon: '💡' },
@@ -28,7 +28,6 @@ export function FeedbackWidget() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-fetched check data for claim selection
   const [currentCheckId, setCurrentCheckId] = useState<string | null>(null);
   const [claims, setClaims] = useState<Claim[]>([]);
 
@@ -36,19 +35,16 @@ export function FeedbackWidget() {
   const { getToken } = useAuth();
   const { user } = useUser();
 
-  // Detect check page and reset claims when navigating
   useEffect(() => {
     const checkMatch = pathname.match(/\/dashboard\/check\/([a-zA-Z0-9-]+)/);
     const detectedCheckId = checkMatch ? checkMatch[1] : null;
 
-    // Reset claims when checkId changes
     if (detectedCheckId !== currentCheckId) {
       setClaims([]);
       setCurrentCheckId(detectedCheckId);
     }
   }, [pathname, currentCheckId]);
 
-  // Fetch check claims when modal opens on a check page
   useEffect(() => {
     if (isOpen && currentCheckId && claims.length === 0) {
       const fetchCheckData = async () => {
@@ -69,10 +65,8 @@ export function FeedbackWidget() {
     }
   }, [isOpen, currentCheckId, getToken, claims.length]);
 
-  // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
-      // Delay reset to allow close animation
       const timer = setTimeout(() => {
         setFeedbackType('');
         setSelectedClaim('');
@@ -110,7 +104,6 @@ export function FeedbackWidget() {
 
       setIsSubmitted(true);
 
-      // Auto-close after success
       setTimeout(() => {
         setIsOpen(false);
       }, 2000);
@@ -127,14 +120,14 @@ export function FeedbackWidget() {
 
   return (
     <>
-      {/* Floating Button - positioned above mobile bottom nav */}
+      {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 bg-[#f57a07] hover:bg-[#e06a00] text-white p-3 md:p-4 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2 group"
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 bg-zinc-900 hover:bg-zinc-800 text-white p-3 md:p-4 shadow-lg transition-all hover:scale-105 flex items-center gap-2 group"
         aria-label="Send feedback"
       >
         <MessageSquare size={20} />
-        <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">
+        <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap text-xs font-bold uppercase tracking-[0.2em]">
           Feedback
         </span>
       </button>
@@ -142,20 +135,20 @@ export function FeedbackWidget() {
       {/* Modal Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && setIsOpen(false)}
         >
           {/* Modal Content */}
-          <div className="w-full max-w-md bg-[#1a1f2e] border border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md bg-white border border-zinc-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <MessageSquare size={20} className="text-[#f57a07]" />
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
+              <h2 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                <MessageSquare size={20} className="text-accent" />
                 Send Feedback
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-white transition-colors p-1"
+                className="text-zinc-400 hover:text-zinc-900 transition-colors p-1"
                 aria-label="Close"
               >
                 <X size={20} />
@@ -165,36 +158,35 @@ export function FeedbackWidget() {
             {/* Body */}
             <div className="px-6 py-5 space-y-5">
               {isSubmitted ? (
-                // Success State
                 <div className="text-center py-8">
-                  <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">Thank you!</h3>
-                  <p className="text-slate-400">Your feedback has been sent.</p>
+                  <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-zinc-900 mb-2">Thank you!</h3>
+                  <p className="text-zinc-500">Your feedback has been sent.</p>
                 </div>
               ) : (
                 <>
                   {/* Testing Period Notice */}
-                  <div className="bg-amber-900/20 border border-amber-700/50 rounded-lg px-4 py-3 flex items-start gap-3">
-                    <AlertTriangle size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-300/90">
+                  <div className="bg-amber-50 border border-amber-200 px-4 py-3 flex items-start gap-3">
+                    <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700">
                       <span className="font-semibold">Testing Period*</span> — This feedback form is for beta testing only and will not be part of the final production release.
                     </p>
                   </div>
 
                   {/* Feedback Type Dropdown */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <label className="block font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-2">
                       What&apos;s this about?
                     </label>
                     <select
                       value={feedbackType}
                       onChange={(e) => {
                         setFeedbackType(e.target.value);
-                        setSelectedClaim(''); // Reset claim when type changes
+                        setSelectedClaim('');
                       }}
-                      className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#f57a07]/50 focus:border-[#f57a07] appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 bg-white border border-zinc-200 text-zinc-900 focus:outline-none focus:border-black appearance-none cursor-pointer"
                     >
-                      <option value="" className="text-slate-400">Select one...</option>
+                      <option value="" className="text-zinc-400">Select one...</option>
                       {FEEDBACK_TYPES.map((type) => (
                         <option key={type.value} value={type.value}>
                           {type.icon} {type.label}
@@ -206,13 +198,13 @@ export function FeedbackWidget() {
                   {/* Claim Selector (conditional) */}
                   {showClaimSelector && (
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                      <label className="block font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-2">
                         Which claim?
                       </label>
                       <select
                         value={selectedClaim}
                         onChange={(e) => setSelectedClaim(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#f57a07]/50 focus:border-[#f57a07] appearance-none cursor-pointer"
+                        className="w-full px-4 py-3 bg-white border border-zinc-200 text-zinc-900 focus:outline-none focus:border-black appearance-none cursor-pointer"
                       >
                         <option value="">Overall check result</option>
                         {claims.map((claim) => (
@@ -226,7 +218,7 @@ export function FeedbackWidget() {
 
                   {/* Message */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <label className="block font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-2">
                       Your feedback
                     </label>
                     <textarea
@@ -234,13 +226,13 @@ export function FeedbackWidget() {
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Tell us what's on your mind..."
                       rows={4}
-                      className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f57a07]/50 focus:border-[#f57a07] resize-none"
+                      className="w-full px-4 py-3 bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-black resize-none"
                     />
                   </div>
 
                   {/* Error Message */}
                   {error && (
-                    <p className="text-sm text-red-400">{error}</p>
+                    <p className="text-sm text-red-600">{error}</p>
                   )}
                 </>
               )}
@@ -248,11 +240,11 @@ export function FeedbackWidget() {
 
             {/* Footer */}
             {!isSubmitted && (
-              <div className="px-6 py-4 border-t border-slate-700 bg-slate-900/30">
+              <div className="px-6 py-4 border-t border-zinc-200">
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting || !message.trim()}
-                  className="w-full bg-[#f57a07] hover:bg-[#e06a00] disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                  className="w-full bg-zinc-900 hover:bg-zinc-800 disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-[0.2em] py-3 flex items-center justify-center gap-2 transition-colors"
                 >
                   {isSubmitting ? (
                     <>

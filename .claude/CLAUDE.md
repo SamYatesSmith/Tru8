@@ -1,34 +1,37 @@
 # Tru8 — Engineering Context
 
 ## What This Is
-AI-powered evidence research platform. Users submit a URL or claim, the pipeline extracts claims, retrieves evidence from multiple sources, and presents organized evidence.
+AI-powered evidence research platform. Users submit a URL or claim, the pipeline extracts claims, retrieves evidence from multiple sources, and presents organized evidence via Claim Maps.
 
-**Active refactor in progress.** See `audit/track-b/PROGRESS.md` for the master tracker.
+## Refactor Status
 
-## Active Refactor: Two-Track Approach
-
-### Track A: COMPLETE
+### Track A: COMPLETE (2026-02-11)
 Infrastructure cleanup. 5 PRs, ~2,100 lines removed. Commit `041b55f`.
-**Specs:** `audit/track-a/PR-01-dead-code-removal.md` through `audit/track-a/PR-06-consolidate-workers-config.md`
 
-### Track B (in progress): Product Pivot — Claim Map System
-Replace the judge/verdict system with the Claim Map evidence analyzer. 8 PRs.
-- B01: Foundation — types, schema migration, config flags — **DONE** `1f04f7b`
-- B02: Claim Map analyzer + claim selector (new modules) — **DONE** `79708ed`
-- B03: Evidence ID + element-level retrieval (direct replacement) — **DONE**
-- B04: Pipeline wiring — new stages replace judge/summary/explainability
-- B05: Harness adaptation — validate new path
-- B06: API response shapes + peripheral services
-- B07: Verdict system deletion (~2,500 lines)
-- B08: Test suite overhaul
-
-**Specs:** `audit/track-b/PR-B01-foundation.md` through `audit/track-b/PR-B08-test-suite-overhaul.md`
+### Track B: COMPLETE (2026-02-13)
+Backend pivot — Claim Map system. 8 PRs, ~7,000 lines removed. Final commit `d40668b`.
 **Contract:** `audit/track-b/2026-02-12_claim-map-contract.md`
-**Strategy:** Direct replacement. Pipeline offline during Track B — no feature gate. B05/B06 parallelizable after B04.
 
-### What NOT to Touch During Track B
-- Frontend verdict components — Track C redesigns these (39 files across web + mobile)
-- `VerdictType` in `shared/types/index.ts` — frontend needs it until Track C
+### Track C: COMPLETE (2026-02-14)
+Frontend verdict-to-ClaimMap component swap. 9 PRs, ~500 net lines removed. Final commit `b365534`.
+Replaced verdict UI with Claim Map components on product pages (dashboard, check detail, history, settings, public report, mobile screens). Kept dark theme.
+
+### Track D (in progress): Full Frontend Redesign
+Convert entire web frontend from dark theme to Stitch light theme. Rebuild marketing pages, re-theme all dashboard/legal pages, align all copy with evidence-research positioning. 10 PRs planned.
+
+**Specs:** `audit/track-d/PROGRESS.md` (master tracker)
+**Design decisions:** `audit/track-d/00_design_decisions.md`
+**Page gap analysis:** `audit/track-d/01_page_gap_analysis.md`
+**Copy audit:** `audit/track-d/02_copy_audit.md`
+**Stitch style guide:** `audit/track-c/stitch/STITCH_STYLE_GUIDE.md`
+**Stitch page specs:** `audit/track-c/stitch/pages/W-01..W-19` (web), `M-01..M-12` (mobile)
+
+**Key decisions:**
+- Full light theme (white surfaces, Inter + JetBrains Mono, 1px borders, no shadows)
+- "Analysis" not "verification", "evidence research" not "fact-checking"
+- Stitch designs are the mirror — faithful reproduction, no omissions. Spec-sheet aesthetic (micro-labels, system IDs, metadata rows) IS the design language.
+- Track C Claim Map components retained and re-themed
+- Only permitted adaptation: Lucide icons instead of Material Symbols
 
 ## Build & Test Commands
 
@@ -50,65 +53,50 @@ npm run build && npm run start                   # Production build
 docker-compose up -d                             # Postgres, Redis, Qdrant, MinIO
 ```
 
-## Pipeline Architecture (current state)
+## Pipeline Architecture (post-Track B)
 
 ```
-Stage 1:   INGEST       → Fetch URL / OCR / transcript
-Stage 2:   EXTRACT      → LLM atomizes into ≤12 claims
-Stage 2.1: CLASSIFY     → LLM article classification
-Stage 2.5: FACTCHECK    → Google Fact-Check API lookup
-Stage 3:   RETRIEVE     → Multi-source search (Brave, SerpAPI, gov APIs)
-Stage 3.5: FILTER       → Auto-exclude + content dedup + corroboration boost
-Stage 3.6: URL DEDUP    → Cross-claim URL deduplication
-Stage 3.7: LLM SCORER   → Relevance scoring (has filter mode + advisory mode)
-Stage 3.8: DOMAIN CAP   → Global domain capping (max 3/domain)
-Stage 5:   JUDGE        → LLM verdict (Track B replaces this)
-Stage 6:   SUMMARY      → Overall assessment (Track B replaces this)
+Stage 1:   INGEST           → Fetch URL / OCR / transcript
+Stage 2:   EXTRACT          → LLM atomizes into ≤12 claims
+Stage 2.1: CLASSIFY         → LLM article classification
+Stage 2.5: FACTCHECK        → Google Fact-Check API lookup
+Stage 2.5: CLAIM SELECTION  → Article mode: rank + select ≤5 claims
+Stage 3:   RETRIEVE         → Per-element multi-source search (Brave, SerpAPI, gov APIs)
+Stage 3.5: FILTER           → Auto-exclude + content dedup + corroboration boost
+Stage 3.6: URL DEDUP        → Cross-claim URL deduplication
+Stage 3.7: LLM SCORER       → Advisory-only relevance scoring
+Stage 3.8: DOMAIN CAP       → Global domain capping (max 3/domain)
+Stage 4:   DECOMPOSITION    → Claim → 1-5 elements (LLM call)
+Stage 5:   EVIDENCE MAPPING → Map evidence to elements + assign states (LLM call)
+           ORIENTATION      → Mechanical derivation from element states (no LLM)
 ```
 
-**Track B changes to pipeline:**
-- NEW Stage: CLAIM SELECTION (article mode, rank + select ≤5 claims)
-- NEW Stage: DECOMPOSITION (claim → 1-5 elements, new LLM call)
-- Stage 3 RETRIEVE becomes per-element instead of per-claim
-- Stage 3.7 SCORER becomes advisory-only (filter mode removed)
-- Stage 5 JUDGE → EVIDENCE MAPPING (map evidence to elements + assign states)
-- Stage 6 SUMMARY → removed (orientation line is mechanical)
+## Key Files
 
-## Key Files (post-Track A line counts)
-
-### Pipeline Core (Track B modifies these)
-| File | Lines | Track B Change |
-|------|-------|---------------|
-| `backend/app/pipeline/runner.py` | ~1,359 | New stages, gate logic, remove judge/summary |
-| `backend/app/pipeline/retrieve.py` | ~1,700 | Element-level retrieval, evidence_id |
-| `backend/app/pipeline/relevance_scorer.py` | 807 | Element-level scoring, remove filter mode |
-| `backend/app/pipeline/query_planner.py` | 655 | Element-level query generation |
-| `backend/app/core/config.py` | 229 | Remove verdict flags, add analyzer flags |
-| `backend/app/utils/domain_capping.py` | 275 | Element-aware capping |
-| `backend/app/pipeline/evidence_ledger.py` | 75 | New stage names |
-| `backend/app/workers/pipeline.py` | 312 | Update retrieval helper |
-
-### Pipeline Core (Track B deletes these)
-| File | Lines | Reason |
-|------|-------|--------|
-| `backend/app/pipeline/judge.py` | 1,875 | Replaced by claim_map_analyzer.py |
-| `backend/app/utils/explainability.py` | 193 | ClaimMap IS the explainability |
-
-### Pipeline Core (Track B adds these)
+### Backend (post-Track B)
 | File | Purpose |
 |------|---------|
+| `backend/app/pipeline/runner.py` | Orchestrator with claim selection + decomposition + evidence mapping |
+| `backend/app/pipeline/retrieve.py` | Element-level retrieval + filter cascade |
 | `backend/app/pipeline/claim_map_analyzer.py` | Decompose + map + derive orientation |
 | `backend/app/pipeline/claim_selector.py` | Article mode claim ranking |
 | `backend/app/models/claim_map.py` | ClaimMap types + enums |
+| `backend/app/api/v1/checks.py` | API endpoints (claim map shapes) |
+| `backend/app/models/check.py` | DB schema (Check, Claim, Evidence) |
 
-### API / Schema / Frontend
-| File | Lines | What It Does |
-|------|-------|-------------|
-| `backend/app/api/v1/checks.py` | 1738 | Check endpoints. Verdict-coupled. Track B changes. |
-| `backend/app/models/check.py` | 318 | DB schema (Check, Claim, Evidence). Verdict columns. Track B migrates. |
-| `shared/types/index.ts` | 157 | TypeScript types. VerdictType is canonical. Track B replaces. |
-| `shared/constants/index.ts` | 100 | Colors, limits, plans. Verdict colors. Track B updates. |
-| `web/lib/api.ts` | 538 | Frontend API client. |
+### Frontend (post-Track C, pre-Track D)
+| File | Purpose | Track D Change |
+|------|---------|---------------|
+| `web/app/layout.tsx` | Root layout (dark theme) | Light theme |
+| `web/app/page.tsx` | Landing page (old marketing) | Full rebuild |
+| `web/app/dashboard/layout.tsx` | Dashboard shell (dark) | Light theme |
+| `web/components/layout/navigation.tsx` | Dark hover-pill nav | Full rebuild |
+| `web/components/layout/footer.tsx` | Dark footer | Full rebuild |
+| `web/components/marketing/*.tsx` | 6 old marketing components | Delete + rebuild |
+| `web/components/claim-map/` | ClaimMapView + 5 components | Re-theme only |
+| `web/components/legal/legal-page-layout.tsx` | Dark legal wrapper | Light theme |
+| `shared/types/index.ts` | TypeScript types (no VerdictType) | No change |
+| `shared/constants/index.ts` | Constants (no verdict colors) | No change |
 
 ## Evidence Sources
 - **Web:** Brave Search, SerpAPI
@@ -116,19 +104,13 @@ Stage 6:   SUMMARY      → Overall assessment (Track B replaces this)
 - **Government:** NOAA, Alpha Vantage, FRED, Football-Data.org, Weather API, Companies House, Congress API, GovInfo
 - **Vector Store:** Qdrant
 
-## V2 Frozen Evidence Replay (harness)
-Determinism testing system. Freezes evidence at `judge_input_evidence` (post-filtering), injects directly before judge, skips Stages 3.6/3.7/3.8.
-- **Gate 1:** URL Jaccard >= 0.90
-- **Gate 2:** 0 hard_fail + 0 pipeline_fail (llm_noise OK)
-- **Judge input hash:** SHA256(canonicalized context)[:16]
-- **Files:** `runner.py` (bypass), `replay_context.py` (contextvars), `judge.py` (hash), `harness/compare_runs.py` (gates), `harness/run_golden_dataset.py` (runner)
-
 ## Critical Invariants
-1. **Score mutations must recompute downstream.** If `credibility_score` changes, `final_score` must be recomputed.
+1. **Score mutations must recompute downstream.** `credibility_score` → recompute `final_score`.
 2. **Track URLs globally, not per-claim.** Cross-claim dedup uses global URL tracking.
 3. **Stage order matters.** Scoring (3.7) before capping (3.8), always.
-4. **LLM truncation uses round-robin, not sequential slicing.** Sequential slicing starves tail claims.
-5. **Freeze evidence at the latest stage.** `judge_input_evidence`, not `pre_weighting`.
+4. **LLM truncation uses round-robin.** Never sequential slicing.
+5. **Freeze at latest stage.** `claim_map_input_hash` (renamed from `judge_input_hash`).
+6. **Claim Map `evidence_refs` is source of truth.** `element_ids` on evidence is derived.
 
 ## Database
 - **PostgreSQL 16** (port 5433) via SQLModel

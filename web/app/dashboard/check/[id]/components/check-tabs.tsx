@@ -15,49 +15,45 @@ export function CheckTabs({ checkId, sourcesCount, isPro, isCompleted = true }: 
   const pathname = usePathname();
   const isSourcesTab = pathname.includes('/sources');
 
-  // Don't show tabs if check is not completed
   if (!isCompleted) {
     return null;
   }
 
   return (
-    <div className="border-b border-slate-700 mb-6">
+    <div className="border-b border-zinc-100 mb-6">
       <div className="flex gap-8">
-        {/* Evidence Map Tab */}
         <Link
           href={`/dashboard/check/${checkId}`}
           className={`
-            relative pb-4 px-1 text-sm font-semibold transition-colors
+            relative pb-3 px-1 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors
             ${!isSourcesTab
-              ? 'text-white border-b-2 border-blue-500'
-              : 'text-slate-400 hover:text-slate-300'
+              ? 'text-black border-b-2 border-accent'
+              : 'text-zinc-400 hover:text-zinc-900'
             }
           `}
         >
           EVIDENCE MAP
         </Link>
 
-        {/* Sources Tab */}
         <Link
           href={isPro ? `/dashboard/check/${checkId}/sources` : `/dashboard/check/${checkId}?upgrade=sources`}
           className={`
-            relative pb-4 px-1 text-sm font-semibold transition-colors flex items-center gap-2
+            relative pb-3 px-1 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors flex items-center gap-2
             ${isSourcesTab
-              ? 'text-white border-b-2 border-blue-500'
-              : 'text-slate-400 hover:text-slate-300'
+              ? 'text-black border-b-2 border-accent'
+              : 'text-zinc-400 hover:text-zinc-900'
             }
           `}
           onClick={(e) => {
             if (!isPro) {
               e.preventDefault();
-              // Trigger upgrade modal by updating URL
               window.history.pushState({}, '', `/dashboard/check/${checkId}?upgrade=sources`);
               window.dispatchEvent(new CustomEvent('show-upgrade-modal', { detail: 'sources' }));
             }
           }}
         >
           SOURCES ({sourcesCount})
-          {!isPro && <Lock className="w-3.5 h-3.5 text-amber-400" />}
+          {!isPro && <Lock className="w-3.5 h-3.5 text-amber-500" />}
         </Link>
       </div>
     </div>

@@ -31,9 +31,9 @@ export function OverallSummaryCard({ claims, processingTimeMs, checkId, sourcesC
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-950/50 to-purple-950/50 border-2 border-blue-500/30 rounded-xl p-8 mb-8">
+    <div className="bg-white border border-zinc-200 p-8 mb-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-black text-white mb-4">Overall Assessment</h2>
+        <h2 className="text-2xl font-bold text-zinc-900 mb-4">Overall Assessment</h2>
         <OrientationLine orientation={firstOrientation} />
       </div>
 
@@ -41,19 +41,19 @@ export function OverallSummaryCard({ claims, processingTimeMs, checkId, sourcesC
         {(['supported', 'disputed', 'unresolved'] as ElementState[]).map((state) => (
           <div key={state} className="flex items-center gap-2">
             <ElementStateBadge state={state} size="sm" />
-            <span className="text-sm font-bold text-white">{stateCounts[state]}</span>
+            <span className="text-sm font-bold text-zinc-900">{stateCounts[state]}</span>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center gap-4 text-xs font-mono text-slate-500">
+      <div className="flex items-center gap-4 font-mono text-[10px] tracking-widest uppercase text-zinc-400">
         <span>REF {checkId.slice(0, 8).toUpperCase()}</span>
-        <span>·</span>
+        <span>&middot;</span>
         <span>{sourcesCount} SOURCES</span>
         {processingTimeMs !== undefined && (
           <>
-            <span>·</span>
-            <span>{formatTime(processingTimeMs)}</span>
+            <span>&middot;</span>
+            <span>PROCESSED {formatTime(processingTimeMs)}</span>
           </>
         )}
       </div>

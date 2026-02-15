@@ -2,37 +2,19 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AuthModal } from '@/components/auth/auth-modal';
-import { scrollToSection } from '@/lib/scroll-utils';
-import { BetaBadge } from '@/components/layout/beta-banner';
 
 /**
- * Desktop Navigation Component
+ * Desktop Navigation Component (Stitch W-01)
  *
- * Hover pill navigation with centered "Tru8" branding.
+ * Flat white nav bar with page links.
  * Desktop only (>= 768px). Hidden on mobile (replaced by bottom nav).
  *
- * Design:
- * - Left: "8" logo
- * - Center: Rounded pill container (~12px radius)
- *   - Default: "Tru8" heading visible
- *   - Hover: Navigation items fade in (1s transition)
- * - Right: Sign In + Get Started buttons
- *
- * Sections:
- * - Features → #features
- * - How It Works → #how-it-works
- * - Demo → #video-demo
- * - Pricing → #pricing
- *
- * CTAs:
- * - Sign In → Opens Clerk auth modal
- * - Get Started → Opens Clerk auth modal (same as Sign In)
- *
- * Auto-open:
- * - Accepts initialAuthOpen prop to open modal on mount (for auth redirects)
- * - Accepts redirectUrl to send user back to protected route after auth
+ * Layout:
+ * - Left: Logo + "Tru8" text
+ * - Centre: Page links (Features, Pricing, Blog, About)
+ * - Right: Sign In (text) + Get Started (black button)
  */
 export function Navigation({
   initialAuthOpen = false,
@@ -42,106 +24,46 @@ export function Navigation({
   redirectUrl?: string;
 }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(initialAuthOpen);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Ensure component is fully hydrated and interactive
-  useEffect(() => {
-    // Use requestAnimationFrame to ensure DOM is ready
-    const frame = requestAnimationFrame(() => {
-      setIsMounted(true);
-    });
-
-    return () => cancelAnimationFrame(frame);
-  }, []);
 
   return (
     <>
-      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 py-4" aria-label="Main navigation">
-        <div className="container mx-auto px-4">
-          <div className="relative flex items-center justify-between">
-            {/* Left: Logo */}
-            <Link href="/" className="flex items-center" aria-label="Tru8 home">
-              <Image
-                src="/logo.proper.png"
-                alt="Tru8 logo"
-                width={100}
-                height={100}
-                className="object-contain"
-              />
-            </Link>
+      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-100" aria-label="Main navigation">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          {/* Left: Logo */}
+          <Link href="/" className="flex items-center gap-3" aria-label="Tru8 home">
+            <Image
+              src="/logo.proper.png"
+              alt="Tru8 logo"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
+            <span className="text-xl font-bold tracking-tighter uppercase">
+              TRU<span className="text-zinc-400 font-normal">8</span>
+            </span>
+          </Link>
 
-            {/* Center: Hover Pill Container - Absolutely centered */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2"
-              onMouseEnter={() => isMounted && setIsHovered(true)}
-              onMouseLeave={() => isMounted && setIsHovered(false)}
-              role="navigation"
-            >
-              {/* Primary Pill - Tru8 Heading - 40% larger, no border */}
-              <div className="bg-[#1e293b] rounded-xl px-10 py-3 mt-2.5">
-                <div className="flex items-center justify-center gap-2">
-                  <h1 className="text-3xl font-bold text-white text-center whitespace-nowrap">
-                    Tru8
-                  </h1>
-                  <BetaBadge />
-                </div>
-              </div>
-
-              {/* Secondary Pill - Navigation Links - Container appears instantly, links fade */}
-              {isHovered && (
-                <div className="absolute top-[85%] left-1/2 -translate-x-1/2 bg-[#1e293b] rounded-xl px-12 py-4">
-                  {/* Links fade in on hover */}
-                  <div className="flex items-center justify-center gap-8 whitespace-nowrap animate-fade-in">
-
-                  <button
-                    onClick={() => scrollToSection('how-it-works')}
-                    className="text-slate-300 hover:text-[#f57a07] transition-colors text-base font-medium"
-                    aria-label="Navigate to how it works section"
-                  >
-                    HOW IT WORKS
-                  </button>
-                  <span className="text-slate-700">|</span>
-                  <button
-                    onClick={() => scrollToSection('features')}
-                    className="text-slate-300 hover:text-[#f57a07] transition-colors text-base font-medium"
-                    aria-label="Navigate to features section"
-                  >
-                    FEATURES
-                  </button>
-                  <span className="text-slate-700">|</span>
-                  <button
-                    onClick={() => scrollToSection('video-demo')}
-                    className="text-slate-300 hover:text-[#f57a07] transition-colors text-base font-medium"
-                    aria-label="Navigate to demo section"
-                  >
-                    DEMO
-                  </button>
-                  <span className="text-slate-700">|</span>
-                  <button
-                    onClick={() => scrollToSection('pricing')}
-                    className="text-slate-300 hover:text-[#f57a07] transition-colors text-base font-medium"
-                    aria-label="Navigate to pricing section"
-                  >
-                    PRICING
-                  </button>
-                </div>
-              </div>
-              )}
+          {/* Centre: Page links + Auth CTAs */}
+          <div className="flex items-center gap-10">
+            <div className="flex gap-8 text-[11px] font-semibold tracking-[0.2em] uppercase text-zinc-500">
+              <Link href="/#features" className="hover:text-black transition-colors">Features</Link>
+              <Link href="/#pricing" className="hover:text-black transition-colors">Pricing</Link>
+              <Link href="/blog" className="hover:text-black transition-colors">Blog</Link>
+              <Link href="/about" className="hover:text-black transition-colors">About</Link>
             </div>
 
             {/* Right: Auth CTAs */}
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="text-white hover:text-[#f57a07] transition-colors text-sm font-medium"
+                className="text-[11px] font-bold tracking-[0.2em] uppercase px-6 py-3 hover:bg-zinc-50 transition-colors"
                 aria-label="Sign in to your account"
               >
                 Sign In
               </button>
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="px-6 py-2 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-md text-sm font-medium transition-colors"
+                className="bg-black text-white text-[11px] font-bold tracking-[0.2em] uppercase px-8 py-3 border border-black hover:bg-zinc-800 transition-colors"
                 aria-label="Get started with Tru8"
               >
                 Get Started

@@ -33,7 +33,7 @@ export default async function DashboardLayout({
 
   // Render layout
   return (
-    <div className="min-h-screen bg-[#0f1419]">
+    <div className="min-h-screen bg-white">
       <SignedInNav user={user} />
 
       {/* Main content - adjusted padding for mobile nav (top: h-14, bottom: h-16) */}

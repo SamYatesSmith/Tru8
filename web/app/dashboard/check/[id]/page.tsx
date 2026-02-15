@@ -2,7 +2,6 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { PageHeader } from '@/app/dashboard/components/page-header';
-import { CompassGraphic } from '@/app/dashboard/components/compass-graphic';
 import { CheckDetailClient } from './check-detail-client';
 
 interface CheckDetailPageProps {
@@ -65,8 +64,7 @@ export default async function CheckDetailPage({ params }: CheckDetailPageProps) 
       {/* Page Header */}
       <PageHeader
         title="Check Detail"
-        subtitle="View the results of your verification"
-        graphic={<CompassGraphic />}
+        subtitle="View the results of your analysis"
       />
 
       {/* Check Detail Content */}

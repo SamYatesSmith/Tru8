@@ -2,211 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Claim Map design tokens (Track C) */
+/* Stitch Design System — Light Theme (Track D) */
 :root {
-  --accent-orange: #FF5D00;
-  --state-supported: #22c55e;
-  --state-disputed: #f59e0b;
-  --state-unresolved: #64748b;
-  --danger-red: #ef4444;
-  --relevance-blue: #3b82f6;
-  --surface-raised: #F8FAFC;
-  --silver-accent: #E2E8F0;
+  /* Surface */
+  --surface: #FFFFFF;
+  --surface-raised: #F9FAFB;
+
+  /* Border */
+  --border: #E5E7EB;
+  --border-strong: #D1D5DB;
+
+  /* Text */
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+
+  /* Accent */
+  --accent: #EA580C;
+  --accent-muted: rgba(234, 88, 12, 0.12);
+
+  /* Element states (Claim Map) */
+  --state-supported: #22C55E;
+  --state-supported-bg: #F0FDF4;
+  --state-disputed: #F59E0B;
+  --state-disputed-bg: #FFFBEB;
+  --state-unresolved: #94A3B8;
+  --state-unresolved-bg: #F8FAFC;
+
+  /* System feedback */
+  --success: #059669;
+  --danger: #DC2626;
+  --warning: #D97706;
+  --info: #1E40AF;
 }
 
-/* Mobile-first responsive typography - smaller text on mobile */
+/* Mobile-first responsive typography */
 @layer base {
   html {
-    font-size: 14px; /* Mobile default */
+    font-size: 14px;
   }
 
   @media (min-width: 640px) {
     html {
-      font-size: 15px; /* sm screens */
+      font-size: 15px;
     }
   }
 
   @media (min-width: 768px) {
     html {
-      font-size: 16px; /* md screens - standard */
+      font-size: 16px;
     }
-  }
-}
-
-/* Quantify font for Tru8 branding */
-@font-face {
-  font-family: 'Quantify';
-  src: url('/fonts/Quantify Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Animated glowing border effect - rotating beam */
-.glowing-border-wrapper {
-  position: relative;
-  border-radius: 0.75rem;
-  padding: 2px;
-  overflow: hidden;
-}
-
-.glowing-border-wrapper::before {
-  content: '';
-  position: absolute;
-  inset: -150%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 60deg,
-    #f57a07 120deg,
-    #ff9d4d 180deg,
-    #f57a07 240deg,
-    transparent 300deg,
-    transparent 360deg
-  );
-  animation: glowing-rotate 4s linear infinite;
-}
-
-.glowing-border-wrapper::after {
-  content: '';
-  position: absolute;
-  inset: -150%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 60deg,
-    #f57a07 120deg,
-    #ff9d4d 180deg,
-    #f57a07 240deg,
-    transparent 300deg,
-    transparent 360deg
-  );
-  animation: glowing-rotate 4s linear infinite;
-  filter: blur(20px);
-  opacity: 0.6;
-}
-
-.glowing-border-content {
-  position: relative;
-  background: #1a1f2e;
-  border-radius: calc(0.75rem - 2px);
-  z-index: 1;
-  height: 100%;
-}
-
-@keyframes glowing-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* New check highlight - rotating gradient border */
-@keyframes gradient-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* White rotating border for CTA buttons */
-.white-rotating-border {
-  position: relative;
-  border-radius: 0.75rem;
-  overflow: hidden;
-}
-
-.white-rotating-border::before {
-  content: '';
-  position: absolute;
-  inset: -150%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 60deg,
-    #ffffff 120deg,
-    #e2e8f0 180deg,
-    #ffffff 240deg,
-    transparent 300deg,
-    transparent 360deg
-  );
-  animation: gradient-rotate 3s linear infinite;
-  z-index: 0;
-}
-
-.white-rotating-border::after {
-  content: '';
-  position: absolute;
-  inset: -150%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 60deg,
-    #ffffff 120deg,
-    #e2e8f0 180deg,
-    #ffffff 240deg,
-    transparent 300deg,
-    transparent 360deg
-  );
-  animation: gradient-rotate 3s linear infinite;
-  filter: blur(15px);
-  opacity: 0.4;
-  z-index: 0;
-}
-
-.white-rotating-border-content {
-  position: relative;
-  z-index: 1;
-  background: #f57a07;
-  border-radius: calc(0.75rem - 2px);
-  margin: 2px;
-}
-
-.new-check-highlight {
-  position: relative;
-}
-
-.new-check-highlight::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 0.75rem;
-  background: conic-gradient(
-    from 0deg,
-    #f57a07,
-    #ff9d4d,
-    #f57a07,
-    #ff9d4d,
-    #f57a07
-  );
-  animation: gradient-rotate 1s linear 5;
-  z-index: -1;
-}
-
-.new-check-highlight::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 0.75rem;
-  background: conic-gradient(
-    from 0deg,
-    #f57a07,
-    #ff9d4d,
-    #f57a07,
-    #ff9d4d,
-    #f57a07
-  );
-  animation: gradient-rotate 1s linear 5;
-  filter: blur(8px);
-  opacity: 0.5;
-  z-index: -2;
-}
-
-/* Respect reduced motion preference for glowing border */
-@media (prefers-reduced-motion: reduce) {
-  .glowing-border-wrapper::before,
-  .glowing-border-wrapper::after {
-    animation: none;
-    background: #f57a07;
-    inset: 0;
-    opacity: 1;
-    filter: none;
   }
 }
 
@@ -225,187 +70,118 @@
   }
 }
 
-@layer utilities {
-  /* Navigation links fade-in animation */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  /* Subtle pulse animation for CTA */
-  @keyframes ctaPulse {
-    0%, 100% {
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                  0 2px 4px -1px rgba(0, 0, 0, 0.06),
-                  0 0 0 0 rgba(245, 122, 7, 0.4);
-    }
-    50% {
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                  0 4px 6px -2px rgba(0, 0, 0, 0.05),
-                  0 0 20px 5px rgba(245, 122, 7, 0.3);
-    }
-  }
-
-  .cta-pulse {
-    animation: ctaPulse 3s ease-in-out infinite;
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 1s ease forwards;
-  }
-
-  /* Stagger fade-in for trust badges */
-  .trust-badge-1 {
-    opacity: 0;
-    animation: fadeIn 0.6s ease forwards 0.3s;
-  }
-
-  .trust-badge-2 {
-    opacity: 0;
-    animation: fadeIn 0.6s ease forwards 0.5s;
-  }
-
-  .trust-badge-3 {
-    opacity: 0;
-    animation: fadeIn 0.6s ease forwards 0.7s;
-  }
-
-  /* Button microinteraction */
-  .btn-scale-hover {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  }
-
-  .btn-scale-hover:hover {
-    transform: scale(1.05);
-  }
-
-  /* Respect reduced motion preference */
-  @media (prefers-reduced-motion: reduce) {
-    .cta-pulse,
-    .animate-fade-in,
-    .trust-badge-1,
-    .trust-badge-2,
-    .trust-badge-3 {
-      animation: none;
-      opacity: 1;
-    }
-
-    .btn-scale-hover:hover {
-      transform: none;
-    }
-  }
+/* Grid dot background pattern (Stitch hero + form backgrounds) */
+.bg-grid-dot {
+  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
 /* Focus states for accessibility */
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid #f57a07;
+  outline: 2px solid #111827;
   outline-offset: 2px;
 }
 
-/* Clerk Component Dark Theme Override */
+/* Clerk Component Light Theme Override */
 .cl-rootBox,
 .cl-card,
 .cl-userProfile-root,
 .cl-profilePage {
-  background-color: #0f172a !important;
+  background-color: #FFFFFF !important;
 }
 
 .cl-navbar {
-  background-color: #1e293b !important;
-  border-color: #334155 !important;
+  background-color: #F9FAFB !important;
+  border-color: #E5E7EB !important;
 }
 
 .cl-navbarButton {
-  color: #cbd5e1 !important;
+  color: #6B7280 !important;
 }
 
 .cl-navbarButton:hover,
 .cl-navbarButton[data-active="true"] {
-  background-color: #334155 !important;
-  color: #ffffff !important;
+  background-color: #F3F4F6 !important;
+  color: #111827 !important;
 }
 
 .cl-headerTitle,
 .cl-headerSubtitle,
 .cl-profileSectionTitle,
 .cl-profileSectionTitleText {
-  color: #ffffff !important;
+  color: #111827 !important;
 }
 
 .cl-profileSectionContent {
-  color: #94a3b8 !important;
+  color: #6B7280 !important;
 }
 
 .cl-formFieldLabel {
-  color: #ffffff !important;
+  color: #374151 !important;
 }
 
 .cl-formFieldHintText {
-  color: #cbd5e1 !important;
+  color: #6B7280 !important;
 }
 
 .cl-formFieldInput,
 .cl-input {
-  background-color: #1e293b !important;
-  border-color: #475569 !important;
-  color: #ffffff !important;
+  background-color: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+  color: #111827 !important;
 }
 
 .cl-formFieldInput::placeholder,
 .cl-input::placeholder {
-  color: #94a3b8 !important;
+  color: #9CA3AF !important;
   opacity: 1 !important;
 }
 
 .cl-formFieldInput:focus,
 .cl-input:focus {
-  border-color: #f57a07 !important;
-  box-shadow: 0 0 0 2px rgba(245, 122, 7, 0.2) !important;
+  border-color: #111827 !important;
+  box-shadow: none !important;
 }
 
 .cl-formButtonPrimary,
 .cl-button-primary {
-  background: #f57a07 !important;
-  color: #ffffff !important;
+  background: #111827 !important;
+  color: #FFFFFF !important;
 }
 
 .cl-formButtonPrimary:hover,
 .cl-button-primary:hover {
-  background: #e06a00 !important;
+  background: #1f2937 !important;
 }
 
 .cl-avatarBox {
-  border-color: #475569 !important;
+  border-color: #E5E7EB !important;
 }
 
 .cl-badge {
-  background-color: #334155 !important;
-  color: #cbd5e1 !important;
+  background-color: #F3F4F6 !important;
+  color: #6B7280 !important;
 }
 
 .cl-accordion,
 .cl-accordionContent {
-  background-color: #1e293b !important;
-  border-color: #334155 !important;
+  background-color: #FFFFFF !important;
+  border-color: #E5E7EB !important;
 }
 
 .cl-menuList {
-  background-color: #1e293b !important;
-  border-color: #334155 !important;
+  background-color: #FFFFFF !important;
+  border-color: #E5E7EB !important;
 }
 
 .cl-menuItem {
-  color: #cbd5e1 !important;
+  color: #374151 !important;
 }
 
 .cl-menuItem:hover {
-  background-color: #334155 !important;
-  color: #ffffff !important;
+  background-color: #F3F4F6 !important;
+  color: #111827 !important;
 }
 
 .cl-internal-b1bwvi,
@@ -413,26 +189,26 @@ a:focus-visible {
 .cl-userButtonPopoverCard,
 .cl-userButtonPopoverActions,
 .cl-userButtonPopoverFooter {
-  background-color: #1e293b !important;
+  background-color: #FFFFFF !important;
 }
 
 /* OTP/Verification code input styling */
 .cl-otpCodeFieldInput,
 .cl-otpCodeField input {
-  background-color: #1e293b !important;
-  border-color: #475569 !important;
-  color: #ffffff !important;
+  background-color: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+  color: #111827 !important;
 }
 
 .cl-otpCodeFieldInput::placeholder,
 .cl-otpCodeField input::placeholder {
-  color: #94a3b8 !important;
+  color: #9CA3AF !important;
   opacity: 1 !important;
 }
 
 .cl-otpCodeFieldInput:focus,
 .cl-otpCodeField input:focus {
-  border-color: #f57a07 !important;
+  border-color: #111827 !important;
 }
 
 /* General text color overrides for Clerk modals */
@@ -440,96 +216,96 @@ a:focus-visible {
 .cl-signUp-root p,
 .cl-signIn-root span,
 .cl-signUp-root span {
-  color: #cbd5e1 !important;
+  color: #6B7280 !important;
 }
 
 .cl-signIn-root h1,
 .cl-signUp-root h1,
 .cl-signIn-root h2,
 .cl-signUp-root h2 {
-  color: #ffffff !important;
+  color: #111827 !important;
 }
 
 /* Resend code link and other action links */
 .cl-formResendCodeLink,
 .cl-linkButton,
 .cl-footerActionLink {
-  color: #f57a07 !important;
+  color: #EA580C !important;
 }
 
 .cl-formResendCodeLink:hover,
 .cl-linkButton:hover,
 .cl-footerActionLink:hover {
-  color: #ff9d4d !important;
+  color: #c2410c !important;
 }
 
 /* Alert and error messages */
 .cl-alert,
 .cl-alertText,
 .cl-formFieldErrorText {
-  color: #ffffff !important;
+  color: #DC2626 !important;
 }
 
 /* Password field show/hide button */
 .cl-formFieldInputShowPasswordButton {
-  color: #cbd5e1 !important;
+  color: #6B7280 !important;
 }
 
 /* Success text */
 .cl-formFieldSuccessText {
-  color: #10b981 !important;
+  color: #059669 !important;
 }
 
 /* Divider text ("or") */
 .cl-dividerText {
-  color: #94a3b8 !important;
+  color: #9CA3AF !important;
 }
 
 /* Social button text */
 .cl-socialButtonsBlockButton,
 .cl-socialButtonsIconButton {
-  color: #ffffff !important;
-  background-color: #1e293b !important;
-  border-color: #475569 !important;
+  color: #374151 !important;
+  background-color: #FFFFFF !important;
+  border-color: #E5E7EB !important;
 }
 
 .cl-socialButtonsBlockButton:hover,
 .cl-socialButtonsIconButton:hover {
-  background-color: #334155 !important;
+  background-color: #F9FAFB !important;
 }
 
 /* Modal card background */
 .cl-modalContent,
 .cl-signIn-root,
 .cl-signUp-root {
-  background-color: #1a1f2e !important;
+  background-color: #FFFFFF !important;
 }
 
 /* Identity preview (email shown with edit option) */
 .cl-identityPreview,
 .cl-identityPreviewText {
-  color: #ffffff !important;
+  color: #111827 !important;
 }
 
 .cl-identityPreviewEditButton,
 .cl-identityPreviewEditButtonIcon {
-  color: #f57a07 !important;
+  color: #EA580C !important;
 }
 
 .cl-identityPreviewEditButton:hover {
-  color: #ff9d4d !important;
+  color: #c2410c !important;
 }
 
 /* Alternative actions text */
 .cl-footerActionText,
 .cl-signIn-alternativeMethods,
 .cl-alternativeMethodsBlockButton {
-  color: #cbd5e1 !important;
+  color: #6B7280 !important;
 }
 
 .cl-alternativeMethodsBlockButton:hover {
-  color: #ffffff !important;
-  background-color: #334155 !important;
+  color: #111827 !important;
+  background-color: #F3F4F6 !important;
 }
 
 /* Hide Clerk branding */
@@ -539,25 +315,25 @@ a:focus-visible {
   display: none !important;
 }
 
-/* Legal Document Prose Styles */
+/* Legal Document Prose Styles (Light Theme) */
 .prose-legal {
-  @apply text-slate-300 leading-relaxed;
+  @apply text-zinc-700 leading-relaxed;
 }
 
 .prose-legal h2 {
-  @apply text-3xl font-bold text-white mt-12 mb-6 first:mt-0;
+  @apply text-3xl font-bold text-zinc-900 mt-12 mb-6 first:mt-0;
 }
 
 .prose-legal h3 {
-  @apply text-2xl font-semibold text-white mt-8 mb-4;
+  @apply text-2xl font-semibold text-zinc-900 mt-8 mb-4;
 }
 
 .prose-legal h4 {
-  @apply text-xl font-semibold text-slate-200 mt-6 mb-3;
+  @apply text-xl font-semibold text-zinc-800 mt-6 mb-3;
 }
 
 .prose-legal p {
-  @apply mb-4 text-slate-300;
+  @apply mb-4 text-zinc-700;
 }
 
 .prose-legal ul, .prose-legal ol {
@@ -565,29 +341,29 @@ a:focus-visible {
 }
 
 .prose-legal li {
-  @apply mb-2 text-slate-300;
+  @apply mb-2 text-zinc-700;
 }
 
 .prose-legal a {
-  @apply text-[#f57a07] hover:text-[#e06a00] underline transition-colors;
+  @apply text-[#EA580C] hover:text-[#c2410c] underline transition-colors;
 }
 
 .prose-legal strong {
-  @apply text-white font-semibold;
+  @apply text-zinc-900 font-semibold;
 }
 
 .prose-legal code {
-  @apply bg-slate-900 text-slate-300 px-2 py-1 rounded text-sm font-mono;
+  @apply bg-zinc-100 text-zinc-800 px-2 py-1 rounded text-sm font-mono;
 }
 
 .prose-legal table {
-  @apply w-full border-collapse border border-slate-700 my-6;
+  @apply w-full border-collapse border border-zinc-200 my-6;
 }
 
 .prose-legal th {
-  @apply bg-slate-800 text-white font-semibold p-3 border border-slate-700;
+  @apply bg-zinc-50 text-zinc-900 font-semibold p-3 border border-zinc-200;
 }
 
 .prose-legal td {
-  @apply p-3 border border-slate-700 text-slate-300;
+  @apply p-3 border border-zinc-200 text-zinc-700;
 }

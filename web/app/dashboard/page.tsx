@@ -1,7 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { apiClient, UserStats } from '@/lib/api';
 import { PageHeader } from './components/page-header';
-import { JusticeScalesGraphic } from './components/justice-scales-graphic';
 import { UpgradeBanner } from './components/upgrade-banner';
 import { UsageCard } from './components/usage-card';
 import { QuickActionCard } from './components/quick-action-card';
@@ -9,7 +8,6 @@ import { RecentChecksList } from './components/recent-checks-list';
 import { UserInsightsCard } from './components/user-insights-card';
 
 // Force dynamic rendering - prevents Next.js from caching this page
-// Ensures fresh data (recent checks, usage stats) on every visit
 export const dynamic = 'force-dynamic';
 
 interface User {
@@ -51,7 +49,6 @@ export default async function DashboardPage({
 }: {
   searchParams: { upgraded?: string; cancelled?: string };
 }) {
-  // Middleware guarantees authentication - just get token and fetch data
   const { getToken } = auth();
   const token = await getToken();
   const [user, subscription, usage, checksResponse, stats] = await Promise.all([
@@ -62,15 +59,12 @@ export default async function DashboardPage({
     apiClient.getUserStats(token) as Promise<UserStats>,
   ]);
 
-  // Use server-calculated usage (monthly for subscribers, lifetime for trial)
   const periodUsage = usage.periodCreditsUsed;
   const creditsLimit = usage.creditsPerPeriod;
   const isTrial = usage.isTrial;
 
-  // Show upgrade banner for trial users or free plan
   const showUpgradeBanner = isTrial || !subscription.hasSubscription || subscription.plan === 'free' || subscription.plan === 'free_trial';
 
-  // Check for upgrade/cancellation status from URL params
   const isUpgraded = searchParams.upgraded === 'true';
   const isCancelled = searchParams.cancelled === 'true';
 
@@ -78,22 +72,21 @@ export default async function DashboardPage({
     <div className="space-y-4 md:space-y-8">
       {/* Hero Section */}
       <PageHeader
-        title="Tru8: Your truth companion"
-        subtitle="Verify claims, URLs, and articles in minutes."
-        ctaText="Start Verifying"
+        title="Evidence Research Dashboard"
+        subtitle="Submit claims, URLs, and articles for multi-source analysis."
+        ctaText="New Check"
         ctaHref="/dashboard/new-check"
-        graphic={<JusticeScalesGraphic />}
       />
 
       {/* Success/Cancellation Messages */}
       {isUpgraded && (
-        <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-3 md:p-4 flex items-start gap-3">
-          <svg className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-emerald-50 border border-emerald-200 p-3 md:p-4 flex items-start gap-3">
+          <svg className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <h3 className="text-emerald-400 font-bold mb-1 text-sm md:text-base">Upgrade Successful!</h3>
-            <p className="text-emerald-200 text-xs md:text-sm">
+            <h3 className="text-emerald-800 font-bold mb-1 text-sm md:text-base">Upgrade Successful!</h3>
+            <p className="text-emerald-600 text-xs md:text-sm">
               Welcome to Tru8 Professional! Your account has been upgraded and you now have access to 40 checks per month.
             </p>
           </div>
@@ -101,21 +94,21 @@ export default async function DashboardPage({
       )}
 
       {isCancelled && (
-        <div className="bg-amber-900/20 border border-amber-700 rounded-lg p-3 md:p-4 flex items-start gap-3">
-          <svg className="w-5 h-5 md:w-6 md:h-6 text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-amber-50 border border-amber-200 p-3 md:p-4 flex items-start gap-3">
+          <svg className="w-5 h-5 md:w-6 md:h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <div>
-            <h3 className="text-amber-400 font-bold mb-1 text-sm md:text-base">Upgrade Cancelled</h3>
-            <p className="text-amber-200 text-xs md:text-sm">
+            <h3 className="text-amber-800 font-bold mb-1 text-sm md:text-base">Upgrade Cancelled</h3>
+            <p className="text-amber-600 text-xs md:text-sm">
               Your upgrade was cancelled. You can try again anytime.
             </p>
           </div>
         </div>
       )}
 
-      {/* Welcome Message - hidden on mobile, shown on desktop */}
-      <h2 className="hidden md:block text-3xl font-bold text-white mt-12 mb-8">
+      {/* Welcome Message */}
+      <h2 className="hidden md:block text-xl font-bold text-zinc-900 mt-8 mb-6">
         Welcome back, {user.name || 'User'}
       </h2>
 
@@ -137,7 +130,7 @@ export default async function DashboardPage({
       {/* Recent Checks */}
       <RecentChecksList checks={checksResponse.checks} />
 
-      {/* User Insights (only show if user has completed checks) */}
+      {/* User Insights */}
       {stats.totalChecks > 0 && (
         <UserInsightsCard stats={stats} />
       )}

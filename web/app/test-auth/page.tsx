@@ -22,12 +22,12 @@ export default function TestAuthPage() {
   const [variant, setVariant] = useState<'default' | 'styled' | 'hash'>('default');
 
   return (
-    <div className="min-h-screen bg-[#0f1419] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-white mb-2">
+        <h1 className="text-2xl font-bold text-zinc-900 mb-2">
           Clerk Auth Diagnostic Page
         </h1>
-        <p className="text-slate-400 mb-4">
+        <p className="text-zinc-500 mb-4">
           Test different Clerk configurations to isolate the error
         </p>
 
@@ -35,10 +35,10 @@ export default function TestAuthPage() {
         <div className="flex gap-2 justify-center">
           <button
             onClick={() => setVariant('default')}
-            className={`px-4 py-2 rounded-md transition-colors ${
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] transition-colors ${
               variant === 'default'
-                ? 'bg-[#f57a07] text-white'
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                ? 'bg-zinc-900 text-white'
+                : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
             }`}
           >
             Default
@@ -46,10 +46,10 @@ export default function TestAuthPage() {
 
           <button
             onClick={() => setVariant('styled')}
-            className={`px-4 py-2 rounded-md transition-colors ${
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] transition-colors ${
               variant === 'styled'
-                ? 'bg-[#f57a07] text-white'
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                ? 'bg-zinc-900 text-white'
+                : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
             }`}
           >
             Styled
@@ -57,10 +57,10 @@ export default function TestAuthPage() {
 
           <button
             onClick={() => setVariant('hash')}
-            className={`px-4 py-2 rounded-md transition-colors ${
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] transition-colors ${
               variant === 'hash'
-                ? 'bg-[#f57a07] text-white'
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                ? 'bg-zinc-900 text-white'
+                : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
             }`}
           >
             Hash Routing
@@ -69,11 +69,11 @@ export default function TestAuthPage() {
       </div>
 
       {/* Test Variants */}
-      <div className="bg-[#1a1f2e] rounded-lg border border-slate-700 p-6">
+      <div className="bg-white border border-zinc-200 p-6">
         {variant === 'default' && (
           <>
             <div className="mb-4 text-center">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-zinc-500">
                 Test 1: Default Clerk component (no customization)
               </p>
             </div>
@@ -84,7 +84,7 @@ export default function TestAuthPage() {
         {variant === 'styled' && (
           <>
             <div className="mb-4 text-center">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-zinc-500">
                 Test 2: Clerk component with custom appearance
               </p>
             </div>
@@ -92,16 +92,16 @@ export default function TestAuthPage() {
               appearance={{
                 elements: {
                   formButtonPrimary:
-                    'bg-[#f57a07] hover:bg-[#e06a00] text-white font-medium',
+                    'bg-zinc-900 hover:bg-zinc-800 text-white font-medium',
                   card: 'bg-transparent shadow-none',
-                  headerTitle: 'text-white',
-                  headerSubtitle: 'text-slate-300',
+                  headerTitle: 'text-zinc-900',
+                  headerSubtitle: 'text-zinc-500',
                   socialButtonsBlockButton:
-                    'border-slate-700 text-white hover:bg-slate-800',
+                    'border-zinc-200 text-zinc-900 hover:bg-zinc-50',
                   formFieldInput:
-                    'bg-[#0f1419] border-slate-700 text-white focus:border-[#f57a07]',
-                  formFieldLabel: 'text-slate-300',
-                  footerActionLink: 'text-[#f57a07] hover:text-[#e06a00]',
+                    'bg-white border-zinc-200 text-zinc-900 focus:border-black',
+                  formFieldLabel: 'text-zinc-500',
+                  footerActionLink: 'text-accent hover:text-accent/80',
                 },
               }}
               fallbackRedirectUrl="/dashboard"
@@ -112,7 +112,7 @@ export default function TestAuthPage() {
         {variant === 'hash' && (
           <>
             <div className="mb-4 text-center">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-zinc-500">
                 Test 3: Clerk component with hash routing
               </p>
             </div>
@@ -125,7 +125,7 @@ export default function TestAuthPage() {
       </div>
 
       <div className="mt-6 text-center max-w-lg">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-zinc-400">
           Monitor browser console for errors. If error occurs, note which variant causes it.
         </p>
       </div>

@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Plus, Lock } from 'lucide-react';
-import { GlowingBorderCard } from './glowing-border-card';
 
 interface QuickActionCardProps {
   used?: number;
@@ -11,34 +10,32 @@ export function QuickActionCard({ used = 0, limit = 3 }: QuickActionCardProps) {
   const isLimitReached = used >= limit;
 
   return (
-    <GlowingBorderCard className="h-full">
-      <div className="p-8 h-full">
-        <h3 className="text-xl font-bold text-white mb-2">Quick Action</h3>
-        <p className="text-slate-400 mb-6">Start a new claim verification</p>
+    <div className="bg-white border border-zinc-200 p-8 h-full">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-900 mb-2">Quick Action</h3>
+      <p className="text-zinc-500 text-sm mb-6">Start a new evidence check</p>
 
-        {isLimitReached ? (
-          <div className="space-y-4">
-            <div className="bg-amber-900/20 border border-amber-700 rounded-lg px-4 py-3 text-amber-400 text-sm flex items-start gap-2">
-              <Lock size={16} className="flex-shrink-0 mt-0.5" />
-              <span>Monthly limit reached ({used}/{limit} checks). Upgrade to continue.</span>
-            </div>
-            <Link
-              href="/dashboard/settings?tab=subscription"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all"
-            >
-              Upgrade Now
-            </Link>
+      {isLimitReached ? (
+        <div className="space-y-4">
+          <div className="bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800 text-sm flex items-start gap-2">
+            <Lock size={16} className="flex-shrink-0 mt-0.5" />
+            <span>Monthly limit reached ({used}/{limit} checks). Upgrade to continue.</span>
           </div>
-        ) : (
           <Link
-            href="/dashboard/new-check"
-            className="w-full bg-[#f57a07] hover:bg-[#e06a00] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
+            href="/dashboard/settings?tab=subscription"
+            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] py-4 flex items-center justify-center gap-2 transition-colors"
           >
-            <Plus size={20} />
-            New Check
+            Upgrade Now
           </Link>
-        )}
-      </div>
-    </GlowingBorderCard>
+        </div>
+      ) : (
+        <Link
+          href="/dashboard/new-check"
+          className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] py-4 flex items-center justify-center gap-2 transition-colors"
+        >
+          <Plus size={16} />
+          New Check
+        </Link>
+      )}
+    </div>
   );
 }

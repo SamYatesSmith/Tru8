@@ -8,6 +8,7 @@ Verifies:
 5. Threshold default is consistently 3 across all code paths
 6. No claim is starved purely due to list position
 """
+
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 
@@ -17,6 +18,7 @@ from app.pipeline.relevance_scorer import _fair_select_evidence, score_evidence_
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_evidence(url, title="Article", final_score=0.7, credibility_score=0.7):
     """Create a minimal evidence dict for testing."""
@@ -47,6 +49,7 @@ def build_evidence_and_positions(evidence_by_claim):
 # 1. Fair selection / round-robin tests
 # ---------------------------------------------------------------------------
 
+
 class TestFairSelection:
     """Test _fair_select_evidence distributes items fairly across claims."""
 
@@ -67,7 +70,9 @@ class TestFairSelection:
         """With 11 claims of 10 items each (110 total), cap=50 gives ~4-5 per claim."""
         evidence = {}
         for c in range(11):
-            evidence[str(c)] = [make_evidence(f"http://claim{c}.com/{i}") for i in range(10)]
+            evidence[str(c)] = [
+                make_evidence(f"http://claim{c}.com/{i}") for i in range(10)
+            ]
         all_ev, positions = build_evidence_and_positions(evidence)
         selected, sel_pos, sel_indices = _fair_select_evidence(
             all_ev, positions, max_evidence=50, evidence_by_claim=evidence
@@ -88,7 +93,9 @@ class TestFairSelection:
         """Claims 7-10 (late position) must get evidence selected."""
         evidence = {}
         for c in range(11):
-            evidence[str(c)] = [make_evidence(f"http://claim{c}.com/{i}") for i in range(10)]
+            evidence[str(c)] = [
+                make_evidence(f"http://claim{c}.com/{i}") for i in range(10)
+            ]
         all_ev, positions = build_evidence_and_positions(evidence)
         selected, sel_pos, sel_indices = _fair_select_evidence(
             all_ev, positions, max_evidence=50, evidence_by_claim=evidence
@@ -107,7 +114,7 @@ class TestFairSelection:
     def test_unequal_claim_sizes(self):
         """Claims with fewer items contribute all they have; remainder goes to larger claims."""
         evidence = {
-            "0": [make_evidence(f"http://a.com/{i}") for i in range(2)],   # 2 items
+            "0": [make_evidence(f"http://a.com/{i}") for i in range(2)],  # 2 items
             "1": [make_evidence(f"http://b.com/{i}") for i in range(20)],  # 20 items
             "2": [make_evidence(f"http://c.com/{i}") for i in range(20)],  # 20 items
         }
@@ -147,6 +154,7 @@ class TestFairSelection:
 # 2. Unscored items representation
 # ---------------------------------------------------------------------------
 
+
 class TestUnscoredRepresentation:
     """Test that unscored items get score=None, not score=0."""
 
@@ -155,7 +163,9 @@ class TestUnscoredRepresentation:
         """Items not sent to LLM should have llm_relevance_score=None."""
         evidence = {}
         for c in range(11):
-            evidence[str(c)] = [make_evidence(f"http://claim{c}.com/{i}") for i in range(10)]
+            evidence[str(c)] = [
+                make_evidence(f"http://claim{c}.com/{i}") for i in range(10)
+            ]
 
         claims = [f"Claim {i}" for i in range(11)]
 
@@ -166,15 +176,28 @@ class TestUnscoredRepresentation:
 
         async def mock_score_llm(claims_arg, evidence_items, article_context):
             return [
-                {"evidence_index": i, "score": 5, "rationale": "relevant", "relevant_claims": []}
+                {
+                    "evidence_index": i,
+                    "score": 5,
+                    "rationale": "relevant",
+                    "relevant_claims": [],
+                }
                 for i in range(len(evidence_items))
             ]
 
-        with patch('app.pipeline.relevance_scorer._score_with_google', side_effect=mock_score_google), \
-             patch('app.pipeline.relevance_scorer._score_with_llm', side_effect=mock_score_llm), \
-             patch('app.pipeline.relevance_scorer._get_cached_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer._cache_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer.settings') as mock_settings:
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            side_effect=mock_score_google,
+        ), patch(
+            "app.pipeline.relevance_scorer._score_with_llm", side_effect=mock_score_llm
+        ), patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores", return_value=None
+        ), patch(
+            "app.pipeline.relevance_scorer.settings"
+        ) as mock_settings:
 
             mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
             mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 50
@@ -189,19 +212,24 @@ class TestUnscoredRepresentation:
                 all_items.extend(ev_list)
 
             # Some items should have score=None (the ones beyond the cap)
-            none_scored = [e for e in all_items if e.get('llm_relevance_score') is None]
-            int_scored = [e for e in all_items if isinstance(e.get('llm_relevance_score'), int)]
+            none_scored = [e for e in all_items if e.get("llm_relevance_score") is None]
+            int_scored = [
+                e for e in all_items if isinstance(e.get("llm_relevance_score"), int)
+            ]
 
             # 110 total items, 50 selected → 60 should be unscored (None)
             assert len(none_scored) > 0, "Expected some items to be unscored (None)"
             # No items should have score=0 (0 is not a valid LLM rubric score)
-            zero_scored = [e for e in all_items if e.get('llm_relevance_score') == 0]
-            assert len(zero_scored) == 0, f"Found {len(zero_scored)} items with score=0 (should be None)"
+            zero_scored = [e for e in all_items if e.get("llm_relevance_score") == 0]
+            assert (
+                len(zero_scored) == 0
+            ), f"Found {len(zero_scored)} items with score=0 (should be None)"
 
 
 # ---------------------------------------------------------------------------
 # 3. Per-claim fallback rescues unscored items
 # ---------------------------------------------------------------------------
+
 
 class TestFallbackRescue:
     """Test that fallback can rescue claims with unscored (None) items."""
@@ -212,9 +240,15 @@ class TestFallbackRescue:
         # 3 claims: claim 0 gets 45 items, claim 1 gets 5, claim 2 gets 10
         # With max=50, all of claim 0 + claim 1 scored, but claim 2 partially or fully unscored
         evidence = {
-            "0": [make_evidence(f"http://a.com/{i}", final_score=0.8) for i in range(8)],
-            "1": [make_evidence(f"http://b.com/{i}", final_score=0.7) for i in range(8)],
-            "2": [make_evidence(f"http://c.com/{i}", final_score=0.6) for i in range(8)],
+            "0": [
+                make_evidence(f"http://a.com/{i}", final_score=0.8) for i in range(8)
+            ],
+            "1": [
+                make_evidence(f"http://b.com/{i}", final_score=0.7) for i in range(8)
+            ],
+            "2": [
+                make_evidence(f"http://c.com/{i}", final_score=0.6) for i in range(8)
+            ],
         }
 
         claims = ["Claim 0", "Claim 1", "Claim 2"]
@@ -225,18 +259,33 @@ class TestFallbackRescue:
 
         async def mock_score_llm(claims_arg, evidence_items, article_context):
             return [
-                {"evidence_index": i, "score": 1, "rationale": "off-topic", "relevant_claims": []}
+                {
+                    "evidence_index": i,
+                    "score": 1,
+                    "rationale": "off-topic",
+                    "relevant_claims": [],
+                }
                 for i in range(len(evidence_items))
             ]
 
-        with patch('app.pipeline.relevance_scorer._score_with_google', side_effect=mock_score_google), \
-             patch('app.pipeline.relevance_scorer._score_with_llm', side_effect=mock_score_llm), \
-             patch('app.pipeline.relevance_scorer._get_cached_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer._cache_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer.settings') as mock_settings:
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            side_effect=mock_score_google,
+        ), patch(
+            "app.pipeline.relevance_scorer._score_with_llm", side_effect=mock_score_llm
+        ), patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores", return_value=None
+        ), patch(
+            "app.pipeline.relevance_scorer.settings"
+        ) as mock_settings:
 
             mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
-            mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 10  # Very low cap to force truncation
+            mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = (
+                10  # Very low cap to force truncation
+            )
             mock_settings.LLM_RELEVANCE_MIN_SCORE = 3
             mock_settings.MAX_CLAIMS_PER_URL = 2
 
@@ -248,13 +297,15 @@ class TestFallbackRescue:
             # Every claim should get fallback evidence (from unscored pool)
             for claim_pos in ["0", "1", "2"]:
                 # Each claim should have at least some evidence via fallback rescue
-                assert len(result[claim_pos]) > 0, \
-                    f"Claim {claim_pos} got 0 evidence - fallback should rescue unscored items"
+                assert (
+                    len(result[claim_pos]) > 0
+                ), f"Claim {claim_pos} got 0 evidence - fallback should rescue unscored items"
 
 
 # ---------------------------------------------------------------------------
 # 4. Global fallback path — no NameError
 # ---------------------------------------------------------------------------
+
 
 class TestGlobalFallback:
     """Test global fallback uses assigned_url_counts (not assigned_urls_globally)."""
@@ -276,15 +327,28 @@ class TestGlobalFallback:
 
         async def mock_score_llm(claims_arg, evidence_items, article_context):
             return [
-                {"evidence_index": i, "score": 1, "rationale": "off-topic", "relevant_claims": []}
+                {
+                    "evidence_index": i,
+                    "score": 1,
+                    "rationale": "off-topic",
+                    "relevant_claims": [],
+                }
                 for i in range(len(evidence_items))
             ]
 
-        with patch('app.pipeline.relevance_scorer._score_with_google', side_effect=mock_score_google), \
-             patch('app.pipeline.relevance_scorer._score_with_llm', side_effect=mock_score_llm), \
-             patch('app.pipeline.relevance_scorer._get_cached_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer._cache_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer.settings') as mock_settings:
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            side_effect=mock_score_google,
+        ), patch(
+            "app.pipeline.relevance_scorer._score_with_llm", side_effect=mock_score_llm
+        ), patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores", return_value=None
+        ), patch(
+            "app.pipeline.relevance_scorer.settings"
+        ) as mock_settings:
 
             mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
             mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 50
@@ -313,15 +377,28 @@ class TestGlobalFallback:
 
         async def mock_score_llm(claims_arg, evidence_items, article_context):
             return [
-                {"evidence_index": i, "score": 1, "rationale": "off-topic", "relevant_claims": []}
+                {
+                    "evidence_index": i,
+                    "score": 1,
+                    "rationale": "off-topic",
+                    "relevant_claims": [],
+                }
                 for i in range(len(evidence_items))
             ]
 
-        with patch('app.pipeline.relevance_scorer._score_with_google', side_effect=mock_score_google), \
-             patch('app.pipeline.relevance_scorer._score_with_llm', side_effect=mock_score_llm), \
-             patch('app.pipeline.relevance_scorer._get_cached_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer._cache_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer.settings') as mock_settings:
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            side_effect=mock_score_google,
+        ), patch(
+            "app.pipeline.relevance_scorer._score_with_llm", side_effect=mock_score_llm
+        ), patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores", return_value=None
+        ), patch(
+            "app.pipeline.relevance_scorer.settings"
+        ) as mock_settings:
 
             mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
             mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 1  # Only 1 item scored total
@@ -339,18 +416,19 @@ class TestGlobalFallback:
 # 5. Threshold consistency
 # ---------------------------------------------------------------------------
 
-class TestThresholdConsistency:
-    """Test threshold default is 3 in all code paths."""
 
-    def test_config_default_is_3(self):
-        """Config LLM_RELEVANCE_MIN_SCORE default should be 3."""
+class TestThresholdConsistency:
+    """Test scorer is advisory-only — annotates scores but never filters."""
+
+    def test_scorer_is_advisory_only(self):
+        """Config should NOT have LLM_RELEVANCE_MIN_SCORE (removed in Track B)."""
         from app.core.config import Settings
-        field = Settings.model_fields['LLM_RELEVANCE_MIN_SCORE']
-        assert field.default == 3
+
+        assert "LLM_RELEVANCE_MIN_SCORE" not in Settings.model_fields
 
     @pytest.mark.asyncio
-    async def test_score_3_items_kept(self):
-        """Evidence with score=3 should be kept (threshold is 3, not 4)."""
+    async def test_all_items_returned_with_advisory_scores(self):
+        """All evidence should be returned with advisory scores annotated (no filtering)."""
         evidence = {
             "0": [make_evidence("http://a.com/1"), make_evidence("http://a.com/2")],
         }
@@ -361,30 +439,49 @@ class TestThresholdConsistency:
 
         async def mock_score_llm(claims_arg, evidence_items, article_context):
             return [
-                {"evidence_index": 0, "score": 3, "rationale": "relevant but questionable source", "relevant_claims": [0]},
-                {"evidence_index": 1, "score": 2, "rationale": "weakly relevant", "relevant_claims": []},
+                {
+                    "evidence_index": 0,
+                    "score": 3,
+                    "rationale": "relevant but questionable source",
+                    "relevant_claims": [0],
+                },
+                {
+                    "evidence_index": 1,
+                    "score": 2,
+                    "rationale": "weakly relevant",
+                    "relevant_claims": [],
+                },
             ]
 
-        with patch('app.pipeline.relevance_scorer._score_with_google', side_effect=mock_score_google), \
-             patch('app.pipeline.relevance_scorer._score_with_llm', side_effect=mock_score_llm), \
-             patch('app.pipeline.relevance_scorer._get_cached_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer._cache_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer.settings') as mock_settings:
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            side_effect=mock_score_google,
+        ), patch(
+            "app.pipeline.relevance_scorer._score_with_llm", side_effect=mock_score_llm
+        ), patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores", return_value=None
+        ), patch(
+            "app.pipeline.relevance_scorer.settings"
+        ) as mock_settings:
 
             mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
             mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 50
-            mock_settings.LLM_RELEVANCE_MIN_SCORE = 3
             mock_settings.MAX_CLAIMS_PER_URL = 2
 
             result = await score_evidence_batch(claims, evidence, "test article")
-            # Score=3 should be kept, score=2 filtered
-            assert len(result["0"]) == 1
+            # Advisory-only: ALL items returned, scores annotated
+            assert len(result["0"]) == 2
             assert result["0"][0]["llm_relevance_score"] == 3
+            assert result["0"][1]["llm_relevance_score"] == 2
 
 
 # ---------------------------------------------------------------------------
 # 6. A0167d67-like scenario — many claims, >50 evidence
 # ---------------------------------------------------------------------------
+
 
 class TestA0167d67Scenario:
     """Reproduce the check a0167d67 failure scenario and verify fix."""
@@ -394,8 +491,17 @@ class TestA0167d67Scenario:
         """With 11 claims and 93 evidence items (cap=50), no claim should be starved."""
         # Reproduce the exact claim sizes from a0167d67
         claim_sizes = {
-            "0": 10, "1": 10, "2": 9, "3": 2, "4": 10,
-            "5": 8, "6": 10, "7": 5, "8": 10, "9": 10, "10": 9
+            "0": 10,
+            "1": 10,
+            "2": 9,
+            "3": 2,
+            "4": 10,
+            "5": 8,
+            "6": 10,
+            "7": 5,
+            "8": 10,
+            "9": 10,
+            "10": 9,
         }
         evidence = {}
         for cp, size in claim_sizes.items():
@@ -412,15 +518,28 @@ class TestA0167d67Scenario:
 
         async def mock_score_llm(claims_arg, evidence_items, article_context):
             return [
-                {"evidence_index": i, "score": 5, "rationale": "relevant", "relevant_claims": []}
+                {
+                    "evidence_index": i,
+                    "score": 5,
+                    "rationale": "relevant",
+                    "relevant_claims": [],
+                }
                 for i in range(len(evidence_items))
             ]
 
-        with patch('app.pipeline.relevance_scorer._score_with_google', side_effect=mock_score_google), \
-             patch('app.pipeline.relevance_scorer._score_with_llm', side_effect=mock_score_llm), \
-             patch('app.pipeline.relevance_scorer._get_cached_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer._cache_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer.settings') as mock_settings:
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            side_effect=mock_score_google,
+        ), patch(
+            "app.pipeline.relevance_scorer._score_with_llm", side_effect=mock_score_llm
+        ), patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores", return_value=None
+        ), patch(
+            "app.pipeline.relevance_scorer.settings"
+        ) as mock_settings:
 
             mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
             mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 50
@@ -431,13 +550,15 @@ class TestA0167d67Scenario:
 
             # CRITICAL: Every claim must have evidence (this was the a0167d67 failure)
             for cp in claim_sizes.keys():
-                assert len(result[cp]) > 0, \
-                    f"Claim {cp} has 0 evidence — starvation not fixed"
+                assert (
+                    len(result[cp]) > 0
+                ), f"Claim {cp} has 0 evidence — starvation not fixed"
 
             # Claims 7-10 specifically must not be starved
             for cp in ["7", "8", "9", "10"]:
-                assert len(result[cp]) > 0, \
-                    f"Late claim {cp} starved (a0167d67 regression)"
+                assert (
+                    len(result[cp]) > 0
+                ), f"Late claim {cp} starved (a0167d67 regression)"
 
     @pytest.mark.asyncio
     async def test_unscored_items_rescued_when_scored_items_killed(self):
@@ -458,15 +579,28 @@ class TestA0167d67Scenario:
 
         async def mock_score_llm(claims_arg, evidence_items, article_context):
             return [
-                {"evidence_index": i, "score": 1, "rationale": "off-topic", "relevant_claims": []}
+                {
+                    "evidence_index": i,
+                    "score": 1,
+                    "rationale": "off-topic",
+                    "relevant_claims": [],
+                }
                 for i in range(len(evidence_items))
             ]
 
-        with patch('app.pipeline.relevance_scorer._score_with_google', side_effect=mock_score_google), \
-             patch('app.pipeline.relevance_scorer._score_with_llm', side_effect=mock_score_llm), \
-             patch('app.pipeline.relevance_scorer._get_cached_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer._cache_relevance_scores', return_value=None), \
-             patch('app.pipeline.relevance_scorer.settings') as mock_settings:
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            side_effect=mock_score_google,
+        ), patch(
+            "app.pipeline.relevance_scorer._score_with_llm", side_effect=mock_score_llm
+        ), patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores", return_value=None
+        ), patch(
+            "app.pipeline.relevance_scorer.settings"
+        ) as mock_settings:
 
             mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
             mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 10  # Low cap = many unscored
@@ -477,5 +611,6 @@ class TestA0167d67Scenario:
 
             # Each claim has items that were never scored (None) — these should be rescued
             for cp in ["0", "1", "2"]:
-                assert len(result[cp]) > 0, \
-                    f"Claim {cp} should have fallback evidence from unscored items"
+                assert (
+                    len(result[cp]) > 0
+                ), f"Claim {cp} should have fallback evidence from unscored items"

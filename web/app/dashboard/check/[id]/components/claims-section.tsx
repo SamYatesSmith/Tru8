@@ -70,8 +70,8 @@ interface Evidence {
 
   // Source type fields
   isFactcheck?: boolean;
-  externalSourceProvider?: string;  // API name (e.g., "Semantic Scholar", "NOAA")
-  sourceType?: string;  // 'factcheck', 'news', 'academic', 'government', 'general'
+  externalSourceProvider?: string;
+  sourceType?: string;
 
   // Fact-check fields
   factcheckPublisher?: string;
@@ -112,8 +112,8 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-2xl font-bold text-white">Claims Analyzed ({claims.length})</h3>
-        <p className="text-xs text-slate-500">
+        <h3 className="text-2xl font-bold text-zinc-900">Claims Analyzed ({claims.length})</h3>
+        <p className="text-xs text-zinc-500">
           AI-assisted analysis based on publicly available sources. Results should be used as a starting point for further research, not as definitive fact.
         </p>
       </div>
@@ -134,11 +134,11 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
           <div
             key={claim.id}
             id={`claim-${claim.position}`}
-            className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 space-y-4 scroll-mt-4 relative"
+            className="bg-white border border-zinc-200 p-6 space-y-4 scroll-mt-4 relative"
           >
             {/* Claim Number */}
-            <span className="absolute top-4 right-6 text-xs text-slate-500 font-medium">
-              Claim {index + 1} of {claims.length}
+            <span className="absolute top-4 right-6 font-mono text-[10px] tracking-widest uppercase text-zinc-400">
+              {String(index + 1).padStart(2, '0')} / {String(claims.length).padStart(2, '0')}
             </span>
 
             {/* Claim Type & Time Sensitivity Indicators */}
@@ -148,7 +148,7 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
                   <TimeSensitiveIndicator timeReference={claim.timeReference} />
                 )}
                 {claim.claimType && claim.claimType !== 'factual' && (
-                  <span className="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded">
+                  <span className="px-2 py-1 bg-zinc-50 text-zinc-500 text-xs font-medium border border-zinc-200">
                     {claim.claimType.replace('_', ' ')}
                   </span>
                 )}
@@ -156,24 +156,24 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
             )}
 
             {/* Claim Text */}
-            <p className="text-lg font-medium text-white">&quot;{claim.text}&quot;</p>
+            <p className="text-lg font-medium text-zinc-900">&quot;{claim.text}&quot;</p>
 
             <ClaimMapView claim={claim} />
 
             {/* Current Data Comparison - Show when temporal drift detected */}
             {claim.currentVerifiedData?.drift_detected && (
-              <div className="mt-3 p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
-                <div className="flex items-center gap-2 text-sm text-blue-300 mb-3">
+              <div className="mt-3 p-4 bg-blue-50 border border-blue-200">
+                <div className="flex items-center gap-2 text-sm text-blue-700 mb-3">
                   <RefreshCw size={14} className="animate-none" />
                   <span className="font-semibold">Data Has Changed Since Publication</span>
-                  <span className="text-blue-500">·</span>
-                  <span className="text-blue-400 text-xs">{claim.currentVerifiedData.source}</span>
+                  <span className="text-blue-400">&middot;</span>
+                  <span className="text-blue-500 text-xs">{claim.currentVerifiedData.source}</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="p-3 bg-slate-800/50 rounded-lg">
-                    <span className="text-xs text-slate-500 uppercase tracking-wide">Article Claimed</span>
-                    <div className="mt-1 text-slate-300 font-medium">
+                  <div className="p-3 bg-zinc-50 border border-zinc-200">
+                    <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-400">Article Claimed</span>
+                    <div className="mt-1 text-zinc-700 font-medium">
                       {Object.entries(claim.currentVerifiedData.claim_values).map(([k, v]) => (
                         <div key={k} className="flex justify-between">
                           <span className="capitalize">{k.replace('_', ' ')}:</span>
@@ -182,9 +182,9 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
                       ))}
                     </div>
                   </div>
-                  <div className="p-3 bg-emerald-900/30 border border-emerald-600/20 rounded-lg">
-                    <span className="text-xs text-emerald-400 uppercase tracking-wide">Current Data</span>
-                    <div className="mt-1 text-emerald-300 font-semibold">
+                  <div className="p-3 bg-emerald-50 border border-emerald-200">
+                    <span className="font-mono text-[10px] tracking-widest uppercase text-emerald-600">Current Data</span>
+                    <div className="mt-1 text-emerald-700 font-semibold">
                       {Object.entries(claim.currentVerifiedData.current_values).map(([k, v]) => (
                         <div key={k} className="flex justify-between">
                           <span className="capitalize">{k.replace('_', ' ')}:</span>
@@ -197,20 +197,20 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
 
                 {claim.currentVerifiedData.drift_summary && (
                   <div className="mt-3 flex items-center gap-2 text-xs">
-                    <span className={`px-2 py-1 rounded font-medium ${
+                    <span className={`px-2 py-1 font-medium ${
                       claim.currentVerifiedData.drift_severity === 'minor'
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'bg-orange-500/20 text-orange-400'
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : 'bg-orange-50 text-orange-700 border border-orange-200'
                     }`}>
                       {claim.currentVerifiedData.drift_severity === 'minor' ? 'Minor Update' : 'Significant Change'}
                     </span>
-                    <span className="text-slate-400">
+                    <span className="text-zinc-500">
                       {claim.currentVerifiedData.drift_summary}
                     </span>
                   </div>
                 )}
 
-                <p className="mt-2 text-xs text-slate-500 italic">
+                <p className="mt-2 text-xs text-zinc-500 italic">
                   The claim may have been accurate when published. Current data retrieved from {claim.currentVerifiedData.source}.
                 </p>
               </div>
@@ -220,7 +220,7 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
             {claim.evidence.length > 0 ? (
               <button
                 onClick={() => toggleEvidence(claim.id)}
-                className="flex items-center gap-2 text-sm text-[#f57a07] hover:text-[#ff8c1a] transition-colors font-medium"
+                className="flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-colors font-medium"
               >
                 <span>Evidence Sources ({claim.evidence.length})</span>
                 <ChevronDown
@@ -230,23 +230,23 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
               </button>
             ) : (
               /* Unsupported Claim Notice - No corroborating evidence found */
-              <div className="mt-2 p-4 bg-amber-900/20 border border-amber-600/30 rounded-lg">
+              <div className="mt-2 p-4 bg-amber-50 border border-amber-200">
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
-                    <span className="text-amber-400 text-sm">⚠</span>
+                  <div className="flex-shrink-0 w-8 h-8 bg-amber-100 flex items-center justify-center">
+                    <span className="text-amber-600 text-sm">&#x26A0;</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-amber-300">
+                    <h4 className="text-sm font-semibold text-amber-800">
                       Unsupported Claim
                     </h4>
                     {claim.sourcesReviewedCount && claim.sourcesReviewedCount > 0 ? (
                       <>
-                        <p className="mt-1 text-xs text-amber-200/80 leading-relaxed">
+                        <p className="mt-1 text-xs text-amber-700 leading-relaxed">
                           {claim.sourcesReviewedCount} source{claim.sourcesReviewedCount !== 1 ? 's were' : ' was'} reviewed but none met the quality threshold for display as evidence.
                         </p>
                         <a
                           href={`/dashboard/check/${checkId}/sources#claim-${claim.position}`}
-                          className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#f57a07] hover:text-[#ff8c1a] font-medium transition-colors"
+                          className="mt-2 inline-flex items-center gap-1.5 text-xs text-accent hover:text-accent/80 font-medium transition-colors"
                         >
                           <span>View {claim.sourcesReviewedCount} reviewed source{claim.sourcesReviewedCount !== 1 ? 's' : ''}</span>
                           <ExternalLink size={12} />
@@ -254,10 +254,10 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
                       </>
                     ) : (
                       <>
-                        <p className="mt-1 text-xs text-amber-200/80 leading-relaxed">
+                        <p className="mt-1 text-xs text-amber-700 leading-relaxed">
                           No credible sources were found to corroborate this claim. This suggests the assertion may be unfounded, inaccurate, or based on unreliable information.
                         </p>
-                        <p className="mt-2 text-xs text-slate-400 italic">
+                        <p className="mt-2 text-xs text-zinc-500 italic">
                           We searched multiple databases and news sources. The absence of supporting evidence is itself a significant finding.
                         </p>
                       </>
@@ -278,7 +278,7 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
                   <div
                     key={evidence.id}
                     onClick={() => window.open(evidence.url, '_blank', 'noopener,noreferrer')}
-                    className="flex items-start gap-3 p-4 bg-slate-900/50 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors group cursor-pointer"
+                    className="flex items-start gap-3 p-4 bg-zinc-50 border border-zinc-200 hover:border-black transition-colors group cursor-pointer"
                   >
                     <div className="flex-1 min-w-0 space-y-2">
                       {/* Fact-Check Badge */}
@@ -291,12 +291,12 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
 
                       {/* Title */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-white truncate">
+                        <span className="text-sm font-medium text-zinc-900 truncate">
                           {evidence.title}
                         </span>
                         <ExternalLink
                           size={14}
-                          className="text-slate-400 group-hover:text-white transition-colors flex-shrink-0"
+                          className="text-zinc-400 group-hover:text-zinc-900 transition-colors flex-shrink-0"
                         />
                       </div>
 
@@ -305,30 +305,30 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
                         <div className="mb-2">
                           {evidence.nliStance === 'supporting' && (
                             <div className="flex items-center gap-2">
-                              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold">
-                                🟢 SUPPORTS CLAIM
+                              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                                SUPPORTS CLAIM
                               </span>
-                              <span className="text-xs text-emerald-400/70">
+                              <span className="text-xs text-emerald-600">
                                 {Math.round((evidence.nliConfidence || 0) * 100)}% confident
                               </span>
                             </div>
                           )}
                           {evidence.nliStance === 'contradicting' && (
                             <div className="flex items-center gap-2">
-                              <span className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-xs font-bold">
-                                🔴 CONTRADICTS CLAIM
+                              <span className="px-3 py-1 bg-red-50 text-red-700 border border-red-200 text-xs font-bold">
+                                CONTRADICTS CLAIM
                               </span>
-                              <span className="text-xs text-red-400/70">
+                              <span className="text-xs text-red-600">
                                 {Math.round((evidence.nliConfidence || 0) * 100)}% confident
                               </span>
                             </div>
                           )}
                           {evidence.nliStance === 'neutral' && (
                             <div className="flex items-center gap-2">
-                              <span className="px-3 py-1 bg-slate-500/20 text-slate-400 border border-slate-500/30 rounded-full text-xs font-bold">
-                                ⚪ NEUTRAL
+                              <span className="px-3 py-1 bg-zinc-100 text-zinc-600 border border-zinc-200 text-xs font-bold">
+                                NEUTRAL
                               </span>
-                              <span className="text-xs text-slate-400/70">
+                              <span className="text-xs text-zinc-500">
                                 {Math.round((evidence.nliConfidence || 0) * 100)}% confident
                               </span>
                             </div>
@@ -340,21 +340,21 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
                       <div className="my-2 space-y-2">
                         {/* Context Before */}
                         {evidence.contextBefore && (
-                          <p className="text-xs text-slate-500 italic line-clamp-2">
+                          <p className="text-xs text-zinc-500 italic line-clamp-2">
                             ...{evidence.contextBefore}
                           </p>
                         )}
 
-                        {/* Main Snippet - Highlighted in Brand Orange */}
-                        <div className="p-3 bg-orange-500/10 border-l-4 border-[#f57a07] rounded">
-                          <p className="text-sm text-white leading-relaxed">
+                        {/* Main Snippet - Highlighted with accent border */}
+                        <div className="p-3 bg-orange-50 border-l-4 border-accent">
+                          <p className="text-sm text-zinc-900 leading-relaxed">
                             {evidence.snippet}
                           </p>
                         </div>
 
                         {/* Context After */}
                         {evidence.contextAfter && (
-                          <p className="text-xs text-slate-500 italic line-clamp-2">
+                          <p className="text-xs text-zinc-500 italic line-clamp-2">
                             {evidence.contextAfter}...
                           </p>
                         )}
@@ -362,9 +362,9 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
 
                       {/* Reasoning - Why this supports/contradicts (Phase 2) */}
                       {evidence.nliStance && evidence.nliStance !== 'neutral' && (
-                        <div className="p-3 bg-slate-800/50 border border-slate-700 rounded text-xs text-slate-300 mb-2">
-                          <span className="font-semibold text-slate-200">
-                            💬 Why this {evidence.nliStance === 'supporting' ? 'supports' : 'contradicts'}:
+                        <div className="p-3 bg-zinc-50 border border-zinc-200 text-xs text-zinc-600 mb-2">
+                          <span className="font-semibold text-zinc-700">
+                            Why this {evidence.nliStance === 'supporting' ? 'supports' : 'contradicts'}:
                           </span>
                           <p className="mt-1">
                             {generateNliExplanation(evidence.nliStance, evidence.nliConfidence)}
@@ -373,41 +373,41 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
                       )}
 
                       {/* Metadata: Source · Source Type · Date · Credibility Label */}
-                      <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
-                        <span className="font-medium">{evidence.source}</span>
+                      <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-400 flex-wrap">
+                        <span className="font-medium text-zinc-500">{evidence.source}</span>
 
                         {/* Source Type Badge */}
                         {evidence.externalSourceProvider && (
-                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-bold uppercase">
+                          <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold uppercase">
                             API
                           </span>
                         )}
                         {evidence.isFactcheck && !evidence.externalSourceProvider && (
-                          <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-[10px] font-bold uppercase">
+                          <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 font-bold uppercase">
                             Fact-Check
                           </span>
                         )}
 
                         {evidence.parentCompany && (
                           <>
-                            <span>·</span>
+                            <span>&middot;</span>
                             <span title="Parent Company">
                               {evidence.parentCompany}
                             </span>
                           </>
                         )}
 
-                        <span>·</span>
+                        <span>&middot;</span>
                         <span>{formatMonthYear(evidence.publishedDate || null)}</span>
 
                         {evidence.credibilityScore && (
                           <>
-                            <span>·</span>
+                            <span>&middot;</span>
                             <span className={`font-medium ${
-                              evidence.credibilityScore >= 0.9 ? 'text-emerald-400' :
-                              evidence.credibilityScore >= 0.8 ? 'text-blue-400' :
-                              evidence.credibilityScore >= 0.6 ? 'text-slate-400' :
-                              'text-amber-400'
+                              evidence.credibilityScore >= 0.9 ? 'text-emerald-600' :
+                              evidence.credibilityScore >= 0.8 ? 'text-blue-600' :
+                              evidence.credibilityScore >= 0.6 ? 'text-zinc-500' :
+                              'text-amber-600'
                             }`}>
                               {evidence.credibilityScore >= 0.9 ? 'Expert Source' :
                                evidence.credibilityScore >= 0.8 ? 'Verified Source' :
@@ -419,8 +419,8 @@ export function ClaimsSection({ claims, checkId }: ClaimsSectionProps) {
 
                         {evidence.temporalRelevanceScore !== undefined && (
                           <>
-                            <span>·</span>
-                            <span title="Temporal Relevance" className="text-amber-400">
+                            <span>&middot;</span>
+                            <span title="Temporal Relevance" className="text-amber-600">
                               Time-Relevant
                             </span>
                           </>

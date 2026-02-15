@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
 
         <h2>1. Introduction</h2>
         <p>
-          Tru8 Ltd (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the Tru8 claim verification platform.
+          Tru8 Ltd (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the Tru8 evidence research platform.
           This Privacy Policy explains how we collect, use, disclose, and safeguard
           your information when you use our services.
         </p>
@@ -33,8 +33,8 @@ export default function PrivacyPolicyPage() {
 
         <h3>2.2 Usage Data</h3>
         <ul>
-          <li><strong>Verification submissions:</strong> Text, URLs, images, or videos you submit</li>
-          <li><strong>Check history:</strong> Your past verification requests and results</li>
+          <li><strong>Research submissions:</strong> Text, URLs, images, or videos you submit</li>
+          <li><strong>Check history:</strong> Your past research requests and results</li>
           <li><strong>Credits usage:</strong> Tracking your subscription usage</li>
         </ul>
 
@@ -81,7 +81,7 @@ export default function PrivacyPolicyPage() {
 
         <h2>4. How We Use Your Information</h2>
         <ul>
-          <li>Provide claim verification services</li>
+          <li>Provide evidence research services</li>
           <li>Manage your account and subscription</li>
           <li>Process payments</li>
           <li>Send service updates and notifications</li>

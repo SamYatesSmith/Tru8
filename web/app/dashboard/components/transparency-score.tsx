@@ -19,11 +19,10 @@ export function TransparencyScore({ score, className = '' }: TransparencyScorePr
     return () => clearTimeout(timer);
   }, [score]);
 
-  // Color based on score
   const getScoreColor = () => {
-    if (score >= 0.8) return 'text-emerald-400';
-    if (score >= 0.6) return 'text-amber-400';
-    return 'text-red-400';
+    if (score >= 0.8) return 'text-emerald-600';
+    if (score >= 0.6) return 'text-amber-600';
+    return 'text-red-600';
   };
 
   const getBarColor = () => {
@@ -33,26 +32,25 @@ export function TransparencyScore({ score, className = '' }: TransparencyScorePr
   };
 
   return (
-    <div className={`bg-slate-800/50 border border-slate-700 rounded-xl p-4 ${className}`}>
+    <div className={`bg-white border border-zinc-200 p-4 ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Eye size={18} className="text-slate-400" />
-          <span className="text-sm font-medium text-slate-300">Transparency Score</span>
+          <Eye size={18} className="text-zinc-400" />
+          <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-400">Transparency Score</span>
         </div>
-        <span className={`text-2xl font-bold ${getScoreColor()}`}>
+        <span className={`text-2xl font-mono font-bold ${getScoreColor()}`}>
           {percentage}%
         </span>
       </div>
 
-      {/* Progress Bar */}
-      <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-zinc-100 overflow-hidden">
         <div
-          className={`h-full ${getBarColor()} rounded-full transition-all duration-1000 ease-out`}
+          className={`h-full ${getBarColor()} transition-all duration-1000 ease-out`}
           style={{ width: `${animatedWidth}%` }}
         />
       </div>
 
-      <p className="text-xs text-slate-400 mt-2">
+      <p className="text-xs text-zinc-400 mt-2">
         How transparent this analysis is based on evidence quality and consensus
       </p>
     </div>

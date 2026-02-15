@@ -25,26 +25,23 @@ export function ClarityResponseCard({
   const hasDirectAnswer = !!queryResponse;
 
   return (
-    <div className="bg-gradient-to-r from-[#1E40AF05] to-[#7C3AED05] border-l-4 border-[#1E40AF] rounded-xl p-6 space-y-4">
+    <div className="bg-white border-l-4 border-accent p-6 space-y-4 border border-zinc-200">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <span className="text-2xl">💡</span>
-        <h3 className="text-xl font-bold text-white">CLARITY RESPONSE</h3>
+      <div>
+        <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400">Clarity Response</span>
+        <h3 className="text-lg font-bold text-zinc-900 mt-1">Your Question</h3>
       </div>
 
       {/* User's Question */}
-      <div>
-        <p className="text-sm text-slate-400 italic mb-1">Your question:</p>
-        <p className="text-lg text-slate-200">&ldquo;{userQuery}&rdquo;</p>
-      </div>
+      <p className="text-base text-zinc-700">&ldquo;{userQuery}&rdquo;</p>
 
-      <hr className="border-slate-700" />
+      <hr className="border-zinc-100" />
 
       {/* Direct Answer (if confidence >= 40%) */}
       {hasDirectAnswer && queryResponse && (
         <>
           <div>
-            <p className="text-base text-white leading-relaxed">
+            <p className="text-base text-zinc-900 leading-relaxed">
               {queryResponse}
             </p>
           </div>
@@ -52,25 +49,25 @@ export function ClarityResponseCard({
           {/* Sources */}
           {querySources && querySources.length > 0 && (
             <div>
-              <p className="text-sm font-semibold text-slate-300 mb-2">📚 Sources:</p>
+              <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-2">Sources</p>
               <div className="space-y-2">
                 {querySources.map((source, idx) => (
                   <div
                     key={idx}
-                    className="bg-slate-800/50 rounded-lg p-3 border border-slate-700"
+                    className="bg-zinc-50 p-3 border border-zinc-200"
                   >
                     <a
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#f57a07] hover:text-[#e06a00] font-semibold transition-colors"
+                      className="text-accent hover:text-accent/80 font-semibold transition-colors"
                     >
                       {source.source}
                     </a>
                     {source.publishedDate && (
                       <>
-                        <span className="text-slate-500 mx-2">·</span>
-                        <span className="text-sm text-slate-400">{source.publishedDate}</span>
+                        <span className="text-zinc-400 mx-2">&middot;</span>
+                        <span className="text-sm text-zinc-500">{source.publishedDate}</span>
                       </>
                     )}
                   </div>
@@ -84,14 +81,14 @@ export function ClarityResponseCard({
       {/* No Direct Answer - Show Related Claims (if confidence < 40%) */}
       {!hasDirectAnswer && relatedClaims && relatedClaims.length > 0 && (
         <>
-          <div className="bg-amber-900/20 border border-amber-600/30 rounded-lg p-4">
-            <p className="text-amber-200 text-sm">
-              ⚠️ We couldn&apos;t find a direct answer to your question in the available sources.
+          <div className="bg-amber-50 border border-amber-200 p-4">
+            <p className="text-amber-800 text-sm">
+              We couldn&apos;t find a direct answer to your question in the available sources.
             </p>
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-slate-300 mb-3">
+            <p className="text-sm font-semibold text-zinc-700 mb-3">
               However, these related claims may help:
             </p>
             <div className="space-y-3">
@@ -102,23 +99,22 @@ export function ClarityResponseCard({
                 return (
                   <div
                     key={position}
-                    className="bg-slate-800/50 rounded-lg p-4 border border-slate-700 cursor-pointer hover:border-slate-600 transition-colors group"
+                    className="bg-zinc-50 p-4 border border-zinc-200 cursor-pointer hover:border-black transition-colors group"
                     onClick={() => {
-                      // Scroll to claim
                       const element = document.getElementById(`claim-${position}`);
                       element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
                   >
                     <div className="flex items-start justify-between">
-                      <p className="text-white flex-1">
-                        → Claim {position + 1}: {claim.text}
+                      <p className="text-zinc-900 flex-1">
+                        Claim {position + 1}: {claim.text}
                       </p>
-                      <span className="ml-4 text-xs font-semibold text-slate-400">
+                      <span className="ml-4 text-xs font-mono text-zinc-400">
                         {claim.claimMap?.orientation || 'Analysis pending'}
                       </span>
                     </div>
-                    <p className="text-sm text-[#f57a07] mt-2 hover:underline">
-                      Jump to details ↓
+                    <p className="text-sm text-accent mt-2 hover:underline">
+                      Jump to details
                     </p>
                   </div>
                 );
@@ -130,10 +126,10 @@ export function ClarityResponseCard({
 
       {/* No Related Claims Either */}
       {!hasDirectAnswer && (!relatedClaims || relatedClaims.length === 0) && (
-        <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-4">
-          <p className="text-red-200 text-sm">
+        <div className="bg-red-50 border border-red-200 p-4">
+          <p className="text-red-800 text-sm">
             We couldn&apos;t find information addressing your question in the analyzed content or evidence sources.
-            The standard verification below may still contain relevant information.
+            The standard analysis below may still contain relevant information.
           </p>
         </div>
       )}

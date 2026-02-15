@@ -14,7 +14,7 @@ from app.services.api_adapters import (
     CrossRefAdapter,
     GovUKAdapter,
     HansardAdapter,
-    WikidataAdapter
+    WikidataAdapter,
 )
 
 
@@ -53,7 +53,7 @@ class TestFREDAdapter:
                     "observation_start": "1948-01-01",
                     "frequency": "Monthly",
                     "units": "Percent",
-                    "seasonal_adjustment": "Seasonally Adjusted"
+                    "seasonal_adjustment": "Seasonally Adjusted",
                 }
             ]
         }
@@ -99,7 +99,7 @@ class TestWHOAdapter:
                     "IndicatorCode": "WHS9_86",
                     "IndicatorName": "Life expectancy at birth (years)",
                     "Definition": "Average number of years...",
-                    "Language": "EN"
+                    "Language": "EN",
                 }
             ]
         }
@@ -144,14 +144,12 @@ class TestCrossRefAdapter:
                     "DOI": "10.1038/nature12345",
                     "title": ["Climate change impacts on global biodiversity"],
                     "abstract": "This study examines the impact...",
-                    "published-print": {
-                        "date-parts": [[2024, 3, 15]]
-                    },
+                    "published-print": {"date-parts": [[2024, 3, 15]]},
                     "publisher": "Nature Publishing Group",
                     "author": [
                         {"given": "John", "family": "Smith"},
-                        {"given": "Jane", "family": "Doe"}
-                    ]
+                        {"given": "Jane", "family": "Doe"},
+                    ],
                 }
             ]
         }
@@ -181,10 +179,10 @@ class TestGovUKAdapter:
 
         # Should be relevant for Government + UK
         assert adapter.is_relevant_for_domain("Government", "UK") == True
-        assert adapter.is_relevant_for_domain("Government", "Global") == True
         assert adapter.is_relevant_for_domain("General", "UK") == True
 
-        # Should not be relevant for other jurisdictions
+        # Should not be relevant for other jurisdictions (UK-only adapter)
+        assert adapter.is_relevant_for_domain("Government", "Global") == False
         assert adapter.is_relevant_for_domain("Government", "US") == False
 
     def test_transform_response(self):
@@ -199,7 +197,7 @@ class TestGovUKAdapter:
                     "link": "/government/news/policy-announcement",
                     "public_timestamp": "2024-03-15T10:00:00Z",
                     "format": "news_article",
-                    "organisations": ["HM Treasury"]
+                    "organisations": ["HM Treasury"],
                 }
             ]
         }
@@ -229,9 +227,9 @@ class TestHansardAdapter:
         # Should be relevant for Government and Law + UK
         assert adapter.is_relevant_for_domain("Government", "UK") == True
         assert adapter.is_relevant_for_domain("Law", "UK") == True
-        assert adapter.is_relevant_for_domain("Government", "Global") == True
 
-        # Should not be relevant for other domains/jurisdictions
+        # Should not be relevant for other domains/jurisdictions (UK-only adapter)
+        assert adapter.is_relevant_for_domain("Government", "Global") == False
         assert adapter.is_relevant_for_domain("Finance", "UK") == False
         assert adapter.is_relevant_for_domain("Government", "US") == False
 
@@ -248,7 +246,7 @@ class TestHansardAdapter:
                         "Url": "https://hansard.parliament.uk/debates/12345",
                         "Date": "2024-03-15T14:30:00Z",
                         "DebateType": "Commons",
-                        "Member": "The Prime Minister"
+                        "Member": "The Prime Minister",
                     }
                 ]
             }
@@ -294,7 +292,7 @@ class TestWikidataAdapter:
                     "id": "Q42",
                     "label": "Douglas Adams",
                     "description": "English author and humorist",
-                    "concepturi": "http://www.wikidata.org/entity/Q42"
+                    "concepturi": "http://www.wikidata.org/entity/Q42",
                 }
             ]
         }
@@ -324,7 +322,7 @@ class TestAdapterRegistry:
             CrossRefAdapter(),
             GovUKAdapter(),
             HansardAdapter(),
-            WikidataAdapter()
+            WikidataAdapter(),
         ]
 
         for adapter in adapters:
@@ -384,56 +382,65 @@ class TestAdapterRegistry:
 class TestCommonAdapterFeatures:
     """Test common features across all Week 2 adapters."""
 
-    @pytest.mark.parametrize("adapter_class", [
-        FREDAdapter,
-        WHOAdapter,
-        CrossRefAdapter,
-        GovUKAdapter,
-        HansardAdapter,
-        WikidataAdapter
-    ])
+    @pytest.mark.parametrize(
+        "adapter_class",
+        [
+            FREDAdapter,
+            WHOAdapter,
+            CrossRefAdapter,
+            GovUKAdapter,
+            HansardAdapter,
+            WikidataAdapter,
+        ],
+    )
     def test_adapter_has_required_methods(self, adapter_class):
         """Test each adapter implements required methods."""
         adapter = adapter_class()
 
-        assert hasattr(adapter, 'search')
-        assert hasattr(adapter, '_transform_response')
-        assert hasattr(adapter, 'is_relevant_for_domain')
+        assert hasattr(adapter, "search")
+        assert hasattr(adapter, "_transform_response")
+        assert hasattr(adapter, "is_relevant_for_domain")
         assert callable(adapter.search)
         assert callable(adapter._transform_response)
         assert callable(adapter.is_relevant_for_domain)
 
-    @pytest.mark.parametrize("adapter_class", [
-        FREDAdapter,
-        WHOAdapter,
-        CrossRefAdapter,
-        GovUKAdapter,
-        HansardAdapter,
-        WikidataAdapter
-    ])
+    @pytest.mark.parametrize(
+        "adapter_class",
+        [
+            FREDAdapter,
+            WHOAdapter,
+            CrossRefAdapter,
+            GovUKAdapter,
+            HansardAdapter,
+            WikidataAdapter,
+        ],
+    )
     def test_adapter_has_correct_attributes(self, adapter_class):
         """Test each adapter has correct attributes."""
         adapter = adapter_class()
 
-        assert hasattr(adapter, 'api_name')
-        assert hasattr(adapter, 'base_url')
-        assert hasattr(adapter, 'cache_ttl')
-        assert hasattr(adapter, 'timeout')
-        assert hasattr(adapter, 'max_results')
+        assert hasattr(adapter, "api_name")
+        assert hasattr(adapter, "base_url")
+        assert hasattr(adapter, "cache_ttl")
+        assert hasattr(adapter, "timeout")
+        assert hasattr(adapter, "max_results")
 
         assert isinstance(adapter.api_name, str)
         assert isinstance(adapter.base_url, str)
         assert isinstance(adapter.cache_ttl, int)
         assert adapter.cache_ttl > 0
 
-    @pytest.mark.parametrize("adapter_class", [
-        FREDAdapter,
-        WHOAdapter,
-        CrossRefAdapter,
-        GovUKAdapter,
-        HansardAdapter,
-        WikidataAdapter
-    ])
+    @pytest.mark.parametrize(
+        "adapter_class",
+        [
+            FREDAdapter,
+            WHOAdapter,
+            CrossRefAdapter,
+            GovUKAdapter,
+            HansardAdapter,
+            WikidataAdapter,
+        ],
+    )
     def test_adapter_creates_valid_evidence_dict(self, adapter_class):
         """Test each adapter creates valid evidence dictionaries."""
         adapter = adapter_class()
@@ -444,7 +451,7 @@ class TestCommonAdapterFeatures:
             snippet="Test snippet",
             url="https://example.com",
             source_date=None,
-            metadata={"test": "data"}
+            metadata={"test": "data"},
         )
 
         # Verify required fields

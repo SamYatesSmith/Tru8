@@ -18,7 +18,6 @@ Status: Production-ready
 """
 
 import pytest
-import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, Any, List
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
@@ -492,17 +491,9 @@ def temp_file(tmp_path):
     return _create_temp_file
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """
-    Create event loop for async tests
-
-    Created: 2025-11-03
-    Required for pytest-asyncio
-    """
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+# event_loop fixture removed — pytest-asyncio auto mode with
+# asyncio_default_fixture_loop_scope=function (in pytest.ini) handles this.
+# The previous session-scoped fixture conflicted with function-scoped tests.
 
 
 # ==================== PERFORMANCE FIXTURES ====================

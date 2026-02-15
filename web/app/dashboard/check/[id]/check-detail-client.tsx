@@ -202,16 +202,16 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       )}
 
       {checkData.status === 'pending' && (
-        <div className="text-center py-12 bg-slate-800/50 border border-slate-700 rounded-xl">
-          <p className="text-slate-400 text-lg">
+        <div className="text-center py-12 bg-white border border-zinc-200">
+          <p className="text-zinc-500 text-lg">
             Your check is queued and will begin processing soon...
           </p>
         </div>
       )}
 
       {checkData.status === 'completed' && (!checkData.claims || checkData.claims.length === 0) && (
-        <div className="text-center py-12 bg-slate-800/50 border border-slate-700 rounded-xl">
-          <p className="text-slate-400 text-lg">No claims were found in this check.</p>
+        <div className="text-center py-12 bg-white border border-zinc-200">
+          <p className="text-zinc-500 text-lg">No claims were found in this check.</p>
         </div>
       )}
     </div>

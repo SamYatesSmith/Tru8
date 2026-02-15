@@ -2,7 +2,6 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { PageHeader } from '@/app/dashboard/components/page-header';
-import { CompassGraphic } from '@/app/dashboard/components/compass-graphic';
 import { SourcesClient } from './sources-client';
 
 interface SourcesPageProps {
@@ -43,8 +42,7 @@ export default async function SourcesPage({ params }: SourcesPageProps) {
       {/* Page Header */}
       <PageHeader
         title="Sources Reviewed"
-        subtitle={`${sourcesData.totalSources} sources analysed during verification`}
-        graphic={<CompassGraphic />}
+        subtitle={`${sourcesData.totalSources} sources analysed during analysis`}
       />
 
       {/* Sources Content */}

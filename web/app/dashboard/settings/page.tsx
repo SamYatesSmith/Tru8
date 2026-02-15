@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { PageHeader } from '../components/page-header';
-import { TreeGraphic } from '../components/tree-graphic';
 import { SettingsTabs } from './components/settings-tabs';
 import { AccountTab } from './components/account-tab';
 import { SubscriptionTab } from './components/subscription-tab';
@@ -101,11 +100,10 @@ export default function SettingsPage() {
         <PageHeader
           title="Settings"
           subtitle="Manage your account and preferences"
-          graphic={<TreeGraphic />}
         />
         <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#f57a07] border-r-transparent"></div>
-          <p className="text-slate-400 mt-4">Loading settings...</p>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-zinc-900 border-r-transparent"></div>
+          <p className="text-zinc-400 mt-4">Loading settings...</p>
         </div>
       </div>
     );
@@ -116,7 +114,6 @@ export default function SettingsPage() {
       <PageHeader
         title="Settings"
         subtitle="Manage your account and preferences"
-        graphic={<TreeGraphic />}
       />
 
       <SettingsTabs activeTab={activeTab} onTabChange={handleTabChange} />

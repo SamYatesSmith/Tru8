@@ -127,10 +127,10 @@ export function NotificationsTab() {
   if (loading) {
     return (
       <div className="space-y-8">
-        <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+        <section className="bg-white border border-zinc-200 p-6">
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
-            <span className="ml-3 text-slate-400">Loading preferences...</span>
+            <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
+            <span className="ml-3 text-zinc-400">Loading preferences...</span>
           </div>
         </section>
       </div>
@@ -139,20 +139,20 @@ export function NotificationsTab() {
 
   return (
     <div className="space-y-8">
-      <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+      <section className="bg-white border border-zinc-200 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <h3 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
             <Bell size={20} />
             Email Notifications
           </h3>
           {saving && (
-            <span className="flex items-center text-xs text-slate-400">
+            <span className="flex items-center text-xs text-zinc-400">
               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
               Saving...
             </span>
           )}
           {!saving && lastSaved && (
-            <span className="flex items-center text-xs text-emerald-400">
+            <span className="flex items-center text-xs text-emerald-500">
               <CheckCircle className="w-3 h-3 mr-1" />
               Saved
             </span>
@@ -160,18 +160,18 @@ export function NotificationsTab() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-900/20 border border-red-700 rounded-lg flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-            <p className="text-xs text-red-300">{error}</p>
+          <div className="mb-6 p-3 bg-red-50 border border-red-200 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <p className="text-xs text-red-600">{error}</p>
           </div>
         )}
 
         <div className="space-y-6">
           {/* Master Toggle */}
-          <div className="flex items-center justify-between pb-6 border-b border-slate-700">
+          <div className="flex items-center justify-between pb-6 border-b border-zinc-100">
             <div>
-              <p className="text-sm font-medium text-white">Email Notifications</p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-sm font-medium text-zinc-900">Email Notifications</p>
+              <p className="text-xs text-zinc-500 mt-1">
                 Receive notifications via email
               </p>
             </div>
@@ -179,7 +179,7 @@ export function NotificationsTab() {
               onClick={() => updatePreference('emailNotificationsEnabled', !preferences.emailNotificationsEnabled)}
               disabled={saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
-                preferences.emailNotificationsEnabled ? 'bg-[#f57a07]' : 'bg-slate-600'
+                preferences.emailNotificationsEnabled ? 'bg-zinc-900' : 'bg-zinc-200'
               } ${saving ? 'opacity-50' : ''}`}
               aria-label="Toggle email notifications"
             >
@@ -194,9 +194,9 @@ export function NotificationsTab() {
           {/* Check Completion */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white">Check Completion</p>
-              <p className="text-xs text-slate-400 mt-1">
-                Get notified when your verifications are complete
+              <p className="text-sm font-medium text-zinc-900">Check Completion</p>
+              <p className="text-xs text-zinc-500 mt-1">
+                Get notified when your analyses are complete
               </p>
             </div>
             <button
@@ -204,8 +204,8 @@ export function NotificationsTab() {
               disabled={!preferences.emailNotificationsEnabled || saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
                 preferences.checkCompletion && preferences.emailNotificationsEnabled
-                  ? 'bg-[#f57a07]'
-                  : 'bg-slate-600'
+                  ? 'bg-zinc-900'
+                  : 'bg-zinc-200'
               } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Toggle check completion notifications"
             >
@@ -222,9 +222,9 @@ export function NotificationsTab() {
           {/* Check Failures */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white">Check Failures</p>
-              <p className="text-xs text-slate-400 mt-1">
-                Get notified if a verification encounters an issue
+              <p className="text-sm font-medium text-zinc-900">Check Failures</p>
+              <p className="text-xs text-zinc-500 mt-1">
+                Get notified if an analysis encounters an issue
               </p>
             </div>
             <button
@@ -232,8 +232,8 @@ export function NotificationsTab() {
               disabled={!preferences.emailNotificationsEnabled || saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
                 preferences.checkFailure && preferences.emailNotificationsEnabled
-                  ? 'bg-[#f57a07]'
-                  : 'bg-slate-600'
+                  ? 'bg-zinc-900'
+                  : 'bg-zinc-200'
               } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Toggle check failure notifications"
             >
@@ -250,8 +250,8 @@ export function NotificationsTab() {
           {/* Weekly Digest */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white">Weekly Digest</p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-sm font-medium text-zinc-900">Weekly Digest</p>
+              <p className="text-xs text-zinc-500 mt-1">
                 Receive a weekly summary of your activity
               </p>
             </div>
@@ -260,8 +260,8 @@ export function NotificationsTab() {
               disabled={!preferences.emailNotificationsEnabled || saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
                 preferences.weeklyDigest && preferences.emailNotificationsEnabled
-                  ? 'bg-[#f57a07]'
-                  : 'bg-slate-600'
+                  ? 'bg-zinc-900'
+                  : 'bg-zinc-200'
               } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Toggle weekly digest"
             >
@@ -278,8 +278,8 @@ export function NotificationsTab() {
           {/* Marketing Emails */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white">Marketing Emails</p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-sm font-medium text-zinc-900">Marketing Emails</p>
+              <p className="text-xs text-zinc-500 mt-1">
                 Receive updates about new features and offers
               </p>
             </div>
@@ -288,8 +288,8 @@ export function NotificationsTab() {
               disabled={!preferences.emailNotificationsEnabled || saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
                 preferences.marketing && preferences.emailNotificationsEnabled
-                  ? 'bg-[#f57a07]'
-                  : 'bg-slate-600'
+                  ? 'bg-zinc-900'
+                  : 'bg-zinc-200'
               } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Toggle marketing emails"
             >
@@ -304,8 +304,8 @@ export function NotificationsTab() {
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-emerald-900/20 border border-emerald-700 rounded-lg">
-          <p className="text-xs text-emerald-300">
+        <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200">
+          <p className="text-xs text-emerald-700">
             <CheckCircle className="w-3 h-3 inline mr-1" />
             Your notification preferences are synced across all devices.
           </p>

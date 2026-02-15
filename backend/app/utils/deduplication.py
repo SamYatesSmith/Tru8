@@ -20,7 +20,9 @@ class EvidenceDeduplicator:
         """
         self.text_similarity_threshold = text_similarity_threshold
 
-    def deduplicate(self, evidence_list: List[Dict[str, Any]]) -> Tuple[List[Dict], Dict[str, Any]]:
+    def deduplicate(
+        self, evidence_list: List[Dict[str, Any]]
+    ) -> Tuple[List[Dict], Dict[str, Any]]:
         """
         Remove TRUE duplicates only - not independent sources confirming the same facts.
 
@@ -38,6 +40,10 @@ class EvidenceDeduplicator:
             Tuple of (deduplicated evidence list, statistics dictionary)
         """
         if len(evidence_list) <= 1:
+            # Still compute content hashes for single items
+            for ev in evidence_list:
+                content = ev.get("snippet", ev.get("text", ""))
+                ev["content_hash"] = self._hash_content(content)
             return evidence_list, {"duplicates_removed": 0}
 
         # Stage 1: Exact hash deduplication (same content, different URLs)
@@ -52,11 +58,17 @@ class EvidenceDeduplicator:
             "after_hash_dedup": len(stage1),
             "final_count": len(stage2),
             "duplicates_removed": len(evidence_list) - len(stage2),
-            "dedup_ratio": round((len(evidence_list) - len(stage2)) / len(evidence_list), 2) if evidence_list else 0
+            "dedup_ratio": (
+                round((len(evidence_list) - len(stage2)) / len(evidence_list), 2)
+                if evidence_list
+                else 0
+            ),
         }
 
-        logger.info(f"Deduplication: {stats['original_count']} → {stats['final_count']} "
-                   f"({stats['duplicates_removed']} duplicates removed)")
+        logger.info(
+            f"Deduplication: {stats['original_count']} → {stats['final_count']} "
+            f"({stats['duplicates_removed']} duplicates removed)"
+        )
 
         return stage2, stats
 
@@ -75,12 +87,12 @@ class EvidenceDeduplicator:
 
         for ev in evidence:
             # Get text content (try snippet first, then text field)
-            content = ev.get('snippet', ev.get('text', ''))
+            content = ev.get("snippet", ev.get("text", ""))
             content_hash = self._hash_content(content)
 
             if content_hash not in seen_hashes:
                 seen_hashes.add(content_hash)
-                ev['content_hash'] = content_hash  # Store for database
+                ev["content_hash"] = content_hash  # Store for database
                 unique.append(ev)
             else:
                 logger.debug(f"Exact duplicate found: {ev.get('url', 'unknown')}")
@@ -105,7 +117,7 @@ class EvidenceDeduplicator:
         unique = []
 
         for ev in evidence:
-            url = ev.get('url', '')
+            url = ev.get("url", "")
 
             # Extract domain
             try:
@@ -140,10 +152,10 @@ class EvidenceDeduplicator:
         """
         # Normalize: lowercase, remove extra spaces, remove punctuation
         normalized = text.lower().strip()
-        normalized = ''.join(c for c in normalized if c.isalnum() or c.isspace())
-        normalized = ' '.join(normalized.split())
+        normalized = "".join(c for c in normalized if c.isalnum() or c.isspace())
+        normalized = " ".join(normalized.split())
 
-        return hashlib.md5(normalized.encode('utf-8')).hexdigest()
+        return hashlib.md5(normalized.encode("utf-8")).hexdigest()
 
     def _text_similarity_dedup(self, evidence: List[Dict]) -> List[Dict]:
         """
@@ -161,39 +173,51 @@ class EvidenceDeduplicator:
         if len(evidence) <= 1:
             return evidence
 
-        unique = [evidence[0]]
+        first = evidence[0]
+        if "is_syndicated" not in first:
+            first["is_syndicated"] = False
+            first["original_source_url"] = None
+        unique = [first]
 
         for candidate in evidence[1:]:
             is_duplicate = False
-            candidate_text = candidate.get('snippet', candidate.get('text', '')).lower()
+            candidate_text = candidate.get("snippet", candidate.get("text", "")).lower()
 
             for existing in unique:
-                existing_text = existing.get('snippet', existing.get('text', '')).lower()
-                similarity = SequenceMatcher(None, candidate_text, existing_text).ratio()
+                existing_text = existing.get(
+                    "snippet", existing.get("text", "")
+                ).lower()
+                similarity = SequenceMatcher(
+                    None, candidate_text, existing_text
+                ).ratio()
 
                 if similarity >= self.text_similarity_threshold:
                     is_duplicate = True
 
                     # Mark as syndicated if from different domain
-                    candidate_url = candidate.get('url', '')
-                    existing_url = existing.get('url', '')
+                    candidate_url = candidate.get("url", "")
+                    existing_url = existing.get("url", "")
                     if candidate_url != existing_url:
-                        logger.debug(f"Syndicated content detected: {candidate_url} (similar to {existing_url})")
-                        candidate['is_syndicated'] = True
-                        candidate['original_source_url'] = existing_url
+                        logger.debug(
+                            f"Syndicated content detected: {candidate_url} (similar to {existing_url})"
+                        )
+                        candidate["is_syndicated"] = True
+                        candidate["original_source_url"] = existing_url
 
                     break
 
             if not is_duplicate:
                 # Initialize syndication flags for non-duplicates
-                if 'is_syndicated' not in candidate:
-                    candidate['is_syndicated'] = False
-                    candidate['original_source_url'] = None
+                if "is_syndicated" not in candidate:
+                    candidate["is_syndicated"] = False
+                    candidate["original_source_url"] = None
                 unique.append(candidate)
 
         return unique
 
-    def get_dedup_metrics(self, original_count: int, final_count: int) -> Dict[str, Any]:
+    def get_dedup_metrics(
+        self, original_count: int, final_count: int
+    ) -> Dict[str, Any]:
         """
         Calculate deduplication metrics for monitoring.
 
@@ -205,11 +229,7 @@ class EvidenceDeduplicator:
             Dictionary with deduplication metrics
         """
         if original_count == 0:
-            return {
-                "duplicates_found": 0,
-                "dedup_percentage": 0,
-                "efficiency_gain": 0
-            }
+            return {"duplicates_found": 0, "dedup_percentage": 0, "efficiency_gain": 0}
 
         duplicates = original_count - final_count
         dedup_percentage = (duplicates / original_count) * 100
@@ -217,5 +237,5 @@ class EvidenceDeduplicator:
         return {
             "duplicates_found": duplicates,
             "dedup_percentage": round(dedup_percentage, 1),
-            "efficiency_gain": round(dedup_percentage / 100, 2)
+            "efficiency_gain": round(dedup_percentage / 100, 2),
         }

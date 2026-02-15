@@ -1,15 +1,14 @@
 import { Navigation } from '@/components/layout/navigation';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 import { Footer } from '@/components/layout/footer';
-import { ArrowLeft, Calendar, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
   title: 'Blog | Tru8',
-  description: 'News, updates, and insights from Tru8 - the claim verification platform.',
+  description: 'News, updates, and insights from Tru8 — AI-powered evidence research.',
 };
 
-// Blog posts data - add new posts here
 const blogPosts = [
   {
     slug: 'first-public-release',
@@ -23,17 +22,15 @@ const blogPosts = [
 export default function BlogPage() {
   return (
     <>
-      {/* Navigation */}
       <Navigation />
       <MobileBottomNav />
 
-      {/* Main Content */}
-      <main className="min-h-screen bg-[#0f1419] pt-24 md:pt-32 pb-24 md:pb-20">
+      <main className="min-h-screen pt-24 md:pt-32 pb-24 md:pb-20">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {/* Back Button */}
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-[#f57a07] transition-colors mb-6 md:mb-8"
+            className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors mb-6 md:mb-8"
           >
             <ArrowLeft size={20} />
             <span className="text-sm font-medium">Back to Home</span>
@@ -41,10 +38,13 @@ export default function BlogPage() {
 
           {/* Page Header */}
           <div className="mb-12 md:mb-16">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-4">
+            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+              Publication Archive
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 mb-4">
               Blog
             </h1>
-            <p className="text-lg text-slate-400">
+            <p className="text-lg text-zinc-500">
               News, updates, and insights from Tru8
             </p>
           </div>
@@ -55,26 +55,23 @@ export default function BlogPage() {
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="block bg-slate-800/30 border border-slate-700 hover:border-[#f57a07]/50 rounded-xl p-6 md:p-8 transition-all group"
+                className="block bg-white border border-zinc-200 hover:border-black p-6 md:p-8 transition-colors group"
               >
-                <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar size={14} />
-                    {post.date}
-                  </span>
+                <div className="flex items-center gap-4 font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-3">
+                  <span>{post.date}</span>
                   <span>·</span>
                   <span>{post.readTime}</span>
                 </div>
 
-                <h2 className="text-xl md:text-2xl font-bold text-white mb-3 group-hover:text-[#f57a07] transition-colors">
+                <h2 className="text-xl md:text-2xl font-bold text-zinc-900 mb-3 group-hover:text-accent transition-colors">
                   {post.title}
                 </h2>
 
-                <p className="text-slate-300 mb-4 leading-relaxed">
+                <p className="text-zinc-500 mb-4 leading-relaxed">
                   {post.excerpt}
                 </p>
 
-                <span className="inline-flex items-center gap-2 text-[#f57a07] font-medium text-sm group-hover:gap-3 transition-all">
+                <span className="inline-flex items-center gap-2 text-zinc-900 font-medium text-sm group-hover:gap-3 transition-all">
                   Read more
                   <ArrowRight size={16} />
                 </span>
@@ -84,7 +81,6 @@ export default function BlogPage() {
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </>
   );

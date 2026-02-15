@@ -1,7 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { apiClient } from '@/lib/api';
 import { PageHeader } from '../components/page-header';
-import { CompassGraphic } from '../components/compass-graphic';
 import { HistoryContent } from './components/history-content';
 
 interface ChecksResponse {
@@ -22,12 +21,9 @@ export default async function HistoryPage() {
       <div className="py-8">
         <PageHeader
           title="Check History"
-          subtitle="View, search, and manage all your verifications in one place"
+          subtitle="View, search, and manage all your analyses in one place"
           ctaText="New Check"
           ctaHref="/dashboard/new-check"
-          graphic={<CompassGraphic />}
-          titleSize="normal"
-          graphicScale={1.5}
         />
       </div>
 

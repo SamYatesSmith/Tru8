@@ -126,14 +126,20 @@ class FactCheckAPI:
         """
         rating_lower = rating.lower()
 
-        # Supported/True
-        if any(
-            keyword in rating_lower
-            for keyword in ["true", "correct", "accurate", "verified", "confirmed"]
-        ):
+        # Multi-word phrases first (order matters — prevents substring collisions)
+        if "pants on fire" in rating_lower:
+            return "CONTRADICTED"
+        if "mostly true" in rating_lower:
             return "SUPPORTED"
+        if "half true" in rating_lower:
+            return "UNCERTAIN"
+        if "mostly false" in rating_lower:
+            return "UNCERTAIN"
+        if "needs context" in rating_lower:
+            return "UNCERTAIN"
 
-        # Contradicted/False
+        # Contradicted single-word checks (before Supported to prevent
+        # "incorrect" matching "correct", "inaccurate" matching "accurate")
         if any(
             keyword in rating_lower
             for keyword in [
@@ -141,12 +147,18 @@ class FactCheckAPI:
                 "incorrect",
                 "inaccurate",
                 "debunked",
-                "pants on fire",
                 "misleading",
                 "wrong",
             ]
         ):
             return "CONTRADICTED"
+
+        # Supported/True
+        if any(
+            keyword in rating_lower
+            for keyword in ["true", "correct", "accurate", "verified", "confirmed"]
+        ):
+            return "SUPPORTED"
 
         # Uncertain/Mixed
         if any(
@@ -154,10 +166,8 @@ class FactCheckAPI:
             for keyword in [
                 "mixture",
                 "mixed",
-                "half true",
                 "mostly",
                 "unproven",
-                "needs context",
                 "unclear",
                 "unsubstantiated",
             ]

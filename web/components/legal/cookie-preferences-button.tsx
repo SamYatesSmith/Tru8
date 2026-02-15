@@ -14,7 +14,7 @@ export function CookiePreferencesButton({ children = 'Cookie Preferences' }: Coo
   return (
     <button
       onClick={handleClick}
-      className="text-[#f57a07] hover:text-[#e06a00] underline"
+      className="text-accent hover:text-accent/80 underline"
     >
       {children}
     </button>

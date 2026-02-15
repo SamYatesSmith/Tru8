@@ -39,13 +39,13 @@ export function UserMenuDropdown({ user, onClose }: UserMenuDropdownProps) {
   ];
 
   return (
-    <div className="w-60 bg-[#1a1f2e] border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+    <div className="w-60 bg-white border border-zinc-200 shadow-lg overflow-hidden">
       {/* User Info Header */}
-      <div className="px-4 py-3 border-b border-slate-700">
-        <p className="text-white font-semibold truncate">
+      <div className="px-4 py-3 border-b border-zinc-100">
+        <p className="text-zinc-900 font-semibold truncate">
           {user.name || 'User'}
         </p>
-        <p className="text-slate-400 text-sm truncate">
+        <p className="text-zinc-500 text-sm truncate">
           {user.email}
         </p>
       </div>
@@ -57,7 +57,7 @@ export function UserMenuDropdown({ user, onClose }: UserMenuDropdownProps) {
             key={item.href}
             href={item.href}
             onClick={onClose}
-            className="flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+            className="flex items-center gap-3 px-4 py-2 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
           >
             <item.icon size={18} />
             <span>{item.label}</span>
@@ -66,10 +66,10 @@ export function UserMenuDropdown({ user, onClose }: UserMenuDropdownProps) {
       </div>
 
       {/* Sign Out */}
-      <div className="border-t border-slate-700 py-2">
+      <div className="border-t border-zinc-100 py-2">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-4 py-2 w-full text-red-400 hover:bg-slate-800 hover:text-red-300 transition-colors"
+          className="flex items-center gap-3 px-4 py-2 w-full text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
         >
           <LogOut size={18} />
           <span>Sign Out</span>

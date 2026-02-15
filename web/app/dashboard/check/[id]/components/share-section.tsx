@@ -16,7 +16,6 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
   const [copied, setCopied] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
-  // Use public URL for sharing (not dashboard URL)
   const shareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/r/${checkId}`
     : '';
@@ -24,12 +23,10 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
     ? `Evidence Report: ${title}`
     : 'Check out this evidence report on Tru8';
 
-  // Detect if source is a tweet
   const isSourceTweet = isTweetUrl(inputUrl);
   const tweetId = isSourceTweet ? extractTweetId(inputUrl) : null;
 
   const handleShare = async (platform: string) => {
-    // Try native Web Share API first
     if (platform === 'native' && navigator.share) {
       try {
         await navigator.share({
@@ -43,7 +40,6 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
       return;
     }
 
-    // Platform-specific URLs
     const shareUrls: Record<string, string> = {
       x: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
@@ -90,7 +86,7 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `tru8-verification-${checkId.slice(0, 8)}.pdf`;
+      a.download = `tru8-report-${checkId.slice(0, 8)}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -104,79 +100,75 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-      <h3 className="text-xl font-bold text-white mb-4">Share & Export</h3>
+    <div className="bg-white border border-zinc-200 p-6">
+      <h3 className="text-lg font-bold text-zinc-900 mb-4">Share &amp; Export</h3>
 
       {/* PDF Download Button */}
       <button
         onClick={handleDownloadPDF}
         disabled={downloadingPdf}
-        className="w-full mb-6 flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-all shadow-lg hover:shadow-xl"
+        className="w-full mb-6 flex items-center justify-center gap-3 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 disabled:bg-zinc-300 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
       >
-        <Download size={20} />
+        <Download size={18} />
         {downloadingPdf ? 'Generating PDF...' : 'Download PDF Report'}
       </button>
 
       {/* Reply on X Section (only when source is a tweet) */}
       {isSourceTweet && tweetId && (
         <div className="mb-6">
-          <p className="text-sm text-slate-400 mb-3">Reply to the original post:</p>
+          <p className="text-sm text-zinc-500 mb-3">Reply to the original post:</p>
           <button
             onClick={handleReplyOnTwitter}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-[#f57a07] hover:bg-[#e06a00] text-white rounded-lg font-bold transition-all shadow-lg hover:shadow-xl"
+            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
           >
-            <Reply size={20} />
+            <Reply size={18} />
             Reply on X
           </button>
-          <p className="text-xs text-slate-500 mt-2">Post your findings in the original thread</p>
+          <p className="text-xs text-zinc-400 mt-2">Post your findings in the original thread</p>
         </div>
       )}
 
       {/* Share Section */}
-      <p className="text-sm text-slate-400 mb-3">
-        {isSourceTweet ? 'Share as a new post:' : 'Share your findings:'}
+      <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-3">
+        {isSourceTweet ? 'Share as a new post' : 'Share your findings'}
       </p>
       <div className="flex items-center gap-3">
-        {/* X (Twitter) */}
         <button
           onClick={() => handleShare('x')}
-          className="flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+          className="w-10 h-10 border border-zinc-100 hover:bg-zinc-50 text-zinc-400 hover:text-zinc-900 flex items-center justify-center transition-colors"
           aria-label="Share on X"
         >
-          <Twitter size={20} />
+          <Twitter size={18} />
         </button>
 
-        {/* LinkedIn */}
         <button
           onClick={() => handleShare('linkedin')}
-          className="flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+          className="w-10 h-10 border border-zinc-100 hover:bg-zinc-50 text-zinc-400 hover:text-zinc-900 flex items-center justify-center transition-colors"
           aria-label="Share on LinkedIn"
         >
-          <Linkedin size={20} />
+          <Linkedin size={18} />
         </button>
 
-        {/* WhatsApp */}
         <button
           onClick={() => handleShare('whatsapp')}
-          className="flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-[#25D366] text-white rounded-lg transition-colors"
+          className="w-10 h-10 border border-zinc-100 hover:bg-zinc-50 text-zinc-400 hover:text-zinc-900 flex items-center justify-center transition-colors"
           aria-label="Share on WhatsApp"
         >
-          <MessageCircle size={20} />
+          <MessageCircle size={18} />
         </button>
 
-        {/* Copy Link */}
         <button
           onClick={handleCopyLink}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 border border-zinc-200 hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900 transition-colors"
         >
           {copied ? (
             <>
-              <Check size={18} />
+              <Check size={16} />
               <span className="text-sm font-medium">Copied!</span>
             </>
           ) : (
             <>
-              <LinkIcon size={18} />
+              <LinkIcon size={16} />
               <span className="text-sm font-medium">Copy Link</span>
             </>
           )}

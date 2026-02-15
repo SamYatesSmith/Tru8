@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ExternalLink, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -25,12 +25,11 @@ interface CheckCardProps {
       };
     }>;
   };
-  isNew?: boolean;  // Highlight as newest check with rotating border
+  isNew?: boolean;
 }
 
 export function CheckCard({ check, isNew = false }: CheckCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showNewHighlight, setShowNewHighlight] = useState(isNew);
   const router = useRouter();
 
   const handleRecheck = (e: React.MouseEvent) => {
@@ -41,17 +40,6 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
     }
   };
 
-  // Auto-dismiss the highlight after animation completes (5 rotations = 5 seconds)
-  useEffect(() => {
-    if (isNew) {
-      const timer = setTimeout(() => {
-        setShowNewHighlight(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isNew]);
-
-  // Compute element state counts from all claims' claimMap elements
   const stateCounts = useMemo(() => {
     let supported = 0;
     let disputed = 0;
@@ -72,66 +60,35 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
     return { supported, disputed, unresolved };
   }, [check.claims]);
 
-  // Only show completed checks with claims
   if (check.status !== 'completed' || !check.claims || check.claims.length === 0) {
     return null;
   }
 
   const firstClaim = check.claims[0];
-
-  // Get display text: overall summary > first claim > URL
   const displayText = check.overallSummary || firstClaim.text;
   const isLongText = displayText.length > 150;
-
   const hasElements = stateCounts.supported + stateCounts.disputed + stateCounts.unresolved > 0;
 
   return (
-    <div className={`border rounded-xl hover:border-slate-600 transition-colors relative ${
-      showNewHighlight
-        ? 'border-transparent overflow-hidden p-[2px]'
-        : 'border-slate-700 bg-[#1a1f2e]'
+    <div className={`border bg-white hover:border-black transition-colors ${
+      isNew ? 'border-accent' : 'border-zinc-200'
     }`}>
-      {/* Rotating gradient border for new checks */}
-      {showNewHighlight && (
-        <>
-          <div
-            className="absolute -inset-[150%] rounded-xl"
-            style={{
-              background: 'conic-gradient(from 0deg, transparent 0deg, transparent 60deg, #f57a07 120deg, #ff9d4d 180deg, #f57a07 240deg, transparent 300deg, transparent 360deg)',
-              animation: 'gradient-rotate 1s linear infinite'
-            }}
-          />
-          <div
-            className="absolute -inset-[150%] rounded-xl opacity-60"
-            style={{
-              background: 'conic-gradient(from 0deg, transparent 0deg, transparent 60deg, #f57a07 120deg, #ff9d4d 180deg, #f57a07 240deg, transparent 300deg, transparent 360deg)',
-              animation: 'gradient-rotate 1s linear infinite',
-              filter: 'blur(20px)'
-            }}
-          />
-        </>
-      )}
-      {/* Inner content wrapper */}
-      <div className={`relative bg-[#1a1f2e] rounded-xl ${showNewHighlight ? 'z-10' : ''}`}>
       <Link
         href={`/dashboard/check/${check.id}`}
         className="block p-6"
       >
         <div className="flex items-start justify-between gap-6">
-          {/* Left: Synopsis info */}
           <div className="flex-1 min-w-0">
             {/* Date + Domain + Element state indicators */}
             <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-3">
-              <span className="text-slate-400 text-sm">
+              <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-400">
                 {formatDate(check.createdAt)}
               </span>
-              {/* Domain pill */}
               {check.articleDomain && (
-                <span className="text-xs px-2 py-0.5 bg-slate-700/50 text-slate-300 rounded-full">
+                <span className="text-[10px] px-2 py-0.5 bg-zinc-100 text-zinc-500 font-mono">
                   {check.articleDomain}
                 </span>
               )}
-              {/* Element state dot indicators */}
               {hasElements && (
                 <div className="flex items-center gap-3 text-xs font-mono">
                   {stateCounts.supported > 0 && (
@@ -156,12 +113,10 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
               )}
             </div>
 
-            {/* Synopsis text */}
-            <p className={`text-white mb-2 ${!isExpanded && isLongText ? 'line-clamp-2' : ''}`}>
+            <p className={`text-zinc-900 mb-2 ${!isExpanded && isLongText ? 'line-clamp-2' : ''}`}>
               {displayText}
             </p>
 
-            {/* URL and Re-check button */}
             {check.inputUrl && (
               <div className="flex items-center gap-3 mt-2">
                 <span
@@ -170,14 +125,14 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
                     e.stopPropagation();
                     window.open(check.inputUrl!, '_blank', 'noopener,noreferrer');
                   }}
-                  className="text-slate-400 text-sm flex items-center gap-1 hover:text-slate-300 cursor-pointer"
+                  className="text-zinc-400 text-sm flex items-center gap-1 hover:text-zinc-600 cursor-pointer"
                 >
                   <ExternalLink size={14} />
                   <span className="truncate max-w-[250px]">{check.inputUrl}</span>
                 </span>
                 <button
                   onClick={handleRecheck}
-                  className="flex items-center gap-1 text-xs text-slate-500 hover:text-[#f57a07] transition-colors px-2 py-1 rounded hover:bg-slate-700/50"
+                  className="flex items-center gap-1 text-xs text-zinc-400 hover:text-accent transition-colors px-2 py-1 hover:bg-zinc-50"
                   title="Run this check again with fresh evidence"
                 >
                   <RefreshCw size={12} />
@@ -187,26 +142,24 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
             )}
           </div>
 
-          {/* Right: Claims count */}
           <div className="flex-shrink-0 text-right">
-            <span className="text-3xl font-bold text-slate-300 block">
+            <span className="text-3xl font-mono font-light text-zinc-400 block">
               {check.claimsCount}
             </span>
-            <span className="text-slate-400 text-sm block">
+            <span className="text-zinc-500 text-xs font-mono uppercase block">
               {check.claimsCount === 1 ? 'Claim' : 'Claims'}
             </span>
           </div>
         </div>
       </Link>
 
-      {/* Expand/collapse button for long text */}
       {isLongText && (
         <button
           onClick={(e) => {
             e.preventDefault();
             setIsExpanded(!isExpanded);
           }}
-          className="w-full px-6 py-2 border-t border-slate-700/50 flex items-center justify-center gap-1 text-slate-400 hover:text-slate-300 text-sm transition-colors"
+          className="w-full px-6 py-2 border-t border-zinc-100 flex items-center justify-center gap-1 text-zinc-400 hover:text-zinc-600 text-sm transition-colors"
         >
           {isExpanded ? (
             <>
@@ -221,7 +174,6 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
           )}
         </button>
       )}
-      </div>
     </div>
   );
 }

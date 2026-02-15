@@ -13,16 +13,16 @@ export function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
   ];
 
   return (
-    <div className="border-b border-slate-700">
+    <div className="border-b border-zinc-100">
       <div className="flex items-center gap-8">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`pb-4 text-sm font-bold uppercase tracking-wide transition-colors border-b-2 ${
+            className={`pb-4 font-mono text-[10px] font-bold uppercase tracking-[0.2em] transition-colors border-b-2 ${
               activeTab === tab.id
-                ? 'text-[#f57a07] border-[#f57a07]'
-                : 'text-slate-400 border-transparent hover:text-white'
+                ? 'text-black border-accent'
+                : 'text-zinc-400 border-transparent hover:text-zinc-900'
             }`}
           >
             {tab.label}

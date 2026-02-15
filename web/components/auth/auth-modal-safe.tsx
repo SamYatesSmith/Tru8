@@ -30,12 +30,10 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const [mounted, setMounted] = useState(false);
 
-  // Ensure client-side only rendering
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Handle escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -66,17 +64,17 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
       >
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           onClick={onClose}
           aria-hidden="true"
         />
 
         {/* Modal Content */}
-        <div className="relative bg-[#1a1f2e] rounded-lg border border-slate-700 p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div className="relative bg-white border border-zinc-200 p-6 max-w-md w-full mx-4">
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors z-10"
+            className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 transition-colors z-10"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -89,16 +87,16 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
 
           {/* Tabs */}
           <div
-            className="flex gap-4 mb-6 border-b border-slate-700"
+            className="flex gap-4 mb-6 border-b border-zinc-200"
             role="tablist"
             aria-label="Authentication options"
           >
             <button
               onClick={() => setActiveTab('signin')}
-              className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+              className={`pb-2 px-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] transition-colors relative ${
                 activeTab === 'signin'
-                  ? 'text-[#f57a07]'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'text-zinc-900'
+                  : 'text-zinc-400 hover:text-zinc-900'
               }`}
               role="tab"
               aria-selected={activeTab === 'signin'}
@@ -107,7 +105,7 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
               Sign In
               {activeTab === 'signin' && (
                 <div
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f57a07]"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900"
                   aria-hidden="true"
                 />
               )}
@@ -115,10 +113,10 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
 
             <button
               onClick={() => setActiveTab('signup')}
-              className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+              className={`pb-2 px-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] transition-colors relative ${
                 activeTab === 'signup'
-                  ? 'text-[#f57a07]'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'text-zinc-900'
+                  : 'text-zinc-400 hover:text-zinc-900'
               }`}
               role="tab"
               aria-selected={activeTab === 'signup'}
@@ -127,7 +125,7 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
               Sign Up
               {activeTab === 'signup' && (
                 <div
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f57a07]"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900"
                   aria-hidden="true"
                 />
               )}
@@ -145,14 +143,12 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
               <SignIn
                 appearance={{
                   elements: {
-                    // SIMPLIFIED: Only essential styling to reduce risk
-                    formButtonPrimary: 'bg-[#f57a07] hover:bg-[#e06a00]',
+                    formButtonPrimary: 'bg-zinc-900 hover:bg-zinc-800',
                     card: 'bg-transparent shadow-none',
                     rootBox: 'w-full',
                   },
                 }}
                 fallbackRedirectUrl="/dashboard"
-                // Removed hash routing - using default path routing
               />
             </div>
           ) : (
@@ -165,14 +161,12 @@ export function AuthModalSafe({ isOpen, onClose }: AuthModalProps) {
               <SignUp
                 appearance={{
                   elements: {
-                    // SIMPLIFIED: Only essential styling to reduce risk
-                    formButtonPrimary: 'bg-[#f57a07] hover:bg-[#e06a00]',
+                    formButtonPrimary: 'bg-zinc-900 hover:bg-zinc-800',
                     card: 'bg-transparent shadow-none',
                     rootBox: 'w-full',
                   },
                 }}
                 fallbackRedirectUrl="/dashboard"
-                // Removed hash routing - using default path routing
               />
             </div>
           )}

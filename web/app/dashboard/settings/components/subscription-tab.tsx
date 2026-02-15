@@ -85,25 +85,25 @@ export function SubscriptionTab({
     return (
       <div className="space-y-8">
         {/* Current Plan Card - Still show their free tier status */}
-        <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-xl font-bold text-white mb-6">Your Current Plan</h3>
+        <section className="bg-white border border-zinc-200 p-6">
+          <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-6">Your Current Plan</h3>
           <div className="space-y-4">
             <div>
-              <h4 className="text-2xl font-black text-white">Free Trial</h4>
-              <p className="text-slate-400 mt-1">3 free checks to try Tru8</p>
+              <h4 className="text-2xl font-black text-zinc-900">Free Trial</h4>
+              <p className="text-zinc-500 mt-1">3 free checks to try Tru8</p>
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-slate-300">
+                <p className="text-sm text-zinc-600">
                   Trial usage: {periodUsage} / 3 checks
                 </p>
-                <p className="text-sm font-bold text-slate-300">
+                <p className="text-sm font-bold text-zinc-900 font-mono">
                   {Math.round((periodUsage / 3) * 100)}%
                 </p>
               </div>
-              <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-zinc-100 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] transition-all duration-500"
+                  className="h-full bg-zinc-900 transition-all duration-500"
                   style={{ width: `${Math.min((periodUsage / 3) * 100, 100)}%` }}
                 />
               </div>
@@ -120,16 +120,16 @@ export function SubscriptionTab({
   return (
     <div className="space-y-8">
       {/* Current Plan Card */}
-      <section className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-        <h3 className="text-xl font-bold text-white mb-6">Your Current Plan</h3>
+      <section className="bg-white border border-zinc-200 p-6">
+        <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-6">Your Current Plan</h3>
 
         <div className="space-y-4">
           {/* Plan Name */}
           <div>
-            <h4 className="text-2xl font-black text-white">
+            <h4 className="text-2xl font-black text-zinc-900">
               {isFree ? 'Free Trial' : 'Professional'}
             </h4>
-            <p className="text-slate-400 mt-1">
+            <p className="text-zinc-500 mt-1 font-mono text-sm">
               {isFree ? '3 free checks to try Tru8' : '£7 per month · 40 checks'}
             </p>
           </div>
@@ -138,23 +138,23 @@ export function SubscriptionTab({
           {isFree ? (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-slate-300">
+                <p className="text-sm text-zinc-600">
                   Trial usage: {periodUsage} / 3 checks
                 </p>
-                <p className="text-sm font-bold text-slate-300">
+                <p className="text-sm font-bold text-zinc-900 font-mono">
                   {Math.round((periodUsage / 3) * 100)}%
                 </p>
               </div>
-              <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-zinc-100 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] transition-all duration-500"
+                  className="h-full bg-zinc-900 transition-all duration-500"
                   style={{ width: `${Math.min((periodUsage / 3) * 100, 100)}%` }}
                 />
               </div>
             </div>
           ) : (
             <div>
-              <p className="text-sm text-slate-300 mb-1">
+              <p className="text-sm text-zinc-600 mb-1">
                 Next billing date:{' '}
                 {subscriptionData?.currentPeriodEnd
                   ? new Date(subscriptionData.currentPeriodEnd).toLocaleDateString('en-GB', {
@@ -164,7 +164,7 @@ export function SubscriptionTab({
                     })
                   : 'N/A'}
               </p>
-              <p className="text-sm text-slate-300">
+              <p className="text-sm text-zinc-600">
                 Usage this month: {periodUsage} checks
               </p>
             </div>
@@ -175,7 +175,7 @@ export function SubscriptionTab({
             <button
               onClick={handleUpgrade}
               disabled={loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] hover:from-[#ff8c1a] hover:to-[#f57a07] text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Loading...' : 'Upgrade to Professional'}
             </button>
@@ -183,7 +183,7 @@ export function SubscriptionTab({
             <button
               onClick={handleManageSubscription}
               disabled={loading}
-              className="w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Loading...' : 'Manage Subscription'}
             </button>
@@ -193,63 +193,63 @@ export function SubscriptionTab({
 
       {/* Available Plans */}
       <section>
-        <h3 className="text-xl font-bold text-white mb-6">Available Plans</h3>
+        <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-6">Available Plans</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Free Plan Card */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <h4 className="text-2xl font-black text-white mb-2">Free</h4>
+          <div className="bg-white border border-zinc-200 p-6">
+            <h4 className="text-2xl font-black text-zinc-900 mb-2">Free</h4>
             <div className="mb-6">
-              <p className="text-4xl font-black text-white">£0</p>
-              <p className="text-slate-400">per month</p>
+              <p className="text-4xl font-black text-zinc-900">£0</p>
+              <p className="text-zinc-500 font-mono text-sm">per month</p>
             </div>
 
             <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2 text-slate-300">
-                <Check size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                 <span>3 free checks</span>
               </li>
-              <li className="flex items-start gap-2 text-slate-300">
-                <Check size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-                <span>Basic verification</span>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                <span>Basic analysis</span>
               </li>
-              <li className="flex items-start gap-2 text-slate-300">
-                <Check size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                 <span>Standard support</span>
               </li>
             </ul>
 
             <button
               disabled={isFree}
-              className="w-full px-6 py-3 bg-slate-700 text-slate-400 font-medium rounded-lg cursor-not-allowed"
+              className="w-full px-6 py-3 border border-zinc-200 text-zinc-400 cursor-not-allowed"
             >
               {isFree ? 'Current Plan' : 'Downgrade'}
             </button>
           </div>
 
           {/* Professional Plan Card */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <h4 className="text-2xl font-black text-white mb-2">Professional</h4>
+          <div className="bg-white border border-zinc-200 p-6">
+            <h4 className="text-2xl font-black text-zinc-900 mb-2">Professional</h4>
             <div className="mb-6">
-              <p className="text-4xl font-black text-white">£7</p>
-              <p className="text-slate-400">per month</p>
+              <p className="text-4xl font-black text-zinc-900">£7</p>
+              <p className="text-zinc-500 font-mono text-sm">per month</p>
             </div>
 
             <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2 text-slate-300">
-                <Check size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                 <span>40 checks per month</span>
               </li>
-              <li className="flex items-start gap-2 text-slate-300">
-                <Check size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                 <span>Priority processing</span>
               </li>
-              <li className="flex items-start gap-2 text-slate-300">
-                <Check size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                 <span>Priority support</span>
               </li>
-              <li className="flex items-start gap-2 text-slate-300">
-                <Check size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                 <span>Advanced features</span>
               </li>
             </ul>
@@ -257,7 +257,7 @@ export function SubscriptionTab({
             {isPro ? (
               <button
                 disabled
-                className="w-full px-6 py-3 bg-slate-700 text-slate-400 font-medium rounded-lg cursor-not-allowed"
+                className="w-full px-6 py-3 border border-zinc-200 text-zinc-400 cursor-not-allowed"
               >
                 Current Plan
               </button>
@@ -265,7 +265,7 @@ export function SubscriptionTab({
               <button
                 onClick={handleUpgrade}
                 disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#f57a07] to-[#ff8c1a] hover:from-[#ff8c1a] hover:to-[#f57a07] text-white font-medium rounded-lg transition-all disabled:opacity-50"
+                className="w-full px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:opacity-50"
               >
                 {loading ? 'Loading...' : 'Upgrade Now'}
               </button>

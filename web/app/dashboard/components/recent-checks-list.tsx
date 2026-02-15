@@ -33,7 +33,6 @@ interface RecentChecksListProps {
 export function RecentChecksList({ checks }: RecentChecksListProps) {
   const [newCheckId, setNewCheckId] = useState<string | null>(null);
 
-  // Track seen checks - highlight newest if it's different from last seen
   useEffect(() => {
     if (checks.length === 0) return;
 
@@ -42,10 +41,8 @@ export function RecentChecksList({ checks }: RecentChecksListProps) {
 
     const lastSeenCheckId = localStorage.getItem(LAST_SEEN_CHECK_KEY);
 
-    // If the first completed check is different from last seen, it's new
     if (lastSeenCheckId !== firstCompletedCheck.id) {
       setNewCheckId(firstCompletedCheck.id);
-      // Update localStorage with the new first check
       localStorage.setItem(LAST_SEEN_CHECK_KEY, firstCompletedCheck.id);
     }
   }, [checks]);
@@ -54,13 +51,13 @@ export function RecentChecksList({ checks }: RecentChecksListProps) {
     <div className="mb-12">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white">Recent Checks</h2>
-          <p className="text-slate-400">Your latest verifications</p>
+          <h2 className="text-lg font-bold text-zinc-900">Recent Checks</h2>
+          <p className="text-zinc-500 text-sm">Your latest analyses</p>
         </div>
 
         <Link
           href="/dashboard/history"
-          className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors inline-block"
+          className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500 hover:text-zinc-900 px-4 py-2 border border-zinc-200 hover:border-zinc-900 transition-colors"
         >
           View All
         </Link>
@@ -68,9 +65,9 @@ export function RecentChecksList({ checks }: RecentChecksListProps) {
 
       {checks.length === 0 ? (
         <EmptyState
-          icon={<FileQuestion size={48} className="text-slate-600" />}
+          icon={<FileQuestion size={48} className="text-zinc-300" />}
           message="No checks yet"
-          submessage="Start your first verification!"
+          submessage="Start your first evidence check!"
         />
       ) : (
         <div className="space-y-4">

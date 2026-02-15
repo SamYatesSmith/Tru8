@@ -11,37 +11,36 @@ interface CheckMetadataCardProps {
     status: string;
     creditsUsed: number;
     createdAt: string;
-    transparencyScore?: number; // Phase 2 addition
+    transparencyScore?: number;
   };
 }
 
 export function CheckMetadataCard({ check }: CheckMetadataCardProps) {
   const statusConfig = {
     completed: {
-      bg: 'bg-emerald-900/30',
-      text: 'text-emerald-400',
-      border: 'border-emerald-700',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      border: 'border-emerald-200',
     },
     processing: {
-      bg: 'bg-blue-900/30',
-      text: 'text-blue-400',
-      border: 'border-blue-700',
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+      border: 'border-blue-200',
     },
     pending: {
-      bg: 'bg-amber-900/30',
-      text: 'text-amber-400',
-      border: 'border-amber-700',
+      bg: 'bg-amber-50',
+      text: 'text-amber-700',
+      border: 'border-amber-200',
     },
     failed: {
-      bg: 'bg-red-900/30',
-      text: 'text-red-400',
-      border: 'border-red-700',
+      bg: 'bg-red-50',
+      text: 'text-red-700',
+      border: 'border-red-200',
     },
   };
 
   const config = statusConfig[check.status as keyof typeof statusConfig] || statusConfig.pending;
 
-  // Get content to display
   const getContentDisplay = () => {
     if (check.inputUrl) {
       return check.inputUrl;
@@ -57,46 +56,39 @@ export function CheckMetadataCard({ check }: CheckMetadataCardProps) {
 
   return (
     <div className="space-y-4">
-      {/* Main Metadata Card */}
-      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+      <div className="bg-white border border-zinc-200 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Input Type */}
           <div>
-            <p className="text-slate-400 text-sm mb-1">Input Type</p>
-            <p className="text-white font-medium uppercase">{check.inputType}</p>
+            <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-1">Input Type</p>
+            <p className="text-zinc-900 font-medium uppercase">{check.inputType}</p>
           </div>
 
-          {/* Status */}
           <div>
-            <p className="text-slate-400 text-sm mb-1">Status</p>
+            <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-1">Status</p>
             <span
-              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.bg} ${config.text} ${config.border}`}
+              className={`inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-wider border ${config.bg} ${config.text} ${config.border}`}
             >
               {check.status.toUpperCase()}
             </span>
           </div>
 
-          {/* Content */}
           <div className="md:col-span-2">
-            <p className="text-slate-400 text-sm mb-1">Content</p>
-            <p className="text-white font-medium break-words whitespace-pre-wrap leading-relaxed">{getContentDisplay()}</p>
+            <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-1">Content</p>
+            <p className="text-zinc-900 font-medium break-words whitespace-pre-wrap leading-relaxed">{getContentDisplay()}</p>
           </div>
 
-          {/* Submitted */}
           <div>
-            <p className="text-slate-400 text-sm mb-1">Submitted</p>
-            <p className="text-white font-medium">{formatRelativeTime(check.createdAt)}</p>
+            <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-1">Submitted</p>
+            <p className="text-zinc-900 font-medium">{formatRelativeTime(check.createdAt)}</p>
           </div>
 
-          {/* Credits Used */}
           <div>
-            <p className="text-slate-400 text-sm mb-1">Credits Used</p>
-            <p className="text-white font-medium">{check.creditsUsed}</p>
+            <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-1">Credits Used</p>
+            <p className="text-zinc-900 font-medium">{check.creditsUsed}</p>
           </div>
         </div>
       </div>
 
-      {/* Transparency Score (if available and completed) */}
       {check.status === 'completed' && check.transparencyScore !== undefined && check.transparencyScore !== null && (
         <TransparencyScore score={check.transparencyScore} />
       )}

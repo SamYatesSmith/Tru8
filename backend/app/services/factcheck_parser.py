@@ -420,7 +420,11 @@ class PolitiFactParser:
             # Look for img alt text
             img = meter_div.find("img")
             if img and img.get("alt"):
-                return img["alt"]
+                alt = img["alt"]
+                # Normalize common PolitiFact rating alt text values
+                if "pants" in alt.lower() or "fire" in alt.lower():
+                    return "Pants on Fire"
+                return alt.title()
 
         # Strategy 2: c-image__original (truth-o-meter image)
         meter_img = soup.find("img", class_="c-image__original")
@@ -429,11 +433,7 @@ class PolitiFactParser:
             # Extract rating from alt text like "pants-fire"
             if "pants" in alt.lower() or "fire" in alt.lower():
                 return "Pants on Fire"
-            elif "true" in alt.lower():
-                return "True"
-            elif "false" in alt.lower():
-                return "False"
-            return alt
+            return alt.title()
 
         # Strategy 3: Look for rating class
         rating_elem = soup.find(class_=re.compile(r"rating"))

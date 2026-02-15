@@ -24,11 +24,7 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
     const stageIndex = stages.findIndex((s) => s.key === stageKey);
     const currentIndex = stages.findIndex((s) => s.key === currentStage);
 
-    // If progress is 100%, all stages are complete
     if (progress >= 100) return 'completed';
-
-    // If current stage is 'completed' (legacy) or not found, show all as pending
-    // unless we're at 100% progress
     if (currentIndex === -1) return progress > 0 ? 'completed' : 'pending';
 
     if (stageIndex < currentIndex) return 'completed';
@@ -37,8 +33,8 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-      <h3 className="text-xl font-bold text-white mb-6">Analysis Progress</h3>
+    <div className="bg-white border border-zinc-200 p-6">
+      <h3 className="text-lg font-bold text-zinc-900 mb-6">Analysis Progress</h3>
 
       {/* Stage List */}
       <div className="space-y-4 mb-6">
@@ -49,13 +45,13 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
             <div key={stage.key} className="flex items-start gap-3">
               <div className="mt-0.5">
                 {status === 'completed' && (
-                  <CheckCircle2 size={20} className="text-emerald-400 flex-shrink-0" />
+                  <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
                 )}
                 {status === 'processing' && (
-                  <Loader2 size={20} className="text-blue-400 animate-spin flex-shrink-0" />
+                  <Loader2 size={20} className="text-accent animate-spin flex-shrink-0" />
                 )}
                 {status === 'pending' && (
-                  <Circle size={20} className="text-slate-600 flex-shrink-0" />
+                  <Circle size={20} className="text-zinc-300 flex-shrink-0" />
                 )}
               </div>
 
@@ -63,15 +59,15 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
                 <div
                   className={`text-sm font-semibold ${
                     status === 'completed'
-                      ? 'text-emerald-400'
+                      ? 'text-emerald-600'
                       : status === 'processing'
-                      ? 'text-blue-400'
-                      : 'text-slate-500'
+                      ? 'text-zinc-900'
+                      : 'text-zinc-400'
                   }`}
                 >
                   {stage.label}
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">
+                <div className="text-xs text-zinc-400 mt-0.5">
                   {stage.description}
                 </div>
               </div>
@@ -82,42 +78,42 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
 
       {/* Current Stage Message */}
       {message && (
-        <div className={`mb-6 p-3 rounded-lg ${
+        <div className={`mb-6 p-3 ${
           progress >= 100
-            ? 'bg-emerald-900/20 border border-emerald-700/30'
-            : 'bg-blue-900/20 border border-blue-700/30'
+            ? 'bg-emerald-50 border border-emerald-200'
+            : 'bg-zinc-50 border border-zinc-200'
         }`}>
           <p className={`text-sm font-medium ${
-            progress >= 100 ? 'text-emerald-300' : 'text-blue-300'
+            progress >= 100 ? 'text-emerald-700' : 'text-zinc-700'
           }`}>{message}</p>
         </div>
       )}
 
       {/* Progress Bar */}
       <div className="relative">
-        <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-zinc-100 overflow-hidden">
           <div
             className={`h-full transition-all duration-500 ${
               progress >= 100
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
-                : 'bg-gradient-to-r from-blue-500 to-blue-400'
+                ? 'bg-emerald-500'
+                : 'bg-zinc-900'
             }`}
             style={{ width: `${progress}%` }}
           />
         </div>
         <div className="flex items-center justify-between mt-2">
           {timeEstimate && progress < 100 ? (
-            <p className="text-sm text-slate-500">Usually completes {timeEstimate}</p>
+            <p className="text-sm text-zinc-500">Usually completes {timeEstimate}</p>
           ) : (
             <span />
           )}
-          <p className="text-sm text-slate-400">{progress}%</p>
+          <p className="text-sm font-mono text-zinc-400">{progress}%</p>
         </div>
       </div>
 
-      {/* Connection Status - only show when no progress is happening */}
+      {/* Connection Status */}
       {!isConnected && progress === 0 && !currentStage && (
-        <p className="text-amber-400 text-sm mt-4">Connecting...</p>
+        <p className="text-amber-600 text-sm mt-4">Connecting...</p>
       )}
     </div>
   );

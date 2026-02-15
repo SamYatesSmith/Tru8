@@ -99,7 +99,7 @@ export default async function PublicReportPage({ params, searchParams }: PagePro
       <MobileBottomNav />
 
       {/* Main Content */}
-      <main className="min-h-screen bg-[#0f1419] pt-24 md:pt-32 pb-24 md:pb-20">
+      <main className="min-h-screen bg-white pt-24 md:pt-32 pb-24 md:pb-20">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           <PublicReportClient
             check={check}

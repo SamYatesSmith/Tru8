@@ -7,8 +7,24 @@ Issue #4: Inconsistent JSONB Usage
 """
 
 import pytest
+from sqlalchemy import text
 from app.core.database import sync_session
 from app.models import Check, Claim, Evidence
+
+# Check if DB is available at import time
+_db_available = False
+try:
+    with sync_session() as _sess:
+        _sess.execute(text("SELECT 1"))
+    _db_available = True
+except Exception:
+    pass
+
+# All tests in this file require a live PostgreSQL connection
+pytestmark = [
+    pytest.mark.requires_db,
+    pytest.mark.skipif(not _db_available, reason="PostgreSQL not available"),
+]
 
 
 class TestJSONBMigration:

@@ -128,22 +128,19 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
   return (
     <div className="space-y-8">
       {/* Search & Filter Card */}
-      <div className="bg-[#1a1f2e] border border-slate-700 rounded-xl p-6">
-        <div className="mb-4">
-          <h3 className="text-xl font-bold text-white">Search & Filter</h3>
-          <p className="text-slate-400 text-sm">Find specific checks quickly</p>
-        </div>
+      <div className="bg-white border border-zinc-200 p-6">
+        <h4 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-4">Search &amp; Filter</h4>
 
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search Input */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
             <input
               type="text"
               placeholder="Search checks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-600"
+              className="w-full bg-white border border-zinc-200 pl-10 pr-4 py-2 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-black transition-colors"
             />
           </div>
 
@@ -151,7 +148,7 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
           <select
             value={elementStateFilter}
             onChange={(e) => setElementStateFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-slate-600"
+            className="bg-white border border-zinc-200 px-4 py-2 text-zinc-900 focus:outline-none focus:border-black transition-colors"
           >
             <option value="all">All States</option>
             <option value="has_disputed">Has Disputed</option>
@@ -163,7 +160,7 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-slate-600"
+            className="bg-white border border-zinc-200 px-4 py-2 text-zinc-900 focus:outline-none focus:border-black transition-colors"
           >
             <option value="all">All Status</option>
             <option value="completed">Completed</option>
@@ -177,9 +174,9 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
       {/* Checks List */}
       {filteredChecks.length === 0 ? (
         <EmptyState
-          icon={<Search size={48} className="text-slate-600" />}
+          icon={<Search size={48} className="text-zinc-300" />}
           message={isFiltering ? "No checks found" : "No checks yet"}
-          submessage={isFiltering ? "Try adjusting your search or filters" : "Start your first verification!"}
+          submessage={isFiltering ? "Try adjusting your search or filters" : "Start your first analysis!"}
         />
       ) : (
         <div className="space-y-4">
@@ -194,11 +191,11 @@ export function HistoryContent({ initialChecks }: HistoryContentProps) {
         <div className="flex flex-col items-center gap-3">
           <button
             onClick={handleLoadMore}
-            className="bg-slate-700 hover:bg-slate-600 text-white font-medium px-8 py-3 rounded-lg transition-colors"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] px-8 py-3 transition-colors"
           >
             Load More
           </button>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-zinc-400 font-mono">
             Showing {checks.length} of {total} checks
           </p>
         </div>

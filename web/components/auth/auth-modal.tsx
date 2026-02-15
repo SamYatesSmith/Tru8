@@ -10,9 +10,9 @@ import { X } from 'lucide-react';
  * Single modal with Sign In / Sign Up tabs.
  *
  * Styling:
- * - Dark background (#1a1f2e)
- * - Orange accents (#f57a07)
- * - Matches Tru8 brand
+ * - Light background (white surfaces, zinc borders)
+ * - Accent color via CSS var (--accent)
+ * - Matches Stitch design system
  *
  * Behavior:
  * - Opens when Sign In or Get Started clicked
@@ -28,14 +28,13 @@ import { X } from 'lucide-react';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  redirectUrl?: string; // Where to send user after successful auth
+  redirectUrl?: string;
 }
 
 export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const afterAuthUrl = redirectUrl || '/dashboard';
 
-  // Handle escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -45,7 +44,6 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
     }
 
@@ -64,19 +62,19 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
       aria-modal="true"
       aria-labelledby="auth-modal-title"
     >
-      {/* Backdrop - Dark opaque */}
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal Content */}
-      <div className="relative bg-[#1a1f2e] rounded-lg border border-slate-700 p-6 max-w-md w-full mx-4 shadow-2xl">
+      <div className="relative bg-white border border-zinc-200 p-6 max-w-md w-full mx-4">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 transition-colors"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -88,13 +86,13 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
         </h2>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-slate-700" role="tablist" aria-label="Authentication options">
+        <div className="flex gap-4 mb-6 border-b border-zinc-200" role="tablist" aria-label="Authentication options">
           <button
             onClick={() => setActiveTab('signin')}
-            className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+            className={`pb-2 px-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] transition-colors relative ${
               activeTab === 'signin'
-                ? 'text-[#f57a07]'
-                : 'text-slate-400 hover:text-white'
+                ? 'text-zinc-900'
+                : 'text-zinc-400 hover:text-zinc-900'
             }`}
             role="tab"
             aria-selected={activeTab === 'signin'}
@@ -102,16 +100,16 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
           >
             Sign In
             {activeTab === 'signin' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f57a07]" aria-hidden="true" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" aria-hidden="true" />
             )}
           </button>
 
           <button
             onClick={() => setActiveTab('signup')}
-            className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+            className={`pb-2 px-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] transition-colors relative ${
               activeTab === 'signup'
-                ? 'text-[#f57a07]'
-                : 'text-slate-400 hover:text-white'
+                ? 'text-zinc-900'
+                : 'text-zinc-400 hover:text-zinc-900'
             }`}
             role="tab"
             aria-selected={activeTab === 'signup'}
@@ -119,7 +117,7 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
           >
             Sign Up
             {activeTab === 'signup' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f57a07]" aria-hidden="true" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" aria-hidden="true" />
             )}
           </button>
         </div>
@@ -136,16 +134,16 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
               appearance={{
                 elements: {
                   formButtonPrimary:
-                    'bg-[#f57a07] hover:bg-[#e06a00] text-white font-medium',
+                    'bg-zinc-900 hover:bg-zinc-800 text-white font-medium',
                   card: 'bg-transparent shadow-none',
-                  headerTitle: 'text-white',
-                  headerSubtitle: 'text-slate-300',
+                  headerTitle: 'text-zinc-900',
+                  headerSubtitle: 'text-zinc-500',
                   socialButtonsBlockButton:
-                    'border-slate-700 text-white hover:bg-slate-800',
+                    'border-zinc-200 text-zinc-900 hover:bg-zinc-50',
                   formFieldInput:
-                    'bg-[#0f1419] border-slate-700 text-white focus:border-[#f57a07]',
-                  formFieldLabel: 'text-slate-300',
-                  footerActionLink: 'text-[#f57a07] hover:text-[#e06a00]',
+                    'bg-white border-zinc-200 text-zinc-900 focus:border-black',
+                  formFieldLabel: 'text-zinc-500',
+                  footerActionLink: 'text-accent hover:text-accent/80',
                 },
               }}
               routing="hash"
@@ -163,16 +161,16 @@ export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
               appearance={{
                 elements: {
                   formButtonPrimary:
-                    'bg-[#f57a07] hover:bg-[#e06a00] text-white font-medium',
+                    'bg-zinc-900 hover:bg-zinc-800 text-white font-medium',
                   card: 'bg-transparent shadow-none',
-                  headerTitle: 'text-white',
-                  headerSubtitle: 'text-slate-300',
+                  headerTitle: 'text-zinc-900',
+                  headerSubtitle: 'text-zinc-500',
                   socialButtonsBlockButton:
-                    'border-slate-700 text-white hover:bg-slate-800',
+                    'border-zinc-200 text-zinc-900 hover:bg-zinc-50',
                   formFieldInput:
-                    'bg-[#0f1419] border-slate-700 text-white focus:border-[#f57a07]',
-                  formFieldLabel: 'text-slate-300',
-                  footerActionLink: 'text-[#f57a07] hover:text-[#e06a00]',
+                    'bg-white border-zinc-200 text-zinc-900 focus:border-black',
+                  formFieldLabel: 'text-zinc-500',
+                  footerActionLink: 'text-accent hover:text-accent/80',
                 },
               }}
               routing="hash"

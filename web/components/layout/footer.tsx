@@ -2,13 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { scrollToSection } from '@/lib/scroll-utils';
 
 export function Footer() {
-  const productLinks = [
-    { label: 'Features', sectionId: 'features' },
-    { label: 'How It Works', sectionId: 'how-it-works' },
-    { label: 'Pricing', sectionId: 'pricing' },
+  const platformLinks = [
+    { label: 'Features', href: '/#features' },
+    { label: 'Pricing', href: '/#pricing' },
+    { label: 'Dashboard', href: '/dashboard' },
   ];
 
   const companyLinks = [
@@ -25,54 +24,36 @@ export function Footer() {
   ];
 
   return (
-    <footer className="relative bg-[#0f1419] border-t border-slate-800 mt-20 pb-20 md:pb-0">
-      <div className="max-w-7xl mx-auto px-6 py-8 md:py-12">
-        {/* Logo & Tagline - Full width on mobile, compact */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-3">
-            <Image
-              src="/logo.proper.png"
-              alt="Tru8 logo"
-              width={40}
-              height={40}
-              className="object-contain"
-            />
-            <span className="text-2xl font-black text-white">Tru8</span>
-          </div>
-          <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-            Professional claim verification. See what the sources say with AI-powered, multi-source analysis.
-          </p>
-        </div>
-
-        {/* Links Grid - 2 cols on mobile, 4 cols on desktop */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-          {/* Product Links */}
+    <footer className="bg-zinc-50 pt-20 pb-12 border-t border-zinc-100">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Grid: Logo + 3 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+          {/* Logo + Tagline */}
           <div>
-            <h3 className="text-white font-semibold mb-3 text-sm">Product</h3>
-            <ul className="space-y-2">
-              {productLinks.map((link) => (
-                <li key={link.sectionId}>
-                  <button
-                    onClick={() => scrollToSection(link.sectionId)}
-                    className="text-slate-400 hover:text-[#f57a07] transition-colors text-sm"
-                  >
-                    {link.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="flex items-center gap-3 mb-6">
+              <Image
+                src="/logo.proper.png"
+                alt="Tru8 logo"
+                width={24}
+                height={24}
+                className="grayscale opacity-80"
+              />
+              <span className="font-bold tracking-tighter uppercase">
+                TRU<span className="text-zinc-400 font-normal">8</span>
+              </span>
+            </div>
+            <p className="text-sm text-zinc-400 leading-relaxed max-w-xs">
+              Establishing clarity through AI-driven evidence research.
+            </p>
           </div>
 
-          {/* Company Links */}
+          {/* Platform */}
           <div>
-            <h3 className="text-white font-semibold mb-3 text-sm">Company</h3>
-            <ul className="space-y-2">
-              {companyLinks.map((link) => (
+            <h5 className="font-mono text-[10px] font-bold tracking-widest uppercase mb-6">Platform</h5>
+            <ul className="space-y-3 text-sm text-zinc-500">
+              {platformLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-slate-400 hover:text-[#f57a07] transition-colors text-sm"
-                  >
+                  <Link href={link.href} className="hover:text-black transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -80,16 +61,27 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links */}
+          {/* Company */}
           <div>
-            <h3 className="text-white font-semibold mb-3 text-sm">Legal</h3>
-            <ul className="space-y-2">
+            <h5 className="font-mono text-[10px] font-bold tracking-widest uppercase mb-6">Company</h5>
+            <ul className="space-y-3 text-sm text-zinc-500">
+              {companyLinks.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="hover:text-black transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal + Connect */}
+          <div>
+            <h5 className="font-mono text-[10px] font-bold tracking-widest uppercase mb-6">Legal</h5>
+            <ul className="space-y-3 text-sm text-zinc-500">
               {legalLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-slate-400 hover:text-[#f57a07] transition-colors text-sm"
-                  >
+                  <Link href={link.href} className="hover:text-black transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -101,40 +93,24 @@ export function Footer() {
                       (window as any).cookieyes.showBanner();
                     }
                   }}
-                  className="text-slate-400 hover:text-[#f57a07] transition-colors text-sm"
+                  className="text-zinc-500 hover:text-black transition-colors"
                 >
                   Cookie Preferences
                 </button>
               </li>
             </ul>
           </div>
-
-          {/* Compliance */}
-          <div>
-            <h3 className="text-white font-semibold mb-3 text-sm">Compliance</h3>
-            <div className="space-y-2 text-xs">
-              <p className="text-slate-400">
-                <span className="text-slate-300 font-medium">ICO Registration:</span>
-                <br />
-                <span className="font-mono text-slate-500">[ZA123456]</span>
-              </p>
-              <p className="text-slate-400">
-                <span className="text-slate-300 font-medium">Data Controller:</span>
-                <br />
-                Tru8 Ltd
-              </p>
-            </div>
-          </div>
         </div>
 
-        {/* Beta Notice + Copyright */}
-        <div className="pt-6 border-t border-slate-800 space-y-3">
-          <p className="text-center text-amber-500/80 text-xs">
-            Tru8 is currently in beta. Results are for informational purposes only and should be independently verified.
-          </p>
-          <p className="text-center text-slate-500 text-xs">
-            © 2025 Tru8. All rights reserved.
-          </p>
+        {/* Bottom bar */}
+        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-zinc-200/50">
+          <div className="font-mono text-[10px] text-zinc-400 tracking-widest uppercase mb-4 md:mb-0">
+            &copy; 2026 TRU8 LTD. ALL RIGHTS RESERVED.
+          </div>
+          <div className="flex gap-8 font-mono text-[10px] text-zinc-400 tracking-widest uppercase">
+            <Link href="/privacy-policy" className="hover:text-black transition-colors">Privacy Policy</Link>
+            <Link href="/terms-of-service" className="hover:text-black transition-colors">Terms of Service</Link>
+          </div>
         </div>
       </div>
     </footer>
