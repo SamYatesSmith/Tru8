@@ -22,7 +22,7 @@ class TemporalAnalyzer:
             "specific_year": r"\b(in 20\d{2}|during 20\d{2})\b",
             "specific_date": r"\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(?:st|nd|rd|th)?,?\s*20\d{2}\b",
             "historical": r"\b(in the past|historically|previously)\b",
-            "future": rf"\b(will|going to|next year|in the future|{next_year})\b"
+            "future": rf"\b(will|going to|next year|in the future|{next_year})\b",
         }
 
         # Store current year for reference
@@ -40,13 +40,17 @@ class TemporalAnalyzer:
                 detected_markers[category] = matches
 
         # Also extract any years mentioned (standalone, not just in patterns)
-        years_found = re.findall(r'\b20\d{2}\b', claim_text)
+        years_found = re.findall(r"\b20\d{2}\b", claim_text)
         if years_found:
             detected_markers["years_mentioned"] = list(set(years_found))
             # If current year mentioned, mark as present
             if str(self.current_year) in years_found:
                 if "present" not in detected_markers:
                     detected_markers["present"] = [str(self.current_year)]
+            # If any year > current year mentioned, mark as future
+            future_years = [y for y in years_found if int(y) > self.current_year]
+            if future_years and "future" not in detected_markers:
+                detected_markers["future"] = future_years
 
         is_time_sensitive = bool(detected_markers)
 
@@ -58,13 +62,18 @@ class TemporalAnalyzer:
         if "specific_date" in detected_markers:
             temporal_window = "last_7_days"
             max_evidence_age_days = 7
+        elif "future" in detected_markers:
+            temporal_window = "future"
+            max_evidence_age_days = 365  # Accept recent evidence about future events
         elif "present" in detected_markers:
             temporal_window = "last_30_days"
             max_evidence_age_days = 30
         elif "recent_past" in detected_markers:
             temporal_window = "last_90_days"
             max_evidence_age_days = 90
-        elif "specific_year" in detected_markers or "years_mentioned" in detected_markers:
+        elif (
+            "specific_year" in detected_markers or "years_mentioned" in detected_markers
+        ):
             year = self._extract_year(claim_text)
             temporal_window = f"year_{year}"
             max_evidence_age_days = 365  # Accept evidence from that year
@@ -78,7 +87,7 @@ class TemporalAnalyzer:
             "temporal_window": temporal_window,
             "max_evidence_age_days": max_evidence_age_days,
             "claim_type": self._classify_temporal_type(detected_markers),
-            "years_mentioned": years_found if years_found else []
+            "years_mentioned": years_found if years_found else [],
         }
 
     def _extract_year(self, text: str) -> Optional[str]:
@@ -99,7 +108,9 @@ class TemporalAnalyzer:
         else:
             return "timeless_fact"
 
-    def filter_evidence_by_time(self, evidence: List[Dict], temporal_analysis: Dict) -> List[Dict]:
+    def filter_evidence_by_time(
+        self, evidence: List[Dict], temporal_analysis: Dict
+    ) -> List[Dict]:
         """Filter evidence based on temporal requirements"""
         if not temporal_analysis["is_time_sensitive"]:
             return evidence
@@ -120,7 +131,9 @@ class TemporalAnalyzer:
                     if ev_date and ev_date >= cutoff_date:
                         filtered.append(ev)
                     else:
-                        logger.debug(f"Evidence too old: {pub_date} (cutoff: {cutoff_date})")
+                        logger.debug(
+                            f"Evidence too old: {pub_date} (cutoff: {cutoff_date})"
+                        )
                 except:
                     # If can't parse, include it (benefit of doubt)
                     filtered.append(ev)
@@ -128,8 +141,10 @@ class TemporalAnalyzer:
                 # No date = assume recent enough
                 filtered.append(ev)
 
-        logger.info(f"Temporal filtering: {len(evidence)} -> {len(filtered)} "
-                   f"(max age: {max_age_days} days)")
+        logger.info(
+            f"Temporal filtering: {len(evidence)} -> {len(filtered)} "
+            f"(max age: {max_age_days} days)"
+        )
 
         return filtered
 
@@ -141,7 +156,7 @@ class TemporalAnalyzer:
 
         # Try ISO format
         try:
-            return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
         except:
             pass
 

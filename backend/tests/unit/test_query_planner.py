@@ -19,8 +19,7 @@ class TestLLMQueryPlanner:
 
         # Test with priority sources from LLM
         result = planner.get_site_filter(
-            ["example.com", "authority.org", "data.gov"],
-            ""  # claim_type is now unused
+            ["example.com", "authority.org", "data.gov"], ""  # claim_type is now unused
         )
 
         # Should use first 2 sources
@@ -48,8 +47,7 @@ class TestLLMQueryPlanner:
 
         # Pass more than 2 sources
         result = planner.get_site_filter(
-            ["site1.com", "site2.com", "site3.com", "site4.com"],
-            ""
+            ["site1.com", "site2.com", "site3.com", "site4.com"], ""
         )
 
         # Should only include 2 sources
@@ -70,12 +68,18 @@ class TestLLMQueryPlanner:
                 "claim_index": 0,
                 "claim_type": "squad_composition",
                 "priority_sources": "premierleague.com",  # String instead of list
-                "queries": "Arsenal squad 2025"  # String instead of list
+                "queries": "Arsenal squad 2025",  # String instead of list
             },
             {
                 "claim_type": "player_statistics",
-                "queries": ["query1", "query2", "query3", "query4", "query5"]  # Too many queries
-            }
+                "queries": [
+                    "query1",
+                    "query2",
+                    "query3",
+                    "query4",
+                    "query5",
+                ],  # Too many queries
+            },
         ]
 
         validated = planner._validate_plans(plans, 2)
@@ -97,7 +101,9 @@ class TestLLMQueryPlanner:
         planner = LLMQueryPlanner()
 
         plans = [
-            {"claim_type": "match_result"},  # Missing claim_index, queries, priority_sources
+            {
+                "claim_type": "match_result"
+            },  # Missing claim_index, queries, priority_sources
         ]
 
         validated = planner._validate_plans(plans, 1)
@@ -118,7 +124,7 @@ class TestLLMQueryPlanner:
             "invalid string entry",
             None,
             123,
-            {"claim_type": "stats", "queries": ["another"]}
+            {"claim_type": "stats", "queries": ["another"]},
         ]
 
         validated = planner._validate_plans(plans, 5)
@@ -141,33 +147,46 @@ class TestQueryPlannerIntegration:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "choices": [{
-                "message": {
-                    "content": '''{"plans": [
+            "choices": [
+                {
+                    "message": {
+                        "content": """{"plans": [
                         {
                             "claim_index": 0,
                             "claim_type": "squad_composition",
                             "priority_sources": ["arsenal.com", "premierleague.com"],
                             "queries": ["Arsenal squad 2025", "Viktor Gyokeres Arsenal"]
                         }
-                    ]}'''
+                    ]}"""
+                    }
                 }
-            }]
+            ]
         }
 
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_instance.post = AsyncMock(return_value=mock_response)
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=None)
             mock_client.return_value = mock_instance
 
-            claims = [{"text": "Arsenal has Viktor Gyokeres in their squad"}]
+            claims = [
+                {
+                    "text": "Arsenal has Viktor Gyokeres in their squad",
+                    "claim_index": 0,
+                    "elements": [
+                        {
+                            "element_id": "e1",
+                            "description": "Viktor Gyokeres is in Arsenal's squad",
+                        }
+                    ],
+                }
+            ]
             result = await planner.plan_queries_batch(claims)
 
             assert result is not None
             assert len(result) == 1
-            assert result[0]["claim_type"] == "squad_composition"
+            assert result[0]["element_id"] == "e1"
             assert len(result[0]["queries"]) == 2
 
     @pytest.mark.asyncio
@@ -204,14 +223,22 @@ class TestQueryPlannerIntegration:
 
         planner = LLMQueryPlanner()
 
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
-            mock_instance.post = AsyncMock(side_effect=httpx.TimeoutException("Timeout"))
+            mock_instance.post = AsyncMock(
+                side_effect=httpx.TimeoutException("Timeout")
+            )
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=None)
             mock_client.return_value = mock_instance
 
-            claims = [{"text": "Test claim"}]
+            claims = [
+                {
+                    "text": "Test claim",
+                    "claim_index": 0,
+                    "elements": [{"element_id": "e1", "description": "Test element"}],
+                }
+            ]
             result = await planner.plan_queries_batch(claims)
 
             # Should return None on timeout (triggering fallback)
@@ -243,7 +270,11 @@ class TestDynamicFreshness:
         # Test plans with various freshness values
         plans = [
             {"claim_index": 0, "queries": ["test"], "freshness": "pw"},  # Valid
-            {"claim_index": 1, "queries": ["test"], "freshness": "invalid"},  # Invalid -> py
+            {
+                "claim_index": 1,
+                "queries": ["test"],
+                "freshness": "invalid",
+            },  # Invalid -> py
             {"claim_index": 2, "queries": ["test"]},  # Missing -> py
         ]
 
@@ -283,7 +314,7 @@ class TestDynamicFreshness:
         result = check_evidence_staleness(
             evidence_date="2025-12-01",
             freshness="pw",  # Past week
-            reference_date=datetime(2025, 12, 2)
+            reference_date=datetime(2025, 12, 2),
         )
         assert result["is_stale"] is False
         assert result["max_age_days"] == 7
@@ -292,7 +323,7 @@ class TestDynamicFreshness:
         result = check_evidence_staleness(
             evidence_date="2025-11-01",
             freshness="pw",  # Past week
-            reference_date=datetime(2025, 12, 2)
+            reference_date=datetime(2025, 12, 2),
         )
         assert result["is_stale"] is True
 
@@ -300,7 +331,7 @@ class TestDynamicFreshness:
         result = check_evidence_staleness(
             evidence_date="2025-11-01",
             freshness="py",  # Past year
-            reference_date=datetime(2025, 12, 2)
+            reference_date=datetime(2025, 12, 2),
         )
         assert result["is_stale"] is False
 
@@ -320,9 +351,10 @@ class TestArticleContextIntegration:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "choices": [{
-                "message": {
-                    "content": '''{"plans": [
+            "choices": [
+                {
+                    "message": {
+                        "content": """{"plans": [
                         {
                             "claim_index": 0,
                             "queries": ["test query"],
@@ -330,9 +362,10 @@ class TestArticleContextIntegration:
                             "source_hints": "Official sources",
                             "reasoning": "Fast-changing data"
                         }
-                    ]}'''
+                    ]}"""
+                    }
                 }
-            }]
+            ]
         }
 
         captured_request = {}
@@ -341,22 +374,30 @@ class TestArticleContextIntegration:
             captured_request.update(kwargs.get("json", {}))
             return mock_response
 
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_instance.post = capture_post
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=None)
             mock_client.return_value = mock_instance
 
-            claims = [{"text": "Test claim"}]
+            claims = [
+                {
+                    "text": "Test claim",
+                    "claim_index": 0,
+                    "elements": [{"element_id": "e1", "description": "Test element"}],
+                }
+            ]
             article_context = {
                 "primary_domain": "Politics",
                 "temporal_context": "December 2024 election coverage",
                 "key_entities": ["Congress", "Senate"],
-                "evidence_guidance": "Use official government sources"
+                "evidence_guidance": "Use official government sources",
             }
 
-            result = await planner.plan_queries_batch(claims, article_context=article_context)
+            result = await planner.plan_queries_batch(
+                claims, article_context=article_context
+            )
 
             # Verify article context was included in the prompt
             user_message = captured_request.get("messages", [{}])[-1].get("content", "")

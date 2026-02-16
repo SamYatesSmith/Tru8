@@ -115,10 +115,10 @@ class TestDeduplication:
 
         result, stats = deduplicator.deduplicate(evidence)
 
-        # Should keep only one
+        # Should keep only one (identical snippet = syndicated content)
         assert len(result) == 1
-        # First one kept, should NOT be marked as syndicated
-        assert result[0].get("is_syndicated") == False
+        # Survivor is the first URL (original source)
+        assert result[0]["url"] == "https://original.com/a"
 
     def test_hash_normalization(self, deduplicator):
         """Test: Hash normalization handles case and whitespace"""

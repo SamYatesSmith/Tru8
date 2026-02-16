@@ -41,6 +41,7 @@ export function useCheckProgress(
   const [message, setMessage] = useState<string | null>(null);
   const [timeEstimate, setTimeEstimate] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const progressRef = useRef(0);
 
   useEffect(() => {
     console.log('[useCheckProgress] Effect triggered:', { enabled, hasToken: !!token, checkId });
@@ -79,17 +80,20 @@ export function useCheckProgress(
               // Receiving progress means we're connected
               setIsConnected(true);
               setError(null);
-              if (data.stage) {
-                setCurrentStage(data.stage);
-              }
-              if (data.progress !== undefined) {
+              // Monotonic progress guard: only accept forward progress
+              // Prevents visual "rewind" from SSE reconnections or stale events
+              if (data.progress !== undefined && data.progress >= progressRef.current) {
+                progressRef.current = data.progress;
                 setProgress(data.progress);
-              }
-              if (data.message) {
-                setMessage(data.message);
-              }
-              if (data.timeEstimate) {
-                setTimeEstimate(data.timeEstimate);
+                if (data.stage) {
+                  setCurrentStage(data.stage);
+                }
+                if (data.message) {
+                  setMessage(data.message);
+                }
+                if (data.timeEstimate) {
+                  setTimeEstimate(data.timeEstimate);
+                }
               }
               break;
 

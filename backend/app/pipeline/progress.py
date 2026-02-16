@@ -75,7 +75,7 @@ class ProgressReporter:
                 "status": "processing",
                 "stage": "starting",
                 "progress": 0,
-                "message": "Initialising fact-check...",
+                "message": "Initialising analysis...",
                 "timeEstimate": "within 2 minutes",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
@@ -158,7 +158,7 @@ class ProgressReporter:
             "checkId": self.check_id,
             "status": "completed",
             "progress": 100,
-            "message": "Fact-check completed successfully",
+            "message": "Analysis completed successfully",
         }
 
         # Write to Redis
@@ -167,7 +167,7 @@ class ProgressReporter:
                 "status": "completed",
                 "stage": "completed",
                 "progress": 100,
-                "message": "Fact-check completed successfully",
+                "message": "Analysis completed successfully",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
@@ -293,7 +293,7 @@ class ProgressReporter:
                             "checkId": self.check_id,
                             "status": "completed",
                             "progress": 100,
-                            "message": "Fact-check completed successfully",
+                            "message": "Analysis completed successfully",
                         }
                         yield f"data: {json.dumps(complete_event)}\n\n"
                         self._completed = True
@@ -332,7 +332,7 @@ class ProgressReporter:
                             "checkId": self.check_id,
                             "status": "completed",
                             "progress": 100,
-                            "message": "Fact-check completed successfully",
+                            "message": "Analysis completed successfully",
                         }
                         yield f"data: {json.dumps(complete_event)}\n\n"
                         self._completed = True

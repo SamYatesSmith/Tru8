@@ -3,372 +3,628 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    /* ================================================================
+       TRU8 PDF EVIDENCE REPORT — Stitch Design System
+       Faithful print reproduction of W-07 / W-10 web pages.
+       xhtml2pdf constraints: no flexbox, no grid, no JS, no web fonts,
+       no CSS variables. Table layout only. System fonts only.
+       ================================================================ */
+
     @page {
       size: A4;
-      margin: 1.5cm;
+      margin: 1.5cm 1.8cm;
+
+      @frame footer {
+        -pdf-frame-content: page-footer;
+        bottom: 0;
+        height: 40px;
+        margin-left: -1.8cm;
+        margin-right: -1.8cm;
+      }
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Helvetica', 'Arial', sans-serif;
-      color: #334155;
+      font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+      color: #111827;
       line-height: 1.6;
-      font-size: 11px;
+      font-size: 10px;
       background: #ffffff;
     }
 
-    .header {
+    /* ── TOKENS (static hex for xhtml2pdf) ────────────────────────── */
+    /* surface:          #FFFFFF  */
+    /* surface-raised:   #F9FAFB  */
+    /* border:           #E5E7EB  */
+    /* text-primary:     #111827  */
+    /* text-secondary:   #6B7280  */
+    /* text-muted:       #9CA3AF  */
+    /* accent:           #EA580C  */
+    /* state-supported:  #22C55E  / bg #F0FDF4  / text #059669 */
+    /* state-disputed:   #F59E0B  / bg #FFFBEB  / text #D97706 */
+    /* state-unresolved: #94A3B8  / bg #F8FAFC  / text #64748B */
+
+    /* ── DOCUMENT HEADER ──────────────────────────────────────────── */
+
+    .doc-header {
       text-align: center;
+      padding-bottom: 20px;
       margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid #E5E7EB;
     }
 
-    .header-title {
-      font-size: 32px;
-      font-weight: bold;
-      color: #1e40af;
-      letter-spacing: 2px;
-      margin-bottom: 4px;
-    }
-
-    .header-subtitle {
-      font-size: 11px;
-      color: #64748b;
-    }
-
-    .metadata {
-      background: #f8fafc;
-      padding: 16px 20px;
-      margin-bottom: 24px;
-      border-left: 3px solid #1e40af;
-    }
-
-    .metadata-row {
-      margin-bottom: 6px;
-    }
-
-    .metadata-label {
-      font-weight: bold;
-      color: #1e40af;
-      display: inline-block;
-      width: 120px;
-    }
-
-    .metadata-value {
-      color: #475569;
-    }
-
-    .summary-section {
-      margin-bottom: 28px;
-      padding: 20px;
-      background: #fafbfc;
-    }
-
-    .summary-title {
-      font-size: 14px;
-      font-weight: bold;
-      color: #1e40af;
-      margin-bottom: 12px;
-    }
-
-    .summary-stats {
-      margin-bottom: 8px;
-    }
-
-    .summary-stat {
-      display: inline-block;
-      text-align: center;
-      padding: 12px 16px;
-      background: #f0f9ff;
-      margin-right: 8px;
-    }
-
-    .summary-stat-number {
+    .doc-header-wordmark {
       font-size: 24px;
-      font-weight: bold;
-      color: #1e40af;
-      line-height: 1;
+      font-weight: 800;
+      color: #111827;
+      letter-spacing: 3px;
+      text-transform: uppercase;
     }
 
-    .summary-stat-label {
+    .doc-header-subtitle {
       font-size: 9px;
-      color: #64748b;
+      font-weight: 600;
+      color: #9CA3AF;
       text-transform: uppercase;
+      letter-spacing: 2px;
       margin-top: 4px;
     }
 
-    .section-title {
-      font-size: 14px;
-      font-weight: bold;
-      color: #1e293b;
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #e2e8f0;
+    /* ── METADATA BLOCK ───────────────────────────────────────────── */
+
+    .metadata-block {
+      background: #F9FAFB;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      border-left: 3px solid #EA580C;
     }
 
+    .metadata-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .metadata-table td {
+      padding: 3px 0;
+      vertical-align: top;
+    }
+
+    .meta-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      width: 110px;
+    }
+
+    .meta-value {
+      font-size: 10px;
+      font-weight: 500;
+      color: #111827;
+    }
+
+    /* ── ANALYSIS OVERVIEW (3-stat row) ───────────────────────────── */
+
+    .overview-section {
+      margin-bottom: 28px;
+    }
+
+    .overview-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+    }
+
+    .overview-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .stat-cell {
+      text-align: center;
+      padding: 14px 12px;
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: 700;
+      color: #EA580C;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 8px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 6px;
+    }
+
+    /* ── SECTION DIVIDER ──────────────────────────────────────────── */
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid #E5E7EB;
+      margin: 20px 0;
+    }
+
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    /* ── CLAIM CARD ───────────────────────────────────────────────── */
+
     .claim-card {
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #f1f5f9;
+      margin-bottom: 24px;
+      padding: 18px;
+      border: 1px solid #E5E7EB;
+      background: #ffffff;
       page-break-inside: avoid;
     }
 
-    .claim-header {
-      margin-bottom: 12px;
-    }
-
-    .claim-label {
-      font-size: 9px;
-      font-weight: bold;
-      color: #94a3b8;
+    .claim-number {
+      font-size: 8px;
+      font-weight: 700;
+      color: #9CA3AF;
       text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .claim-text {
-      font-size: 12px;
-      font-weight: 600;
-      color: #1e293b;
-      line-height: 1.5;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
     }
 
     .claim-type-badge {
       display: inline-block;
       padding: 2px 8px;
-      font-size: 8px;
-      font-weight: bold;
+      font-size: 7px;
+      font-weight: 700;
       text-transform: uppercase;
-      color: #1e40af;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
+      letter-spacing: 1px;
+      color: #6B7280;
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      margin-left: 6px;
     }
 
-    .orientation-line {
-      background: #f8fafc;
-      padding: 10px 14px;
-      margin: 10px 0;
-      border-left: 2px solid #1e40af;
-      font-size: 10px;
-      color: #475569;
-      font-style: italic;
-      line-height: 1.6;
+    .claim-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: #111827;
+      line-height: 1.5;
+      margin-bottom: 14px;
     }
 
-    .element-card {
-      background: #fafafa;
-      padding: 8px 12px;
-      margin-bottom: 6px;
-      border-left: 3px solid #e2e8f0;
+    .claim-divider {
+      border: none;
+      border-top: 1px solid #E5E7EB;
+      margin: 14px 0;
     }
 
-    .element-id {
+    /* ── ELEMENTS ─────────────────────────────────────────────────── */
+
+    .elements-label {
       font-size: 8px;
-      font-weight: bold;
-      color: #94a3b8;
+      font-weight: 700;
+      color: #9CA3AF;
       text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .element-row {
+      margin-bottom: 10px;
+    }
+
+    .element-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .element-num-cell {
+      width: 24px;
+      vertical-align: top;
+      padding-top: 2px;
+    }
+
+    .element-num {
+      font-size: 9px;
+      font-weight: 500;
+      color: #D1D5DB;
+    }
+
+    .element-content-cell {
+      vertical-align: top;
+      padding-left: 8px;
     }
 
     .element-desc {
       font-size: 10px;
-      color: #334155;
-      margin-top: 2px;
+      font-weight: 400;
+      color: #111827;
+      line-height: 1.5;
     }
 
-    .element-state {
+    /* State badges */
+    .state-badge {
       display: inline-block;
-      padding: 1px 6px;
-      font-size: 8px;
-      font-weight: bold;
+      padding: 1px 7px;
+      font-size: 7px;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.8px;
       margin-left: 6px;
     }
 
-    .state-supported { color: #059669; background: #f0fdf4; }
-    .state-disputed { color: #d97706; background: #fffbeb; }
-    .state-unresolved { color: #64748b; background: #f1f5f9; }
-
-    .evidence-title {
-      font-size: 10px;
-      font-weight: bold;
-      color: #1e40af;
-      margin-bottom: 8px;
-      margin-top: 10px;
+    .state-supported {
+      color: #22C55E;
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
     }
 
-    .evidence-item {
-      background: #fafafa;
-      padding: 10px 12px;
-      margin-bottom: 6px;
+    .state-disputed {
+      color: #F59E0B;
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
     }
 
-    .evidence-source {
-      font-size: 10px;
-      font-weight: bold;
-      color: #1e40af;
-      margin-bottom: 2px;
+    .state-unresolved {
+      color: #94A3B8;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
     }
 
-    .evidence-source-title {
-      font-size: 9px;
-      color: #334155;
+    /* Evidence refs row */
+    .evidence-refs-row {
+      margin-top: 5px;
+    }
+
+    .evidence-ref-chip {
+      display: inline-block;
+      padding: 1px 7px;
+      font-size: 8px;
+      font-weight: 500;
+      color: #6B7280;
+      background: #ffffff;
+      border: 1px solid #E5E7EB;
+      margin-right: 4px;
       margin-bottom: 3px;
     }
 
-    .evidence-snippet {
+    .ref-label-supports { color: #22C55E; }
+    .ref-label-challenges { color: #F59E0B; }
+    .ref-label-context { color: #9CA3AF; }
+
+    .ref-separator {
+      color: #D1D5DB;
+      margin: 0 2px;
+    }
+
+    /* Uncertainty note */
+    .uncertainty-note {
       font-size: 9px;
-      color: #64748b;
-      line-height: 1.4;
+      font-style: italic;
+      color: #9CA3AF;
+      margin-top: 4px;
+      padding-left: 4px;
+    }
+
+    /* ── ORIENTATION LINE ─────────────────────────────────────────── */
+
+    .orientation-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    .orientation-text {
+      font-size: 10px;
+      font-weight: 500;
+      color: #111827;
+      line-height: 1.6;
+    }
+
+    /* ── EVIDENCE SOURCES ─────────────────────────────────────────── */
+
+    .evidence-sources-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      margin-top: 14px;
+    }
+
+    .evidence-item {
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      border: 1px solid #E5E7EB;
+      background: #F9FAFB;
+    }
+
+    .evidence-source-name {
+      font-size: 9px;
+      font-weight: 700;
+      color: #111827;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
     }
 
     .badge-api {
       display: inline-block;
       background: #059669;
       color: #ffffff;
-      padding: 1px 4px;
-      font-size: 7px;
-      font-weight: bold;
+      padding: 1px 5px;
+      font-size: 6px;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
       margin-left: 4px;
     }
 
     .badge-factcheck {
       display: inline-block;
-      background: #7c3aed;
+      background: #6B7280;
       color: #ffffff;
-      padding: 1px 4px;
-      font-size: 7px;
-      font-weight: bold;
+      padding: 1px 5px;
+      font-size: 6px;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
       margin-left: 4px;
     }
 
-    .footer {
+    .evidence-title {
+      font-size: 9px;
+      font-weight: 500;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+
+    .evidence-snippet {
+      font-size: 8px;
+      font-weight: 400;
+      color: #6B7280;
+      line-height: 1.5;
+    }
+
+    .no-evidence-card {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+
+    .no-evidence-title {
+      font-size: 9px;
+      font-weight: 600;
+      color: #6B7280;
+      margin-bottom: 3px;
+    }
+
+    .no-evidence-text {
+      font-size: 8px;
+      color: #9CA3AF;
+      line-height: 1.5;
+    }
+
+    /* ── DOCUMENT FOOTER ──────────────────────────────────────────── */
+
+    .doc-footer {
       margin-top: 32px;
       padding-top: 16px;
-      border-top: 1px solid #e2e8f0;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    .footer-inner {
       text-align: center;
-      color: #94a3b8;
-      font-size: 9px;
     }
 
     .footer-brand {
-      font-weight: bold;
-      color: #1e40af;
-      font-size: 11px;
-      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #111827;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .footer-tagline {
+      font-size: 8px;
+      color: #9CA3AF;
+      margin-bottom: 4px;
+    }
+
+    .footer-meta {
+      font-size: 7px;
+      color: #D1D5DB;
+      letter-spacing: 0.5px;
+      margin-top: 6px;
     }
 
     .footer-disclaimer {
-      margin-top: 10px;
-      font-size: 8px;
-      color: #94a3b8;
+      margin-top: 8px;
+      font-size: 7px;
+      color: #9CA3AF;
+      line-height: 1.5;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ── PAGE FOOTER (repeating) ──────────────────────────────────── */
+
+    .page-footer-bar {
+      text-align: center;
+      padding-top: 8px;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    .page-footer-text {
+      font-size: 7px;
+      color: #D1D5DB;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-title">TRU8</div>
-    <div class="header-subtitle">AI-Powered Evidence Research Report</div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       DOCUMENT HEADER
+       ════════════════════════════════════════════════════════════════ -->
+
+  <div class="doc-header">
+    <div class="doc-header-wordmark">TRU8</div>
+    <div class="doc-header-subtitle">Evidence Research Report</div>
   </div>
 
-  <!-- METADATA -->
-  <div class="metadata">
-    <div class="metadata-row">
-      <span class="metadata-label">Source URL:</span>
-      <span class="metadata-value">{{ (check.input_url or 'User-submitted text')[:80] }}{% if check.input_url and check.input_url|length > 80 %}...{% endif %}</span>
-    </div>
-    <div class="metadata-row">
-      <span class="metadata-label">Date Checked:</span>
-      <span class="metadata-value">{{ check.created_at.strftime('%B %d, %Y at %H:%M UTC') }}</span>
-    </div>
-    <div class="metadata-row">
-      <span class="metadata-label">Report ID:</span>
-      <span class="metadata-value">{{ check.id[:8] }}</span>
-    </div>
-    <div class="metadata-row">
-      <span class="metadata-label">Processing Time:</span>
-      <span class="metadata-value">{{ (check.processing_time_ms / 1000)|round(1) }} seconds</span>
-    </div>
-    {% if check.entry_mode %}
-    <div class="metadata-row">
-      <span class="metadata-label">Analysis Mode:</span>
-      <span class="metadata-value">{{ check.entry_mode|capitalize }}</span>
-    </div>
-    {% endif %}
-  </div>
+  <!-- ════════════════════════════════════════════════════════════════
+       METADATA BLOCK
+       ════════════════════════════════════════════════════════════════ -->
 
-  <!-- ANALYSIS OVERVIEW -->
-  <div class="summary-section">
-    <div class="summary-title">Analysis Overview</div>
-    <table cellspacing="0" cellpadding="0" width="100%">
+  <div class="metadata-block">
+    <table class="metadata-table">
       <tr>
-        <td class="summary-stat" width="33%" style="text-align: center;">
-          <div class="summary-stat-number">{{ claims|length }}</div>
-          <div class="summary-stat-label">Claims Analyzed</div>
+        <td class="meta-label">Source</td>
+        <td class="meta-value">{{ (check.input_url or 'User-submitted text')[:80] }}{% if check.input_url and check.input_url|length > 80 %}...{% endif %}</td>
+      </tr>
+      <tr>
+        <td class="meta-label">Date Analysed</td>
+        <td class="meta-value">{{ check.created_at.strftime('%B %d, %Y at %H:%M UTC') }}</td>
+      </tr>
+      <tr>
+        <td class="meta-label">Report ID</td>
+        <td class="meta-value">{{ check.id[:8] | upper }}</td>
+      </tr>
+      <tr>
+        <td class="meta-label">Processing</td>
+        <td class="meta-value">{{ (check.processing_time_ms / 1000)|round(1) }}s</td>
+      </tr>
+      {% if check.entry_mode %}
+      <tr>
+        <td class="meta-label">Mode</td>
+        <td class="meta-value">{{ check.entry_mode|capitalize }}</td>
+      </tr>
+      {% endif %}
+    </table>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ANALYSIS OVERVIEW (3-stat row)
+       ════════════════════════════════════════════════════════════════ -->
+
+  <div class="overview-section">
+    <div class="overview-label">Analysis Overview</div>
+    <table class="overview-table" cellspacing="0" cellpadding="0">
+      <tr>
+        <td class="stat-cell" width="32%">
+          <div class="stat-number">{{ claims|length }}</div>
+          <div class="stat-label">Claims Analysed</div>
         </td>
         <td width="2%"></td>
-        <td class="summary-stat" width="33%" style="text-align: center;">
-          <div class="summary-stat-number">{{ claims|sum(attribute='evidence')|length if claims else 0 }}</div>
-          <div class="summary-stat-label">Evidence Sources</div>
+        <td class="stat-cell" width="32%">
+          <div class="stat-number">{{ total_evidence }}</div>
+          <div class="stat-label">Evidence Sources</div>
         </td>
         <td width="2%"></td>
-        <td class="summary-stat" width="30%" style="text-align: center;">
-          <div class="summary-stat-number">{{ claims|sum(attribute='elements')|length if claims else 0 }}</div>
-          <div class="summary-stat-label">Elements Examined</div>
+        <td class="stat-cell" width="32%">
+          <div class="stat-number">{{ total_elements }}</div>
+          <div class="stat-label">Elements Examined</div>
         </td>
       </tr>
     </table>
   </div>
 
-  <!-- CLAIMS SECTION -->
-  <div class="section-title">Claims Analyzed ({{ claims|length }})</div>
+  <hr class="section-divider" />
+
+  <!-- ════════════════════════════════════════════════════════════════
+       CLAIMS
+       ════════════════════════════════════════════════════════════════ -->
+
+  <div class="section-label">Claims Analysed &mdash; {{ claims|length }}</div>
 
   {% for claim in claims %}
   <div class="claim-card">
-    <!-- Claim Header -->
-    <div class="claim-header">
-      <div class="claim-label">
-        Claim {{ loop.index }}
-        {% if claim.claim_type %}
-        <span class="claim-type-badge">{{ claim.claim_type|replace('_', ' ') }}</span>
-        {% endif %}
-      </div>
-      <div class="claim-text">{{ claim.text[:220] }}{% if claim.text|length > 220 %}...{% endif %}</div>
+
+    <!-- Claim header -->
+    <div class="claim-number">
+      Claim {{ '%02d' | format(loop.index) }}
+      {% if claim.claim_type %}
+      <span class="claim-type-badge">{{ claim.claim_type|replace('_', ' ') }}</span>
+      {% endif %}
     </div>
 
-    <!-- Orientation Line -->
-    {% if claim.orientation %}
-    <div class="orientation-line">{{ claim.orientation }}</div>
-    {% endif %}
+    <div class="claim-text">{{ claim.text[:220] }}{% if claim.text|length > 220 %}&hellip;{% endif %}</div>
 
     <!-- Elements -->
     {% if claim.elements %}
-    <div style="margin: 10px 0;">
-      <div style="font-size: 10px; font-weight: bold; color: #475569; margin-bottom: 6px;">Evidence Elements</div>
-      {% for element in claim.elements %}
-      <div class="element-card" style="border-left-color: {% if element.state == 'supported' %}#059669{% elif element.state == 'disputed' %}#d97706{% else %}#94a3b8{% endif %};">
-        <span class="element-id">{{ element.element_id }}</span>
-        {% if element.state %}
-        <span class="element-state state-{{ element.state }}">{{ element.state }}</span>
-        {% endif %}
-        <div class="element-desc">{{ element.description }}</div>
-        {% if element.uncertainty %}
-        <div style="font-size: 9px; color: #64748b; font-style: italic; margin-top: 2px;">{{ element.uncertainty }}</div>
-        {% endif %}
-      </div>
-      {% endfor %}
+    <hr class="claim-divider" />
+    <div class="elements-label">Elements</div>
+
+    {% for element in claim.elements %}
+    <div class="element-row">
+      <table class="element-table">
+        <tr>
+          <td class="element-num-cell">
+            <span class="element-num">{{ '%02d' | format(loop.index) }}</span>
+          </td>
+          <td class="element-content-cell">
+            <span class="element-desc">{{ element.description }}</span>
+            {% if element.state %}
+            <span class="state-badge state-{{ element.state }}">{{ element.state }}</span>
+            {% endif %}
+
+            {% if element.evidence_refs %}
+            <div class="evidence-refs-row">
+              {% for ref in element.evidence_refs %}
+              <span class="evidence-ref-chip">
+                <span class="ref-label-{{ ref.relationship }}">{{ ref.relationship }}</span><span class="ref-separator">:</span> {{ ref.evidence_id[:12] }}
+              </span>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if element.uncertainty %}
+            <div class="uncertainty-note">&#9888; {{ element.uncertainty }}</div>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
     </div>
+    {% endfor %}
     {% endif %}
 
-    <!-- Evidence Sources -->
+    <!-- Orientation -->
+    {% if claim.orientation %}
+    <hr class="claim-divider" />
+    <div class="orientation-label">Orientation</div>
+    <div class="orientation-text">{{ claim.orientation }}</div>
+    {% endif %}
+
+    <!-- Evidence sources (top 3) -->
     {% if claim.evidence %}
-    <div class="evidence-title">Evidence Sources ({{ claim.evidence|length }})</div>
+    <hr class="claim-divider" />
+    <div class="evidence-sources-label">Evidence Sources &mdash; {{ claim.evidence|length }}</div>
+
     {% for evidence in claim.evidence[:3] %}
     <div class="evidence-item">
-      <div class="evidence-source">
+      <div class="evidence-source-name">
         {{ evidence.source }}
         {% if evidence.external_source_provider %}
         <span class="badge-api">API</span>
@@ -376,34 +632,49 @@
         <span class="badge-factcheck">Fact-Check</span>
         {% endif %}
       </div>
-      <div class="evidence-source-title">{{ evidence.title[:90] }}{% if evidence.title|length > 90 %}...{% endif %}</div>
+      <div class="evidence-title">{{ evidence.title[:90] }}{% if evidence.title|length > 90 %}&hellip;{% endif %}</div>
       {% if evidence.snippet %}
-      <div class="evidence-snippet">{{ evidence.snippet[:140] }}{% if evidence.snippet|length > 140 %}...{% endif %}</div>
+      <div class="evidence-snippet">{{ evidence.snippet[:160] }}{% if evidence.snippet|length > 160 %}&hellip;{% endif %}</div>
       {% endif %}
     </div>
     {% endfor %}
     {% else %}
-    <div style="background: #f1f5f9; border-left: 3px solid #94a3b8; padding: 12px 14px; margin-top: 8px;">
-      <div style="font-size: 10px; font-weight: bold; color: #475569; margin-bottom: 4px;">
-        No Evidence Retrieved
-      </div>
-      <div style="font-size: 9px; color: #64748b; line-height: 1.5;">
-        No sources were found during evidence retrieval for this claim.
-      </div>
+    <hr class="claim-divider" />
+    <div class="no-evidence-card">
+      <div class="no-evidence-title">No Evidence Retrieved</div>
+      <div class="no-evidence-text">No sources were found during evidence retrieval for this claim.</div>
     </div>
     {% endif %}
+
   </div>
   {% endfor %}
 
-  <!-- FOOTER -->
-  <div class="footer">
-    <div class="footer-brand">TRU8</div>
-    <div>This report was generated automatically using AI-powered evidence research technology.</div>
-    <div>For more information, visit https://tru8.com</div>
-    <div style="margin-top: 6px;">Report ID: {{ check.id[:8] }} | Generated on {{ now.strftime('%B %d, %Y at %H:%M UTC') }}</div>
-    <div class="footer-disclaimer">
-      Disclaimer: This automated analysis presents evidence gathered from multiple sources. It does not render verdicts or judgments. Users should evaluate the evidence and verify critical information independently.
+  <!-- ════════════════════════════════════════════════════════════════
+       DOCUMENT FOOTER
+       ════════════════════════════════════════════════════════════════ -->
+
+  <div class="doc-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">TRU8</div>
+      <div class="footer-tagline">Generated by AI-powered evidence research technology</div>
+      <div class="footer-tagline">tru8.com</div>
+      <div class="footer-meta">
+        Report {{ check.id[:8] | upper }} &nbsp;&middot;&nbsp; {{ now.strftime('%B %d, %Y at %H:%M UTC') }}
+      </div>
+      <div class="footer-disclaimer">
+        This automated analysis presents evidence gathered from multiple sources.
+        It does not render verdicts or judgments. Users should evaluate the evidence
+        and verify critical information independently.
+      </div>
     </div>
   </div>
+
+  <!-- Repeating page footer (xhtml2pdf @frame) -->
+  <div id="page-footer">
+    <div class="page-footer-bar">
+      <span class="page-footer-text">TRU8 &nbsp;&middot;&nbsp; Evidence Research Report &nbsp;&middot;&nbsp; {{ check.id[:8] | upper }}</span>
+    </div>
+  </div>
+
 </body>
 </html>

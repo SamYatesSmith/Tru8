@@ -28,6 +28,65 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
+def _claim_map_to_camel_case(claim_map: dict) -> dict:
+    """Convert a ClaimMap dict from snake_case (DB/TypedDict) to camelCase (API).
+
+    The backend stores ClaimMap with snake_case keys (Python TypedDict convention)
+    but the frontend expects camelCase (TypeScript interface convention).
+
+    This converts: claim_id → claimId, normalised_claim → normalisedClaim,
+    element_id → elementId, evidence_refs → evidenceRefs, etc.
+    """
+    if not claim_map or not isinstance(claim_map, dict):
+        return claim_map
+
+    def _snake_to_camel(name: str) -> str:
+        parts = name.split("_")
+        return parts[0] + "".join(p.capitalize() for p in parts[1:])
+
+    result = {}
+    for key, value in claim_map.items():
+        camel_key = _snake_to_camel(key)
+
+        if key == "elements" and isinstance(value, list):
+            result[camel_key] = [_convert_element(elem) for elem in value]
+        elif key == "metadata" and isinstance(value, dict):
+            result[camel_key] = {_snake_to_camel(mk): mv for mk, mv in value.items()}
+        else:
+            result[camel_key] = value
+
+    return result
+
+
+def _convert_element(elem: dict) -> dict:
+    """Convert a ClaimElement dict from snake_case to camelCase."""
+    if not isinstance(elem, dict):
+        return elem
+
+    def _snake_to_camel(name: str) -> str:
+        parts = name.split("_")
+        return parts[0] + "".join(p.capitalize() for p in parts[1:])
+
+    result = {}
+    for key, value in elem.items():
+        camel_key = _snake_to_camel(key)
+
+        if key == "evidence_refs" and isinstance(value, list):
+            result[camel_key] = [
+                (
+                    {_snake_to_camel(rk): rv for rk, rv in ref.items()}
+                    if isinstance(ref, dict)
+                    else ref
+                )
+                for ref in value
+            ]
+        else:
+            result[camel_key] = value
+
+    return result
+
+
 router = APIRouter()
 
 
@@ -862,9 +921,10 @@ async def get_checks(
         # Build claims array with first claim details
         claims_array = []
         if first_claim:
-            claim_map = (
-                json.loads(first_claim.claim_map) if first_claim.claim_map else None
-            )
+            claim_map_raw = first_claim.claim_map
+            if isinstance(claim_map_raw, str):
+                claim_map_raw = json.loads(claim_map_raw)
+            claim_map = claim_map_raw if claim_map_raw else None
             claims_array.append(
                 {
                     "id": first_claim.id,
@@ -969,15 +1029,17 @@ async def get_check(
                 "text": claim.text,
                 "position": claim.position,
                 # ClaimMap fields
-                "claimMap": json.loads(claim.claim_map) if claim.claim_map else None,
+                "claimMap": (
+                    _claim_map_to_camel_case(claim.claim_map)
+                    if claim.claim_map
+                    else None
+                ),
                 "claimType": claim.claim_type,
                 "isSelected": claim.is_selected,
                 "significanceRank": claim.significance_rank,
                 # Context preservation fields (Context Improvement - Phase 5)
                 "subjectContext": claim.subject_context,
-                "keyEntities": (
-                    json.loads(claim.key_entities) if claim.key_entities else []
-                ),
+                "keyEntities": (claim.key_entities if claim.key_entities else []),
                 "sourceTitle": claim.source_title,
                 "sourceUrl": claim.source_url,
                 # Sources reviewed count (for "View X sources" link when no evidence displayed)
@@ -1108,7 +1170,7 @@ async def stream_check_progress(
                         )
 
                         if status == "completed":
-                            yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100, 'message': 'Fact-check completed successfully'})}\n\n"
+                            yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100, 'message': 'Analysis completed successfully'})}\n\n"
                             break
                         elif status == "failed":
                             error = data.get("error", "Processing failed")
@@ -1200,7 +1262,7 @@ async def export_check_pdf(
         evidence_result = await session.execute(evidence_stmt)
         evidence_list = evidence_result.scalars().all()
 
-        claim_map = json.loads(claim.claim_map) if claim.claim_map else None
+        claim_map = claim.claim_map if claim.claim_map else None
         claims_with_evidence.append(
             {
                 "text": claim.text,
@@ -1212,11 +1274,19 @@ async def export_check_pdf(
             }
         )
 
+    # Pre-compute totals for template (avoids broken Jinja2 sum filter on nested lists)
+    total_evidence = sum(len(c.get("evidence", [])) for c in claims_with_evidence)
+    total_elements = sum(len(c.get("elements", [])) for c in claims_with_evidence)
+
     # Render HTML template
     try:
         template = jinja_env.get_template("pdf/fact_check_report.html")
         html_content = template.render(
-            check=check, claims=claims_with_evidence, now=datetime.utcnow()
+            check=check,
+            claims=claims_with_evidence,
+            total_evidence=total_evidence,
+            total_elements=total_elements,
+            now=datetime.utcnow(),
         )
     except Exception as e:
         logger.error(f"Template rendering failed: {e}")
@@ -1239,7 +1309,7 @@ async def export_check_pdf(
         )
 
     # Return PDF as downloadable file
-    filename = f"tru8-factcheck-{check_id[:8]}.pdf"
+    filename = f"tru8-report-{check_id[:8]}.pdf"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
@@ -1620,7 +1690,9 @@ async def get_public_check(
                 }
             )
 
-        claim_map = json.loads(claim.claim_map) if claim.claim_map else None
+        claim_map = (
+            _claim_map_to_camel_case(claim.claim_map) if claim.claim_map else None
+        )
         claims_data.append(
             {
                 "id": claim.id,

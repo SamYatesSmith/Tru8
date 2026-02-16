@@ -27,11 +27,11 @@ Pipeline is offline during Track B. No feature gate, no dual paths, no fallback.
 | B01 | [Foundation — types, migration, config](PR-B01-foundation.md) | +160 | **DONE** `1f04f7b` | Track A complete |
 | B02 | [Claim Map analyzer + selector](PR-B02-claim-map-analyzer.md) | +1,528 | **DONE** `79708ed` | B01 |
 | B03 | [Evidence ID + element retrieval](PR-B03-element-retrieval.md) | +540/−200 | **DONE** | B01, B02 |
-| B04 | [Pipeline wiring](PR-B04-pipeline-wiring.md) | +330/−380 | Not started | B02, B03 |
-| B05 | [Harness adaptation](PR-B05-harness-adaptation.md) | +250/−100 | Not started | B04 |
-| B06 | [API + services](PR-B06-api-services.md) | +585 | Not started | B04 |
-| B07 | [Verdict deletion](PR-B07-verdict-deletion.md) | −2,510 | Not started | B05, B06 |
-| B08 | [Test suite overhaul](PR-B08-test-suite-overhaul.md) | −1,700 | Not started | B07 |
+| B04 | [Pipeline wiring](PR-B04-pipeline-wiring.md) | +330/−380 | **DONE** `9306ddd` | B02, B03 |
+| B05 | [Harness adaptation](PR-B05-harness-adaptation.md) | +250/−100 | **DONE** `81e06e0` | B04 |
+| B06 | [API + services](PR-B06-api-services.md) | +585 | **DONE** `24fcb0d` | B04 |
+| B07 | [Verdict deletion](PR-B07-verdict-deletion.md) | −2,510 | **DONE** `3aa8fb0` | B05, B06 |
+| B08 | [Test suite overhaul](PR-B08-test-suite-overhaul.md) | −4,877 | **DONE** `d40668b` | B07 |
 
 **Estimated net change: ~-2,500 lines** (Track B reduces codebase while adding the Claim Map system)
 
@@ -67,3 +67,15 @@ All 6 architectural decisions resolved on 2026-02-12. See deep-dive Section 12.
 - **Track C (separate):** Frontend web (18 files), mobile (21 files) — full UI redesign
 - **No feature gate.** Pipeline is offline during Track B — no `ENABLE_CLAIM_MAP` toggle
 - **Track B does NOT:** Remove VerdictType from shared/types (frontend needs it until Track C), touch mobile code, redesign frontend components
+
+---
+
+## Track B: COMPLETE
+
+**Completed:** 2026-02-13
+**Final commit:** `d40668b` (B08)
+**Net change:** ~7,000 lines removed across all 8 PRs
+
+All 8 PRs landed on `main` in sequence: B01 → B02 → B03 → B04 → B05+B06 (parallel) → B07 → B08.
+
+**Next step:** Track C — frontend UI redesign (39 files across web + mobile).

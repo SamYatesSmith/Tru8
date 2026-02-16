@@ -28,6 +28,28 @@ from app.utils.date_utils import parse_date
 
 logger = logging.getLogger(__name__)
 
+
+async def _log_stage_transition(
+    check_id: str,
+    from_stage: str,
+    to_stage: str,
+    progress_reporter: "ProgressReporter",
+    reason: str = "normal",
+) -> None:
+    """
+    Log a stage transition with structured fields, then report progress.
+
+    Every stage transition is logged with: check_id, from_stage, to_stage,
+    reason, and ISO timestamp — enabling post-hoc debugging of stage ordering.
+    """
+    ts = datetime.utcnow().isoformat() + "Z"
+    logger.info(
+        f"[STAGE TRANSITION] check={check_id} from={from_stage} to={to_stage} "
+        f"reason={reason} ts={ts}"
+    )
+    await progress_reporter.report_progress(to_stage)
+
+
 # Thread pool for running async functions with isolated event loops
 # This mimics how Celery runs async code - each call gets its own event loop
 _executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="pipeline_")
@@ -160,14 +182,18 @@ async def run_pipeline(
     # =========================================================================
     # Stage 1: Ingest
     # =========================================================================
-    await progress_reporter.report_progress("ingest")
+    current_stage = "starting"
+    await _log_stage_transition(check_id, current_stage, "ingest", progress_reporter)
+    current_stage = "ingest"
     stage_start = datetime.utcnow()
 
     try:
         # Await directly in FastAPI's event loop - simpler and more reliable
         content = await ingest_content_async(input_data)
     except Exception as e:
-        logger.error(f"[INLINE PIPELINE] Ingest failed: {e}")
+        logger.error(
+            f"[STAGE ERROR] check={check_id} stage=ingest error={type(e).__name__}: {e}"
+        )
         import traceback
 
         logger.error(f"[INLINE PIPELINE] Ingest traceback: {traceback.format_exc()}")
@@ -187,7 +213,8 @@ async def run_pipeline(
     # =========================================================================
     # Stage 2: Extract Claims
     # =========================================================================
-    await progress_reporter.report_progress("extract")
+    await _log_stage_transition(check_id, current_stage, "extract", progress_reporter)
+    current_stage = "extract"
     stage_start = datetime.utcnow()
 
     extract_content = content.get("content", "")
@@ -216,7 +243,9 @@ async def run_pipeline(
             extract_content, extract_metadata, cache_service
         )
     except Exception as e:
-        logger.error(f"[INLINE PIPELINE] Claim extraction failed: {e}")
+        logger.error(
+            f"[STAGE ERROR] check={check_id} stage=extract error={type(e).__name__}: {e}"
+        )
         raise PipelineError(get_user_friendly_error(e), stage="extract")
 
     if not claims:
@@ -314,7 +343,10 @@ async def run_pipeline(
             "[FROZEN EVIDENCE REPLAY] Skipping fact-check API for deterministic replay"
         )
     elif settings.ENABLE_FACTCHECK_API:
-        await progress_reporter.report_progress("factcheck")
+        await _log_stage_transition(
+            check_id, current_stage, "factcheck", progress_reporter
+        )
+        current_stage = "factcheck"
         stage_start = datetime.utcnow()
         try:
             # Direct await - search_factchecks_for_claims is async
@@ -335,7 +367,10 @@ async def run_pipeline(
     selected_claims = claims
 
     if entry_mode == "article":
-        await progress_reporter.report_progress("select")
+        await _log_stage_transition(
+            check_id, current_stage, "select", progress_reporter
+        )
+        current_stage = "select"
         stage_start = datetime.utcnow()
 
         try:
@@ -389,7 +424,8 @@ async def run_pipeline(
     # =========================================================================
     # Stage 3: Decompose Claims into Elements
     # =========================================================================
-    await progress_reporter.report_progress("decompose")
+    await _log_stage_transition(check_id, current_stage, "decompose", progress_reporter)
+    current_stage = "decompose"
     stage_start = datetime.utcnow()
 
     analyzer = ClaimMapAnalyzer()
@@ -408,7 +444,9 @@ async def run_pipeline(
             f"[INLINE PIPELINE] Decomposed {len(selected_claims)} claims into elements"
         )
     except Exception as e:
-        logger.error(f"[INLINE PIPELINE] Decomposition failed: {e}")
+        logger.error(
+            f"[STAGE ERROR] check={check_id} stage=decompose error={type(e).__name__}: {e}"
+        )
         raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose")
 
     stage_timings["decompose"] = (datetime.utcnow() - stage_start).total_seconds()
@@ -428,7 +466,8 @@ async def run_pipeline(
     # =========================================================================
     # Stage 4: Retrieve Evidence
     # =========================================================================
-    await progress_reporter.report_progress("retrieve")
+    await _log_stage_transition(check_id, current_stage, "retrieve", progress_reporter)
+    current_stage = "retrieve"
     stage_start = datetime.utcnow()
 
     source_url = content.get("metadata", {}).get("url")
@@ -491,7 +530,8 @@ async def run_pipeline(
         except asyncio.TimeoutError:
             _retrieve_elapsed = _time.time() - _retrieve_start
             logger.warning(
-                f"[INLINE PIPELINE] Evidence retrieval timed out after {_retrieve_elapsed:.2f}s (limit={retrieve_timeout}s), continuing with empty evidence"
+                f"[STAGE ERROR] check={check_id} stage=retrieve error=TimeoutError: "
+                f"timed out after {_retrieve_elapsed:.2f}s (limit={retrieve_timeout}s), continuing with empty evidence"
             )
             retrieval_result = {
                 "evidence_by_claim": {},
@@ -499,7 +539,9 @@ async def run_pipeline(
                 "raw_sources_count": 0,
             }
         except Exception as e:
-            logger.error(f"[INLINE PIPELINE] Evidence retrieval failed: {e}")
+            logger.error(
+                f"[STAGE ERROR] check={check_id} stage=retrieve error={type(e).__name__}: {e}"
+            )
             import traceback
 
             logger.error(f"[INLINE PIPELINE] Full traceback: {traceback.format_exc()}")
@@ -866,7 +908,8 @@ async def run_pipeline(
     # =========================================================================
     # Stage 5: Evidence Mapping (replaces Judge)
     # =========================================================================
-    await progress_reporter.report_progress("analyze")
+    await _log_stage_transition(check_id, current_stage, "analyze", progress_reporter)
+    current_stage = "analyze"
     stage_start = datetime.utcnow()
 
     # FINAL EVIDENCE SUMMARY — log what the analyzer will use
@@ -1012,11 +1055,14 @@ async def run_pipeline(
         logger.info(f"[INLINE PIPELINE] Evidence mapping completed successfully")
     except asyncio.TimeoutError:
         logger.error(
-            f"[INLINE PIPELINE] Evidence mapping timed out after {analyze_timeout}s"
+            f"[STAGE ERROR] check={check_id} stage=analyze error=TimeoutError: "
+            f"Evidence mapping timed out after {analyze_timeout}s"
         )
         raise PipelineError("Evidence mapping timed out", stage="analyze")
     except Exception as e:
-        logger.error(f"[INLINE PIPELINE] Evidence mapping failed: {e}")
+        logger.error(
+            f"[STAGE ERROR] check={check_id} stage=analyze error={type(e).__name__}: {e}"
+        )
         raise PipelineError(f"Evidence mapping failed: {e}", stage="analyze")
 
     if ledger:
@@ -1038,7 +1084,8 @@ async def run_pipeline(
     # =========================================================================
     query_response_data = None
     if input_data.get("user_query") and settings.ENABLE_SEARCH_CLARITY:
-        await progress_reporter.report_progress("query")
+        await _log_stage_transition(check_id, current_stage, "query", progress_reporter)
+        current_stage = "query"
         stage_start = datetime.utcnow()
 
         try:

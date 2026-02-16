@@ -121,6 +121,7 @@ def setup_logging():
     logging.getLogger("trafilatura").setLevel(logging.WARNING)  # HTML parsing spam
     logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("pdfminer").setLevel(logging.WARNING)  # PDF parser spam
 
     _logging_configured = True
 
