@@ -133,6 +133,7 @@ async def retrieve_evidence_with_cache(
     cache_service,
     factcheck_evidence: Dict = None,
     source_url: Optional[str] = None,
+    progressive_results: Optional[Dict] = None,
 ) -> Dict[str, Any]:
     """Retrieve evidence using real search and embeddings with caching.
 
@@ -193,7 +194,9 @@ async def retrieve_evidence_with_cache(
             )
             _retrieve_start = _time.time()
             retrieval_result = await retriever.retrieve_evidence_for_claims(
-                uncached_claims, exclude_source_url=source_url
+                uncached_claims,
+                exclude_source_url=source_url,
+                progressive_results=progressive_results,
             )
             _retrieve_elapsed = _time.time() - _retrieve_start
             logger.info(

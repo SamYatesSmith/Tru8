@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # APIs
     BRAVE_API_KEY: str = Field("", env="BRAVE_API_KEY")
     SERP_API_KEY: str = Field("", env="SERP_API_KEY")
+    SERPER_API_KEY: str = Field("", env="SERPER_API_KEY")
     OPENAI_API_KEY: str = Field("", env="OPENAI_API_KEY")
     ANTHROPIC_API_KEY: str = Field(
         "", env="ANTHROPIC_API_KEY"

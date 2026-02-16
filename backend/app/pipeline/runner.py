@@ -507,9 +507,18 @@ async def run_pipeline(
 
         _retrieve_start = _time.time()
 
+        # Only retrieve evidence for SELECTED claims — unselected claims are shown
+        # in the report but don't get full analysis, so retrieving for them wastes
+        # search budget and content extraction time.
+        retrieve_claims = selected_claims if selected_claims else claims
+
         logger.info(
-            f"[RETRIEVE STAGE] Starting for check {check_id} with {len(claims)} claims, timeout={retrieve_timeout}s"
+            f"[RETRIEVE STAGE] Starting for check {check_id} with {len(retrieve_claims)} claims "
+            f"(of {len(claims)} total), timeout={retrieve_timeout}s"
         )
+
+        # Shared dict for progressive evidence storage — allows partial recovery on timeout
+        _progressive_results = {}
 
         try:
             logger.info(
@@ -519,7 +528,11 @@ async def run_pipeline(
             # Thread pool was causing issues with async httpx clients
             retrieval_result = await asyncio.wait_for(
                 retrieve_evidence_with_cache(
-                    claims, cache_service, factcheck_evidence, source_url=source_url
+                    retrieve_claims,
+                    cache_service,
+                    factcheck_evidence,
+                    source_url=source_url,
+                    progressive_results=_progressive_results,
                 ),
                 timeout=retrieve_timeout,
             )
@@ -529,15 +542,39 @@ async def run_pipeline(
             )
         except asyncio.TimeoutError:
             _retrieve_elapsed = _time.time() - _retrieve_start
-            logger.warning(
-                f"[STAGE ERROR] check={check_id} stage=retrieve error=TimeoutError: "
-                f"timed out after {_retrieve_elapsed:.2f}s (limit={retrieve_timeout}s), continuing with empty evidence"
-            )
-            retrieval_result = {
-                "evidence_by_claim": {},
-                "raw_evidence": [],
-                "raw_sources_count": 0,
-            }
+
+            # Attempt partial recovery from progressive results
+            partial_evidence = _progressive_results.get("evidence_by_claim", {})
+            partial_count = sum(len(ev) for ev in partial_evidence.values())
+
+            if partial_count > 0:
+                partial_raw = _progressive_results.get("raw_evidence", [])
+                partial_pre_weight = _progressive_results.get(
+                    "pre_weighting_evidence", {}
+                )
+                logger.warning(
+                    f"[STAGE ERROR] check={check_id} stage=retrieve error=TimeoutError: "
+                    f"timed out after {_retrieve_elapsed:.2f}s (limit={retrieve_timeout}s) — "
+                    f"PRESERVING {partial_count} evidence items from "
+                    f"{len(partial_evidence)} completed claims"
+                )
+                retrieval_result = {
+                    "evidence_by_claim": partial_evidence,
+                    "raw_evidence": partial_raw,
+                    "raw_sources_count": len(partial_raw),
+                    "pre_weighting_evidence": partial_pre_weight,
+                }
+            else:
+                logger.warning(
+                    f"[STAGE ERROR] check={check_id} stage=retrieve error=TimeoutError: "
+                    f"timed out after {_retrieve_elapsed:.2f}s (limit={retrieve_timeout}s), "
+                    f"no evidence completed before timeout"
+                )
+                retrieval_result = {
+                    "evidence_by_claim": {},
+                    "raw_evidence": [],
+                    "raw_sources_count": 0,
+                }
         except Exception as e:
             logger.error(
                 f"[STAGE ERROR] check={check_id} stage=retrieve error={type(e).__name__}: {e}"

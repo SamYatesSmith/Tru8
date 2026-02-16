@@ -72,9 +72,18 @@ class EvidenceRetriever:
         }
 
     async def retrieve_evidence_for_claims(
-        self, claims: List[Dict[str, Any]], exclude_source_url: Optional[str] = None
+        self,
+        claims: List[Dict[str, Any]],
+        exclude_source_url: Optional[str] = None,
+        progressive_results: Optional[Dict] = None,
     ) -> Dict[str, List[Dict[str, Any]]]:
-        """Retrieve evidence for multiple claims concurrently"""
+        """Retrieve evidence for multiple claims concurrently.
+
+        Args:
+            progressive_results: Optional shared dict. If provided, results are
+                written progressively as each claim completes so the caller can
+                read partial results on timeout.
+        """
         import time as _time
 
         _func_start = _time.time()
@@ -183,66 +192,67 @@ class EvidenceRetriever:
 
             # Process claims with concurrency limit
             semaphore = asyncio.Semaphore(self.max_concurrent_claims)
-            tasks = [
-                self._retrieve_evidence_for_single_claim(
-                    claim, semaphore, excluded_domain
-                )
-                for claim in claims
-            ]
 
-            import time as _time
-
-            _gather_start = _time.time()
-            logger.info(f"[RETRIEVER DEBUG] Gathering results for {len(tasks)} tasks")
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            _gather_elapsed = _time.time() - _gather_start
-            logger.info(
-                f"[RETRIEVER DEBUG] Gather complete in {_gather_elapsed:.2f}s. Results count: {len(results)}"
-            )
-
-            # Log each result type
-            for i, r in enumerate(results):
-                if isinstance(r, Exception):
-                    logger.error(
-                        f"[RETRIEVER DEBUG] Result {i}: EXCEPTION {type(r).__name__}: {r}"
-                    )
-                elif isinstance(r, dict):
-                    logger.info(
-                        f"[RETRIEVER DEBUG] Result {i}: dict with {len(r.get('filtered_evidence', []))} filtered, {len(r.get('raw_evidence', []))} raw"
-                    )
-                else:
-                    logger.info(
-                        f"[RETRIEVER DEBUG] Result {i}: type={type(r)}, len={len(r) if hasattr(r, '__len__') else 'N/A'}"
-                    )
-
-            # Organize results by claim position
+            # Shared accumulators — written progressively as each claim completes
             evidence_by_claim = {}
             all_raw_evidence = []
             pre_weighting_by_claim = {}
 
-            for i, result in enumerate(results):
-                if isinstance(result, Exception):
-                    logger.error(f"Evidence retrieval failed for claim {i}: {result}")
-                    evidence_by_claim[str(i)] = []
-                elif isinstance(result, dict):
-                    # New structure with raw evidence
-                    evidence_by_claim[str(i)] = result.get("filtered_evidence", [])
-                    pre_weighting_by_claim[str(i)] = result.get(
+            # Expose accumulators to caller for partial recovery on timeout
+            if progressive_results is not None:
+                progressive_results["evidence_by_claim"] = evidence_by_claim
+                progressive_results["raw_evidence"] = all_raw_evidence
+                progressive_results["pre_weighting_evidence"] = pre_weighting_by_claim
+
+            async def _retrieve_and_store(claim_index: int, claim: Dict):
+                """Retrieve evidence for one claim and store immediately."""
+                try:
+                    result = await self._retrieve_evidence_for_single_claim(
+                        claim, semaphore, excluded_domain
+                    )
+                except Exception as exc:
+                    logger.error(
+                        f"[RETRIEVER DEBUG] Result {claim_index}: EXCEPTION {type(exc).__name__}: {exc}"
+                    )
+                    evidence_by_claim[str(claim_index)] = []
+                    return
+
+                if isinstance(result, dict):
+                    evidence_by_claim[str(claim_index)] = result.get(
+                        "filtered_evidence", []
+                    )
+                    pre_weighting_by_claim[str(claim_index)] = result.get(
                         "pre_weighting_evidence", []
                     )
                     raw_evidence = result.get("raw_evidence", [])
-                    claim_position = result.get("claim_position", i)
+                    claim_position = result.get("claim_position", claim_index)
                     claim_text = result.get("claim_text", "")
-                    # Add claim context to each raw evidence item
                     for raw_item in raw_evidence:
                         raw_item["claim_position"] = claim_position
                         raw_item["claim_text"] = claim_text
                     all_raw_evidence.extend(raw_evidence)
+                    logger.info(
+                        f"[RETRIEVER DEBUG] Result {claim_index}: dict with "
+                        f"{len(result.get('filtered_evidence', []))} filtered, "
+                        f"{len(result.get('raw_evidence', []))} raw"
+                    )
                 else:
                     # Legacy list format (backward compatibility)
-                    evidence_by_claim[str(i)] = (
+                    evidence_by_claim[str(claim_index)] = (
                         result if isinstance(result, list) else []
                     )
+
+            _gather_start = _time.time()
+            logger.info(f"[RETRIEVER DEBUG] Gathering results for {len(claims)} tasks")
+            await asyncio.gather(
+                *[_retrieve_and_store(i, claim) for i, claim in enumerate(claims)],
+                return_exceptions=True,
+            )
+            _gather_elapsed = _time.time() - _gather_start
+            logger.info(
+                f"[RETRIEVER DEBUG] Gather complete in {_gather_elapsed:.2f}s. "
+                f"Claims completed: {len(evidence_by_claim)}"
+            )
 
             # RECOVERY: Ensure minimum evidence per claim
             # This catches claims that ended up with insufficient evidence after initial retrieval
@@ -2026,7 +2036,9 @@ class EvidenceRetriever:
 
             # Fix 0b: Cap total API evidence per claim
             # Reduced from 30 to 10: analyzer has limited context, quality over quantity
-            MAX_API_EVIDENCE_PER_CLAIM = 10
+            MAX_API_EVIDENCE_PER_CLAIM = (
+                5  # Reduced: API evidence supplements web search
+            )
             if len(all_api_evidence) > MAX_API_EVIDENCE_PER_CLAIM:
                 logger.info(
                     f"[API CAP] Reducing {len(all_api_evidence)} API items to {MAX_API_EVIDENCE_PER_CLAIM}"

@@ -262,6 +262,39 @@ class DomainCapper:
             if url:
                 global_domain_urls_seen[domain].add(url)
 
+        # SAFETY NET: Never let domain capping reduce a claim to 0 evidence.
+        # If a claim had evidence before capping but has 0 after, restore the
+        # highest-scored item that was removed.
+        MIN_EVIDENCE_PER_CLAIM = 1
+        for position in new_evidence_by_claim:
+            original_count = len(evidence_by_claim.get(position, []))
+            new_count = len(new_evidence_by_claim[position])
+            if new_count < MIN_EVIDENCE_PER_CLAIM and original_count > 0:
+                # Find items that were removed from this claim (sorted by score)
+                removed_items = []
+                for ev in all_evidence_sorted:
+                    if ev.get("_claim_position") != position:
+                        continue
+                    url = ev.get("url", "")
+                    # Check if this item was excluded
+                    ev_clean = {k: v for k, v in ev.items() if not k.startswith("_")}
+                    is_in_new = any(
+                        e.get("url") == url for e in new_evidence_by_claim[position]
+                    )
+                    if not is_in_new:
+                        removed_items.append(ev_clean)
+
+                # Restore up to MIN_EVIDENCE_PER_CLAIM items
+                needed = MIN_EVIDENCE_PER_CLAIM - new_count
+                restored = removed_items[:needed]
+                new_evidence_by_claim[position].extend(restored)
+                if restored:
+                    logger.warning(
+                        f"[GLOBAL CAP] SAFETY NET: Claim {position} had 0 evidence after "
+                        f"capping (was {original_count}). Restored {len(restored)} item(s) "
+                        f"to prevent empty claim."
+                    )
+
         # Log results
         total_before = sum(len(v) for v in evidence_by_claim.values())
         total_after = sum(len(v) for v in new_evidence_by_claim.values())

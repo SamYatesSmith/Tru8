@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 # ========== CROSSREF ADAPTER (Academic Research Metadata) ==========
 
+
 class CrossRefAdapter(GovernmentAPIClient):
     """
     CrossRef API Adapter.
@@ -35,13 +36,15 @@ class CrossRefAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400 * 14,  # 14 days (research metadata stable)
             timeout=10,
-            max_results=10
+            max_results=3,  # Cap at 3: CrossRef supplements web search, not displaces it
         )
 
         # CrossRef requests User-Agent with contact email
-        self.headers.update({
-            "User-Agent": "Tru8FactChecker/1.0 (https://tru8.com; mailto:contact@tru8.com)"
-        })
+        self.headers.update(
+            {
+                "User-Agent": "Tru8FactChecker/1.0 (https://tru8.com; mailto:contact@tru8.com)"
+            }
+        )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """
@@ -56,12 +59,20 @@ class CrossRefAdapter(GovernmentAPIClient):
         deals, statements, or events.
         """
         return domain in [
-            "Science", "Climate", "Health"
+            "Science",
+            "Climate",
+            "Health",
             # Removed: Politics, Law, History, Demographics, Animals
             # These are better served by news sources for current events
         ]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search CrossRef for academic research.
 
@@ -82,7 +93,7 @@ class CrossRefAdapter(GovernmentAPIClient):
             "query": query,
             "rows": self.max_results,
             "sort": "relevance",
-            "select": "title,author,published-print,DOI,publisher,abstract"
+            "select": "title,author,published-print,DOI,publisher,abstract",
         }
 
         try:
@@ -121,7 +132,9 @@ class CrossRefAdapter(GovernmentAPIClient):
                 if pub_date and "date-parts" in pub_date:
                     date_parts = pub_date["date-parts"][0]
                     if len(date_parts) >= 3:
-                        source_date = datetime(date_parts[0], date_parts[1], date_parts[2])
+                        source_date = datetime(
+                            date_parts[0], date_parts[1], date_parts[2]
+                        )
                     elif len(date_parts) >= 1:
                         source_date = datetime(date_parts[0], 1, 1)
 
@@ -136,7 +149,11 @@ class CrossRefAdapter(GovernmentAPIClient):
                     "api_source": "CrossRef",
                     "doi": doi,
                     "publisher": item.get("publisher"),
-                    "authors": ", ".join(author_names) if author_names else "Authors not listed"
+                    "authors": (
+                        ", ".join(author_names)
+                        if author_names
+                        else "Authors not listed"
+                    ),
                 }
 
                 evidence = self._create_evidence_dict(
@@ -144,7 +161,7 @@ class CrossRefAdapter(GovernmentAPIClient):
                     snippet=snippet,
                     url=url,
                     source_date=source_date,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 evidence_list.append(evidence)
@@ -158,6 +175,7 @@ class CrossRefAdapter(GovernmentAPIClient):
 
 
 # ========== SEMANTIC SCHOLAR ADAPTER (P1) ==========
+
 
 class SemanticScholarAdapter(GovernmentAPIClient):
     """
@@ -174,9 +192,11 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400 * 7,  # 7 days
             timeout=15,
-            max_results=10
+            max_results=3,  # Cap at 3: academic papers supplement web search
         )
-        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        self.headers["User-Agent"] = (
+            "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """
@@ -186,11 +206,15 @@ class SemanticScholarAdapter(GovernmentAPIClient):
         Academic papers rarely help verify claims about recent events, meetings, or deals.
         """
         return domain in [
-            "Science", "Climate", "Health"
+            "Science",
+            "Climate",
+            "Health",
             # Removed: Politics, Law, History, Demographics, Animals, Entertainment, General
         ]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
+    def search(
+        self, query: str, domain: str, jurisdiction: str, entities=None
+    ) -> List[Dict[str, Any]]:
         """
         Search Semantic Scholar for academic papers.
 
@@ -234,25 +258,30 @@ class SemanticScholarAdapter(GovernmentAPIClient):
                 citation_count = paper.get("citationCount", 0) or 0
                 credibility = min(0.95, 0.75 + (citation_count / 1000) * 0.2)
 
-                evidence.append({
-                    "source": "Semantic Scholar",
-                    "source_type": "academic",
-                    "title": title,
-                    "snippet": paper.get("abstract", "") or "",
-                    "url": paper.get("url") or f"https://www.semanticscholar.org/paper/{paper.get('paperId', '')}",
-                    "source_date": pub_date,
-                    "credibility_score": credibility,
-                    "relevance_score": 0.85,
-                    "external_source_provider": "Semantic Scholar",
-                    "metadata": {
-                        "authors": authors,
-                        "venue": paper.get("venue", ""),
-                        "citation_count": citation_count,
-                        "paper_id": paper.get("paperId")
+                evidence.append(
+                    {
+                        "source": "Semantic Scholar",
+                        "source_type": "academic",
+                        "title": title,
+                        "snippet": paper.get("abstract", "") or "",
+                        "url": paper.get("url")
+                        or f"https://www.semanticscholar.org/paper/{paper.get('paperId', '')}",
+                        "source_date": pub_date,
+                        "credibility_score": credibility,
+                        "relevance_score": 0.85,
+                        "external_source_provider": "Semantic Scholar",
+                        "metadata": {
+                            "authors": authors,
+                            "venue": paper.get("venue", ""),
+                            "citation_count": citation_count,
+                            "paper_id": paper.get("paperId"),
+                        },
                     }
-                })
+                )
 
-            logger.info(f"Semantic Scholar returned {len(evidence)} results for query: {query[:50]}...")
+            logger.info(
+                f"Semantic Scholar returned {len(evidence)} results for query: {query[:50]}..."
+            )
 
         except Exception as e:
             logger.error(f"Semantic Scholar search failed: {e}")
@@ -265,6 +294,7 @@ class SemanticScholarAdapter(GovernmentAPIClient):
 
 
 # ========== OPENALEX ADAPTER (P2) ==========
+
 
 class OpenAlexAdapter(GovernmentAPIClient):
     """
@@ -281,7 +311,7 @@ class OpenAlexAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400 * 7,  # 7 days
             timeout=15,
-            max_results=10
+            max_results=3,  # Cap at 3: academic papers supplement web search
         )
         # OpenAlex requests polite pool identification via email
         self.headers["User-Agent"] = "Tru8FactChecker/1.0 (mailto:contact@tru8.com)"
@@ -294,11 +324,15 @@ class OpenAlexAdapter(GovernmentAPIClient):
         Scholarly papers rarely help verify claims about recent events, meetings, or deals.
         """
         return domain in [
-            "Science", "Climate", "Health"
+            "Science",
+            "Climate",
+            "Health",
             # Removed: Politics, Law, History, Demographics, Animals, Entertainment, General
         ]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
+    def search(
+        self, query: str, domain: str, jurisdiction: str, entities=None
+    ) -> List[Dict[str, Any]]:
         """
         Search OpenAlex for scholarly works.
 
@@ -367,32 +401,44 @@ class OpenAlexAdapter(GovernmentAPIClient):
                 # Safely extract source name from primary_location
                 primary_location = work.get("primary_location") or {}
                 source_info = primary_location.get("source") or {}
-                source_name = source_info.get("display_name", "") if isinstance(source_info, dict) else ""
+                source_name = (
+                    source_info.get("display_name", "")
+                    if isinstance(source_info, dict)
+                    else ""
+                )
 
                 # Safely extract open_access info
                 open_access = work.get("open_access") or {}
-                is_oa = open_access.get("is_oa", False) if isinstance(open_access, dict) else False
+                is_oa = (
+                    open_access.get("is_oa", False)
+                    if isinstance(open_access, dict)
+                    else False
+                )
 
-                evidence.append({
-                    "source": "OpenAlex",
-                    "source_type": "academic",
-                    "title": title,
-                    "snippet": abstract,
-                    "url": url,
-                    "source_date": pub_date,
-                    "credibility_score": credibility,
-                    "relevance_score": 0.85,
-                    "external_source_provider": "OpenAlex",
-                    "metadata": {
-                        "authors": authors,
-                        "citation_count": citation_count,
-                        "type": work.get("type", ""),
-                        "open_access": is_oa,
-                        "journal_source": source_name
+                evidence.append(
+                    {
+                        "source": "OpenAlex",
+                        "source_type": "academic",
+                        "title": title,
+                        "snippet": abstract,
+                        "url": url,
+                        "source_date": pub_date,
+                        "credibility_score": credibility,
+                        "relevance_score": 0.85,
+                        "external_source_provider": "OpenAlex",
+                        "metadata": {
+                            "authors": authors,
+                            "citation_count": citation_count,
+                            "type": work.get("type", ""),
+                            "open_access": is_oa,
+                            "journal_source": source_name,
+                        },
                     }
-                })
+                )
 
-            logger.info(f"OpenAlex returned {len(evidence)} results for query: {query[:50]}...")
+            logger.info(
+                f"OpenAlex returned {len(evidence)} results for query: {query[:50]}..."
+            )
 
         except Exception as e:
             logger.error(f"OpenAlex search failed: {e}")
