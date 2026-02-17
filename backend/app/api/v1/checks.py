@@ -1701,7 +1701,6 @@ async def get_public_check(
                 "claimMap": claim_map,
                 "claimType": claim.claim_type,
                 "isSelected": claim.is_selected,
-                "isVerifiable": claim.is_verifiable,
                 "isTimeSensitive": claim.is_time_sensitive,
                 "timeReference": claim.time_reference,
                 "evidence": evidence_data,
