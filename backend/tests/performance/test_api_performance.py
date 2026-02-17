@@ -42,8 +42,8 @@ class TestAPIPerformance:
                 "primary_domain": "Finance",
                 "jurisdiction": "UK",
                 "confidence": 0.85,
-                "secondary_domains": []
-            }
+                "secondary_domains": [],
+            },
         }
 
         # Mock adapters to return quickly
@@ -55,12 +55,13 @@ class TestAPIPerformance:
                 "snippet": "Test snippet",
                 "url": "https://test.gov.uk/data",
                 "external_source_provider": "Test API",
-                "credibility_score": 0.95,
-                "metadata": {}
+                "metadata": {},
             }
         ]
 
-        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+        with patch.object(
+            retriever.api_registry, "get_adapters_for_domain"
+        ) as mock_get:
             mock_get.return_value = [mock_adapter]
 
             # Measure API retrieval latency
@@ -69,7 +70,9 @@ class TestAPIPerformance:
             latency_ms = (time.time() - start_time) * 1000
 
             # Assert latency is reasonable
-            assert latency_ms < 2000, f"API retrieval took {latency_ms:.0f}ms (target: <2000ms)"
+            assert (
+                latency_ms < 2000
+            ), f"API retrieval took {latency_ms:.0f}ms (target: <2000ms)"
             assert result["evidence"]
             assert result["api_stats"]["total_api_calls"] == 1
 
@@ -89,8 +92,8 @@ class TestAPIPerformance:
                 "primary_domain": "Health",
                 "jurisdiction": "Global",
                 "confidence": 0.85,
-                "secondary_domains": []
-            }
+                "secondary_domains": [],
+            },
         }
 
         # Create multiple mock adapters with artificial delay
@@ -102,8 +105,7 @@ class TestAPIPerformance:
                     "snippet": "Test snippet",
                     "url": "https://test.com",
                     "external_source_provider": "Test API",
-                    "credibility_score": 0.95,
-                    "metadata": {}
+                    "metadata": {},
                 }
             ]
 
@@ -115,7 +117,9 @@ class TestAPIPerformance:
         mock_adapter2.api_name = "API 2"
         mock_adapter2.search_with_cache = Mock(return_value=[])
 
-        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+        with patch.object(
+            retriever.api_registry, "get_adapters_for_domain"
+        ) as mock_get:
             mock_get.return_value = [mock_adapter1, mock_adapter2]
 
             # Measure parallel execution time
@@ -126,7 +130,9 @@ class TestAPIPerformance:
             # If sequential: ~1000ms (2 * 500ms)
             # If parallel: ~500ms
             # Allow some overhead, assert < 800ms
-            assert latency_ms < 800, f"Parallel API calls took {latency_ms:.0f}ms (expected ~500ms for parallel)"
+            assert (
+                latency_ms < 800
+            ), f"Parallel API calls took {latency_ms:.0f}ms (expected ~500ms for parallel)"
 
     @pytest.mark.asyncio
     @pytest.mark.performance
@@ -144,8 +150,8 @@ class TestAPIPerformance:
                 "primary_domain": "Finance",
                 "jurisdiction": "UK",
                 "confidence": 0.85,
-                "secondary_domains": []
-            }
+                "secondary_domains": [],
+            },
         }
 
         # First call - cache miss
@@ -157,12 +163,13 @@ class TestAPIPerformance:
                 "snippet": "Test snippet",
                 "url": "https://test.gov.uk/data",
                 "external_source_provider": "Test API",
-                "credibility_score": 0.95,
-                "metadata": {}
+                "metadata": {},
             }
         ]
 
-        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+        with patch.object(
+            retriever.api_registry, "get_adapters_for_domain"
+        ) as mock_get:
             mock_get.return_value = [mock_adapter]
 
             # First call - should hit API
@@ -199,13 +206,15 @@ class TestPipelineLatency:
         ]
 
         # Mock evidence extraction to return quickly
-        with patch.object(retriever.evidence_extractor, 'extract_evidence_for_claim') as mock_extract:
+        with patch.object(
+            retriever.evidence_extractor, "extract_evidence_for_claim"
+        ) as mock_extract:
             mock_extract.return_value = []  # Mock web evidence
 
-            with patch.object(retriever, '_retrieve_from_government_apis') as mock_api:
+            with patch.object(retriever, "_retrieve_from_government_apis") as mock_api:
                 mock_api.return_value = {
                     "evidence": [],
-                    "api_stats": {"total_api_calls": 0}
+                    "api_stats": {"total_api_calls": 0},
                 }
 
                 # This is just the retrieval stage
@@ -223,18 +232,17 @@ class TestPipelineLatency:
         retriever = EvidenceRetriever()
         retriever.enable_api_retrieval = True
 
-        claims = [
-            {"text": f"Test claim {i}", "position": i}
-            for i in range(5)
-        ]
+        claims = [{"text": f"Test claim {i}", "position": i} for i in range(5)]
 
-        with patch.object(retriever.evidence_extractor, 'extract_evidence_for_claim') as mock_extract:
+        with patch.object(
+            retriever.evidence_extractor, "extract_evidence_for_claim"
+        ) as mock_extract:
             mock_extract.return_value = []
 
-            with patch.object(retriever, '_retrieve_from_government_apis') as mock_api:
+            with patch.object(retriever, "_retrieve_from_government_apis") as mock_api:
                 mock_api.return_value = {
                     "evidence": [],
-                    "api_stats": {"total_api_calls": 0}
+                    "api_stats": {"total_api_calls": 0},
                 }
 
                 start_time = time.time()
@@ -243,7 +251,9 @@ class TestPipelineLatency:
 
                 # With concurrency limit of 3, should process efficiently
                 # 5 claims should not take 5x the time of 1 claim
-                assert latency_ms < 5000, f"5 claims took {latency_ms:.0f}ms (expected <5s with concurrency)"
+                assert (
+                    latency_ms < 5000
+                ), f"5 claims took {latency_ms:.0f}ms (expected <5s with concurrency)"
 
 
 class TestErrorHandling:
@@ -265,8 +275,8 @@ class TestErrorHandling:
                 "primary_domain": "Finance",
                 "jurisdiction": "UK",
                 "confidence": 0.85,
-                "secondary_domains": []
-            }
+                "secondary_domains": [],
+            },
         }
 
         # Mock adapter that times out
@@ -274,7 +284,9 @@ class TestErrorHandling:
         mock_adapter.api_name = "Slow API"
         mock_adapter.search_with_cache.side_effect = TimeoutError("API timeout")
 
-        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+        with patch.object(
+            retriever.api_registry, "get_adapters_for_domain"
+        ) as mock_get:
             mock_get.return_value = [mock_adapter]
 
             # Should not raise exception, should return empty results
@@ -301,8 +313,8 @@ class TestErrorHandling:
                 "primary_domain": "General",
                 "jurisdiction": "Global",
                 "confidence": 0.5,
-                "secondary_domains": []
-            }
+                "secondary_domains": [],
+            },
         }
 
         # Mock: one successful adapter, one failing adapter
@@ -314,8 +326,7 @@ class TestErrorHandling:
                 "snippet": "Test",
                 "url": "https://good.com",
                 "external_source_provider": "Good API",
-                "credibility_score": 0.95,
-                "metadata": {}
+                "metadata": {},
             }
         ]
 
@@ -323,7 +334,9 @@ class TestErrorHandling:
         mock_adapter2.api_name = "Bad API"
         mock_adapter2.search_with_cache.side_effect = Exception("API error")
 
-        with patch.object(retriever.api_registry, 'get_adapters_for_domain') as mock_get:
+        with patch.object(
+            retriever.api_registry, "get_adapters_for_domain"
+        ) as mock_get:
             mock_get.return_value = [mock_adapter1, mock_adapter2]
 
             result = await retriever._retrieve_from_government_apis(claim_text, claim)
@@ -342,8 +355,12 @@ class TestCacheEfficiency:
     def test_cache_ttl_configuration(self):
         """Test that different adapters have appropriate TTLs."""
         from app.services.api_adapters import (
-            ONSAdapter, PubMedAdapter, FREDAdapter,
-            WHOAdapter, WeatherAPIAdapter, WikidataAdapter
+            ONSAdapter,
+            PubMedAdapter,
+            FREDAdapter,
+            WHOAdapter,
+            WeatherAPIAdapter,
+            WikidataAdapter,
         )
 
         # Economic data: 7 days (changes slowly)
@@ -372,18 +389,17 @@ class TestLoadCapacity:
         retriever.enable_api_retrieval = True
 
         # Create 10 claims
-        claims = [
-            {"text": f"Claim about topic {i}", "position": i}
-            for i in range(10)
-        ]
+        claims = [{"text": f"Claim about topic {i}", "position": i} for i in range(10)]
 
-        with patch.object(retriever.evidence_extractor, 'extract_evidence_for_claim') as mock_extract:
+        with patch.object(
+            retriever.evidence_extractor, "extract_evidence_for_claim"
+        ) as mock_extract:
             mock_extract.return_value = []
 
-            with patch.object(retriever, '_retrieve_from_government_apis') as mock_api:
+            with patch.object(retriever, "_retrieve_from_government_apis") as mock_api:
                 mock_api.return_value = {
                     "evidence": [],
-                    "api_stats": {"total_api_calls": 0}
+                    "api_stats": {"total_api_calls": 0},
                 }
 
                 start_time = time.time()
@@ -411,32 +427,32 @@ class TestAPIStatistics:
                 "api_stats": {
                     "apis_queried": [{"name": "API A", "results": 3}],
                     "total_api_calls": 1,
-                    "total_api_results": 3
-                }
+                    "total_api_results": 3,
+                },
             },
             {
                 "text": "Claim 2",
                 "api_stats": {
                     "apis_queried": [
                         {"name": "API A", "results": 2},
-                        {"name": "API B", "results": 5}
+                        {"name": "API B", "results": 5},
                     ],
                     "total_api_calls": 2,
-                    "total_api_results": 7
-                }
-            }
+                    "total_api_results": 7,
+                },
+            },
         ]
 
         evidence = {
             "0": [
                 {"title": "E1", "external_source_provider": "API A"},
-                {"title": "E2", "source": "Web"}
+                {"title": "E2", "source": "Web"},
             ],
             "1": [
                 {"title": "E3", "external_source_provider": "API A"},
                 {"title": "E4", "external_source_provider": "API B"},
-                {"title": "E5", "source": "Web"}
-            ]
+                {"title": "E5", "source": "Web"},
+            ],
         }
 
         stats = aggregate_api_stats(claims, evidence)

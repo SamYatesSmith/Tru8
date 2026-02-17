@@ -35,7 +35,6 @@ try:
     from .search_results import (
         MOCK_SEARCH_RESULTS,
         MOCK_HIGH_CREDIBILITY_RESULTS,
-        get_search_results_by_credibility,
     )
 except ImportError:
     pass
@@ -82,7 +81,6 @@ __all__ = [
     # Search Results
     "MOCK_SEARCH_RESULTS",
     "MOCK_HIGH_CREDIBILITY_RESULTS",
-    "get_search_results_by_credibility",
     # Fact-Check Data
     "MOCK_FACTCHECK_RESULTS",
     "get_factcheck_by_rating",

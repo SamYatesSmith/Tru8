@@ -46,7 +46,7 @@ class SourceMonitor:
         evidence_snippet: Optional[str] = None,
         has_https: bool = False,
         has_author_byline: Optional[bool] = None,
-        has_primary_sources: Optional[bool] = None
+        has_primary_sources: Optional[bool] = None,
     ) -> None:
         """
         Log an unknown source for later review.
@@ -85,7 +85,9 @@ class SourceMonitor:
                     existing.claim_topic = claim_topic
                 if not existing.evidence_title and evidence_title:
                     existing.evidence_title = evidence_title
-                logger.info(f"Updated unknown source: {domain} (frequency: {existing.frequency})")
+                logger.info(
+                    f"Updated unknown source: {domain} (frequency: {existing.frequency})"
+                )
             else:
                 # Create new tracking record
                 unknown_source = UnknownSource(
@@ -93,13 +95,15 @@ class SourceMonitor:
                     full_url=url,
                     claim_topic=claim_topic,
                     evidence_title=evidence_title,
-                    evidence_snippet=evidence_snippet[:500] if evidence_snippet else None,
+                    evidence_snippet=(
+                        evidence_snippet[:500] if evidence_snippet else None
+                    ),
                     has_https=has_https,
                     has_author_byline=has_author_byline,
                     has_primary_sources=has_primary_sources,
                     frequency=1,
                     first_seen=datetime.utcnow(),
-                    last_seen=datetime.utcnow()
+                    last_seen=datetime.utcnow(),
                 )
                 self.session.add(unknown_source)
                 logger.info(f"Logged new unknown source: {domain}")
@@ -110,7 +114,9 @@ class SourceMonitor:
             logger.error(f"Failed to log unknown source {url}: {e}")
             self.session.rollback()
 
-    def get_trending_unknowns(self, min_frequency: int = 3, limit: int = 50) -> list[UnknownSource]:
+    def get_trending_unknowns(
+        self, min_frequency: int = 3, limit: int = 50
+    ) -> list[UnknownSource]:
         """
         Get unknown sources that appear frequently (for weekly review).
 
@@ -139,7 +145,10 @@ class SourceMonitor:
             Count of unreviewed sources
         """
         from sqlalchemy import func
-        stmt = select(func.count(UnknownSource.id)).where(UnknownSource.reviewed == False)
+
+        stmt = select(func.count(UnknownSource.id)).where(
+            UnknownSource.reviewed == False
+        )
         count = self.session.exec(stmt).one()
         return count
 
@@ -147,9 +156,8 @@ class SourceMonitor:
         self,
         domain: str,
         assigned_tier: Optional[str] = None,
-        assigned_credibility: Optional[float] = None,
         notes: Optional[Dict[str, Any]] = None,
-        added_to_list: bool = False
+        added_to_list: bool = False,
     ) -> None:
         """
         Mark unknown source as reviewed after manual curation.
@@ -157,9 +165,8 @@ class SourceMonitor:
         Args:
             domain: Domain that was reviewed
             assigned_tier: Tier assigned (e.g., 'news_tier2')
-            assigned_credibility: Credibility score assigned (0.0-1.0)
             notes: Admin notes about the decision
-            added_to_list: Whether source was added to source_credibility.json
+            added_to_list: Whether source was added to source list
         """
         stmt = select(UnknownSource).where(UnknownSource.domain == domain)
         source = self.session.exec(stmt).first()
@@ -167,11 +174,12 @@ class SourceMonitor:
         if source:
             source.reviewed = True
             source.assigned_tier = assigned_tier
-            source.assigned_credibility = assigned_credibility
             source.review_notes = notes
             source.added_to_credibility_list = added_to_list
             self.session.commit()
-            logger.info(f"Marked {domain} as reviewed (tier: {assigned_tier}, added: {added_to_list})")
+            logger.info(
+                f"Marked {domain} as reviewed (tier: {assigned_tier}, added: {added_to_list})"
+            )
         else:
             logger.warning(f"Unknown source not found for review: {domain}")
 
@@ -200,6 +208,7 @@ class SourceMonitor:
 
 # Singleton instance for reuse
 _source_monitor = None
+
 
 def get_source_monitor(session: Session) -> SourceMonitor:
     """

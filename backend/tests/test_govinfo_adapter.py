@@ -4,6 +4,7 @@ Tests for GovInfo.gov API Adapter (Phase 4/5 Integration)
 Verifies that US legal statute claims correctly route to GovInfo.gov API
 through the Phase 5 adapter system.
 """
+
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
 from app.services.api_adapters import GovInfoAdapter
@@ -38,11 +39,15 @@ class TestGovInfoAdapter:
 
         result = self.detector.classify(claim)
 
-        assert result["claim_type"] == "legal", f"Expected 'legal' but got '{result['claim_type']}'"
+        assert (
+            result["claim_type"] == "legal"
+        ), f"Expected 'legal' but got '{result['claim_type']}'"
         assert result["is_legal"] is True
 
         metadata = result.get("metadata", {})
-        assert metadata["year"] == "1966", f"Expected year 1966 but got {metadata.get('year')}"
+        assert (
+            metadata["year"] == "1966"
+        ), f"Expected year 1966 but got {metadata.get('year')}"
         assert metadata["jurisdiction"] in ["US", None]
 
     def test_legal_claim_classification_1952_federal_law(self):
@@ -56,7 +61,7 @@ class TestGovInfoAdapter:
         assert metadata["year"] == "1952"
         assert metadata["jurisdiction"] == "US"
 
-    @patch('app.services.api_adapters.legal.LegalSearchService')
+    @patch("app.services.api_adapters.legal.LegalSearchService")
     def test_adapter_search_calls_legal_service(self, mock_legal_service_class):
         """Test adapter search() method calls LegalSearchService correctly"""
         # Setup mock
@@ -72,7 +77,7 @@ class TestGovInfoAdapter:
                     "url": "https://api.govinfo.gov/...",
                     "source_date": "1966-10-15",
                     "citation": "54 USC 306107",
-                    "jurisdiction": "US"
+                    "jurisdiction": "US",
                 }
             ]
 
@@ -83,12 +88,13 @@ class TestGovInfoAdapter:
         adapter.legal_service = mock_service
 
         # Test search
-        claim = "The National Historic Preservation Act of 1966 exempts the White House."
+        claim = (
+            "The National Historic Preservation Act of 1966 exempts the White House."
+        )
         results = adapter.search(claim, "Law", "US")
 
         # Verify results were transformed correctly
         assert len(results) > 0
-        assert results[0]["credibility_score"] == 0.95  # Legal statutes get high credibility
         assert results[0]["external_source_provider"] == "GovInfo.gov"
 
     def test_adapter_skips_non_legal_claims(self):
@@ -103,7 +109,9 @@ class TestGovInfoAdapter:
 
     def test_adapter_skips_wrong_jurisdiction(self):
         """Test adapter returns empty for wrong jurisdiction"""
-        claim = "The National Historic Preservation Act of 1966 exempts the White House."
+        claim = (
+            "The National Historic Preservation Act of 1966 exempts the White House."
+        )
 
         # Try to search with UK jurisdiction (should be rejected)
         results = self.adapter.search(claim, "Law", "UK")
@@ -119,7 +127,9 @@ class TestGovInfoIntegration:
         from app.utils.legal_claim_detector import LegalClaimDetector
 
         detector = LegalClaimDetector()
-        claim = "The National Historic Preservation Act of 1966 exempts the White House."
+        claim = (
+            "The National Historic Preservation Act of 1966 exempts the White House."
+        )
 
         # Classify claim - this is what retrieve.py checks FIRST
         classification = detector.classify(claim)
@@ -140,17 +150,24 @@ class TestGovInfoIntegration:
         detector = LegalClaimDetector()
 
         test_claims = [
-            ("The National Historic Preservation Act of 1966 exempts the White House", "legal"),
+            (
+                "The National Historic Preservation Act of 1966 exempts the White House",
+                "legal",
+            ),
             ("A 1952 federal law requires submission to NCPC", "legal"),
-            ("Section 230 of the Communications Decency Act protects platforms", "legal"),
+            (
+                "Section 230 of the Communications Decency Act protects platforms",
+                "legal",
+            ),
             ("42 USC 1983 allows citizens to sue state officials", "legal"),
             ("The statute requires environmental review", "legal"),
         ]
 
         for claim_text, expected_type in test_claims:
             result = detector.classify(claim_text)
-            assert result["claim_type"] == expected_type, \
-                f"Claim '{claim_text[:50]}...' expected {expected_type}, got {result['claim_type']}"
+            assert (
+                result["claim_type"] == expected_type
+            ), f"Claim '{claim_text[:50]}...' expected {expected_type}, got {result['claim_type']}"
 
 
 class TestGovInfoAdapterRegistry:
@@ -170,8 +187,9 @@ class TestGovInfoAdapterRegistry:
 
         # Should find at least one adapter (GovInfo)
         adapter_names = [adapter.api_name for adapter in adapters]
-        assert "GovInfo.gov" in adapter_names, \
-            f"GovInfo.gov not found in registered adapters: {adapter_names}"
+        assert (
+            "GovInfo.gov" in adapter_names
+        ), f"GovInfo.gov not found in registered adapters: {adapter_names}"
 
     def test_adapter_matches_law_us_jurisdiction(self):
         """Test that GovInfo adapter is returned for Law/US queries"""
@@ -186,11 +204,12 @@ class TestGovInfoAdapterRegistry:
 
         # Find GovInfo adapter
         govinfo_adapter = next(
-            (a for a in adapters if a.api_name == "GovInfo.gov"),
-            None
+            (a for a in adapters if a.api_name == "GovInfo.gov"), None
         )
 
-        assert govinfo_adapter is not None, "GovInfo adapter should be registered for Law/US"
+        assert (
+            govinfo_adapter is not None
+        ), "GovInfo adapter should be registered for Law/US"
         assert govinfo_adapter.is_relevant_for_domain("Law", "US") is True
 
 

@@ -180,7 +180,6 @@ class TestJSONBMigration:
                 url="https://pubmed.ncbi.nlm.nih.gov/38123456",
                 title="Test Article",
                 snippet="Test snippet",
-                credibility_score=0.95,
                 relevance_score=0.9,
                 external_source_provider="PubMed",
                 api_metadata=complex_metadata,

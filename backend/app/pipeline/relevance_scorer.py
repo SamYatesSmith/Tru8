@@ -43,12 +43,12 @@ SOURCE AUTHORITY - Match source type to claim type:
 - MEDICAL/HEALTH claims → Prefer WHO, CDC, NHS, medical journals
   → Sources with "entertainment_focus" or "lifestyle_content" flags should score 1-2
 - SCIENTIFIC claims → Prefer peer-reviewed, academic, government data
-  → Low-credibility sources (<50%) should score 1-2 for statistical claims
+  → Unknown sources (tier: general) should score 1-2 for statistical claims
 - SPORTS claims → Sports news, league sites, tabloids all acceptable
 - ENTERTAINMENT/CELEBRITY claims → Tabloids and lifestyle magazines ARE appropriate
 
-CREDIBILITY SIGNALS IN EVIDENCE:
-- "tier: general" with low credibility = unknown/unvetted source, treat with skepticism
+SOURCE SIGNALS IN EVIDENCE:
+- "tier: general" = unknown/unvetted source, treat with skepticism for authoritative claims
 - "risk_flags: entertainment_focus" = lifestyle magazine, inappropriate for medical claims
 - "risk_flags: sensationalism" = tabloid, deprioritize for scientific claims
 
@@ -56,7 +56,7 @@ AUTOMATIC SCORE 1-2:
 - Pages ABOUT fact-checking tools (meta-sources)
 - News aggregator index pages
 - Sources with entertainment_focus/lifestyle_content flags FOR medical/scientific claims
-- Unknown sources (tier: general, <50% credibility) for factual/statistical claims
+- Unknown sources (tier: general) for factual/statistical claims
 
 ARTICLE UNDER EXAMINATION:
 {article_context}
@@ -279,9 +279,8 @@ async def _score_with_google(
         source = ev.get("source", ev.get("external_source_provider", "Unknown"))
         url = ev.get("url", "")[:150]
 
-        # Add credibility context for LLM decision-making
+        # Add context for LLM decision-making
         tier = ev.get("tier", "general")
-        cred_score = ev.get("credibility_score", 0.4)
         risk_flags = ev.get("risk_flags", [])
         if isinstance(risk_flags, str):
             risk_flags = [risk_flags] if risk_flags else []
@@ -290,7 +289,7 @@ async def _score_with_google(
         evidence_text_parts.append(
             f"[Evidence {i}]:\n"
             f"  Source: {source}\n"
-            f"  Credibility: {tier} ({cred_score:.0%})\n"
+            f"  Tier: {tier}\n"
             f"  Risk Flags: {risk_str}\n"
             f"  Title: {title}\n"
             f"  URL: {url}\n"
@@ -393,9 +392,8 @@ async def _score_with_llm(
         source = ev.get("source", ev.get("external_source_provider", "Unknown"))
         url = ev.get("url", "")[:150]
 
-        # Add credibility context for LLM decision-making
+        # Add context for LLM decision-making
         tier = ev.get("tier", "general")
-        cred_score = ev.get("credibility_score", 0.4)
         risk_flags = ev.get("risk_flags", [])
         if isinstance(risk_flags, str):
             risk_flags = [risk_flags] if risk_flags else []
@@ -404,7 +402,7 @@ async def _score_with_llm(
         evidence_text_parts.append(
             f"[Evidence {i}]:\n"
             f"  Source: {source}\n"
-            f"  Credibility: {tier} ({cred_score:.0%})\n"
+            f"  Tier: {tier}\n"
             f"  Risk Flags: {risk_str}\n"
             f"  Title: {title}\n"
             f"  URL: {url}\n"

@@ -218,9 +218,6 @@ class Evidence(SQLModel, table=True):
     snippet: str
     published_date: Optional[datetime] = None
     relevance_score: float = Field(ge=0, le=1)  # 0-1
-    credibility_score: float = Field(
-        default=0.6, ge=0, le=1
-    )  # 0-1 (source trustworthiness)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Claim Map system (Track B)
@@ -275,16 +272,8 @@ class Evidence(SQLModel, table=True):
         None  # 'last_30_days', 'last_90_days', 'year_YYYY', 'timeless'
     )
 
-    # Domain Credibility Framework fields (Phase 3, Week 9)
-    tier: Optional[str] = (
-        None  # 'tier1', 'tier2', 'tier3', 'general', 'blacklist', 'flagged', 'excluded'
-    )
-    risk_flags: Optional[str] = Field(
-        default=None, sa_column=Column(JSONB)
-    )  # List of risk indicators
-    credibility_reasoning: Optional[str] = None  # Explanation of credibility score
-    risk_level: Optional[str] = None  # 'none', 'low', 'medium', 'high'
-    risk_warning: Optional[str] = None  # User-facing warning message
+    # Source classification (repurposed in E06 for tier/type)
+    tier: Optional[str] = None  # Will be repurposed for tier/type classification in E06
 
     # Citation Precision & NLI Context (Phase 2, Week 10)
     page_number: Optional[int] = Field(
@@ -359,9 +348,6 @@ class RawEvidence(SQLModel, table=True):
     published_date: Optional[datetime] = None
     relevance_score: float = Field(
         default=0.0, ge=0, le=1, description="Semantic relevance to claim (0-1)"
-    )
-    credibility_score: float = Field(
-        default=0.6, ge=0, le=1, description="Source credibility (0-1)"
     )
 
     # Filtering metadata - the key feature

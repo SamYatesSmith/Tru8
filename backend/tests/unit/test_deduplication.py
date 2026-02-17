@@ -50,20 +50,18 @@ class TestDeduplication:
         assert len(result) == 2, "Expected syndicated duplicate removed"
         assert stats["duplicates_removed"] >= 1
 
-    def test_preserves_highest_credibility(self, deduplicator):
-        """Test: When deduplicating, keeps highest credibility source"""
+    def test_preserves_highest_score(self, deduplicator):
+        """Test: When deduplicating, keeps highest scored source"""
         evidence = [
             {
-                "url": "https://highcred.com/a",
+                "url": "https://highscore.com/a",
                 "snippet": "The study found X.",
-                "credibility_score": 0.9,
-                "final_score": 0.9,
+                "combined_score": 0.9,
             },
             {
-                "url": "https://lowcred.com/b",
+                "url": "https://lowscore.com/b",
                 "snippet": "The study found X.",
-                "credibility_score": 0.5,
-                "final_score": 0.5,
+                "combined_score": 0.5,
             },
         ]
 
@@ -71,9 +69,7 @@ class TestDeduplication:
 
         assert len(result) == 1
         # Should keep the first one (higher score, comes first in sorted list)
-        assert (
-            result[0]["credibility_score"] == 0.9
-        ), "Should keep higher credibility source"
+        assert result[0]["combined_score"] == 0.9, "Should keep higher scored source"
 
     def test_no_removal_when_all_unique(self, deduplicator):
         """Test: No changes when all evidence unique"""

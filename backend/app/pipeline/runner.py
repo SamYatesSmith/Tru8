@@ -931,23 +931,16 @@ async def run_pipeline_phase2(
                     claim_filter_counts[pos]["excluded_by_stage"][
                         raw_item["filter_stage"]
                     ] += 1
-            unknown_domain_filtered = 0
-            for raw_item in raw_evidence_data:
-                if not raw_item.get("is_included"):
-                    cred = raw_item.get("credibility_score")
-                    if isinstance(cred, (int, float)) and cred <= 0.40:
-                        unknown_domain_filtered += 1
             for pos, stats in claim_filter_counts.items():
                 ledger.record_claim(
                     pos,
-                    "credibility_weighting",
+                    "evidence_filtering",
                     total_raw=stats["total_raw"],
                     included=stats["included"],
                     excluded_by_stage=dict(stats["excluded_by_stage"]),
                 )
             ledger.record(
-                "credibility_filtering",
-                unknown_domain_filtered=unknown_domain_filtered,
+                "evidence_filtering",
                 total_raw=sum(s["total_raw"] for s in claim_filter_counts.values()),
                 total_included=sum(s["included"] for s in claim_filter_counts.values()),
             )
@@ -976,10 +969,7 @@ async def run_pipeline_phase2(
                     if not url:
                         continue
 
-                    score = ev.get(
-                        "final_score",
-                        ev.get("combined_score", ev.get("credibility_score", 0)),
-                    )
+                    score = ev.get("combined_score", 0)
 
                     if url not in url_claims:
                         url_claims[url] = [(claim_pos, ev, score)]
@@ -1106,81 +1096,6 @@ async def run_pipeline_phase2(
         ).total_seconds()
 
     # =========================================================================
-    # Stage 3.8: Global Domain Capping
-    # =========================================================================
-    if _is_frozen_evidence_replay and evidence:
-        logger.info(
-            f"[GLOBAL CAP] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
-        )
-    elif settings.ENABLE_GLOBAL_DOMAIN_CAPPING and evidence:
-        stage_start = datetime.utcnow()
-        try:
-            from app.utils.domain_capping import DomainCapper
-            from app.utils.url_utils import extract_domain
-
-            domain_counts_before = {}
-            for ev_list in evidence.values():
-                for ev in ev_list:
-                    domain = extract_domain(ev.get("url", ""), fallback="unknown")
-                    domain_counts_before[domain] = (
-                        domain_counts_before.get(domain, 0) + 1
-                    )
-
-            total_before = sum(domain_counts_before.values())
-            logger.info(
-                f"[GLOBAL CAP] BEFORE: {total_before} evidence items, domains: {dict(sorted(domain_counts_before.items(), key=lambda x: -x[1])[:5])}"
-            )
-
-            global_capper = DomainCapper()
-            evidence = global_capper.apply_global_caps(
-                evidence,
-                global_max_per_domain=settings.GLOBAL_MAX_PER_DOMAIN,
-                global_max_ratio=settings.GLOBAL_MAX_DOMAIN_RATIO,
-            )
-
-            domain_counts_after = {}
-            for ev_list in evidence.values():
-                for ev in ev_list:
-                    domain = extract_domain(ev.get("url", ""), fallback="unknown")
-                    domain_counts_after[domain] = domain_counts_after.get(domain, 0) + 1
-
-            total_after = sum(domain_counts_after.values())
-            removed = total_before - total_after
-            logger.info(
-                f"[GLOBAL CAP] AFTER: {total_after} evidence items (removed {removed}), domains: {dict(sorted(domain_counts_after.items(), key=lambda x: -x[1])[:5])}"
-            )
-
-            if ledger:
-                caps_applied = {
-                    d: {
-                        "before": domain_counts_before.get(d, 0),
-                        "after": domain_counts_after.get(d, 0),
-                    }
-                    for d in domain_counts_before
-                    if domain_counts_before[d] != domain_counts_after.get(d, 0)
-                }
-                ledger.record(
-                    "global_domain_cap",
-                    in_count=total_before,
-                    out_count=total_after,
-                    removed=removed,
-                    caps_applied=caps_applied,
-                )
-
-        except Exception as e:
-            logger.warning(f"Global domain capping failed (non-critical): {e}")
-            import traceback
-
-            logger.debug(f"Global domain capping traceback: {traceback.format_exc()}")
-        stage_timings["global_domain_cap"] = (
-            datetime.utcnow() - stage_start
-        ).total_seconds()
-    elif not settings.ENABLE_GLOBAL_DOMAIN_CAPPING:
-        logger.warning(
-            "[GLOBAL CAP] DISABLED via settings - domain diversity not enforced!"
-        )
-
-    # =========================================================================
     # Stage 5: Evidence Mapping (replaces Judge)
     # =========================================================================
     await _log_stage_transition(check_id, current_stage, "analyze", progress_reporter)
@@ -1206,13 +1121,6 @@ async def run_pipeline_phase2(
         f"[ANALYZER INPUT] Domain distribution: {dict(sorted(final_domains.items(), key=lambda x: -x[1]))}"
     )
 
-    max_domain_count = max(final_domains.values()) if final_domains else 0
-    if max_domain_count > settings.GLOBAL_MAX_PER_DOMAIN:
-        logger.warning(
-            f"[ANALYZER INPUT] Domain appears {max_domain_count} times, "
-            f"exceeds cap of {settings.GLOBAL_MAX_PER_DOMAIN}"
-        )
-
     if ledger:
         snippet_fallback_count = 0
         snippet_reasons = {
@@ -1223,7 +1131,6 @@ async def run_pipeline_phase2(
             "other": 0,
         }
         title_only_count = 0
-        unknown_domain_count = 0
         for ev_list in evidence.values():
             for ev in ev_list:
                 meta = ev.get("metadata") or {}
@@ -1242,9 +1149,6 @@ async def run_pipeline_phase2(
                         snippet_reasons["other"] += 1
                 if not ev.get("text") and ev.get("title"):
                     title_only_count += 1
-                cred = ev.get("credibility_score", 1.0)
-                if isinstance(cred, (int, float)) and cred <= 0.40:
-                    unknown_domain_count += 1
         ledger.record(
             "analyzer_input",
             total=final_evidence_count,
@@ -1253,7 +1157,6 @@ async def run_pipeline_phase2(
             snippet_fallbacks=snippet_fallback_count,
             snippet_fallback_reasons=snippet_reasons,
             title_only_items=title_only_count,
-            unknown_domain_items=unknown_domain_count,
         )
         ledger.record(
             "analyzer_input_evidence",
@@ -1626,7 +1529,6 @@ async def save_check_results_async(
             for ev_data in claim_data.get("evidence", []):
                 metadata_dict = ev_data.get("metadata", {})
                 # Ensure numeric fields are properly typed
-                cred_score = ev_data.get("credibility_score", 0.6)
                 rel_score = ev_data.get("relevance_score", 0.0)
                 evidence = Evidence(
                     claim_id=claim.id,
@@ -1635,9 +1537,6 @@ async def save_check_results_async(
                     url=ev_data.get("url", ""),
                     title=ev_data.get("title", ""),
                     snippet=ev_data.get("snippet", ev_data.get("text", "")),
-                    credibility_score=(
-                        float(cred_score) if cred_score is not None else 0.6
-                    ),
                     published_date=parse_date(ev_data.get("published_date")),
                     relevance_score=float(rel_score) if rel_score is not None else 0.0,
                     page_number=(
@@ -1650,10 +1549,6 @@ async def save_check_results_async(
                         metadata_dict.get("context_after") if metadata_dict else None
                     ),
                     tier=ev_data.get("tier"),
-                    risk_flags=ev_data.get("risk_flags"),
-                    credibility_reasoning=ev_data.get("credibility_reasoning"),
-                    risk_level=ev_data.get("risk_level"),
-                    risk_warning=ev_data.get("risk_warning"),
                     external_source_provider=ev_data.get("external_source_provider"),
                     api_metadata=metadata_dict,
                 )
@@ -1673,7 +1568,6 @@ async def save_check_results_async(
                 # Ensure numeric fields are properly typed
                 claim_pos = raw_ev.get("claim_position", 0)
                 rel_score = raw_ev.get("relevance_score", 0.0)
-                cred_score = raw_ev.get("credibility_score", 0.6)
 
                 raw_evidence = RawEvidence(
                     check_id=check_id,
@@ -1685,9 +1579,6 @@ async def save_check_results_async(
                     snippet=raw_ev.get("snippet", "") or "",
                     published_date=parse_date(raw_ev.get("published_date")),
                     relevance_score=float(rel_score) if rel_score is not None else 0.0,
-                    credibility_score=(
-                        float(cred_score) if cred_score is not None else 0.6
-                    ),
                     is_included=bool(raw_ev.get("is_included", False)),
                     filter_stage=raw_ev.get("filter_stage"),
                     filter_reason=raw_ev.get("filter_reason"),

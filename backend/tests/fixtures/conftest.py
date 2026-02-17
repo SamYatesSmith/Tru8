@@ -379,7 +379,6 @@ def sample_evidence():
                 "snippet": "195 countries have agreed to reduce emissions by 45% by 2030...",
                 "published_date": "2024-11-01",
                 "relevance_score": 0.95,
-                "credibility_score": 0.90,
                 "is_factcheck": False,
             },
             {
@@ -389,7 +388,6 @@ def sample_evidence():
                 "snippet": "The agreement includes binding targets for carbon reduction...",
                 "published_date": "2024-11-01",
                 "relevance_score": 0.92,
-                "credibility_score": 0.88,
                 "is_factcheck": False,
             },
         ]

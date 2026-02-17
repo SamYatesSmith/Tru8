@@ -1,9 +1,9 @@
 """
-Corroboration-Based Credibility Weighting
+Corroboration Detection
 
-Boosts credibility for evidence items when multiple independent sources
-report similar information. This helps surface legitimate but lesser-known
-sources that are corroborated by established outlets.
+Detects when multiple independent sources report similar information.
+This helps identify well-corroborated evidence from lesser-known sources
+that are confirmed by established outlets.
 
 Phase 6: Source Diversity Enhancement
 """
@@ -13,19 +13,10 @@ from typing import List, Dict, Any, Set, Tuple
 from difflib import SequenceMatcher
 from collections import defaultdict
 
-from app.core.config import settings
-
 logger = logging.getLogger(__name__)
-
-# Corroboration boost amounts
-CORROBORATION_BOOST_2_SOURCES = 0.08  # 2 independent sources agree
-CORROBORATION_BOOST_3_PLUS = 0.12    # 3+ independent sources agree
 
 # Minimum text similarity to consider evidence as corroborating
 MIN_CORROBORATION_SIMILARITY = 0.35
-
-# Maximum boost from corroboration (prevents scores > 1.0)
-MAX_CORROBORATION_BOOST = 0.15
 
 
 def _get_ownership_group(source: str, url: str) -> str:
@@ -123,7 +114,7 @@ def _extract_key_facts(text: str) -> Set[str]:
     facts = set()
 
     # Extract numbers (including decimals and percentages)
-    numbers = re.findall(r'\b\d+(?:\.\d+)?%?\b', text)
+    numbers = re.findall(r"\b\d+(?:\.\d+)?%?\b", text)
     facts.update(numbers)
 
     # Extract quoted phrases
@@ -132,10 +123,11 @@ def _extract_key_facts(text: str) -> Set[str]:
 
     # Extract dates (various formats)
     dates = re.findall(
-        r'\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2}|'
-        r'(?:January|February|March|April|May|June|July|August|September|October|November|December)'
-        r'\s+\d{1,2},?\s+\d{4})\b',
-        text, re.IGNORECASE
+        r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2}|"
+        r"(?:January|February|March|April|May|June|July|August|September|October|November|December)"
+        r"\s+\d{1,2},?\s+\d{4})\b",
+        text,
+        re.IGNORECASE,
     )
     facts.update(d.lower() for d in dates)
 
@@ -227,23 +219,23 @@ def apply_corroboration_boost(
     evidence_list: List[Dict[str, Any]]
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """
-    Apply credibility boosts for corroborated evidence.
+    Detect and annotate corroborated evidence.
 
     Evidence items that are corroborated by independent sources
-    receive a credibility boost. This is especially valuable for
-    lesser-known sources that are reporting the same facts as
-    established outlets.
+    get annotated with corroboration metadata. This is especially
+    valuable for identifying when lesser-known sources report the
+    same facts as established outlets.
 
     Args:
-        evidence_list: List of evidence items with credibility_score
+        evidence_list: List of evidence items
 
     Returns:
         Tuple of:
-        - Updated evidence list with boosted scores
-        - Stats about corroboration boosts applied
+        - Updated evidence list with corroboration annotations
+        - Stats about corroboration detected
     """
     if len(evidence_list) < 2:
-        return evidence_list, {"enabled": True, "items_boosted": 0}
+        return evidence_list, {"enabled": True, "items_annotated": 0}
 
     # Find corroborating sources
     corroboration_map = find_corroborating_sources(evidence_list)
@@ -251,61 +243,38 @@ def apply_corroboration_boost(
     if not corroboration_map:
         return evidence_list, {
             "enabled": True,
-            "items_boosted": 0,
-            "reason": "no_corroboration_found"
+            "items_annotated": 0,
+            "reason": "no_corroboration_found",
         }
 
-    # Apply boosts
-    boosted_count = 0
-    total_boost = 0.0
+    # Annotate corroborated items (no score mutation)
+    annotated_count = 0
 
     for idx, corroborators in corroboration_map.items():
         if idx >= len(evidence_list):
             continue
 
         ev = evidence_list[idx]
-        current_cred = ev.get("credibility_score", 0.6)
-
-        # Determine boost based on number of corroborating sources
         num_corroborators = len(corroborators)
-        if num_corroborators >= 3:
-            boost = CORROBORATION_BOOST_3_PLUS
-        elif num_corroborators >= 2:
-            boost = CORROBORATION_BOOST_2_SOURCES
-        else:
-            boost = CORROBORATION_BOOST_2_SOURCES * 0.7  # Single corroborator
 
-        # Cap the boost
-        boost = min(boost, MAX_CORROBORATION_BOOST)
+        ev["corroborating_sources"] = num_corroborators
+        ev["corroboration_indices"] = corroborators
+        annotated_count += 1
 
-        # Apply boost (cap at 1.0)
-        new_cred = min(1.0, current_cred + boost)
-
-        if new_cred > current_cred:
-            ev["credibility_score"] = new_cred
-            ev["corroboration_boost"] = boost
-            ev["corroborating_sources"] = num_corroborators
-            ev["corroboration_indices"] = corroborators
-
-            boosted_count += 1
-            total_boost += boost
-
-            logger.debug(
-                f"[CORROBORATION BOOST] {ev.get('source', 'unknown')}: "
-                f"{current_cred:.2f} -> {new_cred:.2f} "
-                f"(corroborated by {num_corroborators} independent sources)"
-            )
+        logger.debug(
+            f"[CORROBORATION] {ev.get('source', 'unknown')}: "
+            f"corroborated by {num_corroborators} independent sources"
+        )
 
     stats = {
         "enabled": True,
-        "items_boosted": boosted_count,
-        "total_boost": total_boost,
-        "corroboration_pairs": len(corroboration_map)
+        "items_annotated": annotated_count,
+        "corroboration_pairs": len(corroboration_map),
     }
 
-    if boosted_count > 0:
+    if annotated_count > 0:
         logger.info(
-            f"[CORROBORATION] Applied boosts to {boosted_count} items "
+            f"[CORROBORATION] Annotated {annotated_count} items "
             f"({stats['corroboration_pairs']} corroborating pairs found)"
         )
 

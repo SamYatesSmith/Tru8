@@ -71,7 +71,6 @@ class TestFactCheckAPI:
 
         assert evidence["source"] == "Snopes"
         assert evidence["is_factcheck"] == True
-        assert evidence["credibility_score"] == 0.95  # High credibility for fact-checks
         assert evidence["factcheck_rating"] == "False"
         assert evidence["source_type"] == "factcheck"
 

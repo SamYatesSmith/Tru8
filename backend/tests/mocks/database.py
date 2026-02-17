@@ -239,7 +239,6 @@ def create_test_evidence(
     source: str = "BBC News",
     url: str = "https://www.bbc.com/news/test-article",
     relevance_score: float = 0.90,
-    credibility_score: float = 0.88,
     **kwargs,
 ) -> Any:
     """
@@ -251,7 +250,6 @@ def create_test_evidence(
         source: Source name
         url: Source URL
         relevance_score: Relevance score (0-1)
-        credibility_score: Credibility score (0-1)
         **kwargs: Additional evidence fields
 
     Returns:
@@ -269,7 +267,6 @@ def create_test_evidence(
         "title": kwargs.get("title", f"Article from {source}"),
         "snippet": kwargs.get("snippet", "Relevant text snippet from the source..."),
         "relevance_score": relevance_score,
-        "credibility_score": credibility_score,
         "published_date": kwargs.get("published_date", "2024-11-01"),
         "tier": kwargs.get("tier", "tier1_news"),
         "is_factcheck": kwargs.get("is_factcheck", False),
@@ -329,7 +326,6 @@ def create_check_with_full_pipeline_data(
                 source=f"Source {i+1}",
                 url=f"https://example{i+1}.com/article",
                 relevance_score=0.9 - (i * 0.05),
-                credibility_score=0.85 - (i * 0.05),
             )
 
     return check
@@ -357,16 +353,14 @@ def create_insufficient_evidence_check(session, user_id: str = "test_user_123") 
 
     # Add only 2 low-quality evidence items
     for i in range(2):
-        create_test_evidence(
-            session, claim_id=claim.id, credibility_score=0.50, tier="blog"
-        )
+        create_test_evidence(session, claim_id=claim.id, tier="blog")
 
     return check
 
 
 def create_conflicting_evidence_check(session, user_id: str = "test_user_123") -> Any:
     """
-    Create a check with conflicting high-credibility sources
+    Create a check with conflicting sources
 
     Created: 2025-11-03
     """
@@ -382,7 +376,6 @@ def create_conflicting_evidence_check(session, user_id: str = "test_user_123") -
         session,
         claim_id=claim.id,
         source="NASA",
-        credibility_score=0.95,
         nli_stance="supporting",
     )
 
@@ -390,7 +383,6 @@ def create_conflicting_evidence_check(session, user_id: str = "test_user_123") -
         session,
         claim_id=claim.id,
         source="NOAA",
-        credibility_score=0.93,
         nli_stance="contradicting",
     )
 

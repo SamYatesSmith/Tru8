@@ -31,7 +31,7 @@ class EvidenceDeduplicator:
         1. Exact duplicates (same content hash)
         2. True syndication (95%+ identical text from different URLs)
 
-        Domain limiting is handled separately by domain_capping.py.
+        Domain limiting is not applied (editorial caps removed in Track E).
 
         Args:
             evidence_list: List of evidence dictionaries
@@ -50,7 +50,7 @@ class EvidenceDeduplicator:
         stage1 = self._exact_hash_dedup(evidence_list)
 
         # Stage 2: Text similarity for TRUE syndication only (95%+ match)
-        # NOTE: Domain deduplication removed - handled by domain_capping.py
+        # NOTE: Domain deduplication removed - only content-based dedup remains
         stage2 = self._text_similarity_dedup(stage1)
 
         stats = {

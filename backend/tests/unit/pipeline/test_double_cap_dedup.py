@@ -7,6 +7,7 @@ Verifies:
 4. Keep-best selection drops weakest when exceeding K
 5. Ledger records casualties from dedup
 """
+
 import pytest
 import copy
 
@@ -17,7 +18,8 @@ from app.pipeline.evidence_ledger import EvidenceLedger
 # Helpers
 # ---------------------------------------------------------------------------
 
-def make_evidence(source, url, final_score, combined_score=None, credibility_score=None):
+
+def make_evidence(source, url, combined_score=0.7):
     """Create a minimal evidence dict for testing."""
     return {
         "source": source,
@@ -25,15 +27,14 @@ def make_evidence(source, url, final_score, combined_score=None, credibility_sco
         "title": f"Article from {source}",
         "text": f"Content about {url}",
         "snippet": f"Snippet about {url}",
-        "final_score": final_score,
-        "combined_score": combined_score or final_score,
-        "credibility_score": credibility_score or final_score,
+        "combined_score": combined_score,
     }
 
 
 # ---------------------------------------------------------------------------
 # Stage 3.6: Cross-claim URL dedup tests
 # ---------------------------------------------------------------------------
+
 
 class TestCrossClaimUrlDedup:
     """Test the Stage 3.6 URL dedup logic in runner.py."""
@@ -49,11 +50,11 @@ class TestCrossClaimUrlDedup:
 
         for claim_pos, ev_list in evidence.items():
             for ev in ev_list:
-                url = ev.get('url', '')
+                url = ev.get("url", "")
                 if not url:
                     continue
 
-                score = ev.get('final_score', ev.get('combined_score', ev.get('credibility_score', 0)))
+                score = ev.get("combined_score", 0)
 
                 if url not in url_claims:
                     url_claims[url] = [(claim_pos, ev, score)]
@@ -66,7 +67,9 @@ class TestCrossClaimUrlDedup:
                     loser = entries[max_claims_per_url]
                     winner = entries[0]
                     if dedup_losers is not None:
-                        dedup_losers.append({"url": url[:120], "loser": loser[0], "winner": winner[0]})
+                        dedup_losers.append(
+                            {"url": url[:120], "loser": loser[0], "winner": winner[0]}
+                        )
 
         deduped_evidence = {pos: [] for pos in evidence.keys()}
         for url, entries in url_claims.items():
@@ -190,6 +193,7 @@ class TestCrossClaimUrlDedup:
 # LLM Scorer URL gate tests
 # ---------------------------------------------------------------------------
 
+
 class TestLLMScorerUrlGate:
     """Test that the LLM scorer allows up to MAX_CLAIMS_PER_URL assignments."""
 
@@ -256,11 +260,13 @@ class TestLLMScorerUrlGate:
 # Config flag defaults
 # ---------------------------------------------------------------------------
 
+
 class TestConfigDefaults:
     """Verify config flags default to backward-compatible values."""
 
     def test_default_max_claims_per_url(self):
         """Default: MAX_CLAIMS_PER_URL=2 (URL can support 2 related claims)."""
         from app.core.config import Settings
-        field = Settings.model_fields['MAX_CLAIMS_PER_URL']
+
+        field = Settings.model_fields["MAX_CLAIMS_PER_URL"]
         assert field.default == 2

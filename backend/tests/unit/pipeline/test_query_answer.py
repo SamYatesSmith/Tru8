@@ -86,7 +86,7 @@ class TestQueryAnswering:
                     "title": "Paris - Wikipedia",
                     "snippet": "Paris is the capital and most populous city of France.",
                     "published_date": "2024-01-15",
-                    "credibility_score": 0.95,
+                    "relevance_score": 0.95,
                 }
             ]
         }
@@ -159,7 +159,7 @@ class TestQueryAnswering:
                     "title": "Climate Change Report",
                     "snippet": "Climate change is caused by greenhouse gas emissions.",
                     "published_date": "2024-01-01",
-                    "credibility_score": 0.98,
+                    "relevance_score": 0.98,
                 }
             ]
         }
@@ -234,7 +234,7 @@ class TestQueryAnswering:
                     "title": "Random Blog Post",
                     "snippet": "Random opinion about life meaning.",
                     "published_date": "2024-01-01",
-                    "credibility_score": 0.30,
+                    "relevance_score": 0.30,
                 }
             ]
         }
@@ -330,7 +330,7 @@ class TestQueryAnswering:
                     "title": "Telephone History",
                     "snippet": "Alexander Graham Bell is credited with inventing the telephone in 1876.",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.90,
+                    "relevance_score": 0.90,
                 }
             ]
         }
@@ -395,7 +395,7 @@ class TestQueryAnswering:
                     "title": "NYC Population Data",
                     "snippet": "NYC population is approximately 8.3 million as of 2023.",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.95,
+                    "relevance_score": 0.95,
                 }
             ]
         }
@@ -460,7 +460,7 @@ class TestQueryAnswering:
                     "title": "World Cup 2022 Results",
                     "snippet": "Argentina won the 2022 World Cup",
                     "published_date": recent_date,
-                    "credibility_score": 0.95,
+                    "relevance_score": 0.95,
                 }
             ]
         }
@@ -525,7 +525,7 @@ class TestQueryAnswering:
                     "title": "IPCC Climate Report",
                     "snippet": "Greenhouse gas emissions from burning fossil fuels",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.98,
+                    "relevance_score": 0.98,
                 }
             ],
             "1": [
@@ -537,7 +537,7 @@ class TestQueryAnswering:
                     "title": "Deforestation Impact",
                     "snippet": "Deforestation contributes significantly",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.95,
+                    "relevance_score": 0.95,
                 }
             ],
         }
@@ -576,19 +576,19 @@ class TestQueryAnswering:
         # May be organized with numbers or structure
 
     @pytest.mark.asyncio
-    async def test_high_credibility_source_prioritization(
+    async def test_high_quality_source_prioritization(
         self, mock_search_api, mock_openai_client
     ):
         """
-        Test: Prioritize high-credibility sources in answer
+        Test: Prioritize high-quality sources in answer
         Created: 2025-11-03
 
         CRITICAL: Answer quality depends on source quality
 
-        Given mixed-credibility sources:
-        - Should base answer primarily on high-credibility sources
-        - Should cite high-credibility sources first
-        - Should note if only low-credibility sources available
+        Given mixed-quality sources:
+        - Should base answer primarily on high-quality sources
+        - Should cite high-quality sources first
+        - Should note if only low-quality sources available
         """
         # Arrange
         answerer = QueryAnswerer()
@@ -605,7 +605,7 @@ class TestQueryAnswering:
                     "title": "Blog",
                     "snippet": "Quantum is magic",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.25,
+                    "relevance_score": 0.25,
                 },
                 {
                     "id": "evidence_1",
@@ -615,7 +615,7 @@ class TestQueryAnswering:
                     "title": "MIT Physics",
                     "snippet": "Quantum mechanics is...",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.98,
+                    "relevance_score": 0.98,
                 },
             ]
         }
@@ -688,7 +688,7 @@ class TestQueryAnswering:
                     "title": "France",
                     "snippet": "Paris is the capital of France.",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.90,
+                    "relevance_score": 0.90,
                 }
             ]
         }
@@ -750,7 +750,7 @@ class TestQueryAnswering:
                     "title": "Test Title",
                     "snippet": "Test snippet",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.90,
+                    "relevance_score": 0.90,
                 }
             ]
         }
@@ -823,7 +823,7 @@ class TestQueryAnswering:
                     "title": "Test Title",
                     "snippet": "Test snippet",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.90,
+                    "relevance_score": 0.90,
                 }
             ]
         }
@@ -890,7 +890,7 @@ class TestQueryAnswering:
                     "title": "Test Title",
                     "snippet": "Test snippet",
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.90,
+                    "relevance_score": 0.90,
                 }
             ]
         }
@@ -951,7 +951,7 @@ class TestQueryAnswering:
                     "title": f"Title {i}",
                     "snippet": f"Snippet {i}" * 10,
                     "published_date": "2023-01-01",
-                    "credibility_score": 0.90,
+                    "relevance_score": 0.90,
                 }
             )
 
@@ -1021,7 +1021,7 @@ class TestQueryAnswering:
                     "title": "Paris Agreement Overview",
                     "snippet": "International treaty on climate change adopted in 2015 by 196 parties",
                     "published_date": "2015-12-12",
-                    "credibility_score": 0.98,
+                    "relevance_score": 0.98,
                 }
             ]
         }

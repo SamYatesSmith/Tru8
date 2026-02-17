@@ -16,6 +16,19 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+SATIRE_DOMAINS = {
+    "theonion.com",
+    "babylonbee.com",
+    "clickhole.com",
+    "thebeaverton.com",
+    "waterfordwhispersnews.com",
+    "thedailymash.co.uk",
+    "newsthump.com",
+    "borowitz-report.newyorker.com",
+    "reductress.com",
+    "hard-drive.net",
+}
+
 
 class EvidenceRetriever:
     """Retrieve and rank evidence for claims using search, embeddings, and vector storage"""
@@ -60,16 +73,6 @@ class EvidenceRetriever:
         # Phase 5: Government API Integration
         self.api_registry = get_api_registry()
         self.enable_api_retrieval = True  # Feature flag (set via settings)
-
-        # Credibility weights for different source types
-        self.credibility_weights = {
-            "academic": 1.0,  # .edu, .org, peer-reviewed
-            "news_tier1": 0.9,  # BBC, Reuters, AP
-            "news_tier2": 0.8,  # Guardian, Telegraph, Independent
-            "government": 0.85,  # .gov domains
-            "scientific": 0.95,  # Nature, Science journals
-            "general": 0.6,  # Other sources
-        }
 
     async def retrieve_evidence_for_claims(
         self,
@@ -508,17 +511,12 @@ class EvidenceRetriever:
             if not all_snippets:
                 return [], []
 
-            # Apply same credibility weighting/filtering as main retrieval
-            # This ensures domain capping, credibility scoring, etc. are applied
+            # Apply same evidence filtering as main retrieval
+            # This ensures satire exclusion, dedup, etc. are applied
             ranked_evidence = []
             for idx, snippet in enumerate(
                 all_snippets[:10]
             ):  # Cap at 10 for processing
-                credibility = (
-                    snippet.metadata.get("credibility_score", 0.6)
-                    if snippet.metadata
-                    else 0.6
-                )
                 ev_hash = hashlib.sha256((snippet.url or "").encode()).hexdigest()[:8]
                 ranked_evidence.append(
                     {
@@ -534,14 +532,13 @@ class EvidenceRetriever:
                         "semantic_similarity": 0.0,
                         "combined_score": 0.0,
                         "word_count": snippet.word_count,
-                        "credibility_score": credibility,
                         "metadata": snippet.metadata,
                         "is_recovery": True,
                     }
                 )
 
-            # Apply credibility weighting (includes domain capping)
-            result = self._apply_credibility_weighting(
+            # Apply evidence filters (satire exclusion + dedup)
+            result = self._apply_evidence_filters(
                 ranked_evidence, claim, track_raw_evidence=True
             )
             final_evidence, raw_evidence = (
@@ -717,8 +714,8 @@ class EvidenceRetriever:
                             }
                         )
 
-                    # Run through credibility weighting — SAME path as normal pipeline
-                    result = self._apply_credibility_weighting(
+                    # Run through evidence filters — SAME path as normal pipeline
+                    result = self._apply_evidence_filters(
                         ranked_evidence, claim, track_raw_evidence=True
                     )
                     final_evidence, raw_evidence = (
@@ -926,11 +923,6 @@ class EvidenceRetriever:
                         if snippet.metadata
                         else None
                     )
-                    credibility = (
-                        snippet.metadata.get("credibility_score", 0.6)
-                        if snippet.metadata
-                        else 0.6
-                    )
                     ev_hash = hashlib.sha256(
                         (snippet.url + snippet.text).encode()
                     ).hexdigest()[:12]
@@ -952,7 +944,6 @@ class EvidenceRetriever:
                             "semantic_similarity": 0.0,
                             "combined_score": 0.0,
                             "word_count": snippet.word_count,
-                            "credibility_score": credibility,
                             "external_source_provider": external_source,
                             "metadata": snippet.metadata,
                         }
@@ -960,17 +951,17 @@ class EvidenceRetriever:
 
                 # Step 3: Apply credibility and recency weighting (with raw evidence tracking)
                 logger.critical(
-                    f"[EVIDENCE TRACE] Claim {claim_position}: {len(ranked_evidence)} items BEFORE credibility weighting"
+                    f"[EVIDENCE TRACE] Claim {claim_position}: {len(ranked_evidence)} items BEFORE evidence filtering"
                 )
                 pre_weighting_snapshot = copy.deepcopy(ranked_evidence)
-                result = self._apply_credibility_weighting(
+                result = self._apply_evidence_filters(
                     ranked_evidence, claim, track_raw_evidence=True
                 )
                 final_evidence, raw_evidence = (
                     result if isinstance(result, tuple) else (result, [])
                 )
                 logger.critical(
-                    f"[EVIDENCE TRACE] Claim {claim_position}: {len(final_evidence)} items AFTER credibility weighting"
+                    f"[EVIDENCE TRACE] Claim {claim_position}: {len(final_evidence)} items AFTER evidence filtering"
                 )
 
                 # Step 4: Store in vector database for future retrieval
@@ -1353,23 +1344,22 @@ class EvidenceRetriever:
                 logger.debug(f"Dropping failed extraction for {search_result.url}: {e}")
                 return None
 
-    def _apply_credibility_weighting(
+    def _apply_evidence_filters(
         self,
         evidence_list: List[Dict[str, Any]],
         claim: Dict[str, Any] = None,
         track_raw_evidence: bool = False,
     ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]] | List[Dict[str, Any]]:
-        """Apply credibility scoring and minimal filtering to evidence.
+        """Apply minimal filtering to evidence.
 
-        Three stages:
-        1. Credibility scoring — annotate each item with quality metadata
-        2. Auto-exclude — remove blacklisted sources (satire, social media)
-        3. Content dedup — remove identical/syndicated content
+        Two stages:
+        1. Satire exclusion — remove known satire domains
+        2. Content dedup — remove identical/syndicated content
         Plus corroboration boost (annotation, not a filter).
 
         Args:
             evidence_list: List of evidence items
-            claim: Claim dict for context-aware scoring
+            claim: Claim dict for context-aware filtering
             track_raw_evidence: If True, returns tuple (filtered, raw_evidence_metadata)
 
         Returns:
@@ -1377,8 +1367,6 @@ class EvidenceRetriever:
             If track_raw_evidence=True: Tuple of (filtered_evidence, raw_evidence_metadata)
         """
         try:
-            from app.core.config import settings
-
             original_evidence_count = len(evidence_list)
 
             # --- RAW EVIDENCE TRACKING: snapshot before any filtering ---
@@ -1395,13 +1383,12 @@ class EvidenceRetriever:
                             "is_included": True,
                             "filter_stage": None,
                             "filter_reason": None,
-                            "tier": None,
+                            "tier": ev.get("tier"),
                             "is_factcheck": ev.get("is_factcheck", False),
                             "external_source_provider": ev.get(
                                 "external_source_provider"
                             ),
                             "relevance_score": ev.get("combined_score", 0.0),
-                            "credibility_score": 0.6,
                         }
                     )
             url_to_raw = (
@@ -1410,53 +1397,29 @@ class EvidenceRetriever:
                 else {}
             )
 
-            # --- STAGE 1: Credibility + recency scoring (annotation only) ---
-            story_jurisdiction = None
-            if claim:
-                article_classification = claim.get("article_classification", {})
-                if article_classification:
-                    story_jurisdiction = article_classification.get("jurisdiction")
-
-            for evidence in evidence_list:
-                source = evidence.get("source", "").lower()
-                url = evidence.get("url", "")
-                credibility_score = self._get_credibility_score(
-                    source, url, evidence, story_jurisdiction
-                )
-                recency_score = self._get_recency_score(evidence.get("published_date"))
-                base_score = evidence.get("combined_score", 0.5)
-                evidence.update(
-                    {
-                        "credibility_score": credibility_score,
-                        "recency_score": recency_score,
-                        "final_score": base_score * credibility_score * recency_score,
-                    }
-                )
-                if track_raw_evidence and url in url_to_raw:
-                    url_to_raw[url]["credibility_score"] = credibility_score
-                    url_to_raw[url]["tier"] = evidence.get("tier")
-                    url_to_raw[url]["relevance_score"] = base_score
-
-            # --- STAGE 2: Auto-exclude (satire, social media blacklist) ---
-            before_auto_exclude = len(evidence_list)
-            auto_excluded = [e for e in evidence_list if e.get("auto_exclude", False)]
-            evidence_list = [
-                e for e in evidence_list if not e.get("auto_exclude", False)
-            ]
+            # --- STAGE 1: Satire exclusion ---
+            before_satire = len(evidence_list)
+            satire_excluded = []
+            kept = []
+            for ev in evidence_list:
+                domain = extract_domain(ev.get("url", ""), fallback="")
+                if domain in SATIRE_DOMAINS:
+                    satire_excluded.append(ev)
+                else:
+                    kept.append(ev)
+            evidence_list = kept
             if track_raw_evidence:
-                for e in auto_excluded:
+                for e in satire_excluded:
                     url = e.get("url", "")
                     if url in url_to_raw:
                         url_to_raw[url]["is_included"] = False
-                        url_to_raw[url]["filter_stage"] = "auto_exclude"
-                        url_to_raw[url][
-                            "filter_reason"
-                        ] = f"Auto-excluded: {e.get('tier', 'blacklist')} source"
+                        url_to_raw[url]["filter_stage"] = "satire"
+                        url_to_raw[url]["filter_reason"] = "Excluded: satire source"
             logger.info(
-                f"[FILTER] Auto-exclude: {before_auto_exclude} -> {len(evidence_list)}"
+                f"[FILTER] Satire exclusion: {before_satire} -> {len(evidence_list)}"
             )
 
-            # --- STAGE 3: Content dedup ---
+            # --- STAGE 2: Content dedup ---
             before_dedup = len(evidence_list)
             from app.utils.deduplication import EvidenceDeduplicator
 
@@ -1473,7 +1436,7 @@ class EvidenceRetriever:
                         url_to_raw[url]["filter_reason"] = "Duplicate content"
             logger.info(f"[FILTER] Dedup: {before_dedup} -> {len(evidence_list)}")
 
-            # --- Corroboration boost (annotation + score recompute) ---
+            # --- Corroboration boost (annotation only) ---
             if len(evidence_list) >= 2:
                 from app.utils.corroboration import apply_corroboration_boost
 
@@ -1485,16 +1448,9 @@ class EvidenceRetriever:
                         f"[FILTER] Corroboration: {corroboration_stats['items_boosted']} items boosted "
                         f"({corroboration_stats['corroboration_pairs']} pairs)"
                     )
-                    for ev in evidence_list:
-                        if ev.get("corroboration_boost", 0) > 0:
-                            ev["final_score"] = (
-                                ev.get("combined_score", 0.5)
-                                * ev["credibility_score"]
-                                * ev.get("recency_score", 1.0)
-                            )
 
-            # Sort by final weighted score
-            evidence_list.sort(key=lambda x: x.get("final_score", 0), reverse=True)
+            # Sort by combined_score
+            evidence_list.sort(key=lambda x: x.get("combined_score", 0), reverse=True)
 
             # Safety check
             if len(evidence_list) == 0 and original_evidence_count > 0:
@@ -1507,221 +1463,10 @@ class EvidenceRetriever:
             return evidence_list
 
         except Exception as e:
-            logger.error(f"Credibility weighting error: {e}")
+            logger.error(f"Evidence filtering error: {e}")
             if track_raw_evidence:
                 return evidence_list, []
             return evidence_list
-
-    def _get_credibility_score(
-        self,
-        source: str,
-        url: str = None,
-        evidence_item: Dict[str, Any] = None,
-        story_jurisdiction: Optional[str] = None,
-    ) -> float:
-        """
-        Determine credibility score for a source.
-
-        Phase 3 Enhancement: Uses Domain Credibility Framework if enabled,
-        otherwise falls back to legacy hardcoded weights.
-
-        TIER 1 IMPROVEMENT: Enhanced with primary source detection.
-
-        Phase 6: Geographic boosting - local sources get credibility boost
-        when covering stories in their region.
-
-        Args:
-            source: Source name
-            url: Source URL (required for Phase 3)
-            evidence_item: Evidence dict to enrich with metadata (optional)
-            story_jurisdiction: Jurisdiction of the story (e.g., "DK", "UK", "US")
-                               for geographic boosting
-
-        Returns:
-            Credibility score 0.0-1.0 (with jurisdiction boost if applicable)
-        """
-        from app.core.config import settings
-
-        # API SOURCE PRIORITY: If evidence comes from a registered API adapter,
-        # use its embedded credibility score (0.95) without domain framework lookup.
-        # API sources (NOAA, OpenAlex, PubMed, etc.) are authoritative by design.
-        if evidence_item and evidence_item.get("external_source_provider"):
-            api_provider = evidence_item.get("external_source_provider")
-            api_credibility = evidence_item.get("credibility_score", 0.95)
-
-            # Enrich evidence with API-specific metadata
-            evidence_item["tier"] = "authoritative_api"
-            evidence_item["risk_flags"] = []
-            evidence_item["credibility_reasoning"] = (
-                f"Authoritative API source: {api_provider}"
-            )
-            evidence_item["auto_exclude"] = False
-            evidence_item["risk_level"] = "none"
-            evidence_item["risk_warning"] = None
-
-            logger.debug(
-                f"[CREDIBILITY] API source '{api_provider}' using embedded credibility: {api_credibility}"
-            )
-            return api_credibility
-
-        # Phase 3: Use Domain Credibility Framework if enabled
-        # Phase 6: With jurisdiction boosting for local sources
-        if url:
-            try:
-                from app.services.source_credibility import get_credibility_service
-
-                credibility_service = get_credibility_service()
-
-                # Use jurisdiction-aware method if story jurisdiction is known
-                if story_jurisdiction:
-                    cred_info = credibility_service.get_credibility_with_jurisdiction(
-                        source, url, story_jurisdiction
-                    )
-                else:
-                    cred_info = credibility_service.get_credibility(source, url)
-
-                # Enrich evidence item with credibility metadata if provided
-                if evidence_item is not None:
-                    evidence_item["tier"] = cred_info.get("tier")
-                    evidence_item["risk_flags"] = cred_info.get("risk_flags", [])
-                    evidence_item["credibility_reasoning"] = cred_info.get("reasoning")
-                    evidence_item["auto_exclude"] = cred_info.get("auto_exclude", False)
-
-                    # Phase 6: Track jurisdiction boost if applied
-                    if cred_info.get("jurisdiction_boost", 0) > 0:
-                        evidence_item["jurisdiction_boost"] = cred_info.get(
-                            "jurisdiction_boost"
-                        )
-                        evidence_item["source_jurisdiction"] = cred_info.get(
-                            "source_jurisdiction"
-                        )
-                        evidence_item["jurisdiction_reasoning"] = cred_info.get(
-                            "jurisdiction_reasoning"
-                        )
-
-                    # Get risk assessment
-                    risk_info = credibility_service.get_risk_assessment(url)
-                    evidence_item["risk_level"] = risk_info.get("risk_level")
-                    evidence_item["risk_warning"] = risk_info.get("warning_message")
-
-                # Log unknown sources for progressive curation (Phase 1)
-                if cred_info.get("tier") == "general" and evidence_item is not None:
-                    try:
-                        from app.services.source_monitor import get_source_monitor
-                        from app.core.database import sync_session
-
-                        with sync_session() as db:
-                            monitor = get_source_monitor(db)
-                            monitor.log_unknown_source(
-                                url=url,
-                                claim_topic=(
-                                    evidence_item.get("claim_text", "")[:200]
-                                    if "claim_text" in evidence_item
-                                    else None
-                                ),
-                                evidence_title=evidence_item.get("title"),
-                                evidence_snippet=evidence_item.get("snippet"),
-                                has_https=url.startswith("https://"),
-                                has_author_byline=None,  # Could be enriched later
-                                has_primary_sources=None,  # Could be enriched later
-                            )
-                    except Exception as e:
-                        logger.warning(f"Failed to log unknown source {url}: {e}")
-
-                # Use boosted_credibility if jurisdiction boost was applied, otherwise base credibility
-                base_credibility = cred_info.get(
-                    "boosted_credibility", cred_info.get("credibility", 0.6)
-                )
-
-            except Exception as e:
-                logger.warning(
-                    f"Credibility framework error for {url}: {e}, falling back to legacy"
-                )
-                base_credibility = None  # Fall through to legacy logic
-
-        else:
-            base_credibility = None  # Use legacy logic
-
-        # Legacy fallback: Hardcoded pattern matching
-        if base_credibility is None:
-            # Academic/research institutions
-            if any(
-                domain in source
-                for domain in [".edu", ".ac.uk", "university", "research"]
-            ):
-                base_credibility = self.credibility_weights["academic"]
-
-            # Scientific journals
-            elif any(
-                journal in source
-                for journal in ["nature", "science", "cell", "lancet", "nejm"]
-            ):
-                base_credibility = self.credibility_weights["scientific"]
-
-            # Government sources
-            elif any(domain in source for domain in [".gov", "nhs.uk", "who.int"]):
-                base_credibility = self.credibility_weights["government"]
-
-            # Tier 1 news
-            elif any(
-                outlet in source for outlet in ["bbc", "reuters", "ap.org", "apnews"]
-            ):
-                base_credibility = self.credibility_weights["news_tier1"]
-
-            # Tier 2 news
-            elif any(
-                outlet in source
-                for outlet in [
-                    "guardian",
-                    "telegraph",
-                    "independent",
-                    "economist",
-                    "ft.com",
-                ]
-            ):
-                base_credibility = self.credibility_weights["news_tier2"]
-
-            # Default
-            else:
-                base_credibility = self.credibility_weights["general"]
-
-        return base_credibility
-
-    def _get_recency_score(self, published_date: Optional[str]) -> float:
-        """Calculate recency score (more recent = higher score)"""
-        if not published_date:
-            return 0.8  # Default for unknown dates
-
-        try:
-            source_year = None
-
-            # Pass 1: ISO-like prefix (YYYY-MM-DD or YYYY/MM/DD)
-            iso_match = re.match(r"^(\d{4})[-/]", published_date)
-            if iso_match:
-                source_year = int(iso_match.group(1))
-
-            # Pass 2: fallback regex scan for 4-digit year (19xx/20xx)
-            if source_year is None:
-                year_match = re.search(r"(?:19|20)\d{2}", published_date)
-                if not year_match:
-                    return 0.8
-                source_year = int(year_match.group(0))
-
-            current_year = datetime.now(timezone.utc).year
-            age_years = max(0, current_year - source_year)  # Future dates → 0
-
-            if age_years <= 1:
-                return 1.0
-            elif age_years == 2:
-                return 0.95
-            elif age_years == 3:
-                return 0.90
-            elif age_years == 4:
-                return 0.85
-            else:
-                return 0.80
-        except Exception:
-            return 0.8
 
     def _label_entities_for_api(self, key_entities: List[str]) -> List[Dict[str, str]]:
         """
@@ -2043,9 +1788,12 @@ class EvidenceRetriever:
                 logger.info(
                     f"[API CAP] Reducing {len(all_api_evidence)} API items to {MAX_API_EVIDENCE_PER_CLAIM}"
                 )
-                # Sort by credibility/score and keep best
+                # Sort by relevance and keep best
                 all_api_evidence.sort(
-                    key=lambda x: x.get("credibility_score", 0.5), reverse=True
+                    key=lambda x: x.get(
+                        "combined_score", x.get("relevance_score", 0.5)
+                    ),
+                    reverse=True,
                 )
                 all_api_evidence = all_api_evidence[:MAX_API_EVIDENCE_PER_CLAIM]
 
@@ -2102,7 +1850,6 @@ class EvidenceRetriever:
                         "external_source_provider": evidence.get(
                             "external_source_provider"
                         ),
-                        "credibility_score": evidence.get("credibility_score", 0.95),
                     },
                 )
                 snippets.append(snippet)

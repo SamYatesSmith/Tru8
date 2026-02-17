@@ -6,6 +6,7 @@ Phase 5: Government API Integration - Issue #6 Fix
 Tests the critical bug fix where external_source_provider was lost
 during evidence processing, causing API statistics to always show 0%.
 """
+
 import pytest
 from app.pipeline.retrieve import EvidenceRetriever
 from app.pipeline.runner import _aggregate_api_stats as aggregate_api_stats
@@ -33,15 +34,17 @@ class TestAPIEvidencePreservation:
             relevance_score=0.9,
             metadata={
                 "external_source_provider": "ONS",
-                "credibility_score": 0.95,
-                "api_source": "ONS Economic Statistics"
-            }
+                "api_source": "ONS Economic Statistics",
+            },
         )
 
         # Simulate the ranking process
         # Extract fields as the fixed code does
-        external_source = snippet.metadata.get("external_source_provider") if snippet.metadata else None
-        credibility = snippet.metadata.get("credibility_score", 0.6) if snippet.metadata else 0.6
+        external_source = (
+            snippet.metadata.get("external_source_provider")
+            if snippet.metadata
+            else None
+        )
 
         evidence_item = {
             "id": "evidence_0",
@@ -51,18 +54,17 @@ class TestAPIEvidencePreservation:
             "title": snippet.title,
             "published_date": snippet.published_date,
             "relevance_score": float(snippet.relevance_score),
-            "credibility_score": credibility,
             "external_source_provider": external_source,
-            "metadata": snippet.metadata
+            "metadata": snippet.metadata,
         }
 
         # Critical assertions for Issue #6 fix
-        assert evidence_item.get("external_source_provider") == "ONS", \
-            "❌ BUG: external_source_provider must be at top level (Issue #6)"
-        assert evidence_item.get("credibility_score") == 0.95, \
-            "credibility_score must be at top level"
-        assert evidence_item["metadata"]["external_source_provider"] == "ONS", \
-            "external_source_provider should also be in metadata for context"
+        assert (
+            evidence_item.get("external_source_provider") == "ONS"
+        ), "BUG: external_source_provider must be at top level (Issue #6)"
+        assert (
+            evidence_item["metadata"]["external_source_provider"] == "ONS"
+        ), "external_source_provider should also be in metadata for context"
 
     def test_aggregate_api_stats_counts_api_evidence_correctly(self):
         """
@@ -71,24 +73,26 @@ class TestAPIEvidencePreservation:
         Before fix: Always returned api_evidence_count = 0
         After fix: Correctly counts evidence with external_source_provider
         """
-        claims = [{
-            "text": "UK unemployment is 5.2%",
-            "api_stats": {
-                "total_api_calls": 2,
-                "total_api_results": 5,
-                "apis_queried": [
-                    {"name": "ONS", "results": 3},
-                    {"name": "Companies House", "results": 2}
-                ]
+        claims = [
+            {
+                "text": "UK unemployment is 5.2%",
+                "api_stats": {
+                    "total_api_calls": 2,
+                    "total_api_results": 5,
+                    "apis_queried": [
+                        {"name": "ONS", "results": 3},
+                        {"name": "Companies House", "results": 2},
+                    ],
+                },
             }
-        }]
+        ]
 
         evidence = {
             "0": [
                 {
                     "text": "Web evidence from BBC",
                     "source": "BBC News",
-                    "url": "https://bbc.com/news"
+                    "url": "https://bbc.com/news",
                     # No external_source_provider - web source
                 },
                 {
@@ -96,15 +100,13 @@ class TestAPIEvidencePreservation:
                     "source": "ONS Economic Statistics",
                     "url": "https://ons.gov.uk/data",
                     "external_source_provider": "ONS",  # Top level - correctly preserved
-                    "credibility_score": 0.95
                 },
                 {
                     "text": "API evidence from PubMed",
                     "source": "PubMed",
                     "url": "https://pubmed.ncbi.nlm.nih.gov/12345",
                     "external_source_provider": "PubMed",  # Top level - correctly preserved
-                    "credibility_score": 0.95
-                }
+                },
             ]
         }
 
@@ -112,10 +114,12 @@ class TestAPIEvidencePreservation:
 
         # Critical assertions
         assert stats["total_evidence_count"] == 3, "Should count all evidence"
-        assert stats["api_evidence_count"] == 2, \
-            "❌ CRITICAL: Should count 2 API evidence items (Issue #6 fix)"
-        assert stats["api_coverage_percentage"] == pytest.approx(66.67, rel=0.1), \
-            "API coverage should be 66.67% (2 of 3)"
+        assert (
+            stats["api_evidence_count"] == 2
+        ), "❌ CRITICAL: Should count 2 API evidence items (Issue #6 fix)"
+        assert stats["api_coverage_percentage"] == pytest.approx(
+            66.67, rel=0.1
+        ), "API coverage should be 66.67% (2 of 3)"
         assert stats["total_api_calls"] == 2, "Should aggregate API calls"
         assert stats["total_api_results"] == 5, "Should aggregate API results"
 
@@ -135,9 +139,7 @@ class TestAPIEvidencePreservation:
                     "text": "Legacy API evidence",
                     "source": "ONS",
                     # No top-level external_source_provider
-                    "metadata": {
-                        "external_source_provider": "ONS"  # Nested only
-                    }
+                    "metadata": {"external_source_provider": "ONS"},  # Nested only
                 }
             ]
         }
@@ -145,8 +147,9 @@ class TestAPIEvidencePreservation:
         stats = aggregate_api_stats(claims, evidence)
 
         # Defensive check should still find it
-        assert stats["api_evidence_count"] == 1, \
-            "Defensive check should find external_source_provider in metadata"
+        assert (
+            stats["api_evidence_count"] == 1
+        ), "Defensive check should find external_source_provider in metadata"
         assert stats["api_coverage_percentage"] == 100.0
 
     def test_aggregate_api_stats_with_no_api_evidence(self):
@@ -156,7 +159,7 @@ class TestAPIEvidencePreservation:
         evidence = {
             "0": [
                 {"text": "Web evidence only", "source": "BBC"},
-                {"text": "Another web source", "source": "Guardian"}
+                {"text": "Another web source", "source": "Guardian"},
             ]
         }
 
@@ -172,7 +175,7 @@ class TestAPIEvidencePreservation:
             {
                 "api_stats": {
                     "total_api_calls": 1,
-                    "apis_queried": [{"name": "ONS", "results": 1}]
+                    "apis_queried": [{"name": "ONS", "results": 1}],
                 }
             },
             {
@@ -180,31 +183,40 @@ class TestAPIEvidencePreservation:
                     "total_api_calls": 2,
                     "apis_queried": [
                         {"name": "PubMed", "results": 2},
-                        {"name": "WHO", "results": 1}
-                    ]
+                        {"name": "WHO", "results": 1},
+                    ],
                 }
-            }
+            },
         ]
 
         evidence = {
             "0": [
                 {"text": "Web", "source": "BBC"},
-                {"text": "API", "source": "ONS", "external_source_provider": "ONS"}
+                {"text": "API", "source": "ONS", "external_source_provider": "ONS"},
             ],
             "1": [
-                {"text": "API", "source": "PubMed", "external_source_provider": "PubMed"},
-                {"text": "API", "source": "PubMed", "external_source_provider": "PubMed"},
+                {
+                    "text": "API",
+                    "source": "PubMed",
+                    "external_source_provider": "PubMed",
+                },
+                {
+                    "text": "API",
+                    "source": "PubMed",
+                    "external_source_provider": "PubMed",
+                },
                 {"text": "API", "source": "WHO", "external_source_provider": "WHO"},
-                {"text": "Web", "source": "Guardian"}
-            ]
+                {"text": "Web", "source": "Guardian"},
+            ],
         }
 
         stats = aggregate_api_stats(claims, evidence)
 
         assert stats["total_evidence_count"] == 6, "6 total evidence items"
         assert stats["api_evidence_count"] == 4, "4 API evidence items"
-        assert stats["api_coverage_percentage"] == pytest.approx(66.67, rel=0.1), \
-            "66.67% API coverage (4 of 6)"
+        assert stats["api_coverage_percentage"] == pytest.approx(
+            66.67, rel=0.1
+        ), "66.67% API coverage (4 of 6)"
         assert stats["total_api_calls"] == 3, "3 total API calls"
 
         # Check API names are aggregated correctly
@@ -239,15 +251,13 @@ class TestEvidenceSnippetStructure:
             relevance_score=0.9,
             metadata={
                 "external_source_provider": "ONS",
-                "credibility_score": 0.95,
-                "api_source": "ONS Economic Statistics"
-            }
+                "api_source": "ONS Economic Statistics",
+            },
         )
 
         # Verify metadata structure
         assert snippet.metadata is not None
         assert snippet.metadata.get("external_source_provider") == "ONS"
-        assert snippet.metadata.get("credibility_score") == 0.95
         assert snippet.metadata.get("api_source") == "ONS Economic Statistics"
 
     def test_evidence_snippet_without_metadata(self):
@@ -258,7 +268,7 @@ class TestEvidenceSnippetStructure:
             url="https://bbc.com",
             title="News Article",
             published_date="2024-01-15",
-            relevance_score=0.8
+            relevance_score=0.8,
             # No metadata provided
         )
 

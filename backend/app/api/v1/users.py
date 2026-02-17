@@ -792,7 +792,6 @@ async def export_user_data(
                     "source": ev.source,
                     "snippet": ev.snippet,
                     "published_date": _serialize_datetime(ev.published_date),
-                    "credibility_score": ev.credibility_score,
                     "is_factcheck": ev.is_factcheck,
                     "tier": ev.tier,
                 }

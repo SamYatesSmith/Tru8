@@ -33,20 +33,35 @@ class WikipediaAdapter(GovernmentAPIClient):
             api_key=None,  # No API key required
             timeout=5,  # Reduced from 15s - prevents blocking claim timeout (45s)
             max_results=max_results,
-            max_retries=2  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max
+            max_retries=2,  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max
         )
         # Required: Identify our application per Wikipedia API etiquette
-        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        self.headers["User-Agent"] = (
+            "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        )
         self.search_base = "https://en.wikipedia.org/w/api.php"
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Wikipedia covers encyclopedic content across most domains."""
         return domain in [
-            "History", "Politics", "Entertainment", "General",
-            "Sports", "Science", "Animals", "Climate", "Health"
+            "History",
+            "Politics",
+            "Entertainment",
+            "General",
+            "Sports",
+            "Science",
+            "Animals",
+            "Climate",
+            "Health",
         ]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search Wikipedia for relevant articles.
 
@@ -80,23 +95,27 @@ class WikipediaAdapter(GovernmentAPIClient):
                 "srlimit": self.max_results,
                 "srprop": "snippet|timestamp|titlesnippet",
                 "format": "json",
-                "origin": "*"
+                "origin": "*",
             }
 
             # Direct request to MediaWiki API (different from REST API base_url)
             with httpx.Client(timeout=self.timeout) as client:
-                response = client.get(self.search_base, headers=self.headers, params=search_params)
+                response = client.get(
+                    self.search_base, headers=self.headers, params=search_params
+                )
                 response.raise_for_status()
                 search_response = response.json()
 
             if not search_response or "query" not in search_response:
-                logger.warning(f"Wikipedia search returned no results for: {query[:50]}...")
+                logger.warning(
+                    f"Wikipedia search returned no results for: {query[:50]}..."
+                )
                 return []
 
             search_results = search_response.get("query", {}).get("search", [])
 
             # Step 2: Fetch summaries for each result via REST API
-            for result in search_results[:self.max_results]:
+            for result in search_results[: self.max_results]:
                 title = result.get("title", "")
                 if not title:
                     continue
@@ -105,44 +124,61 @@ class WikipediaAdapter(GovernmentAPIClient):
                 try:
                     # URL-encode the title for the REST API
                     encoded_title = title.replace(" ", "_")
-                    summary_response = self._make_request(f"/page/summary/{encoded_title}")
+                    summary_response = self._make_request(
+                        f"/page/summary/{encoded_title}"
+                    )
 
                     if summary_response and "extract" in summary_response:
                         # Extract publication date if available
                         pub_date = None
                         if "timestamp" in summary_response:
                             try:
-                                pub_date = datetime.fromisoformat(summary_response["timestamp"].replace("Z", "+00:00"))
+                                pub_date = datetime.fromisoformat(
+                                    summary_response["timestamp"].replace("Z", "+00:00")
+                                )
                             except Exception:
                                 pass
 
                         # Build URL
-                        url = summary_response.get("content_urls", {}).get("desktop", {}).get("page")
+                        url = (
+                            summary_response.get("content_urls", {})
+                            .get("desktop", {})
+                            .get("page")
+                        )
                         if not url:
                             url = f"https://en.wikipedia.org/wiki/{encoded_title}"
 
-                        evidence.append({
-                            "source": "Wikipedia",
-                            "source_type": "encyclopedia",
-                            "title": summary_response.get("title", title),
-                            "snippet": summary_response.get("extract", ""),
-                            "url": url,
-                            "source_date": pub_date.isoformat() if pub_date else None,
-                            "credibility_score": 0.75,  # Wikipedia is generally reliable but editable
-                            "relevance_score": 0.8,
-                            "external_source_provider": "Wikipedia",
-                            "metadata": {
-                                "description": summary_response.get("description", ""),
-                                "page_id": summary_response.get("pageid"),
-                                "last_modified": summary_response.get("timestamp"),
-                                "domain": domain
+                        evidence.append(
+                            {
+                                "source": "Wikipedia",
+                                "source_type": "encyclopedia",
+                                "title": summary_response.get("title", title),
+                                "snippet": summary_response.get("extract", ""),
+                                "url": url,
+                                "source_date": (
+                                    pub_date.isoformat() if pub_date else None
+                                ),
+                                "relevance_score": 0.8,
+                                "external_source_provider": "Wikipedia",
+                                "metadata": {
+                                    "description": summary_response.get(
+                                        "description", ""
+                                    ),
+                                    "page_id": summary_response.get("pageid"),
+                                    "last_modified": summary_response.get("timestamp"),
+                                    "domain": domain,
+                                },
                             }
-                        })
+                        )
                 except Exception as e:
-                    logger.warning(f"Failed to fetch Wikipedia summary for '{title}': {e}")
+                    logger.warning(
+                        f"Failed to fetch Wikipedia summary for '{title}': {e}"
+                    )
                     continue
 
-            logger.info(f"Wikipedia returned {len(evidence)} results for query: {query[:50]}...")
+            logger.info(
+                f"Wikipedia returned {len(evidence)} results for query: {query[:50]}..."
+            )
 
         except Exception as e:
             logger.error(f"Wikipedia search failed: {e}")
@@ -174,15 +210,19 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 7,  # 7 days (historical content is stable)
             timeout=5,  # Reduced from 15s - was causing 48s total with retries, exceeding 45s claim timeout
             max_results=max_results,
-            max_retries=2  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max vs previous 48s
+            max_retries=2,  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max vs previous 48s
         )
-        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        self.headers["User-Agent"] = (
+            "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Library of Congress covers History, Politics, and General (US focus, global relevance)."""
         return domain in ["History", "Politics", "General"]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
+    def search(
+        self, query: str, domain: str, jurisdiction: str, entities=None
+    ) -> List[Dict[str, Any]]:
         """
         Search Library of Congress collections and Chronicling America newspapers.
 
@@ -199,12 +239,14 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
             newspaper_results = self._search_chronicling_america(query)
             evidence.extend(newspaper_results)
 
-            logger.info(f"Library of Congress returned {len(evidence)} results for query: {query[:50]}...")
+            logger.info(
+                f"Library of Congress returned {len(evidence)} results for query: {query[:50]}..."
+            )
 
         except Exception as e:
             logger.error(f"Library of Congress search failed: {e}")
 
-        return evidence[:self.max_results]
+        return evidence[: self.max_results]
 
     def _search_loc_collections(self, query: str) -> List[Dict[str, Any]]:
         """Search general LOC collections."""
@@ -215,7 +257,7 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
                 "q": query,
                 "fo": "json",
                 "c": 5,  # Limit results
-                "fa": "original-format:book|original-format:manuscript|original-format:newspaper"
+                "fa": "original-format:book|original-format:manuscript|original-format:newspaper",
             }
 
             response = self._make_request("/search/", params=params)
@@ -252,23 +294,28 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
                 if isinstance(description, list):
                     description = " ".join(description[:2])
 
-                evidence.append({
-                    "source": "Library of Congress",
-                    "source_type": "archive",
-                    "title": title if isinstance(title, str) else title[0] if title else "Unknown",
-                    "snippet": description or result.get("extract", ""),
-                    "url": url,
-                    "source_date": pub_date,
-                    "credibility_score": 0.95,  # Primary source archive
-                    "relevance_score": 0.85,
-                    "external_source_provider": "Library of Congress",
-                    "metadata": {
-                        "collection": result.get("partof", []),
-                        "format": result.get("original_format", []),
-                        "contributor": result.get("contributor", []),
-                        "subjects": result.get("subject", [])[:5]
+                evidence.append(
+                    {
+                        "source": "Library of Congress",
+                        "source_type": "archive",
+                        "title": (
+                            title
+                            if isinstance(title, str)
+                            else title[0] if title else "Unknown"
+                        ),
+                        "snippet": description or result.get("extract", ""),
+                        "url": url,
+                        "source_date": pub_date,
+                        "relevance_score": 0.85,
+                        "external_source_provider": "Library of Congress",
+                        "metadata": {
+                            "collection": result.get("partof", []),
+                            "format": result.get("original_format", []),
+                            "contributor": result.get("contributor", []),
+                            "subjects": result.get("subject", [])[:5],
+                        },
                     }
-                })
+                )
 
         except Exception as e:
             logger.warning(f"LOC collections search failed: {e}")
@@ -286,7 +333,7 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
                 "q": query,
                 "fo": "json",
                 "fa": "partof:chronicling america",
-                "c": 5
+                "c": 5,
             }
 
             response = self._make_request("/search/", params=params)
@@ -326,22 +373,27 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
                 if isinstance(location, list):
                     location = location[0] if location else ""
 
-                evidence.append({
-                    "source": "Chronicling America",
-                    "source_type": "newspaper",
-                    "title": title,
-                    "snippet": result.get("description", [""])[0] if isinstance(result.get("description"), list) else result.get("description", ""),
-                    "url": url,
-                    "source_date": pub_date,
-                    "credibility_score": 0.9,  # Historical primary source
-                    "relevance_score": 0.8,
-                    "external_source_provider": "Chronicling America",
-                    "metadata": {
-                        "location": location,
-                        "format": result.get("original_format", []),
-                        "subjects": result.get("subject", [])[:5]
+                evidence.append(
+                    {
+                        "source": "Chronicling America",
+                        "source_type": "newspaper",
+                        "title": title,
+                        "snippet": (
+                            result.get("description", [""])[0]
+                            if isinstance(result.get("description"), list)
+                            else result.get("description", "")
+                        ),
+                        "url": url,
+                        "source_date": pub_date,
+                        "relevance_score": 0.8,
+                        "external_source_provider": "Chronicling America",
+                        "metadata": {
+                            "location": location,
+                            "format": result.get("original_format", []),
+                            "subjects": result.get("subject", [])[:5],
+                        },
                     }
-                })
+                )
 
         except Exception as e:
             logger.warning(f"Chronicling America search failed: {e}")
@@ -372,15 +424,19 @@ class InternetArchiveAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 7,  # 7 days
             timeout=5,  # Reduced from 20s - was causing 63s total with retries, exceeding 45s claim timeout
             max_results=max_results,
-            max_retries=2  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max
+            max_retries=2,  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max
         )
-        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        self.headers["User-Agent"] = (
+            "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+        )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Internet Archive covers historical documents across many domains."""
         return domain in ["History", "General", "Politics", "Entertainment", "Science"]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities=None) -> List[Dict[str, Any]]:
+    def search(
+        self, query: str, domain: str, jurisdiction: str, entities=None
+    ) -> List[Dict[str, Any]]:
         """
         Search Internet Archive collections.
 
@@ -394,21 +450,31 @@ class InternetArchiveAdapter(GovernmentAPIClient):
                 "q": query,
                 "output": "json",
                 "rows": self.max_results,
-                "fl[]": ["identifier", "title", "description", "date", "creator", "mediatype", "collection"],
-                "sort[]": "downloads desc"  # Prioritize popular items
+                "fl[]": [
+                    "identifier",
+                    "title",
+                    "description",
+                    "date",
+                    "creator",
+                    "mediatype",
+                    "collection",
+                ],
+                "sort[]": "downloads desc",  # Prioritize popular items
             }
 
             with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
                 response = client.get(
                     f"{self.base_url}/advancedsearch.php",
                     params=params,
-                    headers=self.headers
+                    headers=self.headers,
                 )
                 response.raise_for_status()
                 data = response.json()
 
             if not data or "response" not in data:
-                logger.warning(f"Internet Archive returned no results for: {query[:50]}...")
+                logger.warning(
+                    f"Internet Archive returned no results for: {query[:50]}..."
+                )
                 return []
 
             docs = data.get("response", {}).get("docs", [])
@@ -458,33 +524,30 @@ class InternetArchiveAdapter(GovernmentAPIClient):
                 else:
                     creator = []
 
-                # Credibility based on mediatype
                 mediatype = doc.get("mediatype", "")
-                credibility = 0.85
-                if mediatype == "texts":
-                    credibility = 0.9
-                elif mediatype in ["audio", "video"]:
-                    credibility = 0.8
 
-                evidence.append({
-                    "source": "Internet Archive",
-                    "source_type": "archive",
-                    "title": title,
-                    "snippet": description[:500] if description else "",
-                    "url": url,
-                    "source_date": pub_date,
-                    "credibility_score": credibility,
-                    "relevance_score": 0.8,
-                    "external_source_provider": "Internet Archive",
-                    "metadata": {
-                        "identifier": identifier,
-                        "mediatype": mediatype,
-                        "creator": creator,
-                        "collection": doc.get("collection", [])
+                evidence.append(
+                    {
+                        "source": "Internet Archive",
+                        "source_type": "archive",
+                        "title": title,
+                        "snippet": description[:500] if description else "",
+                        "url": url,
+                        "source_date": pub_date,
+                        "relevance_score": 0.8,
+                        "external_source_provider": "Internet Archive",
+                        "metadata": {
+                            "identifier": identifier,
+                            "mediatype": mediatype,
+                            "creator": creator,
+                            "collection": doc.get("collection", []),
+                        },
                     }
-                })
+                )
 
-            logger.info(f"Internet Archive returned {len(evidence)} results for query: {query[:50]}...")
+            logger.info(
+                f"Internet Archive returned {len(evidence)} results for query: {query[:50]}..."
+            )
 
         except Exception as e:
             logger.error(f"Internet Archive search failed: {e}")

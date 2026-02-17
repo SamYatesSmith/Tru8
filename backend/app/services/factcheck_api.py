@@ -198,7 +198,6 @@ class FactCheckAPI:
             "snippet": f"Fact-check rating: {fact_check.get('rating', 'Unknown')}",
             "published_date": fact_check.get("review_date"),
             "relevance_score": 1.0,  # Fact-checks are highly relevant
-            "credibility_score": 0.95,  # Fact-checks from IFCN signatories are high credibility
             "is_factcheck": True,
             "factcheck_publisher": fact_check.get("publisher"),
             "factcheck_rating": fact_check.get("rating"),

@@ -2,6 +2,7 @@
 Query Answering Pipeline Stage
 Answers user's specific question using retrieved evidence
 """
+
 import logging
 import httpx
 import json
@@ -10,18 +11,23 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class QueryAnswerer:
     """Answer user queries based on evidence pool"""
 
     def __init__(self):
         self.openai_api_key = settings.OPENAI_API_KEY
-        self.google_ai_api_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
+        self.google_ai_api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
         self.timeout = 30
         self.model = "gpt-4o-mini-2024-07-18"  # OpenAI fallback model
-        self.google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
+        self.google_model = getattr(
+            settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
+        )
         self.max_tokens = 300
         self.temperature = 0.2
-        self.confidence_threshold = settings.QUERY_CONFIDENCE_THRESHOLD  # Below this = show related claims
+        self.confidence_threshold = (
+            settings.QUERY_CONFIDENCE_THRESHOLD
+        )  # Below this = show related claims
 
         self.system_prompt = """You are a Tru8 fact-checking specialist specializing in answering user questions with evidence.
 
@@ -67,7 +73,7 @@ sources_used: List of source indices (0-indexed) that support your answer
         user_query: str,
         claims: List[Dict[str, Any]],
         evidence_by_claim: Dict[str, List[Dict[str, Any]]],
-        original_text: str
+        original_text: str,
     ) -> Dict[str, Any]:
         """
         Answer user query using evidence pool.
@@ -120,7 +126,9 @@ Be direct and concise. Cite source numbers used."""
                 try:
                     parsed = await self._answer_with_google(prompt)
                 except Exception as e:
-                    logger.warning(f"Google AI query answering failed, trying OpenAI: {e}")
+                    logger.warning(
+                        f"Google AI query answering failed, trying OpenAI: {e}"
+                    )
 
             if parsed is None and self.openai_api_key:
                 logger.info("Attempting OpenAI query answering as fallback")
@@ -141,29 +149,34 @@ Be direct and concise. Cite source numbers used."""
             for idx in source_indices:
                 if 0 <= idx < len(all_evidence):
                     ev = all_evidence[idx]
-                    source_objects.append({
-                        "id": ev.get("id", f"evidence_{idx}"),
-                        "source": ev.get("source", "Unknown"),
-                        "url": ev.get("url", ""),
-                        "title": ev.get("title", ""),
-                        "snippet": ev.get("snippet", "")[:settings.EVIDENCE_SNIPPET_LENGTH],
-                        "publishedDate": ev.get("published_date"),
-                        "credibilityScore": ev.get("credibility_score", 0.7)
-                    })
+                    source_objects.append(
+                        {
+                            "id": ev.get("id", f"evidence_{idx}"),
+                            "source": ev.get("source", "Unknown"),
+                            "url": ev.get("url", ""),
+                            "title": ev.get("title", ""),
+                            "snippet": ev.get("snippet", "")[
+                                : settings.EVIDENCE_SNIPPET_LENGTH
+                            ],
+                            "publishedDate": ev.get("published_date"),
+                        }
+                    )
 
             # If confidence < threshold, find related claims
             related_claims = []
             if confidence < self.confidence_threshold:
                 related_claims = await self._find_related_claims(user_query, claims)
 
-            logger.info(f"Query answered: confidence={confidence}%, sources={len(source_objects)}")
+            logger.info(
+                f"Query answered: confidence={confidence}%, sources={len(source_objects)}"
+            )
 
             return {
                 "answer": answer,
                 "confidence": confidence,
                 "source_ids": source_objects,  # Full objects, not just IDs
                 "related_claims": related_claims,
-                "found_answer": confidence >= self.confidence_threshold
+                "found_answer": confidence >= self.confidence_threshold,
             }
 
         except Exception as e:
@@ -172,7 +185,9 @@ Be direct and concise. Cite source numbers used."""
 
     async def _answer_with_google(self, prompt: str) -> Optional[Dict[str, Any]]:
         """Answer query using Google AI (Gemini) as primary provider"""
-        full_prompt = f"{self.system_prompt}\n\n{prompt}\n\nProvide your response as valid JSON."
+        full_prompt = (
+            f"{self.system_prompt}\n\n{prompt}\n\nProvide your response as valid JSON."
+        )
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
@@ -183,9 +198,9 @@ Be direct and concise. Cite source numbers used."""
                     "generationConfig": {
                         "temperature": self.temperature,
                         "maxOutputTokens": self.max_tokens,
-                        "responseMimeType": "application/json"
-                    }
-                }
+                        "responseMimeType": "application/json",
+                    },
+                },
             )
 
             if response.status_code != 200:
@@ -207,18 +222,18 @@ Be direct and concise. Cite source numbers used."""
                 "https://api.openai.com/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {self.openai_api_key}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 json={
                     "model": self.model,
                     "messages": [
                         {"role": "system", "content": self.system_prompt},
-                        {"role": "user", "content": prompt}
+                        {"role": "user", "content": prompt},
                     ],
                     "max_tokens": self.max_tokens,
                     "temperature": self.temperature,
-                    "response_format": {"type": "json_object"}
-                }
+                    "response_format": {"type": "json_object"},
+                },
             )
 
             if response.status_code != 200:
@@ -238,18 +253,18 @@ Be direct and concise. Cite source numbers used."""
         context_lines = []
         for i, ev in enumerate(evidence_list):
             source = ev.get("source", "Unknown")
-            snippet = ev.get("snippet", ev.get("text", ""))[:settings.EVIDENCE_SNIPPET_LENGTH]
+            snippet = ev.get("snippet", ev.get("text", ""))[
+                : settings.EVIDENCE_SNIPPET_LENGTH
+            ]
             date = ev.get("published_date", "")
-            credibility = ev.get("credibility_score", 0.7)
 
-            context_lines.append(
-                f"[{i}] {source} ({date}) - Credibility: {credibility:.0%}\n"
-                f"    {snippet}..."
-            )
+            context_lines.append(f"[{i}] {source} ({date})\n" f"    {snippet}...")
 
         return "\n\n".join(context_lines)
 
-    async def _find_related_claims(self, query: str, claims: List[Dict[str, Any]]) -> List[int]:
+    async def _find_related_claims(
+        self, query: str, claims: List[Dict[str, Any]]
+    ) -> List[int]:
         """
         Find claims semantically related to query using keyword matching.
         Returns list of claim positions (0-indexed).
@@ -271,7 +286,9 @@ Be direct and concise. Cite source numbers used."""
         # Return top 3 related claims
         return related[:3]
 
-    def _create_fallback_response(self, query: str, claims: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _create_fallback_response(
+        self, query: str, claims: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Fallback response when query answering fails"""
         # Try to find any claims with keyword matches
         query_words = set(query.lower().split())
@@ -287,12 +304,13 @@ Be direct and concise. Cite source numbers used."""
             "confidence": 0,
             "source_ids": [],
             "related_claims": related_claims[:3],
-            "found_answer": False
+            "found_answer": False,
         }
 
 
 # Singleton instance
 _query_answerer = None
+
 
 async def get_query_answerer() -> QueryAnswerer:
     """Get or create QueryAnswerer instance"""

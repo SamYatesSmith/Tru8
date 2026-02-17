@@ -165,7 +165,6 @@ class TestAPIEvidenceRetrieval:
                 "snippet": "Inflation rate stands at 3.2%",
                 "url": "https://api.test.gov.uk/inflation",
                 "external_source_provider": "Test API",
-                "credibility_score": 0.95,
                 "metadata": {"dataset_id": "CPI"},
             }
         ]
@@ -193,7 +192,6 @@ class TestAPIEvidenceRetrieval:
             ]
             assert len(test_api_evidence) == 1
             assert test_api_evidence[0]["title"] == "UK Inflation Report"
-            assert test_api_evidence[0]["credibility_score"] == 0.95
 
     @pytest.mark.asyncio
     async def test_retrieve_with_feature_flag_disabled(self):
@@ -223,7 +221,6 @@ class TestAPIEvidenceRetrieval:
                 "source": "Test API",
                 "external_source_provider": "Test API",
                 "metadata": {"dataset_id": "TEST123"},
-                "credibility_score": 0.95,
             }
         ]
 
@@ -235,7 +232,6 @@ class TestAPIEvidenceRetrieval:
         assert snippet.source == "Test API"
         assert snippet.url == "https://api.test.gov.uk/data"
         assert snippet.metadata["external_source_provider"] == "Test API"
-        assert snippet.metadata["credibility_score"] == 0.95
 
 
 class TestPipelineAPIStats:

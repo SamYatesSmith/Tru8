@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # ========== GOV.UK CONTENT API ADAPTER ==========
 
+
 class GovUKAdapter(GovernmentAPIClient):
     """
     GOV.UK Content API Adapter.
@@ -36,14 +37,23 @@ class GovUKAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400,  # 1 day
             timeout=10,
-            max_results=10
+            max_results=10,
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """GOV.UK covers Government, History, and Law for UK only."""
-        return domain in ["Government", "General", "History", "Law"] and jurisdiction == "UK"
+        return (
+            domain in ["Government", "General", "History", "Law"]
+            and jurisdiction == "UK"
+        )
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search GOV.UK content.
 
@@ -60,10 +70,7 @@ class GovUKAdapter(GovernmentAPIClient):
 
         query = self._sanitize_query(query)
 
-        params = {
-            "q": query,
-            "count": self.max_results
-        }
+        params = {"q": query, "count": self.max_results}
 
         try:
             # GOV.UK search doesn't use /api/ prefix in base_url
@@ -96,14 +103,16 @@ class GovUKAdapter(GovernmentAPIClient):
                 source_date = None
                 if public_timestamp:
                     try:
-                        source_date = datetime.fromisoformat(public_timestamp.replace("Z", "+00:00"))
+                        source_date = datetime.fromisoformat(
+                            public_timestamp.replace("Z", "+00:00")
+                        )
                     except Exception:
                         pass
 
                 metadata = {
                     "api_source": "GOV.UK",
                     "format": item.get("format"),
-                    "organisations": item.get("organisations", [])
+                    "organisations": item.get("organisations", []),
                 }
 
                 evidence = self._create_evidence_dict(
@@ -111,7 +120,7 @@ class GovUKAdapter(GovernmentAPIClient):
                     snippet=snippet,
                     url=url,
                     source_date=source_date,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 evidence_list.append(evidence)
@@ -125,6 +134,7 @@ class GovUKAdapter(GovernmentAPIClient):
 
 
 # ========== UK PARLIAMENT HANSARD ADAPTER ==========
+
 
 class HansardAdapter(GovernmentAPIClient):
     """
@@ -143,14 +153,20 @@ class HansardAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400 * 7,  # 7 days (historical records)
             timeout=15,
-            max_results=10
+            max_results=10,
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Hansard covers Government and Law for UK only."""
         return domain in ["Government", "Law"] and jurisdiction == "UK"
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search UK Parliament Hansard debates.
 
@@ -167,10 +183,7 @@ class HansardAdapter(GovernmentAPIClient):
 
         query = self._sanitize_query(query)
 
-        params = {
-            "searchTerm": query,
-            "take": self.max_results
-        }
+        params = {"searchTerm": query, "take": self.max_results}
 
         try:
             response = self._make_request("/search/debates.json", params=params)
@@ -202,14 +215,16 @@ class HansardAdapter(GovernmentAPIClient):
                 source_date = None
                 if date_str:
                     try:
-                        source_date = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                        source_date = datetime.fromisoformat(
+                            date_str.replace("Z", "+00:00")
+                        )
                     except Exception:
                         pass
 
                 metadata = {
                     "api_source": "UK Parliament Hansard",
                     "debate_type": item.get("DebateType"),
-                    "member": item.get("Member")
+                    "member": item.get("Member"),
                 }
 
                 evidence = self._create_evidence_dict(
@@ -217,7 +232,7 @@ class HansardAdapter(GovernmentAPIClient):
                     snippet=snippet,
                     url=url,
                     source_date=source_date,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 evidence_list.append(evidence)
@@ -231,6 +246,7 @@ class HansardAdapter(GovernmentAPIClient):
 
 
 # ========== GOVINFO.GOV LEGAL STATUTES ADAPTER ==========
+
 
 class GovInfoAdapter(GovernmentAPIClient):
     """
@@ -260,13 +276,19 @@ class GovInfoAdapter(GovernmentAPIClient):
         super().__init__(
             api_name="GovInfo.gov",
             base_url="https://api.govinfo.gov",
-            timeout=settings.LEGAL_API_TIMEOUT_SECONDS if hasattr(settings, 'LEGAL_API_TIMEOUT_SECONDS') else 10,
-            max_results=5  # Statutes are high-quality, don't need many
+            timeout=(
+                settings.LEGAL_API_TIMEOUT_SECONDS
+                if hasattr(settings, "LEGAL_API_TIMEOUT_SECONDS")
+                else 10
+            ),
+            max_results=5,  # Statutes are high-quality, don't need many
         )
 
         # Check if API key is configured
         if not settings.GOVINFO_API_KEY:
-            logger.warning("GOVINFO_API_KEY not configured - GovInfo adapter will return empty results")
+            logger.warning(
+                "GOVINFO_API_KEY not configured - GovInfo adapter will return empty results"
+            )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """
@@ -282,9 +304,18 @@ class GovInfoAdapter(GovernmentAPIClient):
         Returns:
             True if this adapter can handle the domain/jurisdiction
         """
-        return domain in ["Law", "History", "Politics"] and jurisdiction in ["US", "Global"]
+        return domain in ["Law", "History", "Politics"] and jurisdiction in [
+            "US",
+            "Global",
+        ]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search US federal statutes and legislation.
 
@@ -301,10 +332,14 @@ class GovInfoAdapter(GovernmentAPIClient):
         Returns:
             List of evidence dictionaries with statute excerpts
         """
-        logger.info(f"[GOVINFO] search() CALLED - query: '{query[:100]}...', domain: {domain}, jurisdiction: {jurisdiction}")
+        logger.info(
+            f"[GOVINFO] search() CALLED - query: '{query[:100]}...', domain: {domain}, jurisdiction: {jurisdiction}"
+        )
 
         if not self.is_relevant_for_domain(domain, jurisdiction):
-            logger.info(f"   [GOVINFO] Not relevant for domain={domain}, jurisdiction={jurisdiction}")
+            logger.info(
+                f"   [GOVINFO] Not relevant for domain={domain}, jurisdiction={jurisdiction}"
+            )
             return []
 
         logger.info(f"   [GOVINFO] Domain/jurisdiction match confirmed")
@@ -313,12 +348,15 @@ class GovInfoAdapter(GovernmentAPIClient):
             # Extract legal metadata from query using classifier
             # (This is fast - just regex patterns)
             from app.utils.legal_claim_detector import LegalClaimDetector
+
             detector = LegalClaimDetector()
             result = detector.classify(query)
 
             # Only proceed if classified as legal
             if not result.get("is_legal"):
-                logger.info(f"GovInfo: Query not classified as legal, skipping: {query[:50]}")
+                logger.info(
+                    f"GovInfo: Query not classified as legal, skipping: {query[:50]}"
+                )
                 return []
 
             legal_metadata = result.get("metadata", {})
@@ -331,15 +369,20 @@ class GovInfoAdapter(GovernmentAPIClient):
 
             # Call legal search service (async, so we need to run it)
             import asyncio
+
             try:
                 # Try to get running loop
                 loop = asyncio.get_running_loop()
                 # We're in a sync context called from async via asyncio.to_thread
                 # So we can't use await here, but the service handles this
-                results = asyncio.run(self.legal_service.search_statutes(query, legal_metadata))
+                results = asyncio.run(
+                    self.legal_service.search_statutes(query, legal_metadata)
+                )
             except RuntimeError:
                 # No running loop, create new one
-                results = asyncio.run(self.legal_service.search_statutes(query, legal_metadata))
+                results = asyncio.run(
+                    self.legal_service.search_statutes(query, legal_metadata)
+                )
 
             # Transform legal search results to standardized evidence format
             return self._transform_response(results)
@@ -348,7 +391,9 @@ class GovInfoAdapter(GovernmentAPIClient):
             logger.error(f"GovInfo search failed for '{query}': {e}", exc_info=True)
             return []
 
-    def _transform_response(self, legal_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _transform_response(
+        self, legal_results: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Transform LegalSearchService results to standardized evidence format.
 
@@ -369,7 +414,6 @@ class GovInfoAdapter(GovernmentAPIClient):
             "url": "...",
             "title": "...",
             "published_date": "...",
-            "credibility_score": 0.95,
             "external_source_provider": "GovInfo.gov",
             "metadata": {...}
         }
@@ -389,7 +433,9 @@ class GovInfoAdapter(GovernmentAPIClient):
                 source_date = item.get("source_date")
                 if source_date and isinstance(source_date, str):
                     try:
-                        source_date = datetime.fromisoformat(source_date.replace('Z', '+00:00'))
+                        source_date = datetime.fromisoformat(
+                            source_date.replace("Z", "+00:00")
+                        )
                     except (ValueError, AttributeError):
                         source_date = None
 
@@ -399,7 +445,7 @@ class GovInfoAdapter(GovernmentAPIClient):
                     "jurisdiction": jurisdiction,
                     "statute_type": item.get("statute_type", "federal"),
                     "section": item.get("section"),
-                    "year": item.get("year")
+                    "year": item.get("year"),
                 }
 
                 # Create standardized evidence dict using base class helper
@@ -408,11 +454,8 @@ class GovInfoAdapter(GovernmentAPIClient):
                     snippet=text,
                     url=url,
                     source_date=source_date,
-                    metadata=metadata
+                    metadata=metadata,
                 )
-
-                # Override credibility for legal statutes (very high)
-                evidence["credibility_score"] = 0.95
 
                 evidence_list.append(evidence)
 

@@ -254,9 +254,7 @@ class SemanticScholarAdapter(GovernmentAPIClient):
                 if not pub_date and paper.get("year"):
                     pub_date = f"{paper['year']}-01-01"
 
-                # Calculate credibility based on citations
                 citation_count = paper.get("citationCount", 0) or 0
-                credibility = min(0.95, 0.75 + (citation_count / 1000) * 0.2)
 
                 evidence.append(
                     {
@@ -267,7 +265,6 @@ class SemanticScholarAdapter(GovernmentAPIClient):
                         "url": paper.get("url")
                         or f"https://www.semanticscholar.org/paper/{paper.get('paperId', '')}",
                         "source_date": pub_date,
-                        "credibility_score": credibility,
                         "relevance_score": 0.85,
                         "external_source_provider": "Semantic Scholar",
                         "metadata": {
@@ -372,9 +369,7 @@ class OpenAlexAdapter(GovernmentAPIClient):
                 if not pub_date and work.get("publication_year"):
                     pub_date = f"{work['publication_year']}-01-01"
 
-                # Calculate credibility based on citations
                 citation_count = work.get("cited_by_count", 0) or 0
-                credibility = min(0.95, 0.75 + (citation_count / 1000) * 0.2)
 
                 # Get URL
                 url = work.get("doi")
@@ -423,7 +418,6 @@ class OpenAlexAdapter(GovernmentAPIClient):
                         "snippet": abstract,
                         "url": url,
                         "source_date": pub_date,
-                        "credibility_score": credibility,
                         "relevance_score": 0.85,
                         "external_source_provider": "OpenAlex",
                         "metadata": {

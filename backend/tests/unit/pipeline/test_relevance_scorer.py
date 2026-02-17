@@ -20,7 +20,7 @@ from app.pipeline.relevance_scorer import _fair_select_evidence, score_evidence_
 # ---------------------------------------------------------------------------
 
 
-def make_evidence(url, title="Article", final_score=0.7, credibility_score=0.7):
+def make_evidence(url, title="Article", combined_score=0.7):
     """Create a minimal evidence dict for testing."""
     return {
         "url": url,
@@ -28,8 +28,7 @@ def make_evidence(url, title="Article", final_score=0.7, credibility_score=0.7):
         "text": f"Content about {title}",
         "source": "test",
         "tier": "general",
-        "credibility_score": credibility_score,
-        "final_score": final_score,
+        "combined_score": combined_score,
         "risk_flags": [],
     }
 
@@ -241,13 +240,13 @@ class TestFallbackRescue:
         # With max=50, all of claim 0 + claim 1 scored, but claim 2 partially or fully unscored
         evidence = {
             "0": [
-                make_evidence(f"http://a.com/{i}", final_score=0.8) for i in range(8)
+                make_evidence(f"http://a.com/{i}", combined_score=0.8) for i in range(8)
             ],
             "1": [
-                make_evidence(f"http://b.com/{i}", final_score=0.7) for i in range(8)
+                make_evidence(f"http://b.com/{i}", combined_score=0.7) for i in range(8)
             ],
             "2": [
-                make_evidence(f"http://c.com/{i}", final_score=0.6) for i in range(8)
+                make_evidence(f"http://c.com/{i}", combined_score=0.6) for i in range(8)
             ],
         }
 
@@ -314,8 +313,8 @@ class TestGlobalFallback:
     async def test_global_fallback_no_name_error(self):
         """Global fallback (all claims have 0 evidence) must not crash with NameError."""
         evidence = {
-            "0": [make_evidence("http://a.com/1", final_score=0.8)],
-            "1": [make_evidence("http://b.com/1", final_score=0.7)],
+            "0": [make_evidence("http://a.com/1", combined_score=0.8)],
+            "1": [make_evidence("http://b.com/1", combined_score=0.7)],
         }
         claims = ["Claim 0", "Claim 1"]
 
@@ -367,8 +366,8 @@ class TestGlobalFallback:
         # 2 claims, each with 1 item. Set max_evidence=1 so only 1 item is scored.
         # The scored item gets score=1. The unscored item (None) should be rescued.
         evidence = {
-            "0": [make_evidence("http://a.com/1", final_score=0.8)],
-            "1": [make_evidence("http://b.com/1", final_score=0.7)],
+            "0": [make_evidence("http://a.com/1", combined_score=0.8)],
+            "1": [make_evidence("http://b.com/1", combined_score=0.7)],
         }
         claims = ["Claim 0", "Claim 1"]
 
@@ -506,7 +505,9 @@ class TestA0167d67Scenario:
         evidence = {}
         for cp, size in claim_sizes.items():
             evidence[cp] = [
-                make_evidence(f"http://claim{cp}.com/{i}", final_score=0.7 + i * 0.01)
+                make_evidence(
+                    f"http://claim{cp}.com/{i}", combined_score=0.7 + i * 0.01
+                )
                 for i in range(size)
             ]
 
@@ -567,7 +568,9 @@ class TestA0167d67Scenario:
         evidence = {}
         for cp, size in claim_sizes.items():
             evidence[cp] = [
-                make_evidence(f"http://claim{cp}.com/{i}", final_score=0.8 - i * 0.05)
+                make_evidence(
+                    f"http://claim{cp}.com/{i}", combined_score=0.8 - i * 0.05
+                )
                 for i in range(size)
             ]
 

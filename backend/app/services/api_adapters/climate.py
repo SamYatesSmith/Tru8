@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # ========== NOAA CDO ADAPTER (Global Climate Data) ==========
 
+
 class NOAAAdapter(GovernmentAPIClient):
     """
     NOAA Climate Data Online (CDO) API Adapter.
@@ -37,10 +38,10 @@ class NOAAAdapter(GovernmentAPIClient):
 
     # NOAA dataset IDs for different climate data types
     DATASETS = {
-        "daily": "GHCND",      # Global Historical Climatology Network Daily
-        "monthly": "GSOM",     # Global Summary of Month
-        "yearly": "GSOY",      # Global Summary of Year
-        "normals": "NORMAL_ANN"  # Climate Normals
+        "daily": "GHCND",  # Global Historical Climatology Network Daily
+        "monthly": "GSOM",  # Global Summary of Month
+        "yearly": "GSOY",  # Global Summary of Year
+        "normals": "NORMAL_ANN",  # Climate Normals
     }
 
     # Data type IDs for common climate variables
@@ -48,7 +49,7 @@ class NOAAAdapter(GovernmentAPIClient):
         "temperature": ["TAVG", "TMAX", "TMIN"],  # Average, max, min temp
         "precipitation": ["PRCP", "SNOW", "SNWD"],  # Precip, snowfall, snow depth
         "wind": ["AWND", "WSF2", "WSF5"],  # Avg wind, fastest 2-min, 5-sec
-        "sea_level": ["MMSL"]  # Mean sea level
+        "sea_level": ["MMSL"],  # Mean sea level
     }
 
     def __init__(self):
@@ -58,7 +59,7 @@ class NOAAAdapter(GovernmentAPIClient):
             api_key=settings.NOAA_API_KEY,
             cache_ttl=86400,  # 24 hours (climate data updates daily at most)
             timeout=15,
-            max_results=10
+            max_results=10,
         )
 
         # NOAA uses token header authentication
@@ -72,7 +73,13 @@ class NOAAAdapter(GovernmentAPIClient):
         """NOAA covers Climate and Weather globally (historical climate data)."""
         return domain in ["Climate", "Weather"]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search NOAA CDO for climate data.
 
@@ -101,10 +108,41 @@ class NOAAAdapter(GovernmentAPIClient):
 
         try:
             # Fix 4a: Expanded keyword matching for better climate data retrieval
-            temp_terms = ["temperature", "warm", "cold", "heat", "hot", "freeze", "frost",
-                          "record", "extreme", "anomaly", "degree", "celsius", "fahrenheit"]
-            precip_terms = ["rain", "precipitation", "snow", "flood", "drought", "storm", "hurricane", "cyclone"]
-            sea_terms = ["sea level", "ocean", "coastal", "tide", "ice", "glacier", "arctic", "antarctic"]
+            temp_terms = [
+                "temperature",
+                "warm",
+                "cold",
+                "heat",
+                "hot",
+                "freeze",
+                "frost",
+                "record",
+                "extreme",
+                "anomaly",
+                "degree",
+                "celsius",
+                "fahrenheit",
+            ]
+            precip_terms = [
+                "rain",
+                "precipitation",
+                "snow",
+                "flood",
+                "drought",
+                "storm",
+                "hurricane",
+                "cyclone",
+            ]
+            sea_terms = [
+                "sea level",
+                "ocean",
+                "coastal",
+                "tide",
+                "ice",
+                "glacier",
+                "arctic",
+                "antarctic",
+            ]
 
             # Determine what type of climate data to fetch
             if any(term in query_lower for term in temp_terms):
@@ -115,7 +153,9 @@ class NOAAAdapter(GovernmentAPIClient):
                 evidence.extend(self._search_sea_level_data(query, entities))
             else:
                 # Fix 4b: No keyword match - return empty instead of metadata catalog
-                logger.info(f"[NOAA] No keyword match for query, returning empty: {query[:50]}...")
+                logger.info(
+                    f"[NOAA] No keyword match for query, returning empty: {query[:50]}..."
+                )
                 return []
 
             return evidence
@@ -134,7 +174,9 @@ class NOAAAdapter(GovernmentAPIClient):
         logger.info(f"[NOAA] Dataset search bypassed (returns metadata, not evidence)")
         return []
 
-    def _search_temperature_data(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def _search_temperature_data(
+        self, query: str, entities: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, Any]]:
         """Search for temperature-related climate data."""
         # Extract location from entities if available
         location_id = self._extract_location_id(entities)
@@ -145,7 +187,7 @@ class NOAAAdapter(GovernmentAPIClient):
             "datatypeid": "TAVG",  # Average temperature
             "limit": self.max_results,
             "sortfield": "date",
-            "sortorder": "desc"
+            "sortorder": "desc",
         }
 
         if location_id:
@@ -169,10 +211,12 @@ class NOAAAdapter(GovernmentAPIClient):
             "NOAA Global Temperature Data",
             "NOAA maintains comprehensive temperature records from thousands of weather stations worldwide, "
             "including the Global Historical Climatology Network (GHCND) with daily temperature observations.",
-            "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series"
+            "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series",
         )
 
-    def _search_precipitation_data(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def _search_precipitation_data(
+        self, query: str, entities: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, Any]]:
         """Search for precipitation-related climate data."""
         location_id = self._extract_location_id(entities)
 
@@ -181,7 +225,7 @@ class NOAAAdapter(GovernmentAPIClient):
             "datatypeid": "PRCP",  # Precipitation
             "limit": self.max_results,
             "sortfield": "date",
-            "sortorder": "desc"
+            "sortorder": "desc",
         }
 
         if location_id:
@@ -203,10 +247,12 @@ class NOAAAdapter(GovernmentAPIClient):
             "NOAA Precipitation Data",
             "NOAA provides precipitation data including rainfall, snowfall, and drought indices "
             "from the Global Historical Climatology Network and other monitoring systems.",
-            "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series"
+            "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series",
         )
 
-    def _search_sea_level_data(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def _search_sea_level_data(
+        self, query: str, entities: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, Any]]:
         """Search for sea level data."""
         # Sea level data requires specific tide gauge stations
         # Return authoritative NOAA sea level info
@@ -215,10 +261,12 @@ class NOAAAdapter(GovernmentAPIClient):
             "NOAA's tide gauge and satellite altimetry data shows global mean sea level has risen "
             "about 3.4 mm per year since 1993. Long-term records from tide gauges show approximately "
             "8-9 inches of sea level rise since 1880.",
-            "https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level"
+            "https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level",
         )
 
-    def _extract_location_id(self, entities: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+    def _extract_location_id(
+        self, entities: Optional[List[Dict[str, str]]] = None
+    ) -> Optional[str]:
         """Extract NOAA location ID from NER entities."""
         if not entities:
             return None
@@ -231,31 +279,58 @@ class NOAAAdapter(GovernmentAPIClient):
                 # Fix 4c: Expanded location mapping for global climate queries
                 location_map = {
                     # US
-                    "US": "FIPS:US", "USA": "FIPS:US", "UNITED STATES": "FIPS:US",
-                    "CALIFORNIA": "FIPS:06", "NEW YORK": "FIPS:36", "TEXAS": "FIPS:48", "FLORIDA": "FIPS:12",
-                    "ALASKA": "FIPS:02", "ARIZONA": "FIPS:04", "COLORADO": "FIPS:08",
+                    "US": "FIPS:US",
+                    "USA": "FIPS:US",
+                    "UNITED STATES": "FIPS:US",
+                    "CALIFORNIA": "FIPS:06",
+                    "NEW YORK": "FIPS:36",
+                    "TEXAS": "FIPS:48",
+                    "FLORIDA": "FIPS:12",
+                    "ALASKA": "FIPS:02",
+                    "ARIZONA": "FIPS:04",
+                    "COLORADO": "FIPS:08",
                     # UK
-                    "UK": "FIPS:UK", "UNITED KINGDOM": "FIPS:UK", "BRITAIN": "FIPS:UK", "ENGLAND": "FIPS:UK",
+                    "UK": "FIPS:UK",
+                    "UNITED KINGDOM": "FIPS:UK",
+                    "BRITAIN": "FIPS:UK",
+                    "ENGLAND": "FIPS:UK",
                     # Europe (NOAA uses FIPS 2-letter country codes)
                     "EUROPE": "FIPS:EU",
-                    "GERMANY": "FIPS:GM", "FRANCE": "FIPS:FR", "SPAIN": "FIPS:SP",
-                    "ITALY": "FIPS:IT", "NETHERLANDS": "FIPS:NL", "BELGIUM": "FIPS:BE",
-                    "SWEDEN": "FIPS:SW", "NORWAY": "FIPS:NO", "DENMARK": "FIPS:DA",
-                    "FINLAND": "FIPS:FI", "POLAND": "FIPS:PL", "AUSTRIA": "FIPS:AU",
+                    "GERMANY": "FIPS:GM",
+                    "FRANCE": "FIPS:FR",
+                    "SPAIN": "FIPS:SP",
+                    "ITALY": "FIPS:IT",
+                    "NETHERLANDS": "FIPS:NL",
+                    "BELGIUM": "FIPS:BE",
+                    "SWEDEN": "FIPS:SW",
+                    "NORWAY": "FIPS:NO",
+                    "DENMARK": "FIPS:DA",
+                    "FINLAND": "FIPS:FI",
+                    "POLAND": "FIPS:PL",
+                    "AUSTRIA": "FIPS:AU",
                     # Asia-Pacific
-                    "JAPAN": "FIPS:JA", "CHINA": "FIPS:CH", "AUSTRALIA": "FIPS:AS",
-                    "INDIA": "FIPS:IN", "SOUTH KOREA": "FIPS:KS",
+                    "JAPAN": "FIPS:JA",
+                    "CHINA": "FIPS:CH",
+                    "AUSTRALIA": "FIPS:AS",
+                    "INDIA": "FIPS:IN",
+                    "SOUTH KOREA": "FIPS:KS",
                     # Other
-                    "CANADA": "FIPS:CA", "MEXICO": "FIPS:MX", "BRAZIL": "FIPS:BR",
+                    "CANADA": "FIPS:CA",
+                    "MEXICO": "FIPS:MX",
+                    "BRAZIL": "FIPS:BR",
                     # Global - no filter for global queries
-                    "GLOBAL": None, "WORLD": None, "WORLDWIDE": None,
+                    "GLOBAL": None,
+                    "WORLD": None,
+                    "WORLDWIDE": None,
                 }
                 if location in location_map:
                     return location_map[location]
 
         return None
 
-    def _create_climate_evidence(self, title: str, snippet: str, url: str) -> List[Dict[str, Any]]:
+    def _create_climate_evidence(
+        self, title: str, snippet: str, url: str
+    ) -> List[Dict[str, Any]]:
         """Create climate evidence dictionary."""
         evidence = self._create_evidence_dict(
             title=title,
@@ -265,8 +340,8 @@ class NOAAAdapter(GovernmentAPIClient):
             metadata={
                 "api_source": "NOAA CDO",
                 "data_type": "climate",
-                "authority": "US Government"
-            }
+                "authority": "US Government",
+            },
         )
         return [evidence]
 
@@ -279,14 +354,14 @@ class NOAAAdapter(GovernmentAPIClient):
                 evidence = self._create_evidence_dict(
                     title=item.get("name", "NOAA Dataset"),
                     snippet=f"{item.get('name')}: {item.get('datacoverage', 'N/A')} data coverage. "
-                            f"Date range: {item.get('mindate', 'N/A')} to {item.get('maxdate', 'N/A')}",
+                    f"Date range: {item.get('mindate', 'N/A')} to {item.get('maxdate', 'N/A')}",
                     url=f"https://www.ncei.noaa.gov/cdo-web/datasets/{item.get('id')}",
                     source_date=datetime.utcnow(),
                     metadata={
                         "api_source": "NOAA CDO",
                         "dataset_id": item.get("id"),
-                        "data_coverage": item.get("datacoverage")
-                    }
+                        "data_coverage": item.get("datacoverage"),
+                    },
                 )
                 evidence_list.append(evidence)
 
@@ -296,7 +371,9 @@ class NOAAAdapter(GovernmentAPIClient):
 
         return evidence_list
 
-    def _transform_data_response(self, raw_response: Any, data_type: str) -> List[Dict[str, Any]]:
+    def _transform_data_response(
+        self, raw_response: Any, data_type: str
+    ) -> List[Dict[str, Any]]:
         """Transform NOAA data query response."""
         evidence_list = []
 
@@ -335,8 +412,8 @@ class NOAAAdapter(GovernmentAPIClient):
                     "observation_count": len(values),
                     "average": avg_value,
                     "min": min_value,
-                    "max": max_value
-                }
+                    "max": max_value,
+                },
             )
             evidence_list.append(evidence)
 
@@ -348,6 +425,7 @@ class NOAAAdapter(GovernmentAPIClient):
 
 
 # ========== WEATHERAPI ADAPTER ==========
+
 
 class WeatherAPIAdapter(GovernmentAPIClient):
     """
@@ -372,14 +450,20 @@ class WeatherAPIAdapter(GovernmentAPIClient):
             api_key=settings.WEATHER_API_KEY,
             cache_ttl=1800,  # 30 mins (weather updates frequently)
             timeout=10,
-            max_results=5
+            max_results=5,
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """WeatherAPI covers Weather globally."""
         return domain in ["Weather", "Climate"]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search WeatherAPI for weather data.
 
@@ -407,13 +491,21 @@ class WeatherAPIAdapter(GovernmentAPIClient):
             location = self._extract_location(query, entities)
 
             if not location:
-                logger.warning(f"WeatherAPI: Could not determine location for query '{query}'")
+                logger.warning(
+                    f"WeatherAPI: Could not determine location for query '{query}'"
+                )
                 return []
 
             # Determine what type of weather data to fetch
-            if any(term in query_lower for term in ["forecast", "tomorrow", "next week", "will it"]):
+            if any(
+                term in query_lower
+                for term in ["forecast", "tomorrow", "next week", "will it"]
+            ):
                 evidence.extend(self._get_forecast(location, query))
-            elif any(term in query_lower for term in ["yesterday", "last week", "was it", "historical"]):
+            elif any(
+                term in query_lower
+                for term in ["yesterday", "last week", "was it", "historical"]
+            ):
                 evidence.extend(self._get_historical(location, query))
             else:
                 # Default: get current conditions
@@ -425,7 +517,9 @@ class WeatherAPIAdapter(GovernmentAPIClient):
             logger.error(f"WeatherAPI search failed for '{query}': {e}")
             return []
 
-    def _extract_location(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+    def _extract_location(
+        self, query: str, entities: Optional[List[Dict[str, str]]] = None
+    ) -> Optional[str]:
         """
         Extract location from query or entities.
 
@@ -493,20 +587,21 @@ class WeatherAPIAdapter(GovernmentAPIClient):
                     line += f", {precip}mm precipitation"
                 forecast_lines.append(line)
 
-            evidence.append({
-                "title": f"3-Day Weather Forecast for {location_name}",
-                "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
-                "snippet": "\n".join(forecast_lines),
-                "source": "WeatherAPI.com",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "credibility_score": 0.85,
-                "metadata": {
-                    "api_source": "WeatherAPI",
-                    "data_type": "weather_forecast",
-                    "location": location_name,
-                    "forecast_days": len(forecast_days)
+            evidence.append(
+                {
+                    "title": f"3-Day Weather Forecast for {location_name}",
+                    "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
+                    "snippet": "\n".join(forecast_lines),
+                    "source": "WeatherAPI.com",
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                    "metadata": {
+                        "api_source": "WeatherAPI",
+                        "data_type": "weather_forecast",
+                        "location": location_name,
+                        "forecast_days": len(forecast_days),
+                    },
                 }
-            })
+            )
 
             return evidence
 
@@ -550,21 +645,22 @@ class WeatherAPIAdapter(GovernmentAPIClient):
                 f"Wind: {wind_kph} km/h"
             )
 
-            evidence.append({
-                "title": f"Current Weather in {location_name}",
-                "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
-                "snippet": snippet,
-                "source": "WeatherAPI.com",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "credibility_score": 0.85,
-                "metadata": {
-                    "api_source": "WeatherAPI",
-                    "data_type": "current_weather",
-                    "location": location_name,
-                    "temperature_c": temp,
-                    "condition": condition
+            evidence.append(
+                {
+                    "title": f"Current Weather in {location_name}",
+                    "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
+                    "snippet": snippet,
+                    "source": "WeatherAPI.com",
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                    "metadata": {
+                        "api_source": "WeatherAPI",
+                        "data_type": "current_weather",
+                        "location": location_name,
+                        "temperature_c": temp,
+                        "condition": condition,
+                    },
                 }
-            })
+            )
 
             return evidence
 
@@ -614,20 +710,21 @@ class WeatherAPIAdapter(GovernmentAPIClient):
                 f"Precipitation: {precip}mm"
             )
 
-            evidence.append({
-                "title": f"Historical Weather for {location_name} ({yesterday})",
-                "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
-                "snippet": snippet,
-                "source": "WeatherAPI.com",
-                "date": yesterday,
-                "credibility_score": 0.85,
-                "metadata": {
-                    "api_source": "WeatherAPI",
-                    "data_type": "historical_weather",
-                    "location": location_name,
-                    "date": yesterday
+            evidence.append(
+                {
+                    "title": f"Historical Weather for {location_name} ({yesterday})",
+                    "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
+                    "snippet": snippet,
+                    "source": "WeatherAPI.com",
+                    "date": yesterday,
+                    "metadata": {
+                        "api_source": "WeatherAPI",
+                        "data_type": "historical_weather",
+                        "location": location_name,
+                        "date": yesterday,
+                    },
                 }
-            })
+            )
 
             return evidence
 

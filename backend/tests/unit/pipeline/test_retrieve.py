@@ -2,24 +2,21 @@
 Evidence Retrieval Stage Tests - Phase 1 Pipeline Coverage
 
 Created: 2025-11-03 16:00:00 UTC
-Last Updated: 2026-02-17 (E01 safety net: un-skipped, mocks fixed)
-Test Count: 25
+Last Updated: 2026-02-17 (E03: credibility scoring removed)
+Test Count: 23
 Coverage Target: 80%+
 MVP Scope: URL/TEXT inputs only (no image/video)
 
 Tests the evidence retrieval stage which:
 - Searches for relevant evidence using Brave Search / SERP API
 - Retrieves fact-check claims from Google Fact Check Explorer
-- Scores evidence by credibility and relevance
 - Filters by temporal relevance for time-sensitive claims
 - Aggregates and ranks evidence from multiple sources
 
 CRITICAL for MVP:
 - Must respect rate limits
-- Must score source credibility accurately
 - Must handle API failures gracefully
 - Must deduplicate evidence
-- Must prioritize high-credibility sources
 """
 
 import pytest
@@ -33,12 +30,9 @@ from mocks.models import Claim, Evidence
 
 from mocks.search_results import (
     MOCK_SEARCH_RESULTS_STANDARD,
-    MOCK_SEARCH_RESULTS_HIGH_CREDIBILITY,
-    MOCK_SEARCH_RESULTS_MIXED_CREDIBILITY,
     MOCK_SEARCH_RESULTS_DUPLICATES,
     MOCK_SEARCH_RESULTS_DOMAIN_DOMINATED,
     MOCK_SEARCH_RESULTS_TEMPORAL,
-    get_search_results_by_credibility,
     create_search_result,
 )
 from mocks.factcheck_data import (
@@ -222,87 +216,8 @@ class TestEvidenceRetrieval:
         for evidence in evidence_list:
             assert "text" in evidence
             assert "url" in evidence
-            assert "credibility_score" in evidence
             assert "source" in evidence
-            assert 0 <= evidence["credibility_score"] <= 1.0
             assert evidence["url"].startswith("http")
-
-    @pytest.mark.asyncio
-    @pytest.mark.critical
-    async def test_evidence_credibility_scoring(self, retriever_env):
-        """
-        Test: Evidence credibility scoring based on source
-        CRITICAL: Credibility scoring affects evidence mapping accuracy
-        """
-        retriever = retriever_env["retriever"]
-        mock_extractor = retriever_env["mock_extractor"]
-
-        mock_snippets = [
-            EvidenceSnippet(
-                text="NASA study confirms human activity",
-                source="NASA",
-                url="https://nasa.gov/climate",
-                title="NASA Climate Study",
-                published_date="2024-11-01",
-                relevance_score=0.95,
-            ),
-            EvidenceSnippet(
-                text="IPCC report on climate change",
-                source="IPCC",
-                url="https://ipcc.ch/report",
-                title="IPCC Report",
-                published_date="2024-10-01",
-                relevance_score=0.93,
-            ),
-            EvidenceSnippet(
-                text="UK Met Office research",
-                source="Met Office",
-                url="https://metoffice.gov.uk/research",
-                title="Met Office Research",
-                published_date="2024-09-01",
-                relevance_score=0.90,
-            ),
-        ]
-        mock_extractor.extract_evidence_for_claim = AsyncMock(
-            return_value=mock_snippets
-        )
-
-        claim_dict = {
-            "text": "Climate change is caused by human activity",
-            "claim_type": "factual",
-            "position": 0,
-        }
-        result = await retriever.retrieve_evidence_for_claims([claim_dict])
-        evidence_list = _extract_evidence(result)
-
-        # At least some sources should get high credibility from .gov domains
-        high_cred_sources = [
-            e for e in evidence_list if e.get("credibility_score", 0) >= 0.70
-        ]
-        assert len(high_cred_sources) > 0, "Should identify high-credibility sources"
-
-        for evidence in high_cred_sources:
-            domain_indicators = [
-                ".gov",
-                ".edu",
-                "nasa.gov",
-                "ipcc.ch",
-                ".ac.uk",
-                "metoffice.gov.uk",
-            ]
-            source_indicators = ["NASA", "IPCC", "Met Office", "Nature", "Science"]
-
-            has_credible_domain = any(
-                indicator in evidence.get("url", "") for indicator in domain_indicators
-            )
-            has_credible_source = any(
-                indicator in evidence.get("source", "")
-                for indicator in source_indicators
-            )
-
-            assert (
-                has_credible_domain or has_credible_source
-            ), f"High credibility source should have recognized domain/source: {evidence.get('url', '')}"
 
     @pytest.mark.asyncio
     async def test_duplicate_evidence_deduplication(self, retriever_env):
@@ -423,9 +338,6 @@ class TestEvidenceRetrieval:
         assert len(evidence_list) > 0, "Should return fact-check evidence"
 
         for evidence in evidence_list:
-            assert (
-                evidence.get("credibility_score", 0) >= 0.5
-            ), "Fact-check evidence should have reasonable credibility"
             assert "source" in evidence, "Should include source"
 
     @pytest.mark.asyncio
@@ -722,9 +634,8 @@ class TestEvidenceRetrieval:
         if len(evidence_list) >= 2:
             top_evidence = evidence_list[0]
             assert (
-                top_evidence["credibility_score"] >= 0.0
-                or top_evidence.get("relevance_score", 0) >= 0.0
-            ), "Top evidence should have scores"
+                top_evidence.get("relevance_score", 0) >= 0.0
+            ), "Top evidence should have relevance score"
 
     @pytest.mark.asyncio
     async def test_publisher_metadata_extraction(self, retriever_env):
@@ -1176,10 +1087,4 @@ class TestEvidenceRetrieval:
         for evidence in evidence_list:
             assert "text" in evidence, "Evidence must have text"
             assert "url" in evidence, "Evidence must have URL"
-            assert (
-                "credibility_score" in evidence
-            ), "Evidence must have credibility score"
             assert "source" in evidence, "Evidence must have source"
-            assert (
-                0 <= evidence["credibility_score"] <= 1.0
-            ), "Credibility score must be 0-1"

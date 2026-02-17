@@ -4,11 +4,12 @@ Tests for Frozen Evidence Replay feature (v2).
 Verifies that when claims have `frozen_evidence` attached, the pipeline:
 - Skips ALL network calls (web search, gov APIs, page extraction)
 - Reconstructs ranked_evidence from frozen data
-- Runs credibility weighting on the reconstructed evidence
+- Runs evidence filters on the reconstructed evidence
 - Returns correct search_mode and pre_weighting_evidence
 - Takes priority over frozen_urls when both are present
 - Matches claims by sha1(normalized_text) key
 """
+
 import asyncio
 import hashlib
 import pytest
@@ -20,15 +21,17 @@ from app.pipeline.retrieve import EvidenceRetriever
 @pytest.fixture
 def retriever():
     """Create an EvidenceRetriever with mocked services."""
-    with patch("app.pipeline.retrieve.SearchService"), \
-         patch("app.pipeline.retrieve.EvidenceExtractor") as mock_extractor_cls, \
-         patch("app.pipeline.retrieve.get_api_registry") as mock_registry:
+    with patch("app.pipeline.retrieve.SearchService"), patch(
+        "app.pipeline.retrieve.EvidenceExtractor"
+    ) as mock_extractor_cls, patch(
+        "app.pipeline.retrieve.get_api_registry"
+    ) as mock_registry:
         mock_registry.return_value = MagicMock()
         ret = EvidenceRetriever()
         # Mock the evidence extractor's _extract_from_page
         ret.evidence_extractor._extract_from_page = AsyncMock()
-        # Mock credibility weighting to pass through
-        ret._apply_credibility_weighting = MagicMock(
+        # Mock evidence filters to pass through
+        ret._apply_evidence_filters = MagicMock(
             side_effect=lambda evidence, claim, **kw: (evidence, [])
         )
         # Mock embedding storage
@@ -42,7 +45,9 @@ def retriever():
         yield ret
 
 
-def _make_frozen_evidence(url, text="Some evidence text", source="example.com", title="Test Title"):
+def _make_frozen_evidence(
+    url, text="Some evidence text", source="example.com", title="Test Title"
+):
     """Create a frozen evidence dict matching pre-weighting format."""
     return {
         "url": url,
@@ -68,7 +73,9 @@ def _claim_key(text: str) -> str:
 async def test_no_network_calls_when_frozen_evidence(retriever):
     """frozen_evidence on claim -> zero network calls, evidence returned."""
     frozen_items = [
-        _make_frozen_evidence("https://reuters.com/article1", "Reuters reports findings"),
+        _make_frozen_evidence(
+            "https://reuters.com/article1", "Reuters reports findings"
+        ),
         _make_frozen_evidence("https://bbc.com/news/2", "BBC confirms data"),
     ]
 
@@ -94,8 +101,8 @@ async def test_no_network_calls_when_frozen_evidence(retriever):
 
 
 @pytest.mark.asyncio
-async def test_credibility_weighting_runs(retriever):
-    """Frozen evidence goes through _apply_credibility_weighting."""
+async def test_evidence_filters_runs(retriever):
+    """Frozen evidence goes through _apply_evidence_filters."""
     frozen_items = [
         _make_frozen_evidence("https://reuters.com/article1"),
     ]
@@ -109,9 +116,9 @@ async def test_credibility_weighting_runs(retriever):
     semaphore = asyncio.Semaphore(3)
     await retriever._retrieve_evidence_for_single_claim(claim, semaphore)
 
-    # Credibility weighting should have been called
-    retriever._apply_credibility_weighting.assert_called_once()
-    call_args = retriever._apply_credibility_weighting.call_args
+    # Evidence filters should have been called
+    retriever._apply_evidence_filters.assert_called_once()
+    call_args = retriever._apply_evidence_filters.call_args
     ranked_evidence = call_args[0][0]
     assert len(ranked_evidence) == 1
     assert ranked_evidence[0]["url"] == "https://reuters.com/article1"
@@ -133,7 +140,7 @@ async def test_empty_frozen_evidence(retriever):
     assert result["filtered_evidence"] == []
     assert result["search_mode"] == "frozen_evidence_replay"
     assert result["pre_weighting_evidence"] == []
-    retriever._apply_credibility_weighting.assert_not_called()
+    retriever._apply_evidence_filters.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -186,10 +193,16 @@ async def test_pre_weighting_evidence_in_return(retriever):
 async def test_frozen_evidence_takes_priority_over_frozen_urls(retriever):
     """If both frozen_evidence and frozen_urls on claim, frozen_evidence wins."""
     frozen_evidence = [
-        _make_frozen_evidence("https://reuters.com/frozen-evidence", "Frozen evidence text"),
+        _make_frozen_evidence(
+            "https://reuters.com/frozen-evidence", "Frozen evidence text"
+        ),
     ]
     frozen_urls = [
-        {"url": "https://bbc.com/frozen-url", "title": "Frozen URL", "snippet": "URL text"},
+        {
+            "url": "https://bbc.com/frozen-url",
+            "title": "Frozen URL",
+            "snippet": "URL text",
+        },
     ]
 
     claim = {
@@ -205,7 +218,9 @@ async def test_frozen_evidence_takes_priority_over_frozen_urls(retriever):
     # Should use frozen_evidence path, not frozen_urls
     assert result["search_mode"] == "frozen_evidence_replay"
     assert len(result["filtered_evidence"]) == 1
-    assert result["filtered_evidence"][0]["url"] == "https://reuters.com/frozen-evidence"
+    assert (
+        result["filtered_evidence"][0]["url"] == "https://reuters.com/frozen-evidence"
+    )
     # No page extraction should have happened (frozen_urls would trigger extraction)
     retriever.evidence_extractor._extract_from_page.assert_not_called()
 

@@ -13,7 +13,10 @@ from typing import List, Dict, Optional, Any
 from abc import ABC, abstractmethod
 from datetime import datetime
 from app.services.cache import get_sync_cache_service, SyncCacheService
-from app.services.circuit_breaker import get_circuit_breaker_registry, CircuitBreakerError
+from app.services.circuit_breaker import (
+    get_circuit_breaker_registry,
+    CircuitBreakerError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +37,7 @@ class GovernmentAPIClient(ABC):
         cache_ttl: int = 86400,  # 24 hours default
         timeout: int = 10,
         max_results: int = 10,
-        max_retries: int = 3
+        max_retries: int = 3,
     ):
         """
         Initialize API client.
@@ -49,7 +52,7 @@ class GovernmentAPIClient(ABC):
             max_retries: Maximum number of retry attempts (default 3)
         """
         self.api_name = api_name
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.cache_ttl = cache_ttl
         self.timeout = timeout
@@ -65,7 +68,7 @@ class GovernmentAPIClient(ABC):
         # HTTP client configuration
         self.headers = {
             "User-Agent": "Tru8 Fact-Checker/1.0 (contact@tru8.com)",
-            "Accept": "application/json"
+            "Accept": "application/json",
         }
 
         if self.api_key:
@@ -81,7 +84,7 @@ class GovernmentAPIClient(ABC):
         query: str,
         domain: str,
         jurisdiction: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        entities: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Search the API for evidence related to a claim.
@@ -122,7 +125,7 @@ class GovernmentAPIClient(ABC):
         self,
         endpoint: str,
         params: Optional[Dict[str, Any]] = None,
-        method: str = "GET"
+        method: str = "GET",
     ) -> Optional[Any]:
         """
         Make HTTP request to API with error handling, retries, and circuit breaker.
@@ -145,20 +148,14 @@ class GovernmentAPIClient(ABC):
         # Check circuit breaker before attempting request
         try:
             return self.circuit_breaker.call(
-                self._make_request_with_retries,
-                url,
-                params,
-                method
+                self._make_request_with_retries, url, params, method
             )
         except CircuitBreakerError as e:
             logger.warning(f"{self.api_name} circuit breaker rejected request: {e}")
             return None
 
     def _make_request_with_retries(
-        self,
-        url: str,
-        params: Optional[Dict[str, Any]],
-        method: str
+        self, url: str, params: Optional[Dict[str, Any]], method: str
     ) -> Any:
         """
         Make HTTP request with exponential backoff retries.
@@ -178,7 +175,9 @@ class GovernmentAPIClient(ABC):
 
         for attempt in range(self.max_retries):
             try:
-                with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
+                with httpx.Client(
+                    timeout=self.timeout, follow_redirects=True
+                ) as client:
                     if method == "GET":
                         response = client.get(url, headers=self.headers, params=params)
                     elif method == "POST":
@@ -224,7 +223,7 @@ class GovernmentAPIClient(ABC):
 
             # Exponential backoff: 1s, 2s, 4s
             if attempt < self.max_retries - 1:
-                delay = 2 ** attempt  # 1, 2, 4 seconds
+                delay = 2**attempt  # 1, 2, 4 seconds
                 logger.debug(f"{self.api_name} retrying in {delay}s...")
                 time.sleep(delay)
 
@@ -239,7 +238,7 @@ class GovernmentAPIClient(ABC):
         query: str,
         domain: str,
         jurisdiction: str,
-        entities: Optional[List[Dict[str, str]]] = None
+        entities: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Search with caching. Checks cache first, then calls API.
@@ -266,10 +265,7 @@ class GovernmentAPIClient(ABC):
         # Cache results
         if results:
             self.cache.cache_api_response_sync(
-                self.api_name,
-                query,
-                results,
-                self.cache_ttl
+                self.api_name, query, results, self.cache_ttl
             )
 
         return results
@@ -280,7 +276,7 @@ class GovernmentAPIClient(ABC):
         snippet: str,
         url: str,
         source_date: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Create standardized evidence dictionary.
@@ -301,10 +297,9 @@ class GovernmentAPIClient(ABC):
             "url": url,
             "source": self.api_name,
             "external_source_provider": self.api_name,
-            "credibility_score": 0.95,  # API sources are high credibility
             "source_date": source_date.isoformat() if source_date else None,
             "metadata": metadata or {},
-            "retrieved_at": datetime.utcnow().isoformat()
+            "retrieved_at": datetime.utcnow().isoformat(),
         }
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
@@ -356,7 +351,7 @@ class GovernmentAPIClient(ABC):
             "has_api_key": self.api_key is not None,
             "cache_ttl": self.cache_ttl,
             "timeout": self.timeout,
-            "max_results": self.max_results
+            "max_results": self.max_results,
         }
 
     def health_check(self) -> bool:
@@ -377,6 +372,7 @@ class GovernmentAPIClient(ABC):
 
 
 # ========== API ADAPTER REGISTRY ==========
+
 
 class APIAdapterRegistry:
     """
@@ -400,9 +396,7 @@ class APIAdapterRegistry:
         logger.info(f"Registered API adapter: {adapter.api_name}")
 
     def get_adapters_for_domain(
-        self,
-        domain: str,
-        jurisdiction: str
+        self, domain: str, jurisdiction: str
     ) -> List[GovernmentAPIClient]:
         """
         Get all relevant adapters for a domain and jurisdiction.
@@ -415,7 +409,8 @@ class APIAdapterRegistry:
             List of relevant API adapters
         """
         relevant = [
-            adapter for adapter in self.adapters
+            adapter
+            for adapter in self.adapters
             if adapter.is_relevant_for_domain(domain, jurisdiction)
         ]
 

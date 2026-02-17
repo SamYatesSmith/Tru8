@@ -40,7 +40,6 @@ class TestFeaturePerformance:
                 "snippet": "The Earth is a sphere that orbits the Sun. This has been proven by countless observations.",
                 "published_date": "2024-01-15",
                 "relevance_score": 0.92,
-                "credibility_score": 0.9,
             },
             {
                 "source": "CNN",
@@ -49,7 +48,6 @@ class TestFeaturePerformance:
                 "snippet": "The Earth is a sphere that orbits the Sun. This has been proven by countless observations.",  # Duplicate
                 "published_date": "2024-01-16",
                 "relevance_score": 0.90,
-                "credibility_score": 0.85,
             },
             {
                 "source": "Reuters",
@@ -58,7 +56,6 @@ class TestFeaturePerformance:
                 "snippet": "Planets orbit the Sun in elliptical paths. Earth is the third planet.",
                 "published_date": "2024-02-20",
                 "relevance_score": 0.88,
-                "credibility_score": 0.9,
             },
             {
                 "source": "The Guardian",
@@ -67,7 +64,6 @@ class TestFeaturePerformance:
                 "snippet": "Earth completes one orbit around the Sun every 365.25 days.",
                 "published_date": "2023-12-10",
                 "relevance_score": 0.85,
-                "credibility_score": 0.88,
             },
             {
                 "source": "Snopes",
@@ -76,7 +72,6 @@ class TestFeaturePerformance:
                 "snippet": "True - Earth orbits the Sun, not the other way around.",
                 "published_date": "2024-03-05",
                 "relevance_score": 0.95,
-                "credibility_score": 0.95,
             },
         ]
 
@@ -234,33 +229,6 @@ class TestFeaturePerformance:
         ), f"Claim classification p95 {stats['p95']:.2f}ms exceeds 100ms target"
 
     @pytest.mark.performance
-    def test_domain_capping_overhead(self, sample_evidence):
-        """
-        Test: Domain capping time
-
-        Target: <50ms overhead
-        """
-        from app.pipeline.retrieve import apply_domain_cap
-
-        # Create evidence with multiple items per domain
-        evidence_with_dupes = sample_evidence * 3  # 15 items
-
-        def operation():
-            apply_domain_cap(evidence_with_dupes.copy(), max_per_domain=3)
-
-        stats = self.benchmark_operation(operation, iterations=100)
-
-        print(f"\n=== Domain Capping Performance ===")
-        print(f"Mean: {stats['mean']:.2f}ms")
-        print(f"Median: {stats['median']:.2f}ms")
-        print(f"P95: {stats['p95']:.2f}ms")
-        print(f"Target: <50ms")
-
-        assert (
-            stats["p95"] < 50
-        ), f"Domain capping p95 {stats['p95']:.2f}ms exceeds 50ms target"
-
-    @pytest.mark.performance
     def test_combined_overhead(self, sample_claims, sample_evidence):
         """
         Test: Combined overhead of all features
@@ -272,7 +240,6 @@ class TestFeaturePerformance:
         from app.utils.factcheck import FactCheckDetector
         from app.utils.temporal import TemporalAnalyzer
         from app.utils.legal_claim_detector import LegalClaimDetector
-        from app.pipeline.retrieve import apply_domain_cap
 
         # Initialize all utilities
         deduplicator = ContentDeduplicator()
@@ -302,9 +269,6 @@ class TestFeaturePerformance:
             for ev in evidence:
                 factcheck_detector.detect_factcheck(ev["url"], ev["source"])
 
-            # Domain capping
-            evidence = apply_domain_cap(evidence, max_per_domain=3)
-
         stats = self.benchmark_operation(
             operation, iterations=50
         )  # Fewer iterations for combined test
@@ -320,8 +284,7 @@ class TestFeaturePerformance:
         print(f"  Fact-check detection:  ~50ms")
         print(f"  Temporal analysis:    ~150ms")
         print(f"  Classification:       ~100ms")
-        print(f"  Domain capping:        ~50ms")
-        print(f"  Misc overhead:        ~450ms")
+        print(f"  Misc overhead:        ~500ms")
         print(f"  Total budget:        1100ms")
 
         assert (

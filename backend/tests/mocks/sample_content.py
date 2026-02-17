@@ -193,7 +193,6 @@ SAMPLE_EVIDENCE = [
         "snippet": "195 countries have committed to reducing carbon emissions by 45% by 2030...",
         "published_date": "2024-11-01",
         "relevance_score": 0.95,
-        "credibility_score": 0.90,
         "tier": "tier1_news",
         "is_factcheck": False,
         "domain": "bbc.com",
@@ -205,7 +204,6 @@ SAMPLE_EVIDENCE = [
         "snippet": "Agreement includes binding targets for 45% carbon reduction by 2030...",
         "published_date": "2024-11-01",
         "relevance_score": 0.92,
-        "credibility_score": 0.88,
         "tier": "tier1_news",
         "is_factcheck": False,
         "domain": "reuters.com",
@@ -217,7 +215,6 @@ SAMPLE_EVIDENCE = [
         "snippet": "195 countries sign agreement with 45% emissions reduction target...",
         "published_date": "2024-11-01",
         "relevance_score": 0.90,
-        "credibility_score": 0.85,
         "tier": "tier1_news",
         "is_factcheck": False,
         "domain": "theguardian.com",
@@ -229,7 +226,6 @@ SAMPLE_EVIDENCE = [
         "snippet": "Global average temperatures have increased by 1.2°C since pre-industrial times...",
         "published_date": "2024-10-20",
         "relevance_score": 0.88,
-        "credibility_score": 0.95,
         "tier": "academic",
         "is_factcheck": False,
         "domain": "nasa.gov",
@@ -241,7 +237,6 @@ SAMPLE_EVIDENCE = [
         "snippet": "The claim that 195 countries agreed to 45% emissions cuts is True...",
         "published_date": "2024-11-02",
         "relevance_score": 0.93,
-        "credibility_score": 0.92,
         "tier": "factcheck",
         "is_factcheck": True,
         "domain": "politifact.com",
@@ -432,14 +427,11 @@ def get_sample_claims(
     return filtered[:num_claims]
 
 
-def get_sample_evidence(
-    credibility_level: str = "high", count: int = 5
-) -> List[Dict[str, Any]]:
+def get_sample_evidence(count: int = 5) -> List[Dict[str, Any]]:
     """
-    Get sample evidence filtered by credibility
+    Get sample evidence items
 
     Args:
-        credibility_level: high (>0.85), medium (0.60-0.85), low (<0.60)
         count: Number of evidence items
 
     Returns:
@@ -447,16 +439,7 @@ def get_sample_evidence(
 
     Created: 2025-11-03
     """
-    if credibility_level == "high":
-        filtered = [e for e in SAMPLE_EVIDENCE if e["credibility_score"] >= 0.85]
-    elif credibility_level == "medium":
-        filtered = [e for e in SAMPLE_EVIDENCE if 0.60 <= e["credibility_score"] < 0.85]
-    elif credibility_level == "low":
-        filtered = [e for e in SAMPLE_EVIDENCE if e["credibility_score"] < 0.60]
-    else:
-        filtered = SAMPLE_EVIDENCE
-
-    return filtered[:count]
+    return SAMPLE_EVIDENCE[:count]
 
 
 # ==================== DOCUMENTATION ====================
@@ -476,8 +459,7 @@ Usage Examples:
 
 3. Evidence Testing:
     from sample_content import get_sample_evidence
-    high_cred = get_sample_evidence("high", count=3)
-    low_cred = get_sample_evidence("low", count=2)
+    evidence = get_sample_evidence(count=3)
 
 4. Claim Testing:
     from sample_content import get_sample_claims

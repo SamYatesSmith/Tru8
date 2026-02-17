@@ -460,7 +460,6 @@ class TestCommonAdapterFeatures:
         assert "url" in evidence
         assert "source" in evidence
         assert "external_source_provider" in evidence
-        assert "credibility_score" in evidence
         assert "metadata" in evidence
 
         # Verify values
@@ -468,4 +467,3 @@ class TestCommonAdapterFeatures:
         assert evidence["snippet"] == "Test snippet"
         assert evidence["url"] == "https://example.com"
         assert evidence["external_source_provider"] == adapter.api_name
-        assert evidence["credibility_score"] == 0.95

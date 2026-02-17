@@ -1070,7 +1070,6 @@ async def get_check(
                             ev.published_date.isoformat() if ev.published_date else None
                         ),
                         "relevanceScore": ev.relevance_score,
-                        "credibilityScore": ev.credibility_score,
                         # Source type fields
                         "isFactcheck": ev.is_factcheck,
                         "externalSourceProvider": ev.external_source_provider,
@@ -1522,7 +1521,7 @@ class SourcesResponse(BaseModel):
 async def get_check_sources(
     check_id: str,
     include_filtered: bool = True,
-    sort_by: str = "relevance",  # relevance, credibility, date
+    sort_by: str = "relevance",  # relevance, date
     current_user: dict = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
@@ -1534,7 +1533,7 @@ async def get_check_sources(
 
     Query params:
     - include_filtered: Include filtered sources (default: true)
-    - sort_by: Sort order - relevance, credibility, or date
+    - sort_by: Sort order - relevance or date
     """
 
     # 1. Verify check belongs to user
@@ -1583,9 +1582,7 @@ async def get_check_sources(
         raw_stmt = raw_stmt.where(RawEvidence.is_included == True)
 
     # Apply sorting
-    if sort_by == "credibility":
-        raw_stmt = raw_stmt.order_by(desc(RawEvidence.credibility_score))
-    elif sort_by == "date":
+    if sort_by == "date":
         raw_stmt = raw_stmt.order_by(desc(RawEvidence.published_date))
     else:  # relevance (default)
         raw_stmt = raw_stmt.order_by(desc(RawEvidence.relevance_score))
@@ -1611,7 +1608,6 @@ async def get_check_sources(
     # 4. Group sources by claim
     claims_dict = {}
     filter_breakdown = {
-        "credibility": 0,
         "temporal": 0,
         "dedup": 0,
         "diversity": 0,
@@ -1641,12 +1637,10 @@ async def get_check_sources(
             "publishedDate": (
                 raw_ev.published_date.isoformat() if raw_ev.published_date else None
             ),
-            "credibilityScore": raw_ev.credibility_score,
             "relevanceScore": raw_ev.relevance_score,
             "isIncluded": raw_ev.is_included,
             "filterStage": raw_ev.filter_stage,
             "filterReason": raw_ev.filter_reason,
-            # Note: tier is intentionally NOT exposed to frontend (internal credibility weighting only)
             "isFactcheck": raw_ev.is_factcheck,
             "externalSourceProvider": raw_ev.external_source_provider,
         }
@@ -1715,7 +1709,6 @@ async def get_public_check(
     # Get all evidence for this check to calculate stats
     all_evidence = []
     top_sources_set = set()
-    source_tiers_count = {"tier1": 0, "tier2": 0, "tier3": 0}
 
     for claim in claims:
         evidence_stmt = (
@@ -1727,52 +1720,10 @@ async def get_public_check(
         evidence_list = evidence_result.scalars().all()
         all_evidence.extend(evidence_list)
 
-        # Collect unique sources and categorize by tier
+        # Collect unique sources
         for ev in evidence_list:
             if ev.source:
                 top_sources_set.add(ev.source)
-            # Categorize by credibility tier
-            if ev.credibility_score and ev.credibility_score >= 0.8:
-                source_tiers_count["tier1"] += 1
-            elif ev.credibility_score and ev.credibility_score >= 0.6:
-                source_tiers_count["tier2"] += 1
-            else:
-                source_tiers_count["tier3"] += 1
-
-    # Calculate source tier percentages
-    total_evidence = len(all_evidence) or 1  # Avoid division by zero
-    source_tiers = []
-
-    if source_tiers_count["tier1"] > 0:
-        source_tiers.append(
-            {
-                "label": "Official Sources",
-                "description": "Government and institutional sources",
-                "percentage": round(
-                    (source_tiers_count["tier1"] / total_evidence) * 100
-                ),
-            }
-        )
-    if source_tiers_count["tier2"] > 0:
-        source_tiers.append(
-            {
-                "label": "Quality News",
-                "description": "Established news organizations",
-                "percentage": round(
-                    (source_tiers_count["tier2"] / total_evidence) * 100
-                ),
-            }
-        )
-    if source_tiers_count["tier3"] > 0 and len(source_tiers) < 2:
-        source_tiers.append(
-            {
-                "label": "Other Sources",
-                "description": "Various online sources",
-                "percentage": round(
-                    (source_tiers_count["tier3"] / total_evidence) * 100
-                ),
-            }
-        )
 
     # Extract source domain and title from URL
     source_domain = None
@@ -1861,7 +1812,6 @@ async def get_public_check(
                         ev.published_date.isoformat() if ev.published_date else None
                     ),
                     "relevanceScore": ev.relevance_score,
-                    "credibilityScore": ev.credibility_score,
                     "isFactcheck": ev.is_factcheck,
                     "factcheckPublisher": ev.factcheck_publisher,
                     "factcheckRating": ev.factcheck_rating,
@@ -1898,8 +1848,6 @@ async def get_public_check(
         "articleJurisdiction": check.article_jurisdiction,
         "createdAt": check.created_at.isoformat() if check.created_at else None,
         "completedAt": check.completed_at.isoformat() if check.completed_at else None,
-        # Source tiers breakdown
-        "sourceTiers": source_tiers,
         # Full claims with evidence
         "claims": claims_data,
     }
@@ -1968,9 +1916,8 @@ async def export_check_sources(
         raise HTTPException(status_code=404, detail="No sources available for export")
 
     # 4. Generate export based on format
-    # NOTE: We intentionally exclude internal scoring metrics (credibility_score,
-    # relevance_score, filter_stage, filter_reason, tier) from exports to avoid
-    # potential legal issues with publicly rating news sources.
+    # NOTE: We intentionally exclude internal scoring metrics (relevance_score,
+    # filter_stage, filter_reason) from exports.
     if format == "csv":
         output = StringIO()
         writer = csv.writer(output)

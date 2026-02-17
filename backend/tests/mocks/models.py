@@ -62,7 +62,6 @@ class Evidence:
 
     text: str
     url: str
-    credibility_score: float
     publisher: str
     relevance_score: float = 0.0
     published_date: Optional[datetime] = None
@@ -96,13 +95,9 @@ def create_mock_claim(text: str, **kwargs) -> Claim:
     return Claim(text=text, **kwargs)
 
 
-def create_mock_evidence(
-    text: str, url: str, credibility: float, publisher: str, **kwargs
-) -> Evidence:
+def create_mock_evidence(text: str, url: str, publisher: str, **kwargs) -> Evidence:
     """Helper function to create mock evidence in tests"""
-    return Evidence(
-        text=text, url=url, credibility_score=credibility, publisher=publisher, **kwargs
-    )
+    return Evidence(text=text, url=url, publisher=publisher, **kwargs)
 
 
 def create_mock_query(text: str, **kwargs) -> Query:

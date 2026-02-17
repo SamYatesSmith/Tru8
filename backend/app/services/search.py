@@ -923,11 +923,7 @@ class SearchService:
                 cred_domain in domain for cred_domain in credible_domains
             ) or any(pattern in domain for pattern in academic_patterns)
 
-            if is_credible:
-                filtered.append(result)
-            else:
-                # Still include non-credible sources but mark them
-                result.credibility_score = 0.5  # Lower credibility
-                filtered.append(result)
+            # Include all sources — credibility scoring removed (E03)
+            filtered.append(result)
 
         return filtered
