@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { useCheckProgress } from '@/hooks/use-check-progress';
+import { ClaimSelectionView } from '@/components/claim-selection';
 import { CheckMetadataCard } from './components/check-metadata-card';
 import { OverallSummaryCard } from './components/overall-summary-card';
 import { ProgressSection } from './components/progress-section';
@@ -51,11 +52,22 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     getToken().then(setToken);
   }, [getToken]);
 
+  const [isSubmittingSelection, setIsSubmittingSelection] = useState(false);
+
   // Real-time progress updates via SSE
-  const { progress: sseProgress, currentStage: sseStage, isConnected, isCompleted: sseCompleted, message: sseMessage, timeEstimate } = useCheckProgress(
+  const {
+    progress: sseProgress,
+    currentStage: sseStage,
+    isConnected,
+    isCompleted: sseCompleted,
+    isAwaitingSelection,
+    claimsForSelection,
+    message: sseMessage,
+    timeEstimate,
+  } = useCheckProgress(
     checkId,
     token,
-    checkData.status === 'processing'
+    checkData.status === 'processing' || checkData.status === 'waiting_for_selection'
   );
 
   // When SSE indicates completion, immediately fetch updated data (don't wait for 3s poll)
@@ -93,9 +105,40 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   };
   const effectiveTimeEstimate = timeEstimate ?? (progress > 0 ? getTimeEstimateFromProgress(progress) : 'within 2 minutes');
 
+  // Derive claims for selection: prefer SSE data, fall back to checkData.claims on page refresh
+  const effectiveClaimsForSelection = claimsForSelection ?? (
+    checkData.status === 'waiting_for_selection' && checkData.claims
+      ? checkData.claims.map((c: any) => ({
+          position: c.position,
+          text: c.text,
+          claimType: c.claimType || 'empirical',
+          significanceRank: c.significanceRank ?? c.position,
+        }))
+      : null
+  );
+
+  const showSelectionUI = (checkData.status === 'waiting_for_selection' || isAwaitingSelection)
+    && effectiveClaimsForSelection && effectiveClaimsForSelection.length > 0;
+
+  // Handle claim selection submission
+  const handleSelectionSubmit = useCallback(async (selectedPositions: number[]) => {
+    setIsSubmittingSelection(true);
+    try {
+      const currentToken = await getToken();
+      await apiClient.selectClaims(checkId, selectedPositions, currentToken);
+      // Refetch check data — status will now be 'processing'
+      const updated = await apiClient.getCheckById(checkId, currentToken) as any;
+      setCheckData(updated);
+    } catch (error) {
+      console.error('Failed to submit claim selection:', error);
+    } finally {
+      setIsSubmittingSelection(false);
+    }
+  }, [checkId, getToken]);
+
   // Poll for updates when pending or processing
   useEffect(() => {
-    if (checkData.status !== 'processing' && checkData.status !== 'pending') {
+    if (checkData.status !== 'processing' && checkData.status !== 'pending' && checkData.status !== 'waiting_for_selection') {
       return;
     }
 
@@ -105,8 +148,8 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
         const updated = await apiClient.getCheckById(checkId, currentToken) as any;
         setCheckData(updated);
 
-        // Stop polling only when completed or failed (not pending or processing)
-        if (updated.status === 'completed' || updated.status === 'failed') {
+        // Stop polling when completed, failed, or waiting_for_selection (user action needed)
+        if (updated.status === 'completed' || updated.status === 'failed' || updated.status === 'waiting_for_selection') {
           clearInterval(interval);
         }
       } catch (error) {
@@ -170,8 +213,20 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       )}
 
       {/* Status-based Rendering */}
-      {checkData.status === 'processing' && (
+      {checkData.status === 'processing' && !isAwaitingSelection && (
         <ProgressSection progress={progress} currentStage={currentStage} isConnected={isConnected} message={message} timeEstimate={effectiveTimeEstimate} />
+      )}
+
+      {/* Claim Selection UI — shown when awaiting user selection */}
+      {showSelectionUI && (
+        <ClaimSelectionView
+          claims={effectiveClaimsForSelection}
+          checkId={checkId}
+          referenceId={checkId.slice(0, 8).toUpperCase()}
+          extractionTime={new Date(checkData.createdAt).toLocaleString()}
+          onSubmit={handleSelectionSubmit}
+          isSubmitting={isSubmittingSelection}
+        />
       )}
 
       {checkData.status === 'completed' && checkData.claims && checkData.claims.length > 0 && (

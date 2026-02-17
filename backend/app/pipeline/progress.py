@@ -37,16 +37,18 @@ class ProgressReporter:
     """
 
     # Stage progress mappings (must match existing SSE format for client compatibility)
+    # Phase 1 stages: 0-30%, Phase 2 stages: 30-100%
     STAGE_PROGRESS = {
         "starting": 0,
         "ingest": 10,
         "extract": 20,
-        "factcheck": 25,
-        "select": 30,
-        "decompose": 40,
-        "retrieve": 55,
-        "analyze": 80,
-        "query": 85,
+        "select": 28,
+        "awaiting_selection": 30,
+        "factcheck": 35,
+        "decompose": 45,
+        "retrieve": 60,
+        "analyze": 85,
+        "query": 90,
         "complete": 100,
     }
 
@@ -54,8 +56,9 @@ class ProgressReporter:
         "starting": "Initialising analysis...",
         "ingest": "Processing input content...",
         "extract": "Identifying claims...",
-        "factcheck": "Searching fact-check databases...",
         "select": "Ranking claims by significance...",
+        "awaiting_selection": "Waiting for claim selection...",
+        "factcheck": "Searching fact-check databases...",
         "decompose": "Decomposing claims into required elements...",
         "retrieve": "Gathering evidence for each element...",
         "analyze": "Mapping evidence to elements...",
@@ -146,6 +149,38 @@ class ProgressReporter:
 
         await self._queue.put(event)
         logger.debug(f"[PROGRESS] {stage}: {progress}% - {message}")
+
+    async def report_awaiting_selection(self, claims_data: list) -> None:
+        """Report that the pipeline is waiting for user claim selection (article mode)."""
+        if self._completed:
+            return
+
+        event = {
+            "type": "awaiting_selection",
+            "checkId": self.check_id,
+            "stage": "awaiting_selection",
+            "progress": self.STAGE_PROGRESS["awaiting_selection"],
+            "message": self.STAGE_MESSAGES["awaiting_selection"],
+            "claims": claims_data,
+        }
+
+        self._write_to_redis(
+            {
+                "status": "waiting_for_selection",
+                "stage": "awaiting_selection",
+                "progress": self.STAGE_PROGRESS["awaiting_selection"],
+                "message": self.STAGE_MESSAGES["awaiting_selection"],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+
+        await self._queue.put(event)
+        # Signal end of Phase 1 stream — client reconnects for Phase 2
+        await self._queue.put(None)
+        logger.info(
+            f"[PROGRESS] Check {self.check_id} awaiting claim selection "
+            f"({len(claims_data)} claims ranked)"
+        )
 
     async def report_completed(self) -> None:
         """Report pipeline completion."""

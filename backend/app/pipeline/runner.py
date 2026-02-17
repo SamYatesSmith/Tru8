@@ -136,38 +136,50 @@ async def run_pipeline(
     user_id: str,
     input_data: Dict[str, Any],
     progress_reporter: ProgressReporter,
-) -> Dict[str, Any]:
+) -> Optional[Dict[str, Any]]:
     """
     Run the fact-checking pipeline inline with progress streaming.
 
-    Reuses the battle-tested functions from workers/pipeline.py,
-    running them in a thread pool with isolated event loops.
+    Entry point that delegates to phase1 (which may call phase2 for focused mode).
+    For article mode, phase1 pauses after claim extraction/ranking so the user
+    can select which claims to investigate. Phase2 is triggered later via the
+    PATCH /select-claims endpoint.
+
+    Returns the final result dict for focused mode, or None for article mode
+    (which pauses at waiting_for_selection).
     """
-    # Import the existing functions from workers/pipeline.py
+    return await run_pipeline_phase1(check_id, user_id, input_data, progress_reporter)
+
+
+async def run_pipeline_phase1(
+    check_id: str,
+    user_id: str,
+    input_data: Dict[str, Any],
+    progress_reporter: ProgressReporter,
+) -> Optional[Dict[str, Any]]:
+    """
+    Pipeline Phase 1: ingest → extract → classify → rank claims.
+
+    For article mode: saves ranked claims to DB, sets check status to
+    'waiting_for_selection', emits SSE event, and returns None.
+    For focused mode: calls phase2 directly and returns the final result.
+    """
     from app.workers.pipeline import (
         ingest_content_async,
         extract_claims_with_cache,
-        retrieve_evidence_with_cache,
-        search_factchecks_for_claims,
     )
     from app.utils.article_classifier import classify_article
     from app.services.search import warmup_search_providers
 
-    # Warmup search providers to prevent 10s cold-start delay
-    # (Same as Celery worker does at startup - critical for inline execution)
     warmup_search_providers()
 
     start_time = datetime.utcnow()
     stage_timings = {}
 
-    # Evidence Loss Ledger (PR 0 — observability only, no logic changes)
     from app.pipeline.evidence_ledger import get_ledger
 
     ledger = get_ledger(check_id)
 
-    # Initialize cache service for evidence caching
-    # This reduces non-determinism by reusing good quality evidence for identical claims
-    # Quality gates in retrieve_evidence_with_cache ensure only good results are cached
     try:
         cache_service = await get_cache_service()
         logger.info(f"[INLINE PIPELINE] Cache service initialized successfully")
@@ -177,7 +189,7 @@ async def run_pipeline(
         )
         cache_service = None
 
-    logger.info(f"[INLINE PIPELINE] Starting for check {check_id}")
+    logger.info(f"[INLINE PIPELINE] Starting phase 1 for check {check_id}")
 
     # =========================================================================
     # Stage 1: Ingest
@@ -188,7 +200,6 @@ async def run_pipeline(
     stage_start = datetime.utcnow()
 
     try:
-        # Await directly in FastAPI's event loop - simpler and more reliable
         content = await ingest_content_async(input_data)
     except Exception as e:
         logger.error(
@@ -224,7 +235,6 @@ async def run_pipeline(
     article_classification = None
     if settings.ENABLE_ARTICLE_CLASSIFICATION:
         try:
-            # Direct await - classify_article is async
             article_classification = await classify_article(
                 title=extract_metadata.get("title", "") if extract_metadata else "",
                 url=extract_metadata.get("url", "") if extract_metadata else "",
@@ -238,7 +248,6 @@ async def run_pipeline(
 
     # Extract claims
     try:
-        # Direct await - extract_claims_with_cache is async
         claims = await extract_claims_with_cache(
             extract_content, extract_metadata, cache_service
         )
@@ -264,9 +273,7 @@ async def run_pipeline(
         normalized = " ".join(text.lower().split())
         return hashlib.sha1(normalized.encode()).hexdigest()
 
-    frozen_evidence = input_data.get(
-        "frozen_evidence"
-    )  # Dict[claim_key_or_pos, List[Dict]]
+    frozen_evidence = input_data.get("frozen_evidence")
     frozen_evidence_claim_texts = input_data.get("frozen_claim_texts") or {}
     _replay_temp_token = None
     _replay_evidence_token = None
@@ -279,7 +286,6 @@ async def run_pipeline(
             claim_text = claim.get("text", "")
             key = _claim_key(claim_text)
 
-            # Match by claim_key first, position fallback
             evidence_items = frozen_evidence.get(key) or frozen_evidence.get(pos)
             if evidence_items is None:
                 logger.warning(
@@ -287,7 +293,6 @@ async def run_pipeline(
                 )
                 continue
 
-            # Mismatch guard: verify claim text matches
             expected_text = frozen_evidence_claim_texts.get(
                 key, frozen_evidence_claim_texts.get(pos, "")
             )
@@ -305,7 +310,6 @@ async def run_pipeline(
             claim["frozen_evidence"] = evidence_items
             attached_count += 1
 
-        # Request-scoped overrides (concurrency-safe)
         from app.pipeline.replay_context import (
             frozen_replay_temperature,
             frozen_evidence_replay,
@@ -335,34 +339,9 @@ async def run_pipeline(
     entry_mode = "focused" if len(claims) == 1 else "article"
 
     # =========================================================================
-    # Stage 2.5: Fact-check Lookup (optional, skipped for frozen replay)
-    # =========================================================================
-    factcheck_evidence = {}
-    if frozen_evidence:
-        logger.info(
-            "[FROZEN EVIDENCE REPLAY] Skipping fact-check API for deterministic replay"
-        )
-    elif settings.ENABLE_FACTCHECK_API:
-        await _log_stage_transition(
-            check_id, current_stage, "factcheck", progress_reporter
-        )
-        current_stage = "factcheck"
-        stage_start = datetime.utcnow()
-        try:
-            # Direct await - search_factchecks_for_claims is async
-            factcheck_evidence = await search_factchecks_for_claims(claims)
-            logger.info(
-                f"[INLINE PIPELINE] Found {sum(len(v) for v in factcheck_evidence.values())} fact-checks"
-            )
-        except Exception as e:
-            logger.warning(f"Fact-check lookup failed (non-critical): {e}")
-        stage_timings["factcheck"] = (datetime.utcnow() - stage_start).total_seconds()
-
-    # =========================================================================
-    # Stage 2.6: Claim Selection (article mode only)
+    # Stage 2.6: Claim Selection / Ranking (article mode only)
     # =========================================================================
     from app.pipeline.claim_selector import ClaimSelector
-    from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
 
     selected_claims = claims
 
@@ -399,7 +378,6 @@ async def run_pipeline(
             )
         except Exception as e:
             logger.warning(f"Claim selection failed (non-critical): {e}")
-            # Fallback: select all claims up to cap
             for i, c in enumerate(claims):
                 c["is_selected"] = i < settings.MAX_SELECTED_CLAIMS
                 c["significance_rank"] = i + 1
@@ -420,6 +398,321 @@ async def run_pipeline(
         claims[0]["significance_rank"] = 1
         claims[0]["significance_score"] = 1.0
         selected_claims = claims
+
+    # =========================================================================
+    # Save Phase 1 state to DB (claims, classification, etc.)
+    # =========================================================================
+    async with async_session() as session:
+        stmt = select(Check).where(Check.id == check_id)
+        result = await session.execute(stmt)
+        check = result.scalar_one_or_none()
+
+        if check:
+            check.entry_mode = entry_mode
+            check.article_excerpt = extract_content[:5000]
+
+            # Save article classification
+            if article_classification:
+                check.article_domain = article_classification.primary_domain
+                check.article_secondary_domains = (
+                    article_classification.secondary_domains
+                    if hasattr(article_classification, "secondary_domains")
+                    else []
+                )
+                check.article_jurisdiction = (
+                    article_classification.jurisdiction
+                    if hasattr(article_classification, "jurisdiction")
+                    else None
+                )
+                check.article_classification_confidence = (
+                    int(article_classification.confidence * 100)
+                    if hasattr(article_classification, "confidence")
+                    and article_classification.confidence
+                    else None
+                )
+                check.article_classification_source = (
+                    article_classification.source
+                    if hasattr(article_classification, "source")
+                    else None
+                )
+
+            # Save all claims to DB
+            for claim_data in claims:
+                position_val = claim_data.get("position", 0)
+                claim_map_data = claim_data.get("claim_map")
+                resolved_claim_type = None
+                if claim_map_data and isinstance(claim_map_data, dict):
+                    ct = claim_map_data.get("claim_type")
+                    resolved_claim_type = ct.value if hasattr(ct, "value") else ct
+
+                claim = Claim(
+                    check_id=check_id,
+                    text=claim_data.get("text", ""),
+                    position=int(position_val) if position_val is not None else 0,
+                    subject_context=claim_data.get("subject_context"),
+                    key_entities=(
+                        claim_data.get("key_entities", [])
+                        if claim_data.get("key_entities")
+                        else None
+                    ),
+                    source_title=claim_data.get("source_title"),
+                    source_url=claim_data.get("source_url"),
+                    source_date=claim_data.get("source_date"),
+                    rhetorical_context=claim_data.get("rhetorical_analysis"),
+                    has_rhetorical_context=claim_data.get(
+                        "has_rhetorical_context", False
+                    ),
+                    rhetorical_style=claim_data.get("rhetorical_style"),
+                    claim_type=resolved_claim_type,
+                    significance_rank=claim_data.get("significance_rank"),
+                    significance_score=claim_data.get("significance_score"),
+                    is_selected=claim_data.get("is_selected"),
+                )
+                session.add(claim)
+
+            # For article mode: set status to waiting_for_selection
+            if entry_mode == "article":
+                check.status = "waiting_for_selection"
+                check.selected_claims_count = len(selected_claims)
+
+            await session.commit()
+
+        logger.info(
+            f"[INLINE PIPELINE] Phase 1 complete: saved {len(claims)} claims to DB "
+            f"(entry_mode={entry_mode})"
+        )
+
+    # =========================================================================
+    # For article mode: emit SSE event and RETURN (don't continue)
+    # =========================================================================
+    if entry_mode == "article":
+        # Build claims data for the SSE event
+        claims_for_sse = []
+        for c in claims:
+            claims_for_sse.append(
+                {
+                    "text": c.get("text", ""),
+                    "position": c.get("position", 0),
+                    "claimType": c.get("claim_type")
+                    or (
+                        c.get("article_classification", {}).get("claim_type")
+                        if c.get("article_classification")
+                        else None
+                    ),
+                    "significanceRank": c.get("significance_rank"),
+                    "significanceScore": c.get("significance_score"),
+                    "isSelected": c.get("is_selected", False),
+                    "subjectContext": c.get("subject_context"),
+                }
+            )
+
+        await progress_reporter.report_awaiting_selection(claims_for_sse)
+
+        logger.info(
+            f"[INLINE PIPELINE] Phase 1 paused for article mode — "
+            f"waiting for user claim selection (check={check_id})"
+        )
+        return None
+
+    # =========================================================================
+    # For focused mode: continue directly to phase2
+    # =========================================================================
+    return await run_pipeline_phase2(
+        check_id=check_id,
+        user_id=user_id,
+        input_data=input_data,
+        progress_reporter=progress_reporter,
+        # Pass through phase1 state to avoid re-reading DB
+        _phase1_state={
+            "claims": claims,
+            "selected_claims": selected_claims,
+            "content": content,
+            "article_classification": article_classification,
+            "entry_mode": entry_mode,
+            "frozen_evidence": frozen_evidence,
+            "frozen_evidence_claim_texts": frozen_evidence_claim_texts,
+            "_replay_temp_token": _replay_temp_token,
+            "_replay_evidence_token": _replay_evidence_token,
+            "cache_service": cache_service,
+            "ledger": ledger,
+            "start_time": start_time,
+            "stage_timings": stage_timings,
+        },
+    )
+
+
+async def run_pipeline_phase2(
+    check_id: str,
+    user_id: str,
+    input_data: Dict[str, Any],
+    progress_reporter: ProgressReporter,
+    _phase1_state: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Pipeline Phase 2: factcheck → decompose → retrieve → filter cascade → evidence mapping → build result.
+
+    If _phase1_state is provided (focused mode), uses it directly.
+    Otherwise (article mode, called from PATCH endpoint), reloads state from DB.
+    """
+    from app.workers.pipeline import (
+        retrieve_evidence_with_cache,
+        search_factchecks_for_claims,
+    )
+    from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
+
+    start_time = datetime.utcnow()
+    stage_timings = {}
+
+    # =========================================================================
+    # Load state — either from phase1 passthrough or from DB
+    # =========================================================================
+    if _phase1_state:
+        # Focused mode: phase1 passed state directly
+        claims = _phase1_state["claims"]
+        selected_claims = _phase1_state["selected_claims"]
+        content = _phase1_state["content"]
+        article_classification = _phase1_state["article_classification"]
+        entry_mode = _phase1_state["entry_mode"]
+        frozen_evidence = _phase1_state["frozen_evidence"]
+        frozen_evidence_claim_texts = _phase1_state["frozen_evidence_claim_texts"]
+        _replay_temp_token = _phase1_state["_replay_temp_token"]
+        _replay_evidence_token = _phase1_state["_replay_evidence_token"]
+        cache_service = _phase1_state["cache_service"]
+        ledger = _phase1_state["ledger"]
+        start_time = _phase1_state["start_time"]
+        stage_timings = _phase1_state["stage_timings"]
+    else:
+        # Article mode: reload from DB after user selected claims
+        from app.pipeline.evidence_ledger import get_ledger
+
+        ledger = get_ledger(check_id)
+
+        try:
+            cache_service = await get_cache_service()
+        except Exception as e:
+            logger.warning(f"[PHASE 2] Cache service init failed: {e}")
+            cache_service = None
+
+        async with async_session() as session:
+            # Load check
+            stmt = select(Check).where(Check.id == check_id)
+            result = await session.execute(stmt)
+            check = result.scalar_one_or_none()
+
+            if not check:
+                raise PipelineError(f"Check {check_id} not found", stage="phase2_init")
+
+            entry_mode = check.entry_mode or "article"
+
+            # Load content from input_content
+            input_content = (
+                json.loads(check.input_content) if check.input_content else {}
+            )
+            content = {
+                "content": check.article_excerpt or "",
+                "metadata": {
+                    "url": check.input_url,
+                    "title": None,
+                },
+            }
+
+            # Reconstruct article_classification from check fields
+            article_classification = None
+            if check.article_domain:
+                article_classification = type(
+                    "ArticleClassification",
+                    (),
+                    {
+                        "primary_domain": check.article_domain,
+                        "secondary_domains": check.article_secondary_domains or [],
+                        "jurisdiction": check.article_jurisdiction,
+                        "confidence": (
+                            check.article_classification_confidence / 100.0
+                            if check.article_classification_confidence
+                            else None
+                        ),
+                        "source": check.article_classification_source,
+                        "to_dict": lambda self: {
+                            "primary_domain": self.primary_domain,
+                            "secondary_domains": self.secondary_domains,
+                            "jurisdiction": self.jurisdiction,
+                            "confidence": self.confidence,
+                            "source": self.source,
+                        },
+                    },
+                )()
+
+            # Load claims from DB
+            claims_stmt = (
+                select(Claim).where(Claim.check_id == check_id).order_by(Claim.position)
+            )
+            claims_result = await session.execute(claims_stmt)
+            db_claims = claims_result.scalars().all()
+
+            claims = []
+            for db_claim in db_claims:
+                claim_dict = {
+                    "text": db_claim.text,
+                    "position": db_claim.position,
+                    "is_selected": db_claim.is_selected,
+                    "significance_rank": db_claim.significance_rank,
+                    "significance_score": db_claim.significance_score,
+                    "claim_type": db_claim.claim_type,
+                    "subject_context": db_claim.subject_context,
+                    "key_entities": db_claim.key_entities,
+                    "source_title": db_claim.source_title,
+                    "source_url": db_claim.source_url,
+                    "source_date": db_claim.source_date,
+                    "rhetorical_analysis": db_claim.rhetorical_context,
+                    "has_rhetorical_context": db_claim.has_rhetorical_context,
+                    "rhetorical_style": db_claim.rhetorical_style,
+                }
+                if article_classification:
+                    claim_dict["article_classification"] = (
+                        article_classification.to_dict()
+                    )
+                claims.append(claim_dict)
+
+            selected_claims = [c for c in claims if c.get("is_selected")]
+
+            # Update check status to processing
+            check.status = "processing"
+            await session.commit()
+
+        # No frozen evidence in article mode phase2
+        frozen_evidence = None
+        frozen_evidence_claim_texts = {}
+        _replay_temp_token = None
+        _replay_evidence_token = None
+
+        logger.info(
+            f"[INLINE PIPELINE] Phase 2 starting for check {check_id}: "
+            f"{len(selected_claims)} selected claims of {len(claims)} total"
+        )
+
+    # =========================================================================
+    # Stage 2.5: Fact-check Lookup (optional, skipped for frozen replay)
+    # =========================================================================
+    current_stage = "select"
+    factcheck_evidence = {}
+    if frozen_evidence:
+        logger.info(
+            "[FROZEN EVIDENCE REPLAY] Skipping fact-check API for deterministic replay"
+        )
+    elif settings.ENABLE_FACTCHECK_API:
+        await _log_stage_transition(
+            check_id, current_stage, "factcheck", progress_reporter
+        )
+        current_stage = "factcheck"
+        stage_start = datetime.utcnow()
+        try:
+            factcheck_evidence = await search_factchecks_for_claims(claims)
+            logger.info(
+                f"[INLINE PIPELINE] Found {sum(len(v) for v in factcheck_evidence.values())} fact-checks"
+            )
+        except Exception as e:
+            logger.warning(f"Fact-check lookup failed (non-critical): {e}")
+        stage_timings["factcheck"] = (datetime.utcnow() - stage_start).total_seconds()
 
     # =========================================================================
     # Stage 3: Decompose Claims into Elements
@@ -471,13 +764,8 @@ async def run_pipeline(
     stage_start = datetime.utcnow()
 
     source_url = content.get("metadata", {}).get("url")
-    retrieve_timeout = (
-        180  # 180 seconds (3 min) for evidence retrieval - increased from 90s
-    )
+    retrieve_timeout = 180
 
-    # V2 FROZEN EVIDENCE REPLAY: Build evidence dict directly from frozen data,
-    # bypassing retrieve entirely. The frozen evidence is already post-filtering
-    # (captured at analyzer_input stage), so no further processing is needed.
     _v2_frozen_bypass = frozen_evidence and any(
         claim.get("frozen_evidence") for claim in claims
     )
@@ -487,7 +775,7 @@ async def run_pipeline(
         for claim in claims:
             pos = str(claim.get("position", 0))
             frozen_items = claim.get("frozen_evidence", [])
-            evidence[pos] = frozen_items  # Already post-filtering, use as-is
+            evidence[pos] = frozen_items
         raw_evidence_data = []
         raw_sources_count = 0
         total_frozen = sum(len(ev) for ev in evidence.values())
@@ -507,9 +795,6 @@ async def run_pipeline(
 
         _retrieve_start = _time.time()
 
-        # Only retrieve evidence for SELECTED claims — unselected claims are shown
-        # in the report but don't get full analysis, so retrieving for them wastes
-        # search budget and content extraction time.
         retrieve_claims = selected_claims if selected_claims else claims
 
         logger.info(
@@ -517,15 +802,12 @@ async def run_pipeline(
             f"(of {len(claims)} total), timeout={retrieve_timeout}s"
         )
 
-        # Shared dict for progressive evidence storage — allows partial recovery on timeout
         _progressive_results = {}
 
         try:
             logger.info(
                 f"[INLINE PIPELINE] Starting evidence retrieval with {retrieve_timeout}s timeout"
             )
-            # Use asyncio.wait_for directly instead of thread pool - simpler and more reliable
-            # Thread pool was causing issues with async httpx clients
             retrieval_result = await asyncio.wait_for(
                 retrieve_evidence_with_cache(
                     retrieve_claims,
@@ -543,7 +825,6 @@ async def run_pipeline(
         except asyncio.TimeoutError:
             _retrieve_elapsed = _time.time() - _retrieve_start
 
-            # Attempt partial recovery from progressive results
             partial_evidence = _progressive_results.get("evidence_by_claim", {})
             partial_count = sum(len(ev) for ev in partial_evidence.values())
 
@@ -591,7 +872,6 @@ async def run_pipeline(
             else:
                 raise PipelineError(f"Evidence retrieval failed: {e}", stage="retrieve")
 
-        # Handle result format
         if (
             isinstance(retrieval_result, dict)
             and "evidence_by_claim" in retrieval_result
@@ -606,7 +886,6 @@ async def run_pipeline(
 
         stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
 
-        # Save pre-weighting evidence to ledger (for freeze capture)
         pre_weighting_evidence = (
             retrieval_result.get("pre_weighting_evidence", {})
             if isinstance(retrieval_result, dict)
@@ -633,7 +912,6 @@ async def run_pipeline(
             total=total_evidence,
             per_claim={pos: len(ev) for pos, ev in evidence.items()},
         )
-        # Aggregate per-claim filter stats from raw evidence tracking
         if raw_evidence_data:
             from collections import Counter
 
@@ -653,7 +931,6 @@ async def run_pipeline(
                     claim_filter_counts[pos]["excluded_by_stage"][
                         raw_item["filter_stage"]
                     ] += 1
-            # Count unknown-domain items filtered at credibility stage
             unknown_domain_filtered = 0
             for raw_item in raw_evidence_data:
                 if not raw_item.get("is_included"):
@@ -678,13 +955,6 @@ async def run_pipeline(
     # =========================================================================
     # Stage 3.6: Cross-Claim URL Deduplication
     # =========================================================================
-    # IMPORTANT: Same article URL must only appear ONCE across all claims.
-    # This prevents the same source being used to "prove" multiple claims,
-    # which creates appearance of bias and reduces source diversity.
-    # This runs BEFORE global domain capping so the capper works with clean data.
-    #
-    # V2 frozen evidence replay: skip Stages 3.6, 3.7, 3.8 entirely.
-    # Frozen evidence is already post-filtering (captured at analyzer_input stage).
     from app.pipeline.replay_context import frozen_evidence_replay as _fer_var
 
     _is_frozen_evidence_replay = _fer_var.get(False)
@@ -696,11 +966,9 @@ async def run_pipeline(
     elif evidence:
         stage_start = datetime.utcnow()
         try:
-            # Flatten all evidence with claim tracking
-            # Allow each URL to appear in up to MAX_CLAIMS_PER_URL claims (default 1 = old behavior)
             max_claims_per_url = getattr(settings, "MAX_CLAIMS_PER_URL", 1)
-            url_claims = {}  # url -> [(claim_pos, evidence_item, score), ...]
-            dedup_losers = [] if ledger else None  # Track casualties for ledger
+            url_claims = {}
+            dedup_losers = [] if ledger else None
 
             for claim_pos, ev_list in evidence.items():
                 for ev in ev_list:
@@ -716,23 +984,15 @@ async def run_pipeline(
                     if url not in url_claims:
                         url_claims[url] = [(claim_pos, ev, score)]
                     elif claim_pos in {entry[0] for entry in url_claims[url]}:
-                        # Same URL in same claim (serving different elements) — always allow
                         url_claims[url].append((claim_pos, ev, score))
                     elif (
                         len({entry[0] for entry in url_claims[url]})
                         < max_claims_per_url
                     ):
-                        # Under the cross-claim limit — keep this copy too
                         url_claims[url].append((claim_pos, ev, score))
                     else:
-                        # At the cross-claim limit — drop the weakest cross-claim copy (keep-best)
-                        # Deterministic tie-break: lower claim_pos wins
-                        # Only consider cross-claim entries for eviction
                         entries = url_claims[url] + [(claim_pos, ev, score)]
-                        entries.sort(
-                            key=lambda x: (-x[2], x[0])
-                        )  # score DESC, claim_pos ASC
-                        # Keep entries up to max unique claims
+                        entries.sort(key=lambda x: (-x[2], x[0]))
                         kept = []
                         seen_claims = set()
                         for entry in entries:
@@ -758,13 +1018,11 @@ async def run_pipeline(
                                     )
                         url_claims[url] = kept
 
-            # Rebuild evidence_by_claim from url_claims
             deduped_evidence = {pos: [] for pos in evidence.keys()}
             for url, entries in url_claims.items():
                 for claim_pos, ev, score in entries:
                     deduped_evidence[claim_pos].append(ev)
 
-            # Count what was removed
             before_count = sum(len(ev_list) for ev_list in evidence.values())
             after_count = sum(len(ev_list) for ev_list in deduped_evidence.values())
             removed_count = before_count - after_count
@@ -805,13 +1063,6 @@ async def run_pipeline(
     # =========================================================================
     # Stage 3.7: LLM Relevance Scoring with Reassignment
     # =========================================================================
-    # IMPORTANT: This stage now REASSIGNS evidence to correct claims based on
-    # what the LLM determines each evidence actually helps verify.
-    # This runs BEFORE domain capping so capping operates on correctly-assigned evidence.
-    #
-    # SKIP during V2 frozen evidence replay: frozen evidence is already in
-    # correct claim buckets from the baseline run. Re-scoring would introduce
-    # LLM nondeterminism and break evidence determinism.
     if _is_frozen_evidence_replay and evidence:
         logger.info(
             f"[LLM SCORER] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
@@ -832,14 +1083,11 @@ async def run_pipeline(
 
             article_excerpt = content.get("content", "")[:5000]
             claim_texts = [c.get("text", "") for c in claims]
-            # Direct await - score_evidence_batch is async
             evidence = await score_evidence_batch(
                 claims=claim_texts, evidence=evidence, article_context=article_excerpt
             )
 
             count_after_scoring = sum(len(ev_list) for ev_list in evidence.values())
-            # Note: Count may increase due to reassignment (evidence can go to multiple claims)
-            # Domain capping in the next stage will handle this
             logger.info(
                 f"[LLM SCORER] Evidence after scoring/reassignment: {count_before_scoring} → {count_after_scoring}"
             )
@@ -860,13 +1108,6 @@ async def run_pipeline(
     # =========================================================================
     # Stage 3.8: Global Domain Capping
     # =========================================================================
-    # IMPORTANT: This limits any single domain to appear at most GLOBAL_MAX_PER_DOMAIN
-    # times (default 3) or GLOBAL_MAX_DOMAIN_RATIO of total evidence (default 15%).
-    # This prevents bias where one source dominates the fact-check.
-    # Runs AFTER LLM scoring so it operates on correctly-assigned evidence.
-    #
-    # SKIP during V2 frozen evidence replay: frozen evidence is already
-    # post-capping (captured at analyzer_input stage).
     if _is_frozen_evidence_replay and evidence:
         logger.info(
             f"[GLOBAL CAP] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
@@ -877,7 +1118,6 @@ async def run_pipeline(
             from app.utils.domain_capping import DomainCapper
             from app.utils.url_utils import extract_domain
 
-            # Log domain distribution BEFORE capping
             domain_counts_before = {}
             for ev_list in evidence.values():
                 for ev in ev_list:
@@ -898,7 +1138,6 @@ async def run_pipeline(
                 global_max_ratio=settings.GLOBAL_MAX_DOMAIN_RATIO,
             )
 
-            # Log domain distribution AFTER capping
             domain_counts_after = {}
             for ev_list in evidence.values():
                 for ev in ev_list:
@@ -912,7 +1151,6 @@ async def run_pipeline(
             )
 
             if ledger:
-                # Record which domains were capped
                 caps_applied = {
                     d: {
                         "before": domain_counts_before.get(d, 0),
@@ -949,7 +1187,6 @@ async def run_pipeline(
     current_stage = "analyze"
     stage_start = datetime.utcnow()
 
-    # FINAL EVIDENCE SUMMARY — log what the analyzer will use
     from app.utils.url_utils import extract_domain
 
     final_evidence_count = sum(len(ev_list) for ev_list in evidence.values())
@@ -1065,7 +1302,6 @@ async def run_pipeline(
     article_excerpt = content.get("content", "")[:5000]
     analyze_timeout = min(15 * len(selected_claims), 120)
 
-    # Map evidence to elements for each selected claim (concurrent, capped)
     _analyze_sem = asyncio.Semaphore(max_concurrent)
 
     async def _map_evidence_for_claim(claim):
@@ -1077,7 +1313,6 @@ async def run_pipeline(
                     claim["claim_map"], claim_evidence
                 )
                 claim["claim_map"] = completed
-                # Attach evidence list to claim for DB save
                 claim["evidence"] = claim_evidence
 
     try:
@@ -1150,7 +1385,6 @@ async def run_pipeline(
     # =========================================================================
     # Build Final Result
     # =========================================================================
-    # Build claim results with ClaimMap data
     results = []
     for claim in claims:
         pos = str(claim.get("position", 0))
@@ -1203,7 +1437,7 @@ async def run_pipeline(
             "raw_sources_reviewed": raw_sources_count,
             "stage_timings": stage_timings,
             "total_stage_time": sum(stage_timings.values()),
-            "pipeline_version": "inline_sse_v3",
+            "pipeline_version": "inline_sse_v4",
         },
     }
 

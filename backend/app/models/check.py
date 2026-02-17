@@ -20,7 +20,7 @@ class Check(SQLModel, table=True):
     input_url: Optional[str] = None
     status: str = Field(
         default="pending"
-    )  # 'pending', 'processing', 'completed', 'failed'
+    )  # 'pending', 'processing', 'waiting_for_selection', 'completed', 'failed'
     credits_used: int = Field(default=1)
     processing_time_ms: Optional[int] = None
     error_message: Optional[str] = None

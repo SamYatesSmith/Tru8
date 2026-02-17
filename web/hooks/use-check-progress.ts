@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import type { ClaimForSelection } from '@/components/claim-selection/types';
 
 interface ProgressData {
-  type: 'progress' | 'completed' | 'error' | 'heartbeat' | 'connected' | 'timeout';
+  type: 'progress' | 'completed' | 'error' | 'heartbeat' | 'connected' | 'timeout' | 'awaiting_selection';
   checkId?: string;
   stage?: string;
   progress?: number;
@@ -11,6 +12,7 @@ interface ProgressData {
   error?: string;
   timestamp?: string;
   timeEstimate?: string;
+  claims?: ClaimForSelection[];
 }
 
 interface UseCheckProgressReturn {
@@ -18,6 +20,8 @@ interface UseCheckProgressReturn {
   currentStage: string;
   isConnected: boolean;
   isCompleted: boolean;  // True when SSE received 'completed' event
+  isAwaitingSelection: boolean; // True when SSE received 'awaiting_selection' event
+  claimsForSelection: ClaimForSelection[] | null; // Claims to display in selection UI
   error: string | null;
   message: string | null;
   timeEstimate: string | null;
@@ -37,6 +41,8 @@ export function useCheckProgress(
   const [currentStage, setCurrentStage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isAwaitingSelection, setIsAwaitingSelection] = useState(false);
+  const [claimsForSelection, setClaimsForSelection] = useState<ClaimForSelection[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [timeEstimate, setTimeEstimate] = useState<string | null>(null);
@@ -112,6 +118,14 @@ export function useCheckProgress(
               eventSource.close();
               break;
 
+            case 'awaiting_selection':
+              setIsAwaitingSelection(true);
+              setClaimsForSelection(data.claims || []);
+              setCurrentStage('select');
+              setMessage('Select claims to investigate');
+              // Don't close EventSource — let it close naturally
+              break;
+
             case 'timeout':
               setError('Connection timeout - please refresh');
               eventSource.close();
@@ -165,6 +179,8 @@ export function useCheckProgress(
     currentStage,
     isConnected,
     isCompleted,
+    isAwaitingSelection,
+    claimsForSelection,
     error,
     message,
     timeEstimate,

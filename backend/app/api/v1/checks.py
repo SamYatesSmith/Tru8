@@ -548,12 +548,18 @@ async def create_check_test_streaming(
                 timeout=300,
             )
 
-            async with async_session() as save_session:
-                await save_check_results_async(check.id, result, save_session)
-                await save_session.commit()
+            # result is None for article mode (waiting_for_selection)
+            if result is not None:
+                async with async_session() as save_session:
+                    await save_check_results_async(check.id, result, save_session)
+                    await save_session.commit()
 
-            await progress_reporter.report_completed()
-            logger.info(f"[TEST STREAM] Check {check.id} completed successfully")
+                await progress_reporter.report_completed()
+                logger.info(f"[TEST STREAM] Check {check.id} completed successfully")
+            else:
+                logger.info(
+                    f"[TEST STREAM] Check {check.id} paused — waiting for claim selection"
+                )
 
         except asyncio.TimeoutError:
             logger.error(f"[TEST STREAM] Pipeline timed out for check {check.id}")
@@ -792,23 +798,31 @@ async def create_check_streaming(
                 run_pipeline(check.id, user.id, input_data, progress_reporter),
                 timeout=300,  # 5 minute hard timeout
             )
-            logger.info(f"[PIPELINE TASK] Pipeline completed for check {check.id}")
 
-            # Save results to database
-            async with async_session() as save_session:
-                await save_check_results_async(check.id, result, save_session)
-                await save_session.commit()
-            logger.info(f"[PIPELINE TASK] Results saved for check {check.id}")
+            # result is None for article mode (waiting_for_selection)
+            if result is not None:
+                logger.info(f"[PIPELINE TASK] Pipeline completed for check {check.id}")
 
-            # Send success notifications
-            content_data = {"metadata": result.get("ingest_metadata", {})}
-            await send_success_notifications(
-                user.id, check.id, result, input_data, content_data
-            )
+                # Save results to database
+                async with async_session() as save_session:
+                    await save_check_results_async(check.id, result, save_session)
+                    await save_session.commit()
+                logger.info(f"[PIPELINE TASK] Results saved for check {check.id}")
 
-            # Signal completion
-            await progress_reporter.report_completed()
-            logger.info(f"[PIPELINE TASK] Check {check.id} fully completed")
+                # Send success notifications
+                content_data = {"metadata": result.get("ingest_metadata", {})}
+                await send_success_notifications(
+                    user.id, check.id, result, input_data, content_data
+                )
+
+                # Signal completion
+                await progress_reporter.report_completed()
+                logger.info(f"[PIPELINE TASK] Check {check.id} fully completed")
+            else:
+                logger.info(
+                    f"[PIPELINE TASK] Check {check.id} phase 1 complete — "
+                    f"waiting for claim selection"
+                )
 
         except asyncio.TimeoutError:
             logger.error(f"[PIPELINE TASK] Pipeline timed out for check {check.id}")
@@ -982,7 +996,7 @@ async def get_check(
     progress_percent = None
     progress_message = None
 
-    if check.status == "processing":
+    if check.status in ("processing", "waiting_for_selection"):
         try:
             redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
             progress_data = redis_client.get(f"inline-progress:{check_id}")
@@ -1102,6 +1116,172 @@ async def get_check(
         "currentStage": current_stage,
         "progress": progress_percent,
         "progressMessage": progress_message,
+    }
+
+
+# ============================================================================
+# CLAIM SELECTION ENDPOINT (Phase 1 → Phase 2 gate)
+# ============================================================================
+
+
+class SelectClaimsRequest(BaseModel):
+    """Request body for claim selection endpoint."""
+
+    selected_positions: List[int]
+
+
+@router.patch("/{check_id}/select-claims")
+async def select_claims(
+    check_id: str,
+    body: SelectClaimsRequest,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Select claims for Phase 2 analysis (article mode only).
+
+    After Phase 1 extracts and ranks claims, the frontend presents them
+    to the user. The user selects which claims to investigate, and this
+    endpoint triggers Phase 2 of the pipeline.
+
+    Request body: {"selected_positions": [0, 2, 4]}
+    """
+    from app.core.database import async_session as async_session_factory
+    from app.pipeline.progress import ProgressReporter
+    from app.pipeline.runner import (
+        run_pipeline_phase2,
+        save_check_results_async,
+        handle_pipeline_failure,
+        send_success_notifications,
+        PipelineError,
+    )
+
+    # 1. Validate check exists and belongs to user
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    # 2. Validate check is in waiting_for_selection status
+    if check.status != "waiting_for_selection":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Check is not waiting for claim selection (current status: {check.status})",
+        )
+
+    # 3. Validate selected_positions
+    if not body.selected_positions:
+        raise HTTPException(
+            status_code=400, detail="At least one claim must be selected"
+        )
+
+    # Load claims to validate positions
+    claims_stmt = (
+        select(Claim).where(Claim.check_id == check_id).order_by(Claim.position)
+    )
+    claims_result = await session.execute(claims_stmt)
+    db_claims = list(claims_result.scalars().all())
+
+    valid_positions = {c.position for c in db_claims}
+    invalid_positions = [p for p in body.selected_positions if p not in valid_positions]
+
+    if invalid_positions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid claim positions: {invalid_positions}. Valid: {sorted(valid_positions)}",
+        )
+
+    # 4. Update claim selection in DB
+    selected_set = set(body.selected_positions)
+    for claim in db_claims:
+        claim.is_selected = claim.position in selected_set
+
+    check.selected_claims_count = len(selected_set)
+
+    await session.commit()
+
+    logger.info(
+        f"[SELECT CLAIMS] Check {check_id}: user selected positions {body.selected_positions} "
+        f"({len(selected_set)} of {len(db_claims)} claims)"
+    )
+
+    # 5. Trigger Phase 2 as a background task
+    input_content = json.loads(check.input_content) if check.input_content else {}
+    input_data = {
+        "input_type": check.input_type,
+        "content": input_content.get("content"),
+        "url": input_content.get("url") or check.input_url,
+        "file_path": input_content.get("file_path"),
+        "user_query": check.user_query,
+    }
+
+    progress_reporter = ProgressReporter(check_id)
+
+    async def run_phase2_and_save():
+        try:
+            logger.info(f"[PHASE 2 TASK] Starting phase 2 for check {check_id}")
+            phase2_result = await asyncio.wait_for(
+                run_pipeline_phase2(
+                    check_id=check_id,
+                    user_id=current_user["id"],
+                    input_data=input_data,
+                    progress_reporter=progress_reporter,
+                ),
+                timeout=300,
+            )
+
+            # Save results
+            async with async_session_factory() as save_session:
+                await save_check_results_async(check_id, phase2_result, save_session)
+                await save_session.commit()
+
+            logger.info(f"[PHASE 2 TASK] Results saved for check {check_id}")
+
+            # Send notifications
+            content_data = {"metadata": phase2_result.get("ingest_metadata", {})}
+            await send_success_notifications(
+                current_user["id"], check_id, phase2_result, input_data, content_data
+            )
+
+            await progress_reporter.report_completed()
+            logger.info(f"[PHASE 2 TASK] Check {check_id} fully completed")
+
+        except asyncio.TimeoutError:
+            logger.error(f"[PHASE 2 TASK] Phase 2 timed out for check {check_id}")
+            await handle_pipeline_failure(
+                check_id,
+                current_user["id"],
+                Exception("Analysis timed out after 5 minutes"),
+            )
+            await progress_reporter.report_error(
+                "Analysis timed out. Your credit has been returned."
+            )
+
+        except PipelineError as e:
+            logger.error(f"[PHASE 2 TASK] Pipeline error for check {check_id}: {e}")
+            await handle_pipeline_failure(check_id, current_user["id"], e)
+            await progress_reporter.report_error(str(e))
+
+        except Exception as e:
+            logger.error(f"[PHASE 2 TASK] Unexpected error for check {check_id}: {e}")
+            import traceback
+
+            logger.error(traceback.format_exc())
+            await handle_pipeline_failure(check_id, current_user["id"], e)
+            await progress_reporter.report_error(str(e))
+
+    asyncio.create_task(run_phase2_and_save())
+
+    return {
+        "status": "processing",
+        "checkId": check_id,
+        "selectedPositions": body.selected_positions,
+        "selectedCount": len(selected_set),
+        "message": "Analysis started for selected claims",
     }
 
 

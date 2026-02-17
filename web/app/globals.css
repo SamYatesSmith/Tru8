@@ -367,3 +367,84 @@ a:focus-visible {
 .prose-legal td {
   @apply p-3 border border-zinc-200 text-zinc-700;
 }
+
+/* Claim Selection Cards (V-05) */
+.claim-select-card {
+  position: relative;
+  background: #FAFAFA;
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.claim-select-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.claim-select-card:hover:not(.selected) {
+  border-color: #D1D5DB;
+  background: white;
+  transform: translateY(-1px);
+}
+
+.claim-select-card.selected {
+  background: white;
+  border-color: #D4D4D8;
+  border-left: 3px solid var(--accent);
+  transform: translateY(-2px);
+}
+
+.claim-select-card.selected::before {
+  background: var(--accent);
+}
+
+.claim-select-card .claim-text {
+  color: #A1A1AA;
+  transition: color 0.2s ease;
+}
+
+.claim-select-card.selected .claim-text {
+  color: #18181B;
+}
+
+.claim-select-card .rank-num {
+  color: #D4D4D8;
+  transition: color 0.2s ease;
+}
+
+.claim-select-card.selected .rank-num {
+  color: #18181B;
+}
+
+.select-indicator {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #D4D4D8;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.claim-select-card.selected .select-indicator {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.claim-select-card .type-badge {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.claim-select-card.selected .type-badge {
+  opacity: 1;
+}

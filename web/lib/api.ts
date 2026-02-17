@@ -307,6 +307,21 @@ class ApiClient {
   }
 
   /**
+   * PATCH /api/v1/checks/{check_id}/select-claims
+   * Submit selected claims for Phase 2 analysis (article mode)
+   */
+  async selectClaims(
+    checkId: string,
+    selectedPositions: number[],
+    token?: string | null
+  ): Promise<{ status: string; checkId: string; selectedPositions: number[]; selectedCount: number }> {
+    return this.request(`/api/v1/checks/${checkId}/select-claims`, {
+      method: 'PATCH',
+      body: JSON.stringify({ selected_positions: selectedPositions }),
+    }, token);
+  }
+
+  /**
    * GET /api/v1/checks
    * Get user's fact-check history with pagination
    */

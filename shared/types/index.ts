@@ -1,5 +1,5 @@
 // Check status
-export type CheckStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type CheckStatus = 'pending' | 'processing' | 'waiting_for_selection' | 'completed' | 'failed';
 
 // Input types
 export type InputType = 'url' | 'text' | 'image' | 'video';
@@ -62,6 +62,7 @@ export interface Claim {
   claimType?: ClaimType; // 5-way taxonomy from decomposition
   isSelected?: boolean; // Article mode: selected for full analysis
   significanceRank?: number; // Article mode: position in significance ranking
+  significanceScore?: number; // Article mode: significance score from ranking
 }
 
 export interface Evidence {
