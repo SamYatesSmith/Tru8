@@ -14,8 +14,9 @@ import { ShareSection } from './components/share-section';
 import { NavigationSection } from './components/navigation-section';
 import { ErrorState } from './components/error-state';
 import { ClarityResponseCard } from './components/clarity-response-card';
-import { CheckTabs } from './components/check-tabs';
 import { UpgradeModal } from './components/upgrade-modal';
+import { ClaimList } from '@/components/evidence-views/overview';
+import { ViewSelector, EvidenceMetaStrip } from '@/components/evidence-views';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -32,6 +33,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [sourcesCount, setSourcesCount] = useState(rawSourcesCount);
   const [isProUser, setIsProUser] = useState(isPro);
+  const [activeOverviewTab, setActiveOverviewTab] = useState('cartographer');
 
   // Check for upgrade query param
   useEffect(() => {
@@ -189,16 +191,6 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       {/* Metadata Card - Always shown (now includes transparency score) */}
       <CheckMetadataCard check={checkData} />
 
-      {/* Tab Toggle for Evidence Map/Sources (only shown when completed) */}
-      {checkData.status === 'completed' && (
-        <CheckTabs
-          checkId={checkId}
-          sourcesCount={sourcesCount}
-          isPro={isProUser}
-          isCompleted={checkData.status === 'completed'}
-        />
-      )}
-
       {/* Upgrade Modal for Sources */}
       {showUpgradeModal && (
         <UpgradeModal
@@ -240,13 +232,28 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
               claims={checkData.claims}
             />
           )}
-          <ClaimsSection claims={checkData.claims} checkId={checkId} />
-          <OverallSummaryCard
-            claims={checkData.claims}
-            checkId={checkId}
-            sourcesCount={sourcesCount}
+
+          {/* Evidence Meta Strip */}
+          <EvidenceMetaStrip
+            referenceId={checkData.id}
+            claimsCount={checkData.claims.length}
+            sourcesCount={checkData.claims.reduce((sum: number, c: any) => sum + (c.evidence?.length || 0), 0)}
             processingTimeMs={checkData.processingTimeMs}
           />
+
+          {/* Claim Grid (Overview) */}
+          <ClaimList claims={checkData.claims} checkId={checkId} />
+
+          {/* Check-Wide View Selector */}
+          <ViewSelector mode="overview" activeTab={activeOverviewTab} onTabChange={setActiveOverviewTab} />
+
+          {/* Check-wide view content placeholder — actual views in E10-E12 */}
+          <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
+              Check-wide {activeOverviewTab} view — coming in E10-E12
+            </p>
+          </div>
+
           <ShareSection checkId={checkId} inputUrl={checkData.inputUrl} title={checkData.title} />
           <NavigationSection />
         </>

@@ -34,6 +34,20 @@
   --danger: #DC2626;
   --warning: #D97706;
   --info: #1E40AF;
+
+  /* Evidence disposition colours (E09) */
+  --disposition-supports: #10B981;  /* emerald-500 */
+  --disposition-challenges: #F59E0B;  /* amber-500 */
+  --disposition-context: #94A3B8;   /* slate-400 */
+
+  /* Tier accent colours (E09) */
+  --tier1-accent: #EA580C;  /* orange-600, same as --accent */
+  --tier2-accent: #3F3F46;  /* zinc-700 */
+  --tier3-accent: #A1A1AA;  /* zinc-400 */
+
+  /* Convergence/divergence indicators (E09) */
+  --convergence: #EA580C;
+  --divergence: #F59E0B;
 }
 
 /* Mobile-first responsive typography */
@@ -447,4 +461,17 @@ a:focus-visible {
 
 .claim-select-card.selected .type-badge {
   opacity: 1;
+}
+
+/* Evidence View Cards (E09) */
+.claim-overview-card {
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.claim-overview-card:hover {
+  border-color: #A1A1AA;
+  transform: translateY(-1px);
+}
+.claim-overview-card:hover .drill-arrow {
+  color: #18181B;
 }

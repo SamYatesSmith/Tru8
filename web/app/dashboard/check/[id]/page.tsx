@@ -59,6 +59,11 @@ export default async function CheckDetailPage({ params }: CheckDetailPageProps) 
     throw error;
   }
 
+  // Single-claim skip: go directly to Detail page (V-04: "Never show an Overview page with a single card")
+  if (checkData.status === 'completed' && checkData.claims?.length === 1) {
+    redirect(`/dashboard/check/${params.id}/claim/0`);
+  }
+
   return (
     <div className="space-y-8">
       {/* Page Header */}
