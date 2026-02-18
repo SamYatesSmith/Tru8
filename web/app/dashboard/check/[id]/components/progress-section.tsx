@@ -16,7 +16,8 @@ export function ProgressSection({ progress, currentStage, isConnected, message, 
     { key: 'extract', label: 'Finding Claims', description: 'Identifying claims to analyze' },
     { key: 'select', label: 'Selecting Claims', description: 'Ranking claims for analysis' },
     { key: 'decompose', label: 'Decomposing Claims', description: 'Breaking claims into elements' },
-    { key: 'retrieve', label: 'Gathering Evidence', description: 'Searching trusted sources' },
+    { key: 'retrieve', label: 'Gathering Evidence', description: 'Searching multiple sources' },
+    { key: 'classify', label: 'Classifying Evidence', description: 'Identifying tier and type for each source' },
     { key: 'analyze', label: 'Mapping Evidence', description: 'Connecting evidence to elements' },
   ];
 

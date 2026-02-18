@@ -1,35 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, ExternalLink, ChevronDown, Reply } from 'lucide-react';
+import { ArrowLeft, Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Reply } from 'lucide-react';
 import { isTweetUrl, extractTweetId, buildTwitterReplyUrl } from '@/lib/twitter-utils';
 import { ClaimMapView, OrientationLine } from '@/components/claim-map';
-import { FactCheckBadge } from '@/app/dashboard/components/fact-check-badge';
 import { TimeSensitiveIndicator } from '@/app/dashboard/components/time-sensitive-indicator';
-import { formatMonthYear, formatRelativeTime } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
+import { ViewSelector, EvidenceMetaStrip } from '@/components/evidence-views';
+import { CartographerView } from '@/components/evidence-views/cartographer';
+import { LibrarianView } from '@/components/evidence-views/librarian';
+import { InterpreterView } from '@/components/evidence-views/interpreter';
 
 interface PublicReportClientProps {
   check: any;
   highlightClaim?: number;
 }
 
-// Helper function for NLI explanations
-function generateNliExplanation(stance: string, confidence?: number): string {
-  const confidenceLevel = (confidence || 0) >= 0.8 ? 'strongly' :
-                          (confidence || 0) >= 0.6 ? 'moderately' : 'weakly';
-
-  if (stance === 'supporting') {
-    return `This evidence ${confidenceLevel} confirms key aspects of the claim.`;
-  } else if (stance === 'contradicting') {
-    return `This evidence ${confidenceLevel} disputes the claim.`;
-  }
-  return 'This evidence provides context but neither clearly supports nor contradicts the claim.';
-}
-
 export function PublicReportClient({ check, highlightClaim }: PublicReportClientProps) {
-  const [expandedClaim, setExpandedClaim] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [activeView, setActiveView] = useState<string>('cartographer');
+  const [activeClaimIndex, setActiveClaimIndex] = useState(0);
 
   // Detect if source is a tweet
   const isSourceTweet = isTweetUrl(check.inputUrl);
@@ -55,7 +46,7 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
     ? `${window.location.origin}/r/${check.id}`
     : `https://tru8.app/r/${check.id}`;
 
-  const shareText = `Evidence Report: ${check.title || 'See what credible sources say'}`;
+  const shareText = `Evidence Report: ${check.title || 'See the evidence landscape'}`;
 
   const handleShare = (platform: string) => {
     const shareUrls: Record<string, string> = {
@@ -85,9 +76,8 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
     window.open(replyUrl, '_blank', 'width=600,height=400');
   };
 
-  const toggleEvidence = (claimId: string) => {
-    setExpandedClaim(expandedClaim === claimId ? null : claimId);
-  };
+  const handleSwitchToLibrarian = useCallback(() => setActiveView('librarian'), []);
+  const handleSwitchToInterpreter = useCallback(() => setActiveView('interpreter'), []);
 
   // Get content display
   const getContentDisplay = () => {
@@ -228,156 +218,79 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
             </p>
           </div>
 
-          {check.claims.map((claim: any, index: number) => {
-            const isExpanded = expandedClaim === claim.id;
+          {/* Evidence Meta Strip */}
+          <EvidenceMetaStrip
+            referenceId={check.id}
+            claimsCount={check.claims.length}
+            sourcesCount={check.claims.reduce((sum: number, c: any) => sum + (c.evidence?.length || 0), 0)}
+            processingTimeMs={check.processingTimeMs}
+          />
 
-            // Sort evidence by relevance score, prioritize fact-checks
-            const sortedEvidence = [...(claim.evidence || [])].sort((a: any, b: any) => {
-              if (a.isFactcheck && !b.isFactcheck) return -1;
-              if (!a.isFactcheck && b.isFactcheck) return 1;
-              return (b.relevanceScore || 0) - (a.relevanceScore || 0);
-            });
+          {/* Claim Cards */}
+          {check.claims.map((claim: any, index: number) => (
+            <div
+              key={claim.id}
+              id={`claim-${claim.position}`}
+              className={`bg-white border border-zinc-200 p-6 space-y-4 scroll-mt-4 relative transition-all duration-300 cursor-pointer ${
+                activeClaimIndex === index ? 'border-zinc-900' : 'hover:border-zinc-400'
+              }`}
+              onClick={() => setActiveClaimIndex(index)}
+            >
+              {/* Claim Number */}
+              <span className="absolute top-4 right-6 font-mono text-[10px] text-zinc-400">
+                {String(index + 1).padStart(2, '0')} / {String(check.claims.length).padStart(2, '0')}
+              </span>
 
-            return (
-              <div
-                key={claim.id}
-                id={`claim-${claim.position}`}
-                className="bg-white border border-zinc-200 p-6 space-y-4 scroll-mt-4 relative transition-all duration-300"
-              >
-                {/* Claim Number */}
-                <span className="absolute top-4 right-6 font-mono text-[10px] text-zinc-400">
-                  {String(index + 1).padStart(2, '0')} / {String(check.claims.length).padStart(2, '0')}
-                </span>
-
-                {/* Claim Type & Time Sensitivity Indicators */}
-                {(claim.claimType || claim.isTimeSensitive) && (
-                  <div className="flex flex-wrap gap-2">
-                    {claim.isTimeSensitive && claim.timeReference && (
-                      <TimeSensitiveIndicator timeReference={claim.timeReference} />
-                    )}
-                    {claim.claimType && claim.claimType !== 'factual' && (
-                      <span className="px-2 py-1 bg-zinc-100 text-zinc-500 text-xs font-medium">
-                        {claim.claimType.replace('_', ' ')}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Claim Text */}
-                <p className="text-lg font-medium text-zinc-900">&quot;{claim.text}&quot;</p>
-
-                <ClaimMapView claim={claim} />
-
-                {/* Evidence Toggle Button */}
-                {claim.evidence && claim.evidence.length > 0 ? (
-                  <button
-                    onClick={() => toggleEvidence(claim.id)}
-                    className="flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-colors font-medium"
-                  >
-                    <span>Evidence Sources ({claim.evidence.length})</span>
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                ) : (
-                  <div className="mt-2 p-4 bg-amber-50 border border-amber-200">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-amber-100 flex items-center justify-center">
-                        <span className="text-amber-600 text-sm">!</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-amber-700">
-                          Unsupported Claim
-                        </h4>
-                        <p className="mt-1 text-xs text-amber-600 leading-relaxed">
-                          No credible sources were found to corroborate this claim.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Evidence List (Collapsible with Animation) */}
-                <div
-                  className={`overflow-hidden transition-all duration-300 ease-out ${
-                    isExpanded ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0'
-                  }`}
-                >
-                  <div className="pt-4 space-y-3">
-                    {sortedEvidence.map((evidence: any) => (
-                      <div
-                        key={evidence.id}
-                        onClick={() => window.open(evidence.url, '_blank', 'noopener,noreferrer')}
-                        className="flex items-start gap-3 p-4 bg-zinc-50 border border-zinc-200 hover:border-black transition-colors group cursor-pointer"
-                      >
-                        <div className="flex-1 min-w-0 space-y-2">
-                          {/* Fact-Check Badge */}
-                          {evidence.isFactcheck && evidence.factcheckPublisher && (
-                            <FactCheckBadge
-                              publisher={evidence.factcheckPublisher}
-                              rating={evidence.factcheckRating}
-                            />
-                          )}
-
-                          {/* Title */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-zinc-900 truncate">
-                              {evidence.title}
-                            </span>
-                            <ExternalLink
-                              size={14}
-                              className="text-zinc-400 group-hover:text-zinc-900 transition-colors flex-shrink-0"
-                            />
-                          </div>
-
-                          {/* NLI Stance Badge */}
-                          {evidence.nliStance && (
-                            <div className="mb-2">
-                              {evidence.nliStance === 'supporting' && (
-                                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
-                                  SUPPORTS CLAIM
-                                </span>
-                              )}
-                              {evidence.nliStance === 'contradicting' && (
-                                <span className="px-3 py-1 bg-red-50 text-red-700 border border-red-200 text-xs font-bold">
-                                  CONTRADICTS CLAIM
-                                </span>
-                              )}
-                              {evidence.nliStance === 'neutral' && (
-                                <span className="px-3 py-1 bg-zinc-100 text-zinc-500 border border-zinc-200 text-xs font-bold">
-                                  NEUTRAL
-                                </span>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Snippet */}
-                          <div className="p-3 bg-orange-50 border-l-4 border-accent">
-                            <p className="text-sm text-zinc-900 leading-relaxed">
-                              {evidence.snippet}
-                            </p>
-                          </div>
-
-                          {/* Metadata */}
-                          <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-400 flex-wrap">
-                            <span className="font-medium">{evidence.source}</span>
-                            {evidence.isFactcheck && (
-                              <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 font-bold uppercase">
-                                Fact-Check
-                              </span>
-                            )}
-                            <span>&middot;</span>
-                            <span>{formatMonthYear(evidence.publishedDate || null)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {/* Claim Type & Time Sensitivity Indicators */}
+              {(claim.claimType || claim.isTimeSensitive) && (
+                <div className="flex flex-wrap gap-2">
+                  {claim.isTimeSensitive && claim.timeReference && (
+                    <TimeSensitiveIndicator timeReference={claim.timeReference} />
+                  )}
+                  {claim.claimType && claim.claimType !== 'factual' && (
+                    <span className="px-2 py-1 bg-zinc-100 text-zinc-500 text-xs font-medium">
+                      {claim.claimType.replace('_', ' ')}
+                    </span>
+                  )}
                 </div>
+              )}
+
+              {/* Claim Text */}
+              <p className="text-lg font-medium text-zinc-900">&quot;{claim.text}&quot;</p>
+
+              <ClaimMapView claim={claim} />
+
+              {/* Source count */}
+              <div className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">
+                {claim.evidence?.length || 0} sources
               </div>
-            );
-          })}
+            </div>
+          ))}
+
+          {/* Per-Claim View Selector + Views */}
+          {check.claims[activeClaimIndex] && (
+            <div className="space-y-4">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+                Showing evidence for Claim {String(activeClaimIndex + 1).padStart(2, '0')}
+              </div>
+              <ViewSelector mode="detail" activeTab={activeView} onTabChange={setActiveView} />
+
+              {activeView === 'cartographer' && (
+                <CartographerView
+                  scope="claim"
+                  claims={[check.claims[activeClaimIndex]]}
+                  onSwitchToLibrarian={handleSwitchToLibrarian}
+                  onSwitchToInterpreter={handleSwitchToInterpreter}
+                />
+              )}
+              {activeView === 'librarian' && (
+                <LibrarianView scope="claim" claims={[check.claims[activeClaimIndex]]} />
+              )}
+              {activeView === 'interpreter' && (
+                <InterpreterView claim={check.claims[activeClaimIndex]} />
+              )}
+            </div>
+          )}
         </div>
       )}
 

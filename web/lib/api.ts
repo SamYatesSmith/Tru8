@@ -445,7 +445,7 @@ class ApiClient {
     checkId: string,
     options?: {
       includeFiltered?: boolean;
-      sortBy?: 'relevance' | 'credibility' | 'date';
+      sortBy?: 'relevance' | 'date';
     },
     token?: string | null
   ): Promise<{

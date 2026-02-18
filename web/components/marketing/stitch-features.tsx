@@ -21,7 +21,7 @@ const features = [
   {
     icon: BarChart3,
     title: 'Source Analysis',
-    description: 'Deep evaluation of source credibility and technical relevance.',
+    description: 'Comprehensive evidence landscape across primary, reporting, and commentary sources.',
   },
   {
     icon: GitPullRequest,

@@ -9,7 +9,6 @@ import { ClaimSelectionView } from '@/components/claim-selection';
 import { CheckMetadataCard } from './components/check-metadata-card';
 import { OverallSummaryCard } from './components/overall-summary-card';
 import { ProgressSection } from './components/progress-section';
-import { ClaimsSection } from './components/claims-section';
 import { ShareSection } from './components/share-section';
 import { NavigationSection } from './components/navigation-section';
 import { ErrorState } from './components/error-state';
@@ -263,7 +262,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
           {activeOverviewTab !== 'cartographer' && activeOverviewTab !== 'librarian' && (
             <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
               <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
-                Check-wide {activeOverviewTab} view — coming in E14-E15
+                Check-wide {activeOverviewTab} view — coming soon
               </p>
             </div>
           )}

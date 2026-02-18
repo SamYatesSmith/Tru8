@@ -121,27 +121,22 @@ export default function TermsOfServicePage() {
           <li>Uninterrupted availability</li>
         </ul>
 
-        <h3>6.3 Source Credibility Scoring</h3>
+        <h3>6.3 Source Classification</h3>
         <p>
-          Tru8 assigns credibility scores to sources based on:
+          Tru8 classifies sources by tier (primary, reporting, commentary) and
+          type (data, official statement, news reporting, analysis, opinion, academic)
+          to help you understand the evidence landscape. These classifications:
         </p>
         <ul>
-          <li>Independent media research and academic studies</li>
-          <li>Fact-checking track records (IFCN signatory assessments)</li>
-          <li>Journalistic standards and editorial processes</li>
-        </ul>
-        <p>
-          These scores:
-        </p>
-        <ul>
-          <li>Reflect general reliability patterns, not quality of individual articles</li>
-          <li>Are used to weight evidence, not to exclude sources entirely</li>
+          <li>Are descriptive labels, not quality judgments</li>
+          <li>Help organise evidence by origin and function</li>
           <li>Do not constitute Tru8&apos;s endorsement or criticism of any publication</li>
-          <li>May differ from other rating systems or personal assessments</li>
+          <li>Are subject to periodic review and update</li>
         </ul>
         <p>
-          Source ratings are editorial judgments informed by third-party research
-          and are subject to periodic review and update.
+          Every source excluded from the evidence display includes a receipt
+          explaining the reason for exclusion (e.g. duplicate content, insufficient
+          text, or irrelevance to the claim under analysis).
         </p>
 
         <h2>7. Intellectual Property</h2>
