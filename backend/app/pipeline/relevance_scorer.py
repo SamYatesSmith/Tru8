@@ -6,8 +6,9 @@ Understands whether evidence actually addresses claims, not just topical overlap
 
 Architecture:
 - ONE API call for all claims + all evidence (efficient batching)
-- Returns evidence items with llm_relevance_score (1-5) as advisory annotation
-- Advisory-only: scores inform downstream consumers but never veto evidence
+- Returns evidence items with llm_relevance_score (1-5) annotated
+- Score-1 items (off-topic) are excluded with receipt tracking
+- Score >= 2 and unevaluated (None) items are kept
 - Fair round-robin selection ensures all claims get evidence evaluated under MAX cap
 """
 
@@ -24,9 +25,9 @@ logger = logging.getLogger(__name__)
 RELEVANCE_CACHE_TTL_SECONDS = getattr(settings, "LLM_RELEVANCE_CACHE_TTL", 3600)
 
 
-RELEVANCE_SCORING_PROMPT = """You are an evidence analyst. Score how well each evidence piece ADDRESSES the specific claims below.
+RELEVANCE_SCORING_PROMPT = """You are an evidence analyst. Score how well each evidence piece is TOPICALLY RELEVANT to the specific claims below.
 
-CRITICAL: Score based on EVIDENTIAL VALUE for the SPECIFIC CLAIMS, considering both content relevance AND source authority.
+CRITICAL: Score based on TOPICAL RELEVANCE ONLY. Do NOT judge source reputation, authority, or trustworthiness. A blog post that directly addresses a claim is more relevant than a prestigious journal article about a different topic.
 
 CLAIM-EVIDENCE MATCHING IS ESSENTIAL:
 - Each piece of evidence may only address SOME claims, not all
@@ -35,28 +36,12 @@ CLAIM-EVIDENCE MATCHING IS ESSENTIAL:
 - The "relevant_claims" field MUST list ONLY the claims that evidence DIRECTLY addresses
 - If evidence is about a DIFFERENT aspect of the same topic, it is NOT relevant to that claim
 
-CLAIM TYPES - Recognize what kind of evidence each claim needs:
-1. EVENT CLAIMS (e.g., "5 healthcare workers infected") → Need news reports about that specific incident
-2. FACTUAL/REFERENCE CLAIMS (e.g., "virus has 40-75% fatality rate") → Need authoritative reference sources
-
-SOURCE AUTHORITY - Match source type to claim type:
-- MEDICAL/HEALTH claims → Prefer WHO, CDC, NHS, medical journals
-  → Sources with "entertainment_focus" or "lifestyle_content" flags should score 1-2
-- SCIENTIFIC claims → Prefer peer-reviewed, academic, government data
-  → Unknown sources (tier: general) should score 1-2 for statistical claims
-- SPORTS claims → Sports news, league sites, tabloids all acceptable
-- ENTERTAINMENT/CELEBRITY claims → Tabloids and lifestyle magazines ARE appropriate
-
-SOURCE SIGNALS IN EVIDENCE:
-- "tier: general" = unknown/unvetted source, treat with skepticism for authoritative claims
-- "risk_flags: entertainment_focus" = lifestyle magazine, inappropriate for medical claims
-- "risk_flags: sensationalism" = tabloid, deprioritize for scientific claims
-
-AUTOMATIC SCORE 1-2:
-- Pages ABOUT fact-checking tools (meta-sources)
-- News aggregator index pages
-- Sources with entertainment_focus/lifestyle_content flags FOR medical/scientific claims
-- Unknown sources (tier: general) for factual/statistical claims
+SCORING RUBRIC:
+5 = Directly addresses the specific claim with substantive content
+4 = Strongly relevant to the claim topic with useful detail
+3 = Partially relevant, addresses related but not identical topic
+2 = Weakly relevant, same general domain but different specific topic
+1 = Off-topic, does not address the claim, or is a meta-source (page about fact-checking tools, news aggregator index)
 
 ARTICLE UNDER EXAMINATION:
 {article_context}
@@ -67,27 +52,19 @@ CLAIMS TO EXAMINE:
 EVIDENCE ITEMS TO SCORE:
 {evidence_text}
 
-SCORING RUBRIC:
-5 = Directly addresses the claim from an authoritative source for this claim type
-4 = Strongly relevant from appropriate source
-3 = Relevant content BUT source questionable for this claim type
-2 = Weakly relevant OR inappropriate source type
-1 = OFF-TOPIC, META-SOURCE, or inappropriate source for claim type
-
 RESPONSE FORMAT (JSON array):
 [
-  {{"evidence_index": 0, "score": 5, "rationale": "WHO source authoritative for mortality data", "relevant_claims": [0, 2]}},
-  {{"evidence_index": 1, "score": 2, "rationale": "Lifestyle magazine inappropriate for medical statistics", "relevant_claims": []}}
+  {{"evidence_index": 0, "score": 5, "rationale": "Directly provides mortality data cited in claim", "relevant_claims": [0, 2]}},
+  {{"evidence_index": 1, "score": 1, "rationale": "Article is about a different policy entirely", "relevant_claims": []}}
 ]
 
 Rules:
 - evidence_index: 0-based index matching evidence order above
-- score: integer 1-5 per rubric (score accurately based on evidential value AND source authority)
-- rationale: 1-2 sentences explaining score, mention source appropriateness if relevant
+- score: integer 1-5 per rubric (score based on TOPICAL RELEVANCE ONLY, not source reputation)
+- rationale: 1-2 sentences explaining WHY the evidence is or is not relevant to the specific claim
 - relevant_claims: list ONLY the specific claim indices (0, 1, 2...) that this evidence DIRECTLY addresses
   * If evidence discusses "Event A" but claim is about "Event B", relevant_claims should NOT include that claim
   * Only list claims where the evidence provides DIRECT information for THAT SPECIFIC claim
-  * An article about the same general topic is NOT automatically relevant to all claims about that topic
   * Empty [] only if score <= 2 (off-topic evidence)
 
 Return ONLY valid JSON array."""
@@ -279,18 +256,9 @@ async def _score_with_google(
         source = ev.get("source", ev.get("external_source_provider", "Unknown"))
         url = ev.get("url", "")[:150]
 
-        # Add context for LLM decision-making
-        tier = ev.get("tier", "general")
-        risk_flags = ev.get("risk_flags", [])
-        if isinstance(risk_flags, str):
-            risk_flags = [risk_flags] if risk_flags else []
-        risk_str = ", ".join(risk_flags) if risk_flags else "None"
-
         evidence_text_parts.append(
             f"[Evidence {i}]:\n"
             f"  Source: {source}\n"
-            f"  Tier: {tier}\n"
-            f"  Risk Flags: {risk_str}\n"
             f"  Title: {title}\n"
             f"  URL: {url}\n"
             f"  Content: {snippet}"
@@ -309,7 +277,7 @@ async def _score_with_google(
     required_output_tokens = len(evidence_to_score) * 120 + 200
     max_output_tokens = max(4000, min(required_output_tokens, 16000))
 
-    full_prompt = f"You are a fact-checking evidence analyst. Return only valid JSON arrays.\n\n{prompt}"
+    full_prompt = f"You are an evidence relevance analyst. Return only valid JSON arrays.\n\n{prompt}"
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
@@ -338,6 +306,7 @@ async def _score_with_google(
             # Parse JSON response
             parsed = json.loads(content_text)
             if isinstance(parsed, dict):
+                # Try known wrapper keys first (fast path)
                 for key in [
                     "scores",
                     "evidence_scores",
@@ -348,6 +317,34 @@ async def _score_with_google(
                 ]:
                     if key in parsed and isinstance(parsed[key], list):
                         return parsed[key]
+
+                # Generic fallback: find any value that looks like a scores array
+                for key, value in parsed.items():
+                    if isinstance(value, list) and len(value) > 0:
+                        if isinstance(value[0], dict) and (
+                            "score" in value[0] or "evidence_index" in value[0]
+                        ):
+                            logger.info(
+                                f"[LLM SCORER] Found scores under unexpected key: '{key}'"
+                            )
+                            return value
+
+                # Numeric-key fallback
+                if any(k.isdigit() for k in parsed.keys()):
+                    scores = []
+                    for k, v in sorted(
+                        parsed.items(),
+                        key=lambda x: int(x[0]) if x[0].isdigit() else 999,
+                    ):
+                        if isinstance(v, dict) and "score" in v:
+                            v["evidence_index"] = int(k) if k.isdigit() else len(scores)
+                            scores.append(v)
+                    if scores:
+                        return scores
+
+                logger.warning(
+                    f"[LLM SCORER] Google returned object without recognizable scores array: {list(parsed.keys())}"
+                )
                 return []
             elif isinstance(parsed, list):
                 return parsed
@@ -392,18 +389,9 @@ async def _score_with_llm(
         source = ev.get("source", ev.get("external_source_provider", "Unknown"))
         url = ev.get("url", "")[:150]
 
-        # Add context for LLM decision-making
-        tier = ev.get("tier", "general")
-        risk_flags = ev.get("risk_flags", [])
-        if isinstance(risk_flags, str):
-            risk_flags = [risk_flags] if risk_flags else []
-        risk_str = ", ".join(risk_flags) if risk_flags else "None"
-
         evidence_text_parts.append(
             f"[Evidence {i}]:\n"
             f"  Source: {source}\n"
-            f"  Tier: {tier}\n"
-            f"  Risk Flags: {risk_str}\n"
             f"  Title: {title}\n"
             f"  URL: {url}\n"
             f"  Content: {snippet}"
@@ -436,7 +424,7 @@ async def _score_with_llm(
         messages=[
             {
                 "role": "system",
-                "content": "You are a fact-checking evidence analyst. Return only valid JSON arrays.",
+                "content": "You are an evidence relevance analyst. Return only valid JSON arrays.",
             },
             {"role": "user", "content": prompt},
         ],
@@ -468,7 +456,7 @@ async def _score_with_llm(
         result = json.loads(result_text)
         # Handle case where LLM wraps array in an object
         if isinstance(result, dict):
-            # Look for array in common keys (order by likelihood)
+            # Try known wrapper keys first (fast path)
             for key in [
                 "scores",
                 "evidence_scores",
@@ -479,21 +467,33 @@ async def _score_with_llm(
             ]:
                 if key in result and isinstance(result[key], list):
                     return result[key]
-            # Check if dict itself contains score entries (numbered keys like "0", "1")
+
+            # Generic fallback: find any value that looks like a scores array
+            for key, value in result.items():
+                if isinstance(value, list) and len(value) > 0:
+                    if isinstance(value[0], dict) and (
+                        "score" in value[0] or "evidence_index" in value[0]
+                    ):
+                        logger.info(
+                            f"[LLM SCORER] Found scores under unexpected key: '{key}'"
+                        )
+                        return value
+
+            # Numeric-key fallback
             if any(k.isdigit() for k in result.keys()):
-                # Convert dict with numeric keys to list
                 scores = []
                 for k, v in sorted(
-                    result.items(), key=lambda x: int(x[0]) if x[0].isdigit() else 999
+                    result.items(),
+                    key=lambda x: int(x[0]) if x[0].isdigit() else 999,
                 ):
                     if isinstance(v, dict) and "score" in v:
                         v["evidence_index"] = int(k) if k.isdigit() else len(scores)
                         scores.append(v)
                 if scores:
                     return scores
-            # If no array found, return empty
+
             logger.warning(
-                f"LLM returned object without recognizable scores array: {list(result.keys())}"
+                f"[LLM SCORER] OpenAI returned object without recognizable scores array: {list(result.keys())}"
             )
             return []
         elif isinstance(result, list):
@@ -510,10 +510,10 @@ async def score_evidence_batch(
     claims: List[str], evidence: Dict[str, List[Dict[str, Any]]], article_context: str
 ) -> Dict[str, List[Dict[str, Any]]]:
     """
-    Score all evidence items with advisory relevance annotations.
+    Score all evidence items for topical relevance and exclude irrelevant ones.
 
-    Scores are advisory only — no evidence is filtered or removed. All items are
-    returned with llm_relevance_score attached for downstream consumers.
+    Evidence scoring 1 (off-topic) is excluded with receipt tracking.
+    Evidence scoring >= 2 or unevaluated (None) is kept.
 
     Args:
         claims: List of claim texts (ordered by position)
@@ -521,7 +521,8 @@ async def score_evidence_batch(
         article_context: Article excerpt for context
 
     Returns:
-        Evidence dict with llm_relevance_score annotations (all items preserved)
+        Evidence dict with llm_relevance_score annotations.
+        Score-1 items moved to evidence["_excluded"] with receipt metadata.
     """
     if not getattr(settings, "ENABLE_LLM_RELEVANCE_SCORER", True):
         logger.info("[LLM SCORER] Disabled via config, passing through unscored")
@@ -620,7 +621,7 @@ async def score_evidence_batch(
         if sel_idx in selected_to_flat:
             flat_score_lookup[selected_to_flat[sel_idx]] = score_data
 
-    # Advisory mode: annotate all items with scores, never filter/remove evidence.
+    # Annotate all items with scores
     for flat_idx, ev in enumerate(all_evidence):
         score_data = flat_score_lookup.get(flat_idx)
         if score_data is not None:
@@ -640,8 +641,30 @@ async def score_evidence_batch(
         1 for ev in all_evidence if ev.get("llm_relevance_score") is not None
     )
     total_n = len(all_evidence)
+
+    # Exclude score-1 items (off-topic) with receipt tracking
+    excluded_total = 0
+    excluded_items = []
+    for claim_pos in list(evidence.keys()):
+        if claim_pos.startswith("_"):
+            continue
+        ev_list = evidence[claim_pos]
+        kept = []
+        for ev in ev_list:
+            if ev.get("llm_relevance_score") == 1:
+                ev["receipt_status"] = "excluded"
+                ev["exclusion_reason"] = "irrelevant"
+                excluded_items.append(ev)
+                excluded_total += 1
+            else:
+                kept.append(ev)
+        evidence[claim_pos] = kept
+    if excluded_items:
+        evidence["_excluded"] = excluded_items
+
+    kept_n = total_n - excluded_total
     logger.info(
-        f"[LLM SCORER] Advisory mode: annotated {scored_n}/{total_n} items, "
-        f"returning ALL {total_n} items (no filtering)"
+        f"[LLM SCORER] Scored {scored_n}/{total_n} items, "
+        f"excluded {excluded_total} irrelevant (score=1), keeping {kept_n}"
     )
-    return evidence  # Return original dict with scores annotated in-place
+    return evidence

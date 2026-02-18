@@ -1077,9 +1077,16 @@ async def run_pipeline_phase2(
                 claims=claim_texts, evidence=evidence, article_context=article_excerpt
             )
 
+            # Extract excluded items (score-1 irrelevant evidence)
+            excluded_by_scorer = evidence.pop("_excluded", [])
+            if excluded_by_scorer:
+                logger.info(
+                    f"[LLM SCORER] Excluded {len(excluded_by_scorer)} irrelevant items"
+                )
+
             count_after_scoring = sum(len(ev_list) for ev_list in evidence.values())
             logger.info(
-                f"[LLM SCORER] Evidence after scoring/reassignment: {count_before_scoring} → {count_after_scoring}"
+                f"[LLM SCORER] Evidence after scoring: {count_before_scoring} → {count_after_scoring}"
             )
 
             if ledger:
@@ -1087,6 +1094,7 @@ async def run_pipeline_phase2(
                     "llm_scoring",
                     in_count=count_before_scoring,
                     out_count=count_after_scoring,
+                    excluded=len(excluded_by_scorer),
                 )
 
         except Exception as e:

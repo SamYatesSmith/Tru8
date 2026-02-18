@@ -768,12 +768,8 @@ class SearchService:
                 results = await provider.search(query, **search_kwargs)
 
                 if results:
-                    # Filter for credible sources
-                    filtered_results = self._filter_credible_sources(results)
-                    logger.info(
-                        f"{provider_name} SUCCESS: {len(results)} raw results -> {len(filtered_results)} after filtering"
-                    )
-                    return filtered_results[:max_results]
+                    logger.info(f"{provider_name} SUCCESS: {len(results)} results")
+                    return results[:max_results]
                 else:
                     logger.warning(
                         f"{provider_name} returned 0 results | Query: '{query[:80]}...'"
@@ -884,46 +880,3 @@ class SearchService:
             )
 
         return query.strip()
-
-    def _filter_credible_sources(
-        self, results: List[SearchResult]
-    ) -> List[SearchResult]:
-        """Filter for more credible sources"""
-        # List of generally credible domains (can be expanded)
-        credible_domains = {
-            "bbc.co.uk",
-            "bbc.com",
-            "reuters.com",
-            "ap.org",
-            "apnews.com",
-            "nature.com",
-            "science.org",
-            "gov.uk",
-            "gov",
-            "who.int",
-            "nhs.uk",
-            "guardian.com",
-            "theguardian.com",
-            "telegraph.co.uk",
-            "independent.co.uk",
-            "economist.com",
-            "ft.com",
-            "financial-times.com",
-        }
-
-        # Academic domains pattern
-        academic_patterns = [".edu", ".ac.uk", ".org"]
-
-        filtered = []
-        for result in results:
-            domain = result.source.lower()
-
-            # Check if domain is in credible list or matches academic pattern
-            is_credible = any(
-                cred_domain in domain for cred_domain in credible_domains
-            ) or any(pattern in domain for pattern in academic_patterns)
-
-            # Include all sources — credibility scoring removed (E03)
-            filtered.append(result)
-
-        return filtered
