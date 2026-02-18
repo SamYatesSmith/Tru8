@@ -1104,6 +1104,53 @@ async def run_pipeline_phase2(
         ).total_seconds()
 
     # =========================================================================
+    # Stage 4.5: Evidence Classification (Tier + Type)
+    # =========================================================================
+    if _is_frozen_evidence_replay and evidence:
+        logger.info(
+            "[CLASSIFY] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
+        )
+    elif evidence:
+        await _log_stage_transition(
+            check_id, current_stage, "classify", progress_reporter
+        )
+        current_stage = "classify"
+        stage_start = datetime.utcnow()
+
+        try:
+            from app.pipeline.evidence_classifier import EvidenceClassifier
+
+            classifier = EvidenceClassifier()
+            for claim_pos, ev_list in evidence.items():
+                if ev_list:
+                    evidence[claim_pos] = await classifier.classify_batch(ev_list)
+                    # Update receipt_status to "classified" for all items
+                    for ev in evidence[claim_pos]:
+                        ev["receipt_status"] = "classified"
+                    logger.info(
+                        f"[CLASSIFY] Claim {claim_pos}: classified {len(ev_list)} evidence items"
+                    )
+        except Exception as e:
+            logger.warning(f"Evidence classification failed (non-critical): {e}")
+
+        stage_timings["classify"] = (datetime.utcnow() - stage_start).total_seconds()
+
+        if ledger:
+            from collections import Counter
+
+            tier_counts = Counter()
+            type_counts = Counter()
+            for ev_list in evidence.values():
+                for ev in ev_list:
+                    tier_counts[ev.get("tier", "unknown")] += 1
+                    type_counts[ev.get("evidence_type", "unknown")] += 1
+            ledger.record(
+                "classify",
+                tier_distribution=dict(tier_counts),
+                type_distribution=dict(type_counts),
+            )
+
+    # =========================================================================
     # Stage 5: Evidence Mapping (replaces Judge)
     # =========================================================================
     await _log_stage_transition(check_id, current_stage, "analyze", progress_reporter)
@@ -1296,6 +1343,11 @@ async def run_pipeline_phase2(
     # =========================================================================
     # Build Final Result
     # =========================================================================
+    # Mark surviving evidence as "shown" (final receipt status)
+    for ev_list in evidence.values():
+        for ev in ev_list:
+            ev["receipt_status"] = "shown"
+
     results = []
     for claim in claims:
         pos = str(claim.get("position", 0))
@@ -1557,6 +1609,9 @@ async def save_check_results_async(
                         metadata_dict.get("context_after") if metadata_dict else None
                     ),
                     tier=ev_data.get("tier"),
+                    evidence_type=ev_data.get("evidence_type"),
+                    receipt_status=ev_data.get("receipt_status", "shown"),
+                    exclusion_reason=ev_data.get("exclusion_reason"),
                     external_source_provider=ev_data.get("external_source_provider"),
                     api_metadata=metadata_dict,
                 )

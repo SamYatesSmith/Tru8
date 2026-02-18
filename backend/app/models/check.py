@@ -272,10 +272,29 @@ class Evidence(SQLModel, table=True):
         None  # 'last_30_days', 'last_90_days', 'year_YYYY', 'timeless'
     )
 
-    # Source classification (repurposed in E06 for tier/type)
-    tier: Optional[str] = None  # Will be repurposed for tier/type classification in E06
+    # Source classification (E06: tier/type + receipt tracking)
+    tier: Optional[str] = Field(
+        default=None,
+        max_length=20,
+        description="Proximity tier: primary|reporting|commentary",
+    )
+    evidence_type: Optional[str] = Field(
+        default=None,
+        max_length=30,
+        description="Content type: data|official_statement|news_reporting|analysis|opinion|academic",
+    )
+    receipt_status: Optional[str] = Field(
+        default=None,
+        max_length=20,
+        description="Pipeline receipt: found|extracted|classified|excluded|shown",
+    )
+    exclusion_reason: Optional[str] = Field(
+        default=None,
+        max_length=30,
+        description="Why excluded: extraction_failed|duplicate|satire|irrelevant",
+    )
 
-    # Citation Precision & NLI Context (Phase 2, Week 10)
+    # Citation Precision (Phase 2, Week 10)
     page_number: Optional[int] = Field(
         default=None, description="Page number in PDF/document"
     )
@@ -283,18 +302,6 @@ class Evidence(SQLModel, table=True):
         default=None, description="Text before snippet"
     )
     context_after: Optional[str] = Field(default=None, description="Text after snippet")
-    nli_stance: Optional[str] = Field(
-        default=None, description="'supporting'|'contradicting'|'neutral'"
-    )
-    nli_confidence: Optional[float] = Field(
-        default=None, ge=0, le=1, description="NLI confidence score 0-1"
-    )
-    nli_entailment: Optional[float] = Field(
-        default=None, ge=0, le=1, description="Entailment probability"
-    )
-    nli_contradiction: Optional[float] = Field(
-        default=None, ge=0, le=1, description="Contradiction probability"
-    )
 
     # Government API Integration fields (Phase 5)
     api_metadata: Optional[str] = Field(
