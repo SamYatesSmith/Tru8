@@ -18,6 +18,7 @@ import { UpgradeModal } from './components/upgrade-modal';
 import { ClaimList } from '@/components/evidence-views/overview';
 import { ViewSelector, EvidenceMetaStrip } from '@/components/evidence-views';
 import { LibrarianView } from '@/components/evidence-views/librarian';
+import { CartographerView } from '@/components/evidence-views/cartographer';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -249,13 +250,20 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
           <ViewSelector mode="overview" activeTab={activeOverviewTab} onTabChange={setActiveOverviewTab} />
 
           {/* Check-wide view content */}
+          {activeOverviewTab === 'cartographer' && (
+            <CartographerView
+              scope="check"
+              claims={checkData.claims}
+              onSwitchToLibrarian={() => setActiveOverviewTab('librarian')}
+            />
+          )}
           {activeOverviewTab === 'librarian' && (
             <LibrarianView scope="check" claims={checkData.claims} />
           )}
-          {activeOverviewTab !== 'librarian' && (
+          {activeOverviewTab !== 'cartographer' && activeOverviewTab !== 'librarian' && (
             <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
               <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
-                Check-wide {activeOverviewTab} view — coming in E11-E12
+                Check-wide {activeOverviewTab} view — coming in E14-E15
               </p>
             </div>
           )}

@@ -482,6 +482,15 @@ a:focus-visible {
   border-color: #18181B;
 }
 
+/* Cascade nodes (E12 — Cartographer) */
+.cascade-node {
+  transition: all 0.15s ease;
+}
+.cascade-node:hover {
+  border-color: #3F3F46;
+  transform: translateY(-1px);
+}
+
 /* Element pills (E11 — Interpreter) */
 .element-pill {
   transition: all 0.15s ease;
