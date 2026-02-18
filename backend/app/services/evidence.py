@@ -15,12 +15,20 @@ from app.utils.domain_status_tracker import get_domain_tracker, DomainStatus
 
 logger = logging.getLogger(__name__)
 
+
 class EvidenceSnippet:
     """Extracted evidence snippet with metadata"""
 
-    def __init__(self, text: str, source: str, url: str, title: str,
-                 published_date: Optional[str] = None, relevance_score: float = 0.0,
-                 metadata: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        text: str,
+        source: str,
+        url: str,
+        title: str,
+        published_date: Optional[str] = None,
+        relevance_score: float = 0.0,
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
         self.text = text
         self.source = source
         self.url = url
@@ -39,8 +47,9 @@ class EvidenceSnippet:
             "published_date": self.published_date,
             "relevance_score": self.relevance_score,
             "word_count": self.word_count,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
+
 
 class EvidenceExtractor:
     """Extract relevant evidence snippets from web pages"""
@@ -49,31 +58,28 @@ class EvidenceExtractor:
     # These NEVER contain evidence about specific claims - only about fact-checking itself
     META_SOURCE_DOMAINS = {
         # Fact-checking tool directories and guides
-        'libguides.com',           # Library research guides (e.g., "Web Sites for Fact Checking")
-        'library.ucdavis.edu',     # Library guides about fact-checking
-        'guides.library.cornell.edu',  # Cornell fact-checking guides
-
+        "libguides.com",  # Library research guides (e.g., "Web Sites for Fact Checking")
+        "library.ucdavis.edu",  # Library guides about fact-checking
+        "guides.library.cornell.edu",  # Cornell fact-checking guides
         # News aggregators (index pages, not actual news)
-        'newsnow.com',             # News aggregator index
-        'newsnow.co.uk',           # UK version
-
+        "newsnow.com",  # News aggregator index
+        "newsnow.co.uk",  # UK version
         # Academic meta-research about misinformation (not evidence)
-        'misinforeview.hks.harvard.edu',  # HKS Misinformation Review (research ABOUT fact-checking)
-
+        "misinforeview.hks.harvard.edu",  # HKS Misinformation Review (research ABOUT fact-checking)
         # Tool/methodology pages
-        'toolbox.google.com',      # Google Fact Check Tools Explorer
-        'reporterslab.org',        # Duke Reporters' Lab (fact-checker directory)
+        "toolbox.google.com",  # Google Fact Check Tools Explorer
+        "reporterslab.org",  # Duke Reporters' Lab (fact-checker directory)
     }
 
     # Title patterns that indicate meta-sources (case-insensitive)
     META_SOURCE_TITLE_PATTERNS = [
-        r'web\s*sites?\s*for\s*fact\s*check',      # "Web Sites for Fact Checking"
-        r'fact[- ]?check(ing)?\s*tools?',          # "Fact Checking Tools", "Fact-Check Tools"
-        r'how\s+to\s+fact[- ]?check',              # "How to Fact Check"
-        r'guide\s+to\s+fact[- ]?check',            # "Guide to Fact Checking"
-        r'fact[- ]?check(ing)?\s+resources?',      # "Fact Checking Resources"
-        r'"fact[- ]?check(ing)?"\s+fact[- ]?check', # Meta: fact-checking fact-checkers
-        r'misinformation.*review',                  # Academic journals about misinformation
+        r"web\s*sites?\s*for\s*fact\s*check",  # "Web Sites for Fact Checking"
+        r"fact[- ]?check(ing)?\s*tools?",  # "Fact Checking Tools", "Fact-Check Tools"
+        r"how\s+to\s+fact[- ]?check",  # "How to Fact Check"
+        r"guide\s+to\s+fact[- ]?check",  # "Guide to Fact Checking"
+        r"fact[- ]?check(ing)?\s+resources?",  # "Fact Checking Resources"
+        r'"fact[- ]?check(ing)?"\s+fact[- ]?check',  # Meta: fact-checking fact-checkers
+        r"misinformation.*review",  # Academic journals about misinformation
     ]
 
     def __init__(self):
@@ -93,9 +99,18 @@ class EvidenceExtractor:
 
         # Common fact-checking terms to look for
         self.fact_indicators = [
-            'according to', 'study shows', 'research indicates', 'data reveals',
-            'statistics show', 'report states', 'findings suggest', 'analysis shows',
-            'evidence indicates', 'survey found', 'poll shows', 'investigation revealed'
+            "according to",
+            "study shows",
+            "research indicates",
+            "data reveals",
+            "statistics show",
+            "report states",
+            "findings suggest",
+            "analysis shows",
+            "evidence indicates",
+            "survey found",
+            "poll shows",
+            "investigation revealed",
         ]
 
     def _is_meta_source(self, url: str, title: str = "") -> bool:
@@ -119,7 +134,9 @@ class EvidenceExtractor:
         if title:
             for pattern in self._meta_title_patterns:
                 if pattern.search(title):
-                    logger.debug(f"[META-SOURCE] Filtered by title pattern: {title[:50]}...")
+                    logger.debug(
+                        f"[META-SOURCE] Filtered by title pattern: {title[:50]}..."
+                    )
                     return True
 
         return False
@@ -142,11 +159,13 @@ class EvidenceExtractor:
                 self.blocked_domains.add(domain)
                 self.blocked_domains.add(f"www.{domain}")
 
-            logger.info(f"[EVIDENCE] Loaded {len(self.blocked_domains)} bot-blocked domains")
+            logger.info(
+                f"[EVIDENCE] Loaded {len(self.blocked_domains)} bot-blocked domains"
+            )
         except Exception as e:
             logger.warning(f"[EVIDENCE] Failed to load blocked domains: {e}")
             # Fallback to hardcoded list
-            self.blocked_domains = {'yahoo.com', 'www.yahoo.com'}
+            self.blocked_domains = {"yahoo.com", "www.yahoo.com"}
 
     async def extract_evidence_for_claim(
         self,
@@ -157,7 +176,7 @@ class EvidenceExtractor:
         excluded_domain: Optional[str] = None,
         temporal_analysis: Dict = None,
         article_title: Optional[str] = None,
-        article_date: Optional[str] = None
+        article_date: Optional[str] = None,
     ) -> List[EvidenceSnippet]:
         """
         Extract evidence snippets for a specific claim.
@@ -181,50 +200,68 @@ class EvidenceExtractor:
             logger.info(f"Search query: '{search_query[:80]}...'")
             if subject_context and key_entities:
                 # Only add entities that AREN'T already in the claim text (avoid duplication)
-                unique_entities = [e for e in key_entities[:3] if e.lower() not in claim.lower()]
+                unique_entities = [
+                    e for e in key_entities[:3] if e.lower() not in claim.lower()
+                ]
                 if unique_entities:
-                    entities_str = " ".join(unique_entities[:2])  # Max 2 additional entities
+                    entities_str = " ".join(
+                        unique_entities[:2]
+                    )  # Max 2 additional entities
                     search_query = f"{claim} {entities_str}"
-                    logger.info(f"Context-enriched search with {len(unique_entities)} unique entities: '{search_query}'")
+                    logger.info(
+                        f"Context-enriched search with {len(unique_entities)} unique entities: '{search_query}'"
+                    )
 
             # Step 2: Search for relevant pages
-            search_results = await self.search_service.search_for_evidence(search_query, max_results=max_sources * 2)
+            search_results = await self.search_service.search_for_evidence(
+                search_query, max_results=max_sources * 2
+            )
 
             # DIAGNOSTIC: Log search results
-            logger.info(f"🔍 SEARCH RESULTS | Found: {len(search_results)} results | Requested: {max_sources * 2}")
+            logger.info(
+                f"🔍 SEARCH RESULTS | Found: {len(search_results)} results | Requested: {max_sources * 2}"
+            )
 
             # Filter out excluded domain (self-citation prevention)
             if excluded_domain:
                 original_count = len(search_results)
                 search_results = [
-                    result for result in search_results
+                    result
+                    for result in search_results
                     if extract_domain(result.url) != excluded_domain
                 ]
                 filtered_count = original_count - len(search_results)
                 if filtered_count > 0:
-                    logger.info(f"Excluded {filtered_count} search results from source domain: {excluded_domain}")
+                    logger.info(
+                        f"Excluded {filtered_count} search results from source domain: {excluded_domain}"
+                    )
 
             # Filter out meta-sources (fact-checking guides, aggregators, methodology pages)
             original_count = len(search_results)
             search_results = [
-                result for result in search_results
+                result
+                for result in search_results
                 if not self._is_meta_source(result.url, result.title)
             ]
             meta_filtered = original_count - len(search_results)
             if meta_filtered > 0:
-                logger.info(f"[META-SOURCE] Filtered {meta_filtered} meta-sources from search results")
+                logger.info(
+                    f"[META-SOURCE] Filtered {meta_filtered} meta-sources from search results"
+                )
 
             if not search_results:
                 logger.warning(f"No search results for claim: {claim[:50]}...")
                 return []
-            
+
             # Step 2: Extract content from top results (with concurrency limit)
             semaphore = asyncio.Semaphore(self.max_concurrent)
             tasks = [
                 self._extract_from_page(result, claim, semaphore)
-                for result in search_results[:max_sources * 2]  # Get extra in case some fail
+                for result in search_results[
+                    : max_sources * 2
+                ]  # Get extra in case some fail
             ]
-            
+
             extracted_results = await asyncio.gather(*tasks, return_exceptions=True)
 
             # Step 3: Filter successful extractions and rank by relevance
@@ -239,54 +276,67 @@ class EvidenceExtractor:
 
             # DIAGNOSTIC: Log extraction success rate
             total_attempts = len(extracted_results)
-            success_rate = (len(evidence_snippets) / total_attempts * 100) if total_attempts > 0 else 0
-            logger.info(f"📄 EXTRACTION | Success: {len(evidence_snippets)}/{total_attempts} ({success_rate:.1f}%) | Failed: {failed_count}")
+            success_rate = (
+                (len(evidence_snippets) / total_attempts * 100)
+                if total_attempts > 0
+                else 0
+            )
+            logger.info(
+                f"📄 EXTRACTION | Success: {len(evidence_snippets)}/{total_attempts} ({success_rate:.1f}%) | Failed: {failed_count}"
+            )
 
             # Step 4: Rank by relevance and return top results
             ranked_snippets = self._rank_snippets(evidence_snippets, claim)
-            logger.info(f"🎯 FINAL EVIDENCE | Returning: {len(ranked_snippets[:max_sources])} snippets (requested: {max_sources})")
+            logger.info(
+                f"🎯 FINAL EVIDENCE | Returning: {len(ranked_snippets[:max_sources])} snippets (requested: {max_sources})"
+            )
             return ranked_snippets[:max_sources]
-            
+
         except Exception as e:
             import traceback
-            logger.error(f"[EVIDENCE DEBUG] Evidence extraction EXCEPTION: {type(e).__name__}: {e}")
+
+            logger.error(
+                f"[EVIDENCE DEBUG] Evidence extraction EXCEPTION: {type(e).__name__}: {e}"
+            )
             logger.error(f"[EVIDENCE DEBUG] Full traceback:\n{traceback.format_exc()}")
             return []
-    
-    async def _extract_from_page(self, search_result: SearchResult, claim: str,
-                                semaphore: asyncio.Semaphore) -> Optional[EvidenceSnippet]:
+
+    async def _extract_from_page(
+        self, search_result: SearchResult, claim: str, semaphore: asyncio.Semaphore
+    ) -> Optional[EvidenceSnippet]:
         """Extract relevant content from a single page (enhanced for PDFs)"""
         async with semaphore:
             try:
                 # Check if URL is a PDF
-                if search_result.url.lower().endswith('.pdf'):
+                if search_result.url.lower().endswith(".pdf"):
                     from app.services.pdf_evidence import get_pdf_extractor
+
                     pdf_extractor = get_pdf_extractor()
 
                     # Extract PDF evidence with page numbers
                     pdf_matches = await pdf_extractor.extract_evidence_from_pdf(
-                        search_result.url,
-                        claim,
-                        max_results=1  # Best match only
+                        search_result.url, claim, max_results=1  # Best match only
                     )
 
                     if pdf_matches:
                         best_match = pdf_matches[0]
                         return EvidenceSnippet(
-                            text=best_match['text'],
+                            text=best_match["text"],
                             source=search_result.source,
                             url=search_result.url,
                             title=f"{search_result.title} (p. {best_match['page_number']})",
                             published_date=search_result.published_date,
-                            relevance_score=best_match['relevance_score'],
+                            relevance_score=best_match["relevance_score"],
                             metadata={
-                                'page_number': best_match['page_number'],
-                                'context_before': best_match.get('context_before'),
-                                'context_after': best_match.get('context_after')
-                            }
+                                "page_number": best_match["page_number"],
+                                "context_before": best_match.get("context_before"),
+                                "context_after": best_match.get("context_after"),
+                            },
                         )
                     else:
-                        logger.warning(f"No relevant content found in PDF: {search_result.url}")
+                        logger.warning(
+                            f"No relevant content found in PDF: {search_result.url}"
+                        )
                         return None
 
                 # Non-PDF extraction (HTML pages)
@@ -298,8 +348,7 @@ class EvidenceExtractor:
                     return None
 
                 async with httpx.AsyncClient(
-                    timeout=self.timeout,
-                    follow_redirects=True
+                    timeout=self.timeout, follow_redirects=True
                 ) as client:
                     response = await client.get(search_result.url)
                     response.raise_for_status()
@@ -308,14 +357,18 @@ class EvidenceExtractor:
                         return None
 
                     # Extract main content
-                    content = self._extract_main_content(response.text, search_result.url)
+                    content = self._extract_main_content(
+                        response.text, search_result.url
+                    )
                     domain = extract_domain(search_result.url, fallback="unknown")
 
                     if not content:
                         # Track as JS-required (page loaded but no content extracted)
                         try:
                             get_domain_tracker().record_access_result(
-                                domain, DomainStatus.JS_REQUIRED, {"reason": "empty_extraction"}
+                                domain,
+                                DomainStatus.JS_REQUIRED,
+                                {"reason": "empty_extraction"},
                             )
                         except Exception:
                             pass
@@ -324,7 +377,9 @@ class EvidenceExtractor:
                     else:
                         # Track successful extraction
                         try:
-                            get_domain_tracker().record_access_result(domain, DomainStatus.ACCESSIBLE)
+                            get_domain_tracker().record_access_result(
+                                domain, DomainStatus.ACCESSIBLE
+                            )
                         except Exception:
                             pass
 
@@ -342,7 +397,9 @@ class EvidenceExtractor:
                     if not published_date:
                         published_date = self._extract_date_from_html(response.text)
                         if published_date:
-                            logger.debug(f"Extracted date from HTML: {published_date} for {search_result.url}")
+                            logger.debug(
+                                f"Extracted date from HTML: {published_date} for {search_result.url}"
+                            )
 
                     return EvidenceSnippet(
                         text=snippet_text,
@@ -350,15 +407,17 @@ class EvidenceExtractor:
                         url=search_result.url,
                         title=search_result.title,
                         published_date=published_date,
-                        relevance_score=relevance_score
+                        relevance_score=relevance_score,
                     )
-                    
+
             except httpx.TimeoutException:
                 logger.warning(f"Timeout fetching evidence from: {search_result.url}")
                 # Track domain status (one-time collection)
                 try:
                     domain = extract_domain(search_result.url, fallback="unknown")
-                    get_domain_tracker().record_access_result(domain, DomainStatus.TIMEOUT)
+                    get_domain_tracker().record_access_result(
+                        domain, DomainStatus.TIMEOUT
+                    )
                 except Exception:
                     pass  # Don't let tracking affect pipeline
                 return None
@@ -392,13 +451,13 @@ class EvidenceExtractor:
                         url=search_result.url,
                         title=search_result.title,
                         published_date=search_result.published_date,
-                        relevance_score=0.5  # Lower score for fallback
+                        relevance_score=0.5,  # Lower score for fallback
                     )
                 return None
             except Exception as e:
                 logger.warning(f"Error extracting from {search_result.url}: {e}")
                 return None
-    
+
     def _extract_main_content(self, html: str, url: str) -> Optional[str]:
         """Extract main content from HTML"""
         try:
@@ -408,46 +467,46 @@ class EvidenceExtractor:
                 include_comments=False,
                 include_tables=True,
                 with_metadata=False,
-                url=url
+                url=url,
             )
-            
+
             if extracted and len(extracted.strip()) > 100:
                 return self._sanitize_content(extracted)
-            
+
             # Fallback to readability
             doc = Document(html)
             content = doc.summary()
-            
+
             if content and len(content.strip()) > 100:
                 # Extract text from HTML
                 clean_content = bleach.clean(content, tags=[], strip=True)
                 return self._sanitize_content(clean_content)
-            
+
             return None
-            
+
         except Exception as e:
             logger.warning(f"Content extraction error: {e}")
             return None
-    
+
     def _sanitize_content(self, content: str) -> str:
         """Clean and sanitize extracted content"""
         # Remove excessive whitespace
-        content = re.sub(r'\s+', ' ', content).strip()
-        
+        content = re.sub(r"\s+", " ", content).strip()
+
         # Remove common navigation/footer text
         noise_patterns = [
-            r'Cookie Policy.*?$',
-            r'Privacy Policy.*?$',
-            r'Terms of Service.*?$',
-            r'Subscribe to.*?$',
-            r'Follow us on.*?$',
-            r'Share this article.*?$',
-            r'Related articles.*?$'
+            r"Cookie Policy.*?$",
+            r"Privacy Policy.*?$",
+            r"Terms of Service.*?$",
+            r"Subscribe to.*?$",
+            r"Follow us on.*?$",
+            r"Share this article.*?$",
+            r"Related articles.*?$",
         ]
-        
+
         for pattern in noise_patterns:
-            content = re.sub(pattern, '', content, flags=re.IGNORECASE)
-        
+            content = re.sub(pattern, "", content, flags=re.IGNORECASE)
+
         return content.strip()
 
     def _extract_date_from_html(self, html: str) -> Optional[str]:
@@ -464,25 +523,29 @@ class EvidenceExtractor:
             ISO format date string (YYYY-MM-DD) or None if not found
         """
         try:
-            soup = BeautifulSoup(html, 'html.parser')
+            soup = BeautifulSoup(html, "html.parser")
 
             # 1. Try JSON-LD structured data (most reliable)
-            for script in soup.find_all('script', type='application/ld+json'):
+            for script in soup.find_all("script", type="application/ld+json"):
                 try:
-                    data = json.loads(script.string or '')
+                    data = json.loads(script.string or "")
                     # Handle both single objects and arrays
                     items = data if isinstance(data, list) else [data]
                     for item in items:
                         if isinstance(item, dict):
                             # Check for datePublished in various schema types
-                            date_published = item.get('datePublished') or item.get('dateCreated')
+                            date_published = item.get("datePublished") or item.get(
+                                "dateCreated"
+                            )
                             if date_published:
                                 return self._normalize_date(date_published)
                             # Check @graph array (common in WordPress sites)
-                            if '@graph' in item:
-                                for graph_item in item['@graph']:
+                            if "@graph" in item:
+                                for graph_item in item["@graph"]:
                                     if isinstance(graph_item, dict):
-                                        date_published = graph_item.get('datePublished') or graph_item.get('dateCreated')
+                                        date_published = graph_item.get(
+                                            "datePublished"
+                                        ) or graph_item.get("dateCreated")
                                         if date_published:
                                             return self._normalize_date(date_published)
                 except (json.JSONDecodeError, TypeError):
@@ -490,29 +553,34 @@ class EvidenceExtractor:
 
             # 2. Try Open Graph meta tags
             og_tags = [
-                ('property', 'article:published_time'),
-                ('property', 'og:article:published_time'),
-                ('property', 'article:published'),
+                ("property", "article:published_time"),
+                ("property", "og:article:published_time"),
+                ("property", "article:published"),
             ]
             for attr, value in og_tags:
-                meta = soup.find('meta', {attr: value})
-                if meta and meta.get('content'):
-                    return self._normalize_date(meta['content'])
+                meta = soup.find("meta", {attr: value})
+                if meta and meta.get("content"):
+                    return self._normalize_date(meta["content"])
 
             # 3. Try standard meta tags
             meta_names = [
-                'date', 'article:published', 'pubdate', 'publishdate',
-                'publish_date', 'DC.date.issued', 'dcterms.date'
+                "date",
+                "article:published",
+                "pubdate",
+                "publishdate",
+                "publish_date",
+                "DC.date.issued",
+                "dcterms.date",
             ]
             for name in meta_names:
-                meta = soup.find('meta', {'name': name})
-                if meta and meta.get('content'):
-                    return self._normalize_date(meta['content'])
+                meta = soup.find("meta", {"name": name})
+                if meta and meta.get("content"):
+                    return self._normalize_date(meta["content"])
 
             # 4. Try time elements with datetime
-            time_elem = soup.find('time', datetime=True)
-            if time_elem and time_elem.get('datetime'):
-                return self._normalize_date(time_elem['datetime'])
+            time_elem = soup.find("time", datetime=True)
+            if time_elem and time_elem.get("datetime"):
+                return self._normalize_date(time_elem["datetime"])
 
             return None
 
@@ -527,30 +595,30 @@ class EvidenceExtractor:
 
         try:
             # Handle ISO format with time (2024-01-15T10:30:00Z)
-            if 'T' in date_str:
-                date_str = date_str.split('T')[0]
+            if "T" in date_str:
+                date_str = date_str.split("T")[0]
 
             # Handle ISO format with timezone offset
-            if '+' in date_str and 'T' not in date_str:
-                date_str = date_str.split('+')[0]
+            if "+" in date_str and "T" not in date_str:
+                date_str = date_str.split("+")[0]
 
             # Validate it looks like a date
-            if re.match(r'^\d{4}-\d{2}-\d{2}', date_str):
+            if re.match(r"^\d{4}-\d{2}-\d{2}", date_str):
                 return date_str[:10]  # Return YYYY-MM-DD portion
 
             # Try parsing various formats
             formats = [
-                '%Y-%m-%d',
-                '%Y/%m/%d',
-                '%d-%m-%Y',
-                '%d/%m/%Y',
-                '%B %d, %Y',
-                '%b %d, %Y',
+                "%Y-%m-%d",
+                "%Y/%m/%d",
+                "%d-%m-%Y",
+                "%d/%m/%Y",
+                "%B %d, %Y",
+                "%b %d, %Y",
             ]
             for fmt in formats:
                 try:
                     parsed = datetime.strptime(date_str.strip(), fmt)
-                    return parsed.strftime('%Y-%m-%d')
+                    return parsed.strftime("%Y-%m-%d")
                 except ValueError:
                     continue
 
@@ -571,7 +639,7 @@ class EvidenceExtractor:
             return None
 
         # Split into sentences
-        sentences = [s.strip() for s in re.split(r'[.!?]+', content) if s.strip()]
+        sentences = [s.strip() for s in re.split(r"[.!?]+", content) if s.strip()]
 
         if not sentences:
             return None
@@ -581,7 +649,9 @@ class EvidenceExtractor:
             try:
                 return await self._extract_semantic_snippet(claim, sentences)
             except Exception as e:
-                logger.error(f"Semantic snippet extraction failed: {e}, falling back to word overlap")
+                logger.error(
+                    f"Semantic snippet extraction failed: {e}, falling back to word overlap"
+                )
                 # Fall through to existing logic
 
         # FALLBACK: Existing word overlap logic (preserved for backward compatibility)
@@ -598,19 +668,28 @@ class EvidenceExtractor:
             word_overlap = len(claim_words & sentence_words) / len(claim_words)
 
             # Bonus for fact-indicating phrases
-            fact_bonus = sum(1 for indicator in self.fact_indicators if indicator in sentence.lower()) * 0.2
+            fact_bonus = (
+                sum(
+                    1
+                    for indicator in self.fact_indicators
+                    if indicator in sentence.lower()
+                )
+                * 0.2
+            )
 
             # Bonus for numbers/dates (often important for facts)
-            number_bonus = len(re.findall(r'\d+', sentence)) * 0.1
+            number_bonus = len(re.findall(r"\d+", sentence)) * 0.1
 
             total_score = word_overlap + fact_bonus + number_bonus
             scored_sentences.append((sentence, total_score))
 
         if not scored_sentences:
             # Fallback: return first substantial paragraph
-            paragraphs = [p.strip() for p in content.split('\n\n') if len(p.strip()) > 100]
+            paragraphs = [
+                p.strip() for p in content.split("\n\n") if len(p.strip()) > 100
+            ]
             if paragraphs:
-                return paragraphs[0][:self.max_snippet_words * 6]  # Rough word limit
+                return paragraphs[0][: self.max_snippet_words * 6]  # Rough word limit
             return None
 
         # Sort by score and build snippet from top sentences
@@ -629,12 +708,14 @@ class EvidenceExtractor:
                 break
 
         if snippet_sentences:
-            return '. '.join(snippet_sentences) + '.'
+            return ". ".join(snippet_sentences) + "."
         else:
             # Return the best sentence even if it's long
-            return scored_sentences[0][0][:self.max_snippet_words * 6]
+            return scored_sentences[0][0][: self.max_snippet_words * 6]
 
-    async def _extract_semantic_snippet(self, claim: str, sentences: List[str]) -> Optional[str]:
+    async def _extract_semantic_snippet(
+        self, claim: str, sentences: List[str]
+    ) -> Optional[str]:
         """
         Extract snippet using semantic similarity with embeddings.
 
@@ -647,7 +728,9 @@ class EvidenceExtractor:
         from app.core.config import settings
 
         # Filter very short sentences
-        valid_sentences = [(i, sent) for i, sent in enumerate(sentences) if len(sent) > 20]
+        valid_sentences = [
+            (i, sent) for i, sent in enumerate(sentences) if len(sent) > 20
+        ]
         if not valid_sentences:
             return None
 
@@ -662,8 +745,7 @@ class EvidenceExtractor:
         similarities = []
         for i, (orig_idx, sent_text) in enumerate(valid_sentences):
             similarity = await embedding_service.compute_similarity(
-                claim_embedding,
-                sentence_embeddings[i]
+                claim_embedding, sentence_embeddings[i]
             )
             similarities.append((orig_idx, sent_text, similarity))
 
@@ -673,15 +755,16 @@ class EvidenceExtractor:
         # Filter by threshold
         threshold = settings.SNIPPET_SEMANTIC_THRESHOLD
         relevant_sentences = [
-            (idx, text, sim) for idx, text, sim in similarities
-            if sim >= threshold
+            (idx, text, sim) for idx, text, sim in similarities if sim >= threshold
         ]
 
         if not relevant_sentences:
             # No sentences meet threshold - return best match anyway
             best_match = similarities[0]
-            logger.debug(f"No sentences above threshold {threshold}, using best: {best_match[2]:.2f}")
-            return best_match[1][:self.max_snippet_words * 6]
+            logger.debug(
+                f"No sentences above threshold {threshold}, using best: {best_match[2]:.2f}"
+            )
+            return best_match[1][: self.max_snippet_words * 6]
 
         # Build snippet from top sentences WITH CONTEXT
         # Include N sentences before/after for coherence (using only valid sentences)
@@ -689,49 +772,64 @@ class EvidenceExtractor:
         best_orig_idx = relevant_sentences[0][0]  # Original index of best sentence
 
         # Find position in valid_sentences list
-        valid_idx = next(i for i, (orig_idx, _) in enumerate(valid_sentences) if orig_idx == best_orig_idx)
+        valid_idx = next(
+            i
+            for i, (orig_idx, _) in enumerate(valid_sentences)
+            if orig_idx == best_orig_idx
+        )
 
         # Build context from valid_sentences only (excludes short sentences)
         start_idx = max(0, valid_idx - context_window)
         end_idx = min(len(valid_sentences), valid_idx + context_window + 1)
 
         snippet_sentences = [sent for _, sent in valid_sentences[start_idx:end_idx]]
-        snippet = '. '.join(snippet_sentences).strip()
+        snippet = ". ".join(snippet_sentences).strip()
 
         # Enforce max length
         if len(snippet.split()) > self.max_snippet_words:
             words = snippet.split()
-            snippet = ' '.join(words[:self.max_snippet_words]) + '...'
+            snippet = " ".join(words[: self.max_snippet_words]) + "..."
 
         logger.debug(f"Semantic snippet similarity: {relevant_sentences[0][2]:.2f}")
         return snippet
-    
+
     def _calculate_relevance(self, snippet: str, claim: str) -> float:
         """Calculate relevance score between snippet and claim"""
         try:
             snippet_words = set(snippet.lower().split())
             claim_words = set(claim.lower().split())
-            
+
             # Word overlap
-            overlap = len(claim_words & snippet_words) / len(claim_words | snippet_words)
-            
+            overlap = len(claim_words & snippet_words) / len(
+                claim_words | snippet_words
+            )
+
             # Boost for fact-indicating language
-            fact_boost = sum(1 for indicator in self.fact_indicators if indicator in snippet.lower()) * 0.1
-            
+            fact_boost = (
+                sum(
+                    1
+                    for indicator in self.fact_indicators
+                    if indicator in snippet.lower()
+                )
+                * 0.1
+            )
+
             # Boost for specific numbers/dates
-            number_boost = len(re.findall(r'\b\d+(?:\.\d+)?%?\b', snippet)) * 0.05
-            
+            number_boost = len(re.findall(r"\b\d+(?:\.\d+)?%?\b", snippet)) * 0.05
+
             # Length penalty for very short snippets
             length_penalty = 0 if len(snippet.split()) > 20 else -0.2
-            
+
             score = min(1.0, overlap + fact_boost + number_boost + length_penalty)
             return max(0.0, score)
-            
+
         except Exception as e:
             logger.warning(f"Relevance calculation error: {e}")
             return 0.5  # Default moderate relevance
-    
-    def _rank_snippets(self, snippets: List[EvidenceSnippet], claim: str) -> List[EvidenceSnippet]:
+
+    def _rank_snippets(
+        self, snippets: List[EvidenceSnippet], claim: str
+    ) -> List[EvidenceSnippet]:
         """
         Rank evidence snippets by relevance and credibility.
 
@@ -740,30 +838,6 @@ class EvidenceExtractor:
         def scoring_function(snippet: EvidenceSnippet) -> float:
             # Base relevance score
             score = snippet.relevance_score
-
-            # Detect and deprioritize fact-check meta-content
-            factcheck_sites = ['snopes', 'factcheck.org', 'politifact', 'fullfact']
-            is_factcheck = any(site in snippet.source.lower() or site in snippet.url.lower()
-                             for site in factcheck_sites)
-            if is_factcheck:
-                score *= 0.3  # Heavily deprioritize fact-check sites
-
-            # Domain credibility boost for primary sources
-            primary_sources = [
-                '.edu', '.gov', '.org', 'bbc', 'reuters', 'nature', 'science',
-                'pnas.org', 'nasa.gov', 'noaa.gov', 'who.int', 'nhs.uk'
-            ]
-            if any(indicator in snippet.source.lower() for indicator in primary_sources):
-                score += 0.3
-
-            # EXISTING: Recent content boost
-            if snippet.published_date:
-                try:
-                    # Simple boost for more recent content
-                    if '2024' in snippet.published_date or '2023' in snippet.published_date:
-                        score += 0.1
-                except:
-                    pass
 
             # EXISTING: Length boost for substantial snippets
             if snippet.word_count > 50:

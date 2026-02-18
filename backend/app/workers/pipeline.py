@@ -105,6 +105,7 @@ async def search_factchecks_for_claims(
 
     factcheck_api = FactCheckAPI()
     factcheck_evidence = {}
+    seen_urls = set()  # Cross-claim URL dedup
 
     for claim in claims:
         claim_text = claim.get("text", "")
@@ -114,10 +115,17 @@ async def search_factchecks_for_claims(
         fact_checks = await factcheck_api.search_fact_checks(claim_text)
 
         if fact_checks:
-            # Convert to evidence format
+            # Convert to evidence format with text extraction + cross-claim URL dedup
             evidence_items = []
             for fc in fact_checks:
-                ev = factcheck_api.convert_to_evidence(fc, claim_text)
+                url = fc.get("url", "")
+                if url in seen_urls:
+                    continue
+                seen_urls.add(url)
+                extracted_text = await factcheck_api._extract_factcheck_text(url)
+                ev = factcheck_api.convert_to_evidence(
+                    fc, claim_text, extracted_text=extracted_text
+                )
                 evidence_items.append(ev)
 
             factcheck_evidence[position] = evidence_items

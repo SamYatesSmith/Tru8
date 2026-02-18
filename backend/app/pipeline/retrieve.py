@@ -170,14 +170,18 @@ class EvidenceRetriever:
                                 # Merge element plans into one query_plan with element tracking
                                 merged_queries = []
                                 query_element_ids = []
+                                query_freshness = []
                                 for p in plans:
                                     element_id = p.get("element_id", "e1")
+                                    element_freshness = p.get("freshness", "py")
                                     for q in p.get("queries", []):
                                         merged_queries.append(q)
                                         query_element_ids.append(element_id)
+                                        query_freshness.append(element_freshness)
                                 claims[claim_idx]["query_plan"] = {
                                     "queries": merged_queries,
                                     "query_element_ids": query_element_ids,
+                                    "query_freshness": query_freshness,
                                     "claim_index": claim_idx,
                                     "freshness": plans[0].get("freshness", "py"),
                                     "source_hints": plans[0].get("source_hints", []),
@@ -493,7 +497,7 @@ class EvidenceRetriever:
                                     if hasattr(r, "published_date")
                                     else r.get("published_date")
                                 ),
-                                relevance_score=0.5,  # Neutral score, let LLM scorer decide
+                                relevance_score=0.0,  # No hardcoded score, LLM scorer decides
                                 # word_count is calculated automatically in EvidenceSnippet.__init__
                                 metadata={
                                     "recovery_search": True,
@@ -532,6 +536,7 @@ class EvidenceRetriever:
                         "semantic_similarity": 0.0,
                         "combined_score": 0.0,
                         "word_count": snippet.word_count,
+                        "receipt_status": "extracted",
                         "metadata": snippet.metadata,
                         "is_recovery": True,
                     }
@@ -710,6 +715,7 @@ class EvidenceRetriever:
                                 ),
                                 "is_factcheck": item.get("is_factcheck", False),
                                 "source_type": item.get("source_type"),
+                                "receipt_status": "shown",
                                 "metadata": item.get("metadata", {}),
                             }
                         )
@@ -904,16 +910,24 @@ class EvidenceRetriever:
                     logger.info(
                         f"[EVIDENCE CAP] Reducing {len(all_evidence_snippets)} items to {MAX_EVIDENCE_FOR_RANKING} before ranking"
                     )
-                    # Sort by relevance_score and keep best
-                    all_evidence_snippets.sort(
-                        key=lambda x: (
-                            x.relevance_score if hasattr(x, "relevance_score") else 0.5
-                        ),
-                        reverse=True,
-                    )
-                    all_evidence_snippets = all_evidence_snippets[
-                        :MAX_EVIDENCE_FOR_RANKING
-                    ]
+                    # Round-robin: alternate web and API to ensure source diversity
+                    web = evidence_snippets
+                    api = api_snippets
+                    interleaved = []
+                    wi, ai = 0, 0
+                    while len(interleaved) < MAX_EVIDENCE_FOR_RANKING and (
+                        wi < len(web) or ai < len(api)
+                    ):
+                        if wi < len(web):
+                            interleaved.append(web[wi])
+                            wi += 1
+                        if (
+                            ai < len(api)
+                            and len(interleaved) < MAX_EVIDENCE_FOR_RANKING
+                        ):
+                            interleaved.append(api[ai])
+                            ai += 1
+                    all_evidence_snippets = interleaved
 
                 # Build evidence dicts (LLM scorer handles relevance downstream in Stage 3.7)
                 ranked_evidence = []
@@ -945,6 +959,7 @@ class EvidenceRetriever:
                             "combined_score": 0.0,
                             "word_count": snippet.word_count,
                             "external_source_provider": external_source,
+                            "receipt_status": "extracted",
                             "metadata": snippet.metadata,
                         }
                     )
@@ -1016,18 +1031,16 @@ class EvidenceRetriever:
             )  # Keep for metadata/backward compat
 
             # ============================================================
-            # DYNAMIC FRESHNESS: Use LLM-decided freshness from query plan
+            # DYNAMIC FRESHNESS: Per-query freshness from query plan
             # ============================================================
-            # The query planner receives full article context and decides
-            # freshness per claim based on domain, temporal context, and
-            # evidence guidance. No more hardcoded claim_type lookups.
-            effective_freshness = query_plan.get("freshness", "py")
+            # Each query carries its own freshness from the element it targets.
+            # The plan-level freshness is a fallback for backward compatibility.
+            query_freshness_list = query_plan.get("query_freshness", [])
+            default_freshness = query_plan.get("freshness", "py")
             plan_reasoning = query_plan.get("reasoning", "default")
 
-            # NOTE: TemporalAnalyzer reconciliation removed - Query Planner is single source of truth
-
             logger.info(
-                f"[FRESHNESS] Using plan freshness: {effective_freshness} (reasoning: {plan_reasoning[:50]})"
+                f"[FRESHNESS] Per-query freshness: {query_freshness_list[:4]}... (default: {default_freshness}, reasoning: {plan_reasoning[:50]})"
             )
 
             if not queries:
@@ -1048,7 +1061,13 @@ class EvidenceRetriever:
                 3, max_sources // len(queries)
             )  # Distribute sources across queries
 
-            for query in queries:
+            for i, query in enumerate(queries):
+                # Per-query freshness: use the freshness for this specific query's element
+                this_freshness = (
+                    query_freshness_list[i]
+                    if i < len(query_freshness_list)
+                    else default_freshness
+                )
                 # Only append site filter if query doesn't already have one (LLM may include it)
                 if site_filter and "site:" not in query.lower():
                     full_query = f"{query} {site_filter}"
@@ -1057,7 +1076,7 @@ class EvidenceRetriever:
                 task = self.evidence_extractor.search_service.search_for_evidence(
                     full_query,
                     max_results=sources_per_query,
-                    freshness=effective_freshness,  # Use domain-aware freshness
+                    freshness=this_freshness,
                 )
                 query_tasks.append(task)
 
@@ -1097,7 +1116,7 @@ class EvidenceRetriever:
                     result._query_index = i
                     result._query_used = queries[i]
                     result._claim_type = claim_type
-                    result._freshness = effective_freshness  # For staleness check
+                    result._freshness = default_freshness  # For staleness check
                     result._element_ids = {element_id} if element_id else set()
                     seen_urls[result.url] = result
                     unique_search_results.append(result)
@@ -1106,22 +1125,22 @@ class EvidenceRetriever:
             if not unique_search_results:
                 fallback_progression = ["pw", "pm", "py"]
                 current_idx = (
-                    fallback_progression.index(effective_freshness)
-                    if effective_freshness in fallback_progression
+                    fallback_progression.index(default_freshness)
+                    if default_freshness in fallback_progression
                     else -1
                 )
 
                 # FALLBACK 1: Try WITHOUT site filter (same freshness)
                 if site_filter:
                     logger.info(
-                        f"[FRESHNESS FALLBACK] 0 results. Trying without site filter (freshness={effective_freshness})"
+                        f"[FRESHNESS FALLBACK] 0 results. Trying without site filter (freshness={default_freshness})"
                     )
                     for query in queries:
                         try:
                             results = await self.evidence_extractor.search_service.search_for_evidence(
                                 query,
                                 max_results=sources_per_query,
-                                freshness=effective_freshness,
+                                freshness=default_freshness,
                             )
                             for result in results:
                                 if (
@@ -1134,7 +1153,7 @@ class EvidenceRetriever:
                                     result._query_index = queries.index(query)
                                     result._query_used = query
                                     result._claim_type = claim_type
-                                    result._freshness = effective_freshness
+                                    result._freshness = default_freshness
                                     unique_search_results.append(result)
                         except Exception as e:
                             logger.warning(f"Fallback query failed: {e}")
@@ -1151,7 +1170,7 @@ class EvidenceRetriever:
                 ):
                     for fallback_freshness in fallback_progression[current_idx + 1 :]:
                         logger.info(
-                            f"[FRESHNESS FALLBACK] Relaxing: {effective_freshness} -> {fallback_freshness}"
+                            f"[FRESHNESS FALLBACK] Relaxing: {default_freshness} -> {fallback_freshness}"
                         )
                         for query in queries:
                             try:
@@ -1327,7 +1346,7 @@ class EvidenceRetriever:
                     url=search_result.url,
                     title=search_result.title or "",
                     published_date=search_result.published_date,
-                    relevance_score=0.4,  # Lower score for fallback snippets
+                    relevance_score=0.0,  # No hardcoded score, status tracked via metadata
                     metadata={
                         "query_index": query_index,
                         "query_used": query_used,
@@ -1788,14 +1807,30 @@ class EvidenceRetriever:
                 logger.info(
                     f"[API CAP] Reducing {len(all_api_evidence)} API items to {MAX_API_EVIDENCE_PER_CLAIM}"
                 )
-                # Sort by relevance and keep best
-                all_api_evidence.sort(
-                    key=lambda x: x.get(
-                        "combined_score", x.get("relevance_score", 0.5)
-                    ),
-                    reverse=True,
-                )
-                all_api_evidence = all_api_evidence[:MAX_API_EVIDENCE_PER_CLAIM]
+                # Round-robin across API providers for source diversity
+                from collections import defaultdict
+
+                by_provider = defaultdict(list)
+                for item in all_api_evidence:
+                    by_provider[item.get("external_source_provider", "unknown")].append(
+                        item
+                    )
+                providers = list(by_provider.values())
+                interleaved = []
+                idx = 0
+                while len(interleaved) < MAX_API_EVIDENCE_PER_CLAIM:
+                    added = False
+                    for group in providers:
+                        if (
+                            idx < len(group)
+                            and len(interleaved) < MAX_API_EVIDENCE_PER_CLAIM
+                        ):
+                            interleaved.append(group[idx])
+                            added = True
+                    if not added:
+                        break
+                    idx += 1
+                all_api_evidence = interleaved
 
             # CRITICAL DIAGNOSTIC: Log final API evidence count
             logger.critical(
@@ -1843,7 +1878,7 @@ class EvidenceRetriever:
                     url=evidence.get("url", ""),
                     title=evidence.get("title", ""),
                     published_date=evidence.get("source_date"),
-                    relevance_score=0.8,  # Default relevance for API sources
+                    relevance_score=0.0,  # No hardcoded score, LLM scorer decides
                     # word_count is calculated automatically in EvidenceSnippet.__init__
                     metadata={
                         **evidence.get("metadata", {}),

@@ -158,7 +158,6 @@ class WikipediaAdapter(GovernmentAPIClient):
                                 "source_date": (
                                     pub_date.isoformat() if pub_date else None
                                 ),
-                                "relevance_score": 0.8,
                                 "external_source_provider": "Wikipedia",
                                 "metadata": {
                                     "description": summary_response.get(
@@ -306,7 +305,6 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
                         "snippet": description or result.get("extract", ""),
                         "url": url,
                         "source_date": pub_date,
-                        "relevance_score": 0.85,
                         "external_source_provider": "Library of Congress",
                         "metadata": {
                             "collection": result.get("partof", []),
@@ -385,7 +383,6 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
                         ),
                         "url": url,
                         "source_date": pub_date,
-                        "relevance_score": 0.8,
                         "external_source_provider": "Chronicling America",
                         "metadata": {
                             "location": location,
@@ -534,7 +531,6 @@ class InternetArchiveAdapter(GovernmentAPIClient):
                         "snippet": description[:500] if description else "",
                         "url": url,
                         "source_date": pub_date,
-                        "relevance_score": 0.8,
                         "external_source_provider": "Internet Archive",
                         "metadata": {
                             "identifier": identifier,

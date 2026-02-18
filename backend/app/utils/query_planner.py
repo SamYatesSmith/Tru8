@@ -438,8 +438,8 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
                     validated_plan["queries"], current_year
                 )
 
-            # Limit queries to 4 per element
-            validated_plan["queries"] = validated_plan["queries"][:4]
+            # Limit queries to 2 per element
+            validated_plan["queries"] = validated_plan["queries"][:2]
 
             # Validate query relevance using both claim text and element description
             if element_texts and i < len(element_texts):

@@ -22,9 +22,9 @@ from app.services.evidence import EvidenceSnippet
 @pytest.fixture
 def retriever():
     """Create an EvidenceRetriever with mocked dependencies."""
-    with patch('app.pipeline.retrieve.SearchService'), \
-         patch('app.pipeline.retrieve.EvidenceExtractor'), \
-         patch('app.pipeline.retrieve.get_api_registry'):
+    with patch("app.pipeline.retrieve.SearchService"), patch(
+        "app.pipeline.retrieve.EvidenceExtractor"
+    ), patch("app.pipeline.retrieve.get_api_registry"):
         retriever = EvidenceRetriever()
         # Set max_concurrent for semaphore
         retriever.evidence_extractor.max_concurrent = 3
@@ -39,7 +39,7 @@ def mock_search_result():
         url="https://example.com/arsenal-top",
         snippet="View the latest Arsenal statistics and standings...",  # Meta description
         published_date="2025-11-28",
-        source="example.com"
+        source="example.com",
     )
 
 
@@ -53,7 +53,7 @@ def mock_extracted_snippet():
         title="Arsenal top Premier League table",
         published_date="2025-11-28",
         relevance_score=0.85,
-        metadata={}
+        metadata={},
     )
 
 
@@ -82,13 +82,12 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["Arsenal Premier League standings November 2025"],
             "claim_type": "league_standing",
-            "priority_sources": ["premierleague.com"]
+            "priority_sources": ["premierleague.com"],
         }
 
         # Act
         results = await retriever._execute_planned_queries(
-            claim_text="Arsenal is top of the Premier League",
-            query_plan=query_plan
+            claim_text="Arsenal is top of the Premier League", query_plan=query_plan
         )
 
         # Assert
@@ -117,13 +116,12 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["test query"],
             "claim_type": "player_statistics",
-            "priority_sources": []
+            "priority_sources": [],
         }
 
         # Act
         results = await retriever._execute_planned_queries(
-            claim_text="Test claim",
-            query_plan=query_plan
+            claim_text="Test claim", query_plan=query_plan
         )
 
         # Assert
@@ -152,22 +150,21 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["blocked query"],
             "claim_type": "general",
-            "priority_sources": []
+            "priority_sources": [],
         }
 
         # Act
-        with patch('app.pipeline.retrieve.settings') as mock_settings:
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
             mock_settings.ALLOW_SNIPPET_FALLBACK = True
             results = await retriever._execute_planned_queries(
-                claim_text="Test claim",
-                query_plan=query_plan
+                claim_text="Test claim", query_plan=query_plan
             )
 
         # Assert - should get fallback snippet
         assert len(results) == 1
         assert results[0].metadata.get("is_snippet_fallback") == True
         assert results[0].metadata.get("extraction_status") == "fallback_blocked"
-        assert results[0].relevance_score == 0.4  # Lower score for fallback
+        assert results[0].relevance_score == 0.0  # No hardcoded score for fallback
 
     async def test_drop_empty_extraction(self, retriever, mock_search_result):
         """
@@ -183,13 +180,12 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["empty page query"],
             "claim_type": "general",
-            "priority_sources": []
+            "priority_sources": [],
         }
 
         # Act
         results = await retriever._execute_planned_queries(
-            claim_text="Test claim",
-            query_plan=query_plan
+            claim_text="Test claim", query_plan=query_plan
         )
 
         # Assert - should be empty (dropped)
@@ -212,15 +208,14 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["blocked query"],
             "claim_type": "general",
-            "priority_sources": []
+            "priority_sources": [],
         }
 
         # Act
-        with patch('app.pipeline.retrieve.settings') as mock_settings:
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
             mock_settings.ALLOW_SNIPPET_FALLBACK = False
             results = await retriever._execute_planned_queries(
-                claim_text="Test claim",
-                query_plan=query_plan
+                claim_text="Test claim", query_plan=query_plan
             )
 
         # Assert - should be empty (dropped, no fallback)
@@ -235,23 +230,24 @@ class TestQueryPlanningExtraction:
             title="Article 1",
             url="https://example.com/same-url",
             snippet="Snippet 1",
-            source="example.com"
+            source="example.com",
         )
         result2 = SearchResult(
             title="Article 2",
             url="https://example.com/same-url",  # Duplicate URL
             snippet="Snippet 2",
-            source="example.com"
+            source="example.com",
         )
         result3 = SearchResult(
             title="Article 3",
             url="https://example.com/different-url",
             snippet="Snippet 3",
-            source="example.com"
+            source="example.com",
         )
 
         # Return different results for each query
         call_count = 0
+
         async def mock_search(*args, **kwargs):
             nonlocal call_count
             call_count += 1
@@ -267,20 +263,21 @@ class TestQueryPlanningExtraction:
             url="",
             title="",
             relevance_score=0.8,
-            metadata={}
+            metadata={},
         )
-        retriever.evidence_extractor._extract_from_page = AsyncMock(return_value=extracted)
+        retriever.evidence_extractor._extract_from_page = AsyncMock(
+            return_value=extracted
+        )
 
         query_plan = {
             "queries": ["query 1", "query 2"],
             "claim_type": "general",
-            "priority_sources": []
+            "priority_sources": [],
         }
 
         # Act
         results = await retriever._execute_planned_queries(
-            claim_text="Test claim",
-            query_plan=query_plan
+            claim_text="Test claim", query_plan=query_plan
         )
 
         # Assert - should have 2 results (1 duplicate removed)
@@ -293,7 +290,9 @@ class TestQueryPlanningExtraction:
 class TestExtractWithFallback:
     """Test the _extract_with_fallback helper method."""
 
-    async def test_successful_extraction(self, retriever, mock_search_result, mock_extracted_snippet):
+    async def test_successful_extraction(
+        self, retriever, mock_search_result, mock_extracted_snippet
+    ):
         """Test successful content extraction preserves metadata."""
         # Attach query metadata
         mock_search_result._query_index = 0
@@ -307,9 +306,7 @@ class TestExtractWithFallback:
         # Act
         semaphore = asyncio.Semaphore(3)
         result = await retriever._extract_with_fallback(
-            mock_search_result,
-            "Test claim",
-            semaphore
+            mock_search_result, "Test claim", semaphore
         )
 
         # Assert
@@ -332,20 +329,18 @@ class TestExtractWithFallback:
         retriever.evidence_extractor._extract_from_page = raise_timeout
 
         # Act
-        with patch('app.pipeline.retrieve.settings') as mock_settings:
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
             mock_settings.ALLOW_SNIPPET_FALLBACK = True
             semaphore = asyncio.Semaphore(3)
             result = await retriever._extract_with_fallback(
-                mock_search_result,
-                "Test claim",
-                semaphore
+                mock_search_result, "Test claim", semaphore
             )
 
         # Assert
         assert result is not None
         assert result.metadata["extraction_status"] == "fallback_timeout"
         assert result.metadata["is_snippet_fallback"] == True
-        assert result.relevance_score == 0.4
+        assert result.relevance_score == 0.0
 
     async def test_other_error_drops(self, retriever, mock_search_result):
         """Test non-transient errors drop the result."""
@@ -359,13 +354,11 @@ class TestExtractWithFallback:
         retriever.evidence_extractor._extract_from_page = raise_other
 
         # Act
-        with patch('app.pipeline.retrieve.settings') as mock_settings:
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
             mock_settings.ALLOW_SNIPPET_FALLBACK = True
             semaphore = asyncio.Semaphore(3)
             result = await retriever._extract_with_fallback(
-                mock_search_result,
-                "Test claim",
-                semaphore
+                mock_search_result, "Test claim", semaphore
             )
 
         # Assert - non-403/timeout errors should drop

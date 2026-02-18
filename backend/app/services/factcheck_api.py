@@ -56,11 +56,15 @@ class FactCheckAPI:
                 claims = data.get("claims", [])
 
                 results = []
+                seen_urls = set()
                 for claim in claims:
                     for review in claim.get("claimReview", []):
                         result = self._parse_fact_check(claim, review)
                         if result:
-                            results.append(result)
+                            url = result.get("url", "")
+                            if url and url not in seen_urls:
+                                seen_urls.add(url)
+                                results.append(result)
 
                 # Cache results
                 self.cache[cache_key] = (results, datetime.utcnow())
@@ -178,8 +182,27 @@ class FactCheckAPI:
         logger.debug(f"Unknown rating format: {rating}, defaulting to UNCERTAIN")
         return "UNCERTAIN"
 
+    async def _extract_factcheck_text(self, url: str) -> Optional[str]:
+        """Fetch and extract article text from a fact-check URL."""
+        try:
+            from app.services.evidence import EvidenceExtractor
+
+            extractor = EvidenceExtractor()
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                content = extractor._extract_main_content(response.text, url)
+                if content and len(content) > 50:
+                    return content[:2000]
+        except Exception as e:
+            logger.warning(f"Failed to extract fact-check text from {url}: {e}")
+        return None
+
     def convert_to_evidence(
-        self, fact_check: Dict[str, Any], claim_text: str
+        self,
+        fact_check: Dict[str, Any],
+        claim_text: str,
+        extracted_text: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Convert fact-check result to Evidence format for pipeline integration.
@@ -187,17 +210,23 @@ class FactCheckAPI:
         Args:
             fact_check: Parsed fact-check result
             claim_text: Original claim being checked
+            extracted_text: Pre-extracted article text (if available)
 
         Returns:
             Evidence-compatible dictionary
         """
+        snippet = (
+            extracted_text
+            if extracted_text
+            else f"Fact-check rating: {fact_check.get('rating', 'Unknown')}"
+        )
+
         return {
             "source": fact_check.get("publisher", "Unknown"),
             "url": fact_check.get("url", ""),
             "title": fact_check.get("title", ""),
-            "snippet": f"Fact-check rating: {fact_check.get('rating', 'Unknown')}",
+            "snippet": snippet,
             "published_date": fact_check.get("review_date"),
-            "relevance_score": 1.0,  # Fact-checks are highly relevant
             "is_factcheck": True,
             "factcheck_publisher": fact_check.get("publisher"),
             "factcheck_rating": fact_check.get("rating"),

@@ -89,11 +89,15 @@ class CrossRefAdapter(GovernmentAPIClient):
 
         query = self._sanitize_query(query)
 
+        current_year = datetime.utcnow().year
+        min_year = current_year - 2
+
         params = {
             "query": query,
             "rows": self.max_results,
             "sort": "relevance",
             "select": "title,author,published-print,DOI,publisher,abstract",
+            "filter": f"from-pub-date:{min_year}",
         }
 
         try:
@@ -228,7 +232,9 @@ class SemanticScholarAdapter(GovernmentAPIClient):
 
             # Build search URL with fields
             fields = "paperId,title,abstract,url,year,authors,citationCount,publicationDate,venue"
-            url = f"{self.base_url}/paper/search?query={quote(query)}&limit={self.max_results}&fields={fields}"
+            current_year = datetime.utcnow().year
+            min_year = current_year - 2
+            url = f"{self.base_url}/paper/search?query={quote(query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
 
             with httpx.Client(timeout=self.timeout, headers=self.headers) as client:
                 response = client.get(url)
@@ -265,7 +271,6 @@ class SemanticScholarAdapter(GovernmentAPIClient):
                         "url": paper.get("url")
                         or f"https://www.semanticscholar.org/paper/{paper.get('paperId', '')}",
                         "source_date": pub_date,
-                        "relevance_score": 0.85,
                         "external_source_provider": "Semantic Scholar",
                         "metadata": {
                             "authors": authors,
@@ -342,7 +347,9 @@ class OpenAlexAdapter(GovernmentAPIClient):
             from urllib.parse import quote
 
             # Build search URL with mailto for polite pool
-            url = f"{self.base_url}/works?search={quote(query)}&per-page={self.max_results}&mailto=contact@tru8.com"
+            current_year = datetime.utcnow().year
+            min_year = current_year - 2
+            url = f"{self.base_url}/works?search={quote(query)}&per-page={self.max_results}&mailto=contact@tru8.com&filter=from_publication_date:{min_year}-01-01"
 
             with httpx.Client(timeout=self.timeout, headers=self.headers) as client:
                 response = client.get(url)
@@ -418,7 +425,6 @@ class OpenAlexAdapter(GovernmentAPIClient):
                         "snippet": abstract,
                         "url": url,
                         "source_date": pub_date,
-                        "relevance_score": 0.85,
                         "external_source_provider": "OpenAlex",
                         "metadata": {
                             "authors": authors,
