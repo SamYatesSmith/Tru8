@@ -17,6 +17,7 @@ import { ClarityResponseCard } from './components/clarity-response-card';
 import { UpgradeModal } from './components/upgrade-modal';
 import { ClaimList } from '@/components/evidence-views/overview';
 import { ViewSelector, EvidenceMetaStrip } from '@/components/evidence-views';
+import { LibrarianView } from '@/components/evidence-views/librarian';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -247,12 +248,17 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
           {/* Check-Wide View Selector */}
           <ViewSelector mode="overview" activeTab={activeOverviewTab} onTabChange={setActiveOverviewTab} />
 
-          {/* Check-wide view content placeholder — actual views in E10-E12 */}
-          <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
-            <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
-              Check-wide {activeOverviewTab} view — coming in E10-E12
-            </p>
-          </div>
+          {/* Check-wide view content */}
+          {activeOverviewTab === 'librarian' && (
+            <LibrarianView scope="check" claims={checkData.claims} />
+          )}
+          {activeOverviewTab !== 'librarian' && (
+            <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
+                Check-wide {activeOverviewTab} view — coming in E11-E12
+              </p>
+            </div>
+          )}
 
           <ShareSection checkId={checkId} inputUrl={checkData.inputUrl} title={checkData.title} />
           <NavigationSection />

@@ -463,6 +463,25 @@ a:focus-visible {
   opacity: 1;
 }
 
+/* Heatmap cells (E10 — Librarian) */
+.heatmap-cell {
+  transition: all 0.15s ease;
+}
+.heatmap-cell:hover {
+  border-color: #3F3F46;
+  transform: scale(1.02);
+}
+
+/* Filter pills (E10 — Librarian) */
+.filter-pill {
+  transition: all 0.15s ease;
+}
+.filter-pill.active {
+  background: #18181B;
+  color: white;
+  border-color: #18181B;
+}
+
 /* Evidence View Cards (E09) */
 .claim-overview-card {
   transition: all 0.15s ease;
