@@ -9,8 +9,12 @@ Root cause: backend TypedDict uses snake_case, frontend expects camelCase.
 Fix: _claim_map_to_camel_case() converter in checks.py.
 """
 
+from datetime import datetime
+from types import SimpleNamespace
+from unittest.mock import MagicMock
+
 import pytest
-from app.api.v1.checks import _claim_map_to_camel_case
+from app.api.v1.checks import _claim_map_to_camel_case, _serialize_evidence
 
 
 class TestClaimMapCamelCaseConversion:
@@ -186,3 +190,151 @@ class TestStageProgressionContract:
         from app.pipeline.progress import ProgressReporter
 
         assert ProgressReporter.STAGE_PROGRESS["starting"] == 0
+
+
+def _make_evidence(**overrides):
+    """Create a mock Evidence model with all fields."""
+    defaults = {
+        "id": "ev-db-001",
+        "evidence_id": "ev-001",
+        "source": "bbc.co.uk",
+        "url": "https://bbc.co.uk/news/1",
+        "title": "Test Article",
+        "snippet": "Some evidence text.",
+        "published_date": datetime(2026, 1, 15, 12, 0, 0),
+        "relevance_score": 0.85,
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "receipt_status": "shown",
+        "corroboration_group_id": 1,
+        "corroborating_evidence_ids": "ev-002,ev-003",
+        "is_factcheck": False,
+        "external_source_provider": None,
+        "source_type": "web",
+        "factcheck_publisher": None,
+        "factcheck_rating": None,
+        "context_before": None,
+        "context_after": None,
+    }
+    defaults.update(overrides)
+    return SimpleNamespace(**defaults)
+
+
+class TestSerializeEvidence:
+    """Tests for _serialize_evidence() helper (E08)."""
+
+    @pytest.mark.unit
+    def test_basic_fields_present(self):
+        """All standard evidence fields must be in output."""
+        ev = _make_evidence()
+        result = _serialize_evidence(ev)
+
+        assert result["id"] == "ev-db-001"
+        assert result["evidenceId"] == "ev-001"
+        assert result["source"] == "bbc.co.uk"
+        assert result["url"] == "https://bbc.co.uk/news/1"
+        assert result["title"] == "Test Article"
+        assert result["snippet"] == "Some evidence text."
+        assert result["relevanceScore"] == 0.85
+
+    @pytest.mark.unit
+    def test_published_date_iso_format(self):
+        """Published date must be ISO string."""
+        ev = _make_evidence()
+        result = _serialize_evidence(ev)
+        assert result["publishedDate"] == "2026-01-15T12:00:00"
+
+    @pytest.mark.unit
+    def test_published_date_none(self):
+        """Null published date must serialize as null."""
+        ev = _make_evidence(published_date=None)
+        result = _serialize_evidence(ev)
+        assert result["publishedDate"] is None
+
+    @pytest.mark.unit
+    def test_classification_fields(self):
+        """E06 tier/type/receipt fields must be present."""
+        ev = _make_evidence(
+            tier="primary", evidence_type="data", receipt_status="classified"
+        )
+        result = _serialize_evidence(ev)
+
+        assert result["tier"] == "primary"
+        assert result["evidenceType"] == "data"
+        assert result["receiptStatus"] == "classified"
+
+    @pytest.mark.unit
+    def test_corroboration_fields(self):
+        """E07 corroboration fields must be present."""
+        ev = _make_evidence(
+            corroboration_group_id=3, corroborating_evidence_ids="ev-010,ev-011"
+        )
+        result = _serialize_evidence(ev)
+
+        assert result["corroborationGroupId"] == 3
+        assert result["corroboratingEvidenceIds"] == "ev-010,ev-011"
+
+    @pytest.mark.unit
+    def test_factcheck_detail_excluded_by_default(self):
+        """Factcheck detail fields must NOT be present without flag."""
+        ev = _make_evidence(
+            is_factcheck=True,
+            factcheck_publisher="PolitiFact",
+            factcheck_rating="True",
+        )
+        result = _serialize_evidence(ev)
+
+        assert "factcheckPublisher" not in result
+        assert "factcheckRating" not in result
+        assert "contextBefore" not in result
+        assert "contextAfter" not in result
+
+    @pytest.mark.unit
+    def test_factcheck_detail_included_with_flag(self):
+        """Factcheck detail fields must be present with include_factcheck_detail=True."""
+        ev = _make_evidence(
+            is_factcheck=True,
+            factcheck_publisher="PolitiFact",
+            factcheck_rating="True",
+            context_before="Before text.",
+            context_after="After text.",
+        )
+        result = _serialize_evidence(ev, include_factcheck_detail=True)
+
+        assert result["factcheckPublisher"] == "PolitiFact"
+        assert result["factcheckRating"] == "True"
+        assert result["contextBefore"] == "Before text."
+        assert result["contextAfter"] == "After text."
+
+    @pytest.mark.unit
+    def test_source_type_fields(self):
+        """Source type fields must be present."""
+        ev = _make_evidence(
+            is_factcheck=True,
+            external_source_provider="FactCheck API",
+            source_type="factcheck",
+        )
+        result = _serialize_evidence(ev)
+
+        assert result["isFactcheck"] is True
+        assert result["externalSourceProvider"] == "FactCheck API"
+        assert result["sourceType"] == "factcheck"
+
+    @pytest.mark.unit
+    def test_camel_case_keys(self):
+        """All keys must be camelCase (no snake_case)."""
+        ev = _make_evidence()
+        result = _serialize_evidence(ev)
+
+        for key in result:
+            assert (
+                "_" not in key
+            ), f"Key '{key}' contains underscore (should be camelCase)"
+
+    @pytest.mark.unit
+    def test_no_credibility_score(self):
+        """credibilityScore must NOT appear in output (deleted E03)."""
+        ev = _make_evidence()
+        result = _serialize_evidence(ev)
+        assert "credibilityScore" not in result
+        assert "credibility_score" not in result

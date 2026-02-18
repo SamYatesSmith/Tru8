@@ -65,6 +65,26 @@ export interface Claim {
   significanceScore?: number; // Article mode: significance score from ranking
 }
 
+// Evidence tier classification (E06)
+export type EvidenceTier = 'primary' | 'reporting' | 'commentary';
+
+// Evidence type classification (E06)
+export type EvidenceType =
+  | 'data'
+  | 'official_statement'
+  | 'news_reporting'
+  | 'analysis'
+  | 'opinion'
+  | 'academic';
+
+// Receipt pipeline status (E08)
+export type ReceiptStatus =
+  | 'found'
+  | 'extracted'
+  | 'classified'
+  | 'excluded'
+  | 'shown';
+
 export interface Evidence {
   id: string;
   claimId?: string; // Optional in some contexts
@@ -75,7 +95,22 @@ export interface Evidence {
   snippet: string;
   publishedDate?: string; // ISO string from backend, not Date
   relevanceScore: number; // 0-1 (semantic similarity)
-  credibilityScore?: number; // 0-1 (source trustworthiness)
+  // Classification (E06)
+  tier?: EvidenceTier;
+  evidenceType?: EvidenceType;
+  receiptStatus?: ReceiptStatus;
+  // Corroboration (E07)
+  corroborationGroupId?: number;
+  corroboratingEvidenceIds?: string; // Comma-separated evidence IDs
+  // Source type fields
+  isFactcheck?: boolean;
+  externalSourceProvider?: string;
+  sourceType?: string;
+  // Fact-check detail (public report only)
+  factcheckPublisher?: string;
+  factcheckRating?: string;
+  contextBefore?: string;
+  contextAfter?: string;
 }
 
 // API Requests
@@ -146,7 +181,7 @@ export type UserUsage = UserUsageResponse;
 // Pipeline stages
 export interface PipelineProgress {
   checkId: string;
-  stage: 'ingest' | 'extract' | 'retrieve' | 'select' | 'decompose' | 'analyze' | 'complete';
+  stage: 'ingest' | 'extract' | 'retrieve' | 'select' | 'decompose' | 'classify' | 'analyze' | 'complete';
   progress: number; // 0-100
   message?: string;
 }

@@ -85,6 +85,28 @@ export const CLAIM_TYPE_LABELS = {
   normative_flagged: 'Normative (flagged)',
 } as const;
 
+// --- Evidence classification constants (E08) ---
+export const TIER_LABELS = {
+  primary: 'Primary',
+  reporting: 'Reporting',
+  commentary: 'Commentary',
+} as const;
+
+export const TIER_COLORS = {
+  primary: '#16a34a',    // green-600
+  reporting: '#2563eb',  // blue-600
+  commentary: '#9333ea', // purple-600
+} as const;
+
+export const EVIDENCE_TYPE_LABELS = {
+  data: 'Data',
+  official_statement: 'Official Statement',
+  news_reporting: 'News Reporting',
+  analysis: 'Analysis',
+  opinion: 'Opinion',
+  academic: 'Academic',
+} as const;
+
 // --- Claim Map CSS variable names (Track C) ---
 export const ELEMENT_STATE_CSS_VARS = {
   supported: '--state-supported',

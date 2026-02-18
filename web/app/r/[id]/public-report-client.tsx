@@ -369,22 +369,6 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
                             )}
                             <span>&middot;</span>
                             <span>{formatMonthYear(evidence.publishedDate || null)}</span>
-                            {evidence.credibilityScore && (
-                              <>
-                                <span>&middot;</span>
-                                <span className={`font-medium ${
-                                  evidence.credibilityScore >= 0.9 ? 'text-emerald-600' :
-                                  evidence.credibilityScore >= 0.8 ? 'text-blue-600' :
-                                  evidence.credibilityScore >= 0.6 ? 'text-zinc-500' :
-                                  'text-amber-600'
-                                }`}>
-                                  {evidence.credibilityScore >= 0.9 ? 'Expert Source' :
-                                   evidence.credibilityScore >= 0.8 ? 'Verified Source' :
-                                   evidence.credibilityScore >= 0.6 ? 'General Source' :
-                                   'Unverified Source'}
-                                </span>
-                              </>
-                            )}
                           </div>
                         </div>
                       </div>

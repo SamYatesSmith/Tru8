@@ -87,6 +87,48 @@ def _convert_element(elem: dict) -> dict:
     return result
 
 
+def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
+    """Serialize an Evidence model instance to camelCase API dict.
+
+    Consolidates the 3 inline evidence serialization blocks into one helper.
+    Returns the standard evidence shape for all API endpoints.
+
+    Args:
+        ev: Evidence model instance
+        include_factcheck_detail: If True, include factcheckPublisher,
+            factcheckRating, contextBefore, contextAfter (public detailed endpoint)
+    """
+    result = {
+        "id": ev.id,
+        "evidenceId": ev.evidence_id,
+        "source": ev.source,
+        "url": ev.url,
+        "title": ev.title,
+        "snippet": ev.snippet,
+        "publishedDate": (ev.published_date.isoformat() if ev.published_date else None),
+        "relevanceScore": ev.relevance_score,
+        # Classification (E06)
+        "tier": ev.tier,
+        "evidenceType": ev.evidence_type,
+        "receiptStatus": ev.receipt_status,
+        # Corroboration (E07)
+        "corroborationGroupId": ev.corroboration_group_id,
+        "corroboratingEvidenceIds": ev.corroborating_evidence_ids,
+        # Source type fields
+        "isFactcheck": ev.is_factcheck,
+        "externalSourceProvider": ev.external_source_provider,
+        "sourceType": ev.source_type,
+    }
+
+    if include_factcheck_detail:
+        result["factcheckPublisher"] = ev.factcheck_publisher
+        result["factcheckRating"] = ev.factcheck_rating
+        result["contextBefore"] = ev.context_before
+        result["contextAfter"] = ev.context_after
+
+    return result
+
+
 router = APIRouter()
 
 
@@ -1058,25 +1100,7 @@ async def get_check(
                 "sourceUrl": claim.source_url,
                 # Sources reviewed count (for "View X sources" link when no evidence displayed)
                 "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
-                "evidence": [
-                    {
-                        "id": ev.id,
-                        "evidenceId": ev.evidence_id,
-                        "source": ev.source,
-                        "url": ev.url,
-                        "title": ev.title,
-                        "snippet": ev.snippet,
-                        "publishedDate": (
-                            ev.published_date.isoformat() if ev.published_date else None
-                        ),
-                        "relevanceScore": ev.relevance_score,
-                        # Source type fields
-                        "isFactcheck": ev.is_factcheck,
-                        "externalSourceProvider": ev.external_source_provider,
-                        "sourceType": ev.source_type,
-                    }
-                    for ev in evidence
-                ],
+                "evidence": [_serialize_evidence(ev) for ev in evidence],
             }
         )
 
@@ -1638,6 +1662,7 @@ async def get_check_sources(
                 raw_ev.published_date.isoformat() if raw_ev.published_date else None
             ),
             "relevanceScore": raw_ev.relevance_score,
+            "tier": raw_ev.tier,
             "isIncluded": raw_ev.is_included,
             "filterStage": raw_ev.filter_stage,
             "filterReason": raw_ev.filter_reason,
@@ -1798,27 +1823,10 @@ async def get_public_check(
         evidence_result = await session.execute(evidence_stmt)
         evidence_list = evidence_result.scalars().all()
 
-        evidence_data = []
-        for ev in evidence_list:
-            evidence_data.append(
-                {
-                    "id": ev.id,
-                    "evidenceId": ev.evidence_id,
-                    "source": ev.source,
-                    "url": ev.url,
-                    "title": ev.title,
-                    "snippet": ev.snippet,
-                    "publishedDate": (
-                        ev.published_date.isoformat() if ev.published_date else None
-                    ),
-                    "relevanceScore": ev.relevance_score,
-                    "isFactcheck": ev.is_factcheck,
-                    "factcheckPublisher": ev.factcheck_publisher,
-                    "factcheckRating": ev.factcheck_rating,
-                    "contextBefore": ev.context_before,
-                    "contextAfter": ev.context_after,
-                }
-            )
+        evidence_data = [
+            _serialize_evidence(ev, include_factcheck_detail=True)
+            for ev in evidence_list
+        ]
 
         claim_map = (
             _claim_map_to_camel_case(claim.claim_map) if claim.claim_map else None
