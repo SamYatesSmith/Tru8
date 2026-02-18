@@ -95,7 +95,12 @@ def _make_retriever_patches():
             "app.utils.corroboration.apply_corroboration_boost",
             side_effect=lambda evidence_list: (
                 evidence_list,
-                {"items_boosted": 0, "corroboration_pairs": 0},
+                {
+                    "items_annotated": 0,
+                    "corroboration_pairs": 0,
+                    "groups": 0,
+                    "derivation_chains": 0,
+                },
             ),
         ),
     }
@@ -124,7 +129,12 @@ def retriever_env():
             "app.utils.corroboration.apply_corroboration_boost",
             side_effect=lambda evidence_list: (
                 evidence_list,
-                {"items_boosted": 0, "corroboration_pairs": 0},
+                {
+                    "items_annotated": 0,
+                    "corroboration_pairs": 0,
+                    "groups": 0,
+                    "derivation_chains": 0,
+                },
             ),
         ),
     ):

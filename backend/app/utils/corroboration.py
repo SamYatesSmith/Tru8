@@ -2,10 +2,12 @@
 Corroboration Detection
 
 Detects when multiple independent sources report similar information.
-This helps identify well-corroborated evidence from lesser-known sources
-that are confirmed by established outlets.
+Annotates evidence with corroboration metadata (group IDs, corroborating
+evidence IDs) for use by the Cartographer convergence zones.
 
-Phase 6: Source Diversity Enhancement
+No score mutation. No editorial judgment. Pure structural detection.
+
+Philosophy (locked 2026-02-16): Classify, don't score.
 """
 
 import logging
@@ -18,6 +20,9 @@ logger = logging.getLogger(__name__)
 # Minimum text similarity to consider evidence as corroborating
 MIN_CORROBORATION_SIMILARITY = 0.35
 
+# Minimum fact overlap ratio for corroboration
+MIN_FACT_OVERLAP = 0.3
+
 
 def _get_ownership_group(source: str, url: str) -> str:
     """
@@ -25,13 +30,6 @@ def _get_ownership_group(source: str, url: str) -> str:
 
     Sources in the same ownership group are not considered independent
     for corroboration purposes.
-
-    Args:
-        source: Source name/domain
-        url: Full URL
-
-    Returns:
-        Ownership group identifier
     """
     # Known media ownership groups (simplified - could be expanded)
     ownership_groups = {
@@ -79,13 +77,6 @@ def _text_similarity(text1: str, text2: str) -> float:
     Calculate text similarity between two evidence snippets.
 
     Uses SequenceMatcher for reasonable speed/accuracy tradeoff.
-
-    Args:
-        text1: First text
-        text2: Second text
-
-    Returns:
-        Similarity score 0.0-1.0
     """
     if not text1 or not text2:
         return 0.0
@@ -102,12 +93,6 @@ def _extract_key_facts(text: str) -> Set[str]:
     Extract key facts/numbers from text for matching.
 
     Looks for numbers, percentages, dates, and quoted phrases.
-
-    Args:
-        text: Evidence text
-
-    Returns:
-        Set of extracted facts
     """
     import re
 
@@ -135,16 +120,7 @@ def _extract_key_facts(text: str) -> Set[str]:
 
 
 def _check_fact_overlap(facts1: Set[str], facts2: Set[str]) -> float:
-    """
-    Calculate overlap between two sets of facts.
-
-    Args:
-        facts1: First fact set
-        facts2: Second fact set
-
-    Returns:
-        Overlap ratio 0.0-1.0
-    """
+    """Calculate overlap between two sets of facts. Returns 0.0-1.0."""
     if not facts1 or not facts2:
         return 0.0
 
@@ -165,11 +141,8 @@ def find_corroborating_sources(
     2. Their text content is sufficiently similar OR
     3. They share key facts (numbers, quotes, dates)
 
-    Args:
-        evidence_list: List of evidence items
-
     Returns:
-        Dict mapping evidence index to list of corroborating indices
+        Dict mapping evidence index to list of corroborating indices.
     """
     n = len(evidence_list)
     if n < 2:
@@ -204,7 +177,10 @@ def find_corroborating_sources(
             fact_overlap = _check_fact_overlap(facts[i], facts[j])
 
             # Combine: either strong text similarity or shared facts
-            if text_sim >= MIN_CORROBORATION_SIMILARITY or fact_overlap >= 0.3:
+            if (
+                text_sim >= MIN_CORROBORATION_SIMILARITY
+                or fact_overlap >= MIN_FACT_OVERLAP
+            ):
                 corroboration_map[i].append(j)
                 corroboration_map[j].append(i)
                 logger.debug(
@@ -215,24 +191,110 @@ def find_corroborating_sources(
     return dict(corroboration_map)
 
 
+def _assign_corroboration_groups(
+    corroboration_map: Dict[int, List[int]]
+) -> Dict[int, int]:
+    """
+    Assign group IDs to corroborated evidence using union-find.
+
+    All items that transitively corroborate each other get the same group ID.
+    Returns dict mapping index to group_id.
+    """
+    if not corroboration_map:
+        return {}
+
+    # Union-find
+    parent: Dict[int, int] = {}
+
+    def find(x: int) -> int:
+        if x not in parent:
+            parent[x] = x
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]  # path compression
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    # Union all corroboration pairs
+    for idx, corroborators in corroboration_map.items():
+        for other in corroborators:
+            union(idx, other)
+
+    # Map each index to its group root, then normalize to sequential IDs
+    roots = {}
+    next_group = 1
+    result: Dict[int, int] = {}
+
+    for idx in sorted(parent.keys()):
+        root = find(idx)
+        if root not in roots:
+            roots[root] = next_group
+            next_group += 1
+        result[idx] = roots[root]
+
+    return result
+
+
+def _detect_derivation_chains(
+    evidence_list: List[Dict[str, Any]],
+    corroboration_map: Dict[int, List[int]],
+) -> Dict[int, List[str]]:
+    """
+    Detect derivation chains: when multiple reporting/commentary sources
+    cite the same primary source.
+
+    A derivation chain exists when:
+    - Item A is tier=primary
+    - Items B, C are tier=reporting or commentary
+    - B and C both corroborate with A
+
+    Returns dict mapping primary item index to list of evidence_ids
+    of the items that derive from it.
+    """
+    chains: Dict[int, List[str]] = {}
+
+    for idx, corroborators in corroboration_map.items():
+        ev = evidence_list[idx]
+        if ev.get("tier") != "primary":
+            continue
+
+        # Find reporting/commentary items that corroborate with this primary
+        derived = []
+        for other_idx in corroborators:
+            other_ev = evidence_list[other_idx]
+            other_tier = other_ev.get("tier", "")
+            if other_tier in ("reporting", "commentary"):
+                other_id = other_ev.get("evidence_id", "")
+                if other_id:
+                    derived.append(other_id)
+
+        if len(derived) >= 2:
+            chains[idx] = derived
+            logger.debug(
+                f"[CORROBORATION] Derivation chain: primary {ev.get('evidence_id', idx)} "
+                f"→ {len(derived)} derived sources"
+            )
+
+    return chains
+
+
 def apply_corroboration_boost(
     evidence_list: List[Dict[str, Any]]
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """
     Detect and annotate corroborated evidence.
 
-    Evidence items that are corroborated by independent sources
-    get annotated with corroboration metadata. This is especially
-    valuable for identifying when lesser-known sources report the
-    same facts as established outlets.
+    Sets on each corroborated item:
+    - corroboration_group_id: int group identifier (items in same group corroborate)
+    - corroborating_evidence_ids: comma-separated evidence_ids of corroborating items
+    - corroborating_sources: count of corroborating sources
+    - derivation_chain: list of evidence_ids that derive from this primary source
 
-    Args:
-        evidence_list: List of evidence items
-
-    Returns:
-        Tuple of:
-        - Updated evidence list with corroboration annotations
-        - Stats about corroboration detected
+    No score mutation. Pure metadata annotation.
     """
     if len(evidence_list) < 2:
         return evidence_list, {"enabled": True, "items_annotated": 0}
@@ -247,7 +309,13 @@ def apply_corroboration_boost(
             "reason": "no_corroboration_found",
         }
 
-    # Annotate corroborated items (no score mutation)
+    # Assign group IDs
+    group_assignments = _assign_corroboration_groups(corroboration_map)
+
+    # Detect derivation chains
+    derivation_chains = _detect_derivation_chains(evidence_list, corroboration_map)
+
+    # Annotate corroborated items
     annotated_count = 0
 
     for idx, corroborators in corroboration_map.items():
@@ -255,27 +323,44 @@ def apply_corroboration_boost(
             continue
 
         ev = evidence_list[idx]
-        num_corroborators = len(corroborators)
 
-        ev["corroborating_sources"] = num_corroborators
-        ev["corroboration_indices"] = corroborators
+        # Resolve corroborating evidence_ids (stable references, not indices)
+        corroborating_ids = []
+        for other_idx in corroborators:
+            if other_idx < len(evidence_list):
+                other_id = evidence_list[other_idx].get("evidence_id", "")
+                if other_id:
+                    corroborating_ids.append(other_id)
+
+        ev["corroboration_group_id"] = group_assignments.get(idx)
+        ev["corroborating_evidence_ids"] = ",".join(corroborating_ids)
+        ev["corroborating_sources"] = len(corroborators)
+
+        # Add derivation chain if this is a primary source
+        if idx in derivation_chains:
+            ev["derivation_chain"] = derivation_chains[idx]
+
         annotated_count += 1
 
         logger.debug(
-            f"[CORROBORATION] {ev.get('source', 'unknown')}: "
-            f"corroborated by {num_corroborators} independent sources"
+            f"[CORROBORATION] {ev.get('source', 'unknown')} (group {group_assignments.get(idx)}): "
+            f"corroborated by {len(corroborators)} independent sources"
         )
 
     stats = {
         "enabled": True,
         "items_annotated": annotated_count,
         "corroboration_pairs": len(corroboration_map),
+        "groups": len(set(group_assignments.values())) if group_assignments else 0,
+        "derivation_chains": len(derivation_chains),
     }
 
     if annotated_count > 0:
         logger.info(
-            f"[CORROBORATION] Annotated {annotated_count} items "
-            f"({stats['corroboration_pairs']} corroborating pairs found)"
+            f"[CORROBORATION] Annotated {annotated_count} items in "
+            f"{stats['groups']} groups "
+            f"({stats['corroboration_pairs']} corroborating pairs, "
+            f"{stats['derivation_chains']} derivation chains)"
         )
 
     return evidence_list, stats

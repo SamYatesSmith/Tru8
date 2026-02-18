@@ -294,6 +294,17 @@ class Evidence(SQLModel, table=True):
         description="Why excluded: extraction_failed|duplicate|satire|irrelevant",
     )
 
+    # Corroboration metadata (E07)
+    corroboration_group_id: Optional[int] = Field(
+        default=None,
+        description="Group ID for corroborated evidence (items in same group corroborate)",
+    )
+    corroborating_evidence_ids: Optional[str] = Field(
+        default=None,
+        max_length=500,
+        description="Comma-separated evidence_ids of corroborating items",
+    )
+
     # Citation Precision (Phase 2, Week 10)
     page_number: Optional[int] = Field(
         default=None, description="Page number in PDF/document"

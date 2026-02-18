@@ -1462,10 +1462,11 @@ class EvidenceRetriever:
                 evidence_list, corroboration_stats = apply_corroboration_boost(
                     evidence_list
                 )
-                if corroboration_stats.get("items_boosted", 0) > 0:
+                if corroboration_stats.get("items_annotated", 0) > 0:
                     logger.info(
-                        f"[FILTER] Corroboration: {corroboration_stats['items_boosted']} items boosted "
-                        f"({corroboration_stats['corroboration_pairs']} pairs)"
+                        f"[FILTER] Corroboration: {corroboration_stats['items_annotated']} items annotated "
+                        f"({corroboration_stats['corroboration_pairs']} pairs, "
+                        f"{corroboration_stats.get('groups', 0)} groups)"
                     )
 
             # Sort by combined_score

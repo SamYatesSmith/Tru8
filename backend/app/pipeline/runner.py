@@ -1612,6 +1612,10 @@ async def save_check_results_async(
                     evidence_type=ev_data.get("evidence_type"),
                     receipt_status=ev_data.get("receipt_status", "shown"),
                     exclusion_reason=ev_data.get("exclusion_reason"),
+                    corroboration_group_id=ev_data.get("corroboration_group_id"),
+                    corroborating_evidence_ids=ev_data.get(
+                        "corroborating_evidence_ids"
+                    ),
                     external_source_provider=ev_data.get("external_source_provider"),
                     api_metadata=metadata_dict,
                 )
