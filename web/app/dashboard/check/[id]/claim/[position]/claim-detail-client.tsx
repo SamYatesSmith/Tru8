@@ -6,6 +6,7 @@ import { BackToOverview } from '@/components/evidence-views/detail/BackToOvervie
 import { ClaimHeader } from '@/components/evidence-views/detail/ClaimHeader';
 import { ViewSelector } from '@/components/evidence-views';
 import { LibrarianView } from '@/components/evidence-views/librarian';
+import { InterpreterView } from '@/components/evidence-views/interpreter';
 
 interface ClaimDetailClientProps {
   checkId: string;
@@ -26,10 +27,13 @@ export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClien
       {activeTab === 'librarian' && (
         <LibrarianView scope="claim" claims={[claim]} />
       )}
-      {activeTab !== 'librarian' && (
+      {activeTab === 'interpreter' && (
+        <InterpreterView claim={claim} />
+      )}
+      {activeTab !== 'librarian' && activeTab !== 'interpreter' && (
         <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
           <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
-            {activeTab} view — coming in E11-E12
+            {activeTab} view — coming in E12
           </p>
         </div>
       )}

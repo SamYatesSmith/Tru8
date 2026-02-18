@@ -482,6 +482,23 @@ a:focus-visible {
   border-color: #18181B;
 }
 
+/* Element pills (E11 — Interpreter) */
+.element-pill {
+  transition: all 0.15s ease;
+}
+.element-pill:hover {
+  border-color: #3F3F46;
+}
+
+/* Evidence cards (E11 — Interpreter) */
+.evidence-card {
+  transition: all 0.15s ease;
+}
+.evidence-card:hover {
+  border-color: #A1A1AA;
+  transform: translateY(-1px);
+}
+
 /* Evidence View Cards (E09) */
 .claim-overview-card {
   transition: all 0.15s ease;
