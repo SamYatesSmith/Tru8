@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from app.core.config import settings
+from app.services.google_ai import call_google_ai
 from app.models.claim_map import (
     ClaimElement,
     ClaimMap,
@@ -319,29 +320,13 @@ class ClaimMapAnalyzer:
     async def _call_google(
         self, prompt: str, temperature: float, max_tokens: int
     ) -> Optional[Dict[str, Any]]:
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{self.google_model}:generateContent?key={self.google_ai_api_key}"
+        return await call_google_ai(
+            prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=self.timeout,
+            model=self.google_model,
         )
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                url,
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {
-                        "temperature": temperature,
-                        "maxOutputTokens": max_tokens,
-                        "responseMimeType": "application/json",
-                    },
-                },
-            )
-        if response.status_code != 200:
-            logger.error(f"Google AI error: {response.status_code}")
-            return None
-        result = response.json()
-        content_text = result["candidates"][0]["content"]["parts"][0]["text"]
-        return json.loads(content_text)
 
     async def _call_openai(
         self, prompt: str, temperature: float, max_tokens: int, model: str

@@ -113,12 +113,21 @@ USER_FRIENDLY_ERRORS = {
 
 
 def get_user_friendly_error(error: Exception) -> str:
-    """Convert technical errors to user-friendly messages."""
+    """Convert technical errors to user-friendly messages.
+
+    IMPORTANT: The fallback must never leak raw exception strings (SQL traces,
+    stack traces, internal paths) to users.  Anything unrecognised gets a
+    generic message; the full error is still logged server-side.
+    """
     error_str = str(error).lower()
     for key, message in USER_FRIENDLY_ERRORS.items():
         if key in error_str:
             return message
-    return str(error)
+    # Log the full technical error server-side, return generic message to user
+    logger.error(
+        f"[PIPELINE ERROR] Unhandled error (user will see generic message): {error}"
+    )
+    return "Something went wrong while processing your check. Please try again."
 
 
 class PipelineError(Exception):
@@ -258,7 +267,42 @@ async def run_pipeline_phase1(
         raise PipelineError(get_user_friendly_error(e), stage="extract")
 
     if not claims:
-        raise PipelineError("No claims extracted from content", stage="extract")
+        # Give a specific message if the input looks like a question
+        raw_text = (extract_content or "").strip()
+        if raw_text.endswith("?") or raw_text.lower().startswith(
+            (
+                "who ",
+                "what ",
+                "when ",
+                "where ",
+                "why ",
+                "how ",
+                "is ",
+                "are ",
+                "was ",
+                "were ",
+                "do ",
+                "does ",
+                "did ",
+                "can ",
+                "could ",
+                "will ",
+                "would ",
+                "should ",
+                "given ",
+            )
+        ):
+            raise PipelineError(
+                "Your input looks like a question. Tru8 researches evidence "
+                "for factual claims — try submitting a statement instead, e.g. "
+                "'The Eiffel Tower was completed in 1889'.",
+                stage="extract",
+            )
+        raise PipelineError(
+            "We couldn't extract any verifiable claims from this content. "
+            "Try submitting content that contains specific factual statements.",
+            stage="extract",
+        )
 
     # Attach article classification
     if article_classification:

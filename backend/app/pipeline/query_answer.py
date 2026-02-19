@@ -8,6 +8,7 @@ import httpx
 import json
 from typing import Dict, List, Any, Optional
 from app.core.config import settings
+from app.services.google_ai import call_google_ai
 
 logger = logging.getLogger(__name__)
 
@@ -188,32 +189,13 @@ Be direct and concise. Cite source numbers used."""
         full_prompt = (
             f"{self.system_prompt}\n\n{prompt}\n\nProvide your response as valid JSON."
         )
-
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{self.google_model}:generateContent?key={self.google_ai_api_key}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": full_prompt}]}],
-                    "generationConfig": {
-                        "temperature": self.temperature,
-                        "maxOutputTokens": self.max_tokens,
-                        "responseMimeType": "application/json",
-                    },
-                },
-            )
-
-            if response.status_code != 200:
-                logger.error(f"Google AI API error: {response.status_code}")
-                return None
-
-            result = response.json()
-            try:
-                content_text = result["candidates"][0]["content"]["parts"][0]["text"]
-                return json.loads(content_text)
-            except (KeyError, IndexError, json.JSONDecodeError) as e:
-                logger.error(f"Failed to parse Google AI response: {e}")
-                return None
+        return await call_google_ai(
+            full_prompt,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            timeout=self.timeout,
+            model=self.google_model,
+        )
 
     async def _answer_with_openai(self, prompt: str) -> Optional[Dict[str, Any]]:
         """Answer query using OpenAI as fallback provider"""

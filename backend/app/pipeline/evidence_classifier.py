@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 
 from app.core.config import settings
+from app.services.google_ai import call_google_ai
 
 logger = logging.getLogger(__name__)
 
@@ -430,35 +431,14 @@ class EvidenceClassifier:
 
     async def _call_google(self, user_prompt: str) -> Optional[Dict[str, Any]]:
         """Classify via Google Gemini API."""
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{self.google_model}:generateContent?key={self.google_ai_api_key}"
-        )
         full_prompt = f"{CLASSIFICATION_SYSTEM_PROMPT}\n\n{user_prompt}"
-
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                url,
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": full_prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.1,
-                        "maxOutputTokens": 4000,
-                        "responseMimeType": "application/json",
-                    },
-                },
-            )
-
-        if response.status_code != 200:
-            logger.error(
-                "[EVIDENCE_CLASSIFIER] Google AI error: %d", response.status_code
-            )
-            return None
-
-        result = response.json()
-        content_text = result["candidates"][0]["content"]["parts"][0]["text"]
-        return json.loads(content_text)
+        return await call_google_ai(
+            full_prompt,
+            temperature=0.1,
+            max_tokens=4000,
+            timeout=self.timeout,
+            model=self.google_model,
+        )
 
     async def _call_openai(self, user_prompt: str) -> Optional[Dict[str, Any]]:
         """Classify via OpenAI API."""

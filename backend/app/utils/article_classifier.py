@@ -11,6 +11,7 @@ Architecture:
 4. Fallback LLM (placeholder for future)
 5. "General" domain fallback
 """
+
 import re
 import json
 import logging
@@ -20,6 +21,7 @@ from typing import List, Optional, Dict, Any
 from datetime import timedelta
 
 from app.core.config import settings
+from app.services.google_ai import call_google_ai
 
 logger = logging.getLogger(__name__)
 
@@ -30,18 +32,21 @@ CLASSIFICATION_CACHE_TTL = timedelta(hours=24)
 @dataclass
 class ArticleClassification:
     """Article classification result with dynamic context for evidence retrieval"""
-    primary_domain: str           # Sports, Politics, Finance, etc.
+
+    primary_domain: str  # Sports, Politics, Finance, etc.
     secondary_domains: List[str]  # For cross-domain articles
-    jurisdiction: str             # UK, US, EU, Global
-    confidence: int               # 0-100
-    reasoning: str                # LLM explanation
-    source: str                   # "cache_pattern", "cache_url", "llm_primary", "llm_fallback", "fallback_general"
+    jurisdiction: str  # UK, US, EU, Global
+    confidence: int  # 0-100
+    reasoning: str  # LLM explanation
+    source: str  # "cache_pattern", "cache_url", "llm_primary", "llm_fallback", "fallback_general"
 
     # Dynamic context for evidence retrieval (Phase: Dynamic Context-Aware)
-    temporal_context: str = ""              # "December 2024, mid-season Premier League"
-    key_entities: List[str] = None          # ["Arsenal", "Chelsea", "Premier League"]
-    evidence_guidance: str = ""             # "League standings change weekly after each matchweek"
-    classification_failed: bool = False     # True when all LLM methods failed, using fallback
+    temporal_context: str = ""  # "December 2024, mid-season Premier League"
+    key_entities: List[str] = None  # ["Arsenal", "Chelsea", "Premier League"]
+    evidence_guidance: str = ""  # "League standings change weekly after each matchweek"
+    classification_failed: bool = (
+        False  # True when all LLM methods failed, using fallback
+    )
 
     def __post_init__(self):
         """Initialize mutable defaults"""
@@ -65,15 +70,25 @@ class ArticleClassification:
             temporal_context=data.get("temporal_context", ""),
             key_entities=data.get("key_entities", []),
             evidence_guidance=data.get("evidence_guidance", ""),
-            classification_failed=data.get("classification_failed", False)
+            classification_failed=data.get("classification_failed", False),
         )
 
 
 # Valid domain categories (match existing API adapters)
 VALID_DOMAINS = [
-    "Sports", "Politics", "Finance", "Health", "Science",
-    "Law", "Climate", "Weather", "Demographics", "Entertainment",
-    "Animals", "History", "General"
+    "Sports",
+    "Politics",
+    "Finance",
+    "Health",
+    "Science",
+    "Law",
+    "Climate",
+    "Weather",
+    "Demographics",
+    "Entertainment",
+    "Animals",
+    "History",
+    "General",
 ]
 
 # Valid jurisdictions
@@ -89,7 +104,6 @@ URL_PATTERN_CACHE = [
     (r".*ons\.gov\.uk.*", "Finance", "UK"),  # Office for National Statistics
     (r".*metoffice\.gov\.uk.*", "Climate", "UK"),  # Met Office weather
     (r".*legislation\.gov\.uk.*", "Law", "UK"),  # UK Legislation
-
     # ==================== SPORTS ====================
     (r".*bbc\.co\.uk/sport.*", "Sports", "UK"),
     (r".*bbc\.com/sport.*", "Sports", "UK"),
@@ -105,7 +119,6 @@ URL_PATTERN_CACHE = [
     (r".*football365\.com.*", "Sports", "UK"),
     (r".*fourfourtwo\.com.*", "Sports", "UK"),
     (r".*football-talk\.co\.uk.*", "Sports", "UK"),  # Football aggregator
-
     # ==================== POLITICS ====================
     (r".*bbc\.co\.uk/news/politics.*", "Politics", "UK"),
     (r".*bbc\.co\.uk/news/uk-politics.*", "Politics", "UK"),
@@ -114,8 +127,11 @@ URL_PATTERN_CACHE = [
     (r".*parliament\.uk.*", "Politics", "UK"),
     (r".*congress\.gov.*", "Politics", "US"),
     (r".*whitehouse\.gov.*", "Politics", "US"),
-    (r".*gov\.uk.*", "Politics", "UK"),  # Generic gov.uk - MUST be AFTER specific subdomains
-
+    (
+        r".*gov\.uk.*",
+        "Politics",
+        "UK",
+    ),  # Generic gov.uk - MUST be AFTER specific subdomains
     # ==================== HEALTH ====================
     (r".*bbc\.co\.uk/news/health.*", "Health", "UK"),
     (r".*nhs\.uk.*", "Health", "UK"),
@@ -124,7 +140,6 @@ URL_PATTERN_CACHE = [
     (r".*pubmed\.ncbi\.nlm\.nih\.gov.*", "Health", "Global"),
     (r".*thelancet\.com.*", "Health", "Global"),
     (r".*bmj\.com.*", "Health", "UK"),
-
     # ==================== SCIENCE ====================
     (r".*bbc\.co\.uk/news/science.*", "Science", "UK"),
     (r".*nature\.com.*", "Science", "Global"),
@@ -132,7 +147,6 @@ URL_PATTERN_CACHE = [
     (r".*scientificamerican\.com.*", "Science", "US"),
     (r".*newscientist\.com.*", "Science", "UK"),
     (r".*arxiv\.org.*", "Science", "Global"),
-
     # ==================== FINANCE ====================
     (r".*ft\.com.*", "Finance", "Global"),
     (r".*bloomberg\.com.*", "Finance", "Global"),
@@ -140,7 +154,6 @@ URL_PATTERN_CACHE = [
     (r".*wsj\.com.*", "Finance", "US"),
     (r".*economist\.com.*", "Finance", "Global"),
     (r".*bbc\.co\.uk/news/business.*", "Finance", "UK"),
-
     # ==================== CLIMATE ====================
     (r".*bbc\.co\.uk/news/science.*environment.*", "Climate", "UK"),
     (r".*noaa\.gov.*", "Climate", "US"),
@@ -152,7 +165,6 @@ URL_PATTERN_CACHE = [
     (r".*climate\.gov.*", "Climate", "US"),  # NOAA Climate
     (r".*nasa\.gov.*climate.*", "Climate", "US"),  # NASA Climate
     (r".*copernicus\.eu.*climate.*", "Climate", "Global"),  # Copernicus Climate
-
     # ==================== ANIMALS ====================
     # Biodiversity & Conservation
     (r".*gbif\.org.*", "Animals", "Global"),
@@ -174,7 +186,6 @@ URL_PATTERN_CACHE = [
     (r".*nationalzoo\.si\.edu.*", "Animals", "US"),
     (r".*sandiegozoo\.org.*", "Animals", "US"),
     (r".*zsl\.org.*", "Animals", "UK"),
-
     # ==================== HISTORY ====================
     # National Archives
     (r".*nationalarchives\.gov\.uk.*", "History", "UK"),
@@ -213,7 +224,6 @@ URL_PATTERN_CACHE = [
     # Historical Reference
     (r".*oxforddnb\.com.*", "History", "UK"),
     (r".*historytoday\.com.*", "History", "Global"),
-
     # ==================== LAW ====================
     (r".*courtlistener\.com.*", "Law", "US"),
     (r".*caselaw\.findlaw\.com.*", "Law", "US"),
@@ -234,6 +244,7 @@ async def get_cached_classification(url: str) -> Optional[ArticleClassification]
     """Get classification from Redis cache"""
     try:
         from app.core.redis import get_redis
+
         redis = await get_redis()
         if redis is None:
             return None
@@ -258,6 +269,7 @@ async def cache_classification(url: str, classification: ArticleClassification) 
     """Cache classification in Redis with 24h TTL"""
     try:
         from app.core.redis import get_redis
+
         redis = await get_redis()
         if redis is None:
             return
@@ -288,7 +300,7 @@ def _check_url_pattern_cache(url: str) -> Optional[ArticleClassification]:
                 source="cache_pattern",
                 temporal_context="",  # Will be populated by LLM if cache miss
                 key_entities=[],
-                evidence_guidance=""
+                evidence_guidance="",
             )
 
     return None
@@ -410,10 +422,7 @@ Return ONLY valid JSON, no additional text."""
 
 
 async def _classify_with_llm(
-    title: str,
-    url: str,
-    content: str,
-    provider: str = "openai"
+    title: str, url: str, content: str, provider: str = "openai"
 ) -> ArticleClassification:
     """
     Classify article using LLM (gpt-4o-mini) with dynamic context for evidence retrieval.
@@ -441,7 +450,7 @@ async def _classify_with_llm(
             current_year=current_year,
             title=title or "Unknown Title",
             url=url or "Unknown URL",
-            content=content_preview or "No content available"
+            content=content_preview or "No content available",
         )
 
         response = await client.chat.completions.create(
@@ -449,13 +458,13 @@ async def _classify_with_llm(
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a Tru8 fact-checking specialist. Always respond with valid JSON only, no markdown."
+                    "content": "You are a Tru8 fact-checking specialist. Always respond with valid JSON only, no markdown.",
                 },
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             temperature=0.1,  # Low temperature for consistent classification
-            max_tokens=300,   # Increased for new context fields
-            response_format={"type": "json_object"}
+            max_tokens=300,  # Increased for new context fields
+            response_format={"type": "json_object"},
         )
 
         result_text = response.choices[0].message.content
@@ -464,11 +473,15 @@ async def _classify_with_llm(
         # Validate and sanitize response
         primary_domain = result.get("primary_domain", "General")
         if primary_domain not in VALID_DOMAINS:
-            logger.warning(f"LLM returned invalid domain '{primary_domain}', defaulting to General")
+            logger.warning(
+                f"LLM returned invalid domain '{primary_domain}', defaulting to General"
+            )
             primary_domain = "General"
 
         secondary_domains = result.get("secondary_domains", [])
-        secondary_domains = [d for d in secondary_domains if d in VALID_DOMAINS and d != primary_domain][:2]
+        secondary_domains = [
+            d for d in secondary_domains if d in VALID_DOMAINS and d != primary_domain
+        ][:2]
 
         jurisdiction = result.get("jurisdiction", "Global")
         if jurisdiction not in VALID_JURISDICTIONS:
@@ -493,7 +506,7 @@ async def _classify_with_llm(
             source="llm_primary",
             temporal_context=result.get("temporal_context", ""),
             key_entities=key_entities,
-            evidence_guidance=result.get("evidence_guidance", "")
+            evidence_guidance=result.get("evidence_guidance", ""),
         )
 
     except json.JSONDecodeError as e:
@@ -502,6 +515,7 @@ async def _classify_with_llm(
     except Exception as e:
         # Log detailed error information for debugging
         import traceback
+
         logger.error(
             f"LLM classification failed for URL '{url[:100]}': {type(e).__name__}: {e}\n"
             f"Traceback: {traceback.format_exc()}"
@@ -510,9 +524,7 @@ async def _classify_with_llm(
 
 
 async def _classify_with_fallback_llm(
-    title: str,
-    url: str,
-    content: str
+    title: str, url: str, content: str
 ) -> Optional[ArticleClassification]:
     """
     Primary LLM classification using Google AI (Gemini).
@@ -520,13 +532,7 @@ async def _classify_with_fallback_llm(
     Uses Gemini 2.5 Flash-Lite for fast, cost-effective classification.
     Falls back to OpenAI if Google API is unavailable.
     """
-    google_ai_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
-    if not google_ai_key:
-        logger.debug("Google AI API key not configured, skipping fallback")
-        return None
-
     try:
-        import httpx
         from datetime import datetime
 
         now = datetime.now()
@@ -540,85 +546,61 @@ async def _classify_with_fallback_llm(
             current_year=current_year,
             title=title or "Unknown Title",
             url=url or "Unknown URL",
-            content=content_preview or "No content available"
+            content=content_preview or "No content available",
         )
 
         full_prompt = f"You are a Tru8 fact-checking specialist. Always respond with valid JSON only, no markdown.\n\n{prompt}"
 
-        google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
-        async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={google_ai_key}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": full_prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.1,
-                        "maxOutputTokens": 300,
-                        "responseMimeType": "application/json"
-                    }
-                }
-            )
+        result_data = await call_google_ai(
+            full_prompt,
+            temperature=0.1,
+            max_tokens=300,
+            timeout=30,
+        )
+        if result_data is None:
+            return None
 
-            if response.status_code != 200:
-                logger.error(f"Google AI classification error: {response.status_code}")
-                return None
+        # Validate and sanitize
+        primary_domain = result_data.get("primary_domain", "General")
+        if primary_domain not in VALID_DOMAINS:
+            primary_domain = "General"
 
-            result = response.json()
-            content_text = result["candidates"][0]["content"]["parts"][0]["text"]
+        secondary_domains = result_data.get("secondary_domains", [])
+        secondary_domains = [
+            d for d in secondary_domains if d in VALID_DOMAINS and d != primary_domain
+        ][:2]
 
-            # Extract JSON
-            json_start = content_text.find('{')
-            json_end = content_text.rfind('}') + 1
-            if json_start < 0 or json_end <= json_start:
-                logger.error("No JSON found in Google AI response")
-                return None
+        jurisdiction = result_data.get("jurisdiction", "Global")
+        if jurisdiction not in VALID_JURISDICTIONS:
+            jurisdiction = "Global"
 
-            result_data = json.loads(content_text[json_start:json_end])
+        confidence = int(result_data.get("confidence", 70))
+        confidence = max(0, min(100, confidence))
 
-            # Validate and sanitize
-            primary_domain = result_data.get("primary_domain", "General")
-            if primary_domain not in VALID_DOMAINS:
-                primary_domain = "General"
+        key_entities = result_data.get("key_entities", [])
+        if isinstance(key_entities, list):
+            key_entities = [str(e) for e in key_entities[:10]]
+        else:
+            key_entities = []
 
-            secondary_domains = result_data.get("secondary_domains", [])
-            secondary_domains = [d for d in secondary_domains if d in VALID_DOMAINS and d != primary_domain][:2]
-
-            jurisdiction = result_data.get("jurisdiction", "Global")
-            if jurisdiction not in VALID_JURISDICTIONS:
-                jurisdiction = "Global"
-
-            confidence = int(result_data.get("confidence", 70))
-            confidence = max(0, min(100, confidence))
-
-            key_entities = result_data.get("key_entities", [])
-            if isinstance(key_entities, list):
-                key_entities = [str(e) for e in key_entities[:10]]
-            else:
-                key_entities = []
-
-            return ArticleClassification(
-                primary_domain=primary_domain,
-                secondary_domains=secondary_domains,
-                jurisdiction=jurisdiction,
-                confidence=confidence,
-                reasoning=result_data.get("reasoning", "Classified by Google AI fallback"),
-                source="llm_fallback",
-                temporal_context=result_data.get("temporal_context", ""),
-                key_entities=key_entities,
-                evidence_guidance=result_data.get("evidence_guidance", "")
-            )
+        return ArticleClassification(
+            primary_domain=primary_domain,
+            secondary_domains=secondary_domains,
+            jurisdiction=jurisdiction,
+            confidence=confidence,
+            reasoning=result_data.get("reasoning", "Classified by Google AI fallback"),
+            source="llm_fallback",
+            temporal_context=result_data.get("temporal_context", ""),
+            key_entities=key_entities,
+            evidence_guidance=result_data.get("evidence_guidance", ""),
+        )
 
     except Exception as e:
         logger.error(f"Google AI fallback classification failed: {e}")
         return None
 
 
-async def classify_article(
-    title: str,
-    url: str,
-    content: str
-) -> ArticleClassification:
+async def classify_article(title: str, url: str, content: str) -> ArticleClassification:
     """
     Classify article with multi-tier fallback:
     1. URL pattern cache (instant)
@@ -638,13 +620,17 @@ async def classify_article(
     # 1. Check URL pattern cache (instant)
     cached_pattern = _check_url_pattern_cache(url)
     if cached_pattern:
-        logger.info(f"Article classified via URL pattern: {cached_pattern.primary_domain} ({url[:50]}...)")
+        logger.info(
+            f"Article classified via URL pattern: {cached_pattern.primary_domain} ({url[:50]}...)"
+        )
         return cached_pattern
 
     # 2. Check URL-specific Redis cache (instant)
     cached_url = await get_cached_classification(url)
     if cached_url:
-        logger.info(f"Article classified via URL cache: {cached_url.primary_domain} ({url[:50]}...)")
+        logger.info(
+            f"Article classified via URL cache: {cached_url.primary_domain} ({url[:50]}...)"
+        )
         return cached_url
 
     # 3. Primary LLM classification (Google Gemini)
@@ -663,11 +649,15 @@ async def classify_article(
 
     # 4. Fallback LLM (OpenAI gpt-4o-mini)
     try:
-        fallback_result = await _classify_with_llm(title, url, content, provider="openai")
+        fallback_result = await _classify_with_llm(
+            title, url, content, provider="openai"
+        )
         if fallback_result:
             fallback_result.source = "llm_fallback"
             await cache_classification(url, fallback_result)
-            logger.info(f"Article classified via OpenAI fallback: {fallback_result.primary_domain}")
+            logger.info(
+                f"Article classified via OpenAI fallback: {fallback_result.primary_domain}"
+            )
             return fallback_result
     except Exception as e:
         logger.warning(f"Fallback LLM (OpenAI) classification failed: {e}")
@@ -689,7 +679,7 @@ async def classify_article(
         temporal_context="",
         key_entities=[],
         evidence_guidance="",
-        classification_failed=True  # Explicit flag for downstream handling
+        classification_failed=True,  # Explicit flag for downstream handling
     )
 
 
@@ -715,5 +705,5 @@ def classify_article_sync(title: str, url: str, content: str) -> ArticleClassifi
         source="fallback_general",
         temporal_context="",
         key_entities=[],
-        evidence_guidance=""
+        evidence_guidance="",
     )

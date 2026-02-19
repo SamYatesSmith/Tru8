@@ -19,6 +19,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 import httpx
 from app.core.config import settings
+from app.services.google_ai import call_google_ai
 
 logger = logging.getLogger(__name__)
 
@@ -330,28 +331,13 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
     async def _plan_with_google(self, user_prompt: str) -> Optional[Dict[str, Any]]:
         """Plan queries using Google Gemini (primary provider)"""
         full_prompt = f"{self.SYSTEM_PROMPT}\n\n{user_prompt}\n\nProvide your response as valid JSON."
-
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{self.google_model}:generateContent?key={self.google_ai_api_key}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": full_prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.1,
-                        "maxOutputTokens": 3000,
-                        "responseMimeType": "application/json",
-                    },
-                },
-            )
-
-            if response.status_code != 200:
-                logger.error(f"Google AI query planning error: {response.status_code}")
-                return None
-
-            result = response.json()
-            content_text = result["candidates"][0]["content"]["parts"][0]["text"]
-            return json.loads(content_text)
+        return await call_google_ai(
+            full_prompt,
+            temperature=0.1,
+            max_tokens=3000,
+            timeout=self.timeout,
+            model=self.google_model,
+        )
 
     async def _plan_with_openai(self, user_prompt: str) -> Optional[Dict[str, Any]]:
         """Plan queries using OpenAI (fallback provider)"""

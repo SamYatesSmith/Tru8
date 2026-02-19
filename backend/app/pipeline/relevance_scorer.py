@@ -18,6 +18,7 @@ import hashlib
 from typing import Dict, List, Any, Optional
 
 from app.core.config import settings
+from app.services.google_ai import call_google_ai
 
 logger = logging.getLogger(__name__)
 
@@ -234,14 +235,6 @@ async def _score_with_google(
     Returns:
         List of score dicts with evidence_index, score, rationale, relevant_claims, or None on failure
     """
-    import httpx
-
-    google_ai_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
-    if not google_ai_key:
-        return None
-
-    google_model = getattr(settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite")
-
     # Format claims for prompt
     claims_text = "\n".join([f"[Claim {i}]: {claim}" for i, claim in enumerate(claims)])
 
@@ -280,75 +273,59 @@ async def _score_with_google(
     full_prompt = f"You are an evidence relevance analyst. Return only valid JSON arrays.\n\n{prompt}"
 
     try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={google_ai_key}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": full_prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.1,
-                        "maxOutputTokens": max_output_tokens,
-                        "responseMimeType": "application/json",
-                    },
-                },
-            )
+        parsed = await call_google_ai(
+            full_prompt,
+            temperature=0.1,
+            max_tokens=max_output_tokens,
+            timeout=60,
+        )
+        if parsed is None:
+            return None
 
-            if response.status_code != 200:
-                logger.error(
-                    f"Google AI relevance scoring error: {response.status_code}"
-                )
-                return None
+        if isinstance(parsed, dict):
+            # Try known wrapper keys first (fast path)
+            for key in [
+                "scores",
+                "evidence_scores",
+                "results",
+                "items",
+                "evidence",
+                "data",
+            ]:
+                if key in parsed and isinstance(parsed[key], list):
+                    return parsed[key]
 
-            result = response.json()
-            content_text = result["candidates"][0]["content"]["parts"][0]["text"]
-
-            # Parse JSON response
-            parsed = json.loads(content_text)
-            if isinstance(parsed, dict):
-                # Try known wrapper keys first (fast path)
-                for key in [
-                    "scores",
-                    "evidence_scores",
-                    "results",
-                    "items",
-                    "evidence",
-                    "data",
-                ]:
-                    if key in parsed and isinstance(parsed[key], list):
-                        return parsed[key]
-
-                # Generic fallback: find any value that looks like a scores array
-                for key, value in parsed.items():
-                    if isinstance(value, list) and len(value) > 0:
-                        if isinstance(value[0], dict) and (
-                            "score" in value[0] or "evidence_index" in value[0]
-                        ):
-                            logger.info(
-                                f"[LLM SCORER] Found scores under unexpected key: '{key}'"
-                            )
-                            return value
-
-                # Numeric-key fallback
-                if any(k.isdigit() for k in parsed.keys()):
-                    scores = []
-                    for k, v in sorted(
-                        parsed.items(),
-                        key=lambda x: int(x[0]) if x[0].isdigit() else 999,
+            # Generic fallback: find any value that looks like a scores array
+            for key, value in parsed.items():
+                if isinstance(value, list) and len(value) > 0:
+                    if isinstance(value[0], dict) and (
+                        "score" in value[0] or "evidence_index" in value[0]
                     ):
-                        if isinstance(v, dict) and "score" in v:
-                            v["evidence_index"] = int(k) if k.isdigit() else len(scores)
-                            scores.append(v)
-                    if scores:
-                        return scores
+                        logger.info(
+                            f"[LLM SCORER] Found scores under unexpected key: '{key}'"
+                        )
+                        return value
 
-                logger.warning(
-                    f"[LLM SCORER] Google returned object without recognizable scores array: {list(parsed.keys())}"
-                )
-                return []
-            elif isinstance(parsed, list):
-                return parsed
+            # Numeric-key fallback
+            if any(k.isdigit() for k in parsed.keys()):
+                scores = []
+                for k, v in sorted(
+                    parsed.items(),
+                    key=lambda x: int(x[0]) if x[0].isdigit() else 999,
+                ):
+                    if isinstance(v, dict) and "score" in v:
+                        v["evidence_index"] = int(k) if k.isdigit() else len(scores)
+                        scores.append(v)
+                if scores:
+                    return scores
+
+            logger.warning(
+                f"[LLM SCORER] Google returned object without recognizable scores array: {list(parsed.keys())}"
+            )
             return []
+        elif isinstance(parsed, list):
+            return parsed
+        return []
 
     except Exception as e:
         logger.error(f"Google AI relevance scoring failed: {e}")

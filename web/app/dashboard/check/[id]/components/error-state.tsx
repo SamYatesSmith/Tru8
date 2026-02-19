@@ -8,7 +8,21 @@ interface ErrorStateProps {
   checkId: string;
 }
 
+const GENERIC_FALLBACK = 'Something went wrong while processing this check. Please try again.';
+
+function getSafeMessage(raw: string | null): string | null {
+  if (!raw) return null;
+  // Never show raw SQL, stack traces, or internal errors to users
+  const toxic = /sqlalchemy|traceback|asyncpg|integrityerror|operationalerror|column .* does not exist|violates not-null|DETAIL: Failing row/i;
+  if (toxic.test(raw)) return GENERIC_FALLBACK;
+  // Cap length — legitimate messages are short
+  if (raw.length > 300) return GENERIC_FALLBACK;
+  return raw;
+}
+
 export function ErrorState({ errorMessage, checkId }: ErrorStateProps) {
+  const safeMessage = getSafeMessage(errorMessage);
+
   return (
     <div className="bg-red-50 border border-red-200 p-12 text-center">
       <XCircle size={64} className="text-red-400 mx-auto mb-4" />
@@ -17,10 +31,10 @@ export function ErrorState({ errorMessage, checkId }: ErrorStateProps) {
 
       <p className="text-zinc-500 mb-6">We encountered an error processing this check.</p>
 
-      {errorMessage && (
+      {safeMessage && (
         <div className="bg-white border border-zinc-200 p-4 mb-6 max-w-2xl mx-auto">
           <p className="text-sm text-zinc-600 text-left">
-            <span className="font-medium text-red-600">Error:</span> {errorMessage}
+            <span className="font-medium text-red-600">Error:</span> {safeMessage}
           </p>
         </div>
       )}

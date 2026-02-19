@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from app.core.config import settings
+from app.services.google_ai import call_google_ai
 
 logger = logging.getLogger(__name__)
 
@@ -155,29 +156,13 @@ class ClaimSelector:
         return None
 
     async def _call_google(self, prompt: str) -> Optional[Dict[str, Any]]:
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{self.google_model}:generateContent?key={self.google_ai_api_key}"
+        return await call_google_ai(
+            prompt,
+            temperature=0.1,
+            max_tokens=1500,
+            timeout=self.timeout,
+            model=self.google_model,
         )
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                url,
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.1,
-                        "maxOutputTokens": 1500,
-                        "responseMimeType": "application/json",
-                    },
-                },
-            )
-        if response.status_code != 200:
-            logger.error(f"Google AI ranking error: {response.status_code}")
-            return None
-        result = response.json()
-        content_text = result["candidates"][0]["content"]["parts"][0]["text"]
-        return json.loads(content_text)
 
     async def _call_openai(self, prompt: str) -> Optional[Dict[str, Any]]:
         async with httpx.AsyncClient(timeout=self.timeout) as client:

@@ -3,21 +3,32 @@ import json
 import asyncio
 import re
 from typing import Dict, List, Any, Optional
+
 import httpx
 from pydantic import BaseModel, Field, ValidationError
 from app.core.config import settings
+from app.services.google_ai import call_google_ai
 
 logger = logging.getLogger(__name__)
 
+
 class ExtractedClaim(BaseModel):
     """Schema for extracted claims"""
+
     text: str = Field(description="The atomic factual claim", min_length=10)
-    confidence: int = Field(description="Extraction confidence 0-100", ge=0, le=100, default=80)
+    confidence: int = Field(
+        description="Extraction confidence 0-100", ge=0, le=100, default=80
+    )
     category: Optional[str] = Field(description="Category of claim", default=None)
 
     # Context preservation fields
-    subject_context: Optional[str] = Field(description="Main subject/topic of the claim", default=None)
-    key_entities: Optional[List[str]] = Field(description="Key entities mentioned (names, organizations, places)", default=None)
+    subject_context: Optional[str] = Field(
+        description="Main subject/topic of the claim", default=None
+    )
+    key_entities: Optional[List[str]] = Field(
+        description="Key entities mentioned (names, organizations, places)",
+        default=None,
+    )
 
     class Config:
         json_schema_extra = {
@@ -26,27 +37,37 @@ class ExtractedClaim(BaseModel):
                 "confidence": 95,
                 "category": "science",
                 "subject_context": "global warming and climate change",
-                "key_entities": ["Earth", "1.1°C", "pre-industrial times"]
+                "key_entities": ["Earth", "1.1°C", "pre-industrial times"],
             }
         }
 
+
 class ClaimExtractionResponse(BaseModel):
     """Schema for LLM response"""
+
     # max_items=20 is a safety ceiling; actual limit controlled by MAX_CLAIMS_PER_CHECK config
     # Truncation happens before validation (see _extract_with_openai)
-    claims: List[ExtractedClaim] = Field(max_items=20, description="List of atomic claims (config-controlled limit, ceiling=20)")
-    source_summary: Optional[str] = Field(description="Brief summary of source content", default=None)
-    extraction_confidence: int = Field(description="Overall extraction quality 0-100", default=80)
+    claims: List[ExtractedClaim] = Field(
+        max_items=20,
+        description="List of atomic claims (config-controlled limit, ceiling=20)",
+    )
+    source_summary: Optional[str] = Field(
+        description="Brief summary of source content", default=None
+    )
+    extraction_confidence: int = Field(
+        description="Overall extraction quality 0-100", default=80
+    )
+
 
 class ClaimExtractor:
     """Extract atomic factual claims from content using LLM"""
 
     def __init__(self):
         self.openai_api_key = settings.OPENAI_API_KEY
-        self.google_ai_api_key = getattr(settings, 'GOOGLE_AI_API_KEY', '')
+        self.google_ai_api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
         self.max_claims = settings.MAX_CLAIMS_PER_CHECK  # 12 for Quick mode
         self.timeout = 30
-        
+
         # System prompt for claim extraction
         self.system_prompt = """You are a Tru8 fact-checking specialist specializing in identifying verifiable claims.
 
@@ -157,32 +178,38 @@ Input: "The controversial policy was implemented hastily."
 
 Always return valid JSON matching the required format."""
 
-    async def extract_claims(self, content: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def extract_claims(
+        self, content: str, metadata: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Extract atomic claims from content"""
         try:
             if not content.strip():
                 return {
                     "success": False,
                     "error": "No content provided for claim extraction",
-                    "claims": []
+                    "claims": [],
                 }
-            
+
             # Truncate content if too long (cost optimization)
             max_words = 2500  # Project limit
             words = content.split()
             if len(words) > max_words:
-                content = ' '.join(words[:max_words]) + "..."
+                content = " ".join(words[:max_words]) + "..."
                 logger.info(f"Truncated content to {max_words} words")
-            
+
             # Try Google AI extraction (primary)
             if self.google_ai_api_key:
                 result = await self._extract_with_google(content, metadata or {})
                 if result["success"]:
                     # Add source metadata to each claim
                     for claim in result.get("claims", []):
-                        claim["source_title"] = metadata.get("title") if metadata else None
+                        claim["source_title"] = (
+                            metadata.get("title") if metadata else None
+                        )
                         claim["source_url"] = metadata.get("url") if metadata else None
-                        claim["source_date"] = metadata.get("date") if metadata else None
+                        claim["source_date"] = (
+                            metadata.get("date") if metadata else None
+                        )
                     return result
                 else:
                     logger.error(f"Google AI extraction failed: {result.get('error')}")
@@ -194,9 +221,13 @@ Always return valid JSON matching the required format."""
                 if result["success"]:
                     # Add source metadata to each claim
                     for claim in result.get("claims", []):
-                        claim["source_title"] = metadata.get("title") if metadata else None
+                        claim["source_title"] = (
+                            metadata.get("title") if metadata else None
+                        )
                         claim["source_url"] = metadata.get("url") if metadata else None
-                        claim["source_date"] = metadata.get("date") if metadata else None
+                        claim["source_date"] = (
+                            metadata.get("date") if metadata else None
+                        )
                     return result
                 else:
                     logger.error(f"OpenAI extraction failed: {result.get('error')}")
@@ -204,19 +235,18 @@ Always return valid JSON matching the required format."""
             # Fallback to rule-based extraction
             logger.warning("All LLM extractions failed, using rule-based fallback")
             return self._extract_rule_based(content)
-            
+
         except Exception as e:
             logger.error(f"Claim extraction error: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "claims": []
-            }
-    
-    async def _extract_with_openai(self, content: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+            return {"success": False, "error": str(e), "claims": []}
+
+    async def _extract_with_openai(
+        self, content: str, metadata: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Extract claims using OpenAI GPT"""
         try:
             from datetime import datetime
+
             now = datetime.now()
             current_date = now.strftime("%Y-%m-%d")
             current_year = now.strftime("%Y")
@@ -231,54 +261,58 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 user_prompt += f"Article Title: \"{metadata.get('title')}\"\n"
             if metadata and metadata.get("url"):
                 user_prompt += f"Source URL: {metadata.get('url')}\n"
-            user_prompt += f"\nExtract atomic factual claims from this content:\n\n{content}"
+            user_prompt += (
+                f"\nExtract atomic factual claims from this content:\n\n{content}"
+            )
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     "https://api.openai.com/v1/chat/completions",
                     headers={
                         "Authorization": f"Bearer {self.openai_api_key}",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     json={
                         "model": "gpt-4o-mini-2024-07-18",
                         "messages": [
                             {
                                 "role": "system",
-                                "content": self.system_prompt.format(max_claims=self.max_claims)
+                                "content": self.system_prompt.format(
+                                    max_claims=self.max_claims
+                                ),
                             },
-                            {
-                                "role": "user",
-                                "content": user_prompt
-                            }
+                            {"role": "user", "content": user_prompt},
                         ],
                         "temperature": 0.1,
                         "max_tokens": 1500,
-                        "response_format": {"type": "json_object"}
-                    }
+                        "response_format": {"type": "json_object"},
+                    },
                 )
-                
+
                 if response.status_code != 200:
                     error_msg = f"OpenAI API error: {response.status_code}"
                     logger.error(error_msg)
                     return {"success": False, "error": error_msg}
-                
+
                 result = response.json()
                 content_text = result["choices"][0]["message"]["content"]
-                
+
                 # Parse and validate JSON
                 claims_data = json.loads(content_text)
 
                 # Truncate claims if LLM exceeded the max (common issue)
-                if "claims" in claims_data and len(claims_data["claims"]) > self.max_claims:
+                if (
+                    "claims" in claims_data
+                    and len(claims_data["claims"]) > self.max_claims
+                ):
                     logger.warning(
                         f"LLM returned {len(claims_data['claims'])} claims (max={self.max_claims}), "
                         f"truncating to first {self.max_claims}"
                     )
-                    claims_data["claims"] = claims_data["claims"][:self.max_claims]
+                    claims_data["claims"] = claims_data["claims"][: self.max_claims]
 
                 validated_response = ClaimExtractionResponse(**claims_data)
-                
+
                 # Convert to format expected by pipeline with context preservation
                 claims = [
                     {
@@ -288,7 +322,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                         "category": claim.category,
                         # Context preservation fields
                         "subject_context": claim.subject_context,
-                        "key_entities": claim.key_entities or []
+                        "key_entities": claim.key_entities or [],
                     }
                     for i, claim in enumerate(validated_response.claims)
                 ]
@@ -306,20 +340,30 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 # Temporal analysis if enabled (Phase 1.5, Week 4.5-5.5)
                 if settings.ENABLE_TEMPORAL_CONTEXT:
                     from app.utils.temporal import TemporalAnalyzer
+
                     temporal_analyzer = TemporalAnalyzer()
 
                     for i, claim in enumerate(claims):
-                        temporal_analysis = temporal_analyzer.analyze_claim(claim["text"])
+                        temporal_analysis = temporal_analyzer.analyze_claim(
+                            claim["text"]
+                        )
                         claims[i]["temporal_analysis"] = temporal_analysis
-                        claims[i]["is_time_sensitive"] = temporal_analysis["is_time_sensitive"]
-                        claims[i]["temporal_markers"] = temporal_analysis["temporal_markers"]
-                        claims[i]["temporal_window"] = temporal_analysis["temporal_window"]
+                        claims[i]["is_time_sensitive"] = temporal_analysis[
+                            "is_time_sensitive"
+                        ]
+                        claims[i]["temporal_markers"] = temporal_analysis[
+                            "temporal_markers"
+                        ]
+                        claims[i]["temporal_window"] = temporal_analysis[
+                            "temporal_window"
+                        ]
 
                         logger.debug(f"Claim temporal analysis: {temporal_analysis}")
 
                 # Legal claim detection for API routing (simplified from full classification)
                 if settings.ENABLE_CLAIM_CLASSIFICATION:
                     from app.utils.legal_claim_detector import LegalClaimDetector
+
                     detector = LegalClaimDetector()
 
                     for i, claim in enumerate(claims):
@@ -327,7 +371,9 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                         if result.get("is_legal"):
                             claims[i]["claim_type"] = "legal"
                             claims[i]["legal_metadata"] = result.get("metadata", {})
-                            logger.debug(f"Legal claim detected: {claim['text'][:50]}...")
+                            logger.debug(
+                                f"Legal claim detected: {claim['text'][:50]}..."
+                            )
 
                 # Article-level classification (once per check, not per claim)
                 # This replaces per-claim spaCy NER domain detection
@@ -339,19 +385,25 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                         article_classification = await classify_article(
                             title=metadata.get("title", "") if metadata else "",
                             url=metadata.get("url", "") if metadata else "",
-                            content=content[:2000]  # First 2000 chars for classification
+                            content=content[
+                                :2000
+                            ],  # First 2000 chars for classification
                         )
 
                         # Attach classification to ALL claims for consistent API routing
                         for claim in claims:
-                            claim["article_classification"] = article_classification.to_dict()
+                            claim["article_classification"] = (
+                                article_classification.to_dict()
+                            )
 
                         logger.info(
                             f"[EXTRACT] Article classified: {article_classification.primary_domain} "
                             f"(confidence: {article_classification.confidence:.2f}, source: {article_classification.source})"
                         )
                     except Exception as e:
-                        logger.warning(f"Article classification failed, continuing without: {e}")
+                        logger.warning(
+                            f"Article classification failed, continuing without: {e}"
+                        )
 
                 return {
                     "success": True,
@@ -360,10 +412,10 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                         "extraction_method": "openai_gpt4o_mini",
                         "source_summary": validated_response.source_summary,
                         "extraction_confidence": validated_response.extraction_confidence,
-                        "token_usage": result.get("usage", {})
-                    }
+                        "token_usage": result.get("usage", {}),
+                    },
                 }
-                
+
         except httpx.TimeoutException:
             return {"success": False, "error": "OpenAI API timeout"}
         except ValidationError as e:
@@ -373,10 +425,13 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             logger.error(f"OpenAI extraction error: {e}")
             return {"success": False, "error": str(e)}
 
-    async def _extract_with_google(self, content: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _extract_with_google(
+        self, content: str, metadata: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Extract claims using Google AI (Gemini) API as backup provider"""
         try:
             from datetime import datetime
+
             now = datetime.now()
             current_date = now.strftime("%Y-%m-%d")
             current_year = now.strftime("%Y")
@@ -391,143 +446,135 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 user_prompt += f"Article Title: \"{metadata.get('title')}\"\n"
             if metadata and metadata.get("url"):
                 user_prompt += f"Source URL: {metadata.get('url')}\n"
-            user_prompt += f"\nExtract atomic factual claims from this content:\n\n{content}"
+            user_prompt += (
+                f"\nExtract atomic factual claims from this content:\n\n{content}"
+            )
 
             # Combine system prompt and user prompt for Gemini
             full_prompt = f"{self.system_prompt.format(max_claims=self.max_claims)}\n\n{user_prompt}\n\nProvide your response as valid JSON."
 
-            google_model = getattr(settings, 'GOOGLE_LLM_MODEL', 'gemini-2.5-flash-lite')
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/{google_model}:generateContent?key={self.google_ai_api_key}",
-                    headers={"Content-Type": "application/json"},
-                    json={
-                        "contents": [{"parts": [{"text": full_prompt}]}],
-                        "generationConfig": {
-                            "temperature": 0.1,
-                            "maxOutputTokens": 1500,
-                            "responseMimeType": "application/json"
-                        }
-                    }
+            claims_data = await call_google_ai(
+                full_prompt,
+                temperature=0.1,
+                max_tokens=1500,
+                timeout=self.timeout,
+            )
+            if claims_data is None:
+                return {"success": False, "error": "Google AI returned no response"}
+
+            # Truncate claims if LLM exceeded the max
+            if "claims" in claims_data and len(claims_data["claims"]) > self.max_claims:
+                logger.warning(
+                    f"Google AI returned {len(claims_data['claims'])} claims (max={self.max_claims}), "
+                    f"truncating to first {self.max_claims}"
                 )
+                claims_data["claims"] = claims_data["claims"][: self.max_claims]
 
-                if response.status_code != 200:
-                    error_msg = f"Google AI API error: {response.status_code}"
-                    logger.error(error_msg)
-                    return {"success": False, "error": error_msg}
+            validated_response = ClaimExtractionResponse(**claims_data)
 
-                result = response.json()
-
-                # Extract text from Gemini response
-                try:
-                    content_text = result["candidates"][0]["content"]["parts"][0]["text"]
-                except (KeyError, IndexError) as e:
-                    logger.error(f"Google AI response structure error: {e}")
-                    return {"success": False, "error": "Invalid response structure from Google AI"}
-
-                # Parse and validate JSON
-                claims_data = json.loads(content_text)
-
-                # Truncate claims if LLM exceeded the max
-                if "claims" in claims_data and len(claims_data["claims"]) > self.max_claims:
-                    logger.warning(
-                        f"Google AI returned {len(claims_data['claims'])} claims (max={self.max_claims}), "
-                        f"truncating to first {self.max_claims}"
-                    )
-                    claims_data["claims"] = claims_data["claims"][:self.max_claims]
-
-                validated_response = ClaimExtractionResponse(**claims_data)
-
-                # Convert to format expected by pipeline with context preservation
-                claims = [
-                    {
-                        "text": claim.text,
-                        "position": i,
-                        "confidence": claim.confidence,
-                        "category": claim.category,
-                        "subject_context": claim.subject_context,
-                        "key_entities": claim.key_entities or []
-                    }
-                    for i, claim in enumerate(validated_response.claims)
-                ]
-
-                # Validate and refine claims
-                claims = self._validate_and_refine_claims(claims)
-
-                # Re-number positions after filtering
-                for i, claim in enumerate(claims):
-                    claim["position"] = i
-
-                # Post-processing: temporal analysis and claim classification
-                # Note: settings already imported at module level
-
-                # Temporal analysis if enabled
-                if settings.ENABLE_TEMPORAL_CONTEXT:
-                    from app.utils.temporal import TemporalAnalyzer
-                    temporal_analyzer = TemporalAnalyzer()
-
-                    for i, claim in enumerate(claims):
-                        temporal_analysis = temporal_analyzer.analyze_claim(claim["text"])
-                        claims[i]["temporal_analysis"] = temporal_analysis
-                        claims[i]["is_time_sensitive"] = temporal_analysis["is_time_sensitive"]
-                        claims[i]["temporal_markers"] = temporal_analysis["temporal_markers"]
-                        claims[i]["temporal_window"] = temporal_analysis["temporal_window"]
-
-                # Legal claim detection
-                if settings.ENABLE_CLAIM_CLASSIFICATION:
-                    from app.utils.legal_claim_detector import LegalClaimDetector
-                    detector = LegalClaimDetector()
-
-                    for i, claim in enumerate(claims):
-                        result = detector.classify(claim["text"])
-                        if result.get("is_legal"):
-                            claims[i]["claim_type"] = "legal"
-                            claims[i]["legal_metadata"] = result.get("metadata", {})
-
-                # Article-level classification
-                if settings.ENABLE_ARTICLE_CLASSIFICATION:
-                    try:
-                        from app.utils.article_classifier import classify_article
-
-                        article_classification = await classify_article(
-                            title=metadata.get("title", "") if metadata else "",
-                            url=metadata.get("url", "") if metadata else "",
-                            content=content[:2000]
-                        )
-
-                        for claim in claims:
-                            claim["article_classification"] = article_classification.to_dict()
-
-                        logger.info(
-                            f"[EXTRACT] Article classified: {article_classification.primary_domain} "
-                            f"(confidence: {article_classification.confidence:.2f}, source: {article_classification.source})"
-                        )
-                    except Exception as e:
-                        logger.warning(f"Article classification failed, continuing without: {e}")
-
-                return {
-                    "success": True,
-                    "claims": claims,
-                    "metadata": {
-                        "extraction_method": f"google_{google_model}",
-                        "source_summary": validated_response.source_summary,
-                        "extraction_confidence": validated_response.extraction_confidence
-                    }
+            # Convert to format expected by pipeline with context preservation
+            claims = [
+                {
+                    "text": claim.text,
+                    "position": i,
+                    "confidence": claim.confidence,
+                    "category": claim.category,
+                    "subject_context": claim.subject_context,
+                    "key_entities": claim.key_entities or [],
                 }
+                for i, claim in enumerate(validated_response.claims)
+            ]
 
-        except httpx.TimeoutException:
-            return {"success": False, "error": "Google AI API timeout"}
+            # Validate and refine claims
+            claims = self._validate_and_refine_claims(claims)
+
+            # Re-number positions after filtering
+            for i, claim in enumerate(claims):
+                claim["position"] = i
+
+            # Post-processing: temporal analysis and claim classification
+            if settings.ENABLE_TEMPORAL_CONTEXT:
+                from app.utils.temporal import TemporalAnalyzer
+
+                temporal_analyzer = TemporalAnalyzer()
+
+                for i, claim in enumerate(claims):
+                    temporal_analysis = temporal_analyzer.analyze_claim(claim["text"])
+                    claims[i]["temporal_analysis"] = temporal_analysis
+                    claims[i]["is_time_sensitive"] = temporal_analysis[
+                        "is_time_sensitive"
+                    ]
+                    claims[i]["temporal_markers"] = temporal_analysis[
+                        "temporal_markers"
+                    ]
+                    claims[i]["temporal_window"] = temporal_analysis["temporal_window"]
+
+            # Legal claim detection
+            if settings.ENABLE_CLAIM_CLASSIFICATION:
+                from app.utils.legal_claim_detector import LegalClaimDetector
+
+                detector = LegalClaimDetector()
+
+                for i, claim in enumerate(claims):
+                    result = detector.classify(claim["text"])
+                    if result.get("is_legal"):
+                        claims[i]["claim_type"] = "legal"
+                        claims[i]["legal_metadata"] = result.get("metadata", {})
+
+            # Article-level classification
+            if settings.ENABLE_ARTICLE_CLASSIFICATION:
+                try:
+                    from app.utils.article_classifier import classify_article
+
+                    article_classification = await classify_article(
+                        title=metadata.get("title", "") if metadata else "",
+                        url=metadata.get("url", "") if metadata else "",
+                        content=content[:2000],
+                    )
+
+                    for claim in claims:
+                        claim["article_classification"] = (
+                            article_classification.to_dict()
+                        )
+
+                    logger.info(
+                        f"[EXTRACT] Article classified: {article_classification.primary_domain} "
+                        f"(confidence: {article_classification.confidence:.2f}, source: {article_classification.source})"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Article classification failed, continuing without: {e}"
+                    )
+
+            google_model = getattr(
+                settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
+            )
+            return {
+                "success": True,
+                "claims": claims,
+                "metadata": {
+                    "extraction_method": f"google_{google_model}",
+                    "source_summary": validated_response.source_summary,
+                    "extraction_confidence": validated_response.extraction_confidence,
+                },
+            }
+
         except ValidationError as e:
             logger.error(f"Google AI response validation error: {e}")
             return {"success": False, "error": "Invalid response format from Google AI"}
         except json.JSONDecodeError as e:
             logger.error(f"Google AI JSON parse error: {e}")
-            return {"success": False, "error": "Failed to parse JSON from Google AI response"}
+            return {
+                "success": False,
+                "error": "Failed to parse JSON from Google AI response",
+            }
         except Exception as e:
             logger.error(f"Google AI extraction error: {e}")
             return {"success": False, "error": str(e)}
 
-    def _validate_and_refine_claims(self, claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _validate_and_refine_claims(
+        self, claims: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Filter out unverifiable claims, refine problematic ones, and dedupe similar claims"""
         validated_claims = []
         filtered_count = 0
@@ -540,7 +587,9 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
         return validated_claims
 
-    def _deduplicate_similar_claims(self, claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _deduplicate_similar_claims(
+        self, claims: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Remove semantically similar claims using embedding similarity"""
         if len(claims) <= 1:
             return claims
@@ -554,7 +603,9 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             embeddings = get_embeddings(claim_texts)
 
             if embeddings is None or len(embeddings) == 0:
-                logger.warning("[EXTRACT] Embedding service unavailable, skipping deduplication")
+                logger.warning(
+                    "[EXTRACT] Embedding service unavailable, skipping deduplication"
+                )
                 return claims
 
             # Find similar pairs (cosine similarity > 0.85)
@@ -595,18 +646,26 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             deduped = [c for idx, c in enumerate(claims) if idx not in to_remove]
 
             if len(to_remove) > 0:
-                logger.info(f"[EXTRACT] CLAIM DEDUP: {len(claims)} → {len(deduped)} claims ({len(to_remove)} duplicates removed)")
+                logger.info(
+                    f"[EXTRACT] CLAIM DEDUP: {len(claims)} → {len(deduped)} claims ({len(to_remove)} duplicates removed)"
+                )
 
             return deduped
 
         except ImportError:
-            logger.warning("[EXTRACT] Embeddings module not available, skipping deduplication")
+            logger.warning(
+                "[EXTRACT] Embeddings module not available, skipping deduplication"
+            )
             return claims
         except Exception as e:
-            logger.warning(f"[EXTRACT] Claim deduplication failed: {e}, continuing without")
+            logger.warning(
+                f"[EXTRACT] Claim deduplication failed: {e}, continuing without"
+            )
             return claims
 
-    def _validate_individual_claims(self, claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _validate_individual_claims(
+        self, claims: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Filter out unverifiable claims and refine problematic ones"""
         validated_claims = []
         filtered_count = 0
@@ -616,69 +675,116 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
             # Check 1: Detect procedural negatives (unverifiable)
             procedural_patterns = [
-                'without ', 'failed to', 'did not', 'never ', "didn't",
-                'refused to', 'neglected to', 'omitted to'
+                "without ",
+                "failed to",
+                "did not",
+                "never ",
+                "didn't",
+                "refused to",
+                "neglected to",
+                "omitted to",
             ]
-            has_procedural = any(phrase in claim_text.lower() for phrase in procedural_patterns)
+            has_procedural = any(
+                phrase in claim_text.lower() for phrase in procedural_patterns
+            )
 
             if has_procedural:
                 # Try to extract factual core by removing the procedural part
                 factual_core = claim_text
                 for pattern in [
-                    r'\s+without\s+\w+ing\b.*',
-                    r'\s+failed to\s+\w+\b.*',
-                    r'\s+did not\s+\w+\b.*',
-                    r'\s+didn\'?t\s+\w+\b.*',
-                    r'\s+never\s+\w+ed\b.*',
-                    r'\s+refused to\s+\w+\b.*',
+                    r"\s+without\s+\w+ing\b.*",
+                    r"\s+failed to\s+\w+\b.*",
+                    r"\s+did not\s+\w+\b.*",
+                    r"\s+didn\'?t\s+\w+\b.*",
+                    r"\s+never\s+\w+ed\b.*",
+                    r"\s+refused to\s+\w+\b.*",
                 ]:
-                    factual_core = re.sub(pattern, '', factual_core, flags=re.IGNORECASE)
+                    factual_core = re.sub(
+                        pattern, "", factual_core, flags=re.IGNORECASE
+                    )
 
-                factual_core = factual_core.strip().rstrip(',')
+                factual_core = factual_core.strip().rstrip(",")
 
                 # Only keep if factual core is substantial (>20 chars)
                 if len(factual_core) > 20:
-                    logger.info(f"[EXTRACT] CLAIM REFINEMENT: Stripped procedural negative")
+                    logger.info(
+                        f"[EXTRACT] CLAIM REFINEMENT: Stripped procedural negative"
+                    )
                     logger.info(f"   Original: {claim_text[:80]}...")
                     logger.info(f"   Refined: {factual_core[:80]}...")
                     claim["text"] = factual_core
-                    claim["confidence"] = int(claim["confidence"] * 0.85)  # Lower confidence for modified claim
+                    claim["confidence"] = int(
+                        claim["confidence"] * 0.85
+                    )  # Lower confidence for modified claim
                     claim["was_refined"] = True
                 else:
-                    logger.warning(f"[EXTRACT] CLAIM FILTERED: Procedural negative with no factual core")
+                    logger.warning(
+                        f"[EXTRACT] CLAIM FILTERED: Procedural negative with no factual core"
+                    )
                     logger.warning(f"   Claim: {claim_text[:80]}...")
                     filtered_count += 1
                     continue
 
             # Check 2: Ensure entities are resolved (no unresolved pronouns)
-            unresolved_pronouns = ['he ', 'she ', 'they ', 'it ', 'this ', 'that ', 'these ', 'those ']
+            unresolved_pronouns = [
+                "he ",
+                "she ",
+                "they ",
+                "it ",
+                "this ",
+                "that ",
+                "these ",
+                "those ",
+            ]
             words_lower = claim_text.lower().split()
-            has_pronoun = any(pronoun.strip() in words_lower for pronoun in unresolved_pronouns)
+            has_pronoun = any(
+                pronoun.strip() in words_lower for pronoun in unresolved_pronouns
+            )
 
             if has_pronoun:
-                logger.warning(f"[EXTRACT] CLAIM FILTERED: Unresolved pronoun/reference")
+                logger.warning(
+                    f"[EXTRACT] CLAIM FILTERED: Unresolved pronoun/reference"
+                )
                 logger.warning(f"   Claim: {claim_text[:80]}...")
                 filtered_count += 1
                 continue
 
             # Check 3: Minimum specificity (has at least one specific marker)
-            has_date = bool(re.search(r'\b(19|20)\d{2}\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)', claim_text))
-            has_number = bool(re.search(r'\d+', claim_text))
-            has_proper_noun = bool(re.search(r'\b[A-Z][a-z]+\b', claim_text))
+            has_date = bool(
+                re.search(
+                    r"\b(19|20)\d{2}\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)",
+                    claim_text,
+                )
+            )
+            has_number = bool(re.search(r"\d+", claim_text))
+            has_proper_noun = bool(re.search(r"\b[A-Z][a-z]+\b", claim_text))
 
             if not (has_date or has_number or has_proper_noun):
-                logger.warning(f"[EXTRACT] CLAIM FILTERED: Too vague (no date/number/proper noun)")
+                logger.warning(
+                    f"[EXTRACT] CLAIM FILTERED: Too vague (no date/number/proper noun)"
+                )
                 logger.warning(f"   Claim: {claim_text[:80]}...")
                 filtered_count += 1
                 continue
 
             # Check 4: Detect subjective/opinion language
             subjective_words = [
-                'controversial', 'debatable', 'questionable', 'arguably',
-                'seems', 'appears', 'might', 'could', 'possibly',
-                'probably', 'likely', 'unlikely'
+                "controversial",
+                "debatable",
+                "questionable",
+                "arguably",
+                "seems",
+                "appears",
+                "might",
+                "could",
+                "possibly",
+                "probably",
+                "likely",
+                "unlikely",
             ]
-            has_subjective = any(word in claim_text.lower() for word in subjective_words)
+            has_subjective = any(
+                word in claim_text.lower() for word in subjective_words
+            )
 
             if has_subjective:
                 # Lower confidence but don't filter (might still be verifiable)
@@ -691,7 +797,9 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             validated_claims.append(claim)
 
         if filtered_count > 0:
-            logger.info(f"[EXTRACT] CLAIM VALIDATION: {len(validated_claims)} passed, {filtered_count} filtered")
+            logger.info(
+                f"[EXTRACT] CLAIM VALIDATION: {len(validated_claims)} passed, {filtered_count} filtered"
+            )
 
         return validated_claims
 
@@ -699,48 +807,63 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
         """Fallback rule-based claim extraction"""
         try:
             # Simple heuristic-based extraction
-            sentences = [s.strip() for s in content.split('.') if s.strip()]
-            
+            sentences = [s.strip() for s in content.split(".") if s.strip()]
+
             claims = []
-            for i, sentence in enumerate(sentences[:self.max_claims]):
+            for i, sentence in enumerate(sentences[: self.max_claims]):
                 # Filter for sentences that might contain factual claims
-                if (len(sentence) > 20 and 
-                    any(keyword in sentence.lower() for keyword in [
-                        'study', 'research', 'data', 'report', 'according to',
-                        'percent', '%', 'million', 'billion', 'increase', 'decrease',
-                        'announced', 'confirmed', 'revealed', 'found', 'discovered'
-                    ])):
-                    claims.append({
-                        "text": sentence + ".",
-                        "position": i,
-                        "confidence": 0.6,  # Lower confidence for rule-based
-                        "category": "general"
-                    })
-            
+                if len(sentence) > 20 and any(
+                    keyword in sentence.lower()
+                    for keyword in [
+                        "study",
+                        "research",
+                        "data",
+                        "report",
+                        "according to",
+                        "percent",
+                        "%",
+                        "million",
+                        "billion",
+                        "increase",
+                        "decrease",
+                        "announced",
+                        "confirmed",
+                        "revealed",
+                        "found",
+                        "discovered",
+                    ]
+                ):
+                    claims.append(
+                        {
+                            "text": sentence + ".",
+                            "position": i,
+                            "confidence": 0.6,  # Lower confidence for rule-based
+                            "category": "general",
+                        }
+                    )
+
             if not claims:
                 # If no heuristic matches, take first few substantial sentences
                 for i, sentence in enumerate(sentences[:3]):
                     if len(sentence) > 30:
-                        claims.append({
-                            "text": sentence + ".",
-                            "position": i,
-                            "confidence": 0.4,
-                            "category": "general"
-                        })
+                        claims.append(
+                            {
+                                "text": sentence + ".",
+                                "position": i,
+                                "confidence": 0.4,
+                                "category": "general",
+                            }
+                        )
 
             return {
                 "success": True,
                 "claims": claims,
                 "metadata": {
                     "extraction_method": "rule_based_fallback",
-                    "extraction_confidence": 0.5
-                }
+                    "extraction_confidence": 0.5,
+                },
             }
-            
+
         except Exception as e:
             logger.error(f"Rule-based extraction error: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "claims": []
-            }
+            return {"success": False, "error": str(e), "claims": []}
