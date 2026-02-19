@@ -26,7 +26,7 @@ const features = [
   {
     icon: GitPullRequest,
     title: 'Claim Decomposition',
-    description: 'Atomic breakdown of complex claims into verifiable technical components.',
+    description: 'Atomic breakdown of complex claims into analysable technical components.',
   },
 ];
 

@@ -19,12 +19,8 @@ export interface UserStats {
   totalChecks: number;
   checksThisMonth: number;
   totalSourcesAnalyzed: number;
-  totalElementsAnalysed: number;
-  elementStateBreakdown: {
-    supported: number;
-    disputed: number;
-    unresolved: number;
-  };
+  totalClaimsAnalyzed: number;
+  claimTypeBreakdown: Record<string, number>;
   domainBreakdown: Record<string, number>;
   topDomain: string | null;
   memberSince: string | null;
@@ -41,7 +37,7 @@ export interface UserStats {
  * - Auth: Bearer token from Clerk
  * - Endpoints:
  *   - GET /users/me - Auto-creates user if not exists (3 credits)
- *   - POST /checks - Create fact-check
+ *   - POST /checks - Create analysis check
  *   - GET /checks - Get user's checks
  *   - POST /payments/create-checkout-session - Stripe checkout
  */
@@ -335,6 +331,15 @@ class ApiClient {
    */
   async getCheckById(checkId: string, token?: string | null) {
     return this.request(`/api/v1/checks/${checkId}`, {}, token);
+  }
+
+  /**
+   * GET /api/v1/checks/{checkId}/videos
+   * Get video recommendations for a check, optionally filtered by claim.
+   */
+  async getCheckVideos(checkId: string, claimId?: string | null, token?: string | null) {
+    const params = claimId ? `?claim_id=${claimId}` : '';
+    return this.request(`/api/v1/checks/${checkId}/videos${params}`, {}, token);
   }
 
   /**

@@ -16,7 +16,6 @@ interface Check {
   inputUrl: string | null;
   createdAt: string;
   claimsCount: number;
-  overallSummary: string | null;
   articleDomain: string | null;
   claims: Array<{
     text: string;

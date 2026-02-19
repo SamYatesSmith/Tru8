@@ -4,21 +4,26 @@ interface UserInsightsCardProps {
   stats: UserStats;
 }
 
-export function UserInsightsCard({ stats }: UserInsightsCardProps) {
-  const breakdown = stats.elementStateBreakdown;
-  const totalElements = breakdown
-    ? breakdown.supported + breakdown.disputed + breakdown.unresolved
-    : 0;
+const CLAIM_TYPE_LABELS: Record<string, string> = {
+  empirical: 'Empirical',
+  causal: 'Causal',
+  evaluative: 'Evaluative',
+  predictive: 'Predictive',
+  prescriptive: 'Prescriptive',
+};
 
-  const supportedPct = totalElements > 0
-    ? Math.round((breakdown.supported / totalElements) * 100)
-    : 0;
-  const disputedPct = totalElements > 0
-    ? Math.round((breakdown.disputed / totalElements) * 100)
-    : 0;
-  const unresolvedPct = totalElements > 0
-    ? Math.round((breakdown.unresolved / totalElements) * 100)
-    : 0;
+const CLAIM_TYPE_COLORS: Record<string, string> = {
+  empirical: 'bg-blue-500',
+  causal: 'bg-amber-500',
+  evaluative: 'bg-violet-500',
+  predictive: 'bg-emerald-500',
+  prescriptive: 'bg-rose-500',
+};
+
+export function UserInsightsCard({ stats }: UserInsightsCardProps) {
+  const claimTypes = Object.entries(stats.claimTypeBreakdown || {})
+    .sort(([, a], [, b]) => b - a);
+  const totalClaims = claimTypes.reduce((sum, [, count]) => sum + count, 0);
 
   const sortedDomains = Object.entries(stats.domainBreakdown)
     .sort(([, a], [, b]) => b - a)
@@ -46,41 +51,32 @@ export function UserInsightsCard({ stats }: UserInsightsCardProps) {
         <div className="grid grid-cols-3 gap-4">
           <StatBox value={stats.totalChecks} label="Total Checks" />
           <StatBox value={stats.totalSourcesAnalyzed} label="Sources Analyzed" />
-          <StatBox value={stats.totalElementsAnalysed ?? totalElements} label="Elements Analysed" />
+          <StatBox value={stats.totalClaimsAnalyzed ?? totalClaims} label="Claims Analysed" />
         </div>
 
         {/* Two Column Layout */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <h4 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400">
-              Analysis Insights
+              Claim Types
             </h4>
-            {totalElements > 0 ? (
+            {claimTypes.length > 0 ? (
               <div className="space-y-2">
-                <StateBar
-                  label="Supported"
-                  count={breakdown.supported}
-                  percentage={supportedPct}
-                  barClass="bg-state-supported"
-                  textClass="text-state-supported"
-                />
-                <StateBar
-                  label="Disputed"
-                  count={breakdown.disputed}
-                  percentage={disputedPct}
-                  barClass="bg-state-disputed"
-                  textClass="text-state-disputed"
-                />
-                <StateBar
-                  label="Unresolved"
-                  count={breakdown.unresolved}
-                  percentage={unresolvedPct}
-                  barClass="bg-state-unresolved"
-                  textClass="text-state-unresolved"
-                />
+                {claimTypes.map(([type, count]) => {
+                  const pct = totalClaims > 0 ? Math.round((count / totalClaims) * 100) : 0;
+                  return (
+                    <ClaimTypeBar
+                      key={type}
+                      label={CLAIM_TYPE_LABELS[type] || type}
+                      count={count}
+                      percentage={pct}
+                      barClass={CLAIM_TYPE_COLORS[type] || 'bg-zinc-400'}
+                    />
+                  );
+                })}
               </div>
             ) : (
-              <p className="text-sm text-zinc-400">No element data yet</p>
+              <p className="text-sm text-zinc-400">No claim data yet</p>
             )}
           </div>
 
@@ -123,18 +119,16 @@ function StatBox({ value, label }: { value: string | number; label: string }) {
   );
 }
 
-function StateBar({
+function ClaimTypeBar({
   label,
   count,
   percentage,
   barClass,
-  textClass
 }: {
   label: string;
   count: number;
   percentage: number;
   barClass: string;
-  textClass: string;
 }) {
   return (
     <div className="flex items-center gap-3">

@@ -2,9 +2,6 @@
  * Source Tier Bar Component for OG Cards
  *
  * Displays a source tier with label, progress bar, and percentage
- * e.g., "Health Authorities" with 65% bar
- *
- * Design reference: Full Report Card mockup
  */
 
 export interface SourceTierBarProps {
@@ -15,9 +12,9 @@ export interface SourceTierBarProps {
 
 const COLORS = {
   primary: '#f27907',
-  white: '#FFFFFF',
-  white20: 'rgba(255, 255, 255, 0.2)',
-  white40: 'rgba(255, 255, 255, 0.4)',
+  text: '#18181b',
+  textMuted: '#a1a1aa',
+  barBg: '#e4e4e7',
 };
 
 export function SourceTierBar({ label, description, percentage }: SourceTierBarProps) {
@@ -30,7 +27,6 @@ export function SourceTierBar({ label, description, percentage }: SourceTierBarP
         width: '100%',
       }}
     >
-      {/* Label and percentage row */}
       <div
         style={{
           display: 'flex',
@@ -40,7 +36,7 @@ export function SourceTierBar({ label, description, percentage }: SourceTierBarP
       >
         <span
           style={{
-            color: COLORS.white,
+            color: COLORS.text,
             fontSize: 16,
             fontWeight: 600,
           }}
@@ -58,13 +54,12 @@ export function SourceTierBar({ label, description, percentage }: SourceTierBarP
         </span>
       </div>
 
-      {/* Progress bar */}
       <div
         style={{
           display: 'flex',
           width: '100%',
           height: '8px',
-          backgroundColor: COLORS.white20,
+          backgroundColor: COLORS.barBg,
           borderRadius: 4,
           overflow: 'hidden',
         }}
@@ -79,11 +74,10 @@ export function SourceTierBar({ label, description, percentage }: SourceTierBarP
         />
       </div>
 
-      {/* Description */}
       {description && (
         <span
           style={{
-            color: COLORS.white40,
+            color: COLORS.textMuted,
             fontSize: 11,
             fontWeight: 500,
             letterSpacing: '0.1em',

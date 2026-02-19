@@ -10,6 +10,7 @@ from .claim_map import (
     ClaimMapMetadata,
     EvidenceRef,
 )
+from .video_recommendation import VideoRecommendation
 
 __all__ = [
     "User",
@@ -26,4 +27,5 @@ __all__ = [
     "ClaimElement",
     "ClaimMapMetadata",
     "EvidenceRef",
+    "VideoRecommendation",
 ]

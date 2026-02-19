@@ -5,9 +5,9 @@
  * Returns a PNG image optimized for mobile social platforms.
  *
  * Query params for marketing customization:
- * - headline: Custom headline text (default: article title or "Fact-Checked Report")
+ * - headline: Custom headline text (default: article title or "Evidence Report")
  * - metricValue: The big metric number (default: sources count)
- * - metricLabel: Label below metric (default: "Sources Verified")
+ * - metricLabel: Label below metric (default: "Sources Analysed")
  * - cta: Call-to-action text (default: "See the evidence")
  */
 
@@ -62,8 +62,8 @@ export async function GET(
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#0a0e12',
-            color: '#ffffff',
+            backgroundColor: '#ffffff',
+            color: '#18181b',
             fontSize: 32,
             fontFamily: 'Inter, system-ui, sans-serif',
           }}
@@ -77,9 +77,9 @@ export async function GET(
     const check: PublicCheckData = await response.json();
 
     // Use custom values or defaults from check data
-    const headline = customHeadline || check.title || 'Fact-Checked Report';
+    const headline = customHeadline || check.title || 'Evidence Report';
     const metricValue = customMetricValue || check.sourcesCount.toString();
-    const metricLabel = customMetricLabel || 'Sources Verified';
+    const metricLabel = customMetricLabel || 'Sources Analysed';
     const ctaText = customCta || 'See the evidence';
 
     // Render SocialShareCard
@@ -107,8 +107,8 @@ export async function GET(
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#0a0e12',
-          color: '#ffffff',
+          backgroundColor: '#ffffff',
+          color: '#18181b',
           fontSize: 32,
           fontFamily: 'Inter, system-ui, sans-serif',
         }}

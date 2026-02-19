@@ -851,6 +851,41 @@ async def create_check_streaming(
                     await save_session.commit()
                 logger.info(f"[PIPELINE TASK] Results saved for check {check.id}")
 
+                # Fire-and-forget video recommendations (E14)
+                try:
+                    from app.services.video_recommendations import (
+                        fetch_video_recommendations,
+                    )
+
+                    # Claims are saved to DB — query for their IDs
+                    async with async_session() as video_session:
+                        db_claims_result = await video_session.execute(
+                            select(Claim)
+                            .where(Claim.check_id == check.id)
+                            .where(Claim.is_selected == True)
+                        )
+                        db_claims = db_claims_result.scalars().all()
+                        if not db_claims:
+                            # Fallback: all claims (focused mode)
+                            db_claims_result = await video_session.execute(
+                                select(Claim).where(Claim.check_id == check.id)
+                            )
+                            db_claims = db_claims_result.scalars().all()
+                        claims_for_videos = [
+                            {"id": c.id, "text": c.text} for c in db_claims
+                        ]
+
+                    if claims_for_videos:
+                        asyncio.create_task(
+                            fetch_video_recommendations(check.id, claims_for_videos)
+                        )
+                        logger.info(
+                            f"[PIPELINE TASK] Video recommendations task launched "
+                            f"for {len(claims_for_videos)} claims"
+                        )
+                except Exception as ve:
+                    logger.debug(f"[PIPELINE TASK] Video recommendations skipped: {ve}")
+
                 # Send success notifications
                 content_data = {"metadata": result.get("ingest_metadata", {})}
                 await send_success_notifications(
@@ -1693,6 +1728,65 @@ async def get_check_sources(
         "legacyCheck": False,
         "claims": claims_list,
         "filterBreakdown": filter_breakdown,
+    }
+
+
+# ============================================================================
+# VIDEO RECOMMENDATIONS (E14)
+# ============================================================================
+
+
+@router.get("/{check_id}/videos")
+async def get_check_videos(
+    check_id: str,
+    claim_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Get video recommendations for a check or specific claim.
+
+    Query params:
+    - claim_id: If provided, filter to videos for this claim only.
+    """
+    from app.models.video_recommendation import VideoRecommendation
+
+    # Verify ownership
+    stmt = select(Check).where(Check.id == check_id)
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+    if check.user_id != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Query videos
+    query = select(VideoRecommendation).where(VideoRecommendation.check_id == check_id)
+    if claim_id:
+        query = query.where(VideoRecommendation.claim_id == claim_id)
+
+    videos_result = await session.execute(query)
+    videos = videos_result.scalars().all()
+
+    return {
+        "checkId": check_id,
+        "videos": [
+            {
+                "id": v.id,
+                "claimId": v.claim_id,
+                "videoId": v.video_id,
+                "title": v.title,
+                "description": v.description,
+                "channelName": v.channel_name,
+                "channelId": v.channel_id,
+                "publishDate": (v.publish_date.isoformat() if v.publish_date else None),
+                "videoUrl": v.video_url,
+                "thumbnailUrl": v.thumbnail_url,
+                "duration": v.duration,
+                "tierLabel": v.tier_label,
+                "typeLabel": v.type_label,
+            }
+            for v in videos
+        ],
     }
 
 

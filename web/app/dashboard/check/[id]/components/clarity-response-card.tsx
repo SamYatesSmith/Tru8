@@ -37,7 +37,7 @@ export function ClarityResponseCard({
 
       <hr className="border-zinc-100" />
 
-      {/* Direct Answer (if confidence >= 40%) */}
+      {/* Direct Answer */}
       {hasDirectAnswer && queryResponse && (
         <>
           <div>
@@ -78,7 +78,7 @@ export function ClarityResponseCard({
         </>
       )}
 
-      {/* No Direct Answer - Show Related Claims (if confidence < 40%) */}
+      {/* No Direct Answer - Show Related Claims */}
       {!hasDirectAnswer && relatedClaims && relatedClaims.length > 0 && (
         <>
           <div className="bg-amber-50 border border-amber-200 p-4">

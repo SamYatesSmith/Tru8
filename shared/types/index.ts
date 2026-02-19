@@ -194,6 +194,28 @@ export interface ApiError {
   statusCode: number;
 }
 
+// --- Video Recommendations (E14) ---
+export interface VideoRecommendation {
+  id: string;
+  claimId: string;
+  videoId: string;
+  title: string;
+  description?: string;
+  channelName: string;
+  channelId?: string;
+  publishDate?: string;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  duration?: string; // ISO 8601 e.g. "PT4M32S"
+  tierLabel?: EvidenceTier;
+  typeLabel?: EvidenceType;
+}
+
+export interface VideoRecommendationsResponse {
+  checkId: string;
+  videos: VideoRecommendation[];
+}
+
 // --- Claim Map types (Track B) ---
 export type ClaimType = 'empirical' | 'definitional' | 'causal_interpretive' | 'predictive' | 'normative_flagged';
 export type ElementState = 'supported' | 'disputed' | 'unresolved';

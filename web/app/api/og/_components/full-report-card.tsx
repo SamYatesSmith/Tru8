@@ -1,15 +1,12 @@
 /**
  * Full Report Card - OG Image Component
  *
- * Displays a summary of the fact-check report with:
+ * Displays a summary of the evidence report with:
  * - Article title
  * - Stats (claims examined, sources analyzed, evidence pieces)
- * - Source quality breakdown
  * - Top sources list
  *
  * Size: 1200x630px (1.91:1 aspect ratio)
- *
- * Design reference: Screenshot 2026-01-28 125307.png
  */
 
 import { Logo, StatsBlock, SourceList } from './shared';
@@ -24,16 +21,14 @@ export interface FullReportCardProps {
   baseUrl?: string;
 }
 
-// Colors from the design
 const COLORS = {
   primary: '#f27907',
-  backgroundDark: '#0a0e12',
-  backgroundGradient: 'radial-gradient(ellipse at bottom right, rgba(5, 46, 22, 0.15) 0%, #0a0e12 60%)',
-  white: '#FFFFFF',
-  white80: 'rgba(255, 255, 255, 0.8)',
-  white40: 'rgba(255, 255, 255, 0.4)',
-  white10: 'rgba(255, 255, 255, 0.1)',
-  white05: 'rgba(255, 255, 255, 0.05)',
+  background: '#ffffff',
+  text: '#18181b',
+  textSecondary: '#71717a',
+  textMuted: '#a1a1aa',
+  border: '#e4e4e7',
+  borderLight: '#f4f4f5',
 };
 
 export function FullReportCard({
@@ -79,7 +74,7 @@ export function FullReportCard({
         height: '630px',
         display: 'flex',
         flexDirection: 'column',
-        background: COLORS.backgroundGradient,
+        background: COLORS.background,
         fontFamily: 'Inter, system-ui, sans-serif',
         padding: '40px 48px 24px 48px',
       }}
@@ -107,7 +102,7 @@ export function FullReportCard({
         >
           <span
             style={{
-              color: COLORS.white,
+              color: '#ffffff',
               fontSize: 12,
               fontWeight: 700,
               letterSpacing: '0.1em',
@@ -124,7 +119,7 @@ export function FullReportCard({
         {sourceDomain && (
           <span
             style={{
-              color: COLORS.white40,
+              color: COLORS.textMuted,
               fontSize: 14,
               fontWeight: 500,
               textTransform: 'uppercase',
@@ -136,7 +131,7 @@ export function FullReportCard({
         )}
         <span
           style={{
-            color: COLORS.white,
+            color: COLORS.text,
             fontSize: fontSize,
             fontWeight: 700,
             lineHeight: 1.15,
@@ -180,7 +175,7 @@ export function FullReportCard({
         >
           <span
             style={{
-              color: COLORS.white40,
+              color: COLORS.textMuted,
               fontSize: 12,
               fontWeight: 700,
               letterSpacing: '0.15em',
@@ -200,14 +195,14 @@ export function FullReportCard({
           alignItems: 'flex-end',
           justifyContent: 'space-between',
           paddingTop: '8px',
-          borderTop: `1px solid ${COLORS.white05}`,
+          borderTop: `1px solid ${COLORS.border}`,
         }}
       >
         {/* CTA */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1, margin: 0, padding: 0 }}>
           <span
             style={{
-              color: COLORS.white80,
+              color: COLORS.textSecondary,
               fontSize: 16,
               fontWeight: 500,
               lineHeight: 1,

@@ -14,7 +14,6 @@ interface CheckCardProps {
     inputUrl: string | null;
     createdAt: string;
     claimsCount: number;
-    overallSummary: string | null;
     articleDomain: string | null;
     claims: Array<{
       text: string;
@@ -65,7 +64,7 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
   }
 
   const firstClaim = check.claims[0];
-  const displayText = check.overallSummary || firstClaim.text;
+  const displayText = firstClaim.text;
   const isLongText = displayText.length > 150;
   const hasElements = stateCounts.supported + stateCounts.disputed + stateCounts.unresolved > 0;
 

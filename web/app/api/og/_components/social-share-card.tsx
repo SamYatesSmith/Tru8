@@ -6,7 +6,7 @@
  * - X mobile (~320-420px)
  * - LinkedIn feed (~400-500px)
  *
- * Prioritises: Big headline → 1 metric → brand → CTA
+ * Prioritises: Big headline -> 1 metric -> brand -> CTA
  *
  * Size: 1200x630px (renders large, scales down well)
  */
@@ -19,13 +19,12 @@ export interface SocialShareCardProps {
   baseUrl?: string;
 }
 
-// Colors
 const COLORS = {
   primary: '#f27907',
-  backgroundGradient: 'radial-gradient(ellipse at bottom right, rgba(5, 46, 22, 0.15) 0%, #0a0e12 60%)',
-  white: '#FFFFFF',
-  white60: 'rgba(255, 255, 255, 0.6)',
-  white40: 'rgba(255, 255, 255, 0.4)',
+  background: '#ffffff',
+  text: '#18181b',
+  textSecondary: '#71717a',
+  textMuted: '#a1a1aa',
 };
 
 export function SocialShareCard({
@@ -51,7 +50,7 @@ export function SocialShareCard({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: COLORS.backgroundGradient,
+        background: COLORS.background,
         fontFamily: 'Inter, system-ui, sans-serif',
         padding: '60px 80px',
         textAlign: 'center',
@@ -95,7 +94,7 @@ export function SocialShareCard({
       >
         <span
           style={{
-            color: COLORS.white,
+            color: COLORS.text,
             fontSize: headlineFontSize,
             fontWeight: 700,
             lineHeight: 1.1,
@@ -128,7 +127,7 @@ export function SocialShareCard({
         </span>
         <span
           style={{
-            color: COLORS.white60,
+            color: COLORS.textSecondary,
             fontSize: 24,
             fontWeight: 500,
             textTransform: 'uppercase',
@@ -149,7 +148,7 @@ export function SocialShareCard({
       >
         <span
           style={{
-            color: COLORS.white,
+            color: COLORS.text,
             fontSize: 28,
             fontWeight: 600,
           }}

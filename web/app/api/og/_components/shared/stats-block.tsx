@@ -2,9 +2,6 @@
  * Stats Block Component for OG Cards
  *
  * Displays a stat with label above and large orange number below
- * e.g., "CLAIMS EXAMINED" with "8"
- *
- * Design reference: Full Report Card mockup
  */
 
 export interface StatsBlockProps {
@@ -14,7 +11,7 @@ export interface StatsBlockProps {
 
 const COLORS = {
   primary: '#f27907',
-  white40: 'rgba(255, 255, 255, 0.4)',
+  textMuted: '#a1a1aa',
 };
 
 export function StatsBlock({ label, value }: StatsBlockProps) {
@@ -28,7 +25,7 @@ export function StatsBlock({ label, value }: StatsBlockProps) {
     >
       <span
         style={{
-          color: COLORS.white40,
+          color: COLORS.textMuted,
           fontSize: 12,
           fontWeight: 700,
           letterSpacing: '0.15em',

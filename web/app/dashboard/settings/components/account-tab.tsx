@@ -264,31 +264,23 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
                 <div className="font-mono text-[10px] text-zinc-400 mt-1">Sources Analyzed</div>
               </div>
               <div className="bg-zinc-50 p-4 text-center">
-                <div className="text-2xl font-bold text-zinc-900">{stats.totalElementsAnalysed ?? 0}</div>
-                <div className="font-mono text-[10px] text-zinc-400 mt-1">Elements Analysed</div>
+                <div className="text-2xl font-bold text-zinc-900">{stats.totalClaimsAnalyzed ?? 0}</div>
+                <div className="font-mono text-[10px] text-zinc-400 mt-1">Claims Analysed</div>
               </div>
             </div>
 
-            {/* Analysis Overview */}
-            {stats.elementStateBreakdown && (
+            {/* Claim Type Breakdown */}
+            {stats.claimTypeBreakdown && Object.keys(stats.claimTypeBreakdown).length > 0 && (
               <div className="space-y-3">
-                <h4 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400">Analysis Overview</h4>
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-state-supported" />
-                    <span className="text-zinc-900 font-mono">{stats.elementStateBreakdown.supported}</span>
-                    <span className="text-zinc-500">Supported</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-state-disputed" />
-                    <span className="text-zinc-900 font-mono">{stats.elementStateBreakdown.disputed}</span>
-                    <span className="text-zinc-500">Disputed</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-state-unresolved" />
-                    <span className="text-zinc-900 font-mono">{stats.elementStateBreakdown.unresolved}</span>
-                    <span className="text-zinc-500">Unresolved</span>
-                  </div>
+                <h4 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400">Claim Types</h4>
+                <div className="flex items-center gap-6 text-sm flex-wrap">
+                  {Object.entries(stats.claimTypeBreakdown).sort(([,a],[,b]) => b - a).map(([type, count]) => (
+                    <div key={type} className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-zinc-400" />
+                      <span className="text-zinc-900 font-mono">{count}</span>
+                      <span className="text-zinc-500 capitalize">{type}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

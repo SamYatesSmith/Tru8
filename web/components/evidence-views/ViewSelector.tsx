@@ -18,6 +18,7 @@ const DETAIL_TABS: { value: ViewTab; label: string }[] = [
   { value: 'cartographer', label: 'CARTOGRAPHER' },
   { value: 'librarian', label: 'LIBRARIAN' },
   { value: 'interpreter', label: 'INTERPRETER' },
+  { value: 'projectionist', label: 'PROJECTIONIST' },
 ];
 
 export function ViewSelector({ mode, activeTab, onTabChange }: ViewSelectorProps) {

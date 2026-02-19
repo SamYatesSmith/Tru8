@@ -50,7 +50,7 @@ export function Logo({ size = 'small', baseUrl }: LogoProps) {
       {size === 'small' && (
         <span
           style={{
-            color: '#FFFFFF',
+            color: '#18181b',
             fontSize: fontSize,
             fontWeight: 700,
             letterSpacing: '0.02em',

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { Claim } from '@shared/types';
 import { BackToOverview } from '@/components/evidence-views/detail/BackToOverview';
 import { ClaimHeader } from '@/components/evidence-views/detail/ClaimHeader';
@@ -8,6 +9,8 @@ import { ViewSelector } from '@/components/evidence-views';
 import { CartographerView } from '@/components/evidence-views/cartographer';
 import { LibrarianView } from '@/components/evidence-views/librarian';
 import { InterpreterView } from '@/components/evidence-views/interpreter';
+import { ProjectionistView } from '@/components/evidence-views/projectionist';
+import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 
 interface ClaimDetailClientProps {
   checkId: string;
@@ -16,10 +19,24 @@ interface ClaimDetailClientProps {
 }
 
 export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClientProps) {
+  const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState('cartographer');
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    getToken().then(setToken);
+  }, [getToken]);
 
   const handleSwitchToLibrarian = useCallback(() => setActiveTab('librarian'), []);
   const handleSwitchToInterpreter = useCallback(() => setActiveTab('interpreter'), []);
+
+  // Video recommendations — only fetch when Projectionist tab is active
+  const { videos: claimVideos, isLoading: videosLoading } = useVideoRecommendations(
+    checkId,
+    claim.id,
+    token,
+    activeTab === 'projectionist',
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
@@ -42,12 +59,13 @@ export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClien
       {activeTab === 'interpreter' && (
         <InterpreterView claim={claim} />
       )}
-      {activeTab !== 'cartographer' && activeTab !== 'librarian' && activeTab !== 'interpreter' && (
-        <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
-          <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
-            {activeTab} view — coming in E14-E15
-          </p>
-        </div>
+      {activeTab === 'projectionist' && (
+        <ProjectionistView
+          scope="claim"
+          claims={[claim]}
+          videos={claimVideos}
+          isLoading={videosLoading}
+        />
       )}
     </div>
   );

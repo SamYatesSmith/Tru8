@@ -56,15 +56,15 @@ export default function TermsOfServicePage() {
 
         <h3>4.1 Free Plan</h3>
         <ul>
-          <li>3 free verifications upon signup</li>
-          <li>Basic verification features</li>
+          <li>3 free analyses upon signup</li>
+          <li>Basic analysis features</li>
           <li>Standard support</li>
         </ul>
 
         <h3>4.2 Professional Plan (£7/month)</h3>
         <ul>
-          <li>40 verifications per month</li>
-          <li>URL verification</li>
+          <li>40 analyses per month</li>
+          <li>URL analysis</li>
           <li>Comprehensive source citations</li>
           <li>Export to PDF/JSON/CSV</li>
           <li>Priority support</li>
@@ -82,7 +82,7 @@ export default function TermsOfServicePage() {
 
         <h3>5.1 Permitted Use</h3>
         <ul>
-          <li>Verify factual claims for personal or professional use</li>
+          <li>Research factual claims for personal or professional use</li>
           <li>Research and journalism</li>
           <li>Educational purposes</li>
         </ul>
@@ -150,11 +150,11 @@ export default function TermsOfServicePage() {
         <h3>7.2 Your Content</h3>
         <ul>
           <li>You retain ownership of content you submit</li>
-          <li>You grant us license to process content for verification</li>
+          <li>You grant us license to process content for analysis</li>
           <li>We may use anonymized data to improve our services</li>
         </ul>
 
-        <h3>7.3 Verification Results</h3>
+        <h3>7.3 Analysis Results</h3>
         <ul>
           <li>You may use results for personal/professional purposes</li>
           <li>Attribute Tru8 when sharing results publicly</li>

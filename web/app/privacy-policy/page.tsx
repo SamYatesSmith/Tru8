@@ -110,7 +110,7 @@ export default function PrivacyPolicyPage() {
         <h2>6. Data Retention</h2>
         <ul>
           <li><strong>Account data:</strong> Retained while account is active + 2 years</li>
-          <li><strong>Verification history:</strong> Retained for 2 years</li>
+          <li><strong>Analysis history:</strong> Retained for 2 years</li>
           <li><strong>Payment records:</strong> Retained for 7 years (UK tax law requirement)</li>
           <li><strong>Error logs:</strong> Retained for 90 days</li>
         </ul>

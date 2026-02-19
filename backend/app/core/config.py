@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     COMPANIES_HOUSE_API_KEY: str = Field(
         "", env="COMPANIES_HOUSE_API_KEY"
     )  # UK company filings, directors
+    YOUTUBE_API_KEY: str = Field(
+        "", env="YOUTUBE_API_KEY"
+    )  # YouTube Data API v3 for video recommendations (E14)
 
     # Storage
     S3_BUCKET: str = Field("tru8-uploads", env="S3_BUCKET")

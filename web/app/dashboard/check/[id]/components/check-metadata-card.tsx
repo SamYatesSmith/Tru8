@@ -1,7 +1,6 @@
 'use client';
 
 import { formatRelativeTime } from '@/lib/utils';
-import { TransparencyScore } from '@/app/dashboard/components/transparency-score';
 
 interface CheckMetadataCardProps {
   check: {
@@ -11,7 +10,6 @@ interface CheckMetadataCardProps {
     status: string;
     creditsUsed: number;
     createdAt: string;
-    transparencyScore?: number;
   };
 }
 
@@ -89,9 +87,6 @@ export function CheckMetadataCard({ check }: CheckMetadataCardProps) {
         </div>
       </div>
 
-      {check.status === 'completed' && check.transparencyScore !== undefined && check.transparencyScore !== null && (
-        <TransparencyScore score={check.transparencyScore} />
-      )}
     </div>
   );
 }

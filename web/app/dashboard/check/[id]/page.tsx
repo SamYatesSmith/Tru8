@@ -17,7 +17,6 @@ interface CheckData {
   creditsUsed: number;
   processingTimeMs?: number;
   errorMessage?: string;
-  overallSummary?: string;
   claims?: any[];
   createdAt: string;
   completedAt?: string;

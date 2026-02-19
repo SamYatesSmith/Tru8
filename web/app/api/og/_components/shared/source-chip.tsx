@@ -1,8 +1,5 @@
 /**
  * Source Chip Component for OG Cards
- *
- * Matches the Tailwind design:
- * bg-white/5 border border-white/10 rounded-lg px-6 py-3 min-w-[120px]
  */
 
 export interface SourceChipProps {
@@ -16,8 +13,8 @@ export function SourceChip({ name }: SourceChipProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        backgroundColor: '#f4f4f5',
+        border: '1px solid #e4e4e7',
         borderRadius: 8,
         padding: '12px 24px',
         minWidth: '120px',
@@ -25,7 +22,7 @@ export function SourceChip({ name }: SourceChipProps) {
     >
       <span
         style={{
-          color: '#FFFFFF',
+          color: '#18181b',
           fontSize: 16,
           fontWeight: 600,
         }}
@@ -47,15 +44,15 @@ export function MoreChip({ count }: MoreChipProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        backgroundColor: '#f4f4f5',
+        border: '1px solid #e4e4e7',
         borderRadius: 8,
         padding: '12px 24px',
       }}
     >
       <span
         style={{
-          color: 'rgba(255, 255, 255, 0.6)',
+          color: '#71717a',
           fontSize: 14,
           fontWeight: 500,
         }}

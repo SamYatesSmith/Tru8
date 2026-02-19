@@ -7,7 +7,6 @@ import { apiClient } from '@/lib/api';
 import { useCheckProgress } from '@/hooks/use-check-progress';
 import { ClaimSelectionView } from '@/components/claim-selection';
 import { CheckMetadataCard } from './components/check-metadata-card';
-import { OverallSummaryCard } from './components/overall-summary-card';
 import { ProgressSection } from './components/progress-section';
 import { ShareSection } from './components/share-section';
 import { NavigationSection } from './components/navigation-section';
@@ -18,6 +17,8 @@ import { ClaimList } from '@/components/evidence-views/overview';
 import { ViewSelector, EvidenceMetaStrip } from '@/components/evidence-views';
 import { LibrarianView } from '@/components/evidence-views/librarian';
 import { CartographerView } from '@/components/evidence-views/cartographer';
+import { ProjectionistView } from '@/components/evidence-views/projectionist';
+import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -35,6 +36,14 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   const [sourcesCount, setSourcesCount] = useState(rawSourcesCount);
   const [isProUser, setIsProUser] = useState(isPro);
   const [activeOverviewTab, setActiveOverviewTab] = useState('cartographer');
+
+  // Video recommendations (E14/E15)
+  const { videos: checkVideos, isLoading: videosLoading } = useVideoRecommendations(
+    checkId,
+    null, // check-wide — no claim filter
+    token,
+    checkData.status === 'completed' && activeOverviewTab === 'projectionist',
+  );
 
   // Check for upgrade query param
   useEffect(() => {
@@ -259,12 +268,13 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
           {activeOverviewTab === 'librarian' && (
             <LibrarianView scope="check" claims={checkData.claims} />
           )}
-          {activeOverviewTab !== 'cartographer' && activeOverviewTab !== 'librarian' && (
-            <div className="py-12 text-center border border-dashed border-zinc-200 bg-zinc-50/30">
-              <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
-                Check-wide {activeOverviewTab} view — coming soon
-              </p>
-            </div>
+          {activeOverviewTab === 'projectionist' && (
+            <ProjectionistView
+              scope="check"
+              claims={checkData.claims}
+              videos={checkVideos}
+              isLoading={videosLoading}
+            />
           )}
 
           <ShareSection checkId={checkId} inputUrl={checkData.inputUrl} title={checkData.title} />
