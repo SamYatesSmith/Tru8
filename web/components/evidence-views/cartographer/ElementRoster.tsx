@@ -17,7 +17,7 @@ export function ElementRoster({ elements, onElementClick }: ElementRosterProps) 
   return (
     <div className="mb-16">
       <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400 mb-6 border-b border-zinc-100 pb-2">
-        Claim Elements
+        Elements
       </div>
       <div className="space-y-3">
         {elements.map((element, i) => {

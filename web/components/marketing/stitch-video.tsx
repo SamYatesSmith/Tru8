@@ -21,7 +21,7 @@ export function StitchVideo() {
           {/* Mono label */}
           <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8">
             <span className="font-mono text-[10px] tracking-widest text-white/60 uppercase">
-              System Walkthrough — 04:22
+              Platform Walkthrough
             </span>
           </div>
         </div>

@@ -71,7 +71,7 @@ export function CascadeNode({ evidence, isDivergent, showConnectionStub, claimLa
       {isDivergent && (
         <div className="flex items-center gap-1.5 mb-1">
           <div className="w-[6px] h-[6px] bg-[var(--divergence)] rotate-45" />
-          <span className="font-mono text-[8px] uppercase tracking-widest text-amber-600 font-bold">Disputes</span>
+          <span className="font-mono text-[8px] uppercase tracking-widest text-amber-600 font-bold">Challenges</span>
         </div>
       )}
 

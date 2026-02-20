@@ -261,7 +261,7 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
               </div>
               <div className="bg-zinc-50 p-4 text-center">
                 <div className="text-2xl font-bold text-zinc-900">{stats.totalSourcesAnalyzed}</div>
-                <div className="font-mono text-[10px] text-zinc-400 mt-1">Sources Analyzed</div>
+                <div className="font-mono text-[10px] text-zinc-400 mt-1">Sources Analysed</div>
               </div>
               <div className="bg-zinc-50 p-4 text-center">
                 <div className="text-2xl font-bold text-zinc-900">{stats.totalClaimsAnalyzed ?? 0}</div>

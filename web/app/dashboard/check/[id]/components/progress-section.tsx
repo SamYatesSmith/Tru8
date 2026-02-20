@@ -12,8 +12,8 @@ interface ProgressSectionProps {
 
 export function ProgressSection({ progress, currentStage, isConnected, message, timeEstimate }: ProgressSectionProps) {
   const stages = [
-    { key: 'ingest', label: 'Reading Content', description: 'Analyzing your submission' },
-    { key: 'extract', label: 'Finding Claims', description: 'Identifying claims to analyze' },
+    { key: 'ingest', label: 'Reading Content', description: 'Analysing your submission' },
+    { key: 'extract', label: 'Finding Claims', description: 'Identifying claims to analyse' },
     { key: 'select', label: 'Selecting Claims', description: 'Ranking claims for analysis' },
     { key: 'decompose', label: 'Decomposing Claims', description: 'Breaking claims into elements' },
     { key: 'retrieve', label: 'Gathering Evidence', description: 'Searching multiple sources' },

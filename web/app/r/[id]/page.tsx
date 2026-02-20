@@ -55,13 +55,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Build dynamic title and description
   const title = check.title || 'Evidence Report';
   const claimsText = check.claimsCount === 1
-    ? '1 claim analyzed'
-    : `${check.claimsCount} claims analyzed`;
+    ? '1 claim analysed'
+    : `${check.claimsCount} claims analysed`;
   const sourcesText = check.sourcesCount === 1
     ? '1 source'
     : `${check.sourcesCount} sources`;
 
-  const description = `${claimsText} from ${sourcesText}. See what credible sources say about this content.`;
+  const description = `${claimsText} from ${sourcesText}. Explore the evidence landscape for this content.`;
 
   const ogImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'}/api/og/social/${params.id}`;
 

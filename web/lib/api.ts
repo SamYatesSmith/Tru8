@@ -149,7 +149,7 @@ class ApiClient {
 
   /**
    * POST /api/v1/checks
-   * Create a new fact-check (Celery-based, legacy)
+   * Create a new check (Celery-based, legacy)
    */
   async createCheck(
     data: {
@@ -169,7 +169,7 @@ class ApiClient {
 
   /**
    * POST /api/v1/checks/stream
-   * Create a new fact-check with inline SSE streaming.
+   * Create a new check with inline SSE streaming.
    *
    * This endpoint runs the pipeline inline and streams progress directly.
    * No Celery worker required - eliminates infrastructure costs.
@@ -319,7 +319,7 @@ class ApiClient {
 
   /**
    * GET /api/v1/checks
-   * Get user's fact-check history with pagination
+   * Get user's check history with pagination
    */
   async getChecks(token?: string | null, skip: number = 0, limit: number = 20) {
     return this.request(`/api/v1/checks?skip=${skip}&limit=${limit}`, {}, token);

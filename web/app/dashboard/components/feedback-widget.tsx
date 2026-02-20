@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth, useUser } from '@clerk/nextjs';
-import { MessageSquare, X, Send, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, CheckCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
 interface Claim {
@@ -12,7 +12,7 @@ interface Claim {
 }
 
 const FEEDBACK_TYPES = [
-  { value: 'fact-check', label: 'An analysis result', icon: '📊' },
+  { value: 'analysis-result', label: 'An analysis result', icon: '📊' },
   { value: 'ui', label: 'The design / UI', icon: '🎨' },
   { value: 'bug', label: "Something's broken", icon: '🐛' },
   { value: 'suggestion', label: 'Feature suggestion', icon: '💡' },
@@ -116,7 +116,7 @@ export function FeedbackWidget() {
   };
 
   const isOnCheckPage = currentCheckId && claims.length > 0;
-  const showClaimSelector = feedbackType === 'fact-check' && isOnCheckPage;
+  const showClaimSelector = feedbackType === 'analysis-result' && isOnCheckPage;
 
   return (
     <>
@@ -165,14 +165,6 @@ export function FeedbackWidget() {
                 </div>
               ) : (
                 <>
-                  {/* Testing Period Notice */}
-                  <div className="bg-amber-50 border border-amber-200 px-4 py-3 flex items-start gap-3">
-                    <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700">
-                      <span className="font-semibold">Testing Period*</span> — This feedback form is for beta testing only and will not be part of the final production release.
-                    </p>
-                  </div>
-
                   {/* Feedback Type Dropdown */}
                   <div>
                     <label className="block font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-2">

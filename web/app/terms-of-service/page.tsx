@@ -30,8 +30,8 @@ export default function TermsOfServicePage() {
           claims against publicly available sources. Our service:
         </p>
         <ul>
-          <li>Analyzes text, URLs, images, and videos for factual claims</li>
-          <li>Searches credible sources for relevant evidence</li>
+          <li>Analyses text, URLs, images, and videos for claims</li>
+          <li>Searches publicly available sources for relevant evidence</li>
           <li>Provides dated citations and evidence references</li>
           <li>Provides analysis results with source citations</li>
         </ul>
@@ -82,7 +82,7 @@ export default function TermsOfServicePage() {
 
         <h3>5.1 Permitted Use</h3>
         <ul>
-          <li>Research factual claims for personal or professional use</li>
+          <li>Research claims for personal or professional use</li>
           <li>Research and journalism</li>
           <li>Educational purposes</li>
         </ul>

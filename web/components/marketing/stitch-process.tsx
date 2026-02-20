@@ -11,23 +11,23 @@ const steps = [
   {
     icon: Upload,
     number: '01',
-    label: 'Initialize',
-    title: 'Submit Claim',
-    description: 'Input any technical specification or clinical hypothesis for decomposition.',
+    label: 'Submit',
+    title: 'Submit a Claim',
+    description: 'Paste a URL, article, or claim you want to research.',
   },
   {
     icon: GitBranch,
     number: '02',
-    label: 'Process',
-    title: 'AI Research',
-    description: 'Platform scans 14+ database types including clinical trials and patent filings.',
+    label: 'Research',
+    title: 'Evidence Gathered',
+    description: 'Tru8 searches government data, news, academic papers, and official records. Each source is classified by proximity and type.',
   },
   {
     icon: ClipboardCheck,
     number: '03',
-    label: 'Analyze',
-    title: 'Review Map',
-    description: 'Analyze the evidence mapping and form a technical orientation based on data.',
+    label: 'Explore',
+    title: 'Explore the Landscape',
+    description: 'Four views of the same evidence. See the shape, browse the collection, focus on specifics, or watch the conversation.',
   },
 ];
 

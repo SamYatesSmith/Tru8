@@ -1,32 +1,37 @@
-import { Map, Database, BarChart3, GitPullRequest, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Map, BookOpen, Focus, Video } from 'lucide-react';
 
 /**
- * Stitch W-01 Features Section (Core Capabilities)
+ * Stitch W-01 Features Section (Four Professions)
  *
- * Zinc-50 background, mono "Core Capabilities" label,
- * 4-column grid of feature cards with hover:border-black.
+ * Zinc-50 background, mono "Your Research Team" label,
+ * 4-column grid of profession cards with hover:border-black.
+ * Each card: icon, profession name, question hook, plain-English explanation.
  */
 
-const features = [
+const professions = [
   {
     icon: Map,
-    title: 'Evidence Mapping',
-    description: 'Visual relationships between clinical data and technical requirements.',
+    name: 'The Cartographer',
+    question: 'What\u2019s the shape of the conversation?',
+    description: 'See where sources agree, where they diverge, and which are just echoing the same original.',
   },
   {
-    icon: Database,
-    title: 'Multi-Source Research',
-    description: 'Cross-reference across 14+ technical source types in real-time.',
+    icon: BookOpen,
+    name: 'The Librarian',
+    question: 'Show me the full set, clearly labelled.',
+    description: 'Every source classified by proximity and type. Filter, sort, browse. Nothing hidden.',
   },
   {
-    icon: BarChart3,
-    title: 'Source Analysis',
-    description: 'Comprehensive evidence landscape across primary, reporting, and commentary sources.',
+    icon: Focus,
+    name: 'The Interpreter',
+    question: 'Answer this specific sub-question.',
+    description: 'Pick one element of a claim. See what supports it, what challenges it, and what adds context.',
   },
   {
-    icon: GitPullRequest,
-    title: 'Claim Decomposition',
-    description: 'Atomic breakdown of complex claims into analysable technical components.',
+    icon: Video,
+    name: 'The Projectionist',
+    question: 'What\u2019s being said about this on camera?',
+    description: 'Relevant video context from YouTube, classified the same way as text sources.',
   },
 ];
 
@@ -35,43 +40,28 @@ export function StitchFeatures() {
     <section id="features" className="py-24 bg-zinc-50 border-y border-zinc-100">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header row */}
-        <div className="flex justify-between items-end mb-16">
-          <div>
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 block">
-              Core Capabilities
-            </span>
-            <h2 className="text-3xl md:text-4xl font-light tracking-tight">
-              Technical <span className="font-bold">Precision</span>
-            </h2>
-          </div>
-          <div className="hidden sm:flex gap-2">
-            <button
-              className="w-10 h-10 border border-zinc-200 flex items-center justify-center hover:bg-white transition-colors"
-              aria-label="Previous"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              className="w-10 h-10 border border-zinc-200 flex items-center justify-center hover:bg-white transition-colors"
-              aria-label="Next"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
+        <div className="mb-16">
+          <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 block">
+            Your Research Team
+          </span>
+          <h2 className="text-3xl md:text-4xl font-light tracking-tight">
+            Four ways to <span className="font-bold">explore</span>
+          </h2>
         </div>
 
-        {/* Feature cards */}
+        {/* Profession cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {features.map((feature) => {
-            const Icon = feature.icon;
+          {professions.map((profession) => {
+            const Icon = profession.icon;
             return (
               <div
-                key={feature.title}
+                key={profession.name}
                 className="bg-white p-8 border border-zinc-200 group hover:border-black transition-colors"
               >
                 <Icon className="text-zinc-900 mb-6 group-hover:text-accent transition-colors" size={24} />
-                <h4 className="font-bold uppercase tracking-wider text-sm mb-4">{feature.title}</h4>
-                <p className="text-sm text-zinc-500 leading-relaxed">{feature.description}</p>
+                <h4 className="font-bold uppercase tracking-wider text-sm mb-2">{profession.name}</h4>
+                <p className="text-sm text-zinc-500 italic mb-4">&ldquo;{profession.question}&rdquo;</p>
+                <p className="text-sm text-zinc-500 leading-relaxed">{profession.description}</p>
               </div>
             );
           })}

@@ -39,14 +39,14 @@ export const PLANS = {
     price: 0,
     currency: 'GBP',
     trialCredits: 3,  // One-time trial, not monthly
-    features: ['Fact-checking', 'Standard support'],
+    features: ['Evidence research', 'Community support'],
   },
   professional: {
     name: 'Professional',
     price: 7,
     currency: 'GBP',
     creditsPerMonth: 40,
-    features: ['Fact-checking', 'URL verification', 'Export to PDF/JSON/CSV', 'Priority support'],
+    features: ['Evidence research', 'URL analysis', 'Export to PDF/JSON/CSV', 'Priority support'],
   },
 } as const;
 

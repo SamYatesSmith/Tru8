@@ -211,11 +211,11 @@ export function SubscriptionTab({
               </li>
               <li className="flex items-start gap-2 text-zinc-600">
                 <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>Basic analysis</span>
+                <span>Evidence research</span>
               </li>
               <li className="flex items-start gap-2 text-zinc-600">
                 <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>Standard support</span>
+                <span>Community support</span>
               </li>
             </ul>
 
@@ -250,7 +250,7 @@ export function SubscriptionTab({
               </li>
               <li className="flex items-start gap-2 text-zinc-600">
                 <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>Advanced features</span>
+                <span>Export reports</span>
               </li>
             </ul>
 

@@ -128,7 +128,7 @@ export function ClarityResponseCard({
       {!hasDirectAnswer && (!relatedClaims || relatedClaims.length === 0) && (
         <div className="bg-red-50 border border-red-200 p-4">
           <p className="text-red-800 text-sm">
-            We couldn&apos;t find information addressing your question in the analyzed content or evidence sources.
+            We couldn&apos;t find information addressing your question in the analysed content or evidence sources.
             The standard analysis below may still contain relevant information.
           </p>
         </div>

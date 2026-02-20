@@ -7,9 +7,11 @@ interface ClaimOverviewCardProps {
   claim: Claim;
   position: number;
   checkId: string;
+  isActive?: boolean;
+  onSelect?: (position: number) => void;
 }
 
-export function ClaimOverviewCard({ claim, position, checkId }: ClaimOverviewCardProps) {
+export function ClaimOverviewCard({ claim, position, checkId, isActive, onSelect }: ClaimOverviewCardProps) {
   const router = useRouter();
 
   const claimMap = claim.claimMap;
@@ -40,15 +42,19 @@ export function ClaimOverviewCard({ claim, position, checkId }: ClaimOverviewCar
   return (
     <div
       className={`claim-overview-card p-5 ${
-        isGap
-          ? 'border border-dashed border-zinc-200 bg-zinc-50/30'
-          : 'border border-zinc-100 bg-white'
+        isActive
+          ? 'border border-zinc-900 bg-white'
+          : isGap
+            ? 'border border-dashed border-zinc-200 bg-zinc-50/30'
+            : 'border border-zinc-100 bg-white'
       }`}
-      onClick={() => router.push(`/dashboard/check/${checkId}/claim/${position}`)}
+      onClick={() => onSelect ? onSelect(position) : router.push(`/dashboard/check/${checkId}/claim/${position}`)}
       role="link"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') router.push(`/dashboard/check/${checkId}/claim/${position}`);
+        if (e.key === 'Enter') {
+          onSelect ? onSelect(position) : router.push(`/dashboard/check/${checkId}/claim/${position}`);
+        }
       }}
     >
       {/* Rank + Type badge */}

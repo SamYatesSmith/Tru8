@@ -66,10 +66,10 @@ export function StitchPricing() {
           {/* Header */}
           <div className="text-center mb-20">
             <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 block">
-              Deployment Models
+              Plans
             </span>
             <h2 className="text-3xl md:text-4xl font-light tracking-tight">
-              Choose your <span className="font-bold">Scale</span>
+              Choose your <span className="font-bold">plan</span>
             </h2>
           </div>
 
@@ -79,30 +79,30 @@ export function StitchPricing() {
             <div className="border border-zinc-200 p-8 md:p-12 flex flex-col bg-white">
               <div className="mb-10">
                 <h3 className="text-2xl font-bold uppercase tracking-tight mb-2">Free Trial</h3>
-                <p className="text-zinc-500 text-sm">Perfect for individual researchers</p>
+                <p className="text-zinc-500 text-sm">Try Tru8 with 3 free checks</p>
               </div>
               <div className="text-5xl font-light mb-10">
-                $0<span className="text-lg text-zinc-400">/mo</span>
+                £0<span className="text-lg text-zinc-400">/mo</span>
               </div>
               <ul className="space-y-4 mb-12 flex-grow">
                 <li className="flex items-start gap-3 text-sm text-zinc-600">
                   <CheckCircle className="text-zinc-300 flex-shrink-0 mt-0.5" size={18} />
-                  5 Research Checks / Month
+                  3 evidence checks
                 </li>
                 <li className="flex items-start gap-3 text-sm text-zinc-600">
                   <CheckCircle className="text-zinc-300 flex-shrink-0 mt-0.5" size={18} />
-                  Standard Source Access
+                  All source types
                 </li>
                 <li className="flex items-start gap-3 text-sm text-zinc-600">
                   <CheckCircle className="text-zinc-300 flex-shrink-0 mt-0.5" size={18} />
-                  Community Support
+                  All four views
                 </li>
               </ul>
               <button
                 onClick={handleFreePlan}
                 className="w-full bg-black text-white py-4 text-[11px] font-bold tracking-[0.2em] uppercase hover:bg-zinc-800 transition-colors"
               >
-                Start Trial
+                Get Started
               </button>
             </div>
 
@@ -111,27 +111,27 @@ export function StitchPricing() {
               <div className="absolute top-4 right-4 bg-accent w-2 h-2" />
               <div className="mb-10">
                 <h3 className="text-2xl font-bold uppercase tracking-tight mb-2">Professional</h3>
-                <p className="text-zinc-500 text-sm">For clinical teams &amp; labs</p>
+                <p className="text-zinc-500 text-sm">For regular research</p>
               </div>
               <div className="text-5xl font-light mb-10">
-                GBP 7<span className="text-lg text-zinc-400">/month</span>
+                £7<span className="text-lg text-zinc-400">/mo</span>
               </div>
               <ul className="space-y-4 mb-12 flex-grow">
                 <li className="flex items-start gap-3 text-sm text-zinc-600">
                   <CheckCircle className="text-accent flex-shrink-0 mt-0.5" size={18} />
-                  40 credits / Month
+                  40 checks per month
                 </li>
                 <li className="flex items-start gap-3 text-sm text-zinc-600">
                   <CheckCircle className="text-accent flex-shrink-0 mt-0.5" size={18} />
-                  All 14+ Advanced Sources
+                  All source types
                 </li>
                 <li className="flex items-start gap-3 text-sm text-zinc-600">
                   <CheckCircle className="text-accent flex-shrink-0 mt-0.5" size={18} />
-                  Priority Support + Export Tools
+                  Priority processing
                 </li>
                 <li className="flex items-start gap-3 text-sm text-zinc-600">
                   <CheckCircle className="text-accent flex-shrink-0 mt-0.5" size={18} />
-                  Team Collaboration Suite
+                  Export reports
                 </li>
               </ul>
               <button
@@ -139,7 +139,7 @@ export function StitchPricing() {
                 disabled={isProcessing}
                 className="w-full bg-black text-white py-4 text-[11px] font-bold tracking-[0.2em] uppercase hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isProcessing ? 'Processing...' : 'Get Started'}
+                {isProcessing ? 'Processing...' : 'Upgrade'}
               </button>
             </div>
           </div>

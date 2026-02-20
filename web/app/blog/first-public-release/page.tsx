@@ -82,7 +82,7 @@ export default function FirstPublicReleasePage() {
             </p>
 
             <p>
-              The focus is on clarity rather than commentary — showing what credible sources say, where they agree, and where they don&apos;t.
+              The focus is on clarity rather than commentary — showing what sources say, where they agree, and where they don&apos;t.
             </p>
 
             <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 pt-6">What This First Release Is (and Isn&apos;t)</h2>

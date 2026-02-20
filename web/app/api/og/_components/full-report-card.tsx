@@ -3,7 +3,7 @@
  *
  * Displays a summary of the evidence report with:
  * - Article title
- * - Stats (claims examined, sources analyzed, evidence pieces)
+ * - Stats (claims examined, sources analysed, evidence pieces)
  * - Top sources list
  *
  * Size: 1200x630px (1.91:1 aspect ratio)
@@ -150,7 +150,7 @@ export function FullReportCard({
         }}
       >
         <StatsBlock label="Claims Examined" value={claimsCount} />
-        <StatsBlock label="Sources Analyzed" value={sourcesCount} />
+        <StatsBlock label="Sources Analysed" value={sourcesCount} />
         <StatsBlock label="Evidence Pieces" value={evidenceCount} />
       </div>
 

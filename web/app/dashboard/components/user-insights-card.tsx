@@ -50,7 +50,7 @@ export function UserInsightsCard({ stats }: UserInsightsCardProps) {
         {/* Top Stats Row */}
         <div className="grid grid-cols-3 gap-4">
           <StatBox value={stats.totalChecks} label="Total Checks" />
-          <StatBox value={stats.totalSourcesAnalyzed} label="Sources Analyzed" />
+          <StatBox value={stats.totalSourcesAnalyzed} label="Sources Analysed" />
           <StatBox value={stats.totalClaimsAnalyzed ?? totalClaims} label="Claims Analysed" />
         </div>
 

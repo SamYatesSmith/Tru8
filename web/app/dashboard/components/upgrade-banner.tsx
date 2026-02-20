@@ -15,7 +15,7 @@ export function UpgradeBanner({ currentPlan, subscriptionsEnabled = false }: Upg
   const features = [
     '40 checks per month',
     'Priority processing',
-    'Advanced source analysis',
+    'Tier + Type source classification',
     'Export reports and citations',
   ];
 

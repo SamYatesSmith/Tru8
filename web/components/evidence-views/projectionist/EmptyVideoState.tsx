@@ -7,8 +7,7 @@ export function EmptyVideoState() {
         No relevant videos found
       </p>
       <p className="text-sm text-zinc-400">
-        We searched for video content related to this claim but found no results
-        that met our relevance criteria.
+        No videos found matching this claim.
       </p>
     </div>
   );
