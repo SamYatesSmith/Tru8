@@ -18,6 +18,7 @@ import { ViewSelector, EvidenceMetaStrip } from '@/components/evidence-views';
 import { LibrarianView } from '@/components/evidence-views/librarian';
 import { CartographerView } from '@/components/evidence-views/cartographer';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
+import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 
 interface CheckDetailClientProps {
@@ -37,7 +38,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   const [isProUser, setIsProUser] = useState(isPro);
   const [activeOverviewTab, setActiveOverviewTab] = useState(() => {
     const viewParam = searchParams?.get('view');
-    const validViews = ['cartographer', 'librarian', 'projectionist'];
+    const validViews = ['cartographer', 'librarian', 'projectionist', 'chronologist'];
     return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
   });
 
@@ -290,6 +291,13 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
               claims={checkData.claims}
               videos={checkVideos}
               isLoading={videosLoading}
+            />
+          )}
+          {activeOverviewTab === 'chronologist' && (
+            <ChronologistView
+              scope="check"
+              claims={checkData.claims}
+              onSwitchToLibrarian={() => handleOverviewTabChange('librarian')}
             />
           )}
 

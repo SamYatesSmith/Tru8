@@ -11,6 +11,7 @@ import { CartographerView } from '@/components/evidence-views/cartographer';
 import { LibrarianView } from '@/components/evidence-views/librarian';
 import { InterpreterView } from '@/components/evidence-views/interpreter';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
+import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 
 interface ClaimDetailClientProps {
@@ -24,7 +25,7 @@ export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClien
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const viewParam = searchParams?.get('view');
-    const validViews = ['cartographer', 'librarian', 'interpreter', 'projectionist'];
+    const validViews = ['cartographer', 'librarian', 'interpreter', 'projectionist', 'chronologist'];
     return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
   });
   const [token, setToken] = useState<string | null>(null);
@@ -83,6 +84,13 @@ export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClien
           claims={[claim]}
           videos={claimVideos}
           isLoading={videosLoading}
+        />
+      )}
+      {activeTab === 'chronologist' && (
+        <ChronologistView
+          scope="claim"
+          claims={[claim]}
+          onSwitchToLibrarian={handleSwitchToLibrarian}
         />
       )}
     </div>

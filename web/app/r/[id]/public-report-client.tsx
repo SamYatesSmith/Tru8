@@ -10,6 +10,7 @@ import { CartographerView } from '@/components/evidence-views/cartographer';
 import { LibrarianView } from '@/components/evidence-views/librarian';
 import { InterpreterView } from '@/components/evidence-views/interpreter';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
+import { ChronologistView } from '@/components/evidence-views/chronologist';
 
 interface PublicReportClientProps {
   check: any;
@@ -17,8 +18,8 @@ interface PublicReportClientProps {
   highlightView?: string;
 }
 
-const VALID_OVERVIEW_VIEWS = ['cartographer', 'librarian', 'projectionist'];
-const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'interpreter', 'projectionist'];
+const VALID_OVERVIEW_VIEWS = ['cartographer', 'librarian', 'projectionist', 'chronologist'];
+const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'interpreter', 'projectionist', 'chronologist'];
 
 export function PublicReportClient({ check, highlightClaim, highlightView }: PublicReportClientProps) {
   const [copied, setCopied] = useState(false);
@@ -246,6 +247,13 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                   isLoading={false}
                 />
               )}
+              {checkWideView === 'chronologist' && (
+                <ChronologistView
+                  scope="check"
+                  claims={claims}
+                  onSwitchToLibrarian={handleCheckSwitchToLibrarian}
+                />
+              )}
 
               {/* Back to claims */}
               <div className="text-center pt-6 border-t border-zinc-100">
@@ -341,6 +349,13 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                     claims={[activeClaim]}
                     videos={videos.filter((v: any) => v.claimId === activeClaim.id)}
                     isLoading={false}
+                  />
+                )}
+                {claimView === 'chronologist' && (
+                  <ChronologistView
+                    scope="claim"
+                    claims={[activeClaim]}
+                    onSwitchToLibrarian={handleSwitchToLibrarian}
                   />
                 )}
               </>
