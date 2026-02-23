@@ -118,6 +118,8 @@ def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
         "isFactcheck": ev.is_factcheck,
         "externalSourceProvider": ev.external_source_provider,
         "sourceType": ev.source_type,
+        # Auto-archiving (F10)
+        "archivedUrl": ev.archived_url,
     }
 
     if include_factcheck_detail:
@@ -885,6 +887,17 @@ async def create_check_streaming(
                         )
                 except Exception as ve:
                     logger.debug(f"[PIPELINE TASK] Video recommendations skipped: {ve}")
+
+                # Fire-and-forget URL archiving (F10)
+                try:
+                    from app.services.wayback_archive import archive_evidence_urls
+
+                    asyncio.create_task(archive_evidence_urls(check.id))
+                    logger.info(
+                        f"[PIPELINE TASK] Archive task launched for check {check.id}"
+                    )
+                except Exception as ae:
+                    logger.debug(f"[PIPELINE TASK] Archiving skipped: {ae}")
 
                 # Send success notifications
                 content_data = {"metadata": result.get("ingest_metadata", {})}

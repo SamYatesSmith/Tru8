@@ -326,6 +326,13 @@ class Evidence(SQLModel, table=True):
         description="API name (e.g., 'ONS Economic Statistics', 'PubMed')",
     )
 
+    # Auto-archiving (F10)
+    archived_url: Optional[str] = Field(
+        default=None,
+        max_length=500,
+        description="Wayback Machine archive URL for permanent source snapshot",
+    )
+
     # Primary Source Detection fields (Tier 1 Improvement, 2025-01-17)
     is_primary_source: bool = Field(
         default=False,

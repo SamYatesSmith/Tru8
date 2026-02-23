@@ -82,6 +82,20 @@ export function LedgerCard({ evidence, elementIds, claimLabel, diagnosticValue, 
                 <span className="font-mono text-[10px] text-zinc-400">{claimLabel}</span>
               </>
             )}
+            {evidence.archivedUrl && (
+              <>
+                <span className="font-mono text-[10px] text-zinc-300">&middot;</span>
+                <a
+                  href={evidence.archivedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-[9px] text-zinc-400 hover:text-zinc-600 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  ARCHIVED
+                </a>
+              </>
+            )}
           </div>
           {excerpt && (
             <p className="text-[12px] text-zinc-500 italic leading-relaxed">{excerpt}</p>

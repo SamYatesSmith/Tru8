@@ -111,6 +111,8 @@ export interface Evidence {
   factcheckRating?: string;
   contextBefore?: string;
   contextAfter?: string;
+  // Auto-archiving (F10)
+  archivedUrl?: string; // Wayback Machine archive URL
 }
 
 // API Requests
