@@ -14,18 +14,38 @@ import { ProjectionistView } from '@/components/evidence-views/projectionist';
 interface PublicReportClientProps {
   check: any;
   highlightClaim?: number;
+  highlightView?: string;
 }
 
-export function PublicReportClient({ check, highlightClaim }: PublicReportClientProps) {
+const VALID_OVERVIEW_VIEWS = ['cartographer', 'librarian', 'projectionist'];
+const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'interpreter', 'projectionist'];
+
+export function PublicReportClient({ check, highlightClaim, highlightView }: PublicReportClientProps) {
   const [copied, setCopied] = useState(false);
   const [activeClaimIndex, setActiveClaimIndex] = useState(0);
-  const [checkWideView, setCheckWideView] = useState<string>('cartographer');
-  const [claimView, setClaimView] = useState<string>('cartographer');
+  const [checkWideView, setCheckWideView] = useState<string>(
+    highlightView && VALID_OVERVIEW_VIEWS.includes(highlightView) ? highlightView : 'cartographer'
+  );
+  const [claimView, setClaimView] = useState<string>(
+    highlightView && VALID_DETAIL_VIEWS.includes(highlightView) ? highlightView : 'cartographer'
+  );
   const claimDetailRef = useRef<HTMLDivElement>(null);
 
   const claims = check.claims || [];
   const videos = check.videos || [];
   const isSingleClaim = claims.length === 1;
+
+  // F07: Sync active view tab to URL for shareability
+  const updateUrlViewParam = useCallback((view: string) => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (view !== 'cartographer') {
+      url.searchParams.set('view', view);
+    } else {
+      url.searchParams.delete('view');
+    }
+    window.history.replaceState({}, '', url.toString());
+  }, []);
 
   // Detect if source is a tweet
   const isSourceTweet = isTweetUrl(check.inputUrl);
@@ -58,8 +78,9 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeClaimIndex, claims.length]);
 
+  // F07: Share URL reads from browser URL (includes ?view= param set by replaceState)
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/r/${check.id}`
+    ? window.location.href
     : `https://tru8.app/r/${check.id}`;
 
   const shareText = `Evidence Report: ${check.title || 'See the evidence landscape'}`;
@@ -97,9 +118,9 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
     claimDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  const handleSwitchToLibrarian = useCallback(() => setClaimView('librarian'), []);
-  const handleSwitchToInterpreter = useCallback(() => setClaimView('interpreter'), []);
-  const handleCheckSwitchToLibrarian = useCallback(() => setCheckWideView('librarian'), []);
+  const handleSwitchToLibrarian = useCallback(() => { setClaimView('librarian'); updateUrlViewParam('librarian'); }, [updateUrlViewParam]);
+  const handleSwitchToInterpreter = useCallback(() => { setClaimView('interpreter'); updateUrlViewParam('interpreter'); }, [updateUrlViewParam]);
+  const handleCheckSwitchToLibrarian = useCallback(() => { setCheckWideView('librarian'); updateUrlViewParam('librarian'); }, [updateUrlViewParam]);
 
   // Get content display for input context
   const getContentDisplay = () => {
@@ -205,7 +226,7 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
           {/* Section 5: Check-Wide Views (Multi-Claim Only) */}
           {!isSingleClaim && (
             <div className="mb-4">
-              <ViewSelector mode="overview" activeTab={checkWideView} onTabChange={setCheckWideView} />
+              <ViewSelector mode="overview" activeTab={checkWideView} onTabChange={(tab: string) => { setCheckWideView(tab); updateUrlViewParam(tab); }} />
 
               {checkWideView === 'cartographer' && (
                 <CartographerView
@@ -295,7 +316,7 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
             )}
 
             {/* 6b: Per-Claim View Selector */}
-            <ViewSelector mode="detail" activeTab={claimView} onTabChange={setClaimView} />
+            <ViewSelector mode="detail" activeTab={claimView} onTabChange={(tab: string) => { setClaimView(tab); updateUrlViewParam(tab); }} />
 
             {/* 6c: Per-Claim View Content */}
             {activeClaim && (

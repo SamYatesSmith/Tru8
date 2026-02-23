@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
+import { useSearchParams } from 'next/navigation';
 import { Claim } from '@shared/types';
 import { BackToOverview } from '@/components/evidence-views/detail/BackToOverview';
 import { ClaimHeader } from '@/components/evidence-views/detail/ClaimHeader';
@@ -20,15 +21,32 @@ interface ClaimDetailClientProps {
 
 export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClientProps) {
   const { getToken } = useAuth();
-  const [activeTab, setActiveTab] = useState('cartographer');
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const viewParam = searchParams?.get('view');
+    const validViews = ['cartographer', 'librarian', 'interpreter', 'projectionist'];
+    return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
+  });
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     getToken().then(setToken);
   }, [getToken]);
 
-  const handleSwitchToLibrarian = useCallback(() => setActiveTab('librarian'), []);
-  const handleSwitchToInterpreter = useCallback(() => setActiveTab('interpreter'), []);
+  // F07: Sync active tab to URL for shareability
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab !== 'cartographer') {
+      url.searchParams.set('view', tab);
+    } else {
+      url.searchParams.delete('view');
+    }
+    window.history.replaceState({}, '', url.toString());
+  }, []);
+
+  const handleSwitchToLibrarian = useCallback(() => handleTabChange('librarian'), [handleTabChange]);
+  const handleSwitchToInterpreter = useCallback(() => handleTabChange('interpreter'), [handleTabChange]);
 
   // Video recommendations — only fetch when Projectionist tab is active
   const { videos: claimVideos, isLoading: videosLoading } = useVideoRecommendations(
@@ -42,7 +60,7 @@ export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClien
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
       <BackToOverview checkId={checkId} />
       <ClaimHeader claim={claim} position={position} />
-      <ViewSelector mode="detail" activeTab={activeTab} onTabChange={setActiveTab} />
+      <ViewSelector mode="detail" activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* View content */}
       {activeTab === 'cartographer' && (

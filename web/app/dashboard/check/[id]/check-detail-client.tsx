@@ -35,7 +35,23 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [sourcesCount, setSourcesCount] = useState(rawSourcesCount);
   const [isProUser, setIsProUser] = useState(isPro);
-  const [activeOverviewTab, setActiveOverviewTab] = useState('cartographer');
+  const [activeOverviewTab, setActiveOverviewTab] = useState(() => {
+    const viewParam = searchParams?.get('view');
+    const validViews = ['cartographer', 'librarian', 'projectionist'];
+    return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
+  });
+
+  // F07: Sync active overview tab to URL for shareability
+  const handleOverviewTabChange = useCallback((tab: string) => {
+    setActiveOverviewTab(tab);
+    const url = new URL(window.location.href);
+    if (tab !== 'cartographer') {
+      url.searchParams.set('view', tab);
+    } else {
+      url.searchParams.delete('view');
+    }
+    window.history.replaceState({}, '', url.toString());
+  }, []);
 
   // Video recommendations (E14/E15)
   const { videos: checkVideos, isLoading: videosLoading } = useVideoRecommendations(
@@ -255,14 +271,14 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
           <ClaimList claims={checkData.claims} checkId={checkId} />
 
           {/* Check-Wide View Selector */}
-          <ViewSelector mode="overview" activeTab={activeOverviewTab} onTabChange={setActiveOverviewTab} />
+          <ViewSelector mode="overview" activeTab={activeOverviewTab} onTabChange={handleOverviewTabChange} />
 
           {/* Check-wide view content */}
           {activeOverviewTab === 'cartographer' && (
             <CartographerView
               scope="check"
               claims={checkData.claims}
-              onSwitchToLibrarian={() => setActiveOverviewTab('librarian')}
+              onSwitchToLibrarian={() => handleOverviewTabChange('librarian')}
             />
           )}
           {activeOverviewTab === 'librarian' && (

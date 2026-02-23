@@ -17,7 +17,7 @@ import { PublicReportClient } from './public-report-client';
 
 interface PageProps {
   params: { id: string };
-  searchParams: { claim?: string };
+  searchParams: { claim?: string; view?: string };
 }
 
 // Fetch public check data
@@ -104,6 +104,7 @@ export default async function PublicReportPage({ params, searchParams }: PagePro
           <PublicReportClient
             check={check}
             highlightClaim={searchParams.claim ? parseInt(searchParams.claim, 10) : undefined}
+            highlightView={searchParams.view}
           />
         </div>
       </main>
