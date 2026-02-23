@@ -27,7 +27,7 @@ const steps = [
     number: '03',
     label: 'Explore',
     title: 'Explore the Landscape',
-    description: 'Four views of the same evidence. See the shape, browse the collection, focus on specifics, or watch the conversation.',
+    description: 'Six views of the same evidence. See the shape, browse the collection, focus on specifics, watch the conversation, trace the timeline, or surface what\u2019s missing.',
   },
 ];
 

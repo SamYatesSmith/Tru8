@@ -95,7 +95,7 @@ export function StitchPricing() {
                 </li>
                 <li className="flex items-start gap-3 text-sm text-zinc-600">
                   <CheckCircle className="text-zinc-300 flex-shrink-0 mt-0.5" size={18} />
-                  All four views
+                  All six views
                 </li>
               </ul>
               <button
