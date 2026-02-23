@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Claim, Evidence, EvidenceTier, ClaimElement } from '@shared/types';
+import { computeDiagnosticValues } from '@/lib/diagnostic-value';
 import { LandscapeSummaryStrip } from './LandscapeSummaryStrip';
 import { CascadeLayout } from './CascadeLayout';
 import { MobileCascade } from './MobileCascade';
@@ -153,6 +154,11 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
     };
   }, [claims, scope]);
 
+  // Diagnostic value computation
+  const diagnostic = useMemo(() => computeDiagnosticValues(claims), [claims]);
+  const [diagnosticActive, setDiagnosticActive] = useState(true);
+  const showDiagnosticToggle = diagnostic.hasDiagnosticVariance;
+
   const handleNodeClick = useCallback((ev: Evidence) => {
     if (ev.url) {
       window.open(ev.url, '_blank', 'noopener,noreferrer');
@@ -168,7 +174,26 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
         commentaryCount={commentaryCount}
         convergencePoints={convergencePoints}
         gaps={gaps.length}
+        diagnosticHighCount={showDiagnosticToggle ? diagnostic.highCount : undefined}
+        diagnosticTotalCount={showDiagnosticToggle ? diagnostic.totalCount : undefined}
       />
+
+      {/* Diagnostic toggle */}
+      {showDiagnosticToggle && (
+        <div className="flex items-center gap-2 mb-4">
+          <button
+            onClick={() => setDiagnosticActive((prev) => !prev)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 border text-[10px] font-mono uppercase tracking-widest transition-colors ${
+              diagnosticActive
+                ? 'bg-zinc-900 text-white border-zinc-900'
+                : 'text-zinc-400 hover:text-zinc-600 border-zinc-200'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${diagnosticActive ? 'bg-[var(--accent)]' : 'bg-zinc-300'}`} />
+            Diagnostic
+          </button>
+        </div>
+      )}
 
       {/* Desktop: Dagre-ordered cascade */}
       <div className="hidden md:block">
@@ -177,6 +202,8 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
           edges={edges}
           divergentIds={divergentIds}
           claimLabelMap={claimLabelMap}
+          diagnosticValues={showDiagnosticToggle ? diagnostic.values : undefined}
+          diagnosticActive={showDiagnosticToggle && diagnosticActive}
           onNodeClick={handleNodeClick}
         />
 
@@ -194,6 +221,8 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
           evidenceByTier={evidenceByTier}
           divergentIds={divergentIds}
           claimLabelMap={claimLabelMap}
+          diagnosticValues={showDiagnosticToggle ? diagnostic.values : undefined}
+          diagnosticActive={showDiagnosticToggle && diagnosticActive}
           onNodeClick={handleNodeClick}
         />
       </div>

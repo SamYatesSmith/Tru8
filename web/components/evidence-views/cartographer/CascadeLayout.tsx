@@ -29,10 +29,12 @@ interface CascadeLayoutProps {
   edges: Array<{ fromId: string; toId: string }>;
   divergentIds: Set<string>;
   claimLabelMap?: Map<string, string>;
+  diagnosticValues?: Map<string, number>;
+  diagnosticActive?: boolean;
   onNodeClick?: (evidence: Evidence) => void;
 }
 
-export function CascadeLayout({ evidenceByTier, edges, divergentIds, claimLabelMap, onNodeClick }: CascadeLayoutProps) {
+export function CascadeLayout({ evidenceByTier, edges, divergentIds, claimLabelMap, diagnosticValues, diagnosticActive, onNodeClick }: CascadeLayoutProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -142,6 +144,8 @@ export function CascadeLayout({ evidenceByTier, edges, divergentIds, claimLabelM
                     isDivergent={divergentIds.has(evId)}
                     showConnectionStub={hasDownstreamConnection}
                     claimLabel={claimLabelMap?.get(evId)}
+                    diagnosticValue={diagnosticValues?.get(evId)}
+                    diagnosticActive={diagnosticActive}
                     onClick={() => onNodeClick?.(ev)}
                   />
                 );

@@ -26,10 +26,12 @@ interface LedgerCardProps {
   evidence: Evidence;
   elementIds?: string[];
   claimLabel?: string;
+  diagnosticValue?: number;
+  diagnosticActive?: boolean;
   onClick?: () => void;
 }
 
-export function LedgerCard({ evidence, elementIds, claimLabel, onClick }: LedgerCardProps) {
+export function LedgerCard({ evidence, elementIds, claimLabel, diagnosticValue, diagnosticActive, onClick }: LedgerCardProps) {
   const domain = extractDomain(evidence.url);
   const date = formatDate(evidence.publishedDate);
   const excerpt = evidence.snippet
@@ -38,9 +40,15 @@ export function LedgerCard({ evidence, elementIds, claimLabel, onClick }: Ledger
       : `"${evidence.snippet}"`
     : null;
 
+  const isHighDiag = diagnosticActive && diagnosticValue != null && diagnosticValue > 0.7;
+  const isLowDiag = diagnosticActive && diagnosticValue != null && diagnosticValue < 0.3;
+
   return (
     <div
-      className="border border-zinc-100 hover:border-zinc-300 transition-colors cursor-pointer p-4"
+      className={`border transition-colors cursor-pointer p-4 ${
+        isLowDiag ? 'border-zinc-100 opacity-40' : isHighDiag ? 'border-zinc-100 hover:border-zinc-300' : 'border-zinc-100 hover:border-zinc-300'
+      }`}
+      style={isHighDiag ? { borderLeft: '4px solid var(--accent)' } : undefined}
       onClick={onClick}
     >
       <div className="flex items-start gap-3">

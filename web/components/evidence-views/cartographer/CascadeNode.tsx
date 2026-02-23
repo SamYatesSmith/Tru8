@@ -48,22 +48,28 @@ interface CascadeNodeProps {
   isDivergent?: boolean;
   showConnectionStub?: boolean;
   claimLabel?: string;
+  diagnosticValue?: number;
+  diagnosticActive?: boolean;
   onClick?: () => void;
 }
 
-export function CascadeNode({ evidence, isDivergent, showConnectionStub, claimLabel, onClick }: CascadeNodeProps) {
+export function CascadeNode({ evidence, isDivergent, showConnectionStub, claimLabel, diagnosticValue, diagnosticActive, onClick }: CascadeNodeProps) {
   const [isHovered, setIsHovered] = useState(false);
   const tier = evidence.tier || 'commentary';
   const style = TIER_STYLES[tier];
   const domain = extractDomain(evidence.url);
   const date = formatDate(evidence.publishedDate);
 
+  // Diagnostic highlighting overrides
+  const isHighDiag = diagnosticActive && diagnosticValue != null && diagnosticValue > 0.7;
+  const isLowDiag = diagnosticActive && diagnosticValue != null && diagnosticValue < 0.3;
+
   return (
     <div
       className={`cascade-node relative border ${style.fill} px-4 py-3 ${style.minWidth} cursor-pointer ${
-        isDivergent ? 'border-dashed border-amber-300 bg-amber-50/30' : 'border-zinc-200'
-      }`}
-      style={{ borderLeft: `3px solid ${isDivergent ? 'var(--divergence)' : style.border}` }}
+        isDivergent ? 'border-dashed border-amber-300 bg-amber-50/30' : isLowDiag ? 'border-zinc-100' : 'border-zinc-200'
+      } ${isLowDiag ? 'opacity-40' : ''}`}
+      style={{ borderLeft: isHighDiag ? '4px solid var(--accent)' : `3px solid ${isDivergent ? 'var(--divergence)' : style.border}` }}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -105,6 +111,11 @@ export function CascadeNode({ evidence, isDivergent, showConnectionStub, claimLa
         <div className="absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 bg-zinc-900 text-white px-3 py-2 text-[10px] font-mono whitespace-nowrap pointer-events-none max-w-xs">
           <div className="truncate">{evidence.title}</div>
           {date && <div className="text-zinc-400">{date}</div>}
+          {isLowDiag && (
+            <div className="text-zinc-500 mt-1 whitespace-normal">
+              This source supports all elements equally — it doesn&apos;t help distinguish between competing interpretations.
+            </div>
+          )}
         </div>
       )}
     </div>

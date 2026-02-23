@@ -42,6 +42,8 @@ interface EvidenceLedgerProps {
   onSortChange: (field: SortField) => void;
   elementMap: Map<string, string[]>;
   claimLabelMap?: Map<string, string>;
+  diagnosticValues?: Map<string, number>;
+  diagnosticActive?: boolean;
   onCardClick?: (evidence: Evidence) => void;
 }
 
@@ -52,6 +54,8 @@ export function EvidenceLedger({
   onSortChange,
   elementMap,
   claimLabelMap,
+  diagnosticValues,
+  diagnosticActive,
   onCardClick,
 }: EvidenceLedgerProps) {
   const sorted = sortEvidence(evidence, sortField, elementMap);
@@ -72,6 +76,8 @@ export function EvidenceLedger({
               evidence={ev}
               elementIds={elementMap.get(evId)}
               claimLabel={claimLabelMap?.get(evId)}
+              diagnosticValue={diagnosticValues?.get(evId)}
+              diagnosticActive={diagnosticActive}
               onClick={() => onCardClick?.(ev)}
             />
           );

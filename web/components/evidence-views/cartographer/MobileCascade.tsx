@@ -19,10 +19,12 @@ interface MobileCascadeProps {
   evidenceByTier: Record<EvidenceTier, Evidence[]>;
   divergentIds: Set<string>;
   claimLabelMap?: Map<string, string>;
+  diagnosticValues?: Map<string, number>;
+  diagnosticActive?: boolean;
   onNodeClick?: (evidence: Evidence) => void;
 }
 
-export function MobileCascade({ evidenceByTier, divergentIds, claimLabelMap, onNodeClick }: MobileCascadeProps) {
+export function MobileCascade({ evidenceByTier, divergentIds, claimLabelMap, diagnosticValues, diagnosticActive, onNodeClick }: MobileCascadeProps) {
   return (
     <div className="space-y-8">
       {TIER_ORDER.map((tier) => {
@@ -44,6 +46,8 @@ export function MobileCascade({ evidenceByTier, divergentIds, claimLabelMap, onN
                     evidence={ev}
                     isDivergent={divergentIds.has(evId)}
                     claimLabel={claimLabelMap?.get(evId)}
+                    diagnosticValue={diagnosticValues?.get(evId)}
+                    diagnosticActive={diagnosticActive}
                     onClick={() => onNodeClick?.(ev)}
                   />
                 );
