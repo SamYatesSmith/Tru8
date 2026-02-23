@@ -24,6 +24,7 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
   const claimDetailRef = useRef<HTMLDivElement>(null);
 
   const claims = check.claims || [];
+  const videos = check.videos || [];
   const isSingleClaim = claims.length === 1;
 
   // Detect if source is a tweet
@@ -220,7 +221,7 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
                 <ProjectionistView
                   scope="check"
                   claims={claims}
-                  videos={[]}
+                  videos={videos}
                   isLoading={false}
                 />
               )}
@@ -317,7 +318,7 @@ export function PublicReportClient({ check, highlightClaim }: PublicReportClient
                   <ProjectionistView
                     scope="claim"
                     claims={[activeClaim]}
-                    videos={[]}
+                    videos={videos.filter((v: any) => v.claimId === activeClaim.id)}
                     isLoading={false}
                   />
                 )}

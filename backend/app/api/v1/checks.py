@@ -1939,6 +1939,15 @@ async def get_public_check(
             }
         )
 
+    # Fetch video recommendations for public report
+    from app.models.video_recommendation import VideoRecommendation
+
+    videos_stmt = select(VideoRecommendation).where(
+        VideoRecommendation.check_id == check_id
+    )
+    videos_result = await session.execute(videos_stmt)
+    videos = videos_result.scalars().all()
+
     return {
         **base_response,
         # Full check metadata
@@ -1952,6 +1961,25 @@ async def get_public_check(
         "completedAt": check.completed_at.isoformat() if check.completed_at else None,
         # Full claims with evidence
         "claims": claims_data,
+        # Video recommendations
+        "videos": [
+            {
+                "id": v.id,
+                "claimId": v.claim_id,
+                "videoId": v.video_id,
+                "title": v.title,
+                "description": v.description,
+                "channelName": v.channel_name,
+                "channelId": v.channel_id,
+                "publishDate": (v.publish_date.isoformat() if v.publish_date else None),
+                "videoUrl": v.video_url,
+                "thumbnailUrl": v.thumbnail_url,
+                "duration": v.duration,
+                "tierLabel": v.tier_label,
+                "typeLabel": v.type_label,
+            }
+            for v in videos
+        ],
     }
 
 
