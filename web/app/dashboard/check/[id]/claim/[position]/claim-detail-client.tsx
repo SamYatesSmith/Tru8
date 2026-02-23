@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Claim } from '@shared/types';
 import { BackToOverview } from '@/components/evidence-views/detail/BackToOverview';
 import { ClaimHeader } from '@/components/evidence-views/detail/ClaimHeader';
@@ -23,6 +23,7 @@ interface ClaimDetailClientProps {
 
 export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClientProps) {
   const { getToken } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const viewParam = searchParams?.get('view');
@@ -49,6 +50,11 @@ export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClien
 
   const handleSwitchToLibrarian = useCallback(() => handleTabChange('librarian'), [handleTabChange]);
   const handleSwitchToInterpreter = useCallback(() => handleTabChange('interpreter'), [handleTabChange]);
+
+  // G02: Refresh page data after element re-search completes
+  const handleResearchComplete = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   // Video recommendations — only fetch when Projectionist tab is active
   const { videos: claimVideos, isLoading: videosLoading } = useVideoRecommendations(
@@ -95,7 +101,12 @@ export function ClaimDetailClient({ checkId, claim, position }: ClaimDetailClien
         />
       )}
       {activeTab === 'seeker' && (
-        <SeekerView claim={claim} checkId={checkId} token={token} />
+        <SeekerView
+          claim={claim}
+          checkId={checkId}
+          token={token}
+          onResearchComplete={handleResearchComplete}
+        />
       )}
     </div>
   );

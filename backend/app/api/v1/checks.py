@@ -1441,6 +1441,121 @@ async def update_bounty_text(
     }
 
 
+# ============================================================================
+# ELEMENT RE-SEARCH ENDPOINTS (G02: Re-Search Mechanism)
+# ============================================================================
+
+
+@router.post("/{check_id}/claims/{claim_id}/elements/{element_id}/research")
+async def start_element_research(
+    check_id: str,
+    claim_id: str,
+    element_id: str,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Start targeted re-search for a single element (G02)."""
+    from app.core.database import async_session as async_session_factory
+    from app.pipeline.re_search import run_element_re_search, get_research_status
+
+    # 1. Validate check exists + user owns it
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    if check.status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail="Re-search is only available on completed checks",
+        )
+
+    # 2. Validate claim exists
+    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
+    claim_result = await session.execute(claim_stmt)
+    db_claim = claim_result.scalar_one_or_none()
+
+    if not db_claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+
+    # 3. Validate element exists and has bounty text
+    claim_map = db_claim.claim_map
+    if isinstance(claim_map, str):
+        claim_map = json.loads(claim_map)
+
+    if not claim_map or not isinstance(claim_map, dict):
+        raise HTTPException(status_code=404, detail="Claim map not found")
+
+    target_element = None
+    for elem in claim_map.get("elements", []):
+        if elem.get("element_id") == element_id:
+            target_element = elem
+            break
+
+    if not target_element:
+        raise HTTPException(status_code=404, detail=f"Element {element_id} not found")
+
+    if not target_element.get("bounty_text"):
+        raise HTTPException(
+            status_code=400,
+            detail="Bounty text must be set before re-searching",
+        )
+
+    # 4. Check if research is already running
+    existing_status = get_research_status(check_id, claim_id, element_id)
+    if existing_status and existing_status.get("status") in (
+        "planning",
+        "retrieving",
+        "classifying",
+        "mapping",
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Research is already in progress for this element",
+        )
+
+    # 5. Start background task
+    asyncio.create_task(run_element_re_search(check_id, claim_id, element_id))
+
+    return {
+        "status": "started",
+        "message": "Research started for element",
+        "elementId": element_id,
+    }
+
+
+@router.get("/{check_id}/claims/{claim_id}/elements/{element_id}/research/status")
+async def get_element_research_status(
+    check_id: str,
+    claim_id: str,
+    element_id: str,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Get re-search status for a single element (G02)."""
+    from app.pipeline.re_search import get_research_status
+
+    # Validate check ownership
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    status = get_research_status(check_id, claim_id, element_id)
+    if not status:
+        return {"status": "idle", "message": "No research in progress"}
+
+    return status
+
+
 @router.get("/{check_id}/progress")
 async def stream_check_progress(
     check_id: str,

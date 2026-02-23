@@ -335,6 +335,34 @@ class ApiClient {
   }
 
   /**
+   * POST /api/v1/checks/{check_id}/claims/{claim_id}/elements/{element_id}/research
+   * Start targeted re-search for a single element (G02)
+   */
+  async startElementResearch(
+    checkId: string,
+    claimId: string,
+    elementId: string,
+    token?: string | null
+  ): Promise<{ status: string; message: string; elementId: string }> {
+    return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/elements/${elementId}/research`, {
+      method: 'POST',
+    }, token);
+  }
+
+  /**
+   * GET /api/v1/checks/{check_id}/claims/{claim_id}/elements/{element_id}/research/status
+   * Get re-search status for a single element (G02)
+   */
+  async getResearchStatus(
+    checkId: string,
+    claimId: string,
+    elementId: string,
+    token?: string | null
+  ): Promise<{ status: string; message: string; newEvidenceCount?: number }> {
+    return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/elements/${elementId}/research/status`, {}, token);
+  }
+
+  /**
    * GET /api/v1/checks
    * Get user's check history with pagination
    */

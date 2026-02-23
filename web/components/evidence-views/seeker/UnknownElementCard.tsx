@@ -5,6 +5,7 @@ import { ElementStateBadge } from '@/components/claim-map/element-state-badge';
 import { EvidenceRefChip } from '@/components/claim-map/evidence-ref-chip';
 import { GapHighlight } from './GapHighlight';
 import { BountyField } from './BountyField';
+import { ResearchButton } from './ResearchButton';
 
 interface UnknownElementCardProps {
   element: ClaimElement;
@@ -14,6 +15,7 @@ interface UnknownElementCardProps {
   checkId?: string;
   claimId?: string;
   token?: string | null;
+  onResearchComplete?: () => void;
 }
 
 export function UnknownElementCard({
@@ -24,6 +26,7 @@ export function UnknownElementCard({
   checkId,
   claimId,
   token,
+  onResearchComplete,
 }: UnknownElementCardProps) {
   const isKnown = element.state === 'supported' || element.state === 'disputed';
   const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
@@ -100,6 +103,18 @@ export function UnknownElementCard({
         claimId={claimId}
         token={token}
       />
+
+      {/* Re-search button (G02) — only for authenticated, non-readOnly views */}
+      {!readOnly && checkId && claimId && token && (
+        <ResearchButton
+          elementId={element.elementId}
+          checkId={checkId}
+          claimId={claimId}
+          token={token}
+          hasBountyText={!!element.bountyText}
+          onComplete={onResearchComplete}
+        />
+      )}
     </div>
   );
 }

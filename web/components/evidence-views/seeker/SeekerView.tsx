@@ -12,9 +12,10 @@ interface SeekerViewProps {
   readOnly?: boolean;
   checkId?: string;
   token?: string | null;
+  onResearchComplete?: () => void;
 }
 
-export function SeekerView({ claim, readOnly, checkId, token }: SeekerViewProps) {
+export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete }: SeekerViewProps) {
   const elements = useMemo(() => claim.claimMap?.elements || [], [claim.claimMap?.elements]);
   const evidence = useMemo(() => claim.evidence || [], [claim.evidence]);
 
@@ -64,6 +65,7 @@ export function SeekerView({ claim, readOnly, checkId, token }: SeekerViewProps)
             checkId={checkId}
             claimId={claim.id}
             token={token}
+            onResearchComplete={onResearchComplete}
           />
         ))}
       </div>
