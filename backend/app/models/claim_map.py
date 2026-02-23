@@ -39,6 +39,7 @@ class ClaimElement(TypedDict):
     evidence_refs: list[EvidenceRef]
     state: Optional[ElementState]
     uncertainty: Optional[str]
+    bounty_text: Optional[str]  # G01: User-supplied research brief (max 200 chars)
 
 
 class ClaimMapMetadata(TypedDict):

@@ -100,7 +100,7 @@ export function ClaimOverviewCard({ claim, position, checkId, isActive, onSelect
             )}
             {stateCounts.gap > 0 && (
               <span className="font-mono text-[10px] text-zinc-400">
-                {stateCounts.gap} {stateCounts.gap === 1 ? 'gap' : 'gaps'}
+                {stateCounts.gap} {stateCounts.gap === 1 ? 'unknown' : 'unknowns'}
               </span>
             )}
           </>

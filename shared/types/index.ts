@@ -234,6 +234,7 @@ export interface ClaimElement {
   evidenceRefs: EvidenceRef[];
   state: ElementState | null;
   uncertainty: string | null;
+  bountyText?: string; // G01: User-supplied research brief
 }
 
 export interface ClaimMap {

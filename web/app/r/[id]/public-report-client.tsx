@@ -11,6 +11,7 @@ import { LibrarianView } from '@/components/evidence-views/librarian';
 import { InterpreterView } from '@/components/evidence-views/interpreter';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
+import { SeekerView } from '@/components/evidence-views/seeker';
 
 interface PublicReportClientProps {
   check: any;
@@ -19,7 +20,7 @@ interface PublicReportClientProps {
 }
 
 const VALID_OVERVIEW_VIEWS = ['cartographer', 'librarian', 'projectionist', 'chronologist'];
-const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'interpreter', 'projectionist', 'chronologist'];
+const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'interpreter', 'seeker', 'projectionist', 'chronologist'];
 
 export function PublicReportClient({ check, highlightClaim, highlightView }: PublicReportClientProps) {
   const [copied, setCopied] = useState(false);
@@ -357,6 +358,9 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                     claims={[activeClaim]}
                     onSwitchToLibrarian={handleSwitchToLibrarian}
                   />
+                )}
+                {claimView === 'seeker' && (
+                  <SeekerView claim={activeClaim} readOnly />
                 )}
               </>
             )}

@@ -318,6 +318,23 @@ class ApiClient {
   }
 
   /**
+   * PATCH /api/v1/checks/{check_id}/claims/{claim_id}/elements/{element_id}/bounty
+   * Update bounty text on a claim element (G01: The Seeker)
+   */
+  async updateBountyText(
+    checkId: string,
+    claimId: string,
+    elementId: string,
+    text: string | null,
+    token?: string | null
+  ): Promise<{ status: string; bountyText: string | null }> {
+    return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/elements/${elementId}/bounty`, {
+      method: 'PATCH',
+      body: JSON.stringify({ text }),
+    }, token);
+  }
+
+  /**
    * GET /api/v1/checks
    * Get user's check history with pagination
    */

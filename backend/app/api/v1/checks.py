@@ -1356,6 +1356,91 @@ async def select_claims(
     }
 
 
+# ============================================================================
+# BOUNTY TEXT ENDPOINT (G01: The Seeker)
+# ============================================================================
+
+
+class UpdateBountyRequest(BaseModel):
+    """Request body for bounty text update."""
+
+    text: Optional[str] = None
+
+
+@router.patch("/{check_id}/claims/{claim_id}/elements/{element_id}/bounty")
+async def update_bounty_text(
+    check_id: str,
+    claim_id: str,
+    element_id: str,
+    body: UpdateBountyRequest,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Update bounty text on a specific claim element (G01: The Seeker)."""
+    # 1. Validate check exists + user owns it
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    if check.status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail="Bounty text can only be set on completed checks",
+        )
+
+    # 2. Validate text length
+    if body.text and len(body.text) > 200:
+        raise HTTPException(
+            status_code=400,
+            detail="Bounty text must be 200 characters or less",
+        )
+
+    # 3. Load claim
+    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
+    claim_result = await session.execute(claim_stmt)
+    db_claim = claim_result.scalar_one_or_none()
+
+    if not db_claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+
+    # 4. Parse claim_map and find element
+    claim_map = db_claim.claim_map
+    if isinstance(claim_map, str):
+        claim_map = json.loads(claim_map)
+
+    if not claim_map or not isinstance(claim_map, dict):
+        raise HTTPException(status_code=404, detail="Claim map not found")
+
+    elements = claim_map.get("elements", [])
+    element_found = False
+    for elem in elements:
+        if elem.get("element_id") == element_id:
+            elem["bounty_text"] = body.text.strip() if body.text else None
+            element_found = True
+            break
+
+    if not element_found:
+        raise HTTPException(status_code=404, detail=f"Element {element_id} not found")
+
+    # 5. Write back and commit
+    db_claim.claim_map = claim_map
+    from sqlalchemy.orm.attributes import flag_modified
+
+    flag_modified(db_claim, "claim_map")
+
+    await session.commit()
+
+    return {
+        "status": "success",
+        "bountyText": body.text.strip() if body.text else None,
+    }
+
+
 @router.get("/{check_id}/progress")
 async def stream_check_progress(
     check_id: str,
