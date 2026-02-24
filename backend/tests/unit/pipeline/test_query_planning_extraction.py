@@ -82,7 +82,6 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["Arsenal Premier League standings November 2025"],
             "claim_type": "league_standing",
-            "priority_sources": ["premierleague.com"],
         }
 
         # Act
@@ -116,7 +115,6 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["test query"],
             "claim_type": "player_statistics",
-            "priority_sources": [],
         }
 
         # Act
@@ -150,7 +148,6 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["blocked query"],
             "claim_type": "general",
-            "priority_sources": [],
         }
 
         # Act
@@ -180,7 +177,6 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["empty page query"],
             "claim_type": "general",
-            "priority_sources": [],
         }
 
         # Act
@@ -208,7 +204,6 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["blocked query"],
             "claim_type": "general",
-            "priority_sources": [],
         }
 
         # Act
@@ -272,7 +267,6 @@ class TestQueryPlanningExtraction:
         query_plan = {
             "queries": ["query 1", "query 2"],
             "claim_type": "general",
-            "priority_sources": [],
         }
 
         # Act

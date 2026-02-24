@@ -184,10 +184,6 @@ class EvidenceRetriever:
                                     "query_freshness": query_freshness,
                                     "claim_index": claim_idx,
                                     "freshness": plans[0].get("freshness", "py"),
-                                    "source_hints": plans[0].get("source_hints", []),
-                                    "priority_sources": plans[0].get(
-                                        "priority_sources", []
-                                    ),
                                     "reasoning": plans[0].get("reasoning", ""),
                                 }
                     else:
@@ -869,6 +865,21 @@ class EvidenceRetriever:
 
                 # Merge web search and API results
                 evidence_snippets = web_evidence_snippets
+
+                # Mine Wikipedia references for authority sources
+                from app.pipeline.wikipedia_miner import mine_wikipedia_references
+
+                wiki_ref_snippets = await mine_wikipedia_references(
+                    evidence_snippets,
+                    claim_text,
+                    self.evidence_extractor,
+                    semaphore,
+                )
+                if wiki_ref_snippets:
+                    logger.info(
+                        f"[WIKI MINING] Found {len(wiki_ref_snippets)} authority references from Wikipedia"
+                    )
+                    evidence_snippets = evidence_snippets + wiki_ref_snippets
                 api_evidence_items = api_evidence.get("evidence", [])
 
                 # Store API stats in claim for later tracking
@@ -1025,10 +1036,7 @@ class EvidenceRetriever:
         """
         try:
             queries = query_plan.get("queries", [])
-            priority_sources = query_plan.get("priority_sources", [])
-            claim_type = query_plan.get(
-                "claim_type", "general"
-            )  # Keep for metadata/backward compat
+            claim_type = query_plan.get("claim_type", "general")
 
             # ============================================================
             # DYNAMIC FRESHNESS: Per-query freshness from query plan
@@ -1047,12 +1055,6 @@ class EvidenceRetriever:
                 logger.warning(f"No queries in plan for claim: {claim_text[:50]}...")
                 return []
 
-            # Get site filter from query planner
-            from app.utils.query_planner import get_query_planner
-
-            planner = get_query_planner()
-            site_filter = planner.get_site_filter(priority_sources, claim_type)
-
             logger.debug(f"Executing {len(queries)} planned queries")
 
             # Execute all queries concurrently
@@ -1068,13 +1070,8 @@ class EvidenceRetriever:
                     if i < len(query_freshness_list)
                     else default_freshness
                 )
-                # Only append site filter if query doesn't already have one (LLM may include it)
-                if site_filter and "site:" not in query.lower():
-                    full_query = f"{query} {site_filter}"
-                else:
-                    full_query = query
                 task = self.evidence_extractor.search_service.search_for_evidence(
-                    full_query,
+                    query,
                     max_results=sources_per_query,
                     freshness=this_freshness,
                 )
@@ -1130,39 +1127,7 @@ class EvidenceRetriever:
                     else -1
                 )
 
-                # FALLBACK 1: Try WITHOUT site filter (same freshness)
-                if site_filter:
-                    logger.info(
-                        f"[FRESHNESS FALLBACK] 0 results. Trying without site filter (freshness={default_freshness})"
-                    )
-                    for query in queries:
-                        try:
-                            results = await self.evidence_extractor.search_service.search_for_evidence(
-                                query,
-                                max_results=sources_per_query,
-                                freshness=default_freshness,
-                            )
-                            for result in results:
-                                if (
-                                    excluded_domain
-                                    and extract_domain(result.url) == excluded_domain
-                                ):
-                                    continue
-                                if result.url not in seen_urls:
-                                    seen_urls.add(result.url)
-                                    result._query_index = queries.index(query)
-                                    result._query_used = query
-                                    result._claim_type = claim_type
-                                    result._freshness = default_freshness
-                                    unique_search_results.append(result)
-                        except Exception as e:
-                            logger.warning(f"Fallback query failed: {e}")
-                    if unique_search_results:
-                        logger.info(
-                            f"[FRESHNESS FALLBACK] Found {len(unique_search_results)} without site filter"
-                        )
-
-                # FALLBACK 2: Progressively relax freshness (pw->pm->py, never 2y)
+                # FALLBACK: Progressively relax freshness (pw->pm->py, never 2y)
                 if (
                     not unique_search_results
                     and current_idx >= 0

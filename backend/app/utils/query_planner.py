@@ -73,7 +73,7 @@ FOR EACH ELEMENT, OUTPUT:
    - Use EXACT names, numbers, and entities from the element description
    - For RECENT events, include the year from TODAY'S DATE
    - Keep queries concise (5-10 words)
-   - DO NOT add site: filters (except for official source priority below)
+   - DO NOT add site: filters
 
 2. freshness: How recent must evidence be? Choose one:
    - "pd" (past day): Breaking news, live events, real-time data
@@ -81,31 +81,13 @@ FOR EACH ELEMENT, OUTPUT:
    - "pm" (past month): Periodic updates (monthly stats, recent news)
    - "py" (past year): Stable facts, annual data, historical
 
-3. source_hints: Brief description of authoritative source types for this element
-
-4. reasoning: Why this freshness level and these queries are appropriate
+3. reasoning: Why this freshness level and these queries are appropriate
 
 QUERY STRATEGIES:
 - RANKINGS/COMPARISONS: Query the ranking directly, query both entities being compared
 - STATISTICS: Include the relevant time period (season, quarter, year)
 - CURRENT STATE: Include recent date context to get fresh results
 - HISTORICAL: Can use broader time range
-
-AUTHORITATIVE SOURCES BY DOMAIN (use in source_hints and priority_sources):
-- SPORTS: transfermarkt.com, fbref.com, whoscored.com, official league sites
-- POLITICAL: Official government sites (.gov), established news (Reuters, AP, BBC)
-- FINANCIAL: Company filings (SEC, Companies House), Bloomberg, Reuters, FRED
-- SCIENTIFIC: Peer-reviewed journals, academic institutions (.edu), Nature, Science
-- HEALTH: WHO, CDC, NHS, NIH, PubMed, medical journals
-- LAW: govinfo.gov, congress.gov, legislation.gov.uk, courtlistener.com
-- CLIMATE: IPCC, NOAA, NASA climate, peer-reviewed journals
-- GENERAL: Primary sources, official statements, established news organizations
-
-CRITICAL - OFFICIAL SOURCE PRIORITY:
-When an element references a NAMED ORGANIZATION:
-1. IDENTIFY the organization's official website domain
-2. ADD that domain to priority_sources
-3. INCLUDE one query with site:[official-domain] filter
 
 HANDLING UNCERTAINTY:
 If an element is too vague to query effectively:
@@ -121,7 +103,6 @@ RESPOND WITH JSON:
       "element_id": "e1",
       "queries": ["query 1", "query 2"],
       "freshness": "pw",
-      "source_hints": "Official data sources",
       "reasoning": "Data changes frequently"
     }
   ]
@@ -237,7 +218,7 @@ Use {current_year} in queries for recent events - NEVER use older years unless t
 Generate query plans for each ELEMENT below. Each element is a specific condition of a claim that needs evidence.
 {claims_elements_text}
 
-For EACH element, provide: claim_index, element_id, queries, freshness (pd/pw/pm/py), source_hints, and reasoning.
+For EACH element, provide: claim_index, element_id, queries, freshness (pd/pw/pm/py), and reasoning.
 Return a JSON object with "plans" array containing exactly {total_elements} plan objects (one per element)."""
 
             # Try Google first, then OpenAI as fallback
@@ -403,20 +384,12 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
                 "element_id": plan.get("element_id", f"e{i + 1}"),
                 "queries": plan.get("queries", []),
                 "freshness": freshness,
-                "source_hints": plan.get("source_hints", ""),
                 "reasoning": plan.get("reasoning", ""),
-                "priority_sources": plan.get("priority_sources", []),
             }
 
             # Ensure queries is a list
             if isinstance(validated_plan["queries"], str):
                 validated_plan["queries"] = [validated_plan["queries"]]
-
-            # Ensure priority_sources is a list
-            if isinstance(validated_plan["priority_sources"], str):
-                validated_plan["priority_sources"] = [
-                    validated_plan["priority_sources"]
-                ]
 
             # POST-PROCESS: Fix hallucinated years in queries for recent elements
             if freshness in {"pd", "pw", "pm"}:
@@ -559,27 +532,6 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
                 )
 
         return relevant if relevant else queries[:1]  # Keep at least 1
-
-    def get_site_filter(self, priority_sources: List[str], claim_type: str = "") -> str:
-        """
-        Generate a site filter string for search queries.
-
-        Only uses LLM-suggested sources - no hardcoded domain defaults.
-        Let the search engine find the best sources dynamically.
-
-        Args:
-            priority_sources: List of priority domains from LLM
-            claim_type: Unused, kept for backward compatibility
-
-        Returns:
-            Site filter string (e.g., "site:example.com OR site:other.com")
-        """
-        if not priority_sources:
-            return ""
-
-        # Use first 2 sources to keep query short
-        site_filters = [f"site:{s}" for s in priority_sources[:2]]
-        return " OR ".join(site_filters)
 
 
 # Singleton instance

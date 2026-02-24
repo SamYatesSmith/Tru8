@@ -11,51 +11,6 @@ from unittest.mock import AsyncMock, patch, MagicMock
 class TestLLMQueryPlanner:
     """Test the LLMQueryPlanner class."""
 
-    def test_get_site_filter_with_priority_sources(self):
-        """Test site filter generation with LLM-provided priority sources."""
-        from app.utils.query_planner import LLMQueryPlanner
-
-        planner = LLMQueryPlanner()
-
-        # Test with priority sources from LLM
-        result = planner.get_site_filter(
-            ["example.com", "authority.org", "data.gov"], ""  # claim_type is now unused
-        )
-
-        # Should use first 2 sources
-        assert "site:example.com" in result
-        assert "site:authority.org" in result
-        assert "OR" in result
-
-    def test_get_site_filter_empty_without_priority_sources(self):
-        """Test site filter is empty when no priority sources provided (dynamic system)."""
-        from app.utils.query_planner import LLMQueryPlanner
-
-        planner = LLMQueryPlanner()
-
-        # With no priority sources, should return empty (let search engine decide)
-        result = planner.get_site_filter([], "any_claim_type")
-
-        # No hardcoded defaults anymore - dynamic system relies on LLM
-        assert result == ""
-
-    def test_get_site_filter_limits_to_two_sources(self):
-        """Test site filter limits to first 2 sources to keep queries short."""
-        from app.utils.query_planner import LLMQueryPlanner
-
-        planner = LLMQueryPlanner()
-
-        # Pass more than 2 sources
-        result = planner.get_site_filter(
-            ["site1.com", "site2.com", "site3.com", "site4.com"], ""
-        )
-
-        # Should only include 2 sources
-        assert result.count("site:") == 2
-        assert "site:site1.com" in result
-        assert "site:site2.com" in result
-        assert "site:site3.com" not in result
-
     def test_validate_plans_normalizes_structure(self):
         """Test plan validation normalizes various response formats."""
         from app.utils.query_planner import LLMQueryPlanner
@@ -66,12 +21,9 @@ class TestLLMQueryPlanner:
         plans = [
             {
                 "claim_index": 0,
-                "claim_type": "squad_composition",
-                "priority_sources": "premierleague.com",  # String instead of list
                 "queries": "Arsenal squad 2025",  # String instead of list
             },
             {
-                "claim_type": "player_statistics",
                 "queries": [
                     "query1",
                     "query2",
@@ -88,11 +40,10 @@ class TestLLMQueryPlanner:
         assert len(validated) == 2
 
         # First plan - string converted to list
-        assert isinstance(validated[0]["priority_sources"], list)
         assert isinstance(validated[0]["queries"], list)
 
-        # Second plan - queries limited to 4
-        assert len(validated[1]["queries"]) <= 4
+        # Second plan - queries limited to 2
+        assert len(validated[1]["queries"]) <= 2
 
     def test_validate_plans_handles_missing_fields(self):
         """Test plan validation handles missing fields gracefully."""
@@ -101,9 +52,7 @@ class TestLLMQueryPlanner:
         planner = LLMQueryPlanner()
 
         plans = [
-            {
-                "claim_type": "match_result"
-            },  # Missing claim_index, queries, priority_sources
+            {"claim_type": "match_result"},  # Missing claim_index, queries
         ]
 
         validated = planner._validate_plans(plans, 1)
@@ -111,7 +60,6 @@ class TestLLMQueryPlanner:
         # Should fill in defaults
         assert validated[0]["claim_index"] == 0
         assert validated[0]["queries"] == []
-        assert validated[0]["priority_sources"] == []
 
     def test_validate_plans_filters_non_dicts(self):
         """Test plan validation filters out non-dict entries."""
@@ -153,9 +101,9 @@ class TestQueryPlannerIntegration:
                         "content": """{"plans": [
                         {
                             "claim_index": 0,
-                            "claim_type": "squad_composition",
-                            "priority_sources": ["arsenal.com", "premierleague.com"],
-                            "queries": ["Arsenal squad 2025", "Viktor Gyokeres Arsenal"]
+                            "queries": ["Arsenal squad 2025", "Viktor Gyokeres Arsenal"],
+                            "freshness": "pw",
+                            "reasoning": "Current squad data"
                         }
                     ]}"""
                     }
@@ -359,7 +307,6 @@ class TestArticleContextIntegration:
                             "claim_index": 0,
                             "queries": ["test query"],
                             "freshness": "pw",
-                            "source_hints": "Official sources",
                             "reasoning": "Fast-changing data"
                         }
                     ]}"""
