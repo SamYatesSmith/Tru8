@@ -14,7 +14,7 @@ from datetime import datetime
 from functools import partial
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -766,17 +766,16 @@ async def run_pipeline_phase2(
     stage_start = datetime.utcnow()
 
     analyzer = ClaimMapAnalyzer()
-    max_concurrent = settings.MAX_CONCURRENT_ANALYSES
-    _decompose_sem = asyncio.Semaphore(max_concurrent)
-
-    async def _decompose_one(claim):
-        async with _decompose_sem:
-            claim_id = str(claim.get("position", 0))
-            claim_map = await analyzer.decompose_claim(claim["text"], claim_id)
-            claim["claim_map"] = claim_map
 
     try:
-        await asyncio.gather(*[_decompose_one(c) for c in selected_claims])
+        batch_input = [
+            {"text": c["text"], "claim_id": str(c.get("position", 0))}
+            for c in selected_claims
+        ]
+        results = await analyzer.decompose_claims_batch(batch_input)
+        for claim in selected_claims:
+            claim_id = str(claim.get("position", 0))
+            claim["claim_map"] = results[claim_id]
         logger.info(
             f"[INLINE PIPELINE] Decomposed {len(selected_claims)} claims into elements"
         )
@@ -1302,28 +1301,28 @@ async def run_pipeline_phase2(
             )
 
     article_excerpt = content.get("content", "")[:5000]
-    analyze_timeout = min(15 * len(selected_claims), 120)
-
-    _analyze_sem = asyncio.Semaphore(max_concurrent)
-
-    async def _map_evidence_for_claim(claim):
-        async with _analyze_sem:
-            pos = str(claim.get("position", 0))
-            claim_evidence = evidence.get(pos, [])
-            if claim.get("claim_map"):
-                completed = await analyzer.map_evidence_to_elements(
-                    claim["claim_map"], claim_evidence
-                )
-                claim["claim_map"] = completed
-                claim["evidence"] = claim_evidence
+    analyze_timeout = 45  # single batch call, not N × 15s
 
     try:
+        batch_input = []
+        for claim in selected_claims:
+            pos = str(claim.get("position", 0))
+            claim_evidence = evidence.get(pos, [])
+            claim["evidence"] = claim_evidence
+            if claim.get("claim_map"):
+                batch_input.append(
+                    {
+                        "claim_map": claim["claim_map"],
+                        "evidence": claim_evidence,
+                    }
+                )
+
         logger.info(
-            f"[INLINE PIPELINE] Starting evidence mapping for {len(selected_claims)} claims "
-            f"with {analyze_timeout}s timeout"
+            f"[INLINE PIPELINE] Starting batch evidence mapping for "
+            f"{len(batch_input)} claims with {analyze_timeout}s timeout"
         )
         await asyncio.wait_for(
-            asyncio.gather(*[_map_evidence_for_claim(c) for c in selected_claims]),
+            analyzer.map_evidence_batch(batch_input),
             timeout=analyze_timeout,
         )
         logger.info(f"[INLINE PIPELINE] Evidence mapping completed successfully")

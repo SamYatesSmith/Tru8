@@ -1,8 +1,13 @@
 """Claim Map Analyzer — decompose claims into elements and map evidence.
 
-Two LLM calls per claim:
+Two LLM stages:
   1. Decomposition: claim text → normalised_claim + claim_type + 1-5 elements
   2. Evidence mapping: elements + evidence → evidence_refs + states + uncertainty
+
+Supports both per-claim and batch modes:
+  - Per-claim: decompose_claim() / map_evidence_to_elements() — 1 LLM call each
+  - Batch: decompose_claims_batch() / map_evidence_batch() — 1 LLM call per stage
+    with automatic fallback to per-claim on parse failure
 
 Orientation line is derived mechanically (no LLM).
 
@@ -97,6 +102,74 @@ Rules:
 - "unresolved" = no meaningful supporting or challenging evidence.
 - uncertainty is optional (null if not applicable), max one sentence.
 - Every element_id from the input must appear in the output.
+"""
+
+BATCH_DECOMPOSITION_PROMPT = """\
+You are an analytical decomposition engine. Given multiple claims, for EACH claim:
+
+1. Normalise the claim into a clear, standalone assertion.
+2. Classify the claim type from exactly one of: empirical, definitional, \
+causal_interpretive, predictive, normative_flagged.
+3. Decompose the claim into 1-5 required elements — the things that must \
+hold for the claim to stand. Each element should be a distinct, testable \
+sub-assertion. Atomic claims may have just 1 element.
+
+Respond with JSON only:
+{
+  "claims": [
+    {
+      "claim_index": 0,
+      "normalised_claim": "<string>",
+      "claim_type": "<ClaimType>",
+      "elements": [{"description": "<what must hold>"}, ...]
+    }
+  ]
+}
+
+Rules:
+- One entry per claim_index. Do NOT skip any claims.
+- Minimum 1 element, maximum 5 per claim.
+- Each element description must be a single clear sentence.
+- claim_type must be exactly one of the five listed values.
+- Do NOT include evidence_refs, state, or uncertainty — those come later.
+"""
+
+BATCH_MAPPING_PROMPT = """\
+You are an evidence mapping engine. You are given multiple claims, each with:
+1. A list of elements (sub-assertions).
+2. A list of evidence items with evidence_id, title, and snippet.
+
+For each claim, map relevant evidence to its elements and assign states.
+
+Respond with JSON only:
+{
+  "claims": [
+    {
+      "claim_index": 0,
+      "elements": [
+        {
+          "element_id": "<e1..e5>",
+          "evidence_refs": [
+            {"evidence_id": "<string>", "relationship": "supports|challenges|context"}
+          ],
+          "state": "supported|disputed|unresolved",
+          "uncertainty": "<one sentence or null>"
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+- One entry per claim_index. Do NOT skip any claims.
+- Only use evidence_ids from the provided evidence for THAT claim. Do NOT mix across claims.
+- relationship must be exactly one of: supports, challenges, context.
+- state must be exactly one of: supported, disputed, unresolved.
+- "supported" = predominantly supportive evidence, no significant challenges.
+- "disputed" = both supporting and challenging evidence present.
+- "unresolved" = no meaningful supporting or challenging evidence.
+- uncertainty is optional (null if not applicable), max one sentence.
+- Every element_id from the input must appear in the output for that claim.
 """
 
 
@@ -275,6 +348,207 @@ class ClaimMapAnalyzer:
 
         return claim_map
 
+    # ── Public: Batch Decomposition ─────────────────────────────────
+
+    async def decompose_claims_batch(
+        self, claims: List[Dict[str, str]]
+    ) -> Dict[str, ClaimMap]:
+        """Decompose multiple claims in a single LLM call.
+
+        Parameters:
+            claims: list of {"text": str, "claim_id": str}
+
+        Returns:
+            Dict mapping claim_id to ClaimMap.
+
+        Falls back to per-claim calls on batch parse failure.
+        """
+        if len(claims) == 1:
+            cm = await self.decompose_claim(claims[0]["text"], claims[0]["claim_id"])
+            return {claims[0]["claim_id"]: cm}
+
+        # Build numbered claim list
+        claim_lines = "\n".join(f"[{i}] {c['text']}" for i, c in enumerate(claims))
+        prompt = f"{BATCH_DECOMPOSITION_PROMPT}\n\nClaims:\n{claim_lines}"
+
+        parsed = await self._call_llm(
+            prompt=prompt,
+            temperature=self.decomposition_temperature,
+            max_tokens=2500,
+            label="batch_decomposition",
+        )
+
+        results: Dict[str, ClaimMap] = {}
+        failed_claims: List[Dict[str, str]] = []
+
+        if parsed is not None and isinstance(parsed.get("claims"), list):
+            # Index batch response by claim_index
+            batch_by_idx = {
+                item.get("claim_index"): item
+                for item in parsed["claims"]
+                if isinstance(item, dict) and item.get("claim_index") is not None
+            }
+
+            for i, c in enumerate(claims):
+                item = batch_by_idx.get(i)
+                if item is not None:
+                    try:
+                        results[c["claim_id"]] = self._parse_decomposition_response(
+                            item, c["claim_id"]
+                        )
+                        continue
+                    except Exception as e:
+                        logger.warning(
+                            f"Batch decomposition parse failed for claim {c['claim_id']}: {e}"
+                        )
+                failed_claims.append(c)
+        else:
+            logger.warning(
+                "[CLAIM_MAP] Batch decomposition returned invalid shape, "
+                "falling back to per-claim calls"
+            )
+            failed_claims = list(claims)
+
+        # Retry failed claims individually
+        if failed_claims:
+            logger.info(
+                f"[CLAIM_MAP] Retrying {len(failed_claims)} claims via per-claim decomposition"
+            )
+            import asyncio
+
+            async def _retry_one(c: Dict[str, str]) -> None:
+                results[c["claim_id"]] = await self.decompose_claim(
+                    c["text"], c["claim_id"]
+                )
+
+            await asyncio.gather(*[_retry_one(c) for c in failed_claims])
+
+        return results
+
+    # ── Public: Batch Evidence Mapping ────────────────────────────────
+
+    async def map_evidence_batch(self, claim_data: List[Dict[str, Any]]) -> None:
+        """Map evidence to elements for multiple claims in a single LLM call.
+
+        Parameters:
+            claim_data: list of {"claim_map": ClaimMap, "evidence": List[Dict]}
+
+        Mutates each claim_map in place (same as map_evidence_to_elements).
+        Falls back to per-claim calls on batch parse failure.
+        """
+        # Separate claims with and without evidence
+        with_evidence = []
+        for item in claim_data:
+            cm = item["claim_map"]
+            ev = item["evidence"]
+            if not ev:
+                # No evidence: mark all elements as unresolved immediately
+                for elem in cm["elements"]:
+                    elem["evidence_refs"] = []
+                    elem["state"] = ElementState.unresolved
+                    elem["uncertainty"] = "No evidence was retrieved for this element."
+                cm["orientation"] = derive_orientation(cm["elements"])
+                cm["metadata"]["mapping_model"] = "none"
+                cm["metadata"]["element_count"] = len(cm["elements"])
+                cm["metadata"]["completed_at"] = datetime.now(timezone.utc).isoformat()
+            else:
+                with_evidence.append(item)
+
+        if not with_evidence:
+            return
+
+        if len(with_evidence) == 1:
+            item = with_evidence[0]
+            await self.map_evidence_to_elements(item["claim_map"], item["evidence"])
+            return
+
+        # Build batch prompt with per-claim sections
+        sections = []
+        for i, item in enumerate(with_evidence):
+            cm = item["claim_map"]
+            ev = item["evidence"]
+
+            elements_desc = "\n".join(
+                f"  - {e['element_id']}: {e['description']}" for e in cm["elements"]
+            )
+            evidence_desc = "\n".join(
+                f"  - {ev_item.get('evidence_id', 'unknown')}: "
+                f"[{ev_item.get('title', 'Untitled')}] "
+                f"{(ev_item.get('snippet') or ev_item.get('text') or '')[:self.snippet_length]}"
+                for ev_item in ev
+            )
+
+            sections.append(
+                f"=== CLAIM {i} ===\n"
+                f"Claim: \"{cm['normalised_claim']}\"\n"
+                f"Elements:\n{elements_desc}\n"
+                f"Evidence:\n{evidence_desc}"
+            )
+
+        prompt = BATCH_MAPPING_PROMPT + "\n\n" + "\n\n".join(sections)
+
+        parsed = await self._call_llm(
+            prompt=prompt,
+            temperature=self.analyzer_temperature,
+            max_tokens=8000,
+            label="batch_mapping",
+        )
+
+        failed_indices: List[int] = []
+
+        if parsed is not None and isinstance(parsed.get("claims"), list):
+            batch_by_idx = {
+                item.get("claim_index"): item
+                for item in parsed["claims"]
+                if isinstance(item, dict) and item.get("claim_index") is not None
+            }
+
+            for i, item in enumerate(with_evidence):
+                mapped = batch_by_idx.get(i)
+                if mapped is not None and isinstance(mapped.get("elements"), list):
+                    try:
+                        self._parse_mapping_response(
+                            mapped, item["claim_map"], item["evidence"]
+                        )
+                        continue
+                    except Exception as e:
+                        logger.warning(
+                            f"Batch mapping parse failed for claim "
+                            f"{item['claim_map']['claim_id']}: {e}"
+                        )
+                failed_indices.append(i)
+        else:
+            logger.warning(
+                "[CLAIM_MAP] Batch mapping returned invalid shape, "
+                "falling back to per-claim calls"
+            )
+            failed_indices = list(range(len(with_evidence)))
+
+        # Derive orientation + set metadata for successfully batch-mapped claims
+        # (failed claims get this via per-claim map_evidence_to_elements)
+        failed_set = set(failed_indices)
+        model_used = self._last_model_used
+        for i, item in enumerate(with_evidence):
+            if i not in failed_set:
+                cm = item["claim_map"]
+                cm["orientation"] = derive_orientation(cm["elements"])
+                cm["metadata"]["mapping_model"] = model_used
+                cm["metadata"]["element_count"] = len(cm["elements"])
+                cm["metadata"]["completed_at"] = datetime.now(timezone.utc).isoformat()
+
+        # Retry failed claims individually
+        if failed_indices:
+            logger.info(
+                f"[CLAIM_MAP] Retrying {len(failed_indices)} claims via per-claim mapping"
+            )
+            import asyncio
+
+            async def _retry_map(idx: int) -> None:
+                item = with_evidence[idx]
+                await self.map_evidence_to_elements(item["claim_map"], item["evidence"])
+
+            await asyncio.gather(*[_retry_map(i) for i in failed_indices])
+
     # ── LLM call (Google primary, OpenAI fallback) ──────────────────────
 
     async def _call_llm(
@@ -303,7 +577,7 @@ class ClaimMapAnalyzer:
             try:
                 model = (
                     self.decomposition_model
-                    if label == "decomposition"
+                    if label in ("decomposition", "batch_decomposition")
                     else self.analyzer_model
                 )
                 result = await self._call_openai(prompt, temperature, max_tokens, model)

@@ -3,8 +3,7 @@
 Every pipeline module that calls the Gemini API should use `call_google_ai`
 instead of building its own httpx request.  This gives us:
 
-- A process-wide asyncio.Semaphore (max 3 concurrent requests) to stay
-  under burst-rate limits.
+- A process-wide asyncio.Semaphore to stay under burst-rate limits.
 - Exponential back-off with up to 3 retries on HTTP 429 / 503.
 - A single place to change the endpoint, headers, or retry policy.
 """
@@ -20,8 +19,10 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Process-wide concurrency gate — at most 3 in-flight Gemini requests.
-_semaphore = asyncio.Semaphore(3)
+# Process-wide concurrency gate for Gemini requests.
+# Free tier: 30 RPM — semaphore of 10 allows burst while backoff handles 429s.
+# Paid tier: 2,000 RPM — can raise further.
+_semaphore = asyncio.Semaphore(10)
 
 _MAX_RETRIES = 3
 _BASE_DELAY = 1.0  # seconds; doubles each retry
