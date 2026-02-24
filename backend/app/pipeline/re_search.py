@@ -168,8 +168,6 @@ async def run_element_re_search(
                 "query_freshness": [],
                 "claim_index": 0,
                 "freshness": query_plans[0].get("freshness", "py"),
-                "source_hints": query_plans[0].get("source_hints", []),
-                "priority_sources": query_plans[0].get("priority_sources", []),
                 "reasoning": query_plans[0].get("reasoning", ""),
             }
             for plan in query_plans:

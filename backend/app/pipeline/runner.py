@@ -1589,6 +1589,22 @@ async def save_check_results_async(
         claims_data = results.get("claims", [])
         logger.info(f"Saving {len(claims_data)} claims for check {check_id}")
 
+        # Delete existing Phase 1 skeleton claims (and their evidence) to avoid duplicates
+        existing_claims = (
+            (await session.execute(select(Claim).where(Claim.check_id == check_id)))
+            .scalars()
+            .all()
+        )
+        if existing_claims:
+            existing_claim_ids = [c.id for c in existing_claims]
+            await session.execute(
+                delete(Evidence).where(Evidence.claim_id.in_(existing_claim_ids))
+            )
+            await session.execute(delete(Claim).where(Claim.check_id == check_id))
+            logger.info(
+                f"Deleted {len(existing_claims)} existing claims before saving final results"
+            )
+
         for claim_data in claims_data:
             # Ensure numeric fields are properly typed (avoid string '0' issues)
             position_val = claim_data.get("position", 0)
