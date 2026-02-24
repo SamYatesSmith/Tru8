@@ -56,8 +56,13 @@ COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 RUN pip install --no-cache /wheels/*
 
-# Remove build dependencies to reduce image size
-RUN apt-get update && apt-get remove -y \
+# Remove build dependencies, keep WeasyPrint runtime libs (cairo, pango, gdk-pixbuf)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    && apt-get remove -y \
     build-essential \
     libcairo2-dev \
     pkg-config \

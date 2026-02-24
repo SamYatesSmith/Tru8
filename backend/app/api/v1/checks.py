@@ -4,9 +4,8 @@ from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from pydantic import BaseModel
-from xhtml2pdf import pisa
+import weasyprint
 from jinja2 import Environment, FileSystemLoader
-from io import BytesIO
 from app.core.database import get_session
 from app.core.auth import get_current_user, get_current_user_sse
 from app.core.config import settings
@@ -1743,16 +1742,9 @@ async def export_check_pdf(
         logger.error(f"Template rendering failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate PDF template")
 
-    # Generate PDF with xhtml2pdf
+    # Generate PDF with WeasyPrint
     try:
-        pdf_buffer = BytesIO()
-        pisa_status = pisa.CreatePDF(html_content, dest=pdf_buffer, encoding="utf-8")
-
-        if pisa_status.err:
-            raise Exception(f"PDF generation error: {pisa_status.err}")
-
-        pdf_bytes = pdf_buffer.getvalue()
-        pdf_buffer.close()
+        pdf_bytes = weasyprint.HTML(string=html_content).write_pdf()
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
         raise HTTPException(
