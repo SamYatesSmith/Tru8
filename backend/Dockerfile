@@ -1,5 +1,5 @@
 # Tru8 API - Production Dockerfile (CPU-only PyTorch)
-# Optimized for smaller image size on Fly.io
+# Optimized for Railway deployment
 
 # ==============================================================================
 # Stage 1: Builder - Install dependencies and build wheels
@@ -99,7 +99,7 @@ ENV PYTHONUNBUFFERED=1 \
 EXPOSE 8000
 
 # Health check - increased start period for model download
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/api/v1/health || exit 1
 
 # Run with entrypoint for model download

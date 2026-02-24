@@ -1,4 +1,6 @@
-version: '3.8'
+# Local development services for Tru8
+# Usage: docker-compose up -d
+# With MinIO: docker-compose --profile storage up -d
 
 services:
   postgres:
@@ -56,19 +58,8 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-
-  # Optional: Celery Flower for monitoring
-  flower:
-    image: mher/flower:2.0
-    ports:
-      - "5555:5555"
-    environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      FLOWER_PORT: 5555
-    depends_on:
-      - redis
     profiles:
-      - monitoring
+      - storage
 
 volumes:
   postgres_data:

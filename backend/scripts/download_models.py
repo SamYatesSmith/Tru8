@@ -1,24 +1,14 @@
 #!/usr/bin/env python3
 """
-Pre-download ML models to persistent volume on first startup.
+Pre-download ML models on first startup.
 
-This script runs as part of the container entrypoint to ensure models
-are downloaded to the Fly.io volume before the app starts serving requests.
-Models are cached on the volume so subsequent startups are instant.
-
-NOTE: Only the Celery worker needs ML models. The web process (uvicorn)
-only serves the API and delegates ML inference to the worker.
+Models are cached so subsequent startups are instant (~200MB total).
+Pipeline runs models inline — always download if not cached.
 """
 import os
 import sys
 
 HF_HOME = os.environ.get("HF_HOME", "/models/huggingface")
-
-
-def is_worker_process():
-    """Check if this is the Celery worker process (needs ML models)."""
-    # Check command line args for celery
-    return any("celery" in arg.lower() for arg in sys.argv)
 
 
 def models_cached():
@@ -52,12 +42,6 @@ def download_models():
 
 
 if __name__ == "__main__":
-    # Check if this is the web process (uvicorn) - skip model download
-    # Web process only serves API, worker handles ML inference
-    if not is_worker_process():
-        print("Web process detected - skipping ML model download (worker handles ML).")
-        sys.exit(0)
-
     if models_cached():
         print("Models already cached on volume, skipping download.")
         sys.exit(0)

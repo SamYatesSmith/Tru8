@@ -3,12 +3,14 @@ set -e
 
 echo "=== Tru8 API Container Startup ==="
 
-# Download models to persistent volume if not already cached
-# Pass the command ($1) so the script can detect if this is worker or web
+echo "Running database migrations..."
+cd /app
+python -m alembic upgrade head || {
+    echo "WARNING: Migration failed (database may not be ready yet). Continuing..."
+}
+
 echo "Checking ML model cache..."
-python scripts/download_models.py "$1"
+python scripts/download_models.py
 
 echo "Starting application..."
-
-# Execute the main command (uvicorn or celery)
 exec "$@"
