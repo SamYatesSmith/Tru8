@@ -251,11 +251,11 @@ MCP_SERVER_CARD = {
     "tools": [
         {
             "name": "tru8_check_claim",
-            "description": "Full evidence research (60-120s). Extract, retrieve, decompose, map.",
+            "description": "Full evidence research (typically 60-120s). Extract, retrieve, decompose, map.",
         },
         {
             "name": "tru8_quick_check",
-            "description": "Fast evidence scan (12-18s). Triage: retrieve and classify only.",
+            "description": "Fast evidence scan (typically 15-30s). Triage: retrieve and classify only.",
         },
         {
             "name": "tru8_get_result",

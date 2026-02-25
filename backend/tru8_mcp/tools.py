@@ -113,10 +113,14 @@ class Tru8APIClient:
 
                     elif event_type == "awaiting_selection":
                         check_id = check_id or data.get("checkId")
-                        # Extract claim positions from the SSE event
+                        # Extract claim positions, preferring highest-ranked
                         claims = data.get("claims", [])
+                        claims_sorted = sorted(
+                            claims,
+                            key=lambda c: c.get("significance_rank", 999),
+                        )
                         claim_positions = [
-                            c.get("position", i) for i, c in enumerate(claims)
+                            c.get("position", i) for i, c in enumerate(claims_sorted)
                         ]
                         awaiting_selection = True
                         break

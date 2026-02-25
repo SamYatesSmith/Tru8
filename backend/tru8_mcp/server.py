@@ -62,9 +62,9 @@ async def tru8_check_claim(text: str) -> str:
     and exactly which sources say what.
 
     DO NOT USE THIS for a quick "does evidence exist?" scan — use
-    tru8_quick_check instead (6x faster, less depth).
+    tru8_quick_check instead (significantly faster, less depth).
 
-    Pipeline (60-120s): extract claims → retrieve evidence from multiple
+    Pipeline (typically 60-120s): extract claims → retrieve evidence from multiple
     independent sources → decompose each claim into verifiable elements →
     map evidence to elements with relationship labels.
 
@@ -105,7 +105,7 @@ async def tru8_quick_check(text: str) -> str:
     DO NOT USE THIS when you need element-level analysis, evidence-to-claim
     mapping, or relationship labels — use tru8_check_claim instead.
 
-    Pipeline (12-18s): extract claims → retrieve evidence → classify sources
+    Pipeline (typically 15-30s): extract → retrieve → filter → classify
     by tier and type. Skips element decomposition and evidence mapping.
 
     Output structure:

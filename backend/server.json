@@ -5,12 +5,14 @@
   "description": "Structured evidence research for AI agents. Ground factual claims in source-traced evidence organized by tier (primary data / news reporting / commentary) and type (data / official / news / analysis / opinion / academic). Returns element decomposition with relationship mapping (supports / challenges / context).",
   "version": "1.0.0",
   "websiteUrl": "https://tru8.app/developers",
+  "_note_repository": "Make repo public before submitting to MCP Registry",
   "repository": {
     "url": "https://github.com/SamYatesSmith/Tru8",
     "source": "github"
   },
   "packages": [
     {
+      "_note_package": "Publish to PyPI before submitting to MCP Registry",
       "registryType": "pip",
       "identifier": "tru8-mcp",
       "version": "1.0.0",
@@ -38,11 +40,11 @@
   "tools": [
     {
       "name": "tru8_check_claim",
-      "description": "Ground a claim or article in structured evidence (60-120s). Full pipeline: extract, retrieve, decompose into elements, map evidence with relationship labels. Returns source-tiered evidence, element states, orientation, and computed analytics."
+      "description": "Ground a claim or article in structured evidence (typically 60-120s). Full pipeline: extract, retrieve, decompose into elements, map evidence with relationship labels. Returns source-tiered evidence, element states, orientation, and computed analytics."
     },
     {
       "name": "tru8_quick_check",
-      "description": "Fast evidence scan (12-18s). Triage tool: extract claims, retrieve and classify sources by tier/type. No element decomposition or mapping. Use to check if evidence exists before committing to full analysis."
+      "description": "Fast evidence scan (typically 15-30s). Triage tool: extract claims, retrieve and classify sources by tier/type. No element decomposition or mapping. Use to check if evidence exists before committing to full analysis."
     },
     {
       "name": "tru8_get_result",

@@ -22,10 +22,10 @@ Docs: https://tru8.app/developers
 
 ## Pipeline Modes
 
-- mode: "full" (default) — 60-120s. Extract → retrieve → decompose → map evidence.
+- mode: "full" (default) — typically 60-120s. Extract → retrieve → decompose → map evidence.
   Returns claims with elements, evidence refs, relationship labels, orientation.
-- mode: "snapshot" — 12-18s. Extract → retrieve only. Claims with raw evidence,
-  no decomposition or mapping. Use for triage.
+- mode: "snapshot" — typically 15-30s. Extract → retrieve → filter → classify.
+  Claims with raw evidence, no decomposition or mapping. Use for triage.
 
 ## Evidence Model
 
@@ -50,7 +50,7 @@ analytical scores), timeline (date range, gaps), perClaim (dispositions).
 
 ## MCP Server
 
-Package: tru8_mcp (pip install)
+Package: tru8_mcp (not yet published — run from source)
 Run: python -m tru8_mcp
 Env: TRU8_API_KEY (required), TRU8_API_URL (optional)
 

@@ -161,7 +161,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                   map evidence to elements with relationship labels.
                 </p>
                 <div className="font-mono text-xs text-zinc-400">
-                  60–120s · mode: &quot;full&quot; (default)
+                  typically 60–120s · mode: &quot;full&quot; (default)
                 </div>
               </div>
 
@@ -175,7 +175,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                   Raw evidence with tier and type classification.
                 </p>
                 <div className="font-mono text-xs text-zinc-400">
-                  12–18s · mode: &quot;snapshot&quot;
+                  typically 15–30s · mode: &quot;snapshot&quot;
                 </div>
               </div>
             </div>
@@ -204,12 +204,12 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 {
                   name: 'tru8_check_claim',
                   desc: 'Full evidence research — claims, elements, evidence maps, computed analytics',
-                  time: '60–120s',
+                  time: '~60–120s',
                 },
                 {
                   name: 'tru8_quick_check',
                   desc: 'Fast evidence snapshot — claims with raw evidence, no decomposition',
-                  time: '12–18s',
+                  time: '~15–30s',
                 },
                 {
                   name: 'tru8_get_result',

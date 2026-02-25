@@ -1241,7 +1241,7 @@ async def get_check(
             }
         )
 
-    return {
+    response = {
         "id": check.id,
         "inputType": check.input_type,
         "inputContent": json.loads(check.input_content),
