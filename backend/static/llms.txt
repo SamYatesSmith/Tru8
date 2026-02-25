@@ -1,0 +1,72 @@
+# Tru8 Evidence Research API
+
+> Structured evidence research for AI agents. Submit a claim or URL, get back
+> source-traced evidence organized by tier and type, with element decomposition
+> and relationship mapping.
+
+## API Base
+
+https://api.tru8.app
+
+## Authentication
+
+Header: X-API-Key: <your_key>
+Keys: POST /api/v1/api-keys (requires JWT)
+Docs: https://tru8.app/developers
+
+## Core Workflow
+
+1. POST /api/v1/checks/stream — submit claim or URL, returns SSE progress stream
+2. GET /api/v1/checks/{id} — retrieve completed result
+3. GET /api/v1/checks/{id}?computed=true — result with pre-computed analytics
+
+## Pipeline Modes
+
+- mode: "full" (default) — 60-120s. Extract → retrieve → decompose → map evidence.
+  Returns claims with elements, evidence refs, relationship labels, orientation.
+- mode: "snapshot" — 12-18s. Extract → retrieve only. Claims with raw evidence,
+  no decomposition or mapping. Use for triage.
+
+## Evidence Model
+
+Sources classified on two axes:
+- Tier: primary (original data/measurements) | reporting (news coverage) | commentary (opinion/analysis)
+- Type: data | official | news | analysis | opinion | academic
+
+Each claim is decomposed into verifiable elements. Evidence is mapped to elements
+with relationship labels: supports | challenges | context.
+
+Element states (derived mechanically, no editorial judgment):
+- supported — preponderance of evidence supports this element
+- disputed — conflicting evidence exists
+- unresolved — insufficient evidence to determine
+
+## Computed Analytics (?computed=true)
+
+Adds a _computed block: summary (element state counts, coverage gaps),
+evidenceByTier, evidenceByType, heatmap (tier×type matrix), corroboration
+(evidence groups citing same facts), diagnosticValues (per-evidence
+analytical scores), timeline (date range, gaps), perClaim (dispositions).
+
+## MCP Server
+
+Package: tru8_mcp (pip install)
+Run: python -m tru8_mcp
+Env: TRU8_API_KEY (required), TRU8_API_URL (optional)
+
+Tools:
+- tru8_check_claim(text) — full evidence research, returns result with analytics
+- tru8_quick_check(text) — fast evidence scan, returns raw evidence
+- tru8_get_result(check_id) — retrieve result with computed analytics
+- tru8_get_result_raw(check_id) — retrieve result without computed analytics
+
+## Rate Limits
+
+- General: 60 req/min
+- Check creation: 10 req/min
+
+## OpenAPI
+
+- Swagger: https://api.tru8.app/api/docs
+- ReDoc: https://api.tru8.app/api/redoc
+- Spec: https://api.tru8.app/api/openapi.json

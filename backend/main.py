@@ -5,7 +5,10 @@ os.environ.setdefault(
 )  # Enable evidence ledger for V2 frozen replay
 
 from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI, Request
+from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 import sentry_sdk
@@ -218,4 +221,62 @@ app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["webhooks"]
 
 @app.get("/")
 async def root():
-    return {"name": "Tru8 API", "version": "0.1.0", "status": "operational"}
+    return {"name": "Tru8 API", "version": "1.0.0", "status": "operational"}
+
+
+# MCP Discovery (SEP-1649 draft) — allows agents to find the MCP server
+# by probing the API host at a well-known path.
+MCP_SERVER_CARD = {
+    "version": "1.0",
+    "protocolVersion": "2025-06-18",
+    "serverInfo": {
+        "name": "io.tru8/mcp-server",
+        "title": "Tru8 Evidence Research",
+        "version": "1.0.0",
+    },
+    "description": (
+        "Structured evidence research. Ground factual claims in source-traced "
+        "evidence organized by tier (primary/reporting/commentary) and type "
+        "(data/official/news/analysis/opinion/academic), with element "
+        "decomposition and relationship mapping (supports/challenges/context)."
+    ),
+    "documentationUrl": "https://tru8.app/developers",
+    "capabilities": {
+        "tools": {"listChanged": False},
+    },
+    "authentication": {
+        "required": True,
+        "schemes": ["apiKey"],
+    },
+    "tools": [
+        {
+            "name": "tru8_check_claim",
+            "description": "Full evidence research (60-120s). Extract, retrieve, decompose, map.",
+        },
+        {
+            "name": "tru8_quick_check",
+            "description": "Fast evidence scan (12-18s). Triage: retrieve and classify only.",
+        },
+        {
+            "name": "tru8_get_result",
+            "description": "Retrieve completed check with computed analytics.",
+        },
+        {
+            "name": "tru8_get_result_raw",
+            "description": "Retrieve raw check data without computed analytics.",
+        },
+    ],
+}
+
+
+@app.get("/.well-known/mcp/server-card.json", include_in_schema=False)
+async def mcp_server_card():
+    """MCP server discovery endpoint (SEP-1649 draft)."""
+    return MCP_SERVER_CARD
+
+
+@app.get("/llms.txt", include_in_schema=False)
+async def llms_txt():
+    """Machine-readable API description for autonomous agents."""
+    llms_path = Path(__file__).parent / "static" / "llms.txt"
+    return PlainTextResponse(llms_path.read_text(), media_type="text/plain")

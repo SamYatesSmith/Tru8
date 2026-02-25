@@ -2,11 +2,11 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.tru8/mcp-server",
   "title": "Tru8 Evidence Research",
-  "description": "Structured evidence research for AI agents. Submit claims or URLs, retrieve evidence organized by source tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic), with element decomposition and relationship mapping (supports/challenges/context).",
+  "description": "Structured evidence research for AI agents. Ground factual claims in source-traced evidence organized by tier (primary data / news reporting / commentary) and type (data / official / news / analysis / opinion / academic). Returns element decomposition with relationship mapping (supports / challenges / context).",
   "version": "1.0.0",
   "websiteUrl": "https://tru8.app/developers",
   "repository": {
-    "url": "https://github.com/tru8/mcp-server",
+    "url": "https://github.com/SamYatesSmith/Tru8",
     "source": "github"
   },
   "packages": [
@@ -23,7 +23,7 @@
           "name": "TRU8_API_KEY",
           "isRequired": true,
           "isSecret": true,
-          "description": "Tru8 API key (tru8_sk_...). Create at dashboard → Settings → Developer."
+          "description": "Tru8 API key (tru8_sk_...). Create at dashboard Settings > Developer. Store in env vars, never hardcode."
         },
         {
           "name": "TRU8_API_URL",
@@ -38,19 +38,19 @@
   "tools": [
     {
       "name": "tru8_check_claim",
-      "description": "Submit text or URL for full evidence research (60-120s). Returns claims, elements, evidence maps, and computed analytics."
+      "description": "Ground a claim or article in structured evidence (60-120s). Full pipeline: extract, retrieve, decompose into elements, map evidence with relationship labels. Returns source-tiered evidence, element states, orientation, and computed analytics."
     },
     {
       "name": "tru8_quick_check",
-      "description": "Quick evidence snapshot (12-18s). Returns claims with raw evidence, no decomposition or mapping."
+      "description": "Fast evidence scan (12-18s). Triage tool: extract claims, retrieve and classify sources by tier/type. No element decomposition or mapping. Use to check if evidence exists before committing to full analysis."
     },
     {
       "name": "tru8_get_result",
-      "description": "Retrieve completed check with pre-computed analytics (tier/type distributions, corroboration, diagnostics)."
+      "description": "Retrieve a completed check with pre-computed analytics: tier/type distributions, corroboration groups, diagnostic values, timeline, per-claim dispositions."
     },
     {
       "name": "tru8_get_result_raw",
-      "description": "Retrieve raw check data without computed analytics."
+      "description": "Retrieve raw check data without computed analytics. Smaller payload for custom post-processing."
     }
   ]
 }
