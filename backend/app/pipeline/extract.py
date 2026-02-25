@@ -725,20 +725,17 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     filtered_count += 1
                     continue
 
-            # Check 2: Ensure entities are resolved (no unresolved pronouns)
-            unresolved_pronouns = [
-                "he ",
-                "she ",
-                "they ",
-                "it ",
-                "this ",
-                "that ",
-                "these ",
-                "those ",
-            ]
-            words_lower = claim_text.lower().split()
-            has_pronoun = any(
-                pronoun.strip() in words_lower for pronoun in unresolved_pronouns
+            # Check 2: Ensure entities are resolved (no unresolved pronouns at start)
+            first_word = claim_text.lower().split()[0] if claim_text.strip() else ""
+            has_pronoun = first_word in (
+                "he",
+                "she",
+                "they",
+                "it",
+                "this",
+                "that",
+                "these",
+                "those",
             )
 
             if has_pronoun:

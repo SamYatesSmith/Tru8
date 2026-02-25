@@ -211,9 +211,9 @@ class BraveSearchProvider(BaseSearchProvider):
             # Cold start detection: First request after worker startup
             if _brave_last_request_time == 0:
                 # Apply warm-up delay to prevent anti-abuse detection
-                wait_time = 10.0  # 10 second warm-up
+                wait_time = 3.0  # 3 second warm-up (reduced from 10s to avoid claim timeout pressure)
                 logger.info(
-                    f"BRAVE COLD START: First request since worker startup - applying 10s warm-up delay"
+                    f"BRAVE COLD START: First request since worker startup - applying 3s warm-up delay"
                 )
             elif time_since_last < self.request_spacing:
                 wait_time = self.request_spacing - time_since_last

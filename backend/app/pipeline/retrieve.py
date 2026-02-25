@@ -915,8 +915,7 @@ class EvidenceRetriever:
                 all_evidence_snippets = evidence_snippets + api_snippets
 
                 # Fix 0c: Cap combined evidence before expensive ranking
-                # Reduced from 50 to 30: focus on quality, not quantity
-                MAX_EVIDENCE_FOR_RANKING = 30
+                MAX_EVIDENCE_FOR_RANKING = 60
                 if len(all_evidence_snippets) > MAX_EVIDENCE_FOR_RANKING:
                     logger.info(
                         f"[EVIDENCE CAP] Reducing {len(all_evidence_snippets)} items to {MAX_EVIDENCE_FOR_RANKING} before ranking"
@@ -1765,10 +1764,7 @@ class EvidenceRetriever:
                 )
 
             # Fix 0b: Cap total API evidence per claim
-            # Reduced from 30 to 10: analyzer has limited context, quality over quantity
-            MAX_API_EVIDENCE_PER_CLAIM = (
-                5  # Reduced: API evidence supplements web search
-            )
+            MAX_API_EVIDENCE_PER_CLAIM = 12
             if len(all_api_evidence) > MAX_API_EVIDENCE_PER_CLAIM:
                 logger.info(
                     f"[API CAP] Reducing {len(all_api_evidence)} API items to {MAX_API_EVIDENCE_PER_CLAIM}"
