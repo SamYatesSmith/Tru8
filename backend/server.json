@@ -1,0 +1,56 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.tru8/mcp-server",
+  "title": "Tru8 Evidence Research",
+  "description": "Structured evidence research for AI agents. Submit claims or URLs, retrieve evidence organized by source tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic), with element decomposition and relationship mapping (supports/challenges/context).",
+  "version": "1.0.0",
+  "websiteUrl": "https://tru8.app/developers",
+  "repository": {
+    "url": "https://github.com/tru8/mcp-server",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pip",
+      "identifier": "tru8-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [],
+      "environmentVariables": [
+        {
+          "name": "TRU8_API_KEY",
+          "isRequired": true,
+          "isSecret": true,
+          "description": "Tru8 API key (tru8_sk_...). Create at dashboard → Settings → Developer."
+        },
+        {
+          "name": "TRU8_API_URL",
+          "isRequired": false,
+          "isSecret": false,
+          "description": "API base URL. Default: https://api.tru8.app"
+        }
+      ],
+      "runtimeHint": "python -m tru8_mcp"
+    }
+  ],
+  "tools": [
+    {
+      "name": "tru8_check_claim",
+      "description": "Submit text or URL for full evidence research (60-120s). Returns claims, elements, evidence maps, and computed analytics."
+    },
+    {
+      "name": "tru8_quick_check",
+      "description": "Quick evidence snapshot (12-18s). Returns claims with raw evidence, no decomposition or mapping."
+    },
+    {
+      "name": "tru8_get_result",
+      "description": "Retrieve completed check with pre-computed analytics (tier/type distributions, corroboration, diagnostics)."
+    },
+    {
+      "name": "tru8_get_result_raw",
+      "description": "Retrieve raw check data without computed analytics."
+    }
+  ]
+}

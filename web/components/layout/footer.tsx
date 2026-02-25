@@ -8,6 +8,7 @@ export function Footer() {
     { label: 'Features', href: '/#features' },
     { label: 'Pricing', href: '/#pricing' },
     { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Developers', href: '/developers' },
   ];
 
   const companyLinks = [

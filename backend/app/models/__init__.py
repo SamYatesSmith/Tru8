@@ -11,6 +11,8 @@ from .claim_map import (
     EvidenceRef,
 )
 from .video_recommendation import VideoRecommendation
+from .api_key import APIKey
+from .webhook import Webhook
 
 __all__ = [
     "User",
@@ -28,4 +30,6 @@ __all__ = [
     "ClaimMapMetadata",
     "EvidenceRef",
     "VideoRecommendation",
+    "APIKey",
+    "Webhook",
 ]

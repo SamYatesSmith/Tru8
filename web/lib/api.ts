@@ -551,6 +551,65 @@ class ApiClient {
   }
 
   // ============================================================================
+  // API Key Management (JWT auth only — dashboard actions)
+  // ============================================================================
+
+  /**
+   * POST /api/v1/api-keys
+   * Create a new API key. Raw key returned once — cannot be retrieved later.
+   */
+  async createAPIKey(
+    data: { name: string },
+    token?: string | null
+  ): Promise<{
+    id: string;
+    key: string;
+    key_prefix: string;
+    name: string;
+    created_at: string;
+  }> {
+    return this.request('/api/v1/api-keys', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, token);
+  }
+
+  /**
+   * GET /api/v1/api-keys
+   * List all API keys for current user. Raw keys never returned.
+   */
+  async listAPIKeys(token?: string | null): Promise<{
+    keys: Array<{
+      id: string;
+      key_prefix: string;
+      name: string;
+      is_active: boolean;
+      last_used_at: string | null;
+      usage_count: number;
+      created_at: string;
+    }>;
+  }> {
+    return this.request('/api/v1/api-keys', {}, token);
+  }
+
+  /**
+   * DELETE /api/v1/api-keys/{key_id}
+   * Revoke an API key. Takes effect immediately.
+   */
+  async revokeAPIKey(keyId: string, token?: string | null): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/api/v1/api-keys/${keyId}`, {
+      method: 'DELETE',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+      throw new Error(error.detail || `API error: ${response.status}`);
+    }
+  }
+
+  // ============================================================================
   // Email Notification Preferences
   // ============================================================================
 

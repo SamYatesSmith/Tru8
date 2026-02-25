@@ -1,10 +1,19 @@
 from typing import Optional
 from fastapi import Depends, HTTPException, status, Request, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, text
+import hashlib
+import asyncio
 import httpx
 import jwt
+import logging
 from jwt import PyJWKClient
+from datetime import datetime
 from app.core.config import settings
+from app.core.database import get_session, async_session
+
+logger = logging.getLogger(__name__)
 
 security = HTTPBearer()
 
@@ -13,104 +22,111 @@ jwks_client = PyJWKClient(
     f"https://{settings.CLERK_JWT_ISSUER}/.well-known/jwks.json",
     cache_keys=True,
     max_cached_keys=16,
-    cache_jwk_set=300  # Cache for 5 minutes, then refresh
+    cache_jwk_set=300,  # Cache for 5 minutes, then refresh
 )
+
+API_KEY_PREFIX = "tru8_sk_"
+
+
+# ---------------------------------------------------------------------------
+# JWT verification (unchanged)
+# ---------------------------------------------------------------------------
+
 
 async def _verify_jwt_token(token: str) -> dict:
     """Shared JWT verification logic"""
     try:
-        # Get the signing key from Clerk's JWKS
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-        # Verify and decode the token with correct issuer
-        # Add leeway to tolerate clock skew between client and server (up to 60 seconds)
         expected_issuer = f"https://{settings.CLERK_JWT_ISSUER}"
         payload = jwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
             issuer=expected_issuer,
-            leeway=60,  # Allow 60 seconds of clock skew
-            options={"verify_aud": False}  # Clerk doesn't use aud claim
+            leeway=60,
+            options={"verify_aud": False},
         )
 
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
         )
     except jwt.InvalidTokenError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}"
         )
 
-async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+
+async def verify_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> dict:
     return await _verify_jwt_token(credentials.credentials)
+
+
+# ---------------------------------------------------------------------------
+# Clerk user data fetch (unchanged)
+# ---------------------------------------------------------------------------
+
 
 async def _fetch_user_data_from_clerk(user_id: str, token_payload: dict) -> dict:
     """
-    Shared helper to fetch user email and name from JWT or Clerk API.
+    Fetch user email and name from JWT claims or Clerk API.
 
-    Fetches user data with fallback strategies:
-    1. Try to get email/name from JWT token
-    2. If missing, fetch from Clerk API
-    3. Use multiple fallback strategies for name extraction
-
-    Args:
-        user_id: Clerk user ID from JWT 'sub' claim
-        token_payload: Decoded JWT payload (may contain email/name)
-
-    Returns:
-        Dict with id, email, name
+    Fallback chain: JWT fields → Clerk API → email prefix.
     """
-    # Try to get email and name from token, but they might not be there if JWT template isn't configured
     email = token_payload.get("email")
     name = token_payload.get("name")
 
-    # If email or name is missing from JWT, fetch from Clerk's API
     if not email or not name:
         try:
-            # Fetch user details from Clerk API
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     f"https://api.clerk.com/v1/users/{user_id}",
                     headers={
                         "Authorization": f"Bearer {settings.CLERK_SECRET_KEY}",
-                        "Content-Type": "application/json"
-                    }
+                        "Content-Type": "application/json",
+                    },
                 )
                 if response.status_code == 200:
                     user_data = response.json()
 
-                    # Get email if missing
                     if not email:
-                        email = user_data.get("email_addresses", [{}])[0].get("email_address")
+                        email = user_data.get("email_addresses", [{}])[0].get(
+                            "email_address"
+                        )
 
-                    # Get name if missing - try multiple fallback strategies
                     if not name:
-                        first_name = user_data.get('first_name', '').strip() if user_data.get('first_name') else ''
-                        last_name = user_data.get('last_name', '').strip() if user_data.get('last_name') else ''
+                        first_name = (
+                            user_data.get("first_name", "").strip()
+                            if user_data.get("first_name")
+                            else ""
+                        )
+                        last_name = (
+                            user_data.get("last_name", "").strip()
+                            if user_data.get("last_name")
+                            else ""
+                        )
 
-                        # Strategy 1: Use first_name + last_name
                         if first_name or last_name:
                             name = f"{first_name} {last_name}".strip()
 
-                        # Strategy 2: Use username if available
                         if not name:
-                            username = user_data.get('username')
+                            username = user_data.get("username")
                             if username:
                                 name = username
 
-                        # Strategy 3: Use email prefix (part before @)
                         if not name and email:
-                            name = email.split('@')[0].replace('.', ' ').replace('_', ' ').title()
+                            name = (
+                                email.split("@")[0]
+                                .replace(".", " ")
+                                .replace("_", " ")
+                                .title()
+                            )
                 else:
-                    # Failed to get user data from Clerk API
                     pass
         except Exception as e:
-            # Error fetching from Clerk API, continue with what we have
             pass
 
     return {
@@ -119,58 +135,198 @@ async def _fetch_user_data_from_clerk(user_id: str, token_payload: dict) -> dict
         "name": name,
     }
 
+
+# ---------------------------------------------------------------------------
+# API key verification
+# ---------------------------------------------------------------------------
+
+
+def _hash_api_key(raw_key: str) -> str:
+    """SHA-256 hash — used for storage and lookup. Raw key is never persisted."""
+    return hashlib.sha256(raw_key.encode()).hexdigest()
+
+
+async def _verify_api_key(raw_key: str, session: AsyncSession) -> dict:
+    """
+    Verify an API key and return a user dict identical in shape to JWT auth.
+
+    Looks up the key hash, checks active/expiry status, resolves the owning
+    user from our DB (no Clerk call needed — user already exists).
+    """
+    from app.models.api_key import APIKey
+    from app.models.user import User
+
+    if not raw_key.startswith(API_KEY_PREFIX):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    key_hash = _hash_api_key(raw_key)
+
+    result = await session.execute(
+        select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active == True)
+    )
+    key_record = result.scalar_one_or_none()
+
+    if not key_record:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    if key_record.expires_at and key_record.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=401, detail="API key has expired")
+
+    user_result = await session.execute(
+        select(User).where(User.id == key_record.user_id)
+    )
+    user = user_result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    # Best-effort usage tracking — separate session so it never blocks the request
+    asyncio.create_task(_record_api_key_usage(key_record.id))
+
+    return {"id": user.id, "email": user.email, "name": user.name}
+
+
+async def _record_api_key_usage(key_id: str):
+    """Background: increment usage_count and touch last_used_at."""
+    try:
+        async with async_session() as session:
+            await session.execute(
+                text(
+                    "UPDATE api_key SET last_used_at = :now, usage_count = usage_count + 1 "
+                    "WHERE id = :id"
+                ),
+                {"now": datetime.utcnow(), "id": key_id},
+            )
+            await session.commit()
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Auth dependencies — JWT only (unchanged, used by upload + key management)
+# ---------------------------------------------------------------------------
+
+
 async def get_current_user(token_payload: dict = Depends(verify_token)) -> dict:
     """
-    Get current user from JWT token (standard Bearer auth).
-
-    Used by most endpoints that require authentication.
-    Extracts user ID from token and fetches user data from Clerk.
+    JWT-only auth. Used by endpoints that should never accept API keys
+    (file upload, API key management).
     """
     user_id = token_payload.get("sub")
     if not user_id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
         )
 
     return await _fetch_user_data_from_clerk(user_id, token_payload)
 
-async def get_current_user_sse(request: Request, token: Optional[str] = Query(None)) -> dict:
+
+async def get_current_user_sse(
+    request: Request, token: Optional[str] = Query(None)
+) -> dict:
     """
-    Get current user for SSE endpoints that support both header and query param auth.
-
-    EventSource doesn't support custom headers, so we allow token via query parameter.
-    This is required for real-time SSE progress updates.
-
-    Accepts token from:
-    1. Query parameter: ?token=xxx (for EventSource compatibility)
-    2. Authorization header: Bearer xxx (fallback)
+    JWT-only SSE auth. Kept for backwards compatibility — only used by
+    endpoints that don't need API key support (currently none, but available).
     """
     jwt_token = None
 
-    # Try to get token from query parameter first (for SSE)
     if token:
         jwt_token = token
     else:
-        # Fallback to Authorization header
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
-            jwt_token = auth_header[7:]  # Remove "Bearer " prefix
+            jwt_token = auth_header[7:]
 
     if not jwt_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No authentication token provided"
+            detail="No authentication token provided",
         )
 
-    # Verify the token using shared logic
     payload = await _verify_jwt_token(jwt_token)
 
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
         )
 
     return await _fetch_user_data_from_clerk(user_id, payload)
+
+
+# ---------------------------------------------------------------------------
+# Dual auth dependencies — JWT or API key (new, used by most check endpoints)
+# ---------------------------------------------------------------------------
+
+
+async def get_current_user_or_api_key(
+    request: Request,
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    """
+    Dual auth: Clerk JWT (Authorization: Bearer) or API key (X-API-Key).
+
+    Dashboard sends JWT. Agent/developer consumers send API key.
+    Returns the same {id, email, name} dict regardless of auth method.
+    """
+    # Bearer JWT
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        jwt_token = auth_header[7:]
+        payload = await _verify_jwt_token(jwt_token)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        return await _fetch_user_data_from_clerk(user_id, payload)
+
+    # API key
+    api_key = request.headers.get("X-API-Key")
+    if api_key:
+        return await _verify_api_key(api_key, session)
+
+    raise HTTPException(
+        status_code=401,
+        detail="Authentication required. Use Authorization: Bearer <jwt> or X-API-Key: <key>.",
+    )
+
+
+async def get_current_user_or_api_key_sse(
+    request: Request,
+    token: Optional[str] = Query(None),
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    """
+    Dual auth for SSE/streaming endpoints.
+
+    Accepts (in priority order):
+    1. ?token=<jwt>  — EventSource can't set headers, so JWT goes in query param
+    2. Authorization: Bearer <jwt>
+    3. X-API-Key: <key>  — agents use standard HTTP clients, not EventSource
+    """
+    # JWT from query param (EventSource compatibility)
+    if token:
+        payload = await _verify_jwt_token(token)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        return await _fetch_user_data_from_clerk(user_id, payload)
+
+    # Bearer JWT from header
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        jwt_token = auth_header[7:]
+        payload = await _verify_jwt_token(jwt_token)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        return await _fetch_user_data_from_clerk(user_id, payload)
+
+    # API key from header
+    api_key = request.headers.get("X-API-Key")
+    if api_key:
+        return await _verify_api_key(api_key, session)
+
+    raise HTTPException(
+        status_code=401,
+        detail="No authentication provided.",
+    )

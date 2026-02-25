@@ -4,10 +4,14 @@ from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from pydantic import BaseModel
-import weasyprint
 from jinja2 import Environment, FileSystemLoader
 from app.core.database import get_session
-from app.core.auth import get_current_user, get_current_user_sse
+from app.core.auth import (
+    get_current_user,
+    get_current_user_sse,
+    get_current_user_or_api_key,
+    get_current_user_or_api_key_sse,
+)
 from app.core.config import settings
 from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription
 from datetime import datetime, timezone
@@ -133,7 +137,7 @@ def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
 router = APIRouter()
 
 
-@router.get("/test/search-diagnostic")
+@router.get("/test/search-diagnostic", include_in_schema=False)
 async def test_search_diagnostic():
     """
     DIAGNOSTIC ENDPOINT: Test if Brave Search API is working.
@@ -186,7 +190,7 @@ async def test_search_diagnostic():
     return results
 
 
-@router.get("/test/full-diagnostic")
+@router.get("/test/full-diagnostic", include_in_schema=False)
 async def test_full_diagnostic():
     """
     COMPREHENSIVE DIAGNOSTIC: Test web search AND API adapters.
@@ -314,6 +318,9 @@ class CreateCheckRequest(BaseModel):
     url: Optional[str] = None
     file_path: Optional[str] = None  # For uploaded files
     user_query: Optional[str] = None  # Search Clarity feature
+    mode: Optional[str] = (
+        "full"  # 'full' (default) or 'snapshot' (skip decompose + analyze)
+    )
     frozen_evidence: Optional[Dict[str, List[Dict[str, Any]]]] = (
         None  # Frozen evidence replay (v2): full pre-weighting evidence dicts
     )
@@ -324,7 +331,7 @@ class CreateCheckRequest(BaseModel):
 async def upload_file(
     request: Request,  # Required for rate limiting
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),  # JWT only — human dashboard action
 ):
     """Upload a file for fact-checking (images only)"""
 
@@ -372,7 +379,7 @@ async def upload_file(
         raise HTTPException(status_code=500, detail="Failed to save uploaded file")
 
 
-@router.get("/test/stream-mock", status_code=200)
+@router.get("/test/stream-mock", status_code=200, include_in_schema=False)
 async def test_stream_mock():
     """
     Mock streaming endpoint for testing SSE mechanism.
@@ -421,7 +428,7 @@ async def test_stream_mock():
     )
 
 
-@router.get("/test/{check_id}")
+@router.get("/test/{check_id}", include_in_schema=False)
 async def get_check_test(check_id: str, session: AsyncSession = Depends(get_session)):
     """TEST-ONLY ENDPOINT: Get check status without authentication (DEBUG mode only)"""
     if not settings.DEBUG:
@@ -495,7 +502,7 @@ class CreateCheckTestStreamRequest(BaseModel):
     url: Optional[str] = None
 
 
-@router.post("/test/stream", status_code=200)
+@router.post("/test/stream", status_code=200, include_in_schema=False)
 async def create_check_test_streaming(
     body: CreateCheckTestStreamRequest, session: AsyncSession = Depends(get_session)
 ):
@@ -646,21 +653,35 @@ async def create_check_test_streaming(
     )
 
 
-@router.post("/stream", status_code=200)
+@router.post("/stream", status_code=200, summary="Submit content for evidence research")
 @limiter.limit("10/minute")
 async def create_check_streaming(
     body: CreateCheckRequest,
     request: Request,
-    current_user: dict = Depends(get_current_user_sse),
+    current_user: dict = Depends(get_current_user_or_api_key_sse),
     session: AsyncSession = Depends(get_session),
 ):
     """
-    Create a new fact-check with inline SSE streaming.
+    Submit a URL or text for evidence research. Returns an SSE stream of
+    pipeline progress events.
 
-    This endpoint runs the pipeline inline (no Celery) and streams progress
-    directly to the client. Eliminates worker infrastructure costs.
+    **Input types:** `url` (article analysis), `text` (direct claim).
 
-    Returns: StreamingResponse with SSE events
+    **Pipeline modes:**
+    - `full` (default) — complete analysis: extract, retrieve, decompose, map evidence (60-120s)
+    - `snapshot` — fast mode: extract + retrieve only, no decomposition or mapping (12-18s).
+      Returns claims with raw evidence but no claim maps or element analysis.
+
+    **SSE events emitted:**
+    - `progress` — stage name, percentage, time estimate
+    - `awaiting_selection` — article mode: claims extracted, awaiting selection
+    - `completed` — pipeline finished, check ID in payload
+    - `error` — pipeline failed
+
+    For URL inputs with multiple claims, the pipeline pauses after extraction.
+    Call `PATCH /checks/{id}/select-claims` to resume with chosen claims.
+
+    **Rate limit:** 10/minute.
     """
     from app.core.database import async_session
     from app.pipeline.progress import ProgressReporter
@@ -816,6 +837,14 @@ async def create_check_streaming(
     await session.commit()
     await session.refresh(check)
 
+    # Validate pipeline mode
+    pipeline_mode = (body.mode or "full").lower()
+    if pipeline_mode not in ("full", "snapshot"):
+        raise HTTPException(
+            status_code=400,
+            detail='Invalid mode. Use "full" (default) or "snapshot".',
+        )
+
     # Prepare input data for pipeline
     input_data = {
         "input_type": body.input_type,
@@ -824,10 +853,26 @@ async def create_check_streaming(
         "file_path": body.file_path,
         "user_query": body.user_query,
         "frozen_evidence": body.frozen_evidence,
+        "mode": pipeline_mode,
     }
 
     # Create progress reporter
     progress_reporter = ProgressReporter(check.id)
+
+    def _fire_webhook_failed(uid: str, cid: str, error_msg: str):
+        """Best-effort webhook dispatch for check.failed events."""
+        try:
+            from app.services.webhooks import dispatch_webhook_event
+
+            asyncio.create_task(
+                dispatch_webhook_event(
+                    uid,
+                    "check.failed",
+                    {"checkId": cid, "status": "failed", "error": error_msg},
+                )
+            )
+        except Exception:
+            pass
 
     async def run_pipeline_and_save():
         """
@@ -907,6 +952,26 @@ async def create_check_streaming(
                 # Signal completion
                 await progress_reporter.report_completed()
                 logger.info(f"[PIPELINE TASK] Check {check.id} fully completed")
+
+                # Fire webhook: check.completed
+                try:
+                    from app.services.webhooks import dispatch_webhook_event
+
+                    asyncio.create_task(
+                        dispatch_webhook_event(
+                            user.id,
+                            "check.completed",
+                            {
+                                "checkId": check.id,
+                                "status": "completed",
+                                "mode": pipeline_mode,
+                                "processingTimeMs": result.get("processing_time_ms"),
+                                "claimsCount": len(result.get("claims", [])),
+                            },
+                        )
+                    )
+                except Exception as we:
+                    logger.debug(f"[PIPELINE TASK] Webhook dispatch skipped: {we}")
             else:
                 logger.info(
                     f"[PIPELINE TASK] Check {check.id} phase 1 complete — "
@@ -921,11 +986,13 @@ async def create_check_streaming(
             await progress_reporter.report_error(
                 "Pipeline timed out. Your credit has been returned."
             )
+            _fire_webhook_failed(user.id, check.id, "Pipeline timed out")
 
         except PipelineError as e:
             logger.error(f"[PIPELINE TASK] Pipeline error for check {check.id}: {e}")
             await handle_pipeline_failure(check.id, user.id, e)
             await progress_reporter.report_error(str(e))
+            _fire_webhook_failed(user.id, check.id, str(e))
 
         except Exception as e:
             logger.error(f"[PIPELINE TASK] Unexpected error for check {check.id}: {e}")
@@ -934,6 +1001,7 @@ async def create_check_streaming(
             logger.error(traceback.format_exc())
             await handle_pipeline_failure(check.id, user.id, e)
             await progress_reporter.report_error(str(e))
+            _fire_webhook_failed(user.id, check.id, str(e))
 
     # Start pipeline as fire-and-forget background task
     # This ensures results are saved even if client disconnects
@@ -982,15 +1050,20 @@ async def create_check_streaming(
     )
 
 
-@router.get("")
-@router.get("/")
+@router.get("", summary="List checks")
+@router.get("/", include_in_schema=False)
 async def get_checks(
     skip: int = 0,
     limit: int = 20,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Get user's check history"""
+    """
+    List the authenticated user's checks, newest first.
+
+    Returns check metadata (ID, status, input type, claim count, timestamps).
+    Use `GET /checks/{id}` for full claim and evidence data.
+    """
     stmt = (
         select(Check)
         .where(Check.user_id == current_user["id"])
@@ -1064,13 +1137,30 @@ async def get_checks(
     return {"checks": check_data, "total": len(checks)}
 
 
-@router.get("/{check_id}")
+@router.get("/{check_id}", summary="Get check with full evidence")
 async def get_check(
     check_id: str,
-    current_user: dict = Depends(get_current_user),
+    computed: bool = False,
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Get a specific check with all claims and evidence"""
+    """
+    Retrieve a completed check with all claims, elements, evidence, and claim maps.
+
+    **Response includes:**
+    - `claims[]` — extracted claims with type, position, element count
+    - `claims[].claimMap` — elements, evidence refs, orientation line
+    - `claims[].evidence[]` — sources with URL, snippet, tier, type, relevance
+    - Check metadata: status, input URL, processing time, stage timings
+
+    **Query params:**
+    - `computed=true` — append `_computed` block with pre-computed analytics
+      (tier/type distributions, corroboration groups, diagnostic values, timeline,
+      element state summaries, per-claim dispositions). Designed for agent consumers
+      who need structured analytics without client-side computation.
+
+    Returns 404 if the check doesn't exist or doesn't belong to the authenticated user.
+    """
     stmt = select(Check).where(
         Check.id == check_id, Check.user_id == current_user["id"]
     )
@@ -1188,6 +1278,14 @@ async def get_check(
         "progressMessage": progress_message,
     }
 
+    # Append pre-computed analytics for agent consumers
+    if computed:
+        from app.services.computed_analytics import compute_analytics
+
+        response["_computed"] = compute_analytics(claims_data)
+
+    return response
+
 
 # ============================================================================
 # CLAIM SELECTION ENDPOINT (Phase 1 → Phase 2 gate)
@@ -1200,21 +1298,24 @@ class SelectClaimsRequest(BaseModel):
     selected_positions: List[int]
 
 
-@router.patch("/{check_id}/select-claims")
+@router.patch("/{check_id}/select-claims", summary="Select claims for analysis")
 async def select_claims(
     check_id: str,
     body: SelectClaimsRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """
-    Select claims for Phase 2 analysis (article mode only).
+    Select claims for full analysis (article mode only).
 
-    After Phase 1 extracts and ranks claims, the frontend presents them
-    to the user. The user selects which claims to investigate, and this
-    endpoint triggers Phase 2 of the pipeline.
+    When a URL/article check pauses with status `waiting_for_selection`,
+    call this endpoint with the positions of claims to investigate.
+    Triggers Phase 2: evidence retrieval, decomposition, and mapping.
 
-    Request body: {"selected_positions": [0, 2, 4]}
+    **Request body:** `{"selected_positions": [0, 2, 4]}`
+
+    Max 5 claims per check. The check resumes streaming progress via
+    `GET /checks/{id}/progress`.
     """
     from app.core.database import async_session as async_session_factory
     from app.pipeline.progress import ProgressReporter
@@ -1366,13 +1467,16 @@ class UpdateBountyRequest(BaseModel):
     text: Optional[str] = None
 
 
-@router.patch("/{check_id}/claims/{claim_id}/elements/{element_id}/bounty")
+@router.patch(
+    "/{check_id}/claims/{claim_id}/elements/{element_id}/bounty",
+    summary="Update element bounty text",
+)
 async def update_bounty_text(
     check_id: str,
     claim_id: str,
     element_id: str,
     body: UpdateBountyRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Update bounty text on a specific claim element (G01: The Seeker)."""
@@ -1445,12 +1549,15 @@ async def update_bounty_text(
 # ============================================================================
 
 
-@router.post("/{check_id}/claims/{claim_id}/elements/{element_id}/research")
+@router.post(
+    "/{check_id}/claims/{claim_id}/elements/{element_id}/research",
+    summary="Start element re-search",
+)
 async def start_element_research(
     check_id: str,
     claim_id: str,
     element_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Start targeted re-search for a single element (G02)."""
@@ -1527,12 +1634,15 @@ async def start_element_research(
     }
 
 
-@router.get("/{check_id}/claims/{claim_id}/elements/{element_id}/research/status")
+@router.get(
+    "/{check_id}/claims/{claim_id}/elements/{element_id}/research/status",
+    summary="Get re-search status",
+)
 async def get_element_research_status(
     check_id: str,
     claim_id: str,
     element_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Get re-search status for a single element (G02)."""
@@ -1555,13 +1665,21 @@ async def get_element_research_status(
     return status
 
 
-@router.get("/{check_id}/progress")
+@router.get("/{check_id}/progress", summary="Stream pipeline progress (SSE)")
 async def stream_check_progress(
     check_id: str,
-    current_user: dict = Depends(get_current_user_sse),
+    current_user: dict = Depends(get_current_user_or_api_key_sse),
     session: AsyncSession = Depends(get_session),
 ):
-    """Stream real-time progress updates via SSE"""
+    """
+    Stream real-time pipeline progress via Server-Sent Events.
+
+    **SSE events:** `progress` (stage/percent), `awaiting_selection`,
+    `completed`, `error`. Connection auto-closes on completion or after 5 min timeout.
+
+    **Auth:** Accepts `X-API-Key` header or `?token=<jwt>` query param
+    (EventSource can't set headers).
+    """
 
     # Verify check belongs to user
     stmt = select(Check).where(
@@ -1670,10 +1788,10 @@ async def stream_check_progress(
     )
 
 
-@router.get("/{check_id}/export/pdf")
+@router.get("/{check_id}/export/pdf", summary="Export check as PDF")
 async def export_check_pdf(
     check_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Export fact-check as PDF report"""
@@ -1742,8 +1860,10 @@ async def export_check_pdf(
         logger.error(f"Template rendering failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate PDF template")
 
-    # Generate PDF with WeasyPrint
+    # Generate PDF with WeasyPrint (lazy import — GTK3 DLLs only needed at PDF time)
     try:
+        import weasyprint
+
         pdf_bytes = weasyprint.HTML(string=html_content).write_pdf()
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
@@ -1781,12 +1901,12 @@ class SourcesResponse(BaseModel):
     filterBreakdown: Optional[dict] = None
 
 
-@router.get("/{check_id}/sources")
+@router.get("/{check_id}/sources", summary="Get all reviewed sources")
 async def get_check_sources(
     check_id: str,
     include_filtered: bool = True,
     sort_by: str = "relevance",  # relevance, date
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Get all sources reviewed for a check (Pro feature).
@@ -1941,11 +2061,11 @@ async def get_check_sources(
 # ============================================================================
 
 
-@router.get("/{check_id}/videos")
+@router.get("/{check_id}/videos", summary="Get video recommendations")
 async def get_check_videos(
     check_id: str,
     claim_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Get video recommendations for a check or specific claim.
@@ -1961,7 +2081,7 @@ async def get_check_videos(
     check = result.scalar_one_or_none()
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
-    if check.user_id != current_user["user_id"]:
+    if check.user_id != current_user["id"]:
         raise HTTPException(status_code=403, detail="Not authorized")
 
     # Query videos
@@ -2000,7 +2120,7 @@ async def get_check_videos(
 # ============================================================================
 
 
-@router.get("/public/{check_id}")
+@router.get("/public/{check_id}", summary="Get public check data (no auth)")
 async def get_public_check(
     check_id: str, detailed: bool = False, session: AsyncSession = Depends(get_session)
 ):
@@ -2188,12 +2308,12 @@ async def get_public_check(
     }
 
 
-@router.get("/{check_id}/sources/export")
+@router.get("/{check_id}/sources/export", summary="Export sources as CSV/BibTeX/APA")
 async def export_check_sources(
     check_id: str,
     format: str = "csv",  # csv, bibtex, apa
     include_filtered: bool = False,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Export sources as CSV, BibTeX, or APA format (Pro feature).

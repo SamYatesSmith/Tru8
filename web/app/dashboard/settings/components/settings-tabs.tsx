@@ -10,6 +10,7 @@ export function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
     { id: 'account', label: 'ACCOUNT' },
     { id: 'subscription', label: 'SUBSCRIPTION' },
     { id: 'notifications', label: 'NOTIFICATIONS' },
+    { id: 'developer', label: 'DEVELOPER' },
   ];
 
   return (

@@ -8,6 +8,7 @@ import { SettingsTabs } from './components/settings-tabs';
 import { AccountTab } from './components/account-tab';
 import { SubscriptionTab } from './components/subscription-tab';
 import { NotificationsTab } from './components/notifications-tab';
+import { DeveloperTab } from './components/developer-tab';
 import { apiClient } from '@/lib/api';
 
 export default function SettingsPage() {
@@ -24,7 +25,7 @@ export default function SettingsPage() {
   // Get active tab from query param
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['account', 'subscription', 'notifications'].includes(tab)) {
+    if (tab && ['account', 'subscription', 'notifications', 'developer'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -130,6 +131,7 @@ export default function SettingsPage() {
           />
         )}
         {activeTab === 'notifications' && <NotificationsTab />}
+        {activeTab === 'developer' && <DeveloperTab />}
       </div>
     </div>
   );

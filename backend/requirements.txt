@@ -38,12 +38,16 @@ Pillow==10.3.0  # Updated from 10.2.0 (CVE-2024-28219)
 beautifulsoup4==4.12.3  # Fact-check parser HTML extraction
 tldextract==5.1.1  # Phase 3: Domain credibility framework
 weasyprint==62.3  # PDF report generation (modern CSS support)
+pydyf>=0.10.0,<0.12  # WeasyPrint PDF backend (0.12 has breaking API change)
 jinja2==3.1.6  # Template engine for PDF reports
 PyPDF2>=3.0.0  # Phase 2: PDF page extraction
 pdfplumber>=0.10.0  # Phase 2: PDF text extraction with page numbers
 
 # Search & Vector
 qdrant-client==1.9.0  # Updated from 1.7.0 (CVE-2024-3829)
+
+# MCP (Model Context Protocol)
+mcp[cli]>=1.0.0  # H-API-07: MCP server for AI agent discovery
 
 # Storage (S3/MinIO)
 boto3==1.34.0

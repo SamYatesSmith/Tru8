@@ -50,6 +50,7 @@ export function Navigation({
               <Link href="/#pricing" className="hover:text-black transition-colors">Pricing</Link>
               <Link href="/blog" className="hover:text-black transition-colors">Blog</Link>
               <Link href="/about" className="hover:text-black transition-colors">About</Link>
+              <Link href="/developers" className="hover:text-black transition-colors">Developers</Link>
             </div>
 
             {/* Right: Auth CTAs */}

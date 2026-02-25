@@ -1,0 +1,23 @@
+# Smithery configuration — https://smithery.ai/docs/config
+# Tru8 MCP server: structured evidence research for AI agents
+
+build:
+  dockerBuildPath: .
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - apiKey
+    properties:
+      apiKey:
+        type: string
+        description: "Tru8 API key (tru8_sk_...). Create at dashboard → Settings → Developer."
+      apiUrl:
+        type: string
+        description: "API base URL. Default: https://api.tru8.app"
+        default: "https://api.tru8.app"
+  commandFunction:
+    |-
+    (config) => ({ command: 'python', args: ['-m', 'tru8_mcp'], env: { TRU8_API_KEY: config.apiKey, TRU8_API_URL: config.apiUrl || 'https://api.tru8.app' } })

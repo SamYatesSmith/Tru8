@@ -1,5 +1,8 @@
 import os
-os.environ.setdefault("DEBUG_EVIDENCE_LEDGER", "1")  # Enable evidence ledger for V2 frozen replay
+
+os.environ.setdefault(
+    "DEBUG_EVIDENCE_LEDGER", "1"
+)  # Enable evidence ledger for V2 frozen replay
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -18,7 +21,16 @@ from app.core.database import init_db
 from app.core.exceptions import register_exception_handlers
 from app.core.correlation import CorrelationIdMiddleware
 from app.core.tracing import setup_tracing
-from app.api.v1 import checks, users, auth, health, payments, feedback
+from app.api.v1 import (
+    checks,
+    users,
+    auth,
+    health,
+    payments,
+    feedback,
+    api_keys,
+    webhooks,
+)
 from app.core.logging import setup_logging
 
 setup_logging()
@@ -45,6 +57,7 @@ async def warmup_ml_models():
     # Warmup embedding model (MiniLM for semantic similarity)
     try:
         from app.services.embeddings import get_embedding_service
+
         embedding_service = await get_embedding_service()
         # Trigger model load by embedding a test string
         await embedding_service.embed_text("warmup test")
@@ -63,10 +76,12 @@ async def lifespan(app: FastAPI):
     # Phase 5: Initialize Government API adapters
     if settings.ENABLE_API_RETRIEVAL:
         from app.services.api_adapters import initialize_adapters
+
         initialize_adapters()
 
     # Warmup search providers to prevent cold-start delay on first claim
     from app.services.search import warmup_search_providers
+
     warmup_search_providers()
 
     # Warmup ML models (NLI + embeddings) to prevent cold-start failures
@@ -74,13 +89,58 @@ async def lifespan(app: FastAPI):
 
     yield
 
+
+API_DESCRIPTION = """
+Structured evidence research for AI agents and developers.
+
+Tru8 extracts claims from text or URLs, retrieves evidence from multiple source
+types (primary data, news reporting, commentary, academic, official), decomposes
+claims into verifiable elements, and maps evidence to elements with relationship
+labels (supports / challenges / context).
+
+## Authentication
+
+**API key** (recommended for agents and scripts):
+```
+X-API-Key: $TRU8_API_KEY
+```
+
+**JWT** (dashboard sessions):
+```
+Authorization: Bearer <clerk_jwt>
+```
+
+Manage API keys at `POST /api/v1/api-keys` (requires JWT).
+
+**Security:** Store API keys in environment variables or a secrets manager.
+Never hardcode keys in source code, logs, or client-side bundles.
+If a key is compromised, revoke it immediately via `DELETE /api/v1/api-keys/{id}`.
+
+## Workflow
+
+1. **Submit** a URL or text via `POST /api/v1/checks/stream` — returns SSE progress events.
+2. **Poll** status via `GET /api/v1/checks/{id}` or stream via `GET /api/v1/checks/{id}/progress`.
+3. **Retrieve** the completed check with claims, elements, evidence, and orientation.
+
+For URL/article inputs with multiple claims, the pipeline pauses after extraction
+for claim selection (`PATCH /api/v1/checks/{id}/select-claims`), then resumes
+with full retrieval and analysis on selected claims.
+
+## Rate Limits
+
+- Default: 60 requests/minute
+- Check creation: 10/minute
+"""
+
 app = FastAPI(
-    title="Tru8 API",
-    description="AI-powered fact verification with multi-source evidence",
-    version="0.1.0",
+    title="Tru8 Evidence Research API",
+    description=API_DESCRIPTION,
+    version="1.0.0",
     lifespan=lifespan,
-    docs_url="/api/docs" if settings.DEBUG else None,
-    redirect_slashes=False,  # Disable automatic trailing slash redirects
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
+    redirect_slashes=False,
 )
 
 # Register global exception handlers for consistent error responses
@@ -121,8 +181,15 @@ app.add_middleware(
         "Accept",
         "Origin",
         "X-Requested-With",
+        "X-API-Key",
     ],
-    expose_headers=["X-Request-Id", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-Correlation-ID", "X-Check-Id"],
+    expose_headers=[
+        "X-Request-Id",
+        "X-RateLimit-Limit",
+        "X-RateLimit-Remaining",
+        "X-Correlation-ID",
+        "X-Check-Id",
+    ],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
@@ -145,6 +212,9 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(checks.router, prefix="/api/v1/checks", tags=["checks"])
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
 app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
+app.include_router(api_keys.router, prefix="/api/v1/api-keys", tags=["api-keys"])
+app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["webhooks"])
+
 
 @app.get("/")
 async def root():
