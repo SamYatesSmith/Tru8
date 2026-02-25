@@ -61,7 +61,7 @@ Stage 2:   EXTRACT          → LLM atomizes into ≤12 claims
 Stage 2.1: CLASSIFY         → LLM article classification
 Stage 2.5: FACTCHECK        → Google Fact-Check API lookup
 Stage 2.5: CLAIM SELECTION  → Article mode: rank + select ≤5 claims
-Stage 3:   RETRIEVE         → Per-element multi-source search (Brave, SerpAPI, gov APIs)
+Stage 3:   RETRIEVE         → Per-element multi-source search (Serper, Brave, SerpAPI, gov APIs)
 Stage 3.5: FILTER           → Auto-exclude + content dedup + corroboration boost
 Stage 3.6: URL DEDUP        → Cross-claim URL deduplication
 Stage 3.7: LLM SCORER       → Advisory-only relevance scoring
@@ -99,7 +99,7 @@ Stage 5:   EVIDENCE MAPPING → Map evidence to elements + assign states (LLM ca
 | `shared/constants/index.ts` | Constants (no verdict colors) | No change |
 
 ## Evidence Sources
-- **Web:** Brave Search, SerpAPI
+- **Web:** Serper (primary), Brave Search (secondary), SerpAPI (tertiary)
 - **Fact-Check:** Google Fact-Check API
 - **Government:** NOAA, Alpha Vantage, FRED, Football-Data.org, Weather API, Companies House, Congress API, GovInfo
 - **Vector Store:** Qdrant
