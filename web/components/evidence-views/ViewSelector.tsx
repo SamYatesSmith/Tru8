@@ -31,19 +31,19 @@ export function ViewSelector({ mode, activeTab, onTabChange }: ViewSelectorProps
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
 
   return (
-    <div className="relative flex border-b border-zinc-200">
+    <div className="relative flex justify-between border-b border-zinc-200">
       {ALL_TABS.map((tab) => {
         const isDisabled = mode === 'overview' && DETAIL_ONLY_TABS.includes(tab.value);
         const isActive = activeTab === tab.value && !isDisabled;
         const showTooltip = isDisabled && hoveredTab === tab.value;
 
         return (
-          <div key={tab.value} className="relative">
+          <div key={tab.value} className="relative flex-1 text-center">
             <button
               onClick={() => !isDisabled && onTabChange(tab.value)}
               onMouseEnter={() => isDisabled && setHoveredTab(tab.value)}
               onMouseLeave={() => setHoveredTab(null)}
-              className={`px-3 py-2.5 md:px-8 md:py-4 text-[9px] md:text-[11px] font-bold tracking-[0.15em] md:tracking-[0.25em] uppercase font-mono transition-colors ${
+              className={`w-full px-2 py-2.5 md:px-4 md:py-4 text-[9px] md:text-[11px] font-bold tracking-[0.15em] md:tracking-[0.25em] uppercase font-mono transition-colors ${
                 isActive
                   ? 'border-b-2 border-[var(--accent)] text-black'
                   : isDisabled
