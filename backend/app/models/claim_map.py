@@ -31,6 +31,7 @@ class EvidenceRelationship(str, Enum):
 class EvidenceRef(TypedDict):
     evidence_id: str
     relationship: EvidenceRelationship
+    reasoning: Optional[str]  # One-sentence explanation of the relationship
 
 
 class ClaimElement(TypedDict):

@@ -77,7 +77,8 @@ You are an evidence mapping engine. You are given:
 1. A list of elements (sub-assertions) of a claim.
 2. A list of evidence items, each with an evidence_id, title, and snippet.
 
-For each element, map relevant evidence and assign a state.
+For each element, map relevant evidence and assign a state. EVERY evidence_ref \
+MUST include all three fields: evidence_id, relationship, reasoning.
 
 Respond with JSON only:
 {
@@ -85,7 +86,8 @@ Respond with JSON only:
     {
       "element_id": "<e1..e5>",
       "evidence_refs": [
-        {"evidence_id": "<string>", "relationship": "supports|challenges|context"}
+        {"evidence_id": "ev-abc", "relationship": "supports", "reasoning": "Reports GDP rose 0.1% in Q3, confirming growth occurred"},
+        {"evidence_id": "ev-def", "relationship": "challenges", "reasoning": "States growth was 0.1%, contradicting the claimed 0.6%"}
       ],
       "state": "supported|disputed|unresolved",
       "uncertainty": "<one sentence or null>"
@@ -96,6 +98,8 @@ Respond with JSON only:
 Rules:
 - Only use evidence_ids from the provided list. Do NOT invent IDs.
 - relationship must be exactly one of: supports, challenges, context.
+- reasoning is REQUIRED on every evidence_ref. One sentence: what the evidence \
+says and why the relationship applies. Cite specific figures, dates, or entities.
 - state must be exactly one of: supported, disputed, unresolved.
 - "supported" = predominantly supportive evidence, no significant challenges.
 - "disputed" = both supporting and challenging evidence present.
@@ -139,7 +143,8 @@ You are an evidence mapping engine. You are given multiple claims, each with:
 1. A list of elements (sub-assertions).
 2. A list of evidence items with evidence_id, title, and snippet.
 
-For each claim, map relevant evidence to its elements and assign states.
+For each claim, map relevant evidence to its elements and assign states. \
+EVERY evidence_ref MUST include all three fields: evidence_id, relationship, reasoning.
 
 Respond with JSON only:
 {
@@ -150,7 +155,8 @@ Respond with JSON only:
         {
           "element_id": "<e1..e5>",
           "evidence_refs": [
-            {"evidence_id": "<string>", "relationship": "supports|challenges|context"}
+            {"evidence_id": "ev-abc", "relationship": "supports", "reasoning": "Reports GDP rose 0.1% in Q3, confirming growth occurred"},
+            {"evidence_id": "ev-def", "relationship": "challenges", "reasoning": "States growth was 0.1%, contradicting the claimed 0.6%"}
           ],
           "state": "supported|disputed|unresolved",
           "uncertainty": "<one sentence or null>"
@@ -164,6 +170,8 @@ Rules:
 - One entry per claim_index. Do NOT skip any claims.
 - Only use evidence_ids from the provided evidence for THAT claim. Do NOT mix across claims.
 - relationship must be exactly one of: supports, challenges, context.
+- reasoning is REQUIRED on every evidence_ref. One sentence: what the evidence \
+says and why the relationship applies. Cite specific figures, dates, or entities.
 - state must be exactly one of: supported, disputed, unresolved.
 - "supported" = predominantly supportive evidence, no significant challenges.
 - "disputed" = both supporting and challenging evidence present.
@@ -743,7 +751,11 @@ class ClaimMapAnalyzer:
                 logger.debug(f"Stripping invalid relationship: {rel}")
                 continue
             validated.append(
-                EvidenceRef(evidence_id=eid, relationship=EvidenceRelationship(rel))
+                EvidenceRef(
+                    evidence_id=eid,
+                    relationship=EvidenceRelationship(rel),
+                    reasoning=ref.get("reasoning") or None,
+                )
             )
         return validated
 

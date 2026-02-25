@@ -1,3 +1,5 @@
+import hashlib
+
 import httpx
 import logging
 from typing import List, Dict, Any, Optional
@@ -221,9 +223,13 @@ class FactCheckAPI:
             else f"Fact-check rating: {fact_check.get('rating', 'Unknown')}"
         )
 
+        url = fact_check.get("url", "")
+        ev_hash = hashlib.sha256((url + snippet).encode()).hexdigest()[:12]
+
         return {
+            "evidence_id": f"ev-{ev_hash}",
             "source": fact_check.get("publisher", "Unknown"),
-            "url": fact_check.get("url", ""),
+            "url": url,
             "title": fact_check.get("title", ""),
             "snippet": snippet,
             "published_date": fact_check.get("review_date"),

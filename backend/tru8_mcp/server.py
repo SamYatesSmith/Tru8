@@ -72,11 +72,12 @@ async def tru8_check_claim(text: str) -> str:
     - claims[].claimMap.elements[] — verifiable sub-claims with state
       (supported/disputed/unresolved)
     - claims[].claimMap.elements[].evidenceRefs[] — which evidence supports,
-      challenges, or provides context for each element, with reasoning
+      challenges, or provides context for each element, with a one-sentence
+      reasoning explaining what the source says and why the relationship applies
     - claims[].evidence[] — sources classified by tier (primary data /
       news reporting / commentary) and type (data/official/news/analysis/
       opinion/academic)
-    - claims[].claimMap.orientationLine — mechanical summary derived from
+    - claims[].claimMap.orientation — mechanical summary derived from
       element states (no editorial judgment)
     - _computed — pre-computed analytics: tier/type distributions,
       corroboration groups, diagnostic values, timeline, per-claim dispositions

@@ -1829,9 +1829,21 @@ async def save_check_results_async(
                 metadata_dict = ev_data.get("metadata", {})
                 # Ensure numeric fields are properly typed
                 rel_score = ev_data.get("relevance_score", 0.0)
+                # Ensure evidence_id is always set (hash from url+snippet as fallback)
+                ev_id = ev_data.get("evidence_id")
+                if not ev_id:
+                    import hashlib as _hl
+
+                    _hash = _hl.sha256(
+                        (
+                            ev_data.get("url", "")
+                            + ev_data.get("snippet", ev_data.get("text", ""))
+                        ).encode()
+                    ).hexdigest()[:12]
+                    ev_id = f"ev-{_hash}"
                 evidence = Evidence(
                     claim_id=claim.id,
-                    evidence_id=ev_data.get("evidence_id"),
+                    evidence_id=ev_id,
                     source=ev_data.get("source", "Unknown"),
                     url=ev_data.get("url", ""),
                     title=ev_data.get("title", ""),
