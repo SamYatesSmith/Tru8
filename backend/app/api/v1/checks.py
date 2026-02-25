@@ -312,6 +312,292 @@ def safe_json_dumps(data: dict) -> str:
     return json.dumps(data, ensure_ascii=True, separators=(",", ":"))
 
 
+async def _validate_and_create_check(
+    body,
+    current_user: dict,
+    session: AsyncSession,
+) -> tuple:
+    """Validate input, enforce credits, and create a Check record.
+
+    Shared by POST /stream and POST /run. Returns (user, check) on success
+    or raises HTTPException (402 credits exhausted, 400/403 bad input).
+    """
+    # Get or create user (handles race conditions)
+    user = await get_or_create_user(session, current_user)
+
+    # BETA TESTER CHECK (skip in DEBUG mode)
+    is_beta_tester = user.email.lower() in [
+        e.lower() for e in settings.BETA_TESTER_EMAILS
+    ]
+
+    if not settings.DEBUG and settings.BETA_TESTER_EMAILS and not is_beta_tester:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "message": "Tru8 is currently in closed beta. Join our waitlist to be notified when we launch!",
+                "code": "BETA_ACCESS_REQUIRED",
+                "waitlist": True,
+            },
+        )
+
+    # MONTHLY USAGE LIMIT CHECK
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+
+    # Determine usage limit
+    if is_beta_tester:
+        now = datetime.utcnow()
+        period_start = datetime(now.year, now.month, 1)
+        credits_limit = 40
+
+        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+            Check.user_id == user.id, Check.created_at >= period_start
+        )
+        usage_result = await session.execute(usage_stmt)
+        current_usage = usage_result.scalar() or 0
+        limit_type = "beta_monthly"
+    elif subscription and subscription.current_period_start:
+        period_start = subscription.current_period_start
+        credits_limit = subscription.credits_per_month
+
+        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+            Check.user_id == user.id, Check.created_at >= period_start
+        )
+        usage_result = await session.execute(usage_stmt)
+        current_usage = usage_result.scalar() or 0
+        limit_type = "monthly"
+    else:
+        credits_limit = 3
+        current_usage = user.total_credits_used
+        limit_type = "trial"
+
+    # Admin bypass OR DEBUG mode bypass
+    if settings.DEBUG:
+        logger.info(f"DEBUG mode: {user.email} - skipping credit limit check")
+    elif user.email and user.email.lower() in [
+        e.lower() for e in settings.ADMIN_EMAILS
+    ]:
+        logger.info(f"Admin bypass: {user.email} - skipping credit limit check")
+    elif current_usage >= credits_limit:
+        if limit_type == "trial":
+            raise HTTPException(
+                status_code=402,
+                detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
+            )
+        elif limit_type == "beta_monthly":
+            raise HTTPException(
+                status_code=402,
+                detail=f"Beta monthly limit reached ({current_usage}/{credits_limit} checks used). Your limit resets on the 1st of next month.",
+            )
+        else:
+            raise HTTPException(
+                status_code=402,
+                detail=f"Monthly limit reached ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
+            )
+
+    # Validate input
+    if body.input_type not in ["url", "text", "image", "video"]:
+        raise HTTPException(status_code=400, detail="Invalid input type")
+
+    if body.input_type == "url" and not body.url:
+        raise HTTPException(
+            status_code=400, detail="URL is required for url input type"
+        )
+
+    if body.input_type in ["url", "video"] and body.url:
+        if not body.url.startswith(("http://", "https://")):
+            body.url = f"https://{body.url}"
+
+    if body.input_type == "text" and not body.content:
+        raise HTTPException(
+            status_code=400, detail="Content is required for text input type"
+        )
+
+    if body.input_type == "image" and not body.file_path:
+        raise HTTPException(
+            status_code=400, detail="File path is required for image input type"
+        )
+
+    if body.input_type == "video" and not body.url:
+        raise HTTPException(
+            status_code=400, detail="URL is required for video input type"
+        )
+
+    # Sanitize inputs
+    if body.url:
+        body.url = body.url.strip()
+    if body.content:
+        body.content = body.content.strip()
+
+    # Search Clarity validation
+    if body.user_query:
+        if not settings.ENABLE_SEARCH_CLARITY:
+            raise HTTPException(
+                status_code=503, detail="Search Clarity feature is temporarily disabled"
+            )
+        if len(body.user_query) > 200:
+            raise HTTPException(
+                status_code=400, detail="Query must be 200 characters or less"
+            )
+        body.user_query = body.user_query.strip()
+
+    # Create check record
+    check = Check(
+        id=str(uuid.uuid4()),
+        user_id=user.id,
+        input_type=body.input_type,
+        input_content=json.dumps(
+            {"content": body.content, "url": body.url, "file_path": body.file_path}
+        ),
+        input_url=body.url,
+        status="processing",
+        credits_used=1,
+        user_query=body.user_query,
+    )
+
+    session.add(check)
+
+    # Reserve credits
+    user.credits -= 1
+    user.total_credits_used += 1
+    await session.commit()
+    await session.refresh(check)
+
+    return user, check
+
+
+async def _build_check_response(
+    check_id: str,
+    user_id: str,
+    session: AsyncSession,
+    computed: bool = False,
+) -> dict:
+    """Load a check with claims/evidence and build the camelCase API response.
+
+    Shared by GET /{id} and POST /run. Returns the full response dict.
+    Raises HTTPException 404 if the check doesn't exist or doesn't belong to user.
+    """
+    stmt = select(Check).where(Check.id == check_id, Check.user_id == user_id)
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    # Get real-time progress from Redis when processing
+    current_stage = None
+    progress_percent = None
+    progress_message = None
+
+    if check.status in ("processing", "waiting_for_selection"):
+        try:
+            redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            progress_data = redis_client.get(f"inline-progress:{check_id}")
+
+            if progress_data:
+                data = json.loads(progress_data)
+                current_stage = data.get("stage", "processing")
+                progress_percent = data.get("progress", 0)
+                progress_message = data.get("message", "Processing...")
+
+            redis_client.close()
+        except Exception as e:
+            logger.warning(
+                f"Failed to get progress from Redis for check {check_id}: {e}"
+            )
+
+    # Get claims with evidence
+    claims_stmt = (
+        select(Claim).where(Claim.check_id == check.id).order_by(Claim.position)
+    )
+    claims_result = await session.execute(claims_stmt)
+    claims = claims_result.scalars().all()
+
+    # Get per-claim raw source counts for "View sources" link
+    from app.models.check import RawEvidence
+
+    raw_counts_stmt = (
+        select(RawEvidence.claim_position, func.count(RawEvidence.id))
+        .where(RawEvidence.check_id == check.id)
+        .group_by(RawEvidence.claim_position)
+    )
+    raw_counts_result = await session.execute(raw_counts_stmt)
+    raw_counts_by_position = dict(raw_counts_result.all())
+
+    claims_data = []
+    for claim in claims:
+        evidence_stmt = select(Evidence).where(Evidence.claim_id == claim.id)
+        evidence_result = await session.execute(evidence_stmt)
+        evidence = evidence_result.scalars().all()
+
+        claims_data.append(
+            {
+                "id": claim.id,
+                "text": claim.text,
+                "position": claim.position,
+                "claimMap": (
+                    _claim_map_to_camel_case(claim.claim_map)
+                    if claim.claim_map
+                    else None
+                ),
+                "claimType": claim.claim_type,
+                "isSelected": claim.is_selected,
+                "significanceRank": claim.significance_rank,
+                "subjectContext": claim.subject_context,
+                "keyEntities": (claim.key_entities if claim.key_entities else []),
+                "sourceTitle": claim.source_title,
+                "sourceUrl": claim.source_url,
+                "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
+                "evidence": [_serialize_evidence(ev) for ev in evidence],
+            }
+        )
+
+    response = {
+        "id": check.id,
+        "inputType": check.input_type,
+        "inputContent": json.loads(check.input_content),
+        "inputUrl": check.input_url,
+        "status": check.status,
+        "creditsUsed": check.credits_used,
+        "processingTimeMs": check.processing_time_ms,
+        "errorMessage": check.error_message,
+        "entryMode": check.entry_mode,
+        "selectedClaimsCount": check.selected_claims_count,
+        "articleDomain": check.article_domain,
+        "articleSecondaryDomains": check.article_secondary_domains,
+        "articleJurisdiction": check.article_jurisdiction,
+        "articleClassificationSource": check.article_classification_source,
+        "userQuery": check.user_query,
+        "queryResponse": check.query_response,
+        "queryConfidence": check.query_confidence,
+        "querySources": (
+            check.query_sources.get("sources", []) if check.query_sources else None
+        ),
+        "queryRelatedClaims": (
+            check.query_sources.get("related_claims", [])
+            if check.query_sources
+            else None
+        ),
+        "claims": claims_data,
+        "createdAt": check.created_at.isoformat(),
+        "completedAt": check.completed_at.isoformat() if check.completed_at else None,
+        "currentStage": current_stage,
+        "progress": progress_percent,
+        "progressMessage": progress_message,
+    }
+
+    # Append pre-computed analytics for agent consumers
+    if computed:
+        from app.services.computed_analytics import compute_analytics
+
+        response["_computed"] = compute_analytics(claims_data)
+
+    return response
+
+
 class CreateCheckRequest(BaseModel):
     input_type: str  # 'url', 'text', 'image', 'video'
     content: Optional[str] = None
@@ -693,149 +979,7 @@ async def create_check_streaming(
         PipelineError,
     )
 
-    # Get or create user (handles race conditions)
-    user = await get_or_create_user(session, current_user)
-
-    # BETA TESTER CHECK (skip in DEBUG mode)
-    is_beta_tester = user.email.lower() in [
-        e.lower() for e in settings.BETA_TESTER_EMAILS
-    ]
-
-    if not settings.DEBUG and settings.BETA_TESTER_EMAILS and not is_beta_tester:
-        raise HTTPException(
-            status_code=403,
-            detail={
-                "message": "Tru8 is currently in closed beta. Join our waitlist to be notified when we launch!",
-                "code": "BETA_ACCESS_REQUIRED",
-                "waitlist": True,
-            },
-        )
-
-    # MONTHLY USAGE LIMIT CHECK
-    sub_stmt = select(Subscription).where(
-        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
-    )
-    sub_result = await session.execute(sub_stmt)
-    subscription = sub_result.scalar_one_or_none()
-
-    # Determine usage limit
-    if is_beta_tester:
-        now = datetime.utcnow()
-        period_start = datetime(now.year, now.month, 1)
-        credits_limit = 40
-
-        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id, Check.created_at >= period_start
-        )
-        usage_result = await session.execute(usage_stmt)
-        current_usage = usage_result.scalar() or 0
-        limit_type = "beta_monthly"
-    elif subscription and subscription.current_period_start:
-        period_start = subscription.current_period_start
-        credits_limit = subscription.credits_per_month
-
-        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id, Check.created_at >= period_start
-        )
-        usage_result = await session.execute(usage_stmt)
-        current_usage = usage_result.scalar() or 0
-        limit_type = "monthly"
-    else:
-        credits_limit = 3
-        current_usage = user.total_credits_used
-        limit_type = "trial"
-
-    # Admin bypass OR DEBUG mode bypass
-    if settings.DEBUG:
-        logger.info(f"DEBUG mode: {user.email} - skipping credit limit check")
-    elif user.email and user.email.lower() in [
-        e.lower() for e in settings.ADMIN_EMAILS
-    ]:
-        logger.info(f"Admin bypass: {user.email} - skipping credit limit check")
-    elif current_usage >= credits_limit:
-        if limit_type == "trial":
-            raise HTTPException(
-                status_code=402,
-                detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
-            )
-        elif limit_type == "beta_monthly":
-            raise HTTPException(
-                status_code=402,
-                detail=f"Beta monthly limit reached ({current_usage}/{credits_limit} checks used). Your limit resets on the 1st of next month.",
-            )
-        else:
-            raise HTTPException(
-                status_code=402,
-                detail=f"Monthly limit reached ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
-            )
-
-    # Validate input
-    if body.input_type not in ["url", "text", "image", "video"]:
-        raise HTTPException(status_code=400, detail="Invalid input type")
-
-    if body.input_type == "url" and not body.url:
-        raise HTTPException(
-            status_code=400, detail="URL is required for url input type"
-        )
-
-    if body.input_type in ["url", "video"] and body.url:
-        if not body.url.startswith(("http://", "https://")):
-            body.url = f"https://{body.url}"
-
-    if body.input_type == "text" and not body.content:
-        raise HTTPException(
-            status_code=400, detail="Content is required for text input type"
-        )
-
-    if body.input_type == "image" and not body.file_path:
-        raise HTTPException(
-            status_code=400, detail="File path is required for image input type"
-        )
-
-    if body.input_type == "video" and not body.url:
-        raise HTTPException(
-            status_code=400, detail="URL is required for video input type"
-        )
-
-    # Sanitize inputs
-    if body.url:
-        body.url = body.url.strip()
-    if body.content:
-        body.content = body.content.strip()
-
-    # Search Clarity validation
-    if body.user_query:
-        if not settings.ENABLE_SEARCH_CLARITY:
-            raise HTTPException(
-                status_code=503, detail="Search Clarity feature is temporarily disabled"
-            )
-        if len(body.user_query) > 200:
-            raise HTTPException(
-                status_code=400, detail="Query must be 200 characters or less"
-            )
-        body.user_query = body.user_query.strip()
-
-    # Create check record
-    check = Check(
-        id=str(uuid.uuid4()),
-        user_id=user.id,
-        input_type=body.input_type,
-        input_content=json.dumps(
-            {"content": body.content, "url": body.url, "file_path": body.file_path}
-        ),
-        input_url=body.url,
-        status="processing",  # Start as processing (no pending state for inline)
-        credits_used=1,
-        user_query=body.user_query,
-    )
-
-    session.add(check)
-
-    # Reserve credits
-    user.credits -= 1
-    user.total_credits_used += 1
-    await session.commit()
-    await session.refresh(check)
+    user, check = await _validate_and_create_check(body, current_user, session)
 
     # Validate pipeline mode
     pipeline_mode = (body.mode or "full").lower()
@@ -1050,6 +1194,232 @@ async def create_check_streaming(
     )
 
 
+@router.post("/run", status_code=200, summary="Synchronous evidence research")
+@limiter.limit("10/minute")
+async def create_check_sync(
+    body: CreateCheckRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Synchronous evidence research — single HTTP call, blocks until complete.
+
+    Recommended for agents and scripts. Submit a claim or URL, wait 60-120s,
+    receive the full result with claims, elements, evidence, and analytics.
+    No SSE, no polling, no claim selection required.
+
+    For URL/article inputs, claims are auto-selected (top-ranked, up to 5).
+
+    **Set your HTTP client timeout to at least 180s.**
+
+    **Error responses:**
+    - 400: Bad input
+    - 402: Credit limit reached
+    - 504: Pipeline timed out (>180s)
+    - 502: Pipeline error
+    """
+    from app.core.database import async_session
+    from app.pipeline.progress import ProgressReporter
+    from app.pipeline.runner import (
+        run_pipeline,
+        run_pipeline_phase2,
+        save_check_results_async,
+        handle_pipeline_failure,
+        send_success_notifications,
+        PipelineError,
+    )
+
+    user, check = await _validate_and_create_check(body, current_user, session)
+
+    # Validate pipeline mode
+    pipeline_mode = (body.mode or "full").lower()
+    if pipeline_mode not in ("full", "snapshot"):
+        raise HTTPException(
+            status_code=400,
+            detail='Invalid mode. Use "full" (default) or "snapshot".',
+        )
+
+    # Prepare input data for pipeline
+    input_data = {
+        "input_type": body.input_type,
+        "content": body.content,
+        "url": body.url,
+        "file_path": body.file_path,
+        "user_query": body.user_query,
+        "frozen_evidence": body.frozen_evidence,
+        "mode": pipeline_mode,
+    }
+
+    # Create progress reporter (required by runner, writes to Redis — we just don't stream it)
+    progress_reporter = ProgressReporter(check.id)
+
+    try:
+        result = await asyncio.wait_for(
+            run_pipeline(check.id, user.id, input_data, progress_reporter),
+            timeout=180,
+        )
+
+        # Article mode: result is None → auto-select top-ranked claims, run Phase 2
+        if result is None:
+            async with async_session() as sel_session:
+                claims_stmt = (
+                    select(Claim)
+                    .where(Claim.check_id == check.id)
+                    .order_by(Claim.position)
+                )
+                claims_result = await sel_session.execute(claims_stmt)
+                db_claims = list(claims_result.scalars().all())
+
+                # Select top N by significance rank (lower = more significant)
+                ranked = sorted(
+                    db_claims,
+                    key=lambda c: (
+                        c.significance_rank if c.significance_rank is not None else 999
+                    ),
+                )
+                max_selected = getattr(settings, "MAX_SELECTED_CLAIMS", 5)
+                for i, claim in enumerate(ranked):
+                    claim.is_selected = i < max_selected
+
+                sel_check_stmt = select(Check).where(Check.id == check.id)
+                sel_check_result = await sel_session.execute(sel_check_stmt)
+                sel_check = sel_check_result.scalar_one()
+                sel_check.selected_claims_count = min(len(ranked), max_selected)
+
+                await sel_session.commit()
+
+            logger.info(
+                f"[SYNC RUN] Auto-selected {min(len(ranked), max_selected)} claims "
+                f"for check {check.id}"
+            )
+
+            # Build Phase 2 input
+            input_content = (
+                json.loads(check.input_content) if check.input_content else {}
+            )
+            phase2_input = {
+                "input_type": check.input_type,
+                "content": input_content.get("content"),
+                "url": input_content.get("url") or check.input_url,
+                "file_path": input_content.get("file_path"),
+                "user_query": check.user_query,
+            }
+
+            phase2_reporter = ProgressReporter(check.id)
+            result = await asyncio.wait_for(
+                run_pipeline_phase2(
+                    check_id=check.id,
+                    user_id=user.id,
+                    input_data=phase2_input,
+                    progress_reporter=phase2_reporter,
+                ),
+                timeout=180,
+            )
+
+        # Save results to database
+        async with async_session() as save_session:
+            await save_check_results_async(check.id, result, save_session)
+            await save_session.commit()
+
+        logger.info(f"[SYNC RUN] Results saved for check {check.id}")
+
+        # Fire-and-forget post-processing
+        try:
+            from app.services.video_recommendations import fetch_video_recommendations
+
+            async with async_session() as video_session:
+                db_claims_result = await video_session.execute(
+                    select(Claim)
+                    .where(Claim.check_id == check.id)
+                    .where(Claim.is_selected == True)
+                )
+                db_claims = db_claims_result.scalars().all()
+                if not db_claims:
+                    db_claims_result = await video_session.execute(
+                        select(Claim).where(Claim.check_id == check.id)
+                    )
+                    db_claims = db_claims_result.scalars().all()
+                claims_for_videos = [{"id": c.id, "text": c.text} for c in db_claims]
+
+            if claims_for_videos:
+                asyncio.create_task(
+                    fetch_video_recommendations(check.id, claims_for_videos)
+                )
+        except Exception as ve:
+            logger.debug(f"[SYNC RUN] Video recommendations skipped: {ve}")
+
+        try:
+            from app.services.wayback_archive import archive_evidence_urls
+
+            asyncio.create_task(archive_evidence_urls(check.id))
+        except Exception as ae:
+            logger.debug(f"[SYNC RUN] Archiving skipped: {ae}")
+
+        # Send notifications (webhook: check.completed)
+        content_data = {"metadata": result.get("ingest_metadata", {})}
+        await send_success_notifications(
+            user.id, check.id, result, input_data, content_data
+        )
+
+        try:
+            from app.services.webhooks import dispatch_webhook_event
+
+            asyncio.create_task(
+                dispatch_webhook_event(
+                    user.id,
+                    "check.completed",
+                    {
+                        "checkId": check.id,
+                        "status": "completed",
+                        "mode": pipeline_mode,
+                        "processingTimeMs": result.get("processing_time_ms"),
+                        "claimsCount": len(result.get("claims", [])),
+                    },
+                )
+            )
+        except Exception:
+            pass
+
+        # Build and return the full response (fresh session for committed data)
+        async with async_session() as resp_session:
+            return await _build_check_response(
+                check.id, user.id, resp_session, computed=True
+            )
+
+    except asyncio.TimeoutError:
+        logger.error(f"[SYNC RUN] Pipeline timed out for check {check.id}")
+        await handle_pipeline_failure(
+            check.id, user.id, Exception("Pipeline timed out")
+        )
+        raise HTTPException(
+            status_code=504,
+            detail="Pipeline timed out. Your credit has been returned.",
+        )
+
+    except PipelineError as e:
+        logger.error(f"[SYNC RUN] Pipeline error for check {check.id}: {e}")
+        await handle_pipeline_failure(check.id, user.id, e)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Pipeline error: {e}",
+        )
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        logger.error(f"[SYNC RUN] Unexpected error for check {check.id}: {e}")
+        import traceback
+
+        logger.error(traceback.format_exc())
+        await handle_pipeline_failure(check.id, user.id, e)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Pipeline error: {e}",
+        )
+
+
 @router.get("", summary="List checks")
 @router.get("/", include_in_schema=False)
 async def get_checks(
@@ -1161,130 +1531,7 @@ async def get_check(
 
     Returns 404 if the check doesn't exist or doesn't belong to the authenticated user.
     """
-    stmt = select(Check).where(
-        Check.id == check_id, Check.user_id == current_user["id"]
-    )
-    result = await session.execute(stmt)
-    check = result.scalar_one_or_none()
-
-    if not check:
-        raise HTTPException(status_code=404, detail="Check not found")
-
-    # Get real-time progress from Redis when processing (inline SSE pipeline)
-    current_stage = None
-    progress_percent = None
-    progress_message = None
-
-    if check.status in ("processing", "waiting_for_selection"):
-        try:
-            redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
-            progress_data = redis_client.get(f"inline-progress:{check_id}")
-
-            if progress_data:
-                data = json.loads(progress_data)
-                current_stage = data.get("stage", "processing")
-                progress_percent = data.get("progress", 0)
-                progress_message = data.get("message", "Processing...")
-
-            redis_client.close()
-        except Exception as e:
-            logger.warning(
-                f"Failed to get progress from Redis for check {check_id}: {e}"
-            )
-
-    # Get claims with evidence
-    claims_stmt = (
-        select(Claim).where(Claim.check_id == check.id).order_by(Claim.position)
-    )
-    claims_result = await session.execute(claims_stmt)
-    claims = claims_result.scalars().all()
-
-    # Get per-claim raw source counts for "View sources" link
-    from app.models.check import RawEvidence
-
-    raw_counts_stmt = (
-        select(RawEvidence.claim_position, func.count(RawEvidence.id))
-        .where(RawEvidence.check_id == check.id)
-        .group_by(RawEvidence.claim_position)
-    )
-    raw_counts_result = await session.execute(raw_counts_stmt)
-    raw_counts_by_position = dict(raw_counts_result.all())
-
-    claims_data = []
-    for claim in claims:
-        evidence_stmt = select(Evidence).where(Evidence.claim_id == claim.id)
-        evidence_result = await session.execute(evidence_stmt)
-        evidence = evidence_result.scalars().all()
-
-        claims_data.append(
-            {
-                "id": claim.id,
-                "text": claim.text,
-                "position": claim.position,
-                # ClaimMap fields
-                "claimMap": (
-                    _claim_map_to_camel_case(claim.claim_map)
-                    if claim.claim_map
-                    else None
-                ),
-                "claimType": claim.claim_type,
-                "isSelected": claim.is_selected,
-                "significanceRank": claim.significance_rank,
-                # Context preservation fields (Context Improvement - Phase 5)
-                "subjectContext": claim.subject_context,
-                "keyEntities": (claim.key_entities if claim.key_entities else []),
-                "sourceTitle": claim.source_title,
-                "sourceUrl": claim.source_url,
-                # Sources reviewed count (for "View X sources" link when no evidence displayed)
-                "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
-                "evidence": [_serialize_evidence(ev) for ev in evidence],
-            }
-        )
-
-    response = {
-        "id": check.id,
-        "inputType": check.input_type,
-        "inputContent": json.loads(check.input_content),
-        "inputUrl": check.input_url,
-        "status": check.status,
-        "creditsUsed": check.credits_used,
-        "processingTimeMs": check.processing_time_ms,
-        "errorMessage": check.error_message,
-        "entryMode": check.entry_mode,
-        "selectedClaimsCount": check.selected_claims_count,
-        # Article classification (domain detection)
-        "articleDomain": check.article_domain,
-        "articleSecondaryDomains": check.article_secondary_domains,
-        "articleJurisdiction": check.article_jurisdiction,
-        "articleClassificationSource": check.article_classification_source,  # 'cache_pattern', 'llm_primary', 'fallback_general', etc.
-        # Search Clarity fields
-        "userQuery": check.user_query,
-        "queryResponse": check.query_response,
-        "queryConfidence": check.query_confidence,
-        "querySources": (
-            check.query_sources.get("sources", []) if check.query_sources else None
-        ),
-        "queryRelatedClaims": (
-            check.query_sources.get("related_claims", [])
-            if check.query_sources
-            else None
-        ),
-        "claims": claims_data,
-        "createdAt": check.created_at.isoformat(),
-        "completedAt": check.completed_at.isoformat() if check.completed_at else None,
-        # Real-time progress fields (for polling fallback when SSE unavailable)
-        "currentStage": current_stage,
-        "progress": progress_percent,
-        "progressMessage": progress_message,
-    }
-
-    # Append pre-computed analytics for agent consumers
-    if computed:
-        from app.services.computed_analytics import compute_analytics
-
-        response["_computed"] = compute_analytics(claims_data)
-
-    return response
+    return await _build_check_response(check_id, current_user["id"], session, computed)
 
 
 # ============================================================================

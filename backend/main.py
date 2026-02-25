@@ -121,11 +121,16 @@ If a key is compromised, revoke it immediately via `DELETE /api/v1/api-keys/{id}
 
 ## Workflow
 
+### Synchronous (recommended for agents)
+`POST /api/v1/checks/run` — blocks until complete, returns full result with analytics.
+Set HTTP timeout >= 180s. URLs auto-select claims (up to 5).
+
+### Streaming (for dashboards)
 1. **Submit** a URL or text via `POST /api/v1/checks/stream` — returns SSE progress events.
 2. **Poll** status via `GET /api/v1/checks/{id}` or stream via `GET /api/v1/checks/{id}/progress`.
 3. **Retrieve** the completed check with claims, elements, evidence, and orientation.
 
-For URL/article inputs with multiple claims, the pipeline pauses after extraction
+For URL/article inputs with multiple claims, the streaming pipeline pauses after extraction
 for claim selection (`PATCH /api/v1/checks/{id}/select-claims`), then resumes
 with full retrieval and analysis on selected claims.
 
@@ -256,6 +261,10 @@ MCP_SERVER_CARD = {
         {
             "name": "tru8_quick_check",
             "description": "Fast evidence scan (typically 15-30s). Triage: retrieve and classify only.",
+        },
+        {
+            "name": "tru8_run_check",
+            "description": "Synchronous evidence research — single HTTP call, blocks until complete.",
         },
         {
             "name": "tru8_get_result",

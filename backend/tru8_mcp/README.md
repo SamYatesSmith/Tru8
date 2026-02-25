@@ -1,0 +1,91 @@
+# tru8-mcp
+
+MCP server for [Tru8 Evidence Research](https://tru8.app) — structured evidence research tools for AI agents.
+
+Submit a claim or URL, get back source-traced evidence organized by tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic), with element decomposition and relationship mapping.
+
+## Quick Start
+
+```bash
+pip install tru8-mcp
+```
+
+Or run without installing:
+
+```bash
+uvx tru8-mcp
+```
+
+Set your API key:
+
+```bash
+export TRU8_API_KEY=tru8_sk_...
+```
+
+Create an API key at your [Tru8 dashboard](https://tru8.app/dashboard/settings) under Settings > Developer.
+
+## Configuration
+
+### Claude Desktop
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "tru8": {
+      "command": "tru8-mcp",
+      "env": {
+        "TRU8_API_KEY": "tru8_sk_..."
+      }
+    }
+  }
+}
+```
+
+### Cline / Cursor
+
+Add to your MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "tru8": {
+      "command": "uvx",
+      "args": ["tru8-mcp"],
+      "env": {
+        "TRU8_API_KEY": "tru8_sk_..."
+      }
+    }
+  }
+}
+```
+
+### From source
+
+```bash
+git clone https://github.com/tru8-evidence/tru8-mcp.git
+cd tru8-mcp
+pip install -e .
+tru8-mcp
+```
+
+## Tools
+
+| Tool | Description | Typical time |
+|------|-------------|-------------|
+| `tru8_check_claim` | Full evidence research with element decomposition and mapping | 60-120s |
+| `tru8_quick_check` | Fast evidence scan — triage before committing to deep analysis | 15-30s |
+| `tru8_get_result` | Retrieve completed check with computed analytics | <1s |
+| `tru8_get_result_raw` | Retrieve raw check data without computed analytics | <1s |
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TRU8_API_KEY` | Yes | API key (`tru8_sk_...`). Create at dashboard > Settings > Developer. |
+| `TRU8_API_URL` | No | API base URL. Default: `https://api.tru8.app` |
+
+## Security
+
+Store API keys in environment variables or a secrets manager. Never hardcode keys in source code. If a key is compromised, revoke it immediately at your dashboard.

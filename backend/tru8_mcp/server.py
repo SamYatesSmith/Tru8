@@ -90,8 +90,7 @@ async def tru8_check_claim(text: str) -> str:
               since 1880") or a URL to an article.
     """
     client = _get_client()
-    check_id = await client.submit_check(text, mode="full")
-    result = await client.get_check(check_id, computed=True)
+    result = await client.submit_check_sync(text, mode="full")
     return _format(result)
 
 
@@ -120,8 +119,7 @@ async def tru8_quick_check(text: str) -> str:
         text: A claim or URL to scan for available evidence.
     """
     client = _get_client()
-    check_id = await client.submit_check(text, mode="snapshot")
-    result = await client.get_check(check_id, computed=False)
+    result = await client.submit_check_sync(text, mode="snapshot")
     return _format(result)
 
 

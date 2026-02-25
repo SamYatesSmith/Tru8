@@ -1,7 +1,7 @@
 """Tru8 API client for MCP tool implementations.
 
-Wraps the Tru8 REST API with methods for submitting checks (via SSE),
-handling article-mode claim selection, and retrieving results.
+Wraps the Tru8 REST API with methods for submitting checks via the
+synchronous /run endpoint (preferred) or SSE streaming (fallback).
 """
 
 import asyncio
@@ -47,7 +47,45 @@ class Tru8APIClient:
     def _headers(self) -> dict:
         return {"X-API-Key": self.api_key, "Accept": "application/json"}
 
-    async def submit_check(self, text: str, mode: str = "full") -> str:
+    async def submit_check_sync(self, text: str, mode: str = "full") -> dict:
+        """Submit content via the synchronous /run endpoint and return the full result.
+
+        Single HTTP call — blocks until the pipeline completes and returns the
+        check response with claims, evidence, and computed analytics. No SSE,
+        no polling, no claim selection handling required.
+
+        Returns:
+            The full check response dict (same shape as GET /checks/{id}?computed=true).
+        """
+        input_type = (
+            "url" if text.strip().startswith(("http://", "https://")) else "text"
+        )
+        payload = {"input_type": input_type, "mode": mode}
+        if input_type == "url":
+            payload["url"] = text.strip()
+        else:
+            payload["content"] = text.strip()
+
+        # Pipeline timeout + 30s buffer for network overhead
+        timeout = (
+            FULL_PIPELINE_TIMEOUT + 30.0
+            if mode == "full"
+            else SNAPSHOT_PIPELINE_TIMEOUT + 30.0
+        )
+
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(timeout, connect=10.0)
+        ) as client:
+            resp = await client.post(
+                f"{self.base_url}/api/v1/checks/run",
+                json=payload,
+                headers=self._headers(),
+            )
+            if resp.status_code != 200:
+                raise RuntimeError(f"API error {resp.status_code}: {resp.text}")
+            return resp.json()
+
+    async def submit_check_sse(self, text: str, mode: str = "full") -> str:
         """Submit content for evidence research and wait for completion.
 
         Consumes the SSE stream from POST /stream. For URL inputs that pause

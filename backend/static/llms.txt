@@ -16,9 +16,15 @@ Docs: https://tru8.app/developers
 
 ## Core Workflow
 
-1. POST /api/v1/checks/stream — submit claim or URL, returns SSE progress stream
-2. GET /api/v1/checks/{id} — retrieve completed result
-3. GET /api/v1/checks/{id}?computed=true — result with pre-computed analytics
+### Synchronous (recommended for agents)
+POST /api/v1/checks/run — blocks until complete, returns full result with analytics.
+  Set HTTP timeout >= 180s. URLs auto-select claims (up to 5, highest-ranked).
+  Returns 504 on timeout, 502 on pipeline error, 402 on credit limit.
+
+### Streaming (for dashboards)
+POST /api/v1/checks/stream — SSE progress stream
+GET /api/v1/checks/{id} — retrieve completed result
+GET /api/v1/checks/{id}?computed=true — result with pre-computed analytics
 
 ## Pipeline Modes
 
@@ -50,8 +56,8 @@ analytical scores), timeline (date range, gaps), perClaim (dispositions).
 
 ## MCP Server
 
-Package: tru8_mcp (not yet published — run from source)
-Run: python -m tru8_mcp
+Package: tru8-mcp — pip install tru8-mcp (or uvx tru8-mcp)
+Run: tru8-mcp (or python -m tru8_mcp)
 Env: TRU8_API_KEY (required), TRU8_API_URL (optional)
 
 Tools:
