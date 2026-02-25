@@ -756,7 +756,7 @@ async def create_check_streaming(
         if limit_type == "trial":
             raise HTTPException(
                 status_code=402,
-                detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade to Pro for unlimited monthly checks.",
+                detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
             )
         elif limit_type == "beta_monthly":
             raise HTTPException(
@@ -1942,10 +1942,12 @@ async def get_check_sources(
     is_beta_tester = current_user.get("email", "").lower() in [
         e.lower() for e in settings.BETA_TESTER_EMAILS
     ]
-    is_pro = (subscription and subscription.plan == "pro") or is_beta_tester
+    is_paid = (
+        subscription and subscription.plan in ("pro", "developer")
+    ) or is_beta_tester
 
-    if not is_pro:
-        # Return limited response for non-Pro users
+    if not is_paid:
+        # Return limited response for free users
         return {
             "checkId": check_id,
             "totalSources": check.raw_sources_count or 0,
@@ -1953,7 +1955,7 @@ async def get_check_sources(
             "filteredCount": 0,
             "legacyCheck": check.raw_sources_count is None
             or check.raw_sources_count == 0,
-            "message": "Upgrade to Pro to see all sources reviewed during fact-checking",
+            "message": "Upgrade your plan to see all sources reviewed during analysis",
             "claims": None,
             "filterBreakdown": None,
             "requiresUpgrade": True,
@@ -2347,11 +2349,14 @@ async def export_check_sources(
     is_beta_tester = current_user.get("email", "").lower() in [
         e.lower() for e in settings.BETA_TESTER_EMAILS
     ]
-    is_pro = (subscription and subscription.plan == "pro") or is_beta_tester
+    is_paid = (
+        subscription and subscription.plan in ("pro", "developer")
+    ) or is_beta_tester
 
-    if not is_pro:
+    if not is_paid:
         raise HTTPException(
-            status_code=403, detail="Source export is a Pro feature. Upgrade to access."
+            status_code=403,
+            detail="Source export requires a paid plan. Upgrade to access.",
         )
 
     # 3. Query RawEvidence

@@ -389,14 +389,14 @@ class ApiClient {
 
   /**
    * POST /api/v1/payments/create-checkout-session
-   * Create Stripe checkout session for Professional plan
+   * Create Stripe checkout session for a paid plan
    *
-   * Request: { price_id: string, plan: "professional" }
+   * Request: { price_id: string, plan: "pro" | "developer" }
    * Response: { session_id: string, url: string }
    *
    * After payment:
    * - Stripe webhook creates Subscription record
-   * - User upgraded to Professional tier (40 credits/month)
+   * - User upgraded to selected tier (pro: 40/month, developer: 200/month)
    */
   async createCheckoutSession(
     data: {

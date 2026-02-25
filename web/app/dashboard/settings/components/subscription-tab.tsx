@@ -5,12 +5,16 @@ import { useAuth } from '@clerk/nextjs';
 import { Check } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
+import { TIERS, getTierPriceId, type TierConfig } from '@/lib/tiers';
 
 interface SubscriptionTabProps {
   userData: any;
   subscriptionData: any;
   onUpdate: () => void;
 }
+
+/** Tier ordering for upgrade/downgrade logic */
+const TIER_ORDER = ['free', 'pro', 'developer', 'enterprise'];
 
 export function SubscriptionTab({
   userData,
@@ -22,8 +26,9 @@ export function SubscriptionTab({
   const [isTrial, setIsTrial] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const isFree = !subscriptionData?.hasSubscription;
-  const isPro = subscriptionData?.plan === 'pro';
+  const currentPlan = subscriptionData?.hasSubscription
+    ? subscriptionData.plan
+    : 'free';
   const subscriptionsEnabled = subscriptionData?.subscriptionsEnabled ?? false;
 
   // Fetch usage from backend
@@ -42,15 +47,19 @@ export function SubscriptionTab({
     fetchUsage();
   }, [getToken]);
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (tier: TierConfig) => {
+    const priceId = getTierPriceId(tier);
+    if (!priceId) {
+      alert('This plan is not yet available. Please try again later.');
+      return;
+    }
+
     setLoading(true);
     try {
       const token = await getToken();
-      const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO || 'price_placeholder';
-
       const session = await apiClient.createCheckoutSession({
         price_id: priceId,
-        plan: 'pro',
+        plan: tier.id,
       }, token) as any;
 
       window.location.href = session.url;
@@ -80,11 +89,15 @@ export function SubscriptionTab({
     ? subscriptionData.creditsPerMonth
     : 3;
 
+  const currentTierIndex = TIER_ORDER.indexOf(currentPlan);
+
+  // Find current tier config for display
+  const currentTierConfig = TIERS.find((t) => t.id === currentPlan) || TIERS[0];
+
   // Show Coming Soon for free users when subscriptions are disabled
-  if (isFree && !subscriptionsEnabled) {
+  if (currentPlan === 'free' && !subscriptionsEnabled) {
     return (
       <div className="space-y-8">
-        {/* Current Plan Card - Still show their free tier status */}
         <section className="bg-white border border-zinc-200 p-6">
           <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-6">Your Current Plan</h3>
           <div className="space-y-4">
@@ -111,7 +124,6 @@ export function SubscriptionTab({
           </div>
         </section>
 
-        {/* Coming Soon Section */}
         <SubscriptionsComingSoon source="settings" />
       </div>
     );
@@ -124,18 +136,19 @@ export function SubscriptionTab({
         <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-6">Your Current Plan</h3>
 
         <div className="space-y-4">
-          {/* Plan Name */}
           <div>
             <h4 className="text-2xl font-black text-zinc-900">
-              {isFree ? 'Free Trial' : 'Professional'}
+              {currentTierConfig.name}
             </h4>
             <p className="text-zinc-500 mt-1 font-mono text-sm">
-              {isFree ? '3 free checks to try Tru8' : '£7 per month · 40 checks'}
+              {currentPlan === 'free'
+                ? '3 free checks to try Tru8'
+                : `£${currentTierConfig.price} per month · ${creditsPerMonth} checks`}
             </p>
           </div>
 
           {/* Usage */}
-          {isFree ? (
+          {currentPlan === 'free' ? (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-zinc-600">
@@ -171,15 +184,7 @@ export function SubscriptionTab({
           )}
 
           {/* Action Button */}
-          {isFree ? (
-            <button
-              onClick={handleUpgrade}
-              disabled={loading}
-              className="w-full px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Loading...' : 'Upgrade to Professional'}
-            </button>
-          ) : (
+          {currentPlan !== 'free' && (
             <button
               onClick={handleManageSubscription}
               disabled={loading}
@@ -196,81 +201,77 @@ export function SubscriptionTab({
         <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-6">Available Plans</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Free Plan Card */}
-          <div className="bg-white border border-zinc-200 p-6">
-            <h4 className="text-2xl font-black text-zinc-900 mb-2">Free</h4>
-            <div className="mb-6">
-              <p className="text-4xl font-black text-zinc-900">£0</p>
-              <p className="text-zinc-500 font-mono text-sm">per month</p>
-            </div>
+          {TIERS.map((tier) => {
+            const tierIndex = TIER_ORDER.indexOf(tier.id);
+            const isCurrent = tier.id === currentPlan;
+            const isUpgrade = tierIndex > currentTierIndex;
+            const isEnterprise = tier.id === 'enterprise';
 
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2 text-zinc-600">
-                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>3 free checks</span>
-              </li>
-              <li className="flex items-start gap-2 text-zinc-600">
-                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>Evidence research</span>
-              </li>
-              <li className="flex items-start gap-2 text-zinc-600">
-                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>Community support</span>
-              </li>
-            </ul>
+            return (
+              <div key={tier.id} className="bg-white border border-zinc-200 p-6 relative">
+                {tier.highlighted && (
+                  <div className="absolute top-3 right-3 bg-accent w-2 h-2" />
+                )}
 
-            <button
-              disabled={isFree}
-              className="w-full px-6 py-3 border border-zinc-200 text-zinc-400 cursor-not-allowed"
-            >
-              {isFree ? 'Current Plan' : 'Downgrade'}
-            </button>
-          </div>
+                <h4 className="text-2xl font-black text-zinc-900 mb-2">{tier.name}</h4>
+                <div className="mb-6">
+                  {tier.price !== null ? (
+                    <>
+                      <p className="text-4xl font-black text-zinc-900">£{tier.price}</p>
+                      <p className="text-zinc-500 font-mono text-sm">
+                        {tier.period === 'lifetime' ? 'one-time' : 'per month'}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-4xl font-black text-zinc-900">Custom</p>
+                      <p className="text-zinc-500 font-mono text-sm">contact us</p>
+                    </>
+                  )}
+                </div>
 
-          {/* Professional Plan Card */}
-          <div className="bg-white border border-zinc-200 p-6">
-            <h4 className="text-2xl font-black text-zinc-900 mb-2">Professional</h4>
-            <div className="mb-6">
-              <p className="text-4xl font-black text-zinc-900">£7</p>
-              <p className="text-zinc-500 font-mono text-sm">per month</p>
-            </div>
+                <ul className="space-y-3 mb-6">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-zinc-600">
+                      <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
 
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2 text-zinc-600">
-                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>40 checks per month</span>
-              </li>
-              <li className="flex items-start gap-2 text-zinc-600">
-                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>Priority processing</span>
-              </li>
-              <li className="flex items-start gap-2 text-zinc-600">
-                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>Priority support</span>
-              </li>
-              <li className="flex items-start gap-2 text-zinc-600">
-                <Check size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>Export reports</span>
-              </li>
-            </ul>
-
-            {isPro ? (
-              <button
-                disabled
-                className="w-full px-6 py-3 border border-zinc-200 text-zinc-400 cursor-not-allowed"
-              >
-                Current Plan
-              </button>
-            ) : (
-              <button
-                onClick={handleUpgrade}
-                disabled={loading}
-                className="w-full px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Loading...' : 'Upgrade Now'}
-              </button>
-            )}
-          </div>
+                {isCurrent ? (
+                  <button
+                    disabled
+                    className="w-full px-6 py-3 border border-zinc-200 text-zinc-400 cursor-not-allowed"
+                  >
+                    Current Plan
+                  </button>
+                ) : isEnterprise ? (
+                  <a
+                    href={tier.contactUrl}
+                    className="block w-full px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors text-center"
+                  >
+                    Contact Us
+                  </a>
+                ) : isUpgrade ? (
+                  <button
+                    onClick={() => handleUpgrade(tier)}
+                    disabled={loading}
+                    className="w-full px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:opacity-50"
+                  >
+                    {loading ? 'Loading...' : 'Upgrade Now'}
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="w-full px-6 py-3 border border-zinc-200 text-zinc-400 cursor-not-allowed"
+                  >
+                    Downgrade
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

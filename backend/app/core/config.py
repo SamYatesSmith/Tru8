@@ -75,6 +75,7 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = Field("", env="STRIPE_SECRET_KEY")
     STRIPE_WEBHOOK_SECRET: str = Field("", env="STRIPE_WEBHOOK_SECRET")
     STRIPE_PRICE_ID_PRO: str = Field("", env="STRIPE_PRICE_ID_PRO")
+    STRIPE_PRICE_ID_DEVELOPER: str = Field("", env="STRIPE_PRICE_ID_DEVELOPER")
     FRONTEND_URL: str = Field("http://localhost:3000", env="FRONTEND_URL")
 
     # Email Notifications (Resend)
