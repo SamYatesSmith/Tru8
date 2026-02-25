@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { useCheckProgress } from '@/hooks/use-check-progress';
 import { ClaimSelectionView } from '@/components/claim-selection';
@@ -19,6 +19,9 @@ import { LibrarianView } from '@/components/evidence-views/librarian';
 import { CartographerView } from '@/components/evidence-views/cartographer';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
+import { ClaimHeader } from '@/components/evidence-views/detail/ClaimHeader';
+import { InterpreterView } from '@/components/evidence-views/interpreter';
+import { SeekerView } from '@/components/evidence-views/seeker';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 
 interface CheckDetailClientProps {
@@ -26,20 +29,44 @@ interface CheckDetailClientProps {
   checkId: string;
   isPro?: boolean;
   rawSourcesCount?: number;
+  initialClaim?: number;
 }
 
-export function CheckDetailClient({ initialData, checkId, isPro = false, rawSourcesCount = 0 }: CheckDetailClientProps) {
+export function CheckDetailClient({ initialData, checkId, isPro = false, rawSourcesCount = 0, initialClaim }: CheckDetailClientProps) {
   const { getToken } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [checkData, setCheckData] = useState(initialData);
   const [token, setToken] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [sourcesCount, setSourcesCount] = useState(rawSourcesCount);
   const [isProUser, setIsProUser] = useState(isPro);
+  const claimDetailRef = useRef<HTMLDivElement>(null);
+
+  // Single-claim checks pre-focus the only claim (no overview grid needed)
+  const isSingleClaim = checkData.status === 'completed' && checkData.claims?.length === 1;
+
+  const [activeClaimIndex, setActiveClaimIndex] = useState<number | null>(
+    initialClaim !== undefined ? initialClaim : (isSingleClaim ? 0 : null)
+  );
+  const [claimView, setClaimView] = useState<string>(() => {
+    // If a claim is focused, read ?view= as the claim-level tab
+    if (initialClaim !== undefined || isSingleClaim) {
+      const viewParam = searchParams?.get('view');
+      const validViews = ['cartographer', 'librarian', 'interpreter', 'seeker', 'projectionist', 'chronologist'];
+      return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
+    }
+    return 'cartographer';
+  });
+
   const [activeOverviewTab, setActiveOverviewTab] = useState(() => {
-    const viewParam = searchParams?.get('view');
-    const validViews = ['cartographer', 'librarian', 'projectionist', 'chronologist'];
-    return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
+    // Only read ?view= as overview tab if no claim is focused
+    if (initialClaim === undefined && !isSingleClaim) {
+      const viewParam = searchParams?.get('view');
+      const validViews = ['cartographer', 'librarian', 'projectionist', 'chronologist'];
+      return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
+    }
+    return 'cartographer';
   });
 
   // F07: Sync active overview tab to URL for shareability
@@ -51,15 +78,89 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     } else {
       url.searchParams.delete('view');
     }
+    // Clear claim param when switching overview tabs
+    url.searchParams.delete('claim');
     window.history.replaceState({}, '', url.toString());
   }, []);
 
-  // Video recommendations (E14/E15)
+  // Claim-level tab change — syncs ?claim=N&view=X to URL
+  const handleClaimTabChange = useCallback((tab: string) => {
+    setClaimView(tab);
+    const url = new URL(window.location.href);
+    if (activeClaimIndex !== null) {
+      url.searchParams.set('claim', String(activeClaimIndex));
+    }
+    if (tab !== 'cartographer') {
+      url.searchParams.set('view', tab);
+    } else {
+      url.searchParams.delete('view');
+    }
+    window.history.replaceState({}, '', url.toString());
+  }, [activeClaimIndex]);
+
+  // Focus a claim (from grid click or prev/next)
+  const handleClaimSelect = useCallback((position: number) => {
+    setActiveClaimIndex(position);
+    setClaimView('cartographer');
+    const url = new URL(window.location.href);
+    url.searchParams.set('claim', String(position));
+    url.searchParams.delete('view');
+    window.history.replaceState({}, '', url.toString());
+    // Scroll to detail section
+    setTimeout(() => {
+      claimDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }, []);
+
+  // Claim navigation: prev/next + keyboard arrows
+  const claims = checkData.claims || [];
+  const handlePrevClaim = useCallback(() => {
+    if (activeClaimIndex !== null && activeClaimIndex > 0) {
+      handleClaimSelect(activeClaimIndex - 1);
+    }
+  }, [activeClaimIndex, handleClaimSelect]);
+
+  const handleNextClaim = useCallback(() => {
+    if (activeClaimIndex !== null && activeClaimIndex < claims.length - 1) {
+      handleClaimSelect(activeClaimIndex + 1);
+    }
+  }, [activeClaimIndex, claims.length, handleClaimSelect]);
+
+  // Keyboard navigation for claim prev/next
+  useEffect(() => {
+    if (activeClaimIndex === null || isSingleClaim) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowLeft') handlePrevClaim();
+      if (e.key === 'ArrowRight') handleNextClaim();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [activeClaimIndex, isSingleClaim, handlePrevClaim, handleNextClaim]);
+
+  const handleSwitchToLibrarian = useCallback(() => handleClaimTabChange('librarian'), [handleClaimTabChange]);
+  const handleSwitchToInterpreter = useCallback(() => handleClaimTabChange('interpreter'), [handleClaimTabChange]);
+
+  // G02: Refresh page data after element re-search completes
+  const handleResearchComplete = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
+  // Video recommendations — check-wide (overview Projectionist tab)
   const { videos: checkVideos, isLoading: videosLoading } = useVideoRecommendations(
     checkId,
-    null, // check-wide — no claim filter
+    null,
     token,
     checkData.status === 'completed' && activeOverviewTab === 'projectionist',
+  );
+
+  // Video recommendations — per-claim (detail Projectionist tab)
+  const focusedClaim = activeClaimIndex !== null ? claims[activeClaimIndex] : null;
+  const { videos: claimVideos, isLoading: claimVideosLoading } = useVideoRecommendations(
+    checkId,
+    focusedClaim?.id || null,
+    token,
+    checkData.status === 'completed' && claimView === 'projectionist' && activeClaimIndex !== null,
   );
 
   // Check for upgrade query param
@@ -268,37 +369,115 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
             processingTimeMs={checkData.processingTimeMs}
           />
 
-          {/* Claim Grid (Overview) */}
-          <ClaimList claims={checkData.claims} checkId={checkId} />
+          {/* Multi-claim: Claim Grid + Check-Wide Views */}
+          {!isSingleClaim && (
+            <>
+              <ClaimList
+                claims={checkData.claims}
+                checkId={checkId}
+                onSelect={handleClaimSelect}
+                activePosition={activeClaimIndex}
+              />
 
-          {/* Check-Wide View Selector */}
-          <ViewSelector mode="overview" activeTab={activeOverviewTab} onTabChange={handleOverviewTabChange} />
+              <ViewSelector mode="overview" activeTab={activeOverviewTab} onTabChange={handleOverviewTabChange} />
 
-          {/* Check-wide view content */}
-          {activeOverviewTab === 'cartographer' && (
-            <CartographerView
-              scope="check"
-              claims={checkData.claims}
-              onSwitchToLibrarian={() => handleOverviewTabChange('librarian')}
-            />
+              {activeOverviewTab === 'cartographer' && (
+                <CartographerView
+                  scope="check"
+                  claims={checkData.claims}
+                  onSwitchToLibrarian={() => handleOverviewTabChange('librarian')}
+                />
+              )}
+              {activeOverviewTab === 'librarian' && (
+                <LibrarianView scope="check" claims={checkData.claims} />
+              )}
+              {activeOverviewTab === 'projectionist' && (
+                <ProjectionistView
+                  scope="check"
+                  claims={checkData.claims}
+                  videos={checkVideos}
+                  isLoading={videosLoading}
+                />
+              )}
+              {activeOverviewTab === 'chronologist' && (
+                <ChronologistView
+                  scope="check"
+                  claims={checkData.claims}
+                  onSwitchToLibrarian={() => handleOverviewTabChange('librarian')}
+                />
+              )}
+            </>
           )}
-          {activeOverviewTab === 'librarian' && (
-            <LibrarianView scope="check" claims={checkData.claims} />
-          )}
-          {activeOverviewTab === 'projectionist' && (
-            <ProjectionistView
-              scope="check"
-              claims={checkData.claims}
-              videos={checkVideos}
-              isLoading={videosLoading}
-            />
-          )}
-          {activeOverviewTab === 'chronologist' && (
-            <ChronologistView
-              scope="check"
-              claims={checkData.claims}
-              onSwitchToLibrarian={() => handleOverviewTabChange('librarian')}
-            />
+
+          {/* Per-Claim Detail Section */}
+          {focusedClaim && (
+            <div ref={claimDetailRef} className="pt-8 border-t border-zinc-100">
+              {/* Claim header with prev/next (multi-claim only) */}
+              <div className="flex items-start justify-between mb-6">
+                <ClaimHeader claim={focusedClaim} position={activeClaimIndex!} />
+                {!isSingleClaim && claims.length > 1 && (
+                  <div className="flex items-center gap-2 shrink-0 ml-6">
+                    <button
+                      onClick={handlePrevClaim}
+                      disabled={activeClaimIndex === 0}
+                      className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 disabled:text-zinc-200 disabled:cursor-default transition-colors px-2 py-1"
+                    >
+                      &larr; Prev
+                    </button>
+                    <span className="font-mono text-[10px] text-zinc-300">
+                      {(activeClaimIndex! + 1)}/{claims.length}
+                    </span>
+                    <button
+                      onClick={handleNextClaim}
+                      disabled={activeClaimIndex === claims.length - 1}
+                      className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 disabled:text-zinc-200 disabled:cursor-default transition-colors px-2 py-1"
+                    >
+                      Next &rarr;
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <ViewSelector mode="detail" activeTab={claimView} onTabChange={handleClaimTabChange} />
+
+              {claimView === 'cartographer' && (
+                <CartographerView
+                  scope="claim"
+                  claims={[focusedClaim]}
+                  onSwitchToLibrarian={handleSwitchToLibrarian}
+                  onSwitchToInterpreter={handleSwitchToInterpreter}
+                />
+              )}
+              {claimView === 'librarian' && (
+                <LibrarianView scope="claim" claims={[focusedClaim]} />
+              )}
+              {claimView === 'interpreter' && (
+                <InterpreterView claim={focusedClaim} />
+              )}
+              {claimView === 'projectionist' && (
+                <ProjectionistView
+                  scope="claim"
+                  claims={[focusedClaim]}
+                  videos={claimVideos}
+                  isLoading={claimVideosLoading}
+                />
+              )}
+              {claimView === 'chronologist' && (
+                <ChronologistView
+                  scope="claim"
+                  claims={[focusedClaim]}
+                  onSwitchToLibrarian={handleSwitchToLibrarian}
+                />
+              )}
+              {claimView === 'seeker' && (
+                <SeekerView
+                  claim={focusedClaim}
+                  checkId={checkId}
+                  token={token}
+                  onResearchComplete={handleResearchComplete}
+                />
+              )}
+            </div>
           )}
 
           <ShareSection checkId={checkId} inputUrl={checkData.inputUrl} title={checkData.title} />

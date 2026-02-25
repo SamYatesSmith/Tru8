@@ -6,9 +6,11 @@ import { ClaimOverviewCard } from './ClaimOverviewCard';
 interface ClaimListProps {
   claims: Claim[];
   checkId: string;
+  onSelect?: (position: number) => void;
+  activePosition?: number | null;
 }
 
-export function ClaimList({ claims, checkId }: ClaimListProps) {
+export function ClaimList({ claims, checkId, onSelect, activePosition }: ClaimListProps) {
   return (
     <div className="mb-16">
       <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400 mb-6 border-b border-zinc-100 pb-2">
@@ -22,6 +24,8 @@ export function ClaimList({ claims, checkId }: ClaimListProps) {
             claim={claim}
             position={index}
             checkId={checkId}
+            onSelect={onSelect}
+            isActive={activePosition === index}
           />
         ))}
       </div>

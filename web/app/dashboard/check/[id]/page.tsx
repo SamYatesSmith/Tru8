@@ -6,6 +6,7 @@ import { CheckDetailClient } from './check-detail-client';
 
 interface CheckDetailPageProps {
   params: { id: string };
+  searchParams?: { claim?: string; view?: string };
 }
 
 interface CheckData {
@@ -28,7 +29,7 @@ interface CheckData {
   articleClassificationSource?: string;
 }
 
-export default async function CheckDetailPage({ params }: CheckDetailPageProps) {
+export default async function CheckDetailPage({ params, searchParams }: CheckDetailPageProps) {
   const { getToken } = auth();
 
   // Fetch check data and subscription status in parallel
@@ -58,10 +59,10 @@ export default async function CheckDetailPage({ params }: CheckDetailPageProps) 
     throw error;
   }
 
-  // Single-claim skip: go directly to Detail page (V-04: "Never show an Overview page with a single card")
-  if (checkData.status === 'completed' && checkData.claims?.length === 1) {
-    redirect(`/dashboard/check/${params.id}/claim/0`);
-  }
+  // Read claim deep link param (from ?claim=N or redirected from /claim/N)
+  const initialClaim = searchParams?.claim
+    ? parseInt(searchParams.claim as string, 10)
+    : undefined;
 
   return (
     <div className="space-y-8">
@@ -77,6 +78,7 @@ export default async function CheckDetailPage({ params }: CheckDetailPageProps) 
         checkId={params.id}
         isPro={isPro}
         rawSourcesCount={rawSourcesCount}
+        initialClaim={initialClaim}
       />
     </div>
   );
