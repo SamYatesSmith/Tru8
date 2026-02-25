@@ -3,14 +3,20 @@
 Every pipeline module that calls the Gemini API should use `call_google_ai`
 instead of building its own httpx request.  This gives us:
 
-- A process-wide asyncio.Semaphore to stay under burst-rate limits.
-- Exponential back-off with up to 3 retries on HTTP 429 / 503.
+- A process-wide concurrency gate sized for the project's paid API tier.
+- Jittered exponential back-off with Retry-After header respect.
+- A shared HTTP client for connection pooling.
 - A single place to change the endpoint, headers, or retry policy.
+
+Rate limits are determined by the Google Developer Console tier, not by this
+code.  The concurrency gate and retry policy should be generous enough to use
+the full quota without self-throttling.
 """
 
 import asyncio
 import json
 import logging
+import random
 from typing import Any, Dict, Optional
 
 import httpx
@@ -19,13 +25,45 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Process-wide concurrency gate for Gemini requests.
-# Free tier: 30 RPM — semaphore of 10 allows burst while backoff handles 429s.
-# Paid tier: 2,000 RPM — can raise further.
-_semaphore = asyncio.Semaphore(10)
+# Process-wide concurrency gate — caps parallel in-flight requests.
+# Actual RPM is governed by the API tier in Google Developer Console.
+_CONCURRENCY = 25
+_semaphore = asyncio.Semaphore(_CONCURRENCY)
 
-_MAX_RETRIES = 3
-_BASE_DELAY = 1.0  # seconds; doubles each retry
+_MAX_RETRIES = 5
+_BASE_DELAY = 2.0  # seconds; grows with jittered exponential backoff
+_MAX_DELAY = 30.0  # cap per-retry wait
+
+# Shared HTTP client — lazily created, reused for connection pooling.
+_client: Optional[httpx.AsyncClient] = None
+_client_lock = asyncio.Lock()
+
+
+async def _get_client(timeout: float) -> httpx.AsyncClient:
+    """Return (and lazily create) the shared HTTP client."""
+    global _client
+    if _client is None or _client.is_closed:
+        async with _client_lock:
+            if _client is None or _client.is_closed:
+                _client = httpx.AsyncClient(
+                    timeout=httpx.Timeout(timeout, connect=10.0),
+                    limits=httpx.Limits(
+                        max_connections=_CONCURRENCY,
+                        max_keepalive_connections=_CONCURRENCY,
+                    ),
+                )
+    return _client
+
+
+def _jittered_delay(attempt: int, retry_after: Optional[float] = None) -> float:
+    """Compute backoff delay with full jitter.
+
+    If the server sent a Retry-After header, use that as a floor.
+    """
+    exp_delay = _BASE_DELAY * (2**attempt)
+    jittered = random.uniform(0, exp_delay)
+    delay = max(jittered, retry_after or 0)
+    return min(delay, _MAX_DELAY)
 
 
 async def call_google_ai(
@@ -60,22 +98,23 @@ async def call_google_ai(
     }
 
     last_status: Optional[int] = None
+    client = await _get_client(timeout)
 
     for attempt in range(_MAX_RETRIES):
+        retry_after: Optional[float] = None
+
         async with _semaphore:
             try:
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.post(
-                        url,
-                        headers={"Content-Type": "application/json"},
-                        json=body,
-                    )
+                response = await client.post(
+                    url,
+                    headers={"Content-Type": "application/json"},
+                    json=body,
+                )
             except httpx.TimeoutException:
                 logger.warning(
                     "Google AI timeout (attempt %d/%d)", attempt + 1, _MAX_RETRIES
                 )
                 last_status = None
-                # fall through to retry/back-off
             except httpx.HTTPError as exc:
                 logger.warning(
                     "Google AI HTTP error (attempt %d/%d): %s",
@@ -100,16 +139,26 @@ async def call_google_ai(
                     logger.error("Google AI error: %d", response.status_code)
                     return None
 
-                # 429 / 503 → retry with back-off
+                # Respect Retry-After header if present
+                ra = response.headers.get("retry-after")
+                if ra:
+                    try:
+                        retry_after = float(ra)
+                    except ValueError:
+                        pass
+
+                extra = f" (retry-after: {retry_after}s)" if retry_after else ""
                 logger.warning(
-                    "Google AI %d (attempt %d/%d), backing off",
+                    "Google AI %d (attempt %d/%d), backing off%s",
                     response.status_code,
                     attempt + 1,
                     _MAX_RETRIES,
+                    extra,
                 )
 
-        # Exponential back-off (outside semaphore so we don't hold the slot)
-        await asyncio.sleep(_BASE_DELAY * (2**attempt))
+        # Jittered exponential back-off (outside semaphore so we release the slot)
+        delay = _jittered_delay(attempt, retry_after)
+        await asyncio.sleep(delay)
 
     logger.error(
         "Google AI failed after %d retries (last status: %s)",
