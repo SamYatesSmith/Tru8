@@ -215,6 +215,7 @@ def _make_evidence(**overrides):
         "factcheck_rating": None,
         "context_before": None,
         "context_after": None,
+        "archived_url": None,
     }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)

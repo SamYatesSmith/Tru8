@@ -21,3 +21,20 @@ sys.path.insert(0, str(mocks_path))
 
 # Import all fixtures from fixtures/conftest.py
 from fixtures.conftest import *
+
+
+@pytest.fixture(autouse=True)
+def _reset_google_ai_client():
+    """Reset the google_ai module-level singleton between tests.
+
+    The shared httpx client in app.services.google_ai persists across tests,
+    causing 'Event loop is closed' errors when different tests create new
+    event loops. Resetting to None forces a fresh client per test.
+    """
+    yield
+    try:
+        import app.services.google_ai as _gai
+
+        _gai._client = None
+    except ImportError:
+        pass
