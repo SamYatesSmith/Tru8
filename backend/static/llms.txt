@@ -26,12 +26,11 @@ POST /api/v1/checks/stream — SSE progress stream
 GET /api/v1/checks/{id} — retrieve completed result
 GET /api/v1/checks/{id}?computed=true — result with pre-computed analytics
 
-## Pipeline Modes
+## Pipeline
 
-- mode: "full" (default) — typically 60-120s. Extract → retrieve → decompose → map evidence.
-  Returns claims with elements, evidence refs, relationship labels, orientation.
-- mode: "snapshot" — typically 15-30s. Extract → retrieve → filter → classify.
-  Claims with raw evidence, no decomposition or mapping. Use for triage.
+Deep Research (typically 60-120s): extract claims → retrieve evidence from multiple
+independent sources → decompose each claim into verifiable elements → map evidence
+to elements with relationship labels. Includes coverage recovery for low-coverage claims.
 
 ## Evidence Model
 
@@ -61,8 +60,7 @@ Run: tru8-mcp (or python -m tru8_mcp)
 Env: TRU8_API_KEY (required), TRU8_API_URL (optional)
 
 Tools:
-- tru8_check_claim(text) — full evidence research, returns result with analytics
-- tru8_quick_check(text) — fast evidence scan, returns raw evidence
+- tru8_check(text) — evidence research, returns result with analytics
 - tru8_get_result(check_id) — retrieve result with computed analytics
 - tru8_get_result_raw(check_id) — retrieve result without computed analytics
 

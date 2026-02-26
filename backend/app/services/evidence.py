@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from app.services.search import SearchResult, SearchService
 from app.utils.url_utils import extract_domain
 from app.utils.domain_status_tracker import get_domain_tracker, DomainStatus
+from app.utils.encoding import fix_mojibake
 
 logger = logging.getLogger(__name__)
 
@@ -490,6 +491,9 @@ class EvidenceExtractor:
 
     def _sanitize_content(self, content: str) -> str:
         """Clean and sanitize extracted content"""
+        # Fix mojibake from double-encoded UTF-8 (Latin-1 decoded UTF-8 bytes)
+        content = fix_mojibake(content)
+
         # Remove excessive whitespace
         content = re.sub(r"\s+", " ", content).strip()
 

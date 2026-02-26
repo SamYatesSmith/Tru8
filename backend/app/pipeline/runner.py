@@ -759,55 +759,45 @@ async def run_pipeline_phase2(
         stage_timings["factcheck"] = (datetime.utcnow() - stage_start).total_seconds()
 
     # =========================================================================
-    # Stage 3: Decompose Claims into Elements (skipped in snapshot mode)
+    # Stage 3: Decompose Claims into Elements
     # =========================================================================
-    pipeline_mode = input_data.get("mode", "full")
+    await _log_stage_transition(check_id, current_stage, "decompose", progress_reporter)
+    current_stage = "decompose"
+    stage_start = datetime.utcnow()
 
-    if pipeline_mode == "snapshot":
+    analyzer = ClaimMapAnalyzer()
+
+    try:
+        batch_input = [
+            {"text": c["text"], "claim_id": str(c.get("position", 0))}
+            for c in selected_claims
+        ]
+        results = await analyzer.decompose_claims_batch(batch_input)
+        for claim in selected_claims:
+            claim_id = str(claim.get("position", 0))
+            claim["claim_map"] = results[claim_id]
         logger.info(
-            f"[INLINE PIPELINE] Snapshot mode — skipping decompose + analyze stages"
+            f"[INLINE PIPELINE] Decomposed {len(selected_claims)} claims into elements"
         )
-    else:
-        await _log_stage_transition(
-            check_id, current_stage, "decompose", progress_reporter
+    except Exception as e:
+        logger.error(
+            f"[STAGE ERROR] check={check_id} stage=decompose error={type(e).__name__}: {e}"
         )
-        current_stage = "decompose"
-        stage_start = datetime.utcnow()
+        raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose")
 
-        analyzer = ClaimMapAnalyzer()
+    stage_timings["decompose"] = (datetime.utcnow() - stage_start).total_seconds()
 
-        try:
-            batch_input = [
-                {"text": c["text"], "claim_id": str(c.get("position", 0))}
+    if ledger:
+        ledger.record(
+            "decomposition",
+            claims_decomposed=len(selected_claims),
+            elements_per_claim={
+                str(c.get("position", 0)): len(
+                    c.get("claim_map", {}).get("elements", [])
+                )
                 for c in selected_claims
-            ]
-            results = await analyzer.decompose_claims_batch(batch_input)
-            for claim in selected_claims:
-                claim_id = str(claim.get("position", 0))
-                claim["claim_map"] = results[claim_id]
-            logger.info(
-                f"[INLINE PIPELINE] Decomposed {len(selected_claims)} claims into elements"
-            )
-        except Exception as e:
-            logger.error(
-                f"[STAGE ERROR] check={check_id} stage=decompose error={type(e).__name__}: {e}"
-            )
-            raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose")
-
-    if pipeline_mode != "snapshot":
-        stage_timings["decompose"] = (datetime.utcnow() - stage_start).total_seconds()
-
-        if ledger:
-            ledger.record(
-                "decomposition",
-                claims_decomposed=len(selected_claims),
-                elements_per_claim={
-                    str(c.get("position", 0)): len(
-                        c.get("claim_map", {}).get("elements", [])
-                    )
-                    for c in selected_claims
-                },
-            )
+            },
+        )
 
     # =========================================================================
     # Stage 4: Retrieve Evidence
@@ -1300,81 +1290,6 @@ async def run_pipeline_phase2(
     article_excerpt = content.get("content", "")[:5000]
 
     # =========================================================================
-    # Snapshot mode: skip evidence mapping + query, build result with raw evidence
-    # =========================================================================
-    if pipeline_mode == "snapshot":
-        # Mark surviving evidence as "shown"
-        for ev_list in evidence.values():
-            for ev in ev_list:
-                ev["receipt_status"] = "shown"
-
-        results = []
-        for claim in claims:
-            pos = str(claim.get("position", 0))
-            results.append(
-                {
-                    "text": claim.get("text", ""),
-                    "position": claim.get("position", 0),
-                    "is_selected": claim.get("is_selected", False),
-                    "significance_rank": claim.get("significance_rank"),
-                    "significance_score": claim.get("significance_score"),
-                    "claim_map": None,  # No decomposition in snapshot mode
-                    "evidence": evidence.get(pos, []),
-                    "subject_context": claim.get("subject_context"),
-                    "key_entities": claim.get("key_entities"),
-                    "source_title": claim.get("source_title"),
-                    "source_url": claim.get("source_url"),
-                    "source_date": claim.get("source_date"),
-                    "article_classification": claim.get("article_classification"),
-                }
-            )
-        results.sort(key=lambda x: x.get("position", 0))
-
-        api_stats = _aggregate_api_stats(claims, evidence)
-        processing_time_ms = int(
-            (datetime.utcnow() - start_time).total_seconds() * 1000
-        )
-
-        final_result = {
-            "check_id": check_id,
-            "status": "completed",
-            "mode": "snapshot",
-            "claims": results,
-            "entry_mode": entry_mode,
-            "selected_claims_count": len(selected_claims),
-            "processing_time_ms": processing_time_ms,
-            "ingest_metadata": content.get("metadata", {}),
-            "api_stats": api_stats,
-            "article_excerpt": article_excerpt,
-            "article_classification": (
-                article_classification.to_dict() if article_classification else None
-            ),
-            "raw_evidence": raw_evidence_data,
-            "raw_sources_count": raw_sources_count,
-            "pipeline_stats": {
-                "claims_extracted": len(claims),
-                "claims_selected": len(selected_claims),
-                "evidence_sources": sum(len(ev) for ev in evidence.values()),
-                "raw_sources_reviewed": raw_sources_count,
-                "stage_timings": stage_timings,
-                "total_stage_time": sum(stage_timings.values()),
-                "pipeline_version": "inline_sse_v4_snapshot",
-            },
-        }
-
-        if ledger:
-            try:
-                ledger.save()
-                final_result["evidence_ledger"] = ledger.to_dict()
-            except Exception as e:
-                logger.warning(f"[LEDGER] Failed to save ledger: {e}")
-
-        logger.info(
-            f"[INLINE PIPELINE] Snapshot completed in {processing_time_ms}ms for check {check_id}"
-        )
-        return final_result
-
-    # =========================================================================
     # Stage 5: Evidence Mapping (replaces Judge)
     # =========================================================================
     await _log_stage_transition(check_id, current_stage, "analyze", progress_reporter)
@@ -1531,6 +1446,173 @@ async def run_pipeline_phase2(
         )
 
     stage_timings["analyze"] = (datetime.utcnow() - stage_start).total_seconds()
+
+    # =========================================================================
+    # Stage 5.1: Coverage Recovery — targeted retrieval for low-coverage claims
+    # =========================================================================
+    COVERAGE_RECOVERY_THRESHOLD = 0.4  # Trigger when >40% unresolved
+    RECOVERY_MAX_CLAIMS = 3  # Max claims to recover per check
+    RECOVERY_MAX_ELEMENTS = 5  # Max elements to recover per claim
+    RECOVERY_TIMEOUT_SECONDS = 20  # Hard time cap
+
+    recovery_candidates = []
+    for claim in selected_claims:
+        cm = claim.get("claim_map")
+        if not cm or not cm.get("elements"):
+            continue
+        elements = cm["elements"]
+        total = len(elements)
+        unresolved = sum(
+            1
+            for e in elements
+            if (
+                e.get("state").value
+                if hasattr(e.get("state"), "value")
+                else e.get("state")
+            )
+            == "unresolved"
+        )
+        if total > 0 and (unresolved / total) > COVERAGE_RECOVERY_THRESHOLD:
+            recovery_candidates.append(
+                {
+                    "claim": claim,
+                    "total": total,
+                    "unresolved": unresolved,
+                    "ratio": unresolved / total,
+                }
+            )
+
+    if recovery_candidates:
+        recovery_candidates.sort(key=lambda x: -x["ratio"])
+        recovery_candidates = recovery_candidates[:RECOVERY_MAX_CLAIMS]
+
+        candidate_info = [
+            (c["claim"].get("position", "?"), f"{c['unresolved']}/{c['total']}")
+            for c in recovery_candidates
+        ]
+        logger.info(
+            f"[COVERAGE RECOVERY] {len(recovery_candidates)} claims qualify "
+            f"(>{COVERAGE_RECOVERY_THRESHOLD*100:.0f}% unresolved): {candidate_info}"
+        )
+
+        # Collect existing URLs for dedup
+        existing_urls = set()
+        for ev_list in evidence.values():
+            for ev in ev_list:
+                if ev.get("url"):
+                    existing_urls.add(ev["url"])
+
+        from app.pipeline.retrieve import EvidenceRetriever
+
+        retriever = EvidenceRetriever()
+        recovery_start = datetime.utcnow()
+        claims_recovered = 0
+        elements_resolved = 0
+
+        async def _recover_single_claim(candidate):
+            nonlocal claims_recovered, elements_resolved
+            claim = candidate["claim"]
+            cm = claim["claim_map"]
+            pos = str(claim.get("position", 0))
+
+            # Identify unresolved elements (cap per claim)
+            unresolved_elements = [
+                {"element_id": e["element_id"], "description": e["description"]}
+                for e in cm["elements"]
+                if (
+                    e.get("state").value
+                    if hasattr(e.get("state"), "value")
+                    else e.get("state")
+                )
+                == "unresolved"
+            ][:RECOVERY_MAX_ELEMENTS]
+
+            if not unresolved_elements:
+                return
+
+            # Targeted retrieval
+            new_evidence = await retriever.retrieve_for_elements(
+                elements=unresolved_elements,
+                claim_text=claim.get("text", ""),
+                existing_urls=existing_urls,
+            )
+
+            if not new_evidence:
+                logger.info(f"[COVERAGE RECOVERY] Claim {pos}: no new evidence found")
+                return
+
+            # Classify new evidence (reuse existing classifier)
+            try:
+                if settings.ENABLE_EVIDENCE_CLASSIFIER:
+                    from app.utils.source_type_classifier import classify_evidence_batch
+
+                    classify_evidence_batch(new_evidence)
+            except Exception as e:
+                logger.warning(f"[COVERAGE RECOVERY] Classification failed: {e}")
+
+            # Add to evidence pool
+            if pos not in evidence:
+                evidence[pos] = []
+            evidence[pos].extend(new_evidence)
+            claim["evidence"] = evidence[pos]
+
+            # Focused mapping for unresolved elements only
+            unresolved_ids = [e["element_id"] for e in unresolved_elements]
+            await analyzer.map_evidence_to_specific_elements(
+                claim_map=cm,
+                unresolved_element_ids=unresolved_ids,
+                new_evidence=new_evidence,
+            )
+
+            # Count results
+            claims_recovered += 1
+            newly_resolved = sum(
+                1
+                for e in cm["elements"]
+                if e["element_id"] in unresolved_ids
+                and (
+                    e.get("state").value
+                    if hasattr(e.get("state"), "value")
+                    else e.get("state")
+                )
+                != "unresolved"
+            )
+            elements_resolved += newly_resolved
+
+            logger.info(
+                f"[COVERAGE RECOVERY] Claim {pos}: +{len(new_evidence)} evidence, "
+                f"{newly_resolved}/{len(unresolved_elements)} elements now resolved"
+            )
+
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(
+                    *[_recover_single_claim(c) for c in recovery_candidates],
+                    return_exceptions=True,
+                ),
+                timeout=RECOVERY_TIMEOUT_SECONDS,
+            )
+        except asyncio.TimeoutError:
+            logger.warning(
+                f"[COVERAGE RECOVERY] Timed out after {RECOVERY_TIMEOUT_SECONDS}s"
+            )
+
+        recovery_elapsed = (datetime.utcnow() - recovery_start).total_seconds()
+        stage_timings["coverage_recovery"] = recovery_elapsed
+
+        logger.info(
+            f"[COVERAGE RECOVERY] Complete: {claims_recovered} claims recovered, "
+            f"{elements_resolved} elements resolved, {recovery_elapsed:.1f}s elapsed"
+        )
+
+        if ledger:
+            ledger.record(
+                "coverage_recovery",
+                candidates=len(recovery_candidates),
+                claims_recovered=claims_recovered,
+                elements_resolved=elements_resolved,
+                elapsed_seconds=round(recovery_elapsed, 2),
+            )
 
     # =========================================================================
     # Stage 5.5: Query Answering (optional)

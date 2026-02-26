@@ -15,8 +15,7 @@ import httpx
 logger = logging.getLogger(__name__)
 
 # Pipeline timeouts (seconds)
-FULL_PIPELINE_TIMEOUT = 180.0
-SNAPSHOT_PIPELINE_TIMEOUT = 60.0
+PIPELINE_TIMEOUT = 180.0
 GET_TIMEOUT = 30.0
 POLL_INTERVAL = 3.0
 MAX_POLL_DURATION = 300.0
@@ -47,7 +46,7 @@ class Tru8APIClient:
     def _headers(self) -> dict:
         return {"X-API-Key": self.api_key, "Accept": "application/json"}
 
-    async def submit_check_sync(self, text: str, mode: str = "full") -> dict:
+    async def submit_check_sync(self, text: str) -> dict:
         """Submit content via the synchronous /run endpoint and return the full result.
 
         Single HTTP call — blocks until the pipeline completes and returns the
@@ -60,21 +59,14 @@ class Tru8APIClient:
         input_type = (
             "url" if text.strip().startswith(("http://", "https://")) else "text"
         )
-        payload = {"input_type": input_type, "mode": mode}
+        payload = {"input_type": input_type}
         if input_type == "url":
             payload["url"] = text.strip()
         else:
             payload["content"] = text.strip()
 
-        # Pipeline timeout + 30s buffer for network overhead
-        timeout = (
-            FULL_PIPELINE_TIMEOUT + 30.0
-            if mode == "full"
-            else SNAPSHOT_PIPELINE_TIMEOUT + 30.0
-        )
-
         async with httpx.AsyncClient(
-            timeout=httpx.Timeout(timeout, connect=10.0)
+            timeout=httpx.Timeout(PIPELINE_TIMEOUT + 30.0, connect=10.0)
         ) as client:
             resp = await client.post(
                 f"{self.base_url}/api/v1/checks/run",
@@ -85,7 +77,7 @@ class Tru8APIClient:
                 raise RuntimeError(f"API error {resp.status_code}: {resp.text}")
             return resp.json()
 
-    async def submit_check_sse(self, text: str, mode: str = "full") -> str:
+    async def submit_check_sse(self, text: str) -> str:
         """Submit content for evidence research and wait for completion.
 
         Consumes the SSE stream from POST /stream. For URL inputs that pause
@@ -98,13 +90,13 @@ class Tru8APIClient:
         input_type = (
             "url" if text.strip().startswith(("http://", "https://")) else "text"
         )
-        payload = {"input_type": input_type, "mode": mode}
+        payload = {"input_type": input_type}
         if input_type == "url":
             payload["url"] = text.strip()
         else:
             payload["content"] = text.strip()
 
-        timeout = FULL_PIPELINE_TIMEOUT if mode == "full" else SNAPSHOT_PIPELINE_TIMEOUT
+        timeout = PIPELINE_TIMEOUT
         check_id = None
         awaiting_selection = False
         claim_positions = []

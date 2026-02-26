@@ -27,9 +27,21 @@ import aiofiles
 from app.api.v1.users import get_or_create_user
 from app.services.storage import storage_service
 from app.core.rate_limit import limiter
+from app.utils.encoding import fix_mojibake
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_strings(obj):
+    """Recursively fix mojibake in all string values of a dict/list."""
+    if isinstance(obj, str):
+        return fix_mojibake(obj)
+    elif isinstance(obj, dict):
+        return {k: _sanitize_strings(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_sanitize_strings(item) for item in obj]
+    return obj
 
 
 def _claim_map_to_camel_case(claim_map: dict) -> dict:
@@ -308,7 +320,8 @@ jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
 
 
 def safe_json_dumps(data: dict) -> str:
-    """Safely serialize JSON for SSE with ASCII encoding"""
+    """Safely serialize JSON for SSE with ASCII encoding and mojibake fix."""
+    data = _sanitize_strings(data)
     return json.dumps(data, ensure_ascii=True, separators=(",", ":"))
 
 
@@ -595,6 +608,9 @@ async def _build_check_response(
 
         response["_computed"] = compute_analytics(claims_data)
 
+    # Sanitize all strings to fix mojibake from search APIs
+    response = _sanitize_strings(response)
+
     return response
 
 
@@ -604,9 +620,6 @@ class CreateCheckRequest(BaseModel):
     url: Optional[str] = None
     file_path: Optional[str] = None  # For uploaded files
     user_query: Optional[str] = None  # Search Clarity feature
-    mode: Optional[str] = (
-        "full"  # 'full' (default) or 'snapshot' (skip decompose + analyze)
-    )
     frozen_evidence: Optional[Dict[str, List[Dict[str, Any]]]] = (
         None  # Frozen evidence replay (v2): full pre-weighting evidence dicts
     )
@@ -953,10 +966,8 @@ async def create_check_streaming(
 
     **Input types:** `url` (article analysis), `text` (direct claim).
 
-    **Pipeline modes:**
-    - `full` (default) — complete analysis: extract, retrieve, decompose, map evidence (60-120s)
-    - `snapshot` — fast mode: extract + retrieve only, no decomposition or mapping (12-18s).
-      Returns claims with raw evidence but no claim maps or element analysis.
+    Deep Research pipeline: extract claims → retrieve evidence → decompose
+    into elements → map evidence with relationship labels (typically 60-120s).
 
     **SSE events emitted:**
     - `progress` — stage name, percentage, time estimate
@@ -981,14 +992,6 @@ async def create_check_streaming(
 
     user, check = await _validate_and_create_check(body, current_user, session)
 
-    # Validate pipeline mode
-    pipeline_mode = (body.mode or "full").lower()
-    if pipeline_mode not in ("full", "snapshot"):
-        raise HTTPException(
-            status_code=400,
-            detail='Invalid mode. Use "full" (default) or "snapshot".',
-        )
-
     # Prepare input data for pipeline
     input_data = {
         "input_type": body.input_type,
@@ -997,7 +1000,6 @@ async def create_check_streaming(
         "file_path": body.file_path,
         "user_query": body.user_query,
         "frozen_evidence": body.frozen_evidence,
-        "mode": pipeline_mode,
     }
 
     # Create progress reporter
@@ -1108,7 +1110,6 @@ async def create_check_streaming(
                             {
                                 "checkId": check.id,
                                 "status": "completed",
-                                "mode": pipeline_mode,
                                 "processingTimeMs": result.get("processing_time_ms"),
                                 "claimsCount": len(result.get("claims", [])),
                             },
@@ -1232,14 +1233,6 @@ async def create_check_sync(
 
     user, check = await _validate_and_create_check(body, current_user, session)
 
-    # Validate pipeline mode
-    pipeline_mode = (body.mode or "full").lower()
-    if pipeline_mode not in ("full", "snapshot"):
-        raise HTTPException(
-            status_code=400,
-            detail='Invalid mode. Use "full" (default) or "snapshot".',
-        )
-
     # Prepare input data for pipeline
     input_data = {
         "input_type": body.input_type,
@@ -1248,7 +1241,6 @@ async def create_check_sync(
         "file_path": body.file_path,
         "user_query": body.user_query,
         "frozen_evidence": body.frozen_evidence,
-        "mode": pipeline_mode,
     }
 
     # Create progress reporter (required by runner, writes to Redis — we just don't stream it)
@@ -1372,7 +1364,6 @@ async def create_check_sync(
                     {
                         "checkId": check.id,
                         "status": "completed",
-                        "mode": pipeline_mode,
                         "processingTimeMs": result.get("processing_time_ms"),
                         "claimsCount": len(result.get("claims", [])),
                     },

@@ -74,8 +74,7 @@ tru8-mcp
 
 | Tool | Description | Typical time |
 |------|-------------|-------------|
-| `tru8_check_claim` | Full evidence research with element decomposition and mapping | 60-120s |
-| `tru8_quick_check` | Fast evidence scan — triage before committing to deep analysis | 15-30s |
+| `tru8_check` | Deep evidence research with element decomposition and mapping | 60-120s |
 | `tru8_get_result` | Retrieve completed check with computed analytics | <1s |
 | `tru8_get_result_raw` | Retrieve raw check data without computed analytics | <1s |
 

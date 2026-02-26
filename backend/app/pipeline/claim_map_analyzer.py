@@ -785,6 +785,92 @@ class ClaimMapAnalyzer:
             ),
         )
 
+    async def map_evidence_to_specific_elements(
+        self,
+        claim_map: ClaimMap,
+        unresolved_element_ids: List[str],
+        new_evidence: List[Dict[str, Any]],
+    ) -> None:
+        """Map new evidence to specific unresolved elements only.
+
+        Used by coverage recovery. Scopes the LLM mapping prompt to only the
+        unresolved elements, merges new evidence_refs, and re-derives element
+        states and orientation.
+
+        Mutates claim_map in place.
+        """
+        if not new_evidence or not unresolved_element_ids:
+            return
+
+        # Filter to only the unresolved elements
+        target_elements = [
+            e
+            for e in claim_map["elements"]
+            if e["element_id"] in unresolved_element_ids
+        ]
+        if not target_elements:
+            return
+
+        # Build context for LLM
+        elements_desc = "\n".join(
+            f"- {e['element_id']}: {e['description']}" for e in target_elements
+        )
+        evidence_desc = "\n".join(
+            f"- {ev.get('evidence_id', 'unknown')}: "
+            f"[{ev.get('title', 'Untitled')}] "
+            f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
+            for ev in new_evidence
+        )
+
+        prompt = (
+            f"{MAPPING_PROMPT}\n\n"
+            f"Claim: {claim_map['normalised_claim']}\n\n"
+            f"Elements:\n{elements_desc}\n\n"
+            f"Evidence:\n{evidence_desc}"
+        )
+
+        parsed = await self._call_llm(
+            prompt=prompt,
+            temperature=self.analyzer_temperature,
+            max_tokens=self.analyzer_max_tokens,
+            label="recovery_mapping",
+        )
+
+        if parsed is not None:
+            try:
+                raw_elements = parsed.get("elements", [])
+                raw_by_id = {e.get("element_id"): e for e in raw_elements}
+
+                for elem in target_elements:
+                    eid = elem["element_id"]
+                    mapped = raw_by_id.get(eid)
+                    if not mapped:
+                        continue
+
+                    # Merge new evidence_refs with existing ones
+                    new_refs = self._validate_evidence_refs(
+                        mapped.get("evidence_refs", []), new_evidence
+                    )
+                    existing_refs = elem.get("evidence_refs", [])
+                    elem["evidence_refs"] = existing_refs + new_refs
+
+                    # Re-derive state
+                    raw_state = mapped.get("state", "unresolved")
+                    if raw_state not in _VALID_STATES:
+                        raw_state = "unresolved"
+                    elem["state"] = ElementState(raw_state)
+
+                    # Update uncertainty
+                    elem["uncertainty"] = mapped.get("uncertainty") or None
+
+            except Exception as e:
+                logger.warning(
+                    f"Recovery mapping parse failed for claim {claim_map['claim_id']}: {e}"
+                )
+
+        # Re-derive orientation from all element states
+        claim_map["orientation"] = derive_orientation(claim_map["elements"])
+
     def _fallback_mapping(self, claim_map: ClaimMap) -> None:
         """Mark all elements as unresolved when mapping fails."""
         for elem in claim_map["elements"]:

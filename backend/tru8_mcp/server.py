@@ -53,16 +53,12 @@ def _format(data: dict) -> str:
 
 
 @mcp.tool()
-async def tru8_check_claim(text: str) -> str:
+async def tru8_check(text: str) -> str:
     """Ground a factual claim or article in structured, source-traced evidence.
 
     USE THIS WHEN you need to verify, substantiate, or challenge an assertion
-    with independently sourced evidence — and you need the full analysis:
-    which specific elements of the claim are supported, disputed, or unresolved,
-    and exactly which sources say what.
-
-    DO NOT USE THIS for a quick "does evidence exist?" scan — use
-    tru8_quick_check instead (significantly faster, less depth).
+    with independently sourced evidence: which specific elements of the claim
+    are supported, disputed, or unresolved, and exactly which sources say what.
 
     Pipeline (typically 60-120s): extract claims → retrieve evidence from multiple
     independent sources → decompose each claim into verifiable elements →
@@ -90,36 +86,7 @@ async def tru8_check_claim(text: str) -> str:
               since 1880") or a URL to an article.
     """
     client = _get_client()
-    result = await client.submit_check_sync(text, mode="full")
-    return _format(result)
-
-
-@mcp.tool()
-async def tru8_quick_check(text: str) -> str:
-    """Fast evidence scan — check what sources exist before committing to deep analysis.
-
-    USE THIS WHEN you need to triage: does credible evidence exist for this
-    claim? What source types are available? Is a full investigation warranted?
-    Also use when speed matters more than analytical depth.
-
-    DO NOT USE THIS when you need element-level analysis, evidence-to-claim
-    mapping, or relationship labels — use tru8_check_claim instead.
-
-    Pipeline (typically 15-30s): extract → retrieve → filter → classify
-    by tier and type. Skips element decomposition and evidence mapping.
-
-    Output structure:
-    - claims[].text — extracted claims
-    - claims[].evidence[] — sources with title, URL, snippet, tier
-      (primary/reporting/commentary), type (data/official/news/analysis/
-      opinion/academic)
-    - No claimMap, no elements, no relationship labels, no orientation line
-
-    Args:
-        text: A claim or URL to scan for available evidence.
-    """
-    client = _get_client()
-    result = await client.submit_check_sync(text, mode="snapshot")
+    result = await client.submit_check_sync(text)
     return _format(result)
 
 
@@ -135,7 +102,7 @@ async def tru8_get_result(check_id: str) -> str:
     ready for summarisation or comparison without post-processing.
 
     Args:
-        check_id: UUID returned by tru8_check_claim or tru8_quick_check.
+        check_id: UUID returned by tru8_check.
     """
     client = _get_client()
     result = await client.get_check(check_id, computed=True)
@@ -151,7 +118,7 @@ async def tru8_get_result_raw(check_id: str) -> str:
     own aggregations or only need specific fields from the raw data.
 
     Args:
-        check_id: UUID returned by tru8_check_claim or tru8_quick_check.
+        check_id: UUID returned by tru8_check.
     """
     client = _get_client()
     result = await client.get_check(check_id, computed=False)

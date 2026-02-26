@@ -1,7 +1,7 @@
 import { Navigation } from '@/components/layout/navigation';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 import { Footer } from '@/components/layout/footer';
-import { ArrowLeft, Key, Zap, Search, FileJson, BarChart3, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Key, Search, FileJson, BarChart3, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
@@ -141,42 +141,27 @@ export TRU8_API_KEY="tru8_sk_..."`}
           {/* Divider */}
           <div className="border-t border-zinc-200 my-12 md:my-16" />
 
-          {/* Pipeline Modes */}
+          {/* Pipeline */}
           <section className="mb-16 md:mb-20">
             <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Pipeline Modes
+              Module — Pipeline
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
-              Two Speeds
+              Deep Research
             </h2>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="border border-zinc-200 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <Search size={20} className="text-zinc-400" />
-                  <h3 className="font-semibold text-zinc-900">Full Analysis</h3>
-                </div>
-                <p className="text-sm text-zinc-600 mb-3">
-                  Complete pipeline: extract claims, retrieve evidence, decompose into elements,
-                  map evidence to elements with relationship labels.
-                </p>
-                <div className="font-mono text-xs text-zinc-400">
-                  typically 60–120s · mode: &quot;full&quot; (default)
-                </div>
+            <div className="border border-zinc-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Search size={20} className="text-zinc-400" />
+                <h3 className="font-semibold text-zinc-900">Single Pipeline</h3>
               </div>
-
-              <div className="border border-zinc-200 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <Zap size={20} className="text-zinc-400" />
-                  <h3 className="font-semibold text-zinc-900">Snapshot</h3>
-                </div>
-                <p className="text-sm text-zinc-600 mb-3">
-                  Fast scan: extract claims and retrieve evidence only. No decomposition, no mapping.
-                  Raw evidence with tier and type classification.
-                </p>
-                <div className="font-mono text-xs text-zinc-400">
-                  typically 15–30s · mode: &quot;snapshot&quot;
-                </div>
+              <p className="text-sm text-zinc-600 mb-3">
+                Extract claims → retrieve evidence from multiple independent sources →
+                decompose into verifiable elements → map evidence to elements with
+                relationship labels. Includes coverage recovery for low-coverage claims.
+              </p>
+              <div className="font-mono text-xs text-zinc-400">
+                typically 60–120s
               </div>
             </div>
           </section>
@@ -194,7 +179,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
             </h2>
 
             <p className="text-base md:text-lg text-zinc-600 mb-8 leading-relaxed">
-              Tru8 exposes four tools via the{' '}
+              Tru8 exposes three tools via the{' '}
               <span className="text-zinc-900 font-medium">Model Context Protocol</span>.
               Any MCP-compatible agent (Claude, GPT, Gemini) can discover and use Tru8 automatically.
             </p>
@@ -202,14 +187,9 @@ export TRU8_API_KEY="tru8_sk_..."`}
             <div className="space-y-4">
               {[
                 {
-                  name: 'tru8_check_claim',
-                  desc: 'Full evidence research — claims, elements, evidence maps, computed analytics',
+                  name: 'tru8_check',
+                  desc: 'Deep evidence research — claims, elements, evidence maps, computed analytics',
                   time: '~60–120s',
-                },
-                {
-                  name: 'tru8_quick_check',
-                  desc: 'Fast evidence snapshot — claims with raw evidence, no decomposition',
-                  time: '~15–30s',
                 },
                 {
                   name: 'tru8_get_result',
@@ -296,7 +276,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
             ]
           }
         ],
-        "orientationLine": "Evidence broadly supports this claim..."
+        "orientation": "Evidence broadly supports this claim..."
       },
       "evidence": [
         {

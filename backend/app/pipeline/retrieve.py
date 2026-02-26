@@ -644,6 +644,102 @@ class EvidenceRetriever:
 
         return queries
 
+    async def retrieve_for_elements(
+        self,
+        elements: List[Dict[str, Any]],
+        claim_text: str,
+        existing_urls: set,
+    ) -> List[Dict[str, Any]]:
+        """Targeted retrieval for specific unresolved elements.
+
+        Used by the coverage recovery stage after evidence mapping. Generates
+        one search query per element and returns evidence items in the standard
+        format, deduplicated against existing_urls.
+
+        Args:
+            elements: [{"element_id": "e1", "description": "..."}]
+            claim_text: Parent claim text for search context
+            existing_urls: URLs to exclude (already in evidence pool)
+
+        Returns:
+            List of evidence dicts in standard pipeline format.
+        """
+        all_evidence = []
+        claim_context = claim_text[:100]
+
+        for elem in elements:
+            query = f"{elem['description']} {claim_context}"
+            try:
+                results = await self.search_service.search_for_evidence(
+                    query, max_results=5, freshness="py"
+                )
+                if not results:
+                    continue
+
+                for idx, r in enumerate(results):
+                    url = (
+                        getattr(r, "url", "") if hasattr(r, "url") else r.get("url", "")
+                    )
+                    if url in existing_urls:
+                        continue
+
+                    ev_hash = hashlib.sha256(url.encode()).hexdigest()[:8]
+                    snippet_text = (
+                        getattr(r, "snippet", "")
+                        if hasattr(r, "snippet")
+                        else r.get("snippet", "")
+                    )
+                    title = (
+                        getattr(r, "title", "")
+                        if hasattr(r, "title")
+                        else r.get("title", "")
+                    )
+                    source = (
+                        getattr(r, "source", "")
+                        if hasattr(r, "source")
+                        else r.get("source", "")
+                    )
+                    pub_date = (
+                        getattr(r, "published_date", None)
+                        if hasattr(r, "published_date")
+                        else r.get("published_date")
+                    )
+
+                    all_evidence.append(
+                        {
+                            "id": f"recovery_{elem['element_id']}_{idx}",
+                            "evidence_id": f"ev-rec-{elem['element_id']}_{idx}_{ev_hash}",
+                            "element_ids": [],
+                            "text": snippet_text,
+                            "snippet": snippet_text,
+                            "source": source,
+                            "url": url,
+                            "title": title,
+                            "published_date": pub_date,
+                            "relevance_score": 0.0,
+                            "semantic_similarity": 0.0,
+                            "combined_score": 0.0,
+                            "word_count": (
+                                len(snippet_text.split()) if snippet_text else 0
+                            ),
+                            "receipt_status": "extracted",
+                            "metadata": {
+                                "coverage_recovery": True,
+                                "target_element": elem["element_id"],
+                            },
+                            "is_recovery": True,
+                        }
+                    )
+                    existing_urls.add(url)
+
+            except Exception as e:
+                logger.warning(
+                    f"[COVERAGE RECOVERY] Search failed for element {elem['element_id']}: {e}"
+                )
+                continue
+
+        return all_evidence
+
     async def _retrieve_evidence_for_single_claim(
         self,
         claim: Dict[str, Any],
