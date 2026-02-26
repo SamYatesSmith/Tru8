@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import async_session
 from app.models import Check, Claim, Evidence, RawEvidence, User
+from app.models.check import compute_claim_text_hash
 from app.pipeline.progress import ProgressReporter
 from app.services.push_notifications import push_notification_service
 from app.services.email_notifications import email_notification_service
@@ -489,9 +490,10 @@ async def run_pipeline_phase1(
                     ct = claim_map_data.get("claim_type")
                     resolved_claim_type = ct.value if hasattr(ct, "value") else ct
 
+                claim_text = claim_data.get("text", "")
                 claim = Claim(
                     check_id=check_id,
-                    text=claim_data.get("text", ""),
+                    text=claim_text,
                     position=int(position_val) if position_val is not None else 0,
                     subject_context=claim_data.get("subject_context"),
                     key_entities=(
@@ -507,6 +509,9 @@ async def run_pipeline_phase1(
                         "has_rhetorical_context", False
                     ),
                     rhetorical_style=claim_data.get("rhetorical_style"),
+                    claim_text_hash=(
+                        compute_claim_text_hash(claim_text) if claim_text else None
+                    ),
                     claim_type=resolved_claim_type,
                     significance_rank=claim_data.get("significance_rank"),
                     significance_score=claim_data.get("significance_score"),
@@ -1878,9 +1883,10 @@ async def save_check_results_async(
                 ct = claim_map_data.get("claim_type")
                 resolved_claim_type = ct.value if hasattr(ct, "value") else ct
 
+            claim_text = claim_data.get("text", "")
             claim = Claim(
                 check_id=check_id,
-                text=claim_data.get("text", ""),
+                text=claim_text,
                 position=int(position_val) if position_val is not None else 0,
                 subject_context=claim_data.get("subject_context"),
                 key_entities=(
@@ -1895,6 +1901,9 @@ async def save_check_results_async(
                 rhetorical_context=claim_data.get("rhetorical_analysis"),
                 has_rhetorical_context=claim_data.get("has_rhetorical_context", False),
                 rhetorical_style=claim_data.get("rhetorical_style"),
+                claim_text_hash=(
+                    compute_claim_text_hash(claim_text) if claim_text else None
+                ),
                 claim_map_input_hash=claim_data.get("claim_map_input_hash"),
                 # Claim Map system fields
                 claim_map=claim_map_data,

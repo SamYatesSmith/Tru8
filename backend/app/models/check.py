@@ -3,11 +3,26 @@ from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship, JSON
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
+import hashlib
+import re
+import unicodedata
 import uuid
 
 
 def generate_uuid() -> str:
     return str(uuid.uuid4())
+
+
+def compute_claim_text_hash(text: str) -> str:
+    """Deterministic SHA256 fingerprint for cross-check claim matching.
+
+    Normalisation: NFKC unicode → lowercase → collapse whitespace → strip.
+    Two claims with trivially different formatting produce the same hash.
+    """
+    normalised = unicodedata.normalize("NFKC", text)
+    normalised = normalised.lower().strip()
+    normalised = re.sub(r"\s+", " ", normalised)
+    return hashlib.sha256(normalised.encode("utf-8")).hexdigest()
 
 
 class Check(SQLModel, table=True):
@@ -176,6 +191,14 @@ class Claim(SQLModel, table=True):
         default=None,
         max_length=30,
         description="Primary rhetorical style detected (sarcasm, mockery, satire, joking, inflammatory, hyperbole)",
+    )
+
+    # Cross-check intelligence (pre-launch instrumentation)
+    claim_text_hash: Optional[str] = Field(
+        default=None,
+        max_length=64,
+        index=True,
+        description="SHA256 of normalised claim text — enables cross-check claim fingerprinting",
     )
 
     # Claim Map system (Track B)
