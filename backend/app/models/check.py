@@ -42,6 +42,18 @@ class Check(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
 
+    # Agent commerce (Track L)
+    initiated_via: Optional[str] = Field(
+        default=None,
+        max_length=20,
+        description="Origin: dashboard | api_key | agent_x402 | agent_skyfire | agent_credit",
+    )
+    executed_tier: Optional[str] = Field(
+        default=None,
+        max_length=20,
+        description="Pipeline tier that produced the result: quick | full",
+    )
+
     # Article context
     article_excerpt: Optional[str] = Field(
         default=None,
@@ -109,6 +121,13 @@ class Check(SQLModel, table=True):
         default=None,
         max_length=30,
         description="Classification source (cache_pattern, cache_url, llm_primary, fallback_general)",
+    )
+
+    # Provider status (M-02) — per-provider retrieval outcomes
+    provider_status: Optional[dict] = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+        description="Per-provider retrieval outcomes: {provider: {status, count}}",
     )
 
     # Raw Sources List feature (Pro feature - shows all sources reviewed)
@@ -354,6 +373,22 @@ class Evidence(SQLModel, table=True):
         default=None,
         max_length=500,
         description="Wayback Machine archive URL for permanent source snapshot",
+    )
+
+    # Provenance persistence (M-01)
+    llm_relevance_score: Optional[int] = Field(
+        default=None,
+        description="LLM relevance score 1-5 from scorer (null = unscored)",
+    )
+    llm_relevance_rationale: Optional[str] = Field(
+        default=None,
+        max_length=500,
+        description="LLM rationale for relevance score (internal audit only)",
+    )
+    classification_method: Optional[str] = Field(
+        default=None,
+        max_length=20,
+        description="How tier/type was assigned: 'llm' or 'heuristic'",
     )
 
     # Primary Source Detection fields (Tier 1 Improvement, 2025-01-17)

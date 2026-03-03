@@ -8,7 +8,7 @@ import httpx
 import json
 from typing import Dict, List, Any, Optional
 from app.core.config import settings
-from app.services.google_ai import call_google_ai
+from app.services.google_ai import call_google_ai, call_google_ai_with_usage
 
 logger = logging.getLogger(__name__)
 
@@ -189,13 +189,14 @@ Be direct and concise. Cite source numbers used."""
         full_prompt = (
             f"{self.system_prompt}\n\n{prompt}\n\nProvide your response as valid JSON."
         )
-        return await call_google_ai(
+        parsed, _usage = await call_google_ai_with_usage(
             full_prompt,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
             timeout=self.timeout,
             model=self.google_model,
         )
+        return parsed
 
     async def _answer_with_openai(self, prompt: str) -> Optional[Dict[str, Any]]:
         """Answer query using OpenAI as fallback provider"""

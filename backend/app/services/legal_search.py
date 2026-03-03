@@ -373,7 +373,14 @@ class LegalSearchService:
 
             # Extract first section or preamble for snippet
             snippet_elem = root.find(".//{http://www.legislation.gov.uk/namespaces/legislation}Text")
-            snippet = snippet_elem.text[:500] if snippet_elem is not None else ""
+            if snippet_elem is not None and snippet_elem.text:
+                snippet = snippet_elem.text[:500]
+                if len(snippet_elem.text) > 500:
+                    last_space = snippet.rfind(" ")
+                    if last_space > 300:
+                        snippet = snippet[:last_space]
+            else:
+                snippet = ""
 
             return {
                 "url": url,

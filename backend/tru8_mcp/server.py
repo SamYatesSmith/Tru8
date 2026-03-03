@@ -53,40 +53,51 @@ def _format(data: dict) -> str:
 
 
 @mcp.tool()
-async def tru8_check(text: str) -> str:
-    """Ground a factual claim or article in structured, source-traced evidence.
+async def tru8_check(
+    claim: str,
+    max_tier: str = "quick",
+    max_age_hours: int | None = None,
+    compact: bool = False,
+) -> str:
+    """Evidence research for any claim or URL.
 
-    USE THIS WHEN you need to verify, substantiate, or challenge an assertion
-    with independently sourced evidence: which specific elements of the claim
-    are supported, disputed, or unresolved, and exactly which sources say what.
+    Returns structured evidence landscape with element decomposition and
+    source classification (tier/type).
 
-    Pipeline (typically 60-120s): extract claims → retrieve evidence from multiple
-    independent sources → decompose each claim into verifiable elements →
-    map evidence to elements with relationship labels.
+    Tiers (in fallback order):
+    - lookup  (~$0.02, instant) — cached prior analysis
+    - quick   (~$0.07, ~15s) — web search + heuristic classification
+    - full    (~$0.15, ~90s) — 30+ sources, LLM classification, coverage recovery
+
+    Charges based on tier actually executed, not tier requested.
+    Set max_tier to control maximum spend per call.
 
     Output structure:
     - claims[].claimMap.elements[] — verifiable sub-claims with state
       (supported/disputed/unresolved)
-    - claims[].claimMap.elements[].evidenceRefs[] — which evidence supports,
-      challenges, or provides context for each element, with a one-sentence
-      reasoning explaining what the source says and why the relationship applies
-    - claims[].evidence[] — sources classified by tier (primary data /
-      news reporting / commentary) and type (data/official/news/analysis/
-      opinion/academic)
-    - claims[].claimMap.orientation — mechanical summary derived from
-      element states (no editorial judgment)
-    - _computed — pre-computed analytics: tier/type distributions,
-      corroboration groups, diagnostic values, timeline, per-claim dispositions
-
-    For URLs with multiple claims, all extracted claims (up to 5) are
-    automatically selected for analysis.
+    - claims[].claimMap.elements[].evidenceRefs[] — evidence mapped to elements
+      with relationship (supports/challenges/context) and reasoning
+    - claims[].evidence[] — sources classified by tier (primary/reporting/
+      commentary) and type (data/official/news/analysis/opinion/academic)
+    - claims[].claimMap.orientation — mechanical summary from element states
+    - _meta — execution metadata: executedTier, chargedCents, limitations
 
     Args:
-        text: A factual claim ("The Earth's average temperature rose 1.1°C
-              since 1880") or a URL to an article.
+        claim: A factual claim ("The Earth's average temperature rose 1.1°C
+               since 1880") or a URL to an article.
+        max_tier: Maximum tier to attempt — "lookup", "quick" (default), or "full".
+        max_age_hours: Skip cache hits older than this many hours. If set,
+                       lookup hits that are stale will be discarded and the
+                       pipeline re-runs at the next tier up to max_tier.
+        compact: If True, strip full evidence arrays from response (smaller payload).
     """
     client = _get_client()
-    result = await client.submit_check_sync(text)
+    result = await client.submit_with_fallback(
+        claim,
+        max_tier=max_tier,
+        max_age_hours=max_age_hours,
+        compact=compact,
+    )
     return _format(result)
 
 

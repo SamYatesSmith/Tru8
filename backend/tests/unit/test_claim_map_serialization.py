@@ -216,6 +216,8 @@ def _make_evidence(**overrides):
         "context_before": None,
         "context_after": None,
         "archived_url": None,
+        "llm_relevance_score": None,
+        "classification_method": None,
     }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)

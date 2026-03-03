@@ -1,6 +1,6 @@
 {
-  "last_updated": "2026-02-25T20:12:30.502073",
-  "total_domains": 2511,
+  "last_updated": "2026-02-26T14:29:02.336129",
+  "total_domains": 2778,
   "domains": {
     "thetimes.co.uk": {
       "status": "paywall",
@@ -14,8 +14,8 @@
       "first_seen": "2025-12-01T12:18:44.297904",
       "source": "pre_seeded",
       "notes": "The Telegraph",
-      "encounter_count": 27,
-      "last_seen": "2026-02-25T15:07:42.230994"
+      "encounter_count": 28,
+      "last_seen": "2026-02-26T11:42:41.900592"
     },
     "ft.com": {
       "status": "paywall",
@@ -37,16 +37,16 @@
       "first_seen": "2025-12-01T12:18:44.297904",
       "source": "pre_seeded",
       "notes": "New York Times",
-      "encounter_count": 544,
-      "last_seen": "2026-02-25T16:04:33.461663"
+      "encounter_count": 546,
+      "last_seen": "2026-02-26T10:22:24.221253"
     },
     "washingtonpost.com": {
       "status": "paywall",
       "first_seen": "2025-12-01T12:18:44.297904",
       "source": "pre_seeded",
       "notes": "Washington Post",
-      "encounter_count": 52,
-      "last_seen": "2026-02-11T15:43:24.690916"
+      "encounter_count": 57,
+      "last_seen": "2026-02-26T14:27:19.420855"
     },
     "economist.com": {
       "status": "paywall",
@@ -61,8 +61,8 @@
       "first_seen": "2025-12-01T12:18:44.297904",
       "source": "pre_seeded",
       "notes": "Bloomberg",
-      "encounter_count": 32,
-      "last_seen": "2026-02-16T16:26:38.013618"
+      "encounter_count": 36,
+      "last_seen": "2026-02-26T14:26:02.607607"
     },
     "theathletic.com": {
       "status": "paywall",
@@ -118,10 +118,10 @@
     "nbcnews.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T12:50:07.994484",
-      "last_seen": "2026-02-19T12:43:53.754792",
+      "last_seen": "2026-02-26T14:28:05.616321",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 54
+      "encounter_count": 56
     },
     "factually.co": {
       "status": "rate_limited",
@@ -154,10 +154,10 @@
     "bbc.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T12:50:23.821452",
-      "last_seen": "2026-02-23T15:32:36.967412",
+      "last_seen": "2026-02-26T14:26:01.997144",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 208
+      "encounter_count": 220
     },
     "factcheck.org": {
       "status": "accessible",
@@ -274,10 +274,10 @@
     "theguardian.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T12:51:00.779926",
-      "last_seen": "2026-02-25T12:40:07.214762",
+      "last_seen": "2026-02-26T14:25:52.794344",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 855
+      "encounter_count": 861
     },
     "misinforeview.hks.harvard.edu": {
       "status": "accessible",
@@ -412,10 +412,10 @@
     "ons.gov.uk": {
       "status": "accessible",
       "first_seen": "2025-12-01T14:59:39.932650",
-      "last_seen": "2026-02-25T15:07:36.165155",
+      "last_seen": "2026-02-26T14:26:04.009357",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 19
     },
     "bbc.co.uk": {
       "status": "accessible",
@@ -582,10 +582,10 @@
     "reddit.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T16:06:19.557180",
-      "last_seen": "2026-02-25T20:12:30.053000",
+      "last_seen": "2026-02-26T14:28:58.416553",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 266
+      "encounter_count": 370
     },
     "guides.library.fresnostate.edu": {
       "status": "accessible",
@@ -608,10 +608,10 @@
     "carbonbrief.org": {
       "status": "accessible",
       "first_seen": "2025-12-01T16:06:31.423108",
-      "last_seen": "2026-02-25T15:00:24.121037",
+      "last_seen": "2026-02-26T10:22:10.901574",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 79
+      "encounter_count": 80
     },
     "climate.gov": {
       "status": "accessible",
@@ -624,10 +624,10 @@
     "dw.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T16:06:33.133991",
-      "last_seen": "2026-02-19T12:44:12.500002",
+      "last_seen": "2026-02-26T10:22:14.138624",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 50
+      "encounter_count": 51
     },
     "interactive.carbonbrief.org": {
       "status": "accessible",
@@ -1090,10 +1090,10 @@
     "cnn.com": {
       "status": "accessible",
       "first_seen": "2025-12-02T14:48:33.588385",
-      "last_seen": "2026-02-24T13:22:58.919336",
+      "last_seen": "2026-02-26T10:22:59.323410",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 151
+      "encounter_count": 152
     },
     "yorkpress.co.uk": {
       "status": "accessible",
@@ -1414,10 +1414,10 @@
     "demandsage.com": {
       "status": "accessible",
       "first_seen": "2025-12-02T14:49:44.552440",
-      "last_seen": "2026-02-02T19:10:44.816792",
+      "last_seen": "2026-02-26T11:45:07.287533",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "markpack.org.uk": {
       "status": "accessible",
@@ -1732,10 +1732,10 @@
     "forbes.com": {
       "status": "accessible",
       "first_seen": "2025-12-02T16:20:58.651332",
-      "last_seen": "2026-02-16T16:27:33.668276",
+      "last_seen": "2026-02-26T11:45:14.891174",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 45
+      "encounter_count": 48
     },
     "wonderfulmuseums.com": {
       "status": "accessible",
@@ -2054,10 +2054,10 @@
     "moneycontrol.com": {
       "status": "accessible",
       "first_seen": "2025-12-02T17:14:24.018522",
-      "last_seen": "2026-02-09T17:20:08.991999",
+      "last_seen": "2026-02-26T10:22:29.658827",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "androidcentral.com": {
       "status": "accessible",
@@ -2178,10 +2178,10 @@
     "youtube.com": {
       "status": "accessible",
       "first_seen": "2025-12-02T17:14:57.942538",
-      "last_seen": "2026-02-25T20:12:28.410461",
+      "last_seen": "2026-02-26T14:28:42.167116",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 151
+      "encounter_count": 201
     },
     "amgreatness.com": {
       "status": "bot_blocked",
@@ -2620,10 +2620,10 @@
     "timesofindia.indiatimes.com": {
       "status": "accessible",
       "first_seen": "2025-12-03T13:50:35.438554",
-      "last_seen": "2026-02-13T12:04:33.041146",
+      "last_seen": "2026-02-26T10:22:11.285029",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 55
+      "encounter_count": 56
     },
     "onegreenplanet.org": {
       "status": "accessible",
@@ -2856,10 +2856,10 @@
     "theconversation.com": {
       "status": "accessible",
       "first_seen": "2025-12-03T13:51:12.186958",
-      "last_seen": "2026-02-16T16:26:59.080994",
+      "last_seen": "2026-02-26T10:22:18.206876",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 74
+      "encounter_count": 75
     },
     "critikid.com": {
       "status": "accessible",
@@ -2872,10 +2872,10 @@
     "nature.com": {
       "status": "accessible",
       "first_seen": "2025-12-03T13:51:13.084875",
-      "last_seen": "2026-02-25T14:46:50.840102",
+      "last_seen": "2026-02-26T14:27:56.543169",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 72
+      "encounter_count": 76
     },
     "climateoutreach.org": {
       "status": "accessible",
@@ -2912,10 +2912,10 @@
     "abc.net.au": {
       "status": "accessible",
       "first_seen": "2025-12-03T13:59:01.987691",
-      "last_seen": "2026-02-18T11:06:54.996626",
+      "last_seen": "2026-02-26T11:42:18.683447",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 10
+      "encounter_count": 11
     },
     "newstoday4u.com": {
       "status": "accessible",
@@ -2996,10 +2996,10 @@
     "businessinsider.com": {
       "status": "accessible",
       "first_seen": "2025-12-03T14:47:22.482380",
-      "last_seen": "2026-02-25T16:09:47.391343",
+      "last_seen": "2026-02-26T10:22:22.517794",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 22
+      "encounter_count": 24
     },
     "kpmg.com": {
       "status": "accessible",
@@ -3220,10 +3220,10 @@
     "livescience.com": {
       "status": "accessible",
       "first_seen": "2025-12-03T15:21:38.390944",
-      "last_seen": "2026-02-25T15:00:16.549136",
+      "last_seen": "2026-02-26T11:37:48.440502",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 21
+      "encounter_count": 22
     },
     "publichealth.berkeley.edu": {
       "status": "accessible",
@@ -3244,10 +3244,10 @@
     "gov.uk": {
       "status": "accessible",
       "first_seen": "2025-12-03T15:21:44.425486",
-      "last_seen": "2026-02-16T14:37:57.110000",
+      "last_seen": "2026-02-26T12:19:24.282188",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 135
+      "encounter_count": 136
     },
     "timeout.com": {
       "status": "accessible",
@@ -3268,10 +3268,10 @@
     "science.nasa.gov": {
       "status": "accessible",
       "first_seen": "2025-12-03T17:02:16.282861",
-      "last_seen": "2026-02-25T15:00:12.942303",
+      "last_seen": "2026-02-26T13:02:12.768973",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 23
+      "encounter_count": 25
     },
     "issuesinsights.com": {
       "status": "accessible",
@@ -3418,18 +3418,18 @@
     "electrek.co": {
       "status": "accessible",
       "first_seen": "2025-12-04T13:33:12.017461",
-      "last_seen": "2026-02-16T16:25:58.459965",
+      "last_seen": "2026-02-26T10:22:02.274410",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 8
     },
     "electrive.com": {
       "status": "accessible",
       "first_seen": "2025-12-04T13:33:12.047153",
-      "last_seen": "2025-12-17T13:03:29.830431",
+      "last_seen": "2026-02-26T10:22:03.097438",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 5
     },
     "spglobal.com": {
       "status": "bot_blocked",
@@ -3552,10 +3552,10 @@
     "insideevs.com": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:13:45.137428",
-      "last_seen": "2025-12-17T13:03:57.852609",
+      "last_seen": "2026-02-26T10:23:10.699334",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 4
     },
     "evmagazine.com": {
       "status": "bot_blocked",
@@ -3618,10 +3618,10 @@
     "hrw.org": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:32:19.330527",
-      "last_seen": "2026-02-11T15:11:48.423496",
+      "last_seen": "2026-02-26T11:38:42.353544",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 13
+      "encounter_count": 14
     },
     "belganewsagency.eu": {
       "status": "accessible",
@@ -3644,10 +3644,10 @@
     "scmp.com": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:32:22.690821",
-      "last_seen": "2026-02-25T12:42:09.775548",
+      "last_seen": "2026-02-26T14:27:03.225002",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 5
+      "encounter_count": 9
     },
     "earthday.org": {
       "status": "bot_blocked",
@@ -3670,10 +3670,10 @@
     "news.sky.com": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:32:29.281208",
-      "last_seen": "2026-02-23T16:59:39.503411",
+      "last_seen": "2026-02-26T14:26:02.519219",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 36
+      "encounter_count": 37
     },
     "eltiempo.com": {
       "status": "accessible",
@@ -3784,10 +3784,10 @@
     "ember-energy.org": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:32:47.362467",
-      "last_seen": "2026-02-16T16:26:13.386536",
+      "last_seen": "2026-02-26T10:23:08.281599",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 6
+      "encounter_count": 7
     },
     "news.sustainability-directory.com": {
       "status": "accessible",
@@ -4046,10 +4046,10 @@
     "noticiasambientales.com": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:33:33.113659",
-      "last_seen": "2025-12-04T14:33:33.113659",
+      "last_seen": "2026-02-26T10:22:26.943729",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "manifoldtimes.com": {
       "status": "bot_blocked",
@@ -4936,10 +4936,10 @@
     "coindesk.com": {
       "status": "accessible",
       "first_seen": "2025-12-04T16:24:37.935878",
-      "last_seen": "2025-12-04T16:24:37.935878",
+      "last_seen": "2026-02-26T11:44:56.510936",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "thecoinrepublic.com": {
       "status": "accessible",
@@ -5538,10 +5538,10 @@
     "iflscience.com": {
       "status": "accessible",
       "first_seen": "2025-12-09T13:16:18.828191",
-      "last_seen": "2026-02-04T13:43:11.133959",
+      "last_seen": "2026-02-26T13:02:18.204866",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 12
+      "encounter_count": 13
     },
     "red94.net": {
       "status": "accessible",
@@ -6542,10 +6542,10 @@
     "statnews.com": {
       "status": "accessible",
       "first_seen": "2025-12-10T13:46:53.491637",
-      "last_seen": "2026-02-09T11:22:29.407860",
+      "last_seen": "2026-02-26T10:22:46.216157",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 8
     },
     "kff.org": {
       "status": "accessible",
@@ -7050,10 +7050,10 @@
     "fool.com": {
       "status": "accessible",
       "first_seen": "2025-12-12T16:00:05.326474",
-      "last_seen": "2026-02-07T13:33:40.770836",
+      "last_seen": "2026-02-26T11:45:02.579015",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "newstrail.com": {
       "status": "accessible",
@@ -7258,10 +7258,10 @@
     "britannica.com": {
       "status": "accessible",
       "first_seen": "2025-12-16T12:10:31.059489",
-      "last_seen": "2026-02-25T20:12:29.936016",
+      "last_seen": "2026-02-26T13:02:14.744810",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 41
+      "encounter_count": 49
     },
     "green.org": {
       "status": "accessible",
@@ -7506,10 +7506,10 @@
     "cbc.ca": {
       "status": "timeout",
       "first_seen": "2025-12-16T15:38:47.735624",
-      "last_seen": "2026-02-19T12:44:11.196853",
+      "last_seen": "2026-02-26T14:23:37.479910",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 10
     },
     "bollywoodshaadis.com": {
       "status": "accessible",
@@ -8126,10 +8126,10 @@
     "link.springer.com": {
       "status": "accessible",
       "first_seen": "2025-12-17T10:34:05.060295",
-      "last_seen": "2026-02-18T11:05:36.709601",
+      "last_seen": "2026-02-26T11:42:18.977618",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 22
+      "encounter_count": 23
     },
     "ens-newswire.com": {
       "status": "accessible",
@@ -8192,10 +8192,10 @@
     "popsci.com": {
       "status": "accessible",
       "first_seen": "2025-12-17T12:08:46.635938",
-      "last_seen": "2025-12-17T12:08:46.635938",
+      "last_seen": "2026-02-26T10:22:18.186052",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "imperial.ac.uk": {
       "status": "bot_blocked",
@@ -8382,10 +8382,10 @@
     "sciencealert.com": {
       "status": "accessible",
       "first_seen": "2025-12-17T12:29:07.139757",
-      "last_seen": "2026-02-04T13:23:04.702584",
+      "last_seen": "2026-02-26T13:02:12.869038",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 8
     },
     "dailydeclaration.org.au": {
       "status": "accessible",
@@ -8440,18 +8440,18 @@
     "swissinfo.ch": {
       "status": "accessible",
       "first_seen": "2025-12-17T12:29:23.654899",
-      "last_seen": "2026-02-09T10:59:50.085444",
+      "last_seen": "2026-02-26T10:22:24.065677",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 5
     },
     "pubmed.ncbi.nlm.nih.gov": {
       "status": "accessible",
       "first_seen": "2025-12-17T12:30:06.571895",
-      "last_seen": "2026-02-09T14:33:29.536358",
+      "last_seen": "2026-02-26T11:42:16.912199",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 11
+      "encounter_count": 12
     },
     "kesq.com": {
       "status": "accessible",
@@ -8584,10 +8584,10 @@
     "electriccarscheme.com": {
       "status": "accessible",
       "first_seen": "2025-12-17T13:03:48.481772",
-      "last_seen": "2025-12-17T13:04:33.215290",
+      "last_seen": "2026-02-26T10:22:37.415567",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "pew.org": {
       "status": "accessible",
@@ -8798,10 +8798,10 @@
     "globalcitizen.org": {
       "status": "accessible",
       "first_seen": "2025-12-17T13:34:34.784852",
-      "last_seen": "2025-12-17T16:13:21.404990",
+      "last_seen": "2026-02-26T10:22:37.262795",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 8
+      "encounter_count": 9
     },
     "climateanalytics.org": {
       "status": "accessible",
@@ -9012,10 +9012,10 @@
     "businessgreen.com": {
       "status": "accessible",
       "first_seen": "2025-12-17T14:37:42.290851",
-      "last_seen": "2025-12-17T16:03:28.798728",
+      "last_seen": "2026-02-26T10:22:12.867857",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "dailycaller.com": {
       "status": "accessible",
@@ -9180,10 +9180,10 @@
     "argusmedia.com": {
       "status": "accessible",
       "first_seen": "2025-12-17T16:13:09.289347",
-      "last_seen": "2026-02-16T16:27:36.408474",
+      "last_seen": "2026-02-26T10:23:06.341960",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "prismreports.org": {
       "status": "accessible",
@@ -9346,10 +9346,10 @@
     "wri.org": {
       "status": "accessible",
       "first_seen": "2025-12-17T16:38:02.921825",
-      "last_seen": "2026-02-16T16:26:27.535683",
+      "last_seen": "2026-02-26T11:38:52.952695",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 13
+      "encounter_count": 14
     },
     "weforum.org": {
       "status": "bot_blocked",
@@ -9962,10 +9962,10 @@
     "caranddriver.com": {
       "status": "accessible",
       "first_seen": "2026-01-05T15:46:04.118582",
-      "last_seen": "2026-01-05T15:46:04.118582",
+      "last_seen": "2026-02-26T10:22:36.758585",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "newsday.com": {
       "status": "accessible",
@@ -10190,10 +10190,10 @@
     "theglobeandmail.com": {
       "status": "accessible",
       "first_seen": "2026-01-05T16:07:34.611435",
-      "last_seen": "2026-02-19T12:42:47.272744",
+      "last_seen": "2026-02-26T11:45:36.044788",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "investornews.com": {
       "status": "bot_blocked",
@@ -10812,10 +10812,10 @@
     "oreateai.com": {
       "status": "accessible",
       "first_seen": "2026-01-06T13:37:32.646618",
-      "last_seen": "2026-02-16T16:15:17.946011",
+      "last_seen": "2026-02-26T10:22:22.963710",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 12
+      "encounter_count": 13
     },
     "al-monitor.com": {
       "status": "accessible",
@@ -11326,12 +11326,12 @@
     "statesman.com": {
       "status": "paywall",
       "first_seen": "2026-01-07T12:22:40.966167",
-      "last_seen": "2026-01-07T12:56:05.248340",
+      "last_seen": "2026-02-26T10:22:32.790380",
       "source": "runtime_detection",
       "metadata": {
         "status_code": 402
       },
-      "encounter_count": 4
+      "encounter_count": 5
     },
     "bozemandailychronicle.com": {
       "status": "accessible",
@@ -12056,10 +12056,10 @@
     "askfilo.com": {
       "status": "accessible",
       "first_seen": "2026-02-02T14:41:05.749044",
-      "last_seen": "2026-02-18T11:48:16.053058",
+      "last_seen": "2026-02-26T14:17:59.391001",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 10
+      "encounter_count": 14
     },
     "skyatnightmagazine.com": {
       "status": "accessible",
@@ -12098,10 +12098,10 @@
     "threads.com": {
       "status": "accessible",
       "first_seen": "2026-02-02T14:43:06.908478",
-      "last_seen": "2026-02-18T11:06:13.090816",
+      "last_seen": "2026-02-26T14:27:51.277522",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 7
     },
     "andymaypetrophysicist.com": {
       "status": "accessible",
@@ -12182,18 +12182,18 @@
     "cdc.gov": {
       "status": "accessible",
       "first_seen": "2026-02-02T14:51:51.035242",
-      "last_seen": "2026-02-09T14:26:57.322149",
+      "last_seen": "2026-02-26T10:22:44.322856",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 9
     },
     "who.int": {
       "status": "accessible",
       "first_seen": "2026-02-02T14:51:53.017793",
-      "last_seen": "2026-02-25T12:43:27.979185",
+      "last_seen": "2026-02-26T11:42:35.757599",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 45
+      "encounter_count": 48
     },
     "publichealth.jhu.edu": {
       "status": "bot_blocked",
@@ -12262,10 +12262,10 @@
     "ourworldindata.org": {
       "status": "accessible",
       "first_seen": "2026-02-02T15:13:13.746976",
-      "last_seen": "2026-02-09T14:26:52.199155",
+      "last_seen": "2026-02-26T11:42:16.890191",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 6
     },
     "clearvoice.com": {
       "status": "bot_blocked",
@@ -12368,10 +12368,10 @@
     "justice.gov": {
       "status": "accessible",
       "first_seen": "2026-02-02T15:39:32.714940",
-      "last_seen": "2026-02-25T12:42:12.595729",
+      "last_seen": "2026-02-26T14:27:04.938736",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 8
+      "encounter_count": 11
     },
     "wsiu.org": {
       "status": "accessible",
@@ -12680,10 +12680,10 @@
     "sqmagazine.co.uk": {
       "status": "accessible",
       "first_seen": "2026-02-02T19:10:36.366113",
-      "last_seen": "2026-02-02T19:10:48.895608",
+      "last_seen": "2026-02-26T12:19:20.156388",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 4
     },
     "stuff.tv": {
       "status": "bot_blocked",
@@ -12910,10 +12910,10 @@
     "science.howstuffworks.com": {
       "status": "accessible",
       "first_seen": "2026-02-03T12:03:58.645082",
-      "last_seen": "2026-02-09T14:29:59.770342",
+      "last_seen": "2026-02-26T10:21:59.299715",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 8
+      "encounter_count": 9
     },
     "serc.carleton.edu": {
       "status": "accessible",
@@ -13176,10 +13176,10 @@
     "arxiv.org": {
       "status": "accessible",
       "first_seen": "2026-02-04T11:23:32.340324",
-      "last_seen": "2026-02-16T16:14:12.433426",
+      "last_seen": "2026-02-26T14:28:57.053911",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 90
+      "encounter_count": 127
     },
     "bigthink.com": {
       "status": "accessible",
@@ -13240,10 +13240,10 @@
     "fiveable.me": {
       "status": "accessible",
       "first_seen": "2026-02-04T12:08:38.159052",
-      "last_seen": "2026-02-25T12:43:01.302329",
+      "last_seen": "2026-02-26T14:28:32.961236",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 26
     },
     "papers.ssrn.com": {
       "status": "bot_blocked",
@@ -13268,10 +13268,10 @@
     "pearson.com": {
       "status": "accessible",
       "first_seen": "2026-02-04T12:40:57.374521",
-      "last_seen": "2026-02-18T11:04:43.128542",
+      "last_seen": "2026-02-26T14:05:44.391406",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 5
+      "encounter_count": 6
     },
     "phys.libretexts.org": {
       "status": "accessible",
@@ -14216,10 +14216,10 @@
     "x.com": {
       "status": "accessible",
       "first_seen": "2026-02-04T15:58:21.991393",
-      "last_seen": "2026-02-25T19:55:13.073652",
+      "last_seen": "2026-02-26T14:28:22.807427",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 11
+      "encounter_count": 19
     },
     "adf-magazine.com": {
       "status": "accessible",
@@ -14808,10 +14808,10 @@
     "statista.com": {
       "status": "accessible",
       "first_seen": "2026-02-06T12:55:39.839801",
-      "last_seen": "2026-02-25T16:12:56.962199",
+      "last_seen": "2026-02-26T11:44:48.431791",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 6
+      "encounter_count": 11
     },
     "wwf.org.uk": {
       "status": "accessible",
@@ -14866,10 +14866,10 @@
     "discovermagazine.com": {
       "status": "accessible",
       "first_seen": "2026-02-06T12:57:07.089947",
-      "last_seen": "2026-02-09T14:30:00.762986",
+      "last_seen": "2026-02-26T10:21:57.602160",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 5
     },
     "visionlearning.com": {
       "status": "accessible",
@@ -14892,10 +14892,10 @@
     "psi.edu": {
       "status": "accessible",
       "first_seen": "2026-02-06T12:57:12.373857",
-      "last_seen": "2026-02-06T16:14:28.028255",
+      "last_seen": "2026-02-26T10:22:33.937958",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "datasciencemilan.org": {
       "status": "bot_blocked",
@@ -14928,10 +14928,10 @@
     "fas37.org": {
       "status": "accessible",
       "first_seen": "2026-02-06T12:57:19.676310",
-      "last_seen": "2026-02-09T14:30:01.432376",
+      "last_seen": "2026-02-26T10:22:09.444528",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 6
     },
     "abc17news.com": {
       "status": "accessible",
@@ -15116,10 +15116,10 @@
     "ig.com": {
       "status": "accessible",
       "first_seen": "2026-02-06T12:59:13.796498",
-      "last_seen": "2026-02-06T12:59:13.796498",
+      "last_seen": "2026-02-26T10:22:02.646970",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "goldmansachs.com": {
       "status": "accessible",
@@ -15274,10 +15274,10 @@
     "emergentmind.com": {
       "status": "accessible",
       "first_seen": "2026-02-06T13:01:30.526020",
-      "last_seen": "2026-02-09T14:33:33.573984",
+      "last_seen": "2026-02-26T14:28:55.504004",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 16
     },
     "platform.openai.com": {
       "status": "bot_blocked",
@@ -15292,10 +15292,10 @@
     "gavi.org": {
       "status": "accessible",
       "first_seen": "2026-02-06T13:02:26.953484",
-      "last_seen": "2026-02-09T14:34:42.108529",
+      "last_seen": "2026-02-26T11:42:37.304924",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 7
     },
     "biologyinsights.com": {
       "status": "accessible",
@@ -15332,10 +15332,10 @@
     "hcplive.com": {
       "status": "accessible",
       "first_seen": "2026-02-06T13:02:39.117765",
-      "last_seen": "2026-02-09T10:59:57.744732",
+      "last_seen": "2026-02-26T10:22:21.894764",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "i-am-autism.org.uk": {
       "status": "accessible",
@@ -15644,10 +15644,10 @@
     "nautil.us": {
       "status": "accessible",
       "first_seen": "2026-02-07T13:29:22.003909",
-      "last_seen": "2026-02-07T13:29:22.003909",
+      "last_seen": "2026-02-26T11:42:16.851300",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "zentara.blog": {
       "status": "accessible",
@@ -15668,10 +15668,10 @@
     "hsph.harvard.edu": {
       "status": "accessible",
       "first_seen": "2026-02-07T13:31:04.835390",
-      "last_seen": "2026-02-07T13:31:04.835390",
+      "last_seen": "2026-02-26T10:23:01.393884",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "theindependent.com": {
       "status": "accessible",
@@ -15768,10 +15768,10 @@
     "news.uchicago.edu": {
       "status": "accessible",
       "first_seen": "2026-02-07T21:52:22.480337",
-      "last_seen": "2026-02-07T21:52:22.480337",
+      "last_seen": "2026-02-26T13:02:16.319132",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "wallstreetnumbers.com": {
       "status": "accessible",
@@ -16082,18 +16082,18 @@
     "aclanthology.org": {
       "status": "accessible",
       "first_seen": "2026-02-09T10:58:44.566804",
-      "last_seen": "2026-02-09T14:33:34.363575",
+      "last_seen": "2026-02-26T14:28:23.889821",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 14
     },
     "github.com": {
       "status": "accessible",
       "first_seen": "2026-02-09T10:58:45.998069",
-      "last_seen": "2026-02-09T14:33:35.605467",
+      "last_seen": "2026-02-26T13:50:26.791210",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "ask.library.arizona.edu": {
       "status": "accessible",
@@ -16326,10 +16326,10 @@
     "fightinfectiousdisease.org": {
       "status": "accessible",
       "first_seen": "2026-02-09T14:34:44.056557",
-      "last_seen": "2026-02-09T14:34:44.056557",
+      "last_seen": "2026-02-26T10:22:22.675012",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "chicoer.com": {
       "status": "accessible",
@@ -16410,18 +16410,18 @@
     "futura-sciences.com": {
       "status": "accessible",
       "first_seen": "2026-02-09T16:48:21.098478",
-      "last_seen": "2026-02-11T15:43:08.126986",
+      "last_seen": "2026-02-26T13:43:38.618109",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 4
     },
     "carboncredits.com": {
       "status": "accessible",
       "first_seen": "2026-02-09T16:48:23.905581",
-      "last_seen": "2026-02-11T15:43:09.023194",
+      "last_seen": "2026-02-26T11:44:48.335207",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 5
     },
     "poprant.indiatimes.com": {
       "status": "accessible",
@@ -17750,10 +17750,10 @@
     "jdsupra.com": {
       "status": "accessible",
       "first_seen": "2026-02-11T15:17:03.694612",
-      "last_seen": "2026-02-18T11:50:32.000746",
+      "last_seen": "2026-02-26T14:00:39.732462",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 9
+      "encounter_count": 11
     },
     "the-race.com": {
       "status": "accessible",
@@ -17946,12 +17946,12 @@
     "tiktok.com": {
       "status": "js_required",
       "first_seen": "2026-02-14T19:22:03.162162",
-      "last_seen": "2026-02-16T16:12:57.775504",
+      "last_seen": "2026-02-26T11:37:45.914038",
       "source": "runtime_detection",
       "metadata": {
         "reason": "empty_extraction"
       },
-      "encounter_count": 5
+      "encounter_count": 6
     },
     "housebeautiful.com": {
       "status": "accessible",
@@ -18030,18 +18030,18 @@
     "wayground.com": {
       "status": "accessible",
       "first_seen": "2026-02-15T01:41:54.583509",
-      "last_seen": "2026-02-25T12:42:04.835141",
+      "last_seen": "2026-02-26T14:27:07.087171",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 13
     },
     "khanacademy.org": {
       "status": "accessible",
       "first_seen": "2026-02-15T01:41:54.715329",
-      "last_seen": "2026-02-25T12:42:10.158015",
+      "last_seen": "2026-02-26T14:27:02.876051",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 26
+      "encounter_count": 62
     },
     "nottingham.ac.uk": {
       "status": "accessible",
@@ -18252,10 +18252,10 @@
     "stedi.com": {
       "status": "accessible",
       "first_seen": "2026-02-15T01:42:39.882106",
-      "last_seen": "2026-02-25T12:42:26.244707",
+      "last_seen": "2026-02-26T14:26:35.530621",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 9
     },
     "mib.org.uk": {
       "status": "js_required",
@@ -18362,42 +18362,42 @@
     "mindthegraph.com": {
       "status": "accessible",
       "first_seen": "2026-02-16T13:15:20.920561",
-      "last_seen": "2026-02-25T12:45:06.556825",
+      "last_seen": "2026-02-26T14:28:39.208852",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "massey.ac.nz": {
       "status": "accessible",
       "first_seen": "2026-02-16T13:15:21.924685",
-      "last_seen": "2026-02-16T14:37:53.684997",
+      "last_seen": "2026-02-26T14:06:24.615444",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "studypug.com": {
       "status": "accessible",
       "first_seen": "2026-02-16T13:15:23.183085",
-      "last_seen": "2026-02-25T12:45:01.229985",
+      "last_seen": "2026-02-26T14:28:39.241107",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 14
+      "encounter_count": 74
     },
     "philosophy.stackexchange.com": {
       "status": "accessible",
       "first_seen": "2026-02-16T13:15:23.998996",
-      "last_seen": "2026-02-16T13:15:23.998996",
+      "last_seen": "2026-02-26T14:27:44.413902",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 5
     },
     "curi.us": {
       "status": "accessible",
       "first_seen": "2026-02-16T13:15:24.507287",
-      "last_seen": "2026-02-18T11:05:00.679399",
+      "last_seen": "2026-02-26T14:06:20.529310",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "acas.org.uk": {
       "status": "accessible",
@@ -18526,10 +18526,10 @@
     "monroeuniversity.libguides.com": {
       "status": "accessible",
       "first_seen": "2026-02-16T13:17:26.963601",
-      "last_seen": "2026-02-18T11:04:42.257801",
+      "last_seen": "2026-02-26T13:50:24.962225",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "investegate.co.uk": {
       "status": "accessible",
@@ -18790,10 +18790,10 @@
     "education.nationalgeographic.org": {
       "status": "accessible",
       "first_seen": "2026-02-16T13:43:10.580947",
-      "last_seen": "2026-02-16T16:15:33.761634",
+      "last_seen": "2026-02-26T10:22:14.059598",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "stats.stackexchange.com": {
       "status": "accessible",
@@ -18866,10 +18866,10 @@
     "scribd.com": {
       "status": "accessible",
       "first_seen": "2026-02-16T16:13:53.525181",
-      "last_seen": "2026-02-25T12:42:12.649700",
+      "last_seen": "2026-02-26T14:22:38.423177",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 9
     },
     "cell.com": {
       "status": "bot_blocked",
@@ -18916,10 +18916,10 @@
     "www2.gov.bc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-16T16:14:28.112879",
-      "last_seen": "2026-02-25T12:44:38.631522",
+      "last_seen": "2026-02-26T14:28:28.535842",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 5
+      "encounter_count": 25
     },
     "ictp-saifr.org": {
       "status": "accessible",
@@ -18982,10 +18982,10 @@
     "ebsco.com": {
       "status": "accessible",
       "first_seen": "2026-02-16T16:15:07.944893",
-      "last_seen": "2026-02-16T16:15:52.746870",
+      "last_seen": "2026-02-26T11:42:38.453899",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 7
     },
     "diy.org": {
       "status": "accessible",
@@ -19156,10 +19156,10 @@
     "iea.org": {
       "status": "accessible",
       "first_seen": "2026-02-16T16:26:09.281442",
-      "last_seen": "2026-02-25T16:04:31.476559",
+      "last_seen": "2026-02-26T10:22:47.544330",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 5
+      "encounter_count": 6
     },
     "eia.gov": {
       "status": "accessible",
@@ -19674,10 +19674,10 @@
     "irb-cisr.gc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:03:01.476930",
-      "last_seen": "2026-02-25T12:45:35.454521",
+      "last_seen": "2026-02-26T14:28:43.532075",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 26
+      "encounter_count": 111
     },
     "canlii.org": {
       "status": "bot_blocked",
@@ -19692,10 +19692,10 @@
     "canada.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:03:35.904167",
-      "last_seen": "2026-02-25T12:45:39.092949",
+      "last_seen": "2026-02-26T14:28:50.851289",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 16
+      "encounter_count": 84
     },
     "chosun.com": {
       "status": "js_required",
@@ -19710,18 +19710,18 @@
     "human.libretexts.org": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:04:42.768447",
-      "last_seen": "2026-02-25T12:44:49.855043",
+      "last_seen": "2026-02-26T14:28:39.942601",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 8
+      "encounter_count": 47
     },
     "ourcommons.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:04:43.151747",
-      "last_seen": "2026-02-25T12:45:31.395474",
+      "last_seen": "2026-02-26T14:28:43.472339",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 6
     },
     "enago.com": {
       "status": "accessible",
@@ -19734,10 +19734,10 @@
     "resources.nu.edu": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:04:59.308882",
-      "last_seen": "2026-02-25T12:43:21.664884",
+      "last_seen": "2026-02-26T14:28:18.800948",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 4
     },
     "studocu.com": {
       "status": "bot_blocked",
@@ -19778,34 +19778,34 @@
     "guides.lib.uoguelph.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:05:36.756199",
-      "last_seen": "2026-02-25T12:43:48.161259",
+      "last_seen": "2026-02-26T14:21:51.789873",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 7
     },
     "subjectguides.nscc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:05:37.070844",
-      "last_seen": "2026-02-18T11:05:37.070844",
+      "last_seen": "2026-02-26T14:27:40.986003",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 9
     },
     "libguides.usc.edu": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:05:38.863003",
-      "last_seen": "2026-02-18T11:05:38.863003",
+      "last_seen": "2026-02-26T14:18:02.097055",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 5
     },
     "laws-lois.justice.gc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:05:40.777801",
-      "last_seen": "2026-02-25T12:41:48.105054",
+      "last_seen": "2026-02-26T14:27:14.223037",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 21
     },
     "indeed.com": {
       "status": "bot_blocked",
@@ -19882,10 +19882,10 @@
     "wcb.ab.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:06:39.322666",
-      "last_seen": "2026-02-18T11:06:39.322666",
+      "last_seen": "2026-02-26T14:26:41.544341",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 7
     },
     "foodnavigator-usa.com": {
       "status": "accessible",
@@ -19922,26 +19922,26 @@
     "mission.io": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:16:49.658178",
-      "last_seen": "2026-02-25T12:42:09.730589",
+      "last_seen": "2026-02-26T14:28:44.144055",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 5
+      "encounter_count": 23
     },
     "j-psp.com": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:16:50.889757",
-      "last_seen": "2026-02-25T12:42:12.663232",
+      "last_seen": "2026-02-26T14:27:07.822446",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 12
     },
     "bclaws.gov.bc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:16:51.821441",
-      "last_seen": "2026-02-25T12:45:35.104675",
+      "last_seen": "2026-02-26T14:28:55.359387",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 9
+      "encounter_count": 30
     },
     "malwarebytes.com": {
       "status": "accessible",
@@ -20026,10 +20026,10 @@
     "globalnews.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:20:17.312154",
-      "last_seen": "2026-02-18T11:51:16.754743",
+      "last_seen": "2026-02-26T14:26:31.228636",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 10
     },
     "subscriptions.cbc.ca": {
       "status": "timeout",
@@ -20074,18 +20074,18 @@
     "decisions.scc-csc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:48:05.705758",
-      "last_seen": "2026-02-18T11:48:05.705758",
+      "last_seen": "2026-02-26T14:19:15.954351",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 3
     },
     "va.gov": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:48:15.609531",
-      "last_seen": "2026-02-25T12:42:05.180323",
+      "last_seen": "2026-02-26T14:27:16.478602",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 10
     },
     "macleans.ca": {
       "status": "bot_blocked",
@@ -20124,10 +20124,10 @@
     "ctvnews.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:51:17.472401",
-      "last_seen": "2026-02-19T12:42:49.428391",
+      "last_seen": "2026-02-26T10:22:56.959408",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "arabcenterdc.org": {
       "status": "bot_blocked",
@@ -20464,10 +20464,10 @@
     "cbsa-asfc.gc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:41:49.183549",
-      "last_seen": "2026-02-25T12:41:49.183549",
+      "last_seen": "2026-02-26T14:26:17.096919",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 7
     },
     "wikihow.com": {
       "status": "accessible",
@@ -20480,26 +20480,26 @@
     "bennettjones.com": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:41:51.464834",
-      "last_seen": "2026-02-25T12:41:51.464834",
+      "last_seen": "2026-02-26T13:57:54.172250",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 3
     },
     "isthatlegal.ca": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:41:52.509632",
-      "last_seen": "2026-02-25T12:45:18.209701",
+      "last_seen": "2026-02-26T14:28:44.443796",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 25
     },
     "ontario.ca": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:41:53.461225",
-      "last_seen": "2026-02-25T12:45:35.120469",
+      "last_seen": "2026-02-26T14:26:42.929345",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 15
     },
     "fosterandcompany.com": {
       "status": "bot_blocked",
@@ -20514,42 +20514,42 @@
     "mass.gov": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:41:56.080210",
-      "last_seen": "2026-02-25T12:41:56.080210",
+      "last_seen": "2026-02-26T13:52:19.172229",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "albert.io": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:41:57.104854",
-      "last_seen": "2026-02-25T12:43:52.741568",
+      "last_seen": "2026-02-26T14:28:04.465722",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 13
     },
     "inspection.canada.ca": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:41:57.569922",
-      "last_seen": "2026-02-25T12:42:01.301192",
+      "last_seen": "2026-02-26T14:26:29.160917",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 22
     },
     "teacherspayteachers.com": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:41:58.242038",
-      "last_seen": "2026-02-25T12:42:10.152450",
+      "last_seen": "2026-02-26T14:27:05.700895",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 14
     },
     "irs.gov": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:42:00.831793",
-      "last_seen": "2026-02-25T12:43:22.444915",
+      "last_seen": "2026-02-26T14:23:40.460168",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 6
     },
     "berlincentral.org": {
       "status": "accessible",
@@ -20580,50 +20580,50 @@
     "ontariocourts.ca": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:42:25.102838",
-      "last_seen": "2026-02-25T12:44:03.026565",
+      "last_seen": "2026-02-26T13:49:02.622119",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "testgrid.io": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:42:26.799814",
-      "last_seen": "2026-02-25T12:42:26.799814",
+      "last_seen": "2026-02-26T14:20:05.122783",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 8
     },
     "jotform.com": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:42:41.151955",
-      "last_seen": "2026-02-25T12:42:41.151955",
-      "source": "runtime_detection",
-      "metadata": {},
-      "encounter_count": 1
-    },
-    "libguides.royalroads.ca": {
-      "status": "accessible",
-      "first_seen": "2026-02-25T12:43:00.742815",
-      "last_seen": "2026-02-25T12:43:49.451490",
-      "source": "runtime_detection",
-      "metadata": {},
-      "encounter_count": 4
-    },
-    "writingmindset.org": {
-      "status": "accessible",
-      "first_seen": "2026-02-25T12:43:01.345575",
-      "last_seen": "2026-02-25T12:43:50.375416",
+      "last_seen": "2026-02-26T14:05:44.017860",
       "source": "runtime_detection",
       "metadata": {},
       "encounter_count": 2
     },
+    "libguides.royalroads.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-25T12:43:00.742815",
+      "last_seen": "2026-02-26T14:28:21.613878",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 38
+    },
+    "writingmindset.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-25T12:43:01.345575",
+      "last_seen": "2026-02-26T14:28:39.915500",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 16
+    },
     "subjectguides.york.ac.uk": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:43:02.807034",
-      "last_seen": "2026-02-25T12:43:02.807034",
+      "last_seen": "2026-02-26T14:20:30.939591",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 4
     },
     "sec.gov": {
       "status": "bot_blocked",
@@ -20664,10 +20664,10 @@
     "uscis.gov": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:43:25.367104",
-      "last_seen": "2026-02-25T12:43:25.367104",
+      "last_seen": "2026-02-26T14:28:17.906811",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 18
     },
     "plato.stanford.edu": {
       "status": "accessible",
@@ -20698,10 +20698,10 @@
     "libguides.norquest.ca": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:43:53.880067",
-      "last_seen": "2026-02-25T12:43:53.880067",
+      "last_seen": "2026-02-26T14:21:55.768141",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 3
     },
     "cbp.gov": {
       "status": "accessible",
@@ -20732,10 +20732,10 @@
     "osfi-bsif.gc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:44:08.505502",
-      "last_seen": "2026-02-25T12:44:12.917105",
+      "last_seen": "2026-02-26T14:28:32.978967",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 7
     },
     "clio.com": {
       "status": "bot_blocked",
@@ -20802,10 +20802,10 @@
     "cba.org": {
       "status": "accessible",
       "first_seen": "2026-02-25T12:45:41.759980",
-      "last_seen": "2026-02-25T12:45:41.759980",
+      "last_seen": "2026-02-26T14:22:50.388144",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "germanwatch.org": {
       "status": "accessible",
@@ -20818,10 +20818,10 @@
     "e360.yale.edu": {
       "status": "accessible",
       "first_seen": "2026-02-25T14:46:43.280314",
-      "last_seen": "2026-02-25T14:46:43.280314",
+      "last_seen": "2026-02-26T10:22:53.611025",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 3
     },
     "theclimateadaptationcenter.org": {
       "status": "accessible",
@@ -20948,10 +20948,10 @@
     "autonews.com": {
       "status": "accessible",
       "first_seen": "2026-02-25T16:04:36.110546",
-      "last_seen": "2026-02-25T16:04:36.110546",
+      "last_seen": "2026-02-26T10:22:22.618033",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "redstagfulfillment.com": {
       "status": "accessible",
@@ -21080,14 +21080,2282 @@
       "source": "runtime_detection",
       "metadata": {},
       "encounter_count": 1
+    },
+    "manitobamuseum.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:21:57.631888",
+      "last_seen": "2026-02-26T10:21:57.631888",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "kielderobservatory.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:21:59.230525",
+      "last_seen": "2026-02-26T11:37:46.925012",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "acea.auto": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:02.648591",
+      "last_seen": "2026-02-26T10:22:02.648591",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "ev-lectron.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:02.798987",
+      "last_seen": "2026-02-26T10:22:02.798987",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "jdpower.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:03.136495",
+      "last_seen": "2026-02-26T10:22:03.136495",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "globaltimes.cn": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:03.439837",
+      "last_seen": "2026-02-26T10:22:03.439837",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "autosinnovate.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:05.521699",
+      "last_seen": "2026-02-26T10:22:30.463800",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "answersingenesis.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:05.683324",
+      "last_seen": "2026-02-26T10:22:05.683324",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "driveteslacanada.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:07.400939",
+      "last_seen": "2026-02-26T10:22:07.400939",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "warpnews.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:07.844809",
+      "last_seen": "2026-02-26T10:22:07.844809",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "onetreeplanted.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:07.937405",
+      "last_seen": "2026-02-26T11:38:42.076661",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 4
+    },
+    "marklines.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:10.743422",
+      "last_seen": "2026-02-26T10:22:10.743422",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "greencars.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:12.429621",
+      "last_seen": "2026-02-26T10:22:12.429621",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "travelchinaguide.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:12.815484",
+      "last_seen": "2026-02-26T10:22:12.815484",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "geographyrealm.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:14.983501",
+      "last_seen": "2026-02-26T10:22:14.983501",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "kavout.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:16.700676",
+      "last_seen": "2026-02-26T10:22:16.700676",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "eurekalert.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:18.693531",
+      "last_seen": "2026-02-26T10:22:18.693531",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "immunizationdata.who.int": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:22.394989",
+      "last_seen": "2026-02-26T10:22:22.394989",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "amazonconservation.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:22.545774",
+      "last_seen": "2026-02-26T10:22:22.545774",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ouhealth.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:23.246238",
+      "last_seen": "2026-02-26T10:22:23.246238",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "timesofmalta.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:24.483191",
+      "last_seen": "2026-02-26T10:22:24.483191",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "superprof.co.in": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:25.099111",
+      "last_seen": "2026-02-26T10:22:25.099111",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "recharged.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:25.813895",
+      "last_seen": "2026-02-26T10:23:15.870913",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "steptoe-johnson.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:29.705635",
+      "last_seen": "2026-02-26T10:22:29.705635",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "americasquarterly.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:29.744476",
+      "last_seen": "2026-02-26T10:22:53.337542",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 2
+    },
+    "bitbo.io": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:30.282621",
+      "last_seen": "2026-02-26T10:22:30.282621",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "theblock.co": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:30.328720",
+      "last_seen": "2026-02-26T10:22:30.328720",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "jbs.cam.ac.uk": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:30.368121",
+      "last_seen": "2026-02-26T10:22:30.368121",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "solartechonline.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:30.409188",
+      "last_seen": "2026-02-26T10:22:30.409188",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "franklintempleton.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:31.228649",
+      "last_seen": "2026-02-26T10:22:31.228649",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "elibrary.imf.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:31.302523",
+      "last_seen": "2026-02-26T10:22:31.302523",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "onrec.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:31.613840",
+      "last_seen": "2026-02-26T10:22:32.453200",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "onlinelibrary.wiley.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:31.655119",
+      "last_seen": "2026-02-26T10:22:32.545333",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 2
+    },
+    "miners1688.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:32.176967",
+      "last_seen": "2026-02-26T11:44:44.633683",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "mindmapai.app": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:32.286697",
+      "last_seen": "2026-02-26T10:22:32.286697",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "okx.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:32.500418",
+      "last_seen": "2026-02-26T11:44:57.146067",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 4
+    },
+    "mexc.co": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:33.826186",
+      "last_seen": "2026-02-26T10:22:33.826186",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "gfmag.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:34.718115",
+      "last_seen": "2026-02-26T10:22:34.718115",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "bestbrokers.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:35.130777",
+      "last_seen": "2026-02-26T10:22:35.130777",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "billysbeds.com.au": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:36.312953",
+      "last_seen": "2026-02-26T10:22:36.312953",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "as-coa.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:36.388696",
+      "last_seen": "2026-02-26T10:22:36.388696",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "coinmarketcap.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:37.553903",
+      "last_seen": "2026-02-26T10:22:37.553903",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "evconnect.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:37.738650",
+      "last_seen": "2026-02-26T10:22:37.738650",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "coinlaw.io": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:38.517093",
+      "last_seen": "2026-02-26T11:44:50.708599",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "oecd.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:39.313960",
+      "last_seen": "2026-02-26T10:22:39.313960",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "healthlinkbc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:41.973632",
+      "last_seen": "2026-02-26T10:22:41.973632",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "johnsonopstreecare.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:42.251678",
+      "last_seen": "2026-02-26T10:22:42.251678",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "strategicenergy.eu": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:42.672876",
+      "last_seen": "2026-02-26T10:22:42.672876",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "micacryptoalliance.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:43.052875",
+      "last_seen": "2026-02-26T10:22:43.052875",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "nejm.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:46.217695",
+      "last_seen": "2026-02-26T10:22:46.217695",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "coinmetrics.io": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:46.591430",
+      "last_seen": "2026-02-26T11:44:42.740864",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "fidelity.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:46.690015",
+      "last_seen": "2026-02-26T10:22:46.690015",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "farmonaut.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:46.795355",
+      "last_seen": "2026-02-26T10:22:46.795355",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "historyofvaccines.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:47.454660",
+      "last_seen": "2026-02-26T11:42:18.701595",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "familyvoices.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:47.969055",
+      "last_seen": "2026-02-26T10:22:47.969055",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "crypto.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:48.294010",
+      "last_seen": "2026-02-26T10:22:48.294010",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "chop.edu": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:48.896747",
+      "last_seen": "2026-02-26T10:22:48.896747",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "hannahritchie.substack.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:50.037256",
+      "last_seen": "2026-02-26T11:38:40.329176",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "healthychildren.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:50.937645",
+      "last_seen": "2026-02-26T11:42:17.956937",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "drexel.edu": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:51.706041",
+      "last_seen": "2026-02-26T10:22:51.706041",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "enverus.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:53.273845",
+      "last_seen": "2026-02-26T10:22:53.273845",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "un-redd.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:54.189021",
+      "last_seen": "2026-02-26T10:22:54.189021",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "digitalcommons.schulichlaw.dal.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:55.896381",
+      "last_seen": "2026-02-26T10:22:55.896381",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "iberdrola.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:22:56.598726",
+      "last_seen": "2026-02-26T10:22:56.598726",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "tokenomist.ai": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:57.629929",
+      "last_seen": "2026-02-26T10:22:57.629929",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "fdehydro.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:58.186628",
+      "last_seen": "2026-02-26T10:22:58.186628",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "gov.br": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:59.162132",
+      "last_seen": "2026-02-26T10:22:59.162132",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ethereum.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:59.443764",
+      "last_seen": "2026-02-26T11:44:48.840361",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "puertomaldonadotours.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:22:59.531904",
+      "last_seen": "2026-02-26T11:38:43.312353",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "energia-argentina.com.ar": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:00.147351",
+      "last_seen": "2026-02-26T10:23:00.147351",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "apexocc.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:23:00.780445",
+      "last_seen": "2026-02-26T10:23:00.780445",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "cryptoslate.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:03.504949",
+      "last_seen": "2026-02-26T10:23:03.504949",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "tropicalforesters.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:03.586750",
+      "last_seen": "2026-02-26T10:23:03.586750",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "otca.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:03.653203",
+      "last_seen": "2026-02-26T10:23:03.653203",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "geotab.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:05.315311",
+      "last_seen": "2026-02-26T10:23:05.315311",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "netzerocircle.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:05.678031",
+      "last_seen": "2026-02-26T10:23:05.678031",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "consensys.io": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:05.759811",
+      "last_seen": "2026-02-26T10:23:05.759811",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "recurrentauto.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:05.870782",
+      "last_seen": "2026-02-26T10:23:05.870782",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "app.santiment.net": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:07.740120",
+      "last_seen": "2026-02-26T10:23:07.740120",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "stateofgreen.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:23:07.833936",
+      "last_seen": "2026-02-26T10:23:07.833936",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "cryptopotato.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:10.065727",
+      "last_seen": "2026-02-26T10:23:10.065727",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "enhauto.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:11.897497",
+      "last_seen": "2026-02-26T10:23:11.897497",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "info.arkm.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:13.604169",
+      "last_seen": "2026-02-26T11:44:42.688871",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "chainlabo.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:14.329943",
+      "last_seen": "2026-02-26T11:44:44.166533",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "uniathena.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:14.518081",
+      "last_seen": "2026-02-26T10:23:14.518081",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "premiumautosinc.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:15.748816",
+      "last_seen": "2026-02-26T10:23:15.748816",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cloudcomputing-news.net": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:23:18.099354",
+      "last_seen": "2026-02-26T10:23:18.099354",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "blockinvest.it": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:23:19.017894",
+      "last_seen": "2026-02-26T10:23:19.017894",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "onesafe.io": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:20.841499",
+      "last_seen": "2026-02-26T10:23:20.841499",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "etftrends.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:23.439539",
+      "last_seen": "2026-02-26T11:44:53.181274",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "btcmarkets.net": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T10:23:25.587607",
+      "last_seen": "2026-02-26T10:23:25.587607",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "dlnews.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:26.395827",
+      "last_seen": "2026-02-26T10:23:26.395827",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "vaneck.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T10:23:28.171319",
+      "last_seen": "2026-02-26T11:44:47.667687",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "tatssp.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:37:46.027667",
+      "last_seen": "2026-02-26T11:37:47.247810",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "oldest.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:37:50.245231",
+      "last_seen": "2026-02-26T11:37:50.245231",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "sciencemuseum.org.uk": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:37:51.991103",
+      "last_seen": "2026-02-26T11:37:51.991103",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "rocketstem.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:37:52.653727",
+      "last_seen": "2026-02-26T11:37:52.653727",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ballardbrief.byu.edu": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:38:39.740755",
+      "last_seen": "2026-02-26T11:38:39.740755",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cri.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:38:40.782481",
+      "last_seen": "2026-02-26T11:38:40.782481",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "aqua-firma.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:38:40.845845",
+      "last_seen": "2026-02-26T11:38:40.845845",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "visionofhumanity.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:38:40.920842",
+      "last_seen": "2026-02-26T11:38:40.920842",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "maapprogram.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:38:41.854748",
+      "last_seen": "2026-02-26T11:38:41.855284",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "greenpeace.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:38:44.527550",
+      "last_seen": "2026-02-26T11:38:44.527550",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ecologyandsociety.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:38:46.388696",
+      "last_seen": "2026-02-26T11:38:46.388696",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "edf.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:38:46.468138",
+      "last_seen": "2026-02-26T11:38:46.468138",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "bonpote.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:38:49.910190",
+      "last_seen": "2026-02-26T11:38:49.910190",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "trendspediatrics.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:17.265353",
+      "last_seen": "2026-02-26T11:42:17.265353",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cepi.net": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:17.596839",
+      "last_seen": "2026-02-26T11:42:17.596839",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "thevarsity.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:42:20.661954",
+      "last_seen": "2026-02-26T11:42:20.661954",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "origins.osu.edu": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:22.198896",
+      "last_seen": "2026-02-26T11:42:22.198896",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "en.snu.ac.kr": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:23.916319",
+      "last_seen": "2026-02-26T11:42:23.916319",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "marincounty.gov": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:42:24.008626",
+      "last_seen": "2026-02-26T11:42:24.008626",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "aane.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:42:24.357019",
+      "last_seen": "2026-02-26T11:42:24.357019",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "cma.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:42:27.879258",
+      "last_seen": "2026-02-26T11:42:27.879258",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "uchealth.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:42:28.606516",
+      "last_seen": "2026-02-26T11:42:28.606516",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "cedarvia.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:42:29.323918",
+      "last_seen": "2026-02-26T11:42:29.323918",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "nfid.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:29.638269",
+      "last_seen": "2026-02-26T11:42:29.638269",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "iris.who.int": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:31.032034",
+      "last_seen": "2026-02-26T11:42:31.032034",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "idsociety.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:32.166244",
+      "last_seen": "2026-02-26T11:42:32.166244",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "vdh.virginia.gov": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:34.325103",
+      "last_seen": "2026-02-26T11:42:34.325103",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "sciencemediacentre.es": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:42:41.293847",
+      "last_seen": "2026-02-26T11:42:41.293847",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cdc.gov.au": {
+      "status": "timeout",
+      "first_seen": "2026-02-26T11:42:41.576112",
+      "last_seen": "2026-02-26T11:42:41.576112",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "bytetree.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:42.048960",
+      "last_seen": "2026-02-26T11:44:42.048960",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "oneminers.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:43.141715",
+      "last_seen": "2026-02-26T11:44:43.141715",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "blog.bio-ressources.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:44.517832",
+      "last_seen": "2026-02-26T11:44:44.517832",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "coinix.capital": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:44.583037",
+      "last_seen": "2026-02-26T11:44:44.583037",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "compassmining.io": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:44.673829",
+      "last_seen": "2026-02-26T11:44:44.673829",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cryptorank.io": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:48.231208",
+      "last_seen": "2026-02-26T11:44:48.231208",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "blog.bitpanda.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:49.641224",
+      "last_seen": "2026-02-26T11:44:49.641224",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "erl.scholasticahq.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:51.666103",
+      "last_seen": "2026-02-26T11:44:51.666103",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ainvest.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:53.022572",
+      "last_seen": "2026-02-26T11:44:53.022572",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "romulusstrategy.substack.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:55.377155",
+      "last_seen": "2026-02-26T11:44:55.377155",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "21bitcoin.app": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:44:57.616983",
+      "last_seen": "2026-02-26T11:44:57.616983",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "irena.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:44:58.191076",
+      "last_seen": "2026-02-26T11:44:58.191076",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "trmlabs.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:02.468030",
+      "last_seen": "2026-02-26T11:45:02.468030",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "tangem.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:02.832616",
+      "last_seen": "2026-02-26T11:45:02.832616",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "westafricatradehub.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:05.801927",
+      "last_seen": "2026-02-26T11:45:29.449561",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "mudrex.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T11:45:18.163768",
+      "last_seen": "2026-02-26T11:45:18.163768",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "marketwise.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:18.835052",
+      "last_seen": "2026-02-26T11:45:18.835052",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "capital.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:20.506748",
+      "last_seen": "2026-02-26T11:45:20.506748",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "amp.com.au": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:23.735883",
+      "last_seen": "2026-02-26T11:45:23.735883",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "generatewealth.co.nz": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:24.437334",
+      "last_seen": "2026-02-26T11:45:24.437334",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "robinhood.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:28.078761",
+      "last_seen": "2026-02-26T11:45:28.078761",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "consumerreports.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:34.059950",
+      "last_seen": "2026-02-26T11:45:34.059950",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "prove.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:38.856246",
+      "last_seen": "2026-02-26T11:45:38.856246",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "empower.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T11:45:41.176171",
+      "last_seen": "2026-02-26T11:45:41.176171",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "adalovelaceinstitute.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T12:19:20.061021",
+      "last_seen": "2026-02-26T12:19:20.061021",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "aihealthcarecompliance.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T12:19:21.324094",
+      "last_seen": "2026-02-26T12:19:21.324094",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "healthcare.digital": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T12:19:35.236543",
+      "last_seen": "2026-02-26T12:19:35.236543",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "intuitionlabs.ai": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T12:19:44.814382",
+      "last_seen": "2026-02-26T12:19:44.814382",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "lpi.usra.edu": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:02:14.189783",
+      "last_seen": "2026-02-26T13:02:14.189783",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "cnes.fr": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:02:16.016314",
+      "last_seen": "2026-02-26T13:02:16.016314",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "asc-csa.gc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:02:17.173951",
+      "last_seen": "2026-02-26T13:02:20.524001",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "philipmetzger.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:02:18.528844",
+      "last_seen": "2026-02-26T13:02:18.528844",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "mmstonehenge.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:43:34.780175",
+      "last_seen": "2026-02-26T13:43:34.780175",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "stonehengeconstructionservices.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:43:35.881140",
+      "last_seen": "2026-02-26T13:43:36.006927",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "stonehengefoundations.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:43:36.612461",
+      "last_seen": "2026-02-26T13:43:36.612461",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "rarehistoricalphotos.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:43:36.675115",
+      "last_seen": "2026-02-26T13:43:37.963916",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "nomadicniko.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:43:36.988531",
+      "last_seen": "2026-02-26T13:43:36.988531",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "stonehenge-london-tours.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:43:37.152824",
+      "last_seen": "2026-02-26T13:43:37.152824",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "popular-archaeology.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:43:37.278746",
+      "last_seen": "2026-02-26T13:43:37.278746",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "insightvacations.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:43:39.897050",
+      "last_seen": "2026-02-26T13:43:39.897050",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "niesr.ac.uk": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:48:23.968451",
+      "last_seen": "2026-02-26T14:26:03.463584",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 6
+    },
+    "employment-studies.co.uk": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:48:24.951296",
+      "last_seen": "2026-02-26T13:48:24.951296",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "fenews.co.uk": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:48:27.525473",
+      "last_seen": "2026-02-26T14:18:54.852293",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "ti.ubc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:48:42.336761",
+      "last_seen": "2026-02-26T14:26:17.121330",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 6
+    },
+    "oatleyvigmond.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:48:43.513676",
+      "last_seen": "2026-02-26T13:48:43.513676",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "sharelawyers.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:48:46.355361",
+      "last_seen": "2026-02-26T14:19:12.176616",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "quizlet.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:49:34.708281",
+      "last_seen": "2026-02-26T13:49:34.708281",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "fnchildclaims.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:49:45.701500",
+      "last_seen": "2026-02-26T14:06:10.432603",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "gov.bc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:49:50.769091",
+      "last_seen": "2026-02-26T13:49:50.769091",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "manitobacourts.mb.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:49:51.454818",
+      "last_seen": "2026-02-26T14:20:02.998327",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 4
+    },
+    "wsib.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:49:52.419514",
+      "last_seen": "2026-02-26T14:06:07.883411",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "immigration.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:49:53.052558",
+      "last_seen": "2026-02-26T13:49:53.052558",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "pressbooks.cuny.edu": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:50:22.509515",
+      "last_seen": "2026-02-26T13:50:22.509515",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "mcpmarket.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:50:24.370755",
+      "last_seen": "2026-02-26T13:51:03.996744",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 2
+    },
+    "smallai.in": {
+      "status": "rate_limited",
+      "first_seen": "2026-02-26T13:50:26.847036",
+      "last_seen": "2026-02-26T14:17:49.104897",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 429
+      },
+      "encounter_count": 10
+    },
+    "microsoft.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:50:27.464359",
+      "last_seen": "2026-02-26T14:29:00.154006",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 32
+    },
+    "library.south.edu": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:50:38.107441",
+      "last_seen": "2026-02-26T14:27:59.937937",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 5
+    },
+    "ojs.aaai.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:50:38.502063",
+      "last_seen": "2026-02-26T14:28:57.494515",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 22
+    },
+    "open.ocolearnok.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:50:40.143587",
+      "last_seen": "2026-02-26T14:18:01.401717",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "civilresolutionbc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:02.182844",
+      "last_seen": "2026-02-26T14:28:23.538912",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 11
+    },
+    "library.pugetsound.edu": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:03.393768",
+      "last_seen": "2026-02-26T13:51:03.393768",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "guides.library.ualberta.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:08.039957",
+      "last_seen": "2026-02-26T14:28:35.071173",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 7
+    },
+    "desci.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:10.281357",
+      "last_seen": "2026-02-26T14:28:17.922929",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "parallel.ai": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:32.839569",
+      "last_seen": "2026-02-26T14:18:16.476448",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "repository.tudelft.nl": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:38.273761",
+      "last_seen": "2026-02-26T14:28:54.408242",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 5
+    },
+    "tstc.libguides.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:48.073938",
+      "last_seen": "2026-02-26T14:22:39.661868",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "sydney.edu.au": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:49.957180",
+      "last_seen": "2026-02-26T13:51:49.957180",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "edubirdie.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:51:50.345051",
+      "last_seen": "2026-02-26T14:28:19.990303",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 6
+    },
+    "vocal.media": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:52:02.281320",
+      "last_seen": "2026-02-26T13:52:02.281320",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "justia.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:52:23.545587",
+      "last_seen": "2026-02-26T13:52:23.545587",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "dzone.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:52:30.362305",
+      "last_seen": "2026-02-26T13:52:30.362305",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "ier.org.uk": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:57:21.998760",
+      "last_seen": "2026-02-26T14:25:52.964046",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 5
+    },
+    "hiringlab.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:57:23.431795",
+      "last_seen": "2026-02-26T13:57:23.431795",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "savvas.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:57:52.308619",
+      "last_seen": "2026-02-26T14:16:40.090918",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "revenuquebec.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:57:55.092133",
+      "last_seen": "2026-02-26T13:57:55.092133",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "x12.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:58:03.091231",
+      "last_seen": "2026-02-26T13:58:03.091231",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "sac-isc.gc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:58:13.910154",
+      "last_seen": "2026-02-26T14:26:44.208499",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 4
+    },
+    "med.noridianmedicare.com": {
+      "status": "timeout",
+      "first_seen": "2026-02-26T13:58:14.705155",
+      "last_seen": "2026-02-26T14:27:28.505715",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 4
+    },
+    "vaclaimsinsider.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:58:18.147755",
+      "last_seen": "2026-02-26T13:58:18.147755",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ledgerlaw.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:58:27.272511",
+      "last_seen": "2026-02-26T13:58:27.272511",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "peoples-law.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T13:58:28.541352",
+      "last_seen": "2026-02-26T13:58:28.541352",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "firstnationsdrinkingwater.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:58:37.006025",
+      "last_seen": "2026-02-26T13:58:37.006025",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "rcmp.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:58:48.784546",
+      "last_seen": "2026-02-26T13:58:48.784546",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "statrosapristinanomine.weebly.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:59:10.819442",
+      "last_seen": "2026-02-26T14:27:46.393188",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "lib.guides.umd.edu": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T13:59:24.741600",
+      "last_seen": "2026-02-26T14:17:47.758498",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "libguides.exeter.ac.uk": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:00:29.278714",
+      "last_seen": "2026-02-26T14:00:43.003984",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "ccohs.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:00:54.967226",
+      "last_seen": "2026-02-26T14:00:54.967226",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "worksafebc.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:01:09.324082",
+      "last_seen": "2026-02-26T14:01:09.324082",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "fda.gov": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:01:18.339757",
+      "last_seen": "2026-02-26T14:01:18.339757",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "docs.azure.cn": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:05:37.018996",
+      "last_seen": "2026-02-26T14:05:37.018996",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "help.sap.com": {
+      "status": "js_required",
+      "first_seen": "2026-02-26T14:05:37.813868",
+      "last_seen": "2026-02-26T14:05:37.813868",
+      "source": "runtime_detection",
+      "metadata": {
+        "reason": "empty_extraction"
+      },
+      "encounter_count": 1
+    },
+    "learn.microsoft.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:05:40.375820",
+      "last_seen": "2026-02-26T14:16:42.651248",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "towardsdatascience.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:06:35.609863",
+      "last_seen": "2026-02-26T14:06:35.609863",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "libguides.hull.ac.uk": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:06:43.918096",
+      "last_seen": "2026-02-26T14:27:58.106504",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 4
+    },
+    "scura.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:07:32.961277",
+      "last_seen": "2026-02-26T14:18:26.247102",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "uscourts.gov": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:07:33.927391",
+      "last_seen": "2026-02-26T14:18:26.165416",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "nolo.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:07:38.131606",
+      "last_seen": "2026-02-26T14:18:29.904943",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "provetlegal.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:16:40.549697",
+      "last_seen": "2026-02-26T14:16:40.549697",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "kantorlaw.net": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:16:40.900206",
+      "last_seen": "2026-02-26T14:16:40.900206",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "cyber.gc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:16:41.306950",
+      "last_seen": "2026-02-26T14:16:41.306950",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "keycloak.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:16:49.891053",
+      "last_seen": "2026-02-26T14:16:49.891053",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cdic.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:17:03.337327",
+      "last_seen": "2026-02-26T14:17:03.337327",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "stepstojustice.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:17:16.757681",
+      "last_seen": "2026-02-26T14:17:16.757681",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "pac.bluecross.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:17:18.152707",
+      "last_seen": "2026-02-26T14:17:18.152707",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "chip.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:17:18.871797",
+      "last_seen": "2026-02-26T14:17:18.871797",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "oma.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:17:21.822946",
+      "last_seen": "2026-02-26T14:17:21.822946",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cfpc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:17:25.994025",
+      "last_seen": "2026-02-26T14:17:25.994025",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "libguides.nwpolytech.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:18:01.727202",
+      "last_seen": "2026-02-26T14:18:01.727202",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "rev.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:18:10.858383",
+      "last_seen": "2026-02-26T14:28:10.084121",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "singlegrain.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:18:17.080018",
+      "last_seen": "2026-02-26T14:18:17.080018",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "m.youtube.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:18:32.271106",
+      "last_seen": "2026-02-26T14:18:32.271106",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "criminalnotebook.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:18:32.602425",
+      "last_seen": "2026-02-26T14:18:32.602425",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "classaction.deloitte.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:19:23.885350",
+      "last_seen": "2026-02-26T14:19:23.885350",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "westmount.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:19:52.876794",
+      "last_seen": "2026-02-26T14:19:52.876794",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "vabenefitslawgroup.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:20:00.031747",
+      "last_seen": "2026-02-26T14:20:00.031747",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "securityhealth.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:20:02.201794",
+      "last_seen": "2026-02-26T14:27:12.712861",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "medstates.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:20:03.873870",
+      "last_seen": "2026-02-26T14:27:12.649404",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "help.gethealthie.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:20:06.285136",
+      "last_seen": "2026-02-26T14:27:14.934671",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "ccf.georgetown.edu": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:20:46.837960",
+      "last_seen": "2026-02-26T14:20:46.837960",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "hhs.gov": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:20:47.735608",
+      "last_seen": "2026-02-26T14:23:10.274628",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 3
+    },
+    "bdo.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:20:48.341958",
+      "last_seen": "2026-02-26T14:20:48.341958",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "dart.deloitte.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:20:48.811104",
+      "last_seen": "2026-02-26T14:22:45.221363",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "gnb.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:20:48.898105",
+      "last_seen": "2026-02-26T14:20:48.898105",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "examtopics.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:20:49.214244",
+      "last_seen": "2026-02-26T14:20:49.214244",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "math.libretexts.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:20:50.164041",
+      "last_seen": "2026-02-26T14:20:50.164041",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "aila.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:20:50.796597",
+      "last_seen": "2026-02-26T14:20:50.798139",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "mathnasium.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:20:51.140581",
+      "last_seen": "2026-02-26T14:20:51.140581",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "copyright.gov": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:22:20.530794",
+      "last_seen": "2026-02-26T14:23:45.073266",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 3
+    },
+    "biz.libretexts.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:22:25.375999",
+      "last_seen": "2026-02-26T14:22:25.375999",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ussc.gov": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:22:31.256527",
+      "last_seen": "2026-02-26T14:22:51.108534",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "tlaonline.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:22:47.512434",
+      "last_seen": "2026-02-26T14:23:15.696860",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 2
+    },
+    "wagehourblog.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:23:15.566292",
+      "last_seen": "2026-02-26T14:23:15.566292",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ilrc.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:23:38.023743",
+      "last_seen": "2026-02-26T14:23:38.023743",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "niaaa.nih.gov": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:23:46.645053",
+      "last_seen": "2026-02-26T14:23:46.645053",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cno.org": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:26:19.311464",
+      "last_seen": "2026-02-26T14:26:19.311464",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cms.officeally.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:27:16.353822",
+      "last_seen": "2026-02-26T14:27:16.353822",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "novitas-solutions.com": {
+      "status": "timeout",
+      "first_seen": "2026-02-26T14:27:31.841792",
+      "last_seen": "2026-02-26T14:27:31.841792",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "steamcommunity.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:27:45.269514",
+      "last_seen": "2026-02-26T14:27:45.269514",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "intellectusstatistics.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:27:53.977730",
+      "last_seen": "2026-02-26T14:28:09.429111",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 2
+    },
+    "policinginstitute.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:28:07.787678",
+      "last_seen": "2026-02-26T14:28:07.787678",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "jfklaw.ca": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:28:29.390276",
+      "last_seen": "2026-02-26T14:28:29.390276",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "torys.com": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:28:32.348602",
+      "last_seen": "2026-02-26T14:28:32.348602",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "practicepro.ca": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:28:36.770929",
+      "last_seen": "2026-02-26T14:28:36.770929",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "fever.ai": {
+      "status": "accessible",
+      "first_seen": "2026-02-26T14:28:51.437735",
+      "last_seen": "2026-02-26T14:28:51.437735",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "dl.acm.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-02-26T14:29:02.334530",
+      "last_seen": "2026-02-26T14:29:02.334530",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
     }
   },
   "summary": {
     "paywall": 15,
-    "bot_blocked": 474,
-    "accessible": 1980,
-    "rate_limited": 9,
-    "js_required": 14,
-    "timeout": 19
+    "bot_blocked": 538,
+    "accessible": 2178,
+    "rate_limited": 10,
+    "js_required": 15,
+    "timeout": 22
   }
 }

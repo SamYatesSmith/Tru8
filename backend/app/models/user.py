@@ -2,13 +2,23 @@ from typing import Optional, List
 from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship
 
+
 class User(SQLModel, table=True):
     id: str = Field(primary_key=True)  # Clerk user ID
     email: str = Field(unique=True, index=True)
     name: Optional[str] = None
     credits: int = Field(default=3)  # Start with 3 free credits
     total_credits_used: int = Field(default=0)
-    
+    credit_balance_cents: int = Field(
+        default=0, description="Prepaid agent credit balance in integer cents"
+    )
+    external_id: Optional[str] = Field(
+        default=None,
+        max_length=100,
+        sa_column_kwargs={"unique": True, "index": True},
+        description="External identity (e.g. 'skyfire:user123' or 'x402:eip155:8453:0xabc')",
+    )
+
     # Push notification settings
     push_token: Optional[str] = None
     push_notifications_enabled: bool = Field(default=True)
@@ -24,10 +34,11 @@ class User(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     # Relationships
     subscription: Optional["Subscription"] = Relationship(back_populates="user")
     checks: List["Check"] = Relationship(back_populates="user")
+
 
 class Subscription(SQLModel, table=True):
     id: str = Field(primary_key=True)
@@ -43,6 +54,6 @@ class Subscription(SQLModel, table=True):
     revenue_cat_id: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     # Relationships
     user: User = Relationship(back_populates="subscription")

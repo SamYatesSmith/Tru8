@@ -1,37 +1,26 @@
 # Tru8 — Engineering Context
 
 ## What This Is
-AI-powered evidence research platform. Users submit a URL or claim, the pipeline extracts claims, retrieves evidence from multiple sources, and presents organized evidence via Claim Maps.
+AI-powered evidence research platform. Users submit a URL or claim, the pipeline extracts claims, retrieves evidence from 30+ sources, and presents an organised evidence landscape via six profession views. Mission: "We organise; you decide."
 
-## Refactor Status
+## Track Status (2026-02-27)
 
-### Track A: COMPLETE (2026-02-11)
-Infrastructure cleanup. 5 PRs, ~2,100 lines removed. Commit `041b55f`.
-
-### Track B: COMPLETE (2026-02-13)
-Backend pivot — Claim Map system. 8 PRs, ~7,000 lines removed. Final commit `d40668b`.
-**Contract:** `audit/track-b/2026-02-12_claim-map-contract.md`
-
-### Track C: COMPLETE (2026-02-14)
-Frontend verdict-to-ClaimMap component swap. 9 PRs, ~500 net lines removed. Final commit `b365534`.
-Replaced verdict UI with Claim Map components on product pages (dashboard, check detail, history, settings, public report, mobile screens). Kept dark theme.
-
-### Track D (in progress): Full Frontend Redesign
-Convert entire web frontend from dark theme to Stitch light theme. Rebuild marketing pages, re-theme all dashboard/legal pages, align all copy with evidence-research positioning. 10 PRs planned.
-
-**Specs:** `audit/track-d/PROGRESS.md` (master tracker)
-**Design decisions:** `audit/track-d/00_design_decisions.md`
-**Page gap analysis:** `audit/track-d/01_page_gap_analysis.md`
-**Copy audit:** `audit/track-d/02_copy_audit.md`
-**Stitch style guide:** `audit/track-c/stitch/STITCH_STYLE_GUIDE.md`
-**Stitch page specs:** `audit/track-c/stitch/pages/W-01..W-19` (web), `M-01..M-12` (mobile)
-
-**Key decisions:**
-- Full light theme (white surfaces, Inter + JetBrains Mono, 1px borders, no shadows)
-- "Analysis" not "verification", "evidence research" not "fact-checking"
-- Stitch designs are the mirror — faithful reproduction, no omissions. Spec-sheet aesthetic (micro-labels, system IDs, metadata rows) IS the design language.
-- Track C Claim Map components retained and re-themed
-- Only permitted adaptation: Lucide icons instead of Material Symbols
+| Track | Status | Summary |
+|-------|--------|---------|
+| A | COMPLETE | Infrastructure cleanup. Commit `041b55f`. |
+| B | COMPLETE | Backend pivot — Claim Map system. Commit `d40668b`. Contract: `audit/track-b/2026-02-12_claim-map-contract.md` |
+| C | COMPLETE | Frontend verdict→ClaimMap swap. Commit `b365534`. |
+| D | COMPLETE | Full frontend dark→light redesign (10 PRs, all 17 pages). Commit `1df7569`. |
+| E | COMPLETE | Evidence philosophy overhaul (15 PRs). Editorial scoring deleted, tier/type classification, receipts, pipeline break, 4 evidence views. |
+| F | COMPLETE | Copy overhaul + differentiation features (Chronologist, Diagnostic Highlighter, Auto-Archiving, URL persistence). |
+| G | COMPLETE | The Seeker (known unknowns) + Re-search mechanism. |
+| H API | COMPLETE | Agent API (8 PRs), MCP server, dual auth, webhooks, snapshot mode, sync `/run` endpoint. |
+| H NAV | COMPLETE | Unified check detail — single page, state-driven claim focus. Commit `6403227`. |
+| I | IN PROGRESS | Pre-release readiness. Pricing tiers done (`d103ce3`). Remaining: Stripe setup, OG cards, MCP distribution, developer polish. See `audit/track-i/PROGRESS.md`. |
+| J | COMPLETE | Test suite overhaul — 0 failures, +87 new tests. Commit `a5ed52d`. |
+| K | IN PROGRESS | Endpoint + efficacy testing. 814 passed, 13 skipped, 0 failed. |
+| L | PLANNED (R6) | Agent Commerce Gateway — 3 tiers (Lookup/Quick/Full), 3 payment rails (x402/Skyfire/credits), `/agent/` endpoints. Plan: `audit/track-l/2026-02-27_track-l-plan.md`. |
+| M | PLANNED | Evidence Infrastructure — signed manifests, provenance persistence, smart endpoint, landscape signal, convergence layer. Plan: `audit/track-m/2026-02-27_track-m-plan.md`. |
 
 ## Build & Test Commands
 
@@ -39,8 +28,8 @@ Convert entire web frontend from dark theme to Stitch light theme. Rebuild marke
 # Backend
 cd backend
 uvicorn app.main:app --reload                    # API server (port 8000)
-pytest tests/ -v                                 # All tests
-pytest tests/unit/pipeline/ -v                   # Pipeline unit tests only
+pytest tests/ -v                                 # All tests (814 pass, 13 skip)
+pytest tests/unit/pipeline/ -v                   # Pipeline unit tests
 pytest tests/integration/ -v                     # Integration tests
 alembic upgrade head                             # Run migrations
 
@@ -53,74 +42,114 @@ npm run build && npm run start                   # Production build
 docker-compose up -d                             # Postgres, Redis, Qdrant, MinIO
 ```
 
-## Pipeline Architecture (post-Track B)
+## Pipeline Architecture (post-Track E)
+
+Two-phase pipeline with user claim selection gate:
 
 ```
-Stage 1:   INGEST           → Fetch URL / OCR / transcript
-Stage 2:   EXTRACT          → LLM atomizes into ≤12 claims
-Stage 2.1: CLASSIFY         → LLM article classification
-Stage 2.5: FACTCHECK        → Google Fact-Check API lookup
-Stage 2.5: CLAIM SELECTION  → Article mode: rank + select ≤5 claims
-Stage 3:   RETRIEVE         → Per-element multi-source search (Serper, Brave, SerpAPI, gov APIs)
-Stage 3.5: FILTER           → Auto-exclude + content dedup + corroboration boost
-Stage 3.6: URL DEDUP        → Cross-claim URL deduplication
-Stage 3.7: LLM SCORER       → Advisory-only relevance scoring
-Stage 3.8: DOMAIN CAP       → Global domain capping (max 3/domain)
-Stage 4:   DECOMPOSITION    → Claim → 1-5 elements (LLM call)
-Stage 5:   EVIDENCE MAPPING → Map evidence to elements + assign states (LLM call)
-           ORIENTATION      → Mechanical derivation from element states (no LLM)
+Phase 1 (0-30%):
+  INGEST (10%)        → Fetch URL / OCR / transcript
+  EXTRACT (20%)       → LLM atomises into ≤12 claims
+  SELECT/RANK (28%)   → Article classification + claim ranking
+  [PAUSE]             → waiting_for_selection (article mode only)
+
+Phase 2 (30-100%):
+  FACTCHECK (35%)     → Google Fact-Check API lookup
+  DECOMPOSE (45%)     → Claim → 1-5 elements (LLM call)
+  RETRIEVE (60%)      → Per-element multi-source search (2 queries/element)
+  CLASSIFY (75%)      → Tier/Type classification (batched LLM)
+  ANALYZE (85%)       → Evidence mapping + state assignment (LLM call)
+  ORIENTATION         → Mechanical derivation from element states (no LLM)
+  QUERY (90%)         → Optional search clarity
+  COMPLETE (100%)
+
+Stage 5.1: COVERAGE RECOVERY → Targeted retrieval for low-coverage claims
+
+Parallel tasks (fire-and-forget):
+  - Video recommendations (YouTube API, max 5/claim)
+  - Auto-archiving (Wayback Machine, ~15 req/min)
 ```
+
+## Six Profession Views
+
+| View | Question | Level | Source |
+|------|----------|-------|--------|
+| Cartographer | Shape of the conversation? | Overview + Detail | Dagre cascade layout |
+| Librarian | Full set, clearly labelled? | Overview + Detail | Tier×Type heatmap + ledger + receipts |
+| Interpreter | Answer this sub-question? | Detail only | Disposition panel with element focus |
+| Projectionist | What's said on camera? | Overview + Detail | YouTube video cards |
+| Chronologist | When did evidence appear? | Overview + Detail | Pure SVG timeline |
+| Seeker | What don't we know? | Detail only | Unknowns ledger + bounty text + re-search |
+
+Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librarian), URL-persisted view state (`?view=`), auto-archive links.
 
 ## Key Files
 
-### Backend (post-Track B)
+### Backend
 | File | Purpose |
 |------|---------|
-| `backend/app/pipeline/runner.py` | Orchestrator with claim selection + decomposition + evidence mapping |
+| `backend/app/pipeline/runner.py` | Two-phase orchestrator + coverage recovery |
 | `backend/app/pipeline/retrieve.py` | Element-level retrieval + filter cascade |
 | `backend/app/pipeline/claim_map_analyzer.py` | Decompose + map + derive orientation |
+| `backend/app/pipeline/evidence_classifier.py` | Tier/Type classification (batched LLM + heuristic fallback) |
+| `backend/app/pipeline/relevance_scorer.py` | Topical relevance scoring (no source authority) |
 | `backend/app/pipeline/claim_selector.py` | Article mode claim ranking |
+| `backend/app/pipeline/re_search.py` | Targeted element re-query (Seeker) |
 | `backend/app/models/claim_map.py` | ClaimMap types + enums |
-| `backend/app/api/v1/checks.py` | API endpoints (claim map shapes) |
-| `backend/app/models/check.py` | DB schema (Check, Claim, Evidence) |
+| `backend/app/models/check.py` | DB schema (Evidence has tier, type, receipt_status, archived_url) |
+| `backend/app/api/v1/checks.py` | API endpoints (dual auth, computed analytics, snapshot mode) |
+| `backend/app/api/v1/api_keys.py` | API key management |
+| `backend/app/api/v1/webhooks.py` | Webhook completion notifications |
+| `backend/app/services/wayback_archive.py` | Auto-archiving service |
+| `backend/app/services/video_recommendations.py` | YouTube video provider |
+| `backend/tru8_mcp/server.py` | MCP server for Claude/agents |
 
-### Frontend (post-Track C, pre-Track D)
-| File | Purpose | Track D Change |
-|------|---------|---------------|
-| `web/app/layout.tsx` | Root layout (dark theme) | Light theme |
-| `web/app/page.tsx` | Landing page (old marketing) | Full rebuild |
-| `web/app/dashboard/layout.tsx` | Dashboard shell (dark) | Light theme |
-| `web/components/layout/navigation.tsx` | Dark hover-pill nav | Full rebuild |
-| `web/components/layout/footer.tsx` | Dark footer | Full rebuild |
-| `web/components/marketing/*.tsx` | 6 old marketing components | Delete + rebuild |
-| `web/components/claim-map/` | ClaimMapView + 5 components | Re-theme only |
-| `web/components/legal/legal-page-layout.tsx` | Dark legal wrapper | Light theme |
-| `shared/types/index.ts` | TypeScript types (no VerdictType) | No change |
-| `shared/constants/index.ts` | Constants (no verdict colors) | No change |
+### Frontend
+| Directory / File | Purpose |
+|------------------|---------|
+| `web/components/evidence-views/` | All 6 profession views + shared components (ViewSelector, TierBadge, TypeBadge) |
+| `web/components/claim-selection/` | Pipeline break claim selection UI |
+| `web/components/claim-map/` | Base ClaimMap components (Track C, re-themed) |
+| `web/components/marketing/` | Stitch landing page components (Hero, Process, Features, Pricing, Video) |
+| `web/lib/diagnostic-value.ts` | ACH diagnostic value computation |
+| `web/lib/tiers.ts` | Pricing tier configuration (Free/Pro/Developer/Enterprise) |
+| `web/app/dashboard/check/[id]/` | Unified check detail (single page, state-driven) |
+| `web/app/r/[id]/` | Public report (same pattern as dashboard) |
+| `web/app/developers/` | Developer portal + API docs |
+| `shared/types/index.ts` | TypeScript types (CheckStatus includes waiting_for_selection) |
 
 ## Evidence Sources
-- **Web:** Serper (primary), Brave Search (secondary), SerpAPI (tertiary)
-- **Fact-Check:** Google Fact-Check API
-- **Government:** NOAA, Alpha Vantage, FRED, Football-Data.org, Weather API, Companies House, Congress API, GovInfo
-- **Vector Store:** Qdrant
+
+**Web search:** Brave Search, SerpAPI (Google results)
+**Fact-check:** Google Fact-Check API
+**Government:** GOV.UK, Hansard, GovInfo, Companies House, ONS
+**Economic:** FRED, Alpha Vantage, Marketaux
+**Academic:** CrossRef, Semantic Scholar, OpenAlex, PubMed
+**Climate/Nature:** NOAA, WeatherAPI, GBIF
+**Archives:** Wikipedia, Library of Congress, Internet Archive
+**Health:** WHO
+**Sports:** Transfermarkt, Football-Data.org
+**Video:** YouTube Data API
 
 ## Critical Invariants
-1. **Score mutations must recompute downstream.** `credibility_score` → recompute `final_score`.
-2. **Track URLs globally, not per-claim.** Cross-claim dedup uses global URL tracking.
-3. **Stage order matters.** Scoring (3.7) before capping (3.8), always.
-4. **LLM truncation uses round-robin.** Never sequential slicing.
-5. **Freeze at latest stage.** `claim_map_input_hash` (renamed from `judge_input_hash`).
-6. **Claim Map `evidence_refs` is source of truth.** `element_ids` on evidence is derived.
+1. **Track URLs globally, not per-claim.** Cross-claim dedup uses global URL tracking.
+2. **LLM truncation uses round-robin.** Never sequential slicing.
+3. **Freeze at latest stage.** `claim_map_input_hash`.
+4. **Claim Map `evidence_refs` is source of truth.** `element_ids` on evidence is derived.
+5. **No hidden curation.** Every exclusion has a receipt.
+6. **Classify, don't score.** Tier + Type, not credibility numbers.
 
 ## Database
 - **PostgreSQL 16** (port 5433) via SQLModel
 - **Redis 7** (port 6379) — cache + Celery broker
 - **Qdrant** (port 6333) — vector similarity
-- **Auth:** Clerk (JWT + JWKS)
-- **Payments:** Stripe + RevenueCat
+- **Auth:** Clerk (JWT + JWKS) + API keys (dual auth)
+- **Payments:** Stripe (4 tiers: Free/Pro/Developer/Enterprise)
 
 ## Code Style
 - Python: async/await, type hints on public functions, `black` for formatting
-- TypeScript: React Query for data fetching, SSE for real-time updates
+- TypeScript: Next.js 14, SSE for real-time updates, Tailwind CSS
 - All pipeline stages must be idempotent
 - Structured logging (`logger.*`), never `print()` in pipeline code
+- UK English throughout (analyse, organise, colour)
+- Terminology: "analysis" not "verification", "evidence research" not "fact-checking"

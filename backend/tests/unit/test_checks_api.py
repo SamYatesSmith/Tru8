@@ -51,6 +51,8 @@ def _make_evidence(**overrides):
         "factcheck_rating": None,
         "context_before": None,
         "context_after": None,
+        "llm_relevance_score": None,
+        "classification_method": None,
     }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)

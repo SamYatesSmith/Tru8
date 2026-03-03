@@ -14,7 +14,18 @@
       "Bash(dir:*)",
       "Bash(tree:*)",
       "Bash(powershell -Command \"Get-ChildItem -Path ''C:\\\\Users\\\\projects\\\\Tru8\\\\backend'' -Recurse -Directory | Select-Object -ExpandProperty FullName | head -50\")",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(fly postgres connect:*)",
+      "Bash(1:*)",
+      "Bash(find:*)",
+      "Bash(test:*)",
+      "WebFetch(domain:docs.stripe.com)",
+      "WebFetch(domain:docs.cdp.coinbase.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:therohanraghuwanshi.medium.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(python:*)",
+      "WebFetch(domain:ai.google.dev)"
     ],
     "deny": [],
     "ask": []

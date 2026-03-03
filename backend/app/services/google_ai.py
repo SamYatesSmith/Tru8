@@ -17,7 +17,7 @@ import asyncio
 import json
 import logging
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import httpx
 
@@ -166,3 +166,115 @@ async def call_google_ai(
         last_status,
     )
     return None
+
+
+async def call_google_ai_with_usage(
+    prompt: str,
+    *,
+    temperature: float = 0.1,
+    max_tokens: int = 1500,
+    timeout: float = 30,
+    model: Optional[str] = None,
+) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, int]]]:
+    """Send a prompt to Google Gemini and return parsed JSON + token usage.
+
+    Returns ``(parsed_content, usage_dict)`` where usage_dict contains
+    ``input_tokens`` and ``output_tokens``.  On error returns ``(None, None)``.
+
+    This is a companion to ``call_google_ai`` — the original function is
+    unchanged so existing callers (20+) are unaffected.
+    """
+    api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
+    if not api_key:
+        logger.debug("Google AI API key not configured")
+        return None, None
+
+    model = model or getattr(settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite")
+    url = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{model}:generateContent?key={api_key}"
+    )
+    body = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": temperature,
+            "maxOutputTokens": max_tokens,
+            "responseMimeType": "application/json",
+        },
+    }
+
+    last_status: Optional[int] = None
+    client = await _get_client(timeout)
+
+    for attempt in range(_MAX_RETRIES):
+        retry_after: Optional[float] = None
+
+        async with _semaphore:
+            try:
+                response = await client.post(
+                    url,
+                    headers={"Content-Type": "application/json"},
+                    json=body,
+                )
+            except httpx.TimeoutException:
+                logger.warning(
+                    "Google AI timeout (attempt %d/%d)", attempt + 1, _MAX_RETRIES
+                )
+                last_status = None
+            except httpx.HTTPError as exc:
+                logger.warning(
+                    "Google AI HTTP error (attempt %d/%d): %s",
+                    attempt + 1,
+                    _MAX_RETRIES,
+                    exc,
+                )
+                last_status = None
+            else:
+                last_status = response.status_code
+
+                if response.status_code == 200:
+                    try:
+                        result = response.json()
+                        text = result["candidates"][0]["content"]["parts"][0]["text"]
+                        parsed = json.loads(text)
+
+                        # Extract token usage from response envelope
+                        usage_meta = result.get("usageMetadata", {})
+                        usage = {
+                            "input_tokens": usage_meta.get("promptTokenCount", 0),
+                            "output_tokens": usage_meta.get("candidatesTokenCount", 0),
+                        }
+                        return parsed, usage
+                    except (KeyError, IndexError, json.JSONDecodeError) as exc:
+                        logger.error("Google AI response parse error: %s", exc)
+                        return None, None
+
+                if response.status_code not in (429, 503):
+                    logger.error("Google AI error: %d", response.status_code)
+                    return None, None
+
+                ra = response.headers.get("retry-after")
+                if ra:
+                    try:
+                        retry_after = float(ra)
+                    except ValueError:
+                        pass
+
+                extra = f" (retry-after: {retry_after}s)" if retry_after else ""
+                logger.warning(
+                    "Google AI %d (attempt %d/%d), backing off%s",
+                    response.status_code,
+                    attempt + 1,
+                    _MAX_RETRIES,
+                    extra,
+                )
+
+        delay = _jittered_delay(attempt, retry_after)
+        await asyncio.sleep(delay)
+
+    logger.error(
+        "Google AI failed after %d retries (last status: %s)",
+        _MAX_RETRIES,
+        last_status,
+    )
+    return None, None

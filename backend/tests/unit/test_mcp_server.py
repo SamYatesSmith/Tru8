@@ -92,7 +92,7 @@ class TestToolFunctions:
     def _inject_mock_client(self):
         """Replace _client with a mock for all tool-function tests."""
         mock = AsyncMock()
-        mock.submit_check_sync = AsyncMock(
+        mock.submit_with_fallback = AsyncMock(
             return_value={"id": "chk-1", "status": "completed"}
         )
         mock.get_check = AsyncMock(return_value={"id": "chk-1", "claims": []})
@@ -100,10 +100,24 @@ class TestToolFunctions:
         self.mock_client = mock
         yield
 
-    async def test_tru8_check_calls_submit_sync(self):
+    async def test_tru8_check_calls_submit_with_fallback(self):
         result = await tru8_check("The earth is round")
-        self.mock_client.submit_check_sync.assert_awaited_once_with(
-            "The earth is round"
+        self.mock_client.submit_with_fallback.assert_awaited_once_with(
+            "The earth is round",
+            max_tier="quick",
+            max_age_hours=None,
+            compact=False,
+        )
+        parsed = json.loads(result)
+        assert parsed["id"] == "chk-1"
+
+    async def test_tru8_check_respects_max_tier(self):
+        result = await tru8_check("Claim text", max_tier="full", compact=True)
+        self.mock_client.submit_with_fallback.assert_awaited_once_with(
+            "Claim text",
+            max_tier="full",
+            max_age_hours=None,
+            compact=True,
         )
         parsed = json.loads(result)
         assert parsed["id"] == "chk-1"

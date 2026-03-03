@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from app.core.config import settings
-from app.services.google_ai import call_google_ai
+from app.services.google_ai import call_google_ai, call_google_ai_with_usage
 from app.models.claim_map import (
     ClaimElement,
     ClaimMap,
@@ -106,6 +106,15 @@ says and why the relationship applies. Cite specific figures, dates, or entities
 - "unresolved" = no meaningful supporting or challenging evidence.
 - uncertainty is optional (null if not applicable), max one sentence.
 - Every element_id from the input must appear in the output.
+- SCOPE CHECK: Before assigning "supports", verify that the evidence's geographic \
+and temporal scope matches the element's scope. Evidence about one country does NOT \
+support a claim about "worldwide" or "global" figures. Evidence from one time period \
+does NOT support a claim about a different time period.
+- STATE RULE: An element can only be "supported" if at least one evidence_ref has \
+relationship = "supports". If all refs are "context", the state MUST be "unresolved".
+- PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as \
+approximate. A source saying "59%" does not challenge a claim of "approximately 60%". \
+But a source saying "25%" DOES challenge a claim of "18%".
 """
 
 BATCH_DECOMPOSITION_PROMPT = """\
@@ -178,6 +187,15 @@ says and why the relationship applies. Cite specific figures, dates, or entities
 - "unresolved" = no meaningful supporting or challenging evidence.
 - uncertainty is optional (null if not applicable), max one sentence.
 - Every element_id from the input must appear in the output for that claim.
+- SCOPE CHECK: Before assigning "supports", verify that the evidence's geographic \
+and temporal scope matches the element's scope. Evidence about one country does NOT \
+support a claim about "worldwide" or "global" figures. Evidence from one time period \
+does NOT support a claim about a different time period.
+- STATE RULE: An element can only be "supported" if at least one evidence_ref has \
+relationship = "supports". If all refs are "context", the state MUST be "unresolved".
+- PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as \
+approximate. A source saying "59%" does not challenge a claim of "approximately 60%". \
+But a source saying "25%" DOES challenge a claim of "18%".
 """
 
 
@@ -257,7 +275,15 @@ class ClaimMapAnalyzer:
         self.google_model = getattr(
             settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
         )
+        self.mapping_google_model = getattr(
+            settings, "MAPPING_GOOGLE_MODEL", self.google_model
+        )
         self.timeout = 30
+        self._token_usage = {"input_tokens": 0, "output_tokens": 0}
+
+    def get_token_usage(self) -> Dict[str, int]:
+        """Return accumulated token usage across all LLM calls."""
+        return self._token_usage
 
     # ── Public: Phase 1 — Decomposition ─────────────────────────────────
 
@@ -316,6 +342,8 @@ class ClaimMapAnalyzer:
         evidence_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
             f"[{ev.get('title', 'Untitled')}] "
+            f"[Tier: {ev.get('tier', 'unknown')}] "
+            f"[Type: {ev.get('evidence_type', 'unknown')}] "
             f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
             for ev in evidence_list
         )
@@ -337,6 +365,25 @@ class ClaimMapAnalyzer:
         if parsed is not None:
             try:
                 self._parse_mapping_response(parsed, claim_map, evidence_list)
+                # Retry once if reasoning is null (output budget issue)
+                if self._has_null_reasoning(claim_map):
+                    logger.warning(
+                        f"[CLAIM_MAP] Null reasoning detected for "
+                        f"{claim_map['claim_id']}, retrying"
+                    )
+                    retry_parsed = await self._call_llm(
+                        prompt=prompt,
+                        temperature=self.analyzer_temperature,
+                        max_tokens=self.analyzer_max_tokens,
+                        label="mapping",
+                    )
+                    if retry_parsed is not None:
+                        try:
+                            self._parse_mapping_response(
+                                retry_parsed, claim_map, evidence_list
+                            )
+                        except Exception:
+                            pass  # Keep original result if retry also fails
             except Exception as e:
                 logger.warning(
                     f"Mapping parse failed for claim {claim_map['claim_id']}: {e}"
@@ -482,6 +529,8 @@ class ClaimMapAnalyzer:
             evidence_desc = "\n".join(
                 f"  - {ev_item.get('evidence_id', 'unknown')}: "
                 f"[{ev_item.get('title', 'Untitled')}] "
+                f"[Tier: {ev_item.get('tier', 'unknown')}] "
+                f"[Type: {ev_item.get('evidence_type', 'unknown')}] "
                 f"{(ev_item.get('snippet') or ev_item.get('text') or '')[:self.snippet_length]}"
                 for ev_item in ev
             )
@@ -566,17 +615,31 @@ class ClaimMapAnalyzer:
         max_tokens: int,
         label: str,
     ) -> Optional[Dict[str, Any]]:
-        """Call LLM with Google primary, OpenAI fallback. Returns parsed JSON or None."""
+        """Call LLM with Google primary, OpenAI fallback.
+
+        Returns parsed JSON or None.  Token usage is accumulated internally
+        on ``self._token_usage`` — read via ``get_token_usage()`` after all
+        stages complete.
+        """
         self._last_model_used = "unknown"
 
         # Try Google first
         if self.google_ai_api_key:
             try:
-                result = await self._call_google(prompt, temperature, max_tokens)
-                if result is not None:
-                    self._last_model_used = self.google_model
+                # Use mapping-specific model for mapping/batch_mapping labels
+                model_to_use = (
+                    self.mapping_google_model
+                    if label in ("mapping", "batch_mapping")
+                    else self.google_model
+                )
+                parsed, usage = await self._call_google(
+                    prompt, temperature, max_tokens, model=model_to_use
+                )
+                if parsed is not None:
+                    self._last_model_used = model_to_use
+                    self._accumulate(usage)
                     logger.info(f"[CLAIM_MAP] {label} completed via Google Gemini")
-                    return result
+                    return parsed
             except Exception as e:
                 logger.warning(f"[CLAIM_MAP] Google {label} failed: {e}")
 
@@ -588,31 +651,44 @@ class ClaimMapAnalyzer:
                     if label in ("decomposition", "batch_decomposition")
                     else self.analyzer_model
                 )
-                result = await self._call_openai(prompt, temperature, max_tokens, model)
-                if result is not None:
+                parsed, usage = await self._call_openai(
+                    prompt, temperature, max_tokens, model
+                )
+                if parsed is not None:
                     self._last_model_used = model
+                    self._accumulate(usage)
                     logger.info(f"[CLAIM_MAP] {label} completed via OpenAI")
-                    return result
+                    return parsed
             except Exception as e:
                 logger.warning(f"[CLAIM_MAP] OpenAI {label} failed: {e}")
 
         logger.error(f"[CLAIM_MAP] Both LLM providers failed for {label}")
         return None
 
+    def _accumulate(self, usage: Optional[Dict[str, int]]) -> None:
+        """Add usage to running total."""
+        if usage:
+            self._token_usage["input_tokens"] += usage.get("input_tokens", 0)
+            self._token_usage["output_tokens"] += usage.get("output_tokens", 0)
+
     async def _call_google(
-        self, prompt: str, temperature: float, max_tokens: int
-    ) -> Optional[Dict[str, Any]]:
-        return await call_google_ai(
+        self,
+        prompt: str,
+        temperature: float,
+        max_tokens: int,
+        model: Optional[str] = None,
+    ) -> tuple:
+        return await call_google_ai_with_usage(
             prompt,
             temperature=temperature,
             max_tokens=max_tokens,
             timeout=self.timeout,
-            model=self.google_model,
+            model=model or self.google_model,
         )
 
     async def _call_openai(
         self, prompt: str, temperature: float, max_tokens: int, model: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> tuple:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 "https://api.openai.com/v1/chat/completions",
@@ -632,10 +708,15 @@ class ClaimMapAnalyzer:
             )
         if response.status_code != 200:
             logger.error(f"OpenAI API error: {response.status_code}")
-            return None
+            return None, None
         result = response.json()
         content = result["choices"][0]["message"]["content"]
-        return json.loads(content)
+        usage_raw = result.get("usage", {})
+        usage = {
+            "input_tokens": usage_raw.get("prompt_tokens", 0),
+            "output_tokens": usage_raw.get("completion_tokens", 0),
+        }
+        return json.loads(content), usage
 
     # ── Parse helpers ───────────────────────────────────────────────────
 
@@ -818,6 +899,8 @@ class ClaimMapAnalyzer:
         evidence_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
             f"[{ev.get('title', 'Untitled')}] "
+            f"[Tier: {ev.get('tier', 'unknown')}] "
+            f"[Type: {ev.get('evidence_type', 'unknown')}] "
             f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
             for ev in new_evidence
         )
@@ -870,6 +953,14 @@ class ClaimMapAnalyzer:
 
         # Re-derive orientation from all element states
         claim_map["orientation"] = derive_orientation(claim_map["elements"])
+
+    def _has_null_reasoning(self, claim_map: ClaimMap) -> bool:
+        """Check if any evidence_ref has null reasoning."""
+        for elem in claim_map["elements"]:
+            for ref in elem.get("evidence_refs", []):
+                if ref.get("reasoning") is None:
+                    return True
+        return False
 
     def _fallback_mapping(self, claim_map: ClaimMap) -> None:
         """Mark all elements as unresolved when mapping fails."""

@@ -108,13 +108,13 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 <div>
                   <h3 className="text-lg font-semibold text-zinc-900 mb-2">Submit a claim</h3>
                   <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`curl -N -X POST https://api.tru8.app/api/v1/checks/stream \\
+{`curl -X POST https://api.tru8.app/api/v1/agent/quick \\
   -H "X-API-Key: $TRU8_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"input_type": "text", "content": "Global average temperature rose 1.1°C since pre-industrial times"}'`}
+  -d '{"claim": "Global average temperature rose 1.1°C since pre-industrial times"}'`}
                   </pre>
                   <p className="text-zinc-500 text-xs mt-2 font-mono">
-                    Returns SSE stream → completed event with check ID
+                    Returns structured result with _meta (executedTier, chargedCents)
                   </p>
                 </div>
               </div>
@@ -150,20 +150,48 @@ export TRU8_API_KEY="tru8_sk_..."`}
               Deep Research
             </h2>
 
-            <div className="border border-zinc-200 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Search size={20} className="text-zinc-400" />
-                <h3 className="font-semibold text-zinc-900">Single Pipeline</h3>
-              </div>
-              <p className="text-sm text-zinc-600 mb-3">
-                Extract claims → retrieve evidence from multiple independent sources →
-                decompose into verifiable elements → map evidence to elements with
-                relationship labels. Includes coverage recovery for low-coverage claims.
-              </p>
-              <div className="font-mono text-xs text-zinc-400">
-                typically 60–120s
-              </div>
+            <div className="space-y-4">
+              {[
+                {
+                  tier: 'Lookup',
+                  desc: 'Cached prior analysis — instant hash match on your previous research',
+                  price: '~$0.02',
+                  time: 'instant',
+                },
+                {
+                  tier: 'Quick',
+                  desc: 'Web search + heuristic classification. Fast triage without full LLM analysis.',
+                  price: '~$0.07',
+                  time: '~15s',
+                },
+                {
+                  tier: 'Full',
+                  desc: 'Complete pipeline — 30+ sources, LLM classification, element decomposition, coverage recovery.',
+                  price: '~$0.15',
+                  time: '~60–90s',
+                },
+              ].map((t) => (
+                <div key={t.tier} className="flex items-start gap-4 border border-zinc-200 p-4">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <Search size={16} className="text-zinc-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <code className="text-sm font-mono font-semibold text-zinc-900">{t.tier}</code>
+                      <span className="font-mono text-xs text-zinc-400">{t.price}</span>
+                    </div>
+                    <p className="text-sm text-zinc-600 mt-1">{t.desc}</p>
+                  </div>
+                  <div className="flex-shrink-0 font-mono text-xs text-zinc-400">
+                    {t.time}
+                  </div>
+                </div>
+              ))}
             </div>
+            <p className="text-sm text-zinc-500 mt-4">
+              Charges based on tier actually executed, not tier requested. Set{' '}
+              <code className="text-zinc-400">max_tier</code> to control maximum spend per call.
+            </p>
           </section>
 
           {/* Divider */}
@@ -188,8 +216,8 @@ export TRU8_API_KEY="tru8_sk_..."`}
               {[
                 {
                   name: 'tru8_check',
-                  desc: 'Deep evidence research — claims, elements, evidence maps, computed analytics',
-                  time: '~60–120s',
+                  desc: 'Evidence research with tier fallback (lookup → quick → full). Set max_tier to control depth and cost.',
+                  time: 'varies',
                 },
                 {
                   name: 'tru8_get_result',
@@ -290,6 +318,12 @@ export TRU8_API_KEY="tru8_sk_..."`}
       ]
     }
   ],
+  "_meta": {
+    "executedTier": "quick",
+    "chargedCents": 7,
+    "limitations": ["heuristic_classification", "no_coverage_recovery"],
+    "cached": false
+  },
   "_computed": {
     "summary": { "totalElements": 3, "supported": 2, "disputed": 0, "unresolved": 1 },
     "evidenceByTier": { "primary": 4, "reporting": 8, "commentary": 2 },

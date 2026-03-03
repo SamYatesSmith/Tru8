@@ -76,6 +76,13 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = Field("", env="STRIPE_WEBHOOK_SECRET")
     STRIPE_PRICE_ID_PRO: str = Field("", env="STRIPE_PRICE_ID_PRO")
     STRIPE_PRICE_ID_DEVELOPER: str = Field("", env="STRIPE_PRICE_ID_DEVELOPER")
+    STRIPE_PRICE_ID_CREDIT_PACK_5: str = Field("", env="STRIPE_PRICE_ID_CREDIT_PACK_5")
+    STRIPE_PRICE_ID_CREDIT_PACK_20: str = Field(
+        "", env="STRIPE_PRICE_ID_CREDIT_PACK_20"
+    )
+    STRIPE_PRICE_ID_CREDIT_PACK_100: str = Field(
+        "", env="STRIPE_PRICE_ID_CREDIT_PACK_100"
+    )
     FRONTEND_URL: str = Field("http://localhost:3000", env="FRONTEND_URL")
 
     # Email Notifications (Resend)
@@ -277,6 +284,34 @@ class Settings(BaseSettings):
     ANALYZER_TEMPERATURE: float = Field(0.2, env="ANALYZER_TEMPERATURE")
     ANALYZER_MAX_TOKENS: int = Field(4000, env="ANALYZER_MAX_TOKENS")
     MAX_CONCURRENT_ANALYSES: int = Field(3, env="MAX_CONCURRENT_ANALYSES")
+    MAPPING_GOOGLE_MODEL: str = Field(
+        "gemini-2.5-flash", env="MAPPING_GOOGLE_MODEL"
+    )  # Google model for evidence mapping (highest-stakes call)
+
+    # ========== SKYFIRE KYAPay (L-06) ==========
+    SKYFIRE_ENABLED: bool = Field(False, env="SKYFIRE_ENABLED")
+    SKYFIRE_API_KEY: str = Field("", env="SKYFIRE_API_KEY")
+    SKYFIRE_SERVICE_ID: str = Field("", env="SKYFIRE_SERVICE_ID")
+    SKYFIRE_JWKS_URL: str = Field(
+        "https://auth.skyfire.xyz/.well-known/jwks.json", env="SKYFIRE_JWKS_URL"
+    )
+    SKYFIRE_CHARGE_URL: str = Field(
+        "https://api.skyfire.xyz/v1/charges", env="SKYFIRE_CHARGE_URL"
+    )
+    SKYFIRE_ENVIRONMENT: str = Field("sandbox", env="SKYFIRE_ENVIRONMENT")
+    SKYFIRE_JWKS_CACHE_SECONDS: int = Field(300, env="SKYFIRE_JWKS_CACHE_SECONDS")
+
+    # ========== x402 USDC Payment (L-05) ==========
+    X402_ENABLED: bool = Field(False, env="X402_ENABLED")
+    X402_PAY_TO_ADDRESS: str = Field("", env="X402_PAY_TO_ADDRESS")
+    X402_NETWORK: str = Field("eip155:84532", env="X402_NETWORK")
+    X402_FACILITATOR_URL: str = Field("", env="X402_FACILITATOR_URL")
+    CDP_API_KEY_ID: str = Field("", env="CDP_API_KEY_ID")
+    CDP_API_KEY_SECRET: str = Field("", env="CDP_API_KEY_SECRET")
+
+    # ========== SIWE (Sign-In With Ethereum) ==========
+    SIWE_DOMAIN: str = Field("app.tru8.com", env="SIWE_DOMAIN")
+    SIWE_NONCE_TTL_SECONDS: int = Field(300, env="SIWE_NONCE_TTL_SECONDS")
 
     class Config:
         env_file = ".env"

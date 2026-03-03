@@ -142,6 +142,9 @@ async def retrieve_evidence_with_cache(
     factcheck_evidence: Dict = None,
     source_url: Optional[str] = None,
     progressive_results: Optional[Dict] = None,
+    max_queries_per_element: Optional[int] = None,
+    enable_api_adapters: Optional[bool] = None,
+    max_sources_per_claim: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Retrieve evidence using real search and embeddings with caching.
 
@@ -162,6 +165,13 @@ async def retrieve_evidence_with_cache(
             f"[EVIDENCE DEBUG] Starting retrieve_evidence_with_cache for {len(claims)} claims"
         )
         retriever = EvidenceRetriever()
+        # Apply config overrides from PipelineConfig (L-04)
+        if max_sources_per_claim is not None:
+            retriever.max_sources_per_claim = max_sources_per_claim
+        if enable_api_adapters is not None:
+            retriever.enable_api_retrieval = enable_api_adapters
+        if max_queries_per_element is not None:
+            retriever.max_queries_per_element = max_queries_per_element
         logger.info(
             f"[EVIDENCE DEBUG] EvidenceRetriever created, search_service providers: {[p.__class__.__name__ for p in retriever.search_service.providers]}"
         )

@@ -25,6 +25,8 @@ from app.models.claim_map import (
 )
 from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer, derive_orientation
 
+_ZERO_USAGE = {"input_tokens": 0, "output_tokens": 0}
+
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -158,12 +160,12 @@ def _mock_async_client(response: MagicMock) -> MagicMock:
 @pytest.mark.asyncio
 class TestCallLlmFallback:
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_google_success_returns_parsed(self, mock_client_cls, mock_google):
         """Google succeeds -> returns parsed dict, no OpenAI call."""
         expected = {"normalised_claim": "test", "elements": []}
-        mock_google.return_value = expected
+        mock_google.return_value = (expected, {"input_tokens": 10, "output_tokens": 5})
 
         analyzer = ClaimMapAnalyzer()
         result = await analyzer._call_llm("prompt", 0.2, 2000, "decomposition")
@@ -171,7 +173,7 @@ class TestCallLlmFallback:
         assert result == expected
         mock_client_cls.assert_not_called()
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_google_fails_openai_succeeds(self, mock_client_cls, mock_google):
         """Google raises Exception -> falls back to OpenAI -> returns dict."""
@@ -187,7 +189,7 @@ class TestCallLlmFallback:
 
         assert result == expected
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_both_fail_returns_none(self, mock_client_cls, mock_google):
         """Google raises, OpenAI returns None -> returns None."""
@@ -202,18 +204,21 @@ class TestCallLlmFallback:
 
         assert result is None
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_sets_last_model_used_google(self, mock_client_cls, mock_google):
         """After Google success, _last_model_used == self.google_model."""
-        mock_google.return_value = {"test": True}
+        mock_google.return_value = (
+            {"test": True},
+            {"input_tokens": 0, "output_tokens": 0},
+        )
 
         analyzer = ClaimMapAnalyzer()
         await analyzer._call_llm("prompt", 0.2, 2000, "decomposition")
 
         assert analyzer._last_model_used == analyzer.google_model
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_sets_last_model_used_openai(self, mock_client_cls, mock_google):
         """After Google failure + OpenAI fallback, _last_model_used == decomposition_model."""
@@ -235,11 +240,12 @@ class TestCallLlmFallback:
 @pytest.mark.asyncio
 class TestDecomposeClaimsBatch:
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_single_claim_delegates(self, mock_google):
         """1-claim input -> calls decompose_claim directly (not batch)."""
-        mock_google.return_value = _make_decomposition_payload(
-            normalised="Single claim normalised"
+        mock_google.return_value = (
+            _make_decomposition_payload(normalised="Single claim normalised"),
+            _ZERO_USAGE,
         )
 
         analyzer = ClaimMapAnalyzer()
@@ -249,10 +255,10 @@ class TestDecomposeClaimsBatch:
         assert "c1" in result
         assert result["c1"]["normalised_claim"] == "Single claim normalised"
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_multi_claim_returns_all(self, mock_google):
         """3 claims -> batch LLM call returns 3 ClaimMaps."""
-        mock_google.return_value = _make_batch_decomposition_payload(3)
+        mock_google.return_value = (_make_batch_decomposition_payload(3), _ZERO_USAGE)
 
         analyzer = ClaimMapAnalyzer()
         claims = [{"text": f"Claim {i}", "claim_id": f"c{i}"} for i in range(3)]
@@ -264,7 +270,7 @@ class TestDecomposeClaimsBatch:
             assert result[f"c{i}"]["claim_id"] == f"c{i}"
             assert len(result[f"c{i}"]["elements"]) == 2
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_missing_claim_falls_back(self, mock_google):
         """Batch response missing claim_index=2 -> individual decompose_claim called for it."""
         # Batch response with only claim_index 0 and 1 (missing 2)
@@ -286,7 +292,10 @@ class TestDecomposeClaimsBatch:
         }
         # First call = batch, subsequent calls = per-claim fallback
         fallback_resp = _make_decomposition_payload(normalised="Fallback claim 2")
-        mock_google.side_effect = [batch_resp, fallback_resp]
+        mock_google.side_effect = [
+            (batch_resp, _ZERO_USAGE),
+            (fallback_resp, _ZERO_USAGE),
+        ]
 
         analyzer = ClaimMapAnalyzer()
         claims = [{"text": f"Claim {i}", "claim_id": f"c{i}"} for i in range(3)]
@@ -298,7 +307,7 @@ class TestDecomposeClaimsBatch:
         # c2 was retried individually
         assert "c2" in result
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_parse_failure_falls_back(self, mock_google):
         """_call_llm returns None -> all claims retried individually via decompose_claim."""
         individual_payload = _make_decomposition_payload(
@@ -306,7 +315,11 @@ class TestDecomposeClaimsBatch:
         )
 
         # First call (batch) returns None, then each individual call succeeds
-        mock_google.side_effect = [None, individual_payload, individual_payload]
+        mock_google.side_effect = [
+            (None, None),
+            (individual_payload, _ZERO_USAGE),
+            (individual_payload, _ZERO_USAGE),
+        ]
 
         analyzer = ClaimMapAnalyzer()
         claims = [{"text": f"Claim {i}", "claim_id": f"c{i}"} for i in range(2)]
@@ -316,7 +329,7 @@ class TestDecomposeClaimsBatch:
         for cid in ["c0", "c1"]:
             assert cid in result
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_caps_elements_per_claim(self, mock_google):
         """Each claim in batch gets max 5 elements (MAX_ELEMENTS_PER_CLAIM)."""
         # Batch response with 7 elements per claim
@@ -331,7 +344,7 @@ class TestDecomposeClaimsBatch:
                 for i in range(2)
             ]
         }
-        mock_google.return_value = batch_resp
+        mock_google.return_value = (batch_resp, _ZERO_USAGE)
 
         analyzer = ClaimMapAnalyzer()
         claims = [{"text": f"Claim {i}", "claim_id": f"c{i}"} for i in range(2)]
@@ -347,7 +360,7 @@ class TestDecomposeClaimsBatch:
 @pytest.mark.asyncio
 class TestMapEvidenceBatch:
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_no_evidence_marks_unresolved(self, mock_client_cls, mock_google):
         """Claims without evidence -> all elements state=ElementState.unresolved."""
@@ -368,7 +381,7 @@ class TestMapEvidenceBatch:
         # No LLM calls should have been made
         mock_google.assert_not_called()
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_single_claim_delegates(self, mock_google):
         """1 claim with evidence -> calls map_evidence_to_elements (not batch)."""
         mapping_payload = {
@@ -393,7 +406,7 @@ class TestMapEvidenceBatch:
                 },
             ]
         }
-        mock_google.return_value = mapping_payload
+        mock_google.return_value = (mapping_payload, _ZERO_USAGE)
 
         analyzer = ClaimMapAnalyzer()
         cm = _make_partial_claim_map("c1", 2)
@@ -405,7 +418,7 @@ class TestMapEvidenceBatch:
         assert cm["elements"][0]["state"] == ElementState.supported
         assert cm["orientation"] is not None
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_multi_claim_maps_all(self, mock_google):
         """3 claims with evidence -> all claim_maps mutated with states + refs."""
         # Build batch mapping response with per-claim evidence IDs
@@ -436,7 +449,7 @@ class TestMapEvidenceBatch:
                     ],
                 }
             )
-        mock_google.return_value = batch_resp
+        mock_google.return_value = (batch_resp, _ZERO_USAGE)
 
         analyzer = ClaimMapAnalyzer()
         claim_data = []
@@ -457,7 +470,7 @@ class TestMapEvidenceBatch:
             assert cm["metadata"]["mapping_model"] is not None
             assert cm["metadata"]["completed_at"] is not None
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_batch_failure_retries_individually(self, mock_google):
         """_call_llm returns None -> each claim retried via map_evidence_to_elements."""
         # First call (batch) returns None, then per-claim calls succeed
@@ -477,7 +490,11 @@ class TestMapEvidenceBatch:
                 },
             ]
         }
-        mock_google.side_effect = [None, per_claim_mapping, per_claim_mapping]
+        mock_google.side_effect = [
+            (None, None),
+            (per_claim_mapping, _ZERO_USAGE),
+            (per_claim_mapping, _ZERO_USAGE),
+        ]
 
         analyzer = ClaimMapAnalyzer()
         claim_data = []
@@ -494,7 +511,7 @@ class TestMapEvidenceBatch:
             assert cm["metadata"]["completed_at"] is not None
             assert cm["orientation"] is not None
 
-    @patch("app.pipeline.claim_map_analyzer.call_google_ai")
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     async def test_mixed_evidence_and_empty(self, mock_google):
         """2 claims with evidence + 1 without -> correct handling of both."""
         batch_resp = {
@@ -535,7 +552,7 @@ class TestMapEvidenceBatch:
                 },
             ]
         }
-        mock_google.return_value = batch_resp
+        mock_google.return_value = (batch_resp, _ZERO_USAGE)
 
         analyzer = ClaimMapAnalyzer()
 
@@ -704,28 +721,30 @@ class TestCallOpenai:
 
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_non_200_returns_none(self, mock_client_cls):
-        """Mock httpx to return status 500 -> returns None."""
+        """Mock httpx to return status 500 -> returns (None, None)."""
         error_resp = MagicMock()
         error_resp.status_code = 500
         mock_client_cls.return_value = _mock_async_client(error_resp)
 
         analyzer = ClaimMapAnalyzer()
-        result = await analyzer._call_openai("prompt", 0.2, 2000, "gpt-4o")
+        parsed, usage = await analyzer._call_openai("prompt", 0.2, 2000, "gpt-4o")
 
-        assert result is None
+        assert parsed is None
+        assert usage is None
 
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_valid_response_returns_parsed(self, mock_client_cls):
-        """Mock httpx to return 200 with valid JSON -> parsed dict."""
+        """Mock httpx to return 200 with valid JSON -> (parsed dict, usage)."""
         expected = {"normalised_claim": "test", "elements": [{"description": "E1"}]}
         mock_client_cls.return_value = _mock_async_client(
             _make_openai_response(expected)
         )
 
         analyzer = ClaimMapAnalyzer()
-        result = await analyzer._call_openai("prompt", 0.2, 2000, "gpt-4o")
+        parsed, usage = await analyzer._call_openai("prompt", 0.2, 2000, "gpt-4o")
 
-        assert result == expected
+        assert parsed == expected
+        assert isinstance(usage, dict)
 
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_json_parse_failure_returns_none(self, mock_client_cls):
@@ -741,3 +760,233 @@ class TestCallOpenai:
         # _call_openai does json.loads on content; invalid JSON raises json.JSONDecodeError
         with pytest.raises(json.JSONDecodeError):
             await analyzer._call_openai("prompt", 0.2, 2000, "gpt-4o")
+
+
+# ── Mapping model routing ─────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+class TestMappingModelRouting:
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    async def test_mapping_label_uses_mapping_model(self, mock_google):
+        """mapping label -> uses mapping_google_model, not google_model."""
+        mock_google.return_value = (
+            {"elements": []},
+            {"input_tokens": 0, "output_tokens": 0},
+        )
+
+        analyzer = ClaimMapAnalyzer()
+        # Ensure they're different for the test
+        analyzer.mapping_google_model = "gemini-2.5-flash"
+        analyzer.google_model = "gemini-2.5-flash-lite"
+
+        await analyzer._call_llm("prompt", 0.2, 4000, "mapping")
+
+        # Verify _last_model_used is the mapping-specific model
+        assert analyzer._last_model_used == "gemini-2.5-flash"
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    async def test_batch_mapping_label_uses_mapping_model(self, mock_google):
+        """batch_mapping label -> uses mapping_google_model."""
+        mock_google.return_value = (
+            {"claims": []},
+            {"input_tokens": 0, "output_tokens": 0},
+        )
+
+        analyzer = ClaimMapAnalyzer()
+        analyzer.mapping_google_model = "gemini-2.5-flash"
+        analyzer.google_model = "gemini-2.5-flash-lite"
+
+        await analyzer._call_llm("prompt", 0.2, 8000, "batch_mapping")
+
+        assert analyzer._last_model_used == "gemini-2.5-flash"
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    async def test_decomposition_label_uses_base_model(self, mock_google):
+        """decomposition label -> uses google_model, not mapping model."""
+        mock_google.return_value = (
+            {"normalised_claim": "test", "elements": []},
+            {"input_tokens": 0, "output_tokens": 0},
+        )
+
+        analyzer = ClaimMapAnalyzer()
+        analyzer.mapping_google_model = "gemini-2.5-flash"
+        analyzer.google_model = "gemini-2.5-flash-lite"
+
+        await analyzer._call_llm("prompt", 0.2, 2000, "decomposition")
+
+        assert analyzer._last_model_used == "gemini-2.5-flash-lite"
+
+
+# ── Null reasoning retry ──────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+class TestNullReasoningRetry:
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    async def test_null_reasoning_triggers_retry(self, mock_google):
+        """Mapping with null reasoning retries once with the same prompt."""
+        # First call returns mapping with null reasoning
+        null_reasoning_payload = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev1",
+                            "relationship": "supports",
+                            "reasoning": None,
+                        },
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                },
+            ]
+        }
+        # Retry returns mapping with proper reasoning
+        good_payload = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev1",
+                            "relationship": "supports",
+                            "reasoning": "Confirms the data point",
+                        },
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                },
+            ]
+        }
+        mock_google.side_effect = [
+            (null_reasoning_payload, _ZERO_USAGE),
+            (good_payload, _ZERO_USAGE),
+        ]
+
+        analyzer = ClaimMapAnalyzer()
+        cm = _make_partial_claim_map("c1", 1)
+        evidence = _make_evidence_list(1)
+
+        await analyzer.map_evidence_to_elements(cm, evidence)
+
+        # Should have been called twice (original + retry)
+        assert mock_google.call_count == 2
+        # Reasoning should now be populated from the retry
+        assert (
+            cm["elements"][0]["evidence_refs"][0]["reasoning"]
+            == "Confirms the data point"
+        )
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    async def test_no_retry_when_reasoning_present(self, mock_google):
+        """Mapping with valid reasoning does not trigger retry."""
+        good_payload = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev1",
+                            "relationship": "supports",
+                            "reasoning": "Confirms the data point",
+                        },
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                },
+            ]
+        }
+        mock_google.return_value = (good_payload, _ZERO_USAGE)
+
+        analyzer = ClaimMapAnalyzer()
+        cm = _make_partial_claim_map("c1", 1)
+        evidence = _make_evidence_list(1)
+
+        await analyzer.map_evidence_to_elements(cm, evidence)
+
+        # Should only be called once (no retry needed)
+        assert mock_google.call_count == 1
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
+    async def test_retry_failure_keeps_original(self, mock_client_cls, mock_google):
+        """If retry also fails, keep the original (null reasoning) result."""
+        null_reasoning_payload = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev1",
+                            "relationship": "supports",
+                            "reasoning": None,
+                        },
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                },
+            ]
+        }
+        # Block OpenAI fallback
+        error_resp = MagicMock()
+        error_resp.status_code = 500
+        mock_client_cls.return_value = _mock_async_client(error_resp)
+
+        mock_google.side_effect = [
+            (null_reasoning_payload, _ZERO_USAGE),
+            (None, None),  # Retry fails
+        ]
+
+        analyzer = ClaimMapAnalyzer()
+        cm = _make_partial_claim_map("c1", 1)
+        evidence = _make_evidence_list(1)
+
+        await analyzer.map_evidence_to_elements(cm, evidence)
+
+        # Should have been called twice (original + retry)
+        assert mock_google.call_count == 2
+        # Original result preserved (state should still be set)
+        assert cm["elements"][0]["state"] == ElementState.supported
+
+
+# ── _has_null_reasoning ───────────────────────────────────────────────────
+
+
+class TestHasNullReasoning:
+
+    def test_detects_null_reasoning(self):
+        """Returns True when any evidence_ref has null reasoning."""
+        analyzer = ClaimMapAnalyzer()
+        cm = _make_partial_claim_map("c1", 1)
+        cm["elements"][0]["evidence_refs"] = [
+            {
+                "evidence_id": "ev1",
+                "relationship": "supports",
+                "reasoning": None,
+            }
+        ]
+        assert analyzer._has_null_reasoning(cm) is True
+
+    def test_returns_false_when_all_present(self):
+        """Returns False when all evidence_refs have reasoning."""
+        analyzer = ClaimMapAnalyzer()
+        cm = _make_partial_claim_map("c1", 1)
+        cm["elements"][0]["evidence_refs"] = [
+            {
+                "evidence_id": "ev1",
+                "relationship": "supports",
+                "reasoning": "Valid reasoning",
+            }
+        ]
+        assert analyzer._has_null_reasoning(cm) is False
+
+    def test_returns_false_for_empty_refs(self):
+        """Returns False when no evidence_refs exist."""
+        analyzer = ClaimMapAnalyzer()
+        cm = _make_partial_claim_map("c1", 1)
+        cm["elements"][0]["evidence_refs"] = []
+        assert analyzer._has_null_reasoning(cm) is False

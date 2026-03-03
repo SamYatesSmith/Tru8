@@ -39,12 +39,8 @@
   ],
   "tools": [
     {
-      "name": "tru8_check_claim",
-      "description": "Ground a claim or article in structured evidence (typically 60-120s). Full pipeline: extract, retrieve, decompose into elements, map evidence with relationship labels. Returns source-tiered evidence, element states, orientation, and computed analytics."
-    },
-    {
-      "name": "tru8_quick_check",
-      "description": "Fast evidence scan (typically 15-30s). Triage tool: extract claims, retrieve and classify sources by tier/type. No element decomposition or mapping. Use to check if evidence exists before committing to full analysis."
+      "name": "tru8_check",
+      "description": "Evidence research for any claim or URL. Accepts max_tier (lookup/quick/full) to control depth and cost. Tier fallback: lookup → quick → full. Returns structured evidence landscape with element decomposition, source classification, and _meta (executedTier, chargedCents)."
     },
     {
       "name": "tru8_get_result",

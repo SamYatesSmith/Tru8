@@ -20,6 +20,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Any
+from urllib.parse import urlparse
 
 
 def compute_analytics(claims_data: list[dict]) -> dict:
@@ -44,6 +45,8 @@ def compute_analytics(claims_data: list[dict]) -> dict:
         "corroboration": _build_corroboration(all_evidence),
         "diagnosticValues": _compute_diagnostic_values(claims_data),
         "timeline": _build_timeline(all_evidence),
+        "freshness": _build_freshness(all_evidence),
+        "uniqueDomains": _count_unique_domains(all_evidence),
         "perClaim": [_build_per_claim(c) for c in claims_data],
     }
 
@@ -307,6 +310,71 @@ def _build_timeline(evidence_list: list[dict]) -> dict:
         "belowThreshold": below_threshold,
         "gaps": gaps,
     }
+
+
+# ---------------------------------------------------------------------------
+# Freshness + domain diversity (M-02)
+# ---------------------------------------------------------------------------
+
+
+def _build_freshness(evidence_list: list[dict]) -> dict:
+    """Compute freshness metrics from evidence published dates.
+
+    Returns freshestDaysAgo, dateSpanDays, undatedCount.
+    Naive datetimes assumed UTC.
+    """
+    now = datetime.utcnow()
+    dated_dts: list[datetime] = []
+    undated_count = 0
+
+    for ev in evidence_list:
+        raw = ev.get("publishedDate")
+        if raw:
+            try:
+                dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+                # Strip timezone for comparison with utcnow
+                dated_dts.append(dt.replace(tzinfo=None) if dt.tzinfo else dt)
+            except (ValueError, TypeError):
+                undated_count += 1
+        else:
+            undated_count += 1
+
+    if not dated_dts:
+        return {
+            "freshestDaysAgo": None,
+            "dateSpanDays": None,
+            "undatedCount": undated_count,
+        }
+
+    dated_dts.sort()
+    freshest = max(dated_dts)
+    oldest = min(dated_dts)
+    freshest_days = max(0, (now - freshest).days)
+    span_days = max(0, (freshest - oldest).days)
+
+    return {
+        "freshestDaysAgo": freshest_days,
+        "dateSpanDays": span_days,
+        "undatedCount": undated_count,
+    }
+
+
+def _count_unique_domains(evidence_list: list[dict]) -> int:
+    """Count unique URL hostnames from evidence, stripping www. prefix."""
+    domains: set[str] = set()
+    for ev in evidence_list:
+        url = ev.get("url", "")
+        if url:
+            try:
+                host = urlparse(url).hostname
+                if host:
+                    host = host.lower()
+                    if host.startswith("www."):
+                        host = host[4:]
+                    domains.add(host)
+            except (ValueError, TypeError):
+                pass
+    return len(domains)
 
 
 # ---------------------------------------------------------------------------

@@ -13,6 +13,7 @@ from .claim_map import (
 from .video_recommendation import VideoRecommendation
 from .api_key import APIKey
 from .webhook import Webhook
+from .agent_transaction import AgentTransaction
 
 __all__ = [
     "User",
@@ -32,4 +33,5 @@ __all__ = [
     "VideoRecommendation",
     "APIKey",
     "Webhook",
+    "AgentTransaction",
 ]

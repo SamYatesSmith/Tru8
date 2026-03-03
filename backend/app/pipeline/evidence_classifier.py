@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 
 from app.core.config import settings
-from app.services.google_ai import call_google_ai
+from app.services.google_ai import call_google_ai, call_google_ai_with_usage
 
 logger = logging.getLogger(__name__)
 
@@ -183,6 +183,11 @@ class EvidenceClassifier:
         )
         self.timeout = 45
         self.snippet_length = 300
+        self._token_usage = {"input_tokens": 0, "output_tokens": 0}
+
+    def get_token_usage(self) -> Dict[str, int]:
+        """Return accumulated token usage across all LLM calls."""
+        return self._token_usage
 
     async def classify_batch(
         self, evidence_items: List[Dict[str, Any]]
@@ -395,16 +400,20 @@ class EvidenceClassifier:
     # ── LLM call (Google primary, OpenAI fallback) ────────────────────────
 
     async def _call_llm(self, user_prompt: str) -> Optional[Dict[str, Any]]:
-        """Call LLM with Google primary, OpenAI fallback. Returns parsed JSON or None."""
+        """Call LLM with Google primary, OpenAI fallback. Returns parsed JSON or None.
+
+        Token usage is accumulated on ``self._token_usage``.
+        """
         # Try Google first
         if self.google_ai_api_key:
             try:
-                result = await self._call_google(user_prompt)
-                if result is not None:
+                parsed, usage = await self._call_google(user_prompt)
+                if parsed is not None:
+                    self._accumulate(usage)
                     logger.info(
                         "[EVIDENCE_CLASSIFIER] Classification completed via Google Gemini"
                     )
-                    return result
+                    return parsed
             except Exception as e:
                 logger.warning(
                     "[EVIDENCE_CLASSIFIER] Google classification failed: %s", e
@@ -413,12 +422,13 @@ class EvidenceClassifier:
         # Fall back to OpenAI
         if self.openai_api_key:
             try:
-                result = await self._call_openai(user_prompt)
-                if result is not None:
+                parsed, usage = await self._call_openai(user_prompt)
+                if parsed is not None:
+                    self._accumulate(usage)
                     logger.info(
                         "[EVIDENCE_CLASSIFIER] Classification completed via OpenAI"
                     )
-                    return result
+                    return parsed
             except Exception as e:
                 logger.warning(
                     "[EVIDENCE_CLASSIFIER] OpenAI classification failed: %s", e
@@ -429,10 +439,16 @@ class EvidenceClassifier:
         )
         return None
 
-    async def _call_google(self, user_prompt: str) -> Optional[Dict[str, Any]]:
+    def _accumulate(self, usage: Optional[Dict[str, int]]) -> None:
+        """Add usage to running total."""
+        if usage:
+            self._token_usage["input_tokens"] += usage.get("input_tokens", 0)
+            self._token_usage["output_tokens"] += usage.get("output_tokens", 0)
+
+    async def _call_google(self, user_prompt: str) -> tuple:
         """Classify via Google Gemini API."""
         full_prompt = f"{CLASSIFICATION_SYSTEM_PROMPT}\n\n{user_prompt}"
-        return await call_google_ai(
+        return await call_google_ai_with_usage(
             full_prompt,
             temperature=0.1,
             max_tokens=4000,
@@ -440,7 +456,7 @@ class EvidenceClassifier:
             model=self.google_model,
         )
 
-    async def _call_openai(self, user_prompt: str) -> Optional[Dict[str, Any]]:
+    async def _call_openai(self, user_prompt: str) -> tuple:
         """Classify via OpenAI API."""
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
@@ -471,8 +487,13 @@ class EvidenceClassifier:
             logger.error(
                 "[EVIDENCE_CLASSIFIER] OpenAI API error: %d", response.status_code
             )
-            return None
+            return None, None
 
         result = response.json()
         content = result["choices"][0]["message"]["content"]
-        return json.loads(content)
+        usage_raw = result.get("usage", {})
+        usage = {
+            "input_tokens": usage_raw.get("prompt_tokens", 0),
+            "output_tokens": usage_raw.get("completion_tokens", 0),
+        }
+        return json.loads(content), usage

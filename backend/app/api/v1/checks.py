@@ -30,120 +30,16 @@ from app.core.rate_limit import limiter
 from app.utils.encoding import fix_mojibake
 from pathlib import Path
 
+# Response builder (extracted L-03) — shared with agent.py
+from app.api.v1.response_builder import (
+    _sanitize_strings,
+    _claim_map_to_camel_case,
+    _convert_element,
+    _serialize_evidence,
+    build_check_response,
+)
+
 logger = logging.getLogger(__name__)
-
-
-def _sanitize_strings(obj):
-    """Recursively fix mojibake in all string values of a dict/list."""
-    if isinstance(obj, str):
-        return fix_mojibake(obj)
-    elif isinstance(obj, dict):
-        return {k: _sanitize_strings(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [_sanitize_strings(item) for item in obj]
-    return obj
-
-
-def _claim_map_to_camel_case(claim_map: dict) -> dict:
-    """Convert a ClaimMap dict from snake_case (DB/TypedDict) to camelCase (API).
-
-    The backend stores ClaimMap with snake_case keys (Python TypedDict convention)
-    but the frontend expects camelCase (TypeScript interface convention).
-
-    This converts: claim_id → claimId, normalised_claim → normalisedClaim,
-    element_id → elementId, evidence_refs → evidenceRefs, etc.
-    """
-    if not claim_map or not isinstance(claim_map, dict):
-        return claim_map
-
-    def _snake_to_camel(name: str) -> str:
-        parts = name.split("_")
-        return parts[0] + "".join(p.capitalize() for p in parts[1:])
-
-    result = {}
-    for key, value in claim_map.items():
-        camel_key = _snake_to_camel(key)
-
-        if key == "elements" and isinstance(value, list):
-            result[camel_key] = [_convert_element(elem) for elem in value]
-        elif key == "metadata" and isinstance(value, dict):
-            result[camel_key] = {_snake_to_camel(mk): mv for mk, mv in value.items()}
-        else:
-            result[camel_key] = value
-
-    return result
-
-
-def _convert_element(elem: dict) -> dict:
-    """Convert a ClaimElement dict from snake_case to camelCase."""
-    if not isinstance(elem, dict):
-        return elem
-
-    def _snake_to_camel(name: str) -> str:
-        parts = name.split("_")
-        return parts[0] + "".join(p.capitalize() for p in parts[1:])
-
-    result = {}
-    for key, value in elem.items():
-        camel_key = _snake_to_camel(key)
-
-        if key == "evidence_refs" and isinstance(value, list):
-            result[camel_key] = [
-                (
-                    {_snake_to_camel(rk): rv for rk, rv in ref.items()}
-                    if isinstance(ref, dict)
-                    else ref
-                )
-                for ref in value
-            ]
-        else:
-            result[camel_key] = value
-
-    return result
-
-
-def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
-    """Serialize an Evidence model instance to camelCase API dict.
-
-    Consolidates the 3 inline evidence serialization blocks into one helper.
-    Returns the standard evidence shape for all API endpoints.
-
-    Args:
-        ev: Evidence model instance
-        include_factcheck_detail: If True, include factcheckPublisher,
-            factcheckRating, contextBefore, contextAfter (public detailed endpoint)
-    """
-    result = {
-        "id": ev.id,
-        "evidenceId": ev.evidence_id,
-        "source": ev.source,
-        "url": ev.url,
-        "title": ev.title,
-        "snippet": ev.snippet,
-        "publishedDate": (ev.published_date.isoformat() if ev.published_date else None),
-        "relevanceScore": ev.relevance_score,
-        # Classification (E06)
-        "tier": ev.tier,
-        "evidenceType": ev.evidence_type,
-        "receiptStatus": ev.receipt_status,
-        # Corroboration (E07)
-        "corroborationGroupId": ev.corroboration_group_id,
-        "corroboratingEvidenceIds": ev.corroborating_evidence_ids,
-        # Source type fields
-        "isFactcheck": ev.is_factcheck,
-        "externalSourceProvider": ev.external_source_provider,
-        "sourceType": ev.source_type,
-        # Auto-archiving (F10)
-        "archivedUrl": ev.archived_url,
-    }
-
-    if include_factcheck_detail:
-        result["factcheckPublisher"] = ev.factcheck_publisher
-        result["factcheckRating"] = ev.factcheck_rating
-        result["contextBefore"] = ev.context_before
-        result["contextAfter"] = ev.context_after
-
-    return result
 
 
 router = APIRouter()
@@ -329,6 +225,7 @@ async def _validate_and_create_check(
     body,
     current_user: dict,
     session: AsyncSession,
+    initiated_via: str = "dashboard",
 ) -> tuple:
     """Validate input, enforce credits, and create a Check record.
 
@@ -469,6 +366,8 @@ async def _validate_and_create_check(
         status="processing",
         credits_used=1,
         user_query=body.user_query,
+        initiated_via=initiated_via,
+        executed_tier="full",  # M-03: dashboard always runs full pipeline
     )
 
     session.add(check)
@@ -488,130 +387,8 @@ async def _build_check_response(
     session: AsyncSession,
     computed: bool = False,
 ) -> dict:
-    """Load a check with claims/evidence and build the camelCase API response.
-
-    Shared by GET /{id} and POST /run. Returns the full response dict.
-    Raises HTTPException 404 if the check doesn't exist or doesn't belong to user.
-    """
-    stmt = select(Check).where(Check.id == check_id, Check.user_id == user_id)
-    result = await session.execute(stmt)
-    check = result.scalar_one_or_none()
-
-    if not check:
-        raise HTTPException(status_code=404, detail="Check not found")
-
-    # Get real-time progress from Redis when processing
-    current_stage = None
-    progress_percent = None
-    progress_message = None
-
-    if check.status in ("processing", "waiting_for_selection"):
-        try:
-            redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
-            progress_data = redis_client.get(f"inline-progress:{check_id}")
-
-            if progress_data:
-                data = json.loads(progress_data)
-                current_stage = data.get("stage", "processing")
-                progress_percent = data.get("progress", 0)
-                progress_message = data.get("message", "Processing...")
-
-            redis_client.close()
-        except Exception as e:
-            logger.warning(
-                f"Failed to get progress from Redis for check {check_id}: {e}"
-            )
-
-    # Get claims with evidence
-    claims_stmt = (
-        select(Claim).where(Claim.check_id == check.id).order_by(Claim.position)
-    )
-    claims_result = await session.execute(claims_stmt)
-    claims = claims_result.scalars().all()
-
-    # Get per-claim raw source counts for "View sources" link
-    from app.models.check import RawEvidence
-
-    raw_counts_stmt = (
-        select(RawEvidence.claim_position, func.count(RawEvidence.id))
-        .where(RawEvidence.check_id == check.id)
-        .group_by(RawEvidence.claim_position)
-    )
-    raw_counts_result = await session.execute(raw_counts_stmt)
-    raw_counts_by_position = dict(raw_counts_result.all())
-
-    claims_data = []
-    for claim in claims:
-        evidence_stmt = select(Evidence).where(Evidence.claim_id == claim.id)
-        evidence_result = await session.execute(evidence_stmt)
-        evidence = evidence_result.scalars().all()
-
-        claims_data.append(
-            {
-                "id": claim.id,
-                "text": claim.text,
-                "position": claim.position,
-                "claimMap": (
-                    _claim_map_to_camel_case(claim.claim_map)
-                    if claim.claim_map
-                    else None
-                ),
-                "claimType": claim.claim_type,
-                "isSelected": claim.is_selected,
-                "significanceRank": claim.significance_rank,
-                "subjectContext": claim.subject_context,
-                "keyEntities": (claim.key_entities if claim.key_entities else []),
-                "sourceTitle": claim.source_title,
-                "sourceUrl": claim.source_url,
-                "sourcesReviewedCount": raw_counts_by_position.get(claim.position, 0),
-                "evidence": [_serialize_evidence(ev) for ev in evidence],
-            }
-        )
-
-    response = {
-        "id": check.id,
-        "inputType": check.input_type,
-        "inputContent": json.loads(check.input_content),
-        "inputUrl": check.input_url,
-        "status": check.status,
-        "creditsUsed": check.credits_used,
-        "processingTimeMs": check.processing_time_ms,
-        "errorMessage": check.error_message,
-        "entryMode": check.entry_mode,
-        "selectedClaimsCount": check.selected_claims_count,
-        "articleDomain": check.article_domain,
-        "articleSecondaryDomains": check.article_secondary_domains,
-        "articleJurisdiction": check.article_jurisdiction,
-        "articleClassificationSource": check.article_classification_source,
-        "userQuery": check.user_query,
-        "queryResponse": check.query_response,
-        "queryConfidence": check.query_confidence,
-        "querySources": (
-            check.query_sources.get("sources", []) if check.query_sources else None
-        ),
-        "queryRelatedClaims": (
-            check.query_sources.get("related_claims", [])
-            if check.query_sources
-            else None
-        ),
-        "claims": claims_data,
-        "createdAt": check.created_at.isoformat(),
-        "completedAt": check.completed_at.isoformat() if check.completed_at else None,
-        "currentStage": current_stage,
-        "progress": progress_percent,
-        "progressMessage": progress_message,
-    }
-
-    # Append pre-computed analytics for agent consumers
-    if computed:
-        from app.services.computed_analytics import compute_analytics
-
-        response["_computed"] = compute_analytics(claims_data)
-
-    # Sanitize all strings to fix mojibake from search APIs
-    response = _sanitize_strings(response)
-
-    return response
+    """Delegates to shared response builder (extracted L-03)."""
+    return await build_check_response(check_id, user_id, session, computed)
 
 
 class CreateCheckRequest(BaseModel):
@@ -990,7 +767,10 @@ async def create_check_streaming(
         PipelineError,
     )
 
-    user, check = await _validate_and_create_check(body, current_user, session)
+    via = "api_key" if request.headers.get("X-API-Key") else "dashboard"
+    user, check = await _validate_and_create_check(
+        body, current_user, session, initiated_via=via
+    )
 
     # Prepare input data for pipeline
     input_data = {
@@ -1231,7 +1011,10 @@ async def create_check_sync(
         PipelineError,
     )
 
-    user, check = await _validate_and_create_check(body, current_user, session)
+    via = "api_key" if request.headers.get("X-API-Key") else "dashboard"
+    user, check = await _validate_and_create_check(
+        body, current_user, session, initiated_via=via
+    )
 
     # Prepare input data for pipeline
     input_data = {

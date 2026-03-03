@@ -33,6 +33,7 @@ from app.api.v1 import (
     feedback,
     api_keys,
     webhooks,
+    agent,
 )
 from app.core.logging import setup_logging
 
@@ -89,6 +90,11 @@ async def lifespan(app: FastAPI):
 
     # Warmup ML models (NLI + embeddings) to prevent cold-start failures
     await warmup_ml_models()
+
+    # Agent commerce: stale-pending transaction cleanup (L-01)
+    from app.services.agent_maintenance import start_stale_pending_cleanup
+
+    start_stale_pending_cleanup()
 
     yield
 
@@ -190,6 +196,8 @@ app.add_middleware(
         "Origin",
         "X-Requested-With",
         "X-API-Key",
+        "Idempotency-Key",
+        "skyfire-pay-id",
     ],
     expose_headers=[
         "X-Request-Id",
@@ -197,6 +205,10 @@ app.add_middleware(
         "X-RateLimit-Remaining",
         "X-Correlation-ID",
         "X-Check-Id",
+        "X-Tru8-Tx-Id",
+        "PAYMENT-RESPONSE",
+        "PAYMENT-REQUEST",
+        "PAYMENT-CHALLENGE",
     ],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -222,6 +234,20 @@ app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"]
 app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 app.include_router(api_keys.router, prefix="/api/v1/api-keys", tags=["api-keys"])
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["webhooks"])
+app.include_router(agent.router, prefix="/api/v1/agent", tags=["agent"])
+
+# x402 USDC payment routes (L-05) — conditional on feature flag
+if settings.X402_ENABLED:
+    from app.api.v1 import agent_x402
+
+    app.include_router(
+        agent_x402.router, prefix="/api/v1/agent/x402", tags=["agent-x402"]
+    )
+
+    # x402 audit middleware — pure ASGI, outer layer (LIFO: added last, runs first)
+    from app.middleware.x402_audit import X402AuditMiddleware
+
+    app.add_middleware(X402AuditMiddleware)
 
 
 @app.get("/")
@@ -255,20 +281,18 @@ MCP_SERVER_CARD = {
     },
     "tools": [
         {
-            "name": "tru8_check_claim",
-            "description": "Full evidence research (typically 60-120s). Extract, retrieve, decompose, map.",
-        },
-        {
-            "name": "tru8_quick_check",
-            "description": "Fast evidence scan (typically 15-30s). Triage: retrieve and classify only.",
-        },
-        {
-            "name": "tru8_run_check",
-            "description": "Synchronous evidence research — single HTTP call, blocks until complete.",
+            "name": "tru8_check",
+            "description": (
+                "Evidence research for any claim or URL. Accepts max_tier "
+                "(lookup/quick/full) to control depth and cost. Tier fallback: "
+                "lookup → quick → full up to max_tier. Returns structured "
+                "evidence landscape with element decomposition, source "
+                "classification, and _meta (executedTier, chargedCents)."
+            ),
         },
         {
             "name": "tru8_get_result",
-            "description": "Retrieve completed check with computed analytics.",
+            "description": "Retrieve completed check with pre-computed analytics.",
         },
         {
             "name": "tru8_get_result_raw",

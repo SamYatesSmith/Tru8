@@ -5,6 +5,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.pipeline.runner import (
+    DEFAULT_CONFIG,
     PipelineError,
     _aggregate_api_stats,
     _log_stage_transition,
@@ -487,7 +488,11 @@ class TestErrorPropagationAndDelegation:
             "chk-1", "usr-1", {"url": "https://example.com"}, reporter
         )
         mock_phase1.assert_called_once_with(
-            "chk-1", "usr-1", {"url": "https://example.com"}, reporter
+            "chk-1",
+            "usr-1",
+            {"url": "https://example.com"},
+            reporter,
+            config=DEFAULT_CONFIG,
         )
         assert result == {"result": "ok"}
 

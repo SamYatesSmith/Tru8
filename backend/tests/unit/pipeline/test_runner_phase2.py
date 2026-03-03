@@ -329,6 +329,9 @@ def _mock_analyzer():
         }
     )
     analyzer.map_evidence_batch = AsyncMock(return_value=None)
+    analyzer.get_token_usage = MagicMock(
+        return_value={"input_tokens": 0, "output_tokens": 0}
+    )
     return analyzer
 
 

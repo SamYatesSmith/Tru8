@@ -14,23 +14,54 @@ Header: X-API-Key: <your_key>
 Keys: POST /api/v1/api-keys (requires JWT)
 Docs: https://tru8.app/developers
 
-## Core Workflow
+## Agent Tier Endpoints (recommended for agents)
 
-### Synchronous (recommended for agents)
-POST /api/v1/checks/run — blocks until complete, returns full result with analytics.
-  Set HTTP timeout >= 180s. URLs auto-select claims (up to 5, highest-ranked).
-  Returns 504 on timeout, 502 on pipeline error, 402 on credit limit.
+Three tiers with automatic fallback. Set max_tier to control maximum spend.
 
-### Streaming (for dashboards)
+POST /api/v1/agent/lookup — cached prior analysis (~$0.02, instant)
+POST /api/v1/agent/quick  — web search + heuristic classification (~$0.07, ~15s)
+POST /api/v1/agent/full   — 30+ sources, LLM classification, coverage recovery (~$0.15, ~90s)
+
+Request body: {"claim": "...", "compact": false}
+Response includes _meta block: {executedTier, chargedCents, limitations, cached}
+
+Charges based on tier actually executed, not tier requested. Lookup returns
+a structured miss (HTTP 200 with hit=false) when no cached result exists —
+the agent can then decide whether to escalate to quick or full.
+
+GET /api/v1/agent/credits/balance — check prepaid credit balance
+POST /api/v1/agent/credits/purchase — buy credit packs via Stripe ($5/$20/$100)
+GET /api/v1/agent/result/{check_id} — retrieve a completed result (free, identity only)
+GET /api/v1/agent/stats — aggregated usage by tier and provider
+
+### Payment Rails
+
+Three payment options:
+- API key + prepaid credits (recommended): X-API-Key header, balance in USD cents
+- Skyfire KYAPay: skyfire-pay-id JWT header, automatic settlement
+- x402 USDC: HTTP 402 challenge/response on /api/v1/agent/x402/* endpoints
+
+x402 endpoints mirror the agent tier endpoints:
+POST /api/v1/agent/x402/lookup — same as /agent/lookup, paid via USDC
+POST /api/v1/agent/x402/quick  — same as /agent/quick, paid via USDC
+POST /api/v1/agent/x402/full   — same as /agent/full, paid via USDC
+
+### Human Dashboard Endpoints (not for agents)
+
+POST /api/v1/checks/run — synchronous, blocks until complete (timeout >= 180s)
 POST /api/v1/checks/stream — SSE progress stream
 GET /api/v1/checks/{id} — retrieve completed result
 GET /api/v1/checks/{id}?computed=true — result with pre-computed analytics
 
 ## Pipeline
 
-Deep Research (typically 60-120s): extract claims → retrieve evidence from multiple
+Full pipeline (typically 60-120s): extract claims → retrieve evidence from multiple
 independent sources → decompose each claim into verifiable elements → map evidence
 to elements with relationship labels. Includes coverage recovery for low-coverage claims.
+
+Quick pipeline (~15s): extract claims → web search → heuristic classification.
+Skips LLM classification, fact-check lookup, API adapters, coverage recovery, and
+query answering.
 
 ## Evidence Model
 
@@ -60,7 +91,9 @@ Run: tru8-mcp (or python -m tru8_mcp)
 Env: TRU8_API_KEY (required), TRU8_API_URL (optional)
 
 Tools:
-- tru8_check(text) — evidence research, returns result with analytics
+- tru8_check(claim, max_tier="quick", compact=False) — evidence research with
+  tier fallback (lookup → quick → full up to max_tier). Returns structured
+  evidence landscape with _meta block (executedTier, chargedCents, limitations).
 - tru8_get_result(check_id) — retrieve result with computed analytics
 - tru8_get_result_raw(check_id) — retrieve result without computed analytics
 

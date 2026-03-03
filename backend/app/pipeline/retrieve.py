@@ -16,6 +16,22 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Jurisdiction-aware adapter preferences (M-05)
+# When more than MAX_ADAPTERS_PER_CLAIM match, prefer jurisdiction-relevant APIs
+JURISDICTION_ADAPTER_PREFERENCES = {
+    "UK": [
+        "ONS Economic Statistics",
+        "Hansard Parliamentary Records",
+        "GOV.UK Publications",
+        "Companies House",
+    ],
+    "US": [
+        "FRED Economic Data",
+        "GovInfo Publications",
+        "Library of Congress",
+    ],
+}
+
 SATIRE_DOMAINS = {
     "theonion.com",
     "babylonbee.com",
@@ -69,6 +85,7 @@ class EvidenceRetriever:
         self.evidence_extractor = EvidenceExtractor()
         self.max_sources_per_claim = 20
         self.max_concurrent_claims = 3
+        self.max_queries_per_element = 3  # Cap queries per element (L-04)
 
         # Phase 5: Government API Integration
         self.api_registry = get_api_registry()
@@ -174,7 +191,12 @@ class EvidenceRetriever:
                                 for p in plans:
                                     element_id = p.get("element_id", "e1")
                                     element_freshness = p.get("freshness", "py")
-                                    for q in p.get("queries", []):
+                                    elem_queries = p.get("queries", [])
+                                    # Cap queries per element (L-04)
+                                    elem_queries = elem_queries[
+                                        : self.max_queries_per_element
+                                    ]
+                                    for q in elem_queries:
                                         merged_queries.append(q)
                                         query_element_ids.append(element_id)
                                         query_freshness.append(element_freshness)
@@ -958,6 +980,18 @@ class EvidenceRetriever:
                     logger.info(
                         f"[SINGLE CLAIM DEBUG] All tasks complete for claim {claim_position}"
                     )
+
+                # M-02: Track web search provider status
+                if "web_search" in timed_out_tasks:
+                    web_search_status = {"status": "timeout", "count": 0}
+                elif web_evidence_snippets:
+                    web_search_status = {
+                        "status": "ok",
+                        "count": len(web_evidence_snippets),
+                    }
+                else:
+                    web_search_status = {"status": "0_results", "count": 0}
+                claim["web_search_status"] = web_search_status
 
                 # Merge web search and API results
                 evidence_snippets = web_evidence_snippets
@@ -1782,9 +1816,25 @@ class EvidenceRetriever:
             # Reduced from 5 to 3: fewer irrelevant keyword matches, faster processing
             MAX_ADAPTERS_PER_CLAIM = 3
             if len(relevant_adapters) > MAX_ADAPTERS_PER_CLAIM:
-                logger.info(
-                    f"[API LIMIT] Reducing {len(relevant_adapters)} adapters to {MAX_ADAPTERS_PER_CLAIM}"
-                )
+                # M-05: Sort by jurisdiction preference before truncation
+                preferences = JURISDICTION_ADAPTER_PREFERENCES.get(jurisdiction, [])
+                if preferences:
+
+                    def _priority(adapter):
+                        try:
+                            return preferences.index(adapter.api_name)
+                        except ValueError:
+                            return len(preferences) + 1
+
+                    relevant_adapters.sort(key=_priority)
+                    logger.info(
+                        f"[JURISDICTION] {jurisdiction} preference: "
+                        f"{[a.api_name for a in relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]]}"
+                    )
+                else:
+                    logger.info(
+                        f"[API LIMIT] Reducing {len(relevant_adapters)} adapters to {MAX_ADAPTERS_PER_CLAIM}"
+                    )
                 relevant_adapters = relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]
 
             # Log final adapter list

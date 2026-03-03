@@ -1,7 +1,7 @@
 """Tru8 API client for MCP tool implementations.
 
 Wraps the Tru8 REST API with methods for submitting checks via the
-synchronous /run endpoint (preferred) or SSE streaming (fallback).
+synchronous /run endpoint (preferred) or agent tier endpoints (L-08).
 """
 
 import asyncio
@@ -20,12 +20,22 @@ GET_TIMEOUT = 30.0
 POLL_INTERVAL = 3.0
 MAX_POLL_DURATION = 300.0
 
+# Tier timeouts — quick is faster, so shorter HTTP timeout
+TIER_TIMEOUTS = {
+    "lookup": 15.0,
+    "quick": 60.0,
+    "full": PIPELINE_TIMEOUT + 30.0,
+}
+
+# Tier order for fallback
+TIER_ORDER = ["lookup", "quick", "full"]
+
 
 class Tru8APIClient:
     """HTTP client wrapping the Tru8 Evidence Research API.
 
-    Authenticates via API key (X-API-Key header). Handles SSE consumption
-    for streaming pipeline endpoints and auto-selects claims for URL inputs.
+    Authenticates via API key (X-API-Key header). Supports both the legacy
+    /checks/run endpoint and the agent tier endpoints (/agent/lookup, /quick, /full).
     """
 
     def __init__(
@@ -46,15 +56,148 @@ class Tru8APIClient:
     def _headers(self) -> dict:
         return {"X-API-Key": self.api_key, "Accept": "application/json"}
 
+    async def submit_tier(
+        self,
+        claim: str,
+        tier: str,
+        compact: bool = False,
+    ) -> dict:
+        """Submit a claim to a specific agent tier endpoint.
+
+        Args:
+            claim: The claim text to analyse.
+            tier: "lookup", "quick", or "full".
+            compact: If True, strip evidence arrays from response.
+
+        Returns:
+            The tier endpoint response dict (includes _meta block).
+        """
+        timeout = TIER_TIMEOUTS.get(tier, PIPELINE_TIMEOUT)
+        payload = {"claim": claim, "compact": compact}
+
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(timeout, connect=10.0)
+        ) as client:
+            resp = await client.post(
+                f"{self.base_url}/api/v1/agent/{tier}",
+                json=payload,
+                headers=self._headers(),
+            )
+            if resp.status_code == 402:
+                raise InsufficientBalanceError(f"Insufficient balance for {tier} tier")
+            if resp.status_code not in (200, 201):
+                raise RuntimeError(f"API error {resp.status_code}: {resp.text}")
+            return resp.json()
+
+    async def submit_smart(
+        self,
+        claim: str,
+        max_tier: str = "quick",
+        max_age_hours: Optional[int] = None,
+        compact: bool = False,
+    ) -> dict:
+        """Submit via smart endpoint with server-side fallback (M-03).
+
+        Args:
+            claim: The claim text to analyse.
+            max_tier: Maximum tier to attempt ("lookup", "quick", or "full").
+            max_age_hours: Skip cache hits older than this many hours.
+            compact: If True, strip evidence arrays from response.
+
+        Returns:
+            The smart endpoint response dict.
+        """
+        timeout = TIER_TIMEOUTS.get(max_tier, PIPELINE_TIMEOUT)
+        payload: dict = {"claim": claim, "max_tier": max_tier, "compact": compact}
+        if max_age_hours:
+            payload["max_age_hours"] = max_age_hours
+
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(timeout, connect=10.0)
+        ) as client:
+            resp = await client.post(
+                f"{self.base_url}/api/v1/agent/check",
+                json=payload,
+                headers=self._headers(),
+            )
+            if resp.status_code == 402:
+                raise InsufficientBalanceError(
+                    f"Insufficient balance for {max_tier} tier"
+                )
+            if resp.status_code not in (200, 201):
+                raise RuntimeError(f"API error {resp.status_code}: {resp.text}")
+            return resp.json()
+
+    async def submit_with_fallback(
+        self,
+        claim: str,
+        max_tier: str = "quick",
+        max_age_hours: Optional[int] = None,
+        compact: bool = False,
+    ) -> dict:
+        """Submit a claim with tier fallback: lookup → quick → full (up to max_tier).
+
+        Prefers the smart endpoint (M-03). Falls back to client-side tier
+        escalation if the server returns 404 (backward compat with older servers).
+
+        Args:
+            claim: The claim text to analyse.
+            max_tier: Maximum tier to attempt ("lookup", "quick", or "full").
+            max_age_hours: Skip cache hits older than this many hours.
+            compact: If True, strip evidence arrays from response.
+
+        Returns:
+            The response dict from whichever tier succeeded.
+        """
+        # Try smart endpoint first (M-03)
+        try:
+            return await self.submit_smart(
+                claim, max_tier=max_tier, max_age_hours=max_age_hours, compact=compact
+            )
+        except RuntimeError as e:
+            if "404" in str(e):
+                logger.info(
+                    "Smart endpoint not available, falling back to client-side escalation"
+                )
+            else:
+                raise
+
+        # Client-side fallback for older servers
+        max_rank = TIER_ORDER.index(max_tier) if max_tier in TIER_ORDER else 1
+
+        # Always try lookup first
+        try:
+            result = await self.submit_tier(claim, "lookup", compact=compact)
+            if result.get("hit"):
+                return result
+            # Lookup miss — escalate if allowed
+        except InsufficientBalanceError:
+            raise
+        except Exception as e:
+            logger.warning(f"Lookup failed: {e}")
+
+        # Escalate to quick if allowed
+        if max_rank >= TIER_ORDER.index("quick"):
+            try:
+                return await self.submit_tier(claim, "quick", compact=compact)
+            except InsufficientBalanceError:
+                raise
+            except Exception as e:
+                if max_rank >= TIER_ORDER.index("full"):
+                    logger.warning(f"Quick failed, escalating to full: {e}")
+                else:
+                    raise
+
+        # Escalate to full if allowed
+        if max_rank >= TIER_ORDER.index("full"):
+            return await self.submit_tier(claim, "full", compact=compact)
+
+        raise RuntimeError(f"No tier up to {max_tier} returned a result")
+
     async def submit_check_sync(self, text: str) -> dict:
         """Submit content via the synchronous /run endpoint and return the full result.
 
-        Single HTTP call — blocks until the pipeline completes and returns the
-        check response with claims, evidence, and computed analytics. No SSE,
-        no polling, no claim selection handling required.
-
-        Returns:
-            The full check response dict (same shape as GET /checks/{id}?computed=true).
+        Backward-compatible alias. For new code, prefer submit_with_fallback().
         """
         input_type = (
             "url" if text.strip().startswith(("http://", "https://")) else "text"
@@ -224,3 +367,9 @@ class Tru8APIClient:
             if resp.status_code != 200:
                 raise RuntimeError(f"API error {resp.status_code}: {resp.text}")
             return resp.json()
+
+
+class InsufficientBalanceError(RuntimeError):
+    """Raised when the agent's credit balance is insufficient for the requested tier."""
+
+    pass

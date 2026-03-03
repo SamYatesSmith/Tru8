@@ -7,7 +7,7 @@ from typing import Dict, List, Any, Optional
 import httpx
 from pydantic import BaseModel, Field, ValidationError
 from app.core.config import settings
-from app.services.google_ai import call_google_ai
+from app.services.google_ai import call_google_ai, call_google_ai_with_usage
 
 logger = logging.getLogger(__name__)
 
@@ -453,7 +453,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             # Combine system prompt and user prompt for Gemini
             full_prompt = f"{self.system_prompt.format(max_claims=self.max_claims)}\n\n{user_prompt}\n\nProvide your response as valid JSON."
 
-            claims_data = await call_google_ai(
+            claims_data, token_usage = await call_google_ai_with_usage(
                 full_prompt,
                 temperature=0.1,
                 max_tokens=1500,
@@ -556,6 +556,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     "extraction_method": f"google_{google_model}",
                     "source_summary": validated_response.source_summary,
                     "extraction_confidence": validated_response.extraction_confidence,
+                    "token_usage": token_usage,
                 },
             }
 

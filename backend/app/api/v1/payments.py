@@ -149,7 +149,11 @@ async def stripe_webhook(
     # Handle the event
     if event["type"] == "checkout.session.completed":
         session_data = event["data"]["object"]
-        await handle_successful_payment(session_data, session)
+        # Route to agent credit handler or subscription handler
+        if session_data.get("metadata", {}).get("purchase_type") == "agent_credits":
+            await handle_agent_credit_purchase(session_data, session)
+        else:
+            await handle_successful_payment(session_data, session)
 
     elif event["type"] == "customer.subscription.updated":
         subscription = event["data"]["object"]
@@ -167,6 +171,37 @@ async def stripe_webhook(
         logger.info(f"Unhandled event type: {event['type']}")
 
     return {"status": "success"}
+
+
+async def handle_agent_credit_purchase(session_data: dict, session: AsyncSession):
+    """Handle agent credit pack purchase from Stripe Checkout (L-07)."""
+    user_id = session_data.get("client_reference_id")
+    metadata = session_data.get("metadata", {})
+    cents_value = int(metadata.get("cents_value", 0))
+    pack = metadata.get("credit_pack", "unknown")
+
+    if not user_id or not cents_value:
+        logger.error(
+            f"Agent credit purchase missing data: user={user_id}, cents={cents_value}"
+        )
+        return
+
+    stmt = select(User).where(User.id == user_id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        logger.error(f"User {user_id} not found for agent credit purchase")
+        return
+
+    user.credit_balance_cents += cents_value
+    user.updated_at = datetime.utcnow()
+    await session.commit()
+
+    logger.info(
+        f"Agent credit purchase: user={user_id}, pack=${pack}, "
+        f"added={cents_value} cents, new_balance={user.credit_balance_cents}"
+    )
 
 
 async def handle_successful_payment(session_data: dict, session: AsyncSession):

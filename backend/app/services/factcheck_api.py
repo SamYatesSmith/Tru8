@@ -195,7 +195,13 @@ class FactCheckAPI:
                 response.raise_for_status()
                 content = extractor._extract_main_content(response.text, url)
                 if content and len(content) > 50:
-                    return content[:2000]
+                    # Truncate at word boundary to avoid splitting text mid-word
+                    truncated = content[:2000]
+                    if len(content) > 2000:
+                        last_space = truncated.rfind(" ")
+                        if last_space > 1500:
+                            truncated = truncated[:last_space]
+                    return truncated
         except Exception as e:
             logger.warning(f"Failed to extract fact-check text from {url}: {e}")
         return None

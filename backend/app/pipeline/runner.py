@@ -26,8 +26,168 @@ from app.services.push_notifications import push_notification_service
 from app.services.email_notifications import email_notification_service
 from app.services.cache import get_cache_service
 from app.utils.date_utils import parse_date
+from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Pipeline configuration (L-04)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class PipelineConfig:
+    """Controls which pipeline stages run and their resource limits.
+
+    Full mode (default): all stages, all sources, LLM classification.
+    Quick mode: web search only, heuristic classification, no API adapters.
+    """
+
+    mode: str = "full"
+    max_queries_per_element: int = 3
+    max_sources_per_claim: int = 20
+    max_wall_time_seconds: int = 180  # hard cutoff
+    enable_api_adapters: bool = True
+    enable_factcheck_lookup: bool = True
+    enable_llm_relevance_scorer: bool = True
+    enable_post_filter_recovery: bool = True
+    enable_coverage_recovery: bool = True
+    enable_llm_classifier: bool = True
+    enable_query_answering: bool = True
+
+
+QUICK_CONFIG = PipelineConfig(
+    mode="quick",
+    max_queries_per_element=1,
+    max_sources_per_claim=8,
+    max_wall_time_seconds=30,
+    enable_api_adapters=False,
+    enable_factcheck_lookup=False,
+    enable_llm_relevance_scorer=False,
+    enable_post_filter_recovery=False,
+    enable_coverage_recovery=False,
+    enable_llm_classifier=False,
+    enable_query_answering=False,
+)
+
+DEFAULT_CONFIG = PipelineConfig()
+
+
+# ---------------------------------------------------------------------------
+# Pipeline metrics (L-12)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class PipelineMetrics:
+    """Per-request resource consumption metrics.
+
+    Populated from data available in the pipeline result.
+    Token counts are Optional — not all model clients reliably return them.
+    Call counts + wall time + search counts are always available.
+    """
+
+    mode: str = "full"
+    llm_calls: int = 0
+    llm_input_tokens: Optional[int] = None
+    llm_output_tokens: Optional[int] = None
+    web_search_calls: int = 0
+    api_adapter_calls: int = 0
+    wall_time_seconds: float = 0.0
+    claims_processed: int = 0
+    elements_processed: int = 0
+    sources_considered: int = 0
+    sources_included: int = 0
+
+    def to_dict(self) -> dict:
+        d = {
+            "mode": self.mode,
+            "llm_calls": self.llm_calls,
+            "web_search_calls": self.web_search_calls,
+            "api_adapter_calls": self.api_adapter_calls,
+            "wall_time_seconds": round(self.wall_time_seconds, 2),
+            "claims_processed": self.claims_processed,
+            "elements_processed": self.elements_processed,
+            "sources_considered": self.sources_considered,
+            "sources_included": self.sources_included,
+        }
+        if self.llm_input_tokens is not None:
+            d["llm_input_tokens"] = self.llm_input_tokens
+        if self.llm_output_tokens is not None:
+            d["llm_output_tokens"] = self.llm_output_tokens
+        return d
+
+
+def _accumulate_tokens(
+    final_result: Dict[str, Any], usage: Optional[Dict[str, int]]
+) -> None:
+    """Add token counts from an LLM call to the running pipeline total.
+
+    Safe to call with ``None`` — missing data is silently ignored.
+    """
+    if not usage:
+        return
+    bucket = final_result.setdefault(
+        "llm_token_usage", {"input_tokens": 0, "output_tokens": 0}
+    )
+    bucket["input_tokens"] += usage.get("input_tokens", 0)
+    bucket["output_tokens"] += usage.get("output_tokens", 0)
+
+
+def extract_pipeline_metrics(
+    final_result: Dict[str, Any], config: PipelineConfig
+) -> PipelineMetrics:
+    """Extract PipelineMetrics from a completed pipeline result dict."""
+    stats = final_result.get("pipeline_stats", {})
+    api_stats = final_result.get("api_stats", {})
+    claims = final_result.get("claims", [])
+
+    # Count elements across all claims
+    elements_count = 0
+    for claim in claims:
+        cm = claim.get("claim_map")
+        if cm and isinstance(cm, dict):
+            elements_count += len(cm.get("elements", []))
+
+    # Count LLM calls: extract(1) + decompose(1) + map(1) are always present
+    # Optional: relevance_scorer(1), classifier(1), query(1)
+    llm_calls = 3  # extract + decompose + analyze/map (always run)
+    if config.enable_llm_relevance_scorer:
+        llm_calls += 1
+    if config.enable_llm_classifier:
+        llm_calls += 1
+    if config.enable_query_answering and final_result.get("query_response"):
+        llm_calls += 1
+
+    # API adapter calls from api_stats
+    api_adapter_calls = 0
+    for source, source_stats in api_stats.items():
+        if isinstance(source_stats, dict):
+            api_adapter_calls += source_stats.get("results_returned", 0) > 0
+
+    # Web search: derive from raw sources minus API sources
+    raw_sources = final_result.get("raw_sources_count", 0)
+    sources_included = stats.get("evidence_sources", 0)
+
+    # Token usage from accumulated LLM calls (L-12)
+    token_usage = final_result.get("llm_token_usage", {})
+    llm_input_tokens = token_usage.get("input_tokens") or None
+    llm_output_tokens = token_usage.get("output_tokens") or None
+
+    return PipelineMetrics(
+        mode=config.mode,
+        llm_calls=llm_calls,
+        llm_input_tokens=llm_input_tokens,
+        llm_output_tokens=llm_output_tokens,
+        web_search_calls=raw_sources,  # Each raw source came from a search call
+        api_adapter_calls=api_adapter_calls,
+        wall_time_seconds=final_result.get("processing_time_ms", 0) / 1000.0,
+        claims_processed=stats.get("claims_selected", len(claims)),
+        elements_processed=elements_count,
+        sources_considered=stats.get("raw_sources_reviewed", raw_sources),
+        sources_included=sources_included,
+    )
 
 
 async def _log_stage_transition(
@@ -146,6 +306,7 @@ async def run_pipeline(
     user_id: str,
     input_data: Dict[str, Any],
     progress_reporter: ProgressReporter,
+    config: Optional[PipelineConfig] = None,
 ) -> Optional[Dict[str, Any]]:
     """
     Run the fact-checking pipeline inline with progress streaming.
@@ -158,7 +319,11 @@ async def run_pipeline(
     Returns the final result dict for focused mode, or None for article mode
     (which pauses at waiting_for_selection).
     """
-    return await run_pipeline_phase1(check_id, user_id, input_data, progress_reporter)
+    if config is None:
+        config = DEFAULT_CONFIG
+    return await run_pipeline_phase1(
+        check_id, user_id, input_data, progress_reporter, config=config
+    )
 
 
 async def run_pipeline_phase1(
@@ -166,6 +331,7 @@ async def run_pipeline_phase1(
     user_id: str,
     input_data: Dict[str, Any],
     progress_reporter: ProgressReporter,
+    config: Optional[PipelineConfig] = None,
 ) -> Optional[Dict[str, Any]]:
     """
     Pipeline Phase 1: ingest → extract → classify → rank claims.
@@ -587,6 +753,7 @@ async def run_pipeline_phase1(
             "start_time": start_time,
             "stage_timings": stage_timings,
         },
+        config=config,
     )
 
 
@@ -596,6 +763,7 @@ async def run_pipeline_phase2(
     input_data: Dict[str, Any],
     progress_reporter: ProgressReporter,
     _phase1_state: Optional[Dict[str, Any]] = None,
+    config: Optional[PipelineConfig] = None,
 ) -> Dict[str, Any]:
     """
     Pipeline Phase 2: factcheck → decompose → retrieve → filter cascade → evidence mapping → build result.
@@ -603,6 +771,9 @@ async def run_pipeline_phase2(
     If _phase1_state is provided (focused mode), uses it directly.
     Otherwise (article mode, called from PATCH endpoint), reloads state from DB.
     """
+    if config is None:
+        config = DEFAULT_CONFIG
+
     from app.workers.pipeline import (
         retrieve_evidence_with_cache,
         search_factchecks_for_claims,
@@ -748,7 +919,7 @@ async def run_pipeline_phase2(
         logger.info(
             "[FROZEN EVIDENCE REPLAY] Skipping fact-check API for deterministic replay"
         )
-    elif settings.ENABLE_FACTCHECK_API:
+    elif settings.ENABLE_FACTCHECK_API and config.enable_factcheck_lookup:
         await _log_stage_transition(
             check_id, current_stage, "factcheck", progress_reporter
         )
@@ -863,6 +1034,9 @@ async def run_pipeline_phase2(
                     factcheck_evidence,
                     source_url=source_url,
                     progressive_results=_progressive_results,
+                    max_queries_per_element=config.max_queries_per_element,
+                    enable_api_adapters=config.enable_api_adapters,
+                    max_sources_per_claim=config.max_sources_per_claim,
                 ),
                 timeout=retrieve_timeout,
             )
@@ -1115,7 +1289,11 @@ async def run_pipeline_phase2(
                 out_count=count_frozen,
                 note="skipped_frozen_replay",
             )
-    elif settings.ENABLE_LLM_RELEVANCE_SCORER and evidence:
+    elif (
+        settings.ENABLE_LLM_RELEVANCE_SCORER
+        and config.enable_llm_relevance_scorer
+        and evidence
+    ):
         stage_start = datetime.utcnow()
         count_before_scoring = sum(len(ev_list) for ev_list in evidence.values())
         try:
@@ -1133,6 +1311,23 @@ async def run_pipeline_phase2(
                 logger.info(
                     f"[LLM SCORER] Excluded {len(excluded_by_scorer)} irrelevant items"
                 )
+                # M-01: Append score-1 exclusions to raw_evidence_data for audit trail
+                for ex_ev in excluded_by_scorer:
+                    raw_evidence_data.append(
+                        {
+                            "source": ex_ev.get("source", "Unknown"),
+                            "url": ex_ev.get("url", ""),
+                            "title": ex_ev.get("title", ""),
+                            "snippet": ex_ev.get("snippet", ex_ev.get("text", "")),
+                            "published_date": ex_ev.get("published_date"),
+                            "relevance_score": float(ex_ev.get("relevance_score", 0.0)),
+                            "is_included": False,
+                            "filter_stage": "llm_relevance",
+                            "filter_reason": f"LLM score 1/5: {(ex_ev.get('llm_relevance_rationale') or 'off-topic')[:200]}",
+                            "tier": ex_ev.get("tier"),
+                            "claim_position": ex_ev.get("_claim_position", 0),
+                        }
+                    )
 
             count_after_scoring = sum(len(ev_list) for ev_list in evidence.values())
             logger.info(
@@ -1157,7 +1352,11 @@ async def run_pipeline_phase2(
     # Stage 3.8: Post-Filter Recovery — backfill claims thinned by scoring
     # =========================================================================
     MIN_EVIDENCE_POST_FILTER = 5
-    if not _is_frozen_evidence_replay and evidence:
+    if (
+        not _is_frozen_evidence_replay
+        and evidence
+        and config.enable_post_filter_recovery
+    ):
         thin_claims = []
         for pos, ev_list in evidence.items():
             if len(ev_list) < MIN_EVIDENCE_POST_FILTER:
@@ -1260,17 +1459,30 @@ async def run_pipeline_phase2(
         stage_start = datetime.utcnow()
 
         try:
-            from app.pipeline.evidence_classifier import EvidenceClassifier
+            if config.enable_llm_classifier:
+                from app.pipeline.evidence_classifier import EvidenceClassifier
 
-            classifier = EvidenceClassifier()
-            for claim_pos, ev_list in evidence.items():
-                if ev_list:
-                    evidence[claim_pos] = await classifier.classify_batch(ev_list)
-                    # Update receipt_status to "classified" for all items
-                    for ev in evidence[claim_pos]:
+                classifier = EvidenceClassifier()
+                for claim_pos, ev_list in evidence.items():
+                    if ev_list:
+                        evidence[claim_pos] = await classifier.classify_batch(ev_list)
+                        for ev in evidence[claim_pos]:
+                            ev["receipt_status"] = "classified"
+                        logger.info(
+                            f"[CLASSIFY] Claim {claim_pos}: classified {len(ev_list)} evidence items (LLM)"
+                        )
+            else:
+                # Quick mode: heuristic classification only (no LLM call)
+                from app.pipeline.evidence_classifier import _classify_heuristic
+
+                for claim_pos, ev_list in evidence.items():
+                    for ev in ev_list:
+                        tier, evidence_type = _classify_heuristic(ev)
+                        ev["tier"] = tier
+                        ev["evidence_type"] = evidence_type
                         ev["receipt_status"] = "classified"
                     logger.info(
-                        f"[CLASSIFY] Claim {claim_pos}: classified {len(ev_list)} evidence items"
+                        f"[CLASSIFY] Claim {claim_pos}: classified {len(ev_list)} evidence items (heuristic)"
                     )
         except Exception as e:
             logger.warning(f"Evidence classification failed (non-critical): {e}")
@@ -1460,8 +1672,13 @@ async def run_pipeline_phase2(
     RECOVERY_MAX_ELEMENTS = 5  # Max elements to recover per claim
     RECOVERY_TIMEOUT_SECONDS = 20  # Hard time cap
 
+    _skip_coverage_recovery = not config.enable_coverage_recovery
+    if _skip_coverage_recovery:
+        logger.info(f"[COVERAGE RECOVERY] Skipped (mode={config.mode})")
+        stage_timings["coverage_recovery"] = 0.0
+
     recovery_candidates = []
-    for claim in selected_claims:
+    for claim in [] if _skip_coverage_recovery else selected_claims:
         cm = claim.get("claim_map")
         if not cm or not cm.get("elements"):
             continue
@@ -1623,7 +1840,11 @@ async def run_pipeline_phase2(
     # Stage 5.5: Query Answering (optional)
     # =========================================================================
     query_response_data = None
-    if input_data.get("user_query") and settings.ENABLE_SEARCH_CLARITY:
+    if (
+        input_data.get("user_query")
+        and settings.ENABLE_SEARCH_CLARITY
+        and config.enable_query_answering
+    ):
         await _log_stage_transition(check_id, current_stage, "query", progress_reporter)
         current_stage = "query"
         stage_start = datetime.utcnow()
@@ -1697,6 +1918,7 @@ async def run_pipeline_phase2(
         "ingest_metadata": content.get("metadata", {}),
         "query_response": query_response_data,
         "api_stats": api_stats,
+        "provider_status": _build_provider_status(claims),
         "article_excerpt": article_excerpt,
         "article_classification": (
             article_classification.to_dict() if article_classification else None
@@ -1733,6 +1955,25 @@ async def run_pipeline_phase2(
         if _replay_evidence_token is not None:
             frozen_evidence_replay.reset(_replay_evidence_token)
         logger.info("[FROZEN EVIDENCE REPLAY] Reset replay overrides")
+
+    # Token accumulation from LLM-calling modules (L-12)
+    _accumulate_tokens(final_result, analyzer.get_token_usage())
+    try:
+        _accumulate_tokens(final_result, classifier.get_token_usage())  # type: ignore[name-defined]
+    except NameError:
+        pass  # classifier not instantiated (quick mode uses heuristic)
+
+    # Pipeline metrics (L-12)
+    metrics = extract_pipeline_metrics(final_result, config)
+    final_result["pipeline_metrics"] = metrics.to_dict()
+    logger.info(
+        f"[PIPELINE METRICS] check={check_id} mode={metrics.mode} "
+        f"llm_calls={metrics.llm_calls} web_search={metrics.web_search_calls} "
+        f"api_adapters={metrics.api_adapter_calls} wall_time={metrics.wall_time_seconds:.1f}s "
+        f"claims={metrics.claims_processed} elements={metrics.elements_processed} "
+        f"sources_considered={metrics.sources_considered} sources_included={metrics.sources_included} "
+        f"llm_input_tokens={metrics.llm_input_tokens} llm_output_tokens={metrics.llm_output_tokens}"
+    )
 
     logger.info(
         f"[INLINE PIPELINE] Completed in {processing_time_ms}ms for check {check_id}"
@@ -1795,6 +2036,60 @@ def _aggregate_api_stats(
     }
 
 
+def _build_provider_status(
+    claims: List[Dict[str, Any]],
+) -> Dict[str, Dict[str, Any]]:
+    """Build per-provider status from api_stats and web_search_status on claims.
+
+    Aggregates across claims: if any call for a provider succeeded, overall
+    status is "ok". If all timed out, "timeout". If all errored, "error".
+    """
+    provider_data: Dict[str, Dict[str, Any]] = {}
+
+    for claim in claims:
+        # Web search status (M-02)
+        ws = claim.get("web_search_status")
+        if ws:
+            name = "web_search"
+            if name not in provider_data:
+                provider_data[name] = {"statuses": [], "total_count": 0}
+            provider_data[name]["statuses"].append(ws.get("status", "0_results"))
+            provider_data[name]["total_count"] += ws.get("count", 0)
+
+        # API adapter stats
+        api_stats = claim.get("api_stats", {})
+        for api_info in api_stats.get("apis_queried", []):
+            name = api_info.get("name", "unknown")
+            if name not in provider_data:
+                provider_data[name] = {"statuses": [], "total_count": 0}
+            if api_info.get("error"):
+                if "timeout" in str(api_info["error"]).lower():
+                    provider_data[name]["statuses"].append("timeout")
+                else:
+                    provider_data[name]["statuses"].append("error")
+            elif api_info.get("results", 0) > 0:
+                provider_data[name]["statuses"].append("ok")
+                provider_data[name]["total_count"] += api_info["results"]
+            else:
+                provider_data[name]["statuses"].append("0_results")
+
+    # Simplify per-provider: any ok → ok, all timeout → timeout, all error → error
+    result = {}
+    for name, data in provider_data.items():
+        statuses = data["statuses"]
+        if "ok" in statuses:
+            status = "ok"
+        elif all(s == "timeout" for s in statuses):
+            status = "timeout"
+        elif all(s == "error" for s in statuses):
+            status = "error"
+        else:
+            status = "0_results"
+        result[name] = {"status": status, "count": data["total_count"]}
+
+    return result
+
+
 # ============================================================================
 # Database Helpers (Async)
 # ============================================================================
@@ -1828,6 +2123,11 @@ async def save_check_results_async(
             check.api_coverage_percentage = api_stats.get(
                 "api_coverage_percentage", 0.0
             )
+
+        # Provider status (M-02)
+        provider_status = results.get("provider_status")
+        if provider_status:
+            check.provider_status = provider_status
 
         # Query response
         query_data = results.get("query_response")
@@ -1960,6 +2260,13 @@ async def save_check_results_async(
                     ),
                     external_source_provider=ev_data.get("external_source_provider"),
                     api_metadata=metadata_dict,
+                    # Provenance persistence (M-01)
+                    llm_relevance_score=ev_data.get("llm_relevance_score"),
+                    llm_relevance_rationale=(
+                        ev_data.get("llm_relevance_rationale") or ""
+                    )[:500]
+                    or None,
+                    classification_method=ev_data.get("classification_method"),
                 )
                 session.add(evidence)
 

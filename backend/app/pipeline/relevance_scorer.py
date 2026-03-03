@@ -18,7 +18,7 @@ import hashlib
 from typing import Dict, List, Any, Optional
 
 from app.core.config import settings
-from app.services.google_ai import call_google_ai
+from app.services.google_ai import call_google_ai, call_google_ai_with_usage
 
 logger = logging.getLogger(__name__)
 
@@ -273,7 +273,7 @@ async def _score_with_google(
     full_prompt = f"You are an evidence relevance analyst. Return only valid JSON arrays.\n\n{prompt}"
 
     try:
-        parsed = await call_google_ai(
+        parsed, _usage = await call_google_ai_with_usage(
             full_prompt,
             temperature=0.1,
             max_tokens=max_output_tokens,
@@ -631,6 +631,7 @@ async def score_evidence_batch(
             if ev.get("llm_relevance_score") == 1:
                 ev["receipt_status"] = "excluded"
                 ev["exclusion_reason"] = "irrelevant"
+                ev["_claim_position"] = int(claim_pos)
                 excluded_items.append(ev)
                 excluded_total += 1
             else:
