@@ -298,6 +298,9 @@ class TestRetrieveForElements:
         """Create an EvidenceRetriever with a mocked search_service."""
         retriever = EvidenceRetriever.__new__(EvidenceRetriever)
         retriever.search_service = AsyncMock()
+        retriever.evidence_extractor = MagicMock()
+        retriever.evidence_extractor.max_concurrent = 3
+        retriever.evidence_extractor._extract_from_page = AsyncMock(return_value=None)
         if search_results is not None:
             retriever.search_service.search_for_evidence = AsyncMock(
                 return_value=search_results
@@ -316,11 +319,16 @@ class TestRetrieveForElements:
         retriever = self._make_retriever(search_results)
         elements = [{"element_id": "e1", "description": "Test element description"}]
 
-        evidence = await retriever.retrieve_for_elements(
-            elements=elements,
-            claim_text="This is a test claim about something",
-            existing_urls=set(),
-        )
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="This is a test claim about something",
+                existing_urls=set(),
+            )
 
         assert len(evidence) == 2
         assert evidence[0]["url"] == "https://example.com/article1"
@@ -340,11 +348,16 @@ class TestRetrieveForElements:
         elements = [{"element_id": "e1", "description": "Test element"}]
         existing = {"https://example.com/existing"}
 
-        evidence = await retriever.retrieve_for_elements(
-            elements=elements,
-            claim_text="Test claim",
-            existing_urls=existing,
-        )
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=existing,
+            )
 
         assert len(evidence) == 1
         assert evidence[0]["url"] == "https://example.com/new"
@@ -358,11 +371,16 @@ class TestRetrieveForElements:
         retriever = self._make_retriever(search_results)
         elements = [{"element_id": "e1", "description": "Test element"}]
 
-        evidence = await retriever.retrieve_for_elements(
-            elements=elements,
-            claim_text="Test claim",
-            existing_urls=set(),
-        )
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
 
         assert len(evidence) == 1
         assert evidence[0]["evidence_id"] == f"ev-rec-e1_0_{expected_hash}"
@@ -374,17 +392,61 @@ class TestRetrieveForElements:
         retriever = self._make_retriever(search_results=[])
         elements = [{"element_id": "e1", "description": "Test element"}]
 
-        evidence = await retriever.retrieve_for_elements(
-            elements=elements,
-            claim_text="Test claim",
-            existing_urls=set(),
-        )
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
 
         assert evidence == []
 
     @pytest.mark.asyncio
-    async def test_one_query_per_element(self):
-        """N elements produce N search queries (one per element)."""
+    async def test_evidence_item_structure(self):
+        """Returned evidence items contain all required keys in the pipeline format."""
+        search_results = [_make_search_result("https://example.com/test")]
+        retriever = self._make_retriever(search_results)
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        assert len(evidence) == 1
+        required_keys = {
+            "id",
+            "evidence_id",
+            "element_ids",
+            "text",
+            "snippet",
+            "source",
+            "url",
+            "title",
+            "published_date",
+            "relevance_score",
+            "semantic_similarity",
+            "combined_score",
+            "word_count",
+            "receipt_status",
+            "metadata",
+            "is_recovery",
+        }
+        assert set(evidence[0].keys()) == required_keys
+
+    @pytest.mark.asyncio
+    async def test_one_query_per_element_naive(self):
+        """N elements produce N naive search queries (one per element) when planner disabled."""
         retriever = self._make_retriever(search_results=[])
         elements = [
             {"element_id": "e1", "description": "First element"},
@@ -392,11 +454,16 @@ class TestRetrieveForElements:
             {"element_id": "e3", "description": "Third element"},
         ]
 
-        await retriever.retrieve_for_elements(
-            elements=elements,
-            claim_text="Test claim about something important",
-            existing_urls=set(),
-        )
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim about something important",
+                existing_urls=set(),
+            )
 
         assert retriever.search_service.search_for_evidence.call_count == 3
         # Verify each query includes the element description and claim context
@@ -404,6 +471,269 @@ class TestRetrieveForElements:
         for i, call in enumerate(calls):
             query = call[0][0] if call[0] else call[1].get("query", "")
             assert elements[i]["description"] in query
+
+
+# =============================================================================
+# Group 3b: Edge cases in retrieve_for_elements (7 tests)
+# =============================================================================
+
+
+class TestRetrieveEdgeCases:
+    """Edge cases for retrieve_for_elements: error handling, dedup, planner quirks."""
+
+    def _make_retriever(self, search_results=None):
+        """Create an EvidenceRetriever with a mocked search_service."""
+        retriever = EvidenceRetriever.__new__(EvidenceRetriever)
+        retriever.search_service = AsyncMock()
+        retriever.evidence_extractor = MagicMock()
+        retriever.evidence_extractor.max_concurrent = 3
+        retriever.evidence_extractor._extract_from_page = AsyncMock(return_value=None)
+        if search_results is not None:
+            retriever.search_service.search_for_evidence = AsyncMock(
+                return_value=search_results
+            )
+        else:
+            retriever.search_service.search_for_evidence = AsyncMock(return_value=[])
+        return retriever
+
+    @pytest.mark.asyncio
+    async def test_search_exception_continues_to_next_element(self):
+        """When search fails for one element, subsequent elements still searched."""
+        retriever = self._make_retriever()
+        retriever.search_service.search_for_evidence = AsyncMock(
+            side_effect=[
+                RuntimeError("Network timeout"),
+                [_make_search_result("https://example.com/ok")],
+            ]
+        )
+        elements = [
+            {"element_id": "e1", "description": "First (will fail)"},
+            {"element_id": "e2", "description": "Second (will succeed)"},
+        ]
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        assert len(evidence) == 1
+        assert evidence[0]["url"] == "https://example.com/ok"
+        assert retriever.search_service.search_for_evidence.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_search_exception_first_query_continues_to_second(self):
+        """With planner giving 2 queries, first query failure doesn't block second."""
+        retriever = self._make_retriever()
+        retriever.search_service.search_for_evidence = AsyncMock(
+            side_effect=[
+                RuntimeError("API rate limit"),
+                [_make_search_result("https://example.com/second-query-ok")],
+            ]
+        )
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = AsyncMock(
+            return_value=[
+                {
+                    "element_id": "e1",
+                    "queries": ["first query", "second query"],
+                    "freshness": "py",
+                }
+            ]
+        )
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        assert len(evidence) == 1
+        assert evidence[0]["url"] == "https://example.com/second-query-ok"
+        assert retriever.search_service.search_for_evidence.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_cross_element_url_dedup(self):
+        """Same URL returned for two different elements is deduplicated."""
+        shared_url = "https://example.com/shared-article"
+        retriever = self._make_retriever(
+            search_results=[_make_search_result(shared_url)]
+        )
+        elements = [
+            {"element_id": "e1", "description": "First element"},
+            {"element_id": "e2", "description": "Second element"},
+        ]
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        # Only 1 evidence item despite 2 elements returning same URL
+        assert len(evidence) == 1
+        assert evidence[0]["url"] == shared_url
+        assert evidence[0]["metadata"]["target_element"] == "e1"
+
+    @pytest.mark.asyncio
+    async def test_planner_wrong_element_ids_ignored(self):
+        """Plans for element_ids not in the elements list are silently ignored."""
+        retriever = self._make_retriever(search_results=[])
+        elements = [{"element_id": "e1", "description": "Real element"}]
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = AsyncMock(
+            return_value=[
+                {
+                    "element_id": "e99",  # wrong ID
+                    "queries": ["irrelevant query"],
+                    "freshness": "py",
+                }
+            ]
+        )
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        # e1 has no planner queries → falls back to naive
+        assert retriever.search_service.search_for_evidence.call_count == 1
+        query = retriever.search_service.search_for_evidence.call_args[0][0]
+        assert "Real element" in query  # naive concat, not planner query
+
+    @pytest.mark.asyncio
+    async def test_planner_empty_queries_falls_back_to_naive(self):
+        """Plan with empty queries list falls back to naive concatenation."""
+        retriever = self._make_retriever(search_results=[])
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = AsyncMock(
+            return_value=[
+                {
+                    "element_id": "e1",
+                    "queries": [],  # empty
+                    "freshness": "py",
+                }
+            ]
+        )
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        # Empty queries → element_queries["e1"] = [] (falsy) → naive fallback
+        assert retriever.search_service.search_for_evidence.call_count == 1
+        query = retriever.search_service.search_for_evidence.call_args[0][0]
+        assert "Test element" in query
+
+    @pytest.mark.asyncio
+    async def test_planner_returns_none_uses_naive(self):
+        """When planner returns None instead of [], naive queries are used."""
+        retriever = self._make_retriever(search_results=[])
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = AsyncMock(return_value=None)
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim text",
+                existing_urls=set(),
+            )
+
+        # None → `if plans` is falsy → element_queries stays empty → naive fallback
+        assert retriever.search_service.search_for_evidence.call_count == 1
+        query = retriever.search_service.search_for_evidence.call_args[0][0]
+        assert "Test element" in query
+
+    @pytest.mark.asyncio
+    async def test_partial_search_failure_preserves_results(self):
+        """Second query failure preserves results from first successful query."""
+        retriever = self._make_retriever()
+        retriever.search_service.search_for_evidence = AsyncMock(
+            side_effect=[
+                [_make_search_result("https://example.com/from-first-query")],
+                RuntimeError("Second query fails"),
+            ]
+        )
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = AsyncMock(
+            return_value=[
+                {
+                    "element_id": "e1",
+                    "queries": ["good query", "bad query"],
+                    "freshness": "py",
+                }
+            ]
+        )
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        assert len(evidence) == 1
+        assert evidence[0]["url"] == "https://example.com/from-first-query"
 
 
 # =============================================================================
@@ -490,7 +820,7 @@ class TestMapEvidenceToSpecificElements:
 
     @pytest.mark.asyncio
     async def test_only_targets_unresolved(self):
-        """Elements not in unresolved_element_ids remain untouched."""
+        """Resolved elements keep state unchanged; refs only added if LLM maps to them."""
         claim_map = self._make_claim_map()
 
         llm_response = {
@@ -518,10 +848,128 @@ class TestMapEvidenceToSpecificElements:
         )
 
         e2 = claim_map["elements"][1]
-        # e2 should be completely unchanged
+        # e2 state unchanged (LLM didn't return e2 mapping)
         assert e2["state"] == ElementState.supported
         assert len(e2["evidence_refs"]) == 1
         assert e2["evidence_refs"][0]["evidence_id"] == "ev-existing"
+
+    @pytest.mark.asyncio
+    async def test_cross_element_ref_merging(self):
+        """LLM maps recovery evidence to both target (e1) and resolved (e2) elements.
+
+        e2 gets new ref merged but state stays unchanged (supported, not disputed).
+        e1 gets refs and state updated normally.
+        """
+        claim_map = self._make_claim_map()
+
+        llm_response = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {"evidence_id": "ev-new-1", "relationship": "supports"}
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                },
+                {
+                    "element_id": "e2",
+                    "evidence_refs": [
+                        {"evidence_id": "ev-new-1", "relationship": "context"}
+                    ],
+                    "state": "disputed",  # LLM suggests disputed, but should be ignored
+                    "uncertainty": "Some uncertainty",
+                },
+            ]
+        }
+        analyzer = self._make_analyzer(llm_response)
+        new_evidence = [
+            {
+                "evidence_id": "ev-new-1",
+                "title": "Cross-element article",
+                "snippet": "Content",
+            }
+        ]
+
+        await analyzer.map_evidence_to_specific_elements(
+            claim_map=claim_map,
+            unresolved_element_ids=["e1"],
+            new_evidence=new_evidence,
+        )
+
+        # e1 (target): refs and state updated
+        e1 = claim_map["elements"][0]
+        assert e1["state"] == ElementState.supported
+        assert len(e1["evidence_refs"]) == 1
+        assert e1["evidence_refs"][0]["evidence_id"] == "ev-new-1"
+
+        # e2 (resolved): new ref merged, but state preserved as supported
+        e2 = claim_map["elements"][1]
+        assert e2["state"] == ElementState.supported  # NOT disputed
+        assert len(e2["evidence_refs"]) == 2
+        assert e2["evidence_refs"][0]["evidence_id"] == "ev-existing"
+        assert e2["evidence_refs"][1]["evidence_id"] == "ev-new-1"
+
+    @pytest.mark.asyncio
+    async def test_all_elements_in_prompt(self):
+        """Prompt passed to _call_llm contains ALL elements, not just unresolved."""
+        claim_map = self._make_claim_map()
+
+        llm_response = {"elements": []}
+        analyzer = self._make_analyzer(llm_response)
+        new_evidence = [
+            {"evidence_id": "ev-new-1", "title": "Article", "snippet": "Content"}
+        ]
+
+        await analyzer.map_evidence_to_specific_elements(
+            claim_map=claim_map,
+            unresolved_element_ids=["e1"],
+            new_evidence=new_evidence,
+        )
+
+        # Check the prompt passed to _call_llm
+        call_args = analyzer._call_llm.call_args
+        prompt = call_args.kwargs.get("prompt") or call_args[1].get(
+            "prompt", call_args[0][0] if call_args[0] else ""
+        )
+        assert "e1:" in prompt, "Prompt should contain unresolved element e1"
+        assert "e2:" in prompt, "Prompt should contain resolved element e2"
+
+    @pytest.mark.asyncio
+    async def test_evidence_formatting_unclassified(self):
+        """Evidence with tier=None shows '[Tier: unclassified]', not '[Tier: None]'."""
+        claim_map = self._make_claim_map()
+
+        llm_response = {"elements": []}
+        analyzer = self._make_analyzer(llm_response)
+        new_evidence = [
+            {
+                "evidence_id": "ev-new-1",
+                "title": "Unclassified article",
+                "snippet": "Content",
+                "tier": None,
+                "evidence_type": None,
+            }
+        ]
+
+        await analyzer.map_evidence_to_specific_elements(
+            claim_map=claim_map,
+            unresolved_element_ids=["e1"],
+            new_evidence=new_evidence,
+        )
+
+        call_args = analyzer._call_llm.call_args
+        prompt = call_args.kwargs.get("prompt") or call_args[1].get(
+            "prompt", call_args[0][0] if call_args[0] else ""
+        )
+        assert (
+            "[Tier: unclassified]" in prompt
+        ), f"Expected '[Tier: unclassified]' in prompt, got: {prompt}"
+        assert (
+            "[Type: unclassified]" in prompt
+        ), f"Expected '[Type: unclassified]' in prompt, got: {prompt}"
+        assert "[Tier: None]" not in prompt
+        assert "[Type: None]" not in prompt
 
     @pytest.mark.asyncio
     async def test_state_transition(self):
@@ -1388,6 +1836,9 @@ class TestQualityGates:
         retriever.search_service.search_for_evidence = AsyncMock(
             return_value=search_results
         )
+        retriever.evidence_extractor = MagicMock()
+        retriever.evidence_extractor.max_concurrent = 3
+        retriever.evidence_extractor._extract_from_page = AsyncMock(return_value=None)
 
         existing_urls = {
             "https://example.com/already-seen-1",
@@ -1426,6 +1877,9 @@ class TestQualityGates:
         retriever.search_service.search_for_evidence = AsyncMock(
             return_value=search_results
         )
+        retriever.evidence_extractor = MagicMock()
+        retriever.evidence_extractor.max_concurrent = 3
+        retriever.evidence_extractor._extract_from_page = AsyncMock(return_value=None)
 
         elements = [{"element_id": "e1", "description": "Test element"}]
         evidence = await retriever.retrieve_for_elements(
@@ -1469,3 +1923,532 @@ class TestQualityGates:
             cm["orientation"]
             == "The single required element is evidentially unresolved."
         )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Track N Phase 2: Recovery enrichment + config wiring tests
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class TestRecoveryEnrichment:
+    """Tests for _enrich_recovery_evidence() — fetching full page content
+    for coverage recovery evidence items."""
+
+    @pytest.mark.asyncio
+    async def test_enrichment_replaces_thin_snippet(self):
+        """When _extract_from_page returns longer text, evidence item is enriched."""
+        retriever = EvidenceRetriever()
+        evidence_items = [
+            {
+                "url": "https://example.com/article",
+                "title": "Test Article",
+                "text": "Short snippet.",
+                "snippet": "Short snippet.",
+                "word_count": 2,
+                "source": "example.com",
+                "published_date": None,
+                "metadata": {"coverage_recovery": True},
+            }
+        ]
+
+        enriched_snippet = MagicMock()
+        enriched_snippet.text = "This is a much longer enriched text with many more words that provides substantially more context about the topic at hand for evidence mapping."
+        enriched_snippet.word_count = 25
+
+        with patch.object(
+            retriever.evidence_extractor,
+            "_extract_from_page",
+            new_callable=AsyncMock,
+            return_value=enriched_snippet,
+        ):
+            await retriever._enrich_recovery_evidence(evidence_items, "test claim")
+
+        assert evidence_items[0]["text"] == enriched_snippet.text
+        assert evidence_items[0]["word_count"] == 25
+        assert evidence_items[0]["metadata"]["enriched"] is True
+
+    @pytest.mark.asyncio
+    async def test_enrichment_preserves_on_none(self):
+        """When _extract_from_page returns None, original snippet is preserved."""
+        retriever = EvidenceRetriever()
+        original_text = "Original short snippet."
+        evidence_items = [
+            {
+                "url": "https://example.com/blocked",
+                "title": "Blocked Article",
+                "text": original_text,
+                "snippet": original_text,
+                "word_count": 3,
+                "source": "example.com",
+                "published_date": None,
+                "metadata": {"coverage_recovery": True},
+            }
+        ]
+
+        with patch.object(
+            retriever.evidence_extractor,
+            "_extract_from_page",
+            new_callable=AsyncMock,
+            return_value=None,
+        ):
+            await retriever._enrich_recovery_evidence(evidence_items, "test claim")
+
+        assert evidence_items[0]["text"] == original_text
+        assert evidence_items[0]["metadata"]["enriched"] is False
+
+    @pytest.mark.asyncio
+    async def test_enrichment_preserves_on_timeout(self):
+        """When _extract_from_page times out, original snippet is preserved."""
+        retriever = EvidenceRetriever()
+        original_text = "Original snippet before timeout."
+        evidence_items = [
+            {
+                "url": "https://example.com/slow",
+                "title": "Slow Article",
+                "text": original_text,
+                "snippet": original_text,
+                "word_count": 4,
+                "source": "example.com",
+                "published_date": None,
+                "metadata": {"coverage_recovery": True},
+            }
+        ]
+
+        async def _slow_extract(*args, **kwargs):
+            await asyncio.sleep(10)
+
+        with patch.object(
+            retriever.evidence_extractor,
+            "_extract_from_page",
+            side_effect=_slow_extract,
+        ):
+            await retriever._enrich_recovery_evidence(
+                evidence_items, "test claim", timeout_per_url=0.01
+            )
+
+        assert evidence_items[0]["text"] == original_text
+        assert evidence_items[0]["metadata"]["enriched"] is False
+
+    @pytest.mark.asyncio
+    async def test_enrichment_preserves_on_exception(self):
+        """When _extract_from_page raises, original snippet is preserved."""
+        retriever = EvidenceRetriever()
+        original_text = "Original snippet before error."
+        evidence_items = [
+            {
+                "url": "https://example.com/error",
+                "title": "Error Article",
+                "text": original_text,
+                "snippet": original_text,
+                "word_count": 4,
+                "source": "example.com",
+                "published_date": None,
+                "metadata": {"coverage_recovery": True},
+            }
+        ]
+
+        with patch.object(
+            retriever.evidence_extractor,
+            "_extract_from_page",
+            new_callable=AsyncMock,
+            side_effect=ConnectionError("DNS failed"),
+        ):
+            await retriever._enrich_recovery_evidence(evidence_items, "test claim")
+
+        assert evidence_items[0]["text"] == original_text
+        assert evidence_items[0]["metadata"]["enriched"] is False
+
+    @pytest.mark.asyncio
+    async def test_enrichment_skips_shorter_content(self):
+        """When extracted text is shorter than original, keep original."""
+        retriever = EvidenceRetriever()
+        original_text = "This is already a decent length snippet with enough content."
+        evidence_items = [
+            {
+                "url": "https://example.com/short",
+                "title": "Short Extract",
+                "text": original_text,
+                "snippet": original_text,
+                "word_count": 10,
+                "source": "example.com",
+                "published_date": None,
+                "metadata": {"coverage_recovery": True},
+            }
+        ]
+
+        enriched_snippet = MagicMock()
+        enriched_snippet.text = "Short."
+        enriched_snippet.word_count = 1
+
+        with patch.object(
+            retriever.evidence_extractor,
+            "_extract_from_page",
+            new_callable=AsyncMock,
+            return_value=enriched_snippet,
+        ):
+            await retriever._enrich_recovery_evidence(evidence_items, "test claim")
+
+        assert evidence_items[0]["text"] == original_text
+        assert evidence_items[0]["metadata"]["enriched"] is False
+
+    @pytest.mark.asyncio
+    async def test_enrichment_skips_no_url(self):
+        """Evidence items with no URL get enriched=False without error."""
+        retriever = EvidenceRetriever()
+        evidence_items = [
+            {
+                "url": "",
+                "title": "No URL",
+                "text": "Some text.",
+                "snippet": "Some text.",
+                "word_count": 2,
+                "source": "",
+                "published_date": None,
+                "metadata": {"coverage_recovery": True},
+            }
+        ]
+
+        await retriever._enrich_recovery_evidence(evidence_items, "test claim")
+
+        assert evidence_items[0]["metadata"]["enriched"] is False
+
+    @pytest.mark.asyncio
+    async def test_enrichment_multiple_items_partial_success(self):
+        """Mixed success: some items enriched, others fail."""
+        retriever = EvidenceRetriever()
+        evidence_items = [
+            {
+                "url": "https://example.com/good",
+                "title": "Good",
+                "text": "Short.",
+                "snippet": "Short.",
+                "word_count": 1,
+                "source": "example.com",
+                "published_date": None,
+                "metadata": {"coverage_recovery": True},
+            },
+            {
+                "url": "https://example.com/bad",
+                "title": "Bad",
+                "text": "Short.",
+                "snippet": "Short.",
+                "word_count": 1,
+                "source": "example.com",
+                "published_date": None,
+                "metadata": {"coverage_recovery": True},
+            },
+        ]
+
+        good_snippet = MagicMock()
+        good_snippet.text = (
+            "This is a much longer enriched text with many words for testing purposes."
+        )
+        good_snippet.word_count = 13
+
+        call_count = 0
+
+        async def _mock_extract(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return good_snippet
+            raise ConnectionError("failed")
+
+        with patch.object(
+            retriever.evidence_extractor,
+            "_extract_from_page",
+            side_effect=_mock_extract,
+        ):
+            await retriever._enrich_recovery_evidence(evidence_items, "test claim")
+
+        assert evidence_items[0]["metadata"]["enriched"] is True
+        assert evidence_items[1]["metadata"]["enriched"] is False
+
+
+# =============================================================================
+# Group 9: Recovery Query Planning (5 tests)
+# =============================================================================
+
+
+class TestRecoveryQueryPlanning:
+    """Tests for LLM query planner integration in retrieve_for_elements."""
+
+    def _make_retriever(self, search_results=None):
+        """Create an EvidenceRetriever with a mocked search_service."""
+        retriever = EvidenceRetriever.__new__(EvidenceRetriever)
+        retriever.search_service = AsyncMock()
+        retriever.evidence_extractor = MagicMock()
+        retriever.evidence_extractor.max_concurrent = 3
+        retriever.evidence_extractor._extract_from_page = AsyncMock(return_value=None)
+        if search_results is not None:
+            retriever.search_service.search_for_evidence = AsyncMock(
+                return_value=search_results
+            )
+        else:
+            retriever.search_service.search_for_evidence = AsyncMock(return_value=[])
+        return retriever
+
+    @pytest.mark.asyncio
+    async def test_planner_queries_used_when_available(self):
+        """When planner returns plans, search uses planner queries not naive concat."""
+        retriever = self._make_retriever(search_results=[])
+        elements = [{"element_id": "e1", "description": "Unemployment rate in 2024"}]
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = AsyncMock(
+            return_value=[
+                {
+                    "element_id": "e1",
+                    "queries": [
+                        "UK unemployment rate 2024 ONS",
+                        "jobless figures 2024",
+                    ],
+                    "freshness": "pm",
+                }
+            ]
+        )
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 8
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="The Great Wall of China",
+                existing_urls=set(),
+            )
+
+        # Should have 2 calls (one per planner query), not 1 naive call
+        assert retriever.search_service.search_for_evidence.call_count == 2
+        calls = retriever.search_service.search_for_evidence.call_args_list
+        assert "UK unemployment rate 2024 ONS" in calls[0][0][0]
+        assert "jobless figures 2024" in calls[1][0][0]
+        # Freshness should be from planner, not default "py"
+        assert calls[0][1].get("freshness") == "pm"
+
+    @pytest.mark.asyncio
+    async def test_fallback_to_naive_when_planner_fails(self):
+        """When planner raises exception, naive concatenation is used."""
+        retriever = self._make_retriever(search_results=[])
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = AsyncMock(
+            side_effect=RuntimeError("API down")
+        )
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 8
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim text here",
+                existing_urls=set(),
+            )
+
+        # Fallback: 1 naive query per element
+        assert retriever.search_service.search_for_evidence.call_count == 1
+        query = retriever.search_service.search_for_evidence.call_args[0][0]
+        assert "Test element" in query
+        assert "Test claim text here" in query
+
+    @pytest.mark.asyncio
+    async def test_fallback_when_planning_disabled(self):
+        """When ENABLE_RECOVERY_QUERY_PLANNING=False, naive path is used."""
+        retriever = self._make_retriever(search_results=[])
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 8
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        assert retriever.search_service.search_for_evidence.call_count == 1
+        query = retriever.search_service.search_for_evidence.call_args[0][0]
+        assert "Test element" in query
+
+    @pytest.mark.asyncio
+    async def test_article_context_forwarded(self):
+        """plan_queries_batch receives the article_context dict."""
+        retriever = self._make_retriever(search_results=[])
+        elements = [{"element_id": "e1", "description": "Test element"}]
+        article_ctx = {"domain": "economics", "temporal_context": "2024"}
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = AsyncMock(return_value=[])
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 8
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+                article_context=article_ctx,
+            )
+
+        mock_planner.plan_queries_batch.assert_awaited_once()
+        call_kwargs = mock_planner.plan_queries_batch.call_args[1]
+        assert call_kwargs["article_context"] == article_ctx
+
+    @pytest.mark.asyncio
+    async def test_planner_timeout_triggers_fallback(self):
+        """When planner exceeds timeout, fallback to naive queries is used."""
+        retriever = self._make_retriever(search_results=[])
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        async def slow_planner(*args, **kwargs):
+            await asyncio.sleep(5)
+            return []
+
+        mock_planner = MagicMock()
+        mock_planner.plan_queries_batch = slow_planner
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings, patch(
+            "app.utils.query_planner.get_query_planner", return_value=mock_planner
+        ):
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = True
+            mock_settings.RECOVERY_PLANNER_TIMEOUT = 0.05
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 8
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim text",
+                existing_urls=set(),
+            )
+
+        # Should fall back to naive query
+        assert retriever.search_service.search_for_evidence.call_count == 1
+        query = retriever.search_service.search_for_evidence.call_args[0][0]
+        assert "Test element" in query
+
+
+class TestConfigWiring:
+    """Tests that config settings flow through to pipeline code."""
+
+    def test_max_sources_per_claim_from_config(self):
+        """EvidenceRetriever reads MAX_SOURCES_PER_CLAIM from settings."""
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.MAX_SOURCES_PER_CLAIM = 30
+            mock_settings.ENABLE_API_RETRIEVAL = True
+            retriever = EvidenceRetriever()
+            assert retriever.max_sources_per_claim == 30
+
+    @pytest.mark.asyncio
+    async def test_recovery_max_results_per_element_from_config(self):
+        """retrieve_for_elements uses RECOVERY_MAX_RESULTS_PER_ELEMENT from settings."""
+        retriever = EvidenceRetriever()
+        mock_search = AsyncMock(return_value=[])
+
+        with patch.object(
+            retriever.search_service,
+            "search_for_evidence",
+            mock_search,
+        ), patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 12
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+
+            await retriever.retrieve_for_elements(
+                elements=[{"element_id": "e1", "description": "Test"}],
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+            mock_search.assert_called_once()
+            assert mock_search.call_args.kwargs.get("max_results") == 12
+
+    @pytest.mark.asyncio
+    async def test_enrichment_gated_by_config(self):
+        """retrieve_for_elements skips enrichment when ENABLE_RECOVERY_ENRICHMENT=False."""
+        retriever = EvidenceRetriever()
+
+        mock_result = MagicMock()
+        mock_result.url = "https://example.com/test"
+        mock_result.snippet = "Test snippet"
+        mock_result.title = "Test"
+        mock_result.source = "example.com"
+        mock_result.published_date = None
+
+        with patch.object(
+            retriever.search_service,
+            "search_for_evidence",
+            new_callable=AsyncMock,
+            return_value=[mock_result],
+        ), patch.object(
+            retriever,
+            "_enrich_recovery_evidence",
+            new_callable=AsyncMock,
+        ) as mock_enrich, patch(
+            "app.pipeline.retrieve.settings"
+        ) as mock_settings:
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+
+            result = await retriever.retrieve_for_elements(
+                elements=[{"element_id": "e1", "description": "Test"}],
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+            mock_enrich.assert_not_called()
+            assert len(result) == 1
+
+    @pytest.mark.asyncio
+    async def test_enrichment_called_when_enabled(self):
+        """retrieve_for_elements calls enrichment when ENABLE_RECOVERY_ENRICHMENT=True."""
+        retriever = EvidenceRetriever()
+
+        mock_result = MagicMock()
+        mock_result.url = "https://example.com/test"
+        mock_result.snippet = "Test snippet"
+        mock_result.title = "Test"
+        mock_result.source = "example.com"
+        mock_result.published_date = None
+
+        with patch.object(
+            retriever.search_service,
+            "search_for_evidence",
+            new_callable=AsyncMock,
+            return_value=[mock_result],
+        ), patch.object(
+            retriever,
+            "_enrich_recovery_evidence",
+            new_callable=AsyncMock,
+        ) as mock_enrich, patch(
+            "app.pipeline.retrieve.settings"
+        ) as mock_settings:
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = True
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+
+            result = await retriever.retrieve_for_elements(
+                elements=[{"element_id": "e1", "description": "Test"}],
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+            mock_enrich.assert_called_once()
+            assert len(result) == 1

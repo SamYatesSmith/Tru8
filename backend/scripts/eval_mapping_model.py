@@ -206,8 +206,8 @@ def build_mapping_prompt(
         evidence_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
             f"[{ev.get('title', 'Untitled')}] "
-            f"[Tier: {ev.get('tier', 'unknown')}] "
-            f"[Type: {ev.get('evidence_type', 'unknown')}] "
+            f"[Tier: {ev.get('tier') or 'unclassified'}] "
+            f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
             f"{(ev.get('snippet') or ev.get('text') or '')[:snippet_length]}"
             for ev in evidence_list
         )

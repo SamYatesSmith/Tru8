@@ -112,6 +112,8 @@ support a claim about "worldwide" or "global" figures. Evidence from one time pe
 does NOT support a claim about a different time period.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
+- CROSS-ELEMENT: A single evidence item may be relevant to multiple elements. For each \
+evidence item, consider ALL elements it could inform, not just the most obvious one.
 - PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as \
 approximate. A source saying "59%" does not challenge a claim of "approximately 60%". \
 But a source saying "25%" DOES challenge a claim of "18%".
@@ -193,6 +195,8 @@ support a claim about "worldwide" or "global" figures. Evidence from one time pe
 does NOT support a claim about a different time period.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
+- CROSS-ELEMENT: A single evidence item may be relevant to multiple elements. For each \
+evidence item, consider ALL elements it could inform, not just the most obvious one.
 - PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as \
 approximate. A source saying "59%" does not challenge a claim of "approximately 60%". \
 But a source saying "25%" DOES challenge a claim of "18%".
@@ -342,8 +346,8 @@ class ClaimMapAnalyzer:
         evidence_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
             f"[{ev.get('title', 'Untitled')}] "
-            f"[Tier: {ev.get('tier', 'unknown')}] "
-            f"[Type: {ev.get('evidence_type', 'unknown')}] "
+            f"[Tier: {ev.get('tier') or 'unclassified'}] "
+            f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
             f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
             for ev in evidence_list
         )
@@ -872,35 +876,30 @@ class ClaimMapAnalyzer:
         unresolved_element_ids: List[str],
         new_evidence: List[Dict[str, Any]],
     ) -> None:
-        """Map new evidence to specific unresolved elements only.
+        """Map new evidence to elements, with full cross-element visibility.
 
-        Used by coverage recovery. Scopes the LLM mapping prompt to only the
-        unresolved elements, merges new evidence_refs, and re-derives element
-        states and orientation.
+        Used by coverage recovery. Shows ALL elements in the LLM prompt so
+        evidence can be mapped across element boundaries. Only updates state
+        for unresolved (target) elements; resolved elements get new refs
+        merged but keep their existing state.
 
         Mutates claim_map in place.
         """
         if not new_evidence or not unresolved_element_ids:
             return
 
-        # Filter to only the unresolved elements
-        target_elements = [
-            e
-            for e in claim_map["elements"]
-            if e["element_id"] in unresolved_element_ids
-        ]
-        if not target_elements:
-            return
+        target_set = set(unresolved_element_ids)
+        all_elements = claim_map["elements"]
 
-        # Build context for LLM
+        # Build context for LLM -- include ALL elements for cross-element mapping
         elements_desc = "\n".join(
-            f"- {e['element_id']}: {e['description']}" for e in target_elements
+            f"- {e['element_id']}: {e['description']}" for e in all_elements
         )
         evidence_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
             f"[{ev.get('title', 'Untitled')}] "
-            f"[Tier: {ev.get('tier', 'unknown')}] "
-            f"[Type: {ev.get('evidence_type', 'unknown')}] "
+            f"[Tier: {ev.get('tier') or 'unclassified'}] "
+            f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
             f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
             for ev in new_evidence
         )
@@ -924,7 +923,7 @@ class ClaimMapAnalyzer:
                 raw_elements = parsed.get("elements", [])
                 raw_by_id = {e.get("element_id"): e for e in raw_elements}
 
-                for elem in target_elements:
+                for elem in all_elements:
                     eid = elem["element_id"]
                     mapped = raw_by_id.get(eid)
                     if not mapped:
@@ -937,14 +936,13 @@ class ClaimMapAnalyzer:
                     existing_refs = elem.get("evidence_refs", [])
                     elem["evidence_refs"] = existing_refs + new_refs
 
-                    # Re-derive state
-                    raw_state = mapped.get("state", "unresolved")
-                    if raw_state not in _VALID_STATES:
-                        raw_state = "unresolved"
-                    elem["state"] = ElementState(raw_state)
-
-                    # Update uncertainty
-                    elem["uncertainty"] = mapped.get("uncertainty") or None
+                    # Only update state for unresolved (target) elements
+                    if eid in target_set:
+                        raw_state = mapped.get("state", "unresolved")
+                        if raw_state not in _VALID_STATES:
+                            raw_state = "unresolved"
+                        elem["state"] = ElementState(raw_state)
+                        elem["uncertainty"] = mapped.get("uncertainty") or None
 
             except Exception as e:
                 logger.warning(
