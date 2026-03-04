@@ -972,6 +972,73 @@ class TestMapEvidenceToSpecificElements:
         assert "[Type: None]" not in prompt
 
     @pytest.mark.asyncio
+    async def test_evidence_id_neutralisation(self):
+        """Recovery evidence IDs have element hints stripped in the prompt.
+
+        ev-rec-e1_3_abc → ev-rec-3_abc in prompt, but real ID restored in output refs.
+        """
+        claim_map = self._make_claim_map()
+
+        # LLM returns refs using the neutralised ID
+        llm_response = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev-rec-3_abc123",
+                            "relationship": "supports",
+                        }
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                },
+                {
+                    "element_id": "e2",
+                    "evidence_refs": [
+                        {
+                            "evidence_id": "ev-rec-3_abc123",
+                            "relationship": "context",
+                        }
+                    ],
+                    "state": "supported",
+                    "uncertainty": None,
+                },
+            ]
+        }
+        analyzer = self._make_analyzer(llm_response)
+        new_evidence = [
+            {
+                "evidence_id": "ev-rec-e1_3_abc123",
+                "title": "Recovery article",
+                "snippet": "Content",
+            }
+        ]
+
+        await analyzer.map_evidence_to_specific_elements(
+            claim_map=claim_map,
+            unresolved_element_ids=["e1"],
+            new_evidence=new_evidence,
+        )
+
+        # Check prompt uses neutralised ID (no element hint)
+        call_args = analyzer._call_llm.call_args
+        prompt = call_args.kwargs.get("prompt") or call_args[1].get(
+            "prompt", call_args[0][0] if call_args[0] else ""
+        )
+        assert "ev-rec-3_abc123" in prompt, "Prompt should use neutralised ID"
+        assert (
+            "ev-rec-e1_3_abc123" not in prompt
+        ), "Prompt should NOT contain element hint"
+
+        # Check real IDs are restored in output refs
+        e1 = claim_map["elements"][0]
+        assert e1["evidence_refs"][0]["evidence_id"] == "ev-rec-e1_3_abc123"
+
+        e2 = claim_map["elements"][1]
+        assert e2["evidence_refs"][1]["evidence_id"] == "ev-rec-e1_3_abc123"
+
+    @pytest.mark.asyncio
     async def test_state_transition(self):
         """An unresolved element transitions to supported after recovery mapping."""
         claim_map = self._make_claim_map()

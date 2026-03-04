@@ -16,6 +16,7 @@ Canonical contract: audit/track-b/2026-02-12_claim-map-contract.md
 
 import json
 import logging
+import re
 from collections import Counter
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -895,14 +896,25 @@ class ClaimMapAnalyzer:
         elements_desc = "\n".join(
             f"- {e['element_id']}: {e['description']}" for e in all_elements
         )
-        evidence_desc = "\n".join(
-            f"- {ev.get('evidence_id', 'unknown')}: "
-            f"[{ev.get('title', 'Untitled')}] "
-            f"[Tier: {ev.get('tier') or 'unclassified'}] "
-            f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
-            f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
-            for ev in new_evidence
-        )
+
+        # Neutralise element hints in recovery evidence IDs so the LLM
+        # doesn't anchor on them (e.g. ev-rec-e1_3_abc → ev-rec-3_abc).
+        # Keep a mapping to translate the LLM's output back to real IDs.
+        _ELEMENT_HINT_RE = re.compile(r"^(ev-rec-)e\d+_")
+        neutral_to_real: Dict[str, str] = {}
+        evidence_lines = []
+        for ev in new_evidence:
+            real_id = ev.get("evidence_id", "unknown")
+            neutral_id = _ELEMENT_HINT_RE.sub(r"\1", real_id)
+            neutral_to_real[neutral_id] = real_id
+            evidence_lines.append(
+                f"- {neutral_id}: "
+                f"[{ev.get('title', 'Untitled')}] "
+                f"[Tier: {ev.get('tier') or 'unclassified'}] "
+                f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
+                f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
+            )
+        evidence_desc = "\n".join(evidence_lines)
 
         prompt = (
             f"{MAPPING_PROMPT}\n\n"
@@ -929,10 +941,14 @@ class ClaimMapAnalyzer:
                     if not mapped:
                         continue
 
+                    # Restore real evidence IDs from neutralised ones
+                    raw_refs = mapped.get("evidence_refs", [])
+                    for ref in raw_refs:
+                        nid = ref.get("evidence_id", "")
+                        ref["evidence_id"] = neutral_to_real.get(nid, nid)
+
                     # Merge new evidence_refs with existing ones
-                    new_refs = self._validate_evidence_refs(
-                        mapped.get("evidence_refs", []), new_evidence
-                    )
+                    new_refs = self._validate_evidence_refs(raw_refs, new_evidence)
                     existing_refs = elem.get("evidence_refs", [])
                     elem["evidence_refs"] = existing_refs + new_refs
 
