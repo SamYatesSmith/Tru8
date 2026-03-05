@@ -390,6 +390,11 @@ class Evidence(SQLModel, table=True):
         max_length=20,
         description="How tier/type was assigned: 'llm' or 'heuristic'",
     )
+    content_basis: Optional[str] = Field(
+        default=None,
+        max_length=20,
+        description="What the pipeline obtained: full|snippet|api|pdf",
+    )
 
     # Primary Source Detection fields (Tier 1 Improvement, 2025-01-17)
     is_primary_source: bool = Field(

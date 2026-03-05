@@ -108,6 +108,7 @@ def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
         # Provenance persistence (M-01)
         "llmRelevanceScore": ev.llm_relevance_score,
         "classificationMethod": ev.classification_method,
+        "contentBasis": ev.content_basis,
     }
     if include_factcheck_detail:
         result["factcheckPublisher"] = ev.factcheck_publisher
@@ -375,14 +376,26 @@ def _compute_landscape(claims_data: list, check=None) -> dict:
                 state = elem.get("state")
                 if state:
                     element_states[state] = element_states.get(state, 0) + 1
-                # M-03: element-level gaps (elements with zero evidence_refs)
+                # M-03: element-level gaps
                 refs = elem.get("evidenceRefs") or []
+                state = elem.get("state")
                 if not refs:
                     gaps.append(
                         {
                             "elementId": elem.get("elementId"),
-                            "text": elem.get("text"),
+                            "description": elem.get("description"),
                             "claimPosition": claim.get("position"),
+                            "reason": "no_evidence",
+                        }
+                    )
+                elif state == "unresolved":
+                    gaps.append(
+                        {
+                            "elementId": elem.get("elementId"),
+                            "description": elem.get("description"),
+                            "claimPosition": claim.get("position"),
+                            "reason": "unresolved",
+                            "evidenceCount": len(refs),
                         }
                     )
 

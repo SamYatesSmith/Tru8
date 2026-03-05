@@ -14,6 +14,7 @@ Orientation line is derived mechanically (no LLM).
 Canonical contract: audit/track-b/2026-02-12_claim-map-contract.md
 """
 
+import asyncio
 import json
 import logging
 import re
@@ -118,6 +119,17 @@ evidence item, consider ALL elements it could inform, not just the most obvious 
 - PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as \
 approximate. A source saying "59%" does not challenge a claim of "approximately 60%". \
 But a source saying "25%" DOES challenge a claim of "18%".
+- DATA PROVENANCE: Each evidence item shows [Tier] and [Type]. When an element asserts \
+a specific figure, date, or quantity, prioritise primary/reporting tier evidence that \
+cites the same figure. Commentary or opinion discussing the broader topic is "context" \
+for that element, not "supports" or "challenges", unless it directly confirms or \
+contradicts the specific figure. Example: an element states "expenditure exceeded £37bn"; \
+an opinion piece saying "the programme was controversial" is "context", while an official \
+report stating "the two-year budget was £37 billion" is "supports".
+- TOPIC vs FIGURE: Distinguish between evidence about a topic and evidence about a \
+specific statistic within that topic. An element asserting a number requires evidence \
+that addresses the number itself, not merely the surrounding subject. Evidence that \
+discusses the subject without mentioning the figure should be mapped as "context".
 """
 
 BATCH_DECOMPOSITION_PROMPT = """\
@@ -201,16 +213,48 @@ evidence item, consider ALL elements it could inform, not just the most obvious 
 - PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as \
 approximate. A source saying "59%" does not challenge a claim of "approximately 60%". \
 But a source saying "25%" DOES challenge a claim of "18%".
+- DATA PROVENANCE: Each evidence item shows [Tier] and [Type]. When an element asserts \
+a specific figure, date, or quantity, prioritise primary/reporting tier evidence that \
+cites the same figure. Commentary or opinion discussing the broader topic is "context" \
+for that element, not "supports" or "challenges", unless it directly confirms or \
+contradicts the specific figure. Example: an element states "expenditure exceeded £37bn"; \
+an opinion piece saying "the programme was controversial" is "context", while an official \
+report stating "the two-year budget was £37 billion" is "supports".
+- TOPIC vs FIGURE: Distinguish between evidence about a topic and evidence about a \
+specific statistic within that topic. An element asserting a number requires evidence \
+that addresses the number itself, not merely the surrounding subject. Evidence that \
+discusses the subject without mentioning the figure should be mapped as "context".
 """
 
 
 # ── Orientation line derivation (pure function, no LLM) ────────────────────
+
+# Prose mappings for orientation templates — centres evidence as the actor.
+_SINGLE_PHRASE = {
+    "supported": "predominantly supports it",
+    "disputed": "both supports and conflicts with it",
+    "unresolved": "is insufficient to assess it",
+}
+
+_UNANIMOUS_PHRASE = {
+    "supported": "predominantly supports",
+    "disputed": "both supports and conflicts with",
+    "unresolved": "is insufficient to assess",
+}
+
+_ITEM_PHRASE = {
+    "supported": "predominantly supported",
+    "disputed": "with conflicting evidence",
+    "unresolved": "lacking sufficient evidence",
+}
 
 
 def derive_orientation(elements: List[ClaimElement]) -> str:
     """Derive orientation line mechanically from element states.
 
     Contract Section 5: deterministic, no LLM, fully derivable from states.
+    Every orientation starts with "Of {N} elements examined" — framing Tru8 as
+    examiner of evidence, not arbiter of truth.
     """
     total = len(elements)
     if total == 0:
@@ -229,12 +273,16 @@ def derive_orientation(elements: List[ClaimElement]) -> str:
     # Single element
     if total == 1:
         state = state_values[0]
-        return f"The single required element is evidentially {state}."
+        phrase = _SINGLE_PHRASE.get(state, state)
+        return f"Of 1 element examined, retrieved evidence {phrase}."
 
     # Unanimous
     if len(counts) == 1:
         state = state_values[0]
-        return f"All {total} required elements are evidentially {state}."
+        if state == "unresolved":
+            return f"Of {total} elements examined, retrieved evidence is insufficient to assess any."
+        phrase = _UNANIMOUS_PHRASE.get(state, state)
+        return f"Of {total} elements examined, retrieved evidence {phrase} all {total}."
 
     # Find majority (strictly more than any other single state)
     most_common = counts.most_common()
@@ -243,22 +291,109 @@ def derive_orientation(elements: List[ClaimElement]) -> str:
     tied = [s for s, c in most_common if c == top_count]
 
     if len(tied) == 1:
-        # Majority exists
-        majority_state = tied[0]
-        majority_count = top_count
-        remainder_parts = []
-        for state, count in most_common[1:]:
-            remainder_parts.append(f"{count} {'is' if count == 1 else 'are'} {state}")
-        remainder = " and ".join(remainder_parts)
-        return (
-            f"{majority_count} of {total} required elements are evidentially "
-            f"{majority_state}; {remainder}."
-        )
+        # Majority exists — list all groups descriptively
+        parts = []
+        for state, count in most_common:
+            phrase = _ITEM_PHRASE.get(state, state)
+            parts.append(f"{count} {phrase}")
+        remainder = "; ".join(parts)
+        return f"Of {total} elements examined, {remainder}."
 
     # No majority (tied or all different)
-    parts = [f"{count} {state}" for state, count in most_common]
+    parts = []
+    for state, count in most_common:
+        phrase = _ITEM_PHRASE.get(state, state)
+        parts.append(f"{count} {phrase}")
     joined = ", ".join(parts)
-    return f"Evidence is mixed across {total} required elements: {joined}."
+    return f"Of {total} elements examined, evidence is mixed: {joined}."
+
+
+def compute_orientation_basis(elements: List[ClaimElement]) -> dict:
+    """Compute structured orientation breakdown from element states.
+
+    Returns machine-readable state distribution — companion to the prose
+    orientation line. Pure function, no LLM.
+    """
+    state_distribution: Dict[str, int] = {
+        "supported": 0,
+        "disputed": 0,
+        "unresolved": 0,
+    }
+    for elem in elements:
+        state = elem.get("state")
+        if state is not None:
+            sv = state.value if hasattr(state, "value") else state
+            if sv in state_distribution:
+                state_distribution[sv] += 1
+    return {
+        "total_elements": len(elements),
+        "state_distribution": state_distribution,
+    }
+
+
+def _compute_element_basis(
+    elem: ClaimElement, evidence_list: List[Dict[str, Any]]
+) -> dict:
+    """Compute basis metadata for an element's state.
+
+    Aggregates relationship counts, tier counts, and classification method
+    counts from the evidence items referenced by this element.
+    """
+    refs = elem.get("evidence_refs", [])
+    if not refs:
+        return {
+            "evidence_count": 0,
+            "relationship_breakdown": {},
+            "tier_breakdown": {},
+            "classification_breakdown": {},
+            "content_basis_breakdown": {},
+        }
+
+    # Build evidence_id → evidence_item index
+    ev_index: Dict[str, Dict[str, Any]] = {}
+    for ev in evidence_list:
+        eid = ev.get("evidence_id")
+        if eid:
+            ev_index[eid] = ev
+
+    relationship_counts: Dict[str, int] = {}
+    tier_counts: Dict[str, int] = {}
+    classification_counts: Dict[str, int] = {}
+    content_basis_counts: Dict[str, int] = {}
+
+    for ref in refs:
+        # Relationship breakdown
+        rel = ref.get("relationship")
+        if rel is not None:
+            rel_val = rel.value if hasattr(rel, "value") else str(rel)
+            relationship_counts[rel_val] = relationship_counts.get(rel_val, 0) + 1
+
+        # Look up the full evidence item
+        eid = ref.get("evidence_id", "")
+        ev_item = ev_index.get(eid)
+        if ev_item:
+            # Tier breakdown
+            tier = ev_item.get("tier")
+            if tier:
+                tier_counts[tier] = tier_counts.get(tier, 0) + 1
+
+            # Classification method breakdown
+            method = ev_item.get("classification_method")
+            if method:
+                classification_counts[method] = classification_counts.get(method, 0) + 1
+
+            # Content basis breakdown (PQ-07)
+            cb = ev_item.get("content_basis")
+            if cb:
+                content_basis_counts[cb] = content_basis_counts.get(cb, 0) + 1
+
+    return {
+        "evidence_count": len(refs),
+        "relationship_breakdown": relationship_counts,
+        "tier_breakdown": tier_counts,
+        "classification_breakdown": classification_counts,
+        "content_basis_breakdown": content_basis_counts,
+    }
 
 
 # ── ClaimMapAnalyzer ────────────────────────────────────────────────────────
@@ -283,7 +418,8 @@ class ClaimMapAnalyzer:
         self.mapping_google_model = getattr(
             settings, "MAPPING_GOOGLE_MODEL", self.google_model
         )
-        self.timeout = 30
+        self.timeout = 30  # decomposition, recovery (flash-lite, fast)
+        self.mapping_timeout = 55  # evidence mapping (flash thinking model, slow)
         self._token_usage = {"input_tokens": 0, "output_tokens": 0}
 
     def get_token_usage(self) -> Dict[str, int]:
@@ -333,6 +469,9 @@ class ClaimMapAnalyzer:
                 elem["state"] = ElementState.unresolved
                 elem["uncertainty"] = "No evidence was retrieved for this element."
             claim_map["orientation"] = derive_orientation(claim_map["elements"])
+            claim_map["orientation_basis"] = compute_orientation_basis(
+                claim_map["elements"]
+            )
             claim_map["metadata"]["mapping_model"] = "none"
             claim_map["metadata"]["element_count"] = len(claim_map["elements"])
             claim_map["metadata"]["completed_at"] = datetime.now(
@@ -349,6 +488,7 @@ class ClaimMapAnalyzer:
             f"[{ev.get('title', 'Untitled')}] "
             f"[Tier: {ev.get('tier') or 'unclassified'}] "
             f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
+            f"[Content: {ev.get('content_basis') or 'unknown'}] "
             f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
             for ev in evidence_list
         )
@@ -399,6 +539,9 @@ class ClaimMapAnalyzer:
 
         # Derive orientation mechanically
         claim_map["orientation"] = derive_orientation(claim_map["elements"])
+        claim_map["orientation_basis"] = compute_orientation_basis(
+            claim_map["elements"]
+        )
 
         # Set mapping metadata
         model_used = "fallback" if parsed is None else self._last_model_used
@@ -508,6 +651,7 @@ class ClaimMapAnalyzer:
                     elem["state"] = ElementState.unresolved
                     elem["uncertainty"] = "No evidence was retrieved for this element."
                 cm["orientation"] = derive_orientation(cm["elements"])
+                cm["orientation_basis"] = compute_orientation_basis(cm["elements"])
                 cm["metadata"]["mapping_model"] = "none"
                 cm["metadata"]["element_count"] = len(cm["elements"])
                 cm["metadata"]["completed_at"] = datetime.now(timezone.utc).isoformat()
@@ -536,6 +680,7 @@ class ClaimMapAnalyzer:
                 f"[{ev_item.get('title', 'Untitled')}] "
                 f"[Tier: {ev_item.get('tier', 'unknown')}] "
                 f"[Type: {ev_item.get('evidence_type', 'unknown')}] "
+                f"[Content: {ev_item.get('content_basis') or 'unknown'}] "
                 f"{(ev_item.get('snippet') or ev_item.get('text') or '')[:self.snippet_length]}"
                 for ev_item in ev
             )
@@ -594,6 +739,7 @@ class ClaimMapAnalyzer:
             if i not in failed_set:
                 cm = item["claim_map"]
                 cm["orientation"] = derive_orientation(cm["elements"])
+                cm["orientation_basis"] = compute_orientation_basis(cm["elements"])
                 cm["metadata"]["mapping_model"] = model_used
                 cm["metadata"]["element_count"] = len(cm["elements"])
                 cm["metadata"]["completed_at"] = datetime.now(timezone.utc).isoformat()
@@ -628,27 +774,40 @@ class ClaimMapAnalyzer:
         """
         self._last_model_used = "unknown"
 
-        # Try Google first
+        # Mapping calls use the thinking model which needs more time
+        is_mapping = label in ("mapping", "batch_mapping")
+        google_timeout = self.mapping_timeout if is_mapping else self.timeout
+
+        # Try Google first — with a time cap that leaves room for OpenAI fallback
         if self.google_ai_api_key:
             try:
-                # Use mapping-specific model for mapping/batch_mapping labels
                 model_to_use = (
-                    self.mapping_google_model
-                    if label in ("mapping", "batch_mapping")
-                    else self.google_model
+                    self.mapping_google_model if is_mapping else self.google_model
                 )
-                parsed, usage = await self._call_google(
-                    prompt, temperature, max_tokens, model=model_to_use
+                parsed, usage = await asyncio.wait_for(
+                    self._call_google(
+                        prompt,
+                        temperature,
+                        max_tokens,
+                        model=model_to_use,
+                        timeout=google_timeout,
+                    ),
+                    timeout=google_timeout + 5,
                 )
                 if parsed is not None:
                     self._last_model_used = model_to_use
                     self._accumulate(usage)
                     logger.info(f"[CLAIM_MAP] {label} completed via Google Gemini")
                     return parsed
+            except asyncio.TimeoutError:
+                logger.warning(
+                    f"[CLAIM_MAP] Google {label} timed out after {google_timeout}s, "
+                    "trying OpenAI"
+                )
             except Exception as e:
                 logger.warning(f"[CLAIM_MAP] Google {label} failed: {e}")
 
-        # Fall back to OpenAI
+        # Fall back to OpenAI (guaranteed to run if Google times out)
         if self.openai_api_key:
             try:
                 model = (
@@ -682,12 +841,13 @@ class ClaimMapAnalyzer:
         temperature: float,
         max_tokens: int,
         model: Optional[str] = None,
+        timeout: Optional[float] = None,
     ) -> tuple:
         return await call_google_ai_with_usage(
             prompt,
             temperature=temperature,
             max_tokens=max_tokens,
-            timeout=self.timeout,
+            timeout=timeout or self.timeout,
             model=model or self.google_model,
         )
 
@@ -800,6 +960,12 @@ class ClaimMapAnalyzer:
                 elem["evidence_refs"] = []
                 elem["state"] = ElementState.unresolved
                 elem["uncertainty"] = None
+                elem["basis"] = {
+                    "evidence_count": 0,
+                    "relationship_breakdown": {},
+                    "tier_breakdown": {},
+                    "classification_breakdown": {},
+                }
                 continue
 
             # Validate and filter evidence_refs
@@ -816,6 +982,9 @@ class ClaimMapAnalyzer:
 
             # Uncertainty (optional)
             elem["uncertainty"] = mapped.get("uncertainty") or None
+
+            # PQ-03: Attach evidence basis metadata
+            elem["basis"] = _compute_element_basis(elem, evidence_list)
 
     def _validate_evidence_refs(
         self,
@@ -912,6 +1081,7 @@ class ClaimMapAnalyzer:
                 f"[{ev.get('title', 'Untitled')}] "
                 f"[Tier: {ev.get('tier') or 'unclassified'}] "
                 f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
+                f"[Content: {ev.get('content_basis') or 'unknown'}] "
                 f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
             )
         evidence_desc = "\n".join(evidence_lines)
@@ -921,6 +1091,13 @@ class ClaimMapAnalyzer:
             f"Claim: {claim_map['normalised_claim']}\n\n"
             f"Elements:\n{elements_desc}\n\n"
             f"Evidence:\n{evidence_desc}"
+        )
+
+        logger.info(
+            f"[RECOVERY MAP] Claim {claim_map.get('claim_id', '?')}: "
+            f"{len(new_evidence)} evidence, {len(all_elements)} elements "
+            f"({len(target_set)} unresolved), "
+            f"neutralised {sum(1 for n, r in neutral_to_real.items() if n != r)} IDs"
         )
 
         parsed = await self._call_llm(
@@ -952,21 +1129,37 @@ class ClaimMapAnalyzer:
                     existing_refs = elem.get("evidence_refs", [])
                     elem["evidence_refs"] = existing_refs + new_refs
 
+                    is_target = eid in target_set
+                    ref_ids = [r.get("evidence_id", "?") for r in new_refs]
+                    logger.info(
+                        f"[RECOVERY MAP] {eid} ({'target' if is_target else 'resolved'}): "
+                        f"+{len(new_refs)} refs {ref_ids}, "
+                        f"state={'updating' if is_target else 'preserved'}"
+                    )
+
                     # Only update state for unresolved (target) elements
-                    if eid in target_set:
+                    if is_target:
                         raw_state = mapped.get("state", "unresolved")
                         if raw_state not in _VALID_STATES:
                             raw_state = "unresolved"
                         elem["state"] = ElementState(raw_state)
                         elem["uncertainty"] = mapped.get("uncertainty") or None
+                        logger.info(f"[RECOVERY MAP] {eid}: state → {raw_state}")
 
             except Exception as e:
                 logger.warning(
                     f"Recovery mapping parse failed for claim {claim_map['claim_id']}: {e}"
                 )
+        else:
+            logger.warning(
+                f"[RECOVERY MAP] Claim {claim_map.get('claim_id', '?')}: LLM returned None"
+            )
 
         # Re-derive orientation from all element states
         claim_map["orientation"] = derive_orientation(claim_map["elements"])
+        claim_map["orientation_basis"] = compute_orientation_basis(
+            claim_map["elements"]
+        )
 
     def _has_null_reasoning(self, claim_map: ClaimMap) -> bool:
         """Check if any evidence_ref has null reasoning."""

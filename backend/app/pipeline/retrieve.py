@@ -83,7 +83,7 @@ class EvidenceRetriever:
     def __init__(self):
         self.search_service = SearchService()
         self.evidence_extractor = EvidenceExtractor()
-        self.max_sources_per_claim = 20
+        self.max_sources_per_claim = settings.MAX_SOURCES_PER_CLAIM
         self.max_concurrent_claims = 3
         self.max_queries_per_element = 3  # Cap queries per element (L-04)
 
@@ -556,6 +556,7 @@ class EvidenceRetriever:
                         "word_count": snippet.word_count,
                         "receipt_status": "extracted",
                         "metadata": snippet.metadata,
+                        "content_basis": snippet.content_basis,
                         "is_recovery": True,
                     }
                 )
@@ -671,6 +672,7 @@ class EvidenceRetriever:
         elements: List[Dict[str, Any]],
         claim_text: str,
         existing_urls: set,
+        article_context: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Targeted retrieval for specific unresolved elements.
 
@@ -682,6 +684,7 @@ class EvidenceRetriever:
             elements: [{"element_id": "e1", "description": "..."}]
             claim_text: Parent claim text for search context
             existing_urls: URLs to exclude (already in evidence pool)
+            article_context: Article classification for query planning context
 
         Returns:
             List of evidence dicts in standard pipeline format.
@@ -689,78 +692,220 @@ class EvidenceRetriever:
         all_evidence = []
         claim_context = claim_text[:100]
 
-        for elem in elements:
-            query = f"{elem['description']} {claim_context}"
+        # Use LLM query planner for targeted recovery queries
+        element_queries = {}  # element_id -> [{"query": str, "freshness": str}]
+
+        if settings.ENABLE_RECOVERY_QUERY_PLANNING:
             try:
-                results = await self.search_service.search_for_evidence(
-                    query, max_results=5, freshness="py"
+                from app.utils.query_planner import get_query_planner
+
+                planner = get_query_planner()
+
+                claims_with_elements = [
+                    {
+                        "text": claim_text,
+                        "claim_index": 0,
+                        "elements": [
+                            {
+                                "element_id": e["element_id"],
+                                "description": e["description"],
+                            }
+                            for e in elements
+                        ],
+                    }
+                ]
+
+                plans = await asyncio.wait_for(
+                    planner.plan_queries_batch(
+                        claims_with_elements, article_context=article_context
+                    ),
+                    timeout=settings.RECOVERY_PLANNER_TIMEOUT,
                 )
-                if not results:
-                    continue
 
-                for idx, r in enumerate(results):
-                    url = (
-                        getattr(r, "url", "") if hasattr(r, "url") else r.get("url", "")
+                if plans:
+                    for plan in plans:
+                        eid = plan.get("element_id", "")
+                        queries = plan.get("queries", [])[:2]
+                        freshness = plan.get("freshness", "py")
+                        element_queries[eid] = [
+                            {"query": q, "freshness": freshness} for q in queries
+                        ]
+                    logger.info(
+                        f"[COVERAGE RECOVERY] Query planner: {len(plans)} element plans, "
+                        f"{sum(len(v) for v in element_queries.values())} queries"
                     )
-                    if url in existing_urls:
-                        continue
-
-                    ev_hash = hashlib.sha256(url.encode()).hexdigest()[:8]
-                    snippet_text = (
-                        getattr(r, "snippet", "")
-                        if hasattr(r, "snippet")
-                        else r.get("snippet", "")
-                    )
-                    title = (
-                        getattr(r, "title", "")
-                        if hasattr(r, "title")
-                        else r.get("title", "")
-                    )
-                    source = (
-                        getattr(r, "source", "")
-                        if hasattr(r, "source")
-                        else r.get("source", "")
-                    )
-                    pub_date = (
-                        getattr(r, "published_date", None)
-                        if hasattr(r, "published_date")
-                        else r.get("published_date")
-                    )
-
-                    all_evidence.append(
-                        {
-                            "id": f"recovery_{elem['element_id']}_{idx}",
-                            "evidence_id": f"ev-rec-{elem['element_id']}_{idx}_{ev_hash}",
-                            "element_ids": [],
-                            "text": snippet_text,
-                            "snippet": snippet_text,
-                            "source": source,
-                            "url": url,
-                            "title": title,
-                            "published_date": pub_date,
-                            "relevance_score": 0.0,
-                            "semantic_similarity": 0.0,
-                            "combined_score": 0.0,
-                            "word_count": (
-                                len(snippet_text.split()) if snippet_text else 0
-                            ),
-                            "receipt_status": "extracted",
-                            "metadata": {
-                                "coverage_recovery": True,
-                                "target_element": elem["element_id"],
-                            },
-                            "is_recovery": True,
-                        }
-                    )
-                    existing_urls.add(url)
-
             except Exception as e:
                 logger.warning(
-                    f"[COVERAGE RECOVERY] Search failed for element {elem['element_id']}: {e}"
+                    f"[COVERAGE RECOVERY] Query planner failed ({e}), using naive queries"
                 )
-                continue
+
+        for elem in elements:
+            queries_for_elem = element_queries.get(elem["element_id"])
+
+            if queries_for_elem:
+                search_pairs = [
+                    (qp["query"], qp["freshness"]) for qp in queries_for_elem
+                ]
+            else:
+                search_pairs = [(f"{elem['description']} {claim_context}", "py")]
+
+            for query, freshness in search_pairs:
+                try:
+                    results = await self.search_service.search_for_evidence(
+                        query,
+                        max_results=settings.RECOVERY_MAX_RESULTS_PER_ELEMENT,
+                        freshness=freshness,
+                    )
+                    if not results:
+                        continue
+
+                    for idx, r in enumerate(results):
+                        url = (
+                            getattr(r, "url", "")
+                            if hasattr(r, "url")
+                            else r.get("url", "")
+                        )
+                        if url in existing_urls:
+                            continue
+
+                        ev_hash = hashlib.sha256(url.encode()).hexdigest()[:8]
+                        snippet_text = (
+                            getattr(r, "snippet", "")
+                            if hasattr(r, "snippet")
+                            else r.get("snippet", "")
+                        )
+                        title = (
+                            getattr(r, "title", "")
+                            if hasattr(r, "title")
+                            else r.get("title", "")
+                        )
+                        source = (
+                            getattr(r, "source", "")
+                            if hasattr(r, "source")
+                            else r.get("source", "")
+                        )
+                        pub_date = (
+                            getattr(r, "published_date", None)
+                            if hasattr(r, "published_date")
+                            else r.get("published_date")
+                        )
+
+                        all_evidence.append(
+                            {
+                                "id": f"recovery_{elem['element_id']}_{idx}",
+                                "evidence_id": f"ev-rec-{elem['element_id']}_{idx}_{ev_hash}",
+                                "element_ids": [],
+                                "text": snippet_text,
+                                "snippet": snippet_text,
+                                "source": source,
+                                "url": url,
+                                "title": title,
+                                "published_date": pub_date,
+                                "relevance_score": 0.0,
+                                "semantic_similarity": 0.0,
+                                "combined_score": 0.0,
+                                "word_count": (
+                                    len(snippet_text.split()) if snippet_text else 0
+                                ),
+                                "receipt_status": "extracted",
+                                "metadata": {
+                                    "coverage_recovery": True,
+                                    "target_element": elem["element_id"],
+                                },
+                                "content_basis": r.get("content_basis", "snippet"),
+                                "is_recovery": True,
+                            }
+                        )
+                        existing_urls.add(url)
+
+                except Exception as e:
+                    logger.warning(
+                        f"[COVERAGE RECOVERY] Search failed for element {elem['element_id']}: {e}"
+                    )
+                    continue
+
+        # Enrich recovery evidence with full page content
+        if all_evidence and settings.ENABLE_RECOVERY_ENRICHMENT:
+            await self._enrich_recovery_evidence(all_evidence, claim_text)
 
         return all_evidence
+
+    async def _enrich_recovery_evidence(
+        self,
+        evidence_items: List[Dict[str, Any]],
+        claim_text: str,
+        timeout_per_url: float = 8.0,
+    ) -> None:
+        """Fetch full page content for coverage recovery evidence items.
+
+        Uses the existing EvidenceExtractor._extract_from_page() pipeline
+        (trafilatura → readability → fallback) to replace thin search snippets
+        with rich content excerpts.
+
+        Modifies evidence_items in place. On failure, keeps original snippet.
+        """
+        semaphore = asyncio.Semaphore(self.evidence_extractor.max_concurrent)
+
+        async def _enrich_single(ev: Dict[str, Any]) -> None:
+            url = ev.get("url", "")
+            if not url:
+                ev.setdefault("metadata", {})["enriched"] = False
+                return
+
+            try:
+                search_result = SearchResult(
+                    title=ev.get("title", ""),
+                    url=url,
+                    snippet=ev.get("snippet", ""),
+                    published_date=ev.get("published_date"),
+                    source=ev.get("source", ""),
+                )
+                snippet = await asyncio.wait_for(
+                    self.evidence_extractor._extract_from_page(
+                        search_result, claim_text, semaphore
+                    ),
+                    timeout=timeout_per_url,
+                )
+                if (
+                    snippet
+                    and snippet.text
+                    and len(snippet.text) > len(ev.get("text", ""))
+                ):
+                    ev["text"] = snippet.text
+                    ev["snippet"] = snippet.text[:500]
+                    ev["word_count"] = snippet.word_count
+                    ev.setdefault("metadata", {})["enriched"] = True
+                    logger.debug(
+                        f"[RECOVERY ENRICHMENT] {url}: {snippet.word_count} words"
+                    )
+                else:
+                    ev.setdefault("metadata", {})["enriched"] = False
+                    if snippet and snippet.text:
+                        logger.debug(
+                            f"[RECOVERY ENRICHMENT] Skipped {url}: extracted {len(snippet.text)} chars <= original {len(ev.get('text', ''))}"
+                        )
+                    else:
+                        logger.debug(f"[RECOVERY ENRICHMENT] No content from {url}")
+            except asyncio.TimeoutError:
+                logger.debug(f"[RECOVERY ENRICHMENT] Timeout for {url}")
+                ev.setdefault("metadata", {})["enriched"] = False
+            except Exception as e:
+                logger.debug(
+                    f"[RECOVERY ENRICHMENT] Failed for {url}: {type(e).__name__}: {e}"
+                )
+                ev.setdefault("metadata", {})["enriched"] = False
+
+        await asyncio.gather(
+            *[_enrich_single(ev) for ev in evidence_items],
+            return_exceptions=True,
+        )
+
+        enriched_count = sum(
+            1 for ev in evidence_items if ev.get("metadata", {}).get("enriched")
+        )
+        logger.info(
+            f"[RECOVERY ENRICHMENT] {enriched_count}/{len(evidence_items)} items enriched"
+        )
 
     async def _retrieve_evidence_for_single_claim(
         self,
@@ -831,6 +976,7 @@ class EvidenceRetriever:
                                 "source_type": item.get("source_type"),
                                 "receipt_status": "shown",
                                 "metadata": item.get("metadata", {}),
+                                "content_basis": item.get("content_basis", "full"),
                             }
                         )
 
@@ -1045,7 +1191,7 @@ class EvidenceRetriever:
                 all_evidence_snippets = evidence_snippets + api_snippets
 
                 # Fix 0c: Cap combined evidence before expensive ranking
-                MAX_EVIDENCE_FOR_RANKING = 60
+                MAX_EVIDENCE_FOR_RANKING = settings.MAX_EVIDENCE_FOR_RANKING
                 if len(all_evidence_snippets) > MAX_EVIDENCE_FOR_RANKING:
                     logger.info(
                         f"[EVIDENCE CAP] Reducing {len(all_evidence_snippets)} items to {MAX_EVIDENCE_FOR_RANKING} before ranking"
@@ -1101,6 +1247,7 @@ class EvidenceRetriever:
                             "external_source_provider": external_source,
                             "receipt_status": "extracted",
                             "metadata": snippet.metadata,
+                            "content_basis": snippet.content_basis,
                         }
                     )
 
@@ -1994,6 +2141,7 @@ class EvidenceRetriever:
                             "external_source_provider"
                         ),
                     },
+                    content_basis="api",
                 )
                 snippets.append(snippet)
             except Exception as e:

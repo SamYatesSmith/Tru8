@@ -29,6 +29,7 @@ class EvidenceSnippet:
         published_date: Optional[str] = None,
         relevance_score: float = 0.0,
         metadata: Optional[Dict[str, Any]] = None,
+        content_basis: str = "full",
     ):
         self.text = text
         self.source = source
@@ -38,6 +39,7 @@ class EvidenceSnippet:
         self.relevance_score = relevance_score
         self.word_count = len(text.split())
         self.metadata = metadata or {}  # Store page numbers, context
+        self.content_basis = content_basis
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -49,6 +51,7 @@ class EvidenceSnippet:
             "relevance_score": self.relevance_score,
             "word_count": self.word_count,
             "metadata": self.metadata,
+            "content_basis": self.content_basis,
         }
 
 
@@ -333,6 +336,7 @@ class EvidenceExtractor:
                                 "context_before": best_match.get("context_before"),
                                 "context_after": best_match.get("context_after"),
                             },
+                            content_basis="pdf",
                         )
                     else:
                         logger.warning(
@@ -363,6 +367,7 @@ class EvidenceExtractor:
                     )
                     domain = extract_domain(search_result.url, fallback="unknown")
 
+                    _fell_back_to_snippet = False
                     if not content:
                         # Track as JS-required (page loaded but no content extracted)
                         try:
@@ -375,6 +380,7 @@ class EvidenceExtractor:
                             pass
                         # Fallback to search snippet if extraction fails
                         content = search_result.snippet
+                        _fell_back_to_snippet = True
                     else:
                         # Track successful extraction
                         try:
@@ -409,6 +415,7 @@ class EvidenceExtractor:
                         title=search_result.title,
                         published_date=published_date,
                         relevance_score=relevance_score,
+                        content_basis="snippet" if _fell_back_to_snippet else "full",
                     )
 
             except httpx.TimeoutException:
@@ -453,6 +460,7 @@ class EvidenceExtractor:
                         title=search_result.title,
                         published_date=search_result.published_date,
                         relevance_score=0.5,  # Lower score for fallback
+                        content_basis="snippet",
                     )
                 return None
             except Exception as e:

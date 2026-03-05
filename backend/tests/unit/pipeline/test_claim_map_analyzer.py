@@ -20,7 +20,12 @@ from app.models.claim_map import (
     ElementState,
     EvidenceRelationship,
 )
-from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer, derive_orientation
+from app.pipeline.claim_map_analyzer import (
+    ClaimMapAnalyzer,
+    derive_orientation,
+    compute_orientation_basis,
+    _compute_element_basis,
+)
 
 
 # ── Fixtures / helpers ──────────────────────────────────────────────────────
@@ -423,7 +428,10 @@ class TestDeriveOrientation:
             )
         ]
         result = derive_orientation(elements)
-        assert result == "The single required element is evidentially supported."
+        assert (
+            result
+            == "Of 1 element examined, retrieved evidence predominantly supports it."
+        )
 
     def test_unanimous_supported(self):
         elements = [
@@ -437,7 +445,10 @@ class TestDeriveOrientation:
             for i in range(1, 4)
         ]
         result = derive_orientation(elements)
-        assert result == "All 3 required elements are evidentially supported."
+        assert (
+            result
+            == "Of 3 elements examined, retrieved evidence predominantly supports all 3."
+        )
 
     def test_unanimous_disputed(self):
         elements = [
@@ -451,7 +462,10 @@ class TestDeriveOrientation:
             for i in range(1, 3)
         ]
         result = derive_orientation(elements)
-        assert result == "All 2 required elements are evidentially disputed."
+        assert (
+            result
+            == "Of 2 elements examined, retrieved evidence both supports and conflicts with all 2."
+        )
 
     def test_unanimous_unresolved(self):
         elements = [
@@ -465,7 +479,10 @@ class TestDeriveOrientation:
             for i in range(1, 5)
         ]
         result = derive_orientation(elements)
-        assert result == "All 4 required elements are evidentially unresolved."
+        assert (
+            result
+            == "Of 4 elements examined, retrieved evidence is insufficient to assess any."
+        )
 
     def test_majority_supported(self):
         """2 of 3 supported, 1 disputed → majority template."""
@@ -493,8 +510,9 @@ class TestDeriveOrientation:
             ),
         ]
         result = derive_orientation(elements)
-        assert "2 of 3 required elements are evidentially supported" in result
-        assert "1 is disputed" in result
+        assert "Of 3 elements examined" in result
+        assert "2 predominantly supported" in result
+        assert "1 with conflicting evidence" in result
 
     def test_majority_unresolved(self):
         """2 of 4 unresolved, 1 supported, 1 disputed → majority template."""
@@ -529,8 +547,8 @@ class TestDeriveOrientation:
             ),
         ]
         result = derive_orientation(elements)
-        assert "2 of 4 required elements are" in result
-        assert "unresolved" in result
+        assert "Of 4 elements examined" in result
+        assert "2 lacking sufficient evidence" in result
 
     def test_mixed_no_majority(self):
         """1 of each state → 'Evidence is mixed' template."""
@@ -558,14 +576,19 @@ class TestDeriveOrientation:
             ),
         ]
         result = derive_orientation(elements)
-        assert result.startswith("Evidence is mixed across 3 required elements:")
-        assert "1 supported" in result
-        assert "1 disputed" in result
-        assert "1 unresolved" in result
+        assert result.startswith("Of 3 elements examined, evidence is mixed:")
+        assert "1 predominantly supported" in result
+        assert "1 with conflicting evidence" in result
+        assert "1 lacking sufficient evidence" in result
 
     @pytest.mark.parametrize("state", list(ElementState))
     def test_single_element_all_states(self, state):
         """Single element with each state produces correct template."""
+        expected_phrases = {
+            "supported": "predominantly supports it",
+            "disputed": "both supports and conflicts with it",
+            "unresolved": "is insufficient to assess it",
+        }
         elements = [
             ClaimElement(
                 element_id="e1",
@@ -576,7 +599,8 @@ class TestDeriveOrientation:
             )
         ]
         result = derive_orientation(elements)
-        assert result == f"The single required element is evidentially {state.value}."
+        phrase = expected_phrases[state.value]
+        assert result == f"Of 1 element examined, retrieved evidence {phrase}."
 
     def test_empty_elements(self):
         assert derive_orientation([]) == "No elements to assess."
@@ -602,3 +626,92 @@ class TestDeriveOrientation:
         r1 = derive_orientation(elements)
         r2 = derive_orientation(elements)
         assert r1 == r2
+
+
+# ── Prompt regression tests ───────────────────────────────────────────────
+
+
+class TestMappingPromptRules:
+    """Ensure critical mapping rules aren't accidentally removed."""
+
+    def test_mapping_prompt_contains_data_provenance_rule(self):
+        from app.pipeline.claim_map_analyzer import MAPPING_PROMPT
+
+        assert "DATA PROVENANCE" in MAPPING_PROMPT
+
+    def test_mapping_prompt_contains_topic_vs_figure_rule(self):
+        from app.pipeline.claim_map_analyzer import MAPPING_PROMPT
+
+        assert "TOPIC vs FIGURE" in MAPPING_PROMPT
+
+    def test_batch_mapping_prompt_contains_data_provenance_rule(self):
+        from app.pipeline.claim_map_analyzer import BATCH_MAPPING_PROMPT
+
+        assert "DATA PROVENANCE" in BATCH_MAPPING_PROMPT
+
+    def test_batch_mapping_prompt_contains_topic_vs_figure_rule(self):
+        from app.pipeline.claim_map_analyzer import BATCH_MAPPING_PROMPT
+
+        assert "TOPIC vs FIGURE" in BATCH_MAPPING_PROMPT
+
+
+# ── PQ-07: content_basis_breakdown in element basis ───────────────────────
+
+
+class TestContentBasisBreakdown:
+    """PQ-07: _compute_element_basis includes content_basis_breakdown."""
+
+    def test_content_basis_breakdown_populated(self):
+        """content_basis_breakdown counts by basis type."""
+        evidence_list = [
+            {"evidence_id": "ev-1", "tier": "primary", "content_basis": "full"},
+            {"evidence_id": "ev-2", "tier": "reporting", "content_basis": "snippet"},
+            {"evidence_id": "ev-3", "tier": "reporting", "content_basis": "snippet"},
+        ]
+        elem = {
+            "evidence_refs": [
+                {"evidence_id": "ev-1", "relationship": "supports"},
+                {"evidence_id": "ev-2", "relationship": "supports"},
+                {"evidence_id": "ev-3", "relationship": "context"},
+            ]
+        }
+        basis = _compute_element_basis(elem, evidence_list)
+        assert basis["content_basis_breakdown"] == {"full": 1, "snippet": 2}
+
+    def test_content_basis_breakdown_empty_refs(self):
+        """Elements with no evidence get empty content_basis_breakdown."""
+        elem = {"evidence_refs": []}
+        basis = _compute_element_basis(elem, [])
+        assert basis["content_basis_breakdown"] == {}
+
+    def test_content_basis_breakdown_api_and_pdf(self):
+        """API and PDF basis types are counted correctly."""
+        evidence_list = [
+            {"evidence_id": "ev-1", "content_basis": "api"},
+            {"evidence_id": "ev-2", "content_basis": "pdf"},
+            {"evidence_id": "ev-3", "content_basis": "api"},
+        ]
+        elem = {
+            "evidence_refs": [
+                {"evidence_id": "ev-1", "relationship": "supports"},
+                {"evidence_id": "ev-2", "relationship": "supports"},
+                {"evidence_id": "ev-3", "relationship": "context"},
+            ]
+        }
+        basis = _compute_element_basis(elem, evidence_list)
+        assert basis["content_basis_breakdown"] == {"api": 2, "pdf": 1}
+
+    def test_content_basis_breakdown_missing_field(self):
+        """Evidence without content_basis is excluded from breakdown."""
+        evidence_list = [
+            {"evidence_id": "ev-1", "content_basis": "full"},
+            {"evidence_id": "ev-2"},  # no content_basis
+        ]
+        elem = {
+            "evidence_refs": [
+                {"evidence_id": "ev-1", "relationship": "supports"},
+                {"evidence_id": "ev-2", "relationship": "supports"},
+            ]
+        }
+        basis = _compute_element_basis(elem, evidence_list)
+        assert basis["content_basis_breakdown"] == {"full": 1}

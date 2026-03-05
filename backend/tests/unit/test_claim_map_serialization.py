@@ -48,7 +48,7 @@ class TestClaimMapCamelCaseConversion:
                     "uncertainty": "Date not confirmed in evidence.",
                 },
             ],
-            "orientation": "The single required element is evidentially supported.",
+            "orientation": "Of 1 element examined, retrieved evidence predominantly supports it.",
             "metadata": {
                 "decomposition_model": "gemini-2.5-flash-lite",
                 "mapping_model": "gemini-2.5-flash-lite",
@@ -218,6 +218,7 @@ def _make_evidence(**overrides):
         "archived_url": None,
         "llm_relevance_score": None,
         "classification_method": None,
+        "content_basis": None,
     }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)

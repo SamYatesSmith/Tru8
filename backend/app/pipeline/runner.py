@@ -1351,7 +1351,7 @@ async def run_pipeline_phase2(
     # =========================================================================
     # Stage 3.8: Post-Filter Recovery — backfill claims thinned by scoring
     # =========================================================================
-    MIN_EVIDENCE_POST_FILTER = 5
+    MIN_EVIDENCE_POST_FILTER = settings.MIN_EVIDENCE_POST_FILTER
     if (
         not _is_frozen_evidence_replay
         and evidence
@@ -1613,7 +1613,7 @@ async def run_pipeline_phase2(
                 scaffold, ev_list
             )
 
-    analyze_timeout = 45  # single batch call, not N × 15s
+    analyze_timeout = 90  # 55s Google thinking model + 30s OpenAI fallback + margin
 
     try:
         batch_input = []
@@ -1668,9 +1668,9 @@ async def run_pipeline_phase2(
     # Stage 5.1: Coverage Recovery — targeted retrieval for low-coverage claims
     # =========================================================================
     COVERAGE_RECOVERY_THRESHOLD = 0.4  # Trigger when >40% unresolved
-    RECOVERY_MAX_CLAIMS = 3  # Max claims to recover per check
-    RECOVERY_MAX_ELEMENTS = 5  # Max elements to recover per claim
-    RECOVERY_TIMEOUT_SECONDS = 20  # Hard time cap
+    RECOVERY_MAX_CLAIMS = settings.RECOVERY_MAX_CLAIMS
+    RECOVERY_MAX_ELEMENTS = settings.RECOVERY_MAX_ELEMENTS_PER_CLAIM
+    RECOVERY_TIMEOUT_SECONDS = settings.RECOVERY_TIMEOUT_SECONDS
 
     _skip_coverage_recovery = not config.enable_coverage_recovery
     if _skip_coverage_recovery:
@@ -1757,18 +1757,38 @@ async def run_pipeline_phase2(
                 elements=unresolved_elements,
                 claim_text=claim.get("text", ""),
                 existing_urls=existing_urls,
+                article_context=claim.get("article_classification"),
             )
 
             if not new_evidence:
                 logger.info(f"[COVERAGE RECOVERY] Claim {pos}: no new evidence found")
                 return
 
-            # Classify new evidence (reuse existing classifier)
+            # Classify new evidence (match CLASSIFY stage pattern)
             try:
-                if settings.ENABLE_EVIDENCE_CLASSIFIER:
-                    from app.utils.source_type_classifier import classify_evidence_batch
+                if config.enable_llm_classifier:
+                    from app.pipeline.evidence_classifier import EvidenceClassifier
 
-                    classify_evidence_batch(new_evidence)
+                    classifier = EvidenceClassifier()
+                    new_evidence = await classifier.classify_batch(new_evidence)
+                    for ev in new_evidence:
+                        ev["receipt_status"] = "classified"
+                    logger.info(
+                        f"[COVERAGE RECOVERY] Claim {pos}: classified "
+                        f"{len(new_evidence)} recovery evidence items (LLM)"
+                    )
+                else:
+                    from app.pipeline.evidence_classifier import _classify_heuristic
+
+                    for ev in new_evidence:
+                        tier, evidence_type = _classify_heuristic(ev)
+                        ev["tier"] = tier
+                        ev["evidence_type"] = evidence_type
+                        ev["receipt_status"] = "classified"
+                    logger.info(
+                        f"[COVERAGE RECOVERY] Claim {pos}: classified "
+                        f"{len(new_evidence)} recovery evidence items (heuristic)"
+                    )
             except Exception as e:
                 logger.warning(f"[COVERAGE RECOVERY] Classification failed: {e}")
 
@@ -2267,6 +2287,7 @@ async def save_check_results_async(
                     )[:500]
                     or None,
                     classification_method=ev_data.get("classification_method"),
+                    content_basis=ev_data.get("content_basis"),
                 )
                 session.add(evidence)
 

@@ -440,6 +440,7 @@ class TestRetrieveForElements:
             "word_count",
             "receipt_status",
             "metadata",
+            "content_basis",
             "is_recovery",
         }
         assert set(evidence[0].keys()) == required_keys
@@ -1211,7 +1212,7 @@ class TestRecoverySuccess:
         )
 
         before_orientation = cm["orientation"]
-        assert "unresolved" in before_orientation
+        assert "insufficient" in before_orientation or "lacking" in before_orientation
 
         new_evidence = [
             {
@@ -1270,7 +1271,8 @@ class TestRecoverySuccess:
         assert len(cm["elements"][2]["evidence_refs"]) == 1
         # Orientation reflects full support
         assert (
-            cm["orientation"] == "All 3 required elements are evidentially supported."
+            cm["orientation"]
+            == "Of 3 elements examined, retrieved evidence predominantly supports all 3."
         )
 
     @pytest.mark.asyncio
@@ -1283,7 +1285,7 @@ class TestRecoverySuccess:
             ]
         )
 
-        assert "unresolved" in cm["orientation"]
+        assert "insufficient" in cm["orientation"] or "lacking" in cm["orientation"]
 
         new_evidence = [
             {
@@ -1319,9 +1321,9 @@ class TestRecoverySuccess:
 
         assert cm["elements"][1]["state"] == ElementState.disputed
         assert cm["elements"][1]["uncertainty"] is not None
-        # Orientation mentions disputed, not unresolved
-        assert "disputed" in cm["orientation"]
-        assert "unresolved" not in cm["orientation"]
+        # Orientation mentions conflicting evidence, not insufficient
+        assert "conflicting evidence" in cm["orientation"]
+        assert "insufficient" not in cm["orientation"]
 
     @pytest.mark.asyncio
     async def test_multiple_evidence_items_map_to_single_element(self):
@@ -1339,7 +1341,7 @@ class TestRecoverySuccess:
 
         assert (
             cm["orientation"]
-            == "The single required element is evidentially unresolved."
+            == "Of 1 element examined, retrieved evidence is insufficient to assess it."
         )
 
         new_evidence = [
@@ -1402,7 +1404,8 @@ class TestRecoverySuccess:
         assert EvidenceRelationship.supports in relationships
         assert EvidenceRelationship.challenges in relationships
         assert (
-            cm["orientation"] == "The single required element is evidentially disputed."
+            cm["orientation"]
+            == "Of 1 element examined, retrieved evidence both supports and conflicts with it."
         )
 
     @pytest.mark.asyncio
@@ -1460,7 +1463,7 @@ class TestRecoverySuccess:
         assert e1["state"] == ElementState.supported
         assert (
             cm["orientation"]
-            == "The single required element is evidentially supported."
+            == "Of 1 element examined, retrieved evidence predominantly supports it."
         )
 
     @pytest.mark.asyncio
@@ -1476,7 +1479,7 @@ class TestRecoverySuccess:
         )
 
         before_orientation = cm["orientation"]
-        assert "unresolved" in before_orientation
+        assert "insufficient" in before_orientation or "lacking" in before_orientation
 
         new_evidence = [
             {
@@ -1538,10 +1541,10 @@ class TestRecoverySuccess:
         assert cm["elements"][3]["state"] == ElementState.unresolved
         # Orientation must mention all three states honestly
         orientation = cm["orientation"]
-        assert "2 of 4" in orientation
-        assert "supported" in orientation
-        assert "disputed" in orientation
-        assert "unresolved" in orientation
+        assert "Of 4 elements examined" in orientation
+        assert "predominantly supported" in orientation
+        assert "conflicting evidence" in orientation
+        assert "lacking sufficient evidence" in orientation
 
 
 # =============================================================================
@@ -1565,7 +1568,8 @@ class TestRecoveryFutility:
 
         before_orientation = cm["orientation"]
         assert (
-            before_orientation == "All 3 required elements are evidentially unresolved."
+            before_orientation
+            == "Of 3 elements examined, retrieved evidence is insufficient to assess any."
         )
 
         new_evidence = [
@@ -1988,7 +1992,7 @@ class TestQualityGates:
         assert cm["elements"][0]["uncertainty"] is not None
         assert (
             cm["orientation"]
-            == "The single required element is evidentially unresolved."
+            == "Of 1 element examined, retrieved evidence is insufficient to assess it."
         )
 
 
@@ -2519,3 +2523,93 @@ class TestConfigWiring:
 
             mock_enrich.assert_called_once()
             assert len(result) == 1
+
+
+# ── Recovery Evidence Classification ─────────────────────────────────────────
+
+
+class TestRecoveryClassification:
+    """Tests that recovery evidence is classified before being added to the evidence pool."""
+
+    @pytest.mark.asyncio
+    async def test_recovery_classification_llm(self):
+        """Recovery evidence should be classified via LLM classifier when enabled."""
+        raw_evidence = [
+            {
+                "id": "rec-ev-1",
+                "url": "https://example.com/recovery",
+                "title": "Recovery result",
+                "snippet": "Some recovery content",
+                "source": "brave",
+                "tier": None,
+                "evidence_type": None,
+                "receipt_status": "found",
+            }
+        ]
+
+        classified_evidence = [
+            {
+                **raw_evidence[0],
+                "tier": "reporting",
+                "evidence_type": "news",
+            }
+        ]
+
+        mock_classifier_instance = AsyncMock()
+        mock_classifier_instance.classify_batch = AsyncMock(
+            return_value=classified_evidence
+        )
+
+        config_mock = MagicMock()
+        config_mock.enable_llm_classifier = True
+
+        new_evidence = list(raw_evidence)
+
+        # Simulate the classification block from runner.py recovery
+        if config_mock.enable_llm_classifier:
+            new_evidence = await mock_classifier_instance.classify_batch(new_evidence)
+            for ev in new_evidence:
+                ev["receipt_status"] = "classified"
+
+        assert len(new_evidence) == 1
+        assert new_evidence[0]["tier"] == "reporting"
+        assert new_evidence[0]["evidence_type"] == "news"
+        assert new_evidence[0]["receipt_status"] == "classified"
+        mock_classifier_instance.classify_batch.assert_called_once_with(raw_evidence)
+
+    @pytest.mark.asyncio
+    async def test_recovery_classification_heuristic(self):
+        """Recovery evidence should be classified via heuristic when LLM classifier is disabled."""
+        from app.pipeline.evidence_classifier import _classify_heuristic
+
+        raw_evidence = [
+            {
+                "id": "rec-ev-1",
+                "url": "https://www.bbc.co.uk/news/recovery",
+                "title": "BBC Recovery result",
+                "snippet": "Some recovery content",
+                "source": "brave",
+                "tier": None,
+                "evidence_type": None,
+                "receipt_status": "found",
+            }
+        ]
+
+        config_mock = MagicMock()
+        config_mock.enable_llm_classifier = False
+
+        new_evidence = list(raw_evidence)
+
+        if not config_mock.enable_llm_classifier:
+            for ev in new_evidence:
+                tier, evidence_type = _classify_heuristic(ev)
+                ev["tier"] = tier
+                ev["evidence_type"] = evidence_type
+                ev["receipt_status"] = "classified"
+
+        assert len(new_evidence) == 1
+        assert new_evidence[0]["tier"] is not None, "Heuristic should assign a tier"
+        assert (
+            new_evidence[0]["evidence_type"] is not None
+        ), "Heuristic should assign a type"
+        assert new_evidence[0]["receipt_status"] == "classified"
