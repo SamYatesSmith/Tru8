@@ -434,42 +434,22 @@ async def run_pipeline_phase1(
         raise PipelineError(get_user_friendly_error(e), stage="extract")
 
     if not claims:
-        # Give a specific message if the input looks like a question
-        raw_text = (extract_content or "").strip()
-        if raw_text.endswith("?") or raw_text.lower().startswith(
-            (
-                "who ",
-                "what ",
-                "when ",
-                "where ",
-                "why ",
-                "how ",
-                "is ",
-                "are ",
-                "was ",
-                "were ",
-                "do ",
-                "does ",
-                "did ",
-                "can ",
-                "could ",
-                "will ",
-                "would ",
-                "should ",
-                "given ",
-            )
-        ):
-            raise PipelineError(
-                "Your input looks like a question. Tru8 researches evidence "
-                "for factual claims — try submitting a statement instead, e.g. "
-                "'The Eiffel Tower was completed in 1889'.",
-                stage="extract",
-            )
         raise PipelineError(
             "We couldn't extract any verifiable claims from this content. "
-            "Try submitting content that contains specific factual statements.",
+            "Try submitting a specific factual statement, e.g. "
+            "'The Eiffel Tower was completed in 1889'. "
+            "Questions are accepted if they imply a verifiable claim.",
             stage="extract",
         )
+
+    # If input was a question and no explicit user_query, use it as search context
+    if not input_data.get("user_query"):
+        raw_text = (extract_content or "").strip()
+        if raw_text.endswith("?"):
+            input_data["user_query"] = raw_text
+            logger.info(
+                "[INLINE PIPELINE] Question input stored as user_query for search context"
+            )
 
     # Attach article classification
     if article_classification:

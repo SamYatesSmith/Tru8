@@ -101,7 +101,14 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
 
 7. PRESENT IN SOURCE - Extract only explicitly stated or directly implied claims
 8. Maximum {max_claims} claims for Quick mode
-9. AVOID OVERLAPPING CLAIMS - Do NOT extract multiple variations of the same allegation:
+9. QUESTIONS AS CLAIMS - If the input is a question, extract the implicit factual claim:
+   ✓ "Is sea level rising 3mm per year?" → "Sea level is rising 3mm per year"
+   ✓ "Did the UK leave the EU?" → "The UK left the EU"
+   ✓ "Has UK inflation fallen below 3%?" → "UK inflation has fallen below 3%"
+   ✗ "What should I invest in?" → No verifiable claim (skip — subjective/advisory)
+   ✗ "Who is the best footballer?" → No verifiable claim (skip — subjective)
+   Only extract claims where the question implies a specific, verifiable factual statement.
+10. AVOID OVERLAPPING CLAIMS - Do NOT extract multiple variations of the same allegation:
    ✗ BAD: Three claims about EU censorship from different angles
      - "EU Commission conducted censorship campaign"
      - "EU pressured platforms to censor content"
@@ -113,7 +120,7 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
    Different aspects of the SAME event/allegation = ONE claim.
    TRULY DIFFERENT allegations (different events, different subjects) = separate claims.
 
-10. EXTRACT COMPREHENSIVELY - Extract ALL distinct verifiable facts, not just the main headline.
+11. EXTRACT COMPREHENSIVELY - Extract ALL distinct verifiable facts, not just the main headline.
    Each of these deserves a separate claim:
    - Dates/timelines ("completed in 2019", "happened last week")
    - Costs/figures (monetary amounts, statistics, quantities)

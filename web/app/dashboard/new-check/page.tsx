@@ -264,7 +264,9 @@ export default function NewCheckPage() {
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-sm text-zinc-400">
-                  Enter text containing claims you want to analyse
+                  {textInput.trim().endsWith('?')
+                    ? "Questions accepted — we'll extract the implied claim automatically"
+                    : 'Enter text containing claims you want to analyse'}
                 </p>
                 <p className="text-sm font-mono text-zinc-400">
                   {charCount} / {maxChars}
