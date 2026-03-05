@@ -27,7 +27,7 @@ class TestBuildProviderStatus:
                 "api_stats": {
                     "apis_queried": [
                         {"name": "ONS Economic Statistics", "results": 3},
-                        {"name": "FRED Economic Data", "results": 0},
+                        {"name": "FRED", "results": 0},
                     ]
                 },
             }
@@ -38,8 +38,8 @@ class TestBuildProviderStatus:
         assert result["web_search"]["count"] == 8
         assert result["ONS Economic Statistics"]["status"] == "ok"
         assert result["ONS Economic Statistics"]["count"] == 3
-        assert result["FRED Economic Data"]["status"] == "0_results"
-        assert result["FRED Economic Data"]["count"] == 0
+        assert result["FRED"]["status"] == "0_results"
+        assert result["FRED"]["count"] == 0
 
     def test_web_search_timeout_recorded(self):
         claims = [

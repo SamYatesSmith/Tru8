@@ -1,0 +1,162 @@
+[
+  {
+    "id": "sc-01",
+    "claim_text": "The Online Safety Act 2023 requires platforms to verify users' ages",
+    "expected_domain": "Law",
+    "expected_jurisdiction": "UK",
+    "expected_adapters": ["UK Parliament Hansard", "GOV.UK Content API"],
+    "notes": "Should trigger legal keyword routing for UK legislation"
+  },
+  {
+    "id": "sc-02",
+    "claim_text": "The Inflation Reduction Act allocated $369 billion for clean energy",
+    "expected_domain": "Law",
+    "expected_jurisdiction": "US",
+    "expected_adapters": ["GovInfo.gov"],
+    "notes": "Should trigger GovInfo via act-of-YYYY keyword pattern"
+  },
+  {
+    "id": "sc-03",
+    "claim_text": "Ivermectin is effective against COVID-19",
+    "expected_domain": "Health",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["PubMed", "WHO"],
+    "notes": "Should trigger PubMed (drug + COVID) and WHO (global health)"
+  },
+  {
+    "id": "sc-04",
+    "claim_text": "The NHS waiting list exceeded 7.5 million in 2025",
+    "expected_domain": "Health",
+    "expected_jurisdiction": "UK",
+    "expected_adapters": ["WHO", "GOV.UK Content API"],
+    "notes": "UK health claim — should trigger WHO and GOV.UK"
+  },
+  {
+    "id": "sc-05",
+    "claim_text": "UK inflation fell to 2.1% in December 2025",
+    "expected_domain": "Finance",
+    "expected_jurisdiction": "UK",
+    "expected_adapters": ["ONS Economic Statistics"],
+    "notes": "Should trigger ONS via UK inflation keyword"
+  },
+  {
+    "id": "sc-06",
+    "claim_text": "US unemployment rate is 3.7% as of January 2026",
+    "expected_domain": "Finance",
+    "expected_jurisdiction": "US",
+    "expected_adapters": ["FRED"],
+    "notes": "Should trigger FRED via unemployment keyword"
+  },
+  {
+    "id": "sc-07",
+    "claim_text": "Global temperatures rose 1.5°C above pre-industrial levels in 2025",
+    "expected_domain": "Climate",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["NOAA CDO"],
+    "notes": "Should trigger NOAA via global temperature/climate keywords"
+  },
+  {
+    "id": "sc-08",
+    "claim_text": "Arctic sea ice extent reached a record low in September 2025",
+    "expected_domain": "Climate",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["NOAA CDO", "WeatherAPI"],
+    "notes": "Should trigger NOAA (arctic/ice) and possibly WeatherAPI"
+  },
+  {
+    "id": "sc-09",
+    "claim_text": "CRISPR gene editing has been used to treat sickle cell disease",
+    "expected_domain": "Science",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["PubMed", "Semantic Scholar", "OpenAlex"],
+    "notes": "Medical + academic claim — should trigger multiple academic adapters"
+  },
+  {
+    "id": "sc-10",
+    "claim_text": "The Higgs boson was confirmed at 125 GeV by CERN",
+    "expected_domain": "Science",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["Semantic Scholar", "OpenAlex"],
+    "notes": "Physics claim — should trigger academic adapters"
+  },
+  {
+    "id": "sc-11",
+    "claim_text": "Jude Bellingham transferred to Real Madrid for €103 million",
+    "expected_domain": "Sports",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["Transfermarkt", "Football-Data.org"],
+    "notes": "Transfer claim — should trigger both sports adapters"
+  },
+  {
+    "id": "sc-12",
+    "claim_text": "Manchester City won the Premier League in 2023",
+    "expected_domain": "Sports",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["Transfermarkt", "Football-Data.org"],
+    "notes": "League result claim — should trigger both sports adapters"
+  },
+  {
+    "id": "sc-13",
+    "claim_text": "Tesla's market capitalisation exceeded $1 trillion in 2024",
+    "expected_domain": "Finance",
+    "expected_jurisdiction": "US",
+    "expected_adapters": ["Marketaux"],
+    "notes": "Stock market claim — should trigger finance adapters via market cap keyword"
+  },
+  {
+    "id": "sc-14",
+    "claim_text": "Companies House shows 5 million active UK companies",
+    "expected_domain": "Finance",
+    "expected_jurisdiction": "UK",
+    "expected_adapters": ["Companies House"],
+    "notes": "Should trigger Companies House via keyword match"
+  },
+  {
+    "id": "sc-15",
+    "claim_text": "The North Atlantic right whale population fell below 350 individuals",
+    "expected_domain": "Animals",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["GBIF"],
+    "notes": "Biodiversity/species claim — should trigger GBIF via endangered/species keywords"
+  },
+  {
+    "id": "sc-16",
+    "claim_text": "The Marshall Plan provided $13 billion in aid to Western Europe",
+    "expected_domain": "History",
+    "expected_jurisdiction": "US",
+    "expected_adapters": ["Wikipedia", "Library of Congress"],
+    "notes": "Historical claim — should trigger archive adapters"
+  },
+  {
+    "id": "sc-17",
+    "claim_text": "The population of Tokyo metropolitan area exceeds 37 million",
+    "expected_domain": "General",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["Wikidata", "Wikipedia"],
+    "notes": "General factual claim — should trigger Wikidata/Wikipedia"
+  },
+  {
+    "id": "sc-18",
+    "claim_text": "Oil prices exceeded $100/barrel following OPEC production cuts in 2024",
+    "expected_domain": "Finance",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["FRED", "Marketaux"],
+    "notes": "Cross-domain: finance + commodities — oil/OPEC keywords should add Marketaux"
+  },
+  {
+    "id": "sc-19",
+    "claim_text": "NHS spending per capita is lower than the OECD average",
+    "expected_domain": "Health",
+    "expected_jurisdiction": "UK",
+    "expected_adapters": ["ONS Economic Statistics", "WHO", "GOV.UK Content API"],
+    "notes": "Cross-domain: health + economics — should trigger WHO, ONS, GOV.UK"
+  },
+  {
+    "id": "sc-20",
+    "claim_text": "Climate change legislation has been passed in 190 countries",
+    "expected_domain": "Climate",
+    "expected_jurisdiction": "Global",
+    "expected_adapters": ["NOAA CDO"],
+    "notes": "Climate legislation claim — climate keywords should trigger NOAA"
+  }
+]

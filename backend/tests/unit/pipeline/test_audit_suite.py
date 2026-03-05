@@ -226,15 +226,15 @@ class TestCaseExtraction:
             assert len(ev["full_text"]) > 0
             assert len(ev["mapper_window"]) > 0
 
-    def test_case_mapper_window_is_400_chars(self):
+    def test_case_mapper_window_is_1000_chars(self):
         claim = _make_claim(n_evidence=1)
-        # Make sure evidence text is longer than 400 chars
-        claim["evidence"][0]["snippet"] = "A" * 1000
-        case = build_case_file(claim, case_number=1, snippet_length=400)
+        # Make sure evidence text is longer than 1000 chars
+        claim["evidence"][0]["snippet"] = "A" * 2000
+        case = build_case_file(claim, case_number=1, snippet_length=1000)
 
         ev = case["evidence"][0]
-        assert len(ev["mapper_window"]) == 400
-        assert len(ev["full_text"]) == 1000
+        assert len(ev["mapper_window"]) == 1000
+        assert len(ev["full_text"]) == 2000
 
     def test_stratified_sampling_prefers_disputed(self):
         claims = [

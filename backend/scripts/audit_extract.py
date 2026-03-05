@@ -50,7 +50,7 @@ JUDGMENTS_DIR = AUDIT_DIR / "judgments"
 VALID_FAILURE_MODES = {"A", "B", "C", "D"}
 
 # Snippet length matching production (claim_map_analyzer.py)
-DEFAULT_SNIPPET_LENGTH = 400
+DEFAULT_SNIPPET_LENGTH = 1000
 
 
 # ---------------------------------------------------------------------------

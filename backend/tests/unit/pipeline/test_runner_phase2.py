@@ -365,6 +365,13 @@ def _make_settings_mock():
     s.ENABLE_EVIDENCE_CLASSIFIER = False
     s.ENABLE_SEARCH_CLARITY = False
     s.ENVIRONMENT = "test"
+    # Pipeline limits (Track N Phase 2)
+    s.MIN_EVIDENCE_POST_FILTER = 5
+    s.RECOVERY_MAX_CLAIMS = 3
+    s.RECOVERY_MAX_ELEMENTS_PER_CLAIM = 5
+    s.RECOVERY_TIMEOUT_SECONDS = 20
+    s.ENABLE_RECOVERY_QUERY_PLANNING = True
+    s.RECOVERY_PLANNER_TIMEOUT = 10.0
     return s
 
 
@@ -590,12 +597,7 @@ class TestRunPipelinePhase2ArticleMode:
         progress = AsyncMock()
         progress.report_progress = AsyncMock()
 
-        mock_settings = MagicMock()
-        mock_settings.ENABLE_FACTCHECK_API = False
-        mock_settings.ENABLE_LLM_RELEVANCE_SCORER = False
-        mock_settings.ENABLE_EVIDENCE_CLASSIFIER = False
-        mock_settings.ENABLE_SEARCH_CLARITY = False
-        mock_settings.ENVIRONMENT = "test"
+        mock_settings = _make_settings_mock()
 
         with patch("app.pipeline.runner.async_session", return_value=mock_ctx), patch(
             _PHASE2_PATCHES["analyzer_cls"], mock_analyzer_cls
@@ -718,12 +720,7 @@ class TestRunPipelinePhase2ArticleMode:
         progress = AsyncMock()
         progress.report_progress = AsyncMock()
 
-        mock_settings = MagicMock()
-        mock_settings.ENABLE_FACTCHECK_API = False
-        mock_settings.ENABLE_LLM_RELEVANCE_SCORER = False
-        mock_settings.ENABLE_EVIDENCE_CLASSIFIER = False
-        mock_settings.ENABLE_SEARCH_CLARITY = False
-        mock_settings.ENVIRONMENT = "test"
+        mock_settings = _make_settings_mock()
 
         with patch("app.pipeline.runner.async_session", return_value=mock_ctx), patch(
             _PHASE2_PATCHES["analyzer_cls"], mock_analyzer_cls

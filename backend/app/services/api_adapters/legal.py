@@ -41,10 +41,9 @@ class GovUKAdapter(GovernmentAPIClient):
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """GOV.UK covers Government, History, and Law for UK only."""
+        """GOV.UK covers Politics, General, History, and Law for UK only."""
         return (
-            domain in ["Government", "General", "History", "Law"]
-            and jurisdiction == "UK"
+            domain in ["Politics", "General", "History", "Law"] and jurisdiction == "UK"
         )
 
     def search(
@@ -157,8 +156,8 @@ class HansardAdapter(GovernmentAPIClient):
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """Hansard covers Government and Law for UK only."""
-        return domain in ["Government", "Law"] and jurisdiction == "UK"
+        """Hansard covers Politics and Law for UK only."""
+        return domain in ["Politics", "Law"] and jurisdiction == "UK"
 
     def search(
         self,
@@ -464,4 +463,177 @@ class GovInfoAdapter(GovernmentAPIClient):
                 continue
 
         logger.info(f"GovInfo returned {len(evidence_list)} statute excerpts")
+        return evidence_list
+
+
+# ========== UK LEGISLATION ADAPTER ==========
+
+
+class LegislationGovUKAdapter(GovernmentAPIClient):
+    """
+    legislation.gov.uk Adapter for UK statute text.
+
+    Covers: Law
+    Jurisdiction: UK, Global
+    Free tier: Unlimited (no API key required, no documented rate limits)
+    Format: Atom XML feeds
+
+    Provides access to all UK primary legislation (Acts), secondary legislation
+    (Statutory Instruments), and retained EU law.
+    """
+
+    def __init__(self):
+        super().__init__(
+            api_name="UK Legislation",
+            base_url="https://www.legislation.gov.uk",
+            api_key=None,
+            cache_ttl=86400,  # 1 day (legislation text is stable)
+            timeout=10,
+            max_results=5,
+            priority_tier=1,  # Domain specialist
+        )
+        # legislation.gov.uk returns Atom XML, not JSON
+        self.headers["Accept"] = "application/atom+xml"
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """UK Legislation covers Law for UK and Global."""
+        return domain == "Law" and jurisdiction in ["UK", "Global"]
+
+    def _make_request(
+        self,
+        endpoint: str,
+        params: Optional[Dict[str, Any]] = None,
+        method: str = "GET",
+    ) -> Optional[Any]:
+        """Override to return raw XML text instead of JSON."""
+        import httpx
+
+        url = f"{self.base_url}/{endpoint.lstrip('/')}"
+
+        try:
+            with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
+                response = client.get(url, headers=self.headers, params=params)
+                response.raise_for_status()
+                return response.text
+        except Exception as e:
+            logger.warning(f"UK Legislation request failed: {e}")
+            return None
+
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Search legislation.gov.uk for UK statutes via Atom feeds.
+
+        Args:
+            query: Search query (e.g., "Online Safety Act")
+            domain: Law
+            jurisdiction: UK or Global
+
+        Returns:
+            List of evidence dictionaries with statute references
+        """
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        query = self._sanitize_query(query)
+
+        params = {
+            "text": query,
+            "results-count": self.max_results,
+        }
+
+        try:
+            # Search across all legislation types
+            response = self._make_request("all/data.feed", params=params)
+
+            if not response:
+                logger.warning(f"UK Legislation returned empty response for: {query}")
+                return []
+
+            return self._transform_response(response)
+
+        except Exception as e:
+            logger.error(f"UK Legislation search failed for '{query}': {e}")
+            return []
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Parse Atom XML feed and extract legislation entries."""
+        import xml.etree.ElementTree as ET
+
+        evidence_list = []
+        atom_ns = "http://www.w3.org/2005/Atom"
+
+        try:
+            root = ET.fromstring(raw_response)
+
+            for entry in root.findall(f"{{{atom_ns}}}entry"):
+                try:
+                    title_el = entry.find(f"{{{atom_ns}}}title")
+                    title = (
+                        title_el.text
+                        if title_el is not None and title_el.text
+                        else "UK Legislation"
+                    )
+
+                    # Get the legislation URL
+                    link_el = entry.find(f"{{{atom_ns}}}link[@rel='alternate']")
+                    if link_el is None:
+                        link_el = entry.find(f"{{{atom_ns}}}link")
+                    url = link_el.get("href", "") if link_el is not None else ""
+                    if url and not url.startswith("http"):
+                        url = f"https://www.legislation.gov.uk{url}"
+
+                    # Get updated date
+                    updated_el = entry.find(f"{{{atom_ns}}}updated")
+                    source_date = None
+                    if updated_el is not None and updated_el.text:
+                        try:
+                            source_date = datetime.fromisoformat(
+                                updated_el.text.replace("Z", "+00:00")
+                            )
+                        except Exception:
+                            pass
+
+                    # Extract summary/content
+                    summary_el = entry.find(f"{{{atom_ns}}}summary")
+                    snippet = ""
+                    if summary_el is not None and summary_el.text:
+                        snippet = summary_el.text[:300]
+                    else:
+                        snippet = f"UK legislation: {title}"
+
+                    # Extract category (legislation type)
+                    category_el = entry.find(f"{{{atom_ns}}}category")
+                    leg_type = (
+                        category_el.get("term", "") if category_el is not None else ""
+                    )
+
+                    metadata = {
+                        "api_source": "UK Legislation",
+                        "legislation_type": leg_type,
+                    }
+
+                    evidence = self._create_evidence_dict(
+                        title=title,
+                        snippet=snippet,
+                        url=url,
+                        source_date=source_date,
+                        metadata=metadata,
+                    )
+
+                    evidence_list.append(evidence)
+
+                except Exception as e:
+                    logger.warning(f"Failed to parse legislation entry: {e}")
+                    continue
+
+        except ET.ParseError as e:
+            logger.error(f"Failed to parse legislation XML: {e}")
+
+        logger.info(f"UK Legislation returned {len(evidence_list)} statute references")
         return evidence_list

@@ -115,8 +115,8 @@ class TestEvidenceClassifierHeuristic:
         assert evidence_type == "data"
 
     @pytest.mark.unit
-    def test_factcheck_classified_as_reporting(self):
-        """Evidence with is_factcheck=True should be tier=reporting, type=news_reporting."""
+    def test_factcheck_classified_as_reporting_analysis(self):
+        """Evidence with is_factcheck=True should be tier=reporting, type=analysis."""
         evidence = {
             "evidence_id": "ev-fc",
             "title": "Fact Check: Employment Claims",
@@ -128,7 +128,7 @@ class TestEvidenceClassifierHeuristic:
 
         tier, evidence_type = _classify_heuristic(evidence)
         assert tier == "reporting"
-        assert evidence_type == "news_reporting"
+        assert evidence_type == "analysis"
 
     @pytest.mark.unit
     def test_unknown_defaults_to_commentary(self):
@@ -287,9 +287,9 @@ class TestEvidenceClassifierBatch:
         result = await classifier.classify_batch(evidence_items)
 
         assert len(result) == 1
-        # .gov URL should be classified by heuristic as primary/official_statement
+        # census.gov is a data portal → primary/data
         assert result[0]["tier"] == "primary"
-        assert result[0]["evidence_type"] == "official_statement"
+        assert result[0]["evidence_type"] == "data"
         assert result[0]["classification_method"] == "heuristic"
 
     @pytest.mark.unit

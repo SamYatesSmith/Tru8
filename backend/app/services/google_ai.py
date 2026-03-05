@@ -39,14 +39,19 @@ _client: Optional[httpx.AsyncClient] = None
 _client_lock = asyncio.Lock()
 
 
-async def _get_client(timeout: float) -> httpx.AsyncClient:
-    """Return (and lazily create) the shared HTTP client."""
+async def _get_client() -> httpx.AsyncClient:
+    """Return (and lazily create) the shared HTTP client.
+
+    Timeout is NOT set on the client — callers pass it per-request
+    via ``client.post(..., timeout=X)``.  The generous default here
+    only guards against truly hung connections.
+    """
     global _client
     if _client is None or _client.is_closed:
         async with _client_lock:
             if _client is None or _client.is_closed:
                 _client = httpx.AsyncClient(
-                    timeout=httpx.Timeout(timeout, connect=10.0),
+                    timeout=httpx.Timeout(120.0, connect=10.0),
                     limits=httpx.Limits(
                         max_connections=_CONCURRENCY,
                         max_keepalive_connections=_CONCURRENCY,
@@ -98,7 +103,7 @@ async def call_google_ai(
     }
 
     last_status: Optional[int] = None
-    client = await _get_client(timeout)
+    client = await _get_client()
 
     for attempt in range(_MAX_RETRIES):
         retry_after: Optional[float] = None
@@ -109,12 +114,14 @@ async def call_google_ai(
                     url,
                     headers={"Content-Type": "application/json"},
                     json=body,
+                    timeout=timeout,
                 )
             except httpx.TimeoutException:
                 logger.warning(
                     "Google AI timeout (attempt %d/%d)", attempt + 1, _MAX_RETRIES
                 )
-                last_status = None
+                # Don't retry timeouts — thinking models need more time, not another attempt
+                return None
             except httpx.HTTPError as exc:
                 logger.warning(
                     "Google AI HTTP error (attempt %d/%d): %s",
@@ -204,7 +211,7 @@ async def call_google_ai_with_usage(
     }
 
     last_status: Optional[int] = None
-    client = await _get_client(timeout)
+    client = await _get_client()
 
     for attempt in range(_MAX_RETRIES):
         retry_after: Optional[float] = None
@@ -215,12 +222,14 @@ async def call_google_ai_with_usage(
                     url,
                     headers={"Content-Type": "application/json"},
                     json=body,
+                    timeout=timeout,
                 )
             except httpx.TimeoutException:
                 logger.warning(
                     "Google AI timeout (attempt %d/%d)", attempt + 1, _MAX_RETRIES
                 )
-                last_status = None
+                # Don't retry timeouts — thinking models need more time, not another attempt
+                return None, None
             except httpx.HTTPError as exc:
                 logger.warning(
                     "Google AI HTTP error (attempt %d/%d): %s",

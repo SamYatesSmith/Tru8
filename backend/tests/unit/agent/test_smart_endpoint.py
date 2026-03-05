@@ -216,15 +216,24 @@ class TestLandscapeExpandedFields:
                     "elements": [
                         {
                             "elementId": "e1",
-                            "text": "Sub-claim A",
+                            "description": "Sub-claim A",
                             "state": "supported",
                             "evidenceRefs": [{"evidenceId": "ev1"}],
                         },
                         {
                             "elementId": "e2",
-                            "text": "Sub-claim B",
+                            "description": "Sub-claim B",
                             "state": "unresolved",
                             "evidenceRefs": [],
+                        },
+                        {
+                            "elementId": "e3",
+                            "description": "Sub-claim C",
+                            "state": "unresolved",
+                            "evidenceRefs": [
+                                {"evidenceId": "ev2"},
+                                {"evidenceId": "ev3"},
+                            ],
                         },
                     ]
                 },
@@ -232,9 +241,23 @@ class TestLandscapeExpandedFields:
             }
         ]
         result = _compute_landscape(claims_data)
-        assert len(result["gaps"]) == 1
-        assert result["gaps"][0]["elementId"] == "e2"
-        assert result["gaps"][0]["claimPosition"] == 0
+        assert len(result["gaps"]) == 2
+
+        # First gap: no evidence at all
+        gap_no_ev = result["gaps"][0]
+        assert gap_no_ev["elementId"] == "e2"
+        assert gap_no_ev["claimPosition"] == 0
+        assert gap_no_ev["reason"] == "no_evidence"
+        assert gap_no_ev["description"] == "Sub-claim B"
+        assert "text" not in gap_no_ev
+
+        # Second gap: has evidence but still unresolved
+        gap_unresolved = result["gaps"][1]
+        assert gap_unresolved["elementId"] == "e3"
+        assert gap_unresolved["claimPosition"] == 0
+        assert gap_unresolved["reason"] == "unresolved"
+        assert gap_unresolved["evidenceCount"] == 2
+        assert gap_unresolved["description"] == "Sub-claim C"
 
     def test_provider_status_from_check(self):
         check = MagicMock()

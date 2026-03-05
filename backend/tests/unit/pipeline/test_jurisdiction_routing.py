@@ -16,25 +16,27 @@ from app.pipeline.retrieve import JURISDICTION_ADAPTER_PREFERENCES
 # ── Helper ─────────────────────────────────────────────────────────────────
 
 
-def _make_adapter(name: str) -> MagicMock:
+def _make_adapter(name: str, priority_tier: int = 1) -> MagicMock:
     adapter = MagicMock()
     adapter.api_name = name
+    adapter.priority_tier = priority_tier
     return adapter
 
 
 def _apply_jurisdiction_sort(adapters, jurisdiction, max_cap=3):
-    """Reproduce the jurisdiction sorting logic from retrieve.py."""
+    """Reproduce the tier-aware jurisdiction sorting logic from retrieve.py (PQ-06)."""
     if len(adapters) > max_cap:
         preferences = JURISDICTION_ADAPTER_PREFERENCES.get(jurisdiction, [])
-        if preferences:
 
-            def _priority(adapter):
-                try:
-                    return preferences.index(adapter.api_name)
-                except ValueError:
-                    return len(preferences) + 1
+        def _sort_key(adapter):
+            tier = getattr(adapter, "priority_tier", 1)
+            try:
+                pref = preferences.index(adapter.api_name)
+            except ValueError:
+                pref = len(preferences) + 1
+            return (tier, pref, adapter.api_name)
 
-            adapters.sort(key=_priority)
+        adapters.sort(key=_sort_key)
         adapters = adapters[:max_cap]
     return adapters
 
@@ -45,24 +47,24 @@ def _apply_jurisdiction_sort(adapters, jurisdiction, max_cap=3):
 class TestUKJurisdictionAdapterOrdering:
     def test_uk_prefers_ons_hansard_govuk(self):
         adapters = [
-            _make_adapter("FRED Economic Data"),
+            _make_adapter("FRED"),
             _make_adapter("ONS Economic Statistics"),
-            _make_adapter("Hansard Parliamentary Records"),
-            _make_adapter("GOV.UK Publications"),
-            _make_adapter("GovInfo Publications"),
+            _make_adapter("UK Parliament Hansard"),
+            _make_adapter("GOV.UK Content API"),
+            _make_adapter("GovInfo.gov"),
         ]
         result = _apply_jurisdiction_sort(adapters, "UK", max_cap=3)
         names = [a.api_name for a in result]
 
         assert "ONS Economic Statistics" in names
-        assert "Hansard Parliamentary Records" in names
-        assert "GOV.UK Publications" in names
+        assert "UK Parliament Hansard" in names
+        assert "GOV.UK Content API" in names
         assert len(result) == 3
 
     def test_uk_companies_house_preferred(self):
         adapters = [
-            _make_adapter("FRED Economic Data"),
-            _make_adapter("GovInfo Publications"),
+            _make_adapter("FRED"),
+            _make_adapter("GovInfo.gov"),
             _make_adapter("Companies House"),
             _make_adapter("ONS Economic Statistics"),
             _make_adapter("Library of Congress"),
@@ -82,16 +84,16 @@ class TestUSJurisdictionAdapterOrdering:
     def test_us_prefers_fred_govinfo_loc(self):
         adapters = [
             _make_adapter("ONS Economic Statistics"),
-            _make_adapter("FRED Economic Data"),
-            _make_adapter("GovInfo Publications"),
+            _make_adapter("FRED"),
+            _make_adapter("GovInfo.gov"),
             _make_adapter("Library of Congress"),
-            _make_adapter("Hansard Parliamentary Records"),
+            _make_adapter("UK Parliament Hansard"),
         ]
         result = _apply_jurisdiction_sort(adapters, "US", max_cap=3)
         names = [a.api_name for a in result]
 
-        assert "FRED Economic Data" in names
-        assert "GovInfo Publications" in names
+        assert "FRED" in names
+        assert "GovInfo.gov" in names
         assert "Library of Congress" in names
         assert len(result) == 3
 
@@ -100,20 +102,19 @@ class TestUSJurisdictionAdapterOrdering:
 
 
 class TestGlobalNoPreference:
-    def test_global_no_reordering(self):
-        """Global jurisdiction has no preference mapping — first-3-wins."""
+    def test_global_alphabetical_tiebreak(self):
+        """Global jurisdiction has no preference mapping — alphabetical tiebreak within same tier."""
         adapters = [
             _make_adapter("ONS Economic Statistics"),
-            _make_adapter("FRED Economic Data"),
+            _make_adapter("FRED"),
             _make_adapter("PubMed"),
-            _make_adapter("GovInfo Publications"),
+            _make_adapter("GovInfo.gov"),
         ]
-        original_names = [a.api_name for a in adapters[:3]]
         result = _apply_jurisdiction_sort(adapters, "Global", max_cap=3)
         result_names = [a.api_name for a in result]
 
-        # Without preferences, truncation takes the first 3
-        assert result_names == original_names
+        # All same tier, no preferences → alphabetical by api_name, take first 3
+        assert result_names == ["FRED", "GovInfo.gov", "ONS Economic Statistics"]
         assert len(result) == 3
 
     def test_unknown_jurisdiction_no_reordering(self):
@@ -134,7 +135,7 @@ class TestFewerThanCapNoTruncation:
     def test_two_adapters_unaffected(self):
         adapters = [
             _make_adapter("ONS Economic Statistics"),
-            _make_adapter("FRED Economic Data"),
+            _make_adapter("FRED"),
         ]
         result = _apply_jurisdiction_sort(adapters, "UK", max_cap=3)
         assert len(result) == 2

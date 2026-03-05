@@ -74,7 +74,7 @@ class TestBuildMappingPrompt:
         assert "- e2: Second element" in prompt
 
     def test_prompt_truncates_evidence_to_snippet_length(self):
-        long_text = "A" * 1000
+        long_text = "A" * 2000
         prompt = build_mapping_prompt(
             normalised_claim="Test",
             elements=[{"element_id": "e1", "description": "Elem"}],
@@ -86,15 +86,15 @@ class TestBuildMappingPrompt:
                     "text": long_text,
                 }
             ],
-            snippet_length=400,
+            snippet_length=1000,
         )
-        # The evidence line should contain exactly 400 chars of text
+        # The evidence line should contain exactly 1000 chars of text
         # Format: "- ev-001: [Title] AAAA...A"
         lines = prompt.split("\n")
         ev_line = [l for l in lines if "ev-001" in l][0]
         # Title is "Title" (5 chars), prefix is "- ev-001: [Title] " (19 chars)
         text_portion = ev_line.split("] ", 1)[1]
-        assert len(text_portion) == 400
+        assert len(text_portion) == 1000
 
     def test_prompt_prefers_snippet_over_text(self):
         """Mirrors claim_map_analyzer.py: ev.get('snippet') or ev.get('text')."""
@@ -142,7 +142,7 @@ class TestBuildMappingPrompt:
             }
         ]
 
-        prompt = build_mapping_prompt(claim, elements, evidence, snippet_length=400)
+        prompt = build_mapping_prompt(claim, elements, evidence, snippet_length=1000)
 
         # Verify structure matches claim_map_analyzer.py lines 328-332
         assert "Claim: Test claim" in prompt
@@ -482,7 +482,7 @@ class TestPromptFidelity:
                 "text": "The United Kingdom formally withdrew from the European Union on 31 January 2020, ending 47 years of membership.",
             }
         ]
-        snippet_length = 400
+        snippet_length = 1000
 
         # Build via harness
         harness_prompt = build_mapping_prompt(

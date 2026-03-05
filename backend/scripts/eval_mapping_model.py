@@ -1,7 +1,10 @@
-"""Mapping model evaluation harness — Option A gating question.
+"""Mapping model evaluation harness — PQ-02 model comparison.
 
-Runs the same mapping prompt through two models (Gemini Flash-Lite and GPT-4o)
-on identical inputs and records structured results for human scoring.
+Runs the same mapping prompt through multiple models on identical inputs and
+records structured results for comparison. Models tested:
+  - gemini-2.5-flash-lite  (cheapest, fastest)
+  - gemini-2.5-flash       (thinking model, current production mapping model)
+  - gpt-4o                 (OpenAI flagship, current fallback)
 
 Usage:
     # With real DB data (requires DATABASE_URL):
@@ -18,11 +21,12 @@ Usage:
 
 Output:
     audit/track-n/evaluation/
-        claims.json               # Input claims + evidence (frozen for reproducibility)
-        results_flash_lite.json   # Per-claim raw + parsed mapper output
-        results_gpt4o.json        # Per-claim raw + parsed mapper output
-        scoring_sheet.json        # Template for human scoring (pre-filled with stubs)
-        prompts/                  # One .txt per claim (the exact prompt sent)
+        claims.json                   # Input claims + evidence (frozen for reproducibility)
+        results_flash_lite.json       # Per-claim raw + parsed mapper output
+        results_flash_thinking.json   # Per-claim raw + parsed mapper output
+        results_gpt4o.json            # Per-claim raw + parsed mapper output
+        scoring_sheet.json            # Template for human scoring (pre-filled with stubs)
+        prompts/                      # One .txt per claim (the exact prompt sent)
 """
 
 import argparse
@@ -32,6 +36,7 @@ import json
 import logging
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -195,7 +200,7 @@ def build_mapping_prompt(
     normalised_claim: str,
     elements: List[Dict[str, str]],
     evidence_list: List[Dict[str, Any]],
-    snippet_length: int = 400,
+    snippet_length: int = 1000,
     include_metadata: bool = False,
 ) -> str:
     """Build the exact prompt that map_evidence_to_elements() sends to the LLM."""
@@ -577,7 +582,7 @@ def load_claims_from_file(path: str) -> List[Dict[str, Any]]:
 async def run_evaluation(
     claims: List[Dict[str, Any]],
     dry_run: bool = False,
-    snippet_length: int = 400,
+    snippet_length: int = 1000,
     include_metadata: bool = False,
 ) -> None:
     """Run the mapping model evaluation."""
@@ -591,18 +596,33 @@ async def run_evaluation(
         json.dump(claims, f, indent=2, default=str)
     print(f"Saved {len(claims)} claims to {claims_path}")
 
-    results_flash_lite = []
-    results_gpt4o = []
+    # Models to evaluate: (label, caller_fn, caller_kwargs)
+    MODELS = [
+        (
+            "flash_lite",
+            call_google_model,
+            {"model": "gemini-2.5-flash-lite", "timeout": 120},
+        ),
+        (
+            "flash_thinking",
+            call_google_model,
+            {"model": "gemini-2.5-flash", "timeout": 120},
+        ),
+        ("gpt4o", call_openai_model, {"model": "gpt-4o", "timeout": 60}),
+    ]
+
+    all_results: Dict[str, List[Dict]] = {label: [] for label, _, _ in MODELS}
 
     for i, claim in enumerate(claims):
         claim_id = claim["claim_id"]
-        print(f"\n[{i+1}/{len(claims)}] Processing claim: {claim_id}")
-        print(f"  Claim: {claim['normalised_claim'][:80]}...")
+        print(f"\n{'='*70}")
+        print(f"[{i+1}/{len(claims)}] Claim: {claim_id}")
+        print(f"  {claim['normalised_claim'][:80]}...")
         print(
             f"  Elements: {len(claim['elements'])}, Evidence: {len(claim['evidence'])}"
         )
 
-        # Build the prompt (identical for both models)
+        # Build the prompt (identical for all models)
         prompt = build_mapping_prompt(
             normalised_claim=claim["normalised_claim"],
             elements=claim["elements"],
@@ -620,152 +640,112 @@ async def run_evaluation(
 
         if dry_run:
             print(f"  [DRY RUN] Prompt saved ({len(prompt)} chars, hash={prompt_hash})")
-            results_flash_lite.append(
-                {
-                    "claim_id": claim_id,
-                    "prompt_hash": prompt_hash,
-                    "prompt_length_chars": len(prompt),
-                    "dry_run": True,
-                }
-            )
-            results_gpt4o.append(
-                {
-                    "claim_id": claim_id,
-                    "prompt_hash": prompt_hash,
-                    "prompt_length_chars": len(prompt),
-                    "dry_run": True,
-                }
-            )
+            for label, _, _ in MODELS:
+                all_results[label].append(
+                    {
+                        "claim_id": claim_id,
+                        "prompt_hash": prompt_hash,
+                        "prompt_length_chars": len(prompt),
+                        "dry_run": True,
+                    }
+                )
             continue
 
-        # --- Run Flash-Lite ---
-        print("  Running gemini-2.5-flash-lite...")
-        flash_result = await call_google_model(
-            prompt=prompt,
-            model="gemini-2.5-flash-lite",
-            temperature=0.2,
-            max_tokens=4000,
-        )
+        # Run each model
+        for label, caller_fn, caller_kwargs in MODELS:
+            model_name = caller_kwargs["model"]
+            print(f"  Running {model_name}...", end=" ", flush=True)
 
-        flash_validated = validate_mapping_output(
-            flash_result.get("parsed"),
-            claim["elements"],
-            claim["evidence"],
-        )
+            t0 = time.monotonic()
 
-        results_flash_lite.append(
-            {
-                "claim_id": claim_id,
-                "normalised_claim": claim["normalised_claim"],
-                "elements": claim["elements"],
-                "evidence_summary": [
-                    {"evidence_id": e["evidence_id"], "title": e.get("title", "")}
-                    for e in claim["evidence"]
-                ],
-                "prompt_hash": prompt_hash,
-                "model": "gemini-2.5-flash-lite",
-                "error": flash_result.get("error"),
-                "usage": flash_result.get("usage"),
-                "raw_response": flash_result.get("parsed"),
-                "validated": flash_validated,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-        )
+            result = await caller_fn(
+                prompt=prompt,
+                temperature=0.2,
+                max_tokens=4000,
+                **caller_kwargs,
+            )
 
-        if flash_result.get("error"):
-            print(f"  Flash-lite error: {flash_result['error']}")
-        else:
-            states = [e["state"] for e in flash_validated["elements"]]
-            ref_counts = [len(e["evidence_refs"]) for e in flash_validated["elements"]]
-            print(f"  Flash-lite: states={states}, refs={ref_counts}")
-            if flash_validated["validation_errors"]:
+            elapsed = time.monotonic() - t0
+
+            validated = validate_mapping_output(
+                result.get("parsed"),
+                claim["elements"],
+                claim["evidence"],
+            )
+
+            all_results[label].append(
+                {
+                    "claim_id": claim_id,
+                    "normalised_claim": claim["normalised_claim"],
+                    "elements": claim["elements"],
+                    "evidence_summary": [
+                        {"evidence_id": e["evidence_id"], "title": e.get("title", "")}
+                        for e in claim["evidence"]
+                    ],
+                    "prompt_hash": prompt_hash,
+                    "model": model_name,
+                    "error": result.get("error"),
+                    "usage": result.get("usage"),
+                    "wall_time_seconds": round(elapsed, 2),
+                    "raw_response": result.get("parsed"),
+                    "validated": validated,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+            )
+
+            if result.get("error"):
+                print(f"ERROR: {result['error']}")
+            else:
+                states = [e["state"] for e in validated["elements"]]
+                ref_counts = [len(e["evidence_refs"]) for e in validated["elements"]]
+                usage = result.get("usage", {})
+                in_tok = usage.get("input_tokens", 0)
+                out_tok = usage.get("output_tokens", 0)
                 print(
-                    f"  Flash-lite validation: {len(flash_validated['validation_errors'])} issues"
+                    f"states={states}, refs={ref_counts}, "
+                    f"tokens={in_tok}+{out_tok}, {elapsed:.1f}s"
                 )
+                if validated["validation_errors"]:
+                    for err in validated["validation_errors"]:
+                        print(f"    ⚠ {err}")
 
-        # --- Run GPT-4o ---
-        print("  Running gpt-4o...")
-        gpt4o_result = await call_openai_model(
-            prompt=prompt,
-            model="gpt-4o",
-            temperature=0.2,
-            max_tokens=4000,
-        )
-
-        gpt4o_validated = validate_mapping_output(
-            gpt4o_result.get("parsed"),
-            claim["elements"],
-            claim["evidence"],
-        )
-
-        results_gpt4o.append(
-            {
-                "claim_id": claim_id,
-                "normalised_claim": claim["normalised_claim"],
-                "elements": claim["elements"],
-                "evidence_summary": [
-                    {"evidence_id": e["evidence_id"], "title": e.get("title", "")}
-                    for e in claim["evidence"]
-                ],
-                "prompt_hash": prompt_hash,
-                "model": "gpt-4o",
-                "error": gpt4o_result.get("error"),
-                "usage": gpt4o_result.get("usage"),
-                "raw_response": gpt4o_result.get("parsed"),
-                "validated": gpt4o_validated,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-        )
-
-        if gpt4o_result.get("error"):
-            print(f"  GPT-4o error: {gpt4o_result['error']}")
-        else:
-            states = [e["state"] for e in gpt4o_validated["elements"]]
-            ref_counts = [len(e["evidence_refs"]) for e in gpt4o_validated["elements"]]
-            print(f"  GPT-4o:     states={states}, refs={ref_counts}")
-            if gpt4o_validated["validation_errors"]:
-                print(
-                    f"  GPT-4o validation: {len(gpt4o_validated['validation_errors'])} issues"
-                )
-
-    # Save results
-    flash_path = EVAL_DIR / "results_flash_lite.json"
-    with open(flash_path, "w") as f:
-        json.dump(results_flash_lite, f, indent=2, default=str)
-    print(f"\nSaved flash-lite results to {flash_path}")
-
-    gpt4o_path = EVAL_DIR / "results_gpt4o.json"
-    with open(gpt4o_path, "w") as f:
-        json.dump(results_gpt4o, f, indent=2, default=str)
-    print(f"Saved gpt-4o results to {gpt4o_path}")
+    # Save results per model
+    for label, _, _ in MODELS:
+        result_path = EVAL_DIR / f"results_{label}.json"
+        with open(result_path, "w") as f:
+            json.dump(all_results[label], f, indent=2, default=str)
+        print(f"\nSaved {label} results to {result_path}")
 
     # Generate scoring sheet template
     if not dry_run:
-        scoring_sheet = _build_scoring_sheet(results_flash_lite, results_gpt4o)
+        scoring_sheet = _build_scoring_sheet_multi(all_results)
         scoring_path = EVAL_DIR / "scoring_sheet.json"
         with open(scoring_path, "w") as f:
             json.dump(scoring_sheet, f, indent=2)
         print(f"Saved scoring template to {scoring_path}")
 
-    print(f"\nEvaluation complete. {len(claims)} claims processed.")
+        # Print comparison summary
+        _print_comparison_summary(all_results)
+
+    print(f"\nEvaluation complete. {len(claims)} claims × {len(MODELS)} models.")
 
 
-def _build_scoring_sheet(
-    flash_results: List[Dict], gpt4o_results: List[Dict]
+def _build_scoring_sheet_multi(
+    all_results: Dict[str, List[Dict]],
 ) -> List[Dict]:
-    """Build a human scoring template from both result sets."""
+    """Build a human scoring template from all model result sets."""
     sheet = []
 
-    for flash, gpt4o in zip(flash_results, gpt4o_results):
-        if flash.get("dry_run"):
-            continue
+    # Get claim count from first model's results
+    first_label = list(all_results.keys())[0]
+    num_claims = len(all_results[first_label])
 
-        claim_id = flash["claim_id"]
+    for idx in range(num_claims):
+        for label, results in all_results.items():
+            result = results[idx]
+            if result.get("dry_run"):
+                continue
 
-        for model_label, result in [
-            ("flash_lite", flash),
-            ("gpt4o", gpt4o),
-        ]:
             validated = result.get("validated", {})
             elements = validated.get("elements", [])
 
@@ -773,7 +753,6 @@ def _build_scoring_sheet(
             ref_scores = []
 
             for elem in elements:
-                # Per-element state scoring stub
                 element_scores.append(
                     {
                         "element_id": elem["element_id"],
@@ -783,7 +762,6 @@ def _build_scoring_sheet(
                     }
                 )
 
-                # Per-ref relationship + reasoning scoring stubs
                 for ref in elem.get("evidence_refs", []):
                     ref_scores.append(
                         {
@@ -799,8 +777,8 @@ def _build_scoring_sheet(
 
             sheet.append(
                 {
-                    "claim_id": claim_id,
-                    "model": model_label,
+                    "claim_id": result["claim_id"],
+                    "model": label,
                     "normalised_claim": result.get("normalised_claim", ""),
                     "element_scores": element_scores,
                     "ref_scores": ref_scores,
@@ -810,6 +788,92 @@ def _build_scoring_sheet(
             )
 
     return sheet
+
+
+def _print_comparison_summary(all_results: Dict[str, List[Dict]]) -> None:
+    """Print a side-by-side comparison table of all models."""
+    print(f"\n{'='*70}")
+    print("COMPARISON SUMMARY")
+    print(f"{'='*70}")
+
+    # Pricing per 1M tokens (March 2026)
+    PRICING = {
+        "gemini-2.5-flash-lite": {"input": 0.10, "output": 0.40},
+        "gemini-2.5-flash": {"input": 0.30, "output": 2.50},
+        "gpt-4o": {"input": 2.50, "output": 10.00},
+    }
+
+    for label, results in all_results.items():
+        valid_results = [
+            r for r in results if not r.get("dry_run") and not r.get("error")
+        ]
+        if not valid_results:
+            print(f"\n{label}: No successful results")
+            continue
+
+        model_name = valid_results[0]["model"]
+        pricing = PRICING.get(model_name, {"input": 0, "output": 0})
+
+        total_in = sum(r.get("usage", {}).get("input_tokens", 0) for r in valid_results)
+        total_out = sum(
+            r.get("usage", {}).get("output_tokens", 0) for r in valid_results
+        )
+        total_time = sum(r.get("wall_time_seconds", 0) for r in valid_results)
+        avg_time = total_time / len(valid_results)
+
+        total_cost = (total_in / 1_000_000 * pricing["input"]) + (
+            total_out / 1_000_000 * pricing["output"]
+        )
+        avg_cost = total_cost / len(valid_results)
+
+        # Collect states and validation errors
+        all_states = []
+        total_refs = 0
+        total_validation_errors = 0
+        null_reasoning_count = 0
+        for r in valid_results:
+            validated = r.get("validated", {})
+            for elem in validated.get("elements", []):
+                all_states.append(elem["state"])
+                refs = elem.get("evidence_refs", [])
+                total_refs += len(refs)
+                for ref in refs:
+                    if not ref.get("reasoning"):
+                        null_reasoning_count += 1
+            total_validation_errors += len(validated.get("validation_errors", []))
+
+        print(f"\n--- {label} ({model_name}) ---")
+        print(f"  Claims:     {len(valid_results)}")
+        print(f"  Avg time:   {avg_time:.1f}s")
+        print(
+            f"  Tokens:     {total_in:,} in + {total_out:,} out = {total_in + total_out:,} total"
+        )
+        print(f"  Total cost: ${total_cost:.4f}  (avg ${avg_cost:.4f}/call)")
+        print(
+            f"  Refs total: {total_refs}  (avg {total_refs / len(valid_results):.1f}/claim)"
+        )
+        print(f"  Validation: {total_validation_errors} errors")
+        print(f"  Null reasoning: {null_reasoning_count}/{total_refs} refs")
+
+        # State distribution
+        from collections import Counter
+
+        state_counts = Counter(all_states)
+        state_str = ", ".join(f"{s}={c}" for s, c in state_counts.most_common())
+        print(f"  States:     {state_str}")
+
+        # Per-claim breakdown
+        for r in valid_results:
+            validated = r.get("validated", {})
+            states = [e["state"] for e in validated.get("elements", [])]
+            refs = [
+                len(e.get("evidence_refs", [])) for e in validated.get("elements", [])
+            ]
+            t = r.get("wall_time_seconds", 0)
+            usage = r.get("usage", {})
+            print(
+                f"    {r['claim_id']}: states={states}, refs={refs}, {t:.1f}s, {usage.get('input_tokens', 0)}+{usage.get('output_tokens', 0)} tok"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -852,8 +916,8 @@ def main():
     parser.add_argument(
         "--snippet-length",
         type=int,
-        default=400,
-        help="Evidence snippet truncation length (default: 400, matching production)",
+        default=1000,
+        help="Evidence snippet truncation length (default: 1000, matching production)",
     )
     parser.add_argument(
         "--include-metadata",

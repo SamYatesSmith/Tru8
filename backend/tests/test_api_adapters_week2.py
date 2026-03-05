@@ -177,13 +177,13 @@ class TestGovUKAdapter:
         """Test GOV.UK domain relevance."""
         adapter = GovUKAdapter()
 
-        # Should be relevant for Government + UK
-        assert adapter.is_relevant_for_domain("Government", "UK") == True
+        # Should be relevant for Politics + UK
+        assert adapter.is_relevant_for_domain("Politics", "UK") == True
         assert adapter.is_relevant_for_domain("General", "UK") == True
 
         # Should not be relevant for other jurisdictions (UK-only adapter)
-        assert adapter.is_relevant_for_domain("Government", "Global") == False
-        assert adapter.is_relevant_for_domain("Government", "US") == False
+        assert adapter.is_relevant_for_domain("Politics", "Global") == False
+        assert adapter.is_relevant_for_domain("Politics", "US") == False
 
     def test_transform_response(self):
         """Test GOV.UK response transformation."""
@@ -224,14 +224,14 @@ class TestHansardAdapter:
         """Test Hansard domain relevance."""
         adapter = HansardAdapter()
 
-        # Should be relevant for Government and Law + UK
-        assert adapter.is_relevant_for_domain("Government", "UK") == True
+        # Should be relevant for Politics and Law + UK
+        assert adapter.is_relevant_for_domain("Politics", "UK") == True
         assert adapter.is_relevant_for_domain("Law", "UK") == True
 
         # Should not be relevant for other domains/jurisdictions (UK-only adapter)
-        assert adapter.is_relevant_for_domain("Government", "Global") == False
+        assert adapter.is_relevant_for_domain("Politics", "Global") == False
         assert adapter.is_relevant_for_domain("Finance", "UK") == False
-        assert adapter.is_relevant_for_domain("Government", "US") == False
+        assert adapter.is_relevant_for_domain("Politics", "US") == False
 
     def test_transform_response(self):
         """Test Hansard response transformation."""
@@ -362,7 +362,7 @@ class TestAdapterRegistry:
         assert relevant[0].api_name == "WHO"
 
     def test_get_adapters_for_government_uk(self):
-        """Test getting relevant adapters for Government + UK domain."""
+        """Test getting relevant adapters for Politics + UK domain."""
         from app.services.government_api_client import APIAdapterRegistry
 
         registry = APIAdapterRegistry()
@@ -370,7 +370,7 @@ class TestAdapterRegistry:
         registry.register(HansardAdapter())
         registry.register(FREDAdapter())
 
-        relevant = registry.get_adapters_for_domain("Government", "UK")
+        relevant = registry.get_adapters_for_domain("Politics", "UK")
 
         # Should return GOV.UK and Hansard
         assert len(relevant) == 2

@@ -56,56 +56,6 @@ def _extract_evidence(result, position="0"):
     return result.get("evidence_by_claim", {}).get(position, [])
 
 
-def _make_retriever_patches():
-    """Return a dict of patch contexts for all external dependencies of EvidenceRetriever.
-
-    Usage:
-        patches = _make_retriever_patches()
-        with patches["search_service"], patches["evidence_extractor"], ...:
-            retriever = EvidenceRetriever()
-    """
-    return {
-        "search_service": patch(
-            "app.pipeline.retrieve.SearchService",
-            return_value=MagicMock(),
-        ),
-        "evidence_extractor": patch(
-            "app.pipeline.retrieve.EvidenceExtractor",
-        ),
-        "api_registry": patch(
-            "app.pipeline.retrieve.get_api_registry",
-            return_value=MagicMock(),
-        ),
-        "embedding_service": patch(
-            "app.pipeline.retrieve.get_embedding_service",
-            return_value=MagicMock(),
-        ),
-        "vector_store": patch(
-            "app.pipeline.retrieve.get_vector_store",
-            return_value=MagicMock(),
-        ),
-        "query_planning": patch(
-            "app.pipeline.retrieve.settings",
-        ),
-        "deduplicator": patch(
-            "app.utils.deduplication.EvidenceDeduplicator.deduplicate",
-            side_effect=lambda evidence_list: (evidence_list, {"removed": 0}),
-        ),
-        "corroboration": patch(
-            "app.utils.corroboration.apply_corroboration_boost",
-            side_effect=lambda evidence_list: (
-                evidence_list,
-                {
-                    "items_annotated": 0,
-                    "corroboration_pairs": 0,
-                    "groups": 0,
-                    "derivation_chains": 0,
-                },
-            ),
-        ),
-    }
-
-
 @pytest.fixture
 def retriever_env():
     """Fixture that provides a fully-mocked EvidenceRetriever.
@@ -121,6 +71,7 @@ def retriever_env():
         patch("app.pipeline.retrieve.get_api_registry", return_value=MagicMock()),
         patch("app.pipeline.retrieve.get_embedding_service", return_value=MagicMock()),
         patch("app.pipeline.retrieve.get_vector_store", return_value=MagicMock()),
+        patch("app.pipeline.retrieve.settings") as mock_settings,
         patch(
             "app.utils.deduplication.EvidenceDeduplicator.deduplicate",
             side_effect=lambda evidence_list: (evidence_list, {"removed": 0}),
@@ -138,6 +89,17 @@ def retriever_env():
             ),
         ),
     ):
+        # Configure settings to isolate from environment
+        mock_settings.MAX_SOURCES_PER_CLAIM = 20
+        mock_settings.ENABLE_QUERY_PLANNING = False
+        mock_settings.ENABLE_API_RETRIEVAL = True
+        mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+        mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+        mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+        mock_settings.RECOVERY_PLANNER_TIMEOUT = 10.0
+        mock_settings.MAX_EVIDENCE_FOR_RANKING = 100
+        mock_settings.ALLOW_SNIPPET_FALLBACK = True
+
         mock_extractor = MockExtractor.return_value
         mock_search_service = MockSearchService.return_value
 
@@ -154,7 +116,6 @@ def retriever_env():
         # Mock _store_evidence_embeddings to no-op
         retriever._store_evidence_embeddings = AsyncMock(return_value=None)
 
-        # Disable query planning to use the simpler extract_evidence_for_claim path
         retriever.search_service = mock_search_service
 
         yield {

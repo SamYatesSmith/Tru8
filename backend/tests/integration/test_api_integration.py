@@ -45,15 +45,17 @@ class TestAPIAdapterRegistration:
         all_adapters = registry.get_all_adapters()
         adapter_names = [a.api_name for a in all_adapters]
 
-        # Week 1 + Week 2 adapters (10 total expected)
+        # Core adapters always registered (no API key required)
         expected_adapters = [
             "ONS Economic Statistics",
             "PubMed",
             "WHO",
-            "CrossRef",
             "GOV.UK Content API",
             "UK Parliament Hansard",
+            "UK Legislation",
             "Wikidata",
+            "World Bank",
+            "Open-Meteo",
         ]
 
         for expected in expected_adapters:

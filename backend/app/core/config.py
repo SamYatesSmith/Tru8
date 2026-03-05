@@ -179,8 +179,8 @@ class Settings(BaseSettings):
 
     # Evidence snippet length
     EVIDENCE_SNIPPET_LENGTH: int = Field(
-        400, env="EVIDENCE_SNIPPET_LENGTH"
-    )  # Increased from 150 to preserve context
+        1000, env="EVIDENCE_SNIPPET_LENGTH"
+    )  # PQ-01: Increased from 400 to give mapper sufficient context for nuanced relationship determination
 
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(
@@ -266,6 +266,39 @@ class Settings(BaseSettings):
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails
     ALLOW_SNIPPET_FALLBACK: bool = Field(True, env="ALLOW_SNIPPET_FALLBACK")
+
+    # ========== PIPELINE EVIDENCE QUALITY (Track N Phase 2) ==========
+    # Coverage recovery enrichment: fetch full page content for recovery evidence
+    ENABLE_RECOVERY_ENRICHMENT: bool = Field(
+        True, env="ENABLE_RECOVERY_ENRICHMENT"
+    )  # Fetch full page content for coverage recovery evidence
+    ENABLE_RECOVERY_QUERY_PLANNING: bool = Field(
+        True, env="ENABLE_RECOVERY_QUERY_PLANNING"
+    )  # Use LLM query planner for coverage recovery searches
+    RECOVERY_PLANNER_TIMEOUT: float = Field(
+        10.0, env="RECOVERY_PLANNER_TIMEOUT"
+    )  # Timeout for planner LLM call in recovery (seconds)
+    RECOVERY_MAX_RESULTS_PER_ELEMENT: int = Field(
+        8, env="RECOVERY_MAX_RESULTS_PER_ELEMENT"
+    )  # Search results per element in coverage recovery (was 5)
+    RECOVERY_MAX_CLAIMS: int = Field(
+        3, env="RECOVERY_MAX_CLAIMS"
+    )  # Max claims to recover per check
+    RECOVERY_MAX_ELEMENTS_PER_CLAIM: int = Field(
+        5, env="RECOVERY_MAX_ELEMENTS_PER_CLAIM"
+    )  # Max elements to recover per claim
+    RECOVERY_TIMEOUT_SECONDS: int = Field(
+        20, env="RECOVERY_TIMEOUT_SECONDS"
+    )  # Hard time cap for coverage recovery
+    MAX_SOURCES_PER_CLAIM: int = Field(
+        20, env="MAX_SOURCES_PER_CLAIM"
+    )  # Max evidence sources per claim during retrieval
+    MAX_EVIDENCE_FOR_RANKING: int = Field(
+        60, env="MAX_EVIDENCE_FOR_RANKING"
+    )  # Cap combined evidence before expensive ranking
+    MIN_EVIDENCE_POST_FILTER: int = Field(
+        5, env="MIN_EVIDENCE_POST_FILTER"
+    )  # Minimum evidence per claim after scoring — triggers post-filter recovery
 
     # ========== CLAIM MAP SYSTEM (Track B) ==========
     MAX_SELECTED_CLAIMS: int = Field(

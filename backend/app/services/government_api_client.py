@@ -38,6 +38,7 @@ class GovernmentAPIClient(ABC):
         timeout: int = 10,
         max_results: int = 10,
         max_retries: int = 3,
+        priority_tier: int = 1,
     ):
         """
         Initialize API client.
@@ -50,6 +51,7 @@ class GovernmentAPIClient(ABC):
             timeout: Request timeout in seconds
             max_results: Maximum number of results to return
             max_retries: Maximum number of retry attempts (default 3)
+            priority_tier: Adapter priority (1=specialist, 2=cross-domain academic, 3=general reference)
         """
         self.api_name = api_name
         self.base_url = base_url.rstrip("/")
@@ -58,6 +60,7 @@ class GovernmentAPIClient(ABC):
         self.timeout = timeout
         self.max_results = max_results
         self.max_retries = max_retries
+        self.priority_tier = priority_tier
 
         # Initialize sync cache (for Celery workers)
         self.cache: SyncCacheService = get_sync_cache_service()

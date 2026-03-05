@@ -92,7 +92,9 @@ Include one entry per evidence item. The index must match the item number above.
 
 _GOV_PATTERNS = re.compile(
     r"\.(gov|gov\.uk|parliament\.uk|congress\.gov|europa\.eu|govt\.nz|gc\.ca)"
-    r"|whitehouse\.gov|govinfo\.gov",
+    r"|whitehouse\.gov|govinfo\.gov|legislation\.gov\.uk"
+    r"|bankofengland\.co\.uk|ecb\.europa\.eu|federalreserve\.gov"
+    r"|supremecourt\.uk|sec\.gov|who\.int(?!/data)",
     re.IGNORECASE,
 )
 
@@ -100,21 +102,108 @@ _ACADEMIC_PATTERNS = re.compile(
     r"\.(edu|ac\.uk|ac\.jp)"
     r"|pubmed\.ncbi|arxiv\.org|nature\.com|sciencedirect\.com"
     r"|springer\.com|wiley\.com|jstor\.org|ncbi\.nlm\.nih\.gov"
-    r"|scholar\.google",
+    r"|scholar\.google|thelancet\.com|jamanetwork\.com|science\.org"
+    r"|ipcc\.ch|semanticscholar\.org|openalex\.org|academic\.oup\.com"
+    r"|clinicaltrials\.gov|researchgate\.net|ssrn\.com|biorxiv\.org"
+    r"|medrxiv\.org",
     re.IGNORECASE,
 )
 
 _WIRE_SERVICES = re.compile(
+    # Wire services + major international news
     r"reuters\.com|apnews\.com|ap\.org|bbc\.co\.uk|bbc\.com"
     r"|theguardian\.com|nytimes\.com|washingtonpost\.com"
-    r"|ft\.com|economist\.com|bloomberg\.com|cnbc\.com",
+    r"|ft\.com|economist\.com|bloomberg\.com|cnbc\.com"
+    # UK news
+    r"|independent\.co\.uk|telegraph\.co\.uk|mirror\.co\.uk"
+    r"|dailymail\.co\.uk|news\.sky\.com|channel4\.com|itv\.com"
+    # US news
+    r"|cnn\.com|foxnews\.com|nbcnews\.com|cbsnews\.com|abcnews\.go\.com"
+    r"|npr\.org|usatoday\.com|latimes\.com|forbes\.com"
+    # Tech news
+    r"|techcrunch\.com|wired\.com|theverge\.com|arstechnica\.com"
+    # International
+    r"|aljazeera\.com|dw\.com|france24\.com|politico\.eu|politico\.com"
+    # Sports news
+    r"|espn\.com|skysports\.com|theathletic\.com"
+    # Investigative
+    r"|propublica\.org|bellingcat\.com|investigate-europe\.eu",
     re.IGNORECASE,
 )
 
 _DATA_PORTALS = re.compile(
     r"ons\.gov\.uk|bls\.gov|worldbank\.org|data\.who\.int"
     r"|fred\.stlouisfed\.org|data\.gov|eurostat\.ec"
-    r"|stats\.oecd\.org|imf\.org/en/Data",
+    r"|stats\.oecd\.org|imf\.org"
+    r"|ourworldindata\.org|data\.un\.org|census\.gov"
+    r"|gbif\.org|ncei\.noaa\.gov|tidesandcurrents\.noaa\.gov"
+    r"|england\.nhs\.uk|company-information\.service\.gov\.uk"
+    r"|clinicaltrials\.gov|wikidata\.org",
+    re.IGNORECASE,
+)
+
+# Think tanks and research institutes → commentary/analysis
+_THINK_TANKS = re.compile(
+    r"ifs\.org\.uk|chathamhouse\.org|brookings\.edu|rand\.org"
+    r"|cfr\.org|piie\.com|rusi\.org|carnegieendowment\.org"
+    r"|csis\.org|heritage\.org|urban\.org|aei\.org"
+    r"|carbonbrief\.org",
+    re.IGNORECASE,
+)
+
+# Blog and user-generated content platforms → commentary/opinion
+_BLOG_PLATFORMS = re.compile(
+    r"medium\.com|substack\.com|wordpress\.com|blogspot\.com" r"|tumblr\.com|ghost\.io",
+    re.IGNORECASE,
+)
+
+# Social media → commentary/opinion
+# Note: x.com needs boundary anchor to avoid matching vox.com, fox.com, etc.
+_SOCIAL_MEDIA = re.compile(
+    r"reddit\.com|(?:^|[/\.])x\.com|twitter\.com|facebook\.com"
+    r"|tiktok\.com|instagram\.com|threads\.net",
+    re.IGNORECASE,
+)
+
+# Magazines and opinion journals → commentary (opinion or analysis by title)
+_MAGAZINES = re.compile(
+    r"spectator\.co\.uk|newstatesman\.com|theatlantic\.com"
+    r"|newyorker\.com|prospectmagazine\.co\.uk|slate\.com"
+    r"|salon\.com|thenation\.com|theconversation\.com"
+    r"|vox\.com",
+    re.IGNORECASE,
+)
+
+# Fact-check / explainer outlets → reporting/analysis
+_FACTCHECK_OUTLETS = re.compile(
+    r"factcheck\.org|fullfact\.org|snopes\.com|politifact\.com",
+    re.IGNORECASE,
+)
+
+# Reference platforms → commentary/analysis
+_REFERENCE_PLATFORMS = re.compile(
+    r"wikipedia\.org|youtube\.com|youtu\.be",
+    re.IGNORECASE,
+)
+
+# Archive services — try to classify the underlying content
+_ARCHIVE_SERVICES = re.compile(
+    r"web\.archive\.org|archive\.org(?!/details)" r"|chroniclingamerica\.loc\.gov",
+    re.IGNORECASE,
+)
+
+# Title-based markers for opinion content
+_TITLE_OPINION_MARKERS = re.compile(
+    r"\bopinion\b|\bop-ed\b|\beditorial\b|\bcolumn\b"
+    r"|\bletter(?:s)? to the editor\b|\bmy view\b"
+    r"|\bi think\b|\bi argue\b|\bi believe\b",
+    re.IGNORECASE,
+)
+
+# Title-based markers for analysis content
+_TITLE_ANALYSIS_MARKERS = re.compile(
+    r"\banalysis\b|\bexplainer\b|\bexplained\b|\bin-depth\b"
+    r"|\bbriefing(?:\s+note)?\b|\bassessment\b",
     re.IGNORECASE,
 )
 
@@ -122,6 +211,7 @@ _DATA_PORTALS = re.compile(
 def _classify_heuristic(evidence: Dict[str, Any]) -> Tuple[str, str]:
     """Classify a single evidence item using URL/source pattern matching.
 
+    Uses a cascade of URL patterns with title/snippet keyword refinement.
     Returns (tier, evidence_type) tuple.
     """
     url = evidence.get("url", "")
@@ -129,40 +219,76 @@ def _classify_heuristic(evidence: Dict[str, Any]) -> Tuple[str, str]:
     title = evidence.get("title", "")
     combined = f"{url} {source} {title}".lower()
 
-    # API adapter results (government/data APIs) → primary/data
-    if evidence.get("external_source_provider"):
+    # API adapter results — primary source; type depends on adapter
+    provider = evidence.get("external_source_provider", "")
+    if provider:
+        _ACADEMIC_PROVIDERS = {"Semantic Scholar", "OpenAlex", "PubMed", "CrossRef"}
+        if provider in _ACADEMIC_PROVIDERS:
+            return ("primary", "academic")
         return ("primary", "data")
 
-    # Fact-check articles → reporting/news_reporting
+    # Fact-check articles (flag from pipeline) → reporting/analysis
     if evidence.get("is_factcheck"):
-        return ("reporting", "news_reporting")
+        return ("reporting", "analysis")
 
-    # Data portals → primary/data
+    # Data portals → primary/data (before gov — some are on .gov domains)
     if _DATA_PORTALS.search(url) or _DATA_PORTALS.search(source):
         return ("primary", "data")
+
+    # Think tanks (before academic — some have .edu domains)
+    if _THINK_TANKS.search(url) or _THINK_TANKS.search(source):
+        return ("commentary", "analysis")
+
+    # Academic sources → primary/academic (before gov — NIH/PubMed are on .gov)
+    if _ACADEMIC_PATTERNS.search(url) or _ACADEMIC_PATTERNS.search(source):
+        return ("primary", "academic")
 
     # Government sources → primary/official_statement
     if _GOV_PATTERNS.search(url) or _GOV_PATTERNS.search(source):
         return ("primary", "official_statement")
 
-    # Academic sources → primary/academic
-    if _ACADEMIC_PATTERNS.search(url) or _ACADEMIC_PATTERNS.search(source):
-        return ("primary", "academic")
+    # Archive services → primary/data (historical primary sources)
+    if _ARCHIVE_SERVICES.search(url) or _ARCHIVE_SERVICES.search(source):
+        return ("primary", "data")
 
-    # Major news organisations → reporting/news_reporting
+    # Fact-check / explainer outlets → reporting/analysis
+    if _FACTCHECK_OUTLETS.search(url) or _FACTCHECK_OUTLETS.search(source):
+        return ("reporting", "analysis")
+
+    # Major news organisations → reporting/news_reporting (with opinion/analysis override)
     if _WIRE_SERVICES.search(url) or _WIRE_SERVICES.search(source):
-        # Check if it's an opinion/editorial piece
-        opinion_markers = [
-            "opinion",
-            "editorial",
-            "op-ed",
-            "comment",
-            "analysis",
-            "column",
-        ]
-        if any(marker in combined for marker in opinion_markers):
+        if _TITLE_OPINION_MARKERS.search(combined):
             return ("commentary", "opinion")
+        if _TITLE_ANALYSIS_MARKERS.search(combined):
+            return ("commentary", "analysis")
         return ("reporting", "news_reporting")
+
+    # Magazines → commentary (opinion default, analysis if title suggests it)
+    if _MAGAZINES.search(url) or _MAGAZINES.search(source):
+        if _TITLE_ANALYSIS_MARKERS.search(combined):
+            return ("commentary", "analysis")
+        return ("commentary", "opinion")
+
+    # Blog platforms → commentary/opinion
+    if _BLOG_PLATFORMS.search(url) or _BLOG_PLATFORMS.search(source):
+        return ("commentary", "opinion")
+
+    # Social media → commentary/opinion
+    if _SOCIAL_MEDIA.search(url) or _SOCIAL_MEDIA.search(source):
+        return ("commentary", "opinion")
+
+    # Reference platforms (Wikipedia, YouTube) → commentary/analysis
+    if _REFERENCE_PLATFORMS.search(url) or _REFERENCE_PLATFORMS.search(source):
+        return ("commentary", "analysis")
+
+    # --- Title/snippet keyword fallback (no URL match) ---
+    # Check title for opinion markers
+    if _TITLE_OPINION_MARKERS.search(title):
+        return ("commentary", "opinion")
+
+    # Check title for analysis markers
+    if _TITLE_ANALYSIS_MARKERS.search(title):
+        return ("commentary", "analysis")
 
     # Default → commentary/news_reporting
     return (DEFAULT_TIER, DEFAULT_TYPE)

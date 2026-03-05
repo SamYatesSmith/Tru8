@@ -6,10 +6,10 @@ Adapters for financial and economic data:
 - FRED (US Federal Reserve Economic Data)
 - Alpha Vantage (Stocks, Forex, Crypto)
 - Marketaux (Financial News)
+- World Bank (Global economic indicators, no API key required)
 """
 
 import logging
-import os
 import re
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 # ========== ONS ECONOMIC STATISTICS ADAPTER ==========
+
 
 class ONSAdapter(GovernmentAPIClient):
     """
@@ -38,42 +39,42 @@ class ONSAdapter(GovernmentAPIClient):
             api_key=None,  # No API key required
             cache_ttl=86400,  # 24 hours
             timeout=15,
-            max_results=10
+            max_results=10,
         )
 
         # ONS-specific headers
-        self.headers.update({
-            "Accept": "application/json"
-        })
+        self.headers.update({"Accept": "application/json"})
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """ONS covers Finance and Demographics for UK only."""
-        return (
-            domain in ["Finance", "Demographics"] and
-            jurisdiction in ["UK", "Global"]  # Global allows UK data
-        )
+        return domain in ["Finance", "Demographics"] and jurisdiction in [
+            "UK",
+            "Global",
+        ]  # Global allows UK data
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Search ONS datasets for economic/demographic data.
+        Search ONS datasets and fetch latest observation values.
 
-        Args:
-            query: Search query (e.g., "unemployment rate 2024")
-            domain: Finance or Demographics
-            jurisdiction: UK
-
-        Returns:
-            List of evidence dictionaries
+        Strategy:
+        1. Search /datasets for relevant datasets
+        2. For top results, fetch latest observation via edition/version endpoints
+        3. Return evidence with actual data values
         """
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
         query = self._sanitize_query(query)
 
-        # ONS API endpoint for dataset search
         params = {
             "q": query,
-            "limit": self.max_results
+            "limit": self.max_results,
         }
 
         try:
@@ -83,57 +84,100 @@ class ONSAdapter(GovernmentAPIClient):
                 logger.warning(f"ONS API returned empty response for: {query}")
                 return []
 
-            return self._transform_response(response)
+            return self._transform_response_with_observations(response)
 
         except Exception as e:
             logger.error(f"ONS search failed for '{query}': {e}")
             return []
 
-    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
-        """
-        Transform ONS API response to standardized evidence format.
+    def _fetch_latest_observation(self, dataset_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch the latest observation value for an ONS dataset."""
+        try:
+            # Get editions for this dataset
+            editions_resp = self._make_request(f"datasets/{dataset_id}/editions")
+            if not editions_resp or "items" not in editions_resp:
+                return None
 
-        ONS response structure:
-        {
-          "items": [
-            {
-              "title": "Labour Market Statistics",
-              "description": "UK unemployment rate...",
-              "links": {"self": {"href": "https://..."}},
-              "release_date": "2024-01-15"
+            items = editions_resp.get("items", [])
+            if not items:
+                return None
+
+            # Use the first (latest) edition
+            edition = items[0]
+            edition_id = edition.get("edition", "time-series")
+
+            # Get latest version
+            versions_resp = self._make_request(
+                f"datasets/{dataset_id}/editions/{edition_id}/versions"
+            )
+            if not versions_resp or "items" not in versions_resp:
+                return None
+
+            versions = versions_resp.get("items", [])
+            if not versions:
+                return None
+
+            latest_version = versions[0]
+            return {
+                "release_date": latest_version.get("release_date"),
+                "version": latest_version.get("version"),
+                "edition": edition_id,
+                "temporal": latest_version.get("temporal"),
+                "downloads": latest_version.get("downloads", {}),
             }
-          ]
-        }
-        """
+
+        except Exception as e:
+            logger.debug(f"ONS observation fetch failed for {dataset_id}: {e}")
+            return None
+
+    def _transform_response_with_observations(
+        self, raw_response: Any
+    ) -> List[Dict[str, Any]]:
+        """Transform ONS datasets with latest observation values."""
         evidence_list = []
 
-        for item in raw_response.get("items", []):
+        for item in raw_response.get("items", [])[:5]:  # Cap at 5 to limit API calls
             try:
                 title = item.get("title", "ONS Dataset")
                 description = item.get("description", "")
+                dataset_id = item.get("id", "")
 
-                # Extract URL
                 links = item.get("links", {})
                 url = links.get("self", {}).get("href", "https://www.ons.gov.uk")
 
-                # Parse release date
                 release_date_str = item.get("release_date")
                 source_date = None
                 if release_date_str:
                     try:
-                        source_date = datetime.fromisoformat(release_date_str.replace("Z", "+00:00"))
+                        source_date = datetime.fromisoformat(
+                            release_date_str.replace("Z", "+00:00")
+                        )
                     except Exception:
                         pass
 
-                # Extract key statistics from description
+                # PQ-06: Fetch latest observation to include actual values
                 snippet = description[:300] if description else title
+                obs = self._fetch_latest_observation(dataset_id) if dataset_id else None
+                if obs:
+                    obs_date = obs.get("release_date", "")
+                    if obs_date:
+                        try:
+                            source_date = datetime.fromisoformat(
+                                obs_date.replace("Z", "+00:00")
+                            )
+                        except Exception:
+                            pass
+                    snippet = f"{title} — ONS dataset updated {obs_date[:10] if obs_date else 'recently'}. {description[:200]}"
 
-                # ONS-specific metadata
                 metadata = {
                     "api_source": "ONS",
-                    "dataset_id": item.get("id"),
+                    "dataset_id": dataset_id,
                     "dataset_type": item.get("type"),
-                    "contact_name": item.get("contacts", [{}])[0].get("name") if item.get("contacts") else None
+                    "contact_name": (
+                        item.get("contacts", [{}])[0].get("name")
+                        if item.get("contacts")
+                        else None
+                    ),
                 }
 
                 evidence = self._create_evidence_dict(
@@ -141,7 +185,7 @@ class ONSAdapter(GovernmentAPIClient):
                     snippet=snippet,
                     url=url,
                     source_date=source_date,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 evidence_list.append(evidence)
@@ -153,8 +197,13 @@ class ONSAdapter(GovernmentAPIClient):
         logger.info(f"ONS returned {len(evidence_list)} evidence items")
         return evidence_list
 
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform ONS API response (fallback without observations)."""
+        return self._transform_response_with_observations(raw_response)
+
 
 # ========== FRED ADAPTER (US Federal Reserve Economic Data) ==========
+
 
 class FREDAdapter(GovernmentAPIClient):
     """
@@ -167,15 +216,15 @@ class FREDAdapter(GovernmentAPIClient):
     """
 
     def __init__(self):
-        api_key = os.getenv("FRED_API_KEY")
+        from app.core.config import settings
 
         super().__init__(
             api_name="FRED",
             base_url="https://api.stlouisfed.org/fred",
-            api_key=api_key,
+            api_key=settings.FRED_API_KEY or None,
             cache_ttl=86400 * 7,  # 7 days (economic data changes slowly)
             timeout=10,
-            max_results=10
+            max_results=10,
         )
 
         # FRED uses API key as query parameter
@@ -186,17 +235,20 @@ class FREDAdapter(GovernmentAPIClient):
         """FRED covers Finance for US."""
         return domain == "Finance" and jurisdiction in ["US", "Global"]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Search FRED for US economic data series.
+        Search FRED for US economic data series and fetch latest observations.
 
-        Args:
-            query: Search query (e.g., "unemployment rate")
-            domain: Finance
-            jurisdiction: US
-
-        Returns:
-            List of evidence dictionaries
+        Strategy:
+        1. Search /series/search for relevant series
+        2. For top results, fetch latest observations via /series/observations
+        3. Return evidence with actual data values
         """
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
@@ -207,12 +259,11 @@ class FREDAdapter(GovernmentAPIClient):
 
         query = self._sanitize_query(query)
 
-        # FRED series search
         params = {
             "search_text": query,
             "api_key": self.api_key,
             "file_type": "json",
-            "limit": self.max_results
+            "limit": self.max_results,
         }
 
         try:
@@ -228,45 +279,96 @@ class FREDAdapter(GovernmentAPIClient):
             logger.error(f"FRED search failed for '{query}': {e}")
             return []
 
+    def _fetch_latest_observations(self, series_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch the latest observation values for a FRED series."""
+        try:
+            params = {
+                "series_id": series_id,
+                "api_key": self.api_key,
+                "file_type": "json",
+                "sort_order": "desc",
+                "limit": 5,
+            }
+            response = self._make_request("/series/observations", params=params)
+            if not response or "observations" not in response:
+                return None
+
+            observations = response.get("observations", [])
+            # Filter out entries with "." value (FRED uses "." for missing data)
+            valid_obs = [
+                o for o in observations if o.get("value") and o["value"] != "."
+            ]
+            if not valid_obs:
+                return None
+
+            latest = valid_obs[0]
+            return {
+                "value": latest.get("value"),
+                "date": latest.get("date"),
+            }
+
+        except Exception as e:
+            logger.debug(f"FRED observation fetch failed for {series_id}: {e}")
+            return None
+
     def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
-        """Transform FRED API response to standardized evidence format."""
+        """Transform FRED API response with latest observation values."""
         evidence_list = []
 
-        for series in raw_response.get("seriess", []):
+        for series in raw_response.get("seriess", [])[:5]:  # Cap to limit API calls
             try:
                 series_id = series.get("id")
                 title = series.get("title", f"FRED Series {series_id}")
                 notes = series.get("notes", "")
+                units = series.get("units", "")
+                frequency = series.get("frequency", "")
+                seasonal_adj = series.get("seasonal_adjustment", "")
 
-                # Build URL
                 url = f"https://fred.stlouisfed.org/series/{series_id}"
 
-                # Build snippet from notes
-                snippet = notes[:300] if notes else f"Economic data series: {title}"
-
-                # Parse dates
-                observation_start = series.get("observation_start")
-                source_date = None
-                if observation_start:
+                # PQ-06: Fetch latest observation to include actual values
+                obs = self._fetch_latest_observations(series_id) if series_id else None
+                if obs and obs.get("value"):
+                    snippet = (
+                        f"{title} ({obs['date']}): {obs['value']}"
+                        f"{' ' + units if units else ''}"
+                        f" — FRED series {series_id}"
+                        f"{', ' + frequency if frequency else ''}"
+                        f"{', ' + seasonal_adj if seasonal_adj else ''}"
+                    )
+                    # Use observation date as source_date
+                    source_date = None
                     try:
-                        source_date = datetime.fromisoformat(observation_start)
+                        source_date = datetime.fromisoformat(obs["date"])
                     except Exception:
                         pass
+                else:
+                    snippet = notes[:300] if notes else f"Economic data series: {title}"
+                    observation_start = series.get("observation_start")
+                    source_date = None
+                    if observation_start:
+                        try:
+                            source_date = datetime.fromisoformat(observation_start)
+                        except Exception:
+                            pass
 
                 metadata = {
                     "api_source": "FRED",
                     "series_id": series_id,
-                    "frequency": series.get("frequency"),
-                    "units": series.get("units"),
-                    "seasonal_adjustment": series.get("seasonal_adjustment")
+                    "frequency": frequency,
+                    "units": units,
+                    "seasonal_adjustment": seasonal_adj,
                 }
+                if obs and obs.get("value"):
+                    metadata["latest_value"] = obs["value"]
+                    metadata["latest_date"] = obs["date"]
 
                 evidence = self._create_evidence_dict(
                     title=title,
                     snippet=snippet,
                     url=url,
                     source_date=source_date,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 evidence_list.append(evidence)
@@ -280,6 +382,7 @@ class FREDAdapter(GovernmentAPIClient):
 
 
 # ========== ALPHA VANTAGE ADAPTER (Stocks, Forex, Crypto, News) ==========
+
 
 class AlphaVantageAdapter(GovernmentAPIClient):
     """
@@ -304,7 +407,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
             api_key=settings.ALPHA_VANTAGE_API_KEY,
             cache_ttl=300,  # 5 minutes (stock data changes frequently)
             timeout=15,
-            max_results=10
+            max_results=10,
         )
 
         # Alpha Vantage uses apikey as query parameter, not header
@@ -315,7 +418,13 @@ class AlphaVantageAdapter(GovernmentAPIClient):
         """Alpha Vantage covers Finance globally."""
         return domain == "Finance"
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search Alpha Vantage for financial data.
 
@@ -345,13 +454,33 @@ class AlphaVantageAdapter(GovernmentAPIClient):
             # Determine what type of financial data to fetch
             # NOTE: Order matters! Check specific commodities/crypto BEFORE generic terms like "price"
             # because "oil price" should match commodity, not stock
-            if any(term in query_lower for term in ["oil", "crude", "brent", "wti", "petroleum", "natural gas", "commodity", "barrel"]):
+            if any(
+                term in query_lower
+                for term in [
+                    "oil",
+                    "crude",
+                    "brent",
+                    "wti",
+                    "petroleum",
+                    "natural gas",
+                    "commodity",
+                    "barrel",
+                ]
+            ):
                 evidence.extend(self._get_commodity_price(query))
-            elif any(term in query_lower for term in ["bitcoin", "crypto", "ethereum", "btc", "eth"]):
+            elif any(
+                term in query_lower
+                for term in ["bitcoin", "crypto", "ethereum", "btc", "eth"]
+            ):
                 evidence.extend(self._get_crypto_rate(query))
-            elif any(term in query_lower for term in ["exchange rate", "forex", "currency", "usd", "eur", "gbp"]):
+            elif any(
+                term in query_lower
+                for term in ["exchange rate", "forex", "currency", "usd", "eur", "gbp"]
+            ):
                 evidence.extend(self._get_forex_rate(query))
-            elif any(term in query_lower for term in ["stock", "share", "price", "trading"]):
+            elif any(
+                term in query_lower for term in ["stock", "share", "price", "trading"]
+            ):
                 if ticker:
                     evidence.extend(self._get_stock_quote(ticker))
                 else:
@@ -371,25 +500,72 @@ class AlphaVantageAdapter(GovernmentAPIClient):
             logger.error(f"Alpha Vantage search failed for '{query}': {e}")
             return []
 
-    def _extract_ticker(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+    def _extract_ticker(
+        self, query: str, entities: Optional[List[Dict[str, str]]] = None
+    ) -> Optional[str]:
         """Extract stock ticker from query or entities."""
         # Common company to ticker mapping
         company_tickers = {
-            "apple": "AAPL", "microsoft": "MSFT", "google": "GOOGL", "alphabet": "GOOGL",
-            "amazon": "AMZN", "tesla": "TSLA", "meta": "META", "facebook": "META",
-            "nvidia": "NVDA", "netflix": "NFLX", "intel": "INTC", "amd": "AMD",
-            "ibm": "IBM", "oracle": "ORCL", "salesforce": "CRM", "adobe": "ADBE",
-            "paypal": "PYPL", "uber": "UBER", "airbnb": "ABNB", "spotify": "SPOT",
-            "twitter": "X", "snap": "SNAP", "pinterest": "PINS", "zoom": "ZM",
-            "shopify": "SHOP", "square": "SQ", "block": "SQ", "coinbase": "COIN",
-            "disney": "DIS", "warner": "WBD", "comcast": "CMCSA", "verizon": "VZ",
-            "at&t": "T", "boeing": "BA", "lockheed": "LMT", "raytheon": "RTX",
-            "jpmorgan": "JPM", "goldman": "GS", "morgan stanley": "MS", "citi": "C",
-            "bank of america": "BAC", "wells fargo": "WFC", "visa": "V", "mastercard": "MA",
-            "walmart": "WMT", "target": "TGT", "costco": "COST", "home depot": "HD",
-            "nike": "NKE", "starbucks": "SBUX", "mcdonald": "MCD", "coca-cola": "KO",
-            "pepsi": "PEP", "procter": "PG", "johnson": "JNJ", "pfizer": "PFE",
-            "moderna": "MRNA", "exxon": "XOM", "chevron": "CVX", "shell": "SHEL",
+            "apple": "AAPL",
+            "microsoft": "MSFT",
+            "google": "GOOGL",
+            "alphabet": "GOOGL",
+            "amazon": "AMZN",
+            "tesla": "TSLA",
+            "meta": "META",
+            "facebook": "META",
+            "nvidia": "NVDA",
+            "netflix": "NFLX",
+            "intel": "INTC",
+            "amd": "AMD",
+            "ibm": "IBM",
+            "oracle": "ORCL",
+            "salesforce": "CRM",
+            "adobe": "ADBE",
+            "paypal": "PYPL",
+            "uber": "UBER",
+            "airbnb": "ABNB",
+            "spotify": "SPOT",
+            "twitter": "X",
+            "snap": "SNAP",
+            "pinterest": "PINS",
+            "zoom": "ZM",
+            "shopify": "SHOP",
+            "square": "SQ",
+            "block": "SQ",
+            "coinbase": "COIN",
+            "disney": "DIS",
+            "warner": "WBD",
+            "comcast": "CMCSA",
+            "verizon": "VZ",
+            "at&t": "T",
+            "boeing": "BA",
+            "lockheed": "LMT",
+            "raytheon": "RTX",
+            "jpmorgan": "JPM",
+            "goldman": "GS",
+            "morgan stanley": "MS",
+            "citi": "C",
+            "bank of america": "BAC",
+            "wells fargo": "WFC",
+            "visa": "V",
+            "mastercard": "MA",
+            "walmart": "WMT",
+            "target": "TGT",
+            "costco": "COST",
+            "home depot": "HD",
+            "nike": "NKE",
+            "starbucks": "SBUX",
+            "mcdonald": "MCD",
+            "coca-cola": "KO",
+            "pepsi": "PEP",
+            "procter": "PG",
+            "johnson": "JNJ",
+            "pfizer": "PFE",
+            "moderna": "MRNA",
+            "exxon": "XOM",
+            "chevron": "CVX",
+            "shell": "SHEL",
         }
 
         query_lower = query.lower()
@@ -400,11 +576,27 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                 return ticker
 
         # Check for direct ticker symbols (uppercase, 1-5 chars)
-        ticker_match = re.search(r'\b([A-Z]{1,5})\b', query)
+        ticker_match = re.search(r"\b([A-Z]{1,5})\b", query)
         if ticker_match:
             potential_ticker = ticker_match.group(1)
             # Verify it's likely a ticker (not a common word)
-            common_words = {"A", "I", "THE", "AND", "OR", "FOR", "TO", "IN", "ON", "AT", "IS", "IT", "BE", "AS", "BY"}
+            common_words = {
+                "A",
+                "I",
+                "THE",
+                "AND",
+                "OR",
+                "FOR",
+                "TO",
+                "IN",
+                "ON",
+                "AT",
+                "IS",
+                "IT",
+                "BE",
+                "AS",
+                "BY",
+            }
             if potential_ticker not in common_words:
                 return potential_ticker
 
@@ -421,11 +613,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
 
     def _get_stock_quote(self, ticker: str) -> List[Dict[str, Any]]:
         """Get latest stock quote for a ticker."""
-        params = {
-            "function": "GLOBAL_QUOTE",
-            "symbol": ticker,
-            "apikey": self.api_key
-        }
+        params = {"function": "GLOBAL_QUOTE", "symbol": ticker, "apikey": self.api_key}
 
         try:
             response = self._make_request("", params=params)
@@ -461,8 +649,8 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                     "price": price,
                     "change": change,
                     "change_percent": change_pct,
-                    "volume": volume
-                }
+                    "volume": volume,
+                },
             )
             return [evidence]
 
@@ -475,7 +663,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
         params = {
             "function": "SYMBOL_SEARCH",
             "keywords": query[:50],  # Limit query length
-            "apikey": self.api_key
+            "apikey": self.api_key,
         }
 
         try:
@@ -502,8 +690,8 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                         "ticker": symbol,
                         "company_name": name,
                         "type": match_type,
-                        "region": region
-                    }
+                        "region": region,
+                    },
                 )
                 evidence_list.append(evidence)
 
@@ -517,13 +705,20 @@ class AlphaVantageAdapter(GovernmentAPIClient):
         """Get cryptocurrency exchange rate."""
         # Determine crypto symbol
         crypto_map = {
-            "bitcoin": "BTC", "btc": "BTC",
-            "ethereum": "ETH", "eth": "ETH",
-            "litecoin": "LTC", "ltc": "LTC",
-            "ripple": "XRP", "xrp": "XRP",
-            "dogecoin": "DOGE", "doge": "DOGE",
-            "cardano": "ADA", "ada": "ADA",
-            "solana": "SOL", "sol": "SOL",
+            "bitcoin": "BTC",
+            "btc": "BTC",
+            "ethereum": "ETH",
+            "eth": "ETH",
+            "litecoin": "LTC",
+            "ltc": "LTC",
+            "ripple": "XRP",
+            "xrp": "XRP",
+            "dogecoin": "DOGE",
+            "doge": "DOGE",
+            "cardano": "ADA",
+            "ada": "ADA",
+            "solana": "SOL",
+            "sol": "SOL",
         }
 
         query_lower = query.lower()
@@ -537,7 +732,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
             "function": "CURRENCY_EXCHANGE_RATE",
             "from_currency": crypto,
             "to_currency": "USD",
-            "apikey": self.api_key
+            "apikey": self.api_key,
         }
 
         try:
@@ -562,8 +757,8 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                     "api_source": "Alpha Vantage",
                     "data_type": "crypto_rate",
                     "crypto": crypto,
-                    "rate_usd": rate
-                }
+                    "rate_usd": rate,
+                },
             )
             return [evidence]
 
@@ -575,13 +770,21 @@ class AlphaVantageAdapter(GovernmentAPIClient):
         """Get forex exchange rate."""
         # Extract currency pair from query
         currencies = {
-            "usd": "USD", "dollar": "USD",
-            "eur": "EUR", "euro": "EUR",
-            "gbp": "GBP", "pound": "GBP", "sterling": "GBP",
-            "jpy": "JPY", "yen": "JPY",
-            "cad": "CAD", "canadian": "CAD",
-            "aud": "AUD", "australian": "AUD",
-            "chf": "CHF", "swiss": "CHF",
+            "usd": "USD",
+            "dollar": "USD",
+            "eur": "EUR",
+            "euro": "EUR",
+            "gbp": "GBP",
+            "pound": "GBP",
+            "sterling": "GBP",
+            "jpy": "JPY",
+            "yen": "JPY",
+            "cad": "CAD",
+            "canadian": "CAD",
+            "aud": "AUD",
+            "australian": "AUD",
+            "chf": "CHF",
+            "swiss": "CHF",
         }
 
         query_lower = query.lower()
@@ -605,7 +808,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
             "function": "CURRENCY_EXCHANGE_RATE",
             "from_currency": from_curr,
             "to_currency": to_curr,
-            "apikey": self.api_key
+            "apikey": self.api_key,
         }
 
         try:
@@ -630,8 +833,8 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                     "data_type": "forex_rate",
                     "from_currency": from_curr,
                     "to_currency": to_curr,
-                    "rate": rate
-                }
+                    "rate": rate,
+                },
             )
             return [evidence]
 
@@ -684,14 +887,16 @@ class AlphaVantageAdapter(GovernmentAPIClient):
         params = {
             "function": function_name,
             "interval": "daily",
-            "apikey": self.api_key
+            "apikey": self.api_key,
         }
 
         try:
             response = self._make_request("", params=params)
 
             if not response or "data" not in response:
-                logger.warning(f"Alpha Vantage returned no data for commodity {function_name}")
+                logger.warning(
+                    f"Alpha Vantage returned no data for commodity {function_name}"
+                )
                 return []
 
             # Get the most recent data point
@@ -748,15 +953,19 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                     "price": current_value,
                     "date": current_date,
                     "pct_change": round(pct_change, 2) if pct_change else None,
-                    "unit": "USD/barrel" if "Oil" in commodity_name else "USD"
-                }
+                    "unit": "USD/barrel" if "Oil" in commodity_name else "USD",
+                },
             )
 
-            logger.info(f"Alpha Vantage commodity price: {commodity_name} = ${current_value}")
+            logger.info(
+                f"Alpha Vantage commodity price: {commodity_name} = ${current_value}"
+            )
             return [evidence]
 
         except Exception as e:
-            logger.error(f"Alpha Vantage commodity price failed for {function_name}: {e}")
+            logger.error(
+                f"Alpha Vantage commodity price failed for {function_name}: {e}"
+            )
             return []
 
     def _get_news_sentiment(self, query: str) -> List[Dict[str, Any]]:
@@ -766,7 +975,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
             "tickers": query if query.isupper() and len(query) <= 5 else "",
             "topics": "" if query.isupper() else query[:50],
             "limit": 5,
-            "apikey": self.api_key
+            "apikey": self.api_key,
         }
 
         # Remove empty params
@@ -809,8 +1018,8 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                         "api_source": "Alpha Vantage",
                         "data_type": "news_sentiment",
                         "sentiment_label": sentiment,
-                        "sentiment_score": sentiment_score
-                    }
+                        "sentiment_score": sentiment_score,
+                    },
                 )
                 evidence_list.append(evidence)
 
@@ -826,6 +1035,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
 
 
 # ========== MARKETAUX ADAPTER (Financial News) ==========
+
 
 class MarketauxAdapter(GovernmentAPIClient):
     """
@@ -849,7 +1059,7 @@ class MarketauxAdapter(GovernmentAPIClient):
             api_key=settings.MARKETAUX_API_KEY,
             cache_ttl=600,  # 10 minutes (news updates frequently)
             timeout=15,
-            max_results=10
+            max_results=10,
         )
 
         # Marketaux uses api_token as query parameter
@@ -860,7 +1070,13 @@ class MarketauxAdapter(GovernmentAPIClient):
         """Marketaux covers Finance globally (news focus)."""
         return domain == "Finance"
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search Marketaux for financial news.
 
@@ -893,17 +1109,38 @@ class MarketauxAdapter(GovernmentAPIClient):
             logger.error(f"Marketaux search failed for '{query}': {e}")
             return []
 
-    def _extract_ticker(self, query: str, entities: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+    def _extract_ticker(
+        self, query: str, entities: Optional[List[Dict[str, str]]] = None
+    ) -> Optional[str]:
         """Extract stock ticker from query or entities."""
         # Common company to ticker mapping (same as Alpha Vantage)
         company_tickers = {
-            "apple": "AAPL", "microsoft": "MSFT", "google": "GOOGL", "alphabet": "GOOGL",
-            "amazon": "AMZN", "tesla": "TSLA", "meta": "META", "facebook": "META",
-            "nvidia": "NVDA", "netflix": "NFLX", "intel": "INTC", "amd": "AMD",
-            "ibm": "IBM", "disney": "DIS", "boeing": "BA", "nike": "NKE",
-            "jpmorgan": "JPM", "goldman": "GS", "visa": "V", "mastercard": "MA",
-            "walmart": "WMT", "coca-cola": "KO", "pepsi": "PEP", "pfizer": "PFE",
-            "exxon": "XOM", "chevron": "CVX",
+            "apple": "AAPL",
+            "microsoft": "MSFT",
+            "google": "GOOGL",
+            "alphabet": "GOOGL",
+            "amazon": "AMZN",
+            "tesla": "TSLA",
+            "meta": "META",
+            "facebook": "META",
+            "nvidia": "NVDA",
+            "netflix": "NFLX",
+            "intel": "INTC",
+            "amd": "AMD",
+            "ibm": "IBM",
+            "disney": "DIS",
+            "boeing": "BA",
+            "nike": "NKE",
+            "jpmorgan": "JPM",
+            "goldman": "GS",
+            "visa": "V",
+            "mastercard": "MA",
+            "walmart": "WMT",
+            "coca-cola": "KO",
+            "pepsi": "PEP",
+            "pfizer": "PFE",
+            "exxon": "XOM",
+            "chevron": "CVX",
         }
 
         query_lower = query.lower()
@@ -913,22 +1150,36 @@ class MarketauxAdapter(GovernmentAPIClient):
                 return ticker
 
         # Check for direct ticker symbols
-        ticker_match = re.search(r'\b([A-Z]{1,5})\b', query)
+        ticker_match = re.search(r"\b([A-Z]{1,5})\b", query)
         if ticker_match:
             potential_ticker = ticker_match.group(1)
-            common_words = {"A", "I", "THE", "AND", "OR", "FOR", "TO", "IN", "ON", "AT", "IS", "IT", "BE", "AS", "BY"}
+            common_words = {
+                "A",
+                "I",
+                "THE",
+                "AND",
+                "OR",
+                "FOR",
+                "TO",
+                "IN",
+                "ON",
+                "AT",
+                "IS",
+                "IT",
+                "BE",
+                "AS",
+                "BY",
+            }
             if potential_ticker not in common_words:
                 return potential_ticker
 
         return None
 
-    def _search_news(self, query: str, ticker: Optional[str] = None) -> List[Dict[str, Any]]:
+    def _search_news(
+        self, query: str, ticker: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Search for financial news."""
-        params = {
-            "api_token": self.api_key,
-            "language": "en",
-            "limit": 5
-        }
+        params = {"api_token": self.api_key, "language": "en", "limit": 5}
 
         if ticker:
             params["symbols"] = ticker
@@ -952,20 +1203,28 @@ class MarketauxAdapter(GovernmentAPIClient):
 
                 # Extract sentiment if available
                 sentiment = article.get("sentiment", {})
-                sentiment_score = sentiment.get("score", 0) if isinstance(sentiment, dict) else 0
+                sentiment_score = (
+                    sentiment.get("score", 0) if isinstance(sentiment, dict) else 0
+                )
 
                 # Parse date
                 source_date = None
                 if published:
                     try:
-                        source_date = datetime.fromisoformat(published.replace("Z", "+00:00"))
+                        source_date = datetime.fromisoformat(
+                            published.replace("Z", "+00:00")
+                        )
                     except:
                         source_date = datetime.utcnow()
 
                 # Extract relevant entities
                 entities = article.get("entities", [])
-                entity_names = [e.get("name", "") for e in entities[:3]] if entities else []
-                entity_str = f" [Related: {', '.join(entity_names)}]" if entity_names else ""
+                entity_names = (
+                    [e.get("name", "") for e in entities[:3]] if entities else []
+                )
+                entity_str = (
+                    f" [Related: {', '.join(entity_names)}]" if entity_names else ""
+                )
 
                 snippet = f"{description}{entity_str}"
                 if sentiment_score:
@@ -981,8 +1240,8 @@ class MarketauxAdapter(GovernmentAPIClient):
                         "data_type": "financial_news",
                         "source_name": source_name,
                         "sentiment_score": sentiment_score,
-                        "entities": entity_names
-                    }
+                        "entities": entity_names,
+                    },
                 )
                 evidence_list.append(evidence)
 
@@ -996,3 +1255,203 @@ class MarketauxAdapter(GovernmentAPIClient):
     def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
         """Generic transform - handled by _search_news."""
         return []
+
+
+# ========== WORLD BANK ADAPTER ==========
+
+
+class WorldBankAdapter(GovernmentAPIClient):
+    """
+    World Bank Open Data API Adapter.
+
+    Covers: Finance, Demographics
+    Jurisdiction: US, Global (worldwide macro-economic indicators)
+    Free tier: Unlimited — fully open, no API key required
+    Docs: https://datahelpdesk.worldbank.org/knowledgebase/articles/889392
+    """
+
+    # Map common query terms to World Bank indicator codes
+    INDICATOR_MAP = {
+        "gdp": "NY.GDP.MKTP.CD",
+        "gdp growth": "NY.GDP.MKTP.KD.ZG",
+        "gdp per capita": "NY.GDP.PCAP.CD",
+        "inflation": "FP.CPI.TOTL.ZG",
+        "unemployment": "SL.UEM.TOTL.ZS",
+        "population": "SP.POP.TOTL",
+        "population growth": "SP.POP.GROW",
+        "life expectancy": "SP.DYN.LE00.IN",
+        "poverty": "SI.POV.DDAY",
+        "trade": "NE.TRD.GNFS.ZS",
+        "exports": "NE.EXP.GNFS.ZS",
+        "imports": "NE.IMP.GNFS.ZS",
+        "debt": "GC.DOD.TOTL.GD.ZS",
+        "government debt": "GC.DOD.TOTL.GD.ZS",
+        "interest rate": "FR.INR.LEND",
+        "foreign investment": "BX.KLT.DINV.WD.GD.ZS",
+        "fdi": "BX.KLT.DINV.WD.GD.ZS",
+        "gni": "NY.GNP.MKTP.CD",
+        "gni per capita": "NY.GNP.PCAP.CD",
+        "co2 emissions": "EN.ATM.CO2E.KT",
+        "electricity": "EG.USE.ELEC.KH.PC",
+        "internet users": "IT.NET.USER.ZS",
+        "literacy": "SE.ADT.LITR.ZS",
+        "health expenditure": "SH.XPD.CHEX.GD.ZS",
+        "education expenditure": "SE.XPD.TOTL.GD.ZS",
+        "birth rate": "SP.DYN.CBRT.IN",
+        "death rate": "SP.DYN.CDRT.IN",
+        "fertility rate": "SP.DYN.TFRT.IN",
+        "infant mortality": "SP.DYN.IMRT.IN",
+        "current account": "BN.CAB.XOKA.GD.ZS",
+    }
+
+    # Map jurisdictions to World Bank country codes
+    COUNTRY_MAP = {
+        "UK": "GBR",
+        "US": "USA",
+        "EU": "EUU",
+        "Global": "WLD",
+    }
+
+    def __init__(self):
+        super().__init__(
+            api_name="World Bank",
+            base_url="https://api.worldbank.org/v2",
+            api_key=None,
+            cache_ttl=86400 * 7,  # 7 days — data updates quarterly
+            timeout=10,
+            max_results=5,
+        )
+        # World Bank API uses no auth headers
+        self.headers = {"Accept": "application/json"}
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """World Bank covers Finance and Demographics globally."""
+        return domain in ["Finance", "Demographics"]
+
+    def _match_indicator(self, query: str) -> Optional[str]:
+        """Match query text to a World Bank indicator code."""
+        query_lower = query.lower()
+        # Try exact phrase matches (longest first for specificity)
+        for term in sorted(self.INDICATOR_MAP.keys(), key=len, reverse=True):
+            if term in query_lower:
+                return self.INDICATOR_MAP[term]
+        return None
+
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, Any]]] = None,
+    ) -> List[Dict[str, Any]]:
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        indicator_code = self._match_indicator(query)
+        if not indicator_code:
+            logger.info(f"World Bank: No indicator match for query '{query}'")
+            return []
+
+        country_code = self.COUNTRY_MAP.get(jurisdiction, "WLD")
+
+        try:
+            # Fetch latest 5 years of data
+            params = {
+                "format": "json",
+                "per_page": "5",
+                "mrv": "5",  # Most recent 5 values
+            }
+            endpoint = f"country/{country_code}/indicator/{indicator_code}"
+            response = self._make_request(endpoint, params=params)
+
+            if not response or not isinstance(response, list) or len(response) < 2:
+                return []
+
+            metadata = response[0]
+            data_entries = response[1]
+
+            if not data_entries:
+                return []
+
+            return self._transform_response(
+                {
+                    "metadata": metadata,
+                    "data": data_entries,
+                    "indicator_code": indicator_code,
+                    "country_code": country_code,
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"World Bank search failed: {e}")
+            return []
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform World Bank API response to evidence format."""
+        evidence_list = []
+        data_entries = raw_response.get("data", [])
+        indicator_code = raw_response.get("indicator_code", "")
+        country_code = raw_response.get("country_code", "WLD")
+
+        # Filter to entries with actual values
+        valid_entries = [e for e in data_entries if e.get("value") is not None]
+        if not valid_entries:
+            return []
+
+        # Build a single evidence item summarising the trend
+        latest = valid_entries[0]
+        indicator_name = latest.get("indicator", {}).get("value", "Economic Indicator")
+        country_name = latest.get("country", {}).get("value", "World")
+        latest_year = latest.get("date", "")
+        latest_value = latest.get("value")
+
+        # Format the value nicely
+        if latest_value is not None:
+            if abs(latest_value) >= 1_000_000_000:
+                formatted = f"${latest_value / 1_000_000_000:,.1f}B"
+            elif abs(latest_value) >= 1_000_000:
+                formatted = f"${latest_value / 1_000_000:,.1f}M"
+            elif abs(latest_value) < 100:
+                formatted = f"{latest_value:.2f}"
+            else:
+                formatted = f"{latest_value:,.0f}"
+        else:
+            formatted = "N/A"
+
+        # Build trend snippet from available years
+        trend_parts = []
+        for entry in valid_entries[:5]:
+            year = entry.get("date", "?")
+            val = entry.get("value")
+            if val is not None:
+                if abs(val) < 100:
+                    trend_parts.append(f"{year}: {val:.2f}")
+                elif abs(val) >= 1_000_000_000:
+                    trend_parts.append(f"{year}: ${val / 1_000_000_000:,.1f}B")
+                else:
+                    trend_parts.append(f"{year}: {val:,.0f}")
+
+        snippet = (
+            f"{indicator_name} — {country_name} ({latest_year}): {formatted}. "
+            f"Trend: {'; '.join(trend_parts)}. "
+            f"Source: World Bank Open Data."
+        )
+
+        evidence = self._create_evidence_dict(
+            title=f"{indicator_name} — {country_name}",
+            snippet=snippet,
+            url=f"https://data.worldbank.org/indicator/{indicator_code}?locations={country_code}",
+            source_date=f"{latest_year}-01-01" if latest_year else None,
+            metadata={
+                "indicator_code": indicator_code,
+                "indicator_name": indicator_name,
+                "country": country_name,
+                "country_code": country_code,
+                "latest_year": latest_year,
+                "latest_value": latest_value,
+                "data_points": len(valid_entries),
+            },
+        )
+        evidence_list.append(evidence)
+
+        return evidence_list

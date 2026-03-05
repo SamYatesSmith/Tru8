@@ -69,6 +69,14 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     return 'cartographer';
   });
 
+  // Auto-focus the only claim when a single-claim check completes
+  // (handles SSE race: initial render may have status='processing')
+  useEffect(() => {
+    if (isSingleClaim && activeClaimIndex === null) {
+      setActiveClaimIndex(0);
+    }
+  }, [isSingleClaim, activeClaimIndex]);
+
   // F07: Sync active overview tab to URL for shareability
   const handleOverviewTabChange = useCallback((tab: string) => {
     setActiveOverviewTab(tab);

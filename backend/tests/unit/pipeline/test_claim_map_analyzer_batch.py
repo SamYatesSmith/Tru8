@@ -708,9 +708,9 @@ class TestFallbackMapping:
         # Re-derive orientation as map_evidence_to_elements would
         cm["orientation"] = derive_orientation(cm["elements"])
 
-        assert "unresolved" in cm["orientation"]
-        assert "supported" not in cm["orientation"]
-        assert "disputed" not in cm["orientation"]
+        assert "insufficient" in cm["orientation"]
+        assert "predominantly supported" not in cm["orientation"]
+        assert "conflicting evidence" not in cm["orientation"]
 
 
 # ── _call_openai ──────────────────────────────────────────────────────────

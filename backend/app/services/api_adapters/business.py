@@ -7,7 +7,6 @@ Adapters for business and company data:
 """
 
 import logging
-import os
 import base64
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -18,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 # ========== COMPANIES HOUSE ADAPTER ==========
+
 
 class CompaniesHouseAdapter(GovernmentAPIClient):
     """
@@ -30,7 +30,9 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
     """
 
     def __init__(self):
-        api_key = os.getenv("COMPANIES_HOUSE_API_KEY")
+        from app.core.config import settings
+
+        api_key = settings.COMPANIES_HOUSE_API_KEY or None
 
         super().__init__(
             api_name="Companies House",
@@ -38,7 +40,7 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
             api_key=api_key,
             cache_ttl=86400 * 3,  # 3 days (company data changes slowly)
             timeout=10,
-            max_results=10
+            max_results=10,
         )
 
         # Companies House uses HTTP Basic Auth with API key as username
@@ -47,13 +49,19 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
             self.headers["Authorization"] = f"Basic {credentials}"
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """Companies House covers Government and Finance for UK only."""
+        """Companies House covers Politics and Finance for UK only."""
         return (
-            domain in ["Government", "Finance"] and
-            jurisdiction == "UK"  # UK-specific, not Global
+            domain in ["Politics", "Finance"]
+            and jurisdiction == "UK"  # UK-specific, not Global
         )
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search Companies House for UK company information.
 
@@ -75,10 +83,7 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
         query = self._sanitize_query(query)
 
         # Companies House search endpoint
-        params = {
-            "q": query,
-            "items_per_page": self.max_results
-        }
+        params = {"q": query, "items_per_page": self.max_results}
 
         try:
             response = self._make_request("/search/companies", params=params)
@@ -145,7 +150,7 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
                     "company_number": company_number,
                     "company_status": company_status,
                     "company_type": company_type,
-                    "address": item.get("address", {})
+                    "address": item.get("address", {}),
                 }
 
                 evidence = self._create_evidence_dict(
@@ -153,7 +158,7 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
                     snippet=snippet,
                     url=url,
                     source_date=source_date,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 evidence_list.append(evidence)
@@ -167,6 +172,7 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
 
 
 # ========== WIKIDATA ADAPTER ==========
+
 
 class WikidataAdapter(GovernmentAPIClient):
     """
@@ -185,14 +191,21 @@ class WikidataAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400 * 30,  # 30 days (structured data stable)
             timeout=15,
-            max_results=10
+            max_results=10,
+            priority_tier=3,  # General reference
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Wikidata covers structured data for General domain."""
         return domain == "General"
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search Wikidata entities.
 
@@ -214,7 +227,7 @@ class WikidataAdapter(GovernmentAPIClient):
             "search": query,
             "language": "en",
             "limit": self.max_results,
-            "format": "json"
+            "format": "json",
         }
 
         try:
@@ -247,7 +260,7 @@ class WikidataAdapter(GovernmentAPIClient):
                 metadata = {
                     "api_source": "Wikidata",
                     "entity_id": entity_id,
-                    "concepturi": item.get("concepturi")
+                    "concepturi": item.get("concepturi"),
                 }
 
                 evidence = self._create_evidence_dict(
@@ -255,7 +268,7 @@ class WikidataAdapter(GovernmentAPIClient):
                     snippet=snippet,
                     url=url,
                     source_date=None,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 evidence_list.append(evidence)

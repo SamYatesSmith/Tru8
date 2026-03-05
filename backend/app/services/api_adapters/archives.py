@@ -34,6 +34,7 @@ class WikipediaAdapter(GovernmentAPIClient):
             timeout=5,  # Reduced from 15s - prevents blocking claim timeout (45s)
             max_results=max_results,
             max_retries=2,  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max
+            priority_tier=3,  # General reference
         )
         # Required: Identify our application per Wikipedia API etiquette
         self.headers["User-Agent"] = (
@@ -210,6 +211,7 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
             timeout=5,  # Reduced from 15s - was causing 48s total with retries, exceeding 45s claim timeout
             max_results=max_results,
             max_retries=2,  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max vs previous 48s
+            priority_tier=2,  # Cross-domain academic/research
         )
         self.headers["User-Agent"] = (
             "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
@@ -422,6 +424,7 @@ class InternetArchiveAdapter(GovernmentAPIClient):
             timeout=5,  # Reduced from 20s - was causing 63s total with retries, exceeding 45s claim timeout
             max_results=max_results,
             max_retries=2,  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max
+            priority_tier=3,  # General reference
         )
         self.headers["User-Agent"] = (
             "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"

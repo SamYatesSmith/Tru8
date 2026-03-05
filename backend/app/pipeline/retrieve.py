@@ -21,13 +21,13 @@ logger = logging.getLogger(__name__)
 JURISDICTION_ADAPTER_PREFERENCES = {
     "UK": [
         "ONS Economic Statistics",
-        "Hansard Parliamentary Records",
-        "GOV.UK Publications",
+        "UK Parliament Hansard",
+        "GOV.UK Content API",
         "Companies House",
     ],
     "US": [
-        "FRED Economic Data",
-        "GovInfo Publications",
+        "FRED",
+        "GovInfo.gov",
         "Library of Congress",
     ],
 }
@@ -1959,29 +1959,25 @@ class EvidenceRetriever:
                     f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}..."
                 )
 
-            # Fix 0a: Limit adapters per claim - most claims don't need 5+ API sources
-            # Reduced from 5 to 3: fewer irrelevant keyword matches, faster processing
+            # PQ-06: Tier-aware adapter cap — specialists first, generalists fill gaps
             MAX_ADAPTERS_PER_CLAIM = 3
             if len(relevant_adapters) > MAX_ADAPTERS_PER_CLAIM:
-                # M-05: Sort by jurisdiction preference before truncation
                 preferences = JURISDICTION_ADAPTER_PREFERENCES.get(jurisdiction, [])
-                if preferences:
 
-                    def _priority(adapter):
-                        try:
-                            return preferences.index(adapter.api_name)
-                        except ValueError:
-                            return len(preferences) + 1
+                def _sort_key(adapter):
+                    tier = getattr(adapter, "priority_tier", 1)
+                    try:
+                        pref = preferences.index(adapter.api_name)
+                    except ValueError:
+                        pref = len(preferences) + 1
+                    return (tier, pref, adapter.api_name)
 
-                    relevant_adapters.sort(key=_priority)
-                    logger.info(
-                        f"[JURISDICTION] {jurisdiction} preference: "
-                        f"{[a.api_name for a in relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]]}"
-                    )
-                else:
-                    logger.info(
-                        f"[API LIMIT] Reducing {len(relevant_adapters)} adapters to {MAX_ADAPTERS_PER_CLAIM}"
-                    )
+                relevant_adapters.sort(key=_sort_key)
+                logger.info(
+                    f"[TIER CAP] {len(relevant_adapters)} adapters → {MAX_ADAPTERS_PER_CLAIM}: "
+                    f"selected {[a.api_name for a in relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]]}, "
+                    f"cap victims {[a.api_name for a in relevant_adapters[MAX_ADAPTERS_PER_CLAIM:]]}"
+                )
                 relevant_adapters = relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]
 
             # Log final adapter list
@@ -1994,17 +1990,29 @@ class EvidenceRetriever:
                 )
                 return {"evidence": [], "api_stats": {}}
 
-            # Query all relevant APIs concurrently
-            api_tasks = []
-            for adapter in relevant_adapters:
-                # Use asyncio.to_thread to run sync API calls in executor
-                # Pass entities for dynamic entity extraction (no hardcoded lists!)
-                task = asyncio.to_thread(
+            # Query all relevant APIs concurrently with timing
+            import time as _time
+
+            async def _timed_adapter_call(
+                adapter, claim_text, domain, jurisdiction, entities
+            ):
+                """Wrap adapter call with latency measurement."""
+                t0 = _time.monotonic()
+                result = await asyncio.to_thread(
                     adapter.search_with_cache,
                     claim_text,
                     domain,
                     jurisdiction,
                     entities,
+                )
+                latency_ms = round((_time.monotonic() - t0) * 1000)
+                return result, latency_ms
+
+            api_tasks = []
+            for adapter in relevant_adapters:
+                # Pass entities for dynamic entity extraction (no hardcoded lists!)
+                task = _timed_adapter_call(
+                    adapter, claim_text, domain, jurisdiction, entities
                 )
                 api_tasks.append((adapter.api_name, task))
 
@@ -2031,14 +2039,22 @@ class EvidenceRetriever:
                     )
                     continue
 
-                if result:
-                    all_api_evidence.extend(result)
+                evidence_items, latency_ms = result
+
+                if evidence_items:
+                    all_api_evidence.extend(evidence_items)
                     api_stats["apis_queried"].append(
-                        {"name": api_name, "results": len(result)}
+                        {
+                            "name": api_name,
+                            "results": len(evidence_items),
+                            "latency_ms": latency_ms,
+                        }
                     )
-                    api_stats["total_api_results"] += len(result)
+                    api_stats["total_api_results"] += len(evidence_items)
                 else:
-                    api_stats["apis_queried"].append({"name": api_name, "results": 0})
+                    api_stats["apis_queried"].append(
+                        {"name": api_name, "results": 0, "latency_ms": latency_ms}
+                    )
 
             api_stats["total_api_calls"] = len(api_tasks)
 

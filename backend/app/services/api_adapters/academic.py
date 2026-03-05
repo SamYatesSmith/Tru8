@@ -197,6 +197,7 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 7,  # 7 days
             timeout=15,
             max_results=3,  # Cap at 3: academic papers supplement web search
+            priority_tier=2,  # Cross-domain academic
         )
         self.headers["User-Agent"] = (
             "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
@@ -314,6 +315,7 @@ class OpenAlexAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 7,  # 7 days
             timeout=15,
             max_results=3,  # Cap at 3: academic papers supplement web search
+            priority_tier=2,  # Cross-domain academic
         )
         # OpenAlex requests polite pool identification via email
         self.headers["User-Agent"] = "Tru8FactChecker/1.0 (mailto:contact@tru8.com)"

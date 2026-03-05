@@ -41,6 +41,7 @@ class ClaimElement(TypedDict):
     state: Optional[ElementState]
     uncertainty: Optional[str]
     bounty_text: Optional[str]  # G01: User-supplied research brief (max 200 chars)
+    basis: Optional[dict]  # PQ-03: Evidence basis metadata for state transparency
 
 
 class ClaimMapMetadata(TypedDict):
@@ -56,4 +57,5 @@ class ClaimMap(TypedDict):
     claim_type: ClaimType
     elements: list[ClaimElement]
     orientation: Optional[str]
+    orientation_basis: Optional[dict]  # PQ-05: Structured orientation breakdown
     metadata: ClaimMapMetadata

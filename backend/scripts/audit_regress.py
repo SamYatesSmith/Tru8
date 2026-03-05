@@ -42,7 +42,7 @@ REGRESSION_DIR = backend_dir / "audit" / "track-n" / "regression"
 GOLDEN_DIR = REGRESSION_DIR / "golden"
 RUNS_DIR = REGRESSION_DIR / "runs"
 
-DEFAULT_SNIPPET_LENGTH = 400
+DEFAULT_SNIPPET_LENGTH = 1000
 DEFAULT_MODEL = "gemini-2.5-flash-lite"
 
 
