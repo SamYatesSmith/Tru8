@@ -305,6 +305,10 @@ class GovernmentAPIClient(ABC):
             "retrieved_at": datetime.utcnow().isoformat(),
         }
 
+    # Sentinel domain passed when adapter was added by keyword routing.
+    # Bypasses the domain guard so keyword-matched adapters always query.
+    KEYWORD_ROUTED = "_keyword_routed"
+
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """
         Check if this API is relevant for the given domain and jurisdiction.
@@ -318,6 +322,8 @@ class GovernmentAPIClient(ABC):
         Returns:
             True if this API should be queried for this domain/jurisdiction
         """
+        if domain == self.KEYWORD_ROUTED:
+            return True
         return True  # Default: query all APIs (subclasses can restrict)
 
     def _sanitize_query(self, query: str) -> str:

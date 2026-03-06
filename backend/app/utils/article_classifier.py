@@ -242,6 +242,9 @@ def _get_cache_key(url: str) -> str:
 
 async def get_cached_classification(url: str) -> Optional[ArticleClassification]:
     """Get classification from Redis cache"""
+    if not url or not url.strip():
+        return None  # No URL = no article identity to cache against
+
     try:
         from app.core.redis import get_redis
 
@@ -267,6 +270,9 @@ async def get_cached_classification(url: str) -> Optional[ArticleClassification]
 
 async def cache_classification(url: str, classification: ArticleClassification) -> None:
     """Cache classification in Redis with 24h TTL"""
+    if not url or not url.strip():
+        return  # Don't cache empty-URL classifications — they'd collide
+
     try:
         from app.core.redis import get_redis
 

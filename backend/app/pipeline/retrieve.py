@@ -1871,6 +1871,7 @@ class EvidenceRetriever:
                 f"[API DEBUG] After emergency init: {len(self.api_registry.adapters)} adapters"
             )
 
+        keyword_routed_names = set()
         try:
             # PRIORITY 1: Check if claim was classified as legal during extraction
             # If legal, use legal_metadata for targeted routing to statute APIs
@@ -1953,8 +1954,10 @@ class EvidenceRetriever:
             keyword_adapters = keyword_router.get_additional_adapters(
                 claim_text, relevant_adapters, self.api_registry
             )
+            keyword_routed_names = set()
             for adapter in keyword_adapters:
                 relevant_adapters.append(adapter)
+                keyword_routed_names.add(adapter.api_name)
                 logger.info(
                     f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}..."
                 )
@@ -2008,11 +2011,19 @@ class EvidenceRetriever:
                 latency_ms = round((_time.monotonic() - t0) * 1000)
                 return result, latency_ms
 
+            from app.services.government_api_client import GovernmentAPIClient
+
             api_tasks = []
             for adapter in relevant_adapters:
-                # Pass entities for dynamic entity extraction (no hardcoded lists!)
+                # Keyword-routed adapters bypass domain guard — the keyword
+                # router already decided this adapter is relevant for the claim.
+                adapter_domain = (
+                    GovernmentAPIClient.KEYWORD_ROUTED
+                    if adapter.api_name in keyword_routed_names
+                    else domain
+                )
                 task = _timed_adapter_call(
-                    adapter, claim_text, domain, jurisdiction, entities
+                    adapter, claim_text, adapter_domain, jurisdiction, entities
                 )
                 api_tasks.append((adapter.api_name, task))
 
