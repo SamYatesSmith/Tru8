@@ -105,7 +105,8 @@ _ACADEMIC_PATTERNS = re.compile(
     r"|scholar\.google|thelancet\.com|jamanetwork\.com|science\.org"
     r"|ipcc\.ch|semanticscholar\.org|openalex\.org|academic\.oup\.com"
     r"|clinicaltrials\.gov|researchgate\.net|ssrn\.com|biorxiv\.org"
-    r"|medrxiv\.org",
+    r"|medrxiv\.org|pubs\.acs\.org|pmc\.ncbi|cell\.com|pnas\.org"
+    r"|bmj\.com|frontiersin\.org|mdpi\.com|plos\.org|royalsocietypublishing\.org",
     re.IGNORECASE,
 )
 
@@ -294,6 +295,40 @@ def _classify_heuristic(evidence: Dict[str, Any]) -> Tuple[str, str]:
     return (DEFAULT_TIER, DEFAULT_TYPE)
 
 
+def _high_confidence_override(evidence: Dict[str, Any]) -> Optional[Tuple[str, str]]:
+    """Return (tier, type) only when URL identity is unambiguous.
+
+    These are publisher-identity checks — sciencedirect.com IS an academic
+    publisher, ons.gov.uk IS a government data portal. When the URL matches,
+    the tier is structural fact, not interpretation. Returns None for
+    sources where URL alone doesn't determine tier.
+    """
+    url = evidence.get("url", "")
+    source = evidence.get("source", evidence.get("domain", ""))
+
+    # API adapter results are always primary
+    provider = evidence.get("external_source_provider", "")
+    if provider:
+        _ACADEMIC_PROVIDERS = {"Semantic Scholar", "OpenAlex", "PubMed", "CrossRef"}
+        if provider in _ACADEMIC_PROVIDERS:
+            return ("primary", "academic")
+        return ("primary", "data")
+
+    # Data portals before academic/gov (some overlap on .gov domains)
+    if _DATA_PORTALS.search(url) or _DATA_PORTALS.search(source):
+        return ("primary", "data")
+
+    # Academic publishers → primary/academic
+    if _ACADEMIC_PATTERNS.search(url) or _ACADEMIC_PATTERNS.search(source):
+        return ("primary", "academic")
+
+    # Government domains → primary/official_statement
+    if _GOV_PATTERNS.search(url) or _GOV_PATTERNS.search(source):
+        return ("primary", "official_statement")
+
+    return None  # Not high-confidence — defer to LLM
+
+
 # ── Evidence Classifier ───────────────────────────────────────────────────
 
 
@@ -372,9 +407,13 @@ class EvidenceClassifier:
                     if result is not None:
                         classified_results[batch_start + offset] = result
 
-        # Apply results: LLM where available, heuristic fallback otherwise
+        # Apply results: LLM where available, heuristic fallback otherwise.
+        # High-confidence URL patterns (academic publishers, government domains,
+        # data portals) override the LLM when it disagrees on tier — these are
+        # publisher identity, not content interpretation.
         llm_count = 0
         heuristic_count = 0
+        override_count = 0
 
         for list_offset, original_index in enumerate(needs_classification):
             item = evidence_items[original_index]
@@ -382,10 +421,26 @@ class EvidenceClassifier:
 
             if result is not None:
                 tier, evidence_type = result
-                item["tier"] = tier
-                item["evidence_type"] = evidence_type
                 item["classification_method"] = "llm"
                 llm_count += 1
+
+                # Check if a high-confidence URL pattern disagrees
+                hc = _high_confidence_override(item)
+                if hc and hc[0] != tier:
+                    logger.info(
+                        "[CLASSIFIER OVERRIDE] %s: LLM=%s/%s → %s/%s (URL identity)",
+                        (item.get("url", ""))[:60],
+                        tier,
+                        evidence_type,
+                        hc[0],
+                        hc[1],
+                    )
+                    tier, evidence_type = hc
+                    item["classification_method"] = "llm+override"
+                    override_count += 1
+
+                item["tier"] = tier
+                item["evidence_type"] = evidence_type
             else:
                 tier, evidence_type = _classify_heuristic(item)
                 item["tier"] = tier
@@ -401,10 +456,11 @@ class EvidenceClassifier:
 
         logger.info(
             "[EVIDENCE_CLASSIFIER] Classification complete: "
-            "%d LLM, %d heuristic. "
+            "%d LLM, %d heuristic, %d overrides. "
             "Tiers: %s. Types: %s",
             llm_count,
             heuristic_count,
+            override_count,
             dict(tier_counts),
             dict(type_counts),
         )
