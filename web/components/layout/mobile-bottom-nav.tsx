@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, CreditCard, BookOpen, User } from 'lucide-react';
+import { Sparkles, CreditCard, Code, User } from 'lucide-react';
 import { AuthModal } from '@/components/auth/auth-modal';
 import Link from 'next/link';
 
@@ -17,7 +17,7 @@ export function MobileBottomNav() {
   const navItems = [
     { id: 'features', label: 'Features', icon: Sparkles, href: '/#features' },
     { id: 'pricing', label: 'Pricing', icon: CreditCard, href: '/#pricing' },
-    { id: 'blog', label: 'Blog', icon: BookOpen, href: '/blog' },
+    { id: 'developers', label: 'Developers', icon: Code, href: '/developers' },
     { id: 'sign-in', label: 'Sign In', icon: User, href: undefined },
   ];
 

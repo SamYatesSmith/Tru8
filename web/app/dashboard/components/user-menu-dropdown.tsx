@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useClerk } from '@clerk/nextjs';
-import { User, CreditCard, Bell, LogOut } from 'lucide-react';
+import { User, CreditCard, Bell, Code, LogOut } from 'lucide-react';
 
 interface UserMenuDropdownProps {
   user: {
@@ -35,6 +35,11 @@ export function UserMenuDropdown({ user, onClose }: UserMenuDropdownProps) {
       icon: Bell,
       label: 'Notifications',
       href: '/dashboard/settings?tab=notifications',
+    },
+    {
+      icon: Code,
+      label: 'Developers',
+      href: '/developers',
     },
   ];
 
