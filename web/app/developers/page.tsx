@@ -71,7 +71,7 @@ export default function DevelopersPage() {
                 <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
                   1
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-semibold text-zinc-900 mb-2">Get an API key</h3>
                   <p className="text-zinc-600 text-sm mb-3">
                     Create a key in your{' '}
@@ -105,7 +105,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
                   2
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-semibold text-zinc-900 mb-2">Submit a claim</h3>
                   <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
 {`curl -X POST https://api.tru8.app/api/v1/agent/quick \\
@@ -124,7 +124,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
                   3
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-semibold text-zinc-900 mb-2">Retrieve the result</h3>
                   <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
 {`curl https://api.tru8.app/api/v1/checks/{check_id}?computed=true \\
