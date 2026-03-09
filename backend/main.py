@@ -96,6 +96,11 @@ async def lifespan(app: FastAPI):
 
     start_stale_pending_cleanup()
 
+    # M-06: Convergence — daily consensus batch job
+    from app.services.consensus import start_consensus_loop
+
+    start_consensus_loop()
+
     yield
 
 
@@ -235,6 +240,11 @@ app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 app.include_router(api_keys.router, prefix="/api/v1/api-keys", tags=["api-keys"])
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["webhooks"])
 app.include_router(agent.router, prefix="/api/v1/agent", tags=["agent"])
+
+# M-04: Public manifest verification (unauthenticated, rate-limited)
+from app.api.v1 import verify
+
+app.include_router(verify.router, prefix="/api/v1", tags=["verify"])
 
 # x402 USDC payment routes (L-05) — conditional on feature flag
 if settings.X402_ENABLED:

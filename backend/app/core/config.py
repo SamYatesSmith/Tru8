@@ -321,6 +321,28 @@ class Settings(BaseSettings):
         "gemini-2.5-flash", env="MAPPING_GOOGLE_MODEL"
     )  # Google model for evidence mapping (highest-stakes call)
 
+    # ========== TRACK M: EVIDENCE INFRASTRUCTURE ==========
+
+    # M-04: Manifest signing
+    MANIFEST_SIGNING_ENABLED: bool = Field(
+        False, env="MANIFEST_SIGNING_ENABLED"
+    )  # Flip after M-04 ships
+    MANIFEST_SIGNING_KEY: str = Field(
+        "", env="MANIFEST_SIGNING_KEY"
+    )  # Base64-encoded 256-bit key (current)
+    MANIFEST_KID: str = Field(
+        "tru8-2026-03", env="MANIFEST_KID"
+    )  # Current key identifier
+    MANIFEST_SIGNING_KEYS: str = Field(
+        "{}", env="MANIFEST_SIGNING_KEYS"
+    )  # JSON: {"kid": "base64_key"} — includes rotated keys
+
+    # M-05: Jurisdiction-aware source routing
+    JURISDICTION_ADAPTERS: str = Field(
+        '{"uk": ["ONS Economic Statistics", "UK Parliament Hansard", "GOV.UK Content API", "Companies House", "UK Legislation"], "us": ["FRED", "GovInfo.gov", "Library of Congress"], "global": ["Semantic Scholar", "OpenAlex", "Wikipedia", "PubMed", "NOAA Climate Data", "WeatherAPI", "Open-Meteo", "GBIF", "World Bank", "Internet Archive", "Wikidata", "Marketaux", "Transfermarkt", "Football-Data.org"]}',
+        env="JURISDICTION_ADAPTERS",
+    )  # JSON mapping jurisdiction → adapter names
+
     # ========== SKYFIRE KYAPay (L-06) ==========
     SKYFIRE_ENABLED: bool = Field(False, env="SKYFIRE_ENABLED")
     SKYFIRE_API_KEY: str = Field("", env="SKYFIRE_API_KEY")

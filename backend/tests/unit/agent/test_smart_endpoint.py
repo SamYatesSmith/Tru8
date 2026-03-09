@@ -162,7 +162,7 @@ class TestSmartCheckMaxTierLookup:
         assert resp.status_code == 200
         data = resp.json()
         assert data["hit"] is False
-        assert data["nextSuggestedTier"] == "quick"
+        assert data["nextSuggestedTier"] == "consensus"
 
 
 # ── Landscape expanded fields ──────────────────────────────────────────────

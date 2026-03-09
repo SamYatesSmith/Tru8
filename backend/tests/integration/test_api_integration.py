@@ -173,7 +173,9 @@ class TestAPIEvidenceRetrieval:
 
         with patch.object(
             retriever.api_registry, "get_adapters_for_domain"
-        ) as mock_get_adapters:
+        ) as mock_get_adapters, patch(
+            "app.pipeline.retrieve.get_adapters_for_jurisdiction", return_value=None
+        ):
             mock_get_adapters.return_value = [mock_adapter]
 
             # Call API retrieval

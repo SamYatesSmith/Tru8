@@ -2305,6 +2305,58 @@ async def save_check_results_async(
                 )
                 session.add(raw_evidence)
 
+        # Flush to ensure all claims/evidence have IDs before signing
+        await session.flush()
+
+        # M-04: Manifest signing — create tamper-evident signed manifest
+        if settings.MANIFEST_SIGNING_ENABLED:
+            try:
+                from app.core.manifest_signer import create_manifest_for_check
+                from app.api.v1.response_builder import _compute_landscape
+
+                # Build claims data in the shape expected by canonical builder
+                manifest_claims = []
+                for claim_data in claims_data:
+                    manifest_claims.append(
+                        {
+                            "text": claim_data.get("text", ""),
+                            "claim_text_hash": (
+                                compute_claim_text_hash(claim_data.get("text", ""))
+                                if claim_data.get("text")
+                                else None
+                            ),
+                            "claimMap": claim_data.get("claim_map"),
+                            "evidence": claim_data.get("evidence", []),
+                        }
+                    )
+
+                landscape = _compute_landscape(manifest_claims, check)
+
+                # Get orientation_basis from first claim's ClaimMap
+                orientation_basis = None
+                for c in manifest_claims:
+                    cm = c.get("claimMap") or {}
+                    ob = cm.get("orientation_basis")
+                    if ob:
+                        orientation_basis = ob
+                        break
+
+                manifest = create_manifest_for_check(
+                    check_id=check_id,
+                    claims_data=manifest_claims,
+                    executed_tier=check.executed_tier,
+                    landscape=landscape,
+                    orientation_basis=orientation_basis,
+                )
+                if manifest:
+                    check.manifest = manifest
+                    logger.info(f"Manifest signed for check {check_id}")
+            except Exception as manifest_err:
+                logger.warning(
+                    f"Manifest signing failed for check {check_id}: {manifest_err}"
+                )
+                # Non-fatal — check is still saved without manifest
+
         logger.info(f"Successfully saved results for check {check_id}")
 
     except Exception as e:

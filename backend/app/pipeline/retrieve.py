@@ -16,21 +16,36 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Jurisdiction-aware adapter preferences (M-05)
-# When more than MAX_ADAPTERS_PER_CLAIM match, prefer jurisdiction-relevant APIs
-JURISDICTION_ADAPTER_PREFERENCES = {
-    "UK": [
-        "ONS Economic Statistics",
-        "UK Parliament Hansard",
-        "GOV.UK Content API",
-        "Companies House",
-    ],
-    "US": [
-        "FRED",
-        "GovInfo.gov",
-        "Library of Congress",
-    ],
-}
+# M-05: Jurisdiction-aware adapter routing (config-driven)
+# Loaded from settings.JURISDICTION_ADAPTERS JSON string.
+import json as _json
+
+
+def _load_jurisdiction_adapters() -> dict:
+    """Parse jurisdiction→adapter-name mapping from config."""
+    raw = getattr(settings, "JURISDICTION_ADAPTERS", "{}")
+    try:
+        return _json.loads(raw) if isinstance(raw, str) else raw
+    except (ValueError, TypeError):
+        return {}
+
+
+def get_adapters_for_jurisdiction(jurisdiction: str | None) -> list[str] | None:
+    """Return allowed adapter names for a jurisdiction, or None for unrestricted.
+
+    - None jurisdiction → global adapters only
+    - Known jurisdiction → global + jurisdiction-specific
+    - Returns None if config is empty (no filtering applied)
+    """
+    mapping = _load_jurisdiction_adapters()
+    if not mapping:
+        return None  # No config — don't filter
+    global_names = mapping.get("global", [])
+    if not jurisdiction:
+        return global_names
+    specific = mapping.get(jurisdiction.lower(), mapping.get(jurisdiction, []))
+    return global_names + specific
+
 
 SATIRE_DOMAINS = {
     "theonion.com",
@@ -1962,17 +1977,32 @@ class EvidenceRetriever:
                     f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}..."
                 )
 
+            # M-05: Jurisdiction filter — remove adapters that don't belong
+            allowed_names = get_adapters_for_jurisdiction(jurisdiction)
+            if allowed_names is not None:
+                pre_filter = len(relevant_adapters)
+                relevant_adapters = [
+                    a
+                    for a in relevant_adapters
+                    if a.api_name in allowed_names or a.api_name in keyword_routed_names
+                ]
+                if pre_filter != len(relevant_adapters):
+                    logger.info(
+                        f"[JURISDICTION] {jurisdiction}: {pre_filter} → {len(relevant_adapters)} adapters "
+                        f"(keyword-routed preserved: {keyword_routed_names})"
+                    )
+
             # PQ-06: Tier-aware adapter cap — specialists first, generalists fill gaps
             MAX_ADAPTERS_PER_CLAIM = 3
             if len(relevant_adapters) > MAX_ADAPTERS_PER_CLAIM:
-                preferences = JURISDICTION_ADAPTER_PREFERENCES.get(jurisdiction, [])
+                allowed = allowed_names or []
 
                 def _sort_key(adapter):
                     tier = getattr(adapter, "priority_tier", 1)
                     try:
-                        pref = preferences.index(adapter.api_name)
+                        pref = allowed.index(adapter.api_name)
                     except ValueError:
-                        pref = len(preferences) + 1
+                        pref = len(allowed) + 1
                     return (tier, pref, adapter.api_name)
 
                 relevant_adapters.sort(key=_sort_key)

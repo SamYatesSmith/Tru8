@@ -50,7 +50,7 @@ class SmartCheckRequest(BaseModel):
     """Request model for the smart /agent/check endpoint (M-03)."""
 
     claim: str
-    max_tier: str = "full"  # "lookup" | "quick" | "full"
+    max_tier: str = "full"  # "lookup" | "consensus" | "quick" | "full"
     max_age_hours: Optional[int] = None
     compact: bool = False
 
@@ -77,7 +77,8 @@ async def agent_smart_check(
     from datetime import datetime, timezone
 
     claim_hash = compute_claim_text_hash(body.claim)
-    max_tier = body.max_tier if body.max_tier in ("lookup", "quick", "full") else "full"
+    valid_tiers = ("lookup", "consensus", "quick", "full")
+    max_tier = body.max_tier if body.max_tier in valid_tiers else "full"
 
     # Step 1: Try lookup (same query as /agent/lookup)
     result = await session.execute(
@@ -151,6 +152,66 @@ async def agent_smart_check(
 
     # Step 2: Cache miss (or stale). If max_tier is "lookup", return structured miss.
     if max_tier == "lookup":
+        return JSONResponse(
+            content={
+                "hit": False,
+                "nextSuggestedTier": "consensus",
+                "upgradeCostCents": get_tier_price("consensus"),
+                "claimTextHash": claim_hash,
+            }
+        )
+
+    # Step 2.5 (M-06): Try consensus if max_tier allows
+    from app.core.agent_pricing import tier_rank, TIER_ORDER
+
+    if tier_rank(max_tier) >= tier_rank("consensus"):
+        try:
+            from app.models.claim_consensus import ClaimConsensus
+            from app.services.consensus import (
+                build_consensus_response,
+                CONSENSUS_MAX_AGE_DAYS,
+            )
+
+            consensus = await session.get(ClaimConsensus, claim_hash)
+            if consensus and consensus.computed_at:
+                age_days = (
+                    datetime.now(timezone.utc)
+                    - consensus.computed_at.replace(tzinfo=timezone.utc)
+                ).days
+                if age_days <= CONSENSUS_MAX_AGE_DAYS:
+                    # Consensus hit — charge consensus tier
+                    tier = "consensus"
+                    amount_cents = get_tier_price(tier)
+                    request_hash = compute_request_hash(tier, claim_hash, body.compact)
+
+                    tx = await payment.charge(
+                        amount_cents=amount_cents,
+                        tier=tier,
+                        description=claim_hash,
+                        idempotency_key=idempotency_key,
+                        request_hash=request_hash,
+                        check_id=None,
+                    )
+                    tx.status = "completed"
+                    await session.flush()
+
+                    response_data = build_consensus_response(consensus)
+                    response_data["hit"] = True
+                    await session.commit()
+
+                    return JSONResponse(
+                        content=response_data,
+                        headers={"X-Tru8-Tx-Id": tx.id},
+                    )
+        except Exception:
+            import logging as _log
+
+            _log.getLogger(__name__).debug(
+                "Consensus lookup failed, continuing fallback"
+            )
+
+    # Step 2.6: If max_tier is "consensus" and no hit, return structured miss.
+    if max_tier == "consensus":
         return JSONResponse(
             content={
                 "hit": False,

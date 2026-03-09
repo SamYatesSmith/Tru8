@@ -7,12 +7,13 @@ Adding a tier requires: (1) entry in AGENT_PRICING_CENTS, (2) entry in TIER_ORDE
 
 AGENT_PRICING_CENTS = {
     "lookup": 2,  # $0.02
+    "consensus": 3,  # $0.03 (M-06)
     "quick": 7,  # $0.07
     "full": 15,  # $0.15
 }
 
-# Ordered lowest-to-highest. Track M appends "consensus" between lookup and quick.
-TIER_ORDER = ["lookup", "quick", "full"]
+# Ordered lowest-to-highest. Consensus sits between lookup and quick.
+TIER_ORDER = ["lookup", "consensus", "quick", "full"]
 
 
 def get_tier_price(tier: str) -> int:

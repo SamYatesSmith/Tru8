@@ -1,6 +1,6 @@
 {
-  "last_updated": "2026-03-05T11:46:18.277736",
-  "total_domains": 2831,
+  "last_updated": "2026-03-06T12:23:25.026366",
+  "total_domains": 2882,
   "domains": {
     "thetimes.co.uk": {
       "status": "paywall",
@@ -30,7 +30,8 @@
       "first_seen": "2025-12-01T12:18:44.297904",
       "source": "pre_seeded",
       "notes": "Wall Street Journal",
-      "encounter_count": 0
+      "encounter_count": 1,
+      "last_seen": "2026-03-06T12:07:05.340869"
     },
     "nytimes.com": {
       "status": "paywall",
@@ -154,10 +155,10 @@
     "bbc.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T12:50:23.821452",
-      "last_seen": "2026-03-05T11:46:14.560472",
+      "last_seen": "2026-03-06T10:27:57.498512",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 227
+      "encounter_count": 228
     },
     "factcheck.org": {
       "status": "accessible",
@@ -274,10 +275,10 @@
     "theguardian.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T12:51:00.779926",
-      "last_seen": "2026-03-05T11:46:09.644087",
+      "last_seen": "2026-03-06T12:23:13.814202",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 863
+      "encounter_count": 864
     },
     "misinforeview.hks.harvard.edu": {
       "status": "accessible",
@@ -362,10 +363,10 @@
     "edition.cnn.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T12:51:37.419861",
-      "last_seen": "2026-02-11T12:11:27.929712",
+      "last_seen": "2026-03-06T12:07:07.824567",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 40
+      "encounter_count": 42
     },
     "newsinitiative.withgoogle.com": {
       "status": "accessible",
@@ -582,10 +583,10 @@
     "reddit.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T16:06:19.557180",
-      "last_seen": "2026-03-04T17:01:16.511087",
+      "last_seen": "2026-03-06T12:14:02.291770",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 377
+      "encounter_count": 385
     },
     "guides.library.fresnostate.edu": {
       "status": "accessible",
@@ -2178,10 +2179,10 @@
     "youtube.com": {
       "status": "accessible",
       "first_seen": "2025-12-02T17:14:57.942538",
-      "last_seen": "2026-03-04T14:37:22.695823",
+      "last_seen": "2026-03-05T19:15:16.629851",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 207
+      "encounter_count": 208
     },
     "amgreatness.com": {
       "status": "bot_blocked",
@@ -2856,10 +2857,10 @@
     "theconversation.com": {
       "status": "accessible",
       "first_seen": "2025-12-03T13:51:12.186958",
-      "last_seen": "2026-03-03T13:36:12.938097",
+      "last_seen": "2026-03-05T19:15:16.202584",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 76
+      "encounter_count": 77
     },
     "critikid.com": {
       "status": "accessible",
@@ -3244,10 +3245,10 @@
     "gov.uk": {
       "status": "accessible",
       "first_seen": "2025-12-03T15:21:44.425486",
-      "last_seen": "2026-03-04T16:59:01.479805",
+      "last_seen": "2026-03-06T12:23:10.128019",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 139
+      "encounter_count": 140
     },
     "timeout.com": {
       "status": "accessible",
@@ -3578,10 +3579,10 @@
     "earth.org": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:32:08.193084",
-      "last_seen": "2026-02-25T14:46:40.382631",
+      "last_seen": "2026-03-05T19:15:19.239216",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 33
+      "encounter_count": 34
     },
     "mexicobusiness.news": {
       "status": "accessible",
@@ -3874,10 +3875,10 @@
     "ec.europa.eu": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:33:09.568383",
-      "last_seen": "2026-01-05T15:46:25.161497",
+      "last_seen": "2026-03-06T11:28:25.221577",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "climatebonds.net": {
       "status": "accessible",
@@ -6502,10 +6503,10 @@
     "fortune.com": {
       "status": "accessible",
       "first_seen": "2025-12-10T13:46:34.702551",
-      "last_seen": "2026-02-03T12:01:19.989359",
+      "last_seen": "2026-03-06T12:14:00.854195",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 23
+      "encounter_count": 24
     },
     "worldpopulationreview.com": {
       "status": "accessible",
@@ -7834,10 +7835,10 @@
     "deloitte.com": {
       "status": "accessible",
       "first_seen": "2025-12-16T16:26:03.309356",
-      "last_seen": "2026-01-06T17:03:23.744475",
+      "last_seen": "2026-03-06T11:28:24.500991",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 3
+      "encounter_count": 4
     },
     "globaltrademag.com": {
       "status": "accessible",
@@ -9624,10 +9625,10 @@
     "mpamag.com": {
       "status": "accessible",
       "first_seen": "2025-12-18T15:39:17.117542",
-      "last_seen": "2026-02-11T15:03:13.146150",
+      "last_seen": "2026-03-06T11:28:10.265251",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 6
+      "encounter_count": 7
     },
     "property118.com": {
       "status": "accessible",
@@ -10190,10 +10191,10 @@
     "theglobeandmail.com": {
       "status": "accessible",
       "first_seen": "2026-01-05T16:07:34.611435",
-      "last_seen": "2026-02-26T11:45:36.044788",
+      "last_seen": "2026-03-06T11:28:35.482466",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 5
     },
     "investornews.com": {
       "status": "bot_blocked",
@@ -14504,10 +14505,10 @@
     "itif.org": {
       "status": "accessible",
       "first_seen": "2026-02-05T10:19:37.848213",
-      "last_seen": "2026-02-05T10:19:37.848213",
+      "last_seen": "2026-03-06T12:23:20.343047",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "oegfe.at": {
       "status": "accessible",
@@ -14776,10 +14777,10 @@
     "climatecentral.org": {
       "status": "accessible",
       "first_seen": "2026-02-06T12:55:22.896303",
-      "last_seen": "2026-02-09T14:28:04.043381",
+      "last_seen": "2026-03-05T19:15:17.304884",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 8
     },
     "seec.house.gov": {
       "status": "accessible",
@@ -19874,10 +19875,10 @@
     "cmhc-schl.gc.ca": {
       "status": "accessible",
       "first_seen": "2026-02-18T11:06:38.254476",
-      "last_seen": "2026-02-18T11:06:38.254476",
+      "last_seen": "2026-03-06T11:28:38.975578",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 4
     },
     "wcb.ab.ca": {
       "status": "accessible",
@@ -20858,10 +20859,10 @@
     "scotiabank.com": {
       "status": "accessible",
       "first_seen": "2026-02-25T15:07:36.694141",
-      "last_seen": "2026-02-25T15:07:36.694141",
+      "last_seen": "2026-03-06T11:28:10.433545",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "norfolkchamber.co.uk": {
       "status": "accessible",
@@ -23790,14 +23791,442 @@
       "source": "runtime_detection",
       "metadata": {},
       "encounter_count": 1
+    },
+    "zacklabe.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-05T19:15:10.850180",
+      "last_seen": "2026-03-05T19:15:10.850180",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "copernicus.eu": {
+      "status": "accessible",
+      "first_seen": "2026-03-05T19:15:10.934967",
+      "last_seen": "2026-03-05T19:15:10.934967",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "billmcguire.substack.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-05T19:15:20.492389",
+      "last_seen": "2026-03-05T19:15:20.492389",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cancerworld.net": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T10:27:57.011291",
+      "last_seen": "2026-03-06T10:27:57.011291",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cancer.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T10:27:57.139690",
+      "last_seen": "2026-03-06T10:27:57.139690",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "mdanderson.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T10:28:02.789550",
+      "last_seen": "2026-03-06T10:28:02.789550",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "pubs.rsc.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T10:28:04.333883",
+      "last_seen": "2026-03-06T10:28:04.333883",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "blog.dana-farber.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T10:28:04.449168",
+      "last_seen": "2026-03-06T10:28:04.449168",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "acc.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T10:28:07.990160",
+      "last_seen": "2026-03-06T10:28:07.990160",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "williamscancerinstitute.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T10:28:08.972590",
+      "last_seen": "2026-03-06T10:28:08.972590",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "globalpropertyguide.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T11:28:08.789602",
+      "last_seen": "2026-03-06T11:28:20.842521",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 3
+    },
+    "calculatedrisk.substack.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:09.330181",
+      "last_seen": "2026-03-06T11:28:42.302352",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "bis.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:10.200752",
+      "last_seen": "2026-03-06T11:28:17.134937",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "c21.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:12.585449",
+      "last_seen": "2026-03-06T11:28:12.585449",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "newswire.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:12.983929",
+      "last_seen": "2026-03-06T11:28:12.983929",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "economics.td.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:15.316349",
+      "last_seen": "2026-03-06T11:28:15.316349",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "wowa.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:21.916170",
+      "last_seen": "2026-03-06T11:28:37.336839",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "ubs.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:24.048277",
+      "last_seen": "2026-03-06T11:28:24.048277",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "kelownarealestate.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:30.077406",
+      "last_seen": "2026-03-06T11:28:30.077406",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "newsinteractives.cbc.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:31.832462",
+      "last_seen": "2026-03-06T11:28:31.832462",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "precondo.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:34.681115",
+      "last_seen": "2026-03-06T11:28:34.681115",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "bankofcanada.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T11:28:43.248323",
+      "last_seen": "2026-03-06T11:28:43.248323",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "scottsantens.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:06:59.328615",
+      "last_seen": "2026-03-06T12:06:59.328615",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ubiworks.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:06:59.785459",
+      "last_seen": "2026-03-06T12:06:59.785459",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "queensu.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:06:59.881903",
+      "last_seen": "2026-03-06T12:06:59.881903",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "assajournal.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:07:01.893326",
+      "last_seen": "2026-03-06T12:07:01.893326",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "cpha.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:07:03.569178",
+      "last_seen": "2026-03-06T12:07:03.569178",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "queensbusinessreview.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:07:03.840481",
+      "last_seen": "2026-03-06T12:07:03.840481",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "unc.edu": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T12:07:05.006264",
+      "last_seen": "2026-03-06T12:07:05.006264",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "sencanada.ca": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:07:06.626603",
+      "last_seen": "2026-03-06T12:07:06.626603",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "dworakpeck.usc.edu": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T12:07:08.148661",
+      "last_seen": "2026-03-06T12:07:08.148661",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "ubie.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:07:08.864116",
+      "last_seen": "2026-03-06T12:07:08.864116",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "digidai.github.io": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:13:59.053603",
+      "last_seen": "2026-03-06T12:13:59.053603",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "calcalistech.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:14:00.371592",
+      "last_seen": "2026-03-06T12:14:00.371592",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "incrypted.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T12:14:00.422799",
+      "last_seen": "2026-03-06T12:14:00.422799",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "saastr.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:14:00.767358",
+      "last_seen": "2026-03-06T12:14:00.907274",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "theinformation.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T12:14:00.921172",
+      "last_seen": "2026-03-06T12:14:00.921172",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "epoch.ai": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:14:01.326709",
+      "last_seen": "2026-03-06T12:14:01.326709",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "blog.carnegieinvest.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:14:02.682593",
+      "last_seen": "2026-03-06T12:14:02.682593",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "finviz.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T12:14:03.761555",
+      "last_seen": "2026-03-06T12:14:03.761555",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "futuresearch.ai": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:14:05.229788",
+      "last_seen": "2026-03-06T12:14:05.229788",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "techinasia.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T12:14:06.496655",
+      "last_seen": "2026-03-06T12:14:06.496655",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "wheresyoured.at": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:14:06.809320",
+      "last_seen": "2026-03-06T12:14:06.809320",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "rdworldonline.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T12:14:08.710165",
+      "last_seen": "2026-03-06T12:14:08.710165",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "ofcom.org.uk": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:23:10.175825",
+      "last_seen": "2026-03-06T12:23:10.175825",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "copim.pubpub.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:23:13.164134",
+      "last_seen": "2026-03-06T12:23:13.164134",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "sumsub.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:23:16.551092",
+      "last_seen": "2026-03-06T12:23:16.551092",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "indexoncensorship.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:23:17.670423",
+      "last_seen": "2026-03-06T12:23:17.670423",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "gataca.io": {
+      "status": "accessible",
+      "first_seen": "2026-03-06T12:23:19.898490",
+      "last_seen": "2026-03-06T12:23:19.898490",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "thecritic.co.uk": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-06T12:23:22.481178",
+      "last_seen": "2026-03-06T12:23:22.481178",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "mcafee.com": {
+      "status": "timeout",
+      "first_seen": "2026-03-06T12:23:25.025942",
+      "last_seen": "2026-03-06T12:23:25.025942",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
     }
   },
   "summary": {
     "paywall": 15,
-    "bot_blocked": 545,
-    "accessible": 2221,
+    "bot_blocked": 555,
+    "accessible": 2261,
     "rate_limited": 11,
     "js_required": 16,
-    "timeout": 23
+    "timeout": 24
   }
 }

@@ -130,6 +130,13 @@ class Check(SQLModel, table=True):
         description="Per-provider retrieval outcomes: {provider: {status, count}}",
     )
 
+    # Signed manifest (M-04) — tamper-evident hash + HMAC signature
+    manifest: Optional[dict] = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+        description="Signed manifest: landscape_hash, signature, signed_at, kid, scheme",
+    )
+
     # Raw Sources List feature (Pro feature - shows all sources reviewed)
     raw_sources_count: Optional[int] = Field(
         default=0, description="Total number of sources reviewed before filtering"

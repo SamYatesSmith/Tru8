@@ -248,6 +248,19 @@ async def build_agent_response(
 
         response["_computed"] = compute_analytics(claims_data)
 
+    # M-04: Include signed manifest for agent responses
+    if check.manifest:
+        response["_manifest"] = {
+            "checkId": check.id,
+            "landscapeHash": check.manifest.get("landscape_hash"),
+            "signedAt": check.manifest.get("signed_at"),
+            "signature": check.manifest.get("signature"),
+            "kid": check.manifest.get("kid"),
+            "verifyUrl": f"/verify/{check.id}",
+        }
+    else:
+        response["_manifest"] = None
+
     response = _sanitize_strings(response)
     return response
 
@@ -445,6 +458,14 @@ def _compute_landscape(claims_data: list, check=None) -> dict:
         oldest = min(dated_dts)
         freshness["freshestDaysAgo"] = max(0, (now - freshest).days)
         freshness["dateSpanDays"] = max(0, (freshest - oldest).days)
+
+    # M-02: Tier/type gap enrichment
+    # Check-level gaps for missing source diversity
+    if evidence_density > 0:
+        if "primary" not in tier_spread:
+            gaps.append({"reason": "no_primary_sources"})
+        if "academic" not in type_set:
+            gaps.append({"reason": "no_academic_sources"})
 
     # Provider status from Check model (M-02 JSONB column)
     # Records provider outcome, not evidence quality. Brave timeout is

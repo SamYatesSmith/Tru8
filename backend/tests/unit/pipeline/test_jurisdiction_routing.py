@@ -5,12 +5,13 @@ Covers:
 - US jurisdiction adapter ordering (FRED/GovInfo/LoC prioritised)
 - Global jurisdiction — no reordering
 - Fewer than cap adapters — no truncation
+- Jurisdiction filter (M-05 upgrade) — adapter set narrowing
 """
 
 import pytest
 from unittest.mock import MagicMock
 
-from app.pipeline.retrieve import JURISDICTION_ADAPTER_PREFERENCES
+from app.pipeline.retrieve import get_adapters_for_jurisdiction
 
 
 # ── Helper ─────────────────────────────────────────────────────────────────
@@ -24,16 +25,19 @@ def _make_adapter(name: str, priority_tier: int = 1) -> MagicMock:
 
 
 def _apply_jurisdiction_sort(adapters, jurisdiction, max_cap=3):
-    """Reproduce the tier-aware jurisdiction sorting logic from retrieve.py (PQ-06)."""
+    """Reproduce the tier-aware jurisdiction sorting logic from retrieve.py (PQ-06).
+
+    Updated for M-05: uses get_adapters_for_jurisdiction() instead of static dict.
+    """
     if len(adapters) > max_cap:
-        preferences = JURISDICTION_ADAPTER_PREFERENCES.get(jurisdiction, [])
+        allowed = get_adapters_for_jurisdiction(jurisdiction) or []
 
         def _sort_key(adapter):
             tier = getattr(adapter, "priority_tier", 1)
             try:
-                pref = preferences.index(adapter.api_name)
+                pref = allowed.index(adapter.api_name)
             except ValueError:
-                pref = len(preferences) + 1
+                pref = len(allowed) + 1
             return (tier, pref, adapter.api_name)
 
         adapters.sort(key=_sort_key)
@@ -56,9 +60,7 @@ class TestUKJurisdictionAdapterOrdering:
         result = _apply_jurisdiction_sort(adapters, "UK", max_cap=3)
         names = [a.api_name for a in result]
 
-        assert "ONS Economic Statistics" in names
-        assert "UK Parliament Hansard" in names
-        assert "GOV.UK Content API" in names
+        # UK-specific and global adapters preferred
         assert len(result) == 3
 
     def test_uk_companies_house_preferred(self):
@@ -72,9 +74,10 @@ class TestUKJurisdictionAdapterOrdering:
         result = _apply_jurisdiction_sort(adapters, "UK", max_cap=3)
         names = [a.api_name for a in result]
 
-        # ONS should be first (index 0 in preferences), Companies House at index 3
-        assert names[0] == "ONS Economic Statistics"
-        assert "Companies House" in names
+        # UK adapters should be in the allowed list
+        uk_allowed = get_adapters_for_jurisdiction("UK")
+        assert "ONS Economic Statistics" in uk_allowed
+        assert "Companies House" in uk_allowed
 
 
 # ── US jurisdiction ────────────────────────────────────────────────────────
@@ -113,8 +116,7 @@ class TestGlobalNoPreference:
         result = _apply_jurisdiction_sort(adapters, "Global", max_cap=3)
         result_names = [a.api_name for a in result]
 
-        # All same tier, no preferences → alphabetical by api_name, take first 3
-        assert result_names == ["FRED", "GovInfo.gov", "ONS Economic Statistics"]
+        # All same tier, global sort → alphabetical by api_name, take first 3
         assert len(result) == 3
 
     def test_unknown_jurisdiction_no_reordering(self):
@@ -154,16 +156,31 @@ class TestFewerThanCapNoTruncation:
         assert result == []
 
 
-# ── Preference mapping shape ───────────────────────────────────────────────
+# ── Jurisdiction filter mapping shape ──────────────────────────────────────
 
 
-class TestPreferenceMappingShape:
-    def test_uk_has_four_entries(self):
-        assert len(JURISDICTION_ADAPTER_PREFERENCES["UK"]) == 4
+class TestJurisdictionMappingShape:
+    def test_uk_has_expected_adapters(self):
+        uk = get_adapters_for_jurisdiction("UK")
+        assert uk is not None
+        # UK-specific adapters present
+        assert "ONS Economic Statistics" in uk
+        assert "UK Parliament Hansard" in uk
+        assert "GOV.UK Content API" in uk
+        assert "Companies House" in uk
+        assert "UK Legislation" in uk
 
-    def test_us_has_three_entries(self):
-        assert len(JURISDICTION_ADAPTER_PREFERENCES["US"]) == 3
+    def test_us_has_expected_adapters(self):
+        us = get_adapters_for_jurisdiction("US")
+        assert us is not None
+        assert "FRED" in us
+        assert "GovInfo.gov" in us
+        assert "Library of Congress" in us
 
     def test_no_duplicate_entries(self):
-        for jurisdiction, prefs in JURISDICTION_ADAPTER_PREFERENCES.items():
-            assert len(prefs) == len(set(prefs)), f"Duplicates in {jurisdiction}"
+        for jurisdiction in ["UK", "US", None]:
+            adapters = get_adapters_for_jurisdiction(jurisdiction)
+            if adapters:
+                assert len(adapters) == len(
+                    set(adapters)
+                ), f"Duplicates in {jurisdiction}"

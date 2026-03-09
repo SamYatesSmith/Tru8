@@ -25,7 +25,7 @@ from scripts.eval_mapping_model import (
     SYNTHETIC_CLAIMS,
     build_mapping_prompt,
     validate_mapping_output,
-    _build_scoring_sheet,
+    _build_scoring_sheet_multi,
 )
 from app.pipeline.claim_map_analyzer import MAPPING_PROMPT
 
@@ -423,7 +423,7 @@ class TestScoringSheet:
         flash = self._make_result("c1", "flash_lite", elements)
         gpt4o = self._make_result("c1", "gpt4o", elements)
 
-        sheet = _build_scoring_sheet([flash], [gpt4o])
+        sheet = _build_scoring_sheet_multi({"flash_lite": [flash], "gpt4o": [gpt4o]})
         assert len(sheet) == 2
         models = {s["model"] for s in sheet}
         assert models == {"flash_lite", "gpt4o"}
@@ -433,7 +433,7 @@ class TestScoringSheet:
         flash = self._make_result("c1", "flash_lite", elements)
         gpt4o = self._make_result("c1", "gpt4o", elements)
 
-        sheet = _build_scoring_sheet([flash], [gpt4o])
+        sheet = _build_scoring_sheet_multi({"flash_lite": [flash], "gpt4o": [gpt4o]})
         for entry in sheet:
             for es in entry["element_scores"]:
                 assert es["state_score"] is None
@@ -445,7 +445,7 @@ class TestScoringSheet:
     def test_sheet_skips_dry_run_entries(self):
         flash = {"claim_id": "c1", "dry_run": True}
         gpt4o = {"claim_id": "c1", "dry_run": True}
-        sheet = _build_scoring_sheet([flash], [gpt4o])
+        sheet = _build_scoring_sheet_multi({"flash_lite": [flash], "gpt4o": [gpt4o]})
         assert len(sheet) == 0
 
     def test_sheet_preserves_reasoning_text(self):
@@ -453,7 +453,7 @@ class TestScoringSheet:
         flash = self._make_result("c1", "flash_lite", elements, refs_per_element=1)
         gpt4o = self._make_result("c1", "gpt4o", elements, refs_per_element=1)
 
-        sheet = _build_scoring_sheet([flash], [gpt4o])
+        sheet = _build_scoring_sheet_multi({"flash_lite": [flash], "gpt4o": [gpt4o]})
         for entry in sheet:
             assert len(entry["ref_scores"]) == 1
             assert "Reasoning for e1" in entry["ref_scores"][0]["reasoning_text"]
