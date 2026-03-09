@@ -2,7 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -16,6 +16,10 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  themeColor: '#f27907',
+}
+
 export const metadata: Metadata = {
   title: 'Tru8 — AI-Powered Evidence Research',
   description: 'Professional evidence research platform. Analyse claims, URLs, and articles with AI-powered multi-source research.',
@@ -23,7 +27,6 @@ export const metadata: Metadata = {
     icon: '/favicon.proper.png',
     apple: '/apple-touch-icon.png',
   },
-  themeColor: '#f27907',
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'),
 }
 
