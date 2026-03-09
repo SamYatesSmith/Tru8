@@ -65,9 +65,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const ogImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'}/api/og/social/${params.id}`;
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app';
+
   return {
     title: `${title} | Tru8 Evidence Report`,
     description,
+    alternates: {
+      canonical: `${baseUrl}/r/${params.id}`,
+    },
     openGraph: {
       title: `${title} | Tru8`,
       description,
@@ -92,8 +97,39 @@ export default async function PublicReportPage({ params, searchParams }: PagePro
     notFound();
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: check.title || 'Evidence Research Report',
+    description: `${check.claimsCount || 0} claims examined across ${check.sourcesCount || 0} sources`,
+    url: `${baseUrl}/r/${params.id}`,
+    datePublished: check.created_at,
+    dateModified: check.completed_at || check.created_at,
+    publisher: {
+      '@type': 'Organization',
+      name: 'Tru8',
+      url: baseUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${baseUrl}/logo.proper.png`,
+      },
+    },
+    mainEntity: {
+      '@type': 'Dataset',
+      name: 'Evidence Landscape',
+      description: `Structured evidence collection: ${check.claimsCount || 0} claims, ${check.sourcesCount || 0} sources`,
+    },
+  };
+
   return (
     <>
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Navigation */}
       <Navigation />
       <MobileBottomNav />

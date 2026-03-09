@@ -68,7 +68,7 @@ export default function DevelopersPage() {
             <div className="space-y-8">
               {/* Step 1 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-sm font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
                   1
                 </div>
                 <div>
@@ -102,7 +102,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
               {/* Step 2 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-sm font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
                   2
                 </div>
                 <div>
@@ -121,7 +121,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
               {/* Step 3 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-sm font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
                   3
                 </div>
                 <div>
@@ -154,8 +154,14 @@ export TRU8_API_KEY="tru8_sk_..."`}
               {[
                 {
                   tier: 'Lookup',
-                  desc: 'Cached prior analysis — instant hash match on your previous research',
+                  desc: 'Cached prior analysis — instant hash match on your previous research.',
                   price: '~$0.02',
+                  time: 'instant',
+                },
+                {
+                  tier: 'Consensus',
+                  desc: 'Cross-user aggregate evidence landscape. Available when 3+ independent checks exist for a claim.',
+                  price: '~$0.03',
                   time: 'instant',
                 },
                 {
@@ -171,13 +177,13 @@ export TRU8_API_KEY="tru8_sk_..."`}
                   time: '~60–90s',
                 },
               ].map((t) => (
-                <div key={t.tier} className="flex items-start gap-4 border border-zinc-200 p-4">
+                <div key={t.tier} className={`flex items-start gap-4 border border-zinc-200 p-4 ${t.tier === 'Full' ? 'border-l-4 border-l-accent' : ''}`}>
                   <div className="flex-shrink-0 mt-0.5">
-                    <Search size={16} className="text-zinc-400" />
+                    <Search size={16} className={t.tier === 'Full' ? 'text-accent' : 'text-zinc-400'} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <code className="text-sm font-mono font-semibold text-zinc-900">{t.tier}</code>
+                      <code className={`text-sm font-mono font-semibold ${t.tier === 'Full' ? 'text-accent' : 'text-zinc-900'}`}>{t.tier}</code>
                       <span className="font-mono text-xs text-zinc-400">{t.price}</span>
                     </div>
                     <p className="text-sm text-zinc-600 mt-1">{t.desc}</p>
@@ -216,26 +222,34 @@ export TRU8_API_KEY="tru8_sk_..."`}
               {[
                 {
                   name: 'tru8_check',
-                  desc: 'Evidence research with tier fallback (lookup → quick → full). Set max_tier to control depth and cost.',
+                  desc: 'Evidence research with tier fallback (lookup \u2192 consensus \u2192 quick \u2192 full). Set max_tier to control depth and cost.',
                   time: 'varies',
+                  icon: 'search' as const,
+                  primary: true,
                 },
                 {
                   name: 'tru8_get_result',
                   desc: 'Retrieve completed check with pre-computed analytics (_computed block)',
                   time: '<1s',
+                  icon: 'chart' as const,
+                  primary: false,
                 },
                 {
                   name: 'tru8_get_result_raw',
                   desc: 'Retrieve raw check data without computed analytics',
                   time: '<1s',
+                  icon: 'json' as const,
+                  primary: false,
                 },
               ].map((tool) => (
-                <div key={tool.name} className="flex items-start gap-4 border border-zinc-200 p-4">
+                <div key={tool.name} className={`flex items-start gap-4 border border-zinc-200 p-4 ${tool.primary ? 'border-l-4 border-l-accent' : ''}`}>
                   <div className="flex-shrink-0 mt-0.5">
-                    <FileJson size={16} className="text-zinc-400" />
+                    {tool.icon === 'search' ? <Search size={16} className="text-accent" /> :
+                     tool.icon === 'chart' ? <BarChart3 size={16} className="text-zinc-400" /> :
+                     <FileJson size={16} className="text-zinc-400" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <code className="text-sm font-mono font-semibold text-zinc-900">{tool.name}</code>
+                    <code className={`text-sm font-mono font-semibold ${tool.primary ? 'text-accent' : 'text-zinc-900'}`}>{tool.name}</code>
                     <p className="text-sm text-zinc-600 mt-1">{tool.desc}</p>
                   </div>
                   <div className="flex-shrink-0 font-mono text-xs text-zinc-400">
@@ -322,7 +336,21 @@ export TRU8_API_KEY="tru8_sk_..."`}
     "executedTier": "quick",
     "chargedCents": 7,
     "limitations": ["heuristic_classification", "no_coverage_recovery"],
-    "cached": false
+    "cached": false,
+    "landscape": {
+      "sourceDiversity": { "uniqueDomains": 5, "typeCoverage": 3 },
+      "freshness": { "freshestDaysAgo": 2, "undatedCount": 1 },
+      "gaps": [],
+      "providerStatus": null
+    }
+  },
+  "_manifest": {
+    "checkId": "check-uuid",
+    "landscapeHash": "a1b2c3d4...",
+    "signedAt": "2026-03-09T12:00:00Z",
+    "signature": "hmac-sha256-...",
+    "kid": "tru8-2026-03",
+    "verifyUrl": "/verify/check-uuid"
   },
   "_computed": {
     "summary": { "totalElements": 3, "supported": 2, "disputed": 0, "unresolved": 1 },
@@ -333,6 +361,30 @@ export TRU8_API_KEY="tru8_sk_..."`}
   }
 }`}
             </pre>
+
+            <div className="mt-6 space-y-3">
+              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
+                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="text-xs text-zinc-600">
+                  <p className="font-semibold text-zinc-900 mb-1">claims[].claimMap</p>
+                  <p>Each claim is decomposed into 1–5 elements. Evidence maps to elements with relationship types (supports/challenges/context) and reasoning.</p>
+                </div>
+              </div>
+              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
+                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="text-xs text-zinc-600">
+                  <p className="font-semibold text-zinc-900 mb-1">_meta vs _computed</p>
+                  <p><code className="text-zinc-400">_meta</code> is always present — tier, cost, limitations, landscape. <code className="text-zinc-400">_computed</code> requires <code className="text-zinc-400">?computed=true</code> — adds analytics, corroboration, diagnostics.</p>
+                </div>
+              </div>
+              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
+                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="text-xs text-zinc-600">
+                  <p className="font-semibold text-zinc-900 mb-1">_manifest</p>
+                  <p>HMAC-signed tamper-evidence. Agents can verify results haven&apos;t been modified via <code className="text-zinc-400">GET /verify/{'{'}<span>check_id</span>{'}'}</code>.</p>
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Divider */}
@@ -395,7 +447,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
             </p>
             <Link
               href="/dashboard/settings?tab=developer"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent/90 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
             >
               Get API Key
             </Link>

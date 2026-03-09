@@ -21,7 +21,10 @@ export const metadata: Metadata = {
   description: 'Professional evidence research platform. Analyse claims, URLs, and articles with AI-powered multi-source research.',
   icons: {
     icon: '/favicon.proper.png',
+    apple: '/apple-touch-icon.png',
   },
+  themeColor: '#f27907',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'),
 }
 
 export default function RootLayout({
