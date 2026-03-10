@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, R
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from jinja2 import Environment, FileSystemLoader
 from app.core.database import get_session
 from app.core.auth import (
@@ -19,6 +19,7 @@ import uuid
 import json
 import asyncio
 import logging
+import secrets
 import redis.asyncio as aioredis
 import redis
 from app.core.config import settings
@@ -39,175 +40,27 @@ from app.api.v1.response_builder import (
     build_check_response,
 )
 
+# OpenAPI schemas for documentation
+from app.api.v1.schemas import (
+    CheckResponse,
+    CheckListResponse,
+    SourcesResponse,
+    BountyUpdateResponse,
+    ResearchStartResponse,
+    ResearchStatusResponse,
+    SSETokenResponse,
+    VideosResponse,
+    PublicCheckMinimal,
+    ErrorResponse,
+    CreditLimitError,
+    PipelineErrorResponse,
+    TimeoutErrorResponse,
+)
+
 logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
-
-
-@router.get("/test/search-diagnostic", include_in_schema=False)
-async def test_search_diagnostic():
-    """
-    DIAGNOSTIC ENDPOINT: Test if Brave Search API is working.
-    Visit: http://localhost:8000/api/v1/checks/test/search-diagnostic
-    """
-    import traceback
-    from app.services.search import SearchService, warmup_search_providers
-
-    results = {
-        "brave_api_key_configured": bool(settings.BRAVE_API_KEY),
-        "brave_api_key_length": (
-            len(settings.BRAVE_API_KEY) if settings.BRAVE_API_KEY else 0
-        ),
-        "serp_api_key_configured": bool(settings.SERP_API_KEY),
-        "test_query": "Earth age billion years",
-        "search_results": [],
-        "error": None,
-    }
-
-    try:
-        warmup_search_providers()
-        results["warmup"] = "completed"
-
-        search_service = SearchService()
-        results["providers"] = [p.__class__.__name__ for p in search_service.providers]
-
-        if not search_service.providers:
-            results["error"] = "No search providers available"
-            return results
-
-        search_results = await search_service.search_for_evidence(
-            "Earth age billion years", max_results=3
-        )
-
-        results["search_results"] = [
-            {
-                "title": r.title,
-                "url": r.url,
-                "snippet": r.snippet[:150],
-                "source": r.source,
-            }
-            for r in search_results
-        ]
-        results["result_count"] = len(search_results)
-
-    except Exception as e:
-        results["error"] = f"{type(e).__name__}: {str(e)}"
-        results["traceback"] = traceback.format_exc()
-
-    return results
-
-
-@router.get("/test/full-diagnostic", include_in_schema=False)
-async def test_full_diagnostic():
-    """
-    COMPREHENSIVE DIAGNOSTIC: Test web search AND API adapters.
-    Visit: http://localhost:8000/api/v1/checks/test/full-diagnostic
-    """
-    import traceback
-    from app.services.search import SearchService, warmup_search_providers
-    from app.services.government_api_client import get_api_registry
-    from app.pipeline.retrieve import EvidenceRetriever
-
-    results = {
-        "web_search": {
-            "brave_key_configured": bool(settings.BRAVE_API_KEY),
-            "serp_key_configured": bool(settings.SERP_API_KEY),
-            "providers": [],
-            "test_results": 0,
-            "error": None,
-        },
-        "api_adapters": {
-            "registered_count": 0,
-            "adapter_names": [],
-            "test_results": {},
-            "error": None,
-        },
-        "evidence_retriever": {
-            "initialized": False,
-            "error": None,
-        },
-    }
-
-    # Test 1: Web Search
-    try:
-        warmup_search_providers()
-        search_service = SearchService()
-        results["web_search"]["providers"] = [
-            p.__class__.__name__ for p in search_service.providers
-        ]
-
-        if search_service.providers:
-            search_results = await search_service.search_for_evidence(
-                "climate change statistics 2024", max_results=3
-            )
-            results["web_search"]["test_results"] = len(search_results)
-            if search_results:
-                results["web_search"]["sample"] = {
-                    "title": search_results[0].title,
-                    "url": search_results[0].url[:80],
-                }
-    except Exception as e:
-        results["web_search"]["error"] = f"{type(e).__name__}: {str(e)}"
-
-    # Test 2: API Adapters
-    try:
-        registry = get_api_registry()
-        adapters = registry.get_all_adapters()
-        results["api_adapters"]["registered_count"] = len(adapters)
-        results["api_adapters"]["adapter_names"] = [a.api_name for a in adapters]
-
-        # Test Wikipedia (should always work - no API key needed)
-        for adapter in adapters:
-            if adapter.api_name == "Wikipedia":
-                try:
-                    wiki_results = adapter.search("Earth age", "Science", "Global", [])
-                    results["api_adapters"]["test_results"]["Wikipedia"] = len(
-                        wiki_results
-                    )
-                    if wiki_results:
-                        results["api_adapters"]["test_results"]["Wikipedia_sample"] = {
-                            "title": wiki_results[0].get("title", "N/A")[:50],
-                            "has_snippet": bool(wiki_results[0].get("snippet")),
-                        }
-                except Exception as e:
-                    results["api_adapters"]["test_results"]["Wikipedia_error"] = str(e)
-                break
-    except Exception as e:
-        results["api_adapters"]["error"] = f"{type(e).__name__}: {str(e)}"
-
-    # Test 3: Evidence Retriever initialization
-    try:
-        retriever = EvidenceRetriever()
-        results["evidence_retriever"]["initialized"] = True
-        results["evidence_retriever"]["search_providers"] = [
-            p.__class__.__name__ for p in retriever.search_service.providers
-        ]
-    except Exception as e:
-        results["evidence_retriever"]["error"] = f"{type(e).__name__}: {str(e)}"
-
-    # Summary
-    results["summary"] = {
-        "web_search_working": results["web_search"]["test_results"] > 0,
-        "api_adapters_registered": results["api_adapters"]["registered_count"] > 0,
-        "evidence_retriever_ready": results["evidence_retriever"]["initialized"],
-    }
-
-    if (
-        not results["summary"]["web_search_working"]
-        and not results["api_adapters"]["test_results"]
-    ):
-        results["diagnosis"] = (
-            "CRITICAL: Neither web search nor API adapters are returning results. Check API keys in .env"
-        )
-    elif not results["summary"]["web_search_working"]:
-        results["diagnosis"] = (
-            "WARNING: Web search not working. Set BRAVE_API_KEY or SERP_API_KEY. API adapters may still provide some evidence."
-        )
-    else:
-        results["diagnosis"] = "OK: Evidence retrieval should be working."
-
-    return results
 
 
 # Setup Jinja2 environment for PDF templates
@@ -259,7 +112,7 @@ async def _validate_and_create_check(
 
     # Determine usage limit
     if is_beta_tester:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         period_start = datetime(now.year, now.month, 1)
         credits_limit = 40
 
@@ -392,13 +245,29 @@ async def _build_check_response(
 
 
 class CreateCheckRequest(BaseModel):
-    input_type: str  # 'url', 'text', 'image', 'video'
-    content: Optional[str] = None
-    url: Optional[str] = None
-    file_path: Optional[str] = None  # For uploaded files
-    user_query: Optional[str] = None  # Search Clarity feature
-    frozen_evidence: Optional[Dict[str, List[Dict[str, Any]]]] = (
-        None  # Frozen evidence replay (v2): full pre-weighting evidence dicts
+    """Submit content for evidence research."""
+
+    input_type: str = Field(
+        description="Input type: 'url' (article analysis), 'text' (direct claim), 'image' (OCR), or 'video' (transcript)"
+    )
+    content: Optional[str] = Field(
+        None,
+        description="Claim text (required when input_type is 'text'). Supports both statements and questions.",
+    )
+    url: Optional[str] = Field(
+        None,
+        description="URL to analyse (required when input_type is 'url' or 'video'). HTTPS prefix is added automatically if omitted.",
+    )
+    file_path: Optional[str] = Field(
+        None, description="Server path for uploaded images (use POST /upload first)"
+    )
+    user_query: Optional[str] = Field(
+        None,
+        description="Optional Search Clarity question (max 200 chars). When provided, the pipeline generates a focused answer alongside the evidence landscape.",
+    )
+    frozen_evidence: Optional[Dict[str, List[Dict[str, Any]]]] = Field(
+        None,
+        description="Pre-supplied evidence for replay testing (internal use only)",
     )
 
 
@@ -729,7 +598,18 @@ async def create_check_test_streaming(
     )
 
 
-@router.post("/stream", status_code=200, summary="Submit content for evidence research")
+@router.post(
+    "/stream",
+    status_code=200,
+    summary="Submit content for evidence research (SSE stream)",
+    responses={
+        200: {
+            "description": "Server-Sent Events stream of pipeline progress. Content-Type: text/event-stream"
+        },
+        400: {"description": "Invalid input", "model": ErrorResponse},
+        402: {"description": "Monthly credit limit reached", "model": CreditLimitError},
+    },
+)
 @limiter.limit("10/minute")
 async def create_check_streaming(
     body: CreateCheckRequest,
@@ -741,21 +621,21 @@ async def create_check_streaming(
     Submit a URL or text for evidence research. Returns an SSE stream of
     pipeline progress events.
 
-    **Input types:** `url` (article analysis), `text` (direct claim).
+    **Input types:** `url` (article analysis), `text` (direct claim or question).
 
     Deep Research pipeline: extract claims → retrieve evidence → decompose
     into elements → map evidence with relationship labels (typically 60-120s).
 
     **SSE events emitted:**
     - `progress` — stage name, percentage, time estimate
-    - `awaiting_selection` — article mode: claims extracted, awaiting selection
+    - `awaiting_selection` — article mode: claims extracted, awaiting user selection
     - `completed` — pipeline finished, check ID in payload
     - `error` — pipeline failed
 
     For URL inputs with multiple claims, the pipeline pauses after extraction.
     Call `PATCH /checks/{id}/select-claims` to resume with chosen claims.
 
-    **Rate limit:** 10/minute.
+    **Rate limit:** 10/minute
     """
     from app.core.database import async_session
     from app.pipeline.progress import ProgressReporter
@@ -975,7 +855,24 @@ async def create_check_streaming(
     )
 
 
-@router.post("/run", status_code=200, summary="Synchronous evidence research")
+@router.post(
+    "/run",
+    status_code=200,
+    summary="Synchronous evidence research",
+    responses={
+        200: {
+            "description": "Complete evidence landscape with claims, elements, and evidence",
+            "model": CheckResponse,
+        },
+        400: {"description": "Invalid input", "model": ErrorResponse},
+        402: {"description": "Monthly credit limit reached", "model": CreditLimitError},
+        504: {
+            "description": "Pipeline timed out (>180s)",
+            "model": TimeoutErrorResponse,
+        },
+        502: {"description": "Pipeline error", "model": PipelineErrorResponse},
+    },
+)
 @limiter.limit("10/minute")
 async def create_check_sync(
     body: CreateCheckRequest,
@@ -994,11 +891,7 @@ async def create_check_sync(
 
     **Set your HTTP client timeout to at least 180s.**
 
-    **Error responses:**
-    - 400: Bad input
-    - 402: Credit limit reached
-    - 504: Pipeline timed out (>180s)
-    - 502: Pipeline error
+    **Rate limit:** 10/minute
     """
     from app.core.database import async_session
     from app.pipeline.progress import ProgressReporter
@@ -1194,7 +1087,16 @@ async def create_check_sync(
         )
 
 
-@router.get("", summary="List checks")
+@router.get(
+    "",
+    summary="List checks",
+    responses={
+        200: {
+            "description": "Paginated list of checks, newest first",
+            "model": CheckListResponse,
+        },
+    },
+)
 @router.get("/", include_in_schema=False)
 async def get_checks(
     skip: int = 0,
@@ -1205,8 +1107,9 @@ async def get_checks(
     """
     List the authenticated user's checks, newest first.
 
-    Returns check metadata (ID, status, input type, claim count, timestamps).
-    Use `GET /checks/{id}` for full claim and evidence data.
+    Returns check metadata (ID, status, input type, claim count, timestamps)
+    with a preview of the first claim. Use `GET /checks/{id}` for full
+    claim and evidence data.
     """
     stmt = (
         select(Check)
@@ -1281,7 +1184,17 @@ async def get_checks(
     return {"checks": check_data, "total": len(checks)}
 
 
-@router.get("/{check_id}", summary="Get check with full evidence")
+@router.get(
+    "/{check_id}",
+    summary="Get check with full evidence",
+    responses={
+        200: {
+            "description": "Full check with claims, evidence, and claim maps",
+            "model": CheckResponse,
+        },
+        404: {"description": "Check not found", "model": ErrorResponse},
+    },
+)
 async def get_check(
     check_id: str,
     computed: bool = False,
@@ -1314,12 +1227,29 @@ async def get_check(
 
 
 class SelectClaimsRequest(BaseModel):
-    """Request body for claim selection endpoint."""
+    """Select claims for full evidence analysis (article mode)."""
 
-    selected_positions: List[int]
+    selected_positions: List[int] = Field(
+        description="Claim positions to select for analysis (0-indexed). Maximum 5 claims per check.",
+    )
 
 
-@router.patch("/{check_id}/select-claims", summary="Select claims for analysis")
+@router.patch(
+    "/{check_id}/select-claims",
+    summary="Select claims for analysis",
+    responses={
+        200: {"description": "Selection accepted — Phase 2 pipeline resumed via SSE"},
+        400: {
+            "description": "Invalid selection or too many claims",
+            "model": ErrorResponse,
+        },
+        404: {"description": "Check not found", "model": ErrorResponse},
+        409: {
+            "description": "Check is not in waiting_for_selection state",
+            "model": ErrorResponse,
+        },
+    },
+)
 async def select_claims(
     check_id: str,
     body: SelectClaimsRequest,
@@ -1483,14 +1413,29 @@ async def select_claims(
 
 
 class UpdateBountyRequest(BaseModel):
-    """Request body for bounty text update."""
+    """Update the bounty text on a claim element (Seeker feature)."""
 
-    text: Optional[str] = None
+    text: Optional[str] = Field(
+        None,
+        description="Bounty text describing what evidence would help resolve this element (max 200 chars). Set to null to clear.",
+    )
 
 
 @router.patch(
     "/{check_id}/claims/{claim_id}/elements/{element_id}/bounty",
     summary="Update element bounty text",
+    responses={
+        200: {"description": "Bounty text updated", "model": BountyUpdateResponse},
+        400: {
+            "description": "Text exceeds 200 character limit",
+            "model": ErrorResponse,
+        },
+        404: {
+            "description": "Check, claim, or element not found",
+            "model": ErrorResponse,
+        },
+        409: {"description": "Check is not completed", "model": ErrorResponse},
+    },
 )
 async def update_bounty_text(
     check_id: str,
@@ -1500,7 +1445,11 @@ async def update_bounty_text(
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Update bounty text on a specific claim element (G01: The Seeker)."""
+    """Update bounty text on a specific claim element (Seeker feature).
+
+    Bounty text signals what evidence would help resolve an unresolved element.
+    Set to null to clear.
+    """
     # 1. Validate check exists + user owns it
     stmt = select(Check).where(
         Check.id == check_id, Check.user_id == current_user["id"]
@@ -1573,6 +1522,17 @@ async def update_bounty_text(
 @router.post(
     "/{check_id}/claims/{claim_id}/elements/{element_id}/research",
     summary="Start element re-search",
+    responses={
+        200: {"description": "Re-search started", "model": ResearchStartResponse},
+        404: {
+            "description": "Check, claim, or element not found",
+            "model": ErrorResponse,
+        },
+        409: {
+            "description": "Check is not completed or research already in progress",
+            "model": ErrorResponse,
+        },
+    },
 )
 async def start_element_research(
     check_id: str,
@@ -1658,6 +1618,13 @@ async def start_element_research(
 @router.get(
     "/{check_id}/claims/{claim_id}/elements/{element_id}/research/status",
     summary="Get re-search status",
+    responses={
+        200: {
+            "description": "Current re-search status",
+            "model": ResearchStatusResponse,
+        },
+        404: {"description": "Check not found", "model": ErrorResponse},
+    },
 )
 async def get_element_research_status(
     check_id: str,
@@ -1684,6 +1651,58 @@ async def get_element_research_status(
         return {"status": "idle", "message": "No research in progress"}
 
     return status
+
+
+@router.post(
+    "/{check_id}/sse-token",
+    summary="Generate short-lived SSE stream token",
+    responses={
+        200: {"description": "SSE stream token", "model": SSETokenResponse},
+        404: {"description": "Check not found", "model": ErrorResponse},
+    },
+)
+async def create_sse_token(
+    check_id: str,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Generate a short-lived, check-scoped token for SSE progress streaming.
+
+    Use this token as `?token=<token>` in the `GET /progress` EventSource URL
+    instead of passing the full JWT in the query string.
+
+    Token is valid for 5 minutes and scoped to the specified check ID.
+    """
+    # Verify check belongs to user
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    # Generate token and store in Redis
+    stream_token = secrets.token_urlsafe(32)
+    token_key = f"sse-token:{stream_token}"
+    token_payload = json.dumps(
+        {
+            "check_id": check_id,
+            "user_id": current_user["id"],
+        }
+    )
+
+    try:
+        redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        await redis_client.setex(token_key, 300, token_payload)  # 5 minute TTL
+        await redis_client.aclose()
+    except Exception as e:
+        logger.error(f"Failed to store SSE token in Redis: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate stream token")
+
+    return {"token": stream_token, "expiresIn": 300}
 
 
 @router.get("/{check_id}/progress", summary="Stream pipeline progress (SSE)")
@@ -1724,12 +1743,18 @@ async def stream_check_progress(
             # Initial connection event
             yield f"data: {safe_json_dumps({'type': 'connected', 'checkId': check_id, 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
 
-            # Check if already completed/failed in database
+            # Check if already completed/failed/awaiting in database
             if check.status == "completed":
                 yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100})}\n\n"
                 return
             elif check.status == "failed":
                 yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': check.error_message})}\n\n"
+                return
+            elif check.status == "waiting_for_selection":
+                claims_key = f"inline-progress:{check_id}:claims"
+                claims_json = redis_client.get(claims_key)
+                claims = json.loads(claims_json) if claims_json else []
+                yield f"data: {json.dumps({'type': 'awaiting_selection', 'checkId': check_id, 'stage': 'awaiting_selection', 'progress': 30, 'message': 'Waiting for claim selection...', 'claims': claims})}\n\n"
                 return
 
             # Poll Redis for inline pipeline progress
@@ -1764,6 +1789,12 @@ async def stream_check_progress(
                         elif status == "failed":
                             error = data.get("error", "Processing failed")
                             yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error})}\n\n"
+                            break
+                        elif status == "waiting_for_selection":
+                            claims_key = f"inline-progress:{check_id}:claims"
+                            claims_json = redis_client.get(claims_key)
+                            claims = json.loads(claims_json) if claims_json else []
+                            yield f"data: {json.dumps({'type': 'awaiting_selection', 'checkId': check_id, 'stage': 'awaiting_selection', 'progress': 30, 'message': 'Waiting for claim selection...', 'claims': claims})}\n\n"
                             break
                         elif (
                             current_progress > last_progress
@@ -1875,7 +1906,7 @@ async def export_check_pdf(
             claims=claims_with_evidence,
             total_evidence=total_evidence,
             total_elements=total_elements,
-            now=datetime.utcnow(),
+            now=datetime.now(timezone.utc),
         )
     except Exception as e:
         logger.error(f"Template rendering failed: {e}")
@@ -1909,20 +1940,18 @@ async def export_check_pdf(
 # ============================================================================
 
 
-class SourcesResponse(BaseModel):
-    """Response model for check sources endpoint"""
-
-    checkId: str
-    totalSources: int
-    includedCount: int
-    filteredCount: int
-    legacyCheck: bool
-    message: Optional[str] = None
-    claims: Optional[List[dict]] = None
-    filterBreakdown: Optional[dict] = None
-
-
-@router.get("/{check_id}/sources", summary="Get all reviewed sources")
+@router.get(
+    "/{check_id}/sources",
+    summary="Get all reviewed sources",
+    responses={
+        200: {
+            "description": "All sources reviewed with filter breakdown (Pro feature)",
+            "model": SourcesResponse,
+        },
+        403: {"description": "Pro subscription required", "model": ErrorResponse},
+        404: {"description": "Check not found", "model": ErrorResponse},
+    },
+)
 async def get_check_sources(
     check_id: str,
     include_filtered: bool = True,
@@ -1930,15 +1959,15 @@ async def get_check_sources(
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Get all sources reviewed for a check (Pro feature).
+    """Get all sources reviewed during evidence research (Pro feature).
 
-    This endpoint returns all sources that were reviewed during fact-checking,
-    including those that were filtered out. It shows which filtering stage
-    excluded each source and why.
+    Returns every source the pipeline considered, including those excluded
+    by filtering. Each excluded source shows which pipeline stage removed it
+    and why — full transparency into the curation process.
 
-    Query params:
-    - include_filtered: Include filtered sources (default: true)
-    - sort_by: Sort order - relevance or date
+    **Query params:**
+    - `include_filtered` — include filtered-out sources (default: true)
+    - `sort_by` — sort order: 'relevance' or 'date'
     """
 
     # 1. Verify check belongs to user
@@ -1964,7 +1993,8 @@ async def get_check_sources(
         e.lower() for e in settings.BETA_TESTER_EMAILS
     ]
     is_paid = (
-        subscription and subscription.plan in ("pro", "developer")
+        subscription
+        and subscription.plan in ("starter", "professional", "pro", "developer")
     ) or is_beta_tester
 
     if not is_paid:
@@ -2084,17 +2114,28 @@ async def get_check_sources(
 # ============================================================================
 
 
-@router.get("/{check_id}/videos", summary="Get video recommendations")
+@router.get(
+    "/{check_id}/videos",
+    summary="Get video recommendations",
+    responses={
+        200: {"description": "Video recommendations", "model": VideosResponse},
+        404: {"description": "Check not found", "model": ErrorResponse},
+        403: {"description": "Not authorised", "model": ErrorResponse},
+    },
+)
 async def get_check_videos(
     check_id: str,
     claim_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
-    """Get video recommendations for a check or specific claim.
+    """Get YouTube video recommendations for a check or specific claim.
 
-    Query params:
-    - claim_id: If provided, filter to videos for this claim only.
+    Videos are retrieved during the pipeline from YouTube Data API and
+    classified with tier/type labels.
+
+    **Query params:**
+    - `claim_id` — filter to videos for a specific claim
     """
     from app.models.video_recommendation import VideoRecommendation
 
@@ -2143,15 +2184,29 @@ async def get_check_videos(
 # ============================================================================
 
 
-@router.get("/public/{check_id}", summary="Get public check data (no auth)")
+@router.get(
+    "/public/{check_id}",
+    summary="Get public check data (no auth)",
+    responses={
+        200: {
+            "description": "Public check data (minimal or detailed)",
+            "model": PublicCheckMinimal,
+        },
+        404: {
+            "description": "Check not found or not completed",
+            "model": ErrorResponse,
+        },
+    },
+)
 async def get_public_check(
     check_id: str, detailed: bool = False, session: AsyncSession = Depends(get_session)
 ):
-    """Get public check data. No auth required.
+    """Get public check data. No authentication required.
 
-    Query params:
-    - detailed: If true, returns full check data for public report page.
-                If false (default), returns minimal data for OG card generation.
+    **Query params:**
+    - `detailed=false` (default) — minimal data for OG card generation
+    - `detailed=true` — full check data for the public report page,
+      including claims, evidence, and video recommendations
 
     Only returns completed checks.
     """
@@ -2242,6 +2297,9 @@ async def get_public_check(
         "sourceDomain": source_domain,
         "claimsCount": len(claims),
         "sourcesCount": check.raw_sources_count or len(top_sources_set),
+        "totalSearchResults": check.total_search_results
+        or check.raw_sources_count
+        or len(top_sources_set),
         "evidenceCount": len(all_evidence),
         "entryMode": check.entry_mode,
         "selectedClaimsCount": check.selected_claims_count,
@@ -2371,7 +2429,8 @@ async def export_check_sources(
         e.lower() for e in settings.BETA_TESTER_EMAILS
     ]
     is_paid = (
-        subscription and subscription.plan in ("pro", "developer")
+        subscription
+        and subscription.plan in ("starter", "professional", "pro", "developer")
     ) or is_beta_tester
 
     if not is_paid:

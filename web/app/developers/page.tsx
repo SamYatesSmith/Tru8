@@ -141,62 +141,38 @@ export TRU8_API_KEY="tru8_sk_..."`}
           {/* Divider */}
           <div className="border-t border-zinc-200 my-12 md:my-16" />
 
-          {/* Pipeline */}
+          {/* Pipeline Depth */}
           <section className="mb-16 md:mb-20">
             <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
               Module — Pipeline
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
-              Deep Research
+              What Each Tier Runs
             </h2>
 
-            <div className="space-y-4">
-              {[
-                {
-                  tier: 'Lookup',
-                  desc: 'Cached prior analysis — instant hash match on your previous research.',
-                  price: '~$0.02',
-                  time: 'instant',
-                },
-                {
-                  tier: 'Consensus',
-                  desc: 'Cross-user aggregate evidence landscape. Available when 3+ independent checks exist for a claim.',
-                  price: '~$0.03',
-                  time: 'instant',
-                },
-                {
-                  tier: 'Quick',
-                  desc: 'Web search + heuristic classification. Fast triage without full LLM analysis.',
-                  price: '~$0.07',
-                  time: '~15s',
-                },
-                {
-                  tier: 'Full',
-                  desc: 'Complete pipeline — 30+ sources, LLM classification, element decomposition, coverage recovery.',
-                  price: '~$0.15',
-                  time: '~60–90s',
-                },
-              ].map((t) => (
-                <div key={t.tier} className={`flex items-start gap-4 border border-zinc-200 p-4 ${t.tier === 'Full' ? 'border-l-4 border-l-accent' : ''}`}>
-                  <div className="flex-shrink-0 mt-0.5">
-                    <Search size={16} className={t.tier === 'Full' ? 'text-accent' : 'text-zinc-400'} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <code className={`text-sm font-mono font-semibold ${t.tier === 'Full' ? 'text-accent' : 'text-zinc-900'}`}>{t.tier}</code>
-                      <span className="font-mono text-xs text-zinc-400">{t.price}</span>
-                    </div>
-                    <p className="text-sm text-zinc-600 mt-1">{t.desc}</p>
-                  </div>
-                  <div className="flex-shrink-0 font-mono text-xs text-zinc-400">
-                    {t.time}
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200">
+                    <th className="text-left py-3 pr-4 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Pipeline stage</th>
+                    <th className="text-center py-3 px-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Quick</th>
+                    <th className="text-center py-3 pl-2 font-mono text-[10px] tracking-widest uppercase text-accent">Full</th>
+                  </tr>
+                </thead>
+                <tbody className="text-zinc-600">
+                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Claim extraction + decomposition</td><td className="text-center">Yes</td><td className="text-center">Yes</td></tr>
+                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Web search (Serper/Brave/SerpAPI)</td><td className="text-center">1 query/element</td><td className="text-center">3 queries/element</td></tr>
+                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Government + academic APIs</td><td className="text-center text-zinc-300">No</td><td className="text-center">Yes</td></tr>
+                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Google Fact-Check API</td><td className="text-center text-zinc-300">No</td><td className="text-center">Yes</td></tr>
+                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Evidence classification</td><td className="text-center">Heuristic</td><td className="text-center">LLM</td></tr>
+                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">LLM relevance scoring</td><td className="text-center text-zinc-300">No</td><td className="text-center">Yes</td></tr>
+                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Evidence mapping + orientation</td><td className="text-center">Yes</td><td className="text-center">Yes</td></tr>
+                  <tr><td className="py-2 pr-4">Coverage recovery</td><td className="text-center text-zinc-300">No</td><td className="text-center">Yes</td></tr>
+                </tbody>
+              </table>
             </div>
-            <p className="text-sm text-zinc-500 mt-4">
-              Charges based on tier actually executed, not tier requested. Set{' '}
-              <code className="text-zinc-400">max_tier</code> to control maximum spend per call.
+            <p className="text-xs text-zinc-400 mt-4">
+              Lookup and Consensus tiers return previously computed results — no pipeline execution.
             </p>
           </section>
 
@@ -280,6 +256,110 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 (<code className="text-zinc-400">claude_desktop_config.json</code>) is local-only,
                 but ensure it is excluded from any version control or backup sync that could expose secrets.
               </p>
+            </div>
+          </section>
+
+          {/* Divider */}
+          <div className="border-t border-zinc-200 my-12 md:my-16" />
+
+          {/* Pricing Model */}
+          <section className="mb-16 md:mb-20">
+            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+              Module — Pricing
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+              What You Pay For
+            </h2>
+
+            <div className="space-y-6 text-base text-zinc-600 leading-relaxed">
+              <p>
+                Agent API calls are charged <strong className="text-zinc-900">per call</strong>, deducted
+                from your prepaid credit balance. This is separate from dashboard subscriptions.
+              </p>
+
+              <div className="bg-zinc-50 border border-zinc-200 p-6">
+                <h3 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-4">
+                  Per-call pricing
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-baseline border-b border-zinc-100 pb-2">
+                    <div>
+                      <code className="text-sm font-mono font-semibold text-zinc-900">Lookup</code>
+                      <span className="text-xs text-zinc-400 ml-2">instant</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-sm text-zinc-900">$0.02</span>
+                      <p className="text-xs text-zinc-400">Cached prior analysis. Instant hash match on your previous research.</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-baseline border-b border-zinc-100 pb-2">
+                    <div>
+                      <code className="text-sm font-mono font-semibold text-zinc-900">Consensus</code>
+                      <span className="text-xs text-zinc-400 ml-2">instant</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-sm text-zinc-900">$0.03</span>
+                      <p className="text-xs text-zinc-400">Cross-user aggregate landscape. Available when 3+ independent checks exist.</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-baseline border-b border-zinc-100 pb-2">
+                    <div>
+                      <code className="text-sm font-mono font-semibold text-zinc-900">Quick</code>
+                      <span className="text-xs text-zinc-400 ml-2">~15s</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-sm text-zinc-900">$0.07</span>
+                      <p className="text-xs text-zinc-400">Web search + heuristic classification. Fast triage for time-sensitive queries.</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-baseline">
+                    <div>
+                      <code className="text-sm font-mono font-semibold text-accent">Full</code>
+                      <span className="text-xs text-zinc-400 ml-2">~60-90s</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-sm text-accent">$0.15</span>
+                      <p className="text-xs text-zinc-400">30+ sources, LLM classification, element decomposition, coverage recovery.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-zinc-50 border border-zinc-200 p-6">
+                <h3 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-4">
+                  How it works
+                </h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-accent mt-0.5">1.</span>
+                    <span>Top up your agent credit balance (prepaid, in USD cents)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-accent mt-0.5">2.</span>
+                    <span>Each API call deducts the tier price from your balance</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-accent mt-0.5">3.</span>
+                    <span>Use <code className="text-zinc-400">max_tier</code> to cap maximum spend per call</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-accent mt-0.5">4.</span>
+                    <span>You are only charged for the tier actually executed, not the tier requested</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
+                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="text-xs text-zinc-600">
+                  <p className="font-semibold text-zinc-900 mb-1">Agent credits vs dashboard subscription</p>
+                  <p>
+                    Dashboard subscriptions (Starter, Professional) give you a monthly check allowance for the web dashboard.
+                    Agent API credits are a separate prepaid balance for programmatic access. Both are available on any account —
+                    you can use the dashboard and the API independently.
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -401,7 +481,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
             <div className="grid md:grid-cols-2 gap-6">
               <Link
-                href="https://api.tru8.app/api/docs"
+                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/docs`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border border-zinc-200 p-6 hover:border-zinc-400 transition-colors group"
@@ -417,7 +497,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
               </Link>
 
               <Link
-                href="https://api.tru8.app/api/redoc"
+                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/redoc`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border border-zinc-200 p-6 hover:border-zinc-400 transition-colors group"

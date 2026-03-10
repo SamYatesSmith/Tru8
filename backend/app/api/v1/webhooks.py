@@ -38,29 +38,43 @@ class CreateWebhookRequest(BaseModel):
 
 
 class WebhookCreatedResponse(BaseModel):
-    """Returned once at creation. The `secret` is shown once for HMAC verification setup."""
+    """Returned once at creation. The signing `secret` is shown once — store it to verify payloads."""
 
-    id: str
-    url: str
-    events: List[str]
-    secret: str
-    description: Optional[str]
-    created_at: datetime
+    id: str = Field(description="Webhook database ID")
+    url: str = Field(description="HTTPS URL that will receive events")
+    events: List[str] = Field(
+        description="Events this webhook is subscribed to (e.g. check.completed, check.failed)"
+    )
+    secret: str = Field(
+        description="HMAC signing secret (shown once). Use to verify X-Tru8-Signature headers on incoming payloads."
+    )
+    description: Optional[str] = Field(None, description="Webhook label")
+    created_at: datetime = Field(description="Creation timestamp")
 
 
 class WebhookListItem(BaseModel):
-    id: str
-    url: str
-    events: List[str]
-    is_active: bool
-    description: Optional[str]
-    last_triggered_at: Optional[datetime]
-    failure_count: int
-    created_at: datetime
+    """Webhook summary (secret is never returned after creation)."""
+
+    id: str = Field(description="Webhook database ID")
+    url: str = Field(description="HTTPS URL receiving events")
+    events: List[str] = Field(description="Subscribed events")
+    is_active: bool = Field(description="Whether the webhook is currently active")
+    description: Optional[str] = Field(None, description="Webhook label")
+    last_triggered_at: Optional[datetime] = Field(
+        None, description="Last time this webhook was triggered"
+    )
+    failure_count: int = Field(
+        description="Consecutive delivery failures (webhook is deactivated after 10)"
+    )
+    created_at: datetime = Field(description="Creation timestamp")
 
 
 class WebhookListResponse(BaseModel):
-    webhooks: List[WebhookListItem]
+    """All webhooks for the authenticated user."""
+
+    webhooks: List[WebhookListItem] = Field(
+        description="Webhooks, newest first. Secrets are never included."
+    )
 
 
 # ---------------------------------------------------------------------------

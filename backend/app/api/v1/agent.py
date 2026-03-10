@@ -15,7 +15,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,6 +30,16 @@ from app.core.agent_pricing import get_tier_price
 from app.core.database import get_session
 from app.core.rate_limit import limiter
 from app.models.check import Check, Claim, compute_claim_text_hash
+from app.api.v1.schemas import (
+    AgentCheckResponse,
+    AgentCacheMiss,
+    CreditBalanceResponse,
+    CheckoutSessionResponse,
+    AgentStatsResponse,
+    ErrorResponse,
+    PipelineErrorResponse,
+    TimeoutErrorResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,17 +52,57 @@ router = APIRouter()
 
 
 class AgentClaimRequest(BaseModel):
-    claim: str
-    compact: Optional[bool] = False
+    """Submit a claim or URL for evidence research."""
+
+    claim: str = Field(
+        description="The claim text to analyse, or a URL to extract claims from"
+    )
+    input_type: Optional[str] = Field(
+        None,
+        description="Input type: 'text' or 'url'. Auto-detected from the claim field if omitted.",
+    )
+    compact: Optional[bool] = Field(
+        False,
+        description="If true, returns claims and claim maps only — no evidence arrays. Reduces payload size for agents that only need orientation.",
+    )
 
 
 class SmartCheckRequest(BaseModel):
-    """Request model for the smart /agent/check endpoint (M-03)."""
+    """Request for the smart /agent/check endpoint with automatic tier fallback."""
 
-    claim: str
-    max_tier: str = "full"  # "lookup" | "consensus" | "quick" | "full"
-    max_age_hours: Optional[int] = None
-    compact: bool = False
+    claim: str = Field(
+        description="The claim text to analyse, or a URL to extract claims from"
+    )
+    input_type: Optional[str] = Field(
+        None,
+        description="Input type: 'text' or 'url'. Auto-detected from the claim field if omitted.",
+    )
+    max_tier: str = Field(
+        "full",
+        description="Maximum pipeline tier to execute. The endpoint tries lookup first, then escalates up to this tier. Options: lookup, consensus, quick, full.",
+    )
+    max_age_hours: Optional[int] = Field(
+        None,
+        description="Maximum cache age in hours for lookup hits. If the cached result is older than this, it's treated as a miss and the endpoint escalates.",
+    )
+    compact: bool = Field(
+        False,
+        description="If true, returns claims and claim maps only — no evidence arrays.",
+    )
+
+
+def _resolve_input(claim: str, explicit_type: Optional[str] = None) -> tuple:
+    """Resolve input_type and build input_data dict from agent claim field.
+
+    Auto-detects URLs when explicit_type is omitted.
+    Returns (input_type, input_data) where input_data has the keys
+    expected by ingest_content_async.
+    """
+    if explicit_type == "url" or (
+        explicit_type is None and claim.strip().startswith(("http://", "https://"))
+    ):
+        return "url", {"input_type": "url", "url": claim.strip()}
+    return "text", {"input_type": "text", "content": claim}
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +110,28 @@ class SmartCheckRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-@router.post("/check")
+@router.post(
+    "/check",
+    summary="Smart evidence research with automatic tier fallback",
+    responses={
+        200: {
+            "description": "Evidence landscape returned (check `_meta.executedTier` for which tier was used, `hit` for cache status)",
+            "model": AgentCheckResponse,
+        },
+        402: {
+            "description": "Insufficient credits or payment required",
+            "model": ErrorResponse,
+        },
+        504: {
+            "description": "Pipeline timed out — no charge applied",
+            "model": TimeoutErrorResponse,
+        },
+        502: {
+            "description": "Pipeline error — charge refunded if applicable",
+            "model": PipelineErrorResponse,
+        },
+    },
+)
 @limiter.limit("10/minute")
 async def agent_smart_check(
     body: SmartCheckRequest,
@@ -69,10 +140,17 @@ async def agent_smart_check(
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Smart endpoint: lookup → quick → full with server-side fallback.
+    """Smart endpoint with automatic tier fallback — recommended for most agent use cases.
 
-    Tries cached lookup first. On miss, escalates to the highest tier
-    allowed by max_tier. Charges based on tier actually executed.
+    Tries cached lookup first (instant, $0.02). On cache miss, escalates through
+    consensus → quick → full up to the tier specified by `max_tier`.
+    You're only charged for the tier actually executed.
+
+    **Fallback chain:** lookup → consensus → quick → full
+
+    **Response headers:** `X-Check-Id`, `X-Tru8-Tx-Id`
+
+    **Rate limit:** 10/minute
     """
     from datetime import datetime, timezone
 
@@ -231,7 +309,9 @@ async def agent_smart_check(
     limitations = QUICK_LIMITATIONS if resolved_tier == "quick" else []
 
     return await _run_agent_pipeline(
-        body=AgentClaimRequest(claim=body.claim, compact=body.compact),
+        body=AgentClaimRequest(
+            claim=body.claim, input_type=body.input_type, compact=body.compact
+        ),
         tier=resolved_tier,
         amount_cents=amount_cents,
         claim_hash=claim_hash,
@@ -248,7 +328,16 @@ async def agent_smart_check(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/lookup")
+@router.post(
+    "/lookup",
+    summary="Instant cached lookup",
+    responses={
+        200: {
+            "description": "Cache hit (full response with `hit: true`) or cache miss (structured miss with `hit: false`). Both return 200.",
+            "model": AgentCheckResponse,
+        },
+    },
+)
 @limiter.limit("30/minute")
 async def agent_lookup(
     body: AgentClaimRequest,
@@ -257,10 +346,17 @@ async def agent_lookup(
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Instant cached analysis via claim_text_hash, scoped to requesting user.
+    """Instant cached analysis — $0.02 per hit, no charge on miss.
 
-    Returns 200 with hit=true and full response on cache hit.
-    Returns 200 with hit=false on cache miss (NOT 404).
+    Searches for a previous analysis of this claim (scoped to your account).
+    Returns 200 in both cases — check the `hit` field to distinguish.
+
+    **Cache hit:** Full evidence landscape with `hit: true`.
+    **Cache miss:** `{hit: false, nextSuggestedTier, upgradeCostCents}`.
+
+    **Response headers (hit only):** `X-Check-Id`, `X-Tru8-Tx-Id`
+
+    **Rate limit:** 30/minute
     """
     claim_hash = compute_claim_text_hash(body.claim)
     tier = "lookup"
@@ -340,7 +436,18 @@ async def agent_lookup(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/result/{check_id}")
+@router.get(
+    "/result/{check_id}",
+    summary="Retrieve a completed check result (no charge)",
+    responses={
+        200: {"description": "Full evidence landscape", "model": AgentCheckResponse},
+        404: {
+            "description": "Check not found or not owned by this agent",
+            "model": ErrorResponse,
+        },
+        409: {"description": "Check is not yet completed", "model": ErrorResponse},
+    },
+)
 @limiter.limit("30/minute")
 async def get_agent_result(
     check_id: str,
@@ -350,8 +457,10 @@ async def get_agent_result(
 ) -> JSONResponse:
     """Retrieve a completed check result without re-paying.
 
-    Verifies the check belongs to the requesting agent (user_id match).
-    Used for lost responses, retries, and client reconnection.
+    Use this for lost responses, retries, and client reconnection.
+    Only returns checks that belong to the authenticated agent.
+
+    **Rate limit:** 30/minute
     """
     result = await session.execute(select(Check).where(Check.id == check_id))
     check = result.scalar_one_or_none()
@@ -400,7 +509,28 @@ QUICK_LIMITATIONS = [
 # ---------------------------------------------------------------------------
 
 
-@router.post("/quick")
+@router.post(
+    "/quick",
+    summary="Quick evidence research (~15s)",
+    responses={
+        200: {
+            "description": "Evidence landscape (quick tier)",
+            "model": AgentCheckResponse,
+        },
+        402: {
+            "description": "Insufficient credits or payment required",
+            "model": ErrorResponse,
+        },
+        504: {
+            "description": "Pipeline timed out — no charge applied",
+            "model": TimeoutErrorResponse,
+        },
+        502: {
+            "description": "Pipeline error — charge refunded",
+            "model": PipelineErrorResponse,
+        },
+    },
+)
 @limiter.limit("10/minute")
 async def agent_quick(
     body: AgentClaimRequest,
@@ -409,10 +539,17 @@ async def agent_quick(
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Reduced pipeline — fewer sources, heuristic classification.
+    """Reduced pipeline — fewer sources, heuristic classification. ~15 seconds, $0.07.
 
-    ~15s, ~$0.07. Skips fact-check lookup, API adapters, LLM relevance
-    scoring, coverage recovery, and query answering.
+    Skips: fact-check lookup, government/academic API adapters, LLM relevance
+    scoring, coverage recovery, and query answering. Uses heuristic tier/type
+    classification instead of LLM.
+
+    Check `_meta.limitations` in the response for the full list of skipped stages.
+
+    **Response headers:** `X-Check-Id`, `X-Tru8-Tx-Id`
+
+    **Rate limit:** 10/minute
     """
     tier = "quick"
     amount_cents = get_tier_price(tier)
@@ -437,7 +574,28 @@ async def agent_quick(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/full")
+@router.post(
+    "/full",
+    summary="Full evidence research (~60-90s)",
+    responses={
+        200: {
+            "description": "Complete evidence landscape (full tier)",
+            "model": AgentCheckResponse,
+        },
+        402: {
+            "description": "Insufficient credits or payment required",
+            "model": ErrorResponse,
+        },
+        504: {
+            "description": "Pipeline timed out — no charge applied",
+            "model": TimeoutErrorResponse,
+        },
+        502: {
+            "description": "Pipeline error — charge refunded",
+            "model": PipelineErrorResponse,
+        },
+    },
+)
 @limiter.limit("10/minute")
 async def agent_full(
     body: AgentClaimRequest,
@@ -446,10 +604,15 @@ async def agent_full(
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Complete pipeline — 30+ sources, all stages.
+    """Complete evidence research pipeline — 30+ sources, all stages. ~60-90 seconds, $0.15.
 
-    ~60-90s, ~$0.15. Runs the full pipeline including fact-check lookup,
-    API adapters, LLM classification, coverage recovery, and query answering.
+    Runs the full pipeline: fact-check lookup, 30+ source providers (government,
+    academic, news, data APIs), LLM classification, coverage recovery, and
+    query answering. Set your HTTP client timeout to at least 180 seconds.
+
+    **Response headers:** `X-Check-Id`, `X-Tru8-Tx-Id`
+
+    **Rate limit:** 10/minute
     """
     tier = "full"
     amount_cents = get_tier_price(tier)
@@ -521,12 +684,16 @@ async def _run_agent_pipeline(
         request_hash=request_hash,
     )
 
+    # Resolve input type (auto-detect URL from claim text)
+    resolved_type, input_data = _resolve_input(body.claim, body.input_type)
+
     # Create check record
     check = Check(
         id=str(uuid.uuid4()),
         user_id=payment.user_id,
-        input_type="text",
-        input_content=json.dumps({"content": body.claim}),
+        input_type=resolved_type,
+        input_content=json.dumps(input_data),
+        input_url=input_data.get("url"),
         status="processing",
         credits_used=0,  # Agent checks don't use dashboard credits
         initiated_via=f"agent_{payment.provider}",
@@ -539,11 +706,6 @@ async def _run_agent_pipeline(
     # Link transaction to check
     tx.check_id = check.id
     await session.commit()
-
-    input_data = {
-        "input_type": "text",
-        "content": body.claim,
-    }
 
     progress_reporter = ProgressReporter(check.id)
 
@@ -559,7 +721,7 @@ async def _run_agent_pipeline(
             timeout=config.max_wall_time_seconds,
         )
 
-        # Article mode auto-select (shouldn't happen for text input, but handle gracefully)
+        # Article mode auto-select (URL inputs trigger this; text inputs shouldn't)
         if result is None:
             async with async_session() as sel_session:
                 claims_stmt = (
@@ -586,7 +748,7 @@ async def _run_agent_pipeline(
                 sel_check.selected_claims_count = min(len(ranked), max_selected)
                 await sel_session.commit()
 
-            phase2_input = {"input_type": "text", "content": body.claim}
+            phase2_input = input_data
             phase2_reporter = ProgressReporter(check.id)
             result = await asyncio.wait_for(
                 run_pipeline_phase2(
@@ -685,14 +847,23 @@ async def _refund_and_fail_tx(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/credits/balance")
+@router.get(
+    "/credits/balance",
+    summary="Check prepaid credit balance",
+    responses={
+        200: {"description": "Current credit balance", "model": CreditBalanceResponse},
+    },
+)
 @limiter.limit("60/minute")
 async def get_credit_balance(
     request: Request,
     identity: AgentIdentity = Depends(get_agent_identity),
     session: AsyncSession = Depends(get_session),
 ) -> JSONResponse:
-    """Return the agent's prepaid credit balance."""
+    """Return the agent's prepaid credit balance in cents and USD.
+
+    **Rate limit:** 60/minute
+    """
     from app.models.user import User
 
     result = await session.execute(select(User).where(User.id == identity.user_id))
@@ -713,10 +884,25 @@ async def get_credit_balance(
 
 
 class CreditPurchaseRequest(BaseModel):
-    pack: str  # "5" | "20" | "100"
+    """Purchase a prepaid credit pack via Stripe Checkout."""
+
+    pack: str = Field(
+        description="Credit pack size: '5' ($5.00), '20' ($20.00), or '100' ($100.00)"
+    )
 
 
-@router.post("/credits/purchase")
+@router.post(
+    "/credits/purchase",
+    summary="Purchase credit pack via Stripe",
+    responses={
+        200: {
+            "description": "Stripe Checkout session URL",
+            "model": CheckoutSessionResponse,
+        },
+        400: {"description": "Invalid pack size", "model": ErrorResponse},
+        503: {"description": "Credit packs not yet configured", "model": ErrorResponse},
+    },
+)
 @limiter.limit("10/minute")
 async def purchase_credits(
     body: CreditPurchaseRequest,
@@ -724,7 +910,16 @@ async def purchase_credits(
     identity: AgentIdentity = Depends(get_agent_identity),
     session: AsyncSession = Depends(get_session),
 ) -> JSONResponse:
-    """Create a Stripe Checkout session for a one-time credit pack purchase."""
+    """Create a Stripe Checkout session for a one-time credit pack purchase.
+
+    Returns a redirect URL — send the user or agent operator to this URL
+    to complete payment. Credits are added to the account automatically
+    after successful payment.
+
+    **Available packs:** 5, 20, or 100 (in USD).
+
+    **Rate limit:** 10/minute
+    """
     import stripe
     from app.core.config import settings
     from app.models.user import User
@@ -786,14 +981,26 @@ async def purchase_credits(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/stats")
+@router.get(
+    "/stats",
+    summary="Get agent usage statistics",
+    responses={
+        200: {
+            "description": "Aggregated usage statistics",
+            "model": AgentStatsResponse,
+        },
+    },
+)
 @limiter.limit("30/minute")
 async def get_agent_stats(
     request: Request,
     identity: AgentIdentity = Depends(get_agent_identity),
     session: AsyncSession = Depends(get_session),
 ) -> JSONResponse:
-    """Aggregated agent usage statistics for the authenticated user."""
+    """Aggregated usage statistics — broken down by pipeline tier and payment provider.
+
+    **Rate limit:** 30/minute
+    """
     from sqlalchemy import func, case
     from app.models.agent_transaction import AgentTransaction
 

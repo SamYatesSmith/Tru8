@@ -8,7 +8,7 @@ Covers:
 """
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch, call
 
 import pytest
@@ -101,7 +101,7 @@ def _make_phase1_state(**overrides):
         "_replay_evidence_token": None,
         "cache_service": None,
         "ledger": None,
-        "start_time": datetime.utcnow(),
+        "start_time": datetime.now(timezone.utc),
         "stage_timings": {},
     }
     base.update(overrides)

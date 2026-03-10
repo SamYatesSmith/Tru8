@@ -17,6 +17,7 @@ from app.core.manifest_signer import (
     verify_manifest,
 )
 from app.models.check import Check, Claim, Evidence
+from app.api.v1.schemas import VerifySuccessResponse, VerifyFailureResponse
 
 logger = logging.getLogger(__name__)
 
@@ -65,16 +66,28 @@ async def _load_claims_for_verify(check_id: str, session: AsyncSession) -> list[
     return claims_data
 
 
-@router.get("/verify/{check_id}")
+@router.get(
+    "/verify/{check_id}",
+    summary="Verify check manifest integrity",
+    responses={
+        200: {
+            "description": "Verification result — check `valid` field",
+            "model": VerifySuccessResponse,
+        },
+    },
+)
 async def verify_check(check_id: str, request: Request):
     """Verify tamper-evidence for a completed check.
 
-    Public endpoint — no authentication required.
-    Rate limit: 60/min per IP (applied via SlowAPI in main.py).
+    **Public endpoint** — no authentication required.
 
     Two-step verification:
-    1. Signature authenticity — proves manifest wasn't forged
-    2. Data integrity — proves DB wasn't mutated since signing
+    1. **Signature authenticity** — proves the manifest wasn't forged
+    2. **Data integrity** — proves the database wasn't mutated since signing
+
+    Returns `{valid: true, ...}` on success, or `{valid: false, reason: "..."}` on failure.
+
+    **Rate limit:** 60/minute per IP
     """
     async with get_session() as session:
         check = await session.get(Check, check_id)

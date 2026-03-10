@@ -366,7 +366,7 @@ def _compute_landscape(claims_data: list, check=None) -> dict:
         claims_data: Serialized claims with evidence.
         check: Optional Check model instance (for provider_status).
     """
-    from datetime import datetime
+    from datetime import datetime, timezone
     from urllib.parse import urlparse
 
     element_count = 0
@@ -439,7 +439,10 @@ def _compute_landscape(claims_data: list, check=None) -> dict:
             if raw_date:
                 try:
                     dt = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
-                    dated_dts.append(dt.replace(tzinfo=None) if dt.tzinfo else dt)
+                    # Ensure timezone-aware for comparison with datetime.now(UTC)
+                    if not dt.tzinfo:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    dated_dts.append(dt)
                 except (ValueError, TypeError):
                     undated_count += 1
             else:
@@ -452,7 +455,7 @@ def _compute_landscape(claims_data: list, check=None) -> dict:
         "undatedCount": undated_count,
     }
     if dated_dts:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         dated_dts.sort()
         freshest = max(dated_dts)
         oldest = min(dated_dts)

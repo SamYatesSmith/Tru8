@@ -1,9 +1,4 @@
 import os
-
-os.environ.setdefault(
-    "DEBUG_EVIDENCE_LEDGER", "1"
-)  # Enable evidence ledger for V2 frozen replay
-
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -20,7 +15,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from app.core.config import settings
 from app.core.rate_limit import limiter
-from app.core.database import init_db
+
 from app.core.exceptions import register_exception_handlers
 from app.core.correlation import CorrelationIdMiddleware
 from app.core.tracing import setup_tracing
@@ -75,8 +70,6 @@ async def warmup_ml_models():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
-
     # Phase 5: Initialize Government API adapters
     if settings.ENABLE_API_RETRIEVAL:
         from app.services.api_adapters import initialize_adapters
@@ -107,16 +100,20 @@ async def lifespan(app: FastAPI):
 API_DESCRIPTION = """
 Structured evidence research for AI agents and developers.
 
-Tru8 extracts claims from text or URLs, retrieves evidence from multiple source
-types (primary data, news reporting, commentary, academic, official), decomposes
-claims into verifiable elements, and maps evidence to elements with relationship
-labels (supports / challenges / context).
+Tru8 extracts claims from text or URLs, retrieves evidence from 30+ source
+providers (government data, academic databases, news, official records),
+decomposes claims into verifiable elements, and maps evidence to elements
+with relationship labels (**supports** / **challenges** / **context**).
+
+Every source is classified by **tier** (primary, reporting, commentary) and
+**type** (data, official, news, analysis, opinion, academic). No hidden
+curation — every exclusion has a receipt.
 
 ## Authentication
 
 **API key** (recommended for agents and scripts):
 ```
-X-API-Key: $TRU8_API_KEY
+X-API-Key: tru8_sk_your_key_here
 ```
 
 **JWT** (dashboard sessions):
@@ -124,31 +121,58 @@ X-API-Key: $TRU8_API_KEY
 Authorization: Bearer <clerk_jwt>
 ```
 
-Manage API keys at `POST /api/v1/api-keys` (requires JWT).
+Create and manage API keys at `POST /api/v1/api-keys` (requires JWT auth).
 
 **Security:** Store API keys in environment variables or a secrets manager.
 Never hardcode keys in source code, logs, or client-side bundles.
 If a key is compromised, revoke it immediately via `DELETE /api/v1/api-keys/{id}`.
 
-## Workflow
+## Workflows
 
-### Synchronous (recommended for agents)
-`POST /api/v1/checks/run` — blocks until complete, returns full result with analytics.
-Set HTTP timeout >= 180s. URLs auto-select claims (up to 5).
+### Synchronous — recommended for agents
+```
+POST /api/v1/checks/run
+```
+Single HTTP call. Blocks until complete (60-120s). Returns the full evidence
+landscape with claims, elements, evidence, and analytics.
+Set your HTTP client timeout to **at least 180 seconds**.
+URL inputs auto-select claims (top-ranked, up to 5).
 
-### Streaming (for dashboards)
-1. **Submit** a URL or text via `POST /api/v1/checks/stream` — returns SSE progress events.
-2. **Poll** status via `GET /api/v1/checks/{id}` or stream via `GET /api/v1/checks/{id}/progress`.
-3. **Retrieve** the completed check with claims, elements, evidence, and orientation.
+### Streaming — for dashboards
+1. **Submit** via `POST /api/v1/checks/stream` — returns SSE progress events
+2. **Monitor** via `GET /api/v1/checks/{id}/progress` (SSE) or poll `GET /api/v1/checks/{id}`
+3. **Select claims** (article mode): `PATCH /api/v1/checks/{id}/select-claims`
 
-For URL/article inputs with multiple claims, the streaming pipeline pauses after extraction
-for claim selection (`PATCH /api/v1/checks/{id}/select-claims`), then resumes
-with full retrieval and analysis on selected claims.
+### Agent Commerce — tiered access
+For cost-sensitive agent workflows, use the `/agent/` endpoints:
+
+| Tier | Endpoint | Time | Cost | Description |
+|------|----------|------|------|-------------|
+| Lookup | `POST /agent/lookup` | Instant | $0.02 | Cached result lookup |
+| Consensus | via `/agent/check` | Instant | $0.03 | Cross-user consensus (k≥3) |
+| Quick | `POST /agent/quick` | ~15s | $0.07 | Reduced pipeline, heuristic classification |
+| Full | `POST /agent/full` | ~90s | $0.15 | Complete pipeline, 30+ sources |
+| Smart | `POST /agent/check` | Varies | Varies | Automatic fallback: lookup → consensus → quick → full |
+
+Payment via prepaid credits, Skyfire JWT, or x402 (USDC/SIWE).
+
+## Response Structure
+
+Every completed check returns:
+- **claims[]** — extracted claims with type and position
+- **claims[].claimMap** — elements, evidence refs, orientation line
+- **claims[].evidence[]** — sources with URL, snippet, tier, type, relevance
+- **_meta** (agent endpoints) — tier executed, cost, landscape metrics
+- **_manifest** (agent endpoints) — HMAC-signed tamper-evidence, verifiable via `GET /verify/{id}`
 
 ## Rate Limits
 
-- Default: 60 requests/minute
-- Check creation: 10/minute
+| Endpoint | Limit |
+|----------|-------|
+| Default | 60 requests/minute |
+| Check creation | 10/minute |
+| Lookup | 30/minute |
+| Credits balance | 60/minute |
 """
 
 app = FastAPI(

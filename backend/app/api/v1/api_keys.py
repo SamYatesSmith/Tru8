@@ -37,27 +37,39 @@ class CreateAPIKeyRequest(BaseModel):
 
 
 class APIKeyCreatedResponse(BaseModel):
-    """Returned once at creation. The `key` field is never shown again."""
+    """Returned once at creation. The raw `key` is never shown again — store it securely."""
 
-    id: str
-    key: str
-    key_prefix: str
-    name: str
-    created_at: datetime
+    id: str = Field(description="API key database ID")
+    key: str = Field(
+        description="Full API key (shown once). Format: tru8_sk_<32 hex chars>. Store securely — it cannot be retrieved later."
+    )
+    key_prefix: str = Field(
+        description="Key prefix for identification (e.g. tru8_sk_a1b2)"
+    )
+    name: str = Field(description="Label for this key")
+    created_at: datetime = Field(description="Creation timestamp")
 
 
 class APIKeyListItem(BaseModel):
-    id: str
-    key_prefix: str
-    name: str
-    is_active: bool
-    last_used_at: Optional[datetime]
-    usage_count: int
-    created_at: datetime
+    """API key summary (raw key is never returned after creation)."""
+
+    id: str = Field(description="API key database ID")
+    key_prefix: str = Field(description="Key prefix for identification")
+    name: str = Field(description="Label for this key")
+    is_active: bool = Field(description="Whether the key is currently active")
+    last_used_at: Optional[datetime] = Field(
+        None, description="Last time this key was used for authentication"
+    )
+    usage_count: int = Field(description="Total number of requests made with this key")
+    created_at: datetime = Field(description="Creation timestamp")
 
 
 class APIKeyListResponse(BaseModel):
-    keys: List[APIKeyListItem]
+    """All API keys for the authenticated user."""
+
+    keys: List[APIKeyListItem] = Field(
+        description="API keys, newest first. Raw keys are never included."
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -18,7 +18,7 @@ Ported from the following frontend components:
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
 
@@ -323,7 +323,7 @@ def _build_freshness(evidence_list: list[dict]) -> dict:
     Returns freshestDaysAgo, dateSpanDays, undatedCount.
     Naive datetimes assumed UTC.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     dated_dts: list[datetime] = []
     undated_count = 0
 
@@ -332,8 +332,10 @@ def _build_freshness(evidence_list: list[dict]) -> dict:
         if raw:
             try:
                 dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-                # Strip timezone for comparison with utcnow
-                dated_dts.append(dt.replace(tzinfo=None) if dt.tzinfo else dt)
+                # Ensure timezone-aware for comparison with datetime.now(UTC)
+                if not dt.tzinfo:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                dated_dts.append(dt)
             except (ValueError, TypeError):
                 undated_count += 1
         else:
