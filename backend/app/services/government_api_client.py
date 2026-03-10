@@ -11,7 +11,7 @@ import httpx
 import time
 from typing import List, Dict, Optional, Any
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from app.services.cache import get_sync_cache_service, SyncCacheService
 from app.services.circuit_breaker import (
     get_circuit_breaker_registry,
@@ -302,7 +302,7 @@ class GovernmentAPIClient(ABC):
             "external_source_provider": self.api_name,
             "source_date": source_date.isoformat() if source_date else None,
             "metadata": metadata or {},
-            "retrieved_at": datetime.utcnow().isoformat(),
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
         }
 
     # Sentinel domain passed when adapter was added by keyword routing.

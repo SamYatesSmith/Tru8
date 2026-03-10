@@ -87,7 +87,7 @@ export default async function DashboardPage({
           <div>
             <h3 className="text-emerald-800 font-bold mb-1 text-sm md:text-base">Upgrade Successful!</h3>
             <p className="text-emerald-600 text-xs md:text-sm">
-              Welcome to Tru8 Professional! Your account has been upgraded and you now have access to 40 checks per month.
+              Your account has been upgraded! Check your new monthly allowance below.
             </p>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Evidence, EvidenceTier, EvidenceType } from '@shared/types';
 
 const TIERS: EvidenceTier[] = ['primary', 'reporting', 'commentary'];
@@ -39,8 +39,25 @@ interface EvidenceHeatmapProps {
   onCellClick?: (tier: EvidenceTier, type: EvidenceType) => void;
 }
 
+const TIER_DESCRIPTIONS: Record<EvidenceTier, string> = {
+  primary: 'Original data, official records, direct observation, raw statistics',
+  reporting: 'News coverage, investigative journalism, factual reporting',
+  commentary: 'Opinion, editorials, analysis pieces, blog posts',
+};
+
+const TYPE_DESCRIPTIONS: Record<EvidenceType, string> = {
+  data: 'Raw datasets, statistics, measurements',
+  official_statement: 'Government publications, press releases, regulatory filings',
+  news_reporting: 'News articles, wire reports, investigative pieces',
+  analysis: 'Research reports, policy analysis, expert commentary',
+  opinion: 'Editorials, op-eds, blog posts, social media',
+  academic: 'Peer-reviewed papers, preprints, institutional research',
+};
+
 export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const [legendOpen, setLegendOpen] = useState(false);
+  const toggleLegend = useCallback(() => setLegendOpen(prev => !prev), []);
 
   const { counts, sources } = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -62,7 +79,7 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
 
   return (
     <div className="mb-10">
-      <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400 mb-6 border-b border-zinc-100 pb-2">
+      <div className="font-mono text-sm font-bold uppercase tracking-[0.3em] text-zinc-600 mb-6 border-b border-zinc-200 pb-2">
         Evidence Profile
       </div>
 
@@ -99,10 +116,13 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
                   return (
                     <td key={type} className="p-1">
                       <div
+                        role="button"
+                        tabIndex={0}
                         className={`heatmap-cell border ${style.border} ${style.bg} h-16 flex items-center justify-center cursor-pointer relative`}
                         onMouseEnter={() => setHoveredCell(key)}
                         onMouseLeave={() => setHoveredCell(null)}
                         onClick={() => onCellClick?.(tier, type)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCellClick?.(tier, type); } }}
                       >
                         <span className={`font-mono text-xl font-bold ${style.text}`}>
                           {count}
@@ -126,6 +146,46 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Expandable legend */}
+      <div className="mt-3">
+        <button
+          onClick={toggleLegend}
+          className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors"
+        >
+          {legendOpen ? '− Hide' : '+ Show'} classification guide
+        </button>
+
+        {legendOpen && (
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-6 border border-zinc-200 bg-zinc-50 p-4">
+            <div>
+              <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
+                Source Tiers (rows)
+              </h4>
+              {TIERS.map((tier) => (
+                <div key={tier} className="flex items-start gap-2 mb-1.5">
+                  <div className={`w-3 h-[2px] ${TIER_BAR_COLORS[tier]} mt-1.5 shrink-0`} />
+                  <div>
+                    <span className="text-[11px] font-medium text-zinc-700">{TIER_LABELS[tier]}</span>
+                    <span className="text-[11px] text-zinc-400"> — {TIER_DESCRIPTIONS[tier]}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
+                Content Types (columns)
+              </h4>
+              {TYPES.map((type) => (
+                <div key={type} className="flex items-start gap-2 mb-1.5">
+                  <span className="text-[11px] font-medium text-zinc-700">{TYPE_LABELS[type]}</span>
+                  <span className="text-[11px] text-zinc-400"> — {TYPE_DESCRIPTIONS[type]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

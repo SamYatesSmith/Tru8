@@ -24,6 +24,7 @@ try:
     import boto3
     from botocore.config import Config
     from botocore.exceptions import ClientError
+
     BOTO3_AVAILABLE = True
 except ImportError:
     BOTO3_AVAILABLE = False
@@ -152,9 +153,10 @@ class S3StorageBackend(StorageBackend):
         self._ensure_bucket()
 
     def _ensure_bucket(self) -> None:
-        """Create bucket if it doesn't exist."""
+        """Verify bucket is reachable. Log warning on permission errors rather than crashing."""
         try:
             self.client.head_bucket(Bucket=self.bucket)
+            logger.info("S3 bucket verified: %s", self.bucket)
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code")
             if error_code == "404":
@@ -164,6 +166,15 @@ class S3StorageBackend(StorageBackend):
                 except ClientError as create_error:
                     logger.error("Failed to create bucket: %s", create_error)
                     raise
+            elif error_code in ("403", "AccessDenied"):
+                # IAM user may lack s3:ListBucket but can still PutObject/GetObject.
+                # Don't crash — uploads may still work.
+                logger.warning(
+                    "S3 HeadBucket returned 403 for '%s'. "
+                    "Uploads may still work if PutObject is allowed. "
+                    "Grant s3:ListBucket to silence this warning.",
+                    self.bucket,
+                )
             else:
                 raise
 
@@ -285,6 +296,7 @@ class StorageService:
                 access_key=settings.S3_ACCESS_KEY,
                 secret_key=settings.S3_SECRET_KEY,
                 endpoint_url=settings.S3_ENDPOINT or None,
+                region=settings.S3_REGION,
             )
 
         # Fall back to local storage

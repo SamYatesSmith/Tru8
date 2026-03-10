@@ -15,7 +15,7 @@ import httpx
 import re
 import logging
 from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from xml.etree import ElementTree as ET
 
 from app.core.config import settings
@@ -36,18 +36,16 @@ class LegalSearchService:
     """
 
     def __init__(self):
-        self.govinfo_api_key = getattr(settings, 'GOVINFO_API_KEY', None)
-        self.congress_api_key = getattr(settings, 'CONGRESS_API_KEY', None)
-        self.timeout = getattr(settings, 'LEGAL_API_TIMEOUT_SECONDS', 10)
+        self.govinfo_api_key = getattr(settings, "GOVINFO_API_KEY", None)
+        self.congress_api_key = getattr(settings, "CONGRESS_API_KEY", None)
+        self.timeout = getattr(settings, "LEGAL_API_TIMEOUT_SECONDS", 10)
 
         # In-memory cache with TTL
         self.cache = {}
-        self.cache_ttl = timedelta(days=getattr(settings, 'LEGAL_CACHE_TTL_DAYS', 30))
+        self.cache_ttl = timedelta(days=getattr(settings, "LEGAL_CACHE_TTL_DAYS", 30))
 
     async def search_statutes(
-        self,
-        claim_text: str,
-        metadata: Dict[str, Any]
+        self, claim_text: str, metadata: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """
         Search for statutes across appropriate sources.
@@ -63,7 +61,7 @@ class LegalSearchService:
         cache_key = self._build_cache_key(claim_text, metadata)
         if cache_key in self.cache:
             cached_result, cached_time = self.cache[cache_key]
-            if datetime.utcnow() - cached_time < self.cache_ttl:
+            if datetime.now(timezone.utc) - cached_time < self.cache_ttl:
                 logger.info(f"Legal search cache hit: {cache_key}")
                 return cached_result
 
@@ -83,9 +81,11 @@ class LegalSearchService:
                 results = us_results + uk_results
 
             # Cache results
-            self.cache[cache_key] = (results, datetime.utcnow())
+            self.cache[cache_key] = (results, datetime.now(timezone.utc))
 
-            logger.info(f"Legal search returned {len(results)} results for: {claim_text[:50]}")
+            logger.info(
+                f"Legal search returned {len(results)} results for: {claim_text[:50]}"
+            )
             return results
 
         except Exception as e:
@@ -93,9 +93,7 @@ class LegalSearchService:
             return []  # Return empty, don't crash pipeline
 
     async def _search_us_sources(
-        self,
-        claim_text: str,
-        metadata: Dict[str, Any]
+        self, claim_text: str, metadata: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Search US legal sources (GovInfo + Congress)"""
         results = []
@@ -110,8 +108,7 @@ class LegalSearchService:
         # Priority 2: Year + keyword search (if year available)
         if metadata.get("year") and len(results) < 3:
             year_results = await self._search_govinfo_by_year(
-                claim_text,
-                metadata["year"]
+                claim_text, metadata["year"]
             )
             results.extend(year_results)
 
@@ -131,8 +128,7 @@ class LegalSearchService:
         return unique_results[:5]  # Top 5 results
 
     async def _search_govinfo_by_citation(
-        self,
-        citation: Dict[str, str]
+        self, citation: Dict[str, str]
     ) -> List[Dict[str, Any]]:
         """
         Search GovInfo by direct US Code citation.
@@ -158,14 +154,16 @@ class LegalSearchService:
                 response = await client.get(
                     f"{base_url}/2021/title-{title}/section-{section}",
                     params={"api_key": self.govinfo_api_key},
-                    headers={"Accept": "application/json"}
+                    headers={"Accept": "application/json"},
                 )
 
                 if response.status_code == 200:
                     data = response.json()
                     return [self._format_govinfo_result(data, citation)]
                 else:
-                    logger.warning(f"GovInfo citation lookup failed: {response.status_code}")
+                    logger.warning(
+                        f"GovInfo citation lookup failed: {response.status_code}"
+                    )
                     return []
 
         except Exception as e:
@@ -173,9 +171,7 @@ class LegalSearchService:
             return []
 
     async def _search_govinfo_by_year(
-        self,
-        claim_text: str,
-        year: str
+        self, claim_text: str, year: str
     ) -> List[Dict[str, Any]]:
         """
         Search GovInfo filtered by year.
@@ -198,9 +194,9 @@ class LegalSearchService:
                         "pageSize": 3,
                         "offsetMark": "*",
                         "collection": "PLAW",
-                        "api_key": self.govinfo_api_key
+                        "api_key": self.govinfo_api_key,
                     },
-                    headers={"Accept": "application/json"}
+                    headers={"Accept": "application/json"},
                 )
 
                 if response.status_code == 200:
@@ -210,17 +206,16 @@ class LegalSearchService:
                         results.append(self._format_govinfo_result(item, {}))
                     return results
                 else:
-                    logger.warning(f"GovInfo year search failed: {response.status_code}")
+                    logger.warning(
+                        f"GovInfo year search failed: {response.status_code}"
+                    )
                     return []
 
         except Exception as e:
             logger.error(f"GovInfo year search error: {e}")
             return []
 
-    async def _search_govinfo_fulltext(
-        self,
-        claim_text: str
-    ) -> List[Dict[str, Any]]:
+    async def _search_govinfo_fulltext(self, claim_text: str) -> List[Dict[str, Any]]:
         """
         Broad full-text search of GovInfo.
 
@@ -240,9 +235,9 @@ class LegalSearchService:
                         "pageSize": 5,
                         "offsetMark": "*",
                         "collection": "USCODE,PLAW",
-                        "api_key": self.govinfo_api_key
+                        "api_key": self.govinfo_api_key,
                     },
-                    headers={"Accept": "application/json"}
+                    headers={"Accept": "application/json"},
                 )
 
                 if response.status_code == 200:
@@ -252,7 +247,9 @@ class LegalSearchService:
                         results.append(self._format_govinfo_result(item, {}))
                     return results
                 else:
-                    logger.warning(f"GovInfo fulltext search failed: {response.status_code}")
+                    logger.warning(
+                        f"GovInfo fulltext search failed: {response.status_code}"
+                    )
                     return []
 
         except Exception as e:
@@ -260,9 +257,7 @@ class LegalSearchService:
             return []
 
     async def _search_uk_sources(
-        self,
-        claim_text: str,
-        metadata: Dict[str, Any]
+        self, claim_text: str, metadata: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """
         Search UK legislation.gov.uk
@@ -283,26 +278,25 @@ class LegalSearchService:
             year = metadata.get("year")
             keywords = self._extract_search_keywords(claim_text)
 
-            params = {
-                "text": keywords,
-                "page": 1,
-                "per_page": 5
-            }
+            params = {"text": keywords, "page": 1, "per_page": 5}
 
             if year:
                 params["year"] = year
 
-            async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True) as client:
+            async with httpx.AsyncClient(
+                timeout=self.timeout, follow_redirects=True
+            ) as client:
                 response = await client.get(
-                    "https://www.legislation.gov.uk/search",
-                    params=params
+                    "https://www.legislation.gov.uk/search", params=params
                 )
 
                 if response.status_code == 200:
                     # Parse HTML response (legislation.gov.uk returns HTML, not JSON)
                     return self._parse_uk_search_results(response.text)
                 else:
-                    logger.warning(f"UK legislation search failed: {response.status_code}")
+                    logger.warning(
+                        f"UK legislation search failed: {response.status_code}"
+                    )
                     return []
 
         except Exception as e:
@@ -310,8 +304,7 @@ class LegalSearchService:
             return []
 
     async def _search_uk_by_identifier(
-        self,
-        citation: Dict[str, str]
+        self, citation: Dict[str, str]
     ) -> Optional[Dict[str, Any]]:
         """
         Direct UK legislation lookup by identifier.
@@ -334,7 +327,9 @@ class LegalSearchService:
                 if response.status_code == 200:
                     return self._parse_uk_legislation_xml(response.text, url, citation)
                 else:
-                    logger.warning(f"UK legislation lookup failed: {response.status_code}")
+                    logger.warning(
+                        f"UK legislation lookup failed: {response.status_code}"
+                    )
                     return None
 
         except Exception as e:
@@ -342,9 +337,7 @@ class LegalSearchService:
             return None
 
     def _format_govinfo_result(
-        self,
-        item: Dict[str, Any],
-        citation: Dict[str, str]
+        self, item: Dict[str, Any], citation: Dict[str, str]
     ) -> Dict[str, Any]:
         """Format GovInfo API response into standard result format"""
         return {
@@ -354,25 +347,26 @@ class LegalSearchService:
             "published_date": item.get("dateIssued"),
             "source": "govinfo.gov",
             "citation": citation.get("full_text", ""),
-            "jurisdiction": "US"
+            "jurisdiction": "US",
         }
 
     def _parse_uk_legislation_xml(
-        self,
-        xml_content: str,
-        url: str,
-        citation: Dict[str, str]
+        self, xml_content: str, url: str, citation: Dict[str, str]
     ) -> Dict[str, Any]:
         """Parse UK legislation XML and extract relevant sections"""
         try:
             root = ET.fromstring(xml_content)
 
             # Extract title
-            title_elem = root.find(".//{http://www.legislation.gov.uk/namespaces/legislation}Title")
+            title_elem = root.find(
+                ".//{http://www.legislation.gov.uk/namespaces/legislation}Title"
+            )
             title = title_elem.text if title_elem is not None else "UK Legislation"
 
             # Extract first section or preamble for snippet
-            snippet_elem = root.find(".//{http://www.legislation.gov.uk/namespaces/legislation}Text")
+            snippet_elem = root.find(
+                ".//{http://www.legislation.gov.uk/namespaces/legislation}Text"
+            )
             if snippet_elem is not None and snippet_elem.text:
                 snippet = snippet_elem.text[:500]
                 if len(snippet_elem.text) > 500:
@@ -389,7 +383,7 @@ class LegalSearchService:
                 "published_date": citation.get("year"),
                 "source": "legislation.gov.uk",
                 "citation": f"{citation.get('type')} {citation.get('year')}/{citation.get('number')}",
-                "jurisdiction": "UK"
+                "jurisdiction": "UK",
             }
 
         except Exception as e:
@@ -401,7 +395,7 @@ class LegalSearchService:
                 "published_date": citation.get("year"),
                 "source": "legislation.gov.uk",
                 "citation": "",
-                "jurisdiction": "UK"
+                "jurisdiction": "UK",
             }
 
     def _parse_uk_search_results(self, html_content: str) -> List[Dict[str, Any]]:
@@ -416,15 +410,17 @@ class LegalSearchService:
 
         for match in matches[:5]:
             url = f"https://www.legislation.gov.uk{match}"
-            results.append({
-                "url": url,
-                "title": f"UK Legislation {match}",
-                "snippet": "",
-                "published_date": None,
-                "source": "legislation.gov.uk",
-                "citation": match,
-                "jurisdiction": "UK"
-            })
+            results.append(
+                {
+                    "url": url,
+                    "title": f"UK Legislation {match}",
+                    "snippet": "",
+                    "published_date": None,
+                    "source": "legislation.gov.uk",
+                    "citation": match,
+                    "jurisdiction": "UK",
+                }
+            )
 
         return results
 
@@ -433,7 +429,7 @@ class LegalSearchService:
         # Remove common stopwords and extract key terms
         stopwords = {"a", "an", "the", "is", "are", "was", "were", "that", "this", "it"}
 
-        words = re.findall(r'\b\w+\b', claim_text.lower())
+        words = re.findall(r"\b\w+\b", claim_text.lower())
         keywords = [w for w in words if w not in stopwords and len(w) > 3]
 
         return " ".join(keywords[:10])  # Top 10 keywords

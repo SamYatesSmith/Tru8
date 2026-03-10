@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlmodel import Field, SQLModel, Relationship, JSON
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
@@ -39,7 +39,7 @@ class Check(SQLModel, table=True):
     credits_used: int = Field(default=1)
     processing_time_ms: Optional[int] = None
     error_message: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
 
     # Agent commerce (Track L)
@@ -141,6 +141,10 @@ class Check(SQLModel, table=True):
     raw_sources_count: Optional[int] = Field(
         default=0, description="Total number of sources reviewed before filtering"
     )
+    total_search_results: Optional[int] = Field(
+        default=0,
+        description="Total search results found across all queries before extraction",
+    )
 
     # Claim Map system (Track B)
     entry_mode: Optional[str] = Field(
@@ -162,7 +166,7 @@ class Claim(SQLModel, table=True):
     check_id: str = Field(foreign_key="check.id", index=True)
     text: str
     position: int  # Order in the check
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Temporal context fields (Phase 1.5, Week 4.5-5.5)
     temporal_markers: Optional[str] = Field(
@@ -267,7 +271,7 @@ class Evidence(SQLModel, table=True):
     snippet: str
     published_date: Optional[datetime] = None
     relevance_score: float = Field(ge=0, le=1)  # 0-1
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Claim Map system (Track B)
     evidence_id: Optional[str] = Field(
@@ -471,7 +475,7 @@ class RawEvidence(SQLModel, table=True):
         description="API source if from government/authoritative API (e.g., 'ONS', 'PubMed')",
     )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Relationships
     check: Check = Relationship(back_populates="raw_evidence")

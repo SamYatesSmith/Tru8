@@ -29,10 +29,10 @@ from .tools import Tru8APIClient
 mcp = FastMCP(
     "tru8",
     instructions=(
-        "Structured evidence research. Submit claims or URLs, retrieve evidence "
-        "organized by source tier (primary/reporting/commentary) and type "
-        "(data/official/news/analysis/opinion/academic), with element decomposition "
-        "and relationship mapping (supports/challenges/context)."
+        "Structured evidence research. Submit a factual claim or article URL. "
+        "Evidence is organised by source tier (primary/reporting/commentary) "
+        "and type (data/official/news/analysis/opinion/academic), with element "
+        "decomposition and relationship mapping (supports/challenges/context)."
     ),
 )
 
@@ -59,15 +59,17 @@ async def tru8_check(
     max_age_hours: int | None = None,
     compact: bool = False,
 ) -> str:
-    """Evidence research for any claim or URL.
+    """Evidence research for a factual claim or article URL.
 
-    Returns structured evidence landscape with element decomposition and
-    source classification (tier/type).
+    Submit a claim as text or paste an article URL. URLs are auto-detected
+    and trigger article mode: the pipeline extracts claims from the page
+    and auto-selects up to 5 for evidence research.
 
     Tiers (in fallback order):
-    - lookup  (~$0.02, instant) — cached prior analysis
-    - quick   (~$0.07, ~15s) — web search + heuristic classification
-    - full    (~$0.15, ~90s) — 30+ sources, LLM classification, coverage recovery
+    - lookup    (~$0.02, instant) — cached prior analysis
+    - consensus (~$0.03, instant) — cross-user aggregate landscape (k≥3 checks)
+    - quick     (~$0.07, ~15s) — web search + heuristic classification
+    - full      (~$0.15, ~60-90s) — 30+ sources, LLM classification, coverage recovery
 
     Charges based on tier actually executed, not tier requested.
     Set max_tier to control maximum spend per call.
@@ -84,8 +86,10 @@ async def tru8_check(
 
     Args:
         claim: A factual claim ("The Earth's average temperature rose 1.1°C
-               since 1880") or a URL to an article.
-        max_tier: Maximum tier to attempt — "lookup", "quick" (default), or "full".
+               since 1880") or an article URL (https://example.com/article).
+               URLs are auto-detected and the pipeline extracts claims from
+               the page content.
+        max_tier: Maximum tier to attempt — "lookup", "consensus", "quick" (default), or "full".
         max_age_hours: Skip cache hits older than this many hours. If set,
                        lookup hits that are stale will be discarded and the
                        pipeline re-runs at the next tier up to max_tier.

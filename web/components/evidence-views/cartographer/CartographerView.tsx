@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, Fragment } from 'react';
 import { Claim, Evidence, EvidenceTier, ClaimElement } from '@shared/types';
 import { computeDiagnosticValues } from '@/lib/diagnostic-value';
 import { LandscapeSummaryStrip } from './LandscapeSummaryStrip';
@@ -158,6 +158,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
   const diagnostic = useMemo(() => computeDiagnosticValues(claims), [claims]);
   const [diagnosticActive, setDiagnosticActive] = useState(true);
   const showDiagnosticToggle = diagnostic.hasDiagnosticVariance;
+  const [legendOpen, setLegendOpen] = useState(false);
 
   const handleNodeClick = useCallback((ev: Evidence) => {
     if (ev.url) {
@@ -177,6 +178,37 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
         diagnosticHighCount={showDiagnosticToggle ? diagnostic.highCount : undefined}
         diagnosticTotalCount={showDiagnosticToggle ? diagnostic.totalCount : undefined}
       />
+
+      {/* Map legend toggle */}
+      <div className="flex items-center gap-4 mb-4">
+        <button
+          onClick={() => setLegendOpen(prev => !prev)}
+          className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors"
+        >
+          {legendOpen ? '− Hide' : '+ Show'} map legend
+        </button>
+      </div>
+
+      {legendOpen && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border border-zinc-200 bg-zinc-50 p-4 mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-[3px] shrink-0" style={{ background: 'var(--tier1-accent)' }} />
+            <span className="text-[11px] text-zinc-600"><span className="font-medium">Primary</span> — original data, official records</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-[3px] bg-zinc-600 shrink-0" />
+            <span className="text-[11px] text-zinc-600"><span className="font-medium">Reporting</span> — news coverage, journalism</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-[3px] bg-zinc-400 shrink-0" />
+            <span className="text-[11px] text-zinc-600"><span className="font-medium">Commentary</span> — opinion, analysis</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-[8px] h-[8px] border-dashed border border-amber-400 bg-amber-50 rotate-45 shrink-0" />
+            <span className="text-[11px] text-zinc-600"><span className="font-medium">Challenges</span> — evidence that disputes</span>
+          </div>
+        </div>
+      )}
 
       {/* Diagnostic toggle */}
       {showDiagnosticToggle && (
@@ -214,7 +246,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
 
       {/* Mobile: CSS-only vertical stack */}
       <div className="md:hidden mb-16">
-        <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400 mb-8 border-b border-zinc-100 pb-2">
+        <div className="font-mono text-sm font-bold uppercase tracking-[0.3em] text-zinc-600 mb-8 border-b border-zinc-200 pb-2">
           Citation Cascade
         </div>
         <MobileCascade
@@ -230,7 +262,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
       {/* Gap indicators */}
       {gaps.length > 0 && (
         <div className="mb-8">
-          <div className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-3">Evidence Gaps</div>
+          <div className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">Evidence Gaps</div>
           <div className="flex flex-wrap gap-3">
             {gaps.map((el, i) => {
               const elIndex = elements.indexOf(el);

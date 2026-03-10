@@ -12,7 +12,7 @@ Settlement reasons (stored in metadata.settlement_reason):
 """
 
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
@@ -42,7 +42,7 @@ class AgentTransaction(SQLModel, table=True):
     status: str = Field(
         default="pending"
     )  # "pending" | "completed" | "failed" | "refunded" | "unsettled"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     tx_metadata: Optional[dict] = Field(
         default=None, sa_column=Column("metadata", JSONB)
     )  # settlement_reason, claim_text_hash, metrics, etc.

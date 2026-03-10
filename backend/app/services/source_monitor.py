@@ -7,7 +7,7 @@ Logs unknown sources for weekly manual review and database expansion.
 
 import logging
 import tldextract
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from sqlmodel import Session, select
 from app.models.unknown_source import UnknownSource
@@ -79,7 +79,7 @@ class SourceMonitor:
             if existing:
                 # Update existing record
                 existing.frequency += 1
-                existing.last_seen = datetime.utcnow()
+                existing.last_seen = datetime.now(timezone.utc)
                 # Update context if not already set
                 if not existing.claim_topic and claim_topic:
                     existing.claim_topic = claim_topic
@@ -102,8 +102,8 @@ class SourceMonitor:
                     has_author_byline=has_author_byline,
                     has_primary_sources=has_primary_sources,
                     frequency=1,
-                    first_seen=datetime.utcnow(),
-                    last_seen=datetime.utcnow(),
+                    first_seen=datetime.now(timezone.utc),
+                    last_seen=datetime.now(timezone.utc),
                 )
                 self.session.add(unknown_source)
                 logger.info(f"Logged new unknown source: {domain}")

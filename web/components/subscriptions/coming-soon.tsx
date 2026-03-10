@@ -71,7 +71,7 @@ export function SubscriptionsComingSoon({
       <p className="text-zinc-500 mb-8 max-w-md mx-auto">
         {source === 'upgrade-modal'
           ? "Tru8 is currently in closed beta with limited access. Join our waitlist to be notified when we open to the public!"
-          : "We're currently in beta testing. Pro subscriptions with 40 monthly checks, priority processing, and advanced features will be available soon."
+          : "We're currently in beta testing. Paid subscriptions with up to 200 monthly checks, priority processing, and advanced features will be available soon."
         }
       </p>
 

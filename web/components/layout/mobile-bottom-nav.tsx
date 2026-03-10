@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, CreditCard, Code, User } from 'lucide-react';
+import { Sparkles, CreditCard, Code, User, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '@clerk/nextjs';
 import { AuthModal } from '@/components/auth/auth-modal';
 import Link from 'next/link';
 
@@ -13,12 +14,15 @@ import Link from 'next/link';
  */
 export function MobileBottomNav() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { isSignedIn } = useAuth();
 
   const navItems = [
     { id: 'features', label: 'Features', icon: Sparkles, href: '/#features' },
     { id: 'pricing', label: 'Pricing', icon: CreditCard, href: '/#pricing' },
     { id: 'developers', label: 'Developers', icon: Code, href: '/developers' },
-    { id: 'sign-in', label: 'Sign In', icon: User, href: undefined },
+    isSignedIn
+      ? { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' }
+      : { id: 'sign-in', label: 'Sign In', icon: User, href: undefined },
   ];
 
   return (

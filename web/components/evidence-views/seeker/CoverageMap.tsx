@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { ClaimElement, EvidenceRelationship } from '@shared/types';
 
 interface CoverageMapProps {
@@ -33,7 +34,7 @@ export function CoverageMap({ elements }: CoverageMapProps) {
 
   return (
     <div className="border border-zinc-200 p-4">
-      <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-3">
+      <p className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
         Coverage Map
       </p>
       <div
@@ -52,8 +53,8 @@ export function CoverageMap({ elements }: CoverageMapProps) {
 
         {/* Data rows */}
         {elements.map((el, i) => (
-          <>
-            <div key={`label-${el.elementId}`} className="px-2 py-1 flex items-center">
+          <Fragment key={el.elementId}>
+            <div className="px-2 py-1 flex items-center">
               <span className="font-mono text-[9px] font-bold text-zinc-400">e{i + 1}</span>
             </div>
             {RELATIONSHIPS.map((rel) => {
@@ -69,7 +70,7 @@ export function CoverageMap({ elements }: CoverageMapProps) {
                 </div>
               );
             })}
-          </>
+          </Fragment>
         ))}
       </div>
     </div>

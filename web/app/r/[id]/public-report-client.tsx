@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Reply, ChevronLeft, ChevronRight } from 'lucide-react';
 import { isTweetUrl, extractTweetId, buildTwitterReplyUrl } from '@/lib/twitter-utils';
-import { ViewSelector, EvidenceMetaStrip } from '@/components/evidence-views';
-import { ClaimOverviewCard } from '@/components/evidence-views/overview';
+import { ViewSelector, ViewGuide, EvidenceMetaStrip } from '@/components/evidence-views';
+import { ClaimSectionStack } from '@/components/evidence-views/overview';
 import { CartographerView } from '@/components/evidence-views/cartographer';
 import { LibrarianView } from '@/components/evidence-views/librarian';
 import { InterpreterView } from '@/components/evidence-views/interpreter';
@@ -19,15 +19,11 @@ interface PublicReportClientProps {
   highlightView?: string;
 }
 
-const VALID_OVERVIEW_VIEWS = ['cartographer', 'librarian', 'projectionist', 'chronologist'];
 const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'interpreter', 'seeker', 'projectionist', 'chronologist'];
 
 export function PublicReportClient({ check, highlightClaim, highlightView }: PublicReportClientProps) {
   const [copied, setCopied] = useState(false);
   const [activeClaimIndex, setActiveClaimIndex] = useState(0);
-  const [checkWideView, setCheckWideView] = useState<string>(
-    highlightView && VALID_OVERVIEW_VIEWS.includes(highlightView) ? highlightView : 'cartographer'
-  );
   const [claimView, setClaimView] = useState<string>(
     highlightView && VALID_DETAIL_VIEWS.includes(highlightView) ? highlightView : 'cartographer'
   );
@@ -67,6 +63,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   // Keyboard navigation for claims
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (claims.length <= 1) return;
       if (e.key === 'ArrowLeft' && activeClaimIndex > 0) {
         setActiveClaimIndex(prev => prev - 1);
@@ -95,7 +92,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
     };
 
     if (platform in shareUrls) {
-      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+      window.open(shareUrls[platform], '_blank', 'noopener,noreferrer,width=600,height=400');
     }
   };
 
@@ -112,7 +109,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   const handleReplyOnTwitter = () => {
     if (!tweetId) return;
     const replyUrl = buildTwitterReplyUrl(tweetId, shareUrl, shareText);
-    window.open(replyUrl, '_blank', 'width=600,height=400');
+    window.open(replyUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
   };
 
   const handleClaimSelect = useCallback((position: number) => {
@@ -122,7 +119,6 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
   const handleSwitchToLibrarian = useCallback(() => { setClaimView('librarian'); updateUrlViewParam('librarian'); }, [updateUrlViewParam]);
   const handleSwitchToInterpreter = useCallback(() => { setClaimView('interpreter'); updateUrlViewParam('interpreter'); }, [updateUrlViewParam]);
-  const handleCheckSwitchToLibrarian = useCallback(() => { setCheckWideView('librarian'); updateUrlViewParam('librarian'); }, [updateUrlViewParam]);
 
   // Get content display for input context
   const getContentDisplay = () => {
@@ -176,6 +172,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
           referenceId={check.id}
           claimsCount={claims.length}
           sourcesCount={totalSources}
+          sourcesFoundCount={check.totalSearchResults || check.rawSourcesCount}
           processingTimeMs={check.processingTimeMs}
         />
       )}
@@ -204,68 +201,12 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
       {/* Claims + Views — only render if claims exist */}
       {claims.length > 0 && (
         <>
-          {/* Section 4: Claim Grid (Multi-Claim Only) */}
+          {/* Section 4: Claim-Sectioned Overview (Multi-Claim Only) */}
           {!isSingleClaim && (
-            <div className="mb-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400 mb-6 border-b border-zinc-100 pb-2">
-                Claims &middot; {claims.length}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {claims.map((claim: any, index: number) => (
-                  <ClaimOverviewCard
-                    key={claim.id || index}
-                    claim={claim}
-                    position={index}
-                    checkId={check.id}
-                    isActive={activeClaimIndex === index}
-                    onSelect={handleClaimSelect}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Section 5: Check-Wide Views (Multi-Claim Only) */}
-          {!isSingleClaim && (
-            <div className="mb-4">
-              <ViewSelector mode="overview" activeTab={checkWideView} onTabChange={(tab: string) => { setCheckWideView(tab); updateUrlViewParam(tab); }} />
-
-              {checkWideView === 'cartographer' && (
-                <CartographerView
-                  scope="check"
-                  claims={claims}
-                  onSwitchToLibrarian={handleCheckSwitchToLibrarian}
-                />
-              )}
-              {checkWideView === 'librarian' && (
-                <LibrarianView scope="check" claims={claims} />
-              )}
-              {checkWideView === 'projectionist' && (
-                <ProjectionistView
-                  scope="check"
-                  claims={claims}
-                  videos={videos}
-                  isLoading={false}
-                />
-              )}
-              {checkWideView === 'chronologist' && (
-                <ChronologistView
-                  scope="check"
-                  claims={claims}
-                  onSwitchToLibrarian={handleCheckSwitchToLibrarian}
-                />
-              )}
-
-              {/* Back to claims */}
-              <div className="text-center pt-6 border-t border-zinc-100">
-                <button
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-2"
-                >
-                  <span className="text-sm">&uarr;</span> Back to claims
-                </button>
-              </div>
-            </div>
+            <ClaimSectionStack
+              claims={claims}
+              onExplore={handleClaimSelect}
+            />
           )}
 
           {/* Section 6: Per-Claim Detail */}
@@ -326,6 +267,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
             {/* 6b: Per-Claim View Selector */}
             <ViewSelector mode="detail" activeTab={claimView} onTabChange={(tab: string) => { setClaimView(tab); updateUrlViewParam(tab); }} />
+            <ViewGuide activeView={claimView} />
 
             {/* 6c: Per-Claim View Content */}
             {activeClaim && (

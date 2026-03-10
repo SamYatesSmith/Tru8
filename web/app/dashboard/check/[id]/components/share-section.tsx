@@ -47,14 +47,14 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
     };
 
     if (platform in shareUrls) {
-      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+      window.open(shareUrls[platform], '_blank', 'noopener,noreferrer,width=600,height=400');
     }
   };
 
   const handleReplyOnTwitter = () => {
     if (!tweetId) return;
     const replyUrl = buildTwitterReplyUrl(tweetId, shareUrl, shareText);
-    window.open(replyUrl, '_blank', 'width=600,height=400');
+    window.open(replyUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
   };
 
   const handleCopyLink = async () => {

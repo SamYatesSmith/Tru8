@@ -12,7 +12,7 @@ Adapters for financial and economic data:
 import logging
 import re
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.services.government_api_client import GovernmentAPIClient
 from app.core.config import settings
@@ -641,7 +641,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                 title=f"{ticker} Stock Quote - Alpha Vantage",
                 snippet=snippet,
                 url=f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}",
-                source_date=datetime.utcnow(),
+                source_date=datetime.now(timezone.utc),
                 metadata={
                     "api_source": "Alpha Vantage",
                     "data_type": "stock_quote",
@@ -683,7 +683,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                     title=f"{symbol} - {name}",
                     snippet=f"{name} ({symbol}): {match_type} listed in {region}.",
                     url=f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}",
-                    source_date=datetime.utcnow(),
+                    source_date=datetime.now(timezone.utc),
                     metadata={
                         "api_source": "Alpha Vantage",
                         "data_type": "symbol_search",
@@ -752,7 +752,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                 title=f"{crypto}/USD Exchange Rate - Alpha Vantage",
                 snippet=snippet,
                 url=f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={crypto}&to_currency=USD",
-                source_date=datetime.utcnow(),
+                source_date=datetime.now(timezone.utc),
                 metadata={
                     "api_source": "Alpha Vantage",
                     "data_type": "crypto_rate",
@@ -827,7 +827,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                 title=f"{from_curr}/{to_curr} Exchange Rate - Alpha Vantage",
                 snippet=snippet,
                 url=f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={from_curr}&to_currency={to_curr}",
-                source_date=datetime.utcnow(),
+                source_date=datetime.now(timezone.utc),
                 metadata={
                     "api_source": "Alpha Vantage",
                     "data_type": "forex_rate",
@@ -933,7 +933,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                 snippet = f"{commodity_name} price: ${current_value}/barrel as of {current_date}."
 
             # Parse date
-            source_date = datetime.utcnow()
+            source_date = datetime.now(timezone.utc)
             if current_date and current_date != "N/A":
                 try:
                     source_date = datetime.strptime(current_date, "%Y-%m-%d")
@@ -1005,7 +1005,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                     try:
                         source_date = datetime.strptime(time_published[:8], "%Y%m%d")
                     except:
-                        source_date = datetime.utcnow()
+                        source_date = datetime.now(timezone.utc)
 
                 snippet = f"{summary} [Sentiment: {sentiment} ({sentiment_score:.2f})]"
 
@@ -1013,7 +1013,7 @@ class AlphaVantageAdapter(GovernmentAPIClient):
                     title=title,
                     snippet=snippet,
                     url=url,
-                    source_date=source_date or datetime.utcnow(),
+                    source_date=source_date or datetime.now(timezone.utc),
                     metadata={
                         "api_source": "Alpha Vantage",
                         "data_type": "news_sentiment",
@@ -1215,7 +1215,7 @@ class MarketauxAdapter(GovernmentAPIClient):
                             published.replace("Z", "+00:00")
                         )
                     except:
-                        source_date = datetime.utcnow()
+                        source_date = datetime.now(timezone.utc)
 
                 # Extract relevant entities
                 entities = article.get("entities", [])
@@ -1234,7 +1234,7 @@ class MarketauxAdapter(GovernmentAPIClient):
                     title=title,
                     snippet=snippet,
                     url=url,
-                    source_date=source_date or datetime.utcnow(),
+                    source_date=source_date or datetime.now(timezone.utc),
                     metadata={
                         "api_source": "Marketaux",
                         "data_type": "financial_news",

@@ -13,8 +13,8 @@ import { NavigationSection } from './components/navigation-section';
 import { ErrorState } from './components/error-state';
 import { ClarityResponseCard } from './components/clarity-response-card';
 import { UpgradeModal } from './components/upgrade-modal';
-import { ClaimList } from '@/components/evidence-views/overview';
-import { ViewSelector, EvidenceMetaStrip } from '@/components/evidence-views';
+import { ClaimSectionStack } from '@/components/evidence-views/overview';
+import { ViewSelector, ViewGuide, EvidenceMetaStrip } from '@/components/evidence-views';
 import { LibrarianView } from '@/components/evidence-views/librarian';
 import { CartographerView } from '@/components/evidence-views/cartographer';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
@@ -59,15 +59,6 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     return 'cartographer';
   });
 
-  const [activeOverviewTab, setActiveOverviewTab] = useState(() => {
-    // Only read ?view= as overview tab if no claim is focused
-    if (initialClaim === undefined && !isSingleClaim) {
-      const viewParam = searchParams?.get('view');
-      const validViews = ['cartographer', 'librarian', 'projectionist', 'chronologist'];
-      return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
-    }
-    return 'cartographer';
-  });
 
   // Auto-focus the only claim when a single-claim check completes
   // (handles SSE race: initial render may have status='processing')
@@ -77,19 +68,6 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     }
   }, [isSingleClaim, activeClaimIndex]);
 
-  // F07: Sync active overview tab to URL for shareability
-  const handleOverviewTabChange = useCallback((tab: string) => {
-    setActiveOverviewTab(tab);
-    const url = new URL(window.location.href);
-    if (tab !== 'cartographer') {
-      url.searchParams.set('view', tab);
-    } else {
-      url.searchParams.delete('view');
-    }
-    // Clear claim param when switching overview tabs
-    url.searchParams.delete('claim');
-    window.history.replaceState({}, '', url.toString());
-  }, []);
 
   // Claim-level tab change — syncs ?claim=N&view=X to URL
   const handleClaimTabChange = useCallback((tab: string) => {
@@ -154,14 +132,6 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     router.refresh();
   }, [router]);
 
-  // Video recommendations — check-wide (overview Projectionist tab)
-  const { videos: checkVideos, isLoading: videosLoading } = useVideoRecommendations(
-    checkId,
-    null,
-    token,
-    checkData.status === 'completed' && activeOverviewTab === 'projectionist',
-  );
-
   // Video recommendations — per-claim (detail Projectionist tab)
   const focusedClaim = activeClaimIndex !== null ? claims[activeClaimIndex] : null;
   const { videos: claimVideos, isLoading: claimVideosLoading } = useVideoRecommendations(
@@ -208,10 +178,13 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     checkData.status === 'processing' || checkData.status === 'waiting_for_selection'
   );
 
-  // When SSE indicates completion, immediately fetch updated data (don't wait for 3s poll)
+  // Track when SSE has delivered final data so polling can stop early
+  const sseDeliveredRef = useRef(false);
+
+  // When SSE indicates completion, immediately fetch updated data (don't wait for poll)
   useEffect(() => {
     if (sseCompleted && checkData.status === 'processing') {
-      console.log('[CHECK DETAIL] SSE reported completion, fetching updated data');
+      sseDeliveredRef.current = true;
       const fetchUpdatedData = async () => {
         try {
           const currentToken = await getToken();
@@ -255,7 +228,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       : null
   );
 
-  const showSelectionUI = (checkData.status === 'waiting_for_selection' || isAwaitingSelection)
+  const showSelectionUI = checkData.status === 'waiting_for_selection'
     && effectiveClaimsForSelection && effectiveClaimsForSelection.length > 0;
 
   // Handle claim selection submission
@@ -274,13 +247,20 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     }
   }, [checkId, getToken]);
 
-  // Poll for updates when pending or processing
+  // Poll for updates when pending or processing (with backoff)
   useEffect(() => {
     if (checkData.status !== 'processing' && checkData.status !== 'pending' && checkData.status !== 'waiting_for_selection') {
       return;
     }
 
-    const interval = setInterval(async () => {
+    let delay = 3000;
+    const MAX_DELAY = 15000;
+    let timeoutId: NodeJS.Timeout;
+
+    const poll = async () => {
+      // SSE already delivered final data — no need to poll
+      if (sseDeliveredRef.current) return;
+
       try {
         const currentToken = await getToken();
         const updated = await apiClient.getCheckById(checkId, currentToken) as any;
@@ -288,14 +268,18 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
 
         // Stop polling when completed, failed, or waiting_for_selection (user action needed)
         if (updated.status === 'completed' || updated.status === 'failed' || updated.status === 'waiting_for_selection') {
-          clearInterval(interval);
+          return;
         }
       } catch (error) {
         console.error('Failed to poll check status:', error);
       }
-    }, 3000);
 
-    return () => clearInterval(interval);
+      delay = Math.min(delay * 1.5, MAX_DELAY);
+      timeoutId = setTimeout(poll, delay);
+    };
+
+    timeoutId = setTimeout(poll, delay);
+    return () => clearTimeout(timeoutId);
   }, [checkData.status, checkId, getToken]);
 
   // Fetch sources count when check completes (handles transition from processing to completed)
@@ -341,7 +325,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
       )}
 
       {/* Status-based Rendering */}
-      {checkData.status === 'processing' && !isAwaitingSelection && (
+      {checkData.status === 'processing' && (
         <ProgressSection progress={progress} currentStage={currentStage} isConnected={isConnected} message={message} timeEstimate={effectiveTimeEstimate} />
       )}
 
@@ -374,52 +358,26 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
             referenceId={checkData.id}
             claimsCount={checkData.claims.length}
             sourcesCount={checkData.claims.reduce((sum: number, c: any) => sum + (c.evidence?.length || 0), 0)}
+            sourcesFoundCount={checkData.totalSearchResults || sourcesCount}
             processingTimeMs={checkData.processingTimeMs}
           />
 
-          {/* Multi-claim: Claim Grid + Check-Wide Views */}
+          {/* Multi-claim: Claim-Sectioned Overview */}
           {!isSingleClaim && (
-            <>
-              <ClaimList
-                claims={checkData.claims}
-                checkId={checkId}
-                onSelect={handleClaimSelect}
-                activePosition={activeClaimIndex}
-              />
-
-              <ViewSelector mode="overview" activeTab={activeOverviewTab} onTabChange={handleOverviewTabChange} />
-
-              {activeOverviewTab === 'cartographer' && (
-                <CartographerView
-                  scope="check"
-                  claims={checkData.claims}
-                  onSwitchToLibrarian={() => handleOverviewTabChange('librarian')}
-                />
-              )}
-              {activeOverviewTab === 'librarian' && (
-                <LibrarianView scope="check" claims={checkData.claims} />
-              )}
-              {activeOverviewTab === 'projectionist' && (
-                <ProjectionistView
-                  scope="check"
-                  claims={checkData.claims}
-                  videos={checkVideos}
-                  isLoading={videosLoading}
-                />
-              )}
-              {activeOverviewTab === 'chronologist' && (
-                <ChronologistView
-                  scope="check"
-                  claims={checkData.claims}
-                  onSwitchToLibrarian={() => handleOverviewTabChange('librarian')}
-                />
-              )}
-            </>
+            <ClaimSectionStack
+              claims={checkData.claims}
+              onExplore={handleClaimSelect}
+            />
           )}
 
           {/* Per-Claim Detail Section */}
           {focusedClaim && (
-            <div ref={claimDetailRef} className="pt-8 border-t border-zinc-100">
+            <div ref={claimDetailRef} className="pt-8 border-t-2 border-zinc-200">
+              {!isSingleClaim && (
+                <div className="font-mono text-sm font-bold uppercase tracking-[0.3em] text-zinc-600 mb-6">
+                  Claim Detail
+                </div>
+              )}
               {/* Claim header with prev/next (multi-claim only) */}
               <div className="flex items-start justify-between mb-6">
                 <ClaimHeader claim={focusedClaim} position={activeClaimIndex!} />
@@ -447,6 +405,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
               </div>
 
               <ViewSelector mode="detail" activeTab={claimView} onTabChange={handleClaimTabChange} />
+              <ViewGuide activeView={claimView} />
 
               {claimView === 'cartographer' && (
                 <CartographerView

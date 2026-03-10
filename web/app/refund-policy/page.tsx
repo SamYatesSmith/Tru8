@@ -14,7 +14,7 @@ export default function RefundPolicyPage() {
       <div className="prose-legal">
         <h2>1. Subscription Cancellation</h2>
         <p>
-          You may cancel your Tru8 Professional subscription at any time:
+          You may cancel your Tru8 subscription at any time:
         </p>
         <ul>
           <li>Go to Settings → Subscription</li>

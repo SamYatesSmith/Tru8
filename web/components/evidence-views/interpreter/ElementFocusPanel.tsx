@@ -33,7 +33,7 @@ export function ElementFocusPanel({ element, index, totalElements }: ElementFocu
   return (
     <div className="border border-zinc-200 bg-[var(--surface-raised)] p-6 mb-0">
       <div className="flex items-start justify-between mb-4">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+        <span className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-600">
           Element {String(index + 1).padStart(2, '0')} of {totalElements}
         </span>
         <span className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded ${config.className}`}>

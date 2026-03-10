@@ -176,6 +176,14 @@ class ProgressReporter:
             }
         )
 
+        # Write claims to a separate Redis key for GET /progress reconnection
+        try:
+            r = _get_redis()
+            claims_key = f"inline-progress:{self.check_id}:claims"
+            r.setex(claims_key, 600, json.dumps(claims_data))
+        except Exception as e:
+            logger.warning(f"[PROGRESS] Failed to write claims to Redis: {e}")
+
         await self._queue.put(event)
         # Signal end of Phase 1 stream — client reconnects for Phase 2
         await self._queue.put(None)

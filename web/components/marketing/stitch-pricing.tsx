@@ -13,7 +13,7 @@ const SUBSCRIPTIONS_ENABLED = process.env.NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED === 
 /**
  * Stitch W-01 Pricing Section
  *
- * Four cards: Free Trial, Professional, Developer (highlighted), Enterprise.
+ * Four cards: Free Trial, Starter, Professional (highlighted), Enterprise.
  * Black CTAs, orange accent on highlighted card. Stripe checkout for paid tiers.
  */
 export function StitchPricing() {

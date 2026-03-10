@@ -11,7 +11,7 @@ import hmac
 import json
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import httpx
@@ -79,7 +79,7 @@ async def _deliver(webhook: Webhook, event: str, data: Dict[str, Any]) -> None:
     """Deliver a single webhook with retry and failure tracking."""
     payload = {
         "event": event,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
         "data": data,
     }
     payload_bytes = json.dumps(payload, default=str).encode()
@@ -135,7 +135,7 @@ async def _update_webhook_status(webhook_id: str, success: bool) -> None:
             result = await session.execute(stmt)
             webhook = result.scalar_one_or_none()
             if webhook:
-                webhook.last_triggered_at = datetime.utcnow()
+                webhook.last_triggered_at = datetime.now(timezone.utc)
                 if success:
                     webhook.failure_count = 0
                 else:

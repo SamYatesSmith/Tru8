@@ -23,7 +23,7 @@ Usage:
 import json
 import logging
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from threading import Lock
@@ -33,13 +33,14 @@ logger = logging.getLogger(__name__)
 
 class DomainStatus(Enum):
     """Domain access status categories"""
-    ACCESSIBLE = "accessible"           # Successfully scraped
-    BOT_BLOCKED = "bot_blocked"         # 403/429 - bot detection
-    PAYWALL = "paywall"                 # Subscription required
-    JS_REQUIRED = "js_required"         # Content is JS-rendered
-    TIMEOUT = "timeout"                 # Consistently times out
-    RATE_LIMITED = "rate_limited"       # Temporary rate limiting
-    UNKNOWN = "unknown"                 # Other errors
+
+    ACCESSIBLE = "accessible"  # Successfully scraped
+    BOT_BLOCKED = "bot_blocked"  # 403/429 - bot detection
+    PAYWALL = "paywall"  # Subscription required
+    JS_REQUIRED = "js_required"  # Content is JS-rendered
+    TIMEOUT = "timeout"  # Consistently times out
+    RATE_LIMITED = "rate_limited"  # Temporary rate limiting
+    UNKNOWN = "unknown"  # Other errors
 
 
 class DomainStatusTracker:
@@ -82,7 +83,9 @@ class DomainStatusTracker:
         """
         if storage_path is None:
             # Default to backend/data/domain_status.json
-            storage_path = Path(__file__).parent.parent.parent / "data" / "domain_status.json"
+            storage_path = (
+                Path(__file__).parent.parent.parent / "data" / "domain_status.json"
+            )
 
         self.storage_path = storage_path
         self._lock = Lock()
@@ -94,10 +97,12 @@ class DomainStatusTracker:
         """Load existing domain data from storage"""
         try:
             if self.storage_path.exists():
-                with open(self.storage_path, 'r') as f:
+                with open(self.storage_path, "r") as f:
                     data = json.load(f)
                     self._domains = data.get("domains", {})
-                    logger.info(f"[DOMAIN_TRACKER] Loaded {len(self._domains)} domain records")
+                    logger.info(
+                        f"[DOMAIN_TRACKER] Loaded {len(self._domains)} domain records"
+                    )
             else:
                 self._domains = {}
                 logger.info("[DOMAIN_TRACKER] No existing data, starting fresh")
@@ -112,13 +117,13 @@ class DomainStatusTracker:
             self.storage_path.parent.mkdir(parents=True, exist_ok=True)
 
             data = {
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
                 "total_domains": len(self._domains),
                 "domains": self._domains,
-                "summary": self._generate_summary()
+                "summary": self._generate_summary(),
             }
 
-            with open(self.storage_path, 'w') as f:
+            with open(self.storage_path, "w") as f:
                 json.dump(data, f, indent=2)
 
         except Exception as e:
@@ -132,10 +137,10 @@ class DomainStatusTracker:
             if domain not in self._domains:
                 self._domains[domain] = {
                     "status": DomainStatus.PAYWALL.value,
-                    "first_seen": datetime.utcnow().isoformat(),
+                    "first_seen": datetime.now(timezone.utc).isoformat(),
                     "source": "pre_seeded",
                     "notes": name,
-                    "encounter_count": 0
+                    "encounter_count": 0,
                 }
                 seeded += 1
 
@@ -143,10 +148,10 @@ class DomainStatusTracker:
             if domain not in self._domains:
                 self._domains[domain] = {
                     "status": DomainStatus.BOT_BLOCKED.value,
-                    "first_seen": datetime.utcnow().isoformat(),
+                    "first_seen": datetime.now(timezone.utc).isoformat(),
                     "source": "pre_seeded",
                     "notes": reason,
-                    "encounter_count": 0
+                    "encounter_count": 0,
                 }
                 seeded += 1
 
@@ -159,7 +164,7 @@ class DomainStatusTracker:
         domain: str,
         status: DomainStatus,
         metadata: Optional[Dict[str, Any]] = None,
-        force_update: bool = False
+        force_update: bool = False,
     ) -> bool:
         """
         Record domain access result.
@@ -185,9 +190,12 @@ class DomainStatusTracker:
             # Skip if already recorded (unless forcing update)
             if domain in self._domains:
                 # Just increment encounter count
-                self._domains[domain]["encounter_count"] = \
+                self._domains[domain]["encounter_count"] = (
                     self._domains[domain].get("encounter_count", 0) + 1
-                self._domains[domain]["last_seen"] = datetime.utcnow().isoformat()
+                )
+                self._domains[domain]["last_seen"] = datetime.now(
+                    timezone.utc
+                ).isoformat()
 
                 if not force_update:
                     return False
@@ -196,12 +204,15 @@ class DomainStatusTracker:
             self._domains[domain] = {
                 "status": status.value,
                 "first_seen": self._domains.get(domain, {}).get(
-                    "first_seen", datetime.utcnow().isoformat()
+                    "first_seen", datetime.now(timezone.utc).isoformat()
                 ),
-                "last_seen": datetime.utcnow().isoformat(),
+                "last_seen": datetime.now(timezone.utc).isoformat(),
                 "source": "runtime_detection",
                 "metadata": metadata or {},
-                "encounter_count": self._domains.get(domain, {}).get("encounter_count", 0) + 1
+                "encounter_count": self._domains.get(domain, {}).get(
+                    "encounter_count", 0
+                )
+                + 1,
             }
 
             self._save()
@@ -241,10 +252,7 @@ class DomainStatusTracker:
         results = []
         for domain, record in self._domains.items():
             if record["status"] == status.value:
-                results.append({
-                    "domain": domain,
-                    **record
-                })
+                results.append({"domain": domain, **record})
         return sorted(results, key=lambda x: x.get("encounter_count", 0), reverse=True)
 
     def _generate_summary(self) -> Dict[str, int]:
@@ -262,8 +270,12 @@ class DomainStatusTracker:
             "total_domains": len(self._domains),
             "by_status": summary,
             "paywall_domains": len(self.get_domains_by_status(DomainStatus.PAYWALL)),
-            "blocked_domains": len(self.get_domains_by_status(DomainStatus.BOT_BLOCKED)),
-            "js_required_domains": len(self.get_domains_by_status(DomainStatus.JS_REQUIRED)),
+            "blocked_domains": len(
+                self.get_domains_by_status(DomainStatus.BOT_BLOCKED)
+            ),
+            "js_required_domains": len(
+                self.get_domains_by_status(DomainStatus.JS_REQUIRED)
+            ),
         }
 
     def export_for_budgeting(self) -> Dict[str, List[Dict[str, Any]]]:
@@ -290,12 +302,13 @@ class DomainStatusTracker:
             ],
             "blocked_investigate": [
                 b for b in blocked if b.get("encounter_count", 0) >= 3
-            ]
+            ],
         }
 
 
 # Singleton instance
 _tracker: Optional[DomainStatusTracker] = None
+
 
 def get_domain_tracker() -> DomainStatusTracker:
     """Get singleton tracker instance"""

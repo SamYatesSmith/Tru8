@@ -56,16 +56,23 @@ class Tru8APIClient:
     def _headers(self) -> dict:
         return {"X-API-Key": self.api_key, "Accept": "application/json"}
 
+    @staticmethod
+    def _detect_input_type(claim: str) -> Optional[str]:
+        """Return "url" if claim looks like a URL, else None (server auto-detects)."""
+        if claim.strip().startswith(("http://", "https://")):
+            return "url"
+        return None
+
     async def submit_tier(
         self,
         claim: str,
         tier: str,
         compact: bool = False,
     ) -> dict:
-        """Submit a claim to a specific agent tier endpoint.
+        """Submit a claim or URL to a specific agent tier endpoint.
 
         Args:
-            claim: The claim text to analyse.
+            claim: The claim text or article URL to analyse.
             tier: "lookup", "quick", or "full".
             compact: If True, strip evidence arrays from response.
 
@@ -73,7 +80,10 @@ class Tru8APIClient:
             The tier endpoint response dict (includes _meta block).
         """
         timeout = TIER_TIMEOUTS.get(tier, PIPELINE_TIMEOUT)
-        payload = {"claim": claim, "compact": compact}
+        payload: dict = {"claim": claim, "compact": compact}
+        input_type = self._detect_input_type(claim)
+        if input_type:
+            payload["input_type"] = input_type
 
         async with httpx.AsyncClient(
             timeout=httpx.Timeout(timeout, connect=10.0)
@@ -99,7 +109,7 @@ class Tru8APIClient:
         """Submit via smart endpoint with server-side fallback (M-03).
 
         Args:
-            claim: The claim text to analyse.
+            claim: The claim text or article URL to analyse.
             max_tier: Maximum tier to attempt ("lookup", "quick", or "full").
             max_age_hours: Skip cache hits older than this many hours.
             compact: If True, strip evidence arrays from response.
@@ -109,6 +119,9 @@ class Tru8APIClient:
         """
         timeout = TIER_TIMEOUTS.get(max_tier, PIPELINE_TIMEOUT)
         payload: dict = {"claim": claim, "max_tier": max_tier, "compact": compact}
+        input_type = self._detect_input_type(claim)
+        if input_type:
+            payload["input_type"] = input_type
         if max_age_hours:
             payload["max_age_hours"] = max_age_hours
 

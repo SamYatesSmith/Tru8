@@ -1,6 +1,6 @@
 {
-  "last_updated": "2026-03-06T12:23:25.026366",
-  "total_domains": 2882,
+  "last_updated": "2026-03-10T12:30:53.284054",
+  "total_domains": 2903,
   "domains": {
     "thetimes.co.uk": {
       "status": "paywall",
@@ -38,8 +38,8 @@
       "first_seen": "2025-12-01T12:18:44.297904",
       "source": "pre_seeded",
       "notes": "New York Times",
-      "encounter_count": 546,
-      "last_seen": "2026-02-26T10:22:24.221253"
+      "encounter_count": 547,
+      "last_seen": "2026-03-10T10:09:32.046877"
     },
     "washingtonpost.com": {
       "status": "paywall",
@@ -275,10 +275,10 @@
     "theguardian.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T12:51:00.779926",
-      "last_seen": "2026-03-06T12:23:13.814202",
+      "last_seen": "2026-03-10T11:46:48.746934",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 864
+      "encounter_count": 866
     },
     "misinforeview.hks.harvard.edu": {
       "status": "accessible",
@@ -583,10 +583,10 @@
     "reddit.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T16:06:19.557180",
-      "last_seen": "2026-03-06T12:14:02.291770",
+      "last_seen": "2026-03-10T10:09:28.840491",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 385
+      "encounter_count": 386
     },
     "guides.library.fresnostate.edu": {
       "status": "accessible",
@@ -1515,10 +1515,10 @@
     "sciencedaily.com": {
       "status": "accessible",
       "first_seen": "2025-12-02T14:49:58.851664",
-      "last_seen": "2026-02-11T10:54:19.233053",
+      "last_seen": "2026-03-10T11:46:54.737534",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 114
+      "encounter_count": 115
     },
     "sellupandsail.com": {
       "status": "accessible",
@@ -2179,10 +2179,10 @@
     "youtube.com": {
       "status": "accessible",
       "first_seen": "2025-12-02T17:14:57.942538",
-      "last_seen": "2026-03-05T19:15:16.629851",
+      "last_seen": "2026-03-10T10:09:31.959063",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 208
+      "encounter_count": 209
     },
     "amgreatness.com": {
       "status": "bot_blocked",
@@ -2205,10 +2205,10 @@
     "npr.org": {
       "status": "accessible",
       "first_seen": "2025-12-02T17:15:03.994368",
-      "last_seen": "2026-02-19T12:42:55.404399",
+      "last_seen": "2026-03-10T11:46:48.839269",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 92
+      "encounter_count": 93
     },
     "wichitaliberty.org": {
       "status": "accessible",
@@ -2873,10 +2873,10 @@
     "nature.com": {
       "status": "accessible",
       "first_seen": "2025-12-03T13:51:13.084875",
-      "last_seen": "2026-02-26T14:27:56.543169",
+      "last_seen": "2026-03-09T15:44:46.814164",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 76
+      "encounter_count": 77
     },
     "climateoutreach.org": {
       "status": "accessible",
@@ -4047,10 +4047,10 @@
     "noticiasambientales.com": {
       "status": "accessible",
       "first_seen": "2025-12-04T14:33:33.113659",
-      "last_seen": "2026-02-26T10:22:26.943729",
+      "last_seen": "2026-03-09T15:31:38.451340",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 2
+      "encounter_count": 3
     },
     "manifoldtimes.com": {
       "status": "bot_blocked",
@@ -8127,10 +8127,10 @@
     "link.springer.com": {
       "status": "accessible",
       "first_seen": "2025-12-17T10:34:05.060295",
-      "last_seen": "2026-02-26T11:42:18.977618",
+      "last_seen": "2026-03-09T15:44:46.958725",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 23
+      "encounter_count": 24
     },
     "ens-newswire.com": {
       "status": "accessible",
@@ -8449,10 +8449,10 @@
     "pubmed.ncbi.nlm.nih.gov": {
       "status": "accessible",
       "first_seen": "2025-12-17T12:30:06.571895",
-      "last_seen": "2026-02-26T11:42:16.912199",
+      "last_seen": "2026-03-09T15:44:45.265095",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 12
+      "encounter_count": 13
     },
     "kesq.com": {
       "status": "accessible",
@@ -8799,10 +8799,10 @@
     "globalcitizen.org": {
       "status": "accessible",
       "first_seen": "2025-12-17T13:34:34.784852",
-      "last_seen": "2026-02-26T10:22:37.262795",
+      "last_seen": "2026-03-09T15:31:42.965100",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 9
+      "encounter_count": 10
     },
     "climateanalytics.org": {
       "status": "accessible",
@@ -10813,10 +10813,10 @@
     "oreateai.com": {
       "status": "accessible",
       "first_seen": "2026-01-06T13:37:32.646618",
-      "last_seen": "2026-02-26T10:22:22.963710",
+      "last_seen": "2026-03-10T10:09:30.667154",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 13
+      "encounter_count": 15
     },
     "al-monitor.com": {
       "status": "accessible",
@@ -12099,10 +12099,10 @@
     "threads.com": {
       "status": "accessible",
       "first_seen": "2026-02-02T14:43:06.908478",
-      "last_seen": "2026-02-26T14:27:51.277522",
+      "last_seen": "2026-03-10T10:09:31.220910",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 8
     },
     "andymaypetrophysicist.com": {
       "status": "accessible",
@@ -14217,10 +14217,10 @@
     "x.com": {
       "status": "accessible",
       "first_seen": "2026-02-04T15:58:21.991393",
-      "last_seen": "2026-03-04T17:01:14.865267",
+      "last_seen": "2026-03-10T10:09:29.782524",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 22
+      "encounter_count": 23
     },
     "adf-magazine.com": {
       "status": "accessible",
@@ -14611,10 +14611,10 @@
     "testbook.com": {
       "status": "accessible",
       "first_seen": "2026-02-06T12:48:52.196232",
-      "last_seen": "2026-02-09T14:28:00.895627",
+      "last_seen": "2026-03-09T15:31:37.691736",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 7
+      "encounter_count": 8
     },
     "howengineeringworks.com": {
       "status": "accessible",
@@ -15585,10 +15585,10 @@
     "historysnob.com": {
       "status": "accessible",
       "first_seen": "2026-02-07T12:42:26.426873",
-      "last_seen": "2026-02-07T12:42:26.426873",
+      "last_seen": "2026-03-10T10:09:31.062346",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "anthesisgroup.com": {
       "status": "bot_blocked",
@@ -15661,10 +15661,10 @@
     "cochrane.org": {
       "status": "accessible",
       "first_seen": "2026-02-07T13:31:04.757143",
-      "last_seen": "2026-02-07T13:31:04.757143",
+      "last_seen": "2026-03-10T11:46:48.334583",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "hsph.harvard.edu": {
       "status": "accessible",
@@ -18791,10 +18791,10 @@
     "education.nationalgeographic.org": {
       "status": "accessible",
       "first_seen": "2026-02-16T13:43:10.580947",
-      "last_seen": "2026-02-26T10:22:14.059598",
+      "last_seen": "2026-03-09T15:31:40.419190",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 5
     },
     "stats.stackexchange.com": {
       "status": "accessible",
@@ -18983,10 +18983,10 @@
     "ebsco.com": {
       "status": "accessible",
       "first_seen": "2026-02-16T16:15:07.944893",
-      "last_seen": "2026-03-04T14:37:23.482027",
+      "last_seen": "2026-03-09T15:31:45.024930",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 8
+      "encounter_count": 9
     },
     "diy.org": {
       "status": "accessible",
@@ -21171,10 +21171,10 @@
     "onetreeplanted.org": {
       "status": "accessible",
       "first_seen": "2026-02-26T10:22:07.937405",
-      "last_seen": "2026-02-26T11:38:42.076661",
+      "last_seen": "2026-03-09T15:31:41.163522",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 4
+      "encounter_count": 6
     },
     "marklines.com": {
       "status": "accessible",
@@ -21485,10 +21485,10 @@
     "johnsonopstreecare.com": {
       "status": "accessible",
       "first_seen": "2026-02-26T10:22:42.251678",
-      "last_seen": "2026-02-26T10:22:42.251678",
+      "last_seen": "2026-03-09T15:31:43.766892",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "strategicenergy.eu": {
       "status": "accessible",
@@ -23859,10 +23859,10 @@
     "acc.org": {
       "status": "accessible",
       "first_seen": "2026-03-06T10:28:07.990160",
-      "last_seen": "2026-03-06T10:28:07.990160",
+      "last_seen": "2026-03-10T12:30:50.644868",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 1
+      "encounter_count": 2
     },
     "williamscancerinstitute.com": {
       "status": "bot_blocked",
@@ -24219,12 +24219,206 @@
       "source": "runtime_detection",
       "metadata": {},
       "encounter_count": 1
+    },
+    "fauna-flora.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-09T15:31:42.566282",
+      "last_seen": "2026-03-09T15:31:42.566282",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "aboutlawsuits.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-09T15:44:45.541572",
+      "last_seen": "2026-03-09T15:44:45.541572",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "psychologytoday.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-09T15:44:45.915304",
+      "last_seen": "2026-03-10T11:46:54.119687",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 2
+    },
+    "mdpiblog.wordpress.sciforum.net": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-09T15:44:49.019717",
+      "last_seen": "2026-03-09T15:44:49.019717",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "georgetown.edu": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-09T15:44:49.717074",
+      "last_seen": "2026-03-09T15:44:49.717074",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "iisd.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T10:09:28.458972",
+      "last_seen": "2026-03-10T10:09:28.458972",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "factinate.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-10T10:09:28.792832",
+      "last_seen": "2026-03-10T10:09:28.792832",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "thoughtco.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T10:09:29.096984",
+      "last_seen": "2026-03-10T10:09:29.096984",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "moeveglobal.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-10T10:09:29.625414",
+      "last_seen": "2026-03-10T10:09:29.625414",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "engie.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-10T10:09:32.455697",
+      "last_seen": "2026-03-10T10:09:32.455697",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "helpguide.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T11:46:51.278099",
+      "last_seen": "2026-03-10T11:46:51.278099",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "dmuclinic.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T11:46:51.848126",
+      "last_seen": "2026-03-10T11:46:51.848126",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "mayoclinic.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-10T11:46:52.652962",
+      "last_seen": "2026-03-10T11:46:52.652962",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "goodrx.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T11:46:52.824375",
+      "last_seen": "2026-03-10T11:46:52.824375",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "healthline.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-10T11:46:56.482444",
+      "last_seen": "2026-03-10T11:46:56.482444",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ahajournals.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T12:30:49.237225",
+      "last_seen": "2026-03-10T12:30:49.237225",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "news.stanford.edu": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T12:30:49.908000",
+      "last_seen": "2026-03-10T12:30:49.908000",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "ncbi.nlm.nih.gov": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T12:30:51.060229",
+      "last_seen": "2026-03-10T12:30:51.060229",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "thecardiologyadvisor.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-10T12:30:51.371066",
+      "last_seen": "2026-03-10T12:30:51.371066",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "victorchang.edu.au": {
+      "status": "accessible",
+      "first_seen": "2026-03-10T12:30:52.890355",
+      "last_seen": "2026-03-10T12:30:52.890355",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "advisory.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-10T12:30:53.284054",
+      "last_seen": "2026-03-10T12:30:53.284054",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
     }
   },
   "summary": {
     "paywall": 15,
-    "bot_blocked": 555,
-    "accessible": 2261,
+    "bot_blocked": 568,
+    "accessible": 2269,
     "rate_limited": 11,
     "js_required": 16,
     "timeout": 24

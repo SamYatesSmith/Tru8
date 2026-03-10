@@ -3,7 +3,7 @@ import hashlib
 import httpx
 import logging
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class FactCheckAPI:
         cache_key = f"{claim_text}:{language}"
         if cache_key in self.cache:
             cached_result, cached_time = self.cache[cache_key]
-            if datetime.utcnow() - cached_time < self.cache_ttl:
+            if datetime.now(timezone.utc) - cached_time < self.cache_ttl:
                 logger.debug(f"Fact-check cache hit for: {claim_text[:50]}")
                 return cached_result
 
@@ -69,7 +69,7 @@ class FactCheckAPI:
                                 results.append(result)
 
                 # Cache results
-                self.cache[cache_key] = (results, datetime.utcnow())
+                self.cache[cache_key] = (results, datetime.now(timezone.utc))
 
                 logger.info(
                     f"Found {len(results)} fact-checks for claim: {claim_text[:50]}"

@@ -59,8 +59,6 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
 
       // Update name in our backend database
       const result = await apiClient.updateUserProfile({ name: nameValue.trim() }, token);
-      console.log('Name updated successfully:', result);
-
       setIsEditingName(false);
 
       // Refresh the page to update navbar with new name

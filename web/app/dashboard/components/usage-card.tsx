@@ -13,14 +13,14 @@ export function UsageCard({ used, total, label }: UsageCardProps) {
       <p className="text-zinc-500 text-sm mb-6">{label}: {used} / {total}</p>
 
       <div className="flex items-end justify-between mb-4">
-        <div className="text-5xl font-mono font-light text-zinc-900">{used}</div>
+        <div className="text-5xl font-mono font-light text-[var(--accent)]">{used}</div>
         <div className="text-xl text-zinc-400 font-mono">/ {total}</div>
       </div>
 
       {/* Progress Bar */}
       <div className="w-full h-1.5 bg-zinc-100 overflow-hidden">
         <div
-          className="h-full bg-zinc-900 transition-all duration-500"
+          className="h-full bg-[var(--accent)] transition-all duration-500"
           style={{ width: `${percentage}%` }}
         />
       </div>

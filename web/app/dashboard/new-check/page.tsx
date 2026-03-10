@@ -1,15 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { Loader2, Twitter, Linkedin, MessageCircle, Lock } from 'lucide-react';
+import { Loader2, Twitter, Linkedin, MessageCircle, Lock, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 import { PageHeader } from '../components/page-header';
 import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
 
-type TabType = 'url' | 'text';
+type TabType = 'url' | 'text' | 'image';
+
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+const MAX_IMAGE_SIZE = 6 * 1024 * 1024; // 6MB
+
+function validateImageFile(file: File): string | null {
+  if (!file.type.startsWith('image/')) {
+    return 'Only image files are supported (JPG, PNG, GIF, BMP, WebP).';
+  }
+  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+    return 'Unsupported format. Use JPG, PNG, GIF, BMP, or WebP.';
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    return 'Image must be under 6MB. Try compressing or cropping the image.';
+  }
+  return null;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export default function NewCheckPage() {
   const router = useRouter();
@@ -21,7 +43,11 @@ export default function NewCheckPage() {
   const [textInput, setTextInput] = useState('');
   const [queryInput, setQueryInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const urlParam = searchParams.get('url');
@@ -30,6 +56,41 @@ export default function NewCheckPage() {
       setActiveTab('url');
     }
   }, [searchParams]);
+
+  const handleImageSelect = useCallback((file: File) => {
+    setError(null);
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  }, []);
+
+  // Paste-from-clipboard listener for image tab
+  useEffect(() => {
+    if (activeTab !== 'image') return;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          e.preventDefault();
+          const file = items[i].getAsFile();
+          if (file) handleImageSelect(file);
+          return;
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [activeTab, handleImageSelect]);
 
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [usageInfo, setUsageInfo] = useState<{ used: number; limit: number } | null>(null);
@@ -62,6 +123,19 @@ export default function NewCheckPage() {
     }
   };
 
+  const handleImageClear = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setError(null);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleImageSelect(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -92,22 +166,58 @@ export default function NewCheckPage() {
       }
     }
 
+    if (activeTab === 'image') {
+      if (!imageFile) {
+        setError('Please select or paste an image');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
       const token = await getToken();
 
-      const result = await apiClient.createCheckStreaming({
-        input_type: activeTab,
-        url: activeTab === 'url' ? urlInput.trim() : undefined,
-        content: activeTab === 'text' ? textInput.trim() : undefined,
-        user_query: queryInput.trim() || undefined,
-      }, token, {
+      // Image tab: two-step flow — upload file, then create check with file_path
+      let streamData: {
+        input_type: 'url' | 'text' | 'image' | 'video';
+        url?: string;
+        content?: string;
+        file_path?: string;
+        user_query?: string;
+      };
+
+      if (activeTab === 'image' && imageFile) {
+        setIsUploading(true);
+        try {
+          const uploadResult = await apiClient.uploadFile(imageFile, token);
+          setIsUploading(false);
+          streamData = {
+            input_type: 'image',
+            file_path: uploadResult.filePath,
+            user_query: queryInput.trim() || undefined,
+          };
+        } catch (uploadErr: any) {
+          setIsUploading(false);
+          setError(uploadErr.message || 'Failed to upload image. Please try again.');
+          setIsSubmitting(false);
+          return;
+        }
+      } else {
+        streamData = {
+          input_type: activeTab,
+          url: activeTab === 'url' ? urlInput.trim() : undefined,
+          content: activeTab === 'text' ? textInput.trim() : undefined,
+          user_query: queryInput.trim() || undefined,
+        };
+      }
+
+      const result = await apiClient.createCheckStreaming(streamData, token, {
         onConnected: (checkId) => {
           window.location.href = `/dashboard/check/${checkId}`;
         },
-        onProgress: (event) => {
-          console.log('[NEW-CHECK] onProgress:', event.stage, event.progress);
+        onProgress: () => {
+          // Progress tracked via SSE on check detail page
         },
         onComplete: (checkId) => {
           if (checkId) {
@@ -154,7 +264,7 @@ export default function NewCheckPage() {
 
     const shareUrl = shareUrls[platform];
     if (shareUrl) {
-      window.open(shareUrl, '_blank', 'width=600,height=400');
+      window.open(shareUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
     }
   };
 
@@ -177,13 +287,13 @@ export default function NewCheckPage() {
               <h3 className="font-mono text-[11px] font-bold tracking-wider uppercase text-amber-800 mb-2">Monthly Limit Reached</h3>
               <p className="text-amber-600 text-sm md:text-base mb-4">
                 You&apos;ve used all {usageInfo?.limit || 3} checks available on your free plan this month.
-                Upgrade to Pro for 40 checks per month and advanced features.
+                Upgrade for more checks per month and advanced features.
               </p>
               <Link
                 href="/dashboard/settings?tab=subscription"
                 className="inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] py-3 px-6 transition-colors"
               >
-                Upgrade to Pro
+                Upgrade
               </Link>
             </div>
           </div>
@@ -198,7 +308,7 @@ export default function NewCheckPage() {
           </div>
           <h3 className="text-lg font-bold text-zinc-900">Submit Content</h3>
           <p className="text-zinc-500 text-sm mt-1">
-            Enter a URL or paste text to analyse
+            Enter a URL, paste text, or upload an image to analyse
           </p>
         </div>
 
@@ -225,6 +335,17 @@ export default function NewCheckPage() {
             }`}
           >
             TEXT
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('image')}
+            className={`pb-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors ${
+              activeTab === 'image'
+                ? 'text-black border-b-2 border-accent'
+                : 'text-zinc-400 hover:text-zinc-600'
+            }`}
+          >
+            IMAGE
           </button>
         </div>
 
@@ -275,6 +396,87 @@ export default function NewCheckPage() {
             </div>
           )}
 
+          {/* IMAGE Tab Content */}
+          {activeTab === 'image' && (
+            <div>
+              <label className="block text-zinc-400 font-mono text-[9px] font-bold uppercase tracking-[0.2em] mb-2">
+                Image Content
+              </label>
+
+              {!imageFile ? (
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed px-4 py-12 text-center transition-colors ${
+                    isDragging
+                      ? 'border-[var(--accent)] bg-orange-50'
+                      : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300'
+                  }`}
+                >
+                  <Upload className="mx-auto mb-3 text-zinc-300" size={32} />
+                  <p className="text-sm text-zinc-500 mb-2">
+                    Drag and drop an image, or{' '}
+                    <label className="text-[var(--accent)] hover:underline cursor-pointer">
+                      browse
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/bmp,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageSelect(file);
+                        }}
+                        disabled={isSubmitting}
+                      />
+                    </label>
+                  </p>
+                  <p className="text-xs text-zinc-400">
+                    You can also paste an image from your clipboard (Ctrl+V)
+                  </p>
+                  <p className="text-xs text-zinc-300 mt-2">
+                    JPG, PNG, GIF, BMP, WebP &middot; Max 6MB
+                  </p>
+                </div>
+              ) : (
+                <div className="border border-zinc-200 bg-zinc-50 p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="relative w-24 h-24 shrink-0 border border-zinc-200 bg-white overflow-hidden">
+                      {imagePreview && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={imagePreview}
+                          alt="Upload preview"
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <ImageIcon size={14} className="text-zinc-400 shrink-0" />
+                        <span className="text-sm text-zinc-700 truncate">{imageFile.name}</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 font-mono">
+                        {formatFileSize(imageFile.size)} &middot; {imageFile.type.split('/')[1].toUpperCase()}
+                      </p>
+                      <p className="text-xs text-zinc-400 mt-2">
+                        Text will be extracted via OCR for analysis
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleImageClear}
+                      className="text-zinc-400 hover:text-zinc-600 transition-colors p-1"
+                      disabled={isSubmitting}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Search Clarity Field */}
           <div className="border-t border-zinc-100 pt-6 mt-2">
             <label htmlFor="query-input" className="block font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
@@ -313,7 +515,12 @@ export default function NewCheckPage() {
             disabled={isSubmitting || isLimitReached}
             className="group relative w-full bg-black text-white py-6 text-sm font-bold tracking-[0.4em] uppercase transition-all hover:bg-zinc-900 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
+            {isSubmitting && isUploading ? (
+              <>
+                <Loader2 className="animate-spin mr-3" size={20} />
+                UPLOADING...
+              </>
+            ) : isSubmitting ? (
               <>
                 <Loader2 className="animate-spin mr-3" size={20} />
                 ANALYSING...

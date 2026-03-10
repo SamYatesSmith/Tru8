@@ -10,7 +10,7 @@ import asyncio
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Optional
 
@@ -203,7 +203,7 @@ async def _log_stage_transition(
     Every stage transition is logged with: check_id, from_stage, to_stage,
     reason, and ISO timestamp — enabling post-hoc debugging of stage ordering.
     """
-    ts = datetime.utcnow().isoformat() + "Z"
+    ts = datetime.now(timezone.utc).isoformat() + "Z"
     logger.info(
         f"[STAGE TRANSITION] check={check_id} from={from_stage} to={to_stage} "
         f"reason={reason} ts={ts}"
@@ -270,6 +270,7 @@ USER_FRIENDLY_ERRORS = {
     "connection_error": "We couldn't reach this website. Please check the URL and try again.",
     "no_claims": "We couldn't extract any verifiable claims from this content. Please try different content.",
     "timeout": "The request took too long to complete. Please try again.",
+    "insufficient text": "We couldn't read enough text from this image. Try a clearer screenshot or paste the text directly.",
 }
 
 
@@ -349,7 +350,7 @@ async def run_pipeline_phase1(
 
     warmup_search_providers()
 
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc)
     stage_timings = {}
 
     from app.pipeline.evidence_ledger import get_ledger
@@ -373,7 +374,7 @@ async def run_pipeline_phase1(
     current_stage = "starting"
     await _log_stage_transition(check_id, current_stage, "ingest", progress_reporter)
     current_stage = "ingest"
-    stage_start = datetime.utcnow()
+    stage_start = datetime.now(timezone.utc)
 
     try:
         content = await ingest_content_async(input_data)
@@ -392,7 +393,7 @@ async def run_pipeline_phase1(
             get_user_friendly_error(Exception(error_msg)), stage="ingest"
         )
 
-    stage_timings["ingest"] = (datetime.utcnow() - stage_start).total_seconds()
+    stage_timings["ingest"] = (datetime.now(timezone.utc) - stage_start).total_seconds()
     logger.info(
         f"[INLINE PIPELINE] Ingested content, length: {len(content.get('content', ''))}"
     )
@@ -402,7 +403,7 @@ async def run_pipeline_phase1(
     # =========================================================================
     await _log_stage_transition(check_id, current_stage, "extract", progress_reporter)
     current_stage = "extract"
-    stage_start = datetime.utcnow()
+    stage_start = datetime.now(timezone.utc)
 
     extract_content = content.get("content", "")
     extract_metadata = content.get("metadata", {})
@@ -521,7 +522,9 @@ async def run_pipeline_phase1(
                 mismatches=frozen_replay_mismatches,
             )
 
-    stage_timings["extract"] = (datetime.utcnow() - stage_start).total_seconds()
+    stage_timings["extract"] = (
+        datetime.now(timezone.utc) - stage_start
+    ).total_seconds()
     logger.info(f"[INLINE PIPELINE] Extracted {len(claims)} claims")
 
     # =========================================================================
@@ -541,7 +544,7 @@ async def run_pipeline_phase1(
             check_id, current_stage, "select", progress_reporter
         )
         current_stage = "select"
-        stage_start = datetime.utcnow()
+        stage_start = datetime.now(timezone.utc)
 
         try:
             selector = ClaimSelector()
@@ -575,7 +578,9 @@ async def run_pipeline_phase1(
                 c["significance_score"] = 0.5
             selected_claims = [c for c in claims if c.get("is_selected")]
 
-        stage_timings["select"] = (datetime.utcnow() - stage_start).total_seconds()
+        stage_timings["select"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
 
         if ledger:
             ledger.record(
@@ -760,7 +765,7 @@ async def run_pipeline_phase2(
     )
     from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
 
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc)
     stage_timings = {}
 
     # =========================================================================
@@ -904,7 +909,7 @@ async def run_pipeline_phase2(
             check_id, current_stage, "factcheck", progress_reporter
         )
         current_stage = "factcheck"
-        stage_start = datetime.utcnow()
+        stage_start = datetime.now(timezone.utc)
         try:
             factcheck_evidence = await search_factchecks_for_claims(claims)
             logger.info(
@@ -912,14 +917,16 @@ async def run_pipeline_phase2(
             )
         except Exception as e:
             logger.warning(f"Fact-check lookup failed (non-critical): {e}")
-        stage_timings["factcheck"] = (datetime.utcnow() - stage_start).total_seconds()
+        stage_timings["factcheck"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
 
     # =========================================================================
     # Stage 3: Decompose Claims into Elements
     # =========================================================================
     await _log_stage_transition(check_id, current_stage, "decompose", progress_reporter)
     current_stage = "decompose"
-    stage_start = datetime.utcnow()
+    stage_start = datetime.now(timezone.utc)
 
     analyzer = ClaimMapAnalyzer()
 
@@ -941,7 +948,9 @@ async def run_pipeline_phase2(
         )
         raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose")
 
-    stage_timings["decompose"] = (datetime.utcnow() - stage_start).total_seconds()
+    stage_timings["decompose"] = (
+        datetime.now(timezone.utc) - stage_start
+    ).total_seconds()
 
     if ledger:
         ledger.record(
@@ -960,7 +969,7 @@ async def run_pipeline_phase2(
     # =========================================================================
     await _log_stage_transition(check_id, current_stage, "retrieve", progress_reporter)
     current_stage = "retrieve"
-    stage_start = datetime.utcnow()
+    stage_start = datetime.now(timezone.utc)
 
     source_url = content.get("metadata", {}).get("url")
     retrieve_timeout = 180
@@ -1086,7 +1095,9 @@ async def run_pipeline_phase2(
             raw_evidence_data = []
             raw_sources_count = 0
 
-        stage_timings["retrieve"] = (datetime.utcnow() - stage_start).total_seconds()
+        stage_timings["retrieve"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
 
         pre_weighting_evidence = (
             retrieval_result.get("pre_weighting_evidence", {})
@@ -1159,7 +1170,7 @@ async def run_pipeline_phase2(
             f"[URL DEDUP] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
         )
     elif evidence:
-        stage_start = datetime.utcnow()
+        stage_start = datetime.now(timezone.utc)
         try:
             max_claims_per_url = getattr(settings, "MAX_CLAIMS_PER_URL", 3)
             url_claims = {}
@@ -1252,7 +1263,9 @@ async def run_pipeline_phase2(
 
         except Exception as e:
             logger.warning(f"Cross-claim URL deduplication failed (non-critical): {e}")
-        stage_timings["url_dedup"] = (datetime.utcnow() - stage_start).total_seconds()
+        stage_timings["url_dedup"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
 
     # =========================================================================
     # Stage 3.7: LLM Relevance Scoring with Reassignment
@@ -1274,7 +1287,7 @@ async def run_pipeline_phase2(
         and config.enable_llm_relevance_scorer
         and evidence
     ):
-        stage_start = datetime.utcnow()
+        stage_start = datetime.now(timezone.utc)
         count_before_scoring = sum(len(ev_list) for ev_list in evidence.values())
         try:
             from app.pipeline.relevance_scorer import score_evidence_batch
@@ -1325,7 +1338,7 @@ async def run_pipeline_phase2(
         except Exception as e:
             logger.warning(f"LLM relevance scoring failed (non-critical): {e}")
         stage_timings["llm_relevance"] = (
-            datetime.utcnow() - stage_start
+            datetime.now(timezone.utc) - stage_start
         ).total_seconds()
 
     # =========================================================================
@@ -1347,7 +1360,7 @@ async def run_pipeline_phase2(
                 f"[POST-FILTER RECOVERY] {len(thin_claims)} claims below {MIN_EVIDENCE_POST_FILTER} items: "
                 f"positions {[c[0] for c in thin_claims]}"
             )
-            stage_start = datetime.utcnow()
+            stage_start = datetime.now(timezone.utc)
             try:
                 from app.services.search import SearchService
 
@@ -1421,7 +1434,7 @@ async def run_pipeline_phase2(
             except Exception as e:
                 logger.warning(f"Post-filter recovery failed (non-critical): {e}")
             stage_timings["post_filter_recovery"] = (
-                datetime.utcnow() - stage_start
+                datetime.now(timezone.utc) - stage_start
             ).total_seconds()
 
     # =========================================================================
@@ -1436,7 +1449,7 @@ async def run_pipeline_phase2(
             check_id, current_stage, "classify", progress_reporter
         )
         current_stage = "classify"
-        stage_start = datetime.utcnow()
+        stage_start = datetime.now(timezone.utc)
 
         try:
             if config.enable_llm_classifier:
@@ -1467,7 +1480,9 @@ async def run_pipeline_phase2(
         except Exception as e:
             logger.warning(f"Evidence classification failed (non-critical): {e}")
 
-        stage_timings["classify"] = (datetime.utcnow() - stage_start).total_seconds()
+        stage_timings["classify"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
 
         if ledger:
             from collections import Counter
@@ -1491,7 +1506,7 @@ async def run_pipeline_phase2(
     # =========================================================================
     await _log_stage_transition(check_id, current_stage, "analyze", progress_reporter)
     current_stage = "analyze"
-    stage_start = datetime.utcnow()
+    stage_start = datetime.now(timezone.utc)
 
     from app.utils.url_utils import extract_domain
 
@@ -1642,7 +1657,9 @@ async def run_pipeline_phase2(
             },
         )
 
-    stage_timings["analyze"] = (datetime.utcnow() - stage_start).total_seconds()
+    stage_timings["analyze"] = (
+        datetime.now(timezone.utc) - stage_start
+    ).total_seconds()
 
     # =========================================================================
     # Stage 5.1: Coverage Recovery — targeted retrieval for low-coverage claims
@@ -1707,7 +1724,7 @@ async def run_pipeline_phase2(
         from app.pipeline.retrieve import EvidenceRetriever
 
         retriever = EvidenceRetriever()
-        recovery_start = datetime.utcnow()
+        recovery_start = datetime.now(timezone.utc)
         claims_recovered = 0
         elements_resolved = 0
 
@@ -1819,7 +1836,7 @@ async def run_pipeline_phase2(
                 f"[COVERAGE RECOVERY] Timed out after {RECOVERY_TIMEOUT_SECONDS}s"
             )
 
-        recovery_elapsed = (datetime.utcnow() - recovery_start).total_seconds()
+        recovery_elapsed = (datetime.now(timezone.utc) - recovery_start).total_seconds()
         stage_timings["coverage_recovery"] = recovery_elapsed
 
         logger.info(
@@ -1847,7 +1864,7 @@ async def run_pipeline_phase2(
     ):
         await _log_stage_transition(check_id, current_stage, "query", progress_reporter)
         current_stage = "query"
-        stage_start = datetime.utcnow()
+        stage_start = datetime.now(timezone.utc)
 
         try:
             from app.pipeline.query_answer import get_query_answerer
@@ -1869,7 +1886,9 @@ async def run_pipeline_phase2(
         except Exception as e:
             logger.error(f"Query answering failed (non-critical): {e}")
 
-        stage_timings["query"] = (datetime.utcnow() - stage_start).total_seconds()
+        stage_timings["query"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
 
     # =========================================================================
     # Build Final Result
@@ -1906,7 +1925,9 @@ async def run_pipeline_phase2(
     results.sort(key=lambda x: x.get("position", 0))
 
     api_stats = _aggregate_api_stats(claims, evidence)
-    processing_time_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+    processing_time_ms = int(
+        (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+    )
 
     final_result = {
         "check_id": check_id,
@@ -2109,7 +2130,7 @@ async def save_check_results_async(
             return
 
         check.status = "completed"
-        check.completed_at = datetime.utcnow()
+        check.completed_at = datetime.now(timezone.utc)
         check.processing_time_ms = results.get("processing_time_ms", 0)
         check.article_excerpt = results.get("article_excerpt")
         check.entry_mode = results.get("entry_mode")
@@ -2275,8 +2296,11 @@ async def save_check_results_async(
         raw_evidence_data = results.get("raw_evidence", [])
         raw_sources_count = results.get("raw_sources_count", len(raw_evidence_data))
 
+        total_search_results = results.get("total_search_results", 0)
+
         if raw_evidence_data:
             check.raw_sources_count = raw_sources_count
+            check.total_search_results = total_search_results or raw_sources_count
             for raw_ev in raw_evidence_data:
                 claim_text_val = raw_ev.get("claim_text")
                 if claim_text_val:

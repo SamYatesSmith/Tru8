@@ -1,3 +1,4 @@
+import base64
 import logging
 import asyncio
 import random
@@ -11,8 +12,8 @@ import bleach
 from youtube_transcript_api import YouTubeTranscriptApi
 from app.core.config import settings
 
-# Note: pytesseract and PIL imports moved inside functions to prevent
-# heavy ML libraries (numpy) from loading at startup. They will only load when OCR is actually used.
+# Note: PIL imports moved inside functions to prevent heavy ML libraries (numpy)
+# from loading at startup. They will only load when image OCR is actually used.
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +30,13 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 ]
 
+
 class BaseIngester:
     """Base class for content ingesters"""
-    
+
     def __init__(self):
         self.timeout = settings.PIPELINE_TIMEOUT_SECONDS
-    
+
     async def sanitize_content(self, content: str) -> str:
         """Sanitize HTML content and remove scripts"""
         # Handle None or empty content
@@ -42,30 +44,61 @@ class BaseIngester:
             return ""
 
         # Remove scripts and other dangerous content
-        allowed_tags = ['p', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                       'strong', 'em', 'ul', 'ol', 'li', 'br', 'blockquote']
+        allowed_tags = [
+            "p",
+            "div",
+            "span",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "strong",
+            "em",
+            "ul",
+            "ol",
+            "li",
+            "br",
+            "blockquote",
+        ]
 
         clean_content = bleach.clean(content, tags=allowed_tags, strip=True)
 
         # Remove excessive whitespace
-        clean_content = re.sub(r'\s+', ' ', clean_content).strip()
+        clean_content = re.sub(r"\s+", " ", clean_content).strip()
 
         return clean_content if clean_content else ""
+
 
 class UrlIngester(BaseIngester):
     """Ingest content from URLs"""
 
     # Cookie consent / GDPR boilerplate patterns
     COOKIE_CONSENT_PATTERNS = [
-        'cookie settings', 'cookie policy', 'cookie preferences',
-        'manage cookies', 'accept cookies', 'reject cookies',
-        'accept all', 'reject all', 'manage privacy',
-        'privacy settings', 'privacy preferences', 'privacy dashboard',
-        'consent to cookies', 'cookie consent', 'gdpr',
-        'we use cookies', 'this site uses cookies',
-        'personal data', 'partners use cookies',
-        'legitimate interest', 'manage preferences',
-        'customise your choices', 'customize your choices',
+        "cookie settings",
+        "cookie policy",
+        "cookie preferences",
+        "manage cookies",
+        "accept cookies",
+        "reject cookies",
+        "accept all",
+        "reject all",
+        "manage privacy",
+        "privacy settings",
+        "privacy preferences",
+        "privacy dashboard",
+        "consent to cookies",
+        "cookie consent",
+        "gdpr",
+        "we use cookies",
+        "this site uses cookies",
+        "personal data",
+        "partners use cookies",
+        "legitimate interest",
+        "manage preferences",
+        "customise your choices",
+        "customize your choices",
     ]
 
     def _is_cookie_consent_content(self, content: str) -> bool:
@@ -80,17 +113,23 @@ class UrlIngester(BaseIngester):
         word_count = len(content.split())
 
         # Count cookie/consent pattern matches
-        pattern_matches = sum(1 for pattern in self.COOKIE_CONSENT_PATTERNS if pattern in content_lower)
+        pattern_matches = sum(
+            1 for pattern in self.COOKIE_CONSENT_PATTERNS if pattern in content_lower
+        )
 
         # If content is short AND has multiple consent patterns, it's likely a consent wall
         # Threshold: 3+ patterns in content under 500 words suggests consent wall
         if word_count < 500 and pattern_matches >= 3:
-            logger.info(f"[INGEST] Cookie consent detected: {pattern_matches} patterns in {word_count} words")
+            logger.info(
+                f"[INGEST] Cookie consent detected: {pattern_matches} patterns in {word_count} words"
+            )
             return True
 
         # High density check: if >20% of patterns match in short content
         if word_count < 300 and pattern_matches >= 2:
-            logger.info(f"[INGEST] Cookie consent detected (high density): {pattern_matches} patterns in {word_count} words")
+            logger.info(
+                f"[INGEST] Cookie consent detected (high density): {pattern_matches} patterns in {word_count} words"
+            )
             return True
 
         return False
@@ -98,18 +137,18 @@ class UrlIngester(BaseIngester):
     def _get_browser_headers(self, user_agent: str) -> Dict[str, str]:
         """Return browser-like headers to avoid bot detection"""
         return {
-            'User-Agent': user_agent,
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-GB,en;q=0.9,en-US;q=0.8',
-            'Accept-Encoding': 'gzip, deflate',  # Removed 'br' (Brotli) - requests library has buggy Brotli support
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Cache-Control': 'max-age=0',
+            "User-Agent": user_agent,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
+            "Accept-Encoding": "gzip, deflate",  # Removed 'br' (Brotli) - requests library has buggy Brotli support
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Cache-Control": "max-age=0",
         }
 
     async def process(self, url: str) -> Dict[str, Any]:
@@ -140,18 +179,22 @@ class UrlIngester(BaseIngester):
                             url,
                             timeout=self.timeout,
                             allow_redirects=True,
-                            headers=headers
+                            headers=headers,
                         )
                         response.raise_for_status()
                         return response
 
                     except requests.HTTPError as e:
                         last_error = e
-                        status_code = e.response.status_code if e.response is not None else 0
+                        status_code = (
+                            e.response.status_code if e.response is not None else 0
+                        )
 
                         # For 403/429, try next User-Agent
                         if status_code in (403, 429) and attempt < len(user_agents) - 1:
-                            logger.debug(f"Got {status_code} on attempt {attempt + 1}, trying different User-Agent")
+                            logger.debug(
+                                f"Got {status_code} on attempt {attempt + 1}, trying different User-Agent"
+                            )
                             continue
 
                         # For other errors or final attempt, raise
@@ -169,7 +212,7 @@ class UrlIngester(BaseIngester):
                 include_comments=False,
                 include_tables=False,
                 with_metadata=True,
-                url=url
+                url=url,
             )
 
             if extracted:
@@ -188,7 +231,7 @@ class UrlIngester(BaseIngester):
                         "success": False,
                         "error": "cookie_consent_wall",
                         "message": "This article appears to be behind a cookie consent wall. Please visit the URL directly, accept cookies, then copy and paste the article text instead.",
-                        "metadata": {"url": url, "cookie_wall": True}
+                        "metadata": {"url": url, "cookie_wall": True},
                     }
                 else:
                     return {
@@ -199,8 +242,8 @@ class UrlIngester(BaseIngester):
                             "author": metadata.author if metadata else "",
                             "date": metadata.date if metadata else "",
                             "url": url,
-                            "word_count": len(content.split())
-                        }
+                            "word_count": len(content.split()),
+                        },
                     }
 
             # Fallback to readability
@@ -211,7 +254,7 @@ class UrlIngester(BaseIngester):
                 return {
                     "success": False,
                     "error": "Could not extract content from URL - both trafilatura and readability failed",
-                    "metadata": {"url": url}
+                    "metadata": {"url": url},
                 }
 
             content = await self.sanitize_content(summary)
@@ -221,7 +264,7 @@ class UrlIngester(BaseIngester):
                 return {
                     "success": False,
                     "error": "Extracted content too short - URL may be behind paywall or block bot access",
-                    "metadata": {"url": url}
+                    "metadata": {"url": url},
                 }
 
             # Check for cookie consent wall (readability fallback)
@@ -230,7 +273,7 @@ class UrlIngester(BaseIngester):
                     "success": False,
                     "error": "cookie_consent_wall",
                     "message": "This article appears to be behind a cookie consent wall. Please visit the URL directly, accept cookies, then copy and paste the article text instead.",
-                    "metadata": {"url": url, "cookie_wall": True}
+                    "metadata": {"url": url, "cookie_wall": True},
                 }
 
             return {
@@ -240,8 +283,8 @@ class UrlIngester(BaseIngester):
                     "title": doc.title(),
                     "url": url,
                     "word_count": len(content.split()),
-                    "extraction_method": "readability"
-                }
+                    "extraction_method": "readability",
+                },
             }
 
         except requests.Timeout:
@@ -258,16 +301,18 @@ class UrlIngester(BaseIngester):
                     "success": False,
                     "error": "Paywall detected - this content requires a subscription",
                     "content": "",
-                    "metadata": {"paywall": True, "url": url}
+                    "metadata": {"paywall": True, "url": url},
                 }
             elif status_code == 403:
                 # Access forbidden - site is blocking automated access
-                logger.warning(f"Site {domain} blocked access (403 Forbidden) after all User-Agent attempts")
+                logger.warning(
+                    f"Site {domain} blocked access (403 Forbidden) after all User-Agent attempts"
+                )
                 return {
                     "success": False,
                     "error": f"Site blocked access - {domain} does not allow automated fact-checking. Try pasting the article text directly",
                     "content": "",
-                    "metadata": {"blocked": True, "url": url, "domain": domain}
+                    "metadata": {"blocked": True, "url": url, "domain": domain},
                 }
             elif status_code == 429:
                 # Rate limited
@@ -276,14 +321,14 @@ class UrlIngester(BaseIngester):
                     "success": False,
                     "error": "Rate limited - please try again in a few minutes",
                     "content": "",
-                    "metadata": {"rate_limited": True, "url": url}
+                    "metadata": {"rate_limited": True, "url": url},
                 }
             elif status_code == 404:
                 return {
                     "success": False,
                     "error": "Page not found - the URL may be incorrect or the content removed",
                     "content": "",
-                    "metadata": {"url": url}
+                    "metadata": {"url": url},
                 }
             else:
                 logger.error(f"HTTP error fetching URL {url}: {e}")
@@ -291,130 +336,304 @@ class UrlIngester(BaseIngester):
                     "success": False,
                     "error": f"HTTP error ({status_code}) - unable to access this URL",
                     "content": "",
-                    "metadata": {"url": url, "status_code": status_code}
+                    "metadata": {"url": url, "status_code": status_code},
                 }
 
         except requests.exceptions.ConnectionError as e:
             # Connection errors (site dropped connection, DNS failure, etc.)
             error_str = str(e)
-            if 'RemoteDisconnected' in error_str or 'Connection aborted' in error_str:
+            if "RemoteDisconnected" in error_str or "Connection aborted" in error_str:
                 logger.warning(f"Site {urlparse(url).netloc} dropped connection: {e}")
                 return {
                     "success": False,
                     "error": f"Site refused connection - {urlparse(url).netloc} may be blocking automated access. Try pasting the article text directly.",
                     "content": "",
-                    "metadata": {"blocked": True, "url": url}
+                    "metadata": {"blocked": True, "url": url},
                 }
             else:
                 logger.error(f"Connection error for URL {url}: {e}")
                 return {
                     "success": False,
                     "error": "Connection failed - unable to reach the website. Please check the URL and try again.",
-                    "content": ""
+                    "content": "",
                 }
 
         except Exception as e:
             logger.error(f"Error processing URL {url}: {e}")
             return {"success": False, "error": str(e), "content": ""}
 
+
 class ImageIngester(BaseIngester):
-    """Extract text from images using OCR"""
-    
+    """Extract text from images using Gemini vision (preferred) or OpenAI vision (fallback)"""
+
     async def process(self, image_path: str) -> Dict[str, Any]:
-        """Extract text from image using OCR"""
+        """Extract text from image.
+
+        Strategy: try Gemini vision first (handles stylised text, infographics,
+        varied fonts). Falls back to OpenAI vision if Gemini is unavailable.
+
+        image_path may be a local filesystem path or a remote URL
+        (S3/R2). Remote files are downloaded via the storage service first.
+        """
         try:
-            # Import PIL only when actually needed
+            import io
+
             from PIL import Image
-            
-            # Load image
-            image = Image.open(image_path)
-            
-            # Check file size (6MB limit from project overview)
-            max_size = 6 * 1024 * 1024  # 6MB
-            if image_path and hasattr(image, 'tell'):
-                if image.tell() > max_size:
-                    return {
-                        "success": False,
-                        "error": "Image too large (max 6MB)",
-                        "content": ""
-                    }
-            
-            # Import pytesseract only when actually needed
-            import pytesseract
-            
-            # Run OCR in thread pool to avoid blocking
-            loop = asyncio.get_event_loop()
-            extracted_text = await loop.run_in_executor(
-                None, 
-                pytesseract.image_to_string, 
-                image
+
+            # Load image bytes — download from storage if remote
+            if image_path.startswith(("http://", "https://", "s3://")):
+                from app.services.storage import storage_service
+
+                image_bytes = await storage_service.download(image_path)
+            else:
+                with open(image_path, "rb") as f:
+                    image_bytes = f.read()
+
+            # Check file size (6MB limit)
+            max_size = 6 * 1024 * 1024
+            if len(image_bytes) > max_size:
+                return {
+                    "success": False,
+                    "error": "Image too large (max 6MB)",
+                    "content": "",
+                }
+
+            image = Image.open(io.BytesIO(image_bytes))
+
+            # Detect MIME type from PIL format
+            fmt = (image.format or "PNG").upper()
+            mime_map = {
+                "PNG": "image/png",
+                "JPEG": "image/jpeg",
+                "JPG": "image/jpeg",
+                "GIF": "image/gif",
+                "WEBP": "image/webp",
+                "BMP": "image/bmp",
+            }
+            mime_type = mime_map.get(fmt, "image/png")
+
+            # Try Gemini vision first
+            extracted_text = await self._extract_with_gemini_vision(
+                image_bytes, mime_type
             )
-            
+            extraction_method = "gemini_vision"
+
+            # Fall back to OpenAI vision if Gemini failed
+            if not extracted_text:
+                logger.info(
+                    "Gemini vision unavailable or failed, falling back to OpenAI vision"
+                )
+                extracted_text = await self._extract_with_openai_vision(
+                    image_bytes, mime_type
+                )
+                extraction_method = "openai_vision"
+
             # Clean up extracted text
-            content = await self.sanitize_content(extracted_text)
-            
-            # Basic quality check
+            content = await self.sanitize_content(extracted_text or "")
+
             if len(content.strip()) < 10:
                 return {
                     "success": False,
                     "error": "Insufficient text extracted from image",
-                    "content": content
+                    "content": content,
                 }
-            
+
             return {
                 "success": True,
                 "content": content,
                 "metadata": {
-                    "extraction_method": "tesseract_ocr",
+                    "extraction_method": extraction_method,
                     "image_size": image.size if image else None,
-                    "word_count": len(content.split())
-                }
+                    "word_count": len(content.split()),
+                },
             }
-            
+
         except Exception as e:
             logger.error(f"Error processing image {image_path}: {e}")
             return {"success": False, "error": str(e), "content": ""}
 
+    async def _extract_with_gemini_vision(
+        self, image_bytes: bytes, mime_type: str
+    ) -> Optional[str]:
+        """Use Gemini vision to extract text from an image."""
+        try:
+            import json
+
+            import httpx
+
+            api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
+            if not api_key:
+                return None
+
+            # Use the full flash model for vision — lite may not support multimodal
+            model = getattr(settings, "MAPPING_GOOGLE_MODEL", "gemini-2.5-flash")
+            url = (
+                f"https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model}:generateContent?key={api_key}"
+            )
+
+            b64_data = base64.b64encode(image_bytes).decode("utf-8")
+
+            body = {
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": (
+                                    "Extract ALL text visible in this image — every panel, section, card, and caption. "
+                                    "The image may contain multiple distinct statements or claims side by side. "
+                                    "Reproduce each one exactly as written, preserving the original wording. "
+                                    "Separate each distinct statement with a blank line. "
+                                    "Do not summarise, merge, or skip any text. "
+                                    "Do not add commentary — only return the text from the image."
+                                )
+                            },
+                            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": 0.1,
+                    "maxOutputTokens": 2000,
+                },
+            }
+
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(30.0, connect=10.0)
+            ) as client:
+                response = await client.post(
+                    url,
+                    headers={"Content-Type": "application/json"},
+                    json=body,
+                    timeout=30.0,
+                )
+
+            if response.status_code != 200:
+                logger.warning("Gemini vision returned %d", response.status_code)
+                return None
+
+            result = response.json()
+            text = result["candidates"][0]["content"]["parts"][0]["text"]
+            logger.info(
+                "[IMAGE OCR] Gemini vision extracted %d chars from image", len(text)
+            )
+            return text
+
+        except Exception as e:
+            logger.warning("Gemini vision extraction failed: %s", e)
+            return None
+
+    async def _extract_with_openai_vision(
+        self, image_bytes: bytes, mime_type: str
+    ) -> Optional[str]:
+        """Fallback: use OpenAI GPT-4o-mini vision to extract text from an image."""
+        try:
+            import httpx
+
+            api_key = getattr(settings, "OPENAI_API_KEY", "")
+            if not api_key:
+                return None
+
+            b64_data = base64.b64encode(image_bytes).decode("utf-8")
+            data_url = f"data:{mime_type};base64,{b64_data}"
+
+            body = {
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": (
+                                    "Extract ALL text visible in this image — every panel, section, card, and caption. "
+                                    "The image may contain multiple distinct statements or claims side by side. "
+                                    "Reproduce each one exactly as written, preserving the original wording. "
+                                    "Separate each distinct statement with a blank line. "
+                                    "Do not summarise, merge, or skip any text. "
+                                    "Do not add commentary — only return the text from the image."
+                                ),
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": data_url, "detail": "high"},
+                            },
+                        ],
+                    }
+                ],
+                "max_tokens": 2000,
+                "temperature": 0.1,
+            }
+
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(30.0, connect=10.0)
+            ) as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {api_key}",
+                    },
+                    json=body,
+                    timeout=30.0,
+                )
+
+            if response.status_code != 200:
+                logger.warning("OpenAI vision returned %d", response.status_code)
+                return None
+
+            result = response.json()
+            text = result["choices"][0]["message"]["content"]
+            logger.info(
+                "[IMAGE OCR] OpenAI vision extracted %d chars from image", len(text)
+            )
+            return text
+
+        except Exception as e:
+            logger.warning("OpenAI vision extraction failed: %s", e)
+            return None
+
+
 class VideoIngester(BaseIngester):
     """Extract transcripts from videos"""
-    
+
     async def process(self, video_url: str) -> Dict[str, Any]:
         """Extract transcript from video URL"""
         try:
             # Check if YouTube video
             if self._is_youtube_url(video_url):
                 return await self._process_youtube(video_url)
-            
-            # TODO: Add support for other video platforms
+
+            # POST-RELEASE TODO: Add support for other video platforms (Vimeo, Dailymotion)
             return {
                 "success": False,
                 "error": "Unsupported video platform",
-                "content": ""
+                "content": "",
             }
-            
+
         except Exception as e:
             logger.error(f"Error processing video {video_url}: {e}")
             return {"success": False, "error": str(e), "content": ""}
-    
+
     def _is_youtube_url(self, url: str) -> bool:
         """Check if URL is a YouTube video"""
-        youtube_domains = ['youtube.com', 'youtu.be', 'm.youtube.com']
+        youtube_domains = ["youtube.com", "youtu.be", "m.youtube.com"]
         parsed = urlparse(url)
         return any(domain in parsed.netloc for domain in youtube_domains)
-    
+
     def _extract_youtube_id(self, url: str) -> Optional[str]:
         """Extract YouTube video ID from URL"""
         parsed = urlparse(url)
-        
-        if 'youtu.be' in parsed.netloc:
-            return parsed.path.lstrip('/')
-        
-        if 'youtube.com' in parsed.netloc:
+
+        if "youtu.be" in parsed.netloc:
+            return parsed.path.lstrip("/")
+
+        if "youtube.com" in parsed.netloc:
             query = parse_qs(parsed.query)
-            return query.get('v', [None])[0]
-        
+            return query.get("v", [None])[0]
+
         return None
-    
+
     async def _process_youtube(self, url: str) -> Dict[str, Any]:
         """Process YouTube video transcript"""
         try:
@@ -423,32 +642,36 @@ class VideoIngester(BaseIngester):
                 return {
                     "success": False,
                     "error": "Could not extract YouTube video ID",
-                    "content": ""
+                    "content": "",
                 }
-            
+
             # Get transcript in thread pool
             loop = asyncio.get_event_loop()
             transcript_list = await loop.run_in_executor(
                 None,
                 YouTubeTranscriptApi.get_transcript,
                 video_id,
-                ['en', 'en-US', 'en-GB']  # Prefer English
+                ["en", "en-US", "en-GB"],  # Prefer English
             )
-            
+
             # Combine transcript segments
-            full_transcript = " ".join([entry['text'] for entry in transcript_list])
-            
+            full_transcript = " ".join([entry["text"] for entry in transcript_list])
+
             # Check 8-minute limit (from project overview)
-            duration = transcript_list[-1]['start'] + transcript_list[-1]['duration'] if transcript_list else 0
+            duration = (
+                transcript_list[-1]["start"] + transcript_list[-1]["duration"]
+                if transcript_list
+                else 0
+            )
             if duration > 8 * 60:  # 8 minutes
                 return {
                     "success": False,
                     "error": "Video too long (max 8 minutes for Quick mode)",
-                    "content": full_transcript[:1000] + "..."  # Return partial
+                    "content": full_transcript[:1000] + "...",  # Return partial
                 }
-            
+
             content = await self.sanitize_content(full_transcript)
-            
+
             return {
                 "success": True,
                 "content": content,
@@ -456,16 +679,16 @@ class VideoIngester(BaseIngester):
                     "video_id": video_id,
                     "duration_seconds": duration,
                     "word_count": len(content.split()),
-                    "transcript_segments": len(transcript_list)
-                }
+                    "transcript_segments": len(transcript_list),
+                },
             }
-            
+
         except Exception as e:
-            # TODO: Fallback to Whisper API for videos without transcripts
+            # POST-RELEASE TODO: Fallback to Whisper API for videos without transcripts
             logger.warning(f"YouTube transcript failed for {url}: {e}")
             return {
                 "success": False,
                 "error": f"Transcript unavailable: {str(e)}",
                 "content": "",
-                "metadata": {"requires_whisper_fallback": True}
+                "metadata": {"requires_whisper_fallback": True},
             }

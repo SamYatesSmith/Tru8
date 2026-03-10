@@ -9,7 +9,7 @@ Tru8 organises evidence so you can decide what matters. Submit a claim or URL, a
 ### Prerequisites
 
 - Docker & Docker Compose
-- Python 3.12+
+- Python 3.11+
 - Node.js 20+
 
 ### 1. Start Infrastructure

@@ -6,7 +6,7 @@ Each user can register up to 5 webhook URLs. When a subscribed event fires
 """
 
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlmodel import Field, SQLModel, Column
 from sqlalchemy.dialects.postgresql import JSONB
 import uuid
@@ -30,4 +30,4 @@ class Webhook(SQLModel, table=True):
     # Delivery tracking
     last_triggered_at: Optional[datetime] = None
     failure_count: int = Field(default=0)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

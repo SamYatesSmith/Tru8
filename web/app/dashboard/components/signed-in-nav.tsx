@@ -49,7 +49,7 @@ export function SignedInNav({ user }: SignedInNavProps) {
         <div className="container mx-auto px-4 md:px-6 max-w-7xl">
           <div className="flex items-center justify-between h-14 md:h-16">
             {/* Left: Logo */}
-            <Link href="/dashboard" className="flex-shrink-0 flex items-center gap-2">
+            <Link href="/" className="flex-shrink-0 flex items-center gap-2">
               <Image
                 src="/logo.proper.png"
                 alt="Tru8"

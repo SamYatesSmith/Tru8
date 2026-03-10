@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     S3_ACCESS_KEY: str = Field("", env="S3_ACCESS_KEY")
     S3_SECRET_KEY: str = Field("", env="S3_SECRET_KEY")
     S3_ENDPOINT: str = Field("", env="S3_ENDPOINT")
+    S3_REGION: str = Field("eu-north-1", env="S3_REGION")
 
     # Stripe Payments
     STRIPE_SECRET_KEY: str = Field("", env="STRIPE_SECRET_KEY")

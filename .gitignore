@@ -98,6 +98,12 @@ credentials/
 # Runtime output
 backend/logs/
 backend/data/ledger/
+backend/MODULE_RELOADED.txt
+
+# Test/debug data files
+backend/data/agent_*.json
+backend/data/quality_test_results.json
+backend/data/pq08_*.json
 nul
 
 # Harness artifacts

@@ -2,10 +2,11 @@
 Feedback API endpoint for beta testing period.
 Receives user feedback and sends email notifications to admin.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from app.core.auth import get_current_user
 from app.core.config import settings
 import logging
@@ -33,25 +34,25 @@ class FeedbackResponse(BaseModel):
 def _get_type_emoji(feedback_type: str) -> str:
     """Get emoji for feedback type"""
     type_emojis = {
-        'fact-check': '📊',
-        'ui': '🎨',
-        'bug': '🐛',
-        'suggestion': '💡',
-        'other': '❓',
+        "fact-check": "📊",
+        "ui": "🎨",
+        "bug": "🐛",
+        "suggestion": "💡",
+        "other": "❓",
     }
-    return type_emojis.get(feedback_type, '❓')
+    return type_emojis.get(feedback_type, "❓")
 
 
 def _get_type_label(feedback_type: str) -> str:
     """Get human-readable label for feedback type"""
     type_labels = {
-        'fact-check': 'Fact-Check Result',
-        'ui': 'UI / Design',
-        'bug': 'Bug Report',
-        'suggestion': 'Feature Suggestion',
-        'other': 'Other',
+        "fact-check": "Fact-Check Result",
+        "ui": "UI / Design",
+        "bug": "Bug Report",
+        "suggestion": "Feature Suggestion",
+        "other": "Other",
     }
-    return type_labels.get(feedback_type, 'Other')
+    return type_labels.get(feedback_type, "Other")
 
 
 def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
@@ -135,7 +136,7 @@ def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
                         {claim_section}
                         <tr>
                             <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Time</td>
-                            <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</td>
+                            <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</td>
                         </tr>
                     </table>
                 </div>
@@ -152,7 +153,9 @@ def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
         """
 
         # Send to admin email
-        admin_email = getattr(settings, 'FEEDBACK_EMAIL', None) or settings.EMAIL_FROM_ADDRESS
+        admin_email = (
+            getattr(settings, "FEEDBACK_EMAIL", None) or settings.EMAIL_FROM_ADDRESS
+        )
 
         params = {
             "from": f"Tru8 Feedback <{settings.EMAIL_FROM_ADDRESS}>",
@@ -166,7 +169,11 @@ def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
         params = {k: v for k, v in params.items() if v is not None}
 
         response = resend.Emails.send(params)
-        email_id = response.get('id') if isinstance(response, dict) else getattr(response, 'id', 'unknown')
+        email_id = (
+            response.get("id")
+            if isinstance(response, dict)
+            else getattr(response, "id", "unknown")
+        )
         logger.info(f"Feedback email sent successfully, id: {email_id}")
         return True
 
@@ -180,8 +187,7 @@ def _send_feedback_email(feedback: FeedbackRequest, user_id: str) -> bool:
 
 @router.post("/feedback", response_model=FeedbackResponse)
 async def submit_feedback(
-    feedback: FeedbackRequest,
-    current_user: dict = Depends(get_current_user)
+    feedback: FeedbackRequest, current_user: dict = Depends(get_current_user)
 ):
     """
     Submit user feedback during beta testing period.
@@ -206,10 +212,7 @@ async def submit_feedback(
         # Still return success - we logged it at least
         logger.warning("Feedback email not sent, but feedback logged")
 
-    return FeedbackResponse(
-        success=True,
-        message="Thank you for your feedback!"
-    )
+    return FeedbackResponse(success=True, message="Thank you for your feedback!")
 
 
 class WaitlistRequest(BaseModel):
@@ -226,9 +229,11 @@ async def join_waitlist(request: WaitlistRequest):
     import re
 
     # Basic email validation
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if not re.match(email_pattern, request.email):
-        raise HTTPException(status_code=400, detail="Please enter a valid email address")
+        raise HTTPException(
+            status_code=400, detail="Please enter a valid email address"
+        )
 
     logger.info(f"[WAITLIST] New signup: {request.email} from {request.source}")
 
@@ -247,6 +252,5 @@ async def join_waitlist(request: WaitlistRequest):
         logger.warning(f"Waitlist email not sent for {request.email}, but logged")
 
     return FeedbackResponse(
-        success=True,
-        message="You're on the list! We'll notify you when Pro launches."
+        success=True, message="You're on the list! We'll notify you when Pro launches."
     )

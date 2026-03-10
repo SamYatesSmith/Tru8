@@ -9,7 +9,7 @@ Adapters for academic research and scholarly works:
 
 import logging
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.services.government_api_client import GovernmentAPIClient
 
@@ -89,7 +89,7 @@ class CrossRefAdapter(GovernmentAPIClient):
 
         query = self._sanitize_query(query)
 
-        current_year = datetime.utcnow().year
+        current_year = datetime.now(timezone.utc).year
         min_year = current_year - 2
 
         params = {
@@ -233,7 +233,7 @@ class SemanticScholarAdapter(GovernmentAPIClient):
 
             # Build search URL with fields
             fields = "paperId,title,abstract,url,year,authors,citationCount,publicationDate,venue"
-            current_year = datetime.utcnow().year
+            current_year = datetime.now(timezone.utc).year
             min_year = current_year - 2
             url = f"{self.base_url}/paper/search?query={quote(query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
 
@@ -349,7 +349,7 @@ class OpenAlexAdapter(GovernmentAPIClient):
             from urllib.parse import quote
 
             # Build search URL with mailto for polite pool
-            current_year = datetime.utcnow().year
+            current_year = datetime.now(timezone.utc).year
             min_year = current_year - 2
             url = f"{self.base_url}/works?search={quote(query)}&per-page={self.max_results}&mailto=contact@tru8.com&filter=from_publication_date:{min_year}-01-01"
 

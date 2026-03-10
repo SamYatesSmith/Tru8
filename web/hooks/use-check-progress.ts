@@ -50,19 +50,36 @@ export function useCheckProgress(
   const progressRef = useRef(0);
 
   useEffect(() => {
-    console.log('[useCheckProgress] Effect triggered:', { enabled, hasToken: !!token, checkId });
-
     if (!enabled || !token) {
-      console.log('[useCheckProgress] Exiting early - enabled:', enabled, 'token:', !!token);
       return;
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-    const url = `${apiUrl}/api/v1/checks/${checkId}/progress?token=${token}`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    let cancelled = false;
 
-    console.log('[useCheckProgress] Creating SSE connection to:', url);
+    async function connect() {
+      // Obtain a short-lived stream token — never fall back to the full JWT
+      let sseToken: string | null = null;
+      try {
+        const resp = await fetch(`${apiUrl}/api/v1/checks/${checkId}/sse-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          sseToken = data.token;
+        }
+      } catch {
+        // SSE token fetch failed — will fall through to return
+      }
 
-    try {
+      if (cancelled || !sseToken) return;
+
+      const url = `${apiUrl}/api/v1/checks/${checkId}/progress?token=${sseToken}`;
+
       // Create SSE connection
       const eventSource = new EventSource(url);
       eventSourceRef.current = eventSource;
@@ -140,10 +157,9 @@ export function useCheckProgress(
         }
       };
 
-      eventSource.onerror = (e) => {
+      eventSource.onerror = () => {
         // Don't immediately close - EventSource has built-in reconnect
         // Only mark as disconnected so UI can show appropriate state
-        console.log('[useCheckProgress] SSE error, will attempt reconnect');
         setIsConnected(false);
         // Don't set error immediately - give reconnect a chance
         // EventSource automatically reconnects after errors
@@ -152,17 +168,16 @@ export function useCheckProgress(
           setError('Connection closed');
         }
       };
-
-      return () => {
-        if (eventSource.readyState !== EventSource.CLOSED) {
-          eventSource.close();
-        }
-      };
-    } catch (err) {
-      console.error('Failed to create SSE connection:', err);
-      setError('Failed to connect');
-      setIsConnected(false);
     }
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      if (eventSourceRef.current && eventSourceRef.current.readyState !== EventSource.CLOSED) {
+        eventSourceRef.current.close();
+      }
+    };
   }, [checkId, token, enabled]);
 
   // Cleanup on unmount

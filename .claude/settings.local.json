@@ -25,7 +25,10 @@
       "WebFetch(domain:therohanraghuwanshi.medium.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(python:*)",
-      "WebFetch(domain:ai.google.dev)"
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(npx tsc:*)",
+      "Read(//c/Users/projects/Tru8/**)",
+      "Bash(grep -r datetime.utcnow backend/app/ --include=*.py -l)"
     ],
     "deny": [],
     "ask": []

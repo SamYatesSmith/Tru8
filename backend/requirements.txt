@@ -24,7 +24,6 @@ spacy>=3.8,<3.9  # Phase 5: Government API domain classification
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl  # spaCy English model
 
 # Auth
-python-jose[cryptography]==3.4.0  # Updated from 3.3.0 (PYSEC-2024-232, PYSEC-2024-233)
 PyJWT[crypto]==2.8.0  # JWT validation with JWKS support
 httpx==0.25.2
 
@@ -32,7 +31,7 @@ httpx==0.25.2
 trafilatura==1.6.3
 readability-lxml==0.8.1
 bleach==6.1.0
-pytesseract==0.3.10
+
 youtube-transcript-api==0.6.1
 Pillow==10.3.0  # Updated from 10.2.0 (CVE-2024-28219)
 beautifulsoup4==4.12.3  # Fact-check parser HTML extraction
@@ -67,11 +66,3 @@ exponent-server-sdk==2.0.0
 
 # Email Notifications
 resend==2.19.0
-
-# Dev
-pytest==7.4.3
-pytest-asyncio==0.21.1
-black==24.3.0  # Updated from 23.12.1 (PYSEC-2024-48)
-isort==5.13.2
-mypy==1.8.0
-python-dotenv==1.0.0

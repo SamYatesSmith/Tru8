@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { AuthModal } from '@/components/auth/auth-modal';
 
 /**
@@ -24,6 +25,7 @@ export function Navigation({
   redirectUrl?: string;
 }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(initialAuthOpen);
+  const { isSignedIn } = useAuth();
 
   return (
     <>
@@ -34,9 +36,9 @@ export function Navigation({
             <Image
               src="/logo.proper.png"
               alt="Tru8 logo"
-              width={32}
-              height={32}
-              className="object-contain"
+              width={40}
+              height={40}
+              className="object-contain md:w-[50px] md:h-[50px]"
             />
             <span className="text-xl font-bold tracking-tighter uppercase">
               TRU<span className="text-zinc-400 font-normal">8</span>
@@ -55,20 +57,31 @@ export function Navigation({
 
             {/* Right: Auth CTAs */}
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="text-[11px] font-bold tracking-[0.2em] uppercase px-6 py-3 hover:bg-zinc-50 transition-colors"
-                aria-label="Sign in to your account"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="bg-black text-white text-[11px] font-bold tracking-[0.2em] uppercase px-8 py-3 border border-black hover:bg-zinc-800 transition-colors"
-                aria-label="Get started with Tru8"
-              >
-                Get Started
-              </button>
+              {isSignedIn ? (
+                <Link
+                  href="/dashboard"
+                  className="bg-black text-white text-[11px] font-bold tracking-[0.2em] uppercase px-8 py-3 border border-black hover:bg-zinc-800 transition-colors"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="text-[11px] font-bold tracking-[0.2em] uppercase px-6 py-3 hover:bg-zinc-50 transition-colors"
+                    aria-label="Sign in to your account"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="bg-black text-white text-[11px] font-bold tracking-[0.2em] uppercase px-8 py-3 border border-black hover:bg-zinc-800 transition-colors"
+                    aria-label="Get started with Tru8"
+                  >
+                    Get Started
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

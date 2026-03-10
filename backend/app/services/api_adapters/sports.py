@@ -10,7 +10,7 @@ retrieval for the Sports domain.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app.core.config import settings
@@ -329,7 +329,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
                         title=f"{player_name_full} - Transfer History",
                         snippet=transfer_text.strip(),
                         url=f"https://www.transfermarkt.com/player/{player_id}",
-                        source_date=datetime.utcnow(),
+                        source_date=datetime.now(timezone.utc),
                         metadata={
                             "api_source": "Transfermarkt",
                             "player_id": player_id,
@@ -403,7 +403,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
                         title=f"{player_name_full} - Career Achievements",
                         snippet=achievements_text.strip(),
                         url=f"https://www.transfermarkt.com/player/{player_id}",
-                        source_date=datetime.utcnow(),
+                        source_date=datetime.now(timezone.utc),
                         metadata={
                             "api_source": "Transfermarkt",
                             "player_id": player_id,
@@ -480,7 +480,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
                         title=f"{player_name_full} - Career Statistics",
                         snippet=stats_text.strip(),
                         url=f"https://www.transfermarkt.com/player/{player_id}",
-                        source_date=datetime.utcnow(),
+                        source_date=datetime.now(timezone.utc),
                         metadata={
                             "api_source": "Transfermarkt",
                             "player_id": player_id,
@@ -550,7 +550,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
                         title=f"{player_name_full} - Market Value",
                         snippet=value_text.strip(),
                         url=f"https://www.transfermarkt.com/player/{player_id}",
-                        source_date=datetime.utcnow(),
+                        source_date=datetime.now(timezone.utc),
                         metadata={
                             "api_source": "Transfermarkt",
                             "player_id": player_id,
@@ -605,7 +605,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
                         title=f"{club_name_full} - Club Profile",
                         snippet=club_text.strip(),
                         url=f"https://www.transfermarkt.com/club/{club_id}",
-                        source_date=datetime.utcnow(),
+                        source_date=datetime.now(timezone.utc),
                         metadata={
                             "api_source": "Transfermarkt",
                             "club_id": club_id,
@@ -958,7 +958,7 @@ class FootballDataAdapter(GovernmentAPIClient):
                     title=f"{competition_name} Standings - Matchday {current_matchday}",
                     snippet=standings_text.strip(),
                     url=f"https://www.football-data.org/competition/{competition_code}",
-                    source_date=datetime.utcnow(),
+                    source_date=datetime.now(timezone.utc),
                     metadata={
                         "api_source": "Football-Data.org",
                         "competition": competition_code,
@@ -996,7 +996,7 @@ class FootballDataAdapter(GovernmentAPIClient):
                             title=f"{team_name} - {competition_name} Position",
                             snippet=f"{team_name} is currently {pos}{'st' if pos == 1 else 'nd' if pos == 2 else 'rd' if pos == 3 else 'th'} in the {competition_name} with {points} points from {played} matches.",
                             url=f"https://www.football-data.org/team/{team.get('team', {}).get('id')}",
-                            source_date=datetime.utcnow(),
+                            source_date=datetime.now(timezone.utc),
                             metadata={
                                 "api_source": "Football-Data.org",
                                 "team_id": team.get("team", {}).get("id"),
@@ -1100,7 +1100,7 @@ class FootballDataAdapter(GovernmentAPIClient):
                         url=team_info.get(
                             "website", f"https://www.football-data.org/team/{team_id}"
                         ),
-                        source_date=datetime.utcnow(),
+                        source_date=datetime.now(timezone.utc),
                         metadata={
                             "api_source": "Football-Data.org",
                             "team_id": team_id,
@@ -1223,7 +1223,7 @@ class FootballDataAdapter(GovernmentAPIClient):
                     title=f"{competition_name} Top Scorers",
                     snippet=scorers_text.strip(),
                     url=f"https://www.football-data.org/competition/{competition_code}",
-                    source_date=datetime.utcnow(),
+                    source_date=datetime.now(timezone.utc),
                     metadata={
                         "api_source": "Football-Data.org",
                         "competition": competition_code,
@@ -1252,7 +1252,7 @@ class FootballDataAdapter(GovernmentAPIClient):
                             title=f"{player.get('name')} - {competition_name} Stats",
                             snippet=f"{player.get('name')} ({team.get('name')}) has scored {goals} goals and provided {assists or 0} assists in {played} matches this season.",
                             url=f"https://www.football-data.org/player/{player.get('id')}",
-                            source_date=datetime.utcnow(),
+                            source_date=datetime.now(timezone.utc),
                             metadata={
                                 "api_source": "Football-Data.org",
                                 "player_id": player.get("id"),

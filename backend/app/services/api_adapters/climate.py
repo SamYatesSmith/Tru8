@@ -10,7 +10,7 @@ Adapters for climate and weather data:
 import logging
 import re
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.services.government_api_client import GovernmentAPIClient
 from app.core.config import settings
@@ -192,7 +192,7 @@ class NOAAAdapter(GovernmentAPIClient):
         if location_id:
             params["locationid"] = location_id
 
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         start_date = datetime(end_date.year - 2, 1, 1)
         params["startdate"] = start_date.strftime("%Y-%m-%d")
         params["enddate"] = end_date.strftime("%Y-%m-%d")
@@ -225,7 +225,7 @@ class NOAAAdapter(GovernmentAPIClient):
         if location_id:
             params["locationid"] = location_id
 
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         start_date = datetime(end_date.year - 2, 1, 1)
         params["startdate"] = start_date.strftime("%Y-%m-%d")
         params["enddate"] = end_date.strftime("%Y-%m-%d")
@@ -259,7 +259,7 @@ class NOAAAdapter(GovernmentAPIClient):
         if location_id:
             params["locationid"] = location_id
 
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         start_date = datetime(end_date.year - 2, 1, 1)
         params["startdate"] = start_date.strftime("%Y-%m-%d")
         params["enddate"] = end_date.strftime("%Y-%m-%d")
@@ -347,7 +347,7 @@ class NOAAAdapter(GovernmentAPIClient):
             title=title,
             snippet=snippet,
             url=url,
-            source_date=datetime.utcnow(),
+            source_date=datetime.now(timezone.utc),
             metadata={
                 "api_source": "NOAA CDO",
                 "data_type": "climate",
@@ -367,7 +367,7 @@ class NOAAAdapter(GovernmentAPIClient):
                     snippet=f"{item.get('name')}: {item.get('datacoverage', 'N/A')} data coverage. "
                     f"Date range: {item.get('mindate', 'N/A')} to {item.get('maxdate', 'N/A')}",
                     url=f"https://www.ncei.noaa.gov/cdo-web/datasets/{item.get('id')}",
-                    source_date=datetime.utcnow(),
+                    source_date=datetime.now(timezone.utc),
                     metadata={
                         "api_source": "NOAA CDO",
                         "dataset_id": item.get("id"),
@@ -416,7 +416,7 @@ class NOAAAdapter(GovernmentAPIClient):
                 title=f"NOAA {data_type.title()} Observations",
                 snippet=snippet,
                 url="https://www.ncei.noaa.gov/cdo-web/",
-                source_date=datetime.utcnow(),
+                source_date=datetime.now(timezone.utc),
                 metadata={
                     "api_source": "NOAA CDO",
                     "data_type": data_type,
@@ -1002,7 +1002,7 @@ class OpenMeteoAdapter(GovernmentAPIClient):
         try:
             import httpx
 
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
             start_date = end_date - timedelta(days=365)
 
             params = {

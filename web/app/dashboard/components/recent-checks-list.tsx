@@ -49,9 +49,12 @@ export function RecentChecksList({ checks }: RecentChecksListProps) {
   return (
     <div className="mb-12">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-lg font-bold text-zinc-900">Recent Checks</h2>
-          <p className="text-zinc-500 text-sm">Your latest analyses</p>
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 bg-accent rotate-45 shrink-0" />
+          <div>
+            <h2 className="text-lg font-bold text-zinc-900">Recent Checks</h2>
+            <p className="text-zinc-500 text-sm">Your latest analyses</p>
+          </div>
         </div>
 
         <Link

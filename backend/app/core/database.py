@@ -21,19 +21,20 @@ engine = create_async_engine(
     connect_args=async_connect_args,
 )
 
-async_session = sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
-)
+async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 # Sync engine and session for synchronous operations
 # Strip any SSL params from URL since we handle via connect_args
-sync_database_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
+sync_database_url = settings.DATABASE_URL.replace(
+    "postgresql+asyncpg://", "postgresql+psycopg2://"
+)
 # Remove ssl param if present in URL (psycopg2 doesn't support it in DSN)
 if "?ssl=" in sync_database_url or "&ssl=" in sync_database_url:
     import re
-    sync_database_url = re.sub(r'[?&]ssl=[^&]*', '', sync_database_url)
+
+    sync_database_url = re.sub(r"[?&]ssl=[^&]*", "", sync_database_url)
     # Clean up any doubled ? or trailing ?
-    sync_database_url = sync_database_url.replace('?&', '?').rstrip('?')
+    sync_database_url = sync_database_url.replace("?&", "?").rstrip("?")
 
 sync_engine = create_engine(
     sync_database_url,
@@ -44,13 +45,8 @@ sync_engine = create_engine(
     connect_args=sync_connect_args,
 )
 
-sync_session = sessionmaker(
-    sync_engine, class_=Session, expire_on_commit=False
-)
+sync_session = sessionmaker(sync_engine, class_=Session, expire_on_commit=False)
 
-async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
 
 async def get_session() -> AsyncSession:
     async with async_session() as session:

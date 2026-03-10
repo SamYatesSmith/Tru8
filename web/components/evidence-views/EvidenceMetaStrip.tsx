@@ -4,6 +4,7 @@ interface EvidenceMetaStripProps {
   referenceId: string;
   claimsCount: number;
   sourcesCount: number;
+  sourcesFoundCount?: number;
   processingTimeMs?: number;
 }
 
@@ -24,6 +25,7 @@ export function EvidenceMetaStrip({
   referenceId,
   claimsCount,
   sourcesCount,
+  sourcesFoundCount,
   processingTimeMs,
 }: EvidenceMetaStripProps) {
   return (
@@ -51,7 +53,16 @@ export function EvidenceMetaStrip({
 
         <div className="flex flex-col gap-1">
           <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
-            Sources Found
+            Sources Reviewed
+          </span>
+          <span className="font-mono text-[11px] font-medium">{sourcesFoundCount || sourcesCount}</span>
+        </div>
+
+        <Divider />
+
+        <div className="flex flex-col gap-1">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+            Sources Organised
           </span>
           <span className="font-mono text-[11px] font-medium">{sourcesCount}</span>
         </div>

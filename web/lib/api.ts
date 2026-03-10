@@ -206,8 +206,6 @@ class ApiClient {
       body: JSON.stringify(data),
     });
 
-    console.log('[SSE] Response received, status:', response.status);
-
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
       throw new Error(error.detail || `API error: ${response.status}`);
@@ -215,12 +213,10 @@ class ApiClient {
 
     // Get check ID from header - this is available immediately
     const checkId = response.headers.get('X-Check-Id') || '';
-    console.log('[SSE] Check ID from header:', checkId);
 
     // CRITICAL: If we have a checkId from header, trigger onConnected immediately
     // This ensures redirect happens even if SSE stream has buffering issues
     if (checkId && callbacks.onConnected) {
-      console.log('[SSE] Triggering onConnected immediately with header checkId:', checkId);
       callbacks.onConnected(checkId);
       // Return early - the page will redirect and we don't need to process the stream
       return { checkId };
@@ -231,7 +227,6 @@ class ApiClient {
     if (!reader) {
       throw new Error('Response body is not readable');
     }
-    console.log('[SSE] Reader obtained, starting to read stream...');
 
     const decoder = new TextDecoder();
     let buffer = '';
@@ -240,12 +235,10 @@ class ApiClient {
     try {
       while (true) {
         const { done, value } = await reader.read();
-        console.log('[SSE] Read chunk:', { done, hasValue: !!value, valueLength: value?.length });
 
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        console.log('[SSE] Buffer now:', buffer.substring(0, 200));
 
         // Parse SSE events from buffer
         const lines = buffer.split('\n');
@@ -256,18 +249,15 @@ class ApiClient {
             try {
               const eventData = JSON.parse(line.slice(6));
               const eventCheckId = eventData.checkId || checkId;
-              console.log('[SSE] Parsed event:', eventData.type, eventData);
 
               switch (eventData.type) {
                 case 'connected':
                   if (!connectedFired) {
-                    console.log('[SSE] Calling onConnected callback');
                     callbacks.onConnected?.(eventCheckId);
                     connectedFired = true;
                   }
                   break;
                 case 'progress':
-                  console.log('[SSE] Calling onProgress callback');
                   callbacks.onProgress?.({
                     type: 'progress',
                     checkId: eventCheckId,
@@ -278,11 +268,9 @@ class ApiClient {
                   });
                   break;
                 case 'completed':
-                  console.log('[SSE] Calling onComplete callback');
                   callbacks.onComplete?.(eventCheckId);
                   break;
                 case 'error':
-                  console.log('[SSE] Calling onError callback:', eventData.error);
                   callbacks.onError?.(eventData.error, eventCheckId);
                   break;
                 case 'heartbeat':
@@ -290,7 +278,7 @@ class ApiClient {
                   break;
               }
             } catch (parseError) {
-              console.warn('Failed to parse SSE event:', line);
+              // Silently ignore malformed SSE events
             }
           }
         }
@@ -391,12 +379,12 @@ class ApiClient {
    * POST /api/v1/payments/create-checkout-session
    * Create Stripe checkout session for a paid plan
    *
-   * Request: { price_id: string, plan: "pro" | "developer" }
+   * Request: { price_id: string, plan: "starter" | "professional" }
    * Response: { session_id: string, url: string }
    *
    * After payment:
    * - Stripe webhook creates Subscription record
-   * - User upgraded to selected tier (pro: 40/month, developer: 200/month)
+   * - User upgraded to selected tier (starter: 40/month, professional: 200/month)
    */
   async createCheckoutSession(
     data: {
@@ -431,11 +419,11 @@ class ApiClient {
 
   /**
    * POST /api/v1/checks/{id}/sse-token
-   * Generate short-lived token for SSE connection (GAP #16)
-   * TODO: Not implemented - SSE currently uses query param auth
+   * Generate short-lived, check-scoped token for SSE progress streaming.
+   * Token is valid for 5 minutes. Use in EventSource URL instead of JWT.
    */
-  async createSSEToken(checkId: string, token?: string | null) {
-    return this.request(`/api/v1/checks/${checkId}/sse-token`, {
+  async createSSEToken(checkId: string, token?: string | null): Promise<{ token: string; expiresIn: number }> {
+    return this.request('/api/v1/checks/' + checkId + '/sse-token', {
       method: 'POST',
     }, token);
   }
@@ -443,10 +431,10 @@ class ApiClient {
   /**
    * GET /api/v1/payments/invoices
    * Fetch last 5 Stripe invoices (GAP #17)
-   * TODO: Not implemented - planned for post-MVP
+   * POST-RELEASE TODO: Not implemented — planned for post-MVP
    */
-  async getInvoices(token?: string | null) {
-    return this.request('/api/v1/payments/invoices', {}, token);
+  async getInvoices(_token?: string | null): Promise<never> {
+    throw new Error('getInvoices is not yet implemented');
   }
 
   /**
@@ -480,6 +468,45 @@ class ApiClient {
     return this.request('/api/v1/payments/reactivate-subscription', {
       method: 'POST',
     }, token);
+  }
+
+  // ============================================================================
+  // File Upload
+  // ============================================================================
+
+  /**
+   * POST /api/v1/checks/upload
+   * Upload an image file for OCR processing.
+   * Returns { success, filePath, filename, contentType, size }.
+   * Rate limited: 10/minute.
+   */
+  async uploadFile(
+    file: File,
+    token?: string | null
+  ): Promise<{ success: boolean; filePath: string; filename: string; contentType: string; size: number }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${this.baseUrl}/api/v1/checks/upload`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+      if (response.status === 413) {
+        throw new Error('Image is too large (max 6MB). Try compressing or cropping the image.');
+      }
+      if (response.status === 429) {
+        throw new Error('Too many uploads. Please wait a moment and try again.');
+      }
+      throw new Error(error.detail || `Upload failed: ${response.status}`);
+    }
+
+    return response.json();
   }
 
   // ============================================================================

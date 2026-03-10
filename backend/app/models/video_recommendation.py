@@ -5,7 +5,7 @@ retrieved via YouTube Data API, classified by lightweight channel heuristics.
 """
 
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlmodel import Field, SQLModel, Relationship
 from .check import generate_uuid
 
@@ -42,4 +42,4 @@ class VideoRecommendation(SQLModel, table=True):
         description="Heuristic type: data|official_statement|news_reporting|analysis|opinion|academic",
     )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

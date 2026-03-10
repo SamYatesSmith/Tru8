@@ -62,19 +62,19 @@ export default function TermsOfServicePage() {
           <li>Standard support</li>
         </ul>
 
-        <h3>4.2 Professional Plan (£7/month)</h3>
+        <h3>4.2 Starter Plan (£7/month)</h3>
         <ul>
-          <li>40 analyses per month</li>
+          <li>40 analyses per month (~18p per check)</li>
           <li>URL analysis</li>
           <li>Comprehensive source citations</li>
           <li>Export to PDF/JSON/CSV</li>
           <li>Priority support</li>
         </ul>
 
-        <h3>4.3 Developer Plan (£29/month)</h3>
+        <h3>4.3 Professional Plan (£29/month)</h3>
         <ul>
-          <li>200 analyses per month</li>
-          <li>All Professional features</li>
+          <li>200 analyses per month (~15p per check)</li>
+          <li>All Starter features</li>
           <li>API access with dedicated API key</li>
           <li>MCP server integration</li>
           <li>Agent Commerce Gateway access (lookup, consensus, quick, full tiers)</li>
@@ -118,7 +118,7 @@ export default function TermsOfServicePage() {
 
         <h3>6.1 API Access</h3>
         <ul>
-          <li>API access requires a Developer or Enterprise subscription plan</li>
+          <li>API access is available on all plans; the Professional and Enterprise plans include higher volume allowances</li>
           <li>Each API key is tied to a single account and carries your identity and usage quota</li>
           <li>You are responsible for all activity performed using your API key</li>
           <li>API keys must be stored securely — never in client-side code, version control, or logs</li>

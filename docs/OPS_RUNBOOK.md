@@ -1,5 +1,9 @@
 # Tru8 Operations Runbook
 
+> **NOTICE (2026-03-10):** This runbook references Fly.io commands throughout.
+> Railway configuration files (`railway.toml`) also exist in the repo. Update this
+> document to match the chosen deployment platform before production release.
+
 This runbook documents operational procedures for the Tru8 platform.
 
 ---

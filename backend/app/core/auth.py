@@ -6,10 +6,11 @@ from sqlalchemy import select, text
 import hashlib
 import asyncio
 import httpx
+import json
 import jwt
 import logging
 from jwt import PyJWKClient
-from datetime import datetime
+from datetime import datetime, timezone
 from app.core.config import settings
 from app.core.database import get_session, async_session
 
@@ -169,7 +170,7 @@ async def _verify_api_key(raw_key: str, session: AsyncSession) -> dict:
     if not key_record:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
-    if key_record.expires_at and key_record.expires_at < datetime.utcnow():
+    if key_record.expires_at and key_record.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="API key has expired")
 
     user_result = await session.execute(
@@ -195,7 +196,7 @@ async def _record_api_key_usage(key_id: str):
                     "UPDATE api_key SET last_used_at = :now, usage_count = usage_count + 1 "
                     "WHERE id = :id"
                 ),
-                {"now": datetime.utcnow(), "id": key_id},
+                {"now": datetime.now(timezone.utc), "id": key_id},
             )
             await session.commit()
     except Exception:
@@ -290,6 +291,50 @@ async def get_current_user_or_api_key(
     )
 
 
+async def _verify_stream_token(
+    token_value: str, check_id: Optional[str]
+) -> Optional[dict]:
+    """
+    Try to validate a stream token from Redis.
+
+    Returns a user dict if valid, or None if the token is not a stream token
+    (caller should fall back to JWT verification).
+    """
+    import redis.asyncio as aioredis
+    from app.core.config import settings as _settings
+
+    try:
+        r = aioredis.from_url(_settings.REDIS_URL, decode_responses=True)
+        token_key = f"sse-token:{token_value}"
+        payload_json = await r.get(token_key)
+        if payload_json:
+            await r.delete(token_key)  # Single-use: consume on first verification
+        await r.aclose()
+
+        if not payload_json:
+            return None
+
+        payload = json.loads(payload_json)
+
+        # Scope check: token must match the requested check_id
+        if check_id and payload.get("check_id") != check_id:
+            logger.warning(
+                f"[AUTH] Stream token check_id mismatch: "
+                f"token={payload.get('check_id')}, request={check_id}"
+            )
+            raise HTTPException(
+                status_code=403, detail="Stream token not valid for this check"
+            )
+
+        return {"id": payload["user_id"], "email": None, "name": None}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning(f"[AUTH] Stream token Redis lookup failed: {e}")
+        return None
+
+
 async def get_current_user_or_api_key_sse(
     request: Request,
     token: Optional[str] = Query(None),
@@ -299,12 +344,24 @@ async def get_current_user_or_api_key_sse(
     Dual auth for SSE/streaming endpoints.
 
     Accepts (in priority order):
-    1. ?token=<jwt>  — EventSource can't set headers, so JWT goes in query param
-    2. Authorization: Bearer <jwt>
-    3. X-API-Key: <key>  — agents use standard HTTP clients, not EventSource
+    1. ?token=<stream_token>  — short-lived, check-scoped token from POST /sse-token
+    2. ?token=<jwt>  — deprecated fallback, logs warning
+    3. Authorization: Bearer <jwt>
+    4. X-API-Key: <key>  — agents use standard HTTP clients, not EventSource
     """
-    # JWT from query param (EventSource compatibility)
+    # Stream token or JWT from query param
     if token:
+        # Try as stream token first (Redis lookup)
+        check_id = request.path_params.get("check_id")
+        stream_user = await _verify_stream_token(token, check_id)
+        if stream_user:
+            return stream_user
+
+        # Fall back to JWT (deprecated path)
+        logger.warning(
+            "[AUTH] DEPRECATION: JWT passed as query parameter. "
+            "Use POST /checks/{id}/sse-token to get a stream token."
+        )
         payload = await _verify_jwt_token(token)
         user_id = payload.get("sub")
         if not user_id:

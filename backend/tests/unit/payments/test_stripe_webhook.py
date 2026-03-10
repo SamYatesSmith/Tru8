@@ -70,7 +70,7 @@ class TestStripeWebhook:
                 "object": {
                     "client_reference_id": "user_1",
                     "subscription": "sub_abc",
-                    "metadata": {"user_id": "user_1", "plan": "pro"},
+                    "metadata": {"user_id": "user_1", "plan": "starter"},
                 }
             },
         }

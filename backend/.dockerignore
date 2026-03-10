@@ -56,6 +56,12 @@ Thumbs.db
 *.bak
 *.tmp
 
+# Test/debug data files
+data/agent_*.json
+data/quality_test_results.json
+data/pq08_classifier_comparison.json
+MODULE_RELOADED.txt
+
 # Alembic versions are needed for migrations
 # but we exclude test/dev configs
 alembic.ini.bak

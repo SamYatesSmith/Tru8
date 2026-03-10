@@ -69,7 +69,7 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
   const hasElements = stateCounts.supported + stateCounts.disputed + stateCounts.unresolved > 0;
 
   return (
-    <div className={`border bg-white hover:border-black transition-colors ${
+    <div className={`group border bg-white hover:border-black transition-colors ${
       isNew ? 'border-accent' : 'border-zinc-200'
     }`}>
       <Link
@@ -141,12 +141,17 @@ export function CheckCard({ check, isNew = false }: CheckCardProps) {
             )}
           </div>
 
-          <div className="flex-shrink-0 text-right">
-            <span className="text-3xl font-mono font-light text-zinc-400 block">
-              {check.claimsCount}
-            </span>
-            <span className="text-zinc-500 text-xs font-mono uppercase block">
-              {check.claimsCount === 1 ? 'Claim' : 'Claims'}
+          <div className="flex-shrink-0 text-right flex items-center gap-4">
+            <div>
+              <span className="text-3xl font-mono font-light text-zinc-400 block">
+                {check.claimsCount}
+              </span>
+              <span className="text-zinc-500 text-xs font-mono uppercase block">
+                {check.claimsCount === 1 ? 'Claim' : 'Claims'}
+              </span>
+            </div>
+            <span className="text-zinc-300 group-hover:text-accent transition-colors text-lg">
+              &rarr;
             </span>
           </div>
         </div>

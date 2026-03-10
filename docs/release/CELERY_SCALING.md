@@ -1,5 +1,8 @@
 # Celery Worker Scaling - Known Issues & Production Considerations
 
+> **NOTICE (2026-03-10):** This document references `fly.toml` and Fly.io scaling
+> commands. Update to match the chosen deployment platform before production release.
+
 **Status:** Partially addressed for beta, requires review before production
 **Last Updated:** January 2026
 

@@ -22,18 +22,20 @@ export function QuickActionCard({ used = 0, limit = 3 }: QuickActionCardProps) {
           </div>
           <Link
             href="/dashboard/settings?tab=subscription"
-            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] py-4 flex items-center justify-center gap-2 transition-colors"
+            className="relative w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] py-4 flex items-center justify-center gap-2 transition-colors"
           >
             Upgrade Now
+            <div className="w-2.5 h-2.5 bg-accent absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 rotate-45" />
           </Link>
         </div>
       ) : (
         <Link
           href="/dashboard/new-check"
-          className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] py-4 flex items-center justify-center gap-2 transition-colors"
+          className="relative w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] py-4 flex items-center justify-center gap-2 transition-colors"
         >
           <Plus size={16} />
           New Check
+          <div className="w-2.5 h-2.5 bg-accent absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 rotate-45" />
         </Link>
       )}
     </div>

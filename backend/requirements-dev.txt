@@ -1,0 +1,10 @@
+# Development & testing dependencies
+# Installs all production deps plus dev tools
+-r requirements.txt
+
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==24.3.0  # Updated from 23.12.1 (PYSEC-2024-48)
+isort==5.13.2
+mypy==1.8.0
+python-dotenv==1.0.0

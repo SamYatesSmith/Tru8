@@ -85,7 +85,7 @@ class TestQueryPlanningExtraction:
         }
 
         # Act
-        results = await retriever._execute_planned_queries(
+        results, total_found = await retriever._execute_planned_queries(
             claim_text="Arsenal is top of the Premier League", query_plan=query_plan
         )
 
@@ -95,6 +95,7 @@ class TestQueryPlanningExtraction:
 
         # Verify we got extracted content, not the search snippet
         assert len(results) == 1
+        assert total_found >= 1
         assert "Arsenal extended their lead" in results[0].text
         assert "View the latest" not in results[0].text  # Not the meta description
 
@@ -118,7 +119,7 @@ class TestQueryPlanningExtraction:
         }
 
         # Act
-        results = await retriever._execute_planned_queries(
+        results, total_found = await retriever._execute_planned_queries(
             claim_text="Test claim", query_plan=query_plan
         )
 
@@ -153,12 +154,13 @@ class TestQueryPlanningExtraction:
         # Act
         with patch("app.pipeline.retrieve.settings") as mock_settings:
             mock_settings.ALLOW_SNIPPET_FALLBACK = True
-            results = await retriever._execute_planned_queries(
+            results, total_found = await retriever._execute_planned_queries(
                 claim_text="Test claim", query_plan=query_plan
             )
 
         # Assert - should get fallback snippet
         assert len(results) == 1
+        assert total_found >= 1
         assert results[0].metadata.get("is_snippet_fallback") == True
         assert results[0].metadata.get("extraction_status") == "fallback_blocked"
         assert results[0].relevance_score == 0.0  # No hardcoded score for fallback
@@ -180,12 +182,13 @@ class TestQueryPlanningExtraction:
         }
 
         # Act
-        results = await retriever._execute_planned_queries(
+        results, total_found = await retriever._execute_planned_queries(
             claim_text="Test claim", query_plan=query_plan
         )
 
-        # Assert - should be empty (dropped)
+        # Assert - should be empty (dropped, but search found results)
         assert len(results) == 0
+        assert total_found >= 1
 
     async def test_fallback_disabled_drops_blocked(self, retriever, mock_search_result):
         """
@@ -209,12 +212,13 @@ class TestQueryPlanningExtraction:
         # Act
         with patch("app.pipeline.retrieve.settings") as mock_settings:
             mock_settings.ALLOW_SNIPPET_FALLBACK = False
-            results = await retriever._execute_planned_queries(
+            results, total_found = await retriever._execute_planned_queries(
                 claim_text="Test claim", query_plan=query_plan
             )
 
         # Assert - should be empty (dropped, no fallback)
         assert len(results) == 0
+        assert total_found >= 1
 
     async def test_multiple_queries_with_deduplication(self, retriever):
         """
@@ -270,7 +274,7 @@ class TestQueryPlanningExtraction:
         }
 
         # Act
-        results = await retriever._execute_planned_queries(
+        results, total_found = await retriever._execute_planned_queries(
             claim_text="Test claim", query_plan=query_plan
         )
 

@@ -237,6 +237,7 @@ class EvidenceRetriever:
             evidence_by_claim = {}
             all_raw_evidence = []
             pre_weighting_by_claim = {}
+            total_search_results = 0
 
             # Expose accumulators to caller for partial recovery on timeout
             if progressive_results is not None:
@@ -271,6 +272,10 @@ class EvidenceRetriever:
                         raw_item["claim_position"] = claim_position
                         raw_item["claim_text"] = claim_text
                     all_raw_evidence.extend(raw_evidence)
+                    nonlocal total_search_results
+                    total_search_results += result.get(
+                        "search_results_count", len(raw_evidence)
+                    )
                     logger.info(
                         f"[RETRIEVER DEBUG] Result {claim_index}: dict with "
                         f"{len(result.get('filtered_evidence', []))} filtered, "
@@ -312,6 +317,7 @@ class EvidenceRetriever:
                 "evidence_by_claim": evidence_by_claim,
                 "raw_evidence": all_raw_evidence,
                 "raw_sources_count": len(all_raw_evidence),
+                "total_search_results": total_search_results,
                 "pre_weighting_evidence": pre_weighting_by_claim,
             }
 
@@ -1098,6 +1104,7 @@ class EvidenceRetriever:
 
                 # Extract results from completed tasks, use defaults for timed-out ones
                 web_evidence_snippets = []
+                web_search_hits = 0
                 api_evidence = {"evidence": [], "api_stats": {}}
                 timed_out_tasks = []
 
@@ -1105,13 +1112,17 @@ class EvidenceRetriever:
                     try:
                         result = task.result()
                         if task.get_name() == "web_search":
-                            web_evidence_snippets = (
-                                result if not isinstance(result, Exception) else []
-                            )
                             if isinstance(result, Exception):
                                 logger.error(
                                     f"[CLAIM {claim_position}] Web search exception: {result}"
                                 )
+                            elif isinstance(result, tuple) and len(result) == 2:
+                                web_evidence_snippets, web_search_hits = result
+                            else:
+                                web_evidence_snippets = (
+                                    result if isinstance(result, list) else []
+                                )
+                                web_search_hits = len(web_evidence_snippets)
                         elif task.get_name() == "api_retrieval":
                             api_evidence = (
                                 result
@@ -1204,6 +1215,8 @@ class EvidenceRetriever:
                     f"[EVIDENCE TRACE] Claim {claim_position}: {len(evidence_snippets)} web snippets + {len(api_snippets)} API snippets (from {len(api_evidence_items)} API items)"
                 )
                 all_evidence_snippets = evidence_snippets + api_snippets
+                # Total search hits: web search results (pre-extraction) + API items queried
+                search_results_count = web_search_hits + len(api_evidence_items)
 
                 # Fix 0c: Cap combined evidence before expensive ranking
                 MAX_EVIDENCE_FOR_RANKING = settings.MAX_EVIDENCE_FOR_RANKING
@@ -1291,6 +1304,7 @@ class EvidenceRetriever:
                     "pre_weighting_evidence": pre_weighting_snapshot,
                     "claim_position": claim_position,
                     "claim_text": claim_text[:500] if claim_text else "",
+                    "search_results_count": search_results_count,
                 }
 
             except Exception as e:
@@ -1498,21 +1512,23 @@ class EvidenceRetriever:
 
             # Log extraction stats
             total = len(unique_search_results[:max_sources])
+            total_found = len(unique_search_results)
             success_count = len(evidence_snippets) - fallback_count
             logger.info(
                 f"[RETRIEVE] Query Planning extraction: "
                 f"{success_count}/{total} content, {fallback_count} fallback, {dropped_count} dropped | "
-                f"claim_type={claim_type}"
+                f"claim_type={claim_type} | total_search_hits={total_found}"
             )
 
-            return evidence_snippets
+            return evidence_snippets, total_found
 
         except Exception as e:
             logger.error(f"Planned query execution failed: {e}")
             # Fallback to standard search with claim text
-            return await self.evidence_extractor.extract_evidence_for_claim(
+            fallback = await self.evidence_extractor.extract_evidence_for_claim(
                 claim_text, max_sources=max_sources
             )
+            return fallback, len(fallback) if isinstance(fallback, list) else 0
 
     async def _extract_with_fallback(
         self, search_result, claim_text: str, semaphore: asyncio.Semaphore
@@ -2236,7 +2252,7 @@ class EvidenceRetriever:
                     "embedding": embedding,
                     "claim_text": claim.get("text"),
                     "claim_position": claim.get("position"),
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                 }
                 evidence_data.append(evidence_item)
 

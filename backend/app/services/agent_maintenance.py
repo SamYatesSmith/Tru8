@@ -11,7 +11,7 @@ No Celery dependency.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +29,7 @@ async def sweep_stale_pending_transactions(session: AsyncSession) -> int:
 
     Returns the number of rows updated.
     """
-    threshold = datetime.utcnow() - timedelta(minutes=STALE_THRESHOLD_MINUTES)
+    threshold = datetime.now(timezone.utc) - timedelta(minutes=STALE_THRESHOLD_MINUTES)
 
     result = await session.execute(
         text(

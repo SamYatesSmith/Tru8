@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, delete, func, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import selectinload
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from app.core.database import get_session
 from app.core.auth import get_current_user
@@ -57,15 +57,15 @@ async def get_or_create_user(session: AsyncSession, current_user: dict) -> User:
             name=name,
             credits=3,  # Free tier
             total_credits_used=0,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
         .on_conflict_do_update(
             index_elements=["email"],  # Conflict on email unique constraint
             set_={
                 "id": user_id,  # Update to new Clerk ID
                 "name": name,
-                "updated_at": datetime.utcnow(),
+                "updated_at": datetime.now(timezone.utc),
             },
         )
         .returning(User)
@@ -202,7 +202,7 @@ async def get_user_stats(
     total_checks = total_checks_result.scalar() or 0
 
     # Checks this month
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     start_of_month = datetime(now.year, now.month, 1)
     checks_this_month_stmt = select(func.count(Check.id)).where(
         Check.user_id == user_id,
@@ -310,9 +310,9 @@ async def get_usage(
     # Determine usage based on subscription status
     if is_beta_tester:
         # Beta testers: 40 checks per calendar month
-        from datetime import datetime
+        from datetime import datetime, timezone
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         period_start = datetime(now.year, now.month, 1)  # First of current month
         credits_per_period = 40
         is_trial = False
@@ -834,7 +834,7 @@ async def export_user_data(
 
     # Build complete export
     export_data = {
-        "export_date": datetime.utcnow().isoformat(),
+        "export_date": datetime.now(timezone.utc).isoformat(),
         "export_version": "1.0",
         "user": user_data,
         "subscriptions": subscriptions_data,
@@ -857,6 +857,6 @@ async def export_user_data(
     return JSONResponse(
         content=export_data,
         headers={
-            "Content-Disposition": f'attachment; filename="tru8_data_export_{user_id[:8]}_{datetime.utcnow().strftime("%Y%m%d")}.json"'
+            "Content-Disposition": f'attachment; filename="tru8_data_export_{user_id[:8]}_{datetime.now(timezone.utc).strftime("%Y%m%d")}.json"'
         },
     )

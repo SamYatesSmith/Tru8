@@ -62,7 +62,7 @@ export function EvidenceLedger({
 
   return (
     <div>
-      <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400 mb-6 border-b border-zinc-100 pb-2 flex justify-between items-center">
+      <div className="font-mono text-sm font-bold uppercase tracking-[0.3em] text-zinc-600 mb-6 border-b border-zinc-200 pb-2 flex justify-between items-center">
         <span>Evidence Ledger &middot; Showing {evidence.length} of {totalCount}</span>
         <SortControl value={sortField} onChange={onSortChange} />
       </div>
