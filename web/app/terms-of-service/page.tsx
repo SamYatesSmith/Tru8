@@ -1,8 +1,8 @@
 import { LegalPageLayout } from '@/components/legal/legal-page-layout';
 
 export const metadata = {
-  title: 'Terms of Service | Tru8',
-  description: 'Tru8 terms of service - User agreements and conditions',
+  title: 'Terms of Service',
+  description: 'Tru8 terms of service — user agreements, acceptable use, and conditions for using the evidence research platform.',
 };
 
 export default function TermsOfServicePage() {

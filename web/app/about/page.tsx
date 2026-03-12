@@ -5,8 +5,9 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'About | Tru8',
-  description: 'Learn about Tru8 — AI-powered evidence research that helps you explore structured evidence reports.',
+  title: 'About',
+  description: 'Tru8 organises evidence from 30+ sources so you can form your own view. Structured evidence research for professionals, journalists, and the curious.',
+  alternates: { canonical: '/about' },
 };
 
 export default function AboutPage() {
@@ -45,7 +46,7 @@ export default function AboutPage() {
               </p>
 
               <p>
-                Tru8 takes all of that complexity and makes it easier. You paste a claim, and Tru8 retrieves the sources, organises the evidence, and gives you a structured evidence report you can explore.
+                Tru8 takes all of that complexity and makes it easier. You paste a claim, URL, article, or image, and Tru8 retrieves the sources, organises the evidence, and gives you a structured evidence report you can explore.
               </p>
 
               {/* Emphasis Block */}
@@ -59,7 +60,7 @@ export default function AboutPage() {
               </div>
 
               <p>
-                Tru8 is built for everyday people — not researchers, not experts, just anyone who wants a simpler way to understand the information in front of them. And as the platform grows to support images, videos, and audio, the mission stays the same:
+                Tru8 is built for anyone who needs structured evidence — whether you&apos;re a professional analyst, a journalist, or simply someone who wants clarity. Whether you&apos;re researching a claim, an article, or text from an image, the mission stays the same:
               </p>
 
               <p className="text-zinc-900 text-lg md:text-xl font-medium">

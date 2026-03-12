@@ -25,7 +25,7 @@ export function StitchHero() {
               <span className="font-bold">Form your view.</span>
             </h1>
             <p className="text-lg md:text-xl text-zinc-500 mb-12 max-w-xl leading-relaxed">
-              Submit a claim or article. Tru8 gathers evidence from government data, news, academic papers, and official records — then organises it so you can explore it six ways.
+              Submit a claim, URL, article, or image. Tru8 gathers evidence from government data, news, academic papers, and official records — then organises it so you can explore it six ways.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button

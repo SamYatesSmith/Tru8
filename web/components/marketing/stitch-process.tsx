@@ -13,7 +13,7 @@ const steps = [
     number: '01',
     label: 'Submit',
     title: 'Submit a Claim',
-    description: 'Paste a URL, article, or claim you want to research.',
+    description: 'Paste a URL, article, claim, or image you want to research.',
   },
   {
     icon: GitBranch,

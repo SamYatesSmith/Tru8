@@ -5,8 +5,9 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Blog | Tru8',
-  description: 'News, updates, and insights from Tru8 — AI-powered evidence research.',
+  title: 'Blog',
+  description: 'News, updates, and insights on AI-powered evidence research from Tru8.',
+  alternates: { canonical: '/blog' },
 };
 
 const blogPosts = [

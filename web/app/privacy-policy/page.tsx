@@ -2,8 +2,8 @@ import { LegalPageLayout } from '@/components/legal/legal-page-layout';
 import { CookiePreferencesButton } from '@/components/legal/cookie-preferences-button';
 
 export const metadata = {
-  title: 'Privacy Policy | Tru8',
-  description: 'Tru8 privacy policy - How we collect, use, and protect your data',
+  title: 'Privacy Policy',
+  description: 'How Tru8 collects, uses, and protects your data. GDPR-compliant privacy policy.',
 };
 
 export default function PrivacyPolicyPage() {

@@ -5,8 +5,9 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Tru8 — A First Public Release | Blog | Tru8',
+  title: 'Tru8 — A First Public Release',
   description: 'This is the first public release of Tru8. A tool that\'s ready to be used and tested outside of development.',
+  openGraph: { type: 'article', publishedTime: '2026-01-06T00:00:00Z' },
 };
 
 export default function FirstPublicReleasePage() {
