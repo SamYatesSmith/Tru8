@@ -77,11 +77,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${title} | Tru8`,
       description,
       type: 'article',
+      url: `${baseUrl}/r/${params.id}`,
       images: [ogImageUrl],
       siteName: 'Tru8',
     },
     twitter: {
       card: 'summary_large_image',
+      site: '@tru8app',
       title: `${title} | Tru8`,
       description,
       images: [ogImageUrl],
