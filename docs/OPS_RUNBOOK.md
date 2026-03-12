@@ -1,9 +1,5 @@
 # Tru8 Operations Runbook
 
-> **NOTICE (2026-03-10):** This runbook references Fly.io commands throughout.
-> Railway configuration files (`railway.toml`) also exist in the repo. Update this
-> document to match the chosen deployment platform before production release.
-
 This runbook documents operational procedures for the Tru8 platform.
 
 ---
@@ -24,20 +20,14 @@ This runbook documents operational procedures for the Tru8 platform.
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Vercel    │────▶│   Fly.io    │────▶│  PostgreSQL │
-│  (Web/SSR)  │     │  (FastAPI)  │     │  (Fly.io)   │
+│   Vercel    │────▶│  Railway    │────▶│  PostgreSQL │
+│  (Web/SSR)  │     │  (FastAPI)  │     │  (Railway)  │
 └─────────────┘     └─────────────┘     └─────────────┘
                            │
                            ▼
                     ┌─────────────┐
                     │    Redis    │
                     │  (Upstash)  │
-                    └─────────────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │   Celery    │
-                    │  (Workers)  │
                     └─────────────┘
 ```
 
@@ -46,34 +36,41 @@ This runbook documents operational procedures for the Tru8 platform.
 | Service | Provider | Purpose |
 |---------|----------|---------|
 | Web Frontend | Vercel | Next.js SSR |
-| API Backend | Fly.io | FastAPI + Uvicorn |
-| Database | Fly.io Postgres | PostgreSQL 16 |
-| Cache/Queue | Upstash/Redis | Celery broker + caching |
+| API Backend | Railway | FastAPI + Uvicorn |
+| Database | Railway Postgres | PostgreSQL 16 |
+| Cache | Upstash/Redis | Caching + background tasks |
 | Auth | Clerk | JWT authentication |
 | Payments | Stripe | Subscriptions |
 | Monitoring | Sentry | Error tracking |
+| Storage | Cloudflare R2 | Object storage |
+| DNS/CDN | Cloudflare | DNS + CDN |
 
 ---
 
 ## Deployment
 
-### Backend (Fly.io)
+### Backend (Railway)
+
+Railway deploys automatically from the `main` branch. Manual actions via the Railway CLI:
 
 ```bash
-# Deploy to production
-fly deploy --app tru8-api
+# Install Railway CLI (if not installed)
+npm install -g @railway/cli
 
-# Deploy to staging
-fly deploy --app tru8-api-staging
+# Login
+railway login
 
-# View deployment status
-fly status --app tru8-api
+# Link to project (first time only)
+railway link
+
+# Trigger a deploy manually
+railway up
 
 # View logs
-fly logs --app tru8-api
+railway logs
 
-# SSH into running instance
-fly ssh console --app tru8-api
+# Open the Railway dashboard
+railway open
 ```
 
 ### Frontend (Vercel)
@@ -91,16 +88,19 @@ vercel
 
 ### Environment Variables
 
-Set secrets via Fly.io:
-```bash
-fly secrets set DATABASE_URL="postgresql+asyncpg://..." --app tru8-api
-fly secrets set REDIS_URL="redis://..." --app tru8-api
-fly secrets set CLERK_SECRET_KEY="sk_live_..." --app tru8-api
-fly secrets set OPENAI_API_KEY="sk-..." --app tru8-api
+Set secrets via Railway dashboard or CLI:
 
-# List all secrets
-fly secrets list --app tru8-api
+```bash
+railway variables set DATABASE_URL="postgresql+asyncpg://..."
+railway variables set REDIS_URL="redis://..."
+railway variables set CLERK_SECRET_KEY="sk_live_..."
+railway variables set OPENAI_API_KEY="sk-..."
+
+# List all variables
+railway variables
 ```
+
+Or via the Railway dashboard: **Project → Service → Variables tab**.
 
 ---
 
@@ -109,52 +109,48 @@ fly secrets list --app tru8-api
 ### Backup
 
 ```bash
-# Manual backup (Fly.io Postgres)
-fly postgres connect --app tru8-db
-# Then run: pg_dump tru8_prod > backup.sql
+# Connect to Railway Postgres via CLI
+railway connect postgres
 
-# Or use fly proxy for pg_dump locally
-fly proxy 5432:5432 --app tru8-db &
-pg_dump -h localhost -U postgres tru8_prod > backup_$(date +%Y%m%d_%H%M%S).sql
+# Or use the public database URL for pg_dump locally
+# (Find the public URL in Railway dashboard → Postgres service → Connect tab)
+pg_dump "postgresql://user:pass@host:port/dbname" > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
 ### Restore
 
 ```bash
-# Restore from backup
-fly proxy 5432:5432 --app tru8-db &
-psql -h localhost -U postgres -d tru8_prod < backup_20260105.sql
+# Restore from backup using the public database URL
+psql "postgresql://user:pass@host:port/dbname" < backup_20260312.sql
 ```
 
 ### Migrations
 
 ```bash
-# Run migrations (via SSH)
-fly ssh console --app tru8-api
-cd /app
-alembic upgrade head
+# Run migrations via Railway CLI (executes in the service environment)
+railway run alembic upgrade head
 
 # Check migration status
-alembic current
-alembic history
+railway run alembic current
+railway run alembic history
 
 # Rollback last migration
-alembic downgrade -1
+railway run alembic downgrade -1
 ```
 
 ### Connection Issues
 
 ```bash
-# Check database status
-fly postgres connect --app tru8-db
+# Connect to database
+railway connect postgres
 
 # Check connection pool
-SELECT count(*) FROM pg_stat_activity WHERE datname = 'tru8_prod';
+SELECT count(*) FROM pg_stat_activity WHERE datname = 'railway';
 
 # Kill idle connections if needed
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
-WHERE datname = 'tru8_prod'
+WHERE datname = 'railway'
 AND state = 'idle'
 AND state_change < NOW() - INTERVAL '10 minutes';
 ```
@@ -167,27 +163,19 @@ AND state_change < NOW() - INTERVAL '10 minutes';
 
 ```bash
 # API health
-curl https://api.tru8.com/api/v1/health
+curl https://api.tru8.app/api/v1/health
 
 # Readiness check
-curl https://api.tru8.com/api/v1/health/ready
+curl https://api.tru8.app/api/v1/health/ready
 
-# Metrics
-curl https://api.tru8.com/metrics
+# Cache metrics
+curl https://api.tru8.app/api/v1/health/cache-metrics
 ```
 
 ### Sentry
 
 - Backend: https://sentry.io/organizations/YOUR_ORG/issues/?project=tru8-api
 - Frontend: https://sentry.io/organizations/YOUR_ORG/issues/?project=tru8-web
-
-### Flower (Celery Monitoring)
-
-```bash
-# Access Flower dashboard
-fly proxy 5555:5555 --app tru8-api &
-open http://localhost:5555
-```
 
 ### Key Metrics to Monitor
 
@@ -214,42 +202,27 @@ open http://localhost:5555
 
 ### P0 Response Checklist
 
-1. [ ] Acknowledge in Slack/PagerDuty
-2. [ ] Check Sentry for error patterns
-3. [ ] Check `/api/v1/health/ready`
-4. [ ] Check Fly.io status: `fly status --app tru8-api`
-5. [ ] Check database: `fly postgres connect --app tru8-db`
-6. [ ] Check Redis connectivity
+1. [ ] Check Sentry for error patterns
+2. [ ] Check `/api/v1/health/ready`
+3. [ ] Check Railway dashboard for service status
+4. [ ] Check database connectivity: `railway connect postgres`
+5. [ ] Check Redis connectivity
+6. [ ] Check Railway logs: `railway logs`
 7. [ ] If needed, rollback deployment
-8. [ ] Communicate status to stakeholders
-9. [ ] Post-incident review
+8. [ ] Post-incident review
 
 ### High Error Rate
 
 ```bash
 # Check recent errors in logs
-fly logs --app tru8-api | grep -i error | tail -50
+railway logs | grep -i error | tail -50
 
 # Check Sentry for patterns
 # Look for: repeated exceptions, specific endpoints, user patterns
 
 # If rate limiting issue
-curl -I https://api.tru8.com/api/v1/checks
+curl -I https://api.tru8.app/api/v1/checks
 # Check X-RateLimit headers
-```
-
-### Queue Backup (Celery)
-
-```bash
-# Check queue length via Flower
-fly proxy 5555:5555 --app tru8-api &
-
-# Purge stale tasks (CAUTION)
-fly ssh console --app tru8-api
-celery -A app.workers purge
-
-# Scale workers if needed
-fly scale count 2 --app tru8-api
 ```
 
 ---
@@ -258,27 +231,30 @@ fly scale count 2 --app tru8-api
 
 ### Backend Rollback
 
+Railway keeps deployment history. To rollback:
+
+1. Go to **Railway dashboard → Service → Deployments**
+2. Find the previous working deployment
+3. Click **Redeploy** on that deployment
+
+Or via CLI:
 ```bash
-# List recent deployments
-fly releases --app tru8-api
+# View recent deployments
+railway deployments
 
-# Rollback to previous version
-fly deploy --image registry.fly.io/tru8-api:sha-<PREVIOUS_SHA> --app tru8-api
-
-# Or rollback to specific release
-fly releases rollback <RELEASE_NUMBER> --app tru8-api
+# Rollback by redeploying a previous commit
+git revert HEAD
+git push origin main
 ```
 
 ### Database Rollback
 
 ```bash
 # Rollback last migration
-fly ssh console --app tru8-api
-cd /app
-alembic downgrade -1
+railway run alembic downgrade -1
 
 # Rollback multiple migrations
-alembic downgrade -3  # Go back 3 migrations
+railway run alembic downgrade -3
 ```
 
 ### Frontend Rollback
@@ -301,22 +277,21 @@ vercel rollback
 
 **Solution:**
 ```bash
-# Check connections
-fly postgres connect --app tru8-db
-SELECT count(*) FROM pg_stat_activity WHERE datname = 'tru8_prod';
+railway connect postgres
+
+SELECT count(*) FROM pg_stat_activity WHERE datname = 'railway';
 
 # Kill idle connections
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
 WHERE state = 'idle' AND state_change < NOW() - INTERVAL '5 minutes';
 
-# Restart API if needed
-fly apps restart tru8-api
+# Restart service via Railway dashboard if needed
 ```
 
 ### Issue: "Redis connection timeout"
 
-**Symptoms:** Slow API responses, Celery tasks stuck
+**Symptoms:** Slow API responses, background tasks stuck
 
 **Solution:**
 ```bash
@@ -326,8 +301,7 @@ redis-cli -u $REDIS_URL ping
 # Clear cache if corrupted
 redis-cli -u $REDIS_URL FLUSHDB
 
-# Restart workers
-fly apps restart tru8-api
+# Restart service via Railway dashboard
 ```
 
 ### Issue: "Out of credits"
@@ -336,6 +310,8 @@ fly apps restart tru8-api
 
 **Solution:**
 ```sql
+-- Connect via: railway connect postgres
+
 -- Check user credits
 SELECT id, email, credits FROM "user" WHERE email = 'user@example.com';
 
@@ -349,15 +325,8 @@ UPDATE "user" SET credits = credits + 10 WHERE email = 'user@example.com';
 
 **Solution:**
 ```bash
-# Check Celery worker status
-fly ssh console --app tru8-api
-celery -A app.workers inspect active
-
-# Revoke stuck task
-celery -A app.workers control revoke <TASK_ID> --terminate
-
-# Check for resource constraints
-fly status --app tru8-api
+# Check logs for stuck tasks
+railway logs | grep -i "timeout\|stuck\|error"
 ```
 
 ---
@@ -372,4 +341,4 @@ fly status --app tru8-api
 
 ---
 
-*Last updated: 2026-01-05*
+*Last updated: 2026-03-12*

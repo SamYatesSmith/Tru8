@@ -180,11 +180,36 @@ app = FastAPI(
     description=API_DESCRIPTION,
     version="1.0.0",
     lifespan=lifespan,
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
+    docs_url=None,  # Overridden below with pinned CDN versions
+    redoc_url=None,  # Overridden below with pinned CDN versions
     openapi_url="/api/openapi.json",
     redirect_slashes=False,
 )
+
+
+# --- Custom docs routes with pinned CDN versions ---
+# FastAPI's defaults use @next (unstable) tags that can serve blank pages.
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
+
+
+@app.get("/api/docs", include_in_schema=False)
+async def custom_swagger_ui():
+    return get_swagger_ui_html(
+        openapi_url="/api/openapi.json",
+        title="Tru8 API — Swagger",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.18.2/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.18.2/swagger-ui.css",
+    )
+
+
+@app.get("/api/redoc", include_in_schema=False)
+async def custom_redoc():
+    return get_redoc_html(
+        openapi_url="/api/openapi.json",
+        title="Tru8 API — ReDoc",
+        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@2.1.5/bundles/redoc.standalone.js",
+    )
+
 
 # Register global exception handlers for consistent error responses
 register_exception_handlers(app)

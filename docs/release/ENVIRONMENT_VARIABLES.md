@@ -174,7 +174,7 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxx
 ### Staging
 
 ```env
-# backend (Fly.io secrets)
+# backend (Railway variables)
 ENVIRONMENT=staging
 DEBUG=false
 DATABASE_URL=postgresql+asyncpg://xxx:xxx@xxx-db.internal:5432/tru8_staging
@@ -189,7 +189,7 @@ CORS_ORIGINS=["https://staging.tru8.com"]
 ### Production
 
 ```env
-# backend (Fly.io secrets)
+# backend (Railway variables)
 ENVIRONMENT=production
 DEBUG=false
 DATABASE_URL=postgresql+asyncpg://xxx:xxx@xxx-db.internal:5432/tru8_prod

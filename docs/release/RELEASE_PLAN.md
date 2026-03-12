@@ -504,15 +504,16 @@ pg_dump -h localhost -p 5433 -U postgres tru8_prod > backup_$(date +%Y%m%d_%H%M%
 psql -h localhost -p 5433 -U postgres -d tru8_prod < backup_20260105.sql
 ```
 
-### Automated Backups (Fly.io)
-Fly.io Postgres includes automated daily backups with 7-day retention.
+### Automated Backups (Railway)
+Railway Postgres includes automated daily backups with 7-day retention.
 
 ## Rollback Procedures
 
 ### Rollback Deployment
 ```bash
-fly releases -a tru8-api
-fly deploy --image registry.fly.io/tru8-api:sha-abc123
+# Redeploy a previous commit from the Railway dashboard,
+# or push the previous commit and run:
+railway up
 ```
 
 ### Rollback Migration
@@ -525,12 +526,12 @@ alembic downgrade -1
 ### High Error Rate
 1. Check Sentry for error patterns
 2. Check /api/v1/health/ready
-3. Check Celery worker logs
+3. Check background task logs (`railway logs`)
 4. Rollback if needed
 
-### Queue Backup
-1. Check Flower at /flower
-2. Purge stale tasks: `celery -A app.workers purge`
+### Task Queue Backup
+1. Check background task metrics via application health endpoints
+2. Purge stale tasks if needed
 3. Scale workers if needed
 ```
 
@@ -652,9 +653,9 @@ app.add_exception_handler(HTTPException, http_exception_handler)
 
 If issues arise post-deployment:
 
-1. **Revert deployment:** `fly deploy --image <previous-sha>`
+1. **Revert deployment:** Redeploy previous commit from Railway dashboard
 2. **Database:** Restore from last backup if data corruption
-3. **Configuration:** Roll back env vars in Fly/Vercel dashboard
+3. **Configuration:** Roll back env vars in Railway/Vercel dashboard
 4. **Feature flag:** Disable problematic features via config
 
 ---

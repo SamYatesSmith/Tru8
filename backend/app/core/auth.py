@@ -9,6 +9,7 @@ import httpx
 import json
 import jwt
 import logging
+import redis.asyncio as aioredis
 from jwt import PyJWKClient
 from datetime import datetime, timezone
 from app.core.config import settings
@@ -300,11 +301,8 @@ async def _verify_stream_token(
     Returns a user dict if valid, or None if the token is not a stream token
     (caller should fall back to JWT verification).
     """
-    import redis.asyncio as aioredis
-    from app.core.config import settings as _settings
-
     try:
-        r = aioredis.from_url(_settings.REDIS_URL, decode_responses=True)
+        r = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
         token_key = f"sse-token:{token_value}"
         payload_json = await r.get(token_key)
         if payload_json:

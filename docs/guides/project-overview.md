@@ -66,7 +66,7 @@ and returns verdicts: **Supported / Contradicted / Uncertain** with confidence p
 - Realtime: SSE (fallback polling)
 
 **Backend:** FastAPI + Uvicorn  
-- Jobs: Celery + Redis  
+- Jobs: Background tasks + Redis
 - DB: Postgres (SQLModel/SQLAlchemy)  
 - Blobs: S3/Cloudflare R2  
 - Vector: Qdrant (managed or Docker)  
@@ -116,7 +116,7 @@ and returns verdicts: **Supported / Contradicted / Uncertain** with confidence p
 
 ## 8. Development Roadmap (6–8 weeks)
 
-**Week 1** – Repos, FastAPI skeleton, Postgres migrations, Redis/Celery, Clerk + RevenueCat/Stripe test, Sentry/PostHog wired  
+**Week 1** – Repos, FastAPI skeleton, Postgres migrations, Redis + background tasks, Clerk + RevenueCat/Stripe test, Sentry/PostHog wired
 **Week 2** – Ingest (URL fetch + OCR + transcript), UI skeleton (Login, New Check, Progress, History), mock `/checks`  
 **Week 3** – Claim extraction + JSON validation, search provider integration, snippet extractor, embeddings + Qdrant  
 **Week 4** – NLI (ONNX), aggregation, judge prompt, end-to-end verdict cards, SSE + push notifications  

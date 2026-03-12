@@ -50,7 +50,7 @@ git init
 - [x] FastAPI endpoints structure
 - [x] Clerk JWT validation
 - [x] User model + credits system
-- [x] Celery + Redis setup
+- [x] Background task queue + Redis setup
 - [x] Basic `/checks` endpoint (mock)
 - [x] Postgres migrations
 - [x] **Integration Point:** API docs for frontend team

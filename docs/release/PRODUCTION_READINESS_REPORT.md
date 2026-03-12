@@ -22,8 +22,8 @@ Tru8 is a fact-checking SaaS platform with a sophisticated ML pipeline. The code
 |   CLIENTS        |        |   API GATEWAY    |        |   PROCESSING     |
 +------------------+        +------------------+        +------------------+
 |                  |        |                  |        |                  |
-|  Web (Next.js)   |  HTTPS |  FastAPI         |  Redis |  Celery Workers  |
-|  localhost:3000  | -----> |  localhost:8000  | -----> |  (solo pool)     |
+|  Web (Next.js)   |  HTTPS |  FastAPI         |  Redis |  Background Tasks|
+|  localhost:3000  | -----> |  localhost:8000  | -----> |  (async workers) |
 |                  |        |                  |        |                  |
 |  Mobile (Expo)   |        |  Routes:         |        |  Tasks:          |
 |  localhost:8081  |        |  - /api/v1/auth  |        |  - process_check |
@@ -55,7 +55,7 @@ Tru8 is a fact-checking SaaS platform with a sophisticated ML pipeline. The code
 |                  |        |                  |        |                  |
 |  Brave Search    |        |  Sentry (errors) |        |  Clerk (JWT)     |
 |  SerpAPI         |        |  Prometheus      |        |  Stripe          |
-|  Google Factcheck|        |  Flower (Celery) |        |  RevenueCat      |
+|  Google Factcheck|        |  Prometheus      |        |  RevenueCat      |
 |  Government APIs:|        |  /metrics        |        |  Resend (email)  |
 |  - NOAA          |        |  /health/ready   |        |  Expo Push       |
 |  - Alpha Vantage |        |                  |        |                  |
@@ -68,7 +68,7 @@ Tru8 is a fact-checking SaaS platform with a sophisticated ML pipeline. The code
 ### Critical Data Flows
 
 1. **Auth Flow:** Client -> Clerk -> JWT -> Backend validates via JWKS
-2. **Check Flow:** POST /checks -> Credit deduction -> Celery task -> SSE progress -> DB update
+2. **Check Flow:** POST /checks -> Credit deduction -> Background task -> SSE progress -> DB update
 3. **Payment Flow:** Stripe checkout -> Webhook -> Subscription created -> Credits assigned
 
 ---
@@ -128,7 +128,7 @@ Tru8 is a fact-checking SaaS platform with a sophisticated ML pipeline. The code
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `DATABASE_URL` | Yes | PostgreSQL connection |
-| `REDIS_URL` | Yes | Cache + Celery broker |
+| `REDIS_URL` | Yes | Cache + task broker |
 | `CLERK_SECRET_KEY` | Yes | JWT validation |
 | `CLERK_JWT_ISSUER` | Yes | Token issuer |
 | `OPENAI_API_KEY` | Yes | LLM for extraction/judgment |
@@ -162,7 +162,7 @@ Tru8 is a fact-checking SaaS platform with a sophisticated ML pipeline. The code
 1. **Account Takeover** - Mitigated by Clerk, but monitor for JWT leakage
 2. **Credit Abuse** - Rate limiting needed to prevent check-spam
 3. **API Key Exposure** - Government/Search API keys in backend only
-4. **DDoS on Pipeline** - Celery queue could be overwhelmed, add concurrency limits
+4. **DDoS on Pipeline** - Task queue could be overwhelmed, add concurrency limits
 5. **Prompt Injection** - User queries flow to LLM, add sanitization
 
 **Recommendations:**
@@ -232,7 +232,7 @@ Tru8 is a fact-checking SaaS platform with a sophisticated ML pipeline. The code
 | Task failure handling | PASS | Credit refund on failure | `backend/app/workers/pipeline.py:31-66` |
 | Circuit breakers | PASS | Implemented for external APIs | `backend/app/services/circuit_breaker.py` |
 | Timeouts | PASS | PIPELINE_TIMEOUT_SECONDS=180 | `backend/app/core/config.py:73` |
-| Retry logic | PASS | Celery task retry + API circuit breakers | - |
+| Retry logic | PASS | Task retry + API circuit breakers | - |
 
 **Recommendations:**
 1. Add global exception handler returning standardized error format
@@ -292,7 +292,7 @@ pytest --cov=app tests/             # With coverage
 | Area | Status | Finding | Location |
 |------|--------|---------|----------|
 | CI exists | FAIL | No `.github/workflows/` | Root |
-| Deployment config | FAIL | No `fly.toml`, `vercel.json` | Root |
+| Deployment config | FAIL | No `railway.toml`, `vercel.json` | Root |
 | Environment separation | PARTIAL | Config supports it, not automated | - |
 
 **Proposed CI Pipeline:**
@@ -414,7 +414,7 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 | `backend/app/core/config.py` | All settings + feature flags | 232 |
 | `backend/app/core/auth.py` | JWT verification | 177 |
 | `backend/app/core/database.py` | DB connections | 40 |
-| `backend/app/workers/pipeline.py` | Celery orchestration | 1452 |
+| `backend/app/workers/pipeline.py` | Background task orchestration | 1452 |
 | `backend/app/pipeline/judge.py` | LLM verdict generation | 1307 |
 | `web/middleware.ts` | Auth routing | 46 |
 | `web/lib/api.ts` | Backend API client | 392 |

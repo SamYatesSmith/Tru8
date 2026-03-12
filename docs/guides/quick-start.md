@@ -74,7 +74,7 @@ chmod +x start-backend.sh
 
 This starts:
 - **FastAPI server** on http://localhost:8000
-- **Celery worker** for background processing
+- **Background worker** for async task processing
 
 **Verify:** Open http://localhost:8000/api/docs - you should see the Swagger UI.
 

@@ -32,7 +32,7 @@ When ready to accept payments, you need to:
 
 ### 2. Backend Environment Variables
 
-Update in Fly.io secrets (or your hosting provider):
+Update in Railway variables (or your hosting provider):
 
 ```bash
 # Enable subscriptions
@@ -49,14 +49,14 @@ BETA_TESTER_EMAILS=[]  # Empty array to disable beta access
 
 **Commands:**
 ```bash
-# Fly.io
-fly secrets set SUBSCRIPTIONS_ENABLED=true --app trueight-api
-fly secrets set STRIPE_SECRET_KEY=sk_live_xxx --app trueight-api
-fly secrets set STRIPE_WEBHOOK_SECRET=whsec_xxx --app trueight-api
-fly secrets set STRIPE_PRICE_ID_PRO=price_xxx --app trueight-api
+# Railway
+railway variables set SUBSCRIPTIONS_ENABLED=true
+railway variables set STRIPE_SECRET_KEY=sk_live_xxx
+railway variables set STRIPE_WEBHOOK_SECRET=whsec_xxx
+railway variables set STRIPE_PRICE_ID_PRO=price_xxx
 
 # To remove beta testers
-fly secrets set BETA_TESTER_EMAILS='[]' --app trueight-api
+railway variables set BETA_TESTER_EMAILS='[]'
 ```
 
 ### 3. Frontend Environment Variables
@@ -232,7 +232,7 @@ If issues arise, you can instantly disable subscriptions:
 
 ```bash
 # Backend
-fly secrets set SUBSCRIPTIONS_ENABLED=false --app trueight-api
+railway variables set SUBSCRIPTIONS_ENABLED=false
 
 # Frontend
 # Update NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=false in Vercel and redeploy

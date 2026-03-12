@@ -116,7 +116,7 @@ Use this checklist for final go/no-go decision. All P0 items must be checked.
 | Sentry (backend) | [ ] | ____________ |
 | Sentry (frontend) | [ ] | ____________ |
 | Prometheus/Grafana | [ ] | ____________ |
-| Flower (Celery) | [ ] | ____________ |
+| Background task logs | [ ] | ____________ |
 
 ---
 
@@ -131,7 +131,8 @@ Use this checklist for final go/no-go decision. All P0 items must be checked.
 
 **Rollback command:**
 ```bash
-fly deploy --image registry.fly.io/tru8-api:sha-<PREVIOUS>
+railway up --service tru8-api --environment production
+# Or redeploy a previous commit from the Railway dashboard
 ```
 
 ---

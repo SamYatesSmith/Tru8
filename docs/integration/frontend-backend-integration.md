@@ -147,10 +147,10 @@ async createCheck(
 - POST /api/v1/checks
 - Validates input type
 - Reserves credits
-- Dispatches Celery task
+- Dispatches background task
 - Returns check ID
 
-**Status:** ✅ Input validation aligned, Celery dispatch working
+**Status:** ✅ Input validation aligned, background task dispatch working
 
 ---
 
@@ -399,7 +399,7 @@ cd backend
 alembic upgrade head
 ```
 
-### Step 3: Start Backend (FastAPI + Celery)
+### Step 3: Start Backend (FastAPI + Background Workers)
 ```bash
 cd backend
 .\start-backend.bat    # Windows
@@ -410,7 +410,7 @@ cd backend
 **Services Started:**
 - FastAPI: http://localhost:8000
 - API Docs: http://localhost:8000/api/docs
-- Celery Worker: Background processing
+- Background Worker: Background processing
 
 ### Step 4: Start Frontend (Next.js)
 ```bash

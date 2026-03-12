@@ -208,7 +208,7 @@ Monitor verdict distribution in production and adjust if needed.
 
 - [ ] `.github/workflows/backend.yml` - Backend CI/CD
 - [ ] `.github/workflows/web.yml` - Web frontend CI/CD
-- [ ] `fly.toml` - Fly.io backend deployment config
+- [ ] `railway.toml` - Railway backend deployment config
 - [ ] `vercel.json` - Vercel web deployment config (or use Vercel auto-detect)
 
 ---
@@ -218,7 +218,7 @@ Monitor verdict distribution in production and adjust if needed.
 **Current:** All secrets in `.env` files (not secure for production)
 
 **Recommended approach:**
-- Use Fly.io secrets (`fly secrets set KEY=value`)
+- Use Railway variables (`railway variables set KEY=value`)
 - Use Vercel environment variables (encrypted)
 - Use GitHub Actions secrets for CI/CD
 - Consider: AWS Secrets Manager, HashiCorp Vault, or Doppler
@@ -287,7 +287,7 @@ Monitor verdict distribution in production and adjust if needed.
 - [ ] Sentry configured and tested
 - [ ] PostHog configured and tested
 - [ ] Uptime monitoring (e.g., Better Uptime, Pingdom)
-- [ ] Log aggregation (e.g., Fly.io logs, Papertrail)
+- [ ] Log aggregation (e.g., Railway logs, Papertrail)
 - [ ] Cost alerts for pay-per-use APIs
 
 ---

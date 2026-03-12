@@ -30,7 +30,7 @@ You should see 3 containers:
 
 ---
 
-### **Step 2: Start Backend (FastAPI + Celery)**
+### **Step 2: Start Backend (FastAPI + Background Workers)**
 
 Open a **NEW terminal window**:
 
@@ -42,7 +42,7 @@ cd backend
 **Expected Output:**
 ```
 ✓ Redis is running
-✓ Starting Celery worker...
+✓ Starting background worker...
 ✓ Starting FastAPI server...
 INFO:     Uvicorn running on http://127.0.0.1:8000
 ```
@@ -259,7 +259,7 @@ The Earth is flat and has been proven by scientists.
 **If pipeline fails:**
 - Check backend logs for errors
 - Verify all API keys are set
-- Check Celery worker is running
+- Check background worker is running
 - This is expected if pipeline isn't fully configured yet
 
 ---
