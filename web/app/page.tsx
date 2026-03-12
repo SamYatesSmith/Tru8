@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Navigation } from '@/components/layout/navigation'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Footer } from '@/components/layout/footer'
@@ -6,6 +7,32 @@ import { StitchProcess } from '@/components/marketing/stitch-process'
 import { StitchFeatures } from '@/components/marketing/stitch-features'
 import { StitchVideo } from '@/components/marketing/stitch-video'
 import { StitchPricing } from '@/components/marketing/stitch-pricing'
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'
+
+export const metadata: Metadata = {
+  title: 'Tru8 — AI-Powered Evidence Research',
+  description: 'Submit a claim, URL, article, or image. Tru8 searches 30+ sources, classifies evidence by tier and type, and organises the results. No verdicts — just structured evidence.',
+  alternates: { canonical: '/' },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      name: 'Tru8',
+      url: baseUrl,
+      logo: `${baseUrl}/favicon.proper.png`,
+      description: 'AI-powered evidence research platform. We organise; you decide.',
+    },
+    {
+      '@type': 'WebSite',
+      name: 'Tru8',
+      url: baseUrl,
+    },
+  ],
+}
 
 /**
  * Home Page (Stitch W-01 Landing)
@@ -25,6 +52,10 @@ export default function Home({
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
       <Navigation initialAuthOpen={shouldOpenAuth} redirectUrl={redirectUrl} />
       <MobileBottomNav />
 

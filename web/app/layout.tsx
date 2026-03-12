@@ -21,13 +21,30 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Tru8 — AI-Powered Evidence Research',
-  description: 'Professional evidence research platform. Analyse claims, URLs, and articles with AI-powered multi-source research.',
+  title: {
+    default: 'Tru8 — AI-Powered Evidence Research',
+    template: '%s | Tru8',
+  },
+  description: 'Professional evidence research platform. Analyse claims, URLs, articles, and images with AI-powered multi-source research.',
   icons: {
     icon: '/favicon.proper.png',
     apple: '/apple-touch-icon.png',
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'),
+  openGraph: {
+    type: 'website',
+    siteName: 'Tru8',
+    locale: 'en_GB',
+    images: [{ url: '/api/og/default', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  manifest: '/manifest.webmanifest',
 }
 
 export default function RootLayout({
