@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Blog',
-  description: 'News, updates, and insights on AI-powered evidence research from Tru8.',
+  description: 'News, updates, and insights on AI-powered evidence research from Tru8 — including the API, MCP server, and agent integrations.',
   alternates: { canonical: '/blog' },
 };
 
@@ -14,7 +14,7 @@ const blogPosts = [
   {
     slug: 'first-public-release',
     title: 'Tru8 — A First Public Release',
-    excerpt: 'This is the first public release of Tru8. There\'s no big announcement behind it — just a tool that\'s ready to be used and tested outside of development.',
+    excerpt: 'The first public release of Tru8 — an evidence research platform with a dashboard, API, and MCP server for AI agents. No big announcement, just a tool that\'s ready.',
     date: '6 January 2026',
     readTime: '4 min read',
   },
@@ -46,7 +46,7 @@ export default function BlogPage() {
               Blog
             </h1>
             <p className="text-lg text-zinc-500">
-              News, updates, and insights from Tru8
+              News, updates, and insights from Tru8 — platform, API, and agent integrations
             </p>
           </div>
 

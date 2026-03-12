@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Tru8 — A First Public Release',
-  description: 'This is the first public release of Tru8. A tool that\'s ready to be used and tested outside of development.',
+  description: 'The first public release of Tru8 — an evidence research platform with a dashboard, API, and MCP server for AI agents.',
   openGraph: { type: 'article', publishedTime: '2026-01-06T00:00:00Z' },
 };
 
@@ -148,7 +148,11 @@ export default function FirstPublicReleasePage() {
             </p>
 
             <p>
-              The aim is to keep Tru8 grounded, transparent, and genuinely useful.
+              Beyond the dashboard, Tru8 also offers an API and MCP server — so AI agents and developer tools can run structured evidence research programmatically. Whether it&apos;s a single claim lookup or a full 30+ source analysis, the same pipeline is available via a straightforward API call.
+            </p>
+
+            <p>
+              The aim is to keep Tru8 grounded, transparent, and genuinely useful — for people and for the tools they build.
             </p>
 
             <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 pt-6">A Final Note</h2>
