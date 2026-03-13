@@ -78,7 +78,7 @@ class TestConcurrencyLimit:
             ),
             patch("app.core.agent_auth.settings") as mock_settings,
         ):
-            mock_settings.MAX_CONCURRENT_ANALYSES = 3
+            mock_settings.MAX_CONCURRENT_AGENT_ANALYSES = 3
 
             with pytest.raises(HTTPException) as exc_info:
                 await get_agent_payment(mock_request, session)
@@ -110,7 +110,7 @@ class TestConcurrencyLimit:
             ),
             patch("app.core.agent_auth.settings") as mock_settings,
         ):
-            mock_settings.MAX_CONCURRENT_ANALYSES = 3
+            mock_settings.MAX_CONCURRENT_AGENT_ANALYSES = 3
 
             result = await get_agent_payment(mock_request, session)
 

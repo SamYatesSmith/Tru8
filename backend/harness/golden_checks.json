@@ -1,0 +1,829 @@
+[
+  {
+    "claim_id": "eval-001",
+    "normalised_claim": "UK GDP grew by 0.5% in Q3 2025",
+    "elements": [
+      {"element_id": "e1", "description": "UK GDP grew in Q3 2025"},
+      {"element_id": "e2", "description": "The growth rate was 0.5%"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-001",
+        "title": "ONS GDP Estimate - Q3 2025",
+        "text": "The Office for National Statistics estimates that UK gross domestic product grew by 0.1% in Quarter 3 2025, following growth of 0.5% in Quarter 2. The services sector was the main contributor to growth.",
+        "snippet": "The Office for National Statistics estimates that UK gross domestic product grew by 0.1% in Quarter 3 2025, following growth of 0.5% in Quarter 2.",
+        "source": "ons.gov.uk",
+        "url": "https://ons.gov.uk/gdp/q3-2025",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-002",
+        "title": "UK economy shows resilience despite headwinds",
+        "text": "Britain's economy continued to expand in the third quarter according to preliminary data, though at a slower pace than previously. Analysts had expected growth of around 0.3 per cent.",
+        "snippet": "Britain's economy continued to expand in the third quarter according to preliminary data, though at a slower pace than previously.",
+        "source": "ft.com",
+        "url": "https://ft.com/content/uk-economy-q3",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-003",
+        "title": "Why the UK economy is still underperforming",
+        "text": "Commentators have noted that while GDP is growing, the pace remains below trend. Some attribute this to persistent supply-side constraints and weak business investment.",
+        "snippet": "Commentators have noted that while GDP is growing, the pace remains below trend.",
+        "source": "economist.com",
+        "url": "https://economist.com/uk-underperformance",
+        "tier": "commentary",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "ONS confirms GDP grew (0.1%), FT confirms expansion — direction is correct",
+      "e2": "ONS says 0.1% not 0.5% — magnitude is wrong, FT says slower than expected"
+    }
+  },
+  {
+    "claim_id": "eval-002",
+    "normalised_claim": "The Amazon rainforest lost 10,000 square kilometres of tree cover in 2024",
+    "elements": [
+      {"element_id": "e1", "description": "The Amazon rainforest experienced tree cover loss in 2024"},
+      {"element_id": "e2", "description": "The amount of tree cover lost was 10,000 square kilometres"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-010",
+        "title": "INPE Deforestation Alert Data 2024",
+        "text": "Brazil's National Institute for Space Research (INPE) recorded 8,453 square kilometres of deforestation alerts in the Legal Amazon region during 2024, a 22% reduction from the previous year's 10,834 sq km.",
+        "snippet": "Brazil's National Institute for Space Research (INPE) recorded 8,453 square kilometres of deforestation alerts in the Legal Amazon during 2024.",
+        "source": "inpe.br",
+        "url": "https://terrabrasilis.dpi.inpe.br/deforestation-2024",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-011",
+        "title": "Amazon deforestation falls to lowest level in six years",
+        "text": "Deforestation in the Brazilian Amazon dropped significantly in 2024, with satellite data showing the lowest annual rate since 2018. Environmental groups cautiously welcomed the decline.",
+        "snippet": "Deforestation in the Brazilian Amazon dropped significantly in 2024, with satellite data showing the lowest annual rate since 2018.",
+        "source": "reuters.com",
+        "url": "https://reuters.com/amazon-deforestation-2024",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "INPE confirms 8,453 sq km lost, Reuters confirms significant deforestation",
+      "e2": "INPE says 8,453 sq km not 10,000 — figure is overstated by 18%"
+    }
+  },
+  {
+    "claim_id": "eval-003",
+    "normalised_claim": "Tesla delivered over 2 million vehicles globally in 2024",
+    "elements": [
+      {"element_id": "e1", "description": "Tesla made vehicle deliveries globally in 2024"},
+      {"element_id": "e2", "description": "The number of deliveries exceeded 2 million"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-020",
+        "title": "Tesla Q4 and Full Year 2024 Delivery Report",
+        "text": "Tesla reported total deliveries of 1,789,226 vehicles for full year 2024, down from 1,808,581 in 2023. This marked the company's first annual delivery decline.",
+        "snippet": "Tesla reported total deliveries of 1,789,226 vehicles for full year 2024, down from 1,808,581 in 2023.",
+        "source": "ir.tesla.com",
+        "url": "https://ir.tesla.com/press-release/q4-2024-deliveries",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-021",
+        "title": "Electric vehicle market trends 2024",
+        "text": "Global EV sales reached new records in 2024, driven by Chinese manufacturers. Tesla remained the single largest EV brand but faced growing competition.",
+        "snippet": "Global EV sales reached new records in 2024. Tesla remained the single largest EV brand but faced growing competition.",
+        "source": "iea.org",
+        "url": "https://iea.org/reports/ev-trends-2024",
+        "tier": "reporting",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "Tesla IR confirms 1,789,226 deliveries — deliveries occurred",
+      "e2": "1,789,226 < 2,000,000 — did not exceed 2 million"
+    }
+  },
+  {
+    "claim_id": "eval-004",
+    "normalised_claim": "The Great Wall of China is visible from space and is 5,000 kilometres long",
+    "elements": [
+      {"element_id": "e1", "description": "The Great Wall of China is visible from space"},
+      {"element_id": "e2", "description": "The Great Wall is 5,000 kilometres long"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-030",
+        "title": "NASA: Is the Great Wall Visible from Space?",
+        "text": "The Great Wall of China is not visible from low Earth orbit with the unaided eye, according to NASA astronauts and imagery analysis. The wall is too narrow (approximately 5-8 metres wide) to be distinguished from that altitude.",
+        "snippet": "The Great Wall of China is not visible from low Earth orbit with the unaided eye, according to NASA astronauts and imagery analysis.",
+        "source": "nasa.gov",
+        "url": "https://nasa.gov/great-wall-visibility",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-031",
+        "title": "Archaeological Survey of the Great Wall",
+        "text": "China's State Administration of Cultural Heritage completed a comprehensive survey in 2012, measuring the total length of all Great Wall sections at 21,196.18 kilometres, including walls, trenches, and natural barriers built across different dynasties.",
+        "snippet": "China's State Administration of Cultural Heritage measured the total length of all Great Wall sections at 21,196.18 kilometres.",
+        "source": "xinhua.net",
+        "url": "https://xinhua.net/great-wall-survey",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "disputed", "e2": "disputed"},
+    "rationale": {
+      "e1": "NASA explicitly states it is NOT visible from space with unaided eye",
+      "e2": "Survey says 21,196 km, not 5,000 km — underestimates by 4x"
+    }
+  },
+  {
+    "claim_id": "eval-005",
+    "normalised_claim": "William Shakespeare wrote 37 plays during his career",
+    "elements": [
+      {"element_id": "e1", "description": "William Shakespeare wrote plays"},
+      {"element_id": "e2", "description": "The number of plays Shakespeare wrote was 37"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-040",
+        "title": "William Shakespeare - Complete Works",
+        "text": "The First Folio of 1623, compiled by Shakespeare's colleagues John Heminges and Henry Condell, contains 36 plays. Modern scholars generally attribute 37 plays to Shakespeare, including Pericles which was not in the First Folio.",
+        "snippet": "Modern scholars generally attribute 37 plays to Shakespeare, including Pericles which was not in the First Folio.",
+        "source": "britannica.com",
+        "url": "https://britannica.com/shakespeare-works",
+        "tier": "reporting",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-041",
+        "title": "Shakespeare's dramatic output",
+        "text": "Shakespeare is widely credited with writing 37 plays spanning comedies, histories, and tragedies. Some scholars argue for a higher count including collaborative works such as The Two Noble Kinsmen.",
+        "snippet": "Shakespeare is widely credited with writing 37 plays spanning comedies, histories, and tragedies.",
+        "source": "shakespeare.org.uk",
+        "url": "https://shakespeare.org.uk/explore/plays",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "supported"},
+    "rationale": {
+      "e1": "Both sources confirm Shakespeare wrote plays",
+      "e2": "Both sources cite 37 as the standard count"
+    }
+  },
+  {
+    "claim_id": "eval-006",
+    "normalised_claim": "The Amazon River is the longest river in the world",
+    "elements": [
+      {"element_id": "e1", "description": "The Amazon is a major world river"},
+      {"element_id": "e2", "description": "The Amazon is the longest river in the world"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-050",
+        "title": "World's Longest Rivers - USGS",
+        "text": "The Nile River in Africa is generally considered the world's longest river at approximately 6,650 kilometres. The Amazon River in South America is the second longest at approximately 6,400 kilometres, though it carries far more water by volume than any other river.",
+        "snippet": "The Nile River is generally considered the world's longest at approximately 6,650 km. The Amazon is the second longest at approximately 6,400 km.",
+        "source": "usgs.gov",
+        "url": "https://usgs.gov/longest-rivers",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-051",
+        "title": "Amazon River Facts",
+        "text": "The Amazon River basin is the largest drainage basin in the world. While the Amazon is the largest river by water volume and width, the Nile is traditionally measured as longer. Some recent studies have proposed the Amazon may be longer when measured from its most distant source.",
+        "snippet": "While the Amazon is the largest river by water volume and width, the Nile is traditionally measured as longer.",
+        "source": "nationalgeographic.com",
+        "url": "https://natgeo.com/amazon-river",
+        "tier": "reporting",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "Both sources confirm Amazon is a major world river",
+      "e2": "USGS says Amazon is second longest (6,400 km vs Nile 6,650 km), NatGeo confirms Nile is traditionally longer"
+    }
+  },
+  {
+    "claim_id": "eval-007",
+    "normalised_claim": "The adult human body contains 206 bones",
+    "elements": [
+      {"element_id": "e1", "description": "The adult human body contains bones"},
+      {"element_id": "e2", "description": "The number of bones in an adult human body is 206"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-060",
+        "title": "Human Skeletal System - Gray's Anatomy",
+        "text": "The adult human skeleton typically consists of 206 bones. Infants are born with approximately 270 bones, many of which fuse together during development. The skeleton is divided into the axial skeleton (80 bones) and the appendicular skeleton (126 bones).",
+        "snippet": "The adult human skeleton typically consists of 206 bones, divided into axial (80) and appendicular (126) skeleton.",
+        "source": "ncbi.nlm.nih.gov",
+        "url": "https://ncbi.nlm.nih.gov/books/skeletal-system",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-061",
+        "title": "Bones of the Human Body",
+        "text": "Medical science recognises 206 bones in the standard adult skeleton. This number can vary slightly between individuals due to anatomical variations such as extra ribs or sesamoid bones.",
+        "snippet": "Medical science recognises 206 bones in the standard adult skeleton.",
+        "source": "who.int",
+        "url": "https://who.int/health-topics/skeletal",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "supported"},
+    "rationale": {
+      "e1": "Both sources confirm the human body contains bones",
+      "e2": "Both sources confirm 206 as the standard adult count"
+    }
+  },
+  {
+    "claim_id": "eval-008",
+    "normalised_claim": "Mount Everest was first successfully climbed in 1960",
+    "elements": [
+      {"element_id": "e1", "description": "Mount Everest has been successfully climbed"},
+      {"element_id": "e2", "description": "The first successful climb occurred in 1960"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-070",
+        "title": "First Ascent of Mount Everest",
+        "text": "Edmund Hillary of New Zealand and Tenzing Norgay, a Sherpa of Nepal, became the first climbers confirmed to have reached the summit of Mount Everest on 29 May 1953, as part of the ninth British expedition to Everest led by Colonel John Hunt.",
+        "snippet": "Edmund Hillary and Tenzing Norgay became the first climbers to reach the summit of Mount Everest on 29 May 1953.",
+        "source": "alpine-journal.org.uk",
+        "url": "https://alpine-journal.org.uk/everest-1953",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-071",
+        "title": "Everest Climbing History",
+        "text": "The summit of Mount Everest was first reached in 1953 by Hillary and Tenzing. The Chinese expedition in 1960 made the first ascent from the North Ridge. Since then, over 6,000 people have reached the summit.",
+        "snippet": "The summit of Mount Everest was first reached in 1953 by Hillary and Tenzing. The Chinese expedition in 1960 made the first ascent from the North Ridge.",
+        "source": "bbc.co.uk",
+        "url": "https://bbc.co.uk/everest-history",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "Both sources confirm Everest has been climbed",
+      "e2": "Both sources say first ascent was 1953, not 1960 — the 1960 date refers to the Chinese North Ridge route"
+    }
+  },
+  {
+    "claim_id": "eval-009",
+    "normalised_claim": "The European Union has 30 member states as of 2025",
+    "elements": [
+      {"element_id": "e1", "description": "The European Union has member states"},
+      {"element_id": "e2", "description": "The number of EU member states is 30 as of 2025"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-080",
+        "title": "EU Member Countries",
+        "text": "The European Union currently has 27 member states. The most recent country to join was Croatia in 2013. The United Kingdom withdrew from the EU on 31 January 2020, reducing the membership from 28 to 27.",
+        "snippet": "The European Union currently has 27 member states. Croatia joined in 2013; the UK withdrew in 2020.",
+        "source": "europa.eu",
+        "url": "https://europa.eu/member-countries",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-081",
+        "title": "EU enlargement prospects",
+        "text": "Several candidate countries are in accession negotiations with the EU, including Ukraine, Moldova, and several Western Balkan nations. However, no new members have been admitted since Croatia in 2013, and the EU remains at 27 members.",
+        "snippet": "No new members have been admitted since Croatia in 2013, and the EU remains at 27 members.",
+        "source": "reuters.com",
+        "url": "https://reuters.com/eu-enlargement-2025",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "Both sources confirm the EU has member states",
+      "e2": "Both sources say 27, not 30 — overstated by 3"
+    }
+  },
+  {
+    "claim_id": "eval-010",
+    "normalised_claim": "Alexander Fleming discovered penicillin, which reduced bacterial infection deaths by 75%",
+    "elements": [
+      {"element_id": "e1", "description": "Alexander Fleming discovered penicillin"},
+      {"element_id": "e2", "description": "Penicillin reduced bacterial infection deaths by 75%"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-090",
+        "title": "Discovery of Penicillin - Nobel Prize",
+        "text": "Alexander Fleming discovered penicillin in 1928 at St Mary's Hospital in London. He noticed that a mould of the genus Penicillium had contaminated a culture plate and inhibited bacterial growth. Fleming shared the 1945 Nobel Prize in Physiology or Medicine with Howard Florey and Ernst Boris Chain.",
+        "snippet": "Alexander Fleming discovered penicillin in 1928 at St Mary's Hospital. He shared the 1945 Nobel Prize with Florey and Chain.",
+        "source": "nobelprize.org",
+        "url": "https://nobelprize.org/prizes/medicine/1945/fleming",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-091",
+        "title": "The impact of antibiotics on public health",
+        "text": "The introduction of penicillin and subsequent antibiotics transformed medicine in the mid-twentieth century. Mortality from infectious diseases declined substantially, though precise attribution to any single drug is difficult due to concurrent improvements in sanitation, nutrition, and vaccination programmes.",
+        "snippet": "Mortality from infectious diseases declined substantially after penicillin, though precise attribution to any single drug is difficult.",
+        "source": "thelancet.com",
+        "url": "https://thelancet.com/antibiotics-impact",
+        "tier": "reporting",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "unresolved"},
+    "rationale": {
+      "e1": "Nobel Prize site confirms Fleming discovered penicillin in 1928",
+      "e2": "Lancet discusses mortality decline but says precise attribution is difficult — no source confirms 75% figure"
+    }
+  },
+  {
+    "claim_id": "eval-011",
+    "normalised_claim": "The Pacific Ocean covers approximately 165 million square kilometres and is expanding",
+    "elements": [
+      {"element_id": "e1", "description": "The Pacific Ocean covers approximately 165 million square kilometres"},
+      {"element_id": "e2", "description": "The Pacific Ocean is expanding"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-100",
+        "title": "Pacific Ocean - NOAA",
+        "text": "The Pacific Ocean is the largest and deepest ocean basin on Earth, covering approximately 165.25 million square kilometres, representing about 46% of Earth's water surface area. It extends from the Arctic Ocean in the north to the Southern Ocean in the south.",
+        "snippet": "The Pacific Ocean covers approximately 165.25 million square kilometres, representing about 46% of Earth's water surface area.",
+        "source": "noaa.gov",
+        "url": "https://noaa.gov/pacific-ocean",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-101",
+        "title": "Earth's ocean basins",
+        "text": "The five major ocean basins vary significantly in size and depth. The Pacific is by far the largest, nearly as large as all other oceans combined. Ocean floor mapping has been conducted using satellite altimetry and sonar techniques.",
+        "snippet": "The Pacific is by far the largest ocean, nearly as large as all other oceans combined.",
+        "source": "oceanservice.noaa.gov",
+        "url": "https://oceanservice.noaa.gov/ocean-basins",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "unresolved"},
+    "rationale": {
+      "e1": "NOAA confirms 165.25 million sq km — matches the approximate claim",
+      "e2": "Neither source addresses whether the Pacific is expanding or contracting — no relevant evidence"
+    }
+  },
+  {
+    "claim_id": "eval-012",
+    "normalised_claim": "India's population surpassed 1.5 billion people in 2024",
+    "elements": [
+      {"element_id": "e1", "description": "India has a large population"},
+      {"element_id": "e2", "description": "India's population surpassed 1.5 billion in 2024"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-110",
+        "title": "UN World Population Prospects 2024",
+        "text": "According to the United Nations Population Division, India's population was estimated at 1.442 billion as of mid-2024, making it the world's most populous country. India overtook China as the most populous nation in April 2023.",
+        "snippet": "India's population was estimated at 1.442 billion as of mid-2024, making it the world's most populous country.",
+        "source": "population.un.org",
+        "url": "https://population.un.org/wpp/india-2024",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-111",
+        "title": "India becomes world's most populous nation",
+        "text": "India overtook China as the world's most populous country in 2023. The country's population continues to grow, though the rate of growth has been slowing. Current estimates place India's population at approximately 1.44 billion.",
+        "snippet": "India overtook China as the most populous country in 2023. Current estimates place India's population at approximately 1.44 billion.",
+        "source": "bbc.co.uk",
+        "url": "https://bbc.co.uk/india-population",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "Both sources confirm India has a large population (world's most populous)",
+      "e2": "UN says 1.442 billion, not 1.5 billion — population has not reached 1.5B"
+    }
+  },
+
+  {
+    "_rule_tested": "SCOPE CHECK — geographic mismatch",
+    "_difficulty": "hard",
+    "_trap": "EU (44.7%) and Norway (98%) exceed 40%, but the GLOBAL figure is 30.3%. Model must not let regional data support a global claim.",
+    "claim_id": "hard-001",
+    "normalised_claim": "More than 40% of electricity generated worldwide comes from renewable sources",
+    "elements": [
+      {"element_id": "e1", "description": "Renewable energy contributes to electricity generation worldwide"},
+      {"element_id": "e2", "description": "More than 40% of global electricity comes from renewable sources"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-200",
+        "title": "IEA Global Energy Review 2024",
+        "text": "According to the International Energy Agency, renewable sources generated 30.3% of all electricity globally in 2023, up from 28.7% in 2022. Hydropower remained the largest contributor at 14.7%, followed by wind at 7.8% and solar at 5.5%.",
+        "snippet": "Renewable sources generated 30.3% of all electricity globally in 2023, up from 28.7% in 2022.",
+        "source": "iea.org",
+        "url": "https://iea.org/reports/global-energy-review-2024",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-201",
+        "title": "EU renewable electricity share surpasses gas",
+        "text": "The European Union generated 44.7% of its electricity from renewable sources in 2023, surpassing fossil gas for the first time. Wind power was the largest renewable contributor across the bloc.",
+        "snippet": "The EU generated 44.7% of its electricity from renewable sources in 2023, surpassing fossil gas for the first time.",
+        "source": "ec.europa.eu",
+        "url": "https://ec.europa.eu/energy/renewables-2023",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-202",
+        "title": "Norway's hydropower dominance",
+        "text": "Norway generates 98% of its electricity from hydropower, the highest renewable share of any country in Europe. The country's abundant fjords and rivers provide consistent year-round generation capacity.",
+        "snippet": "Norway generates 98% of its electricity from hydropower, the highest renewable share in Europe.",
+        "source": "ssb.no",
+        "url": "https://ssb.no/en/energy/hydropower",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "IEA confirms renewables contribute to global electricity generation (30.3%)",
+      "e2": "IEA says GLOBAL share is 30.3%, not 40%+. EU (44.7%) and Norway (98%) are regional — SCOPE CHECK rule prohibits using country/regional evidence for a global claim"
+    }
+  },
+
+  {
+    "_rule_tested": "SCOPE CHECK — temporal mismatch",
+    "_difficulty": "hard",
+    "_trap": "2023 data shows declining trend and commentary is optimistic, but the 2025 data shows 3.0% which is above 2%. Model must use the 2025 data, not the older trend.",
+    "claim_id": "hard-002",
+    "normalised_claim": "UK inflation fell below 2% in 2025",
+    "elements": [
+      {"element_id": "e1", "description": "The UK measures and tracks inflation rates"},
+      {"element_id": "e2", "description": "UK inflation was below 2% in 2025"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-210",
+        "title": "ONS Consumer Price Inflation November 2023",
+        "text": "The Consumer Prices Index including owner occupiers' housing costs (CPIH) fell to 3.9% in the year to November 2023, down from 4.6% in October. This continues the downward trend from the peak of 9.6% in October 2022.",
+        "snippet": "UK CPIH fell to 3.9% in November 2023, down from 4.6% in October, continuing the downward trend.",
+        "source": "ons.gov.uk",
+        "url": "https://ons.gov.uk/economy/inflation/cpih-nov-2023",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-211",
+        "title": "ONS Consumer Price Inflation January 2025",
+        "text": "The Consumer Prices Index (CPI) annual rate was 3.0% in January 2025, up from 2.5% in December 2024. Core CPI, excluding energy and food, was 3.7%. The Bank of England's inflation target remains 2%.",
+        "snippet": "UK CPI annual rate was 3.0% in January 2025, up from 2.5% in December 2024. The Bank of England target remains 2%.",
+        "source": "ons.gov.uk",
+        "url": "https://ons.gov.uk/economy/inflation/cpi-jan-2025",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-212",
+        "title": "Inflation outlook: analysts cautiously optimistic",
+        "text": "Leading economists project that inflation will gradually ease through 2025 as supply chain pressures continue to abate and the lagged effects of interest rate rises feed through to the real economy. Several forecasters expect CPI to approach the 2% target by late 2025.",
+        "snippet": "Economists project inflation will ease through 2025 as interest rate effects feed through. Several forecasters expect CPI to approach 2% by late 2025.",
+        "source": "ft.com",
+        "url": "https://ft.com/inflation-outlook-2025",
+        "tier": "commentary",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "ONS data from both periods confirms the UK measures inflation rates",
+      "e2": "Jan 2025 ONS data shows CPI at 3.0%, above 2%. The 2023 data is from a different time period (SCOPE CHECK). Commentary projections are not data (DATA PROVENANCE)"
+    }
+  },
+
+  {
+    "_rule_tested": "TOPIC vs FIGURE + STATE RULE (context-only → unresolved)",
+    "_difficulty": "hard",
+    "_trap": "Evidence discusses the UK space industry extensively but never mentions any revenue figure. For e2, all evidence should map as 'context' (topic without figure), forcing 'unresolved' via STATE RULE.",
+    "claim_id": "hard-003",
+    "normalised_claim": "The UK space industry generates £16.4 billion in annual revenue",
+    "elements": [
+      {"element_id": "e1", "description": "The UK has a space industry that generates revenue"},
+      {"element_id": "e2", "description": "The annual revenue of the UK space industry is £16.4 billion"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-220",
+        "title": "UK Space Agency Annual Review",
+        "text": "The UK Space Agency supports a growing domestic space sector, with investments across satellite technology, launch capability, and space science. The agency awarded over £150 million in grants during 2023-24 to support commercial space ventures and research institutions.",
+        "snippet": "The UK Space Agency supports a growing space sector with investments in satellite technology, launch capability, and space science.",
+        "source": "gov.uk",
+        "url": "https://gov.uk/government/organisations/uk-space-agency/annual-review",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-221",
+        "title": "Britain's space sector continues to expand",
+        "text": "The UK's space industry continues to expand, attracting international investment and creating high-skilled jobs across the country. New spaceport developments in Scotland and Cornwall signal growing ambitions in the launch market.",
+        "snippet": "The UK space industry continues to expand, attracting international investment and creating high-skilled jobs.",
+        "source": "bbc.co.uk",
+        "url": "https://bbc.co.uk/news/science/uk-space-industry",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-222",
+        "title": "Space sector workforce and capabilities",
+        "text": "Industry leaders describe the UK space sector as one of the fastest-growing in Europe, with world-leading capabilities in small satellite manufacturing, Earth observation, and telecommunications. The sector employs over 47,000 people directly.",
+        "snippet": "Industry leaders describe the UK space sector as one of the fastest-growing in Europe, employing over 47,000 people.",
+        "source": "ukspace.org",
+        "url": "https://ukspace.org/workforce-report",
+        "tier": "commentary",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "unresolved"},
+    "rationale": {
+      "e1": "Multiple sources confirm the UK has a space industry (grants, jobs, investment) — revenue generation is implied",
+      "e2": "No source mentions £16.4 billion or ANY revenue figure. All evidence discusses the topic (growing, investing, employing) without the specific statistic. TOPIC vs FIGURE rule: evidence about a topic without the figure is 'context'. STATE RULE: context-only refs → unresolved"
+    }
+  },
+
+  {
+    "_rule_tested": "CROSS-ELEMENT — single evidence item informing multiple elements differently",
+    "_difficulty": "hard",
+    "_trap": "One evidence item (NASA) contains data relevant to BOTH elements but with different relationships — height is correct (supports), location is wrong (challenges). Model must apply CROSS-ELEMENT rule.",
+    "claim_id": "hard-004",
+    "normalised_claim": "Mount Kilimanjaro is 5,895 metres tall and is located in Kenya",
+    "elements": [
+      {"element_id": "e1", "description": "Mount Kilimanjaro is 5,895 metres tall"},
+      {"element_id": "e2", "description": "Mount Kilimanjaro is located in Kenya"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-230",
+        "title": "Mount Kilimanjaro - Geographic Survey",
+        "text": "Mount Kilimanjaro, located in northeastern Tanzania near the Kenyan border, stands at 5,895 metres above sea level. It is the highest peak in Africa and the tallest freestanding mountain in the world. The mountain lies within Kilimanjaro National Park, a UNESCO World Heritage Site.",
+        "snippet": "Mount Kilimanjaro, in northeastern Tanzania near the Kenyan border, stands at 5,895 metres. It is the highest peak in Africa.",
+        "source": "nationalgeographic.com",
+        "url": "https://natgeo.com/kilimanjaro",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-231",
+        "title": "Climbing Kilimanjaro: Routes and Logistics",
+        "text": "All official climbing routes to the summit of Kilimanjaro begin in Tanzania, as the mountain is entirely within Tanzanian territory. Climbers typically fly into Kilimanjaro International Airport (JRO), located between Moshi and Arusha in Tanzania.",
+        "snippet": "All climbing routes begin in Tanzania, as Kilimanjaro is entirely within Tanzanian territory.",
+        "source": "alpine-club.org.uk",
+        "url": "https://alpine-club.org.uk/kilimanjaro-guide",
+        "tier": "reporting",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "NatGeo confirms height of 5,895 metres — exact match",
+      "e2": "Both sources state Kilimanjaro is in Tanzania, not Kenya. NatGeo says 'near the Kenyan border' but explicitly 'in Tanzania'. Alpine Club says 'entirely within Tanzanian territory'. Same evidence item (ev-230) supports e1 and challenges e2 — CROSS-ELEMENT rule"
+    }
+  },
+
+  {
+    "_rule_tested": "PRECISION — approximate leniency (near-miss that SHOULD be supported)",
+    "_difficulty": "hard",
+    "_trap": "Evidence says 55-65% and 57-60%, claim says 'approximately 60%'. Model must apply PRECISION rule — round/approximate figures treat close matches as supporting, not challenging.",
+    "claim_id": "hard-005",
+    "normalised_claim": "Approximately 60% of the adult human body is composed of water",
+    "elements": [
+      {"element_id": "e1", "description": "The adult human body contains a significant proportion of water"},
+      {"element_id": "e2", "description": "The proportion is approximately 60%"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-240",
+        "title": "Human Body Composition - Physiology Textbook",
+        "text": "Water makes up approximately 55-65% of total body weight in adults, varying by age, sex, and body composition. The commonly cited figure of 60% represents an average for adult males. Women typically have a lower percentage (50-55%) due to higher average body fat, which contains less water than lean tissue.",
+        "snippet": "Water makes up approximately 55-65% of adult body weight. The commonly cited figure of 60% represents an average for adult males.",
+        "source": "ncbi.nlm.nih.gov",
+        "url": "https://ncbi.nlm.nih.gov/books/body-composition",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-241",
+        "title": "Water and the Human Body",
+        "text": "The average adult body is about 57-60% water by weight according to multiple physiological studies. This proportion decreases with age, as older adults tend to have lower total body water percentages.",
+        "snippet": "The average adult body is about 57-60% water by weight according to multiple physiological studies.",
+        "source": "who.int",
+        "url": "https://who.int/health-topics/hydration",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "supported"},
+    "rationale": {
+      "e1": "Both sources confirm the human body contains substantial water",
+      "e2": "Both sources cite ranges (55-65%, 57-60%) that encompass 60%. The textbook explicitly confirms '60% represents an average'. PRECISION rule: 'approximately 60%' with evidence in the 57-65% range is a match, not a challenge"
+    }
+  },
+
+  {
+    "_rule_tested": "DATA PROVENANCE — commentary/opinion is 'context', not 'supports/challenges'",
+    "_difficulty": "hard",
+    "_trap": "Commentary says 'one of the most capable military powers' and analysis says 'increasing' — sounds supportive. But primary data says 2.3% GDP, well below the claimed 3%. Commentary is 'context' under DATA PROVENANCE rule.",
+    "claim_id": "hard-006",
+    "normalised_claim": "UK defence spending exceeded 3% of GDP in 2024",
+    "elements": [
+      {"element_id": "e1", "description": "The UK allocates spending to defence"},
+      {"element_id": "e2", "description": "UK defence spending exceeded 3% of GDP in 2024"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-250",
+        "title": "UK Defence Expenditure 2023-24",
+        "text": "UK defence expenditure was 2.3% of GDP in 2023-24, above the NATO minimum commitment of 2% but below the government's stated aspiration of reaching 2.5% of GDP. Total defence spending was approximately £54.2 billion.",
+        "snippet": "UK defence expenditure was 2.3% of GDP in 2023-24, above the NATO 2% minimum but below the 2.5% aspiration.",
+        "source": "gov.uk",
+        "url": "https://gov.uk/government/statistics/defence-expenditure",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-251",
+        "title": "Britain's military standing in a changing world",
+        "text": "Britain remains one of the most capable military powers in Europe, maintaining a nuclear deterrent capability, two aircraft carriers, and significant expeditionary capacity. Defence analysts regard the UK as NATO's most important European ally.",
+        "snippet": "Britain remains one of the most capable military powers in Europe, with nuclear deterrent and significant expeditionary capacity.",
+        "source": "telegraph.co.uk",
+        "url": "https://telegraph.co.uk/defence/uk-military-capability",
+        "tier": "commentary",
+        "evidence_type": "opinion",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-252",
+        "title": "Rising defence budgets across NATO",
+        "text": "Defence spending has been increasing across NATO allies as geopolitical tensions rise. The UK government has announced a pathway to 2.5% of GDP by 2030, with incremental annual increases planned. Several Eastern European nations have already exceeded 3%.",
+        "snippet": "UK government announced a pathway to 2.5% of GDP by 2030. Several Eastern European nations have already exceeded 3%.",
+        "source": "reuters.com",
+        "url": "https://reuters.com/nato-defence-spending-2024",
+        "tier": "reporting",
+        "evidence_type": "analysis",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "Government data confirms £54.2 billion defence spending — the UK clearly allocates to defence",
+      "e2": "Primary data says 2.3% of GDP, not 3%. Commentary about military capability (ev-251) is 'context' under DATA PROVENANCE — it discusses the topic without confirming the figure. Analysis about future plans (ev-252) is also 'context' — aspirations to reach 2.5% by 2030 actually reinforces that current spending is below 3%"
+    }
+  },
+
+  {
+    "_rule_tested": "TOPIC vs FIGURE — evidence discusses topic extensively but never cites the claimed figure",
+    "_difficulty": "hard",
+    "_trap": "Evidence strongly establishes that plastic pollution harms marine mammals, making e1 clearly supported. But NO source cites 100,000 or any figure for annual deaths — model must recognise the figure is unaddressed.",
+    "claim_id": "hard-007",
+    "normalised_claim": "Plastic pollution kills approximately 100,000 marine mammals every year",
+    "elements": [
+      {"element_id": "e1", "description": "Plastic pollution causes death in marine mammals"},
+      {"element_id": "e2", "description": "Approximately 100,000 marine mammals are killed by plastic pollution per year"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-260",
+        "title": "Marine Debris and Plastic Pollution",
+        "text": "Marine plastic debris has been found in the digestive systems of over 700 marine species, including numerous marine mammal species such as whales, dolphins, and seals. Entanglement in abandoned fishing gear and ingestion of microplastics are the primary pathways of harm, frequently causing injury, starvation, and death.",
+        "snippet": "Marine plastic has been found in over 700 species. Entanglement and ingestion frequently cause injury, starvation, and death in marine mammals.",
+        "source": "science.org",
+        "url": "https://science.org/doi/marine-debris-impact",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-261",
+        "title": "UNEP: Plastic pollution threatens ocean ecosystems",
+        "text": "A UNEP report described plastic pollution as one of the greatest threats to ocean ecosystems, with over 11 million tonnes of plastic waste entering the oceans each year. The report calls for urgent international action to reduce plastic production and improve waste management systems globally.",
+        "snippet": "UNEP described plastic pollution as one of the greatest threats to ocean ecosystems, with 11 million tonnes entering oceans annually.",
+        "source": "unep.org",
+        "url": "https://unep.org/plastic-pollution-report",
+        "tier": "primary",
+        "evidence_type": "official_record",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "unresolved"},
+    "rationale": {
+      "e1": "Science.org confirms plastic causes 'injury, starvation, and death' in marine mammals — directly supports",
+      "e2": "Neither source mentions 100,000 or ANY figure for annual marine mammal deaths. TOPIC vs FIGURE rule: evidence about the topic (plastic harms marine life) without the figure (100,000 per year) should be mapped as 'context', not 'supports'. STATE RULE: context-only → unresolved"
+    }
+  },
+
+  {
+    "_rule_tested": "SCOPE CHECK (geographic) + PRECISION interaction",
+    "_difficulty": "hard",
+    "_trap": "Regional data (North America 87%, South Korea 97%) exceeds 85%. But GLOBAL figure is 68%. Model must apply SCOPE CHECK to reject regional data for a global claim, AND recognise 68% ≠ 85% via PRECISION rule.",
+    "claim_id": "hard-008",
+    "normalised_claim": "Global smartphone penetration reached 85% in 2024",
+    "elements": [
+      {"element_id": "e1", "description": "Smartphones are widely used across the world"},
+      {"element_id": "e2", "description": "Global smartphone penetration reached 85% in 2024"}
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-270",
+        "title": "GSMA Mobile Economy Report 2024",
+        "text": "Global smartphone adoption stood at 68% of the world's population as of mid-2024, with significant regional variation. Sub-Saharan Africa (28%) and South Asia (44%) remain below the global average, while smartphone penetration in North America reached 87% and in Western Europe 84%.",
+        "snippet": "Global smartphone adoption was 68% as of mid-2024. North America reached 87%, Western Europe 84%, while Sub-Saharan Africa was at 28%.",
+        "source": "gsma.com",
+        "url": "https://gsma.com/mobileeconomy/2024",
+        "tier": "primary",
+        "evidence_type": "data",
+        "content_basis": "full"
+      },
+      {
+        "evidence_id": "ev-271",
+        "title": "Asia leads smartphone adoption",
+        "text": "South Korea leads global smartphone penetration at 97%, followed by the UAE at 96% and several other developed Asian markets above 90%. Analysts attribute this to high disposable income, advanced 5G infrastructure, and strong digital payment ecosystems.",
+        "snippet": "South Korea leads smartphone penetration at 97%, followed by UAE at 96%, with several Asian markets above 90%.",
+        "source": "statista.com",
+        "url": "https://statista.com/smartphone-adoption-asia",
+        "tier": "reporting",
+        "evidence_type": "data",
+        "content_basis": "full"
+      }
+    ],
+    "expected_states": {"e1": "supported", "e2": "disputed"},
+    "rationale": {
+      "e1": "GSMA confirms widespread global adoption (68%), with multiple regions showing high penetration — smartphones are widely used",
+      "e2": "GSMA reports GLOBAL penetration at 68%, not 85%. Regional figures (North America 87%, South Korea 97%) are higher but SCOPE CHECK prohibits using country/regional data for a global claim. 68% vs 85% is a clear mismatch (PRECISION: 17 percentage points apart)"
+    }
+  }
+]

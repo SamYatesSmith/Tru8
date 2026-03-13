@@ -1,0 +1,5 @@
+timestamp	tag	git_hash	model	accuracy	correct	total	wall_time_s	input_tokens	output_tokens	notes
+2026-03-13T11:51:37Z	baseline-production	54d1c9c	production-default	1.0000	24	24	102.4	11485	4477	
+2026-03-13T11:53:36Z	flash-lite-comparison	54d1c9c	gemini-2.5-flash-lite	0.9167	22	24	111.7	11485	4230	
+2026-03-13T12:04:21Z	baseline-with-hard-cases	54d1c9c	production-default	1.0000	40	40	167.5	19376	8093	
+2026-03-13T12:07:29Z	flash-lite-with-hard-cases	54d1c9c	gemini-2.5-flash-lite	0.9750	39	40	182.2	19376	7935	

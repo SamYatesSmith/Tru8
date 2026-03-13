@@ -13,6 +13,16 @@ def generate_uuid() -> str:
     return str(uuid.uuid4())
 
 
+def _utcnow_naive() -> datetime:
+    """UTC now as a naive datetime (no tzinfo).
+
+    asyncpg requires naive datetimes for TIMESTAMP WITHOUT TIME ZONE columns.
+    Using datetime.now(timezone.utc).replace(tzinfo=None) instead of the
+    deprecated datetime.utcnow().
+    """
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 def compute_claim_text_hash(text: str) -> str:
     """Deterministic SHA256 fingerprint for cross-check claim matching.
 
@@ -39,7 +49,7 @@ class Check(SQLModel, table=True):
     credits_used: int = Field(default=1)
     processing_time_ms: Optional[int] = None
     error_message: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=_utcnow_naive)
     completed_at: Optional[datetime] = None
 
     # Agent commerce (Track L)
@@ -166,7 +176,7 @@ class Claim(SQLModel, table=True):
     check_id: str = Field(foreign_key="check.id", index=True)
     text: str
     position: int  # Order in the check
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=_utcnow_naive)
 
     # Temporal context fields (Phase 1.5, Week 4.5-5.5)
     temporal_markers: Optional[str] = Field(
@@ -271,7 +281,7 @@ class Evidence(SQLModel, table=True):
     snippet: str
     published_date: Optional[datetime] = None
     relevance_score: float = Field(ge=0, le=1)  # 0-1
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=_utcnow_naive)
 
     # Claim Map system (Track B)
     evidence_id: Optional[str] = Field(
@@ -475,7 +485,7 @@ class RawEvidence(SQLModel, table=True):
         description="API source if from government/authoritative API (e.g., 'ONS', 'PubMed')",
     )
 
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=_utcnow_naive)
 
     # Relationships
     check: Check = Relationship(back_populates="raw_evidence")

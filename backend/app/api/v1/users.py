@@ -57,15 +57,15 @@ async def get_or_create_user(session: AsyncSession, current_user: dict) -> User:
             name=name,
             credits=3,  # Free tier
             total_credits_used=0,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+            updated_at=datetime.now(timezone.utc).replace(tzinfo=None),
         )
         .on_conflict_do_update(
             index_elements=["email"],  # Conflict on email unique constraint
             set_={
                 "id": user_id,  # Update to new Clerk ID
                 "name": name,
-                "updated_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc).replace(tzinfo=None),
             },
         )
         .returning(User)

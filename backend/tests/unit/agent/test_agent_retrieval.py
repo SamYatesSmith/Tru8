@@ -181,11 +181,11 @@ class TestGetResultWrongUser:
 
 
 class TestGetResultNotCompleted:
-    """GET /api/v1/agent/result/{id} — check still processing → 409."""
+    """GET /api/v1/agent/result/{id} — check still processing → 200 with status (O-06)."""
 
     @pytest.mark.asyncio
-    async def test_get_result_not_completed_409(self):
-        """Check still processing → 409 Conflict."""
+    async def test_get_result_not_completed_returns_status(self):
+        """Check still processing → 200 with processing status for async polling."""
         app = _create_test_app()
 
         check = _make_check(
@@ -203,5 +203,8 @@ class TestGetResultNotCompleted:
         ) as client:
             resp = await client.get("/api/v1/agent/result/check-ret-003")
 
-        assert resp.status_code == 409
-        assert "not completed" in resp.json()["detail"].lower()
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "processing"
+        assert data["checkId"] == "check-ret-003"
+        assert data["hit"] is False

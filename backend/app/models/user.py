@@ -1,6 +1,7 @@
 from typing import Optional, List
 from datetime import datetime, timezone
 from sqlmodel import Field, SQLModel, Relationship
+from .check import _utcnow_naive
 
 
 class User(SQLModel, table=True):
@@ -32,8 +33,8 @@ class User(SQLModel, table=True):
     email_weekly_digest: bool = Field(default=False)
     email_marketing: bool = Field(default=False)
 
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=_utcnow_naive)
+    updated_at: datetime = Field(default_factory=_utcnow_naive)
 
     # Relationships
     subscription: Optional["Subscription"] = Relationship(back_populates="user")
@@ -52,8 +53,8 @@ class Subscription(SQLModel, table=True):
     stripe_subscription_id: Optional[str] = None
     stripe_customer_id: Optional[str] = None
     revenue_cat_id: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=_utcnow_naive)
+    updated_at: datetime = Field(default_factory=_utcnow_naive)
 
     # Relationships
     user: User = Relationship(back_populates="subscription")

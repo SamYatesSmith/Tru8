@@ -195,7 +195,7 @@ async def handle_agent_credit_purchase(session_data: dict, session: AsyncSession
         return
 
     user.credit_balance_cents += cents_value
-    user.updated_at = datetime.now(timezone.utc)
+    user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await session.commit()
 
     logger.info(
@@ -261,7 +261,9 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
         )
         existing_subscription.stripe_subscription_id = stripe_subscription_id
         existing_subscription.stripe_customer_id = stripe_customer_id
-        existing_subscription.updated_at = datetime.now(timezone.utc)
+        existing_subscription.updated_at = datetime.now(timezone.utc).replace(
+            tzinfo=None
+        )
     else:
         # Create new subscription
         new_subscription = Subscription(
@@ -284,7 +286,7 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
 
     # Update user credits
     user.credits = credits_per_month
-    user.updated_at = datetime.now(timezone.utc)
+    user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     await session.commit()
     logger.info(f"Successfully processed payment for user {user_id}, plan: {plan}")
@@ -313,7 +315,7 @@ async def handle_subscription_updated(subscription: dict, session: AsyncSession)
     db_subscription.current_period_end = datetime.fromtimestamp(
         subscription["current_period_end"]
     )
-    db_subscription.updated_at = datetime.now(timezone.utc)
+    db_subscription.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # If subscription renewed, reset credits
     if subscription["status"] == "active":
@@ -324,7 +326,7 @@ async def handle_subscription_updated(subscription: dict, session: AsyncSession)
         user = user_result.scalar_one_or_none()
         if user:
             user.credits = db_subscription.credits_per_month
-            user.updated_at = datetime.now(timezone.utc)
+            user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     await session.commit()
     logger.info(
@@ -349,7 +351,7 @@ async def handle_subscription_cancelled(subscription: dict, session: AsyncSessio
 
     # Update subscription status
     db_subscription.status = "cancelled"
-    db_subscription.updated_at = datetime.now(timezone.utc)
+    db_subscription.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Reset user to free tier (but keep remaining credits until period ends)
     user_stmt = select(User).where(User.id == db_subscription.user_id)
@@ -357,7 +359,7 @@ async def handle_subscription_cancelled(subscription: dict, session: AsyncSessio
     user = user_result.scalar_one_or_none()
 
     if user:
-        user.updated_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         # Note: We don't immediately reset credits - they keep what they have until period ends
 
     await session.commit()
@@ -411,7 +413,7 @@ async def handle_invoice_paid(invoice: dict, session: AsyncSession):
     db_subscription.current_period_start = new_period_start
     db_subscription.current_period_end = new_period_end
     db_subscription.status = stripe_subscription["status"]
-    db_subscription.updated_at = datetime.now(timezone.utc)
+    db_subscription.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Reset monthly credits
     db_subscription.credits_remaining = db_subscription.credits_per_month
@@ -423,7 +425,7 @@ async def handle_invoice_paid(invoice: dict, session: AsyncSession):
 
     if user:
         user.credits = db_subscription.credits_per_month
-        user.updated_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         logger.info(
             f"Reset credits for user {user.id} to {db_subscription.credits_per_month}"
         )

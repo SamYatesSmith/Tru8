@@ -199,12 +199,19 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   }, [sseCompleted, checkData.status, checkId, getToken]);
 
   // Use the best available progress data:
-  // 1. If SSE has meaningful data (progress > 0), use it (even if disconnected - preserves last known state)
-  // 2. Otherwise fall back to polling data from checkData
+  // 1. If SSE is connected and has data, prefer it (real-time)
+  // 2. If SSE is disconnected, prefer polling data (SSE values may be stale)
   // 3. Finally fall back to SSE values (which start at 0)
-  const progress = sseProgress > 0 ? sseProgress : (checkData.progress ?? sseProgress);
-  const currentStage = sseStage ? sseStage : (checkData.currentStage ?? sseStage);
-  const message = sseMessage ? sseMessage : (checkData.progressMessage ?? sseMessage);
+  const pollingProgress = checkData.progress ?? 0;
+  const progress = isConnected && sseProgress > 0
+    ? sseProgress
+    : pollingProgress > sseProgress ? pollingProgress : sseProgress;
+  const currentStage = isConnected && sseStage
+    ? sseStage
+    : (checkData.currentStage || sseStage);
+  const message = isConnected && sseMessage
+    ? sseMessage
+    : (checkData.progressMessage || sseMessage);
 
   // Calculate time estimate based on progress (fallback when SSE isn't connected)
   const getTimeEstimateFromProgress = (prog: number): string => {

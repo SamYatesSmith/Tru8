@@ -99,7 +99,9 @@ class EvidenceRetriever:
         self.search_service = SearchService()
         self.evidence_extractor = EvidenceExtractor()
         self.max_sources_per_claim = settings.MAX_SOURCES_PER_CLAIM
-        self.max_concurrent_claims = 3
+        self.max_concurrent_claims = (
+            10  # High ceiling — shared URL pool governs total concurrency
+        )
         self.max_queries_per_element = 3  # Cap queries per element (L-04)
 
         # Phase 5: Government API Integration
@@ -233,6 +235,10 @@ class EvidenceRetriever:
             # Process claims with concurrency limit
             semaphore = asyncio.Semaphore(self.max_concurrent_claims)
 
+            # Shared URL fetch pool — all claims draw from this single pool.
+            # Fast-finishing claims free slots for slow claims (work-stealing).
+            url_fetch_semaphore = asyncio.Semaphore(settings.MAX_CONCURRENT_URL_FETCHES)
+
             # Shared accumulators — written progressively as each claim completes
             evidence_by_claim = {}
             all_raw_evidence = []
@@ -249,7 +255,10 @@ class EvidenceRetriever:
                 """Retrieve evidence for one claim and store immediately."""
                 try:
                     result = await self._retrieve_evidence_for_single_claim(
-                        claim, semaphore, excluded_domain
+                        claim,
+                        semaphore,
+                        excluded_domain,
+                        url_fetch_semaphore=url_fetch_semaphore,
                     )
                 except Exception as exc:
                     logger.error(
@@ -933,6 +942,7 @@ class EvidenceRetriever:
         claim: Dict[str, Any],
         semaphore: asyncio.Semaphore,
         excluded_domain: Optional[str] = None,
+        url_fetch_semaphore: Optional[asyncio.Semaphore] = None,
     ) -> Dict[str, Any]:
         """Retrieve evidence for a single claim.
 
@@ -1059,6 +1069,7 @@ class EvidenceRetriever:
                         excluded_domain=excluded_domain,
                         max_sources=self.max_sources_per_claim * 2,
                         freshness=freshness,
+                        url_fetch_semaphore=url_fetch_semaphore,
                     )
                     queries_preview = query_plan["queries"][:2]  # Show first 2 queries
                     logger.info(
@@ -1076,6 +1087,7 @@ class EvidenceRetriever:
                         temporal_analysis=temporal_analysis,  # TIER 1: Pass to query formulation
                         article_title=article_title,  # Article context grounding
                         article_date=article_date,  # Article context grounding
+                        url_fetch_semaphore=url_fetch_semaphore,
                     )
 
                 # Phase 5: Government API retrieval (parallel with web search)
@@ -1276,6 +1288,7 @@ class EvidenceRetriever:
                             "receipt_status": "extracted",
                             "metadata": snippet.metadata,
                             "content_basis": snippet.content_basis,
+                            "_full_text": getattr(snippet, "_full_text", None),
                         }
                     )
 
@@ -1325,6 +1338,7 @@ class EvidenceRetriever:
         excluded_domain: Optional[str] = None,
         max_sources: int = 20,
         freshness: Optional[str] = None,
+        url_fetch_semaphore: Optional[asyncio.Semaphore] = None,
     ) -> List[EvidenceSnippet]:
         """
         Execute multiple targeted queries from Query Planning Agent.
@@ -1483,9 +1497,13 @@ class EvidenceRetriever:
             # ============================================================
             # CRITICAL FIX: Extract actual page content (like standard path)
             # ============================================================
-            semaphore = asyncio.Semaphore(self.evidence_extractor.max_concurrent)
+            # Use shared pool if provided (work-stealing across claims),
+            # otherwise fall back to per-claim pool for standalone use.
+            fetch_sem = url_fetch_semaphore or asyncio.Semaphore(
+                self.evidence_extractor.max_concurrent
+            )
             extraction_tasks = [
-                self._extract_with_fallback(result, claim_text, semaphore)
+                self._extract_with_fallback(result, claim_text, fetch_sem)
                 for result in unique_search_results[:max_sources]
             ]
 

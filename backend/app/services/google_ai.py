@@ -17,6 +17,7 @@ import asyncio
 import json
 import logging
 import random
+import re
 from typing import Any, Dict, Optional, Tuple
 
 import httpx
@@ -37,6 +38,109 @@ _MAX_DELAY = 30.0  # cap per-retry wait
 # Shared HTTP client — lazily created, reused for connection pooling.
 _client: Optional[httpx.AsyncClient] = None
 _client_lock = asyncio.Lock()
+
+
+def _try_parse_json(text: str) -> Optional[Dict[str, Any]]:
+    """Attempt to parse JSON from Gemini output, with repair for common issues.
+
+    Gemini's ``responseMimeType: "application/json"`` constraint is not fully
+    reliable — especially for large outputs from thinking models.  Observed
+    failures include:
+
+    1. Markdown fences wrapping the JSON (```json ... ```)
+    2. Trailing commas before } or ]
+    3. Truncated output (unterminated strings, unclosed brackets)
+
+    This function tries progressively more aggressive repairs before giving up.
+    Returns the parsed dict/list on success, or ``None`` on failure.
+    """
+    if not text or not text.strip():
+        return None
+
+    # --- Step 1: Strip markdown fences ---
+    stripped = text.strip()
+    fence_match = re.match(r"^```(?:json)?\s*\n?(.*?)\n?\s*```$", stripped, re.DOTALL)
+    if fence_match:
+        stripped = fence_match.group(1).strip()
+        logger.debug("[JSON-REPAIR] Stripped markdown fences")
+
+    # --- Step 2: Try bare parse ---
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        pass
+
+    # --- Step 3: Remove trailing commas ---
+    cleaned = re.sub(r",(\s*[}\]])", r"\1", stripped)
+    if cleaned != stripped:
+        try:
+            parsed = json.loads(cleaned)
+            logger.info("[JSON-REPAIR] Fixed trailing commas in Gemini response")
+            return parsed
+        except json.JSONDecodeError:
+            pass
+        # Continue with cleaned version for truncation repair
+        stripped = cleaned
+
+    # --- Step 4: Truncation repair ---
+    # Close unterminated string literal
+    repaired = stripped
+    in_string = False
+    escape = False
+    for ch in repaired:
+        if escape:
+            escape = False
+            continue
+        if ch == "\\":
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+
+    if in_string:
+        repaired += '"'
+        logger.debug("[JSON-REPAIR] Closed unterminated string")
+
+    # Close unclosed brackets/braces in LIFO order
+    stack = []
+    in_str = False
+    esc = False
+    for ch in repaired:
+        if esc:
+            esc = False
+            continue
+        if ch == "\\":
+            esc = True
+            continue
+        if ch == '"':
+            in_str = not in_str
+            continue
+        if in_str:
+            continue
+        if ch in ("{", "["):
+            stack.append("}" if ch == "{" else "]")
+        elif ch in ("}", "]"):
+            if stack and stack[-1] == ch:
+                stack.pop()
+
+    if stack:
+        # Remove any trailing comma before closing
+        repaired = repaired.rstrip().rstrip(",")
+        repaired += "".join(reversed(stack))
+        logger.debug("[JSON-REPAIR] Closed %d unclosed bracket(s)", len(stack))
+
+    if repaired != stripped:
+        try:
+            parsed = json.loads(repaired)
+            logger.info(
+                "[JSON-REPAIR] Repaired truncated Gemini response (%d chars)",
+                len(text),
+            )
+            return parsed
+        except json.JSONDecodeError as exc:
+            logger.warning("[JSON-REPAIR] Repair attempt failed: %s", exc)
+
+    return None
 
 
 async def _get_client() -> httpx.AsyncClient:
@@ -137,9 +241,14 @@ async def call_google_ai(
                     try:
                         result = response.json()
                         text = result["candidates"][0]["content"]["parts"][0]["text"]
-                        return json.loads(text)
-                    except (KeyError, IndexError, json.JSONDecodeError) as exc:
-                        logger.error("Google AI response parse error: %s", exc)
+                        parsed = _try_parse_json(text)
+                        if parsed is None:
+                            logger.error(
+                                "Google AI response parse error (after repair)"
+                            )
+                        return parsed
+                    except (KeyError, IndexError) as exc:
+                        logger.error("Google AI response structure error: %s", exc)
                         return None
 
                 if response.status_code not in (429, 503):
@@ -245,7 +354,12 @@ async def call_google_ai_with_usage(
                     try:
                         result = response.json()
                         text = result["candidates"][0]["content"]["parts"][0]["text"]
-                        parsed = json.loads(text)
+                        parsed = _try_parse_json(text)
+                        if parsed is None:
+                            logger.error(
+                                "Google AI response parse error (after repair)"
+                            )
+                            return None, None
 
                         # Extract token usage from response envelope
                         usage_meta = result.get("usageMetadata", {})
@@ -254,8 +368,8 @@ async def call_google_ai_with_usage(
                             "output_tokens": usage_meta.get("candidatesTokenCount", 0),
                         }
                         return parsed, usage
-                    except (KeyError, IndexError, json.JSONDecodeError) as exc:
-                        logger.error("Google AI response parse error: %s", exc)
+                    except (KeyError, IndexError) as exc:
+                        logger.error("Google AI response structure error: %s", exc)
                         return None, None
 
                 if response.status_code not in (429, 503):

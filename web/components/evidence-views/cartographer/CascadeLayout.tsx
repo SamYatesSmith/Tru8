@@ -116,6 +116,12 @@ export function CascadeLayout({ evidenceByTier, edges, divergentIds, claimLabelM
   // Before dagre computes (no container width yet), show tiers in default order
   const displayTiers = orderedTiers?.ordered || evidenceByTier;
 
+  // Check if any item scores high — if not, dimming low items serves no purpose
+  const hasAnyHighDiag = useMemo(() => {
+    if (!diagnosticActive || !diagnosticValues) return false;
+    return Array.from(diagnosticValues.values()).some((v) => v > 0.7);
+  }, [diagnosticActive, diagnosticValues]);
+
   return (
     <div ref={containerRef} className="mb-16 relative">
       <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400 mb-8 border-b border-zinc-100 pb-2">
@@ -146,6 +152,7 @@ export function CascadeLayout({ evidenceByTier, edges, divergentIds, claimLabelM
                     claimLabel={claimLabelMap?.get(evId)}
                     diagnosticValue={diagnosticValues?.get(evId)}
                     diagnosticActive={diagnosticActive}
+                    hasAnyHighDiag={hasAnyHighDiag}
                     onClick={() => onNodeClick?.(ev)}
                   />
                 );

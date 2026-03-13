@@ -212,7 +212,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
 
       {/* Diagnostic toggle */}
       {showDiagnosticToggle && (
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => setDiagnosticActive((prev) => !prev)}
             className={`flex items-center gap-1.5 px-3 py-1.5 border text-[10px] font-mono uppercase tracking-widest transition-colors ${
@@ -220,10 +220,16 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
                 ? 'bg-zinc-900 text-white border-zinc-900'
                 : 'text-zinc-400 hover:text-zinc-600 border-zinc-200'
             }`}
+            title="Toggle diagnostic value highlighting — highlights sources that help distinguish between competing interpretations"
           >
             <span className={`w-2 h-2 rounded-full ${diagnosticActive ? 'bg-[var(--accent)]' : 'bg-zinc-300'}`} />
             Diagnostic
           </button>
+          <span className="text-[10px] text-zinc-400">
+            {diagnosticActive
+              ? 'Highlighting sources that distinguish between interpretations'
+              : 'Toggle to highlight diagnostically valuable sources'}
+          </span>
         </div>
       )}
 

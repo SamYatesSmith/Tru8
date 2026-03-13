@@ -382,35 +382,8 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                                 f"Legal claim detected: {claim['text'][:50]}..."
                             )
 
-                # Article-level classification (once per check, not per claim)
-                # This replaces per-claim spaCy NER domain detection
-                article_classification = None
-                if settings.ENABLE_ARTICLE_CLASSIFICATION:
-                    try:
-                        from app.utils.article_classifier import classify_article
-
-                        article_classification = await classify_article(
-                            title=metadata.get("title", "") if metadata else "",
-                            url=metadata.get("url", "") if metadata else "",
-                            content=content[
-                                :2000
-                            ],  # First 2000 chars for classification
-                        )
-
-                        # Attach classification to ALL claims for consistent API routing
-                        for claim in claims:
-                            claim["article_classification"] = (
-                                article_classification.to_dict()
-                            )
-
-                        logger.info(
-                            f"[EXTRACT] Article classified: {article_classification.primary_domain} "
-                            f"(confidence: {article_classification.confidence:.2f}, source: {article_classification.source})"
-                        )
-                    except Exception as e:
-                        logger.warning(
-                            f"Article classification failed, continuing without: {e}"
-                        )
+                # Article classification is handled by runner.py (attached to claims
+                # after extraction) — no need to duplicate here.
 
                 return {
                     "success": True,
@@ -528,30 +501,8 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                         claims[i]["claim_type"] = "legal"
                         claims[i]["legal_metadata"] = result.get("metadata", {})
 
-            # Article-level classification
-            if settings.ENABLE_ARTICLE_CLASSIFICATION:
-                try:
-                    from app.utils.article_classifier import classify_article
-
-                    article_classification = await classify_article(
-                        title=metadata.get("title", "") if metadata else "",
-                        url=metadata.get("url", "") if metadata else "",
-                        content=content[:2000],
-                    )
-
-                    for claim in claims:
-                        claim["article_classification"] = (
-                            article_classification.to_dict()
-                        )
-
-                    logger.info(
-                        f"[EXTRACT] Article classified: {article_classification.primary_domain} "
-                        f"(confidence: {article_classification.confidence:.2f}, source: {article_classification.source})"
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"Article classification failed, continuing without: {e}"
-                    )
+            # Article classification is handled by runner.py (attached to claims
+            # after extraction) — no need to duplicate here.
 
             google_model = getattr(
                 settings, "GOOGLE_LLM_MODEL", "gemini-2.5-flash-lite"
@@ -762,7 +713,9 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 )
             )
             has_number = bool(re.search(r"\d+", claim_text))
-            has_proper_noun = bool(re.search(r"\b[A-Z][a-z]+\b", claim_text))
+            has_proper_noun = bool(
+                re.search(r"\b[A-Z][a-z]+\b|\b[A-Z]{2,}\b", claim_text)
+            )
 
             if not (has_date or has_number or has_proper_noun):
                 logger.warning(

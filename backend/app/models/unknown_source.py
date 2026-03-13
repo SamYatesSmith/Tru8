@@ -9,6 +9,7 @@ from typing import Optional
 from datetime import datetime, timezone
 from sqlmodel import Field, SQLModel, Column, JSON
 from sqlalchemy.dialects.postgresql import JSONB
+from .check import _utcnow_naive
 import uuid
 
 
@@ -48,11 +49,11 @@ class UnknownSource(SQLModel, table=True):
         default=1, description="Number of times this domain has appeared"
     )
     first_seen: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=_utcnow_naive,
         description="First encounter timestamp",
     )
     last_seen: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=_utcnow_naive,
         description="Most recent encounter",
     )
 

@@ -50,10 +50,11 @@ interface CascadeNodeProps {
   claimLabel?: string;
   diagnosticValue?: number;
   diagnosticActive?: boolean;
+  hasAnyHighDiag?: boolean;
   onClick?: () => void;
 }
 
-export function CascadeNode({ evidence, isDivergent, showConnectionStub, claimLabel, diagnosticValue, diagnosticActive, onClick }: CascadeNodeProps) {
+export function CascadeNode({ evidence, isDivergent, showConnectionStub, claimLabel, diagnosticValue, diagnosticActive, hasAnyHighDiag, onClick }: CascadeNodeProps) {
   const [isHovered, setIsHovered] = useState(false);
   const tier = evidence.tier || 'commentary';
   const style = TIER_STYLES[tier];
@@ -61,8 +62,10 @@ export function CascadeNode({ evidence, isDivergent, showConnectionStub, claimLa
   const date = formatDate(evidence.publishedDate);
 
   // Diagnostic highlighting overrides
+  // Only dim low-value items when there are high-value items to contrast against.
+  // When nothing scores high, dimming everything provides no useful signal.
   const isHighDiag = diagnosticActive && diagnosticValue != null && diagnosticValue > 0.7;
-  const isLowDiag = diagnosticActive && diagnosticValue != null && diagnosticValue < 0.3;
+  const isLowDiag = diagnosticActive && hasAnyHighDiag && diagnosticValue != null && diagnosticValue < 0.3;
 
   return (
     <div

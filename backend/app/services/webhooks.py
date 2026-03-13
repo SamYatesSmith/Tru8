@@ -135,7 +135,9 @@ async def _update_webhook_status(webhook_id: str, success: bool) -> None:
             result = await session.execute(stmt)
             webhook = result.scalar_one_or_none()
             if webhook:
-                webhook.last_triggered_at = datetime.now(timezone.utc)
+                webhook.last_triggered_at = datetime.now(timezone.utc).replace(
+                    tzinfo=None
+                )
                 if success:
                     webhook.failure_count = 0
                 else:

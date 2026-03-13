@@ -1755,11 +1755,15 @@ async def stream_check_progress(
                 claims_json = redis_client.get(claims_key)
                 claims = json.loads(claims_json) if claims_json else []
                 yield f"data: {json.dumps({'type': 'awaiting_selection', 'checkId': check_id, 'stage': 'awaiting_selection', 'progress': 30, 'message': 'Waiting for claim selection...', 'claims': claims})}\n\n"
-                return
+                # Don't return — fall through to polling loop so Phase 2
+                # progress events are streamed after claim selection.
+                _initial_awaiting = True
+            else:
+                _initial_awaiting = False
 
             # Poll Redis for inline pipeline progress
-            last_progress = -1
-            last_stage = ""
+            last_progress = 30 if _initial_awaiting else -1
+            last_stage = "awaiting_selection" if _initial_awaiting else ""
             timeout_counter = 0
             max_timeout = 300  # 5 minutes
             # Current state (persists between iterations for heartbeats)
@@ -1791,11 +1795,15 @@ async def stream_check_progress(
                             yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': error})}\n\n"
                             break
                         elif status == "waiting_for_selection":
-                            claims_key = f"inline-progress:{check_id}:claims"
-                            claims_json = redis_client.get(claims_key)
-                            claims = json.loads(claims_json) if claims_json else []
-                            yield f"data: {json.dumps({'type': 'awaiting_selection', 'checkId': check_id, 'stage': 'awaiting_selection', 'progress': 30, 'message': 'Waiting for claim selection...', 'claims': claims})}\n\n"
-                            break
+                            # Send awaiting_selection only once, then keep
+                            # polling so Phase 2 events are streamed.
+                            if last_stage != "awaiting_selection":
+                                claims_key = f"inline-progress:{check_id}:claims"
+                                claims_json = redis_client.get(claims_key)
+                                claims = json.loads(claims_json) if claims_json else []
+                                yield f"data: {json.dumps({'type': 'awaiting_selection', 'checkId': check_id, 'stage': 'awaiting_selection', 'progress': 30, 'message': 'Waiting for claim selection...', 'claims': claims})}\n\n"
+                                last_stage = "awaiting_selection"
+                                last_progress = 30
                         elif (
                             current_progress > last_progress
                             or current_stage != last_stage
@@ -1870,17 +1878,30 @@ async def export_check_pdf(
     claims_result = await session.execute(claims_stmt)
     claims = claims_result.scalars().all()
 
-    # Fetch evidence for each claim (top 3 by relevance)
+    # Fetch ALL evidence for each claim (ordered by relevance)
     claims_with_evidence = []
+    tier_counts = {"primary": 0, "reporting": 0, "commentary": 0}
+    type_counts: dict[str, int] = {}
+
     for claim in claims:
         evidence_stmt = (
             select(Evidence)
             .where(Evidence.claim_id == claim.id)
             .order_by(desc(Evidence.relevance_score))
-            .limit(3)
         )
         evidence_result = await session.execute(evidence_stmt)
         evidence_list = evidence_result.scalars().all()
+
+        # Build per-claim evidence index: evidence_id → 1-based number
+        evidence_index: dict[str, int] = {}
+        for idx, ev in enumerate(evidence_list, 1):
+            ev_id = ev.evidence_id or str(ev.id)
+            evidence_index[ev_id] = idx
+            # Accumulate tier/type counts
+            tier = ev.tier or "commentary"
+            tier_counts[tier] = tier_counts.get(tier, 0) + 1
+            if ev.evidence_type:
+                type_counts[ev.evidence_type] = type_counts.get(ev.evidence_type, 0) + 1
 
         claim_map = claim.claim_map if claim.claim_map else None
         claims_with_evidence.append(
@@ -1891,6 +1912,7 @@ async def export_check_pdf(
                 "orientation": claim_map.get("orientation") if claim_map else None,
                 "elements": claim_map.get("elements", []) if claim_map else [],
                 "evidence": evidence_list,
+                "evidence_index": evidence_index,
             }
         )
 
@@ -1906,6 +1928,8 @@ async def export_check_pdf(
             claims=claims_with_evidence,
             total_evidence=total_evidence,
             total_elements=total_elements,
+            tier_counts=tier_counts,
+            type_counts=type_counts,
             now=datetime.now(timezone.utc),
         )
     except Exception as e:
@@ -1989,7 +2013,7 @@ async def get_check_sources(
     subscription = sub_result.scalar_one_or_none()
 
     # Beta testers get full Pro access
-    is_beta_tester = current_user.get("email", "").lower() in [
+    is_beta_tester = (current_user.get("email") or "").lower() in [
         e.lower() for e in settings.BETA_TESTER_EMAILS
     ]
     is_paid = (
@@ -2425,7 +2449,7 @@ async def export_check_sources(
     subscription = sub_result.scalar_one_or_none()
 
     # Beta testers get full Pro access
-    is_beta_tester = current_user.get("email", "").lower() in [
+    is_beta_tester = (current_user.get("email") or "").lower() in [
         e.lower() for e in settings.BETA_TESTER_EMAILS
     ]
     is_paid = (

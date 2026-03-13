@@ -91,6 +91,7 @@ def retriever_env():
     ):
         # Configure settings to isolate from environment
         mock_settings.MAX_SOURCES_PER_CLAIM = 20
+        mock_settings.MAX_CONCURRENT_URL_FETCHES = 15
         mock_settings.ENABLE_QUERY_PLANNING = False
         mock_settings.ENABLE_API_RETRIEVAL = True
         mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False

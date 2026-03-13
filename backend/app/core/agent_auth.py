@@ -211,10 +211,11 @@ async def get_agent_payment(
         {"uid": identity.user_id},
     )
     concurrent_count = concurrent_result.scalar()
-    if concurrent_count >= settings.MAX_CONCURRENT_ANALYSES:
+    max_concurrent = settings.MAX_CONCURRENT_AGENT_ANALYSES
+    if concurrent_count >= max_concurrent:
         raise HTTPException(
             status_code=429,
-            detail=f"Max {settings.MAX_CONCURRENT_ANALYSES} concurrent pipeline runs. Retry later.",
+            detail=f"Max {max_concurrent} concurrent agent pipeline runs. Retry later.",
             headers={"Retry-After": "30"},
         )
 

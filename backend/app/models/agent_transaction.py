@@ -18,7 +18,7 @@ from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
-from .check import generate_uuid
+from .check import generate_uuid, _utcnow_naive
 
 
 class AgentTransaction(SQLModel, table=True):
@@ -42,7 +42,7 @@ class AgentTransaction(SQLModel, table=True):
     status: str = Field(
         default="pending"
     )  # "pending" | "completed" | "failed" | "refunded" | "unsettled"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=_utcnow_naive)
     tx_metadata: Optional[dict] = Field(
         default=None, sa_column=Column("metadata", JSONB)
     )  # settlement_reason, claim_text_hash, metrics, etc.

@@ -9,6 +9,7 @@ The raw key is shown once at creation; only the SHA-256 hash is stored.
 from typing import Optional
 from datetime import datetime, timezone
 from sqlmodel import Field, SQLModel, Relationship
+from .check import _utcnow_naive
 import uuid
 
 
@@ -28,6 +29,6 @@ class APIKey(SQLModel, table=True):
     last_used_at: Optional[datetime] = None
     usage_count: int = Field(default=0)
     expires_at: Optional[datetime] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=_utcnow_naive)
 
     user: Optional["User"] = Relationship()

@@ -4,49 +4,53 @@
   <meta charset="UTF-8">
   <style>
     /* ================================================================
-       TRU8 PDF EVIDENCE REPORT — Stitch Design System
-       WeasyPrint: flexbox, CSS variables, @page margin boxes,
-       CSS counters for page numbers. No tables.
+       TRU8 PDF EVIDENCE REPORT — Stitch Design System v4
+       WeasyPrint-safe: float, table-cell, inline-block only.
        ================================================================ */
 
     :root {
       --surface: #FFFFFF;
-      --surface-raised: #F9FAFB;
-      --border: #E5E7EB;
-      --text-primary: #111827;
-      --text-secondary: #6B7280;
-      --text-muted: #9CA3AF;
-      --text-faint: #D1D5DB;
+      --surface-alt: #FAFAFA;
+      --border: #E4E4E7;
+      --border-light: #F4F4F5;
+      --ink: #18181B;
+      --ink-2: #3F3F46;
+      --ink-3: #71717A;
+      --ink-4: #A1A1AA;
+      --ink-5: #D4D4D8;
       --accent: #EA580C;
-      --state-supported: #22C55E;
-      --state-supported-bg: #F0FDF4;
-      --state-supported-border: #BBF7D0;
-      --state-disputed: #F59E0B;
-      --state-disputed-bg: #FFFBEB;
-      --state-disputed-border: #FDE68A;
-      --state-unresolved: #94A3B8;
-      --state-unresolved-bg: #F8FAFC;
-      --state-unresolved-border: #E2E8F0;
+      --accent-bg: #FFF7ED;
+      --tier1: #18181B;
+      --tier2: #71717A;
+      --tier3: #A1A1AA;
+      --green: #16A34A;
+      --green-bg: #F0FDF4;
+      --green-border: #BBF7D0;
+      --amber: #D97706;
+      --amber-bg: #FFFBEB;
+      --amber-border: #FDE68A;
+      --slate: #94A3B8;
+      --slate-bg: #F8FAFC;
+      --slate-border: #E2E8F0;
     }
 
     @page {
       size: A4;
-      margin: 2cm 2.2cm;
+      margin: 1.5cm 1.8cm 1.4cm 1.8cm;
 
-      @bottom-center {
-        content: "TRU8  ·  Evidence Research Report  ·  {{ check.id[:8] | upper }}";
+      @bottom-left {
+        content: "tru8.app  ·  Evidence Research";
         font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-        font-size: 7px;
-        color: #D1D5DB;
-        letter-spacing: 1px;
-        text-transform: uppercase;
+        font-size: 6.5px;
+        color: var(--ink-5);
+        letter-spacing: 0.3px;
       }
 
       @bottom-right {
         content: counter(page);
         font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-        font-size: 7px;
-        color: #D1D5DB;
+        font-size: 6.5px;
+        color: var(--ink-5);
       }
     }
 
@@ -54,592 +58,533 @@
 
     body {
       font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-      color: var(--text-primary);
-      line-height: 1.6;
-      font-size: 10px;
-      background: var(--surface);
-    }
-
-    /* ── DOCUMENT HEADER ──────────────────────────────────────────── */
-
-    .doc-header {
-      text-align: center;
-      padding-bottom: 32px;
-      margin-bottom: 28px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .doc-header-wordmark {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-    }
-
-    .doc-header-subtitle {
+      color: var(--ink);
+      line-height: 1.5;
       font-size: 9px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-top: 4px;
     }
 
-    /* ── METADATA BLOCK ───────────────────────────────────────────── */
+    a { color: var(--accent); text-decoration: none; }
 
-    .metadata-block {
-      background: var(--surface-raised);
-      padding: 20px 24px;
-      margin-bottom: 28px;
+    .clearfix::after { content: ''; display: table; clear: both; }
+
+    /* ── HEADER ───────────────────────────────────────────────────── */
+
+    .hdr {
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .hdr-right {
+      float: right;
+      text-align: right;
+      padding-top: 4px;
+    }
+
+    .hdr-id {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--ink-4);
+      letter-spacing: 0.5px;
+    }
+
+    .hdr-date {
+      font-size: 7.5px;
+      color: var(--ink-5);
+    }
+
+    .hdr-brand {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: 3px;
+    }
+
+    .hdr-type {
+      font-size: 8px;
+      font-weight: 400;
+      color: var(--ink-4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-left: 8px;
+    }
+
+    /* ── METADATA ─────────────────────────────────────────────────── */
+
+    .meta {
+      background: var(--surface-alt);
+      padding: 8px 12px;
+      margin-bottom: 12px;
       border-left: 3px solid var(--accent);
     }
 
-    .metadata-row {
-      display: flex;
-      align-items: baseline;
-      padding: 4px 0;
-    }
+    .meta-row { margin-bottom: 1px; }
 
-    .meta-label {
-      font-size: 8px;
+    .meta-k {
+      display: inline-block;
+      width: 76px;
+      font-size: 7px;
       font-weight: 700;
-      color: var(--text-muted);
+      color: var(--ink-4);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      width: 120px;
-      flex-shrink: 0;
+      letter-spacing: 0.6px;
+      vertical-align: baseline;
     }
 
-    .meta-value {
-      font-size: 10px;
+    .meta-v {
+      font-size: 8.5px;
       font-weight: 500;
-      color: var(--text-primary);
+      color: var(--ink);
     }
 
-    /* ── ANALYSIS OVERVIEW (3-stat row) ───────────────────────────── */
+    .meta-v a { color: var(--accent); word-break: break-all; }
 
-    .overview-section {
-      margin-bottom: 32px;
+    /* ── STATS ────────────────────────────────────────────────────── */
+
+    .stats {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 5px 0;
+      margin: 0 -5px 12px -5px;
     }
 
-    .overview-label {
-      font-size: 8px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 12px;
-    }
-
-    .stat-row {
-      display: flex;
-      gap: 12px;
-    }
-
-    .stat-cell {
-      flex: 1;
+    .stats td {
       text-align: center;
-      padding: 20px 16px;
-      background: var(--surface-raised);
+      padding: 8px 4px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border-light);
+      width: 33.33%;
     }
 
-    .stat-number {
-      font-size: 28px;
+    .stats-num {
+      font-size: 20px;
       font-weight: 700;
       color: var(--accent);
       line-height: 1;
     }
 
-    .stat-label {
-      font-size: 8px;
+    .stats-lbl {
+      font-size: 7px;
       font-weight: 600;
-      color: var(--text-muted);
+      color: var(--ink-4);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-top: 8px;
+      letter-spacing: 0.6px;
+      margin-top: 2px;
     }
 
-    /* ── SECTION DIVIDER ──────────────────────────────────────────── */
+    /* ── LANDSCAPE ────────────────────────────────────────────────── */
 
-    .section-divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 24px 0;
+    .landscape {
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
     }
 
-    .section-label {
+    .landscape-hd {
+      font-size: 7px;
+      font-weight: 700;
+      color: var(--ink-4);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 4px;
+    }
+
+    .tier-item {
+      display: inline-block;
+      margin-right: 12px;
+    }
+
+    .tier-bar {
+      display: inline-block;
+      width: 10px;
+      height: 3px;
+      vertical-align: middle;
+      margin-right: 3px;
+    }
+
+    .tier-bar-primary { background: var(--tier1); }
+    .tier-bar-reporting { background: var(--tier2); }
+    .tier-bar-commentary { background: var(--tier3); }
+
+    .tier-n {
       font-size: 9px;
       font-weight: 700;
-      color: var(--text-muted);
+      color: var(--ink);
+    }
+
+    .tier-lbl {
+      font-size: 8px;
+      color: var(--ink-3);
+      margin-left: 1px;
+    }
+
+    .type-list { margin-top: 4px; }
+
+    .type-tag {
+      display: inline-block;
+      padding: 1px 5px;
+      font-size: 6.5px;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 20px;
-    }
-
-    /* ── CLAIM CARD ───────────────────────────────────────────────── */
-
-    .claim-card {
-      margin-bottom: 28px;
-      padding: 24px;
+      letter-spacing: 0.3px;
+      color: var(--ink-3);
+      background: var(--surface-alt);
       border: 1px solid var(--border);
-      background: var(--surface);
-      page-break-inside: avoid;
+      margin-right: 2px;
     }
 
-    .claim-number {
+    /* ── SECTIONS ─────────────────────────────────────────────────── */
+
+    hr.sep { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+    hr.sep-light { border: none; border-top: 1px solid var(--border-light); margin: 8px 0; }
+
+    .sec-hd {
       font-size: 8px;
       font-weight: 700;
-      color: var(--text-muted);
+      color: var(--ink-4);
       text-transform: uppercase;
-      letter-spacing: 1.5px;
+      letter-spacing: 1.2px;
       margin-bottom: 8px;
     }
 
-    .claim-type-badge {
-      display: inline-block;
-      padding: 2px 8px;
+    .sub-hd {
       font-size: 7px;
       font-weight: 700;
+      color: var(--ink-4);
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: var(--text-secondary);
-      background: var(--surface-raised);
+      margin-bottom: 5px;
+    }
+
+    /* ── CLAIM ────────────────────────────────────────────────────── */
+
+    .claim {
+      margin-bottom: 14px;
+      padding: 12px 14px;
       border: 1px solid var(--border);
-      margin-left: 6px;
     }
 
-    .claim-text {
-      font-size: 13px;
+    .claim-hd {
+      font-size: 7px;
+      font-weight: 700;
+      color: var(--ink-4);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 3px;
+    }
+
+    .claim-badge {
+      display: inline-block;
+      padding: 1px 5px;
+      font-size: 6.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--ink-3);
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .claim-txt {
+      font-size: 11px;
       font-weight: 500;
-      color: var(--text-primary);
-      line-height: 1.5;
-      margin-bottom: 18px;
-    }
-
-    .claim-divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 20px 0;
+      color: var(--ink);
+      line-height: 1.45;
+      margin-bottom: 8px;
     }
 
     /* ── ELEMENTS ─────────────────────────────────────────────────── */
 
-    .elements-label {
+    .el {
+      margin-bottom: 6px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .el-n {
+      position: absolute;
+      left: 0;
+      top: 0;
       font-size: 8px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 12px;
+      font-weight: 600;
+      color: var(--ink-5);
     }
 
-    .element-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .element-num {
+    .el-desc {
       font-size: 9px;
-      font-weight: 500;
-      color: var(--text-faint);
-      width: 24px;
-      flex-shrink: 0;
-      padding-top: 2px;
+      color: var(--ink);
+      line-height: 1.45;
     }
 
-    .element-content {
-      flex: 1;
-    }
-
-    .element-desc {
-      font-size: 10px;
-      font-weight: 400;
-      color: var(--text-primary);
-      line-height: 1.5;
-    }
-
-    /* State badges */
-    .state-badge {
+    .st {
       display: inline-block;
-      padding: 1px 7px;
+      padding: 1px 5px;
+      font-size: 6.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+
+    .st-supported { color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); }
+    .st-disputed { color: var(--amber); background: var(--amber-bg); border: 1px solid var(--amber-border); }
+    .st-unresolved { color: var(--slate); background: var(--slate-bg); border: 1px solid var(--slate-border); }
+
+    .el-refs {
+      margin-top: 1px;
+      font-size: 7.5px;
+      color: var(--ink-3);
+    }
+
+    .r-s { color: var(--green); font-weight: 600; }
+    .r-c { color: var(--amber); font-weight: 600; }
+    .r-x { color: var(--ink-4); font-weight: 600; }
+    .r-n { color: var(--ink-4); font-weight: 400; }
+
+    .el-unc {
+      font-size: 7.5px;
+      font-style: italic;
+      color: var(--ink-4);
+      margin-top: 1px;
+    }
+
+    /* ── ORIENTATION ──────────────────────────────────────────────── */
+
+    .orient {
+      background: var(--surface-alt);
+      padding: 7px 10px;
+      border-left: 3px solid var(--border);
+      margin-top: 8px;
+    }
+
+    .orient-hd {
       font-size: 7px;
       font-weight: 700;
+      color: var(--ink-4);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-left: 6px;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
     }
 
-    .state-supported {
-      color: var(--state-supported);
-      background: var(--state-supported-bg);
-      border: 1px solid var(--state-supported-border);
-    }
-
-    .state-disputed {
-      color: var(--state-disputed);
-      background: var(--state-disputed-bg);
-      border: 1px solid var(--state-disputed-border);
-    }
-
-    .state-unresolved {
-      color: var(--state-unresolved);
-      background: var(--state-unresolved-bg);
-      border: 1px solid var(--state-unresolved-border);
-    }
-
-    /* Evidence refs row */
-    .evidence-refs-row {
-      margin-top: 6px;
-    }
-
-    .evidence-ref-chip {
-      display: inline-block;
-      padding: 1px 7px;
-      font-size: 8px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      margin-right: 4px;
-      margin-bottom: 4px;
-    }
-
-    .ref-label-supports { color: var(--state-supported); }
-    .ref-label-challenges { color: var(--state-disputed); }
-    .ref-label-context { color: var(--text-muted); }
-
-    .ref-separator {
-      color: var(--text-faint);
-      margin: 0 2px;
-    }
-
-    /* Uncertainty note */
-    .uncertainty-note {
-      font-size: 9px;
-      font-style: italic;
-      color: var(--text-muted);
-      margin-top: 6px;
-      padding-left: 4px;
-    }
-
-    /* ── ORIENTATION LINE ─────────────────────────────────────────── */
-
-    .orientation-label {
-      font-size: 8px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-    }
-
-    .orientation-text {
-      font-size: 10px;
-      font-weight: 500;
-      color: var(--text-primary);
-      line-height: 1.6;
+    .orient-txt {
+      font-size: 8.5px;
+      color: var(--ink-2);
+      line-height: 1.5;
     }
 
     /* ── EVIDENCE SOURCES ─────────────────────────────────────────── */
 
-    .evidence-sources-label {
-      font-size: 8px;
+    .ev {
+      padding: 5px 0 5px 20px;
+      position: relative;
+      border-left: 3px solid var(--tier3);
+      margin-bottom: 3px;
+      margin-left: 0;
+    }
+
+    .ev-primary { border-left-color: var(--tier1); }
+    .ev-reporting { border-left-color: var(--tier2); }
+    .ev-commentary { border-left-color: var(--tier3); }
+
+    .ev-n {
+      position: absolute;
+      left: 6px;
+      top: 5px;
+      font-size: 7.5px;
       font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-      margin-top: 20px;
+      color: var(--ink-5);
     }
 
-    .evidence-item {
-      padding: 14px 16px;
-      margin-bottom: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface-raised);
-    }
-
-    .evidence-source-name {
-      font-size: 9px;
-      font-weight: 700;
-      color: var(--text-primary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-
-    .badge-api {
-      display: inline-block;
-      background: #059669;
-      color: #ffffff;
-      padding: 1px 5px;
-      font-size: 6px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-left: 4px;
-    }
-
-    .badge-factcheck {
-      display: inline-block;
-      background: var(--text-secondary);
-      color: #ffffff;
-      padding: 1px 5px;
-      font-size: 6px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-left: 4px;
-    }
-
-    .evidence-title {
-      font-size: 9px;
-      font-weight: 500;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-
-    .evidence-snippet {
-      font-size: 8px;
-      font-weight: 400;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    .no-evidence-card {
-      background: var(--surface-raised);
-      border: 1px solid var(--border);
-      padding: 16px 18px;
-      margin-top: 10px;
-    }
-
-    .no-evidence-title {
-      font-size: 9px;
+    .ev-title {
+      font-size: 8.5px;
       font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
+      color: var(--ink);
+      line-height: 1.3;
     }
 
-    .no-evidence-text {
-      font-size: 8px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
+    .ev-title a { color: var(--ink); }
 
-    /* ── DOCUMENT FOOTER ──────────────────────────────────────────── */
-
-    .doc-footer {
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-    }
-
-    .footer-brand {
-      font-size: 10px;
-      font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: 2px;
+    .ev-type {
+      font-size: 6.5px;
+      font-weight: 600;
+      color: var(--ink-4);
       text-transform: uppercase;
-      margin-bottom: 4px;
+      letter-spacing: 0.3px;
+      margin-left: 4px;
     }
 
-    .footer-tagline {
+    .ev-meta {
+      font-size: 7px;
+      color: var(--ink-4);
+      line-height: 1.3;
+    }
+
+    .ev-meta a { color: var(--ink-4); }
+
+    .ev-snip {
+      font-size: 7px;
+      color: var(--ink-3);
+      line-height: 1.35;
+      margin-top: 1px;
+    }
+
+    .no-ev {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
       font-size: 8px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
+      color: var(--ink-4);
     }
 
-    .footer-meta {
-      font-size: 7px;
-      color: var(--text-faint);
-      letter-spacing: 0.5px;
-      margin-top: 8px;
-    }
+    /* ── FOOTER ───────────────────────────────────────────────────── */
 
-    .footer-disclaimer {
-      margin-top: 10px;
+    .ftr {
+      margin-top: 16px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
       font-size: 7px;
-      color: var(--text-muted);
+      color: var(--ink-4);
       line-height: 1.5;
-      max-width: 480px;
-      margin-left: auto;
-      margin-right: auto;
     }
+
+    .ftr-brand {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: 2px;
+    }
+
+    .ftr-disc { margin-top: 3px; font-size: 6.5px; color: var(--ink-4); }
+    .ftr-id { margin-top: 2px; font-size: 6px; color: var(--ink-5); }
   </style>
 </head>
 <body>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       DOCUMENT HEADER
-       ════════════════════════════════════════════════════════════════ -->
-
-  <div class="doc-header">
-    <div class="doc-header-wordmark">TRU8</div>
-    <div class="doc-header-subtitle">Evidence Research Report</div>
+  <!-- HEADER -->
+  <div class="hdr clearfix">
+    <div class="hdr-right">
+      <div class="hdr-id">{{ check.id[:8] | upper }}</div>
+      <div class="hdr-date">{{ check.created_at.strftime('%d %b %Y, %H:%M UTC') }}</div>
+    </div>
+    <span class="hdr-brand">TRU8</span>
+    <span class="hdr-type">Evidence Research Report</span>
   </div>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       METADATA BLOCK
-       ════════════════════════════════════════════════════════════════ -->
+  <!-- METADATA -->
+  <div class="meta">
+    <div class="meta-row">
+      <span class="meta-k">Source</span>
+      <span class="meta-v">{%- if check.input_url -%}<a href="{{ check.input_url }}">{{ check.input_url[:90] }}{% if check.input_url|length > 90 %}&hellip;{% endif %}</a>{%- else -%}User-submitted text{%- endif -%}</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-k">Processing</span>
+      <span class="meta-v">{{ ((check.processing_time_ms or 0) / 1000)|round(1) }}s{% if check.entry_mode %} &middot; {{ check.entry_mode|capitalize }} mode{% endif %}</span>
+    </div>
+  </div>
 
-  <div class="metadata-block">
-    <div class="metadata-row">
-      <div class="meta-label">Source</div>
-      <div class="meta-value">{{ (check.input_url or 'User-submitted text')[:80] }}{% if check.input_url and check.input_url|length > 80 %}...{% endif %}</div>
+  <!-- STATS -->
+  <table class="stats"><tr>
+    <td><div class="stats-num">{{ claims|length }}</div><div class="stats-lbl">Claims</div></td>
+    <td><div class="stats-num">{{ total_evidence }}</div><div class="stats-lbl">Sources</div></td>
+    <td><div class="stats-num">{{ total_elements }}</div><div class="stats-lbl">Elements</div></td>
+  </tr></table>
+
+  <!-- LANDSCAPE -->
+  <div class="landscape">
+    <div class="landscape-hd">Evidence Landscape</div>
+    <div>
+      {% if tier_counts.get('primary', 0) > 0 %}<span class="tier-item"><span class="tier-bar tier-bar-primary"></span><span class="tier-n">{{ tier_counts.primary }}</span> <span class="tier-lbl">Primary</span></span>{% endif %}
+      {% if tier_counts.get('reporting', 0) > 0 %}<span class="tier-item"><span class="tier-bar tier-bar-reporting"></span><span class="tier-n">{{ tier_counts.reporting }}</span> <span class="tier-lbl">Reporting</span></span>{% endif %}
+      {% if tier_counts.get('commentary', 0) > 0 %}<span class="tier-item"><span class="tier-bar tier-bar-commentary"></span><span class="tier-n">{{ tier_counts.commentary }}</span> <span class="tier-lbl">Commentary</span></span>{% endif %}
     </div>
-    <div class="metadata-row">
-      <div class="meta-label">Date Analysed</div>
-      <div class="meta-value">{{ check.created_at.strftime('%B %d, %Y at %H:%M UTC') }}</div>
-    </div>
-    <div class="metadata-row">
-      <div class="meta-label">Report ID</div>
-      <div class="meta-value">{{ check.id[:8] | upper }}</div>
-    </div>
-    <div class="metadata-row">
-      <div class="meta-label">Processing</div>
-      <div class="meta-value">{{ (check.processing_time_ms / 1000)|round(1) }}s</div>
-    </div>
-    {% if check.entry_mode %}
-    <div class="metadata-row">
-      <div class="meta-label">Mode</div>
-      <div class="meta-value">{{ check.entry_mode|capitalize }}</div>
+    {% if type_counts %}
+    <div class="type-list">
+      {% for type_name, count in type_counts|dictsort(by='value', reverse=true) %}
+      <span class="type-tag">{{ type_name|replace('_', ' ') }} ({{ count }})</span>
+      {% endfor %}
     </div>
     {% endif %}
   </div>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       ANALYSIS OVERVIEW (3-stat row)
-       ════════════════════════════════════════════════════════════════ -->
+  <hr class="sep" />
+  <div class="sec-hd">Claims &mdash; {{ claims|length }}</div>
 
-  <div class="overview-section">
-    <div class="overview-label">Analysis Overview</div>
-    <div class="stat-row">
-      <div class="stat-cell">
-        <div class="stat-number">{{ claims|length }}</div>
-        <div class="stat-label">Claims Analysed</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-number">{{ total_evidence }}</div>
-        <div class="stat-label">Evidence Sources</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-number">{{ total_elements }}</div>
-        <div class="stat-label">Elements Examined</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-divider" />
-
-  <!-- ════════════════════════════════════════════════════════════════
-       CLAIMS
-       ════════════════════════════════════════════════════════════════ -->
-
-  <div class="section-label">Claims Analysed &mdash; {{ claims|length }}</div>
-
+  <!-- CLAIMS -->
   {% for claim in claims %}
-  <div class="claim-card">
-
-    <!-- Claim header -->
-    <div class="claim-number">
+  <div class="claim">
+    <div class="claim-hd">
       Claim {{ '%02d' | format(loop.index) }}
-      {% if claim.claim_type %}
-      <span class="claim-type-badge">{{ claim.claim_type|replace('_', ' ') }}</span>
-      {% endif %}
+      {% if claim.claim_type %}<span class="claim-badge">{{ claim.claim_type|replace('_', ' ') }}</span>{% endif %}
     </div>
 
-    <div class="claim-text">{{ claim.text[:220] }}{% if claim.text|length > 220 %}&hellip;{% endif %}</div>
+    <div class="claim-txt">{{ claim.text }}</div>
 
-    <!-- Elements -->
     {% if claim.elements %}
-    <hr class="claim-divider" />
-    <div class="elements-label">Elements</div>
-
+    <hr class="sep-light" />
+    <div class="sub-hd">Elements</div>
     {% for element in claim.elements %}
-    <div class="element-row">
-      <div class="element-num">{{ '%02d' | format(loop.index) }}</div>
-      <div class="element-content">
-        <span class="element-desc">{{ element.description }}</span>
-        {% if element.state %}
-        <span class="state-badge state-{{ element.state }}">{{ element.state }}</span>
-        {% endif %}
-
-        {% if element.evidence_refs %}
-        <div class="evidence-refs-row">
-          {% for ref in element.evidence_refs %}
-          <span class="evidence-ref-chip">
-            <span class="ref-label-{{ ref.relationship }}">{{ ref.relationship }}</span><span class="ref-separator">:</span> {{ ref.evidence_id[:12] }}
-          </span>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        {% if element.uncertainty %}
-        <div class="uncertainty-note">&#9888; {{ element.uncertainty }}</div>
-        {% endif %}
+    <div class="el">
+      <div class="el-n">{{ '%02d' | format(loop.index) }}</div>
+      <span class="el-desc">{{ element.description }}</span>
+      {% if element.state %}<span class="st st-{{ element.state }}">{{ element.state }}</span>{% endif %}
+      {% if element.evidence_refs %}
+      {% set ns = namespace(supports=[], challenges=[], context=[]) %}
+      {% for ref in element.evidence_refs %}
+        {% set ref_num = claim.evidence_index.get(ref.evidence_id, claim.evidence_index.get(ref.get('evidenceId', ''), 0)) %}
+        {% if ref.relationship == 'supports' %}{% set _ = ns.supports.append(ref_num) %}
+        {% elif ref.relationship == 'challenges' %}{% set _ = ns.challenges.append(ref_num) %}
+        {% else %}{% set _ = ns.context.append(ref_num) %}{% endif %}
+      {% endfor %}
+      <div class="el-refs">
+        {% if ns.supports %}<span class="r-s">{{ ns.supports|length }} supporting</span> <span class="r-n">[{% for n in ns.supports|sort %}{{ n }}{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
+        {% if ns.challenges %}{% if ns.supports %} &middot; {% endif %}<span class="r-c">{{ ns.challenges|length }} challenging</span> <span class="r-n">[{% for n in ns.challenges|sort %}{{ n }}{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
+        {% if ns.context %}{% if ns.supports or ns.challenges %} &middot; {% endif %}<span class="r-x">{{ ns.context|length }} context</span> <span class="r-n">[{% for n in ns.context|sort %}{{ n }}{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
       </div>
+      {% endif %}
+      {% if element.uncertainty %}<div class="el-unc">{{ element.uncertainty }}</div>{% endif %}
     </div>
     {% endfor %}
     {% endif %}
 
-    <!-- Orientation -->
     {% if claim.orientation %}
-    <hr class="claim-divider" />
-    <div class="orientation-label">Orientation</div>
-    <div class="orientation-text">{{ claim.orientation }}</div>
+    <div class="orient">
+      <div class="orient-hd">Orientation</div>
+      <div class="orient-txt">{{ claim.orientation }}</div>
+    </div>
     {% endif %}
 
-    <!-- Evidence sources (top 3) -->
     {% if claim.evidence %}
-    <hr class="claim-divider" />
-    <div class="evidence-sources-label">Evidence Sources &mdash; {{ claim.evidence|length }}</div>
-
-    {% for evidence in claim.evidence[:3] %}
-    <div class="evidence-item">
-      <div class="evidence-source-name">
-        {{ evidence.source }}
-        {% if evidence.external_source_provider %}
-        <span class="badge-api">API</span>
-        {% elif evidence.is_factcheck %}
-        <span class="badge-factcheck">Fact-Check</span>
-        {% endif %}
+    <hr class="sep-light" />
+    <div class="sub-hd">Evidence Sources &mdash; {{ claim.evidence|length }}</div>
+    {% for ev in claim.evidence %}
+    {% set ev_id = ev.evidence_id or ev.id|string %}
+    {% set ev_num = claim.evidence_index.get(ev_id, loop.index) %}
+    {% set title = ev.title or 'Untitled source' %}
+    <div class="ev ev-{{ ev.tier or 'commentary' }}">
+      <div class="ev-n">{{ ev_num }}</div>
+      <div class="ev-title">
+        {% if ev.url %}<a href="{{ ev.url }}">{{ title[:95] }}{% if title|length > 95 %}&hellip;{% endif %}</a>{% else %}{{ title[:95] }}{% if title|length > 95 %}&hellip;{% endif %}{% endif %}
+        {% if ev.evidence_type %}<span class="ev-type">{{ ev.evidence_type|replace('_', ' ') }}</span>{% endif %}
       </div>
-      <div class="evidence-title">{{ evidence.title[:90] }}{% if evidence.title|length > 90 %}&hellip;{% endif %}</div>
-      {% if evidence.snippet %}
-      <div class="evidence-snippet">{{ evidence.snippet[:160] }}{% if evidence.snippet|length > 160 %}&hellip;{% endif %}</div>
-      {% endif %}
+      <div class="ev-meta">{{ ev.source or '' }}{% if ev.published_date %} &middot; {{ ev.published_date.strftime('%d %b %Y') }}{% endif %}{% if ev.url %} &middot; <a href="{{ ev.url }}">{{ ev.url[:50] }}{% if ev.url|length > 50 %}&hellip;{% endif %}</a>{% endif %}</div>
+      {% if ev.snippet %}<div class="ev-snip">{{ ev.snippet[:160] }}{% if ev.snippet|length > 160 %}&hellip;{% endif %}</div>{% endif %}
     </div>
     {% endfor %}
     {% else %}
-    <hr class="claim-divider" />
-    <div class="no-evidence-card">
-      <div class="no-evidence-title">No Evidence Retrieved</div>
-      <div class="no-evidence-text">No sources were found during evidence retrieval for this claim.</div>
-    </div>
+    <hr class="sep-light" />
+    <div class="no-ev">No sources were found during evidence retrieval for this claim.</div>
     {% endif %}
-
   </div>
   {% endfor %}
 
-  <!-- ════════════════════════════════════════════════════════════════
-       DOCUMENT FOOTER
-       ════════════════════════════════════════════════════════════════ -->
-
-  <div class="doc-footer">
-    <div class="footer-brand">TRU8</div>
-    <div class="footer-tagline">Generated by AI-powered evidence research technology</div>
-    <div class="footer-tagline">tru8.com</div>
-    <div class="footer-meta">
-      Report {{ check.id[:8] | upper }} &nbsp;&middot;&nbsp; {{ now.strftime('%B %d, %Y at %H:%M UTC') }}
-    </div>
-    <div class="footer-disclaimer">
-      This automated analysis presents evidence gathered from multiple sources.
-      It does not render verdicts or judgments. Users should evaluate the evidence
-      and verify critical information independently.
-    </div>
+  <!-- FOOTER -->
+  <div class="ftr">
+    <span class="ftr-brand">TRU8</span> &nbsp;&middot;&nbsp; We organise; you decide.
+    <div class="ftr-disc">This report presents evidence sources and their relationships to claim elements. It does not render verdicts. Evaluate evidence and verify critical information independently.</div>
+    <div class="ftr-id">Report {{ check.id[:8] | upper }} &middot; Generated {{ now.strftime('%d %b %Y, %H:%M UTC') }} &middot; tru8.app</div>
   </div>
 
 </body>

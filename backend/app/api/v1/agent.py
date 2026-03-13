@@ -91,6 +91,33 @@ class SmartCheckRequest(BaseModel):
     )
 
 
+class BatchClaimItem(BaseModel):
+    """A single claim within a batch request."""
+
+    claim: str = Field(description="The claim text to analyse, or a URL")
+    input_type: Optional[str] = Field(
+        None, description="'text' or 'url'. Auto-detected if omitted."
+    )
+
+
+class BatchRequest(BaseModel):
+    """Submit multiple claims for concurrent processing."""
+
+    claims: list[BatchClaimItem] = Field(
+        description="List of claims to process (max 10)",
+        min_length=1,
+        max_length=10,
+    )
+    tier: str = Field(
+        "quick",
+        description="Pipeline tier for all claims: 'quick' or 'full'.",
+    )
+    compact: bool = Field(
+        False,
+        description="If true, compact responses for all claims.",
+    )
+
+
 def _resolve_input(claim: str, explicit_type: Optional[str] = None) -> tuple:
     """Resolve input_type and build input_data dict from agent claim field.
 
@@ -256,7 +283,22 @@ async def agent_smart_check(
                     datetime.now(timezone.utc)
                     - consensus.computed_at.replace(tzinfo=timezone.utc)
                 ).days
-                if age_days <= CONSENSUS_MAX_AGE_DAYS:
+                # Check both server-side max age and caller's freshness constraint (O-02)
+                consensus_fresh = age_days <= CONSENSUS_MAX_AGE_DAYS
+                if consensus_fresh and body.max_age_hours:
+                    age_hours = (
+                        datetime.now(timezone.utc)
+                        - consensus.computed_at.replace(tzinfo=timezone.utc)
+                    ).total_seconds() / 3600
+                    if age_hours > body.max_age_hours:
+                        consensus_fresh = False
+                        logger.debug(
+                            "Consensus stale for max_age_hours=%s (age=%.1fh)",
+                            body.max_age_hours,
+                            age_hours,
+                        )
+
+                if consensus_fresh:
                     # Consensus hit — charge consensus tier
                     tier = "consensus"
                     amount_cents = get_tier_price(tier)
@@ -469,9 +511,15 @@ async def get_agent_result(
         raise HTTPException(status_code=404, detail="Check not found")
 
     if check.status != "completed":
-        raise HTTPException(
-            status_code=409,
-            detail=f"Check is not completed (status: {check.status})",
+        # Return processing status instead of error — enables async polling (O-06)
+        return JSONResponse(
+            status_code=200,
+            content={
+                "checkId": check_id,
+                "status": check.status,
+                "hit": False,
+            },
+            headers={"X-Check-Id": check_id},
         )
 
     from app.api.v1.response_builder import build_agent_response
@@ -535,6 +583,7 @@ QUICK_LIMITATIONS = [
 async def agent_quick(
     body: AgentClaimRequest,
     request: Request,
+    async_mode: bool = Query(False, alias="async"),
     payment: AgentPaymentContext = Depends(get_agent_payment),
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
@@ -546,6 +595,9 @@ async def agent_quick(
     classification instead of LLM.
 
     Check `_meta.limitations` in the response for the full list of skipped stages.
+
+    Set `?async=true` to receive a 202 Accepted immediately and poll
+    `/agent/result/{checkId}` for the completed result.
 
     **Response headers:** `X-Check-Id`, `X-Tru8-Tx-Id`
 
@@ -566,11 +618,12 @@ async def agent_quick(
         payment=payment,
         session=session,
         idempotency_key=idempotency_key,
+        async_mode=async_mode,
     )
 
 
 # ---------------------------------------------------------------------------
-# POST /agent/full — complete pipeline (~60-90s) (L-04)
+# POST /agent/full — complete pipeline (~50-70s) (L-04)
 # ---------------------------------------------------------------------------
 
 
@@ -600,15 +653,19 @@ async def agent_quick(
 async def agent_full(
     body: AgentClaimRequest,
     request: Request,
+    async_mode: bool = Query(False, alias="async"),
     payment: AgentPaymentContext = Depends(get_agent_payment),
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Complete evidence research pipeline — 30+ sources, all stages. ~60-90 seconds, $0.15.
+    """Complete evidence research pipeline — 30+ sources, all stages. ~50-70 seconds, $0.15.
 
     Runs the full pipeline: fact-check lookup, 30+ source providers (government,
     academic, news, data APIs), LLM classification, coverage recovery, and
     query answering. Set your HTTP client timeout to at least 180 seconds.
+
+    Set `?async=true` to receive a 202 Accepted immediately and poll
+    `/agent/result/{checkId}` for the completed result.
 
     **Response headers:** `X-Check-Id`, `X-Tru8-Tx-Id`
 
@@ -629,6 +686,7 @@ async def agent_full(
         payment=payment,
         session=session,
         idempotency_key=idempotency_key,
+        async_mode=async_mode,
     )
 
 
@@ -648,6 +706,7 @@ async def _run_agent_pipeline(
     payment: AgentPaymentContext,
     session: AsyncSession,
     idempotency_key: Optional[str],
+    async_mode: bool = False,
 ) -> JSONResponse:
     """Create check, charge, run pipeline, return response with _meta."""
     from app.core.database import async_session
@@ -707,6 +766,39 @@ async def _run_agent_pipeline(
     tx.check_id = check.id
     await session.commit()
 
+    # --- Async mode: launch pipeline in background, return 202 immediately ---
+    if async_mode:
+        asyncio.create_task(
+            _run_pipeline_background(
+                check_id=check.id,
+                user_id=payment.user_id,
+                input_data=input_data,
+                config=config,
+                tier=tier,
+                tx_id=tx.id,
+                provider=payment.provider,
+                amount_cents=amount_cents,
+            )
+        )
+        estimated = 15 if tier == "quick" else 60
+        return JSONResponse(
+            status_code=202,
+            content={
+                "checkId": check.id,
+                "status": "processing",
+                "tier": tier,
+                "chargedCents": amount_cents,
+                "txId": tx.id,
+                "pollUrl": f"/api/v1/agent/result/{check.id}",
+                "estimatedSeconds": estimated,
+            },
+            headers={
+                "X-Check-Id": check.id,
+                "X-Tru8-Tx-Id": tx.id,
+            },
+        )
+
+    # --- Synchronous mode: run pipeline inline, return full result ---
     progress_reporter = ProgressReporter(check.id)
 
     try:
@@ -788,6 +880,20 @@ async def _run_agent_pipeline(
                 compact=body.compact or False,
             )
 
+        # Fire webhook: check.completed (O-01)
+        try:
+            from app.services.webhooks import dispatch_webhook_event
+
+            asyncio.create_task(
+                dispatch_webhook_event(
+                    payment.user_id,
+                    "check.completed",
+                    {"checkId": check.id, "status": "completed", "tier": tier},
+                )
+            )
+        except Exception:
+            pass  # best-effort
+
         return JSONResponse(
             content=response_data,
             headers={
@@ -802,6 +908,7 @@ async def _run_agent_pipeline(
         await handle_pipeline_failure(
             check.id, payment.user_id, Exception("Pipeline timed out")
         )
+        _fire_agent_webhook_failed(payment.user_id, check.id, "Pipeline timed out")
         raise HTTPException(
             status_code=504,
             detail="Pipeline timed out. No charge applied.",
@@ -811,6 +918,7 @@ async def _run_agent_pipeline(
         logger.error(f"[AGENT {tier.upper()}] Pipeline error for check {check.id}: {e}")
         await _refund_and_fail_tx(tx, payment, amount_cents, session)
         await handle_pipeline_failure(check.id, payment.user_id, e)
+        _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
         raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
 
     except HTTPException:
@@ -822,6 +930,7 @@ async def _run_agent_pipeline(
         )
         await _refund_and_fail_tx(tx, payment, amount_cents, session)
         await handle_pipeline_failure(check.id, payment.user_id, e)
+        _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
         raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
 
 
@@ -840,6 +949,172 @@ async def _refund_and_fail_tx(
     else:
         tx.status = "failed"
     await session.commit()
+
+
+def _fire_agent_webhook_failed(user_id: str, check_id: str, error_msg: str) -> None:
+    """Best-effort webhook dispatch for agent check failures (O-01)."""
+    try:
+        from app.services.webhooks import dispatch_webhook_event
+
+        asyncio.create_task(
+            dispatch_webhook_event(
+                user_id,
+                "check.failed",
+                {"checkId": check_id, "status": "failed", "error": error_msg},
+            )
+        )
+    except Exception:
+        pass
+
+
+async def _run_pipeline_background(
+    *,
+    check_id: str,
+    user_id: str,
+    input_data: dict,
+    config,
+    tier: str,
+    tx_id: str,
+    provider: str,
+    amount_cents: int,
+) -> None:
+    """Background pipeline execution for async mode (O-06).
+
+    Runs the full pipeline, saves results, updates the transaction,
+    and fires webhooks. On failure, refunds credits and marks tx failed.
+    Uses its own DB sessions since the request session is closed.
+    """
+    from app.core.database import async_session
+    from app.pipeline.progress import ProgressReporter
+    from app.pipeline.runner import (
+        PipelineError,
+        handle_pipeline_failure,
+        run_pipeline,
+        run_pipeline_phase2,
+        save_check_results_async,
+    )
+
+    progress_reporter = ProgressReporter(check_id)
+
+    try:
+        result = await asyncio.wait_for(
+            run_pipeline(
+                check_id,
+                user_id,
+                input_data,
+                progress_reporter,
+                config=config,
+            ),
+            timeout=config.max_wall_time_seconds,
+        )
+
+        # Article mode auto-select
+        if result is None:
+            async with async_session() as sel_session:
+                claims_stmt = (
+                    select(Claim)
+                    .where(Claim.check_id == check_id)
+                    .order_by(Claim.position)
+                )
+                claims_result = await sel_session.execute(claims_stmt)
+                db_claims = list(claims_result.scalars().all())
+
+                ranked = sorted(
+                    db_claims,
+                    key=lambda c: (
+                        c.significance_rank if c.significance_rank is not None else 999
+                    ),
+                )
+                max_selected = 5
+                for i, claim in enumerate(ranked):
+                    claim.is_selected = i < max_selected
+
+                sel_check_stmt = select(Check).where(Check.id == check_id)
+                sel_check_result = await sel_session.execute(sel_check_stmt)
+                sel_check = sel_check_result.scalar_one()
+                sel_check.selected_claims_count = min(len(ranked), max_selected)
+                await sel_session.commit()
+
+            phase2_reporter = ProgressReporter(check_id)
+            result = await asyncio.wait_for(
+                run_pipeline_phase2(
+                    check_id=check_id,
+                    user_id=user_id,
+                    input_data=input_data,
+                    progress_reporter=phase2_reporter,
+                    config=config,
+                ),
+                timeout=config.max_wall_time_seconds,
+            )
+
+        # Save results
+        async with async_session() as save_session:
+            await save_check_results_async(check_id, result, save_session)
+            await save_session.commit()
+
+        # Mark transaction completed
+        async with async_session() as tx_session:
+            from app.models.agent_transaction import AgentTransaction
+
+            tx_result = await tx_session.execute(
+                select(AgentTransaction).where(AgentTransaction.id == tx_id)
+            )
+            tx = tx_result.scalar_one()
+            tx.status = "completed"
+            pipeline_metrics = result.get("pipeline_metrics")
+            if pipeline_metrics and tx.tx_metadata:
+                tx.tx_metadata["metrics"] = pipeline_metrics
+            elif pipeline_metrics:
+                tx.tx_metadata = {"metrics": pipeline_metrics}
+            await tx_session.commit()
+
+        # Fire webhook: check.completed
+        _fire_agent_webhook_completed(user_id, check_id, tier)
+        logger.info(f"[AGENT ASYNC] {tier.upper()} completed for check {check_id}")
+
+    except (asyncio.TimeoutError, PipelineError, Exception) as e:
+        error_msg = (
+            "Pipeline timed out" if isinstance(e, asyncio.TimeoutError) else str(e)
+        )
+        logger.error(
+            f"[AGENT ASYNC] {tier.upper()} failed for check {check_id}: {error_msg}"
+        )
+
+        # Refund + mark tx failed
+        async with async_session() as fail_session:
+            from app.models.agent_transaction import AgentTransaction
+
+            tx_result = await fail_session.execute(
+                select(AgentTransaction).where(AgentTransaction.id == tx_id)
+            )
+            tx = tx_result.scalar_one()
+            if provider == "credit":
+                from app.services.payments.credit_provider import refund_credits
+
+                await refund_credits(user_id, amount_cents, fail_session)
+                tx.status = "refunded"
+            else:
+                tx.status = "failed"
+            await fail_session.commit()
+
+        await handle_pipeline_failure(check_id, user_id, e)
+        _fire_agent_webhook_failed(user_id, check_id, error_msg)
+
+
+def _fire_agent_webhook_completed(user_id: str, check_id: str, tier: str) -> None:
+    """Best-effort webhook dispatch for async pipeline completion."""
+    try:
+        from app.services.webhooks import dispatch_webhook_event
+
+        asyncio.create_task(
+            dispatch_webhook_event(
+                user_id,
+                "check.completed",
+                {"checkId": check_id, "status": "completed", "tier": tier},
+            )
+        )
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -1056,4 +1331,260 @@ async def get_agent_stats(
             "byProvider": by_provider,
             "totalAgentChecks": total_agent_checks,
         }
+    )
+
+
+# ---------------------------------------------------------------------------
+# Operational endpoints (O-04)
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/health",
+    summary="Agent API health check",
+    responses={200: {"description": "API and dependency status"}},
+)
+@limiter.limit("60/minute")
+async def agent_health(request: Request) -> JSONResponse:
+    """Check agent API availability and dependency health. No auth required.
+
+    **Rate limit:** 60/minute
+    """
+    from datetime import datetime, timezone
+
+    import redis as _redis
+
+    from app.core.config import settings
+    from app.core.database import async_engine
+
+    services = {}
+
+    # Database
+    try:
+        async with async_engine.connect() as conn:
+            await conn.execute(select(1))
+        services["database"] = "ok"
+    except Exception:
+        services["database"] = "unavailable"
+
+    # Redis
+    try:
+        r = _redis.from_url(settings.REDIS_URL, decode_responses=True)
+        r.ping()
+        services["redis"] = "ok"
+        r.close()
+    except Exception:
+        services["redis"] = "unavailable"
+
+    overall = "ok" if all(v == "ok" for v in services.values()) else "degraded"
+
+    return JSONResponse(
+        content={
+            "status": overall,
+            "services": services,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+
+
+@router.get(
+    "/tiers",
+    summary="List available agent tiers and pricing",
+    responses={200: {"description": "Tier pricing and estimated latency"}},
+)
+@limiter.limit("60/minute")
+async def agent_tiers(request: Request) -> JSONResponse:
+    """Return agent tier names, pricing (cents), and estimated latency. No auth required.
+
+    **Rate limit:** 60/minute
+    """
+    from app.core.agent_pricing import AGENT_PRICING_CENTS, TIER_ORDER
+
+    tier_descriptions = {
+        "lookup": ("Cached prior analysis", 0),
+        "consensus": ("Cross-user aggregate landscape (k>=3 checks)", 0),
+        "quick": ("Web search + heuristic classification", 15),
+        "full": ("30+ sources, LLM classification, coverage recovery", 60),
+    }
+
+    tiers = []
+    for name in TIER_ORDER:
+        desc, est_seconds = tier_descriptions.get(name, (name, 0))
+        tiers.append(
+            {
+                "name": name,
+                "costCents": AGENT_PRICING_CENTS[name],
+                "estimatedSeconds": est_seconds,
+                "description": desc,
+            }
+        )
+
+    return JSONResponse(content={"tiers": tiers})
+
+
+@router.get(
+    "/me",
+    summary="Get authenticated agent identity",
+    responses={200: {"description": "Agent identity and credit balance"}},
+)
+@limiter.limit("60/minute")
+async def agent_me(
+    request: Request,
+    identity: AgentIdentity = Depends(get_agent_identity),
+    session: AsyncSession = Depends(get_session),
+) -> JSONResponse:
+    """Return the authenticated agent's identity and credit balance. Requires auth.
+
+    **Rate limit:** 60/minute
+    """
+    from app.models.user import User
+
+    credit_balance_cents = 0
+    user = await session.get(User, identity.user_id)
+    if user:
+        credit_balance_cents = max((user.credits or 0), 0)
+
+    return JSONResponse(
+        content={
+            "userId": identity.user_id,
+            "provider": identity.provider,
+            "creditBalanceCents": credit_balance_cents,
+        }
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /agent/batch — submit multiple claims concurrently (O-08)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/batch",
+    summary="Submit multiple claims for concurrent processing",
+    responses={
+        202: {"description": "All claims accepted for processing"},
+        400: {
+            "description": "Invalid tier or empty claims list",
+            "model": ErrorResponse,
+        },
+        402: {"description": "Insufficient credits for batch", "model": ErrorResponse},
+    },
+)
+@limiter.limit("5/minute")
+async def agent_batch(
+    body: BatchRequest,
+    request: Request,
+    payment: AgentPaymentContext = Depends(get_agent_payment),
+    session: AsyncSession = Depends(get_session),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+) -> JSONResponse:
+    """Submit up to 10 claims for concurrent background processing.
+
+    All claims run at the same tier (quick or full). Each claim creates its own
+    check and transaction. The total cost is deducted upfront — if the balance
+    is insufficient, no claims are submitted.
+
+    Returns 202 with check IDs and poll URLs for each claim.
+
+    **Rate limit:** 5/minute
+    """
+    tier = body.tier.lower()
+    if tier not in ("quick", "full"):
+        raise HTTPException(
+            status_code=400,
+            detail="Batch tier must be 'quick' or 'full'.",
+        )
+
+    amount_cents = get_tier_price(tier)
+    total_cost = amount_cents * len(body.claims)
+
+    # Verify sufficient balance upfront (credit provider only)
+    if payment.provider == "credit":
+        from app.models.user import User
+
+        user = await session.get(User, payment.user_id)
+        balance = max((user.credits or 0), 0) if user else 0
+        if balance < total_cost:
+            raise HTTPException(
+                status_code=402,
+                detail=f"Insufficient credits. Need {total_cost} cents for {len(body.claims)} claims at ${amount_cents/100:.2f}/each. Balance: {balance} cents.",
+            )
+
+    from app.core.database import async_session
+    from app.pipeline.progress import ProgressReporter
+    from app.pipeline.runner import DEFAULT_CONFIG, QUICK_CONFIG
+
+    config = QUICK_CONFIG if tier == "quick" else DEFAULT_CONFIG
+    results = []
+
+    for i, item in enumerate(body.claims):
+        claim_hash = compute_claim_text_hash(item.claim)
+        request_hash = compute_request_hash(tier, claim_hash, body.compact)
+        item_idem_key = f"{idempotency_key}_{i}" if idempotency_key else None
+
+        # Charge per claim
+        tx = await payment.charge(
+            amount_cents=amount_cents,
+            tier=tier,
+            description=claim_hash,
+            idempotency_key=item_idem_key,
+            request_hash=request_hash,
+        )
+
+        # Resolve input
+        resolved_type, input_data = _resolve_input(item.claim, item.input_type)
+
+        # Create check
+        check = Check(
+            id=str(uuid.uuid4()),
+            user_id=payment.user_id,
+            input_type=resolved_type,
+            input_content=json.dumps(input_data),
+            input_url=input_data.get("url"),
+            status="processing",
+            credits_used=0,
+            initiated_via=f"agent_{payment.provider}",
+            executed_tier=tier,
+        )
+        session.add(check)
+        await session.commit()
+        await session.refresh(check)
+
+        tx.check_id = check.id
+        await session.commit()
+
+        # Launch pipeline in background
+        asyncio.create_task(
+            _run_pipeline_background(
+                check_id=check.id,
+                user_id=payment.user_id,
+                input_data=input_data,
+                config=config,
+                tier=tier,
+                tx_id=tx.id,
+                provider=payment.provider,
+                amount_cents=amount_cents,
+            )
+        )
+
+        results.append(
+            {
+                "index": i,
+                "checkId": check.id,
+                "txId": tx.id,
+                "claim": item.claim[:100],
+                "pollUrl": f"/api/v1/agent/result/{check.id}",
+            }
+        )
+
+    estimated = 15 if tier == "quick" else 60
+    return JSONResponse(
+        status_code=202,
+        content={
+            "accepted": len(results),
+            "tier": tier,
+            "totalChargedCents": total_cost,
+            "estimatedSeconds": estimated,
+            "checks": results,
+        },
     )

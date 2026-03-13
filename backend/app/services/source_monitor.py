@@ -79,7 +79,7 @@ class SourceMonitor:
             if existing:
                 # Update existing record
                 existing.frequency += 1
-                existing.last_seen = datetime.now(timezone.utc)
+                existing.last_seen = datetime.now(timezone.utc).replace(tzinfo=None)
                 # Update context if not already set
                 if not existing.claim_topic and claim_topic:
                     existing.claim_topic = claim_topic

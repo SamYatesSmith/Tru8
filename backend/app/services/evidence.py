@@ -13,6 +13,7 @@ from app.services.search import SearchResult, SearchService
 from app.utils.url_utils import extract_domain
 from app.utils.domain_status_tracker import get_domain_tracker, DomainStatus
 from app.utils.encoding import fix_mojibake
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class EvidenceSnippet:
         relevance_score: float = 0.0,
         metadata: Optional[Dict[str, Any]] = None,
         content_basis: str = "full",
+        _full_text: Optional[str] = None,  # Transient — never persisted
     ):
         self.text = text
         self.source = source
@@ -40,6 +42,7 @@ class EvidenceSnippet:
         self.word_count = len(text.split())
         self.metadata = metadata or {}  # Store page numbers, context
         self.content_basis = content_basis
+        self._full_text = _full_text
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -88,7 +91,7 @@ class EvidenceExtractor:
 
     def __init__(self):
         self.search_service = SearchService()
-        self.timeout = 15
+        self.timeout = getattr(settings, "URL_FETCH_TIMEOUT", 8)
         self.max_snippet_words = 200
         self.max_concurrent = 3
 
@@ -146,25 +149,27 @@ class EvidenceExtractor:
         return False
 
     def _init_blocked_domains(self) -> None:
-        """Initialize blocked domains from tracker - only BOT_BLOCKED (403) domains.
+        """Initialize blocked domains from tracker.
 
-        Note: We ONLY block domains with confirmed bot detection (403).
-        Rate-limited (429), paywall, timeout, and JS-required are logged
-        but NOT blocked - they may work on retry or future subscription.
+        Blocks BOT_BLOCKED (403) and TIMEOUT domains — both consistently
+        return no usable content and waste fetch time.  Rate-limited (429),
+        paywall, and JS-required are NOT blocked — they may succeed on retry
+        or return partial content.
         """
         try:
             tracker = get_domain_tracker()
-            # ONLY bot-blocked domains (403) - NOT rate-limited (429)
-            blocked = tracker.get_domains_by_status(DomainStatus.BOT_BLOCKED)
+            bot_blocked = tracker.get_domains_by_status(DomainStatus.BOT_BLOCKED)
+            timed_out = tracker.get_domains_by_status(DomainStatus.TIMEOUT)
 
             self.blocked_domains = set()
-            for d in blocked:
+            for d in (*bot_blocked, *timed_out):
                 domain = d.get("domain", "")
                 self.blocked_domains.add(domain)
                 self.blocked_domains.add(f"www.{domain}")
 
             logger.info(
-                f"[EVIDENCE] Loaded {len(self.blocked_domains)} bot-blocked domains"
+                f"[EVIDENCE] Loaded {len(self.blocked_domains)} blocked domains "
+                f"({len(bot_blocked)} bot-blocked, {len(timed_out)} timeout)"
             )
         except Exception as e:
             logger.warning(f"[EVIDENCE] Failed to load blocked domains: {e}")
@@ -181,6 +186,7 @@ class EvidenceExtractor:
         temporal_analysis: Dict = None,
         article_title: Optional[str] = None,
         article_date: Optional[str] = None,
+        url_fetch_semaphore: Optional[asyncio.Semaphore] = None,
     ) -> List[EvidenceSnippet]:
         """
         Extract evidence snippets for a specific claim.
@@ -194,6 +200,7 @@ class EvidenceExtractor:
             temporal_analysis: Temporal analysis from claim extraction (for query refinement)
             article_title: Title of source article (for context grounding)
             article_date: Publication date of source article (for temporal context)
+            url_fetch_semaphore: Shared semaphore for cross-claim URL fetch concurrency control
         """
         try:
             # Step 1: Build context-enriched search query
@@ -258,7 +265,9 @@ class EvidenceExtractor:
                 return []
 
             # Step 2: Extract content from top results (with concurrency limit)
-            semaphore = asyncio.Semaphore(self.max_concurrent)
+            # Use shared pool if provided (work-stealing across claims),
+            # otherwise fall back to per-claim pool for standalone use.
+            semaphore = url_fetch_semaphore or asyncio.Semaphore(self.max_concurrent)
             tasks = [
                 self._extract_from_page(result, claim, semaphore)
                 for result in search_results[
@@ -416,6 +425,7 @@ class EvidenceExtractor:
                         published_date=published_date,
                         relevance_score=relevance_score,
                         content_basis="snippet" if _fell_back_to_snippet else "full",
+                        _full_text=content if not _fell_back_to_snippet else None,
                     )
 
             except httpx.TimeoutException:

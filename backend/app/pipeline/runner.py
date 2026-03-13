@@ -55,6 +55,7 @@ class PipelineConfig:
     enable_coverage_recovery: bool = True
     enable_llm_classifier: bool = True
     enable_query_answering: bool = True
+    enable_evidence_distillation: bool = True
 
 
 QUICK_CONFIG = PipelineConfig(
@@ -69,6 +70,7 @@ QUICK_CONFIG = PipelineConfig(
     enable_coverage_recovery=False,
     enable_llm_classifier=False,
     enable_query_answering=False,
+    enable_evidence_distillation=False,
 )
 
 DEFAULT_CONFIG = PipelineConfig()
@@ -896,41 +898,53 @@ async def run_pipeline_phase2(
         )
 
     # =========================================================================
-    # Stage 2.5: Fact-check Lookup (optional, skipped for frozen replay)
+    # Stages 2.5 + 3: Fact-check Lookup + Decompose (concurrent)
+    # These stages have zero shared mutable state — factcheck reads claim
+    # text and writes to a separate dict; decompose reads claim text and
+    # writes claim_map onto each selected_claim. Running them concurrently
+    # saves 2-5s (the factcheck API call duration).
     # =========================================================================
     current_stage = "select"
     factcheck_evidence = {}
+    analyzer = ClaimMapAnalyzer()
+
+    _run_factcheck = (
+        not frozen_evidence
+        and settings.ENABLE_FACTCHECK_API
+        and config.enable_factcheck_lookup
+    )
+
     if frozen_evidence:
         logger.info(
             "[FROZEN EVIDENCE REPLAY] Skipping fact-check API for deterministic replay"
         )
-    elif settings.ENABLE_FACTCHECK_API and config.enable_factcheck_lookup:
+
+    # Report progress for the first stage we're entering
+    if _run_factcheck:
         await _log_stage_transition(
             check_id, current_stage, "factcheck", progress_reporter
         )
-        current_stage = "factcheck"
-        stage_start = datetime.now(timezone.utc)
-        try:
-            factcheck_evidence = await search_factchecks_for_claims(claims)
-            logger.info(
-                f"[INLINE PIPELINE] Found {sum(len(v) for v in factcheck_evidence.values())} fact-checks"
-            )
-        except Exception as e:
-            logger.warning(f"Fact-check lookup failed (non-critical): {e}")
-        stage_timings["factcheck"] = (
-            datetime.now(timezone.utc) - stage_start
-        ).total_seconds()
+    else:
+        await _log_stage_transition(
+            check_id, current_stage, "decompose", progress_reporter
+        )
 
-    # =========================================================================
-    # Stage 3: Decompose Claims into Elements
-    # =========================================================================
-    await _log_stage_transition(check_id, current_stage, "decompose", progress_reporter)
-    current_stage = "decompose"
     stage_start = datetime.now(timezone.utc)
 
-    analyzer = ClaimMapAnalyzer()
+    async def _do_factcheck():
+        """Fact-check lookup (non-critical — exceptions return empty dict)."""
+        try:
+            result = await search_factchecks_for_claims(claims)
+            logger.info(
+                f"[INLINE PIPELINE] Found {sum(len(v) for v in result.values())} fact-checks"
+            )
+            return result
+        except Exception as e:
+            logger.warning(f"Fact-check lookup failed (non-critical): {e}")
+            return {}
 
-    try:
+    async def _do_decompose():
+        """Claim decomposition (critical — exceptions propagate)."""
         batch_input = [
             {"text": c["text"], "claim_id": str(c.get("position", 0))}
             for c in selected_claims
@@ -942,15 +956,61 @@ async def run_pipeline_phase2(
         logger.info(
             f"[INLINE PIPELINE] Decomposed {len(selected_claims)} claims into elements"
         )
-    except Exception as e:
-        logger.error(
-            f"[STAGE ERROR] check={check_id} stage=decompose error={type(e).__name__}: {e}"
-        )
-        raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose")
 
-    stage_timings["decompose"] = (
-        datetime.now(timezone.utc) - stage_start
-    ).total_seconds()
+    if _run_factcheck:
+        # Run both concurrently — factcheck is non-critical, decompose is critical
+        factcheck_task = asyncio.create_task(_do_factcheck())
+        decompose_task = asyncio.create_task(_do_decompose())
+
+        # Wait for both; handle errors appropriately
+        done, _ = await asyncio.wait(
+            {factcheck_task, decompose_task},
+            return_when=asyncio.ALL_COMPLETED,
+        )
+
+        # Extract factcheck result (non-critical)
+        if factcheck_task.done() and not factcheck_task.cancelled():
+            exc = factcheck_task.exception()
+            if exc:
+                logger.warning(f"Fact-check lookup failed (non-critical): {exc}")
+            else:
+                factcheck_evidence = factcheck_task.result()
+
+        # Propagate decompose failure (critical)
+        if decompose_task.done() and not decompose_task.cancelled():
+            exc = decompose_task.exception()
+            if exc:
+                logger.error(
+                    f"[STAGE ERROR] check={check_id} stage=decompose "
+                    f"error={type(exc).__name__}: {exc}"
+                )
+                raise PipelineError(
+                    f"Claim decomposition failed: {exc}", stage="decompose"
+                )
+
+        elapsed = (datetime.now(timezone.utc) - stage_start).total_seconds()
+        stage_timings["factcheck"] = elapsed
+        stage_timings["decompose"] = elapsed
+    else:
+        # No factcheck — run decompose only
+        try:
+            await _do_decompose()
+        except Exception as e:
+            logger.error(
+                f"[STAGE ERROR] check={check_id} stage=decompose "
+                f"error={type(e).__name__}: {e}"
+            )
+            raise PipelineError(f"Claim decomposition failed: {e}", stage="decompose")
+        stage_timings["decompose"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
+
+    current_stage = "decompose"
+    # Report decompose progress (45%) after both stages complete
+    if _run_factcheck:
+        await _log_stage_transition(
+            check_id, "factcheck", "decompose", progress_reporter
+        )
 
     if ledger:
         ledger.record(
@@ -1455,15 +1515,35 @@ async def run_pipeline_phase2(
             if config.enable_llm_classifier:
                 from app.pipeline.evidence_classifier import EvidenceClassifier
 
-                classifier = EvidenceClassifier()
-                for claim_pos, ev_list in evidence.items():
+                # O-09: Pool evidence from ALL claims into a single classifier
+                # call. This reduces LLM API round-trips (1 batched call instead
+                # of N per-claim calls) without changing classification quality.
+                pooled_items: list = []
+                claim_boundaries: list = []  # (claim_pos, start_idx, count)
+
+                for pos, ev_list in evidence.items():
                     if ev_list:
-                        evidence[claim_pos] = await classifier.classify_batch(ev_list)
-                        for ev in evidence[claim_pos]:
+                        claim_boundaries.append((pos, len(pooled_items), len(ev_list)))
+                        pooled_items.extend(ev_list)
+
+                if pooled_items:
+                    classifier = EvidenceClassifier()
+                    classified_pool = await classifier.classify_batch(pooled_items)
+
+                    # Distribute classified items back to their claims
+                    for pos, start_idx, count in claim_boundaries:
+                        classified_slice = classified_pool[
+                            start_idx : start_idx + count
+                        ]
+                        for ev in classified_slice:
                             ev["receipt_status"] = "classified"
+                        evidence[pos] = classified_slice
                         logger.info(
-                            f"[CLASSIFY] Claim {claim_pos}: classified {len(ev_list)} evidence items (LLM)"
+                            f"[CLASSIFY] Claim {pos}: classified "
+                            f"{count} evidence items (LLM, pooled)"
                         )
+                else:
+                    classifier = EvidenceClassifier()
             else:
                 # Quick mode: heuristic classification only (no LLM call)
                 from app.pipeline.evidence_classifier import _classify_heuristic
@@ -1498,6 +1578,70 @@ async def run_pipeline_phase2(
                 tier_distribution=dict(tier_counts),
                 type_distribution=dict(type_counts),
             )
+
+    # =========================================================================
+    # Stage 4.6: Evidence Distillation (full text → atomic facts)
+    # =========================================================================
+    if (
+        not _is_frozen_evidence_replay
+        and evidence
+        and config.enable_evidence_distillation
+        and getattr(settings, "ENABLE_EVIDENCE_DISTILLATION", True)
+    ):
+        await _log_stage_transition(
+            check_id, current_stage, "distil", progress_reporter
+        )
+        current_stage = "distil"
+        stage_start = datetime.now(timezone.utc)
+
+        try:
+            from app.pipeline.evidence_distiller import EvidenceDistiller
+
+            distiller = EvidenceDistiller()
+            claim_lookup = {str(c.get("position", 0)): c for c in selected_claims}
+
+            distil_stats = {
+                "claims_processed": 0,
+                "items_distilled": 0,
+                "items_skipped": 0,
+            }
+
+            for claim_pos, ev_list in evidence.items():
+                if not ev_list:
+                    continue
+                claim = claim_lookup.get(claim_pos)
+                claim_text = claim.get("text", "") if claim else ""
+                if not claim_text:
+                    continue
+
+                await distiller.distil_evidence_for_claim(claim_text, ev_list)
+
+                distil_stats["claims_processed"] += 1
+                distil_stats["items_distilled"] += sum(
+                    1 for ev in ev_list if ev.get("_distilled")
+                )
+                distil_stats["items_skipped"] += sum(
+                    1 for ev in ev_list if not ev.get("_distilled")
+                )
+
+            logger.info(
+                f"[DISTIL] Completed: {distil_stats['items_distilled']} distilled, "
+                f"{distil_stats['items_skipped']} kept as snippets, "
+                f"across {distil_stats['claims_processed']} claims"
+            )
+
+        except Exception as e:
+            logger.warning(f"Evidence distillation failed (non-critical): {e}")
+
+        stage_timings["distil"] = (
+            datetime.now(timezone.utc) - stage_start
+        ).total_seconds()
+    else:
+        # Clean up _full_text even when distillation is skipped
+        if evidence:
+            for ev_list in evidence.values():
+                for ev in ev_list:
+                    ev.pop("_full_text", None)
 
     article_excerpt = content.get("content", "")[:5000]
 
@@ -1670,8 +1814,17 @@ async def run_pipeline_phase2(
     RECOVERY_TIMEOUT_SECONDS = settings.RECOVERY_TIMEOUT_SECONDS
 
     _skip_coverage_recovery = not config.enable_coverage_recovery
+    # Skip coverage recovery for small checks (≤2 claims) — disproportionate
+    # cost (10-15s) relative to value. Users can re-search via the Seeker view.
+    if not _skip_coverage_recovery and len(selected_claims) <= 2:
+        _skip_coverage_recovery = True
+        logger.info(
+            f"[COVERAGE RECOVERY] Skipped for small check "
+            f"({len(selected_claims)} claims, threshold=3)"
+        )
     if _skip_coverage_recovery:
-        logger.info(f"[COVERAGE RECOVERY] Skipped (mode={config.mode})")
+        if "coverage_recovery" not in stage_timings:
+            logger.info(f"[COVERAGE RECOVERY] Skipped (mode={config.mode})")
         stage_timings["coverage_recovery"] = 0.0
 
     recovery_candidates = []
@@ -1983,6 +2136,10 @@ async def run_pipeline_phase2(
         _accumulate_tokens(final_result, classifier.get_token_usage())  # type: ignore[name-defined]
     except NameError:
         pass  # classifier not instantiated (quick mode uses heuristic)
+    try:
+        _accumulate_tokens(final_result, distiller.get_token_usage())  # type: ignore[name-defined]
+    except NameError:
+        pass  # distiller not instantiated (quick mode or disabled)
 
     # Pipeline metrics (L-12)
     metrics = extract_pipeline_metrics(final_result, config)
@@ -2130,7 +2287,7 @@ async def save_check_results_async(
             return
 
         check.status = "completed"
-        check.completed_at = datetime.now(timezone.utc)
+        check.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
         check.processing_time_ms = results.get("processing_time_ms", 0)
         check.article_excerpt = results.get("article_excerpt")
         check.entry_mode = results.get("entry_mode")

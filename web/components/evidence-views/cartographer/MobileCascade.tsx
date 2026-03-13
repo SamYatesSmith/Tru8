@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Evidence, EvidenceTier } from '@shared/types';
 import { CascadeNode } from './CascadeNode';
 
@@ -25,6 +26,11 @@ interface MobileCascadeProps {
 }
 
 export function MobileCascade({ evidenceByTier, divergentIds, claimLabelMap, diagnosticValues, diagnosticActive, onNodeClick }: MobileCascadeProps) {
+  const hasAnyHighDiag = useMemo(() => {
+    if (!diagnosticActive || !diagnosticValues) return false;
+    return Array.from(diagnosticValues.values()).some((v) => v > 0.7);
+  }, [diagnosticActive, diagnosticValues]);
+
   return (
     <div className="space-y-8">
       {TIER_ORDER.map((tier) => {
@@ -48,6 +54,7 @@ export function MobileCascade({ evidenceByTier, divergentIds, claimLabelMap, dia
                     claimLabel={claimLabelMap?.get(evId)}
                     diagnosticValue={diagnosticValues?.get(evId)}
                     diagnosticActive={diagnosticActive}
+                    hasAnyHighDiag={hasAnyHighDiag}
                     onClick={() => onNodeClick?.(ev)}
                   />
                 );

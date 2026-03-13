@@ -183,6 +183,13 @@ class Settings(BaseSettings):
         1000, env="EVIDENCE_SNIPPET_LENGTH"
     )  # PQ-01: Increased from 400 to give mapper sufficient context for nuanced relationship determination
 
+    # Evidence distillation
+    ENABLE_EVIDENCE_DISTILLATION: bool = Field(True, env="ENABLE_EVIDENCE_DISTILLATION")
+    DISTIL_MODEL: str = Field("gemini-2.5-flash-lite", env="DISTIL_MODEL")
+    DISTIL_TIMEOUT: float = Field(15.0, env="DISTIL_TIMEOUT")
+    DISTIL_MAX_FACTS_PER_ITEM: int = Field(8, env="DISTIL_MAX_FACTS_PER_ITEM")
+    DISTIL_MIN_TEXT_LENGTH: int = Field(500, env="DISTIL_MIN_TEXT_LENGTH")
+
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(
         3, env="MAX_EVIDENCE_PER_DOMAIN"
@@ -294,6 +301,12 @@ class Settings(BaseSettings):
     MAX_SOURCES_PER_CLAIM: int = Field(
         20, env="MAX_SOURCES_PER_CLAIM"
     )  # Max evidence sources per claim during retrieval
+    MAX_CONCURRENT_URL_FETCHES: int = Field(
+        15, env="MAX_CONCURRENT_URL_FETCHES"
+    )  # Shared pool: max concurrent HTTP fetches across all claims in one check
+    URL_FETCH_TIMEOUT: int = Field(
+        8, env="URL_FETCH_TIMEOUT"
+    )  # Per-URL HTTP timeout in seconds (healthy sites respond in <3s)
     MAX_EVIDENCE_FOR_RANKING: int = Field(
         60, env="MAX_EVIDENCE_FOR_RANKING"
     )  # Cap combined evidence before expensive ranking
@@ -318,6 +331,9 @@ class Settings(BaseSettings):
     ANALYZER_TEMPERATURE: float = Field(0.2, env="ANALYZER_TEMPERATURE")
     ANALYZER_MAX_TOKENS: int = Field(4000, env="ANALYZER_MAX_TOKENS")
     MAX_CONCURRENT_ANALYSES: int = Field(3, env="MAX_CONCURRENT_ANALYSES")
+    MAX_CONCURRENT_AGENT_ANALYSES: int = Field(
+        5, env="MAX_CONCURRENT_AGENT_ANALYSES"
+    )  # Separate pool for agent-initiated pipelines (O-03)
     MAPPING_GOOGLE_MODEL: str = Field(
         "gemini-2.5-flash", env="MAPPING_GOOGLE_MODEL"
     )  # Google model for evidence mapping (highest-stakes call)

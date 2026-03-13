@@ -697,7 +697,7 @@ class ClaimMapAnalyzer:
         parsed = await self._call_llm(
             prompt=prompt,
             temperature=self.analyzer_temperature,
-            max_tokens=8000,
+            max_tokens=12000,
             label="batch_mapping",
         )
 

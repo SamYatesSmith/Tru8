@@ -97,13 +97,13 @@ class ProgressReporter:
     def _get_time_estimate(self, progress: int) -> str:
         """Get conservative time estimate based on progress."""
         if progress < 25:
-            return "within 2 minutes"
-        elif progress < 50:
             return "within 90 seconds"
-        elif progress < 70:
+        elif progress < 50:
             return "within 1 minute"
+        elif progress < 70:
+            return "within 45 seconds"
         elif progress < 90:
-            return "within 30 seconds"
+            return "within 20 seconds"
         else:
             return "momentarily"
 
