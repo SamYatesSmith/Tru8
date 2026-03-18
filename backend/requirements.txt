@@ -25,7 +25,7 @@ en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_
 
 # Auth
 PyJWT[crypto]==2.8.0  # JWT validation with JWKS support
-httpx==0.25.2
+httpx==0.27.0
 
 # Content Processing
 trafilatura==1.6.3
