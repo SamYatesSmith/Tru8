@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Map, BookOpen, Focus, Video, Clock, Compass } from 'lucide-react';
+import { Map, BookOpen, Users, Video, Clock, Compass } from 'lucide-react';
 
 /**
  * Stitch W-01 Features Section (Six Professions)
@@ -26,11 +26,11 @@ const professions = [
       'Every source classified by proximity and type. Filter, sort, browse. Nothing hidden.',
   },
   {
-    icon: Focus,
-    name: 'The Interpreter',
-    question: 'Answer this specific sub-question.',
+    icon: Users,
+    name: 'The Correspondent',
+    question: 'Who\u2019s in the room?',
     description:
-      'Pick one element of a claim. See what supports it, what challenges it, and what adds context.',
+      'See which domains contributed evidence, how concentrated or diverse they are, and where single-source coverage may need attention.',
   },
   {
     icon: Video,

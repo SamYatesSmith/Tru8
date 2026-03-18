@@ -1,6 +1,6 @@
 {
-  "last_updated": "2026-03-13T12:55:35.211620+00:00",
-  "total_domains": 3057,
+  "last_updated": "2026-03-17T10:40:08.014456+00:00",
+  "total_domains": 3072,
   "domains": {
     "thetimes.co.uk": {
       "status": "paywall",
@@ -275,10 +275,10 @@
     "theguardian.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T12:51:00.779926",
-      "last_seen": "2026-03-13T12:55:33.857683+00:00",
+      "last_seen": "2026-03-17T10:39:31.943106+00:00",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 871
+      "encounter_count": 872
     },
     "misinforeview.hks.harvard.edu": {
       "status": "accessible",
@@ -583,10 +583,10 @@
     "reddit.com": {
       "status": "accessible",
       "first_seen": "2025-12-01T16:06:19.557180",
-      "last_seen": "2026-03-13T12:55:34.674973+00:00",
+      "last_seen": "2026-03-17T10:39:32.040379+00:00",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 402
+      "encounter_count": 404
     },
     "guides.library.fresnostate.edu": {
       "status": "accessible",
@@ -7127,10 +7127,10 @@
     "brookings.edu": {
       "status": "accessible",
       "first_seen": "2025-12-15T11:57:55.862440",
-      "last_seen": "2026-02-19T12:43:02.537374",
+      "last_seen": "2026-03-17T10:39:52.249707+00:00",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 5
+      "encounter_count": 6
     },
     "apps.npr.org": {
       "status": "accessible",
@@ -14793,10 +14793,10 @@
     "nortonrosefulbright.com": {
       "status": "accessible",
       "first_seen": "2026-02-06T12:55:30.779038",
-      "last_seen": "2026-03-11T16:06:22.842816+00:00",
+      "last_seen": "2026-03-17T10:39:59.978553+00:00",
       "source": "runtime_detection",
       "metadata": {},
-      "encounter_count": 6
+      "encounter_count": 8
     },
     "whitecase.com": {
       "status": "accessible",
@@ -25731,14 +25731,144 @@
         "status_code": 403
       },
       "encounter_count": 1
+    },
+    "skadden.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-17T10:39:29.223666+00:00",
+      "last_seen": "2026-03-17T10:39:30.089663+00:00",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 2
+    },
+    "americanbar.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-17T10:39:29.520725+00:00",
+      "last_seen": "2026-03-17T10:39:29.520725+00:00",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "mccarter.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-17T10:39:29.568576+00:00",
+      "last_seen": "2026-03-17T10:39:30.332726+00:00",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 2
+    },
+    "lowenstein.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:39:30.357208+00:00",
+      "last_seen": "2026-03-17T10:39:30.357208+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "wiley.law": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:39:30.430756+00:00",
+      "last_seen": "2026-03-17T10:39:30.430756+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "guides.lib.usf.edu": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:39:30.524858+00:00",
+      "last_seen": "2026-03-17T10:39:30.524858+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "reedsmith.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:39:30.601798+00:00",
+      "last_seen": "2026-03-17T10:39:30.601798+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "iapp.org": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:39:30.684422+00:00",
+      "last_seen": "2026-03-17T10:39:30.684422+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "vlplawgroup.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:39:31.223992+00:00",
+      "last_seen": "2026-03-17T10:39:31.223992+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "ropesgray.com": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-17T10:39:31.300762+00:00",
+      "last_seen": "2026-03-17T10:39:31.301762+00:00",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "publicknowledge.org": {
+      "status": "bot_blocked",
+      "first_seen": "2026-03-17T10:39:31.600041+00:00",
+      "last_seen": "2026-03-17T10:39:31.600041+00:00",
+      "source": "runtime_detection",
+      "metadata": {
+        "status_code": 403
+      },
+      "encounter_count": 1
+    },
+    "crowell.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:39:36.567589+00:00",
+      "last_seen": "2026-03-17T10:39:36.567589+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "mckoolsmith.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:39:56.110019+00:00",
+      "last_seen": "2026-03-17T10:39:56.110019+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "copyrightalliance.org": {
+      "status": "timeout",
+      "first_seen": "2026-03-17T10:39:57.363937+00:00",
+      "last_seen": "2026-03-17T10:39:57.363937+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
+    },
+    "futurism.com": {
+      "status": "accessible",
+      "first_seen": "2026-03-17T10:40:08.014456+00:00",
+      "last_seen": "2026-03-17T10:40:08.014456+00:00",
+      "source": "runtime_detection",
+      "metadata": {},
+      "encounter_count": 1
     }
   },
   "summary": {
     "paywall": 15,
-    "bot_blocked": 609,
-    "accessible": 2378,
+    "bot_blocked": 614,
+    "accessible": 2387,
     "rate_limited": 11,
     "js_required": 18,
-    "timeout": 26
+    "timeout": 27
   }
 }

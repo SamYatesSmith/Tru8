@@ -1441,7 +1441,11 @@ class WorldBankAdapter(GovernmentAPIClient):
             title=f"{indicator_name} — {country_name}",
             snippet=snippet,
             url=f"https://data.worldbank.org/indicator/{indicator_code}?locations={country_code}",
-            source_date=f"{latest_year}-01-01" if latest_year else None,
+            source_date=(
+                datetime(int(latest_year), 1, 1, tzinfo=timezone.utc)
+                if latest_year
+                else None
+            ),
             metadata={
                 "indicator_code": indicator_code,
                 "indicator_name": indicator_name,

@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient } from '@/lib/api';
 
 interface ResearchButtonProps {
-  elementId: string;
   checkId: string;
   claimId: string;
   token: string | null;
-  hasBountyText: boolean;
+  gapElementIds: string[];
+  creditInfo?: { remaining: number } | null;
+  coverageBefore?: number;
   onComplete?: () => void;
 }
 
@@ -20,16 +21,18 @@ const STATUS_MESSAGES: Record<string, string> = {
 };
 
 export function ResearchButton({
-  elementId,
   checkId,
   claimId,
   token,
-  hasBountyText,
+  gapElementIds,
+  creditInfo,
+  coverageBefore,
   onComplete,
 }: ResearchButtonProps) {
-  const [status, setStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'running' | 'completed' | 'error' | 'limit_reached'>('idle');
   const [message, setMessage] = useState('');
-  const [newCount, setNewCount] = useState(0);
+  const [totalNewCount, setTotalNewCount] = useState(0);
+  const [coverageAfter, setCoverageAfter] = useState<number | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval>>();
 
   const cleanup = useCallback(() => {
@@ -42,65 +45,115 @@ export function ResearchButton({
   useEffect(() => cleanup, [cleanup]);
 
   const startResearch = useCallback(async () => {
-    if (!token || status === 'running') return;
+    if (!token || status === 'running' || gapElementIds.length === 0) return;
 
     setStatus('running');
-    setMessage('Starting...');
+    setMessage(`Searching ${gapElementIds.length} gap${gapElementIds.length !== 1 ? 's' : ''}...`);
 
     try {
-      await apiClient.startElementResearch(checkId, claimId, elementId, token);
+      await apiClient.startGapResearch(checkId, claimId, token);
 
-      // Poll for status every 2 seconds
+      // Poll status for each gap element
       pollRef.current = setInterval(async () => {
         try {
-          const result = await apiClient.getResearchStatus(
-            checkId, claimId, elementId, token,
-          );
-          if (!result) return;
+          let allDone = true;
+          let anyError = false;
+          let totalNew = 0;
+          let latestMessage = '';
 
-          const displayMsg = STATUS_MESSAGES[result.status] || result.message;
-          setMessage(displayMsg);
+          for (const eid of gapElementIds) {
+            const result = await apiClient.getResearchStatus(checkId, claimId, eid, token);
+            if (!result) { allDone = false; continue; }
 
-          if (result.status === 'completed') {
-            setStatus('completed');
-            setNewCount(result.newEvidenceCount || 0);
-            setMessage(result.message);
+            if (result.status === 'completed') {
+              totalNew += result.newEvidenceCount || 0;
+            } else if (result.status === 'error') {
+              anyError = true;
+            } else {
+              allDone = false;
+              latestMessage = STATUS_MESSAGES[result.status] || result.message;
+            }
+          }
+
+          if (!allDone && latestMessage) {
+            setMessage(latestMessage);
+          }
+
+          if (allDone) {
             cleanup();
+            setTotalNewCount(totalNew);
+
+            if (anyError && totalNew === 0) {
+              setStatus('error');
+              setMessage('Some searches failed');
+            } else {
+              setStatus('completed');
+              setMessage(
+                totalNew > 0
+                  ? `Found ${totalNew} new source${totalNew !== 1 ? 's' : ''}`
+                  : 'No new sources found'
+              );
+            }
+
             // Trigger data refresh after short delay
             setTimeout(() => {
               onComplete?.();
             }, 1500);
-          } else if (result.status === 'error') {
-            setStatus('error');
-            setMessage(result.message);
-            cleanup();
           }
         } catch {
           // Polling error — continue polling
         }
-      }, 2000);
+      }, 2500);
     } catch (err) {
-      setStatus('error');
-      setMessage(err instanceof Error ? err.message : 'Failed to start research');
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg.includes('402') || errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('credit')) {
+        setStatus('limit_reached');
+        setMessage('Credit limit reached');
+      } else {
+        setStatus('error');
+        setMessage(errMsg || 'Failed to start research');
+      }
     }
-  }, [checkId, claimId, elementId, token, status, cleanup, onComplete]);
+  }, [checkId, claimId, token, gapElementIds, status, cleanup, onComplete]);
 
-  if (!hasBountyText) return null;
+  if (gapElementIds.length === 0) return null;
+
+  if (status === 'limit_reached' || (creditInfo && creditInfo.remaining <= 0 && status === 'idle')) {
+    return (
+      <div className="border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-center">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+          Limit reached &mdash; upgrade for more
+        </span>
+      </div>
+    );
+  }
 
   if (status === 'idle') {
     return (
-      <button
-        onClick={startResearch}
-        className="mt-3 w-full border border-zinc-200 bg-white px-4 py-2.5 hover:bg-zinc-50 hover:border-zinc-300 transition-colors font-mono text-[10px] uppercase tracking-widest text-zinc-500"
-      >
-        Re-search this element
-      </button>
+      <div>
+        <button
+          onClick={startResearch}
+          className="w-full border border-zinc-200 bg-white px-4 py-3 hover:bg-zinc-50 hover:border-zinc-300 transition-colors flex items-center justify-center gap-2.5"
+        >
+          <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+            Seek sources for {gapElementIds.length} gap{gapElementIds.length !== 1 ? 's' : ''}
+          </span>
+          <span className="font-mono text-[9px] bg-zinc-100 px-2 py-0.5 text-zinc-500">
+            1 credit
+          </span>
+        </button>
+        {creditInfo && (
+          <p className="font-mono text-[10px] text-zinc-400 text-center mt-1.5">
+            {creditInfo.remaining} credit{creditInfo.remaining !== 1 ? 's' : ''} remaining
+          </p>
+        )}
+      </div>
     );
   }
 
   if (status === 'running') {
     return (
-      <div className="mt-3 border border-zinc-200 bg-zinc-50/50 px-4 py-2.5">
+      <div className="border border-zinc-200 bg-zinc-50/50 px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="h-3 w-3 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
           <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
@@ -113,19 +166,24 @@ export function ResearchButton({
 
   if (status === 'completed') {
     return (
-      <div className="mt-3 border border-emerald-200 bg-emerald-50/50 px-4 py-2.5">
+      <div className="border border-emerald-200 bg-emerald-50/50 px-4 py-3">
         <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-600">
-          {newCount > 0
-            ? `Found ${newCount} new source${newCount !== 1 ? 's' : ''}`
+          {totalNewCount > 0
+            ? `Found ${totalNewCount} new source${totalNewCount !== 1 ? 's' : ''}`
             : message}
         </span>
+        {typeof coverageBefore === 'number' && totalNewCount > 0 && (
+          <p className="font-mono text-[10px] text-emerald-500/70 mt-1">
+            Refresh to see updated coverage
+          </p>
+        )}
       </div>
     );
   }
 
   // error
   return (
-    <div className="mt-3 border border-red-200 bg-red-50/50 px-4 py-2.5 flex items-center justify-between">
+    <div className="border border-red-200 bg-red-50/50 px-4 py-3 flex items-center justify-between">
       <span className="font-mono text-[10px] uppercase tracking-widest text-red-500">
         {message}
       </span>

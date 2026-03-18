@@ -1,11 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import { ClaimElement, Evidence } from '@shared/types';
 import { ElementStateBadge } from '@/components/claim-map/element-state-badge';
-import { EvidenceRefChip } from '@/components/claim-map/evidence-ref-chip';
 import { GapHighlight } from './GapHighlight';
 import { BountyField } from './BountyField';
-import { ResearchButton } from './ResearchButton';
 
 interface UnknownElementCardProps {
   element: ClaimElement;
@@ -15,7 +14,19 @@ interface UnknownElementCardProps {
   checkId?: string;
   claimId?: string;
   token?: string | null;
-  onResearchComplete?: () => void;
+  gapIndex?: number;
+  totalGaps?: number;
+}
+
+const RELATIONSHIP_COLOURS: Record<string, string> = {
+  supports: 'text-emerald-600',
+  challenges: 'text-amber-600',
+  context: 'text-zinc-400',
+};
+
+function truncateTitle(title: string, maxLen = 40): string {
+  if (title.length <= maxLen) return title;
+  return title.slice(0, maxLen) + '\u2026';
 }
 
 export function UnknownElementCard({
@@ -26,12 +37,22 @@ export function UnknownElementCard({
   checkId,
   claimId,
   token,
-  onResearchComplete,
+  gapIndex,
+  totalGaps,
 }: UnknownElementCardProps) {
   const isKnown = element.state === 'supported' || element.state === 'disputed';
   const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
   const refCount = element.evidenceRefs?.length || 0;
   const label = String(index + 1).padStart(2, '0');
+
+  // Build evidence lookup by ID for title display
+  const evidenceById = useMemo(() => {
+    const map = new Map<string, Evidence>();
+    for (const ev of evidence) {
+      map.set(ev.id, ev);
+    }
+    return map;
+  }, [evidence]);
 
   // Known elements: collapsed single line
   if (isKnown) {
@@ -67,23 +88,32 @@ export function UnknownElementCard({
 
       {/* Gap callout or evidence count */}
       {isGap ? (
-        <GapHighlight />
+        <GapHighlight gapIndex={gapIndex} totalGaps={totalGaps} />
       ) : (
         <p className="font-mono text-[10px] text-zinc-400 mb-3">
           {refCount} {refCount === 1 ? 'source' : 'sources'} mapped
         </p>
       )}
 
-      {/* Evidence ref chips */}
+      {/* Evidence ref chips — show titles instead of opaque IDs */}
       {refCount > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {element.evidenceRefs.map((ref) => (
-            <EvidenceRefChip
-              key={ref.evidenceId}
-              evidenceId={ref.evidenceId}
-              relationship={ref.relationship}
-            />
-          ))}
+          {element.evidenceRefs.map((ref) => {
+            const ev = evidenceById.get(ref.evidenceId);
+            const title = ev?.title || ev?.url || ref.evidenceId;
+            const relColour = RELATIONSHIP_COLOURS[ref.relationship] || 'text-zinc-400';
+            return (
+              <span
+                key={ref.evidenceId}
+                className="inline-flex items-center gap-1 border border-zinc-200 bg-white px-2 py-0.5 text-[10px]"
+              >
+                <span className={`font-mono uppercase font-bold ${relColour}`}>
+                  {ref.relationship === 'supports' ? 'sup' : ref.relationship === 'challenges' ? 'chl' : 'ctx'}
+                </span>
+                <span className="text-zinc-500">{truncateTitle(title)}</span>
+              </span>
+            );
+          })}
         </div>
       )}
 
@@ -94,7 +124,7 @@ export function UnknownElementCard({
         </div>
       )}
 
-      {/* Bounty field */}
+      {/* Bounty field — research brief for optional query refinement */}
       <BountyField
         elementId={element.elementId}
         initialText={element.bountyText || ''}
@@ -103,18 +133,6 @@ export function UnknownElementCard({
         claimId={claimId}
         token={token}
       />
-
-      {/* Re-search button (G02) — only for authenticated, non-readOnly views */}
-      {!readOnly && checkId && claimId && token && (
-        <ResearchButton
-          elementId={element.elementId}
-          checkId={checkId}
-          claimId={claimId}
-          token={token}
-          hasBountyText={!!element.bountyText}
-          onComplete={onResearchComplete}
-        />
-      )}
     </div>
   );
 }

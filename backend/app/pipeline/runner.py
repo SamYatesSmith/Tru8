@@ -1498,73 +1498,143 @@ async def run_pipeline_phase2(
             ).total_seconds()
 
     # =========================================================================
-    # Stage 4.5: Evidence Classification (Tier + Type)
+    # Stage 4.5 + 4.6: Classification + Distillation (run concurrently)
     # =========================================================================
+    _run_classify = not _is_frozen_evidence_replay and bool(evidence)
+    _run_distil = (
+        not _is_frozen_evidence_replay
+        and bool(evidence)
+        and config.enable_evidence_distillation
+        and getattr(settings, "ENABLE_EVIDENCE_DISTILLATION", True)
+    )
+
     if _is_frozen_evidence_replay and evidence:
         logger.info(
             "[CLASSIFY] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
         )
-    elif evidence:
+
+    if _run_classify or _run_distil:
         await _log_stage_transition(
             check_id, current_stage, "classify", progress_reporter
         )
         current_stage = "classify"
-        stage_start = datetime.now(timezone.utc)
+        classify_distil_start = datetime.now(timezone.utc)
 
-        try:
-            if config.enable_llm_classifier:
-                from app.pipeline.evidence_classifier import EvidenceClassifier
+        # --- Classify task ---
+        async def _do_classify():
+            try:
+                if config.enable_llm_classifier:
+                    from app.pipeline.evidence_classifier import EvidenceClassifier
 
-                # O-09: Pool evidence from ALL claims into a single classifier
-                # call. This reduces LLM API round-trips (1 batched call instead
-                # of N per-claim calls) without changing classification quality.
-                pooled_items: list = []
-                claim_boundaries: list = []  # (claim_pos, start_idx, count)
+                    pooled_items: list = []
+                    claim_boundaries: list = []
 
-                for pos, ev_list in evidence.items():
-                    if ev_list:
-                        claim_boundaries.append((pos, len(pooled_items), len(ev_list)))
-                        pooled_items.extend(ev_list)
+                    for pos, ev_list in evidence.items():
+                        if ev_list:
+                            claim_boundaries.append(
+                                (pos, len(pooled_items), len(ev_list))
+                            )
+                            pooled_items.extend(ev_list)
 
-                if pooled_items:
-                    classifier = EvidenceClassifier()
-                    classified_pool = await classifier.classify_batch(pooled_items)
+                    if pooled_items:
+                        classifier = EvidenceClassifier()
+                        classified_pool = await classifier.classify_batch(pooled_items)
 
-                    # Distribute classified items back to their claims
-                    for pos, start_idx, count in claim_boundaries:
-                        classified_slice = classified_pool[
-                            start_idx : start_idx + count
-                        ]
-                        for ev in classified_slice:
-                            ev["receipt_status"] = "classified"
-                        evidence[pos] = classified_slice
-                        logger.info(
-                            f"[CLASSIFY] Claim {pos}: classified "
-                            f"{count} evidence items (LLM, pooled)"
-                        )
+                        for pos, start_idx, count in claim_boundaries:
+                            classified_slice = classified_pool[
+                                start_idx : start_idx + count
+                            ]
+                            for ev in classified_slice:
+                                ev["receipt_status"] = "classified"
+                            evidence[pos] = classified_slice
+                            logger.info(
+                                f"[CLASSIFY] Claim {pos}: classified "
+                                f"{count} evidence items (LLM, pooled)"
+                            )
                 else:
-                    classifier = EvidenceClassifier()
-            else:
-                # Quick mode: heuristic classification only (no LLM call)
-                from app.pipeline.evidence_classifier import _classify_heuristic
+                    from app.pipeline.evidence_classifier import _classify_heuristic
 
+                    for claim_pos, ev_list in evidence.items():
+                        for ev in ev_list:
+                            tier, evidence_type = _classify_heuristic(ev)
+                            ev["tier"] = tier
+                            ev["evidence_type"] = evidence_type
+                            ev["receipt_status"] = "classified"
+                        logger.info(
+                            f"[CLASSIFY] Claim {claim_pos}: classified {len(ev_list)} evidence items (heuristic)"
+                        )
+            except Exception as e:
+                logger.warning(f"Evidence classification failed (non-critical): {e}")
+
+        # --- Distil task (parallelised across claims) ---
+        async def _do_distil():
+            try:
+                from app.pipeline.evidence_distiller import EvidenceDistiller
+
+                distiller = EvidenceDistiller()
+                claim_lookup = {str(c.get("position", 0)): c for c in selected_claims}
+
+                async def _distil_one_claim(claim_pos, ev_list, claim_text):
+                    await distiller.distil_evidence_for_claim(claim_text, ev_list)
+                    return claim_pos, ev_list
+
+                tasks = []
                 for claim_pos, ev_list in evidence.items():
-                    for ev in ev_list:
-                        tier, evidence_type = _classify_heuristic(ev)
-                        ev["tier"] = tier
-                        ev["evidence_type"] = evidence_type
-                        ev["receipt_status"] = "classified"
-                    logger.info(
-                        f"[CLASSIFY] Claim {claim_pos}: classified {len(ev_list)} evidence items (heuristic)"
+                    if not ev_list:
+                        continue
+                    claim = claim_lookup.get(claim_pos)
+                    claim_text = claim.get("text", "") if claim else ""
+                    if not claim_text:
+                        continue
+                    tasks.append(_distil_one_claim(claim_pos, ev_list, claim_text))
+
+                distil_stats = {
+                    "claims_processed": 0,
+                    "items_distilled": 0,
+                    "items_skipped": 0,
+                }
+
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                for result in results:
+                    if isinstance(result, Exception):
+                        logger.warning(f"[DISTIL] Claim distillation failed: {result}")
+                        continue
+                    claim_pos, ev_list = result
+                    distil_stats["claims_processed"] += 1
+                    distil_stats["items_distilled"] += sum(
+                        1 for ev in ev_list if ev.get("_distilled")
                     )
-        except Exception as e:
-            logger.warning(f"Evidence classification failed (non-critical): {e}")
+                    distil_stats["items_skipped"] += sum(
+                        1 for ev in ev_list if not ev.get("_distilled")
+                    )
 
-        stage_timings["classify"] = (
-            datetime.now(timezone.utc) - stage_start
-        ).total_seconds()
+                logger.info(
+                    f"[DISTIL] Completed: {distil_stats['items_distilled']} distilled, "
+                    f"{distil_stats['items_skipped']} kept as snippets, "
+                    f"across {distil_stats['claims_processed']} claims"
+                )
 
-        if ledger:
+            except Exception as e:
+                logger.warning(f"Evidence distillation failed (non-critical): {e}")
+
+        # Run classify and distil concurrently — they write disjoint fields
+        # Classify writes: tier, evidence_type, classification_method, receipt_status
+        # Distil writes: text, _distilled, content_basis (removes _full_text)
+        concurrent_tasks = []
+        if _run_classify:
+            concurrent_tasks.append(_do_classify())
+        if _run_distil:
+            concurrent_tasks.append(_do_distil())
+
+        await asyncio.gather(*concurrent_tasks)
+
+        elapsed = (datetime.now(timezone.utc) - classify_distil_start).total_seconds()
+        if _run_classify:
+            stage_timings["classify"] = elapsed
+        if _run_distil:
+            stage_timings["distil"] = elapsed
+
+        if _run_classify and ledger:
             from collections import Counter
 
             tier_counts = Counter()
@@ -1578,64 +1648,6 @@ async def run_pipeline_phase2(
                 tier_distribution=dict(tier_counts),
                 type_distribution=dict(type_counts),
             )
-
-    # =========================================================================
-    # Stage 4.6: Evidence Distillation (full text → atomic facts)
-    # =========================================================================
-    if (
-        not _is_frozen_evidence_replay
-        and evidence
-        and config.enable_evidence_distillation
-        and getattr(settings, "ENABLE_EVIDENCE_DISTILLATION", True)
-    ):
-        await _log_stage_transition(
-            check_id, current_stage, "distil", progress_reporter
-        )
-        current_stage = "distil"
-        stage_start = datetime.now(timezone.utc)
-
-        try:
-            from app.pipeline.evidence_distiller import EvidenceDistiller
-
-            distiller = EvidenceDistiller()
-            claim_lookup = {str(c.get("position", 0)): c for c in selected_claims}
-
-            distil_stats = {
-                "claims_processed": 0,
-                "items_distilled": 0,
-                "items_skipped": 0,
-            }
-
-            for claim_pos, ev_list in evidence.items():
-                if not ev_list:
-                    continue
-                claim = claim_lookup.get(claim_pos)
-                claim_text = claim.get("text", "") if claim else ""
-                if not claim_text:
-                    continue
-
-                await distiller.distil_evidence_for_claim(claim_text, ev_list)
-
-                distil_stats["claims_processed"] += 1
-                distil_stats["items_distilled"] += sum(
-                    1 for ev in ev_list if ev.get("_distilled")
-                )
-                distil_stats["items_skipped"] += sum(
-                    1 for ev in ev_list if not ev.get("_distilled")
-                )
-
-            logger.info(
-                f"[DISTIL] Completed: {distil_stats['items_distilled']} distilled, "
-                f"{distil_stats['items_skipped']} kept as snippets, "
-                f"across {distil_stats['claims_processed']} claims"
-            )
-
-        except Exception as e:
-            logger.warning(f"Evidence distillation failed (non-critical): {e}")
-
-        stage_timings["distil"] = (
-            datetime.now(timezone.utc) - stage_start
-        ).total_seconds()
     else:
         # Clean up _full_text even when distillation is skipped
         if evidence:

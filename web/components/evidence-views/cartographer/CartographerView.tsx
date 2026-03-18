@@ -1,31 +1,60 @@
 'use client';
 
-import { useState, useMemo, useCallback, Fragment } from 'react';
+import { useState, useMemo } from 'react';
 import { Claim, Evidence, EvidenceTier, ClaimElement } from '@shared/types';
-import { computeDiagnosticValues } from '@/lib/diagnostic-value';
 import { LandscapeSummaryStrip } from './LandscapeSummaryStrip';
-import { CascadeLayout } from './CascadeLayout';
-import { MobileCascade } from './MobileCascade';
-import { ConvergenceDiamond } from './ConvergenceDiamond';
+import { EvidenceMap, type ElementMapping } from './EvidenceMap';
 import { GapIndicator } from './GapIndicator';
 import { ElementRoster } from './ElementRoster';
+
+// --- Mobile helpers ---
+
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
+function getFaviconUrl(url: string): string {
+  const domain = getDomain(url);
+  return domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=32` : '';
+}
+
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
+const MOBILE_TIER_CONFIG: Record<EvidenceTier, { label: string; colour: string; borderClass: string }> = {
+  primary:    { label: 'Primary Sources',  colour: 'var(--tier1-accent)', borderClass: 'border-l-[var(--tier1-accent)]' },
+  reporting:  { label: 'Reporting',        colour: '#3F3F46',            borderClass: 'border-l-zinc-700' },
+  commentary: { label: 'Commentary',       colour: '#A1A1AA',            borderClass: 'border-l-zinc-400' },
+};
+
+// --- Main Component ---
 
 interface CartographerViewProps {
   scope: 'check' | 'claim';
   claims: Claim[];
   onSwitchToLibrarian?: () => void;
-  onSwitchToInterpreter?: (elementIndex: number) => void;
 }
 
-export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchToInterpreter }: CartographerViewProps) {
+export function CartographerView({ scope, claims, onSwitchToLibrarian }: CartographerViewProps) {
+  const [expandedMobileId, setExpandedMobileId] = useState<string | null>(null);
+
   const {
     evidenceByTier,
-    edges,
-    divergentIds,
-    convergencePoints,
     gaps,
     elements,
     claimLabelMap,
+    evidenceElementMap,
     totalSources,
     primaryCount,
     reportingCount,
@@ -36,15 +65,6 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
     const claimLabelMap = new Map<string, string>();
     const allElements: ClaimElement[] = [];
 
-    // Collect evidence and build corroboration groups
-    const corroborationGroups = new Map<number, { tiers: Set<EvidenceTier>; ids: string[] }>();
-
-    // Track which elements have evidence for gap detection
-    const elementsWithEvidence = new Set<string>();
-
-    // Collect divergent evidence IDs (challenges on same element)
-    const elementChallenges = new Map<string, string[]>();
-
     claims.forEach((claim, claimIdx) => {
       const evidence = claim.evidence || [];
 
@@ -54,117 +74,61 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
           if (scope === 'claim' || !allElements.some((e) => e.elementId === el.elementId)) {
             allElements.push(el);
           }
-
-          // Track challenges per element for divergence detection
-          for (const ref of el.evidenceRefs || []) {
-            elementsWithEvidence.add(el.elementId);
-            if (ref.relationship === 'challenges') {
-              const existing = elementChallenges.get(el.elementId) || [];
-              existing.push(ref.evidenceId);
-              elementChallenges.set(el.elementId, existing);
-            }
-          }
         }
       }
 
       for (const ev of evidence) {
         const evId = ev.evidenceId || ev.id;
         if (ev.receiptStatus === 'excluded') continue;
-
         if (scope === 'check' && seen.has(evId)) continue;
         seen.add(evId);
         allEvidence.push(ev);
 
-        // Claim attribution for check-wide
+        // Claim attribution for check-wide scope
         if (scope === 'check') {
           const label = `Claim ${String(claimIdx + 1).padStart(2, '0')}`;
           const existing = claimLabelMap.get(evId);
           claimLabelMap.set(evId, existing ? `${existing}, ${label}` : label);
         }
-
-        // Track corroboration groups
-        if (ev.corroborationGroupId != null) {
-          const group = corroborationGroups.get(ev.corroborationGroupId) || { tiers: new Set(), ids: [] };
-          group.tiers.add(ev.tier || 'commentary');
-          group.ids.push(evId);
-          corroborationGroups.set(ev.corroborationGroupId, group);
-        }
       }
     });
 
-    // Group evidence by tier
+    // Group by tier
     const evidenceByTier: Record<EvidenceTier, Evidence[]> = { primary: [], reporting: [], commentary: [] };
-    const evidenceTierMap = new Map<string, EvidenceTier>();
-
     for (const ev of allEvidence) {
       const tier = ev.tier || 'commentary';
       evidenceByTier[tier].push(ev);
-      evidenceTierMap.set(ev.evidenceId || ev.id, tier);
     }
-
-    // Build edges from corroboration groups spanning tiers
-    const edges: Array<{ fromId: string; toId: string }> = [];
-    const TIER_RANK: Record<EvidenceTier, number> = { primary: 0, reporting: 1, commentary: 2 };
-
-    Array.from(corroborationGroups.values()).forEach((group) => {
-      if (group.tiers.size < 2) return;
-
-      // Sort IDs by tier rank
-      const sorted = group.ids
-        .map((id) => ({ id, rank: TIER_RANK[evidenceTierMap.get(id) || 'commentary'] }))
-        .sort((a, b) => a.rank - b.rank);
-
-      // Connect higher-tier items to lower-tier items
-      for (let i = 0; i < sorted.length; i++) {
-        for (let j = i + 1; j < sorted.length; j++) {
-          if (sorted[i].rank < sorted[j].rank) {
-            edges.push({ fromId: sorted[i].id, toId: sorted[j].id });
-          }
-        }
-      }
-    });
-
-    // Convergence: corroboration groups with 3+ items from 2+ different sources
-    let convergencePoints = 0;
-    Array.from(corroborationGroups.values()).forEach((group) => {
-      if (group.ids.length >= 3) convergencePoints++;
-    });
-
-    // Divergence: evidence IDs that challenge an element
-    const divergentIds = new Set<string>();
-    Array.from(elementChallenges.values()).forEach((ids) => {
-      for (const id of ids) divergentIds.add(id);
-    });
 
     // Gaps: elements with no evidence refs
     const gapElements = allElements.filter((el) => (el.evidenceRefs?.length || 0) === 0);
 
+    // Build reverse map: evidenceId -> element mappings
+    const evidenceElementMap = new Map<string, ElementMapping[]>();
+    allElements.forEach((el, globalIdx) => {
+      for (const ref of el.evidenceRefs || []) {
+        const existing = evidenceElementMap.get(ref.evidenceId) || [];
+        existing.push({
+          elementIndex: globalIdx,
+          elementDescription: el.description,
+          relationship: ref.relationship as 'supports' | 'challenges' | 'context',
+        });
+        evidenceElementMap.set(ref.evidenceId, existing);
+      }
+    });
+
     return {
       evidenceByTier,
-      edges,
-      divergentIds,
-      convergencePoints,
       gaps: gapElements,
       elements: allElements,
       claimLabelMap: scope === 'check' ? claimLabelMap : undefined,
+      evidenceElementMap,
       totalSources: allEvidence.length,
       primaryCount: evidenceByTier.primary.length,
       reportingCount: evidenceByTier.reporting.length,
       commentaryCount: evidenceByTier.commentary.length,
     };
   }, [claims, scope]);
-
-  // Diagnostic value computation
-  const diagnostic = useMemo(() => computeDiagnosticValues(claims), [claims]);
-  const [diagnosticActive, setDiagnosticActive] = useState(true);
-  const showDiagnosticToggle = diagnostic.hasDiagnosticVariance;
-  const [legendOpen, setLegendOpen] = useState(false);
-
-  const handleNodeClick = useCallback((ev: Evidence) => {
-    if (ev.url) {
-      window.open(ev.url, '_blank', 'noopener,noreferrer');
-    }
-  }, []);
 
   return (
     <div>
@@ -173,102 +137,173 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
         primaryCount={primaryCount}
         reportingCount={reportingCount}
         commentaryCount={commentaryCount}
-        convergencePoints={convergencePoints}
-        gaps={gaps.length}
-        diagnosticHighCount={showDiagnosticToggle ? diagnostic.highCount : undefined}
-        diagnosticTotalCount={showDiagnosticToggle ? diagnostic.totalCount : undefined}
       />
 
-      {/* Map legend toggle */}
-      <div className="flex items-center gap-4 mb-4">
-        <button
-          onClick={() => setLegendOpen(prev => !prev)}
-          className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors"
-        >
-          {legendOpen ? '− Hide' : '+ Show'} map legend
-        </button>
-      </div>
-
-      {legendOpen && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border border-zinc-200 bg-zinc-50 p-4 mb-6">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-[3px] shrink-0" style={{ background: 'var(--tier1-accent)' }} />
-            <span className="text-[11px] text-zinc-600"><span className="font-medium">Primary</span> — original data, official records</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-[3px] bg-zinc-600 shrink-0" />
-            <span className="text-[11px] text-zinc-600"><span className="font-medium">Reporting</span> — news coverage, journalism</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-[3px] bg-zinc-400 shrink-0" />
-            <span className="text-[11px] text-zinc-600"><span className="font-medium">Commentary</span> — opinion, analysis</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-[8px] h-[8px] border-dashed border border-amber-400 bg-amber-50 rotate-45 shrink-0" />
-            <span className="text-[11px] text-zinc-600"><span className="font-medium">Challenges</span> — evidence that disputes</span>
-          </div>
-        </div>
-      )}
-
-      {/* Diagnostic toggle */}
-      {showDiagnosticToggle && (
-        <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => setDiagnosticActive((prev) => !prev)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 border text-[10px] font-mono uppercase tracking-widest transition-colors ${
-              diagnosticActive
-                ? 'bg-zinc-900 text-white border-zinc-900'
-                : 'text-zinc-400 hover:text-zinc-600 border-zinc-200'
-            }`}
-            title="Toggle diagnostic value highlighting — highlights sources that help distinguish between competing interpretations"
-          >
-            <span className={`w-2 h-2 rounded-full ${diagnosticActive ? 'bg-[var(--accent)]' : 'bg-zinc-300'}`} />
-            Diagnostic
-          </button>
-          <span className="text-[10px] text-zinc-400">
-            {diagnosticActive
-              ? 'Highlighting sources that distinguish between interpretations'
-              : 'Toggle to highlight diagnostically valuable sources'}
-          </span>
-        </div>
-      )}
-
-      {/* Desktop: Dagre-ordered cascade */}
-      <div className="hidden md:block">
-        <CascadeLayout
+      {/* Desktop: Force-directed evidence map */}
+      <div className="hidden md:block mb-12">
+        <EvidenceMap
           evidenceByTier={evidenceByTier}
-          edges={edges}
-          divergentIds={divergentIds}
+          elements={elements}
+          evidenceElementMap={evidenceElementMap}
           claimLabelMap={claimLabelMap}
-          diagnosticValues={showDiagnosticToggle ? diagnostic.values : undefined}
-          diagnosticActive={showDiagnosticToggle && diagnosticActive}
-          onNodeClick={handleNodeClick}
-        />
-
-        {convergencePoints > 0 && (
-          <ConvergenceDiamond count={convergencePoints} />
-        )}
-      </div>
-
-      {/* Mobile: CSS-only vertical stack */}
-      <div className="md:hidden mb-16">
-        <div className="font-mono text-sm font-bold uppercase tracking-[0.3em] text-zinc-600 mb-8 border-b border-zinc-200 pb-2">
-          Citation Cascade
-        </div>
-        <MobileCascade
-          evidenceByTier={evidenceByTier}
-          divergentIds={divergentIds}
-          claimLabelMap={claimLabelMap}
-          diagnosticValues={showDiagnosticToggle ? diagnostic.values : undefined}
-          diagnosticActive={showDiagnosticToggle && diagnosticActive}
-          onNodeClick={handleNodeClick}
         />
       </div>
 
-      {/* Gap indicators */}
+      {/* Mobile: Tier-grouped evidence nodes */}
+      <div className="md:hidden mb-12">
+        {(['primary', 'reporting', 'commentary'] as EvidenceTier[]).map((tier) => {
+          const items = evidenceByTier[tier];
+          if (items.length === 0) return null;
+          const config = MOBILE_TIER_CONFIG[tier];
+          const expandedInTier = items.find(
+            (ev) => (ev.evidenceId || ev.id) === expandedMobileId,
+          );
+
+          return (
+            <div key={tier} className="mb-6">
+              {/* Tier header */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-3 h-[3px] shrink-0" style={{ background: config.colour }} />
+                <span
+                  className="font-mono text-[10px] uppercase tracking-widest font-semibold"
+                  style={{ color: config.colour }}
+                >
+                  {config.label}
+                </span>
+                <span className="font-mono text-[10px] text-zinc-300">{items.length}</span>
+              </div>
+
+              {/* Node grid — centred, uniform 44px, element badges */}
+              <div className="flex flex-wrap gap-4 justify-center">
+                {items.map((ev) => {
+                  const evId = ev.evidenceId || ev.id;
+                  const isExpanded = expandedMobileId === evId;
+                  const mappings = evidenceElementMap.get(evId) || [];
+                  const elBadge =
+                    mappings.length > 0
+                      ? mappings
+                          .map((m) => String(m.elementIndex + 1).padStart(2, '0'))
+                          .join('\u00B7')
+                      : '';
+
+                  return (
+                    <div key={evId} className="flex flex-col items-center gap-1">
+                      <button
+                        onClick={() =>
+                          setExpandedMobileId(isExpanded ? null : evId)
+                        }
+                        className="relative flex items-center justify-center w-11 h-11"
+                        aria-label={`${ev.source}: ${ev.title}`}
+                      >
+                        <div
+                          className="absolute inset-0 rounded-full border-2"
+                          style={{ borderColor: config.colour }}
+                        />
+                        <div className="absolute inset-[2px] rounded-full bg-white overflow-hidden flex items-center justify-center">
+                          <span className="absolute font-mono font-semibold text-zinc-300 text-[13px]">
+                            {(ev.source || '?')[0].toUpperCase()}
+                          </span>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getFaviconUrl(ev.url)}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display =
+                                'none';
+                            }}
+                          />
+                        </div>
+                        {isExpanded && (
+                          <div
+                            className="absolute rounded-full border"
+                            style={{
+                              inset: -3,
+                              borderColor: config.colour,
+                              opacity: 0.3,
+                            }}
+                          />
+                        )}
+                      </button>
+                      {/* Element badge — shows which elements this source addresses */}
+                      {elBadge && (
+                        <span className="font-mono text-[8px] text-zinc-400 leading-none">
+                          {elBadge}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Expanded detail card — outside flex flow, centred */}
+              {expandedInTier && (() => {
+                const ev = expandedInTier;
+                const evId = ev.evidenceId || ev.id;
+                const mappings = evidenceElementMap.get(evId) || [];
+                return (
+                  <div className="mt-3 border border-zinc-200 bg-white p-3 mx-auto max-w-[320px]">
+                    <div
+                      className="font-mono text-[9px] uppercase tracking-widest mb-1"
+                      style={{ color: config.colour }}
+                    >
+                      {ev.source}
+                    </div>
+                    <div className="text-[12px] text-zinc-900 font-medium leading-snug mb-1.5">
+                      {ev.title}
+                    </div>
+                    {ev.publishedDate && (
+                      <div className="text-[10px] text-zinc-400 font-mono mb-2">
+                        {formatDate(ev.publishedDate)}
+                      </div>
+                    )}
+                    {mappings.length > 0 && (
+                      <div className="border-t border-zinc-100 pt-1.5 mb-2">
+                        <div className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-1">
+                          Addresses
+                        </div>
+                        {mappings.map((m) => (
+                          <div
+                            key={m.elementIndex}
+                            className="text-[11px] text-zinc-500 mb-0.5"
+                          >
+                            Element{' '}
+                            {String(m.elementIndex + 1).padStart(2, '0')}
+                            <span className="text-zinc-400"> &mdash; </span>
+                            <span className="text-zinc-400">
+                              {m.elementDescription}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {claimLabelMap?.get(evId) && (
+                      <div className="text-[9px] text-zinc-400 font-mono uppercase tracking-wider mb-2">
+                        {claimLabelMap.get(evId)}
+                      </div>
+                    )}
+                    <a
+                      href={ev.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-colors"
+                    >
+                      Visit source &rarr;
+                    </a>
+                  </div>
+                );
+              })()}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Not Yet Found */}
       {gaps.length > 0 && (
         <div className="mb-8">
-          <div className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">Evidence Gaps</div>
+          <div className="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
+            Not Yet Found
+          </div>
           <div className="flex flex-wrap gap-3">
             {gaps.map((el, i) => {
               const elIndex = elements.indexOf(el);
@@ -286,13 +321,10 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian, onSwitchT
 
       {/* Element Roster */}
       {elements.length > 0 && (
-        <ElementRoster
-          elements={elements}
-          onElementClick={onSwitchToInterpreter}
-        />
+        <ElementRoster elements={elements} />
       )}
 
-      {/* Switch to Librarian prompt */}
+      {/* Switch to Librarian */}
       <div className="text-center pt-8 border-t border-zinc-100">
         <button
           onClick={onSwitchToLibrarian}

@@ -28,10 +28,27 @@ const TIER_BAR_COLORS: Record<EvidenceTier, string> = {
 };
 
 function getCellStyle(count: number): { bg: string; border: string; text: string } {
-  if (count === 0) return { bg: 'bg-white', border: 'border-zinc-100', text: 'text-zinc-200' };
+  if (count === 0) return { bg: 'bg-white', border: 'border-dashed border-zinc-200', text: 'text-zinc-200' };
   if (count <= 2) return { bg: 'bg-zinc-50', border: 'border-zinc-100', text: 'text-zinc-500' };
   if (count <= 5) return { bg: 'bg-zinc-100', border: 'border-zinc-200', text: 'text-zinc-600' };
   return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700' };
+}
+
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
+
+function getFaviconUrl(url: string): string {
+  try {
+    const hostname = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+  } catch {
+    return '';
+  }
 }
 
 interface EvidenceHeatmapProps {
@@ -54,14 +71,35 @@ const TYPE_DESCRIPTIONS: Record<EvidenceType, string> = {
   academic: 'Peer-reviewed papers, preprints, institutional research',
 };
 
+function FaviconCircle({ url }: { url: string }) {
+  const faviconUrl = getFaviconUrl(url);
+  const domain = getDomain(url);
+  const letter = domain.charAt(0).toUpperCase();
+
+  return (
+    <div className="w-4 h-4 rounded-full border border-zinc-200 bg-white flex items-center justify-center overflow-hidden relative shrink-0">
+      <span className="font-mono text-[7px] font-bold text-zinc-300">{letter}</span>
+      {faviconUrl && (
+        <img
+          src={faviconUrl}
+          alt=""
+          className="w-4 h-4 rounded-full absolute inset-0"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      )}
+    </div>
+  );
+}
+
 export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const [legendOpen, setLegendOpen] = useState(false);
   const toggleLegend = useCallback(() => setLegendOpen(prev => !prev), []);
 
-  const { counts, sources } = useMemo(() => {
+  const { counts, sources, urls } = useMemo(() => {
     const counts: Record<string, number> = {};
     const sources: Record<string, string[]> = {};
+    const urls: Record<string, string[]> = {};
 
     for (const ev of evidence) {
       const tier = ev.tier || 'commentary';
@@ -72,9 +110,18 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
       if (ev.source && sources[key].length < 5) {
         sources[key].push(ev.source);
       }
+      if (!urls[key]) urls[key] = [];
+      if (ev.url && urls[key].length < 4) {
+        // Dedupe by domain
+        const domain = getDomain(ev.url);
+        const existingDomains = urls[key].map(getDomain);
+        if (!existingDomains.includes(domain)) {
+          urls[key].push(ev.url);
+        }
+      }
     }
 
-    return { counts, sources };
+    return { counts, sources, urls };
   }, [evidence]);
 
   return (
@@ -111,6 +158,7 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
                   const count = counts[key] || 0;
                   const style = getCellStyle(count);
                   const cellSources = sources[key] || [];
+                  const cellUrls = urls[key] || [];
                   const isHovered = hoveredCell === key;
 
                   return (
@@ -124,9 +172,21 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
                         onClick={() => onCellClick?.(tier, type)}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCellClick?.(tier, type); } }}
                       >
-                        <span className={`font-mono text-xl font-bold ${style.text}`}>
-                          {count}
-                        </span>
+                        {count === 0 ? (
+                          <span className="font-mono text-sm text-zinc-200">&mdash;</span>
+                        ) : (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="flex items-center gap-0.5">
+                              {cellUrls.slice(0, count <= 3 ? count : 3).map((url, i) => (
+                                <FaviconCircle key={i} url={url} />
+                              ))}
+                              {count > 3 && cellUrls.length >= 3 && (
+                                <span className="font-mono text-[9px] text-zinc-400 ml-0.5">+{count - 3}</span>
+                              )}
+                            </div>
+                            <span className={`font-mono text-[10px] ${style.text}`}>{count}</span>
+                          </div>
+                        )}
 
                         {isHovered && cellSources.length > 0 && (
                           <div className="absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 bg-zinc-900 text-white px-3 py-2 text-[10px] font-mono whitespace-nowrap pointer-events-none">

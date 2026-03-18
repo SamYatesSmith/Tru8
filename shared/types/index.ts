@@ -250,3 +250,26 @@ export interface ClaimMap {
     completedAt: string | null;
   };
 }
+
+// --- Seeker Explore Mode ---
+export interface RelatedClaimElement {
+  description: string;
+  state: ElementState | null;
+}
+
+export interface RelatedClaim {
+  normalisedClaim: string;
+  claimType: ClaimType | null;
+  elements: RelatedClaimElement[];
+  consensus: {
+    independentChecks: number;
+    stability: string;
+  } | null;
+  entityOverlap: string[];
+}
+
+export interface ExploreData {
+  relatedClaims: RelatedClaim[];
+  mode: 'gaps' | 'explore';
+  explorationBasis: string;
+}

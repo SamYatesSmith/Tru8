@@ -1,8 +1,8 @@
 'use client';
 
 import { Evidence } from '@shared/types';
-import { TierBadge } from '../TierBadge';
-import { TypeBadge } from '../TypeBadge';
+import { TierStamp } from './TierStamp';
+import { TypeStamp } from './TypeStamp';
 
 function extractDomain(url: string): string {
   try {
@@ -24,21 +24,18 @@ function formatDate(dateStr?: string): string {
 
 interface LedgerCardProps {
   evidence: Evidence;
+  callNumber?: string;
   elementIds?: string[];
   claimLabel?: string;
   diagnosticValue?: number;
   diagnosticActive?: boolean;
+  isActive?: boolean;
   onClick?: () => void;
 }
 
-export function LedgerCard({ evidence, elementIds, claimLabel, diagnosticValue, diagnosticActive, onClick }: LedgerCardProps) {
+export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, diagnosticValue, diagnosticActive, isActive, onClick }: LedgerCardProps) {
   const domain = extractDomain(evidence.url);
   const date = formatDate(evidence.publishedDate);
-  const excerpt = evidence.snippet
-    ? evidence.snippet.length > 120
-      ? `"${evidence.snippet.slice(0, 120)}..."`
-      : `"${evidence.snippet}"`
-    : null;
 
   const isHighDiag = diagnosticActive && diagnosticValue != null && diagnosticValue > 0.7;
   const isLowDiag = diagnosticActive && diagnosticValue != null && diagnosticValue < 0.3;
@@ -46,21 +43,30 @@ export function LedgerCard({ evidence, elementIds, claimLabel, diagnosticValue, 
   return (
     <div
       className={`border transition-colors cursor-pointer p-4 ${
-        isLowDiag ? 'border-zinc-100 opacity-40' : isHighDiag ? 'border-zinc-100 hover:border-zinc-300' : 'border-zinc-100 hover:border-zinc-300'
+        isActive
+          ? 'border-zinc-300 bg-[#FAFAF8]'
+          : isLowDiag
+            ? 'border-zinc-100 opacity-40'
+            : 'border-zinc-100 hover:border-zinc-300'
       }`}
       style={isHighDiag ? { borderLeft: '4px solid var(--accent)' } : undefined}
       onClick={onClick}
     >
+      {/* Call number */}
+      {callNumber && (
+        <div className="font-mono text-[10px] text-zinc-400 tracking-widest mb-2">{callNumber}</div>
+      )}
+
       <div className="flex items-start gap-3">
         <div className="flex flex-col gap-1.5 pt-0.5 shrink-0">
-          {evidence.tier && <TierBadge tier={evidence.tier} />}
-          {evidence.evidenceType && <TypeBadge type={evidence.evidenceType} />}
+          {evidence.tier && <TierStamp tier={evidence.tier} />}
+          {evidence.evidenceType && <TypeStamp type={evidence.evidenceType} />}
         </div>
         <div className="flex-grow min-w-0">
           <div className="text-sm font-medium text-zinc-900 mb-1">
             {evidence.title || 'Untitled source'}
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="font-mono text-[10px] text-zinc-400">{domain}</span>
             {date && (
               <>
@@ -97,9 +103,6 @@ export function LedgerCard({ evidence, elementIds, claimLabel, diagnosticValue, 
               </>
             )}
           </div>
-          {excerpt && (
-            <p className="text-[12px] text-zinc-500 italic leading-relaxed">{excerpt}</p>
-          )}
         </div>
       </div>
     </div>

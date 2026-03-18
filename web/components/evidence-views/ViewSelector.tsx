@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type ViewTab = 'cartographer' | 'librarian' | 'interpreter' | 'seeker' | 'projectionist' | 'chronologist';
+type ViewTab = 'cartographer' | 'librarian' | 'correspondent' | 'seeker' | 'projectionist' | 'chronologist';
 
 interface ViewSelectorProps {
   mode: 'overview' | 'detail';
@@ -11,17 +11,16 @@ interface ViewSelectorProps {
 }
 
 /** Tabs that only make sense at the per-claim detail level. */
-const DETAIL_ONLY_TABS: ViewTab[] = ['interpreter', 'seeker'];
+const DETAIL_ONLY_TABS: ViewTab[] = ['seeker'];
 
 const DETAIL_ONLY_TOOLTIPS: Record<string, string> = {
-  interpreter: 'Available when viewing a specific claim — click a claim card above to explore its elements.',
   seeker: 'Available when viewing a specific claim — click a claim card above to surface unknowns.',
 };
 
 const ALL_TABS: { value: ViewTab; label: string; subtitle: string }[] = [
   { value: 'cartographer', label: 'CARTOGRAPHER', subtitle: 'Shape of the conversation' },
   { value: 'librarian', label: 'LIBRARIAN', subtitle: 'Full evidence set, classified' },
-  { value: 'interpreter', label: 'INTERPRETER', subtitle: 'Does this answer the question?' },
+  { value: 'correspondent', label: 'CORRESPONDENT', subtitle: "Who's in the room?" },
   { value: 'seeker', label: 'SEEKER', subtitle: "What don't we know yet?" },
   { value: 'projectionist', label: 'PROJECTIONIST', subtitle: "What's been said on camera?" },
   { value: 'chronologist', label: 'CHRONOLOGIST', subtitle: 'When did evidence appear?' },

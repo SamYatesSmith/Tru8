@@ -1,11 +1,14 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Claim } from '@shared/types';
+import { useMemo, useState, useEffect } from 'react';
+import { Claim, ClaimElement, RelatedClaim } from '@shared/types';
+import { apiClient } from '@/lib/api';
 import { UnknownsSummaryStrip } from './UnknownsSummaryStrip';
 import { UnknownElementCard } from './UnknownElementCard';
 import { CoverageMap } from './CoverageMap';
+import { ResearchButton } from './ResearchButton';
 import { SeekerProvenanceNote } from './SeekerProvenanceNote';
+import { ExplorePanel } from './ExplorePanel';
 
 interface SeekerViewProps {
   claim: Claim;
@@ -15,29 +18,104 @@ interface SeekerViewProps {
   onResearchComplete?: () => void;
 }
 
+interface IndexedElement {
+  element: ClaimElement;
+  originalIndex: number;
+}
+
 export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete }: SeekerViewProps) {
   const elements = useMemo(() => claim.claimMap?.elements || [], [claim.claimMap?.elements]);
   const evidence = useMemo(() => claim.evidence || [], [claim.evidence]);
 
+  // Credit info for re-search gating
+  const [creditInfo, setCreditInfo] = useState<{ remaining: number } | null>(null);
+  const [resolvedOpen, setResolvedOpen] = useState(false);
+
+  // Explore mode: related claims from other users
+  const [exploreData, setExploreData] = useState<RelatedClaim[]>([]);
+  const [exploreLoading, setExploreLoading] = useState(false);
+
+  useEffect(() => {
+    if (readOnly || !token) return;
+    let cancelled = false;
+
+    apiClient.getUsage(token).then((raw: unknown) => {
+      if (cancelled) return;
+      const usage = raw as { creditsRemaining?: number } | undefined;
+      if (typeof usage?.creditsRemaining === 'number') {
+        setCreditInfo({ remaining: usage.creditsRemaining });
+      }
+    }).catch(() => {
+      // Non-critical — button will work without credit display
+    });
+
+    return () => { cancelled = true; };
+  }, [readOnly, token]);
+
+  // Compute metrics
   const metrics = useMemo(() => {
-    let supported = 0;
-    let disputed = 0;
     let unresolved = 0;
     let gaps = 0;
 
     for (const el of elements) {
-      if (el.state === 'supported') supported++;
-      else if (el.state === 'disputed') disputed++;
-      else unresolved++;
-
+      if (el.state !== 'supported' && el.state !== 'disputed') unresolved++;
       if (!el.evidenceRefs || el.evidenceRefs.length === 0) gaps++;
     }
 
     const withEvidence = elements.filter(el => el.evidenceRefs && el.evidenceRefs.length > 0).length;
     const coverage = elements.length > 0 ? Math.round((withEvidence / elements.length) * 100) : 0;
 
-    return { total: elements.length, supported, disputed, unresolved, gaps, coverage };
+    return { gaps, unresolved, coverage };
   }, [elements]);
+
+  // Determine if explore mode should activate
+  const hasUnknowns = metrics.gaps > 0 || metrics.unresolved > 0;
+
+  // Fetch explore data when no unknowns remain
+  useEffect(() => {
+    if (hasUnknowns || readOnly || !checkId || !token) return;
+    let cancelled = false;
+
+    setExploreLoading(true);
+    apiClient.getExploreData(checkId, claim.id, token).then((data) => {
+      if (cancelled) return;
+      setExploreData(data.relatedClaims || []);
+    }).catch(() => {
+      // Non-critical — explore panel will show empty state
+    }).finally(() => {
+      if (!cancelled) setExploreLoading(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [hasUnknowns, readOnly, checkId, claim.id, token]);
+
+  // Sort elements: gaps first, then unresolved, then resolved
+  const { gapElements, unresolvedElements, resolvedElements } = useMemo(() => {
+    const gapEls: IndexedElement[] = [];
+    const unresolvedEls: IndexedElement[] = [];
+    const resolvedEls: IndexedElement[] = [];
+
+    elements.forEach((element, originalIndex) => {
+      const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
+      const isResolved = element.state === 'supported' || element.state === 'disputed';
+
+      if (isGap) {
+        gapEls.push({ element, originalIndex });
+      } else if (!isResolved) {
+        unresolvedEls.push({ element, originalIndex });
+      } else {
+        resolvedEls.push({ element, originalIndex });
+      }
+    });
+
+    return { gapElements: gapEls, unresolvedElements: unresolvedEls, resolvedElements: resolvedEls };
+  }, [elements]);
+
+  // Gap element IDs for the claim-level research button
+  const gapElementIds = useMemo(
+    () => gapElements.map(g => g.element.elementId),
+    [gapElements],
+  );
 
   if (elements.length === 0) {
     return (
@@ -49,26 +127,92 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
     );
   }
 
+  const renderCard = ({ element, originalIndex }: IndexedElement, gapIdx?: number) => (
+    <UnknownElementCard
+      key={element.elementId}
+      element={element}
+      index={originalIndex}
+      evidence={evidence}
+      readOnly={readOnly}
+      checkId={checkId}
+      claimId={claim.id}
+      token={token}
+      gapIndex={gapIdx}
+      totalGaps={gapElements.length}
+    />
+  );
+
   return (
     <div className="space-y-6">
       <UnknownsSummaryStrip {...metrics} />
       <CoverageMap elements={elements} />
 
-      <div className="space-y-3">
-        {elements.map((element, index) => (
-          <UnknownElementCard
-            key={element.elementId}
-            element={element}
-            index={index}
-            evidence={evidence}
-            readOnly={readOnly}
-            checkId={checkId}
-            claimId={claim.id}
-            token={token}
-            onResearchComplete={onResearchComplete}
-          />
-        ))}
-      </div>
+      {/* Evidence Gaps */}
+      {gapElements.length > 0 && (
+        <div className="space-y-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+            Evidence Gaps
+          </p>
+          {gapElements.map((entry, gapIdx) => renderCard(entry, gapIdx))}
+
+          {/* Single claim-level research button for all gaps */}
+          {!readOnly && checkId && token && (
+            <ResearchButton
+              checkId={checkId}
+              claimId={claim.id}
+              token={token}
+              gapElementIds={gapElementIds}
+              creditInfo={creditInfo}
+              coverageBefore={metrics.coverage}
+              onComplete={onResearchComplete}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Unresolved */}
+      {unresolvedElements.length > 0 && (
+        <div className="space-y-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+            Unresolved
+          </p>
+          {unresolvedElements.map(entry => renderCard(entry))}
+        </div>
+      )}
+
+      {/* Resolved — collapsible */}
+      {resolvedElements.length > 0 && (
+        <div className="space-y-3">
+          <button
+            onClick={() => setResolvedOpen(!resolvedOpen)}
+            className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors"
+          >
+            <span className="text-[8px]">{resolvedOpen ? '\u25BC' : '\u25B6'}</span>
+            Resolved Elements ({resolvedElements.length})
+          </button>
+          {resolvedOpen && resolvedElements.map(entry => renderCard(entry))}
+        </div>
+      )}
+
+      {/* Explore mode — shown when no unknowns remain */}
+      {!hasUnknowns && !readOnly && checkId && token && (
+        <div className="space-y-3">
+          <div className="border-t border-zinc-200 pt-6">
+            <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-4">
+              Evidence landscape well-covered — explore related investigations
+            </p>
+          </div>
+          {exploreLoading ? (
+            <div className="py-6 text-center">
+              <p className="font-mono text-[10px] text-zinc-400 animate-pulse">
+                Finding related claims...
+              </p>
+            </div>
+          ) : (
+            <ExplorePanel relatedClaims={exploreData} />
+          )}
+        </div>
+      )}
 
       <SeekerProvenanceNote />
     </div>

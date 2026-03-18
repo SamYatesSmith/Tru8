@@ -302,10 +302,10 @@ class Settings(BaseSettings):
         20, env="MAX_SOURCES_PER_CLAIM"
     )  # Max evidence sources per claim during retrieval
     MAX_CONCURRENT_URL_FETCHES: int = Field(
-        15, env="MAX_CONCURRENT_URL_FETCHES"
+        25, env="MAX_CONCURRENT_URL_FETCHES"
     )  # Shared pool: max concurrent HTTP fetches across all claims in one check
     URL_FETCH_TIMEOUT: int = Field(
-        8, env="URL_FETCH_TIMEOUT"
+        5, env="URL_FETCH_TIMEOUT"
     )  # Per-URL HTTP timeout in seconds (healthy sites respond in <3s)
     MAX_EVIDENCE_FOR_RANKING: int = Field(
         60, env="MAX_EVIDENCE_FOR_RANKING"

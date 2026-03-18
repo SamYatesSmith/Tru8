@@ -1,6 +1,6 @@
 'use client';
 
-export type SortField = 'date' | 'source' | 'tier' | 'element';
+export type SortField = 'date' | 'source' | 'element';
 
 interface SortControlProps {
   value: SortField;
@@ -10,7 +10,6 @@ interface SortControlProps {
 const SORT_LABELS: Record<SortField, string> = {
   date: 'Date',
   source: 'Source',
-  tier: 'Tier',
   element: 'Element',
 };
 

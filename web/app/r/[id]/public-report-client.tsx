@@ -8,7 +8,7 @@ import { ViewSelector, ViewGuide, EvidenceMetaStrip } from '@/components/evidenc
 import { ClaimSectionStack } from '@/components/evidence-views/overview';
 import { CartographerView } from '@/components/evidence-views/cartographer';
 import { LibrarianView } from '@/components/evidence-views/librarian';
-import { InterpreterView } from '@/components/evidence-views/interpreter';
+import { CorrespondentView } from '@/components/evidence-views/correspondent';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { SeekerView } from '@/components/evidence-views/seeker';
@@ -19,7 +19,7 @@ interface PublicReportClientProps {
   highlightView?: string;
 }
 
-const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'interpreter', 'seeker', 'projectionist', 'chronologist'];
+const VALID_DETAIL_VIEWS = ['cartographer', 'librarian', 'correspondent', 'seeker', 'projectionist', 'chronologist'];
 
 export function PublicReportClient({ check, highlightClaim, highlightView }: PublicReportClientProps) {
   const [copied, setCopied] = useState(false);
@@ -118,7 +118,6 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   }, []);
 
   const handleSwitchToLibrarian = useCallback(() => { setClaimView('librarian'); updateUrlViewParam('librarian'); }, [updateUrlViewParam]);
-  const handleSwitchToInterpreter = useCallback(() => { setClaimView('interpreter'); updateUrlViewParam('interpreter'); }, [updateUrlViewParam]);
 
   // Get content display for input context
   const getContentDisplay = () => {
@@ -277,14 +276,13 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                     scope="claim"
                     claims={[activeClaim]}
                     onSwitchToLibrarian={handleSwitchToLibrarian}
-                    onSwitchToInterpreter={handleSwitchToInterpreter}
                   />
                 )}
                 {claimView === 'librarian' && (
                   <LibrarianView scope="claim" claims={[activeClaim]} />
                 )}
-                {claimView === 'interpreter' && (
-                  <InterpreterView claim={activeClaim} />
+                {claimView === 'correspondent' && (
+                  <CorrespondentView scope="claim" claims={[activeClaim]} />
                 )}
                 {claimView === 'projectionist' && (
                   <ProjectionistView

@@ -20,7 +20,7 @@ import { CartographerView } from '@/components/evidence-views/cartographer';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { ClaimHeader } from '@/components/evidence-views/detail/ClaimHeader';
-import { InterpreterView } from '@/components/evidence-views/interpreter';
+import { CorrespondentView } from '@/components/evidence-views/correspondent';
 import { SeekerView } from '@/components/evidence-views/seeker';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 
@@ -53,7 +53,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     // If a claim is focused, read ?view= as the claim-level tab
     if (initialClaim !== undefined || isSingleClaim) {
       const viewParam = searchParams?.get('view');
-      const validViews = ['cartographer', 'librarian', 'interpreter', 'seeker', 'projectionist', 'chronologist'];
+      const validViews = ['cartographer', 'librarian', 'correspondent', 'seeker', 'projectionist', 'chronologist'];
       return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
     }
     return 'cartographer';
@@ -125,7 +125,6 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   }, [activeClaimIndex, isSingleClaim, handlePrevClaim, handleNextClaim]);
 
   const handleSwitchToLibrarian = useCallback(() => handleClaimTabChange('librarian'), [handleClaimTabChange]);
-  const handleSwitchToInterpreter = useCallback(() => handleClaimTabChange('interpreter'), [handleClaimTabChange]);
 
   // G02: Refresh page data after element re-search completes
   const handleResearchComplete = useCallback(() => {
@@ -419,14 +418,13 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                   scope="claim"
                   claims={[focusedClaim]}
                   onSwitchToLibrarian={handleSwitchToLibrarian}
-                  onSwitchToInterpreter={handleSwitchToInterpreter}
                 />
               )}
               {claimView === 'librarian' && (
                 <LibrarianView scope="claim" claims={[focusedClaim]} />
               )}
-              {claimView === 'interpreter' && (
-                <InterpreterView claim={focusedClaim} />
+              {claimView === 'correspondent' && (
+                <CorrespondentView scope="claim" claims={[focusedClaim]} />
               )}
               {claimView === 'projectionist' && (
                 <ProjectionistView

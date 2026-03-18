@@ -10,10 +10,9 @@ const STATE_BADGE_CONFIG: Record<string, { label: string; className: string }> =
 
 interface ElementRosterProps {
   elements: ClaimElement[];
-  onElementClick?: (index: number) => void;
 }
 
-export function ElementRoster({ elements, onElementClick }: ElementRosterProps) {
+export function ElementRoster({ elements }: ElementRosterProps) {
   return (
     <div className="mb-16">
       <div className="font-mono text-sm font-bold uppercase tracking-[0.3em] text-zinc-600 mb-6 border-b border-zinc-200 pb-2">
@@ -29,15 +28,11 @@ export function ElementRoster({ elements, onElementClick }: ElementRosterProps) 
           return (
             <div
               key={element.elementId}
-              role="button"
-              tabIndex={0}
-              className={`flex items-center gap-6 px-4 py-3 border transition-colors cursor-pointer ${
+              className={`flex items-center gap-6 px-4 py-3 border ${
                 isGap
-                  ? 'border-dashed border-zinc-200 bg-zinc-50/30 hover:border-zinc-300'
-                  : 'border-zinc-100 hover:border-zinc-300'
+                  ? 'border-dashed border-zinc-200 bg-zinc-50/30'
+                  : 'border-zinc-100'
               }`}
-              onClick={() => onElementClick?.(i)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onElementClick?.(i); } }}
             >
               <span className="font-mono text-xs text-zinc-300">
                 {String(i + 1).padStart(2, '0')}

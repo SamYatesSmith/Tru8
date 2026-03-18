@@ -1,21 +1,16 @@
 import { Evidence } from '@shared/types';
+import { TierStamp } from '../librarian/TierStamp';
+import { extractDomain, formatShortDate } from '../shared-utils';
 import type { DatedItem, ClusterItem } from './ChronologistView';
-
-function extractDomain(url: string): string {
-  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
-}
-
-function formatShortDate(date: Date): string {
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 interface MobileTimelineProps {
   items: DatedItem[];
   clusters: ClusterItem[];
   undated: Evidence[];
+  onCardClick: (evidence: Evidence) => void;
 }
 
-export function MobileTimeline({ items, clusters, undated }: MobileTimelineProps) {
+export function MobileTimeline({ items, clusters, undated, onCardClick }: MobileTimelineProps) {
   // Merge individual items and clusters into a single sorted list
   const allEntries: Array<{ date: Date; items: DatedItem[] }> = [];
 
@@ -46,8 +41,12 @@ export function MobileTimeline({ items, clusters, undated }: MobileTimelineProps
           <div key={i} className="mb-4 relative">
             {/* Date dot on the timeline line */}
             <div
-              className="absolute -left-[25px] top-1 w-2 h-2 rounded-full"
-              style={{ backgroundColor: entry.items[0].color }}
+              className="absolute -left-[25px] top-1 rounded-full"
+              style={{
+                width: entry.items[0].dotSize,
+                height: entry.items[0].dotSize,
+                backgroundColor: entry.items[0].color,
+              }}
             />
             {/* Date label */}
             <span className="font-mono text-[9px] text-zinc-400 block mb-1">
@@ -55,17 +54,19 @@ export function MobileTimeline({ items, clusters, undated }: MobileTimelineProps
             </span>
             {/* Evidence cards */}
             {entry.items.map((item, j) => (
-              <a
+              <button
                 key={j}
-                href={item.evidence.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block border border-zinc-100 hover:border-zinc-300 p-2 mb-1 transition-colors"
+                onClick={() => onCardClick(item.evidence)}
+                className="block w-full text-left border border-zinc-100 hover:border-zinc-300 p-2 mb-1 transition-colors"
               >
                 <div className="flex items-start gap-2">
                   <div
-                    className="w-2.5 h-2.5 rounded-full shrink-0 mt-1"
-                    style={{ backgroundColor: item.color }}
+                    className="rounded-full shrink-0 mt-1"
+                    style={{
+                      width: item.dotSize,
+                      height: item.dotSize,
+                      backgroundColor: item.color,
+                    }}
                   />
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium text-zinc-900 truncate">
@@ -74,12 +75,14 @@ export function MobileTimeline({ items, clusters, undated }: MobileTimelineProps
                     <span className="font-mono text-[9px] text-zinc-400">
                       {extractDomain(item.evidence.url)}
                     </span>
-                    {item.label && (
-                      <span className="font-mono text-[9px] text-zinc-300 ml-1.5">&middot; {item.label}</span>
+                    {item.evidence.tier && (
+                      <div className="mt-1">
+                        <TierStamp tier={item.evidence.tier} />
+                      </div>
                     )}
                   </div>
                 </div>
-              </a>
+              </button>
             ))}
           </div>
         ))}
@@ -92,16 +95,21 @@ export function MobileTimeline({ items, clusters, undated }: MobileTimelineProps
             Date Unknown &middot; {undated.length}
           </p>
           {undated.map((ev, i) => (
-            <a
+            <button
               key={ev.evidenceId || ev.id || i}
-              href={ev.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block border border-zinc-100 hover:border-zinc-300 p-2 mb-1 transition-colors"
+              onClick={() => onCardClick(ev)}
+              className="block w-full text-left border border-zinc-100 hover:border-zinc-300 p-2 mb-1 transition-colors"
             >
               <p className="text-[11px] font-medium text-zinc-900 truncate">{ev.title || 'Untitled'}</p>
-              <span className="font-mono text-[9px] text-zinc-400">{extractDomain(ev.url)}</span>
-            </a>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="font-mono text-[9px] text-zinc-400">{extractDomain(ev.url)}</span>
+              </div>
+              {ev.tier && (
+                <div className="mt-1">
+                  <TierStamp tier={ev.tier} />
+                </div>
+              )}
+            </button>
           ))}
         </div>
       )}

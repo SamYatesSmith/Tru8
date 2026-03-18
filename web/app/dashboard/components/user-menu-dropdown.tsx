@@ -23,8 +23,8 @@ export function UserMenuDropdown({ user, onClose }: UserMenuDropdownProps) {
   const menuItems = [
     {
       icon: User,
-      label: 'Account',
-      href: '/dashboard/settings?tab=account',
+      label: 'Settings',
+      href: '/dashboard/settings',
     },
     {
       icon: CreditCard,

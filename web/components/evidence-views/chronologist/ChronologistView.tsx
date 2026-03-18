@@ -1,30 +1,22 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Claim, Evidence } from '@shared/types';
+import { extractDomain, formatShortDate, getTierColor } from '../shared-utils';
 import { TemporalInsightStrip } from './TemporalInsightStrip';
 import { TimelineAxis } from './TimelineAxis';
 import { TimelineNode } from './TimelineNode';
 import { TimelineCluster } from './TimelineCluster';
 import { UndatedSidebar } from './UndatedSidebar';
 import { MobileTimeline } from './MobileTimeline';
+import { EvidenceDetailCard } from './EvidenceDetailCard';
 import { ChronologistProvenanceNote } from './ChronologistProvenanceNote';
 
-// Check-wide scope: colour by claim (5-colour palette)
-const CLAIM_COLORS = [
-  'var(--accent)',   // orange
-  '#3B82F6',         // blue-500
-  '#8B5CF6',         // violet-500
-  '#10B981',         // emerald-500
-  '#F59E0B',         // amber-500
-];
-
-// Per-claim scope: colour by evidence relationship to elements
-const RELATIONSHIP_COLORS: Record<string, string> = {
-  supports: 'var(--disposition-supports)',
-  challenges: 'var(--disposition-challenges)',
-  context: 'var(--disposition-context)',
-};
+// Tier-based dot sizes and vertical band offsets
+const TIER_DOT_SIZES: Record<string, number> = { primary: 22, reporting: 20, commentary: 18 };
+const TIER_LABELS: Record<string, string> = { primary: 'Primary', reporting: 'Reporting', commentary: 'Commentary' };
+// Vertical bands: primary at top, reporting middle, commentary near axis
+const TIER_BAND_OFFSET: Record<string, number> = { primary: 110, reporting: 65, commentary: 32 };
 
 // --- Exported types consumed by child components ---
 
@@ -32,7 +24,8 @@ export interface DatedItem {
   evidence: Evidence;
   date: Date;
   color: string;
-  label: string;
+  tierLabel: string;
+  dotSize: number;
   position: number;
   yLevel: number;
 }
@@ -62,14 +55,6 @@ function getPosition(date: Date, earliest: Date, latest: Date): number {
   return ((date.getTime() - earliest.getTime()) / range) * 100;
 }
 
-function extractDomain(url: string): string {
-  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
-}
-
-function formatShortDate(date: Date): string {
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
 function generateTicks(earliest: Date, latest: Date): TickMark[] {
   const rangeMonths = (latest.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 30);
   const ticks: TickMark[] = [];
@@ -95,20 +80,11 @@ function generateTicks(earliest: Date, latest: Date): TickMark[] {
   return ticks;
 }
 
-/** Determine the dominant relationship for an evidence item within a claim. */
-function getPrimaryRelationship(evidenceId: string, claim: Claim): string {
-  const counts: Record<string, number> = { supports: 0, challenges: 0, context: 0 };
-  for (const el of claim.claimMap?.elements || []) {
-    for (const ref of el.evidenceRefs || []) {
-      if (ref.evidenceId === evidenceId) {
-        counts[ref.relationship || 'context']++;
-      }
-    }
-  }
-  return Object.entries(counts).reduce(
-    (max, [rel, count]) => (count > max[1] ? [rel, count] : max),
-    ['context', 0] as [string, number],
-  )[0];
+/** Return the tier colour of the highest-priority tier in a group. */
+function getDominantTierColor(items: DatedItem[]): string {
+  if (items.some(i => i.evidence.tier === 'primary')) return getTierColor('primary');
+  if (items.some(i => i.evidence.tier === 'reporting')) return getTierColor('reporting');
+  return getTierColor('commentary');
 }
 
 // --- Component ---
@@ -120,6 +96,16 @@ interface ChronologistViewProps {
 }
 
 export function ChronologistView({ scope, claims, onSwitchToLibrarian }: ChronologistViewProps) {
+  const [selectedEvidence, setSelectedEvidence] = useState<Evidence | null>(null);
+
+  const handleNodeClick = useCallback((evidence: Evidence) => {
+    setSelectedEvidence(prev => {
+      const prevId = prev?.evidenceId || prev?.id;
+      const newId = evidence.evidenceId || evidence.id;
+      return prevId === newId ? null : evidence;
+    });
+  }, []);
+
   const data = useMemo(() => {
     // 1. Pool evidence (dedup for check-wide)
     const seen = new Set<string>();
@@ -135,7 +121,24 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
       }
     });
 
-    // 2. Partition dated vs undated
+    // 2. Build element maps for detail card
+    const elementMap = new Map<string, string[]>();
+    const elementDescriptionMap = new Map<string, string>();
+
+    for (const claim of claims) {
+      for (const el of claim.claimMap?.elements || []) {
+        elementDescriptionMap.set(el.elementId, el.description);
+        for (const ref of el.evidenceRefs || []) {
+          const existing = elementMap.get(ref.evidenceId) || [];
+          if (!existing.includes(el.elementId)) {
+            existing.push(el.elementId);
+          }
+          elementMap.set(ref.evidenceId, existing);
+        }
+      }
+    }
+
+    // 3. Partition dated vs undated
     const dated: Array<{ evidence: Evidence; date: Date; claimIdx: number }> = [];
     const undated: Evidence[] = [];
 
@@ -150,7 +153,7 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
       undated.push(evidence);
     }
 
-    // 3. Threshold check (≥50% must have dates)
+    // 4. Threshold check (≥50% must have dates)
     const total = allEvidence.length;
     const datedCount = dated.length;
     const belowThreshold = total > 0 && datedCount / total < 0.5;
@@ -168,35 +171,33 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
         todayPosition: null as number | null,
         earliest: null as Date | null,
         latest: null as Date | null,
-        clusterCount: 0,
         gapCount: 0,
+        elementMap,
+        elementDescriptionMap,
       };
     }
 
-    // 4. Sort by date, determine bounds
+    // 5. Sort by date, determine bounds
     dated.sort((a, b) => a.date.getTime() - b.date.getTime());
     const earliest = dated[0].date;
     const latest = dated[dated.length - 1].date;
 
-    // 5. Assign colours
-    const coloredDated: DatedItem[] = dated.map(({ evidence, date, claimIdx }) => {
-      const evId = evidence.evidenceId || evidence.id;
-      let color: string;
-      let label: string;
+    // Padded bounds: extend to start of earliest month and end of latest month
+    // so extreme dots aren't flush with container edges and axis covers full range
+    const paddedEarliest = new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+    const paddedLatest = new Date(latest.getFullYear(), latest.getMonth() + 1, 1);
 
-      if (scope === 'check') {
-        color = CLAIM_COLORS[claimIdx % CLAIM_COLORS.length];
-        label = `Claim ${String(claimIdx + 1).padStart(2, '0')}`;
-      } else {
-        const rel = getPrimaryRelationship(evId, claims[0]);
-        color = RELATIONSHIP_COLORS[rel] || RELATIONSHIP_COLORS.context;
-        label = rel.charAt(0).toUpperCase() + rel.slice(1);
-      }
+    // 6. Assign tier-based colours (same logic for both scopes)
+    const coloredDated: DatedItem[] = dated.map(({ evidence, date }) => {
+      const tier = evidence.tier || 'commentary';
+      const color = getTierColor(tier);
+      const tierLabel = TIER_LABELS[tier] || 'Commentary';
+      const dotSize = TIER_DOT_SIZES[tier] || 7;
 
-      return { evidence, date, color, label, position: 0, yLevel: 0 };
+      return { evidence, date, color, tierLabel, dotSize, position: 0, yLevel: 0 };
     });
 
-    // 6. Group by calendar date
+    // 7. Group by calendar date
     const groups = new Map<string, DatedItem[]>();
     for (const item of coloredDated) {
       const key = item.date.toISOString().slice(0, 10);
@@ -205,19 +206,19 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
       groups.set(key, group);
     }
 
-    // 7. Separate positioned items vs clusters (3+ on same day)
+    // 8. Separate positioned items vs clusters (3+ on same day)
     const items: DatedItem[] = [];
     const clusters: ClusterItem[] = [];
 
     Array.from(groups.values()).forEach((group) => {
-      const pos = getPosition(group[0].date, earliest, latest);
+      const pos = getPosition(group[0].date, paddedEarliest, paddedLatest);
 
       if (group.length >= 3) {
         clusters.push({
           date: group[0].date,
           items: group.map((g, i) => ({ ...g, position: pos, yLevel: i })),
           position: pos,
-          dominantColor: group[0].color,
+          dominantColor: getDominantTierColor(group),
         });
       } else {
         group.forEach((item, i) => {
@@ -226,29 +227,28 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
       }
     });
 
-    // 8. Generate axis ticks
-    const ticks = generateTicks(earliest, latest);
+    // 9. Generate axis ticks (using padded bounds so axis covers full range)
+    const ticks = generateTicks(paddedEarliest, paddedLatest);
 
-    // 9. Detect gaps (30+ days between consecutive evidence)
+    // 10. Detect gaps (30+ days between consecutive evidence)
     const gaps: GapZone[] = [];
     for (let i = 1; i < dated.length; i++) {
       const diffDays = (dated[i].date.getTime() - dated[i - 1].date.getTime()) / (1000 * 60 * 60 * 24);
       if (diffDays > 30) {
         gaps.push({
-          startPos: getPosition(dated[i - 1].date, earliest, latest),
-          endPos: getPosition(dated[i].date, earliest, latest),
+          startPos: getPosition(dated[i - 1].date, paddedEarliest, paddedLatest),
+          endPos: getPosition(dated[i].date, paddedEarliest, paddedLatest),
         });
       }
     }
 
-    // 10. Today marker (only if within or just past range)
+    // 11. Today marker (only if within or just past range)
     const today = new Date();
     let todayPosition: number | null = null;
-    if (today >= earliest && today <= latest) {
-      todayPosition = getPosition(today, earliest, latest);
-    } else if (today > latest) {
-      // Show at 100% if today is past the latest date (within reason)
-      const daysPast = (today.getTime() - latest.getTime()) / (1000 * 60 * 60 * 24);
+    if (today >= paddedEarliest && today <= paddedLatest) {
+      todayPosition = getPosition(today, paddedEarliest, paddedLatest);
+    } else if (today > paddedLatest) {
+      const daysPast = (today.getTime() - paddedLatest.getTime()) / (1000 * 60 * 60 * 24);
       if (daysPast < 60) todayPosition = 100;
     }
 
@@ -264,10 +264,26 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
       todayPosition,
       earliest,
       latest,
-      clusterCount: clusters.length,
       gapCount: gaps.length,
+      elementMap,
+      elementDescriptionMap,
     };
   }, [claims, scope]);
+
+  // Derive element descriptions for the selected evidence
+  const activeElementDescriptions = useMemo(() => {
+    if (!selectedEvidence) return [];
+    const evId = selectedEvidence.evidenceId || selectedEvidence.id;
+    const elIds = data.elementMap.get(evId) || [];
+    return elIds.map(eid => ({
+      elementId: eid,
+      description: data.elementDescriptionMap.get(eid) || '',
+    }));
+  }, [selectedEvidence, data.elementMap, data.elementDescriptionMap]);
+
+  const selectedEvidenceId = selectedEvidence
+    ? (selectedEvidence.evidenceId || selectedEvidence.id)
+    : undefined;
 
   // --- Below threshold state ---
   if (data.belowThreshold) {
@@ -300,22 +316,32 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
         latest={data.latest!}
         datedCount={data.datedCount}
         totalCount={data.total}
-        clusterCount={data.clusterCount}
         gapCount={data.gapCount}
       />
 
       {/* Desktop: horizontal timeline + undated sidebar */}
       <div className="hidden md:flex gap-6 mb-8">
         <div className="flex-grow min-w-0">
-          {/* Timeline content area */}
-          <div className="relative" style={{ minHeight: '200px' }}>
-            {/* Gap zones */}
+          {/* Timeline content area — tier bands: primary top, reporting middle, commentary near axis */}
+          <div className="relative" style={{ minHeight: '160px' }}>
+            {/* Tier band labels (left edge watermarks) */}
+            <span className="absolute left-0 font-mono text-[8px] uppercase tracking-widest text-zinc-200 pointer-events-none" style={{ bottom: `${TIER_BAND_OFFSET.primary}px` }}>Pri</span>
+            <span className="absolute left-0 font-mono text-[8px] uppercase tracking-widest text-zinc-200 pointer-events-none" style={{ bottom: `${TIER_BAND_OFFSET.reporting}px` }}>Rep</span>
+            <span className="absolute left-0 font-mono text-[8px] uppercase tracking-widest text-zinc-200 pointer-events-none" style={{ bottom: `${TIER_BAND_OFFSET.commentary}px` }}>Com</span>
+
+            {/* Faint tier band dividers */}
+            <div className="absolute left-0 right-0 border-t border-dashed border-zinc-100" style={{ bottom: `${TIER_BAND_OFFSET.primary - 10}px` }} />
+            <div className="absolute left-0 right-0 border-t border-dashed border-zinc-100" style={{ bottom: `${TIER_BAND_OFFSET.reporting - 10}px` }} />
+
+            {/* Gap zones with label */}
             {data.gaps.map((gap, i) => (
               <div
                 key={`gap-${i}`}
-                className="absolute top-0 bottom-8 bg-zinc-50/50 border-x border-dashed border-zinc-200"
+                className="absolute top-0 bottom-8 bg-zinc-50/50 border-x border-dashed border-zinc-200 flex items-center justify-center"
                 style={{ left: `${gap.startPos}%`, width: `${gap.endPos - gap.startPos}%` }}
-              />
+              >
+                <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-300">Gap</span>
+              </div>
             ))}
 
             {/* Today marker */}
@@ -328,47 +354,62 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
               </div>
             )}
 
-            {/* Individual nodes */}
-            {data.items.map((item, i) => (
-              <div
-                key={`node-${i}`}
-                className="absolute"
-                style={{
-                  left: `${item.position}%`,
-                  bottom: `${32 + item.yLevel * 28}px`,
-                  transform: 'translateX(-50%)',
-                }}
-              >
-                <TimelineNode
-                  color={item.color}
-                  title={item.evidence.title || 'Untitled'}
-                  domain={extractDomain(item.evidence.url)}
-                  date={formatShortDate(item.date)}
-                  tier={item.evidence.tier}
-                  url={item.evidence.url}
-                  label={item.label}
-                />
-              </div>
-            ))}
+            {/* Individual nodes — positioned vertically by tier band */}
+            {data.items.map((item, i) => {
+              const tier = item.evidence.tier || 'commentary';
+              const bandOffset = TIER_BAND_OFFSET[tier] || TIER_BAND_OFFSET.commentary;
+              return (
+                <div
+                  key={`node-${i}`}
+                  className="absolute"
+                  style={{
+                    left: `${item.position}%`,
+                    bottom: `${bandOffset + item.yLevel * 24}px`,
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  <TimelineNode
+                    evidence={item.evidence}
+                    color={item.color}
+                    tierLabel={item.tierLabel}
+                    dotSize={item.dotSize}
+                    domain={extractDomain(item.evidence.url)}
+                    date={formatShortDate(item.date)}
+                    isSelected={selectedEvidenceId === (item.evidence.evidenceId || item.evidence.id)}
+                    positionPct={item.position}
+                    onClick={() => handleNodeClick(item.evidence)}
+                  />
+                </div>
+              );
+            })}
 
-            {/* Clusters */}
-            {data.clusters.map((cluster, i) => (
-              <div
-                key={`cluster-${i}`}
-                className="absolute"
-                style={{
-                  left: `${cluster.position}%`,
-                  bottom: '28px',
-                  transform: 'translateX(-50%)',
-                }}
-              >
-                <TimelineCluster
-                  count={cluster.items.length}
-                  items={cluster.items}
-                  dominantColor={cluster.dominantColor}
-                />
-              </div>
-            ))}
+            {/* Clusters — positioned at their dominant tier band */}
+            {data.clusters.map((cluster, i) => {
+              const dominantTier = cluster.items.some(it => it.evidence.tier === 'primary') ? 'primary'
+                : cluster.items.some(it => it.evidence.tier === 'reporting') ? 'reporting'
+                : 'commentary';
+              const bandOffset = TIER_BAND_OFFSET[dominantTier] || TIER_BAND_OFFSET.commentary;
+              return (
+                <div
+                  key={`cluster-${i}`}
+                  className="absolute"
+                  style={{
+                    left: `${cluster.position}%`,
+                    bottom: `${bandOffset}px`,
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  <TimelineCluster
+                    count={cluster.items.length}
+                    items={cluster.items}
+                    dominantColor={cluster.dominantColor}
+                    onNodeClick={handleNodeClick}
+                    selectedEvidenceId={selectedEvidenceId}
+                    positionPct={cluster.position}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {/* Axis */}
@@ -377,7 +418,7 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
 
         {/* Undated sidebar */}
         {data.undated.length > 0 && (
-          <UndatedSidebar evidence={data.undated} />
+          <UndatedSidebar evidence={data.undated} onCardClick={handleNodeClick} />
         )}
       </div>
 
@@ -387,10 +428,20 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
           items={data.items}
           clusters={data.clusters}
           undated={data.undated}
+          onCardClick={handleNodeClick}
         />
       </div>
 
-      <ChronologistProvenanceNote />
+      {/* Evidence detail card */}
+      {selectedEvidence && (
+        <EvidenceDetailCard
+          evidence={selectedEvidence}
+          elementDescriptions={activeElementDescriptions}
+          onClose={() => setSelectedEvidence(null)}
+        />
+      )}
+
+      <ChronologistProvenanceNote hasUndated={data.undated.length > 0} />
     </div>
   );
 }

@@ -323,6 +323,20 @@ class ApiClient {
   }
 
   /**
+   * POST /api/v1/checks/{check_id}/claims/{claim_id}/research-gaps
+   * Start re-search for ALL gap elements in a claim (1 credit)
+   */
+  async startGapResearch(
+    checkId: string,
+    claimId: string,
+    token?: string | null
+  ): Promise<{ status: string; message: string; elementIds: string[]; gapCount: number; creditsUsed: number }> {
+    return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/research-gaps`, {
+      method: 'POST',
+    }, token);
+  }
+
+  /**
    * POST /api/v1/checks/{check_id}/claims/{claim_id}/elements/{element_id}/research
    * Start targeted re-search for a single element (G02)
    */
@@ -348,6 +362,18 @@ class ApiClient {
     token?: string | null
   ): Promise<{ status: string; message: string; newEvidenceCount?: number }> {
     return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/elements/${elementId}/research/status`, {}, token);
+  }
+
+  /**
+   * GET /api/v1/checks/{check_id}/claims/{claim_id}/explore
+   * Get related claims for Seeker explore mode (when no gaps remain)
+   */
+  async getExploreData(
+    checkId: string,
+    claimId: string,
+    token?: string | null
+  ): Promise<{ relatedClaims: any[]; mode: string; explorationBasis: string }> {
+    return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/explore`, {}, token);
   }
 
   /**

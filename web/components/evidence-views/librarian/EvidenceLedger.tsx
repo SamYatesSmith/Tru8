@@ -1,12 +1,26 @@
 'use client';
 
-import { Evidence } from '@shared/types';
+import { Evidence, EvidenceTier } from '@shared/types';
 import { LedgerCard } from './LedgerCard';
+import { ReadingTable } from './ReadingTable';
 import { SortControl, SortField } from './SortControl';
 
 const TIER_ORDER: Record<string, number> = { primary: 0, reporting: 1, commentary: 2 };
+const TIER_GROUPS: EvidenceTier[] = ['primary', 'reporting', 'commentary'];
 
-function sortEvidence(items: Evidence[], field: SortField, elementMap: Map<string, string[]>): Evidence[] {
+const TIER_DIVIDER_LABELS: Record<EvidenceTier, string> = {
+  primary: 'PRIMARY SOURCES',
+  reporting: 'REPORTING SOURCES',
+  commentary: 'COMMENTARY SOURCES',
+};
+
+const TIER_DIVIDER_COLORS: Record<EvidenceTier, string> = {
+  primary: 'text-[#EA580C]',
+  reporting: 'text-[#3F3F46]',
+  commentary: 'text-[#A1A1AA]',
+};
+
+function sortWithinGroup(items: Evidence[], field: SortField, elementMap: Map<string, string[]>): Evidence[] {
   const sorted = [...items];
 
   sorted.sort((a, b) => {
@@ -18,8 +32,6 @@ function sortEvidence(items: Evidence[], field: SortField, elementMap: Map<strin
       }
       case 'source':
         return (a.source || '').localeCompare(b.source || '');
-      case 'tier':
-        return (TIER_ORDER[a.tier || 'commentary'] ?? 2) - (TIER_ORDER[b.tier || 'commentary'] ?? 2);
       case 'element': {
         const aEls = elementMap.get(a.evidenceId || a.id) || [];
         const bEls = elementMap.get(b.evidenceId || b.id) || [];
@@ -42,9 +54,13 @@ interface EvidenceLedgerProps {
   onSortChange: (field: SortField) => void;
   elementMap: Map<string, string[]>;
   claimLabelMap?: Map<string, string>;
+  callNumberMap: Map<string, string>;
   diagnosticValues?: Map<string, number>;
   diagnosticActive?: boolean;
+  activeEvidenceId: string | null;
   onCardClick?: (evidence: Evidence) => void;
+  elementDescriptionMap: Map<string, string>;
+  mobileReadingTable?: React.ReactNode;
 }
 
 export function EvidenceLedger({
@@ -54,11 +70,21 @@ export function EvidenceLedger({
   onSortChange,
   elementMap,
   claimLabelMap,
+  callNumberMap,
   diagnosticValues,
   diagnosticActive,
+  activeEvidenceId,
   onCardClick,
+  elementDescriptionMap,
 }: EvidenceLedgerProps) {
-  const sorted = sortEvidence(evidence, sortField, elementMap);
+  // Group evidence by tier, then sort within each group
+  const tierGroups = TIER_GROUPS.map((tier) => {
+    const items = evidence.filter((ev) => (ev.tier || 'commentary') === tier);
+    return {
+      tier,
+      items: sortWithinGroup(items, sortField, elementMap),
+    };
+  }).filter((group) => group.items.length > 0);
 
   return (
     <div>
@@ -68,22 +94,59 @@ export function EvidenceLedger({
       </div>
 
       <div className="space-y-3 mb-12">
-        {sorted.map((ev) => {
-          const evId = ev.evidenceId || ev.id;
-          return (
-            <LedgerCard
-              key={ev.id}
-              evidence={ev}
-              elementIds={elementMap.get(evId)}
-              claimLabel={claimLabelMap?.get(evId)}
-              diagnosticValue={diagnosticValues?.get(evId)}
-              diagnosticActive={diagnosticActive}
-              onClick={() => onCardClick?.(ev)}
-            />
-          );
-        })}
+        {tierGroups.map((group) => (
+          <div key={group.tier}>
+            {/* Shelf Divider */}
+            <div className="flex items-center gap-3 my-4">
+              <span className="flex-1 h-px bg-zinc-200" />
+              <span className={`font-mono text-[10px] uppercase tracking-[0.25em] font-bold ${TIER_DIVIDER_COLORS[group.tier]}`}>
+                {TIER_DIVIDER_LABELS[group.tier]} ({group.items.length})
+              </span>
+              <span className="flex-1 h-px bg-zinc-200" />
+            </div>
 
-        {sorted.length === 0 && (
+            {group.items.map((ev) => {
+              const evId = ev.evidenceId || ev.id;
+              const isActive = activeEvidenceId === evId;
+
+              // Build element descriptions for mobile reading table
+              const elIds = elementMap.get(evId) || [];
+              const elDescs = elIds.map((eid) => ({
+                elementId: eid,
+                description: elementDescriptionMap.get(eid) || '',
+              }));
+
+              return (
+                <div key={ev.id}>
+                  <LedgerCard
+                    evidence={ev}
+                    callNumber={callNumberMap.get(evId)}
+                    elementIds={elementMap.get(evId)}
+                    claimLabel={claimLabelMap?.get(evId)}
+                    diagnosticValue={diagnosticValues?.get(evId)}
+                    diagnosticActive={diagnosticActive}
+                    isActive={isActive}
+                    onClick={() => onCardClick?.(ev)}
+                  />
+                  {/* Mobile reading table — inline after active card */}
+                  {isActive && (
+                    <div className="md:hidden mt-2">
+                      <ReadingTable
+                        evidence={ev}
+                        callNumber={callNumberMap.get(evId) || ''}
+                        elementDescriptions={elDescs}
+                        claimLabel={claimLabelMap?.get(evId)}
+                        onClose={() => onCardClick?.(ev)}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+
+        {evidence.length === 0 && (
           <div className="py-8 text-center border border-dashed border-zinc-200">
             <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">
               No evidence matches current filters

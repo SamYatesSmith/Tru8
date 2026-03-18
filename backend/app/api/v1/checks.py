@@ -1519,6 +1519,163 @@ async def update_bounty_text(
 # ============================================================================
 
 
+async def _check_credits(session: AsyncSession, current_user: dict):
+    """Validate credits and return (user, skip_check) or raise 402."""
+    user = await get_or_create_user(session, current_user)
+    is_beta_tester = user.email.lower() in [
+        e.lower() for e in settings.BETA_TESTER_EMAILS
+    ]
+
+    sub_stmt = select(Subscription).where(
+        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+
+    if is_beta_tester:
+        now = datetime.now(timezone.utc)
+        period_start = datetime(now.year, now.month, 1)
+        credits_limit = 40
+        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+            Check.user_id == user.id, Check.created_at >= period_start
+        )
+        usage_result = await session.execute(usage_stmt)
+        current_usage = usage_result.scalar() or 0
+    elif subscription and subscription.current_period_start:
+        period_start = subscription.current_period_start
+        credits_limit = subscription.credits_per_month
+        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
+            Check.user_id == user.id, Check.created_at >= period_start
+        )
+        usage_result = await session.execute(usage_stmt)
+        current_usage = usage_result.scalar() or 0
+    else:
+        credits_limit = 3
+        current_usage = user.total_credits_used
+
+    # Admin/DEBUG bypass
+    if settings.DEBUG:
+        return user
+    if user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
+        return user
+
+    if current_usage >= credits_limit:
+        raise HTTPException(
+            status_code=402,
+            detail="Credit limit reached. Please upgrade your plan for more re-searches.",
+        )
+
+    return user
+
+
+async def _deduct_credit(session: AsyncSession, user):
+    """Deduct 1 credit from user."""
+    user.total_credits_used += 1
+    if user.credits > 0:
+        user.credits -= 1
+    await session.commit()
+
+
+@router.post(
+    "/{check_id}/claims/{claim_id}/research-gaps",
+    summary="Start re-search for all gap elements in a claim",
+    responses={
+        200: {"description": "Re-search started for gap elements"},
+        404: {"description": "Check or claim not found", "model": ErrorResponse},
+        409: {
+            "description": "Check is not completed or research already in progress",
+            "model": ErrorResponse,
+        },
+    },
+)
+async def start_gap_research(
+    check_id: str,
+    claim_id: str,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    """Start targeted re-search for ALL gap elements in a claim (1 credit)."""
+    from app.pipeline.re_search import run_element_re_search, get_research_status
+
+    # 1. Validate check
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    if check.status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail="Re-search is only available on completed checks",
+        )
+
+    # 2. Validate claim + find gap elements
+    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
+    claim_result = await session.execute(claim_stmt)
+    db_claim = claim_result.scalar_one_or_none()
+
+    if not db_claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+
+    claim_map = db_claim.claim_map
+    if isinstance(claim_map, str):
+        claim_map = json.loads(claim_map)
+
+    if not claim_map or not isinstance(claim_map, dict):
+        raise HTTPException(status_code=404, detail="Claim map not found")
+
+    # Find gap elements (no evidence refs)
+    gap_element_ids = []
+    for elem in claim_map.get("elements", []):
+        refs = elem.get("evidence_refs", [])
+        if not refs:
+            eid = elem.get("element_id")
+            if eid:
+                gap_element_ids.append(eid)
+
+    if not gap_element_ids:
+        raise HTTPException(
+            status_code=409,
+            detail="No gap elements found — all elements have evidence",
+        )
+
+    # 3. Check none are already running
+    for eid in gap_element_ids:
+        existing_status = get_research_status(check_id, claim_id, eid)
+        if existing_status and existing_status.get("status") in (
+            "planning",
+            "retrieving",
+            "classifying",
+            "mapping",
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail="Research is already in progress for one or more gap elements",
+            )
+
+    # 4. Credit validation — 1 credit for all gaps
+    user = await _check_credits(session, current_user)
+
+    # 5. Start background tasks for each gap element
+    for eid in gap_element_ids:
+        asyncio.create_task(run_element_re_search(check_id, claim_id, eid))
+
+    # 6. Deduct 1 credit
+    await _deduct_credit(session, user)
+
+    return {
+        "status": "started",
+        "message": f"Research started for {len(gap_element_ids)} gap element{'s' if len(gap_element_ids) != 1 else ''}",
+        "elementIds": gap_element_ids,
+        "gapCount": len(gap_element_ids),
+        "creditsUsed": 1,
+    }
+
+
 @router.post(
     "/{check_id}/claims/{claim_id}/elements/{element_id}/research",
     summary="Start element re-search",
@@ -1542,7 +1699,6 @@ async def start_element_research(
     session: AsyncSession = Depends(get_session),
 ):
     """Start targeted re-search for a single element (G02)."""
-    from app.core.database import async_session as async_session_factory
     from app.pipeline.re_search import run_element_re_search, get_research_status
 
     # 1. Validate check exists + user owns it
@@ -1569,7 +1725,7 @@ async def start_element_research(
     if not db_claim:
         raise HTTPException(status_code=404, detail="Claim not found")
 
-    # 3. Validate element exists and has bounty text
+    # 3. Validate element exists
     claim_map = db_claim.claim_map
     if isinstance(claim_map, str):
         claim_map = json.loads(claim_map)
@@ -1586,12 +1742,6 @@ async def start_element_research(
     if not target_element:
         raise HTTPException(status_code=404, detail=f"Element {element_id} not found")
 
-    if not target_element.get("bounty_text"):
-        raise HTTPException(
-            status_code=400,
-            detail="Bounty text must be set before re-searching",
-        )
-
     # 4. Check if research is already running
     existing_status = get_research_status(check_id, claim_id, element_id)
     if existing_status and existing_status.get("status") in (
@@ -1605,13 +1755,20 @@ async def start_element_research(
             detail="Research is already in progress for this element",
         )
 
-    # 5. Start background task
+    # 5. Credit validation
+    user = await _check_credits(session, current_user)
+
+    # 6. Start background task
     asyncio.create_task(run_element_re_search(check_id, claim_id, element_id))
+
+    # 7. Deduct credit
+    await _deduct_credit(session, user)
 
     return {
         "status": "started",
         "message": "Research started for element",
         "elementId": element_id,
+        "creditsUsed": 1,
     }
 
 
@@ -1651,6 +1808,63 @@ async def get_element_research_status(
         return {"status": "idle", "message": "No research in progress"}
 
     return status
+
+
+# ============================================================================
+# SEEKER EXPLORE MODE — Related claims from other users
+# ============================================================================
+
+
+@router.get(
+    "/{check_id}/claims/{claim_id}/explore",
+    summary="Get related claims for Seeker explore mode",
+    responses={
+        200: {"description": "Related claims from other users"},
+        404: {"description": "Check or claim not found", "model": ErrorResponse},
+    },
+)
+async def get_explore_data(
+    check_id: str,
+    claim_id: str,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    """Surface related claims investigated by other users.
+
+    Used by the Seeker view when no evidence gaps remain. Returns normalised
+    claim text + element descriptions from related checks. Privacy-safe:
+    no user IDs, no check IDs, no individual evidence items.
+
+    Relatedness is determined by shared key_entities (preferred) with
+    subject_context fallback.
+    """
+    # Validate check ownership
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    # Validate claim belongs to this check
+    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
+    claim_result = await session.execute(claim_stmt)
+    db_claim = claim_result.scalar_one_or_none()
+
+    if not db_claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+
+    from app.services.explore import find_related_claims, build_explore_response
+
+    related = await find_related_claims(
+        claim_id=claim_id,
+        user_id=current_user["id"],
+        session=session,
+    )
+
+    return build_explore_response(related)
 
 
 @router.post(

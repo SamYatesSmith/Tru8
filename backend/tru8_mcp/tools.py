@@ -23,12 +23,13 @@ MAX_POLL_DURATION = 300.0
 # Tier timeouts — quick is faster, so shorter HTTP timeout
 TIER_TIMEOUTS = {
     "lookup": 15.0,
+    "consensus": 15.0,
     "quick": 60.0,
     "full": PIPELINE_TIMEOUT + 30.0,
 }
 
 # Tier order for fallback
-TIER_ORDER = ["lookup", "quick", "full"]
+TIER_ORDER = ["lookup", "consensus", "quick", "full"]
 
 
 class Tru8APIClient:
