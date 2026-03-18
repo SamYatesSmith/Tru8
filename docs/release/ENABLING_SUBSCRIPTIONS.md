@@ -61,21 +61,21 @@ railway variables set BETA_TESTER_EMAILS='[]'
 
 ### 3. Frontend Environment Variables
 
-Update in Vercel (or your hosting provider):
+Update in Railway (web service):
 
 ```bash
 # Enable subscriptions UI
-NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=true
+railway variables set NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=true --service web
 
 # Stripe Production Keys
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxx
-NEXT_PUBLIC_STRIPE_PRICE_ID_PRO=price_xxxxxxxxxxxx
+railway variables set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxx --service web
+railway variables set NEXT_PUBLIC_STRIPE_PRICE_ID_PRO=price_xxxxxxxxxxxx --service web
 ```
 
-**Vercel Dashboard:**
-1. Go to Project Settings → Environment Variables
+**Railway Dashboard:**
+1. Go to Project → Web Service → Variables tab
 2. Update the variables above
-3. Redeploy: `vercel --prod`
+3. Redeploy triggers automatically on variable change
 
 ### 4. Webhook Events to Handle
 
@@ -235,7 +235,8 @@ If issues arise, you can instantly disable subscriptions:
 railway variables set SUBSCRIPTIONS_ENABLED=false
 
 # Frontend
-# Update NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=false in Vercel and redeploy
+# Update NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=false in Railway web service and redeploy
+railway variables set NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=false --service web
 ```
 
 This will:

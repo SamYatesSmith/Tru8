@@ -20,14 +20,14 @@ This runbook documents operational procedures for the Tru8 platform.
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Vercel    │────▶│  Railway    │────▶│  PostgreSQL │
+│   Railway   │────▶│  Railway    │────▶│  PostgreSQL │
 │  (Web/SSR)  │     │  (FastAPI)  │     │  (Railway)  │
 └─────────────┘     └─────────────┘     └─────────────┘
                            │
                            ▼
                     ┌─────────────┐
                     │    Redis    │
-                    │  (Upstash)  │
+                    │  (Railway)  │
                     └─────────────┘
 ```
 
@@ -35,10 +35,10 @@ This runbook documents operational procedures for the Tru8 platform.
 
 | Service | Provider | Purpose |
 |---------|----------|---------|
-| Web Frontend | Vercel | Next.js SSR |
+| Web Frontend | Railway | Next.js SSR (containerised) |
 | API Backend | Railway | FastAPI + Uvicorn |
 | Database | Railway Postgres | PostgreSQL 16 |
-| Cache | Upstash/Redis | Caching + background tasks |
+| Cache | Railway Redis | Caching + background tasks |
 | Auth | Clerk | JWT authentication |
 | Payments | Stripe | Subscriptions |
 | Monitoring | Sentry | Error tracking |
@@ -73,17 +73,19 @@ railway logs
 railway open
 ```
 
-### Frontend (Vercel)
+### Frontend (Railway)
+
+The frontend deploys on Railway using the same git-push workflow as the backend. Both services live in the same Railway project.
 
 ```bash
 # Deploy to production (automatic on main branch)
 git push origin main
 
-# Manual deploy
-vercel --prod
+# Manual deploy via Railway CLI
+railway up
 
-# Preview deploy
-vercel
+# View frontend logs
+railway logs --service web
 ```
 
 ### Environment Variables
@@ -259,12 +261,16 @@ railway run alembic downgrade -3
 
 ### Frontend Rollback
 
-```bash
-# Via Vercel dashboard
-# Go to: Deployments > Select previous deployment > Promote to Production
+Same as backend — Railway keeps deployment history for both services:
 
-# Or via CLI
-vercel rollback
+1. Go to **Railway dashboard → Web Service → Deployments**
+2. Find the previous working deployment
+3. Click **Redeploy** on that deployment
+
+Or via git revert (triggers both services):
+```bash
+git revert HEAD
+git push origin main
 ```
 
 ---
@@ -341,4 +347,4 @@ railway logs | grep -i "timeout\|stuck\|error"
 
 ---
 
-*Last updated: 2026-03-12*
+*Last updated: 2026-03-18*

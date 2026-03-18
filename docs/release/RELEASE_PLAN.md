@@ -655,7 +655,7 @@ If issues arise post-deployment:
 
 1. **Revert deployment:** Redeploy previous commit from Railway dashboard
 2. **Database:** Restore from last backup if data corruption
-3. **Configuration:** Roll back env vars in Railway/Vercel dashboard
+3. **Configuration:** Roll back env vars in Railway dashboard
 4. **Feature flag:** Disable problematic features via config
 
 ---

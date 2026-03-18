@@ -206,10 +206,11 @@ Monitor verdict distribution in production and adjust if needed.
 
 **Currently missing - need to create:**
 
-- [ ] `.github/workflows/backend.yml` - Backend CI/CD
-- [ ] `.github/workflows/web.yml` - Web frontend CI/CD
-- [ ] `railway.toml` - Railway backend deployment config
-- [ ] `vercel.json` - Vercel web deployment config (or use Vercel auto-detect)
+- [x] `.github/workflows/ci.yml` - Backend + frontend CI (pytest + npm build)
+- [x] `backend/railway.toml` - Railway backend deployment config
+- [x] `web/railway.toml` - Railway frontend deployment config
+- [x] `backend/Dockerfile` - Backend container (Python 3.12, multi-stage)
+- [x] `web/Dockerfile` - Frontend container (Node 20, standalone Next.js)
 
 ---
 
@@ -218,8 +219,7 @@ Monitor verdict distribution in production and adjust if needed.
 **Current:** All secrets in `.env` files (not secure for production)
 
 **Recommended approach:**
-- Use Railway variables (`railway variables set KEY=value`)
-- Use Vercel environment variables (encrypted)
+- Use Railway variables for both backend and frontend (`railway variables set KEY=value`)
 - Use GitHub Actions secrets for CI/CD
 - Consider: AWS Secrets Manager, HashiCorp Vault, or Doppler
 

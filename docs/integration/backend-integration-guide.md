@@ -312,7 +312,7 @@ NEXT_PUBLIC_ENABLE_FILE_UPLOAD=true
 Ensure your backend allows requests from:
 - `http://localhost:3000` (development)
 - `https://yourdomain.com` (production)
-- `https://preview-*.vercel.app` (Vercel preview deployments)
+- `https://*.up.railway.app` (Railway preview deployments)
 
 ---
 

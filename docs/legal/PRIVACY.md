@@ -86,7 +86,7 @@ We may share data with trusted partners and service providers who help us operat
 Partner / Processor	Purpose	Region
 Stripe, Inc.	Payment processing	EU / US
 Clerk, Inc.	Authentication	EU / US
-Vercel / AWS / Render	Hosting & infrastructure	EU / US
+Railway	Hosting & infrastructure	US
 OpenAI / Anthropic	AI-based text & media processing	US
 PostHog / Google Analytics / Plausible	Analytics	EU / US
 

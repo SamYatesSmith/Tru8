@@ -291,8 +291,8 @@ pytest --cov=app tests/             # With coverage
 
 | Area | Status | Finding | Location |
 |------|--------|---------|----------|
-| CI exists | FAIL | No `.github/workflows/` | Root |
-| Deployment config | FAIL | No `railway.toml`, `vercel.json` | Root |
+| CI exists | PASS | `.github/workflows/ci.yml` (pytest + npm build) | Root |
+| Deployment config | PASS | `backend/railway.toml` + `web/railway.toml` with Dockerfiles | Root |
 | Environment separation | PARTIAL | Config supports it, not automated | - |
 
 **Proposed CI Pipeline:**
