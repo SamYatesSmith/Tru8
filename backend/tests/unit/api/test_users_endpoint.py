@@ -61,7 +61,7 @@ def _make_user(**overrides):
         "email": "test@tru8.app",
         "credits": 10,
         "total_credits_used": 5,
-        "credit_balance_cents": 0,
+        "credit_balance_pence": 0,
         "push_notifications_enabled": True,
         "push_token": None,
         "platform": None,

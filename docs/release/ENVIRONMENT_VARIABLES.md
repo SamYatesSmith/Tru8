@@ -81,8 +81,8 @@ Complete reference for all environment variables across backend, web, and mobile
 | Variable | Required | Default | Purpose | Example |
 |----------|----------|---------|---------|---------|
 | `RESEND_API_KEY` | No | - | Email notifications | `re_xxxx` |
-| `RESEND_FROM_EMAIL` | No | `noreply@tru8.com` | Sender email | `noreply@tru8.com` |
-| `FEEDBACK_EMAIL` | No | - | Feedback email recipient | `feedback@tru8.com` |
+| `RESEND_FROM_EMAIL` | No | `noreply@trueight.com` | Sender email | `noreply@trueight.com` |
+| `FEEDBACK_EMAIL` | No | - | Feedback email recipient | `feedback@trueight.com` |
 
 ### Monitoring
 
@@ -102,7 +102,7 @@ Complete reference for all environment variables across backend, web, and mobile
 
 | Variable | Required | Default | Purpose | Example |
 |----------|----------|---------|---------|---------|
-| `CORS_ORIGINS` | Yes for prod | See default | Allowed CORS origins | `["https://tru8.com"]` |
+| `CORS_ORIGINS` | Yes for prod | See default | Allowed CORS origins | `["https://trueight.com"]` |
 | `RATE_LIMIT_PER_MINUTE` | No | `100` | API rate limit | `100` |
 | `CHECK_RATE_LIMIT_PER_MINUTE` | No | `10` | Check creation rate limit | `10` |
 
@@ -142,7 +142,7 @@ Complete reference for all environment variables across backend, web, and mobile
 
 | Variable | Required | Default | Purpose | Example |
 |----------|----------|---------|---------|---------|
-| `EXPO_PUBLIC_API_URL` | Yes | - | Backend API URL | `https://api.tru8.com` |
+| `EXPO_PUBLIC_API_URL` | Yes | - | Backend API URL | `https://api.trueight.com` |
 | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | - | Clerk frontend key | `pk_live_xxxx` |
 | `EXPO_PUBLIC_REVENUECAT_API_KEY` | Yes for payments | - | RevenueCat key | `xxxx` |
 
@@ -183,7 +183,7 @@ SECRET_KEY=staging-secret-key
 CLERK_SECRET_KEY=sk_test_xxxx
 CLERK_JWT_ISSUER=https://staging-xxx.clerk.accounts.dev
 SENTRY_DSN=https://xxx@sentry.io/xxx
-CORS_ORIGINS=["https://staging.tru8.com"]
+CORS_ORIGINS=["https://staging.trueight.com"]
 ```
 
 ### Production
@@ -196,9 +196,9 @@ DATABASE_URL=postgresql+asyncpg://xxx:xxx@xxx-db.internal:5432/tru8_prod
 REDIS_URL=redis://xxx:xxx@xxx-redis.internal:6379
 SECRET_KEY=<strong-random-key>
 CLERK_SECRET_KEY=sk_live_xxxx
-CLERK_JWT_ISSUER=https://clerk.tru8.com
+CLERK_JWT_ISSUER=https://clerk.trueight.com
 SENTRY_DSN=https://xxx@sentry.io/xxx
-CORS_ORIGINS=["https://tru8.com","https://www.tru8.com","https://app.tru8.com"]
+CORS_ORIGINS=["https://trueight.com","https://www.trueight.com"]
 STRIPE_SECRET_KEY=sk_live_xxxx
 STRIPE_WEBHOOK_SECRET=whsec_xxxx
 RESEND_API_KEY=re_xxxx

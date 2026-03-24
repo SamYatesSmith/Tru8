@@ -61,7 +61,7 @@ class SkyfirePaymentProvider(PaymentProvider):
         return settings.SKYFIRE_ENABLED and "skyfire-pay-id" in request.headers
 
     async def verify_and_charge(
-        self, request: Request, amount_cents: int, description: str
+        self, request: Request, amount_pence: int, description: str
     ) -> PaymentVerification:
         """Verify JWT, check expiry headroom, and charge via Skyfire API."""
         token = request.headers["skyfire-pay-id"]
@@ -70,12 +70,12 @@ class SkyfirePaymentProvider(PaymentProvider):
         payload = await self._verify_jwt(token)
 
         # --- Charge via Skyfire settlement API ---
-        tx_ref = await self._charge(payload, amount_cents, description)
+        tx_ref = await self._charge(payload, amount_pence, description)
 
         return PaymentVerification(
             provider="skyfire",
             payer_id=payload.get("sub", "unknown"),
-            amount_cents=amount_cents,
+            amount_pence=amount_pence,
             transaction_ref=tx_ref,
             metadata={
                 "skyfire_service_id": payload.get("service_id"),
@@ -129,7 +129,7 @@ class SkyfirePaymentProvider(PaymentProvider):
                 f"needs at least {headroom}s.  Request a longer-lived token."
             )
 
-    async def _charge(self, payload: dict, amount_cents: int, description: str) -> str:
+    async def _charge(self, payload: dict, amount_pence: int, description: str) -> str:
         """POST charge to Skyfire settlement API.  Returns transaction ref."""
         try:
             async with httpx.AsyncClient(timeout=15) as client:
@@ -142,8 +142,8 @@ class SkyfirePaymentProvider(PaymentProvider):
                     json={
                         "service_id": settings.SKYFIRE_SERVICE_ID,
                         "payer_id": payload.get("sub"),
-                        "amount_cents": amount_cents,
-                        "currency": "USD",
+                        "amount_pence": amount_pence,
+                        "currency": "GBP",
                         "description": description,
                         "environment": settings.SKYFIRE_ENVIRONMENT,
                     },

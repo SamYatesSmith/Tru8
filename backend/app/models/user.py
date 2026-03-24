@@ -10,8 +10,8 @@ class User(SQLModel, table=True):
     name: Optional[str] = None
     credits: int = Field(default=3)  # Start with 3 free credits
     total_credits_used: int = Field(default=0)
-    credit_balance_cents: int = Field(
-        default=0, description="Prepaid agent credit balance in integer cents"
+    credit_balance_pence: int = Field(
+        default=0, description="Prepaid agent credit balance in integer pence (GBP)"
     )
     external_id: Optional[str] = Field(
         default=None,
@@ -44,7 +44,7 @@ class User(SQLModel, table=True):
 class Subscription(SQLModel, table=True):
     id: str = Field(primary_key=True)
     user_id: str = Field(foreign_key="user.id", unique=True)
-    plan: str = Field(index=True)  # 'starter' or 'pro'
+    plan: str = Field(index=True)  # 'starter' or 'professional'
     status: str = Field(default="active")  # 'active', 'cancelled', 'past_due'
     credits_per_month: int
     credits_remaining: int

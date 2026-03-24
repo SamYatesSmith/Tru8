@@ -640,8 +640,8 @@ class AgentMeta(BaseModel):
     executedTier: PipelineTier = Field(
         description="Pipeline tier that was executed: lookup, consensus, quick, or full"
     )
-    chargedCents: int = Field(
-        description="Amount charged in US cents (0 for free retrievals)"
+    chargedPence: int = Field(
+        description="Amount charged in pence GBP (0 for free retrievals)"
     )
     limitations: List[str] = Field(
         description="Pipeline stages skipped in quick mode (empty for full tier). Values: heuristic_classification, no_factcheck_lookup, no_api_sources, no_llm_relevance_scoring, no_coverage_recovery, no_query_answering",
@@ -732,8 +732,8 @@ class AgentCacheMiss(BaseModel):
     nextSuggestedTier: PipelineTier = Field(
         description="Suggested tier to try next: consensus, quick, or full"
     )
-    upgradeCostCents: int = Field(
-        description="Cost in US cents to run the suggested tier"
+    upgradeCostPence: int = Field(
+        description="Cost in GBP pence to run the suggested tier"
     )
     claimTextHash: str = Field(description="SHA-256 hash of the normalised claim text")
 
@@ -742,7 +742,7 @@ class AgentCacheMiss(BaseModel):
             "example": {
                 "hit": False,
                 "nextSuggestedTier": "quick",
-                "upgradeCostCents": 7,
+                "upgradeCostPence": 7,
                 "claimTextHash": "a1b2c3d4e5f6...",
             }
         }
@@ -752,13 +752,13 @@ class AgentCacheMiss(BaseModel):
 class CreditBalanceResponse(BaseModel):
     """Agent prepaid credit balance."""
 
-    balanceCents: int = Field(description="Current credit balance in US cents")
-    balanceUsd: str = Field(
-        description="Current credit balance formatted as USD string (e.g. '5.00')"
+    balancePence: int = Field(description="Current credit balance in pence (GBP)")
+    balanceGbp: str = Field(
+        description="Current credit balance formatted as GBP string (e.g. '5.00')"
     )
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"balanceCents": 500, "balanceUsd": "5.00"}}
+        json_schema_extra={"example": {"balancePence": 500, "balanceGbp": "5.00"}}
     )
 
 
@@ -775,7 +775,7 @@ class TierStats(BaseModel):
     """Usage statistics for a single pipeline tier."""
 
     count: int = Field(description="Number of completed transactions")
-    totalCents: int = Field(description="Total amount charged in US cents")
+    totalPence: int = Field(description="Total amount charged in pence (GBP)")
 
 
 class ProviderStats(BaseModel):
@@ -801,9 +801,9 @@ class AgentStatsResponse(BaseModel):
         json_schema_extra={
             "example": {
                 "byTier": {
-                    "lookup": {"count": 150, "totalCents": 300},
-                    "quick": {"count": 45, "totalCents": 315},
-                    "full": {"count": 12, "totalCents": 180},
+                    "lookup": {"count": 150, "totalPence": 300},
+                    "quick": {"count": 45, "totalPence": 315},
+                    "full": {"count": 12, "totalPence": 180},
                 },
                 "byProvider": {
                     "credit": {"count": 200},
@@ -1067,6 +1067,6 @@ class TimeoutErrorResponse(BaseModel):
 
     model_config = ConfigDict(
         json_schema_extra={
-            "example": {"detail": "Pipeline timed out. No charge applied."}
+            "example": {"detail": "Pipeline timed out. Credits have been refunded."}
         }
     )

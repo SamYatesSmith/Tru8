@@ -63,9 +63,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const description = `${claimsText} from ${sourcesText}. Explore the evidence landscape for this content.`;
 
-  const ogImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'}/api/og/social/${params.id}`;
+  const ogImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'}/api/og/social/${params.id}`;
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com';
 
   return {
     title: `${title} | Tru8 Evidence Report`,
@@ -99,7 +99,7 @@ export default async function PublicReportPage({ params, searchParams }: PagePro
     notFound();
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com';
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',

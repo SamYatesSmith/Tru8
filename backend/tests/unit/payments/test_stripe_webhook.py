@@ -36,13 +36,14 @@ class TestStripeWebhook:
         from app.api.v1.payments import stripe_webhook
 
         mock_construct.return_value = {
+            "id": "evt_test_agent_credit",
             "type": "checkout.session.completed",
             "data": {
                 "object": {
                     "client_reference_id": "user_1",
                     "metadata": {
                         "purchase_type": "agent_credits",
-                        "cents_value": "2000",
+                        "pence_value": "300",
                         "credit_pack": "20",
                     },
                 }
@@ -65,6 +66,7 @@ class TestStripeWebhook:
         from app.api.v1.payments import stripe_webhook
 
         mock_construct.return_value = {
+            "id": "evt_test_subscription",
             "type": "checkout.session.completed",
             "data": {
                 "object": {

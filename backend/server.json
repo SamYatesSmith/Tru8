@@ -4,7 +4,7 @@
   "title": "Tru8 Evidence Research",
   "description": "Structured evidence research for AI agents. Ground factual claims in source-traced evidence organized by tier (primary data / news reporting / commentary) and type (data / official / news / analysis / opinion / academic). Returns element decomposition with relationship mapping (supports / challenges / context).",
   "version": "1.0.0",
-  "websiteUrl": "https://tru8.app/developers",
+  "websiteUrl": "https://www.trueight.com/developers",
   "_note_repository": "Make repo public before submitting to MCP Registry",
   "repository": {
     "url": "https://github.com/SamYatesSmith/Tru8",
@@ -31,7 +31,7 @@
           "name": "TRU8_API_URL",
           "isRequired": false,
           "isSecret": false,
-          "description": "API base URL. Default: https://api.tru8.app"
+          "description": "API base URL. Default: https://api.trueight.com"
         }
       ],
       "runtimeHint": "python -m tru8_mcp"
@@ -40,7 +40,7 @@
   "tools": [
     {
       "name": "tru8_check",
-      "description": "Evidence research for any claim or URL. Accepts max_tier (lookup/quick/full) to control depth and cost. Tier fallback: lookup → quick → full. Returns structured evidence landscape with element decomposition, source classification, and _meta (executedTier, chargedCents)."
+      "description": "Evidence research for any claim or URL. Accepts max_tier (lookup/quick/full) to control depth and cost. Tier fallback: lookup → quick → full. Returns structured evidence landscape with element decomposition, source classification, and _meta (executedTier, chargedPence)."
     },
     {
       "name": "tru8_get_result",

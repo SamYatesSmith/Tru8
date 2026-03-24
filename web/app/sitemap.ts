@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

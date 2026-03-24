@@ -80,7 +80,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   // F07: Share URL reads from browser URL (includes ?view= param set by replaceState)
   const shareUrl = typeof window !== 'undefined'
     ? window.location.href
-    : `https://tru8.app/r/${check.id}`;
+    : `https://www.trueight.com/r/${check.id}`;
 
   const shareText = `Evidence Report: ${check.title || 'See the evidence landscape'}`;
 

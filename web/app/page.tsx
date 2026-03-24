@@ -8,7 +8,7 @@ import { StitchFeatures } from '@/components/marketing/stitch-features'
 import { StitchVideo } from '@/components/marketing/stitch-video'
 import { StitchPricing } from '@/components/marketing/stitch-pricing'
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
 export const metadata: Metadata = {
   title: 'Tru8 — AI-Powered Evidence Research',

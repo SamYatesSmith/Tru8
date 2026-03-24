@@ -95,14 +95,14 @@ class TestCreditBalance:
     """GET /api/v1/agent/credits/balance — credit balance query."""
 
     @pytest.mark.asyncio
-    async def test_balance_returns_cents(self):
-        """Returns balance in cents and formatted USD."""
+    async def test_balance_returns_pence(self):
+        """Returns balance in pence and formatted GBP."""
         app = _create_test_app()
 
         mock_user = MagicMock()
         mock_user.id = MOCK_USER_ID
         mock_user.email = "test@tru8.app"
-        mock_user.credit_balance_cents = 1500  # $15.00
+        mock_user.credit_balance_pence = 1500  # £15.00
 
         session = _mock_session({"scalar": mock_user})
         app.dependency_overrides[get_agent_identity] = _mock_identity_override()
@@ -115,8 +115,8 @@ class TestCreditBalance:
 
         assert resp.status_code == 200
         data = resp.json()
-        assert data["balanceCents"] == 1500
-        assert data["balanceUsd"] == "15.00"
+        assert data["balancePence"] == 1500
+        assert data["balanceGbp"] == "£15.00"
 
     @pytest.mark.asyncio
     async def test_balance_requires_auth(self):
@@ -153,13 +153,13 @@ class TestCreditPurchase:
 
     @pytest.mark.asyncio
     async def test_purchase_valid_pack(self):
-        """Valid pack ('5') → creates Stripe Checkout session, returns URL."""
+        """Valid pack ('20') → creates Stripe Checkout session, returns URL."""
         app = _create_test_app()
 
         mock_user = MagicMock()
         mock_user.id = MOCK_USER_ID
         mock_user.email = "test@tru8.app"
-        mock_user.credit_balance_cents = 0
+        mock_user.credit_balance_pence = 0
 
         session = _mock_session({"scalar": mock_user})
         app.dependency_overrides[get_agent_identity] = _mock_identity_override()
@@ -173,9 +173,6 @@ class TestCreditPurchase:
 
         with (
             patch("stripe.checkout.Session.create") as mock_stripe_create,
-            patch.object(
-                real_settings, "STRIPE_PRICE_ID_CREDIT_PACK_5", "price_5_test"
-            ),
             patch.object(
                 real_settings, "STRIPE_PRICE_ID_CREDIT_PACK_20", "price_20_test"
             ),
@@ -192,7 +189,7 @@ class TestCreditPurchase:
             ) as client:
                 resp = await client.post(
                     "/api/v1/agent/credits/purchase",
-                    json={"pack": "5"},
+                    json={"pack": "20"},
                 )
 
         assert resp.status_code == 200

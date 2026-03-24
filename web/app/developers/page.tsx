@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'API & MCP Server for AI Agents',
-  description: 'Structured evidence research in one API call. Three tiers, three payment rails, MCP server for Claude and other AI agents. From $0.02/query.',
+  description: 'Structured evidence research in one API call. Three tiers, three payment rails, MCP server for Claude and other AI agents. From £0.02/query.',
   alternates: { canonical: '/developers' },
 };
 
@@ -146,7 +146,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-semibold text-zinc-900 mb-2">Submit a claim</h3>
                   <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`curl -X POST https://api.tru8.app/api/v1/agent/quick \\
+{`curl -X POST https://api.trueight.com/api/v1/agent/quick \\
   -H "X-API-Key: $TRU8_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"claim": "Global average temperature rose 1.1°C since pre-industrial times"}'`}
@@ -165,7 +165,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-semibold text-zinc-900 mb-2">Retrieve the result</h3>
                   <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`curl https://api.tru8.app/api/v1/agent/result/{check_id} \\
+{`curl https://api.trueight.com/api/v1/agent/result/{check_id} \\
   -H "X-API-Key: $TRU8_API_KEY"`}
                   </pre>
                   <p className="text-zinc-500 text-xs mt-2 font-mono">
@@ -326,7 +326,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                       <span className="text-xs text-zinc-400 ml-2">instant</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-mono text-sm text-zinc-900">$0.02</span>
+                      <span className="font-mono text-sm text-zinc-900">£0.02</span>
                       <p className="text-xs text-zinc-400">Cached prior analysis. Instant hash match on your previous research.</p>
                     </div>
                   </div>
@@ -336,7 +336,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                       <span className="text-xs text-zinc-400 ml-2">instant</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-mono text-sm text-zinc-900">$0.03</span>
+                      <span className="font-mono text-sm text-zinc-900">£0.03</span>
                       <p className="text-xs text-zinc-400">Cross-user aggregate landscape. Available when 3+ independent checks exist.</p>
                     </div>
                   </div>
@@ -346,7 +346,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                       <span className="text-xs text-zinc-400 ml-2">~15s</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-mono text-sm text-zinc-900">$0.07</span>
+                      <span className="font-mono text-sm text-zinc-900">£0.07</span>
                       <p className="text-xs text-zinc-400">Web search + heuristic classification. Fast triage for time-sensitive queries.</p>
                     </div>
                   </div>
@@ -356,7 +356,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                       <span className="text-xs text-zinc-400 ml-2">~60-90s</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-mono text-sm text-accent">$0.15</span>
+                      <span className="font-mono text-sm text-accent">£0.15</span>
                       <p className="text-xs text-zinc-400">30+ sources, LLM classification, element decomposition, coverage recovery.</p>
                     </div>
                   </div>
@@ -370,7 +370,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-start gap-2">
                     <span className="text-accent mt-0.5">1.</span>
-                    <span>Top up your agent credit balance (prepaid, in USD cents)</span>
+                    <span>Top up your agent credit balance (prepaid, in GBP pence)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-accent mt-0.5">2.</span>
@@ -423,7 +423,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
               <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
 {`# Submit async
-curl -X POST "https://api.tru8.app/api/v1/agent/full?async=true" \\
+curl -X POST "https://api.trueight.com/api/v1/agent/full?async=true" \\
   -H "X-API-Key: $TRU8_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"claim": "The UK left the EU in 2020"}'
@@ -439,7 +439,7 @@ curl -X POST "https://api.tru8.app/api/v1/agent/full?async=true" \\
 }
 
 # Poll for result
-curl "https://api.tru8.app/api/v1/agent/result/abc-123" \\
+curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
   -H "X-API-Key: $TRU8_API_KEY"
 # While processing: { "status": "processing", "checkId": "abc-123", "hit": false }
 # When complete:   { full result payload }`}
@@ -472,7 +472,7 @@ curl "https://api.tru8.app/api/v1/agent/result/abc-123" \\
               </p>
 
               <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`curl -X POST https://api.tru8.app/api/v1/agent/batch \\
+{`curl -X POST https://api.trueight.com/api/v1/agent/batch \\
   -H "X-API-Key: $TRU8_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -626,7 +626,7 @@ curl "https://api.tru8.app/api/v1/agent/result/abc-123" \\
                   {
                     method: 'GET',
                     path: '/agent/tiers',
-                    desc: 'Available tiers with per-call pricing (cents) and estimated latency. No auth required.',
+                    desc: 'Available tiers with per-call pricing (pence) and estimated latency. No auth required.',
                     auth: false,
                   },
                   {
@@ -644,7 +644,7 @@ curl "https://api.tru8.app/api/v1/agent/result/abc-123" \\
                   {
                     method: 'GET',
                     path: '/agent/credits/balance',
-                    desc: 'Current prepaid credit balance in cents.',
+                    desc: 'Current prepaid credit balance in pence.',
                     auth: true,
                   },
                 ].map((ep) => (

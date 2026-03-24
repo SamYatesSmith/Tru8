@@ -87,7 +87,7 @@ class TestPipelineErrorHandling:
                 await _run_agent_pipeline(
                     body=_make_body(),
                     tier="quick",
-                    amount_cents=700,
+                    amount_pence=700,
                     claim_hash="abc123",
                     request_hash="hash123",
                     limitations=[],
@@ -120,7 +120,7 @@ class TestPipelineErrorHandling:
                 await _run_agent_pipeline(
                     body=_make_body(),
                     tier="full",
-                    amount_cents=1500,
+                    amount_pence=1500,
                     claim_hash="abc123",
                     request_hash="hash123",
                     limitations=[],
@@ -152,7 +152,7 @@ class TestPipelineErrorHandling:
                 await _run_agent_pipeline(
                     body=_make_body(),
                     tier="full",
-                    amount_cents=1500,
+                    amount_pence=1500,
                     claim_hash="abc123",
                     request_hash="hash123",
                     limitations=[],

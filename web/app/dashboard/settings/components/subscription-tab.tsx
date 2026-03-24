@@ -14,7 +14,7 @@ interface SubscriptionTabProps {
 }
 
 /** Tier ordering for upgrade/downgrade logic */
-const TIER_ORDER = ['free', 'pro', 'developer', 'enterprise'];
+const TIER_ORDER = ['free', 'starter', 'professional', 'enterprise'];
 
 export function SubscriptionTab({
   userData,

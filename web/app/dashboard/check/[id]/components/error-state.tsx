@@ -48,7 +48,7 @@ export function ErrorState({ errorMessage, checkId }: ErrorStateProps) {
         </Link>
 
         <a
-          href="mailto:support@tru8.com"
+          href="mailto:hello@trueight.com"
           className="px-6 py-3 border border-zinc-200 hover:bg-zinc-50 text-zinc-600 text-xs font-bold uppercase tracking-[0.2em] transition-colors"
         >
           Contact Support

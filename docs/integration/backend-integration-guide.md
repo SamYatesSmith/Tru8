@@ -38,7 +38,7 @@ This document outlines all integration points, data structures, API endpoints, a
 ### Current API Configuration
 \`\`\`typescript
 // lib/api.ts
-export const API_BASE_URL = "https://api.tru8.ai/api/v1"
+export const API_BASE_URL = "https://api.trueight.com/api/v1"
 \`\`\`
 
 ### Key Frontend Routes
@@ -289,7 +289,7 @@ Frontend will need middleware to:
 
 \`\`\`bash
 # API Configuration
-NEXT_PUBLIC_API_BASE_URL=https://api.tru8.ai/api/v1
+NEXT_PUBLIC_API_BASE_URL=https://api.trueight.com/api/v1
 
 # Authentication (if using third-party auth)
 NEXT_PUBLIC_AUTH_DOMAIN=your-auth-domain.com
@@ -530,7 +530,7 @@ When a user submits a check, the processing can take 10-60 seconds. Real-time up
 
 #### WebSocket Connection
 \`\`\`
-ws://api.tru8.ai/ws?token={jwt_token}
+ws://api.trueight.com/ws?token={jwt_token}
 \`\`\`
 
 #### Events to Emit (Server → Client)
@@ -594,7 +594,7 @@ Request:
 
 Response: 200 OK
 {
-  "url": "https://cdn.tru8.ai/uploads/abc123.jpg",
+  "url": "https://cdn.trueight.com/uploads/abc123.jpg",
   "fileId": "file_123"
 }
 \`\`\`
@@ -739,7 +739,7 @@ See existing mock data in components for expected data structures.
    - Frontend: `components/settings/notification-settings.tsx`
 
 ### Nice-to-Have Integration Points (Priority 3)
-6. **WebSocket for Real-time Updates** (`ws://api.tru8.ai/ws`)
+6. **WebSocket for Real-time Updates** (`ws://api.trueight.com/ws`)
    - Check processing progress
    - Frontend: To be implemented in `hooks/use-websocket.ts`
 

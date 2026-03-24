@@ -57,7 +57,7 @@ Use this checklist for final go/no-go decision. All P0 items must be checked.
 
 | Variable | Set? | Verified Value |
 |----------|------|----------------|
-| `NEXT_PUBLIC_API_URL` (https://api.tru8.com) | [ ] | ____________ |
+| `NEXT_PUBLIC_API_URL` (https://api.trueight.com) | [ ] | ____________ |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (`pk_live_*`) | [ ] | ____________ |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | [ ] | ____________ |
 

@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     icon: '/favicon.proper.png',
     apple: '/apple-touch-icon.png',
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://tru8.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'),
   openGraph: {
     type: 'website',
     siteName: 'Tru8',

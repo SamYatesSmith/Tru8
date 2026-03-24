@@ -231,7 +231,7 @@ class TestCharge:
         assert tx_ref == "tx_sf_001"
         mock_client.post.assert_called_once()
         call_kwargs = mock_client.post.call_args
-        assert call_kwargs.kwargs["json"]["amount_cents"] == 7
+        assert call_kwargs.kwargs["json"]["amount_pence"] == 7
         assert call_kwargs.kwargs["json"]["payer_id"] == "skyfire_agent_001"
 
     @pytest.mark.asyncio

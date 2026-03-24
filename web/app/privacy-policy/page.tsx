@@ -10,14 +10,12 @@ export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout
       title="Privacy Policy"
-      lastUpdated="6 January 2026"
+      lastUpdated="18 March 2026"
     >
       <div className="prose-legal">
-        {/* Use template from Part 2 of 2025-01-22_LEGAL_COMPLIANCE_MASTER_PLAN.md */}
-
         <h2>1. Introduction</h2>
         <p>
-          Tru8 Ltd (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the Tru8 evidence research platform.
+          Trueight Ltd (company number 17090683), trading as Tru8 (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the Tru8 evidence research platform.
           This Privacy Policy explains how we collect, use, disclose, and safeguard
           your information when you use our services.
         </p>
@@ -85,7 +83,7 @@ export default function PrivacyPolicyPage() {
           <li>Manage your account and subscription</li>
           <li>Process payments</li>
           <li>Send service updates and notifications</li>
-          <li>Improve our AI models and service quality</li>
+          <li>Improve our evidence research service</li>
           <li>Detect and prevent fraud</li>
         </ul>
 
@@ -107,6 +105,16 @@ export default function PrivacyPolicyPage() {
         <p><strong>Sentry:</strong> Application error tracking</p>
         <p>Privacy Policy: <a href="https://sentry.io/privacy" target="_blank" rel="noopener">sentry.io/privacy</a></p>
 
+        <h3>5.5 AI Processing</h3>
+        <p><strong>Google AI (Gemini):</strong> Processes submitted claims and evidence for classification, mapping, and analysis</p>
+        <p>Privacy Policy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></p>
+        <p>
+          When you submit content for research, it is sent to Google&apos;s Gemini API for
+          processing. Google acts as a data processor under our instructions. Submitted
+          content is used solely to generate your evidence research results and is not
+          used by Google to train their models.
+        </p>
+
         <h2>6. Data Retention</h2>
         <ul>
           <li><strong>Account data:</strong> Retained while account is active + 2 years</li>
@@ -120,7 +128,7 @@ export default function PrivacyPolicyPage() {
         <p>You have the following rights regarding your personal data:</p>
 
         <h3>7.1 Right to Access</h3>
-        <p>Download all your data from Settings → Privacy → Download My Data</p>
+        <p>Email <a href="mailto:hello@trueight.com">hello@trueight.com</a> to request a data export. We will respond within 30 days.</p>
 
         <h3>7.2 Right to Rectification</h3>
         <p>Update your name/email in Settings → Account → Update Profile</p>
@@ -130,10 +138,10 @@ export default function PrivacyPolicyPage() {
         <p><em>Note: Payment records retained 7 years for legal compliance</em></p>
 
         <h3>7.4 Right to Object</h3>
-        <p>Opt out of analytics in Settings → Privacy → Cookie Preferences</p>
+        <p>Opt out of analytics via the Cookie Preferences button in the website footer</p>
 
         <h3>7.5 Right to Data Portability</h3>
-        <p>Export your data in JSON format via Settings → Privacy</p>
+        <p>Email <a href="mailto:hello@trueight.com">hello@trueight.com</a> to request a data export in JSON format</p>
 
         <h2>8. Data Security</h2>
         <ul>
@@ -174,7 +182,7 @@ export default function PrivacyPolicyPage() {
 
         <h2>13. Contact Us</h2>
         <p>
-          <strong>Data Controller:</strong> Tru8 Ltd<br />
+          <strong>Data Controller:</strong> Trueight Ltd (company number 17090683), trading as Tru8<br />
           <strong>Email:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a><br />
           <strong>Location:</strong> London, UK
         </p>
@@ -191,6 +199,17 @@ export default function PrivacyPolicyPage() {
           Wycliffe House, Water Lane<br />
           Wilmslow, Cheshire SK9 5AF<br />
           Website: <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a>
+        </p>
+        {/* ICO registration number: pending — to be added before launch */}
+
+        <h2>14. Cross-User Consensus Analysis</h2>
+        <p>
+          When multiple independent users research the same or similar claims, we may
+          aggregate and anonymise evidence data to compute consensus metrics. This
+          analysis uses only aggregated counts and classifications — no individual
+          user&apos;s evidence set is shared with other users. Consensus data helps
+          indicate the stability and convergence of the evidence landscape across
+          independent research sessions.
         </p>
       </div>
     </LegalPageLayout>

@@ -31,7 +31,7 @@ class AgentTransaction(SQLModel, table=True):
     provider: str  # "x402" | "skyfire" | "credit"
     payer_id: str = Field(index=True)  # wallet address / skyfire user / tru8 user ID
     tier: str  # "lookup" | "quick" | "full"
-    amount_cents: int  # integer cents — NO floats for money
+    amount_pence: int  # integer pence (GBP) — NO floats for money
     transaction_ref: Optional[str] = None  # tx hash — null until settlement completes
     idempotency_key: Optional[str] = Field(
         default=None, sa_column_kwargs={"unique": True, "index": True}

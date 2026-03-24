@@ -1,6 +1,6 @@
 # tru8-mcp
 
-MCP server for [Tru8 Evidence Research](https://tru8.app) — structured evidence research tools for AI agents.
+MCP server for [Tru8 Evidence Research](https://www.trueight.com) — structured evidence research tools for AI agents.
 
 Submit a claim or URL, get back source-traced evidence organized by tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic), with element decomposition and relationship mapping.
 
@@ -22,7 +22,7 @@ Set your API key:
 export TRU8_API_KEY=tru8_sk_...
 ```
 
-Create an API key at your [Tru8 dashboard](https://tru8.app/dashboard/settings) under Settings > Developer.
+Create an API key at your [Tru8 dashboard](https://www.trueight.com/dashboard/settings) under Settings > Developer.
 
 ## Configuration
 
@@ -83,7 +83,7 @@ tru8-mcp
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `TRU8_API_KEY` | Yes | API key (`tru8_sk_...`). Create at dashboard > Settings > Developer. |
-| `TRU8_API_URL` | No | API base URL. Default: `https://api.tru8.app` |
+| `TRU8_API_URL` | No | API base URL. Default: `https://api.trueight.com` |
 
 ## Security
 

@@ -62,7 +62,7 @@ class TestIdempotencySameHash:
         existing_tx.idempotency_key = "idem-key-001"
         existing_tx.request_hash = "hash-abc"
         existing_tx.status = "completed"
-        existing_tx.amount_cents = 7
+        existing_tx.amount_pence = 7
         existing_tx.tier = "quick"
 
         # Session returns the existing tx on idempotency lookup
@@ -77,7 +77,7 @@ class TestIdempotencySameHash:
 
         # Call charge with same idempotency key and same request hash
         result = await ctx.charge(
-            amount_cents=7,
+            amount_pence=7,
             tier="quick",
             description="claim-hash-abc",
             idempotency_key="idem-key-001",
@@ -123,7 +123,7 @@ class TestIdempotencyDifferentHash:
         # Call charge with same idempotency key but DIFFERENT request hash
         with pytest.raises(HTTPException) as exc_info:
             await ctx.charge(
-                amount_cents=15,
+                amount_pence=15,
                 tier="full",
                 description="claim-hash-xyz",
                 idempotency_key="idem-key-002",

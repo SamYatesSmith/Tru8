@@ -112,22 +112,22 @@ Tru8 exposes a developer API and MCP server for AI agents.
 
 ```bash
 # Quick check (~15s, heuristic classification)
-curl -X POST https://api.tru8.app/api/v1/agent/quick \
+curl -X POST https://api.trueight.com/api/v1/agent/quick \
   -H "X-API-Key: $TRU8_API_KEY" \
   -d '{"claim": "UK inflation is 3.2%"}'
 
 # Smart endpoint with tier fallback (lookup → consensus → quick → full)
-curl -X POST https://api.tru8.app/api/v1/agent/check \
+curl -X POST https://api.trueight.com/api/v1/agent/check \
   -H "X-API-Key: $TRU8_API_KEY" \
   -d '{"claim": "UK inflation is 3.2%", "max_tier": "full"}'
 ```
 
 | Tier | Cost | Time | What you get |
 |------|------|------|-------------|
-| Lookup | ~$0.02 | instant | Cached prior analysis |
-| Consensus | ~$0.03 | instant | Cross-user aggregate landscape (k>=3 checks) |
-| Quick | ~$0.07 | ~15s | Web search + heuristic classification |
-| Full | ~$0.15 | ~60-90s | 30+ sources, LLM classification, element decomposition |
+| Lookup | ~£0.02 | instant | Cached prior analysis |
+| Consensus | ~£0.03 | instant | Cross-user aggregate landscape (k>=3 checks) |
+| Quick | ~£0.07 | ~15s | Web search + heuristic classification |
+| Full | ~£0.15 | ~60-90s | 30+ sources, LLM classification, element decomposition |
 
 Three payment rails: x402 (USDC/SIWE), Skyfire (JWT), prepaid credits.
 
@@ -152,7 +152,7 @@ Tools: `tru8_check` (evidence research with tier fallback), `tru8_get_result` (w
 Every completed check receives an HMAC-SHA256 signed manifest. Verify tamper-evidence:
 
 ```bash
-curl https://api.tru8.app/api/v1/verify/{check_id}
+curl https://api.trueight.com/api/v1/verify/{check_id}
 ```
 
 ## Testing

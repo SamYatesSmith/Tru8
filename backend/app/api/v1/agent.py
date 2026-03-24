@@ -169,7 +169,7 @@ async def agent_smart_check(
 ) -> JSONResponse:
     """Smart endpoint with automatic tier fallback — recommended for most agent use cases.
 
-    Tries cached lookup first (instant, $0.02). On cache miss, escalates through
+    Tries cached lookup first (instant, £0.02). On cache miss, escalates through
     consensus → quick → full up to the tier specified by `max_tier`.
     You're only charged for the tier actually executed.
 
@@ -215,36 +215,43 @@ async def agent_smart_check(
         if cache_valid:
             # Cache hit — charge lookup rate and return
             tier = "lookup"
-            amount_cents = get_tier_price(tier)
+            amount_pence = get_tier_price(tier)
             request_hash = compute_request_hash(tier, claim_hash, body.compact)
 
             tx = await payment.charge(
-                amount_cents=amount_cents,
+                amount_pence=amount_pence,
                 tier=tier,
                 description=claim_hash,
                 idempotency_key=idempotency_key,
                 request_hash=request_hash,
                 check_id=check_row.id,
             )
-            tx.status = "completed"
-            await session.flush()
 
             from app.api.v1.response_builder import build_agent_response
 
-            response_data = await build_agent_response(
-                check_id=check_row.id,
-                session=session,
-                executed_tier="lookup",
-                charged_cents=amount_cents,
-                limitations=[],
-                compact=body.compact,
-                cached_from=(
-                    check_row.completed_at.isoformat()
-                    if check_row.completed_at
-                    else None
-                ),
-            )
+            try:
+                response_data = await build_agent_response(
+                    check_id=check_row.id,
+                    session=session,
+                    executed_tier="lookup",
+                    charged_pence=amount_pence,
+                    limitations=[],
+                    compact=body.compact,
+                    cached_from=(
+                        check_row.completed_at.isoformat()
+                        if check_row.completed_at
+                        else None
+                    ),
+                )
+            except Exception:
+                await _refund_and_fail_tx(tx, payment, amount_pence, session)
+                raise HTTPException(
+                    status_code=502,
+                    detail="Response building failed. Credits have been refunded.",
+                )
+
             response_data["hit"] = True
+            tx.status = "completed"
             await session.commit()
 
             return JSONResponse(
@@ -261,7 +268,7 @@ async def agent_smart_check(
             content={
                 "hit": False,
                 "nextSuggestedTier": "consensus",
-                "upgradeCostCents": get_tier_price("consensus"),
+                "upgradeCostPence": get_tier_price("consensus"),
                 "claimTextHash": claim_hash,
             }
         )
@@ -301,22 +308,21 @@ async def agent_smart_check(
                 if consensus_fresh:
                     # Consensus hit — charge consensus tier
                     tier = "consensus"
-                    amount_cents = get_tier_price(tier)
+                    amount_pence = get_tier_price(tier)
                     request_hash = compute_request_hash(tier, claim_hash, body.compact)
 
                     tx = await payment.charge(
-                        amount_cents=amount_cents,
+                        amount_pence=amount_pence,
                         tier=tier,
                         description=claim_hash,
                         idempotency_key=idempotency_key,
                         request_hash=request_hash,
                         check_id=None,
                     )
-                    tx.status = "completed"
-                    await session.flush()
 
                     response_data = build_consensus_response(consensus)
                     response_data["hit"] = True
+                    tx.status = "completed"
                     await session.commit()
 
                     return JSONResponse(
@@ -336,7 +342,7 @@ async def agent_smart_check(
             content={
                 "hit": False,
                 "nextSuggestedTier": "quick",
-                "upgradeCostCents": get_tier_price("quick"),
+                "upgradeCostPence": get_tier_price("quick"),
                 "claimTextHash": claim_hash,
             }
         )
@@ -346,7 +352,7 @@ async def agent_smart_check(
     if max_tier == "full":
         resolved_tier = "full"
 
-    amount_cents = get_tier_price(resolved_tier)
+    amount_pence = get_tier_price(resolved_tier)
     request_hash = compute_request_hash(resolved_tier, claim_hash, body.compact)
     limitations = QUICK_LIMITATIONS if resolved_tier == "quick" else []
 
@@ -355,7 +361,7 @@ async def agent_smart_check(
             claim=body.claim, input_type=body.input_type, compact=body.compact
         ),
         tier=resolved_tier,
-        amount_cents=amount_cents,
+        amount_pence=amount_pence,
         claim_hash=claim_hash,
         request_hash=request_hash,
         limitations=limitations,
@@ -388,13 +394,13 @@ async def agent_lookup(
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Instant cached analysis — $0.02 per hit, no charge on miss.
+    """Instant cached analysis — £0.02 per hit, no charge on miss.
 
     Searches for a previous analysis of this claim (scoped to your account).
     Returns 200 in both cases — check the `hit` field to distinguish.
 
     **Cache hit:** Full evidence landscape with `hit: true`.
-    **Cache miss:** `{hit: false, nextSuggestedTier, upgradeCostCents}`.
+    **Cache miss:** `{hit: false, nextSuggestedTier, upgradeCostPence}`.
 
     **Response headers (hit only):** `X-Check-Id`, `X-Tru8-Tx-Id`
 
@@ -402,7 +408,7 @@ async def agent_lookup(
     """
     claim_hash = compute_claim_text_hash(body.claim)
     tier = "lookup"
-    amount_cents = get_tier_price(tier)
+    amount_pence = get_tier_price(tier)
 
     # Check idempotency
     request_hash = compute_request_hash(tier, claim_hash, body.compact or False)
@@ -427,7 +433,7 @@ async def agent_lookup(
             content={
                 "hit": False,
                 "nextSuggestedTier": "quick",
-                "upgradeCostCents": get_tier_price("quick"),
+                "upgradeCostPence": get_tier_price("quick"),
                 "claimTextHash": claim_hash,
             }
         )
@@ -436,7 +442,7 @@ async def agent_lookup(
     claim, check = row
 
     tx = await payment.charge(
-        amount_cents=amount_cents,
+        amount_pence=amount_pence,
         tier=tier,
         description=claim_hash,
         idempotency_key=idempotency_key,
@@ -444,23 +450,27 @@ async def agent_lookup(
         check_id=check.id,
     )
 
-    # Mark transaction completed (lookup is synchronous, no settlement needed)
-    tx.status = "completed"
-    await session.flush()
-
     from app.api.v1.response_builder import build_agent_response
 
-    response_data = await build_agent_response(
-        check_id=check.id,
-        session=session,
-        executed_tier=tier,
-        charged_cents=amount_cents,
-        limitations=[],
-        compact=body.compact or False,
-        cached_from=check.completed_at.isoformat() if check.completed_at else None,
-    )
-    response_data["hit"] = True
+    try:
+        response_data = await build_agent_response(
+            check_id=check.id,
+            session=session,
+            executed_tier=tier,
+            charged_pence=amount_pence,
+            limitations=[],
+            compact=body.compact or False,
+            cached_from=check.completed_at.isoformat() if check.completed_at else None,
+        )
+    except Exception:
+        await _refund_and_fail_tx(tx, payment, amount_pence, session)
+        raise HTTPException(
+            status_code=502,
+            detail="Response building failed. Credits have been refunded.",
+        )
 
+    response_data["hit"] = True
+    tx.status = "completed"
     await session.commit()
 
     return JSONResponse(
@@ -528,7 +538,7 @@ async def get_agent_result(
         check_id=check_id,
         session=session,
         executed_tier="full",
-        charged_cents=0,
+        charged_pence=0,
         limitations=[],
     )
 
@@ -588,7 +598,7 @@ async def agent_quick(
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Reduced pipeline — fewer sources, heuristic classification. ~15 seconds, $0.07.
+    """Reduced pipeline — fewer sources, heuristic classification. ~15 seconds, £0.07.
 
     Skips: fact-check lookup, government/academic API adapters, LLM relevance
     scoring, coverage recovery, and query answering. Uses heuristic tier/type
@@ -604,14 +614,14 @@ async def agent_quick(
     **Rate limit:** 10/minute
     """
     tier = "quick"
-    amount_cents = get_tier_price(tier)
+    amount_pence = get_tier_price(tier)
     claim_hash = compute_claim_text_hash(body.claim)
     request_hash = compute_request_hash(tier, claim_hash, body.compact or False)
 
     return await _run_agent_pipeline(
         body=body,
         tier=tier,
-        amount_cents=amount_cents,
+        amount_pence=amount_pence,
         claim_hash=claim_hash,
         request_hash=request_hash,
         limitations=QUICK_LIMITATIONS,
@@ -658,7 +668,7 @@ async def agent_full(
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Complete evidence research pipeline — 30+ sources, all stages. ~50-70 seconds, $0.15.
+    """Complete evidence research pipeline — 30+ sources, all stages. ~50-70 seconds, £0.15.
 
     Runs the full pipeline: fact-check lookup, 30+ source providers (government,
     academic, news, data APIs), LLM classification, coverage recovery, and
@@ -672,14 +682,14 @@ async def agent_full(
     **Rate limit:** 10/minute
     """
     tier = "full"
-    amount_cents = get_tier_price(tier)
+    amount_pence = get_tier_price(tier)
     claim_hash = compute_claim_text_hash(body.claim)
     request_hash = compute_request_hash(tier, claim_hash, body.compact or False)
 
     return await _run_agent_pipeline(
         body=body,
         tier=tier,
-        amount_cents=amount_cents,
+        amount_pence=amount_pence,
         claim_hash=claim_hash,
         request_hash=request_hash,
         limitations=[],
@@ -699,7 +709,7 @@ async def _run_agent_pipeline(
     *,
     body: AgentClaimRequest,
     tier: str,
-    amount_cents: int,
+    amount_pence: int,
     claim_hash: str,
     request_hash: str,
     limitations: list,
@@ -736,7 +746,7 @@ async def _run_agent_pipeline(
 
     # Charge upfront — transaction starts as "pending"
     tx = await payment.charge(
-        amount_cents=amount_cents,
+        amount_pence=amount_pence,
         tier=tier,
         description=claim_hash,
         idempotency_key=idempotency_key,
@@ -777,7 +787,7 @@ async def _run_agent_pipeline(
                 tier=tier,
                 tx_id=tx.id,
                 provider=payment.provider,
-                amount_cents=amount_cents,
+                amount_pence=amount_pence,
             )
         )
         estimated = 15 if tier == "quick" else 60
@@ -787,7 +797,7 @@ async def _run_agent_pipeline(
                 "checkId": check.id,
                 "status": "processing",
                 "tier": tier,
-                "chargedCents": amount_cents,
+                "chargedPence": amount_pence,
                 "txId": tx.id,
                 "pollUrl": f"/api/v1/agent/result/{check.id}",
                 "estimatedSeconds": estimated,
@@ -875,7 +885,7 @@ async def _run_agent_pipeline(
                 check_id=check.id,
                 session=resp_session,
                 executed_tier=tier,
-                charged_cents=amount_cents,
+                charged_pence=amount_pence,
                 limitations=limitations,
                 compact=body.compact or False,
             )
@@ -904,19 +914,19 @@ async def _run_agent_pipeline(
 
     except asyncio.TimeoutError:
         logger.error(f"[AGENT {tier.upper()}] Pipeline timed out for check {check.id}")
-        await _refund_and_fail_tx(tx, payment, amount_cents, session)
+        await _refund_and_fail_tx(tx, payment, amount_pence, session)
         await handle_pipeline_failure(
             check.id, payment.user_id, Exception("Pipeline timed out")
         )
         _fire_agent_webhook_failed(payment.user_id, check.id, "Pipeline timed out")
         raise HTTPException(
             status_code=504,
-            detail="Pipeline timed out. No charge applied.",
+            detail="Pipeline timed out. Credits have been refunded.",
         )
 
     except PipelineError as e:
         logger.error(f"[AGENT {tier.upper()}] Pipeline error for check {check.id}: {e}")
-        await _refund_and_fail_tx(tx, payment, amount_cents, session)
+        await _refund_and_fail_tx(tx, payment, amount_pence, session)
         await handle_pipeline_failure(check.id, payment.user_id, e)
         _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
         raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
@@ -928,7 +938,7 @@ async def _run_agent_pipeline(
         logger.error(
             f"[AGENT {tier.upper()}] Unexpected error for check {check.id}: {e}"
         )
-        await _refund_and_fail_tx(tx, payment, amount_cents, session)
+        await _refund_and_fail_tx(tx, payment, amount_pence, session)
         await handle_pipeline_failure(check.id, payment.user_id, e)
         _fire_agent_webhook_failed(payment.user_id, check.id, str(e))
         raise HTTPException(status_code=502, detail=f"Pipeline error: {e}")
@@ -937,14 +947,14 @@ async def _run_agent_pipeline(
 async def _refund_and_fail_tx(
     tx: "AgentTransaction",
     payment: AgentPaymentContext,
-    amount_cents: int,
+    amount_pence: int,
     session: AsyncSession,
 ) -> None:
     """Refund credits and mark transaction as refunded/failed."""
     if payment.provider == "credit":
         from app.services.payments.credit_provider import refund_credits
 
-        await refund_credits(payment.user_id, amount_cents, session)
+        await refund_credits(payment.user_id, amount_pence, session)
         tx.status = "refunded"
     else:
         tx.status = "failed"
@@ -976,7 +986,7 @@ async def _run_pipeline_background(
     tier: str,
     tx_id: str,
     provider: str,
-    amount_cents: int,
+    amount_pence: int,
 ) -> None:
     """Background pipeline execution for async mode (O-06).
 
@@ -1091,7 +1101,7 @@ async def _run_pipeline_background(
             if provider == "credit":
                 from app.services.payments.credit_provider import refund_credits
 
-                await refund_credits(user_id, amount_cents, fail_session)
+                await refund_credits(user_id, amount_pence, fail_session)
                 tx.status = "refunded"
             else:
                 tx.status = "failed"
@@ -1135,7 +1145,7 @@ async def get_credit_balance(
     identity: AgentIdentity = Depends(get_agent_identity),
     session: AsyncSession = Depends(get_session),
 ) -> JSONResponse:
-    """Return the agent's prepaid credit balance in cents and USD.
+    """Return the agent's prepaid credit balance in pence and GBP.
 
     **Rate limit:** 60/minute
     """
@@ -1144,11 +1154,11 @@ async def get_credit_balance(
     result = await session.execute(select(User).where(User.id == identity.user_id))
     user = result.scalar_one_or_none()
 
-    balance = user.credit_balance_cents if user else 0
+    balance = user.credit_balance_pence if user else 0
     return JSONResponse(
         content={
-            "balanceCents": balance,
-            "balanceUsd": f"{balance / 100:.2f}",
+            "balancePence": balance,
+            "balanceGbp": f"£{balance / 100:.2f}",
         }
     )
 
@@ -1161,9 +1171,7 @@ async def get_credit_balance(
 class CreditPurchaseRequest(BaseModel):
     """Purchase a prepaid credit pack via Stripe Checkout."""
 
-    pack: str = Field(
-        description="Credit pack size: '5' ($5.00), '20' ($20.00), or '100' ($100.00)"
-    )
+    pack: str = Field(description="Credit pack size: '20' (£3.00) or '100' (£15.00)")
 
 
 @router.post(
@@ -1191,7 +1199,7 @@ async def purchase_credits(
     to complete payment. Credits are added to the account automatically
     after successful payment.
 
-    **Available packs:** 5, 20, or 100 (in USD).
+    **Available packs:** 20 or 100 (in GBP).
 
     **Rate limit:** 10/minute
     """
@@ -1200,17 +1208,14 @@ async def purchase_credits(
     from app.models.user import User
 
     pack_map = {
-        "5": (settings.STRIPE_PRICE_ID_CREDIT_PACK_5, 500),
-        "20": (settings.STRIPE_PRICE_ID_CREDIT_PACK_20, 2000),
-        "100": (settings.STRIPE_PRICE_ID_CREDIT_PACK_100, 10000),
+        "20": (settings.STRIPE_PRICE_ID_CREDIT_PACK_20, 300),
+        "100": (settings.STRIPE_PRICE_ID_CREDIT_PACK_100, 1500),
     }
 
     if body.pack not in pack_map:
-        raise HTTPException(
-            status_code=400, detail="Invalid pack. Choose 5, 20, or 100."
-        )
+        raise HTTPException(status_code=400, detail="Invalid pack. Choose 20 or 100.")
 
-    price_id, cents_value = pack_map[body.pack]
+    price_id, pence_value = pack_map[body.pack]
     if not price_id:
         raise HTTPException(
             status_code=503,
@@ -1236,7 +1241,7 @@ async def purchase_credits(
             metadata={
                 "user_id": user.id,
                 "credit_pack": body.pack,
-                "cents_value": str(cents_value),
+                "pence_value": str(pence_value),
                 "purchase_type": "agent_credits",
             },
         )
@@ -1284,7 +1289,7 @@ async def get_agent_stats(
         select(
             AgentTransaction.tier,
             func.count(AgentTransaction.id).label("count"),
-            func.sum(AgentTransaction.amount_cents).label("total_cents"),
+            func.sum(AgentTransaction.amount_pence).label("total_pence"),
         )
         .where(
             AgentTransaction.payer_id == identity.user_id,
@@ -1295,8 +1300,8 @@ async def get_agent_stats(
     tier_rows = tier_stats_result.all()
 
     by_tier = {}
-    for tier, count, total_cents in tier_rows:
-        by_tier[tier] = {"count": count, "totalCents": total_cents or 0}
+    for tier, count, total_pence in tier_rows:
+        by_tier[tier] = {"count": count, "totalPence": total_pence or 0}
 
     # Aggregate by provider
     provider_stats_result = await session.execute(
@@ -1394,11 +1399,11 @@ async def agent_health(request: Request) -> JSONResponse:
 )
 @limiter.limit("60/minute")
 async def agent_tiers(request: Request) -> JSONResponse:
-    """Return agent tier names, pricing (cents), and estimated latency. No auth required.
+    """Return agent tier names, pricing (pence), and estimated latency. No auth required.
 
     **Rate limit:** 60/minute
     """
-    from app.core.agent_pricing import AGENT_PRICING_CENTS, TIER_ORDER
+    from app.core.agent_pricing import AGENT_PRICING_PENCE, TIER_ORDER
 
     tier_descriptions = {
         "lookup": ("Cached prior analysis", 0),
@@ -1413,7 +1418,7 @@ async def agent_tiers(request: Request) -> JSONResponse:
         tiers.append(
             {
                 "name": name,
-                "costCents": AGENT_PRICING_CENTS[name],
+                "costPence": AGENT_PRICING_PENCE[name],
                 "estimatedSeconds": est_seconds,
                 "description": desc,
             }
@@ -1439,16 +1444,16 @@ async def agent_me(
     """
     from app.models.user import User
 
-    credit_balance_cents = 0
+    credit_balance_pence = 0
     user = await session.get(User, identity.user_id)
     if user:
-        credit_balance_cents = max((user.credits or 0), 0)
+        credit_balance_pence = max((user.credit_balance_pence or 0), 0)
 
     return JSONResponse(
         content={
             "userId": identity.user_id,
             "provider": identity.provider,
-            "creditBalanceCents": credit_balance_cents,
+            "creditBalancePence": credit_balance_pence,
         }
     )
 
@@ -1495,19 +1500,19 @@ async def agent_batch(
             detail="Batch tier must be 'quick' or 'full'.",
         )
 
-    amount_cents = get_tier_price(tier)
-    total_cost = amount_cents * len(body.claims)
+    amount_pence = get_tier_price(tier)
+    total_cost = amount_pence * len(body.claims)
 
     # Verify sufficient balance upfront (credit provider only)
     if payment.provider == "credit":
         from app.models.user import User
 
         user = await session.get(User, payment.user_id)
-        balance = max((user.credits or 0), 0) if user else 0
+        balance = max((user.credit_balance_pence or 0), 0) if user else 0
         if balance < total_cost:
             raise HTTPException(
                 status_code=402,
-                detail=f"Insufficient credits. Need {total_cost} cents for {len(body.claims)} claims at ${amount_cents/100:.2f}/each. Balance: {balance} cents.",
+                detail=f"Insufficient credits. Need {total_cost} pence for {len(body.claims)} claims at £{amount_pence/100:.2f}/each. Balance: {balance} pence.",
             )
 
     from app.core.database import async_session
@@ -1524,7 +1529,7 @@ async def agent_batch(
 
         # Charge per claim
         tx = await payment.charge(
-            amount_cents=amount_cents,
+            amount_pence=amount_pence,
             tier=tier,
             description=claim_hash,
             idempotency_key=item_idem_key,
@@ -1563,7 +1568,7 @@ async def agent_batch(
                 tier=tier,
                 tx_id=tx.id,
                 provider=payment.provider,
-                amount_cents=amount_cents,
+                amount_pence=amount_pence,
             )
         )
 
@@ -1583,7 +1588,7 @@ async def agent_batch(
         content={
             "accepted": len(results),
             "tier": tier,
-            "totalChargedCents": total_cost,
+            "totalChargedPence": total_cost,
             "estimatedSeconds": estimated,
             "checks": results,
         },

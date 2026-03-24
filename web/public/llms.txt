@@ -4,16 +4,16 @@
 
 ## API
 
-Base: https://api.tru8.app/api/v1/agent
+Base: https://api.trueight.com/api/v1/agent
 Auth: X-API-Key header
-Docs: https://tru8.app/developers
+Docs: https://www.trueight.com/developers
 
 Endpoints:
 - POST /agent/check — Smart endpoint, automatic tier fallback
-- POST /agent/lookup — Cached prior analysis ($0.02, instant)
-- POST /agent/consensus — Cross-user aggregate ($0.03, instant)
-- POST /agent/quick — Web search + heuristic classification ($0.07, ~15s)
-- POST /agent/full — Full 30+ source pipeline ($0.15, ~60-90s)
+- POST /agent/lookup — Cached prior analysis (£0.02, instant)
+- POST /agent/consensus — Cross-user aggregate (£0.03, instant)
+- POST /agent/quick — Web search + heuristic classification (£0.07, ~15s)
+- POST /agent/full — Full 30+ source pipeline (£0.15, ~60-90s)
 - GET /agent/result/{id} — Retrieve completed check (free)
 - POST /agent/batch — Up to 10 claims (per-claim pricing, async)
 

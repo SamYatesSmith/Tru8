@@ -86,7 +86,7 @@ class TestFullEndpoint:
                 "claims": [{"text": "Test claim"}],
                 "_meta": {
                     "executedTier": "full",
-                    "chargedCents": 15,
+                    "chargedPence": 15,
                     "limitations": [],
                     "landscape": {},
                 },
@@ -114,7 +114,7 @@ class TestFullEndpoint:
         data = resp.json()
         assert "_meta" in data
         assert data["_meta"]["executedTier"] == "full"
-        assert data["_meta"]["chargedCents"] == 15
+        assert data["_meta"]["chargedPence"] == 15
 
     @pytest.mark.asyncio
     async def test_full_meta_limitations_empty(self):
@@ -141,7 +141,7 @@ class TestFullEndpoint:
                 "claims": [],
                 "_meta": {
                     "executedTier": "full",
-                    "chargedCents": 15,
+                    "chargedPence": 15,
                     "limitations": [],
                     "landscape": {},
                 },

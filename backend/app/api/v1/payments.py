@@ -20,6 +20,27 @@ STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
 router = APIRouter()
 
 
+async def _get_or_create_stripe_customer(user: User, session: AsyncSession) -> str:
+    """Find existing Stripe customer ID or create a new one."""
+    sub_stmt = (
+        select(Subscription)
+        .where(Subscription.user_id == user.id)
+        .order_by(desc(Subscription.created_at))
+        .limit(1)
+    )
+    sub_result = await session.execute(sub_stmt)
+    subscription = sub_result.scalar_one_or_none()
+
+    if subscription and subscription.stripe_customer_id:
+        return subscription.stripe_customer_id
+
+    customer = stripe.Customer.create(email=user.email, metadata={"user_id": user.id})
+    if subscription:
+        subscription.stripe_customer_id = customer.id
+        await session.commit()
+    return customer.id
+
+
 class CreateCheckoutRequest(BaseModel):
     price_id: str
     plan: str  # 'starter' or 'professional'
@@ -91,9 +112,12 @@ async def create_checkout_session(
                 status_code=400, detail="User already has an active subscription"
             )
 
+        # Reuse or create Stripe customer
+        customer_id = await _get_or_create_stripe_customer(user, session)
+
         # Create Stripe checkout session
         checkout_session = stripe.checkout.Session.create(
-            customer_email=user.email,
+            customer=customer_id,
             client_reference_id=user.id,
             line_items=[
                 {
@@ -146,29 +170,52 @@ async def stripe_webhook(
         logger.error(f"Invalid signature: {e}")
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    # Handle the event
-    if event["type"] == "checkout.session.completed":
-        session_data = event["data"]["object"]
-        # Route to agent credit handler or subscription handler
-        if session_data.get("metadata", {}).get("purchase_type") == "agent_credits":
-            await handle_agent_credit_purchase(session_data, session)
+    # Idempotency: skip duplicate event deliveries (72h TTL in Redis,
+    # matching Stripe's 72h retry window)
+    event_id = event["id"]
+    try:
+        from app.core.redis import get_redis
+
+        redis_client = await get_redis()
+        if redis_client:
+            cache_key = f"stripe_event:{event_id}"
+            if await redis_client.exists(cache_key):
+                logger.info(f"Duplicate Stripe event {event_id}, skipping")
+                return {"status": "success"}
+            await redis_client.set(cache_key, "1", ex=259200)  # 72h
+    except Exception:
+        pass  # Degrade gracefully if Redis unavailable
+
+    # Handle the event — wrap each handler so individual failures return 500
+    # (Stripe will retry on 5xx, preventing lost events)
+    try:
+        if event["type"] == "checkout.session.completed":
+            session_data = event["data"]["object"]
+            # Route to agent credit handler or subscription handler
+            if session_data.get("metadata", {}).get("purchase_type") == "agent_credits":
+                await handle_agent_credit_purchase(session_data, session)
+            else:
+                await handle_successful_payment(session_data, session)
+
+        elif event["type"] == "customer.subscription.updated":
+            subscription = event["data"]["object"]
+            await handle_subscription_updated(subscription, session)
+
+        elif event["type"] == "customer.subscription.deleted":
+            subscription = event["data"]["object"]
+            await handle_subscription_cancelled(subscription, session)
+
+        elif event["type"] == "invoice.paid":
+            invoice = event["data"]["object"]
+            await handle_invoice_paid(invoice, session)
+
         else:
-            await handle_successful_payment(session_data, session)
-
-    elif event["type"] == "customer.subscription.updated":
-        subscription = event["data"]["object"]
-        await handle_subscription_updated(subscription, session)
-
-    elif event["type"] == "customer.subscription.deleted":
-        subscription = event["data"]["object"]
-        await handle_subscription_cancelled(subscription, session)
-
-    elif event["type"] == "invoice.paid":
-        invoice = event["data"]["object"]
-        await handle_invoice_paid(invoice, session)
-
-    else:
-        logger.info(f"Unhandled event type: {event['type']}")
+            logger.info(f"Unhandled event type: {event['type']}")
+    except Exception as e:
+        logger.error(
+            f"Webhook handler failed for event {event_id} ({event['type']}): {e}"
+        )
+        raise HTTPException(status_code=500, detail="Webhook handler error")
 
     return {"status": "success"}
 
@@ -177,30 +224,51 @@ async def handle_agent_credit_purchase(session_data: dict, session: AsyncSession
     """Handle agent credit pack purchase from Stripe Checkout (L-07)."""
     user_id = session_data.get("client_reference_id")
     metadata = session_data.get("metadata", {})
-    cents_value = int(metadata.get("cents_value", 0))
-    pack = metadata.get("credit_pack", "unknown")
 
-    if not user_id or not cents_value:
+    try:
+        pence_value = int(metadata.get("pence_value", 0))
+    except (ValueError, TypeError):
         logger.error(
-            f"Agent credit purchase missing data: user={user_id}, cents={cents_value}"
+            f"Agent credit purchase: invalid pence_value in metadata: {metadata}"
         )
         return
 
-    stmt = select(User).where(User.id == user_id)
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
+    pack = metadata.get("credit_pack", "unknown")
 
-    if not user:
+    if not user_id or not pence_value:
+        logger.error(
+            f"Agent credit purchase missing data: user={user_id}, pence={pence_value}"
+        )
+        return
+
+    # Cross-check: Stripe amount_total (in pence for GBP) must match metadata
+    stripe_amount = session_data.get("amount_total")
+    if stripe_amount is not None and stripe_amount != pence_value:
+        logger.error(
+            f"Agent credit purchase amount mismatch: stripe={stripe_amount}, "
+            f"metadata={pence_value}, user={user_id}. Rejecting."
+        )
+        return
+
+    # Atomic DB-level increment to prevent race conditions on concurrent webhooks
+    from sqlalchemy import update as sa_update
+
+    result = await session.execute(
+        sa_update(User)
+        .where(User.id == user_id)
+        .values(
+            credit_balance_pence=User.credit_balance_pence + pence_value,
+            updated_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        )
+    )
+    if result.rowcount == 0:
         logger.error(f"User {user_id} not found for agent credit purchase")
         return
 
-    user.credit_balance_cents += cents_value
-    user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await session.commit()
 
     logger.info(
-        f"Agent credit purchase: user={user_id}, pack=${pack}, "
-        f"added={cents_value} cents, new_balance={user.credit_balance_cents}"
+        f"Agent credit purchase: user={user_id}, pack={pack}, added={pence_value}p"
     )
 
 
@@ -238,10 +306,12 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
     if price_id in PRICE_TO_PLAN:
         plan, credits_per_month = PRICE_TO_PLAN[price_id]
     else:
-        # Fallback for unknown price IDs
-        logger.warning(f"Unknown price ID: {price_id}, defaulting to free plan")
-        plan = "free"
-        credits_per_month = 3
+        logger.error(
+            f"Unknown Stripe price ID: {price_id}. "
+            f"Expected: {list(PRICE_TO_PLAN.keys())}. "
+            f"Check STRIPE_PRICE_ID_PRO and STRIPE_PRICE_ID_DEVELOPER env vars."
+        )
+        return  # Do not create/update subscription with incorrect data
 
     # Get existing subscription
     existing_sub_stmt = select(Subscription).where(Subscription.user_id == user_id)
@@ -254,11 +324,11 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
         existing_subscription.credits_per_month = credits_per_month
         existing_subscription.credits_remaining = credits_per_month  # Reset credits
         existing_subscription.current_period_start = datetime.fromtimestamp(
-            stripe_subscription["current_period_start"]
-        )
+            stripe_subscription["current_period_start"], tz=timezone.utc
+        ).replace(tzinfo=None)
         existing_subscription.current_period_end = datetime.fromtimestamp(
-            stripe_subscription["current_period_end"]
-        )
+            stripe_subscription["current_period_end"], tz=timezone.utc
+        ).replace(tzinfo=None)
         existing_subscription.stripe_subscription_id = stripe_subscription_id
         existing_subscription.stripe_customer_id = stripe_customer_id
         existing_subscription.updated_at = datetime.now(timezone.utc).replace(
@@ -310,11 +380,11 @@ async def handle_subscription_updated(subscription: dict, session: AsyncSession)
     # Update subscription status
     db_subscription.status = subscription["status"]
     db_subscription.current_period_start = datetime.fromtimestamp(
-        subscription["current_period_start"]
-    )
+        subscription["current_period_start"], tz=timezone.utc
+    ).replace(tzinfo=None)
     db_subscription.current_period_end = datetime.fromtimestamp(
-        subscription["current_period_end"]
-    )
+        subscription["current_period_end"], tz=timezone.utc
+    ).replace(tzinfo=None)
     db_subscription.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # If subscription renewed, reset credits
@@ -401,9 +471,11 @@ async def handle_invoice_paid(invoice: dict, session: AsyncSession):
 
     # Update subscription period dates
     new_period_start = datetime.fromtimestamp(
-        stripe_subscription["current_period_start"]
-    )
-    new_period_end = datetime.fromtimestamp(stripe_subscription["current_period_end"])
+        stripe_subscription["current_period_start"], tz=timezone.utc
+    ).replace(tzinfo=None)
+    new_period_end = datetime.fromtimestamp(
+        stripe_subscription["current_period_end"], tz=timezone.utc
+    ).replace(tzinfo=None)
 
     logger.info(
         f"Invoice paid for subscription {stripe_subscription_id}. "
@@ -559,30 +631,7 @@ async def create_billing_portal_session(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Get user's subscription to find Stripe customer ID
-        sub_stmt = (
-            select(Subscription)
-            .where(Subscription.user_id == user.id)
-            .order_by(desc(Subscription.created_at))
-            .limit(1)
-        )
-        sub_result = await session.execute(sub_stmt)
-        subscription = sub_result.scalar_one_or_none()
-
-        # If no subscription exists yet, we need to create a customer first
-        if not subscription or not subscription.stripe_customer_id:
-            # Create a Stripe customer for this user
-            customer = stripe.Customer.create(
-                email=user.email, metadata={"user_id": user.id}
-            )
-            customer_id = customer.id
-
-            # Save customer ID to subscription if it exists
-            if subscription:
-                subscription.stripe_customer_id = customer_id
-                await session.commit()
-        else:
-            customer_id = subscription.stripe_customer_id
+        customer_id = await _get_or_create_stripe_customer(user, session)
 
         # Create billing portal session
         portal_session = stripe.billing_portal.Session.create(

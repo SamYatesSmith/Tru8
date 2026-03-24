@@ -122,7 +122,7 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
       window.location.href = '/';
     } catch (error) {
       console.error('Failed to delete account:', error);
-      alert('Failed to delete account. Please contact support at support@tru8.com');
+      alert('Failed to delete account. Please contact support at hello@trueight.com');
       setDeleting(false);
     }
   };

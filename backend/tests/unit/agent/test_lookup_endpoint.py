@@ -128,7 +128,7 @@ class TestLookupMiss:
         data = resp.json()
         assert data["hit"] is False
         assert data["nextSuggestedTier"] == "quick"
-        assert "upgradeCostCents" in data
+        assert "upgradeCostPence" in data
         assert "claimTextHash" in data
 
 
@@ -192,7 +192,7 @@ class TestLookupHit:
                 "claims": [],
                 "_meta": {
                     "executedTier": "lookup",
-                    "chargedCents": 2,
+                    "chargedPence": 2,
                     "limitations": [],
                     "landscape": {},
                 },

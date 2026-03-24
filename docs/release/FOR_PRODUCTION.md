@@ -51,7 +51,7 @@
 | `DATABASE_URL` | `postgresql+asyncpg://postgres:password@localhost:5433/tru8_dev` | Production Postgres with SSL (`sslmode=require`) |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis with AUTH + TLS |
 | `QDRANT_URL` | `http://localhost:6333` | HTTPS endpoint with API key |
-| `FRONTEND_URL` | `http://localhost:3000` | `https://app.tru8.com` (or production domain) |
+| `FRONTEND_URL` | `http://localhost:3000` | `https://www.trueight.com` (or production domain) |
 
 **Database pool settings** (`backend/app/core/database.py`):
 - Current: 10 connections + 20 overflow
@@ -68,7 +68,7 @@ CORS_ORIGINS=["http://localhost:3000", "http://localhost:3001", ...]
 
 **Production:**
 ```
-CORS_ORIGINS=["https://app.tru8.com", "https://tru8.com"]
+CORS_ORIGINS=["https://www.trueight.com", "https://trueight.com"]
 ```
 
 **Note:** `backend/main.py:49` already handles this conditionally based on `ENVIRONMENT`.
@@ -79,9 +79,9 @@ CORS_ORIGINS=["https://app.tru8.com", "https://tru8.com"]
 
 | File | Variable | Dev Value | Production Value |
 |------|----------|-----------|------------------|
-| `web/.env` | `NEXT_PUBLIC_API_URL` | `http://127.0.0.1:8000` | `https://api.tru8.com` |
-| `web/.env` | `NEXT_PUBLIC_API_BASE_URL` | `http://127.0.0.1:8000` | `https://api.tru8.com` |
-| `mobile/.env` | `EXPO_PUBLIC_API_URL` | `http://localhost:8000` | `https://api.tru8.com` |
+| `web/.env` | `NEXT_PUBLIC_API_URL` | `http://127.0.0.1:8000` | `https://api.trueight.com` |
+| `web/.env` | `NEXT_PUBLIC_API_BASE_URL` | `http://127.0.0.1:8000` | `https://api.trueight.com` |
+| `mobile/.env` | `EXPO_PUBLIC_API_URL` | `http://localhost:8000` | `https://api.trueight.com` |
 
 **Hardcoded fallbacks to update:**
 - `web/lib/api.ts:1` - fallback URL
@@ -109,8 +109,8 @@ CORS_ORIGINS=["https://app.tru8.com", "https://tru8.com"]
 
 | Setting | Dev Value | Production Value |
 |---------|-----------|------------------|
-| `EMAIL_FROM_ADDRESS` | `onboarding@resend.dev` | Verified domain (e.g., `noreply@tru8.com`) |
-| `FEEDBACK_EMAIL` | `samyatessmith@gmail.com` | `support@tru8.com` or similar |
+| `EMAIL_FROM_ADDRESS` | `onboarding@resend.dev` | Verified domain (e.g., `noreply@trueight.com`) |
+| `FEEDBACK_EMAIL` | `samyatessmith@gmail.com` | `support@trueight.com` or similar |
 
 **Domain verification required:** Add DNS records in Resend dashboard for production domain.
 
@@ -301,17 +301,17 @@ DEBUG=false
 DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/tru8_prod?sslmode=require
 REDIS_URL=rediss://user:pass@host:6379/0
 QDRANT_URL=https://your-qdrant-instance.cloud
-FRONTEND_URL=https://app.tru8.com
-CORS_ORIGINS=["https://app.tru8.com","https://tru8.com"]
+FRONTEND_URL=https://www.trueight.com
+CORS_ORIGINS=["https://www.trueight.com","https://trueight.com"]
 CLERK_SECRET_KEY=sk_live_...
 STRIPE_SECRET_KEY=sk_live_...
 SENTRY_DSN=https://...@sentry.io/...
-EMAIL_FROM_ADDRESS=noreply@tru8.com
+EMAIL_FROM_ADDRESS=noreply@trueight.com
 ```
 
 ```bash
 # Web production .env template
-NEXT_PUBLIC_API_URL=https://api.tru8.com
+NEXT_PUBLIC_API_URL=https://api.trueight.com
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 NEXT_PUBLIC_SENTRY_DSN=https://...@sentry.io/...

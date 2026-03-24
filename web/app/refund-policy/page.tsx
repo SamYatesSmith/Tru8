@@ -9,7 +9,7 @@ export default function RefundPolicyPage() {
   return (
     <LegalPageLayout
       title="Refund Policy"
-      lastUpdated="6 January 2026"
+      lastUpdated="18 March 2026"
     >
       <div className="prose-legal">
         <h2>1. Subscription Cancellation</h2>

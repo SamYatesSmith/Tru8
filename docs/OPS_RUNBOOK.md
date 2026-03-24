@@ -165,13 +165,13 @@ AND state_change < NOW() - INTERVAL '10 minutes';
 
 ```bash
 # API health
-curl https://api.tru8.app/api/v1/health
+curl https://api.trueight.com/api/v1/health
 
 # Readiness check
-curl https://api.tru8.app/api/v1/health/ready
+curl https://api.trueight.com/api/v1/health/ready
 
 # Cache metrics
-curl https://api.tru8.app/api/v1/health/cache-metrics
+curl https://api.trueight.com/api/v1/health/cache-metrics
 ```
 
 ### Sentry
@@ -223,7 +223,7 @@ railway logs | grep -i error | tail -50
 # Look for: repeated exceptions, specific endpoints, user patterns
 
 # If rate limiting issue
-curl -I https://api.tru8.app/api/v1/checks
+curl -I https://api.trueight.com/api/v1/checks
 # Check X-RateLimit headers
 ```
 
@@ -343,7 +343,7 @@ railway logs | grep -i "timeout\|stuck\|error"
 |------|------|---------|
 | On-call Engineer | TBD | TBD |
 | Product Owner | TBD | TBD |
-| Customer Support | TBD | support@tru8.com |
+| Customer Support | TBD | support@trueight.com |
 
 ---
 

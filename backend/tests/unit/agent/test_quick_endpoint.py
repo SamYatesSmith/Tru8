@@ -87,7 +87,7 @@ class TestQuickEndpoint:
                 "claims": [{"text": "Test claim"}],
                 "_meta": {
                     "executedTier": "quick",
-                    "chargedCents": 7,
+                    "chargedPence": 7,
                     "limitations": QUICK_LIMITATIONS,
                     "landscape": {},
                 },
@@ -115,7 +115,7 @@ class TestQuickEndpoint:
         data = resp.json()
         assert "_meta" in data
         assert data["_meta"]["executedTier"] == "quick"
-        assert data["_meta"]["chargedCents"] == 7
+        assert data["_meta"]["chargedPence"] == 7
         assert isinstance(data["_meta"]["limitations"], list)
         assert len(data["_meta"]["limitations"]) > 0
 

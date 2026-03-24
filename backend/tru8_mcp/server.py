@@ -17,7 +17,7 @@ Configure for Claude Desktop (claude_desktop_config.json):
 Environment variables:
     TRU8_API_KEY  — Required. Create at dashboard → Settings → Developer.
                     Store in env vars or a secrets manager — never hardcode in source.
-    TRU8_API_URL  — Optional. Default: https://api.tru8.app
+    TRU8_API_URL  — Optional. Default: https://api.trueight.com
 """
 
 import json
@@ -66,10 +66,10 @@ async def tru8_check(
     and auto-selects up to 5 for evidence research.
 
     Tiers (in fallback order):
-    - lookup    (~$0.02, instant) — cached prior analysis
-    - consensus (~$0.03, instant) — cross-user aggregate landscape (k≥3 checks)
-    - quick     (~$0.07, ~15s) — web search + heuristic classification
-    - full      (~$0.15, ~60-90s) — 30+ sources, LLM classification, coverage recovery
+    - lookup    (~£0.02, instant) — cached prior analysis
+    - consensus (~£0.03, instant) — cross-user aggregate landscape (k≥3 checks)
+    - quick     (~£0.07, ~15s) — web search + heuristic classification
+    - full      (~£0.15, ~60-90s) — 30+ sources, LLM classification, coverage recovery
 
     Charges based on tier actually executed, not tier requested.
     Set max_tier to control maximum spend per call.
@@ -82,7 +82,7 @@ async def tru8_check(
     - claims[].evidence[] — sources classified by tier (primary/reporting/
       commentary) and type (data/official/news/analysis/opinion/academic)
     - claims[].claimMap.orientation — mechanical summary from element states
-    - _meta — execution metadata: executedTier, chargedCents, limitations
+    - _meta — execution metadata: executedTier, chargedPence, limitations
 
     Args:
         claim: A factual claim ("The Earth's average temperature rose 1.1°C

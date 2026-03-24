@@ -215,7 +215,7 @@ def build_consensus_response(consensus: ClaimConsensus) -> dict:
         "claims": [],
         "_meta": {
             "executedTier": "consensus",
-            "chargedCents": 3,
+            "chargedPence": 3,
             "limitations": ["no_individual_evidence", "aggregated_landscape"],
             "landscape": {
                 "elementCount": len(consensus.element_state_distribution),

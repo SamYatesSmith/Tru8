@@ -9,7 +9,7 @@ export default function TermsOfServicePage() {
   return (
     <LegalPageLayout
       title="Terms of Service"
-      lastUpdated="9 March 2026"
+      lastUpdated="18 March 2026"
     >
       <div className="prose-legal">
         <h2>1. Agreement to Terms</h2>
@@ -30,10 +30,10 @@ export default function TermsOfServicePage() {
           claims against publicly available sources. Our service:
         </p>
         <ul>
-          <li>Analyses text, URLs, images, and videos for claims</li>
+          <li>Extracts claims from text, URLs, images, and videos</li>
           <li>Searches publicly available sources for relevant evidence</li>
           <li>Provides dated citations and evidence references</li>
-          <li>Provides analysis results with source citations</li>
+          <li>Organises evidence into a classified landscape — we organise; you decide</li>
           <li>Provides a developer API and MCP server for programmatic and AI agent access</li>
         </ul>
 
@@ -57,14 +57,14 @@ export default function TermsOfServicePage() {
 
         <h3>4.1 Free Plan</h3>
         <ul>
-          <li>3 free analyses upon signup</li>
+          <li>3 free checks upon signup</li>
           <li>Basic analysis features</li>
           <li>Standard support</li>
         </ul>
 
         <h3>4.2 Starter Plan (£7/month)</h3>
         <ul>
-          <li>40 analyses per month (~18p per check)</li>
+          <li>40 checks per month (~18p per check)</li>
           <li>URL analysis</li>
           <li>Comprehensive source citations</li>
           <li>Export to PDF/JSON/CSV</li>
@@ -73,7 +73,7 @@ export default function TermsOfServicePage() {
 
         <h3>4.3 Professional Plan (£29/month)</h3>
         <ul>
-          <li>200 analyses per month (~15p per check)</li>
+          <li>200 checks per month (~15p per check)</li>
           <li>All Starter features</li>
           <li>API access with dedicated API key</li>
           <li>MCP server integration</li>
@@ -82,7 +82,7 @@ export default function TermsOfServicePage() {
 
         <h3>4.4 Enterprise Plan (Custom)</h3>
         <ul>
-          <li>Custom analysis volume</li>
+          <li>Custom check volume</li>
           <li>Dedicated support</li>
           <li>Custom integrations</li>
           <li>Volume pricing</li>
@@ -279,8 +279,9 @@ export default function TermsOfServicePage() {
 
         <h2>14. Contact</h2>
         <p>
-          <strong>Company:</strong> Tru8 Ltd<br />
+          <strong>Company:</strong> Trueight Ltd (company number 17090683), trading as Tru8<br />
           <strong>Email:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a>
+          {/* ICO registration number: pending — to be added before launch */}
         </p>
       </div>
     </LegalPageLayout>

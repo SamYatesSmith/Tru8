@@ -124,7 +124,7 @@ class TestGetResultSuccess:
                 "claims": [{"text": "Test claim"}],
                 "_meta": {
                     "executedTier": "full",
-                    "chargedCents": 0,
+                    "chargedPence": 0,
                     "limitations": [],
                     "landscape": {},
                 },
@@ -139,7 +139,7 @@ class TestGetResultSuccess:
         data = resp.json()
         assert data["id"] == "check-ret-001"
         assert data["status"] == "completed"
-        assert data["_meta"]["chargedCents"] == 0  # Retrieval is free
+        assert data["_meta"]["chargedPence"] == 0  # Retrieval is free
 
 
 # ---------------------------------------------------------------------------

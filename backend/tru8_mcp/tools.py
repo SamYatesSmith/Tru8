@@ -45,7 +45,7 @@ class Tru8APIClient:
         api_key: Optional[str] = None,
     ):
         self.base_url = (
-            api_url or os.environ.get("TRU8_API_URL", "https://api.tru8.app")
+            api_url or os.environ.get("TRU8_API_URL", "https://api.trueight.com")
         ).rstrip("/")
         self.api_key = api_key or os.environ.get("TRU8_API_KEY", "")
         if not self.api_key:

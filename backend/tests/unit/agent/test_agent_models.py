@@ -14,13 +14,13 @@ class TestAgentPricingTiers:
     """Agent pricing constants are correctly configured."""
 
     def test_lookup_price(self):
-        assert get_tier_price("lookup") == 2  # $0.02
+        assert get_tier_price("lookup") == 2  # £0.02
 
     def test_quick_price(self):
-        assert get_tier_price("quick") == 7  # $0.07
+        assert get_tier_price("quick") == 7  # £0.07
 
     def test_full_price(self):
-        assert get_tier_price("full") == 15  # $0.15
+        assert get_tier_price("full") == 15  # £0.15
 
     def test_unknown_tier_raises(self):
         with pytest.raises(KeyError):

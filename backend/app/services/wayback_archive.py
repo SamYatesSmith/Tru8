@@ -143,7 +143,9 @@ async def archive_evidence_urls(check_id: str) -> None:
 
         archived_count = 0
         async with httpx.AsyncClient(
-            headers={"User-Agent": "Tru8 Evidence Archiver (+https://tru8.app)"},
+            headers={
+                "User-Agent": "Tru8 Evidence Archiver (+https://www.trueight.com)"
+            },
         ) as client:
             for i, (evidence_id, url) in enumerate(evidence_rows):
                 archive_url = await _archive_single_url(client, url)

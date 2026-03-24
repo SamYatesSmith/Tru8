@@ -46,7 +46,7 @@ class AgentPaymentContext(AgentIdentity):
 
     async def charge(
         self,
-        amount_cents: int,
+        amount_pence: int,
         tier: str,
         description: str,
         idempotency_key: Optional[str] = None,
@@ -85,7 +85,7 @@ class AgentPaymentContext(AgentIdentity):
         if self.provider == "credit":
             from app.services.payments.credit_provider import debit_credits
 
-            debited = await debit_credits(self.user_id, amount_cents, self.session)
+            debited = await debit_credits(self.user_id, amount_pence, self.session)
             if not debited:
                 raise HTTPException(
                     status_code=402,
@@ -98,7 +98,7 @@ class AgentPaymentContext(AgentIdentity):
             provider=self.provider,
             payer_id=self.payer_id,
             tier=tier,
-            amount_cents=amount_cents,
+            amount_pence=amount_pence,
             status="pending",
             idempotency_key=idempotency_key,
             request_hash=request_hash,

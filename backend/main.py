@@ -330,7 +330,7 @@ MCP_SERVER_CARD = {
         "(data/official/news/analysis/opinion/academic), with element "
         "decomposition and relationship mapping (supports/challenges/context)."
     ),
-    "documentationUrl": "https://tru8.app/developers",
+    "documentationUrl": "https://www.trueight.com/developers",
     "capabilities": {
         "tools": {"listChanged": False},
     },
@@ -346,7 +346,7 @@ MCP_SERVER_CARD = {
                 "(lookup/quick/full) to control depth and cost. Tier fallback: "
                 "lookup → quick → full up to max_tier. Returns structured "
                 "evidence landscape with element decomposition, source "
-                "classification, and _meta (executedTier, chargedCents)."
+                "classification, and _meta (executedTier, chargedPence)."
             ),
         },
         {

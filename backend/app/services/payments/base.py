@@ -16,7 +16,7 @@ class PaymentVerification(BaseModel):
 
     provider: str  # "skyfire" | "credit" (x402 handled at middleware layer)
     payer_id: str  # skyfire user ID, or tru8 user ID
-    amount_cents: int  # integer cents — $0.07 -> 7
+    amount_pence: int  # integer pence (GBP) — £0.07 -> 7
     transaction_ref: Optional[str] = None  # populated after charge succeeds
     metadata: dict = {}
 
@@ -34,6 +34,6 @@ class PaymentProvider(ABC):
 
     @abstractmethod
     async def verify_and_charge(
-        self, request: Request, amount_cents: int, description: str
+        self, request: Request, amount_pence: int, description: str
     ) -> PaymentVerification:
         """Verify payment credentials and charge the amount. Raises on failure."""

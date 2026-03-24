@@ -105,7 +105,7 @@ class TestBuildConsensusResponse:
         meta = response["_meta"]
 
         assert meta["executedTier"] == "consensus"
-        assert meta["chargedCents"] == 3
+        assert meta["chargedPence"] == 3
         assert "no_individual_evidence" in meta["limitations"]
         assert "aggregated_landscape" in meta["limitations"]
 
@@ -173,10 +173,10 @@ class TestAggregateElementStates:
 
 class TestAgentPricingConsensus:
     def test_consensus_tier_exists(self):
-        from app.core.agent_pricing import AGENT_PRICING_CENTS, TIER_ORDER
+        from app.core.agent_pricing import AGENT_PRICING_PENCE, TIER_ORDER
 
-        assert "consensus" in AGENT_PRICING_CENTS
-        assert AGENT_PRICING_CENTS["consensus"] == 3
+        assert "consensus" in AGENT_PRICING_PENCE
+        assert AGENT_PRICING_PENCE["consensus"] == 3
         assert "consensus" in TIER_ORDER
 
     def test_tier_order(self):

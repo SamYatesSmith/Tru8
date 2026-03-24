@@ -10,7 +10,7 @@ export default function CookiePolicyPage() {
   return (
     <LegalPageLayout
       title="Cookie Policy"
-      lastUpdated="6 January 2026"
+      lastUpdated="18 March 2026"
     >
       <div className="prose-legal">
         <h2>1. What Are Cookies?</h2>
@@ -127,7 +127,7 @@ export default function CookiePolicyPage() {
             </CookiePreferencesButton>
             {' '}in the footer
           </li>
-          <li>Visiting Settings → Privacy → Cookie Preferences (when logged in)</li>
+          <li>Using the Cookie Preferences button in the website footer (when logged in)</li>
         </ul>
 
         <h3>3.3 Browser Controls</h3>

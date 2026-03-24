@@ -348,7 +348,7 @@ jobs:
 
 **Web Environment Variables:**
 ```
-NEXT_PUBLIC_API_URL=https://api.tru8.com
+NEXT_PUBLIC_API_URL=https://api.trueight.com
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 ```
 

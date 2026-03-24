@@ -187,7 +187,7 @@ async def build_agent_response(
     check_id: str,
     session: AsyncSession,
     executed_tier: str,
-    charged_cents: int,
+    charged_pence: int,
     limitations: List[str],
     compact: bool = False,
     cached_from: Optional[str] = None,
@@ -212,7 +212,7 @@ async def build_agent_response(
     # Build _meta block
     meta = {
         "executedTier": executed_tier,
-        "chargedCents": charged_cents,
+        "chargedPence": charged_pence,
         "limitations": limitations,
         "landscape": landscape,
     }

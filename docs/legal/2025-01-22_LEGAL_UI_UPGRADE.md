@@ -1902,7 +1902,7 @@ NEXT_PUBLIC_COOKIEYES_ID="your-banner-id-here"
 
 # API URL for data export
 NEXT_PUBLIC_API_URL="http://localhost:8000"  # Development
-# NEXT_PUBLIC_API_URL="https://api.tru8.com"  # Production
+# NEXT_PUBLIC_API_URL="https://api.trueight.com"  # Production
 ```
 
 ### Placeholders to Replace

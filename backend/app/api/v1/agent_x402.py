@@ -122,7 +122,7 @@ async def _run_x402_pipeline(
     *,
     body: X402ClaimRequest,
     tier: str,
-    amount_cents: int,
+    amount_pence: int,
     limitations: list,
     payment: AgentPaymentContext,
     session: AsyncSession,
@@ -151,7 +151,7 @@ async def _run_x402_pipeline(
 
     # Create transaction (x402 payment already verified by middleware)
     tx = await payment.charge(
-        amount_cents=amount_cents,
+        amount_pence=amount_pence,
         tier=tier,
         description=claim_hash,
         idempotency_key=idempotency_key,
@@ -245,7 +245,7 @@ async def _run_x402_pipeline(
                 check_id=check.id,
                 session=resp_session,
                 executed_tier=tier,
-                charged_cents=amount_cents,
+                charged_pence=amount_pence,
                 limitations=limitations,
                 compact=body.compact or False,
             )
@@ -323,7 +323,7 @@ async def x402_preflight(
             content={
                 "suggestedTier": "quick",
                 "reason": "no_auth",
-                "costCents": get_tier_price("quick"),
+                "costPence": get_tier_price("quick"),
                 "claimTextHash": claim_hash,
             }
         )
@@ -339,7 +339,7 @@ async def x402_preflight(
             content={
                 "suggestedTier": "quick",
                 "reason": "no_prior_analysis",
-                "costCents": get_tier_price("quick"),
+                "costPence": get_tier_price("quick"),
                 "claimTextHash": claim_hash,
             }
         )
@@ -364,7 +364,7 @@ async def x402_preflight(
             content={
                 "suggestedTier": "lookup",
                 "reason": "cache_hit",
-                "costCents": get_tier_price("lookup"),
+                "costPence": get_tier_price("lookup"),
                 "claimTextHash": claim_hash,
                 "cachedCheckId": check.id,
                 "cachedAt": (
@@ -377,7 +377,7 @@ async def x402_preflight(
         content={
             "suggestedTier": "quick",
             "reason": "no_prior_analysis",
-            "costCents": get_tier_price("quick"),
+            "costPence": get_tier_price("quick"),
             "claimTextHash": claim_hash,
         }
     )
@@ -399,7 +399,7 @@ async def x402_lookup(
     """Instant cached analysis via claim_text_hash, paid via USDC."""
     claim_hash = compute_claim_text_hash(body.claim)
     tier = "lookup"
-    amount_cents = get_tier_price(tier)
+    amount_pence = get_tier_price(tier)
 
     result = await session.execute(
         select(Claim, Check)
@@ -419,14 +419,14 @@ async def x402_lookup(
             content={
                 "hit": False,
                 "nextSuggestedTier": "quick",
-                "upgradeCostCents": get_tier_price("quick"),
+                "upgradeCostPence": get_tier_price("quick"),
                 "claimTextHash": claim_hash,
             }
         )
 
     claim, check = row
     tx = await payment.charge(
-        amount_cents=amount_cents,
+        amount_pence=amount_pence,
         tier=tier,
         description=claim_hash,
         check_id=check.id,
@@ -441,7 +441,7 @@ async def x402_lookup(
         check_id=check.id,
         session=session,
         executed_tier=tier,
-        charged_cents=amount_cents,
+        charged_pence=amount_pence,
         limitations=[],
         compact=body.compact or False,
         cached_from=check.completed_at.isoformat() if check.completed_at else None,
@@ -472,7 +472,7 @@ async def x402_quick(
     return await _run_x402_pipeline(
         body=body,
         tier="quick",
-        amount_cents=get_tier_price("quick"),
+        amount_pence=get_tier_price("quick"),
         limitations=QUICK_LIMITATIONS,
         payment=payment,
         session=session,
@@ -498,7 +498,7 @@ async def x402_full(
     return await _run_x402_pipeline(
         body=body,
         tier="full",
-        amount_cents=get_tier_price("full"),
+        amount_pence=get_tier_price("full"),
         limitations=[],
         payment=payment,
         session=session,
@@ -590,7 +590,7 @@ async def x402_result(
         check_id=check_id,
         session=session,
         executed_tier="full",
-        charged_cents=0,
+        charged_pence=0,
         limitations=[],
     )
 
