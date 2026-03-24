@@ -5,9 +5,6 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Create non-root user for security
-RUN groupadd -r tru8 && useradd -r -g tru8 tru8
-
 # Install system dependencies (build + runtime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
@@ -44,23 +41,19 @@ RUN apt-get update && apt-get remove -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy application code
-COPY --chown=tru8:tru8 . .
+COPY . .
 
 # Remove unnecessary files from final image
 RUN rm -rf tests/ docs/ *.md .pytest_cache/ __pycache__/ .coverage htmlcov/
 
-# Ensure scripts directory exists and copy startup scripts
+# Copy startup scripts and fix Windows line endings
 RUN mkdir -p scripts
-COPY --chown=tru8:tru8 scripts/download_models.py scripts/
-COPY --chown=tru8:tru8 entrypoint.sh .
-
-# Fix Windows line endings (CRLF -> LF) and make executable
+COPY scripts/download_models.py scripts/
+COPY entrypoint.sh .
 RUN sed -i 's/\r$//' entrypoint.sh scripts/download_models.py && chmod +x entrypoint.sh
 
-# Set ownership
-RUN chown -R tru8:tru8 /app
-
-# Switch to non-root user
+# Create non-root user and set ownership (after all installs to avoid cache busting)
+RUN groupadd -r tru8 && useradd -r -g tru8 tru8 && chown -R tru8:tru8 /app
 USER tru8
 
 # Environment defaults (override in deployment)
