@@ -40,17 +40,13 @@ RUN apt-get update && apt-get remove -y \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy application code
+# Copy application code (entrypoint.sh and scripts/ included)
 COPY . .
 
-# Remove unnecessary files from final image
-RUN rm -rf tests/ docs/ *.md .pytest_cache/ __pycache__/ .coverage htmlcov/
-
-# Copy startup scripts and fix Windows line endings
-RUN mkdir -p scripts
-COPY scripts/download_models.py scripts/
-COPY entrypoint.sh .
-RUN sed -i 's/\r$//' entrypoint.sh scripts/download_models.py && chmod +x entrypoint.sh
+# Remove unnecessary files and fix Windows line endings
+RUN rm -rf tests/ docs/ *.md .pytest_cache/ __pycache__/ .coverage htmlcov/ \
+    && sed -i 's/\r$//' entrypoint.sh scripts/download_models.py \
+    && chmod +x entrypoint.sh
 
 # Create non-root user and set ownership (after all installs to avoid cache busting)
 RUN groupadd -r tru8 && useradd -r -g tru8 tru8 && chown -R tru8:tru8 /app
