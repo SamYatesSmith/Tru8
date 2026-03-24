@@ -1,33 +1,6 @@
 # Tru8 API - Production Dockerfile (CPU-only PyTorch)
-# Optimized for Railway deployment
+# Single-stage build to reduce peak memory usage on Railway
 
-# ==============================================================================
-# Stage 1: Builder - Install dependencies and build wheels
-# ==============================================================================
-FROM python:3.12-slim as builder
-
-WORKDIR /app
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# CRITICAL: Install CPU-only PyTorch FIRST
-# This prevents sentence-transformers from pulling the 2.5GB CUDA version
-RUN pip install --no-cache-dir \
-    torch==2.5.1+cpu \
-    torchvision==0.20.1+cpu \
-    --index-url https://download.pytorch.org/whl/cpu
-
-# Copy requirements and build wheels
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
-
-# ==============================================================================
-# Stage 2: Production - Minimal runtime image
-# ==============================================================================
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -35,36 +8,36 @@ WORKDIR /app
 # Create non-root user for security
 RUN groupadd -r tru8 && useradd -r -g tru8 tru8
 
-# Install runtime dependencies + temporary build deps for pycairo
+# Install system dependencies (build + runtime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    libpq-dev \
     curl \
     build-essential \
+    libcairo2 \
     libcairo2-dev \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
     pkg-config \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# CPU-only PyTorch in final image (NOT from wheels)
+# CPU-only PyTorch FIRST (prevents sentence-transformers pulling 2.5GB CUDA)
 RUN pip install --no-cache-dir \
     torch==2.5.1+cpu \
     torchvision==0.20.1+cpu \
     --index-url https://download.pytorch.org/whl/cpu
 
-# Copy wheels from builder and install
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
-RUN pip install --no-cache /wheels/*
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Remove build dependencies, keep WeasyPrint runtime libs (cairo, pango, gdk-pixbuf)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libcairo2 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    && apt-get remove -y \
+# Remove build-only dependencies to shrink image
+RUN apt-get update && apt-get remove -y \
     build-essential \
     libcairo2-dev \
+    libpq-dev \
     pkg-config \
     python3-dev \
     && apt-get autoremove -y \
@@ -100,13 +73,10 @@ ENV PYTHONUNBUFFERED=1 \
     SENTENCE_TRANSFORMERS_HOME=/models/sentence-transformers \
     TRANSFORMERS_CACHE=/models/transformers
 
-# Expose port
 EXPOSE 8000
 
-# Health check - increased start period for model download
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/api/v1/health || exit 1
 
-# Run with entrypoint for model download
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
