@@ -5,7 +5,9 @@ echo "=== Tru8 API Container Startup ==="
 
 echo "Running database migrations..."
 cd /app
-python -m alembic upgrade head || {
+# Alembic needs sync driver — convert asyncpg URL to psycopg2 for migration
+export ALEMBIC_DATABASE_URL="${DATABASE_URL//+asyncpg/}"
+DATABASE_URL="$ALEMBIC_DATABASE_URL" python -m alembic upgrade head || {
     if [ "$ENVIRONMENT" = "production" ]; then
         echo "ERROR: Migration failed in production. Aborting startup."
         exit 1

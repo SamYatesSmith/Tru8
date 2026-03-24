@@ -48,8 +48,10 @@ RUN rm -rf tests/ docs/ *.md .pytest_cache/ __pycache__/ .coverage htmlcov/ \
     && sed -i 's/\r$//' entrypoint.sh scripts/download_models.py \
     && chmod +x entrypoint.sh
 
-# Create non-root user and set ownership (after all installs to avoid cache busting)
-RUN groupadd -r tru8 && useradd -r -g tru8 tru8 && chown -R tru8:tru8 /app
+# Create model cache directory and non-root user
+RUN mkdir -p /app/models && \
+    groupadd -r tru8 && useradd -r -g tru8 tru8 && \
+    chown -R tru8:tru8 /app
 USER tru8
 
 # Environment defaults (override in deployment)
@@ -58,9 +60,9 @@ ENV PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \
     DEBUG=false \
     PORT=8000 \
-    HF_HOME=/models/huggingface \
-    SENTENCE_TRANSFORMERS_HOME=/models/sentence-transformers \
-    TRANSFORMERS_CACHE=/models/transformers
+    HF_HOME=/app/models/huggingface \
+    SENTENCE_TRANSFORMERS_HOME=/app/models/sentence-transformers \
+    TRANSFORMERS_CACHE=/app/models/transformers
 
 EXPOSE 8000
 
