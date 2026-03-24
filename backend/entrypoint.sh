@@ -19,5 +19,5 @@ DATABASE_URL="$ALEMBIC_DATABASE_URL" python -m alembic upgrade head || {
 echo "Checking ML model cache..."
 python scripts/download_models.py
 
-echo "Starting application..."
-exec "$@"
+echo "Starting application on port ${PORT:-8000}..."
+exec uvicorn main:app --host 0.0.0.0 --port "${PORT:-8000}" --workers 1
