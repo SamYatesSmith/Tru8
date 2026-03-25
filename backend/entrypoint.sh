@@ -6,26 +6,48 @@ echo "=== Tru8 API Container Startup ==="
 echo "Running database migrations..."
 cd /app
 
-# Ensure base tables exist (SQLModel create_all for fresh databases).
-# Alembic migrations add columns/indexes to existing tables but don't
-# create the initial schema. This is idempotent — does nothing if
-# tables already exist.
+# Ensure base tables exist and Alembic state is consistent.
+# On a fresh database: create_all builds all tables from current models,
+# then stamp Alembic to HEAD so it doesn't try to re-run old migrations.
+# On an existing database: create_all is a no-op, Alembic runs normally.
 python -c "
 import asyncio
 from app.core.database import engine
 from sqlmodel import SQLModel
-from app.models import *  # Import all models
+from app.models import *
 
 async def init():
+    from sqlalchemy import text, inspect
+
     async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+        # Check if alembic_version table exists (= existing database)
+        def check_alembic(sync_conn):
+            insp = inspect(sync_conn)
+            return 'alembic_version' in insp.get_table_names()
+
+        has_alembic = await conn.run_sync(check_alembic)
+
+        if not has_alembic:
+            # Fresh database — create all tables from models
+            await conn.run_sync(SQLModel.metadata.create_all)
+            print('Fresh database: base tables created.')
+        else:
+            print('Existing database: tables already present.')
+
     await engine.dispose()
+    return has_alembic
 
-asyncio.run(init())
-print('Base tables ensured.')
-" || echo "WARNING: Base table creation failed, migrations may handle it."
+has_alembic = asyncio.run(init())
 
-# env.py handles async driver detection — pass DATABASE_URL as-is
+if not has_alembic:
+    # Stamp Alembic to HEAD — tables were created with current schema,
+    # so all migrations are already represented.
+    import subprocess
+    subprocess.run(['python', '-m', 'alembic', 'stamp', 'head'], check=True)
+    print('Alembic stamped to HEAD.')
+" || echo "WARNING: Base table setup failed, attempting migrations anyway."
+
+# Run any pending migrations (no-op if just stamped to HEAD)
 python -m alembic upgrade head || {
     if [ "$ENVIRONMENT" = "production" ]; then
         echo "ERROR: Migration failed in production. Aborting startup."
