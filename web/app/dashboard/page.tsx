@@ -1,7 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { apiClient, UserStats } from '@/lib/api';
-import { PageHeader } from './components/page-header';
-import { UpgradeBanner } from './components/upgrade-banner';
+import { DashboardHero } from './components/dashboard-hero';
 import { UsageCard } from './components/usage-card';
 import { QuickActionCard } from './components/quick-action-card';
 import { RecentChecksList } from './components/recent-checks-list';
@@ -62,20 +61,19 @@ export default async function DashboardPage({
   const periodUsage = usage.periodCreditsUsed;
   const creditsLimit = usage.creditsPerPeriod;
   const isTrial = usage.isTrial;
-
-  const showUpgradeBanner = isTrial || !subscription.hasSubscription || subscription.plan === 'free' || subscription.plan === 'free_trial';
+  const isFreeUser = isTrial || !subscription.hasSubscription || subscription.plan === 'free' || subscription.plan === 'free_trial';
 
   const isUpgraded = searchParams.upgraded === 'true';
   const isCancelled = searchParams.cancelled === 'true';
 
   return (
     <div className="space-y-4 md:space-y-8">
-      {/* Hero Section */}
-      <PageHeader
-        title="Evidence Research Dashboard"
-        subtitle="Submit claims, URLs, and articles for multi-source analysis."
-        ctaText="New Check"
-        ctaHref="/dashboard/new-check"
+      {/* Dashboard Hero */}
+      <DashboardHero
+        userName={user.name}
+        stats={stats}
+        usage={{ periodCreditsUsed: periodUsage, creditsPerPeriod: creditsLimit }}
+        isFreeUser={isFreeUser}
       />
 
       {/* Success/Cancellation Messages */}
@@ -105,16 +103,6 @@ export default async function DashboardPage({
             </p>
           </div>
         </div>
-      )}
-
-      {/* Welcome Message */}
-      <h2 className="hidden md:block text-xl font-bold text-zinc-900 mt-8 mb-6">
-        Welcome back, {user.name || 'User'}
-      </h2>
-
-      {/* Upgrade Banner (conditional) */}
-      {showUpgradeBanner && (
-        <UpgradeBanner currentPlan="Free" />
       )}
 
       {/* Two-Column Cards */}
