@@ -4,8 +4,29 @@ from pydantic import Field
 
 
 class Settings(BaseSettings):
-    # Database
+    # Database — normalised to async driver on init
     DATABASE_URL: str = Field(..., env="DATABASE_URL")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Railway/Heroku provide postgresql:// or postgres:// URLs.
+        # Normalise to postgresql+asyncpg:// for the async engine.
+        if self.DATABASE_URL.startswith("postgres://"):
+            object.__setattr__(
+                self,
+                "DATABASE_URL",
+                self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1),
+            )
+        elif (
+            self.DATABASE_URL.startswith("postgresql://")
+            and "+asyncpg" not in self.DATABASE_URL
+        ):
+            object.__setattr__(
+                self,
+                "DATABASE_URL",
+                self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1),
+            )
+
     DATABASE_SSL: bool = Field(
         True, env="DATABASE_SSL"
     )  # Set False for Fly.io internal network
