@@ -32,7 +32,7 @@ export default function FirstPublicReleasePage() {
             <div className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-4 flex items-center gap-4">
               <span>6 January 2026</span>
               <span>·</span>
-              <span>4 min read</span>
+              <span>6 min read</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 leading-tight">
@@ -86,32 +86,48 @@ export default function FirstPublicReleasePage() {
               The focus is on clarity rather than commentary — showing what sources say, where they agree, and where they don&apos;t.
             </p>
 
-            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 pt-6">What This First Release Is (and Isn&apos;t)</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 pt-6">How Tru8 Might Be Useful</h2>
 
             <p>
-              This is an early version of Tru8.
+              Tru8 is built around a simple idea: if you&apos;re looking at a claim and want to understand what the evidence says, it should be straightforward to find out. Here are some of the ways people are using it.
             </p>
 
-            <p>
-              It currently focuses on written content only. It won&apos;t always find a clear answer, and it won&apos;t be useful for every claim. That&apos;s expected at this stage.
-            </p>
-
-            <p>
-              This release is about usefulness, not completeness. The aim is to learn how Tru8 performs in real-world use and where it needs to improve.
-            </p>
-
-            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 pt-6">How Tru8 Might Be Useful Right Now</h2>
-
-            <p>
-              Some common ways Tru8 can be useful include:
-            </p>
-
+            <h3 className="text-lg md:text-xl font-bold text-zinc-900 pt-4">Journalists and Editors</h3>
             <ul className="list-disc list-outside ml-6 space-y-2 text-zinc-600">
-              <li>Checking headlines that feel exaggerated</li>
-              <li>Comparing conflicting news articles</li>
-              <li>Researching claims shared on social media</li>
-              <li>Sense-checking statements that sound unusually certain</li>
-              <li>Reviewing multiple sources around a single topic in one place</li>
+              <li>Quickly cross-reference claims before publication</li>
+              <li>See which government data, academic papers, or official records relate to a story</li>
+              <li>Identify where sources agree and where they diverge</li>
+            </ul>
+
+            <h3 className="text-lg md:text-xl font-bold text-zinc-900 pt-4">Students and Academics</h3>
+            <ul className="list-disc list-outside ml-6 space-y-2 text-zinc-600">
+              <li>Research essay topics with structured evidence from multiple source types</li>
+              <li>Find academic papers, government data, and official records in one place</li>
+              <li>Understand the balance of evidence before forming an argument</li>
+              <li>Export sources and citations for bibliographies</li>
+            </ul>
+
+            <h3 className="text-lg md:text-xl font-bold text-zinc-900 pt-4">Content Creators and YouTubers</h3>
+            <ul className="list-disc list-outside ml-6 space-y-2 text-zinc-600">
+              <li>Verify claims before including them in videos or podcasts</li>
+              <li>Research trending topics and understand what the evidence actually supports</li>
+              <li>Build credibility with audiences by showing your claims are well-sourced</li>
+              <li>Quickly sense-check statements from interviews or social media</li>
+            </ul>
+
+            <h3 className="text-lg md:text-xl font-bold text-zinc-900 pt-4">Professionals and Analysts</h3>
+            <ul className="list-disc list-outside ml-6 space-y-2 text-zinc-600">
+              <li>Research market claims, competitor statements, or industry data</li>
+              <li>Compare what multiple sources say about economic or regulatory topics</li>
+              <li>Prepare briefings with classified, cited evidence</li>
+            </ul>
+
+            <h3 className="text-lg md:text-xl font-bold text-zinc-900 pt-4">Everyday Use</h3>
+            <ul className="list-disc list-outside ml-6 space-y-2 text-zinc-600">
+              <li>Check headlines that feel exaggerated</li>
+              <li>Research health, science, or political claims shared on social media</li>
+              <li>Compare conflicting news articles to see the full picture</li>
+              <li>Settle disagreements with evidence rather than opinion</li>
             </ul>
 
             <p>
@@ -137,18 +153,41 @@ export default function FirstPublicReleasePage() {
               Knowing where Tru8 doesn&apos;t help is just as important as knowing where it does.
             </p>
 
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 pt-6">For Developers and AI Agents</h2>
+
+            <p>
+              Everything available in the dashboard is also available programmatically. Tru8 offers a full API and an MCP server, so developers and AI agents can run structured evidence research from their own tools.
+            </p>
+
+            <p>The API supports multiple tiers depending on what you need:</p>
+
+            <ul className="list-disc list-outside ml-6 space-y-2 text-zinc-600">
+              <li><span className="font-medium text-zinc-900">Lookup</span> — instant cached results for claims that have already been researched</li>
+              <li><span className="font-medium text-zinc-900">Quick</span> — a faster analysis (~15 seconds) with core evidence retrieval</li>
+              <li><span className="font-medium text-zinc-900">Full</span> — the complete pipeline, searching 30+ sources with tier and type classification, element decomposition, and six-view evidence landscape</li>
+            </ul>
+
+            <p>
+              The MCP server means AI agents built on Claude, GPT, or other platforms can call Tru8 directly — adding structured evidence research to any agent workflow. Every response includes full provenance: which sources were found, how they were classified, and what was excluded (with reasons).
+            </p>
+
+            <p>
+              Developer documentation and API keys are available from the{' '}
+              <Link href="/developers" className="text-accent hover:underline font-medium">developer portal</Link>.
+            </p>
+
             <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 pt-6">What Comes Next</h2>
 
             <p>
-              This release is a starting point.
+              This release is the foundation, not the ceiling. There is significant work underway to take Tru8 beyond single-claim analysis into deeper, more comprehensive research workflows.
             </p>
 
             <p>
-              Tru8 will improve over time through clearer explanations, better sourcing, and support for more types of content. The direction it takes will be shaped by real usage and feedback.
+              That means longer-form investigation across interconnected claims, richer output with detailed structured reports, and broader source coverage. The aim is for Tru8 to become a complete evidence research suite — from a quick headline check through to in-depth, multi-source analysis that you can act on, cite, or publish.
             </p>
 
             <p>
-              Beyond the dashboard, Tru8 also offers an API and MCP server — so AI agents and developer tools can run structured evidence research programmatically. Whether it&apos;s a single claim lookup or a full 30+ source analysis, the same pipeline is available via a straightforward API call.
+              Tru8 will continue to improve through better sourcing, broader coverage, and refinements shaped by real usage. The direction it takes will be informed by how people actually use it and where it falls short.
             </p>
 
             <p>

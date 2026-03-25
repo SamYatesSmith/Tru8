@@ -152,7 +152,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
   -d '{"claim": "Global average temperature rose 1.1°C since pre-industrial times"}'`}
                   </pre>
                   <p className="text-zinc-500 text-xs mt-2 font-mono">
-                    Returns structured result with _meta (executedTier, chargedCents)
+                    Returns structured result with _meta (executedTier, chargedPence)
                   </p>
                 </div>
               </div>
@@ -433,7 +433,7 @@ curl -X POST "https://api.trueight.com/api/v1/agent/full?async=true" \\
   "checkId": "abc-123",
   "status": "processing",
   "tier": "full",
-  "chargedCents": 15,
+  "chargedPence": 15,
   "pollUrl": "/api/v1/agent/result/abc-123",
   "estimatedSeconds": 60
 }
@@ -828,7 +828,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
   ],
   "_meta": {
     "executedTier": "quick",
-    "chargedCents": 7,
+    "chargedPence": 7,
     "limitations": ["heuristic_classification", "no_coverage_recovery"],
     "cached": false,
     "landscape": {

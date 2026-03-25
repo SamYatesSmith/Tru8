@@ -50,7 +50,6 @@ export function Navigation({
             <div className="flex gap-8 text-[11px] font-semibold tracking-[0.2em] uppercase text-zinc-500">
               <Link href="/#features" className="hover:text-black transition-colors">Features</Link>
               <Link href="/#pricing" className="hover:text-black transition-colors">Pricing</Link>
-              <Link href="/blog" className="hover:text-black transition-colors">Blog</Link>
               <Link href="/about" className="hover:text-black transition-colors">About</Link>
               <Link href="/developers" className="hover:text-black transition-colors">Developers</Link>
             </div>

@@ -12,11 +12,18 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'evidence-research-for-agents',
+    title: 'Evidence Research for AI Agents and Developer Tools',
+    excerpt: 'Tru8\'s evidence research pipeline is now available as an API and MCP server. Structured, multi-source analysis for agents, developer tools, and automated workflows.',
+    date: '25 March 2026',
+    readTime: '5 min read',
+  },
+  {
     slug: 'first-public-release',
     title: 'Tru8 — A First Public Release',
     excerpt: 'The first public release of Tru8 — an evidence research platform with a dashboard, API, and MCP server for AI agents. No big announcement, just a tool that\'s ready.',
     date: '6 January 2026',
-    readTime: '4 min read',
+    readTime: '6 min read',
   },
 ];
 
