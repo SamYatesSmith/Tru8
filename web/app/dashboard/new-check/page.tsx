@@ -214,20 +214,20 @@ export default function NewCheckPage() {
 
       const result = await apiClient.createCheckStreaming(streamData, token, {
         onConnected: (checkId) => {
-          window.location.href = `/dashboard/check/${checkId}`;
+          window.location.href = `/dashboard/check/${checkId}?fresh=true`;
         },
         onProgress: () => {
           // Progress tracked via SSE on check detail page
         },
         onComplete: (checkId) => {
           if (checkId) {
-            window.location.href = `/dashboard/check/${checkId}`;
+            window.location.href = `/dashboard/check/${checkId}?fresh=true`;
           }
         },
         onError: (errorMsg, checkId) => {
           console.error('[NEW-CHECK] onError:', errorMsg, checkId);
           if (checkId) {
-            window.location.href = `/dashboard/check/${checkId}`;
+            window.location.href = `/dashboard/check/${checkId}?fresh=true`;
           } else {
             setError(errorMsg || 'Failed to create check. Please try again.');
             setIsSubmitting(false);

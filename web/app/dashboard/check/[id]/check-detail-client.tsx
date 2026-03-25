@@ -36,7 +36,18 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   const { getToken } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [checkData, setCheckData] = useState(initialData);
+  // Fresh submission: force processing view even if server-side fetch returned 'completed'
+  // (in production, the pipeline can finish before the page renders server-side)
+  const isFreshSubmission = searchParams?.get('fresh') === 'true';
+  const [showFreshProcessing, setShowFreshProcessing] = useState(isFreshSubmission && initialData.status === 'completed');
+
+  const [checkData, setCheckData] = useState(() => {
+    if (isFreshSubmission && initialData.status === 'completed') {
+      // Override to show progress screen — will transition to completed after animation
+      return { ...initialData, status: 'processing' as string };
+    }
+    return initialData;
+  });
   const [token, setToken] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [sourcesCount, setSourcesCount] = useState(rawSourcesCount);
@@ -59,6 +70,21 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     return 'cartographer';
   });
 
+
+  // Fresh submission: animate progress to 100% then reveal results
+  useEffect(() => {
+    if (!showFreshProcessing) return;
+    // Show progress briefly (2.5s), then transition to completed
+    const timer = setTimeout(() => {
+      setCheckData(initialData); // Restore real completed data
+      setShowFreshProcessing(false);
+      // Clean up the ?fresh param from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('fresh');
+      window.history.replaceState({}, '', url.toString());
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [showFreshProcessing, initialData]);
 
   // Auto-focus the only claim when a single-claim check completes
   // (handles SSE race: initial render may have status='processing')
