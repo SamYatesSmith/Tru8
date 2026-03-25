@@ -458,6 +458,26 @@ async def run_pipeline_phase1(
     if article_classification:
         for claim in claims:
             claim["article_classification"] = article_classification.to_dict()
+    else:
+        # Focused mode: detect jurisdiction from claim text so web search
+        # providers use the correct geographic scope instead of defaulting to UK.
+        from app.utils.article_classifier import detect_jurisdiction_from_text
+
+        for claim in claims:
+            if not claim.get("article_classification"):
+                detected = detect_jurisdiction_from_text(claim.get("text", ""))
+                claim["article_classification"] = {
+                    "jurisdiction": detected,
+                    "primary_domain": "General",
+                    "secondary_domains": [],
+                    "confidence": 0,
+                    "reasoning": "Keyword-detected jurisdiction for focused mode",
+                    "source": "keyword_jurisdiction",
+                }
+                logger.info(
+                    f"[FOCUSED MODE] Detected jurisdiction '{detected}' "
+                    f"for claim: {claim.get('text', '')[:60]}..."
+                )
 
     # FROZEN EVIDENCE REPLAY: Attach frozen evidence to claims (zero network)
     import hashlib

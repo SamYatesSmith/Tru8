@@ -187,6 +187,7 @@ class EvidenceExtractor:
         article_title: Optional[str] = None,
         article_date: Optional[str] = None,
         url_fetch_semaphore: Optional[asyncio.Semaphore] = None,
+        search_country: Optional[str] = None,
     ) -> List[EvidenceSnippet]:
         """
         Extract evidence snippets for a specific claim.
@@ -224,8 +225,11 @@ class EvidenceExtractor:
                     )
 
             # Step 2: Search for relevant pages
+            search_kwargs = {"max_results": max_sources * 2}
+            if search_country is not None:
+                search_kwargs["country"] = search_country
             search_results = await self.search_service.search_for_evidence(
-                search_query, max_results=max_sources * 2
+                search_query, **search_kwargs
             )
 
             # DIAGNOSTIC: Log search results

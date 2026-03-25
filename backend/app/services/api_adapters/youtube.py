@@ -134,12 +134,17 @@ async def _fetch_durations(
 
 
 def _parse_youtube_date(date_str: Optional[str]) -> Optional[datetime]:
-    """Parse ISO 8601 date from YouTube API."""
+    """Parse ISO 8601 date from YouTube API.
+
+    Returns naive UTC datetime (no tzinfo) to match the DB column type.
+    """
     if not date_str:
         return None
     try:
         # YouTube returns "2026-02-14T18:30:00Z"
-        return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        # Strip timezone — DB column is TIMESTAMP WITHOUT TIME ZONE
+        return dt.replace(tzinfo=None)
     except (ValueError, AttributeError):
         return None
 

@@ -95,6 +95,143 @@ VALID_DOMAINS = [
 VALID_JURISDICTIONS = ["UK", "US", "EU", "Global"]
 
 
+def detect_jurisdiction_from_text(text: str) -> str:
+    """Lightweight keyword-based jurisdiction detection for focused mode.
+
+    Scans claim text for geographic indicators. Returns one of:
+    UK, US, EU, Global. Defaults to Global (no country filter) when
+    no clear geographic signal is found.
+
+    No LLM call — pure keyword matching.
+    """
+    # Pad with spaces so boundary-aware patterns like " uk " match at start/end
+    text_lower = f" {text.lower()} "
+
+    us_patterns = [
+        "united states",
+        "u.s.",
+        "u.s.a.",
+        "usa ",
+        "american ",
+        "americans",
+        " congress ",
+        "senate ",
+        "house of representatives",
+        "white house",
+        "pentagon",
+        "capitol hill",
+        "federal reserve",
+        " the fed ",
+        " fbi ",
+        " cia ",
+        " nsa ",
+        "democrat",
+        "republican",
+        " gop ",
+        "california",
+        "texas",
+        "new york",
+        "florida",
+        "washington dc",
+        "washington d.c.",
+        "medicare",
+        "medicaid",
+        "social security",
+        " fda ",
+        " cdc ",
+        " epa ",
+    ]
+
+    uk_patterns = [
+        "united kingdom",
+        "u.k.",
+        " uk ",
+        "britain",
+        "british",
+        "england",
+        "english",
+        "scotland",
+        "scottish",
+        "wales",
+        "welsh",
+        "northern ireland",
+        "parliament",
+        "house of commons",
+        "house of lords",
+        "westminster",
+        "downing street",
+        "whitehall",
+        " nhs ",
+        "bank of england",
+        "labour party",
+        "conservative party",
+        "tory",
+        "tories",
+        "ofsted",
+        "ofcom",
+        "premier league",
+    ]
+
+    eu_patterns = [
+        "european union",
+        " eu ",
+        " eu,",
+        " eu.",
+        "european commission",
+        "european parliament",
+        "european council",
+        "eurozone",
+        "schengen",
+        "brussels",
+        "strasbourg",
+        " gdpr",
+        " euro ",
+        "europe",
+        "european",
+        "france",
+        "french",
+        "germany",
+        "german",
+        "italy",
+        "italian",
+        "spain",
+        "spanish",
+        "netherlands",
+        "dutch",
+        "belgium",
+        "belgian",
+        "portugal",
+        "portuguese",
+        "greece",
+        "greek",
+        "poland",
+        "polish",
+        "sweden",
+        "swedish",
+        "denmark",
+        "danish",
+        "austria",
+        "austrian",
+    ]
+
+    us_score = sum(1 for p in us_patterns if p in text_lower)
+    uk_score = sum(1 for p in uk_patterns if p in text_lower)
+    eu_score = sum(1 for p in eu_patterns if p in text_lower)
+
+    max_score = max(us_score, uk_score, eu_score)
+    if max_score == 0:
+        return "Global"
+
+    if us_score > uk_score and us_score > eu_score:
+        return "US"
+    elif uk_score > us_score and uk_score > eu_score:
+        return "UK"
+    elif eu_score > us_score and eu_score > uk_score:
+        return "EU"
+    else:
+        return "Global"
+
+
 # URL Pattern Cache (permanent, in-memory)
 # IMPORTANT: More specific patterns MUST come BEFORE more general patterns!
 # e.g., ons.gov.uk (Finance) must come before gov.uk (Politics)

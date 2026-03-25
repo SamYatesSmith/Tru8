@@ -6,7 +6,7 @@ import re
 from typing import List, Dict, Any, Optional, Tuple, Union
 from datetime import datetime, timezone
 import os
-from app.services.search import SearchService, SearchResult
+from app.services.search import SearchService, SearchResult, JURISDICTION_TO_COUNTRY
 from app.services.evidence import EvidenceExtractor, EvidenceSnippet
 from app.services.embeddings import get_embedding_service
 from app.services.vector_store import get_vector_store
@@ -45,6 +45,21 @@ def get_adapters_for_jurisdiction(jurisdiction: str | None) -> list[str] | None:
         return global_names
     specific = mapping.get(jurisdiction.lower(), mapping.get(jurisdiction, []))
     return global_names + specific
+
+
+def _resolve_search_country(claim: Dict[str, Any]) -> Optional[str]:
+    """Resolve claim jurisdiction to a search provider country code.
+
+    Returns 2-letter lowercase country code (e.g., 'gb', 'us') or None
+    (meaning omit country filter for EU/Global jurisdictions).
+    """
+    article_classification = claim.get("article_classification", {})
+    jurisdiction = (
+        article_classification.get("jurisdiction") if article_classification else None
+    )
+    if not jurisdiction:
+        return "gb"  # Default: UK (preserves current behaviour)
+    return JURISDICTION_TO_COUNTRY.get(jurisdiction, "gb")
 
 
 SATIRE_DOMAINS = {
@@ -508,8 +523,12 @@ class EvidenceRetriever:
             all_snippets = []
             for query in queries[:2]:  # Limit to 2 queries to control latency
                 try:
+                    search_country = _resolve_search_country(claim)
                     results = await self.search_service.search_for_evidence(
-                        query, max_results=5, freshness="py"  # Past year - stable facts
+                        query,
+                        max_results=5,
+                        freshness="py",  # Past year - stable facts
+                        country=search_country,
                     )
                     if results:
                         # Convert SearchResult to EvidenceSnippet format
@@ -781,10 +800,17 @@ class EvidenceRetriever:
 
             for query, freshness in search_pairs:
                 try:
+                    # Resolve geo scope from article context
+                    recovery_country = "gb"
+                    if article_context:
+                        j = article_context.get("jurisdiction")
+                        if j:
+                            recovery_country = JURISDICTION_TO_COUNTRY.get(j, "gb")
                     results = await self.search_service.search_for_evidence(
                         query,
                         max_results=settings.RECOVERY_MAX_RESULTS_PER_ELEMENT,
                         freshness=freshness,
+                        country=recovery_country,
                     )
                     if not results:
                         continue
@@ -1063,6 +1089,7 @@ class EvidenceRetriever:
                 # Run web search and API retrieval in parallel
                 if query_plan and query_plan.get("queries"):
                     # Use Query Planning Agent's targeted queries
+                    search_country = _resolve_search_country(claim)
                     web_search_task = self._execute_planned_queries(
                         claim_text,
                         query_plan,
@@ -1070,6 +1097,7 @@ class EvidenceRetriever:
                         max_sources=self.max_sources_per_claim * 2,
                         freshness=freshness,
                         url_fetch_semaphore=url_fetch_semaphore,
+                        search_country=search_country,
                     )
                     queries_preview = query_plan["queries"][:2]  # Show first 2 queries
                     logger.info(
@@ -1077,6 +1105,7 @@ class EvidenceRetriever:
                     )
                 else:
                     # Fallback: Standard query formulation
+                    search_country = _resolve_search_country(claim)
                     web_search_task = self.evidence_extractor.extract_evidence_for_claim(
                         claim_text,
                         max_sources=self.max_sources_per_claim
@@ -1088,6 +1117,7 @@ class EvidenceRetriever:
                         article_title=article_title,  # Article context grounding
                         article_date=article_date,  # Article context grounding
                         url_fetch_semaphore=url_fetch_semaphore,
+                        search_country=search_country,
                     )
 
                 # Phase 5: Government API retrieval (parallel with web search)
@@ -1339,6 +1369,7 @@ class EvidenceRetriever:
         max_sources: int = 20,
         freshness: Optional[str] = None,
         url_fetch_semaphore: Optional[asyncio.Semaphore] = None,
+        search_country: Optional[str] = "gb",
     ) -> List[EvidenceSnippet]:
         """
         Execute multiple targeted queries from Query Planning Agent.
@@ -1393,6 +1424,7 @@ class EvidenceRetriever:
                     query,
                     max_results=sources_per_query,
                     freshness=this_freshness,
+                    country=search_country,
                 )
                 query_tasks.append(task)
 
@@ -1462,6 +1494,7 @@ class EvidenceRetriever:
                                     query,
                                     max_results=sources_per_query,
                                     freshness=fallback_freshness,
+                                    country=search_country,
                                 )
                                 for result in results:
                                     if (

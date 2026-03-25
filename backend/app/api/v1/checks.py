@@ -59,6 +59,10 @@ from app.api.v1.schemas import (
 
 logger = logging.getLogger(__name__)
 
+# Strong references for fire-and-forget tasks (video recs, archiving).
+# Without this, asyncio.create_task() tasks can be garbage collected
+# before completion when spawned inside SSE streaming generators.
+_background_tasks: set = set()
 
 router = APIRouter()
 
@@ -728,9 +732,11 @@ async def create_check_streaming(
                         ]
 
                     if claims_for_videos:
-                        asyncio.create_task(
+                        task = asyncio.create_task(
                             fetch_video_recommendations(check.id, claims_for_videos)
                         )
+                        _background_tasks.add(task)
+                        task.add_done_callback(_background_tasks.discard)
                         logger.info(
                             f"[PIPELINE TASK] Video recommendations task launched "
                             f"for {len(claims_for_videos)} claims"
@@ -742,7 +748,9 @@ async def create_check_streaming(
                 try:
                     from app.services.wayback_archive import archive_evidence_urls
 
-                    asyncio.create_task(archive_evidence_urls(check.id))
+                    task = asyncio.create_task(archive_evidence_urls(check.id))
+                    _background_tasks.add(task)
+                    task.add_done_callback(_background_tasks.discard)
                     logger.info(
                         f"[PIPELINE TASK] Archive task launched for check {check.id}"
                     )
@@ -1011,16 +1019,20 @@ async def create_check_sync(
                 claims_for_videos = [{"id": c.id, "text": c.text} for c in db_claims]
 
             if claims_for_videos:
-                asyncio.create_task(
+                task = asyncio.create_task(
                     fetch_video_recommendations(check.id, claims_for_videos)
                 )
+                _background_tasks.add(task)
+                task.add_done_callback(_background_tasks.discard)
         except Exception as ve:
             logger.debug(f"[SYNC RUN] Video recommendations skipped: {ve}")
 
         try:
             from app.services.wayback_archive import archive_evidence_urls
 
-            asyncio.create_task(archive_evidence_urls(check.id))
+            task = asyncio.create_task(archive_evidence_urls(check.id))
+            _background_tasks.add(task)
+            task.add_done_callback(_background_tasks.discard)
         except Exception as ae:
             logger.debug(f"[SYNC RUN] Archiving skipped: {ae}")
 

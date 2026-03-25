@@ -11,6 +11,15 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Jurisdiction-to-country mapping for search providers.
+# UK → gb (current default), US → us, EU/Global → None (omit filter).
+JURISDICTION_TO_COUNTRY: Dict[str, Optional[str]] = {
+    "UK": "gb",
+    "US": "us",
+    "EU": None,
+    "Global": None,
+}
+
 # CODE RELOAD CHECK: This timestamp proves the module was reloaded
 _MODULE_LOAD_TIME = time.time()
 
@@ -243,16 +252,18 @@ class BraveSearchProvider(BaseSearchProvider):
         # Use passed freshness or default to 2y
         freshness = kwargs.get("freshness", "2y")
 
+        country_code = kwargs.get("country", "gb")
         params = {
             "q": query,
             "count": min(kwargs.get("max_results", self.max_results), 20),
             "freshness": freshness,
             "text_decorations": False,
             "search_lang": "en",
-            "country": "GB",  # UK focus for Tru8
             "safesearch": "moderate",
             "extra_snippets": True,  # Get up to 5 snippets for better context (Pro plans only, ignored otherwise)
         }
+        if country_code is not None:
+            params["country"] = country_code.upper()  # Brave uses uppercase: GB, US
 
         if freshness != "2y":
             logger.info(
@@ -465,15 +476,17 @@ class SerpAPIProvider(BaseSearchProvider):
             freshness = kwargs.get("freshness", "2y")
             tbs_value = self.FRESHNESS_TO_TBS.get(freshness, "qdr:y2")
 
+            country_code = kwargs.get("country", "gb")
             params = {
                 "q": query,
                 "engine": "google",
                 "api_key": self.api_key,
                 "num": min(kwargs.get("max_results", self.max_results), 20),
-                "gl": "gb",  # UK geolocation
-                "hl": "en",  # English language
-                "tbs": tbs_value,  # Dynamic freshness based on query requirements
+                "hl": "en",
+                "tbs": tbs_value,
             }
+            if country_code is not None:
+                params["gl"] = country_code.lower()
 
             # Use persistent client instead of creating new one each time
             client = await self._get_client()
@@ -631,13 +644,15 @@ class SerperProvider(BaseSearchProvider):
             freshness = kwargs.get("freshness", "2y")
             tbs_value = self.FRESHNESS_TO_TBS.get(freshness, "qdr:y2")
 
+            country_code = kwargs.get("country", "gb")
             payload = {
                 "q": query,
                 "num": min(kwargs.get("max_results", self.max_results), 20),
-                "gl": "gb",
                 "hl": "en",
                 "tbs": tbs_value,
             }
+            if country_code is not None:
+                payload["gl"] = country_code.lower()
 
             client = await self._get_client()
             response = await client.post(
@@ -705,7 +720,11 @@ class SearchService:
             logger.warning("No search providers configured")
 
     async def search_for_evidence(
-        self, claim: str, max_results: int = 10, freshness: str = None
+        self,
+        claim: str,
+        max_results: int = 10,
+        freshness: str = None,
+        country: Optional[str] = "gb",
     ) -> List[SearchResult]:
         """Search for evidence supporting/contradicting a claim
 
@@ -713,15 +732,17 @@ class SearchService:
             claim: The claim text to search for
             max_results: Maximum number of results to return
             freshness: Brave freshness filter - pd (day), pw (week), pm (month), py (year), 2y (default)
+            country: 2-letter country code for geo-localisation, or None to omit filter
         """
         # Optimize search query for fact-checking
         query = self._optimize_query_for_factcheck(claim)
 
         # DIAGNOSTIC: Log search initiation with full query details
         freshness_str = f" | Freshness: {freshness}" if freshness else ""
+        country_str = f" | Country: {country}" if country else " | Country: (none)"
         has_exclusions = "-site:" in query
         logger.info(
-            f"SEARCH INITIATED | Claim: '{claim[:60]}...' | Max: {max_results}{freshness_str}"
+            f"SEARCH INITIATED | Claim: '{claim[:60]}...' | Max: {max_results}{freshness_str}{country_str}"
         )
         logger.info(f"SEARCH QUERY: '{query}'")
         logger.info(
@@ -729,7 +750,9 @@ class SearchService:
         )
 
         # Try providers in order until we get results
-        results = await self._try_providers(query, max_results, freshness)
+        results = await self._try_providers(
+            query, max_results, freshness, country=country
+        )
 
         if results:
             return results
@@ -741,7 +764,9 @@ class SearchService:
                 f"0 RESULTS FALLBACK: Retrying without exclusions | New query: '{simple_query}'"
             )
 
-            results = await self._try_providers(simple_query, max_results, freshness)
+            results = await self._try_providers(
+                simple_query, max_results, freshness, country=country
+            )
 
             if results:
                 logger.info(
@@ -753,7 +778,11 @@ class SearchService:
         return []
 
     async def _try_providers(
-        self, query: str, max_results: int, freshness: str = None
+        self,
+        query: str,
+        max_results: int,
+        freshness: str = None,
+        country: Optional[str] = "gb",
     ) -> List[SearchResult]:
         """Try each search provider in order until we get results"""
         for i, provider in enumerate(self.providers):
@@ -765,6 +794,8 @@ class SearchService:
                 search_kwargs = {"max_results": max_results}
                 if freshness:
                     search_kwargs["freshness"] = freshness
+                if country is not None:
+                    search_kwargs["country"] = country
                 results = await provider.search(query, **search_kwargs)
 
                 if results:
