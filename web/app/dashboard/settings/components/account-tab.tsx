@@ -3,16 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import Image from 'next/image';
-import { User, Shield, Trash2, Check, X, Pencil, BarChart3 } from 'lucide-react';
+import { User, Shield, Trash2, Check, X, Pencil, BarChart3, CreditCard } from 'lucide-react';
+import Link from 'next/link';
 import { apiClient, UserStats } from '@/lib/api';
 import { useAuth, useUser } from '@clerk/nextjs';
+import { TIERS } from '@/lib/tiers';
 
 interface AccountTabProps {
   clerkUser: any;
   userData: any;
+  subscriptionData?: any;
 }
 
-export function AccountTab({ clerkUser, userData }: AccountTabProps) {
+export function AccountTab({ clerkUser, userData, subscriptionData }: AccountTabProps) {
   const clerk = useClerk();
   const { signOut } = clerk;
   const { getToken } = useAuth();
@@ -237,6 +240,11 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
         </div>
       </section>
 
+      {/* Plan & Usage Section */}
+      {subscriptionData && (
+        <PlanUsageSection subscriptionData={subscriptionData} />
+      )}
+
       {/* Activity Section */}
       <section className="bg-white border border-zinc-200 p-6">
         <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
@@ -345,5 +353,63 @@ export function AccountTab({ clerkUser, userData }: AccountTabProps) {
       </section>
 
     </div>
+  );
+}
+
+function PlanUsageSection({ subscriptionData }: { subscriptionData: any }) {
+  const isPaid = subscriptionData?.hasSubscription && subscriptionData.plan !== 'free';
+  const currentTier = TIERS.find((t) => t.id === subscriptionData?.plan) || TIERS[0];
+  const creditsPerMonth = subscriptionData?.creditsPerMonth || 3;
+  const cancelAtPeriodEnd = subscriptionData?.cancelAtPeriodEnd ?? false;
+
+  const periodEnd = subscriptionData?.currentPeriodEnd
+    ? new Date(subscriptionData.currentPeriodEnd).toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : null;
+
+  return (
+    <section className="bg-white border border-zinc-200 p-6">
+      <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
+        <CreditCard size={20} />
+        Plan & Usage
+      </h3>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-zinc-500">Current plan</span>
+          <span className="text-sm font-medium text-zinc-900">
+            {isPaid ? `${currentTier.name} (£${currentTier.price}/month)` : 'Free Trial'}
+          </span>
+        </div>
+
+        {isPaid && periodEnd && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-zinc-500">
+              {cancelAtPeriodEnd ? 'Cancels' : 'Renews'}
+            </span>
+            <span className={`text-sm font-medium ${cancelAtPeriodEnd ? 'text-amber-600' : 'text-zinc-900'}`}>
+              {periodEnd}
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-zinc-500">Checks</span>
+          <span className="text-sm font-medium text-zinc-900">
+            {creditsPerMonth} per {isPaid ? 'month' : 'trial'}
+          </span>
+        </div>
+
+        <div className="pt-3">
+          <Link
+            href="/dashboard/settings?tab=subscription"
+            className="text-xs text-zinc-400 hover:text-zinc-900 transition-colors"
+          >
+            Manage subscription &rarr;
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }

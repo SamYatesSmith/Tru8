@@ -121,7 +121,7 @@ export default function SettingsPage() {
 
       <div className="mt-8">
         {activeTab === 'account' && (
-          <AccountTab clerkUser={clerkUser} userData={userData} />
+          <AccountTab clerkUser={clerkUser} userData={userData} subscriptionData={subscriptionData} />
         )}
         {activeTab === 'subscription' && (
           <SubscriptionTab

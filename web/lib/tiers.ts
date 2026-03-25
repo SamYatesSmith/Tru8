@@ -31,7 +31,7 @@ export const TIERS: TierConfig[] = [
     period: "month",
     credits: 40,
     description: "For regular research",
-    features: ["40 checks per month", "~18p per check", "All source types", "Priority processing", "Export reports"],
+    features: ["40 checks per month", "All source types", "All six views", "Export reports"],
     cta: "Upgrade",
     highlighted: false,
     priceEnvVar: "NEXT_PUBLIC_STRIPE_PRICE_ID_PRO",
@@ -43,7 +43,7 @@ export const TIERS: TierConfig[] = [
     period: "month",
     credits: 200,
     description: "High-volume evidence research",
-    features: ["200 checks per month", "~15p per check", "Full API & MCP access", "Priority processing", "Export reports"],
+    features: ["200 checks per month", "Full API & MCP access", "Priority processing", "Export reports"],
     cta: "Upgrade",
     highlighted: true,
     priceEnvVar: "NEXT_PUBLIC_STRIPE_PRICE_ID_DEVELOPER",
@@ -62,14 +62,18 @@ export const TIERS: TierConfig[] = [
   },
 ];
 
-/** Map of env var names to their runtime values */
-const PRICE_ENV_MAP: Record<string, string | undefined> = {
-  NEXT_PUBLIC_STRIPE_PRICE_ID_PRO: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO,
-  NEXT_PUBLIC_STRIPE_PRICE_ID_DEVELOPER: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_DEVELOPER,
-};
-
-/** Resolve a tier's Stripe price ID from its env var */
+/** Resolve a tier's Stripe price ID.
+ *
+ * Next.js inlines NEXT_PUBLIC_* env vars at build time. The references
+ * must be literal (not dynamic) for the compiler to replace them.
+ */
 export function getTierPriceId(tier: TierConfig): string | null {
-  if (!tier.priceEnvVar) return null;
-  return PRICE_ENV_MAP[tier.priceEnvVar] || null;
+  switch (tier.priceEnvVar) {
+    case 'NEXT_PUBLIC_STRIPE_PRICE_ID_PRO':
+      return process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO || null;
+    case 'NEXT_PUBLIC_STRIPE_PRICE_ID_DEVELOPER':
+      return process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_DEVELOPER || null;
+    default:
+      return null;
+  }
 }

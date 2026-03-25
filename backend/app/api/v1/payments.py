@@ -58,17 +58,6 @@ async def create_checkout_session(
     session: AsyncSession = Depends(get_session),
 ):
     """Create a Stripe Checkout session for subscription upgrade"""
-    # Check if subscriptions are enabled (beta period gate)
-    if not settings.SUBSCRIPTIONS_ENABLED:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "message": "Subscriptions coming soon! We're currently in beta testing. Join our waitlist to be notified when Pro plans are available.",
-                "code": "SUBSCRIPTIONS_DISABLED",
-                "beta": True,
-            },
-        )
-
     try:
         # Get user from database
         stmt = select(User).where(User.id == current_user["id"])
@@ -136,6 +125,10 @@ async def create_checkout_session(
             billing_address_collection="required",
             tax_id_collection={
                 "enabled": True,
+            },
+            customer_update={
+                "name": "auto",
+                "address": "auto",
             },
         )
 
@@ -560,6 +553,17 @@ async def get_subscription_status(
             "subscriptionsEnabled": settings.SUBSCRIPTIONS_ENABLED,
         }
 
+    # Check Stripe for cancellation status
+    cancel_at_period_end = False
+    if subscription.stripe_subscription_id:
+        try:
+            stripe_sub = stripe.Subscription.retrieve(
+                subscription.stripe_subscription_id
+            )
+            cancel_at_period_end = stripe_sub.cancel_at_period_end
+        except Exception:
+            pass  # Graceful degradation — show as active
+
     return {
         "hasSubscription": True,
         "plan": subscription.plan,
@@ -569,6 +573,7 @@ async def get_subscription_status(
         "currentPeriodStart": subscription.current_period_start.isoformat(),
         "currentPeriodEnd": subscription.current_period_end.isoformat(),
         "stripeSubscriptionId": subscription.stripe_subscription_id,
+        "cancelAtPeriodEnd": cancel_at_period_end,
         "subscriptionsEnabled": settings.SUBSCRIPTIONS_ENABLED,
     }
 
