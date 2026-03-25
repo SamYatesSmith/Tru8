@@ -55,7 +55,7 @@ class TestConstructor:
         monkeypatch.setenv("TRU8_API_KEY", "sk-test")
         monkeypatch.delenv("TRU8_API_URL", raising=False)
         client = Tru8APIClient()
-        assert client.base_url == "https://api.tru8.app"
+        assert client.base_url == "https://api.trueight.com"
 
     def test_no_key_raises(self, monkeypatch):
         monkeypatch.delenv("TRU8_API_KEY", raising=False)

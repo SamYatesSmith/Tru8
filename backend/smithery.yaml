@@ -16,8 +16,8 @@ startCommand:
         description: "Tru8 API key (tru8_sk_...). Create at dashboard → Settings → Developer."
       apiUrl:
         type: string
-        description: "API base URL. Default: https://api.tru8.app"
-        default: "https://api.tru8.app"
+        description: "API base URL. Default: https://api.trueight.com"
+        default: "https://api.trueight.com"
   commandFunction:
     |-
-    (config) => ({ command: 'python', args: ['-m', 'tru8_mcp'], env: { TRU8_API_KEY: config.apiKey, TRU8_API_URL: config.apiUrl || 'https://api.tru8.app' } })
+    (config) => ({ command: 'python', args: ['-m', 'tru8_mcp'], env: { TRU8_API_KEY: config.apiKey, TRU8_API_URL: config.apiUrl || 'https://api.trueight.com' } })

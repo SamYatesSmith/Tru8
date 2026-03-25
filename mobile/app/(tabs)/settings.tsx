@@ -351,21 +351,21 @@ export default function SettingsScreen() {
           <SettingRow
             icon={Info}
             title="Privacy Policy"
-            onPress={() => openURL('https://tru8.app/privacy')}
+            onPress={() => openURL('https://trueight.com/privacy')}
             showArrow={true}
           />
 
           <SettingRow
             icon={Info}
             title="Terms of Service"
-            onPress={() => openURL('https://tru8.app/terms')}
+            onPress={() => openURL('https://trueight.com/terms')}
             showArrow={true}
           />
 
           <SettingRow
             icon={Info}
             title="Support Center"
-            onPress={() => openURL('https://tru8.app/support')}
+            onPress={() => openURL('https://trueight.com/support')}
             showArrow={true}
           />
         </View>

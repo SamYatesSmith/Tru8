@@ -27,10 +27,11 @@ class TestStripeWebhook:
     """Tests for stripe_webhook() endpoint."""
 
     @pytest.mark.asyncio
+    @patch("app.core.redis.get_redis", new_callable=AsyncMock, return_value=None)
     @patch("app.api.v1.payments.handle_agent_credit_purchase", new_callable=AsyncMock)
     @patch("app.api.v1.payments.stripe.Webhook.construct_event")
     async def test_agent_credit_purchase_routing(
-        self, mock_construct, mock_handle_agent, mock_session
+        self, mock_construct, mock_handle_agent, mock_get_redis, mock_session
     ):
         """checkout.session.completed with purchase_type=agent_credits routes to agent handler."""
         from app.api.v1.payments import stripe_webhook
@@ -57,10 +58,11 @@ class TestStripeWebhook:
         mock_handle_agent.assert_called_once()
 
     @pytest.mark.asyncio
+    @patch("app.core.redis.get_redis", new_callable=AsyncMock, return_value=None)
     @patch("app.api.v1.payments.handle_successful_payment", new_callable=AsyncMock)
     @patch("app.api.v1.payments.stripe.Webhook.construct_event")
     async def test_subscription_payment_routing(
-        self, mock_construct, mock_handle_payment, mock_session
+        self, mock_construct, mock_handle_payment, mock_get_redis, mock_session
     ):
         """checkout.session.completed without agent meta routes to subscription handler."""
         from app.api.v1.payments import stripe_webhook

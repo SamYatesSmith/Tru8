@@ -77,7 +77,7 @@ class TestGetClient:
         monkeypatch.delenv("TRU8_API_URL", raising=False)
         client = _get_client()
         assert client.api_key == "sk-env-check"
-        assert client.base_url == "https://api.tru8.app"
+        assert client.base_url == "https://api.trueight.com"
 
 
 # ===========================================================================

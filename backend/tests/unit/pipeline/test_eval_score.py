@@ -107,7 +107,7 @@ class TestLoadGoldenChecks:
         golden_path = backend_dir / "harness" / "golden_checks.json"
         if golden_path.exists():
             checks = load_golden_checks(golden_path)
-            assert len(checks) == 12
+            assert len(checks) == 20
 
 
 # ---------------------------------------------------------------------------
