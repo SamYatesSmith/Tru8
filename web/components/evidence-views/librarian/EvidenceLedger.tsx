@@ -88,8 +88,11 @@ export function EvidenceLedger({
 
   return (
     <div>
-      <div className="font-mono text-sm font-bold uppercase tracking-[0.3em] text-zinc-600 mb-6 border-b border-zinc-200 pb-2 flex justify-between items-center">
-        <span>Evidence Ledger &middot; Showing {evidence.length} of {totalCount}</span>
+      <div className="font-mono text-sm font-bold uppercase tracking-[0.15em] lg:tracking-[0.3em] text-zinc-600 mb-6 border-b border-zinc-200 pb-2 flex flex-col gap-1 lg:flex-row lg:justify-between lg:items-center">
+        <span>
+          <span className="hidden lg:inline">Evidence Ledger &middot; Showing {evidence.length} of {totalCount}</span>
+          <span className="lg:hidden">Ledger &middot; {evidence.length}/{totalCount}</span>
+        </span>
         <SortControl value={sortField} onChange={onSortChange} />
       </div>
 
@@ -130,7 +133,7 @@ export function EvidenceLedger({
                   />
                   {/* Mobile reading table — inline after active card */}
                   {isActive && (
-                    <div className="md:hidden mt-2">
+                    <div className="lg:hidden mt-2">
                       <ReadingTable
                         evidence={ev}
                         callNumber={callNumberMap.get(evId) || ''}

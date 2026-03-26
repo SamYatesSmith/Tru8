@@ -411,10 +411,10 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                 </div>
               )}
               {/* Claim header with prev/next (multi-claim only) */}
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex flex-col-reverse lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
                 <ClaimHeader claim={focusedClaim} position={activeClaimIndex!} />
                 {!isSingleClaim && claims.length > 1 && (
-                  <div className="flex items-center gap-2 shrink-0 ml-6">
+                  <div className="flex items-center gap-2 shrink-0 lg:ml-6">
                     <button
                       onClick={handlePrevClaim}
                       disabled={activeClaimIndex === 0}

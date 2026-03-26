@@ -130,7 +130,8 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
         Evidence Profile
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Desktop: Tiers as rows, Types as columns (3×6) */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>
@@ -196,6 +197,72 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
                             {count > cellSources.length && (
                               <div className="text-zinc-400">+{count - cellSources.length} more</div>
                             )}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile: Axis flipped — Types as rows, Tiers as columns (6×3) */}
+      <div className="lg:hidden">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th></th>
+              {TIERS.map((tier) => (
+                <th key={tier} className="px-1 py-2 text-center">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={`w-3 h-[2px] ${TIER_BAR_COLORS[tier]}`}></div>
+                    <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
+                      {TIER_LABELS[tier]}
+                    </span>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {TYPES.map((type) => (
+              <tr key={type}>
+                <td className="py-1 pr-2">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 font-medium">
+                    {TYPE_LABELS[type]}
+                  </span>
+                </td>
+                {TIERS.map((tier) => {
+                  const key = `${tier}:${type}`;
+                  const count = counts[key] || 0;
+                  const style = getCellStyle(count);
+                  const cellUrls = urls[key] || [];
+
+                  return (
+                    <td key={tier} className="p-1">
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        className={`heatmap-cell border ${style.border} ${style.bg} h-14 flex items-center justify-center cursor-pointer relative`}
+                        onClick={() => onCellClick?.(tier, type)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCellClick?.(tier, type); } }}
+                      >
+                        {count === 0 ? (
+                          <span className="font-mono text-sm text-zinc-200">&mdash;</span>
+                        ) : (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <div className="flex items-center gap-0.5">
+                              {cellUrls.slice(0, Math.min(count, 2)).map((url, i) => (
+                                <FaviconCircle key={i} url={url} />
+                              ))}
+                              {count > 2 && cellUrls.length >= 2 && (
+                                <span className="font-mono text-[8px] text-zinc-400">+{count - 2}</span>
+                              )}
+                            </div>
+                            <span className={`font-mono text-[10px] ${style.text}`}>{count}</span>
                           </div>
                         )}
                       </div>

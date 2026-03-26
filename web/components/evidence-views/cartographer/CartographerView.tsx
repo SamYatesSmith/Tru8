@@ -140,7 +140,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian }: Cartogr
       />
 
       {/* Desktop: Force-directed evidence map */}
-      <div className="hidden md:block mb-12">
+      <div className="hidden lg:block mb-12">
         <EvidenceMap
           evidenceByTier={evidenceByTier}
           elements={elements}
@@ -150,7 +150,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian }: Cartogr
       </div>
 
       {/* Mobile: Tier-grouped evidence nodes */}
-      <div className="md:hidden mb-12">
+      <div className="lg:hidden mb-12">
         {(['primary', 'reporting', 'commentary'] as EvidenceTier[]).map((tier) => {
           const items = evidenceByTier[tier];
           if (items.length === 0) return null;

@@ -44,7 +44,7 @@ export function FilterPills({ activeTiers, activeTypes, onToggleTier, onToggleTy
         </button>
       ))}
 
-      <div className="w-[1px] h-4 bg-zinc-200 mx-1"></div>
+      <div className="w-[1px] h-4 bg-zinc-200 mx-1 hidden lg:block"></div>
 
       {TYPE_OPTIONS.map(({ value, label }) => (
         <button

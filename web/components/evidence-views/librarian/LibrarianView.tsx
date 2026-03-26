@@ -200,7 +200,7 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
 
       {/* Desktop reading table — between filters and ledger */}
       {activeEvidence && (
-        <div className="hidden md:block mb-6">
+        <div className="hidden lg:block mb-6">
           <ReadingTable
             evidence={activeEvidence}
             callNumber={callNumberMap.get(activeEvidence.evidenceId || activeEvidence.id) || ''}

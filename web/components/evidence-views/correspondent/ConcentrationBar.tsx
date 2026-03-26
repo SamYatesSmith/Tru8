@@ -38,7 +38,7 @@ export function ConcentrationBar({ domains }: ConcentrationBarProps) {
           />
         ))}
       </div>
-      <div className="flex gap-4 mt-1.5">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
         {topThree.map((d) => (
           <span key={d.name} className="font-mono text-[9px] text-zinc-400 tracking-widest">
             {d.name}

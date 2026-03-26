@@ -112,7 +112,7 @@ export function RetrievalFunnel({ reviewedCount, includedCount, excludedEvidence
                 const domain = extractDomain(ev.url);
 
                 return (
-                  <div key={ev.id} className="flex items-center gap-4">
+                  <div key={ev.id} className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="px-2 py-0.5 bg-zinc-100 text-zinc-500 text-[9px] font-mono font-bold uppercase tracking-wider shrink-0">
                       {badge}
                     </span>

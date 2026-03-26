@@ -79,7 +79,7 @@ class EmailNotificationService:
         claims_analyzed: Optional[list] = None,
     ) -> bool:
         """
-        Send email when a fact-check is completed (SYNC version for Celery workers).
+        Send email when an evidence research check is completed (SYNC version for Celery workers).
         Uses synchronous database session to avoid event loop conflicts.
         """
         if not self.enabled or not self.api_key:
@@ -104,7 +104,7 @@ class EmailNotificationService:
                     logger.info(f"User {user_id} has check completion emails disabled")
                     return False
 
-                subject = f"Your Tru8 fact-check is complete - {claims_count} claim{'s' if claims_count != 1 else ''} analyzed"
+                subject = f"Your evidence landscape is ready \u2014 {claims_count} claim{'s' if claims_count != 1 else ''} analysed"
 
                 html_content = self._render_check_completed_template(
                     check_id=check_id,
@@ -131,7 +131,7 @@ class EmailNotificationService:
         self, user_id: str, check_id: str, error_message: str
     ) -> bool:
         """
-        Send email when a fact-check fails (SYNC version for Celery workers).
+        Send email when an evidence research check fails (SYNC version for Celery workers).
         Uses synchronous database session to avoid event loop conflicts.
         """
         if not self.enabled or not self.api_key:
@@ -153,7 +153,9 @@ class EmailNotificationService:
                     logger.info(f"User {user_id} has check failure emails disabled")
                     return False
 
-                subject = "Your Tru8 fact-check encountered an issue"
+                subject = (
+                    "We hit a wall \u2014 your analysis couldn\u2019t be completed"
+                )
 
                 html_content = self._render_check_failed_template(
                     check_id=check_id, error_message=error_message
@@ -182,7 +184,7 @@ class EmailNotificationService:
         total_sources: int = 0,
         claims_analyzed: Optional[list] = None,
     ) -> bool:
-        """Send email when a fact-check is completed (async wrapper)"""
+        """Send email when an evidence research check is completed (async wrapper)"""
         # For now, delegate to sync version - Resend SDK is synchronous
         return self.send_check_completed_email_sync(
             user_id=user_id,
@@ -199,7 +201,7 @@ class EmailNotificationService:
     async def send_check_failed_email(
         self, user_id: str, check_id: str, error_message: str
     ) -> bool:
-        """Send email when a fact-check fails (async wrapper)"""
+        """Send email when an evidence research check fails (async wrapper)"""
         return self.send_check_failed_email_sync(
             user_id=user_id, check_id=check_id, error_message=error_message
         )
@@ -226,40 +228,44 @@ class EmailNotificationService:
             display_title = input_title or input_url
             source_section = f"""
           <!-- Source Info -->
-          <div style="background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;">
-            <div style="color: #64748b; font-size: 12px; margin-bottom: 4px;">Content Analyzed</div>
-            <div style="color: #1e293b; font-size: 14px; font-weight: 500;">{display_title}</div>
+          <div style="border: 1px solid #E5E7EB; padding: 12px 16px; margin-bottom: 24px;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.2em; color: #9CA3AF; margin-bottom: 4px;">Analysed</div>
+            <div style="color: #111827; font-size: 14px; font-weight: 500;">{display_title}</div>
           </div>
 """
 
-        # Build analyzed claims section with orientation lines
+        # Build analysed claims section with orientation lines
         claims_section = ""
         if claims_analyzed and len(claims_analyzed) > 0:
             claims_html = ""
-            for claim in claims_analyzed[:3]:  # Max 3 claims
+            for idx, claim in enumerate(claims_analyzed[:3]):  # Max 3 claims
                 claim_text = claim.get("text", "")
                 if len(claim_text) > 120:
                     claim_text = claim_text[:117] + "..."
                 element_count = claim.get("element_count", 0)
                 orientation = claim.get("orientation", "")
+                rank_label = str(idx + 1).zfill(2)
 
                 orientation_html = ""
                 if orientation:
                     orientation_html = f"""
-                <div style="color: #64748b; font-size: 11px; font-style: italic; margin-top: 6px;">{orientation}</div>
+                <div style="color: #6B7280; font-size: 12px; margin-top: 6px; line-height: 1.5;">{orientation}</div>
 """
 
                 claims_html += f"""
-            <div style="background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px;">
-              <div style="color: #1e293b; font-size: 13px; margin-bottom: 4px;">{claim_text}</div>
-              <div style="color: #94a3b8; font-size: 11px;">{element_count} element{'s' if element_count != 1 else ''} analyzed</div>{orientation_html}
+            <div style="border: 1px solid #E5E7EB; padding: 12px 16px; margin-bottom: 8px;">
+              <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #D1D5DB;">{rank_label}</span>
+                <span style="color: #111827; font-size: 13px;">{claim_text}</span>
+              </div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #9CA3AF;">{element_count} element{'s' if element_count != 1 else ''} analysed</div>{orientation_html}
             </div>
 """
 
             claims_section = f"""
-          <!-- Claims Analyzed -->
-          <div style="margin-bottom: 20px;">
-            <div style="color: #64748b; font-size: 12px; margin-bottom: 8px; font-weight: 600;">CLAIMS ANALYZED</div>
+          <!-- Claims Analysed -->
+          <div style="margin-bottom: 24px;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; color: #9CA3AF; margin-bottom: 8px;">Claims Analysed</div>
             {claims_html}
           </div>
 """
@@ -275,41 +281,47 @@ class EmailNotificationService:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; padding: 24px;">
+<body style="margin: 0; padding: 0; background-color: #F9FAFB; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; padding: 32px 16px;">
     <tr>
       <td>
-        <!-- Header -->
-        <div style="text-align: center; margin-bottom: 24px;">
-          <h1 style="color: #1E40AF; font-size: 28px; font-weight: bold; margin: 0;">TRU8</h1>
+        <!-- Header: Logo -->
+        <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB;">
+          <img src="{frontend_url}/logo.proper.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
         </div>
 
         <!-- Main Card -->
-        <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <h2 style="color: #1e293b; font-size: 20px; margin: 0 0 16px 0;">Your evidence research is complete!</h2>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 32px;">
+
+          <!-- Mono label -->
+          <div style="font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; color: #9CA3AF; margin-bottom: 16px;">
+            Evidence Landscape Ready
+          </div>
+
+          <h2 style="color: #111827; font-size: 18px; font-weight: 600; margin: 0 0 12px 0; line-height: 1.4;">
+            Your evidence has been organised.
+          </h2>
+
+          <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0;">
+            We gathered <strong style="color: #111827;">{total_sources} sources</strong> across <strong style="color: #111827;">{analyzed_count} claim{'s' if analyzed_count != 1 else ''}</strong>, classified by tier and type. The landscape is ready for your review.
+          </p>
 
           {source_section}
 
-          <p style="color: #64748b; margin: 0 0 20px 0;">
-            We analyzed <strong>{analyzed_count} claim{'s' if analyzed_count != 1 else ''}</strong> against <strong>{total_sources} sources</strong> in <strong>{mode_label}</strong> mode.
-          </p>
-
           <!-- Stats -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px; border: 1px solid #E5E7EB;">
             <tr>
-              <td style="text-align: center; padding: 12px; background: #f0f9ff; border-radius: 8px;" width="33%">
-                <div style="font-size: 28px; font-weight: bold; color: #1E40AF;">{analyzed_count}</div>
-                <div style="color: #64748b; font-size: 11px;">Claims Analyzed</div>
+              <td style="text-align: center; padding: 16px; border-right: 1px solid #E5E7EB;" width="33%">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 600; color: #111827;">{analyzed_count}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.2em; color: #9CA3AF; margin-top: 4px;">Claims</div>
               </td>
-              <td width="4%"></td>
-              <td style="text-align: center; padding: 12px; background: #f0f9ff; border-radius: 8px;" width="33%">
-                <div style="font-size: 28px; font-weight: bold; color: #1E40AF;">{total_sources}</div>
-                <div style="color: #64748b; font-size: 11px;">Sources Gathered</div>
+              <td style="text-align: center; padding: 16px; border-right: 1px solid #E5E7EB;" width="34%">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 600; color: #111827;">{total_sources}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.2em; color: #9CA3AF; margin-top: 4px;">Sources</div>
               </td>
-              <td width="4%"></td>
-              <td style="text-align: center; padding: 12px; background: #f0f9ff; border-radius: 8px;" width="26%">
-                <div style="font-size: 28px; font-weight: bold; color: #1E40AF;">{claims_count}</div>
-                <div style="color: #64748b; font-size: 11px;">Total Claims</div>
+              <td style="text-align: center; padding: 16px;" width="33%">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 600; color: #EA580C;">{claims_count}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.2em; color: #9CA3AF; margin-top: 4px;">Total Claims</div>
               </td>
             </tr>
           </table>
@@ -317,18 +329,20 @@ class EmailNotificationService:
           {claims_section}
 
           <!-- CTA Button -->
-          <div style="text-align: center;">
-            <a href="{frontend_url}/dashboard/check/{check_id}" style="display: inline-block; background: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold;">
-              View Full Results
+          <div style="text-align: center; padding-top: 8px;">
+            <a href="{frontend_url}/dashboard/check/{check_id}" style="display: inline-block; background: #18181B; color: #FFFFFF; text-decoration: none; padding: 14px 32px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em;">
+              View Evidence Landscape &rarr;
             </a>
           </div>
         </div>
 
         <!-- Footer -->
-        <div style="text-align: center; margin-top: 24px; color: #94a3b8; font-size: 12px;">
-          <p style="margin: 0 0 8px 0;">Tru8 - Evidence-based research with credible sources</p>
-          <p style="margin: 0;">
-            <a href="{frontend_url}/dashboard/settings?tab=notifications" style="color: #64748b;">Manage notification preferences</a>
+        <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid #E5E7EB;">
+          <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: #9CA3AF; margin: 0 0 8px 0;">
+            We organise &middot; You decide
+          </p>
+          <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
+            <a href="{frontend_url}/dashboard/settings?tab=notifications" style="color: #6B7280; text-decoration: none;">Manage preferences</a>
           </p>
         </div>
       </td>
@@ -352,49 +366,60 @@ class EmailNotificationService:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; padding: 24px;">
+<body style="margin: 0; padding: 0; background-color: #F9FAFB; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; padding: 32px 16px;">
     <tr>
       <td>
-        <!-- Header -->
-        <div style="text-align: center; margin-bottom: 24px;">
-          <h1 style="color: #1E40AF; font-size: 28px; font-weight: bold; margin: 0;">TRU8</h1>
+        <!-- Header: Logo -->
+        <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB;">
+          <img src="{frontend_url}/logo.proper.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
         </div>
 
         <!-- Main Card -->
-        <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <h2 style="color: #1e293b; font-size: 20px; margin: 0 0 16px 0;">Your fact-check encountered an issue</h2>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 32px;">
 
-          <p style="color: #64748b; margin: 0 0 16px 0;">
-            We weren't able to complete your fact-check. Don't worry - your credit has been returned.
-          </p>
-
-          <div style="background: #fef2f2; border-left: 4px solid #DC2626; padding: 12px 16px; margin-bottom: 24px;">
-            <p style="color: #991b1b; margin: 0; font-size: 14px;">{safe_error}</p>
+          <!-- Mono label -->
+          <div style="font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; color: #9CA3AF; margin-bottom: 16px;">
+            Analysis Incomplete
           </div>
 
-          <p style="color: #64748b; margin: 0 0 12px 0; font-size: 14px;">
-            Common reasons this might happen:
+          <h2 style="color: #111827; font-size: 18px; font-weight: 600; margin: 0 0 12px 0; line-height: 1.4;">
+            We weren&rsquo;t able to complete your analysis.
+          </h2>
+
+          <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+            Something went wrong during evidence gathering. Your credit has been returned &mdash; no charge.
           </p>
-          <ul style="color: #64748b; margin: 0 0 24px 0; padding-left: 20px; font-size: 14px;">
-            <li>The URL might be behind a paywall</li>
-            <li>The content might be too short to extract claims</li>
-            <li>The website might have blocked our access</li>
+
+          <!-- Error detail -->
+          <div style="border-left: 3px solid #DC2626; padding: 12px 16px; margin-bottom: 24px; background: #FAFAFA;">
+            <p style="font-family: 'JetBrains Mono', monospace; color: #991B1B; margin: 0; font-size: 12px;">{safe_error}</p>
+          </div>
+
+          <p style="color: #6B7280; font-size: 13px; line-height: 1.6; margin: 0 0 8px 0;">
+            This usually happens when:
+          </p>
+          <ul style="color: #6B7280; margin: 0 0 24px 0; padding-left: 20px; font-size: 13px; line-height: 1.8;">
+            <li>The URL is behind a paywall or login wall</li>
+            <li>The content is too short to extract claims from</li>
+            <li>The website blocked automated access</li>
           </ul>
 
           <!-- CTA Button -->
-          <div style="text-align: center;">
-            <a href="{frontend_url}/dashboard" style="display: inline-block; background: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold;">
-              Try Again
+          <div style="text-align: center; padding-top: 8px;">
+            <a href="{frontend_url}/dashboard/new-check" style="display: inline-block; background: #18181B; color: #FFFFFF; text-decoration: none; padding: 14px 32px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em;">
+              Try Another Source &rarr;
             </a>
           </div>
         </div>
 
         <!-- Footer -->
-        <div style="text-align: center; margin-top: 24px; color: #94a3b8; font-size: 12px;">
-          <p style="margin: 0 0 8px 0;">Need help? Contact us at hello@trueight.com</p>
-          <p style="margin: 0;">
-            <a href="{frontend_url}/dashboard/settings?tab=notifications" style="color: #64748b;">Manage notification preferences</a>
+        <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid #E5E7EB;">
+          <p style="color: #9CA3AF; font-size: 12px; margin: 0 0 8px 0;">
+            Questions? <a href="mailto:hello@trueight.com" style="color: #6B7280; text-decoration: none;">hello@trueight.com</a>
+          </p>
+          <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
+            <a href="{frontend_url}/dashboard/settings?tab=notifications" style="color: #6B7280; text-decoration: none;">Manage preferences</a>
           </p>
         </div>
       </td>

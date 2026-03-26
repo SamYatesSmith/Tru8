@@ -28,26 +28,30 @@ export function ElementRoster({ elements }: ElementRosterProps) {
           return (
             <div
               key={element.elementId}
-              className={`flex items-center gap-6 px-4 py-3 border ${
+              className={`flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-6 px-3 lg:px-4 py-3 border ${
                 isGap
                   ? 'border-dashed border-zinc-200 bg-zinc-50/30'
                   : 'border-zinc-100'
               }`}
             >
-              <span className="font-mono text-xs text-zinc-300">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <span className={`text-sm font-medium flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-900'}`}>
-                {element.description}
-              </span>
-              <span className={`font-mono text-[10px] ${isGap ? 'text-zinc-300' : 'text-zinc-400'}`}>
-                {sourceCount} {sourceCount === 1 ? 'source' : 'sources'}
-              </span>
-              <span className={`px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded ${
-                isGap ? 'bg-slate-50 text-slate-500' : badge.className
-              }`}>
-                {isGap ? 'Gap' : badge.label}
-              </span>
+              <div className="flex items-center gap-2 lg:contents">
+                <span className="font-mono text-xs text-zinc-300">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className={`text-sm font-medium flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-900'}`}>
+                  {element.description}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 pl-6 lg:pl-0 lg:contents">
+                <span className={`font-mono text-[10px] ${isGap ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                  {sourceCount} {sourceCount === 1 ? 'source' : 'sources'}
+                </span>
+                <span className={`px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded ${
+                  isGap ? 'bg-slate-50 text-slate-500' : badge.className
+                }`}>
+                  {isGap ? 'Gap' : badge.label}
+                </span>
+              </div>
             </div>
           );
         })}

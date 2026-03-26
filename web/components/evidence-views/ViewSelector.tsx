@@ -30,30 +30,30 @@ export function ViewSelector({ mode, activeTab, onTabChange }: ViewSelectorProps
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
 
   return (
-    <div className="relative flex justify-between border-b border-zinc-200 mb-6">
+    <div className="relative grid grid-cols-3 lg:flex lg:justify-between border-b border-zinc-200 mb-6">
       {ALL_TABS.map((tab) => {
         const isDisabled = mode === 'overview' && DETAIL_ONLY_TABS.includes(tab.value);
         const isActive = activeTab === tab.value && !isDisabled;
         const showTooltip = isDisabled && hoveredTab === tab.value;
 
         return (
-          <div key={tab.value} className="relative flex-1 text-center group">
+          <div key={tab.value} className="relative text-center lg:flex-1 group">
             <button
               onClick={() => !isDisabled && onTabChange(tab.value)}
               onMouseEnter={() => isDisabled && setHoveredTab(tab.value)}
               onMouseLeave={() => setHoveredTab(null)}
-              className={`w-full px-2 py-2.5 md:px-4 md:py-4 font-bold uppercase font-mono transition-all duration-200 ${
+              className={`w-full min-h-[44px] px-2 py-2.5 lg:px-4 lg:py-4 font-bold uppercase font-mono transition-all duration-200 ${
                 isActive
-                  ? 'border-b-2 border-[var(--accent)] text-black text-[10px] md:text-[13px] tracking-[0.15em] md:tracking-[0.25em]'
+                  ? 'border-b-2 border-[var(--accent)] text-black text-[10px] lg:text-[13px] tracking-[0.08em] lg:tracking-[0.25em]'
                   : isDisabled
-                    ? 'text-zinc-200 cursor-default text-[9px] md:text-[11px] tracking-[0.15em] md:tracking-[0.25em]'
-                    : 'text-zinc-400 text-[9px] md:text-[11px] tracking-[0.15em] md:tracking-[0.25em] hover:text-zinc-800 hover:text-[10px] hover:md:text-[13px]'
+                    ? 'text-zinc-200 cursor-default text-[9px] lg:text-[11px] tracking-[0.08em] lg:tracking-[0.25em]'
+                    : 'text-zinc-400 text-[9px] lg:text-[11px] tracking-[0.08em] lg:tracking-[0.25em] hover:text-zinc-800 hover:text-[10px] hover:lg:text-[13px]'
               }`}
               disabled={isDisabled}
               aria-disabled={isDisabled}
             >
               {tab.label}
-              <span className={`hidden md:block font-normal tracking-normal normal-case font-sans mt-0.5 transition-all duration-200 ${
+              <span className={`hidden lg:block font-normal tracking-normal normal-case font-sans mt-0.5 transition-all duration-200 ${
                 isActive
                   ? 'text-zinc-500 text-[9px]'
                   : isDisabled

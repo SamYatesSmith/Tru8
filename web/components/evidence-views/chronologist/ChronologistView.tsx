@@ -320,7 +320,7 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
       />
 
       {/* Desktop: horizontal timeline + undated sidebar */}
-      <div className="hidden md:flex gap-6 mb-8">
+      <div className="hidden lg:flex gap-6 mb-8">
         <div className="flex-grow min-w-0">
           {/* Timeline content area — tier bands: primary top, reporting middle, commentary near axis */}
           <div className="relative" style={{ minHeight: '160px' }}>
@@ -423,7 +423,7 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
       </div>
 
       {/* Mobile: vertical timeline */}
-      <div className="md:hidden mb-8">
+      <div className="lg:hidden mb-8">
         <MobileTimeline
           items={data.items}
           clusters={data.clusters}
