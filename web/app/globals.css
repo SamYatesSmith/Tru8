@@ -211,8 +211,11 @@ a:focus-visible {
 .cl-otpCodeFieldInput,
 .cl-otpCodeField input {
   background-color: #FFFFFF !important;
-  border-color: #E5E7EB !important;
+  border: 1px solid #E5E7EB !important;
   color: #111827 !important;
+  font-size: 1.25rem !important;
+  min-width: 2.5rem !important;
+  min-height: 2.5rem !important;
 }
 
 .cl-otpCodeFieldInput::placeholder,
@@ -224,6 +227,18 @@ a:focus-visible {
 .cl-otpCodeFieldInput:focus,
 .cl-otpCodeField input:focus {
   border-color: #111827 !important;
+  outline: 2px solid #111827 !important;
+  outline-offset: -1px !important;
+}
+
+/* Ensure OTP digit text is always dark — overrides the broad .cl-signIn-root span rule below */
+.cl-signIn-root .cl-otpCodeField span,
+.cl-signIn-root .cl-otpCodeField div,
+.cl-signIn-root .cl-otpCodeFieldInput,
+.cl-signUp-root .cl-otpCodeField span,
+.cl-signUp-root .cl-otpCodeField div,
+.cl-signUp-root .cl-otpCodeFieldInput {
+  color: #111827 !important;
 }
 
 /* General text color overrides for Clerk modals */
