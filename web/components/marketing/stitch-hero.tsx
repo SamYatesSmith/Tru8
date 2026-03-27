@@ -18,14 +18,14 @@ export function StitchHero() {
         <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
           <div className="max-w-4xl">
             <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 md:mb-6">
-              Evidence Research Platform
+              News Evidence Research Platform
             </div>
             <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-[84px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-6 md:mb-8">
-              Research the evidence.<br />
+              Look behind the headlines.<br />
               <span className="font-bold">Form your view.</span>
             </h1>
             <p className="text-sm md:text-base lg:text-lg text-zinc-500 mb-8 md:mb-12 max-w-xl leading-relaxed">
-              Tru8 isn&apos;t a fact checker. The line between &ldquo;true&rdquo; and &ldquo;false&rdquo; is harder to draw than ever, and misinformation makes it worse. So instead of verdicts, we offer balance — organised perspectives, structured context, and the full evidence landscape. We organise. You decide.
+              Tru8 isn&apos;t a fact checker. Headlines make claims every day, and the evidence behind them is scattered across dozens of sources. Tru8 gathers that evidence, classifies it by proximity and type, and organises the full landscape — so you don&apos;t have to. We organise. You decide.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button

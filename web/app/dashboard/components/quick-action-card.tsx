@@ -12,7 +12,7 @@ export function QuickActionCard({ used = 0, limit = 3 }: QuickActionCardProps) {
   return (
     <div className="bg-white border border-zinc-200 p-8 h-full">
       <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-900 mb-2">Quick Action</h3>
-      <p className="text-zinc-500 text-sm mb-6">Start a new evidence check</p>
+      <p className="text-zinc-500 text-sm mb-6">Research a news article or claim</p>
 
       {isLimitReached ? (
         <div className="space-y-4">

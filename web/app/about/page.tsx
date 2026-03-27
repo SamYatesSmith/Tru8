@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'About',
-  description: 'Tru8 organises evidence from 30+ sources so you can form your own view. Structured evidence research for professionals, journalists, and the curious.',
+  description: 'Tru8 researches the evidence behind news articles and claims so you can form your own view. Built for anyone who wants clarity on what\u2019s being reported.',
   alternates: { canonical: '/about' },
 };
 
@@ -38,15 +38,15 @@ export default function AboutPage() {
 
             <div className="space-y-6 text-base md:text-lg text-zinc-600 leading-relaxed">
               <p>
-                Tru8 was created with a simple idea in mind: <span className="text-zinc-900 font-medium">understanding the evidence behind a claim shouldn&apos;t feel overwhelming.</span>
+                Tru8 was created with a simple idea in mind: <span className="text-zinc-900 font-medium">understanding the evidence behind a news story shouldn&apos;t feel overwhelming.</span>
               </p>
 
               <p>
-                The internet moves fast. Headlines compete for attention, opinions spread instantly, and it&apos;s not always clear what&apos;s well-supported and what isn&apos;t. Most people don&apos;t have the time — or the desire — to dig through multiple articles just to understand whether a claim holds up.
+                News moves fast. Headlines compete for attention, reporting gets recycled, and it&apos;s not always clear what&apos;s well-supported and what isn&apos;t. Most people don&apos;t have the time — or the tools — to dig through dozens of sources just to understand whether what they&apos;re reading holds up.
               </p>
 
               <p>
-                Tru8 takes all of that complexity and makes it easier. You paste a claim, URL, article, or image, and Tru8 retrieves the sources, organises the evidence, and gives you a structured evidence report you can explore.
+                Tru8 takes that complexity and makes it manageable. You paste a news article, headline, or claim, and Tru8 searches across multiple source types, organises the evidence, and gives you a structured report you can explore.
               </p>
 
               {/* Emphasis Block */}
@@ -60,7 +60,7 @@ export default function AboutPage() {
               </div>
 
               <p>
-                Tru8 is built for anyone who needs structured evidence — whether you&apos;re a professional analyst, a journalist, or simply someone who wants clarity. Whether you&apos;re researching a claim, an article, or text from an image, the mission stays the same:
+                Tru8 is built for anyone who wants to understand what&apos;s behind the news — whether you&apos;re a professional analyst, a journalist, a researcher, or simply someone who reads the news and wants clarity. The mission stays the same:
               </p>
 
               <p className="text-zinc-900 text-lg md:text-xl font-medium">
@@ -99,7 +99,7 @@ export default function AboutPage() {
               </p>
 
               <p>
-                Tru8 grew out of that mindset. I kept noticing how difficult it had become to navigate conflicting information online, and how exhausting it can be to try and work out what&apos;s actually well-supported. Most people don&apos;t want to argue online or dig through endless sources — they just want clarity.
+                Tru8 grew out of that mindset. I kept noticing how difficult it had become to navigate conflicting news coverage, and how exhausting it can be to try and work out what&apos;s actually well-supported. Most people don&apos;t want to argue online or dig through endless sources — they just want clarity.
               </p>
 
               <p>

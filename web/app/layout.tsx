@@ -22,10 +22,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Tru8 — AI-Powered Evidence Research',
+    default: 'Tru8 — AI-Powered News Evidence Research',
     template: '%s | Tru8',
   },
-  description: 'Professional evidence research platform. Analyse claims, URLs, articles, and images with AI-powered multi-source research.',
+  description: 'AI-powered news evidence research. Paste a news article or claim, and Tru8 searches multiple source types to organise the evidence landscape. No verdicts — just clarity.',
   icons: {
     icon: '/favicon.proper.png',
     apple: '/apple-touch-icon.png',

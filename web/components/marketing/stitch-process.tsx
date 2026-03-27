@@ -12,15 +12,15 @@ const steps = [
     icon: Upload,
     number: '01',
     label: 'Submit',
-    title: 'Submit a Claim',
-    description: 'Paste a URL, article, claim, or image you want to research.',
+    title: 'Submit an Article or Claim',
+    description: 'Paste a news article, headline, claim, or URL you want to research.',
   },
   {
     icon: GitBranch,
     number: '02',
     label: 'Research',
     title: 'Evidence Gathered',
-    description: 'Tru8 searches government data, news, academic papers, and official records. Each source is classified by proximity and type.',
+    description: 'Tru8 searches government data, news archives, academic papers, and official records. Each piece of evidence is classified by proximity and type.',
   },
   {
     icon: ClipboardCheck,

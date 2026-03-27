@@ -1360,7 +1360,7 @@ async def agent_health(request: Request) -> JSONResponse:
     import redis as _redis
 
     from app.core.config import settings
-    from app.core.database import async_engine
+    from app.core.database import engine as async_engine
 
     services = {}
 

@@ -11,8 +11,8 @@ import { StitchPricing } from '@/components/marketing/stitch-pricing'
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
 export const metadata: Metadata = {
-  title: 'Tru8 — AI-Powered Evidence Research',
-  description: 'Submit a claim, URL, article, or image. Tru8 searches 30+ sources, classifies evidence by tier and type, and organises the results. No verdicts — just structured evidence.',
+  title: 'Tru8 — AI-Powered News Evidence Research',
+  description: 'Paste a news article, headline, or claim. Tru8 searches multiple source types, classifies evidence by tier and type, and maps the full evidence landscape. No verdicts — just structured evidence so you can form your own view.',
   alternates: { canonical: '/' },
 }
 
@@ -24,7 +24,7 @@ const jsonLd = {
       name: 'Tru8',
       url: baseUrl,
       logo: `${baseUrl}/favicon.proper.png`,
-      description: 'AI-powered evidence research platform. We organise; you decide.',
+      description: 'AI-powered news evidence research platform. Research what\u2019s behind the headlines. We organise; you decide.',
     },
     {
       '@type': 'WebSite',

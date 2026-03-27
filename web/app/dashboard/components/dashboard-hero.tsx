@@ -14,8 +14,8 @@ const PROCESS_STEPS = [
     icon: Upload,
     number: '01',
     label: 'Submit',
-    title: 'Submit a Claim',
-    description: 'Paste a URL, article, claim, or question.',
+    title: 'Submit an Article or Claim',
+    description: 'Paste a news article, headline, claim, or URL.',
   },
   {
     icon: GitBranch,
@@ -130,7 +130,7 @@ export function DashboardHero({ userName, stats, usage, isFreeUser }: DashboardH
     <div className="bg-grid-dot border-b border-zinc-200 -mx-4 md:-mx-6 px-4 md:px-6 py-6 md:py-10 mb-6 md:mb-8">
       {/* Micro-label */}
       <h1 className="font-mono text-2xl md:text-3xl tracking-[0.15em] uppercase text-zinc-400 mb-4">
-        Evidence Research Platform
+        News Evidence Research Platform
       </h1>
 
       {isNewUser ? (
@@ -151,7 +151,7 @@ export function DashboardHero({ userName, stats, usage, isFreeUser }: DashboardH
 
           {isCollapsed ? (
             <p className="text-sm text-zinc-500 mb-6">
-              Submit a claim, evidence is gathered, explore six views.
+              Submit a news article or claim, evidence is gathered, explore six views.
             </p>
           ) : (
             <div className="mb-8">
