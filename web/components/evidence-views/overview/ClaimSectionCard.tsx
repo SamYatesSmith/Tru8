@@ -1,6 +1,6 @@
 'use client';
 
-import { Claim, EvidenceTier } from '@shared/types';
+import { Claim, EvidenceTier, InputType } from '@shared/types';
 
 const STATE_BADGE_CONFIG: Record<string, { label: string; className: string }> = {
   supported: { label: 'Supported', className: 'bg-emerald-50 text-emerald-600' },
@@ -16,19 +16,26 @@ const TYPE_LABELS: Record<string, string> = {
   normative_flagged: 'Normative',
 };
 
+const CONTEXT_LABELS: Record<string, string> = {
+  url: 'Extracted Claim',
+  text: 'Submitted Claim',
+};
+
 interface ClaimSectionCardProps {
   claim: Claim;
   position: number;
   onExplore: (position: number) => void;
+  inputType?: InputType;
 }
 
-export function ClaimSectionCard({ claim, position, onExplore }: ClaimSectionCardProps) {
+export function ClaimSectionCard({ claim, position, onExplore, inputType }: ClaimSectionCardProps) {
   const claimMap = claim.claimMap;
   const elements = claimMap?.elements || [];
   const evidence = claim.evidence || [];
   const orientation = claimMap?.orientation;
   const claimType = claimMap?.claimType || claim.claimType;
   const rankLabel = String(position + 1).padStart(2, '0');
+  const contextLabel = CONTEXT_LABELS[inputType || ''] || 'Submitted Claim';
 
   // Count element states
   const stateCounts = { supported: 0, disputed: 0, unresolved: 0 };
@@ -59,8 +66,11 @@ export function ClaimSectionCard({ claim, position, onExplore }: ClaimSectionCar
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs font-bold text-zinc-300">{rankLabel}</span>
+            <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+              {contextLabel}
+            </span>
             {claimType && (
-              <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+              <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">
                 {TYPE_LABELS[claimType] || claimType}
               </span>
             )}

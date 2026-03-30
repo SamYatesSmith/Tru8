@@ -32,6 +32,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   const claims = check.claims || [];
   const videos = check.videos || [];
   const isSingleClaim = claims.length === 1;
+  const contextLabel = check.inputType === 'url' ? 'Extracted Claim' : 'Submitted Claim';
 
   // F07: Sync active view tab to URL for shareability
   const updateUrlViewParam = useCallback((view: string) => {
@@ -205,6 +206,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
             <ClaimSectionStack
               claims={claims}
               onExplore={handleClaimSelect}
+              inputType={check.inputType}
             />
           )}
 
@@ -215,13 +217,18 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
             {activeClaim && (
               <div className="bg-[#F9FAFB] border border-zinc-200 p-6 mb-6">
                 <div className="flex items-start justify-between mb-3">
-                  {!isSingleClaim && (
-                    <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
-                      Claim {activeClaimIndex + 1} of {claims.length}
+                  <div className="flex items-center gap-3">
+                    {!isSingleClaim && (
+                      <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+                        Claim {activeClaimIndex + 1} of {claims.length}
+                      </span>
+                    )}
+                    <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+                      {contextLabel}
                     </span>
-                  )}
+                  </div>
                   {activeClaimType && (
-                    <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500 ml-auto">
+                    <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400 ml-auto">
                       {typeLabels[activeClaimType] || activeClaimType}
                     </span>
                   )}

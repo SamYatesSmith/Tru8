@@ -108,6 +108,11 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
    ✗ "What should I invest in?" → No verifiable claim (skip — subjective/advisory)
    ✗ "Who is the best footballer?" → No verifiable claim (skip — subjective)
    Only extract claims where the question implies a specific, verifiable factual statement.
+   IMPORTANT: Always extract the AFFIRMATIVE implied claim. Do NOT insert your own judgement.
+   ✓ "Is vaping safe?" → "Vaping is safe" (affirmative — evidence will show both sides)
+   ✗ "Is vaping safe?" → "Vaping is not safe" (editorialised — do NOT do this)
+   ✓ "Does sugar cause diabetes?" → "Sugar causes diabetes"
+   ✗ "Does sugar cause diabetes?" → "Sugar does not cause diabetes"
 10. AVOID OVERLAPPING CLAIMS - Do NOT extract multiple variations of the same allegation:
    ✗ BAD: Three claims about EU censorship from different angles
      - "EU Commission conducted censorship campaign"

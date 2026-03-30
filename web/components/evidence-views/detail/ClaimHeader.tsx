@@ -1,13 +1,19 @@
 'use client';
 
-import { Claim } from '@shared/types';
+import { Claim, InputType } from '@shared/types';
+
+const CONTEXT_LABELS: Record<string, string> = {
+  url: 'Extracted Claim',
+  text: 'Submitted Claim',
+};
 
 interface ClaimHeaderProps {
   claim: Claim;
   position: number;
+  inputType?: InputType;
 }
 
-export function ClaimHeader({ claim, position }: ClaimHeaderProps) {
+export function ClaimHeader({ claim, position, inputType }: ClaimHeaderProps) {
   const claimMap = claim.claimMap;
   const elements = claimMap?.elements || [];
   const evidenceCount = claim.evidence?.length || 0;
@@ -15,6 +21,7 @@ export function ClaimHeader({ claim, position }: ClaimHeaderProps) {
   const claimType = claimMap?.claimType || claim.claimType;
 
   const rankLabel = String(position + 1).padStart(2, '0');
+  const contextLabel = CONTEXT_LABELS[inputType || ''] || 'Submitted Claim';
 
   const typeLabels: Record<string, string> = {
     empirical: 'Empirical',
@@ -34,11 +41,14 @@ export function ClaimHeader({ claim, position }: ClaimHeaderProps) {
 
   return (
     <div>
-      {/* Position + type badge */}
+      {/* Position + context label + type badge */}
       <div className="flex items-center gap-3 mb-2">
         <span className="font-mono text-xs font-bold text-zinc-300">{rankLabel}</span>
+        <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+          {contextLabel}
+        </span>
         {claimType && (
-          <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+          <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">
             {typeLabels[claimType] || claimType}
           </span>
         )}

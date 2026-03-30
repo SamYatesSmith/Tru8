@@ -1,14 +1,15 @@
 'use client';
 
-import { Claim } from '@shared/types';
+import { Claim, InputType } from '@shared/types';
 import { ClaimSectionCard } from './ClaimSectionCard';
 
 interface ClaimSectionStackProps {
   claims: Claim[];
   onExplore: (position: number) => void;
+  inputType?: InputType;
 }
 
-export function ClaimSectionStack({ claims, onExplore }: ClaimSectionStackProps) {
+export function ClaimSectionStack({ claims, onExplore, inputType }: ClaimSectionStackProps) {
   return (
     <div className="mb-16">
       <div className="border-b border-zinc-200 pb-2 mb-6">
@@ -27,6 +28,7 @@ export function ClaimSectionStack({ claims, onExplore }: ClaimSectionStackProps)
             claim={claim}
             position={index}
             onExplore={onExplore}
+            inputType={inputType}
           />
         ))}
       </div>

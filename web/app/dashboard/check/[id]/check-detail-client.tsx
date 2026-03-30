@@ -399,6 +399,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
             <ClaimSectionStack
               claims={checkData.claims}
               onExplore={handleClaimSelect}
+              inputType={checkData.inputType}
             />
           )}
 
@@ -412,7 +413,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
               )}
               {/* Claim header with prev/next (multi-claim only) */}
               <div className="flex flex-col-reverse lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
-                <ClaimHeader claim={focusedClaim} position={activeClaimIndex!} />
+                <ClaimHeader claim={focusedClaim} position={activeClaimIndex!} inputType={checkData.inputType} />
                 {!isSingleClaim && claims.length > 1 && (
                   <div className="flex items-center gap-2 shrink-0 lg:ml-6">
                     <button
