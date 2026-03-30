@@ -198,7 +198,8 @@ async def _validate_and_create_check(
     session.add(check)
 
     # Reserve credits
-    user.credits -= 1
+    if user.credits > 0:
+        user.credits -= 1
     user.total_credits_used += 1
     await session.commit()
     await session.refresh(check)
