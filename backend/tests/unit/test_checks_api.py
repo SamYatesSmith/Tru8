@@ -430,7 +430,7 @@ class TestValidateAndCreateCheck:
 
     @patch("app.api.v1.checks.get_or_create_user", new_callable=AsyncMock)
     async def test_credit_exhausted_raises_402(self, mock_get_user):
-        mock_user = _make_user(total_credits_used=3)
+        mock_user = _make_user(credits=0, total_credits_used=3)
         mock_get_user.return_value = mock_user
         mock_session = AsyncMock()
 

@@ -111,7 +111,10 @@ async def _validate_and_create_check(
         current_usage = usage_result.scalar() or 0
         limit_type = "monthly"
     else:
-        credits_limit = 3
+        # Free trial: limit derived from user's credit allocation.
+        # credits + total_credits_used = original allocation (deductions keep
+        # the sum constant). Default is 3; gifted users may have more.
+        credits_limit = max(3, user.credits + user.total_credits_used)
         current_usage = user.total_credits_used
         limit_type = "trial"
 
@@ -1519,7 +1522,7 @@ async def _check_credits(session: AsyncSession, current_user: dict):
         usage_result = await session.execute(usage_stmt)
         current_usage = usage_result.scalar() or 0
     else:
-        credits_limit = 3
+        credits_limit = max(3, user.credits + user.total_credits_used)
         current_usage = user.total_credits_used
 
     if current_usage >= credits_limit:

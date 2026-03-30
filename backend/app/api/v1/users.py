@@ -316,8 +316,8 @@ async def get_usage(
         usage_result = await session.execute(usage_stmt)
         period_credits_used = usage_result.scalar() or 0
     else:
-        # Free user: one-time trial (3 checks total, never resets)
-        credits_per_period = 3  # Trial limit
+        # Free trial: limit from user's credit allocation (default 3, gifted may be higher)
+        credits_per_period = max(3, user.credits + user.total_credits_used)
         period_credits_used = user.total_credits_used  # Lifetime usage
         is_trial = True
 
