@@ -207,28 +207,35 @@ a:focus-visible {
   background-color: #FFFFFF !important;
 }
 
-/* OTP/Verification code input styling */
-.cl-otpCodeFieldInput,
-.cl-otpCodeField input {
+/* OTP/Verification code — visual digit segments only.
+   Clerk v5 renders OTP as a SINGLE hidden <input> with visual <div> segments.
+   Styling .cl-otpCodeField input would break the hidden input's cursor tracking
+   (font-size/border changes misalign the input-otp library's selectionStart mapping). */
+.cl-otpCodeFieldInput {
   background-color: #FFFFFF !important;
   border: 1px solid #E5E7EB !important;
   color: #111827 !important;
   font-size: 1.25rem !important;
   min-width: 2.5rem !important;
   min-height: 2.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.cl-otpCodeFieldInput::placeholder,
-.cl-otpCodeField input::placeholder {
-  color: #9CA3AF !important;
-  opacity: 1 !important;
-}
-
-.cl-otpCodeFieldInput:focus,
-.cl-otpCodeField input:focus {
+/* Active/focused segment highlight */
+.cl-otpCodeFieldInput[data-status="cursor"],
+.cl-otpCodeFieldInput[data-status="selected"] {
   border-color: #111827 !important;
   outline: 2px solid #111827 !important;
   outline-offset: -1px !important;
+}
+
+/* Ensure the real hidden input stays invisible and unstyled */
+.cl-otpCodeField input {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
 }
 
 /* Ensure OTP digit text is always dark — overrides the broad .cl-signIn-root span rule below */
