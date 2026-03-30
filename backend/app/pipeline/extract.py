@@ -207,7 +207,7 @@ Always return valid JSON matching the required format."""
             # Try Google AI extraction (primary)
             if self.google_ai_api_key:
                 result = await self._extract_with_google(content, metadata or {})
-                if result["success"]:
+                if result["success"] and result.get("claims"):
                     # Add source metadata to each claim
                     for claim in result.get("claims", []):
                         claim["source_title"] = (
@@ -218,6 +218,10 @@ Always return valid JSON matching the required format."""
                             metadata.get("date") if metadata else None
                         )
                     return result
+                elif result["success"]:
+                    logger.warning(
+                        "Google AI returned success but 0 claims, trying next extractor"
+                    )
                 else:
                     logger.error(f"Google AI extraction failed: {result.get('error')}")
 
@@ -225,7 +229,7 @@ Always return valid JSON matching the required format."""
             if self.openai_api_key:
                 logger.info("Attempting OpenAI extraction as fallback")
                 result = await self._extract_with_openai(content, metadata or {})
-                if result["success"]:
+                if result["success"] and result.get("claims"):
                     # Add source metadata to each claim
                     for claim in result.get("claims", []):
                         claim["source_title"] = (
@@ -236,6 +240,10 @@ Always return valid JSON matching the required format."""
                             metadata.get("date") if metadata else None
                         )
                     return result
+                elif result["success"]:
+                    logger.warning(
+                        "OpenAI returned success but 0 claims, trying rule-based fallback"
+                    )
                 else:
                     logger.error(f"OpenAI extraction failed: {result.get('error')}")
 
