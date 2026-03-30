@@ -51,6 +51,38 @@ SHOULD_EXTRACT = [
     "Can AI replace doctors?",
 ]
 
+# Messy real-world inputs — the kind actual users type
+SHOULD_EXTRACT_MESSY = [
+    # Very short
+    "is salt bad?",
+    "does sugar cause diabetes",
+    "is vaping safe",
+    # Colloquial / informal
+    "heard pink salt is some kind of miracle cure, true?",
+    "so apparently MSG is really bad for you??",
+    "people keep saying vaccines cause autism is that real",
+    # Misspelled
+    "does tarmeric help inflamation",
+    "is intermitten fasting actualy good for you",
+    # Multi-part questions
+    "does salt cause high blood pressure and is it linked to cancer?",
+    "is red wine good for your heart or does it cause liver damage?",
+    # Statement-question hybrids
+    "pink salt is apparently a weight loss miracle. Really?",
+    "my friend says raw milk is healthier than pasteurised. Is this true?",
+    "I read that cold showers boost your immune system, is there evidence?",
+    # Vague but topical
+    "what's the deal with 5G?",
+    "tell me about ivermectin",
+    "what do we know about ultra processed food",
+    # No question mark
+    "whether paracetamol is safe during pregnancy",
+    "climate change causing more hurricanes",
+    # Claim as URL-less statement (common user pattern)
+    "The NHS is underfunded compared to other G7 countries",
+    "Electric cars are worse for the environment than diesel",
+]
+
 # Questions that SHOULD NOT extract claims (genuinely subjective/advisory)
 SHOULD_NOT_EXTRACT = [
     "What should I invest in?",
@@ -58,6 +90,15 @@ SHOULD_NOT_EXTRACT = [
     "What's the meaning of life?",
     "Which colour looks better, red or blue?",
     "Should I move to a different country?",
+]
+
+# Genuinely too vague — no discernible topic
+SHOULD_NOT_EXTRACT_VAGUE = [
+    "is it true?",
+    "things are getting worse",
+    "what happened",
+    "hmm not sure about that",
+    "???",
 ]
 
 
@@ -287,6 +328,25 @@ class TestLLMQuestionExtraction:
         )
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("question", SHOULD_EXTRACT_MESSY)
+    async def test_messy_input_extracts_at_least_one_claim(self, question):
+        """Messy real-world inputs that imply verifiable claims should extract."""
+        result = await self.extractor.extract_claims(question)
+        claims = result.get("claims", [])
+        method = result.get("metadata", {}).get("extraction_method", "unknown")
+        print(f"\n  Input: {question}")
+        print(f"  Success: {result.get('success')} | Method: {method}")
+        print(f"  Claims ({len(claims)}):")
+        for c in claims:
+            print(f"    - [{c.get('confidence')}] {c.get('text')}")
+        if len(claims) == 0:
+            print(f"  ** FAILED — 0 claims extracted")
+        # Soft assert — collect data rather than hard-fail, so we see ALL results
+        # Toggle to hard assert when evaluating a fix
+        if len(claims) == 0:
+            pytest.xfail(f"0 claims from messy input (baseline): '{question}'")
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("question", SHOULD_NOT_EXTRACT)
     async def test_subjective_question_extracts_zero_claims(self, question):
         """Genuinely subjective questions should NOT produce claims."""
@@ -300,3 +360,16 @@ class TestLLMQuestionExtraction:
         # produces a claim (we may tighten later)
         if len(claims) > 0:
             print(f"  WARNING: Subjective question produced {len(claims)} claims")
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("question", SHOULD_NOT_EXTRACT_VAGUE)
+    async def test_vague_nonsense_extracts_zero_claims(self, question):
+        """Genuinely vague/empty inputs should NOT produce claims."""
+        result = await self.extractor.extract_claims(question)
+        claims = result.get("claims", [])
+        print(f"\n  Input: {question}")
+        print(f"  Claims ({len(claims)}):")
+        for c in claims:
+            print(f"    - [{c.get('confidence')}] {c.get('text')}")
+        if len(claims) > 0:
+            print(f"  WARNING: Vague input produced {len(claims)} claims")

@@ -295,11 +295,6 @@ async def get_usage(
         e.lower() for e in settings.ADMIN_EMAILS
     ]
 
-    # Check if user is a beta tester (gets 40 checks/month)
-    is_beta_tester = user.email and user.email.lower() in [
-        e.lower() for e in settings.BETA_TESTER_EMAILS
-    ]
-
     # Get subscription data
     sub_stmt = select(Subscription).where(
         Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
@@ -307,23 +302,8 @@ async def get_usage(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    # Determine usage based on subscription status
-    if is_beta_tester:
-        # Beta testers: 40 checks per calendar month
-        from datetime import datetime, timezone
-
-        now = datetime.now(timezone.utc)
-        period_start = datetime(now.year, now.month, 1)  # First of current month
-        credits_per_period = 40
-        is_trial = False
-
-        # Calculate monthly usage for beta testers
-        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id, Check.created_at >= period_start
-        )
-        usage_result = await session.execute(usage_stmt)
-        period_credits_used = usage_result.scalar() or 0
-    elif subscription and subscription.current_period_start:
+    # Determine usage based on subscription tier
+    if subscription and subscription.current_period_start:
         # Subscriber: use subscription billing period
         period_start = subscription.current_period_start
         credits_per_period = subscription.credits_per_month

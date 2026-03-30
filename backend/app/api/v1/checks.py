@@ -92,21 +92,6 @@ async def _validate_and_create_check(
     # Get or create user (handles race conditions)
     user = await get_or_create_user(session, current_user)
 
-    # BETA TESTER CHECK (skip in DEBUG mode)
-    is_beta_tester = user.email.lower() in [
-        e.lower() for e in settings.BETA_TESTER_EMAILS
-    ]
-
-    if not settings.DEBUG and settings.BETA_TESTER_EMAILS and not is_beta_tester:
-        raise HTTPException(
-            status_code=403,
-            detail={
-                "message": "Tru8 is currently in closed beta. Join our waitlist to be notified when we launch!",
-                "code": "BETA_ACCESS_REQUIRED",
-                "waitlist": True,
-            },
-        )
-
     # MONTHLY USAGE LIMIT CHECK
     sub_stmt = select(Subscription).where(
         Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
@@ -114,19 +99,8 @@ async def _validate_and_create_check(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    # Determine usage limit
-    if is_beta_tester:
-        now = datetime.now(timezone.utc)
-        period_start = datetime(now.year, now.month, 1)
-        credits_limit = 40
-
-        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id, Check.created_at >= period_start
-        )
-        usage_result = await session.execute(usage_stmt)
-        current_usage = usage_result.scalar() or 0
-        limit_type = "beta_monthly"
-    elif subscription and subscription.current_period_start:
+    # Determine usage limit based on subscription tier
+    if subscription and subscription.current_period_start:
         period_start = subscription.current_period_start
         credits_limit = subscription.credits_per_month
 
@@ -141,23 +115,14 @@ async def _validate_and_create_check(
         current_usage = user.total_credits_used
         limit_type = "trial"
 
-    # Admin bypass OR DEBUG mode bypass
-    if settings.DEBUG:
-        logger.info(f"DEBUG mode: {user.email} - skipping credit limit check")
-    elif user.email and user.email.lower() in [
-        e.lower() for e in settings.ADMIN_EMAILS
-    ]:
+    # Admin bypass (admins only — DEBUG must NOT bypass limits in production)
+    if user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
         logger.info(f"Admin bypass: {user.email} - skipping credit limit check")
     elif current_usage >= credits_limit:
         if limit_type == "trial":
             raise HTTPException(
                 status_code=402,
                 detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
-            )
-        elif limit_type == "beta_monthly":
-            raise HTTPException(
-                status_code=402,
-                detail=f"Beta monthly limit reached ({current_usage}/{credits_limit} checks used). Your limit resets on the 1st of next month.",
             )
         else:
             raise HTTPException(
@@ -1532,11 +1497,12 @@ async def update_bounty_text(
 
 
 async def _check_credits(session: AsyncSession, current_user: dict):
-    """Validate credits and return (user, skip_check) or raise 402."""
+    """Validate credits and return user or raise 402."""
     user = await get_or_create_user(session, current_user)
-    is_beta_tester = user.email.lower() in [
-        e.lower() for e in settings.BETA_TESTER_EMAILS
-    ]
+
+    # Admin bypass
+    if user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
+        return user
 
     sub_stmt = select(Subscription).where(
         Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
@@ -1544,16 +1510,7 @@ async def _check_credits(session: AsyncSession, current_user: dict):
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    if is_beta_tester:
-        now = datetime.now(timezone.utc)
-        period_start = datetime(now.year, now.month, 1)
-        credits_limit = 40
-        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id, Check.created_at >= period_start
-        )
-        usage_result = await session.execute(usage_stmt)
-        current_usage = usage_result.scalar() or 0
-    elif subscription and subscription.current_period_start:
+    if subscription and subscription.current_period_start:
         period_start = subscription.current_period_start
         credits_limit = subscription.credits_per_month
         usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
@@ -1564,12 +1521,6 @@ async def _check_credits(session: AsyncSession, current_user: dict):
     else:
         credits_limit = 3
         current_usage = user.total_credits_used
-
-    # Admin/DEBUG bypass
-    if settings.DEBUG:
-        return user
-    if user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
-        return user
 
     if current_usage >= credits_limit:
         raise HTTPException(
@@ -2230,7 +2181,7 @@ async def get_check_sources(
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
 
-    # 2. Check Pro subscription OR beta tester status
+    # 2. Check paid subscription status
     sub_stmt = select(Subscription).where(
         Subscription.user_id == current_user["id"],
         Subscription.status.in_(["active", "trialing"]),
@@ -2238,14 +2189,12 @@ async def get_check_sources(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    # Beta testers get full Pro access
-    is_beta_tester = (current_user.get("email") or "").lower() in [
-        e.lower() for e in settings.BETA_TESTER_EMAILS
-    ]
-    is_paid = (
-        subscription
-        and subscription.plan in ("starter", "professional", "pro", "developer")
-    ) or is_beta_tester
+    is_paid = subscription and subscription.plan in (
+        "starter",
+        "professional",
+        "pro",
+        "developer",
+    )
 
     if not is_paid:
         # Return limited response for free users
@@ -2666,7 +2615,7 @@ async def export_check_sources(
     if not check:
         raise HTTPException(status_code=404, detail="Check not found")
 
-    # 2. Check Pro subscription OR beta tester status
+    # 2. Check paid subscription status
     sub_stmt = select(Subscription).where(
         Subscription.user_id == current_user["id"],
         Subscription.status.in_(["active", "trialing"]),
@@ -2674,14 +2623,12 @@ async def export_check_sources(
     sub_result = await session.execute(sub_stmt)
     subscription = sub_result.scalar_one_or_none()
 
-    # Beta testers get full Pro access
-    is_beta_tester = (current_user.get("email") or "").lower() in [
-        e.lower() for e in settings.BETA_TESTER_EMAILS
-    ]
-    is_paid = (
-        subscription
-        and subscription.plan in ("starter", "professional", "pro", "developer")
-    ) or is_beta_tester
+    is_paid = subscription and subscription.plan in (
+        "starter",
+        "professional",
+        "pro",
+        "developer",
+    )
 
     if not is_paid:
         raise HTTPException(
