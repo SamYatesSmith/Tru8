@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 
-type ViewTab = 'cartographer' | 'librarian' | 'correspondent' | 'seeker' | 'projectionist' | 'chronologist';
+export type ViewTab = 'cartographer' | 'librarian' | 'correspondent' | 'seeker' | 'projectionist' | 'chronologist';
 
 interface ViewSelectorProps {
   mode: 'overview' | 'detail';
   activeTab: string;
   onTabChange: (tab: string) => void;
+  hiddenTabs?: ViewTab[];
 }
 
 /** Tabs that only make sense at the per-claim detail level. */
@@ -26,12 +27,13 @@ const ALL_TABS: { value: ViewTab; label: string; subtitle: string }[] = [
   { value: 'chronologist', label: 'CHRONOLOGIST', subtitle: 'When did evidence appear?' },
 ];
 
-export function ViewSelector({ mode, activeTab, onTabChange }: ViewSelectorProps) {
+export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: ViewSelectorProps) {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+  const visibleTabs = ALL_TABS.filter(tab => !hiddenTabs.includes(tab.value));
 
   return (
     <div className="relative grid grid-cols-3 lg:flex lg:justify-between border-b border-zinc-200 mb-6">
-      {ALL_TABS.map((tab) => {
+      {visibleTabs.map((tab) => {
         const isDisabled = mode === 'overview' && DETAIL_ONLY_TABS.includes(tab.value);
         const isActive = activeTab === tab.value && !isDisabled;
         const showTooltip = isDisabled && hoveredTab === tab.value;

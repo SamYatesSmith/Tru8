@@ -70,10 +70,10 @@ class ONSAdapter(GovernmentAPIClient):
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
-        query = self._sanitize_query(query)
+        targeted_query = self._build_targeted_query(query, entities)
 
         params = {
-            "q": query,
+            "q": targeted_query,
             "limit": self.max_results,
         }
 
@@ -81,7 +81,7 @@ class ONSAdapter(GovernmentAPIClient):
             response = self._make_request("datasets", params=params)
 
             if not response or "items" not in response:
-                logger.warning(f"ONS API returned empty response for: {query}")
+                logger.warning(f"ONS API returned empty response for: {targeted_query}")
                 return []
 
             return self._transform_response_with_observations(response)
@@ -257,10 +257,10 @@ class FREDAdapter(GovernmentAPIClient):
             logger.warning("FRED API key not configured, skipping")
             return []
 
-        query = self._sanitize_query(query)
+        targeted_query = self._build_targeted_query(query, entities)
 
         params = {
-            "search_text": query,
+            "search_text": targeted_query,
             "api_key": self.api_key,
             "file_type": "json",
             "limit": self.max_results,
@@ -1100,8 +1100,21 @@ class MarketauxAdapter(GovernmentAPIClient):
             # Extract ticker symbol if available
             ticker = self._extract_ticker(query, entities)
 
+            # Build targeted search term from entities when no ticker found
+            search_term = query
+            if not ticker and entities:
+                org_entities = [
+                    e["text"] for e in entities if e.get("label") in ("ORG", "ENTITY")
+                ]
+                if org_entities:
+                    search_term = org_entities[0]
+                    logger.debug(
+                        f"Marketaux using entity '{search_term}' "
+                        f"instead of full query"
+                    )
+
             # Search for news
-            evidence = self._search_news(query, ticker)
+            evidence = self._search_news(search_term, ticker)
 
             return evidence
 

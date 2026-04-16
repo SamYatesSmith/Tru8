@@ -231,11 +231,14 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             import httpx
             from urllib.parse import quote
 
+            # Build targeted query from entities (avoids sending full claim text)
+            targeted_query = self._build_targeted_query(query, entities)
+
             # Build search URL with fields
             fields = "paperId,title,abstract,url,year,authors,citationCount,publicationDate,venue"
             current_year = datetime.now(timezone.utc).year
             min_year = current_year - 2
-            url = f"{self.base_url}/paper/search?query={quote(query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
+            url = f"{self.base_url}/paper/search?query={quote(targeted_query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
 
             with httpx.Client(timeout=self.timeout, headers=self.headers) as client:
                 response = client.get(url)

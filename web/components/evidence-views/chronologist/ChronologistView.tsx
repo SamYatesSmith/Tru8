@@ -153,14 +153,20 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
       undated.push(evidence);
     }
 
-    // 4. Threshold check (≥50% must have dates)
+    // 4. Threshold check — two-tier system:
+    //    Below 25% dated (or 0): hard fallback, too sparse for any timeline
+    //    25-50% dated: partial timeline with warning banner
+    //    ≥50% dated: full timeline (original behaviour)
     const total = allEvidence.length;
     const datedCount = dated.length;
-    const belowThreshold = total > 0 && datedCount / total < 0.5;
+    const datedRatio = total > 0 ? datedCount / total : 0;
+    const belowThreshold = dated.length === 0 || datedRatio < 0.25;
+    const partialTimeline = !belowThreshold && datedRatio < 0.5;
 
-    if (belowThreshold || dated.length === 0) {
+    if (belowThreshold) {
       return {
         belowThreshold: true,
+        partialTimeline: false,
         datedCount,
         total,
         items: [] as DatedItem[],
@@ -254,6 +260,7 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
 
     return {
       belowThreshold: false,
+      partialTimeline,
       datedCount,
       total,
       items,
@@ -310,6 +317,16 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
   // --- Main render ---
   return (
     <div>
+      {/* Partial timeline warning (25-50% dated) */}
+      {data.partialTimeline && (
+        <div className="mb-4 px-3 py-2 border border-amber-200 bg-amber-50/50 text-center">
+          <p className="font-mono text-[10px] text-amber-700">
+            Partial timeline: {data.datedCount} of {data.total} sources have publication dates.
+            {data.undated.length > 0 && ' Undated sources shown in sidebar.'}
+          </p>
+        </div>
+      )}
+
       {/* Summary strip */}
       <TemporalInsightStrip
         earliest={data.earliest!}

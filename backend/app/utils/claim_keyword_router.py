@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class KeywordMatch:
     """Represents a keyword match with its associated adapter"""
+
     keyword: str
     pattern: str
     adapter_name: str
@@ -42,7 +43,6 @@ class ClaimKeywordRouter:
     # Format: adapter_name -> list of (pattern, keyword_description)
     # COMPREHENSIVE LIST - covers cross-domain claim scenarios
     KEYWORD_RULES: Dict[str, List[tuple]] = {
-
         # ============================================================
         # GovInfo.gov - US legislation, statutes, regulations, bills
         # ============================================================
@@ -63,7 +63,10 @@ class ClaimKeywordRouter:
             (r"\bexecutive\s+order\b", "executive order"),
             (r"\bconstitutional(?:ly)?\b", "constitutional"),
             (r"\bamendment\b", "amendment"),
-            (r"\b(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|fourteenth)\s+amendment\b", "amendment"),
+            (
+                r"\b(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|fourteenth)\s+amendment\b",
+                "amendment",
+            ),
             # Congress
             (r"\bcongress(?:ional|man|woman)?\b", "congress"),
             (r"\bsenator\b", "senator"),
@@ -75,12 +78,14 @@ class ClaimKeywordRouter:
             (r"\bu\.?s\.?c\.?\b", "USC"),
             # Legal actions
             (r"\bsigned\s+into\s+law\b", "signed into law"),
-            (r"\bpassed\s+(?:by\s+)?(?:the\s+)?(?:house|senate|congress)\b", "passed by congress"),
+            (
+                r"\bpassed\s+(?:by\s+)?(?:the\s+)?(?:house|senate|congress)\b",
+                "passed by congress",
+            ),
             (r"\bvetoed?\b", "veto"),
             (r"\bbipartisan\b", "bipartisan"),
             (r"\bfilibuster\b", "filibuster"),
         ],
-
         # ============================================================
         # Alpha Vantage - Stocks, forex, crypto, commodities
         # ============================================================
@@ -159,7 +164,6 @@ class ClaimKeywordRouter:
             (r"\bripple\b", "ripple"),
             (r"\blitecoin\b", "litecoin"),
         ],
-
         # ============================================================
         # FRED - US economic indicators and statistics
         # ============================================================
@@ -227,7 +231,6 @@ class ClaimKeywordRouter:
             (r"\bpmi\b", "PMI"),
             (r"\bcapacity\s+utilization\b", "capacity utilization"),
         ],
-
         # ============================================================
         # PubMed - Medical research, health, diseases
         # ============================================================
@@ -327,7 +330,6 @@ class ClaimKeywordRouter:
             (r"\blung\b", "lung"),
             (r"\bbrain\b", "brain"),
         ],
-
         # ============================================================
         # NOAA CDO - Climate data, weather records, natural disasters
         # ============================================================
@@ -376,10 +378,12 @@ class ClaimKeywordRouter:
             (r"\bel\s+ni[ñn]o\b", "El Nino"),
             (r"\bla\s+ni[ñn]a\b", "La Nina"),
             # Historical weather
-            (r"\bhistoric(?:al)?\s+(?:weather|storm|flood|drought|temperatures?)\b", "historic weather"),
+            (
+                r"\bhistoric(?:al)?\s+(?:weather|storm|flood|drought|temperatures?)\b",
+                "historic weather",
+            ),
             (r"\bsince\s+records?\s+began\b", "since records began"),
         ],
-
         # ============================================================
         # ONS - UK economic statistics
         # ============================================================
@@ -394,12 +398,14 @@ class ClaimKeywordRouter:
             (r"\buk\s+(?:housing|property)\s+(?:market|prices?)\b", "UK housing"),
             (r"\buk\s+retail\s+sales?\b", "UK retail"),
             (r"\buk\s+(?:jobs?|employment)\b", "UK employment"),
-            (r"\bbritish\s+(?:economy|gdp|unemployment|inflation)\b", "British economy"),
+            (
+                r"\bbritish\s+(?:economy|gdp|unemployment|inflation)\b",
+                "British economy",
+            ),
             (r"\bbank\s+of\s+england\b", "Bank of England"),
             (r"\bsterling\b", "sterling"),
             (r"\bons\s+(?:data|statistics|figures?)\b", "ONS"),
         ],
-
         # ============================================================
         # Football-Data.org - Football/soccer statistics
         # ============================================================
@@ -431,7 +437,6 @@ class ClaimKeywordRouter:
             (r"\bsoccer\s+(?:results?|scores?|stats?)\b", "soccer"),
             (r"\bfinal\s+score\b", "final score"),
         ],
-
         # ============================================================
         # Transfermarkt - Football transfers and valuations
         # ============================================================
@@ -440,7 +445,10 @@ class ClaimKeywordRouter:
             (r"\bsigned\s+(?:for|with|by)\b", "signed"),
             (r"\bmarket\s+value\b", "market value"),
             (r"\btransfer(?:red)?\s+(?:to|from)\b", "transferred"),
-            (r"\b(?:million|billion)\s+(?:euro|pound|dollar)s?\s+(?:deal|transfer|fee|signing)\b", "transfer fee"),
+            (
+                r"\b(?:million|billion)\s+(?:euro|pound|dollar)s?\s+(?:deal|transfer|fee|signing)\b",
+                "transfer fee",
+            ),
             (r"\brelease\s+clause\b", "release clause"),
             (r"\bbuyout\s+clause\b", "buyout clause"),
             (r"\bcontract\s+(?:extension|renewal|expir(?:es|y)|length)\b", "contract"),
@@ -449,22 +457,35 @@ class ClaimKeywordRouter:
             (r"\bworld\s+record\s+(?:fee|transfer|signing)\b", "record transfer"),
             (r"\brecord\s+signing\b", "record signing"),
         ],
-
         # ============================================================
         # WeatherAPI - Weather forecasts (current/future)
         # ============================================================
         "WeatherAPI": [
             (r"\bweather\s+(?:forecast|prediction|outlook)\b", "forecast"),
-            (r"\btemperature\s+(?:tomorrow|today|tonight|this\s+week|next\s+week)\b", "temperature"),
-            (r"\bwill\s+(?:rain|snow|storm|be\s+(?:hot|cold|sunny|cloudy))\b", "prediction"),
+            (
+                r"\btemperature\s+(?:tomorrow|today|tonight|this\s+week|next\s+week)\b",
+                "temperature",
+            ),
+            (
+                r"\bwill\s+(?:rain|snow|storm|be\s+(?:hot|cold|sunny|cloudy))\b",
+                "prediction",
+            ),
             (r"\bexpected\s+(?:rain|snow|weather|temperature|high|low)\b", "expected"),
-            (r"\b(?:rain|snow|storms?|sunshine)\s+(?:is\s+)?(?:expected|forecast|predicted)\b", "expected weather"),
+            (
+                r"\b(?:rain|snow|storms?|sunshine)\s+(?:is\s+)?(?:expected|forecast|predicted)\b",
+                "expected weather",
+            ),
             (r"\bforecast(?:ed|s)?\s+(?:to|for|at)\b", "forecast"),
             (r"\bweather\s+(?:warning|alert|advisory)\b", "weather warning"),
-            (r"\b(?:high|low)\s+of\s+\d+\s*(?:degrees?|°|f|c)\b", "temperature high/low"),
-            (r"\bchance\s+of\s+(?:rain|snow|storms?|showers?)\b", "precipitation chance"),
+            (
+                r"\b(?:high|low)\s+of\s+\d+\s*(?:degrees?|°|f|c)\b",
+                "temperature high/low",
+            ),
+            (
+                r"\bchance\s+of\s+(?:rain|snow|storms?|showers?)\b",
+                "precipitation chance",
+            ),
         ],
-
         # ============================================================
         # GBIF - Biodiversity and species data
         # ============================================================
@@ -500,15 +521,20 @@ class ClaimKeywordRouter:
             (r"\breforestation\b", "reforestation"),
             (r"\binvasive\s+species\b", "invasive species"),
         ],
-
         # ============================================================
         # WHO - World Health Organization global health data
         # ============================================================
         "WHO": [
             (r"\bworld\s+health\s+organi[sz]ation\b", "WHO"),
-            (r"\bwho\s+(?:says?|reports?|data|estimates?|guidelines?|recommends?)\b", "WHO"),
+            (
+                r"\bwho\s+(?:says?|reports?|data|estimates?|guidelines?|recommends?)\b",
+                "WHO",
+            ),
             (r"\bglobal\s+health\b", "global health"),
-            (r"\b(?:global|worldwide|international)\s+(?:cases?|deaths?|mortality|outbreak)\b", "global stats"),
+            (
+                r"\b(?:global|worldwide|international)\s+(?:cases?|deaths?|mortality|outbreak)\b",
+                "global stats",
+            ),
             (r"\bpandemic\s+(?:data|statistics|response|preparedness)\b", "pandemic"),
             (r"\bglobal\s+(?:death|mortality)\s+(?:toll|rate)\b", "global mortality"),
             (r"\bdisease\s+burden\b", "disease burden"),
@@ -518,7 +544,6 @@ class ClaimKeywordRouter:
             (r"\bvaccination\s+(?:rate|coverage)\b", "vaccination rate"),
             (r"\bherd\s+immunity\b", "herd immunity"),
         ],
-
         # ============================================================
         # Companies House - UK company information
         # ============================================================
@@ -527,35 +552,51 @@ class ClaimKeywordRouter:
             (r"\bcompanies\s+house\b", "Companies House"),
             (r"\bbritish\s+(?:company|firm|business|corporation)\b", "British company"),
             (r"\bdirector(?:s)?\s+(?:of|at)\b", "directors"),
-            (r"\bregistered\s+(?:in\s+)?(?:the\s+)?(?:uk|england|wales|scotland)\b", "UK registered"),
-            (r"\bcompany\s+(?:filing|accounts?|registration|number)\b", "company filing"),
+            (
+                r"\bregistered\s+(?:in\s+)?(?:the\s+)?(?:uk|england|wales|scotland)\b",
+                "UK registered",
+            ),
+            (
+                r"\bcompany\s+(?:filing|accounts?|registration|number)\b",
+                "company filing",
+            ),
             (r"\bltd\.?\b", "Ltd"),
             (r"\bplc\.?\b", "PLC"),
             (r"\bincorporated\s+(?:in\s+)?(?:uk|england)\b", "incorporated UK"),
         ],
-
         # ============================================================
         # Semantic Scholar / CrossRef - Academic research
         # ============================================================
         "Semantic Scholar": [
-            (r"\bpeer[- ]reviewed\s+(?:study|paper|research|journal)\b", "peer-reviewed"),
+            (
+                r"\bpeer[- ]reviewed\s+(?:study|paper|research|journal)\b",
+                "peer-reviewed",
+            ),
             (r"\bacademic\s+(?:study|paper|research|journal)\b", "academic"),
-            (r"\bscientific\s+(?:study|paper|research|journal|evidence)\b", "scientific"),
+            (
+                r"\bscientific\s+(?:study|paper|research|journal|evidence)\b",
+                "scientific",
+            ),
             (r"\bjournal\s+(?:article|paper|study)\b", "journal"),
             (r"\bpublished\s+(?:in|study|research)\b", "published research"),
             (r"\bcitations?\b", "citations"),
             (r"\bh[- ]index\b", "h-index"),
             (r"\bimpact\s+factor\b", "impact factor"),
         ],
-
         # ============================================================
         # Library of Congress - Historical records
         # ============================================================
         "Library of Congress": [
-            (r"\bhistorical\s+(?:records?|documents?|archives?)\b", "historical records"),
+            (
+                r"\bhistorical\s+(?:records?|documents?|archives?)\b",
+                "historical records",
+            ),
             (r"\barchival\s+(?:records?|documents?|evidence)\b", "archival"),
             (r"\bprimary\s+source\b", "primary source"),
-            (r"\bhistoric(?:al)?\s+(?:photographs?|images?|maps?)\b", "historical images"),
+            (
+                r"\bhistoric(?:al)?\s+(?:photographs?|images?|maps?)\b",
+                "historical images",
+            ),
             (r"\bnewspaper\s+archives?\b", "newspaper archives"),
             (r"\blibrary\s+of\s+congress\b", "Library of Congress"),
         ],
@@ -571,7 +612,9 @@ class ClaimKeywordRouter:
                 for pattern, keyword_desc in rules
             ]
 
-        logger.info(f"ClaimKeywordRouter initialized with {len(self.KEYWORD_RULES)} adapter rules")
+        logger.info(
+            f"ClaimKeywordRouter initialized with {len(self.KEYWORD_RULES)} adapter rules"
+        )
 
     def detect_keywords(self, claim_text: str) -> List[KeywordMatch]:
         """
@@ -590,23 +633,59 @@ class ClaimKeywordRouter:
             for compiled_pattern, keyword_desc in patterns:
                 if compiled_pattern.search(claim_text):
                     if adapter_name not in seen_adapters:
-                        matches.append(KeywordMatch(
-                            keyword=keyword_desc,
-                            pattern=compiled_pattern.pattern,
-                            adapter_name=adapter_name,
-                            confidence=0.8
-                        ))
+                        matches.append(
+                            KeywordMatch(
+                                keyword=keyword_desc,
+                                pattern=compiled_pattern.pattern,
+                                adapter_name=adapter_name,
+                                confidence=0.8,
+                            )
+                        )
                         seen_adapters.add(adapter_name)
-                        logger.debug(f"Keyword match: '{keyword_desc}' -> {adapter_name}")
+                        logger.debug(
+                            f"Keyword match: '{keyword_desc}' -> {adapter_name}"
+                        )
                         break  # One match per adapter is enough
 
         return matches
+
+    # Jurisdiction restrictions for keyword-routed adapters.
+    # None = no restriction (global adapter, any jurisdiction).
+    # Set = only trigger for these jurisdictions.
+    ADAPTER_JURISDICTIONS: Dict[str, Optional[set]] = {
+        "ONS Economic Statistics": {"UK", "Global"},
+        "GOV.UK Content API": {"UK"},
+        "UK Parliament Hansard": {"UK"},
+        "Companies House": {"UK"},
+        "UK Legislation": {"UK"},
+        "FRED": {"US", "Global"},
+        "GovInfo.gov": {"US", "Global"},
+        "NOAA CDO": {"US", "Global"},
+        # Global adapters — no jurisdiction restriction
+        "PubMed": None,
+        "WHO": None,
+        "Semantic Scholar": None,
+        "OpenAlex": None,
+        "Wikipedia": None,
+        "Library of Congress": None,
+        "Internet Archive": None,
+        "World Bank": None,
+        "Marketaux": None,
+        "Transfermarkt": None,
+        "Football-Data.org": None,
+        "WeatherAPI": None,
+        "Open-Meteo": None,
+        "GBIF": None,
+        "Wikidata": None,
+    }
 
     def get_additional_adapters(
         self,
         claim_text: str,
         current_adapters: List[Any],
-        api_registry: Optional[Any] = None
+        api_registry: Optional[Any] = None,
+        domain: Optional[str] = None,
+        jurisdiction: Optional[str] = None,
     ) -> List[Any]:
         """
         Get additional adapters to query based on claim keywords.
@@ -614,10 +693,17 @@ class ClaimKeywordRouter:
         This is ADDITIVE - returns adapters that should be added to the existing
         list, not replacing them. Automatically deduplicates against current adapters.
 
+        When domain and jurisdiction are provided, keyword-matched adapters are
+        filtered for jurisdiction compatibility before being returned.  This
+        prevents e.g. ONS (UK-only) being added for a US article that happens
+        to mention "UK economy".
+
         Args:
             claim_text: The claim text to analyze
             current_adapters: List of adapters already selected for this claim
             api_registry: Optional APIAdapterRegistry instance (lazy loads if not provided)
+            domain: Article primary domain (e.g. "Finance", "Politics")
+            jurisdiction: Article jurisdiction (e.g. "UK", "US", "Global")
 
         Returns:
             List of additional adapters to add (empty if none or all already included)
@@ -625,12 +711,12 @@ class ClaimKeywordRouter:
         # Lazy load registry if not provided
         if api_registry is None:
             from app.services.government_api_client import get_api_registry
+
             api_registry = get_api_registry()
 
         # Get adapter names already in use
         current_adapter_names = {
-            getattr(adapter, 'api_name', str(adapter))
-            for adapter in current_adapters
+            getattr(adapter, "api_name", str(adapter)) for adapter in current_adapters
         }
 
         # Detect keywords
@@ -643,6 +729,17 @@ class ClaimKeywordRouter:
         additional_adapters = []
         for match in keyword_matches:
             if match.adapter_name not in current_adapter_names:
+                # Jurisdiction guard: skip adapters incompatible with article jurisdiction
+                if jurisdiction:
+                    allowed = self.ADAPTER_JURISDICTIONS.get(match.adapter_name)
+                    if allowed is not None and jurisdiction not in allowed:
+                        logger.info(
+                            f"[KEYWORD ROUTING] Skipping {match.adapter_name} "
+                            f"(matched '{match.keyword}' but jurisdiction "
+                            f"'{jurisdiction}' not in {allowed})"
+                        )
+                        continue
+
                 adapter = api_registry.get_adapter_by_name(match.adapter_name)
                 if adapter:
                     additional_adapters.append(adapter)

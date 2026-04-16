@@ -2034,7 +2034,11 @@ class EvidenceRetriever:
 
             keyword_router = get_keyword_router()
             keyword_adapters = keyword_router.get_additional_adapters(
-                claim_text, relevant_adapters, self.api_registry
+                claim_text,
+                relevant_adapters,
+                self.api_registry,
+                domain=domain,
+                jurisdiction=jurisdiction,
             )
             keyword_routed_names = set()
             for adapter in keyword_adapters:
@@ -2044,19 +2048,18 @@ class EvidenceRetriever:
                     f"[KEYWORD ROUTING] Added {adapter.api_name} for claim: {claim_text[:50]}..."
                 )
 
-            # M-05: Jurisdiction filter — remove adapters that don't belong
+            # M-05: Jurisdiction filter — remove adapters that don't belong.
+            # Keyword-routed adapters are now pre-filtered for jurisdiction
+            # in the router itself, so they no longer need a bypass here.
             allowed_names = get_adapters_for_jurisdiction(jurisdiction)
             if allowed_names is not None:
                 pre_filter = len(relevant_adapters)
                 relevant_adapters = [
-                    a
-                    for a in relevant_adapters
-                    if a.api_name in allowed_names or a.api_name in keyword_routed_names
+                    a for a in relevant_adapters if a.api_name in allowed_names
                 ]
                 if pre_filter != len(relevant_adapters):
                     logger.info(
-                        f"[JURISDICTION] {jurisdiction}: {pre_filter} → {len(relevant_adapters)} adapters "
-                        f"(keyword-routed preserved: {keyword_routed_names})"
+                        f"[JURISDICTION] {jurisdiction}: {pre_filter} -> {len(relevant_adapters)} adapters"
                     )
 
             # PQ-06: Tier-aware adapter cap — specialists first, generalists fill gaps

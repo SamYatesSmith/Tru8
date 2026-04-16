@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # ========== PUBMED ADAPTER ==========
 
+
 class PubMedAdapter(GovernmentAPIClient):
     """
     PubMed (NCBI) API Adapter.
@@ -38,7 +39,7 @@ class PubMedAdapter(GovernmentAPIClient):
             api_key=api_key,
             cache_ttl=86400 * 7,  # 7 days (medical research doesn't change often)
             timeout=10,
-            max_results=10
+            max_results=10,
         )
 
         # PubMed uses API key as query parameter, not header
@@ -53,7 +54,13 @@ class PubMedAdapter(GovernmentAPIClient):
         """
         return domain in ["Health", "Science", "Animals"]
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search PubMed for medical/scientific research.
 
@@ -68,15 +75,15 @@ class PubMedAdapter(GovernmentAPIClient):
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
-        query = self._sanitize_query(query)
+        targeted_query = self._build_targeted_query(query, entities)
 
         # Step 1: Search for article IDs
         search_params = {
             "db": "pubmed",
-            "term": query,
+            "term": targeted_query,
             "retmax": self.max_results,
             "retmode": "json",
-            "sort": "relevance"
+            "sort": "relevance",
         }
 
         if self.api_key:
@@ -96,11 +103,7 @@ class PubMedAdapter(GovernmentAPIClient):
                 return []
 
             # Step 2: Fetch article details
-            fetch_params = {
-                "db": "pubmed",
-                "id": ",".join(id_list),
-                "retmode": "xml"
-            }
+            fetch_params = {"db": "pubmed", "id": ",".join(id_list), "retmode": "xml"}
 
             if self.api_key:
                 fetch_params["api_key"] = self.api_key
@@ -135,32 +138,42 @@ class PubMedAdapter(GovernmentAPIClient):
             root = ET.fromstring(xml_data)
 
             # Iterate through each article
-            for article in root.findall('.//PubmedArticle'):
+            for article in root.findall(".//PubmedArticle"):
                 try:
                     # Extract PMID
-                    pmid_elem = article.find('.//PMID')
+                    pmid_elem = article.find(".//PMID")
                     pmid = pmid_elem.text if pmid_elem is not None else "unknown"
 
                     # Extract title
-                    title_elem = article.find('.//ArticleTitle')
-                    title = title_elem.text if title_elem is not None else f"PubMed Article {pmid}"
+                    title_elem = article.find(".//ArticleTitle")
+                    title = (
+                        title_elem.text
+                        if title_elem is not None
+                        else f"PubMed Article {pmid}"
+                    )
 
                     # Extract abstract (may have multiple AbstractText elements)
                     abstract_parts = []
-                    for abstract_text in article.findall('.//AbstractText'):
+                    for abstract_text in article.findall(".//AbstractText"):
                         if abstract_text.text:
                             abstract_parts.append(abstract_text.text)
 
-                    abstract = " ".join(abstract_parts) if abstract_parts else "No abstract available."
+                    abstract = (
+                        " ".join(abstract_parts)
+                        if abstract_parts
+                        else "No abstract available."
+                    )
                     # Use longer snippet for peer-reviewed research (captures methodology + findings)
-                    snippet = abstract[:600] + "..." if len(abstract) > 600 else abstract
+                    snippet = (
+                        abstract[:600] + "..." if len(abstract) > 600 else abstract
+                    )
 
                     # Extract publication date
-                    pub_date_elem = article.find('.//PubDate')
+                    pub_date_elem = article.find(".//PubDate")
                     source_date = None
                     if pub_date_elem is not None:
-                        year_elem = pub_date_elem.find('Year')
-                        month_elem = pub_date_elem.find('Month')
+                        year_elem = pub_date_elem.find("Year")
+                        month_elem = pub_date_elem.find("Month")
 
                         if year_elem is not None:
                             try:
@@ -171,11 +184,23 @@ class PubMedAdapter(GovernmentAPIClient):
                                 if month_elem is not None:
                                     month_text = month_elem.text
                                     month_map = {
-                                        "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4,
-                                        "May": 5, "Jun": 6, "Jul": 7, "Aug": 8,
-                                        "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12
+                                        "Jan": 1,
+                                        "Feb": 2,
+                                        "Mar": 3,
+                                        "Apr": 4,
+                                        "May": 5,
+                                        "Jun": 6,
+                                        "Jul": 7,
+                                        "Aug": 8,
+                                        "Sep": 9,
+                                        "Oct": 10,
+                                        "Nov": 11,
+                                        "Dec": 12,
                                     }
-                                    month = month_map.get(month_text, int(month_text) if month_text.isdigit() else 1)
+                                    month = month_map.get(
+                                        month_text,
+                                        int(month_text) if month_text.isdigit() else 1,
+                                    )
 
                                 source_date = datetime(year, month, 1)
                             except (ValueError, TypeError):
@@ -183,13 +208,15 @@ class PubMedAdapter(GovernmentAPIClient):
 
                     # Extract authors (first 3)
                     authors = []
-                    for author in article.findall('.//Author')[:3]:
-                        last_name = author.findtext('LastName', '')
-                        fore_name = author.findtext('ForeName', '')
+                    for author in article.findall(".//Author")[:3]:
+                        last_name = author.findtext("LastName", "")
+                        fore_name = author.findtext("ForeName", "")
                         if last_name:
                             authors.append(f"{fore_name} {last_name}".strip())
 
-                    authors_str = ", ".join(authors) if authors else "Authors not listed"
+                    authors_str = (
+                        ", ".join(authors) if authors else "Authors not listed"
+                    )
 
                     # Build URL
                     url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
@@ -204,8 +231,8 @@ class PubMedAdapter(GovernmentAPIClient):
                             "api_source": "PubMed",
                             "pmid": pmid,
                             "database": "pubmed",
-                            "authors": authors_str
-                        }
+                            "authors": authors_str,
+                        },
                     )
 
                     evidence_list.append(evidence)
@@ -218,19 +245,22 @@ class PubMedAdapter(GovernmentAPIClient):
             logger.error(f"Failed to parse PubMed XML: {e}")
             # Fallback: Use IDs if XML parsing fails
             for pmid in raw_response.get("ids", []):
-                evidence_list.append(self._create_evidence_dict(
-                    title=f"PubMed Article {pmid}",
-                    snippet="Medical research article from PubMed database.",
-                    url=f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
-                    source_date=None,
-                    metadata={"pmid": pmid, "api_source": "PubMed"}
-                ))
+                evidence_list.append(
+                    self._create_evidence_dict(
+                        title=f"PubMed Article {pmid}",
+                        snippet="Medical research article from PubMed database.",
+                        url=f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
+                        source_date=None,
+                        metadata={"pmid": pmid, "api_source": "PubMed"},
+                    )
+                )
 
         logger.info(f"PubMed returned {len(evidence_list)} evidence items")
         return evidence_list
 
 
 # ========== WHO ADAPTER (World Health Organization) ==========
+
 
 class WHOAdapter(GovernmentAPIClient):
     """
@@ -249,14 +279,20 @@ class WHOAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400 * 7,  # 7 days (health data changes slowly)
             timeout=15,
-            max_results=10
+            max_results=10,
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """WHO covers Health globally."""
         return domain == "Health"
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search WHO Global Health Observatory for health data.
 
@@ -271,7 +307,7 @@ class WHOAdapter(GovernmentAPIClient):
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
-        query = self._sanitize_query(query)
+        targeted_query = self._build_targeted_query(query, entities)
 
         # Search indicators
         try:
@@ -279,15 +315,16 @@ class WHOAdapter(GovernmentAPIClient):
             indicator_response = self._make_request("/Indicator")
 
             if not indicator_response or "value" not in indicator_response:
-                logger.warning(f"WHO returned empty indicator response")
+                logger.warning("WHO returned empty indicator response")
                 return []
 
             # Filter indicators by query terms
-            query_lower = query.lower()
+            query_lower = targeted_query.lower()
             matching_indicators = [
-                ind for ind in indicator_response.get("value", [])
+                ind
+                for ind in indicator_response.get("value", [])
                 if query_lower in ind.get("IndicatorName", "").lower()
-            ][:self.max_results]
+            ][: self.max_results]
 
             return self._transform_response({"indicators": matching_indicators})
 
@@ -302,17 +339,23 @@ class WHOAdapter(GovernmentAPIClient):
         for indicator in raw_response.get("indicators", []):
             try:
                 indicator_code = indicator.get("IndicatorCode")
-                title = indicator.get("IndicatorName", f"WHO Indicator {indicator_code}")
+                title = indicator.get(
+                    "IndicatorName", f"WHO Indicator {indicator_code}"
+                )
                 description = indicator.get("Definition", "")
 
                 url = f"https://www.who.int/data/gho/data/indicators/indicator-details/GHO/{indicator_code}"
 
-                snippet = description[:300] if description else f"WHO health indicator: {title}"
+                snippet = (
+                    description[:300]
+                    if description
+                    else f"WHO health indicator: {title}"
+                )
 
                 metadata = {
                     "api_source": "WHO",
                     "indicator_code": indicator_code,
-                    "language": indicator.get("Language", "EN")
+                    "language": indicator.get("Language", "EN"),
                 }
 
                 evidence = self._create_evidence_dict(
@@ -320,7 +363,7 @@ class WHOAdapter(GovernmentAPIClient):
                     snippet=snippet,
                     url=url,
                     source_date=None,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 evidence_list.append(evidence)

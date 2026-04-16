@@ -67,16 +67,16 @@ class GovUKAdapter(GovernmentAPIClient):
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
-        query = self._sanitize_query(query)
+        targeted_query = self._build_targeted_query(query, entities)
 
-        params = {"q": query, "count": self.max_results}
+        params = {"q": targeted_query, "count": self.max_results}
 
         try:
             # GOV.UK search doesn't use /api/ prefix in base_url
             response = self._make_request("", params=params)
 
             if not response or "results" not in response:
-                logger.warning(f"GOV.UK returned empty response for: {query}")
+                logger.warning(f"GOV.UK returned empty response for: {targeted_query}")
                 return []
 
             return self._transform_response(response)

@@ -157,14 +157,21 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     router.refresh();
   }, [router]);
 
-  // Video recommendations — per-claim (detail Projectionist tab)
+  // Video recommendations — per-claim (fetched eagerly to enable conditional tab display)
   const focusedClaim = activeClaimIndex !== null ? claims[activeClaimIndex] : null;
   const { videos: claimVideos, isLoading: claimVideosLoading } = useVideoRecommendations(
     checkId,
     focusedClaim?.id || null,
     token,
-    checkData.status === 'completed' && claimView === 'projectionist' && activeClaimIndex !== null,
+    checkData.status === 'completed' && activeClaimIndex !== null,
   );
+
+  // Auto-switch away from Projectionist if it becomes hidden (no videos)
+  useEffect(() => {
+    if (claimView === 'projectionist' && !claimVideosLoading && claimVideos.length === 0) {
+      handleClaimTabChange('cartographer');
+    }
+  }, [claimView, claimVideosLoading, claimVideos.length, handleClaimTabChange]);
 
   // Check for upgrade query param
   useEffect(() => {
@@ -437,7 +444,12 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                 )}
               </div>
 
-              <ViewSelector mode="detail" activeTab={claimView} onTabChange={handleClaimTabChange} />
+              <ViewSelector
+                mode="detail"
+                activeTab={claimView}
+                onTabChange={handleClaimTabChange}
+                hiddenTabs={!claimVideosLoading && claimVideos.length === 0 ? ['projectionist'] : []}
+              />
               <ViewGuide activeView={claimView} />
 
               {claimView === 'cartographer' && (

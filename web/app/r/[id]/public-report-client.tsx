@@ -272,7 +272,12 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
             )}
 
             {/* 6b: Per-Claim View Selector */}
-            <ViewSelector mode="detail" activeTab={claimView} onTabChange={(tab: string) => { setClaimView(tab); updateUrlViewParam(tab); }} />
+            <ViewSelector
+              mode="detail"
+              activeTab={claimView}
+              onTabChange={(tab: string) => { setClaimView(tab); updateUrlViewParam(tab); }}
+              hiddenTabs={activeClaim && videos.filter((v: any) => v.claimId === activeClaim.id).length === 0 ? ['projectionist'] : []}
+            />
             <ViewGuide activeView={claimView} />
 
             {/* 6c: Per-Claim View Content */}
