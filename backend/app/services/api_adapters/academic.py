@@ -281,12 +281,31 @@ class SemanticScholarAdapter(GovernmentAPIClient):
 
                 citation_count = paper.get("citationCount", 0) or 0
 
+                # A7: if no abstract is available, synthesise a snippet from
+                # metadata so the retrieve-stage converter doesn't silently
+                # drop the item for an empty snippet. Keeps the paper reachable
+                # by the downstream LLM scorer + mapper.
+                snippet = paper.get("abstract", "") or ""
+                if not snippet.strip():
+                    fallback_parts = []
+                    venue = paper.get("venue", "")
+                    if venue:
+                        fallback_parts.append(f"Published in {venue}")
+                    if authors:
+                        fallback_parts.append(f"Authors: {', '.join(authors)}")
+                    if paper.get("year"):
+                        fallback_parts.append(f"Year: {paper['year']}")
+                    if citation_count:
+                        fallback_parts.append(f"Citations: {citation_count}")
+                    if fallback_parts:
+                        snippet = ". ".join(fallback_parts) + "."
+
                 evidence.append(
                     {
                         "source": "Semantic Scholar",
                         "source_type": "academic",
                         "title": title,
-                        "snippet": paper.get("abstract", "") or "",
+                        "snippet": snippet,
                         "url": paper.get("url")
                         or f"https://www.semanticscholar.org/paper/{paper.get('paperId', '')}",
                         "source_date": pub_date,
@@ -450,6 +469,23 @@ class OpenAlexAdapter(GovernmentAPIClient):
                     if isinstance(open_access, dict)
                     else False
                 )
+
+                # A7: if the inverted-index reconstruction produced nothing
+                # (common for older papers or certain venues), synthesise a
+                # snippet from available metadata rather than let the
+                # retrieve-stage converter silently drop the item.
+                if not abstract.strip():
+                    fallback_parts = []
+                    if source_name:
+                        fallback_parts.append(f"Published in {source_name}")
+                    if authors:
+                        fallback_parts.append(f"Authors: {', '.join(authors)}")
+                    if work.get("publication_year"):
+                        fallback_parts.append(f"Year: {work['publication_year']}")
+                    if citation_count:
+                        fallback_parts.append(f"Citations: {citation_count}")
+                    if fallback_parts:
+                        abstract = ". ".join(fallback_parts) + "."
 
                 evidence.append(
                     {
