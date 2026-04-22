@@ -267,8 +267,56 @@ app.add_middleware(
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
+# A8a (pipeline remediation 2026-04-22): filter pipeline-instrumentation noise
+# so real errors aren't buried. A8b will remove the underlying logger.error
+# calls at source; these filters are the interim shim.
+_SENTRY_NOISE_MARKERS = (
+    "[EVIDENCE TRACE]",
+    "[EVIDENCE CRITICAL]",
+    "[API RETRIEVAL]",
+    "MODULE LOADED",
+)
+
+
+def _filter_breadcrumb(crumb, hint):
+    """Drop high-volume, low-signal breadcrumbs. Redis embedding cache writes
+    produce 60+ breadcrumbs per check and push actionable context out of the
+    100-crumb buffer before real exceptions fire."""
+    if crumb.get("category") == "redis":
+        msg = crumb.get("message", "") or ""
+        if "'embedding:" in msg:
+            return None
+    return crumb
+
+
+def _filter_event(event, hint):
+    """Drop high-volume pipeline-instrumentation log events that were emitted
+    via logger.error but aren't real errors (pipeline breadcrumbs, startup
+    markers). Defensive against non-string payloads to guarantee Sentry's
+    error pipeline never crashes on its own filter."""
+    msg = event.get("message")
+    if not isinstance(msg, str):
+        msg = ""
+    logentry = event.get("logentry") or {}
+    logentry_msg = ""
+    if isinstance(logentry, dict):
+        candidate = logentry.get("formatted") or logentry.get("message") or ""
+        if isinstance(candidate, str):
+            logentry_msg = candidate
+    text = f"{msg} {logentry_msg}"
+    if any(m in text for m in _SENTRY_NOISE_MARKERS):
+        return None
+    return event
+
+
 if settings.SENTRY_DSN:
-    sentry_sdk.init(dsn=settings.SENTRY_DSN, environment=settings.ENVIRONMENT)
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.ENVIRONMENT,
+        before_breadcrumb=_filter_breadcrumb,
+        before_send=_filter_event,
+        max_breadcrumbs=100,
+    )
     app.add_middleware(SentryAsgiMiddleware)
 
 # Correlation ID middleware - added LAST so it executes FIRST (LIFO order)
