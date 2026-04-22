@@ -265,10 +265,13 @@ class GovernmentAPIClient(ABC):
         logger.info(f"{self.api_name} cache MISS - calling API for: {query[:50]}")
         results = self.search(query, domain, jurisdiction, entities)
 
-        # Relevance gate: filter obviously irrelevant results before caching
-        results = self._filter_results_by_relevance(results, query, entities)
+        # A6: no in-adapter relevance filter. The downstream relevance_scorer
+        # does pure topical scoring with full LLM context; literal token
+        # overlap here was dropping domain-specific terms that share no
+        # surface tokens with the claim (e.g. "Hycean", "sub-Neptune" for a
+        # K2-18b biosignature claim).
 
-        # Cache results (only relevant items are cached)
+        # Cache results
         if results:
             self.cache.cache_api_response_sync(
                 self.api_name, query, results, self.cache_ttl
@@ -494,13 +497,21 @@ class GovernmentAPIClient(ABC):
         entities: Optional[List[Dict[str, str]]] = None,
         min_overlap: int = 1,
     ) -> List[Dict[str, Any]]:
-        """Filter adapter results by entity/term overlap with the claim.
+        """DEPRECATED (A6, 2026-04-22) — no longer called from search_with_cache.
+
+        The literal-token-overlap heuristic implemented here was dropping
+        legitimate academic results for any claim whose domain terminology
+        didn't share surface tokens with the raw claim (e.g. "Hycean" /
+        "sub-Neptune" papers for a K2-18b biosignature claim). Relevance is
+        now scored downstream by relevance_scorer.py with full LLM context.
+
+        Retained as a callable for any out-of-tree code that may still
+        reference it; do not re-wire into the adapter search path.
+
+        Filter adapter results by entity/term overlap with the claim.
 
         Removes results whose title+snippet share zero substantive terms
-        with the claim's entities or key terms.  This catches obviously
-        irrelevant results (e.g. ONS death registrations for a revenue
-        query) before they enter the evidence pool and waste LLM scorer
-        tokens.
+        with the claim's entities or key terms.
 
         Args:
             results: Evidence dicts from the adapter's search() call.
