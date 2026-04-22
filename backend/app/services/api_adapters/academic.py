@@ -8,6 +8,7 @@ Adapters for academic research and scholarly works:
 """
 
 import logging
+import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
@@ -240,10 +241,24 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             min_year = current_year - 2
             url = f"{self.base_url}/paper/search?query={quote(targeted_query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
 
+            # A3: retry on 429 with Retry-After honoured. Semantic Scholar
+            # rate-limits aggressively; the first call of every check was
+            # previously failing with no retry (Sentry PYTHON-FASTAPI-B).
+            data = None
             with httpx.Client(timeout=self.timeout, headers=self.headers) as client:
-                response = client.get(url)
-                response.raise_for_status()
-                data = response.json()
+                for attempt in range(3):
+                    response = client.get(url)
+                    if response.status_code == 429 and attempt < 2:
+                        wait = float(response.headers.get("retry-after", 2**attempt))
+                        logger.info(
+                            f"Semantic Scholar 429, backing off {wait}s "
+                            f"(attempt {attempt + 1}/3)"
+                        )
+                        time.sleep(min(wait, 10))
+                        continue
+                    response.raise_for_status()
+                    data = response.json()
+                    break
 
             if not data or "data" not in data:
                 return []
@@ -356,10 +371,24 @@ class OpenAlexAdapter(GovernmentAPIClient):
             min_year = current_year - 2
             url = f"{self.base_url}/works?search={quote(query)}&per-page={self.max_results}&mailto=contact@tru8.com&filter=from_publication_date:{min_year}-01-01"
 
+            # A3: retry on 429 with Retry-After honoured. Same pattern as
+            # Semantic Scholar — both adapters bypassed the base client's
+            # 429 retry logic by building their own inline httpx client.
+            data = None
             with httpx.Client(timeout=self.timeout, headers=self.headers) as client:
-                response = client.get(url)
-                response.raise_for_status()
-                data = response.json()
+                for attempt in range(3):
+                    response = client.get(url)
+                    if response.status_code == 429 and attempt < 2:
+                        wait = float(response.headers.get("retry-after", 2**attempt))
+                        logger.info(
+                            f"OpenAlex 429, backing off {wait}s "
+                            f"(attempt {attempt + 1}/3)"
+                        )
+                        time.sleep(min(wait, 10))
+                        continue
+                    response.raise_for_status()
+                    data = response.json()
+                    break
 
             if not data or "results" not in data:
                 return []
