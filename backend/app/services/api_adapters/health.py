@@ -12,6 +12,9 @@ import xml.etree.ElementTree as ET
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
+import httpx
+
+from app.core.config import settings
 from app.services.government_api_client import GovernmentAPIClient
 
 logger = logging.getLogger(__name__)
@@ -78,12 +81,16 @@ class PubMedAdapter(GovernmentAPIClient):
         targeted_query = self._build_targeted_query(query, entities)
 
         # Step 1: Search for article IDs
+        # A2: tool + email are NCBI politeness params. Without them NCBI silently
+        # throttles unidentified callers by returning HTTP 200 with empty body.
         search_params = {
             "db": "pubmed",
             "term": targeted_query,
             "retmax": self.max_results,
             "retmode": "json",
             "sort": "relevance",
+            "tool": "tru8",
+            "email": settings.NCBI_CONTACT_EMAIL,
         }
 
         if self.api_key:
@@ -103,12 +110,21 @@ class PubMedAdapter(GovernmentAPIClient):
                 return []
 
             # Step 2: Fetch article details
-            fetch_params = {"db": "pubmed", "id": ",".join(id_list), "retmode": "xml"}
+            # A2: efetch returns XML, not JSON. Use adapter-local _fetch_xml
+            # helper to avoid the base client's response.json() call which
+            # crashes on XML payloads. tool + email = NCBI politeness params.
+            fetch_params = {
+                "db": "pubmed",
+                "id": ",".join(id_list),
+                "retmode": "xml",
+                "tool": "tru8",
+                "email": settings.NCBI_CONTACT_EMAIL,
+            }
 
             if self.api_key:
                 fetch_params["api_key"] = self.api_key
 
-            fetch_response = self._make_request("efetch.fcgi", params=fetch_params)
+            fetch_response = self._fetch_xml("efetch.fcgi", fetch_params)
 
             if not fetch_response:
                 logger.warning(f"PubMed fetch failed for IDs: {id_list}")
@@ -119,6 +135,27 @@ class PubMedAdapter(GovernmentAPIClient):
         except Exception as e:
             logger.error(f"PubMed search failed for '{query}': {e}")
             return []
+
+    def _fetch_xml(self, endpoint: str, params: Dict[str, Any]) -> Optional[str]:
+        """Fetch raw XML from NCBI.
+
+        A2: PubMed's efetch endpoint returns XML, not JSON. The base client's
+        _make_request → _make_request_with_retries always calls response.json()
+        which crashes on XML payloads (seen in Sentry as PYTHON-FASTAPI-1F/1G/1H/
+        1J/1P, "Expecting value: line 1 column 1 (char 0)"). Adapter-local helper
+        avoids changing the base client's shape (10+ adapters depend on JSON).
+
+        Logs at warning level because failure is recoverable (caller returns []).
+        """
+        url = f"{self.base_url}/{endpoint.lstrip('/')}"
+        try:
+            with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
+                response = client.get(url, headers=self.headers, params=params)
+                response.raise_for_status()
+                return response.text
+        except Exception as e:
+            logger.warning(f"PubMed XML fetch failed ({endpoint}): {e}")
+            return None
 
     def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
         """

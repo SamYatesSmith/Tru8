@@ -85,6 +85,9 @@ class Settings(BaseSettings):
     YOUTUBE_API_KEY: str = Field(
         "", env="YOUTUBE_API_KEY"
     )  # YouTube Data API v3 for video recommendations (E14)
+    NCBI_CONTACT_EMAIL: str = Field(
+        "contact@tru8.com", env="NCBI_CONTACT_EMAIL"
+    )  # NCBI politeness contact — included in PubMed eutils params to avoid silent throttling (A2)
 
     # Storage
     S3_BUCKET: str = Field("tru8-uploads", env="S3_BUCKET")
