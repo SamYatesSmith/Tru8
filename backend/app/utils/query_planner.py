@@ -368,7 +368,9 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
         Args:
             plans: Raw plans from LLM response
             expected_count: Expected number of element plans
-            element_texts: List of (claim_text, element_description) tuples for relevance validation
+            element_texts: List of (claim_text, element_description) tuples. The
+                claim_text half is consulted by _fix_hallucinated_years so that
+                years the user typed in the claim are preserved verbatim.
         """
         validated = []
         valid_freshness = {"pd", "pw", "pm", "py", "2y"}
@@ -413,15 +415,6 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
 
             # Limit queries to 2 per element
             validated_plan["queries"] = validated_plan["queries"][:2]
-
-            # Validate query relevance using both claim text and element description
-            if element_texts and i < len(element_texts):
-                claim_text, element_desc = element_texts[i]
-                # Combine claim + element text for relevance checking
-                context_text = f"{claim_text} {element_desc}"
-                validated_plan["queries"] = self._validate_query_relevance_sync(
-                    validated_plan["queries"], context_text
-                )
 
             validated.append(validated_plan)
 
@@ -476,86 +469,6 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
             fixed_queries.append(query)
 
         return fixed_queries
-
-    def _validate_query_relevance_sync(
-        self, queries: List[str], claim_text: str, min_similarity: float = 0.15
-    ) -> List[str]:
-        """
-        Filter queries with no keyword overlap with claim.
-
-        Uses lightweight keyword overlap (Jaccard similarity) to catch egregiously
-        irrelevant queries without requiring embedding computation.
-
-        Args:
-            queries: Generated search queries
-            claim_text: Original claim text
-            min_similarity: Minimum keyword overlap ratio (0-1)
-
-        Returns:
-            Filtered list of relevant queries (at least 1 kept)
-        """
-        import re
-
-        stop_words = {
-            "the",
-            "and",
-            "for",
-            "are",
-            "was",
-            "were",
-            "been",
-            "have",
-            "has",
-            "had",
-            "will",
-            "would",
-            "could",
-            "should",
-            "this",
-            "that",
-            "with",
-            "from",
-            "they",
-            "their",
-            "there",
-            "what",
-            "when",
-            "where",
-            "which",
-            "about",
-            "into",
-            "than",
-            "then",
-        }
-
-        def extract_keywords(text: str) -> set:
-            words = re.findall(r"\b[a-zA-Z]{4,}\b", text.lower())
-            return {w for w in words if w not in stop_words}
-
-        claim_keywords = extract_keywords(claim_text)
-        if not claim_keywords:
-            return queries  # Can't validate, pass through
-
-        relevant = []
-        for query in queries:
-            query_keywords = extract_keywords(query)
-            if not query_keywords:
-                relevant.append(query)
-                continue
-
-            overlap = len(claim_keywords & query_keywords)
-            union = len(claim_keywords | query_keywords)
-            similarity = overlap / union if union > 0 else 0
-
-            if similarity >= min_similarity:
-                relevant.append(query)
-            else:
-                logger.warning(
-                    f"[QUERY_PLANNER] Filtered irrelevant query: '{query}' "
-                    f"(similarity={similarity:.2f} < {min_similarity})"
-                )
-
-        return relevant if relevant else queries[:1]  # Keep at least 1
 
 
 # Singleton instance

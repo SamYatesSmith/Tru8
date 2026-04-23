@@ -81,6 +81,70 @@ class TestLLMQueryPlanner:
         assert len(validated) == 2
 
 
+class TestRelevanceGateRemoved:
+    """A5 regression guard — the in-planner Jaccard relevance gate was removed
+    2026-04-23. It destroyed alphanumeric scientific identifiers (K2-18b, JWST-related
+    terms) because the `[a-zA-Z]{4,}` tokenizer dropped them, producing 0.00 similarity
+    on queries that were actually relevant. Downstream relevance_scorer.py is the
+    real quality gate. These tests assert queries flow through _validate_plans
+    untouched, so a future reintroduction of a token-overlap filter would fail here."""
+
+    def test_alphanumeric_science_query_is_not_filtered(self):
+        """Real-world K2-18b regression case: query with scientific alphanumeric
+        identifiers and jargon survives validation even when literal token overlap
+        with the claim text is zero. Pre-A5 this was the failure path."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+
+        plans = [
+            {
+                "claim_index": 0,
+                "element_id": "e1",
+                "queries": [
+                    "K2-18b biosignature evidence",
+                    "JWST K2-18b exoplanet biosignature findings",
+                ],
+                "freshness": "py",
+            }
+        ]
+        element_texts = [
+            (
+                "K2-18b shows signs of life",
+                "K2-18b has atmospheric signatures",
+            )
+        ]
+
+        validated = planner._validate_plans(plans, 1, element_texts=element_texts)
+
+        assert len(validated) == 1
+        assert validated[0]["queries"] == [
+            "K2-18b biosignature evidence",
+            "JWST K2-18b exoplanet biosignature findings",
+        ]
+
+    def test_queries_with_zero_literal_overlap_survive(self):
+        """Synthetic worst-case: claim and query share no 4+-letter ASCII tokens at all.
+        Pre-A5 this would have been filtered to empty then backfilled to queries[:1]."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+
+        plans = [
+            {
+                "claim_index": 0,
+                "element_id": "e1",
+                "queries": ["alpha beta gamma", "delta epsilon zeta"],
+                "freshness": "py",
+            }
+        ]
+        element_texts = [("foo bar baz qux", "red blue green yellow")]
+
+        validated = planner._validate_plans(plans, 1, element_texts=element_texts)
+
+        assert validated[0]["queries"] == ["alpha beta gamma", "delta epsilon zeta"]
+
+
 class TestFixHallucinatedYears:
     """Test _fix_hallucinated_years — must rewrite LLM artefacts but preserve
     years the user typed in the claim."""
