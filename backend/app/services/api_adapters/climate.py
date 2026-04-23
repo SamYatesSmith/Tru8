@@ -980,7 +980,7 @@ class OpenMeteoAdapter(GovernmentAPIClient):
                     title=f"Weather Forecast — {location_name}",
                     snippet=snippet,
                     url=f"https://open-meteo.com/en/docs#latitude={lat}&longitude={lon}",
-                    source_date=dates[0] if dates else None,
+                    source_date=datetime.fromisoformat(dates[0]) if dates else None,
                     metadata={
                         "location": location_name,
                         "latitude": lat,
@@ -1054,7 +1054,7 @@ class OpenMeteoAdapter(GovernmentAPIClient):
                     title=f"Historical Climate Data — {location_name}",
                     snippet=snippet,
                     url=f"https://open-meteo.com/en/docs#latitude={lat}&longitude={lon}",
-                    source_date=end_date.strftime("%Y-%m-%d"),
+                    source_date=end_date,
                     metadata={
                         "location": location_name,
                         "latitude": lat,

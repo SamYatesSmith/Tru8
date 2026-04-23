@@ -7,6 +7,8 @@ Tests for the 3 climate/weather adapters:
 - Open-Meteo (Free weather data, no API key required)
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 from datetime import datetime, timezone
 from app.services.api_adapters import NOAAAdapter, WeatherAPIAdapter, OpenMeteoAdapter
@@ -276,6 +278,70 @@ class TestOpenMeteoAdapter:
 
         assert "tokyo" in adapter.CITY_COORDS
         assert adapter.CITY_COORDS["tokyo"] == (35.68, 139.69)
+
+    # SC-01 regression — source_date must be a datetime so the shared
+    # _create_evidence_dict helper can .isoformat() it. Before the fix, both
+    # forecast and historical paths passed strings, the helper crashed, and the
+    # adapter's broad try/except swallowed it so the scorecard saw silent 0R.
+
+    def test_forecast_returns_evidence_with_iso_source_date(self):
+        """Forecast path returns ≥1 evidence dict with ISO-formatted source_date."""
+        adapter = OpenMeteoAdapter()
+
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.__exit__.return_value = False
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "daily": {
+                "time": ["2026-04-23", "2026-04-24", "2026-04-25"],
+                "temperature_2m_max": [14.1, 15.2, 13.8],
+                "temperature_2m_min": [6.3, 7.0, 5.9],
+                "precipitation_sum": [0.0, 1.2, 0.0],
+                "weathercode": [1, 61, 3],
+            }
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_client.get.return_value = mock_response
+
+        with patch("httpx.Client", return_value=mock_client):
+            results = adapter._get_forecast(51.51, -0.13, "London", "weather in London")
+
+        assert len(results) == 1
+        source_date = results[0]["source_date"]
+        assert isinstance(source_date, str)
+        # .isoformat() on a datetime parsed from "2026-04-23" yields that prefix
+        assert source_date.startswith("2026-04-23")
+
+    def test_historical_returns_evidence_with_iso_source_date(self):
+        """Historical path returns ≥1 evidence dict with ISO-formatted source_date."""
+        adapter = OpenMeteoAdapter()
+
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.__exit__.return_value = False
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "daily": {
+                "time": ["2025-04-23", "2025-04-24"],
+                "temperature_2m_max": [12.0, 14.5],
+                "temperature_2m_min": [4.5, 6.0],
+                "precipitation_sum": [0.3, 2.1],
+            }
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_client.get.return_value = mock_response
+
+        with patch("httpx.Client", return_value=mock_client):
+            results = adapter._get_historical(
+                51.51, -0.13, "London", "average London temperature climate"
+            )
+
+        assert len(results) == 1
+        source_date = results[0]["source_date"]
+        assert isinstance(source_date, str)
+        # Historical path uses end_date (today UTC) — assert it's a parseable ISO
+        datetime.fromisoformat(source_date)
 
 
 class TestClimateAdapterCommonFeatures:
