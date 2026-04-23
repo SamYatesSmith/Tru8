@@ -81,6 +81,14 @@ FOR EACH ELEMENT, OUTPUT:
    - "pm" (past month): Periodic updates (monthly stats, recent news)
    - "py" (past year): Stable facts, annual data, historical
 
+   IMPORTANT — a year mentioned IN the claim does NOT mean "breaking news":
+   - "Did X happen in 2026?" — about a stable past event → use "py"
+   - "What's the current state of X right now?" — only then use "pd" or "pw"
+   - Default to "py" for scientific, historical, archaeological, medical,
+     or established factual claims, even if a recent year appears in the claim.
+   - Use "pd"/"pw" only when the element explicitly demands live, unfolding,
+     or real-time evidence (e.g. ongoing legal proceedings, today's market data).
+
 3. reasoning: Why this freshness level and these queries are appropriate
 
 QUERY STRATEGIES:
