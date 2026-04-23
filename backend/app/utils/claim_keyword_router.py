@@ -39,6 +39,13 @@ class ClaimKeywordRouter:
     Singleton pattern - patterns compiled once at init, reused across claims.
     """
 
+    # H4: Process-local dedup of keyword-routed names missing from the registry.
+    # Stops a single drift (router rule points at an adapter that was removed
+    # or never registered) from producing N log+Sentry events, one per claim.
+    # Logged at ERROR the first time each name is seen → Sentry captures it as
+    # a first-class issue → subsequent occurrences are DEBUG-level noise.
+    _reported_missing_adapters: Set[str] = set()
+
     # Keyword rules mapping patterns to adapter names
     # Format: adapter_name -> list of (pattern, keyword_description)
     # COMPREHENSIVE LIST - covers cross-domain claim scenarios
@@ -670,9 +677,21 @@ class ClaimKeywordRouter:
                         f"(matched '{match.keyword}' in claim)"
                     )
                 else:
-                    logger.warning(
-                        f"[KEYWORD ROUTING] Adapter '{match.adapter_name}' not found in registry"
-                    )
+                    # H4: Router rule matches a name the registry doesn't know.
+                    # First time per process → ERROR (→ Sentry issue). Later
+                    # occurrences of the same name → DEBUG to prevent log flood.
+                    if match.adapter_name not in self._reported_missing_adapters:
+                        self._reported_missing_adapters.add(match.adapter_name)
+                        logger.error(
+                            f"[KEYWORD DRIFT] Adapter '{match.adapter_name}' is "
+                            f"keyword-routed but not registered. Either register "
+                            f"the adapter or remove the rule from KEYWORD_RULES."
+                        )
+                    else:
+                        logger.debug(
+                            f"[KEYWORD ROUTING] Adapter '{match.adapter_name}' "
+                            f"not in registry (already reported this process)"
+                        )
             else:
                 logger.debug(
                     f"[KEYWORD ROUTING] {match.adapter_name} already in adapters, skipping"

@@ -351,3 +351,142 @@ class TestEdgeCases:
         matches = router.detect_keywords(claim)
         adapter_names = [m.adapter_name for m in matches]
         assert "FRED" in adapter_names
+
+
+class TestKeywordDriftGuardrail:
+    """H4 — keyword-router-vs-registry drift detection.
+
+    Until H4 landed, a keyword rule pointing at an adapter the registry didn't
+    know (e.g. Alpha Vantage after PQ-06 unregistered it but left 75 keyword
+    rules in place) produced a `logger.warning` per claim — a Sentry breadcrumb
+    only, never an issue. The drift went unnoticed for weeks. H4 upgrades the
+    first occurrence of each missing name to `logger.error` (which Sentry's
+    logging integration captures as a first-class event) and deduplicates
+    subsequent occurrences to DEBUG level to prevent log/Sentry floods.
+
+    These tests pin both behaviours.
+    """
+
+    @pytest.fixture
+    def router(self):
+        """Fresh router with the process-local dedup set cleared.
+
+        `_reported_missing_adapters` is a class attribute by design (process-
+        local dedup across claims), but tests need independence — the fixture
+        resets it so each test starts from a clean slate.
+        """
+        ClaimKeywordRouter._reported_missing_adapters.clear()
+        return ClaimKeywordRouter()
+
+    def _registry_returning_none(self):
+        """Mock registry where every adapter lookup misses."""
+        registry = MagicMock()
+        registry.get_adapter_by_name.return_value = None
+        return registry
+
+    def test_missing_adapter_logs_error_once(self, router, caplog):
+        """First time a keyword route points at an unregistered adapter, the
+        drift must be logged at ERROR level with the `[KEYWORD DRIFT]` marker
+        so Sentry captures it as an event."""
+        import logging
+
+        registry = self._registry_returning_none()
+
+        with caplog.at_level(logging.ERROR):
+            router.get_additional_adapters(
+                "UK unemployment fell to record lows",
+                current_adapters=[],
+                api_registry=registry,
+            )
+
+        drift_errors = [
+            r
+            for r in caplog.records
+            if r.levelno == logging.ERROR and "[KEYWORD DRIFT]" in r.message
+        ]
+        assert (
+            len(drift_errors) >= 1
+        ), "Missing adapter must produce at least one ERROR-level [KEYWORD DRIFT] log"
+
+    def test_repeated_missing_adapter_does_not_re_log(self, router, caplog):
+        """Second and subsequent occurrences of the SAME missing adapter must
+        NOT produce another ERROR log — dedup prevents Sentry flood."""
+        import logging
+
+        registry = self._registry_returning_none()
+        claim = "UK unemployment fell to record lows"
+
+        # First call — should ERROR
+        with caplog.at_level(logging.ERROR):
+            router.get_additional_adapters(
+                claim, current_adapters=[], api_registry=registry
+            )
+        first_errors = [r for r in caplog.records if "[KEYWORD DRIFT]" in r.message]
+        assert len(first_errors) >= 1
+
+        caplog.clear()
+
+        # Second call with same missing adapter — should NOT ERROR again
+        with caplog.at_level(logging.ERROR):
+            router.get_additional_adapters(
+                claim, current_adapters=[], api_registry=registry
+            )
+        second_errors = [r for r in caplog.records if "[KEYWORD DRIFT]" in r.message]
+        assert (
+            len(second_errors) == 0
+        ), "Repeated missing-adapter warnings must be deduped — no second ERROR"
+
+    def test_different_missing_adapters_each_log_once(self, router, caplog):
+        """Dedup is per-adapter-name, not global. A second missing adapter with
+        a different name must trigger its own ERROR log — otherwise two
+        concurrent drifts would mask each other."""
+        import logging
+
+        registry = self._registry_returning_none()
+
+        with caplog.at_level(logging.ERROR):
+            # UK claim → ONS keyword route
+            router.get_additional_adapters(
+                "UK unemployment fell to record lows",
+                current_adapters=[],
+                api_registry=registry,
+            )
+            # US econ claim → FRED keyword route (different adapter name)
+            router.get_additional_adapters(
+                "US GDP grew by 2.1% last quarter",
+                current_adapters=[],
+                api_registry=registry,
+            )
+
+        drift_errors = [r for r in caplog.records if "[KEYWORD DRIFT]" in r.message]
+        drifted_names = {
+            name
+            for r in drift_errors
+            for name in ("ONS Economic Statistics", "FRED")
+            if name in r.message
+        }
+        assert drifted_names == {
+            "ONS Economic Statistics",
+            "FRED",
+        }, f"Expected both ONS and FRED drift errors, got {drifted_names}"
+
+    def test_registered_adapter_produces_no_drift_error(self, router, caplog):
+        """When the registry does return an adapter for a keyword match, no
+        drift error should fire — this is the normal healthy path."""
+        import logging
+
+        registry = MagicMock()
+        real_adapter = Mock()
+        real_adapter.api_name = "ONS Economic Statistics"
+        registry.get_adapter_by_name.return_value = real_adapter
+
+        with caplog.at_level(logging.ERROR):
+            result = router.get_additional_adapters(
+                "UK unemployment fell to record lows",
+                current_adapters=[],
+                api_registry=registry,
+            )
+
+        drift_errors = [r for r in caplog.records if "[KEYWORD DRIFT]" in r.message]
+        assert drift_errors == []
+        assert real_adapter in result
