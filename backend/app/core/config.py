@@ -389,7 +389,7 @@ class Settings(BaseSettings):
     # legitimate tier-2 specialists (OpenAlex, Semantic Scholar) from every
     # Health/Science claim.
     ADAPTER_CAPS_PER_DOMAIN: str = Field(
-        '{"Science": 5, "History": 5, "Politics": 4, "Health": 4, "Animals": 4, "DEFAULT": 3}',
+        '{"Science": 5, "History": 5, "Politics": 4, "Health": 4, "Animals": 4, "Climate": 4, "Finance": 4, "DEFAULT": 3}',
         env="ADAPTER_CAPS_PER_DOMAIN",
     )  # JSON mapping domain → integer cap
 

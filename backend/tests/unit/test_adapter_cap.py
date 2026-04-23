@@ -28,6 +28,23 @@ class TestGetAdapterCapForDomain:
 
         assert get_adapter_cap_for_domain("Science") == 5
 
+    def test_climate_has_raised_cap(self):
+        """SC-02: Climate = 4 — same class of bug as Health. Scorecard showed
+        NOAA + WeatherAPI + Open-Meteo filling cap=3 and silently dropping the
+        academic backstops (Semantic Scholar, OpenAlex, Wikipedia) on every
+        Climate claim."""
+        from app.pipeline.retrieve import get_adapter_cap_for_domain
+
+        assert get_adapter_cap_for_domain("Climate") == 4
+
+    def test_finance_has_raised_cap(self):
+        """SC-02: Finance = 4 — four tier-1 adapters (Marketaux, World Bank,
+        FRED, ONS/Companies House) routinely contend for cap=3 slots. Raise to
+        keep one specialist adapter surviving on any given Finance claim."""
+        from app.pipeline.retrieve import get_adapter_cap_for_domain
+
+        assert get_adapter_cap_for_domain("Finance") == 4
+
     def test_unknown_domain_falls_back_to_default(self):
         """Any domain not explicitly listed uses the DEFAULT cap (3)."""
         from app.pipeline.retrieve import get_adapter_cap_for_domain
