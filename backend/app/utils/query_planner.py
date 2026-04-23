@@ -399,10 +399,16 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
             if isinstance(validated_plan["queries"], str):
                 validated_plan["queries"] = [validated_plan["queries"]]
 
-            # POST-PROCESS: Fix hallucinated years in queries for recent elements
+            # POST-PROCESS: Fix hallucinated years in queries for recent elements.
+            # Pass the original claim text so years the user typed (e.g. "September
+            # 2024" in a historical claim) are preserved rather than rewritten to
+            # current year.
             if freshness in {"pd", "pw", "pm"}:
+                claim_text_for_years = ""
+                if element_texts and i < len(element_texts):
+                    claim_text_for_years = element_texts[i][0]
                 validated_plan["queries"] = self._fix_hallucinated_years(
-                    validated_plan["queries"], current_year
+                    validated_plan["queries"], current_year, claim_text_for_years
                 )
 
             # Limit queries to 2 per element
@@ -422,32 +428,42 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
         return validated
 
     def _fix_hallucinated_years(
-        self, queries: List[str], current_year: int
+        self, queries: List[str], current_year: int, claim_text: str = ""
     ) -> List[str]:
         """
         Fix hallucinated years in LLM-generated queries.
 
         LLMs often generate old years (2023, 2024) due to training data patterns.
-        For recent claims, we replace these with the current year.
+        For recent claims, we replace these with the current year — EXCEPT when
+        the year appears verbatim in the user's claim text, in which case it is
+        an intentional historical reference and must be preserved.
 
         Args:
             queries: List of search query strings
             current_year: The actual current year (e.g., 2025)
+            claim_text: Original claim text; any year appearing here is excluded
+                from the hallucinated set and preserved in queries.
 
         Returns:
             List of queries with corrected years
         """
         import re
 
-        fixed_queries = []
-        # Years that are likely hallucinated (1-3 years before current)
-        hallucinated_years = [str(current_year - i) for i in range(1, 4)]
+        # Years explicitly referenced in the claim are not hallucinations.
+        claim_years = set(re.findall(r"\b(?:19|20)\d{2}\b", claim_text))
 
+        # Candidate hallucinated years: 1-3 years before current, minus any
+        # year the user typed in the claim.
+        hallucinated_years = [
+            str(current_year - i)
+            for i in range(1, 4)
+            if str(current_year - i) not in claim_years
+        ]
+
+        fixed_queries = []
         for query in queries:
             original = query
-            # Replace hallucinated years with current year
             for old_year in hallucinated_years:
-                # Match year as whole word (not part of larger number)
                 pattern = rf"\b{old_year}\b"
                 if re.search(pattern, query):
                     query = re.sub(pattern, str(current_year), query)

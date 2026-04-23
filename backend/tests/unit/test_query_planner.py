@@ -81,6 +81,72 @@ class TestLLMQueryPlanner:
         assert len(validated) == 2
 
 
+class TestFixHallucinatedYears:
+    """Test _fix_hallucinated_years — must rewrite LLM artefacts but preserve
+    years the user typed in the claim."""
+
+    def test_rewrites_genuine_hallucination_when_claim_has_no_year(self):
+        """Year absent from claim → treated as LLM hallucination, rewritten."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        queries = ["ECB interest rate decision 2024"]
+        result = planner._fix_hallucinated_years(
+            queries, current_year=2026, claim_text="ECB raised interest rates"
+        )
+        assert result == ["ECB interest rate decision 2026"]
+
+    def test_preserves_year_when_claim_references_it(self):
+        """Year present in claim → intentional historical reference, preserved."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        queries = ["ECB interest rate decision 2024"]
+        result = planner._fix_hallucinated_years(
+            queries,
+            current_year=2026,
+            claim_text="The ECB raised interest rates in September 2024",
+        )
+        assert result == ["ECB interest rate decision 2024"]
+
+    def test_preserves_multiple_explicit_years(self):
+        """Claim referencing a year range — both years preserved."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        queries = ["inflation comparison 2023 vs 2024"]
+        result = planner._fix_hallucinated_years(
+            queries,
+            current_year=2026,
+            claim_text="Inflation was higher in 2024 than 2023",
+        )
+        assert result == ["inflation comparison 2023 vs 2024"]
+
+    def test_rewrites_some_preserves_others(self):
+        """Claim mentions 2024 only → 2024 preserved, 2025 still rewritten."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        queries = ["event in 2024 followed by impact in 2025"]
+        result = planner._fix_hallucinated_years(
+            queries,
+            current_year=2026,
+            claim_text="Something happened in 2024",
+        )
+        assert result == ["event in 2024 followed by impact in 2026"]
+
+    def test_empty_claim_text_falls_back_to_original_behaviour(self):
+        """No claim text → behaves as before: all recent years rewritten."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        queries = ["story from 2024"]
+        result = planner._fix_hallucinated_years(
+            queries, current_year=2026, claim_text=""
+        )
+        assert result == ["story from 2026"]
+
+
 class TestQueryPlannerIntegration:
     """Integration tests for query planner with mocked LLM."""
 
