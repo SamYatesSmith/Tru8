@@ -177,6 +177,33 @@ class TestJurisdictionMappingShape:
         assert "GovInfo.gov" in us
         assert "Library of Congress" in us
 
+    def test_global_has_expected_health_and_academic_adapters(self):
+        """Regression guard for the H0/WHO class of bug.
+
+        NOAA was silently excluded until 2026-04-23 (H0: "NOAA Climate Data"
+        string mismatch). WHO was silently excluded until this fix (omitted
+        entirely from the global list). Both had the same shape — Health/
+        Science specialists declared as global-jurisdiction in-code but
+        missing from the M-05 allow-list, so the jurisdiction filter quietly
+        dropped them before any HTTP call. This test pins the adapters whose
+        exclusion would materially degrade coverage on Health/Science claims.
+        """
+        global_names = get_adapters_for_jurisdiction(None)
+        assert global_names is not None
+
+        for required in (
+            "PubMed",
+            "WHO",
+            "Semantic Scholar",
+            "OpenAlex",
+            "NOAA CDO",
+            "Wikipedia",
+        ):
+            assert required in global_names, (
+                f"{required} missing from global jurisdiction allow-list — "
+                f"health/science claims will silently lose this specialist"
+            )
+
     def test_no_duplicate_entries(self):
         for jurisdiction in ["UK", "US", None]:
             adapters = get_adapters_for_jurisdiction(jurisdiction)
