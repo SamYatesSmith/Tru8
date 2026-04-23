@@ -353,7 +353,7 @@ class Settings(BaseSettings):
         "gpt-4o", env="ANALYZER_MODEL"
     )  # LLM for evidence mapping
     ANALYZER_TEMPERATURE: float = Field(0.2, env="ANALYZER_TEMPERATURE")
-    ANALYZER_MAX_TOKENS: int = Field(4000, env="ANALYZER_MAX_TOKENS")
+    ANALYZER_MAX_TOKENS: int = Field(12000, env="ANALYZER_MAX_TOKENS")
     MAX_CONCURRENT_ANALYSES: int = Field(3, env="MAX_CONCURRENT_ANALYSES")
     MAX_CONCURRENT_AGENT_ANALYSES: int = Field(
         5, env="MAX_CONCURRENT_AGENT_ANALYSES"
