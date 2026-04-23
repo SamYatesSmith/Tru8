@@ -38,7 +38,7 @@ MAX_REFS_PER_PAGE = 5
 MEDIAWIKI_TIMEOUT = 5
 
 # User-Agent per Wikipedia API etiquette
-USER_AGENT = "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+USER_AGENT = "Tru8FactChecker/1.0 (https://tru8.com; hello@trueight.com)"
 
 # ---------------------------------------------------------------------------
 # Authority domain allowlist — the ONLY references we extract.

@@ -70,7 +70,7 @@ class GovernmentAPIClient(ABC):
 
         # HTTP client configuration
         self.headers = {
-            "User-Agent": "Tru8 Fact-Checker/1.0 (contact@tru8.com)",
+            "User-Agent": "Tru8 Fact-Checker/1.0 (hello@trueight.com)",
             "Accept": "application/json",
         }
 

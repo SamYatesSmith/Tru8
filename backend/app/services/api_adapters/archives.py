@@ -38,7 +38,7 @@ class WikipediaAdapter(GovernmentAPIClient):
         )
         # Required: Identify our application per Wikipedia API etiquette
         self.headers["User-Agent"] = (
-            "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+            "Tru8FactChecker/1.0 (https://tru8.com; hello@trueight.com)"
         )
         self.search_base = "https://en.wikipedia.org/w/api.php"
 
@@ -214,7 +214,7 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
             priority_tier=2,  # Cross-domain academic/research
         )
         self.headers["User-Agent"] = (
-            "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+            "Tru8FactChecker/1.0 (https://tru8.com; hello@trueight.com)"
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
@@ -427,7 +427,7 @@ class InternetArchiveAdapter(GovernmentAPIClient):
             priority_tier=3,  # General reference
         )
         self.headers["User-Agent"] = (
-            "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+            "Tru8FactChecker/1.0 (https://tru8.com; hello@trueight.com)"
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:

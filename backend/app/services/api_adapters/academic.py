@@ -43,7 +43,7 @@ class CrossRefAdapter(GovernmentAPIClient):
         # CrossRef requests User-Agent with contact email
         self.headers.update(
             {
-                "User-Agent": "Tru8FactChecker/1.0 (https://tru8.com; mailto:contact@tru8.com)"
+                "User-Agent": "Tru8FactChecker/1.0 (https://tru8.com; mailto:hello@trueight.com)"
             }
         )
 
@@ -201,7 +201,7 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             priority_tier=2,  # Cross-domain academic
         )
         self.headers["User-Agent"] = (
-            "Tru8FactChecker/1.0 (https://tru8.com; contact@tru8.com)"
+            "Tru8FactChecker/1.0 (https://tru8.com; hello@trueight.com)"
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
@@ -355,7 +355,7 @@ class OpenAlexAdapter(GovernmentAPIClient):
             priority_tier=2,  # Cross-domain academic
         )
         # OpenAlex requests polite pool identification via email
-        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (mailto:contact@tru8.com)"
+        self.headers["User-Agent"] = "Tru8FactChecker/1.0 (mailto:hello@trueight.com)"
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """
@@ -388,7 +388,7 @@ class OpenAlexAdapter(GovernmentAPIClient):
             # Build search URL with mailto for polite pool
             current_year = datetime.now(timezone.utc).year
             min_year = current_year - 2
-            url = f"{self.base_url}/works?search={quote(query)}&per-page={self.max_results}&mailto=contact@tru8.com&filter=from_publication_date:{min_year}-01-01"
+            url = f"{self.base_url}/works?search={quote(query)}&per-page={self.max_results}&mailto=hello@trueight.com&filter=from_publication_date:{min_year}-01-01"
 
             # A3: retry on 429 with Retry-After honoured. Same pattern as
             # Semantic Scholar — both adapters bypassed the base client's

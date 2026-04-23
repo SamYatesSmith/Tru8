@@ -86,7 +86,7 @@ class Settings(BaseSettings):
         "", env="YOUTUBE_API_KEY"
     )  # YouTube Data API v3 for video recommendations (E14)
     NCBI_CONTACT_EMAIL: str = Field(
-        "contact@tru8.com", env="NCBI_CONTACT_EMAIL"
+        "hello@trueight.com", env="NCBI_CONTACT_EMAIL"
     )  # NCBI politeness contact — included in PubMed eutils params to avoid silent throttling (A2)
 
     # Storage
