@@ -47,6 +47,38 @@ def get_adapters_for_jurisdiction(jurisdiction: str | None) -> list[str] | None:
     return global_names + specific
 
 
+# B1 (audit §2.2): Per-domain adapter caps (config-driven).
+# Loaded from settings.ADAPTER_CAPS_PER_DOMAIN JSON string.
+_DEFAULT_ADAPTER_CAP = 3
+
+
+def _load_adapter_caps() -> dict:
+    """Parse domain→cap mapping from config. Always returns a dict with a DEFAULT key."""
+    raw = getattr(settings, "ADAPTER_CAPS_PER_DOMAIN", "{}")
+    try:
+        parsed = _json.loads(raw) if isinstance(raw, str) else raw
+    except (ValueError, TypeError):
+        parsed = {}
+    if not isinstance(parsed, dict):
+        parsed = {}
+    parsed.setdefault("DEFAULT", _DEFAULT_ADAPTER_CAP)
+    return parsed
+
+
+def get_adapter_cap_for_domain(domain: str | None) -> int:
+    """Return the max adapters per claim for the given article domain.
+
+    Unknown domains fall back to the DEFAULT cap. Guarantees a valid integer
+    even if the env override is malformed or missing a DEFAULT key.
+    """
+    caps = _load_adapter_caps()
+    value = caps.get(domain, caps["DEFAULT"]) if domain else caps["DEFAULT"]
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return _DEFAULT_ADAPTER_CAP
+
+
 def _resolve_search_country(claim: Dict[str, Any]) -> Optional[str]:
     """Resolve claim jurisdiction to a search provider country code.
 
@@ -2062,9 +2094,11 @@ class EvidenceRetriever:
                         f"[JURISDICTION] {jurisdiction}: {pre_filter} -> {len(relevant_adapters)} adapters"
                     )
 
-            # PQ-06: Tier-aware adapter cap — specialists first, generalists fill gaps
-            MAX_ADAPTERS_PER_CLAIM = 3
-            if len(relevant_adapters) > MAX_ADAPTERS_PER_CLAIM:
+            # PQ-06 + B1: Tier-aware, domain-aware adapter cap.
+            # Specialists first, generalists fill gaps. Cap varies by article
+            # domain so Health/Science claims don't silently lose OpenAlex/S2.
+            max_adapters = get_adapter_cap_for_domain(domain)
+            if len(relevant_adapters) > max_adapters:
                 allowed = allowed_names or []
 
                 def _sort_key(adapter):
@@ -2077,11 +2111,12 @@ class EvidenceRetriever:
 
                 relevant_adapters.sort(key=_sort_key)
                 logger.info(
-                    f"[TIER CAP] {len(relevant_adapters)} adapters → {MAX_ADAPTERS_PER_CLAIM}: "
-                    f"selected {[a.api_name for a in relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]]}, "
-                    f"cap victims {[a.api_name for a in relevant_adapters[MAX_ADAPTERS_PER_CLAIM:]]}"
+                    f"[TIER CAP] domain={domain} cap={max_adapters} | "
+                    f"{len(relevant_adapters)} adapters → {max_adapters}: "
+                    f"selected {[a.api_name for a in relevant_adapters[:max_adapters]]}, "
+                    f"cap victims {[a.api_name for a in relevant_adapters[max_adapters:]]}"
                 )
-                relevant_adapters = relevant_adapters[:MAX_ADAPTERS_PER_CLAIM]
+                relevant_adapters = relevant_adapters[:max_adapters]
 
             # Log final adapter list
             adapter_names = [a.api_name for a in relevant_adapters]

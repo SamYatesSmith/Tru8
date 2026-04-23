@@ -384,6 +384,15 @@ class Settings(BaseSettings):
         env="JURISDICTION_ADAPTERS",
     )  # JSON mapping jurisdiction → adapter names
 
+    # B1 (audit §2.2): Per-domain adapter caps. DEFAULT is used when a domain
+    # is unlisted. Higher caps stop the PQ-06 tier sort silently dropping
+    # legitimate tier-2 specialists (OpenAlex, Semantic Scholar) from every
+    # Health/Science claim.
+    ADAPTER_CAPS_PER_DOMAIN: str = Field(
+        '{"Science": 5, "History": 5, "Politics": 4, "Health": 4, "Animals": 4, "DEFAULT": 3}',
+        env="ADAPTER_CAPS_PER_DOMAIN",
+    )  # JSON mapping domain → integer cap
+
     # ========== SKYFIRE KYAPay (L-06) ==========
     SKYFIRE_ENABLED: bool = Field(False, env="SKYFIRE_ENABLED")
     SKYFIRE_API_KEY: str = Field("", env="SKYFIRE_API_KEY")

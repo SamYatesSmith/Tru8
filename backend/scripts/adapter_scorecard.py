@@ -38,12 +38,12 @@ from app.core.config import settings
 from app.services.government_api_client import get_api_registry
 from app.services.api_adapters import initialize_adapters
 from app.utils.claim_keyword_router import get_keyword_router
-from app.pipeline.retrieve import JURISDICTION_ADAPTER_PREFERENCES
+from app.pipeline.retrieve import (
+    get_adapter_cap_for_domain,
+    get_adapters_for_jurisdiction,
+)
 
 logger = logging.getLogger(__name__)
-
-# Mirror the cap from retrieve.py
-MAX_ADAPTERS_PER_CLAIM = 3
 
 CORPUS_PATH = Path(__file__).resolve().parent.parent / "data" / "scorecard_claims.json"
 
@@ -85,23 +85,24 @@ def select_adapters_for_claim(
     )
     all_selected = relevant + keyword_adds
 
-    # Step 3: Jurisdiction-preference sort + cap (mirrors retrieve.py)
-    if len(all_selected) > MAX_ADAPTERS_PER_CLAIM:
-        preferences = JURISDICTION_ADAPTER_PREFERENCES.get(jurisdiction, [])
-        if preferences:
+    # Step 3: Tier-aware, domain-aware adapter cap. Mirrors retrieve.py exactly
+    # via shared helpers — sort by (priority_tier, jurisdiction-allow-list index,
+    # api_name) and slice to the domain-specific cap.
+    max_adapters = get_adapter_cap_for_domain(domain)
+    if len(all_selected) > max_adapters:
+        allowed = get_adapters_for_jurisdiction(jurisdiction) or []
 
-            def _priority(adapter):
-                try:
-                    return preferences.index(adapter.api_name)
-                except ValueError:
-                    return len(preferences) + 1
+        def _sort_key(adapter):
+            tier = getattr(adapter, "priority_tier", 1)
+            try:
+                pref = allowed.index(adapter.api_name)
+            except ValueError:
+                pref = len(allowed) + 1
+            return (tier, pref, adapter.api_name)
 
-            all_selected_sorted = sorted(all_selected, key=_priority)
-        else:
-            all_selected_sorted = list(all_selected)
-
-        capped = all_selected_sorted[:MAX_ADAPTERS_PER_CLAIM]
-        cut = all_selected_sorted[MAX_ADAPTERS_PER_CLAIM:]
+        all_selected_sorted = sorted(all_selected, key=_sort_key)
+        capped = all_selected_sorted[:max_adapters]
+        cut = all_selected_sorted[max_adapters:]
     else:
         capped = list(all_selected)
         cut = []
