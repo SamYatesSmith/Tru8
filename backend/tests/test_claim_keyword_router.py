@@ -6,7 +6,11 @@ Tests keyword detection and adapter routing for cross-domain claims.
 
 import pytest
 from unittest.mock import Mock, MagicMock
-from app.utils.claim_keyword_router import ClaimKeywordRouter, KeywordMatch, get_keyword_router
+from app.utils.claim_keyword_router import (
+    ClaimKeywordRouter,
+    KeywordMatch,
+    get_keyword_router,
+)
 
 
 class TestKeywordDetection:
@@ -17,19 +21,27 @@ class TestKeywordDetection:
         """Fresh router instance for each test"""
         return ClaimKeywordRouter()
 
-    def test_oil_keywords_match_alpha_vantage(self, router):
-        """Claims mentioning oil/crude should match Alpha Vantage"""
+    def test_commodity_keywords_fall_through(self, router):
+        """Commodity/forex/crypto keywords have no dedicated specialist adapter.
+
+        Alpha Vantage was scrapped in PQ-06 (25 req/day free tier unusable) and
+        its keyword rules removed. Until a replacement commodities source is
+        added, these claims must fall through to the web-search cascade rather
+        than silently match a non-existent adapter.
+        """
         claims = [
             "Oil prices dropped 20% following the announcement",
             "Brent crude was up 2.5 percent to sixty dollars a barrel",
-            "WTI crude oil futures fell sharply",
-            "Natural gas prices hit record highs",
+            "Bitcoin crossed $80,000 for the first time",
         ]
 
         for claim in claims:
             matches = router.detect_keywords(claim)
             adapter_names = [m.adapter_name for m in matches]
-            assert "Alpha Vantage" in adapter_names, f"Failed for: {claim}"
+            assert "Alpha Vantage" not in adapter_names, (
+                f"Alpha Vantage must not be keyword-routed (adapter unregistered). "
+                f"Failed for: {claim}"
+            )
 
     def test_legislation_keywords_match_govinfo(self, router):
         """Claims mentioning 'Act of YYYY' should match GovInfo"""
@@ -162,13 +174,13 @@ class TestKeywordDetection:
 
     def test_multiple_keyword_matches(self, router):
         """Claim with multiple domains should return multiple adapters"""
-        # This claim mentions both oil (Alpha Vantage) and GDP (FRED)
-        claim = "Oil prices impacted GDP growth significantly"
+        # This claim mentions both unemployment (FRED) and the Inflation Reduction Act (GovInfo)
+        claim = "The Inflation Reduction Act of 2022 lowered unemployment to 3.5%"
         matches = router.detect_keywords(claim)
         adapter_names = [m.adapter_name for m in matches]
 
-        assert "Alpha Vantage" in adapter_names
         assert "FRED" in adapter_names
+        assert "GovInfo.gov" in adapter_names
         assert len(matches) >= 2
 
     def test_no_keywords_returns_empty(self, router):
@@ -188,16 +200,16 @@ class TestKeywordDetection:
     def test_case_insensitive_matching(self, router):
         """Keywords should match regardless of case"""
         claims = [
-            "OIL prices dropped",
-            "Oil PRICES dropped",
-            "oil prices dropped",
-            "OIL PRICES DROPPED",
+            "UNEMPLOYMENT rate hit 4.2%",
+            "Unemployment RATE hit 4.2%",
+            "unemployment rate hit 4.2%",
+            "UNEMPLOYMENT RATE HIT 4.2%",
         ]
 
         for claim in claims:
             matches = router.detect_keywords(claim)
             adapter_names = [m.adapter_name for m in matches]
-            assert "Alpha Vantage" in adapter_names, f"Failed for: {claim}"
+            assert "FRED" in adapter_names, f"Failed for: {claim}"
 
 
 class TestAdapterDeduplication:
@@ -222,24 +234,24 @@ class TestAdapterDeduplication:
 
     def test_duplicate_adapter_prevention(self, router, mock_registry):
         """Same adapter shouldn't be added twice"""
-        claim = "Oil prices dropped 20%"
+        claim = "Unemployment rate hit 4.2%"
 
-        # Simulate Alpha Vantage already in adapters
+        # Simulate FRED already in adapters
         existing_adapter = Mock()
-        existing_adapter.api_name = "Alpha Vantage"
+        existing_adapter.api_name = "FRED"
         current_adapters = [existing_adapter]
 
         additional = router.get_additional_adapters(
             claim, current_adapters, mock_registry
         )
 
-        # Alpha Vantage should NOT be added again
+        # FRED should NOT be added again
         additional_names = [a.api_name for a in additional]
-        assert "Alpha Vantage" not in additional_names
+        assert "FRED" not in additional_names
 
     def test_new_adapter_added_when_not_present(self, router, mock_registry):
         """Adapters not in current list should be added"""
-        claim = "Oil prices dropped 20%"
+        claim = "Unemployment rate hit 4.2%"
 
         # No existing adapters
         current_adapters = []
@@ -248,9 +260,9 @@ class TestAdapterDeduplication:
             claim, current_adapters, mock_registry
         )
 
-        # Alpha Vantage should be added
+        # FRED should be added
         additional_names = [a.api_name for a in additional]
-        assert "Alpha Vantage" in additional_names
+        assert "FRED" in additional_names
 
 
 class TestSingletonPattern:
@@ -267,13 +279,13 @@ class TestSingletonPattern:
         router = get_keyword_router()
 
         # Check that patterns are pre-compiled
-        assert hasattr(router, '_compiled_patterns')
+        assert hasattr(router, "_compiled_patterns")
         assert len(router._compiled_patterns) > 0
 
         # Verify they're compiled regex objects
         for adapter_name, patterns in router._compiled_patterns.items():
             for compiled_pattern, keyword_desc in patterns:
-                assert hasattr(compiled_pattern, 'search')  # It's a compiled regex
+                assert hasattr(compiled_pattern, "search")  # It's a compiled regex
 
 
 class TestKeywordMatchDataclass:
@@ -282,23 +294,21 @@ class TestKeywordMatchDataclass:
     def test_keyword_match_creation(self):
         """KeywordMatch should store all fields correctly"""
         match = KeywordMatch(
-            keyword="oil",
-            pattern=r"\boil\b",
-            adapter_name="Alpha Vantage",
-            confidence=0.9
+            keyword="unemployment",
+            pattern=r"\bunemployment\b",
+            adapter_name="FRED",
+            confidence=0.9,
         )
 
-        assert match.keyword == "oil"
-        assert match.pattern == r"\boil\b"
-        assert match.adapter_name == "Alpha Vantage"
+        assert match.keyword == "unemployment"
+        assert match.pattern == r"\bunemployment\b"
+        assert match.adapter_name == "FRED"
         assert match.confidence == 0.9
 
     def test_keyword_match_default_confidence(self):
         """KeywordMatch should have default confidence of 0.8"""
         match = KeywordMatch(
-            keyword="oil",
-            pattern=r"\boil\b",
-            adapter_name="Alpha Vantage"
+            keyword="unemployment", pattern=r"\bunemployment\b", adapter_name="FRED"
         )
 
         assert match.confidence == 0.8
@@ -323,21 +333,21 @@ class TestEdgeCases:
 
     def test_very_long_claim(self, router):
         """Very long claim should still work"""
-        long_claim = "This is a claim about oil. " * 100
+        long_claim = "This is a claim about unemployment. " * 100
         matches = router.detect_keywords(long_claim)
         adapter_names = [m.adapter_name for m in matches]
-        assert "Alpha Vantage" in adapter_names
+        assert "FRED" in adapter_names
 
     def test_special_characters_in_claim(self, router):
         """Claims with special characters should be handled"""
-        claim = "Oil prices: $60/barrel! (up 2.5%)"
+        claim = "Unemployment: 4.2%! (up 0.3pp)"
         matches = router.detect_keywords(claim)
         adapter_names = [m.adapter_name for m in matches]
-        assert "Alpha Vantage" in adapter_names
+        assert "FRED" in adapter_names
 
     def test_unicode_in_claim(self, router):
         """Claims with unicode should be handled"""
-        claim = "Oil prices rose to €60 per barrel"
+        claim = "Unemployment rose to 4.2% — the highest since 2021"
         matches = router.detect_keywords(claim)
         adapter_names = [m.adapter_name for m in matches]
-        assert "Alpha Vantage" in adapter_names
+        assert "FRED" in adapter_names

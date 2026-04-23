@@ -9,9 +9,9 @@ not replacing them. Fast regex matching (~1ms per claim), no LLM calls.
 
 Example:
     - Article domain: Politics
-    - Claim: "Oil prices dropped 20%"
-    - Keyword match: "oil" -> Alpha Vantage
-    - Result: Politics adapters + Alpha Vantage
+    - Claim: "UK inflation reached 4.2% in March"
+    - Keyword match: "inflation" -> ONS Economic Statistics
+    - Result: Politics adapters + ONS Economic Statistics
 """
 
 import re
@@ -85,84 +85,6 @@ class ClaimKeywordRouter:
             (r"\bvetoed?\b", "veto"),
             (r"\bbipartisan\b", "bipartisan"),
             (r"\bfilibuster\b", "filibuster"),
-        ],
-        # ============================================================
-        # Alpha Vantage - Stocks, forex, crypto, commodities
-        # ============================================================
-        "Alpha Vantage": [
-            # Oil & Gas
-            (r"\b(?:crude\s+)?oil(?:\s+prices?)?\b", "oil"),
-            (r"\bcrude\b", "crude"),
-            (r"\bbrent\b", "brent"),
-            (r"\bwti\b", "wti"),
-            (r"\bpetroleum\b", "petroleum"),
-            (r"\bnatural\s+gas\b", "natural gas"),
-            (r"\bopec\b", "OPEC"),
-            (r"\bbarrel(?:s)?\b", "barrel"),
-            (r"\bgasoline\b", "gasoline"),
-            (r"\bdiesel\b", "diesel"),
-            (r"\bfuel\s+prices?\b", "fuel price"),
-            # Precious metals
-            (r"\bgold\s+(?:price|futures?|market)\b", "gold"),
-            (r"\bsilver\s+(?:price|futures?|market)\b", "silver"),
-            (r"\bplatinum\b", "platinum"),
-            (r"\bpalladium\b", "palladium"),
-            # Industrial metals
-            (r"\bcopper\s+(?:price|futures?)\b", "copper"),
-            (r"\baluminum\b", "aluminum"),
-            (r"\bzinc\b", "zinc"),
-            (r"\bnickel\b", "nickel"),
-            (r"\biron\s+ore\b", "iron ore"),
-            (r"\bsteel\s+(?:price|futures?)\b", "steel"),
-            # Agricultural commodities
-            (r"\bwheat\s+(?:price|futures?)\b", "wheat"),
-            (r"\bcorn\s+(?:price|futures?)\b", "corn"),
-            (r"\bsoybean\b", "soybean"),
-            (r"\bcoffee\s+(?:price|futures?)\b", "coffee"),
-            (r"\bcocoa\s+(?:price|futures?)\b", "cocoa"),
-            (r"\bsugar\s+(?:price|futures?)\b", "sugar"),
-            (r"\bcotton\s+(?:price|futures?)\b", "cotton"),
-            (r"\blumber\s+(?:price|futures?)\b", "lumber"),
-            # Stocks
-            (r"\bstock\s+(?:price|market)\b", "stock"),
-            (r"\bshare\s+(?:price|value)\b", "share price"),
-            (r"\bequity\s+(?:market|prices?)\b", "equity"),
-            (r"\bmarket\s+cap(?:italization)?\b", "market cap"),
-            (r"\bearnings\s+(?:per\s+share|report)\b", "earnings"),
-            (r"\bdividend\b", "dividend"),
-            (r"\bipo\b", "IPO"),
-            (r"\bstock\s+split\b", "stock split"),
-            (r"\btrading\s+(?:volume|session)\b", "trading"),
-            # Indices
-            (r"\bnasdaq\b", "NASDAQ"),
-            (r"\bdow\s+jones\b", "Dow Jones"),
-            (r"\bs&p\s*500\b", "S&P 500"),
-            (r"\bftse\s*(?:100|250)?\b", "FTSE"),
-            (r"\bdax\b", "DAX"),
-            (r"\bnikkei\b", "Nikkei"),
-            (r"\bhang\s+seng\b", "Hang Seng"),
-            (r"\bstoxx\b", "STOXX"),
-            # Forex
-            (r"\bforex\b", "forex"),
-            (r"\bexchange\s+rate\b", "exchange rate"),
-            (r"\bcurrency\s+(?:market|pair|exchange)\b", "currency"),
-            (r"\bdollar\s+(?:to|vs|against|index)\b", "dollar"),
-            (r"\beuro\s+(?:to|vs|against)\b", "euro"),
-            (r"\bpound\s+(?:to|vs|against|sterling)\b", "pound"),
-            (r"\byen\s+(?:to|vs|against)\b", "yen"),
-            (r"\byuan\b", "yuan"),
-            (r"\brenminbi\b", "renminbi"),
-            # Crypto
-            (r"\bbitcoin\b", "bitcoin"),
-            (r"\bethereum\b", "ethereum"),
-            (r"\bcrypto(?:currency|currencies)?\b", "crypto"),
-            (r"\bblockchain\b", "blockchain"),
-            (r"\baltcoin\b", "altcoin"),
-            (r"\bdefi\b", "DeFi"),
-            (r"\bnft\b", "NFT"),
-            (r"\bdogecoin\b", "dogecoin"),
-            (r"\bripple\b", "ripple"),
-            (r"\blitecoin\b", "litecoin"),
         ],
         # ============================================================
         # FRED - US economic indicators and statistics
