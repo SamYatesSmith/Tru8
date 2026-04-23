@@ -236,7 +236,7 @@ export default function NewCheckPage() {
       });
 
       if (result?.checkId) {
-        window.location.href = `/dashboard/check/${result.checkId}`;
+        window.location.href = `/dashboard/check/${result.checkId}?fresh=true`;
       }
     } catch (err: any) {
       if (err.message?.includes('403') || err.message?.includes('closed beta') || err.message?.includes('BETA_ACCESS_REQUIRED')) {
