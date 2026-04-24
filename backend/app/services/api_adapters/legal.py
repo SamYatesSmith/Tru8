@@ -93,7 +93,20 @@ class GovUKAdapter(GovernmentAPIClient):
             try:
                 title = item.get("title", "GOV.UK Content")
                 description = item.get("description", "")
-                url = f"https://www.gov.uk{item.get('link', '')}"
+                # NF-10: GOV.UK search API sometimes returns an absolute URL in
+                # `link` (e.g. pointing to legislation.gov.uk when the result
+                # is an external cross-reference). Prepending the base URL
+                # unconditionally produced malformed URLs like
+                # "https://www.gov.ukhttps://www.legislation.gov.uk/",
+                # which urlparse mangled into domain "www.gov.ukhttps:" in
+                # evidence analytics. Guard by checking scheme first — same
+                # pattern UK Legislation's _transform_response uses at
+                # line ~651.
+                link = item.get("link", "")
+                if link.startswith(("http://", "https://")):
+                    url = link
+                else:
+                    url = f"https://www.gov.uk{link}"
 
                 snippet = description[:300] if description else title
 

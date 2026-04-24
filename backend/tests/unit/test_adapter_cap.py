@@ -45,6 +45,17 @@ class TestGetAdapterCapForDomain:
 
         assert get_adapter_cap_for_domain("Finance") == 4
 
+    def test_law_has_raised_cap(self):
+        """SC-17: Law = 4 — observed on TRU-A0C5-05DB (Data Protection Act 2018).
+        UK Law claims have four genuine primary specialists: UK Parliament Bills,
+        UK Parliament Hansard, GOV.UK Content API, Companies House. At cap=3
+        (DEFAULT) one of them is cap-victimised on every UK Law claim — on
+        TRU-A0C5-05DB it was Bills, exactly the SC-15 specialist we built.
+        Same class of bug as SC-02 Climate/Finance."""
+        from app.pipeline.retrieve import get_adapter_cap_for_domain
+
+        assert get_adapter_cap_for_domain("Law") == 4
+
     def test_unknown_domain_falls_back_to_default(self):
         """Any domain not explicitly listed uses the DEFAULT cap (3)."""
         from app.pipeline.retrieve import get_adapter_cap_for_domain

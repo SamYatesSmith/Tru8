@@ -209,6 +209,65 @@ class TestGovUKAdapter:
         assert result[0]["external_source_provider"] == "GOV.UK Content API"
         assert "gov.uk" in result[0]["url"]
 
+    def test_nf10_absolute_link_not_prepended_with_base_url(self):
+        """NF-10: GOV.UK search API sometimes returns an absolute URL in the
+        `link` field (e.g. pointing to legislation.gov.uk as a cross-reference).
+        Prepending `https://www.gov.uk` unconditionally produced malformed URLs
+        like `https://www.gov.ukhttps://www.legislation.gov.uk/` that urlparse
+        then mangled into domain `www.gov.ukhttps:`.
+
+        Observed on TRU-A0C5-05DB (Data Protection Act 2018 check): GOV.UK API
+        returned Legislation.gov.uk as result[0] with an absolute `link` field.
+        """
+        adapter = GovUKAdapter()
+
+        mock_response = {
+            "results": [
+                {
+                    "title": "Legislation.gov.uk",
+                    "description": "UK statutory instruments",
+                    "link": "https://www.legislation.gov.uk/",
+                    "public_timestamp": "2024-03-15T10:00:00Z",
+                },
+                {
+                    "title": "Relative-link guidance",
+                    "description": "A guidance page",
+                    "link": "/guidance/data-protection",
+                    "public_timestamp": "2024-03-15T10:00:00Z",
+                },
+            ]
+        }
+
+        result = adapter._transform_response(mock_response)
+
+        assert len(result) == 2
+
+        # Absolute link: must be used as-is, NOT re-prefixed.
+        assert result[0]["url"] == "https://www.legislation.gov.uk/"
+        assert "gov.ukhttps" not in result[0]["url"]
+        assert not result[0]["url"].startswith("https://www.gov.ukhttps")
+
+        # Relative link: must get the standard base-URL prefix.
+        assert result[1]["url"] == "https://www.gov.uk/guidance/data-protection"
+
+    def test_nf10_link_protocol_variants_handled(self):
+        """NF-10: both http:// and https:// absolute links must pass through
+        unchanged. Guard on the scheme, not a specific protocol."""
+        adapter = GovUKAdapter()
+
+        for absolute in [
+            "http://example.com/page",
+            "https://www.example.com/page",
+            "https://external.gov.uk/resource",
+        ]:
+            result = adapter._transform_response(
+                {"results": [{"title": "x", "description": "x", "link": absolute}]}
+            )
+            assert result[0]["url"] == absolute, (
+                f"Absolute link {absolute!r} must pass through unchanged; "
+                f"got {result[0]['url']!r}"
+            )
+
 
 class TestHansardAdapter:
     """Test suite for UK Parliament Hansard adapter."""
