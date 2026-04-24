@@ -348,18 +348,24 @@ class TestLegislationGovUKAdapter:
         assert "legislation.gov.uk" in adapter.base_url
         assert adapter.cache_ttl == 86400  # 1 day
 
-    def test_is_relevant_for_domain(self):
-        """Test UK Legislation domain relevance."""
+    def test_is_relevant_for_domain_sc05_disabled(self):
+        """SC-05: UK Legislation is temporarily disabled because The National
+        Archives are returning HTTP 437 to every request from both local dev
+        and Railway IPs. is_relevant_for_domain() returns False for ALL
+        inputs until access is restored.
+
+        When the origin is reachable again, the adapter should be restored to:
+            return domain == "Law" and jurisdiction in ["UK", "Global"]
+        and this test should revert to the pre-SC-05 shape below.
+        """
         adapter = LegislationGovUKAdapter()
 
-        # Should be relevant for Law + UK/Global
-        assert adapter.is_relevant_for_domain("Law", "UK") == True
-        assert adapter.is_relevant_for_domain("Law", "Global") == True
-
-        # Should not be relevant for other domains or US jurisdiction
-        assert adapter.is_relevant_for_domain("Law", "US") == False
-        assert adapter.is_relevant_for_domain("Politics", "UK") == False
-        assert adapter.is_relevant_for_domain("Finance", "UK") == False
+        # SC-05 state: every combination returns False
+        assert adapter.is_relevant_for_domain("Law", "UK") is False
+        assert adapter.is_relevant_for_domain("Law", "Global") is False
+        assert adapter.is_relevant_for_domain("Law", "US") is False
+        assert adapter.is_relevant_for_domain("Politics", "UK") is False
+        assert adapter.is_relevant_for_domain("Finance", "UK") is False
 
     def test_transform_response(self):
         """Test UK Legislation XML response transformation."""

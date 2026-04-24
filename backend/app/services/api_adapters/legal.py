@@ -496,8 +496,29 @@ class LegislationGovUKAdapter(GovernmentAPIClient):
         self.headers["Accept"] = "application/atom+xml"
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """UK Legislation covers Law for UK and Global."""
-        return domain == "Law" and jurisdiction in ["UK", "Global"]
+        """UK Legislation — temporarily disabled (SC-05).
+
+        The National Archives are returning HTTP 437 to every request
+        from both local dev IPs and Railway production IPs as of
+        2026-04-24. The error body is a bespoke "Dear Customer, please
+        contact Legislation@nationalarchives.gov.uk" page served via
+        CloudFront — this is a deliberate IP block, not a UA or path
+        issue (verified across 5 UAs and 7 endpoints, all 437).
+
+        Returning False here prevents the adapter from being selected,
+        which avoids wasting 20s per UK Law claim (2 attempts × 10s)
+        on guaranteed 437 responses. The XML parsing code and custom
+        _make_request override are preserved — they work fine when
+        the origin is reachable.
+
+        When access is restored, revert this method to:
+            return domain == "Law" and jurisdiction in ["UK", "Global"]
+
+        Parallel work: SC-15 tracks a fallback UK Parliament Bills API
+        adapter to provide UK Law coverage independently of
+        legislation.gov.uk.
+        """
+        return False
 
     def _make_request(
         self,
