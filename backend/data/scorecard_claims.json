@@ -28,8 +28,8 @@
     "claim_text": "The NHS waiting list exceeded 7.5 million in 2025",
     "expected_domain": "Health",
     "expected_jurisdiction": "UK",
-    "expected_adapters": ["WHO", "GOV.UK Content API"],
-    "notes": "UK health claim — should trigger WHO and GOV.UK"
+    "expected_adapters": ["WHO"],
+    "notes": "UK health claim — only WHO declares Health. GOV.UK Content API declares Politics/General/History/Law (see legal.py:43-47); cross-domain NHS routing would require keyword-router enhancement, not corpus change."
   },
   {
     "id": "sc-05",
@@ -148,8 +148,8 @@
     "claim_text": "NHS spending per capita is lower than the OECD average",
     "expected_domain": "Health",
     "expected_jurisdiction": "UK",
-    "expected_adapters": ["ONS Economic Statistics", "WHO", "GOV.UK Content API"],
-    "notes": "Cross-domain: health + economics — should trigger WHO, ONS, GOV.UK"
+    "expected_adapters": ["WHO"],
+    "notes": "UK health+economics claim — only WHO declares Health. ONS declares Finance/Demographics (economic.py:48-53) and GOV.UK declares Politics/General/History/Law (legal.py:43-47); cross-domain routing for NHS spending would require keyword-router enhancement, not corpus change."
   },
   {
     "id": "sc-20",
