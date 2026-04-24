@@ -128,6 +128,52 @@ class TestLibraryOfCongressAdapter:
         assert adapter._transform_response({}) == []
         assert adapter._transform_response([]) == []
 
+    def test_sc04_timeout_is_10s(self):
+        """SC-04: timeout bumped from 5s to 10s to accommodate Chronicling America's
+        legitimate 8s latency under at=results. 5s produced 100% timeout."""
+        adapter = LibraryOfCongressAdapter()
+        assert adapter.timeout == 10, (
+            f"SC-04 regression: timeout is {adapter.timeout}s, expected 10s. "
+            f"Lowering this below 10s risks reintroducing 100% Chronicling America timeouts."
+        )
+
+    def test_sc04_collections_drops_narrow_format_filter(self):
+        """SC-04: _search_loc_collections must NOT pass fa=original-format:book|... .
+        That filter returned 0 results for common history queries (e.g. Marshall Plan)
+        because it excluded LoC's curated web exhibit pages, which are primary sources.
+        """
+        import inspect
+
+        source = inspect.getsource(LibraryOfCongressAdapter._search_loc_collections)
+        # Match the params-dict entry specifically, not the comment explaining why it was dropped
+        assert '"fa": "original-format' not in source, (
+            "SC-04 regression: _search_loc_collections reintroduced the narrow "
+            "format filter in the params dict. This excluded LoC's best curated "
+            "content (web exhibit pages) and returned 0 results for Marshall "
+            "Plan and similar claims."
+        )
+
+    def test_sc04_both_searches_use_at_results_trim(self):
+        """SC-04: both LoC search methods must pass at=results to trim payload.
+        Raw response is 1.8MB per 5 results; at=results cuts to ~22KB (99% smaller,
+        33% faster). Without this trim Chronicling America exceeds the 10s timeout."""
+        import inspect
+
+        collections_source = inspect.getsource(
+            LibraryOfCongressAdapter._search_loc_collections
+        )
+        chronicling_source = inspect.getsource(
+            LibraryOfCongressAdapter._search_chronicling_america
+        )
+        assert '"at": "results"' in collections_source, (
+            "SC-04 regression: _search_loc_collections dropped at=results param. "
+            "Response payload will balloon to ~1.8MB; pipeline latency increases."
+        )
+        assert '"at": "results"' in chronicling_source, (
+            "SC-04 regression: _search_chronicling_america dropped at=results param. "
+            "Chronicling America will exceed the 10s adapter timeout and fail 100%."
+        )
+
 
 class TestInternetArchiveAdapter:
     """Test suite for Internet Archive adapter."""

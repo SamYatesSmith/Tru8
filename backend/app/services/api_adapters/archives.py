@@ -208,9 +208,12 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
             base_url="https://www.loc.gov",
             api_key=None,
             cache_ttl=86400 * 7,  # 7 days (historical content is stable)
-            timeout=5,  # Reduced from 15s - was causing 48s total with retries, exceeding 45s claim timeout
+            # SC-04: 10s accommodates Chronicling America's legitimate 8s latency
+            # under the at=results trim (was 5s, producing 100% timeout). Budget:
+            # 2 attempts × 10s × 2 searches = 40s ceiling, under 45s claim budget.
+            timeout=10,
             max_results=max_results,
-            max_retries=2,  # Reduced from 3 - total now: 5 + 1 + 5 = 11s max vs previous 48s
+            max_retries=2,
             priority_tier=2,  # Cross-domain academic/research
         )
         self.headers["User-Agent"] = (
@@ -254,11 +257,16 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
         evidence = []
 
         try:
+            # SC-04: Dropped narrow format filter (fa=original-format:book|manuscript|newspaper).
+            # The filter excluded LoC's best curated content — web exhibit pages like
+            # /exhibits/marshall/ which are primary-tier for topics like the Marshall Plan.
+            # Relevance scoring downstream decides which results address the claim.
+            # Added at=results to trim response payload (was 1.8MB for 5 results → now 22KB).
             params = {
                 "q": query,
                 "fo": "json",
                 "c": 5,  # Limit results
-                "fa": "original-format:book|original-format:manuscript|original-format:newspaper",
+                "at": "results",
             }
 
             response = self._make_request("/search/", params=params)
@@ -329,11 +337,14 @@ class LibraryOfCongressAdapter(GovernmentAPIClient):
         try:
             # Use LOC search API with Chronicling America filter
             # (old chroniclingamerica.loc.gov API is deprecated)
+            # SC-04: at=results trims 1.8MB → 22KB, 12s → 8s. Needed to fit
+            # under the adapter's 10s timeout.
             params = {
                 "q": query,
                 "fo": "json",
                 "fa": "partof:chronicling america",
                 "c": 5,
+                "at": "results",
             }
 
             response = self._make_request("/search/", params=params)
