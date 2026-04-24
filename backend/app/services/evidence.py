@@ -89,6 +89,24 @@ class EvidenceExtractor:
         r"misinformation.*review",  # Academic journals about misinformation
     ]
 
+    # SC-11: Authoritative canonical-source TLDs that bypass the runtime blocklist.
+    # The tracker (domain_status_tracker.py) is "one-time collection" with no TTL,
+    # so a single stray 403 permanently excludes the domain. That has silently
+    # blocklisted primary-tier public sources (bls.gov, congress.gov, sec.gov,
+    # pmc.ncbi.nlm.nih.gov, law.stanford.edu, imperial.ac.uk, etc.). These TLDs
+    # represent canonical government + academic sources where a stale 403 must
+    # not override the platform's "no hidden curation" invariant.
+    AUTHORITATIVE_TLDS = (
+        ".gov",  # US federal + any *.gov (bls.gov, sec.gov, congress.gov, nih.gov)
+        ".gov.uk",  # UK government (local.gov.uk, data.gov.uk)
+        ".gov.au",  # Australian government
+        ".gov.ca",  # Canadian government
+        ".edu",  # US academic (law.stanford.edu, mitpress.mit.edu)
+        ".ac.uk",  # UK academic (imperial.ac.uk, lshtm.ac.uk)
+        ".int",  # International organisations (who.int, un.int)
+        ".mil",  # Military public information
+    )
+
     def __init__(self):
         self.search_service = SearchService()
         self.timeout = getattr(settings, "URL_FETCH_TIMEOUT", 8)
@@ -147,6 +165,19 @@ class EvidenceExtractor:
                     return True
 
         return False
+
+    def _is_authoritative_tld(self, domain: str) -> bool:
+        """SC-11: True if domain ends with an AUTHORITATIVE_TLDS entry.
+
+        Such domains bypass the runtime blocklist — a stale 403 from two months
+        ago must not permanently exclude canonical government + academic sources.
+        """
+        if not domain:
+            return False
+        d = domain.lower().strip()
+        if d.startswith("www."):
+            d = d[4:]
+        return any(d.endswith(tld) for tld in self.AUTHORITATIVE_TLDS)
 
     def _init_blocked_domains(self) -> None:
         """Initialize blocked domains from tracker.
@@ -362,8 +393,14 @@ class EvidenceExtractor:
                 domain = extract_domain(search_result.url, fallback="unknown")
 
                 if any(blocked in domain.lower() for blocked in self.blocked_domains):
-                    logger.info(f"⛔ Skipping blocked domain: {domain}")
-                    return None
+                    if self._is_authoritative_tld(domain):
+                        logger.info(
+                            f"[ALLOWLIST BYPASS] {domain} — authoritative TLD "
+                            f"overrides stale runtime blocklist (SC-11)"
+                        )
+                    else:
+                        logger.info(f"⛔ Skipping blocked domain: {domain}")
+                        return None
 
                 async with httpx.AsyncClient(
                     timeout=self.timeout, follow_redirects=True
