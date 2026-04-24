@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 # ========== GBIF ADAPTER (Global Biodiversity Information Facility) ==========
 
+
 class GBIFAdapter(GovernmentAPIClient):
     """
     GBIF (Global Biodiversity Information Facility) API Adapter.
@@ -37,14 +38,119 @@ class GBIFAdapter(GovernmentAPIClient):
             api_key=None,  # No API key required
             cache_ttl=86400 * 7,  # 7 days (species data is stable)
             timeout=15,
-            max_results=10
+            max_results=10,
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """GBIF covers Animals domain globally."""
         return domain == "Animals"
 
-    def search(self, query: str, domain: str, jurisdiction: str, entities: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    # SC-06: GBIF's species search expects short common or scientific names
+    # (e.g. "right whale", "Eubalaena glacialis"), not full claim sentences.
+    # Passing the full claim returned 0 results on every home-turf query
+    # in the 2026-04-23 scorecard. These boundary words terminate the
+    # "species-name prefix" of a typical claim so we can feed a clean
+    # species phrase into the API.
+    _SPECIES_QUERY_STOPWORDS = frozenset({"the", "a", "an"})
+    _SPECIES_QUERY_BOUNDARY_WORDS = frozenset(
+        {
+            # Copula / auxiliary verbs
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "being",
+            "has",
+            "have",
+            "had",
+            "become",
+            "became",
+            "becomes",
+            # Population/trend verbs
+            "fell",
+            "rose",
+            "declined",
+            "grew",
+            "dropped",
+            "increased",
+            "decreased",
+            "exceeded",
+            "reached",
+            # Population nouns
+            "population",
+            "populations",
+            "numbers",
+            "count",
+            "counts",
+            # Biological activity verbs
+            "breed",
+            "breeds",
+            "breeding",
+            "bred",
+            "feed",
+            "feeds",
+            "feeding",
+            "fed",
+            "hunt",
+            "hunts",
+            "hunting",
+            "hunted",
+            "live",
+            "lives",
+            "living",
+            "lived",
+            "inhabit",
+            "inhabits",
+            "inhabiting",
+            "inhabited",
+            "migrate",
+            "migrates",
+            "migrating",
+            "migrated",
+            "nest",
+            "nests",
+            "nesting",
+            "nested",
+            "graze",
+            "grazes",
+            "grazing",
+            "grazed",
+        }
+    )
+    _SPECIES_QUERY_MAX_TOKENS = 5
+
+    def _extract_species_query(self, query: str) -> str:
+        """SC-06: reduce a claim sentence to a likely species name phrase.
+
+        GBIF's /species/search returns 0 on long sentences (verified live
+        2026-04-24). This trims leading articles, stops at the first
+        copula/population/biological verb, and caps at 5 tokens. Preserves
+        multi-word species names like "North Atlantic right whale" while
+        dropping population/trend tails like "population fell below 350".
+        Returns the original query unchanged if trimming would produce
+        an empty string.
+        """
+        words = query.split()
+        while words and words[0].lower() in self._SPECIES_QUERY_STOPWORDS:
+            words.pop(0)
+        trimmed: List[str] = []
+        for w in words:
+            if w.lower().rstrip(".,;:!?") in self._SPECIES_QUERY_BOUNDARY_WORDS:
+                break
+            trimmed.append(w)
+            if len(trimmed) >= self._SPECIES_QUERY_MAX_TOKENS:
+                break
+        return " ".join(trimmed).strip() or query
+
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Search GBIF for species and biodiversity data.
 
@@ -64,8 +170,13 @@ class GBIFAdapter(GovernmentAPIClient):
         evidence = []
 
         try:
-            # Search for species matching the query
-            species_evidence = self._search_species(query)
+            # SC-06: try a species-name-focused query first, fall back to
+            # the full claim if trimming produced no results. The trimmed
+            # query is what GBIF's /species/search is actually shaped for.
+            species_query = self._extract_species_query(query)
+            species_evidence = self._search_species(species_query)
+            if not species_evidence and species_query != query:
+                species_evidence = self._search_species(query)
             evidence.extend(species_evidence)
 
             # Search for occurrence data if we have a species name
@@ -75,7 +186,7 @@ class GBIFAdapter(GovernmentAPIClient):
                     occurrence_evidence = self._get_occurrence_data(species_key)
                     evidence.extend(occurrence_evidence)
 
-            return evidence[:self.max_results]
+            return evidence[: self.max_results]
 
         except Exception as e:
             logger.error(f"GBIF search failed for '{query}': {e}")
@@ -112,8 +223,12 @@ class GBIFAdapter(GovernmentAPIClient):
                 status = species.get("taxonomicStatus", "")
 
                 # Build taxonomy string
-                taxonomy_parts = [p for p in [kingdom, phylum, class_name, order, family] if p]
-                taxonomy = " > ".join(taxonomy_parts) if taxonomy_parts else "Unknown taxonomy"
+                taxonomy_parts = [
+                    p for p in [kingdom, phylum, class_name, order, family] if p
+                ]
+                taxonomy = (
+                    " > ".join(taxonomy_parts) if taxonomy_parts else "Unknown taxonomy"
+                )
 
                 title = common_name if common_name else scientific_name
                 if common_name and scientific_name:
@@ -124,20 +239,26 @@ class GBIFAdapter(GovernmentAPIClient):
                     snippet += f"Taxonomic status: {status}. "
                 snippet += f"Data from GBIF - Global Biodiversity Information Facility."
 
-                evidence.append(self._create_evidence_dict(
-                    title=f"Species: {title}",
-                    snippet=snippet,
-                    url=f"https://www.gbif.org/species/{species_key}" if species_key else "https://www.gbif.org",
-                    source_date=None,
-                    metadata={
-                        "api_source": "GBIF",
-                        "data_type": "species_taxonomy",
-                        "species_key": species_key,
-                        "scientific_name": scientific_name,
-                        "kingdom": kingdom,
-                        "family": family
-                    }
-                ))
+                evidence.append(
+                    self._create_evidence_dict(
+                        title=f"Species: {title}",
+                        snippet=snippet,
+                        url=(
+                            f"https://www.gbif.org/species/{species_key}"
+                            if species_key
+                            else "https://www.gbif.org"
+                        ),
+                        source_date=None,
+                        metadata={
+                            "api_source": "GBIF",
+                            "data_type": "species_taxonomy",
+                            "species_key": species_key,
+                            "scientific_name": scientific_name,
+                            "kingdom": kingdom,
+                            "family": family,
+                        },
+                    )
+                )
 
             return evidence
 
@@ -171,24 +292,28 @@ class GBIFAdapter(GovernmentAPIClient):
             for facet in facets:
                 if facet.get("field") == "COUNTRY":
                     for item in facet.get("counts", [])[:5]:
-                        country_counts.append(f"{item.get('name', 'Unknown')}: {item.get('count', 0):,}")
+                        country_counts.append(
+                            f"{item.get('name', 'Unknown')}: {item.get('count', 0):,}"
+                        )
 
             snippet = f"Total occurrence records: {count:,}. "
             if country_counts:
                 snippet += f"Top countries: {', '.join(country_counts)}."
 
-            evidence.append(self._create_evidence_dict(
-                title=f"GBIF Occurrence Data ({count:,} records)",
-                snippet=snippet,
-                url=f"https://www.gbif.org/species/{species_key}",
-                source_date=None,
-                metadata={
-                    "api_source": "GBIF",
-                    "data_type": "occurrence_data",
-                    "species_key": species_key,
-                    "total_occurrences": count
-                }
-            ))
+            evidence.append(
+                self._create_evidence_dict(
+                    title=f"GBIF Occurrence Data ({count:,} records)",
+                    snippet=snippet,
+                    url=f"https://www.gbif.org/species/{species_key}",
+                    source_date=None,
+                    metadata={
+                        "api_source": "GBIF",
+                        "data_type": "occurrence_data",
+                        "species_key": species_key,
+                        "total_occurrences": count,
+                    },
+                )
+            )
 
             return evidence
 

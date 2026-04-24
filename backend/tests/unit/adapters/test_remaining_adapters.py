@@ -747,6 +747,90 @@ class TestGBIFAdapter:
         assert adapter._transform_response({}) == []
         assert adapter._transform_response(None) == []
 
+    def test_sc06_extract_species_query_strips_articles(self):
+        """SC-06: leading The/A/An are dropped because GBIF's species search
+        treats them as part of the name, tanking fuzzy-match scores."""
+        adapter = GBIFAdapter()
+        assert (
+            adapter._extract_species_query("The Sumatran tiger population")
+            == "Sumatran tiger"
+        )
+        assert (
+            adapter._extract_species_query("A Bengal tiger is endangered")
+            == "Bengal tiger"
+        )
+        assert (
+            adapter._extract_species_query("An Indian elephant grazes")
+            == "Indian elephant"
+        )
+
+    def test_sc06_extract_species_query_stops_at_population_verbs(self):
+        """SC-06: trim at the first population / trend verb so the query is
+        just the species-name prefix. Live-verified 2026-04-24 that GBIF's
+        /species/search returns 0 on full sentences but hits the target
+        species on trimmed phrases."""
+        adapter = GBIFAdapter()
+        assert (
+            adapter._extract_species_query(
+                "The North Atlantic right whale population fell below 350 individuals"
+            )
+            == "North Atlantic right whale"
+        )
+        assert (
+            adapter._extract_species_query(
+                "African elephants have declined by 30% since 1970"
+            )
+            == "African elephants"
+        )
+        assert (
+            adapter._extract_species_query("Bengal tigers are critically endangered")
+            == "Bengal tigers"
+        )
+
+    def test_sc06_extract_species_query_stops_at_biological_verbs(self):
+        """SC-06: trim at biological activity verbs (breed, hunt, migrate, etc.)."""
+        adapter = GBIFAdapter()
+        assert (
+            adapter._extract_species_query(
+                "Emperor penguins breed in Antarctica during winter"
+            )
+            == "Emperor penguins"
+        )
+        assert (
+            adapter._extract_species_query("Blue whales migrate thousands of miles")
+            == "Blue whales"
+        )
+
+    def test_sc06_extract_species_query_caps_at_five_tokens(self):
+        """SC-06: cap at 5 tokens — covers the longest common species names
+        (e.g. 'North Atlantic right whale' is 4 tokens) without drifting
+        into full-sentence territory."""
+        adapter = GBIFAdapter()
+        # 6-word species-ish phrase with no boundary word
+        long_phrase = "alpha beta gamma delta epsilon zeta"
+        assert (
+            adapter._extract_species_query(long_phrase)
+            == "alpha beta gamma delta epsilon"
+        )
+
+    def test_sc06_extract_species_query_falls_back_to_full_when_empty(self):
+        """SC-06: if trimming would produce an empty string (e.g. the claim
+        is only articles/boundary words), return the original query rather
+        than an empty string."""
+        adapter = GBIFAdapter()
+        assert adapter._extract_species_query("the a an") == "the a an"
+        # Boundary word only → trim produces empty → fall back to input
+        assert adapter._extract_species_query("population") == "population"
+
+    def test_sc06_extract_species_query_handles_punctuation(self):
+        """SC-06: boundary words followed by punctuation (comma, period) still
+        terminate trimming."""
+        adapter = GBIFAdapter()
+        assert (
+            adapter._extract_species_query("Red pandas are, by all accounts, shy")
+            == "Red pandas"
+        )
+
 
 # ========== YOUTUBE SEARCH ==========
 
