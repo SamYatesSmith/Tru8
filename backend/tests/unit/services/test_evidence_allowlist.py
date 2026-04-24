@@ -66,6 +66,18 @@ class TestAuthoritativeTLDAllowlist:
         assert extractor._is_authoritative_tld("imperial.ac.uk")
         assert extractor._is_authoritative_tld("lshtm.ac.uk")
 
+    def test_parliament_uk_tld_is_authoritative(self, extractor):
+        """NF-08: UK Parliament subdomains are primary legislative sources but
+        do NOT live on the .gov.uk suffix. Without this entry, bills,
+        Hansard and commonslibrary URLs get silently dropped from web-search
+        results even though they're exactly the canonical sources we built
+        SC-15 Bills and NF-06 Hansard adapters to surface.
+        Observed on TRU-DD26-16FE and TRU-E545-4080 (Equality Act 2010)."""
+        assert extractor._is_authoritative_tld("bills.parliament.uk")
+        assert extractor._is_authoritative_tld("hansard.parliament.uk")
+        assert extractor._is_authoritative_tld("commonslibrary.parliament.uk")
+        assert extractor._is_authoritative_tld("www.bills.parliament.uk")
+
     def test_deep_subdomain_still_matches(self, extractor):
         # The real-world motivator: PubMed Central is *.ncbi.nlm.nih.gov
         assert extractor._is_authoritative_tld("pmc.ncbi.nlm.nih.gov")
@@ -111,9 +123,10 @@ class TestAllowlistConstantShape:
 
     def test_allowlist_covers_known_silent_victims(self):
         """Concrete coverage check — these were the sources silently excluded
-        in the SC-11 investigation. Any regression that loses coverage of
-        these TLDs should blow up loudly."""
+        in the SC-11 and NF-08 investigations. Any regression that loses
+        coverage of these TLDs should blow up loudly."""
         tlds = EvidenceExtractor.AUTHORITATIVE_TLDS
         assert ".gov" in tlds
         assert ".edu" in tlds
         assert ".ac.uk" in tlds
+        assert ".parliament.uk" in tlds  # NF-08: Bills, Hansard, commonslibrary

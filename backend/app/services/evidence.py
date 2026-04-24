@@ -89,18 +89,22 @@ class EvidenceExtractor:
         r"misinformation.*review",  # Academic journals about misinformation
     ]
 
-    # SC-11: Authoritative canonical-source TLDs that bypass the runtime blocklist.
-    # The tracker (domain_status_tracker.py) is "one-time collection" with no TTL,
-    # so a single stray 403 permanently excludes the domain. That has silently
-    # blocklisted primary-tier public sources (bls.gov, congress.gov, sec.gov,
-    # pmc.ncbi.nlm.nih.gov, law.stanford.edu, imperial.ac.uk, etc.). These TLDs
-    # represent canonical government + academic sources where a stale 403 must
-    # not override the platform's "no hidden curation" invariant.
+    # SC-11 / NF-08: Authoritative canonical-source TLDs that bypass the runtime
+    # blocklist. The tracker (domain_status_tracker.py) is "one-time collection"
+    # with no TTL, so a single stray 403 permanently excludes the domain. That
+    # has silently blocklisted primary-tier public sources (bls.gov,
+    # congress.gov, sec.gov, pmc.ncbi.nlm.nih.gov, law.stanford.edu,
+    # imperial.ac.uk, bills.parliament.uk, hansard.parliament.uk, etc.).
+    # These TLDs represent canonical government + academic + parliamentary
+    # sources where a stale 403 must not override the platform's "no hidden
+    # curation" invariant.
     AUTHORITATIVE_TLDS = (
         ".gov",  # US federal + any *.gov (bls.gov, sec.gov, congress.gov, nih.gov)
         ".gov.uk",  # UK government (local.gov.uk, data.gov.uk)
         ".gov.au",  # Australian government
         ".gov.ca",  # Canadian government
+        ".parliament.uk",  # NF-08: UK Parliament (bills, hansard, commonslibrary —
+        # primary-source legislative records, not on the .gov.uk suffix)
         ".edu",  # US academic (law.stanford.edu, mitpress.mit.edu)
         ".ac.uk",  # UK academic (imperial.ac.uk, lshtm.ac.uk)
         ".int",  # International organisations (who.int, un.int)
