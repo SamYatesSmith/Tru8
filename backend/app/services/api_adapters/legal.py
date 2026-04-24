@@ -167,11 +167,11 @@ class HansardAdapter(GovernmentAPIClient):
         entities: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Search UK Parliament Hansard debates.
+        Search UK Parliament Hansard debates + contributions.
 
         Args:
             query: Search query
-            domain: Government or Law
+            domain: Politics or Law
             jurisdiction: UK
 
         Returns:
@@ -185,9 +185,13 @@ class HansardAdapter(GovernmentAPIClient):
         params = {"searchTerm": query, "take": self.max_results}
 
         try:
-            response = self._make_request("/search/debates.json", params=params)
+            # NF-06: /search.json (not /search/debates.json) returns Debates +
+            # Contributions side-by-side. Cross-matching yields topical debate
+            # metadata with real speech-text snippets. Response envelope has
+            # no "Response" wrapper — arrays are at the top level.
+            response = self._make_request("/search.json", params=params)
 
-            if not response or "Response" not in response:
+            if not response or "Debates" not in response:
                 logger.warning(f"Hansard returned empty response for: {query}")
                 return []
 
@@ -198,32 +202,71 @@ class HansardAdapter(GovernmentAPIClient):
             return []
 
     def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
-        """Transform Hansard API response to standardized evidence format."""
-        evidence_list = []
+        """Transform Hansard /search.json response to standardised evidence.
 
-        for item in raw_response.get("Response", {}).get("Results", []):
+        NF-06: Debates are topical (match by title), Contributions contain
+        actual speech text. Cross-match by DebateSectionExtId so topical
+        debates get real speech snippets; fall back to synthesised metadata
+        snippet if a debate has no matching contribution.
+        """
+        evidence_list: List[Dict[str, Any]] = []
+
+        # Index contributions by debate ID for snippet enrichment.
+        contributions_by_debate: Dict[str, List[Dict[str, Any]]] = {}
+        for c in raw_response.get("Contributions") or []:
+            did = c.get("DebateSectionExtId")
+            if did:
+                contributions_by_debate.setdefault(did, []).append(c)
+
+        for debate in raw_response.get("Debates") or []:
             try:
-                title = item.get("Title", "Parliamentary Debate")
-                excerpt = item.get("Excerpt", "")
-                url = item.get("Url", "https://hansard.parliament.uk/")
+                title = debate.get("Title") or "Parliamentary Debate"
+                ext_id = debate.get("DebateSectionExtId")
+                sitting_date_str = debate.get("SittingDate")
+                house = debate.get("House") or "Commons"
+                debate_section = debate.get("DebateSection")
 
-                snippet = excerpt[:300] if excerpt else title
-
-                # Parse date
-                date_str = item.get("Date")
                 source_date = None
-                if date_str:
+                date_short = ""
+                if sitting_date_str:
                     try:
                         source_date = datetime.fromisoformat(
-                            date_str.replace("Z", "+00:00")
+                            sitting_date_str.replace("Z", "+00:00")
                         )
+                        date_short = source_date.strftime("%Y-%m-%d")
                     except Exception:
                         pass
 
+                # Clickable URL for human follow-through to the debate page.
+                # The public UI blocks automated fetches but resolves for browsers.
+                if ext_id and date_short:
+                    url = (
+                        f"https://hansard.parliament.uk/{house}/{date_short}"
+                        f"/debates/{ext_id}/"
+                    )
+                else:
+                    url = "https://hansard.parliament.uk/"
+
+                # Prefer actual speech text; fall back to metadata-shaped snippet.
+                snippet = ""
+                for c in contributions_by_debate.get(ext_id, []):
+                    text = (
+                        c.get("ContributionText") or c.get("ContributionTextFull") or ""
+                    ).strip()
+                    if text:
+                        snippet = text[:300]
+                        break
+                if not snippet:
+                    snippet = (
+                        f"UK Parliament {house} debate on "
+                        f"{date_short or 'unknown date'}: {title}"
+                    )
+
                 metadata = {
                     "api_source": "UK Parliament Hansard",
-                    "debate_type": item.get("DebateType"),
-                    "member": item.get("Member"),
+                    "house": house,
+                    "debate_section": debate_section,
+                    "debate_ext_id": ext_id,
                 }
 
                 evidence = self._create_evidence_dict(
@@ -233,11 +276,10 @@ class HansardAdapter(GovernmentAPIClient):
                     source_date=source_date,
                     metadata=metadata,
                 )
-
                 evidence_list.append(evidence)
 
             except Exception as e:
-                logger.warning(f"Failed to parse Hansard item: {e}")
+                logger.warning(f"Failed to parse Hansard debate: {e}")
                 continue
 
         logger.info(f"Hansard returned {len(evidence_list)} evidence items")

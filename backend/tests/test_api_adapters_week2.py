@@ -234,30 +234,130 @@ class TestHansardAdapter:
         assert adapter.is_relevant_for_domain("Politics", "US") == False
 
     def test_transform_response(self):
-        """Test Hansard response transformation."""
+        """NF-06: Hansard /search.json response transformation.
+
+        Real API response shape:
+        - Top-level arrays (no "Response" wrapper): Debates, Contributions, ...
+        - Debate item fields: Title, SittingDate, House, DebateSection,
+          DebateSectionExtId, Rank
+        - Contribution item fields: ContributionText, ContributionTextFull,
+          DebateSectionExtId (cross-match key), MemberName, SittingDate, ...
+        """
         adapter = HansardAdapter()
 
         mock_response = {
-            "Response": {
-                "Results": [
-                    {
-                        "Title": "Immigration Bill: Second Reading",
-                        "Excerpt": "The Secretary of State spoke about...",
-                        "Url": "https://hansard.parliament.uk/debates/12345",
-                        "Date": "2024-03-15T14:30:00Z",
-                        "DebateType": "Commons",
-                        "Member": "The Prime Minister",
-                    }
-                ]
-            }
+            "Debates": [
+                {
+                    "Title": "Online Safety Act 2023: Repeal",
+                    "SittingDate": "2025-12-15T00:00:00",
+                    "House": "Commons",
+                    "DebateSection": "Westminster Hall",
+                    "DebateSectionExtId": "DA0F7CFE-CCED-4864-BCCF-160E0AF56F92",
+                    "Rank": 112,
+                },
+                {
+                    "Title": "Online Safety Act 2023 (Priority Offences)",
+                    "SittingDate": "2025-12-09T00:00:00",
+                    "House": "Lords",
+                    "DebateSection": "Lords Chamber",
+                    "DebateSectionExtId": "A6E27AC8-61B2-4946-BE31-225F1BD16252",
+                    "Rank": 112,
+                },
+            ],
+            "Contributions": [
+                {
+                    # Matches first debate by ExtId — should be picked up as snippet
+                    "DebateSectionExtId": "DA0F7CFE-CCED-4864-BCCF-160E0AF56F92",
+                    "ContributionText": (
+                        " The Online Safety Act 2023 introduced duties on "
+                        "platforms to assess and mitigate risks of harmful "
+                        "content accessible to children..."
+                    ),
+                    "ContributionTextFull": "The Online Safety Act 2023 ...",
+                    "MemberName": "Hon. Member",
+                    "SittingDate": "2025-12-15T00:00:00",
+                },
+                # Second debate has no matching contribution — tests fallback
+            ],
+            "TotalDebates": 2,
+            "TotalContributions": 1,
         }
 
         result = adapter._transform_response(mock_response)
 
-        assert len(result) == 1
-        assert "Immigration Bill" in result[0]["title"]
-        assert result[0]["external_source_provider"] == "UK Parliament Hansard"
-        assert "hansard.parliament.uk" in result[0]["url"]
+        assert len(result) == 2
+
+        # First result: snippet sourced from matching Contribution text
+        first = result[0]
+        assert "Online Safety Act 2023: Repeal" in first["title"]
+        assert "introduced duties on" in first["snippet"]
+        assert first["external_source_provider"] == "UK Parliament Hansard"
+        assert "hansard.parliament.uk" in first["url"]
+        assert "DA0F7CFE-CCED-4864-BCCF-160E0AF56F92" in first["url"]
+        assert "Commons" in first["url"]
+        assert "2025-12-15" in first["url"]
+        assert first["metadata"]["house"] == "Commons"
+        assert (
+            first["metadata"]["debate_ext_id"] == "DA0F7CFE-CCED-4864-BCCF-160E0AF56F92"
+        )
+
+        # Second result: no matching Contribution — falls back to synthesised snippet
+        second = result[1]
+        assert "Online Safety Act 2023 (Priority Offences)" in second["title"]
+        assert "UK Parliament Lords debate" in second["snippet"]
+        assert "2025-12-09" in second["snippet"]
+        assert second["metadata"]["house"] == "Lords"
+
+    def test_transform_response_handles_empty(self):
+        """NF-06: empty Debates list returns empty evidence (no crash)."""
+        adapter = HansardAdapter()
+        assert adapter._transform_response({"Debates": [], "Contributions": []}) == []
+        assert adapter._transform_response({}) == []
+
+    def test_nf06_uses_search_json_not_search_debates_json(self):
+        """NF-06 regression guard: adapter must call /search.json.
+
+        /search/debates.json returns debate headings only (no URL, no excerpt),
+        which produced empty evidence even when matching debates existed. The
+        /search.json endpoint returns Debates + Contributions together, enabling
+        snippet cross-matching. Reverting to /search/debates.json reintroduces
+        the silent-zero-results bug surfaced by prod check TRU-5767-018D.
+        """
+        import inspect
+
+        search_source = inspect.getsource(HansardAdapter.search)
+        # Match only the quoted string literal passed to _make_request, not
+        # any incidental mention in comments about what was fixed.
+        assert (
+            '"/search.json"' in search_source
+        ), "NF-06 regression: adapter must call /search.json for Debates+Contributions."
+        assert (
+            '"/search/debates.json"' not in search_source
+        ), "NF-06 regression: /search/debates.json returns no URL or excerpt; reverting breaks Hansard evidence."
+
+    def test_nf06_response_envelope_has_no_response_wrapper(self):
+        """NF-06 regression guard: adapter must read top-level Debates key.
+
+        The real Hansard API response has no "Response" wrapper around the
+        arrays. Reading response["Response"]["Results"] silently rejects
+        every real response and returns 0 items (the NF-06 root cause).
+        """
+        import inspect
+
+        transform_source = inspect.getsource(HansardAdapter._transform_response)
+        search_source = inspect.getsource(HansardAdapter.search)
+        combined = transform_source + search_source
+        # Must read the top-level Debates key
+        assert (
+            'get("Debates"' in transform_source or '"Debates"' in transform_source
+        ), "NF-06 regression: _transform_response must iterate the top-level Debates array."
+        # Must not reintroduce the phantom Response-wrapper access pattern.
+        # Target specific code shapes (dict-get or bracket access) so that
+        # documentation / comments mentioning the old 'Response' envelope
+        # don't trigger a false positive.
+        assert (
+            'get("Response"' not in combined and '["Response"]' not in combined
+        ), "NF-06 regression: Hansard responses have NO 'Response' wrapper. Reading response['Response']['Results'] returns 0 items on every query."
 
 
 class TestWikidataAdapter:
