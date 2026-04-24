@@ -486,3 +486,307 @@ class TestParseClassificationResponse:
 
         assert all(r is None for r in results)
         assert len(results) == 3
+
+
+# ============================================================
+# B5a: arXiv parody smell test
+# ============================================================
+
+
+class TestArxivSmellTest:
+    """B5a regression guards: arXiv parody detection + weak-signal demotion.
+
+    Acceptance criterion #4 of the release-readiness gate: "Zero parody/joke
+    sources classified as Primary". The K2-18b check surfaced the canonical
+    case — an April Fool's paper "Evidence for THC and CBD in the Atmosphere
+    of K2-18b" reached the user as Tier 1 / Academic.
+    """
+
+    @pytest.mark.unit
+    def test_thc_k218b_parody_paper_is_excluded(self):
+        """The canonical K2-18b April Fool's paper must be flagged for exclusion."""
+        from app.pipeline.evidence_classifier import _arxiv_smell_test
+
+        evidence = {
+            "title": "Evidence for THC and CBD in the Atmosphere of K2-18b",
+            "snippet": "We present spectroscopic evidence ...",
+            "url": "https://arxiv.org/abs/2304.00000",
+            "tier": "primary",
+            "evidence_type": "academic",
+        }
+
+        reason = _arxiv_smell_test(evidence)
+
+        assert reason is not None
+        assert "thc" in reason.lower()
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "marker",
+        [
+            "thc",
+            "cbd",
+            "tetrahydrocannabinol",
+            "cannabidiol",
+            "420 hours",
+            "april fool",
+            "april 1st",
+            "alien invasion",
+            "flat earth",
+        ],
+    )
+    def test_all_joke_markers_trigger_exclusion(self, marker):
+        """Every configured joke marker must trigger exclusion on an arXiv URL."""
+        from app.pipeline.evidence_classifier import _arxiv_smell_test
+
+        evidence = {
+            "title": f"A study involving {marker}",
+            "snippet": "Abstract content.",
+            "url": "https://arxiv.org/abs/2024.00000",
+        }
+        reason = _arxiv_smell_test(evidence)
+        assert reason is not None
+        assert marker in reason
+
+    @pytest.mark.unit
+    def test_non_arxiv_url_not_checked(self):
+        """The smell test only runs against arxiv.org URLs."""
+        from app.pipeline.evidence_classifier import _arxiv_smell_test
+
+        # Same joke marker in title, but not an arxiv URL — must NOT trigger
+        evidence = {
+            "title": "THC research at MIT",
+            "snippet": "A reputable biology study",
+            "url": "https://economics.mit.edu/papers/thc-study",
+        }
+        assert _arxiv_smell_test(evidence) is None
+
+    @pytest.mark.unit
+    def test_clean_arxiv_paper_passes_smell_test(self):
+        """A legitimate multi-author cited arXiv paper must not be flagged."""
+        from app.pipeline.evidence_classifier import _arxiv_smell_test
+
+        evidence = {
+            "title": "Dark matter detection constraints from neutron star mergers",
+            "snippet": "We derive new constraints on dark matter from GW170817.",
+            "url": "https://arxiv.org/abs/2301.12345",
+            "metadata": {
+                "authors": ["Smith, J.", "Chen, L.", "Patel, R."],
+                "citation_count": 47,
+            },
+        }
+
+        reason = _arxiv_smell_test(evidence)
+
+        assert reason is None
+        # Tier should not be mutated by the weak-signal path either
+        assert (
+            "classification_method" not in evidence
+            or evidence.get("classification_method") != "arxiv_unvetted_demotion"
+        )
+
+    @pytest.mark.unit
+    def test_single_author_zero_citation_demoted_to_commentary(self):
+        """Weak-signal preprint (single author, 0 citations) demoted to commentary/opinion."""
+        from app.pipeline.evidence_classifier import _arxiv_smell_test
+
+        evidence = {
+            "title": "Speculative framework for quantum gravity",
+            "snippet": "In this note we propose...",
+            "url": "https://arxiv.org/abs/2401.99999",
+            "tier": "primary",
+            "evidence_type": "academic",
+            "metadata": {"authors": ["Anon, A."], "citation_count": 0},
+        }
+
+        reason = _arxiv_smell_test(evidence)
+
+        # No exclusion (weak signal, not hard joke)
+        assert reason is None
+        # But tier/type demoted in place
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "opinion"
+        assert evidence["classification_method"] == "arxiv_unvetted_demotion"
+
+    @pytest.mark.unit
+    def test_multi_author_zero_citation_not_demoted(self):
+        """Multi-author preprint with 0 citations is too common to demote —
+        many legitimate recent papers have no citations yet."""
+        from app.pipeline.evidence_classifier import _arxiv_smell_test
+
+        evidence = {
+            "title": "Recent developments in protein folding",
+            "snippet": "We present new results...",
+            "url": "https://arxiv.org/abs/2405.00001",
+            "tier": "primary",
+            "evidence_type": "academic",
+            "metadata": {
+                "authors": ["Kim, S.", "Liu, X.", "Foster, M."],
+                "citation_count": 0,
+            },
+        }
+
+        _arxiv_smell_test(evidence)
+
+        # Should NOT be demoted — multi-author
+        assert evidence["tier"] == "primary"
+        assert evidence["evidence_type"] == "academic"
+
+
+# ============================================================
+# B5b: Quality floor for tabloid / social / blog platforms
+# ============================================================
+
+
+class TestQualityFloor:
+    """B5b regression guards: force tabloid / social / blog to commentary/opinion
+    regardless of LLM or URL-identity override verdict. Acceptance criterion #4:
+    "zero un-tagged social-media at Tier 1 or 2".
+    """
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "domain",
+        [
+            "dailystar.co.uk",
+            "thesun.co.uk",
+            "mirror.co.uk",
+            "nypost.com",
+            "dailymail.co.uk",
+            "thedailybeast.com",
+            "rt.com",
+            "sputniknews.com",
+        ],
+    )
+    def test_tabloid_domain_floored_to_commentary_opinion(self, domain):
+        """Tabloid / speculative outlets must end at commentary/opinion regardless
+        of whether the LLM called them reporting/news_reporting first."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        # Start at a generous LLM verdict — the floor should override it
+        evidence = {
+            "url": f"https://www.{domain}/article/123",
+            "source": domain,
+            "title": "Some headline",
+            "tier": "reporting",
+            "evidence_type": "news_reporting",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor == "tabloid_floor"
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "opinion"
+        assert evidence["classification_method"] == "tabloid_floor"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "url,domain_label",
+        [
+            ("https://www.tiktok.com/@user/video/123", "tiktok"),
+            ("https://twitter.com/user/status/123", "twitter"),
+            ("https://x.com/user/status/123", "x.com"),
+            ("https://www.facebook.com/post/123", "facebook"),
+            ("https://www.instagram.com/p/abc/", "instagram"),
+            ("https://www.reddit.com/r/sub/post/", "reddit"),
+        ],
+    )
+    def test_social_media_floored_when_non_commentary(self, url, domain_label):
+        """Social-media URLs that slipped through the LLM as reporting/analysis
+        must be demoted to commentary/opinion."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": url,
+            "source": domain_label,
+            "title": "A viral post",
+            "tier": "reporting",
+            "evidence_type": "news_reporting",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor == "social_media_floor"
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "opinion"
+
+    @pytest.mark.unit
+    def test_social_media_already_commentary_is_no_op(self):
+        """If heuristic already demoted a social item to commentary, the floor
+        does not re-write it (idempotent). This is important for log clarity —
+        we don't want a stream of [QUALITY FLOOR] events on items that were
+        already correct."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://twitter.com/user/status/123",
+            "source": "twitter.com",
+            "title": "A post",
+            "tier": "commentary",
+            "evidence_type": "opinion",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor is None
+        assert evidence["tier"] == "commentary"
+
+    @pytest.mark.unit
+    def test_blog_platform_floored(self):
+        """Medium / Substack / similar blog platforms demoted to commentary/opinion
+        if the LLM mis-classified them."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://medium.com/@user/a-piece-123",
+            "source": "medium.com",
+            "title": "My thoughts on X",
+            "tier": "reporting",
+            "evidence_type": "analysis",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor == "blog_platform_floor"
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "opinion"
+
+    @pytest.mark.unit
+    def test_legitimate_news_source_unaffected(self):
+        """A BBC or Reuters URL must pass through unchanged — the floor only
+        demotes, never affects legitimate primary/reporting sources."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://www.bbc.co.uk/news/uk-12345",
+            "source": "bbc.co.uk",
+            "title": "Top story",
+            "tier": "reporting",
+            "evidence_type": "news_reporting",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor is None
+        # Unchanged
+        assert evidence["tier"] == "reporting"
+        assert evidence["evidence_type"] == "news_reporting"
+
+    @pytest.mark.unit
+    def test_gov_source_unaffected(self):
+        """Government URLs cannot be demoted by the floor — primary/official stands."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://www.legislation.gov.uk/ukpga/2023/50",
+            "source": "legislation.gov.uk",
+            "title": "Online Safety Act 2023",
+            "tier": "primary",
+            "evidence_type": "official_statement",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor is None
+        assert evidence["tier"] == "primary"
+        assert evidence["evidence_type"] == "official_statement"

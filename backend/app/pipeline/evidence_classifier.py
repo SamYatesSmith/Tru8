@@ -193,6 +193,34 @@ _ARCHIVE_SERVICES = re.compile(
     re.IGNORECASE,
 )
 
+# B5b: Tabloid / speculative outlets that currently slip into wire-service
+# classification but publish opinion and speculation as often as reporting.
+# The quality floor forces these to commentary/opinion regardless of the
+# LLM's content-based verdict. Aligned with "classify, don't score" — we're
+# labelling honestly, not excluding.
+_TABLOID_DOMAINS = re.compile(
+    r"dailystar\.co\.uk|thesun\.co\.uk|mirror\.co\.uk"
+    r"|nypost\.com|dailymail\.co\.uk|thedailybeast\.com"
+    r"|rt\.com|sputniknews\.com",
+    re.IGNORECASE,
+)
+
+# B5a: Joke / parody markers in arXiv titles or snippets. Conservative —
+# only unambiguous signals. Catches cases like the K2-18b April Fool's
+# paper "Evidence for THC and CBD in the Atmosphere of K2-18b".
+_ARXIV_JOKE_MARKERS: Tuple[str, ...] = (
+    "thc",
+    "cbd",
+    "tetrahydrocannabinol",
+    "cannabidiol",
+    "420 hours",
+    "april fool",
+    "april 1st",
+    "april 1,",
+    "alien invasion",
+    "flat earth",
+)
+
 # Title-based markers for opinion content
 _TITLE_OPINION_MARKERS = re.compile(
     r"\bopinion\b|\bop-ed\b|\beditorial\b|\bcolumn\b"
@@ -329,6 +357,91 @@ def _high_confidence_override(evidence: Dict[str, Any]) -> Optional[Tuple[str, s
     return None  # Not high-confidence — defer to LLM
 
 
+def _arxiv_smell_test(evidence: Dict[str, Any]) -> Optional[str]:
+    """B5a: detect parody / unvetted preprints on arXiv.
+
+    arXiv is a preprint server with minimal vetting — satirical or joke
+    papers appear annually (e.g. the K2-18b April Fool's "THC and CBD"
+    paper). Without this check, the URL-identity override upgrades every
+    arxiv.org item to primary/academic regardless of content.
+
+    Returns an `exclusion_reason` string if hard joke markers are found —
+    the caller should set `receipt_status="excluded"` and surface the
+    receipt in the Librarian. For weak signals (single author, zero
+    citations, no peer review), mutates the evidence item in place to
+    demote to commentary/opinion and returns None.
+
+    Conservative: only known joke vocabulary triggers exclusion. False
+    positives here cost more than false negatives — a real paper
+    dropped by accident is a quality loss.
+    """
+    url = (evidence.get("url") or "").lower()
+    if "arxiv.org" not in url:
+        return None
+
+    title = (evidence.get("title") or "").lower()
+    snippet = (evidence.get("snippet") or "").lower()
+    text = f"{title} {snippet}"
+
+    for marker in _ARXIV_JOKE_MARKERS:
+        if marker in text:
+            return f"arxiv_parody_smell_test:{marker}"
+
+    # Weak-signal demotion: single-author + zero-citation arXiv items are
+    # unvetted and often speculative. Keep them in the evidence set but
+    # label honestly as commentary/opinion rather than primary/academic.
+    metadata = evidence.get("metadata") or {}
+    authors = metadata.get("authors") or []
+    citations = metadata.get("citation_count") or 0
+    if isinstance(authors, list) and len(authors) <= 1 and citations == 0:
+        evidence["tier"] = "commentary"
+        evidence["evidence_type"] = "opinion"
+        evidence["classification_method"] = "arxiv_unvetted_demotion"
+
+    return None
+
+
+def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
+    """B5b: force tabloid / social-media / blog items to commentary/opinion
+    regardless of the LLM or URL-identity override verdict.
+
+    The LLM can correctly read a tabloid's prose as "news-like" (since
+    tabloid writing imitates reporting style), and so misclassify Daily
+    Mail / Daily Star / Sun content as reporting/news_reporting. This
+    floor is a last-pass override: if the URL is in a known opinion /
+    social / speculation domain, label it honestly as commentary/opinion.
+
+    Aligned with fireside-doc principle "classify, don't score" — we're
+    labelling, not excluding. The item still appears in the evidence set.
+
+    Returns the floor name if applied, else None.
+    """
+    url = evidence.get("url", "") or ""
+    source = evidence.get("source", evidence.get("domain", "")) or ""
+
+    if _TABLOID_DOMAINS.search(url) or _TABLOID_DOMAINS.search(source):
+        evidence["tier"] = "commentary"
+        evidence["evidence_type"] = "opinion"
+        evidence["classification_method"] = "tabloid_floor"
+        return "tabloid_floor"
+
+    if _SOCIAL_MEDIA.search(url) or _SOCIAL_MEDIA.search(source):
+        if evidence.get("tier") != "commentary":
+            evidence["tier"] = "commentary"
+            evidence["evidence_type"] = "opinion"
+            evidence["classification_method"] = "social_media_floor"
+            return "social_media_floor"
+
+    if _BLOG_PLATFORMS.search(url) or _BLOG_PLATFORMS.search(source):
+        if evidence.get("tier") != "commentary":
+            evidence["tier"] = "commentary"
+            evidence["evidence_type"] = "opinion"
+            evidence["classification_method"] = "blog_platform_floor"
+            return "blog_platform_floor"
+
+    return None
+
+
 # ── Evidence Classifier ───────────────────────────────────────────────────
 
 
@@ -448,6 +561,36 @@ class EvidenceClassifier:
                 item["classification_method"] = "heuristic"
                 heuristic_count += 1
 
+        # B5a + B5b: post-classification quality pass.
+        # Runs AFTER the LLM + URL-identity override so it can correct mislabels.
+        # arXiv smell test runs first (may exclude); quality floor second
+        # (demotes tabloid / social / blog content to commentary/opinion).
+        arxiv_excluded_count = 0
+        arxiv_demoted_count = 0
+        quality_floor_count = 0
+        for item in evidence_items:
+            reason = _arxiv_smell_test(item)
+            if reason:
+                item["receipt_status"] = "excluded"
+                item["exclusion_reason"] = reason
+                arxiv_excluded_count += 1
+                logger.info(
+                    "[ARXIV SMELL] Excluded %s: %s",
+                    (item.get("url") or "")[:60],
+                    reason,
+                )
+            elif item.get("classification_method") == "arxiv_unvetted_demotion":
+                arxiv_demoted_count += 1
+
+            floor = _apply_quality_floor(item)
+            if floor:
+                quality_floor_count += 1
+                logger.info(
+                    "[QUALITY FLOOR] %s applied to %s",
+                    floor,
+                    (item.get("url") or "")[:60],
+                )
+
         # Log summary
         tier_counts = Counter(item.get("tier", "unknown") for item in evidence_items)
         type_counts = Counter(
@@ -456,11 +599,15 @@ class EvidenceClassifier:
 
         logger.info(
             "[EVIDENCE_CLASSIFIER] Classification complete: "
-            "%d LLM, %d heuristic, %d overrides. "
+            "%d LLM, %d heuristic, %d overrides, "
+            "%d arxiv excluded, %d arxiv demoted, %d quality floor. "
             "Tiers: %s. Types: %s",
             llm_count,
             heuristic_count,
             override_count,
+            arxiv_excluded_count,
+            arxiv_demoted_count,
+            quality_floor_count,
             dict(tier_counts),
             dict(type_counts),
         )
