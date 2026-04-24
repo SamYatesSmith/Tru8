@@ -619,8 +619,25 @@ async def score_evidence_batch(
     )
     total_n = len(all_evidence)
 
-    # Exclude score-1 items (off-topic) with receipt tracking
+    # Exclude score-1 items (off-topic) with receipt tracking.
+    #
+    # NF-07 bypass: items with external_source_provider set came from a
+    # registered API adapter (Bills, Hansard, PubMed, LoC, etc.). Their URL
+    # identity asserts primary-tier classification (see evidence_classifier
+    # _high_confidence_override, line ~311). When the adapter returns a
+    # synthesised-metadata snippet — e.g. "UK Parliament Bill, 2nd reading
+    # in Commons (last updated 2009-01-15). Title: Equality Bill" — the LLM
+    # scorer correctly judges that the snippet doesn't assert anything about
+    # the claim's content and scores it 1. But that's a judgement on snippet
+    # shape, not on source identity. Per fireside-doc principle "classify,
+    # don't score", URL identity from a canonical provider must not be
+    # overridden by snippet-based judgement.
+    # Observed on TRU-E545-4080 (Equality Act 2010): Bills adapter returned
+    # 5 topical bills, all scored 1 by snippet, all dropped. Final evidence
+    # contained zero bills/parliament URLs despite the adapter firing.
+    # The score is still annotated on the item for downstream ordering.
     excluded_total = 0
+    bypassed_total = 0
     excluded_items = []
     for claim_pos in list(evidence.keys()):
         if claim_pos.startswith("_"):
@@ -629,11 +646,17 @@ async def score_evidence_batch(
         kept = []
         for ev in ev_list:
             if ev.get("llm_relevance_score") == 1:
-                ev["receipt_status"] = "excluded"
-                ev["exclusion_reason"] = "irrelevant"
-                ev["_claim_position"] = int(claim_pos)
-                excluded_items.append(ev)
-                excluded_total += 1
+                provider = ev.get("external_source_provider")
+                if provider:
+                    ev["relevance_scorer_bypass"] = "api_adapter_canonical_source"
+                    bypassed_total += 1
+                    kept.append(ev)
+                else:
+                    ev["receipt_status"] = "excluded"
+                    ev["exclusion_reason"] = "irrelevant"
+                    ev["_claim_position"] = int(claim_pos)
+                    excluded_items.append(ev)
+                    excluded_total += 1
             else:
                 kept.append(ev)
         evidence[claim_pos] = kept
@@ -643,6 +666,8 @@ async def score_evidence_batch(
     kept_n = total_n - excluded_total
     logger.info(
         f"[LLM SCORER] Scored {scored_n}/{total_n} items, "
-        f"excluded {excluded_total} irrelevant (score=1), keeping {kept_n}"
+        f"excluded {excluded_total} irrelevant (score=1), "
+        f"bypassed {bypassed_total} API-adapter primary (NF-07), "
+        f"keeping {kept_n}"
     )
     return evidence
