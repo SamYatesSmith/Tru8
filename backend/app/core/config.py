@@ -380,7 +380,7 @@ class Settings(BaseSettings):
 
     # M-05: Jurisdiction-aware source routing
     JURISDICTION_ADAPTERS: str = Field(
-        '{"uk": ["ONS Economic Statistics", "UK Parliament Hansard", "GOV.UK Content API", "Companies House", "UK Legislation"], "us": ["FRED", "GovInfo.gov", "Library of Congress"], "eu": [], "global": ["Semantic Scholar", "OpenAlex", "Wikipedia", "PubMed", "WHO", "NOAA CDO", "WeatherAPI", "Open-Meteo", "GBIF", "World Bank", "Internet Archive", "Wikidata", "Marketaux", "Transfermarkt", "Football-Data.org"]}',
+        '{"uk": ["ONS Economic Statistics", "UK Parliament Hansard", "GOV.UK Content API", "Companies House", "UK Legislation", "UK Parliament Bills"], "us": ["FRED", "GovInfo.gov", "Library of Congress"], "eu": [], "global": ["Semantic Scholar", "OpenAlex", "Wikipedia", "PubMed", "WHO", "NOAA CDO", "WeatherAPI", "Open-Meteo", "GBIF", "World Bank", "Internet Archive", "Wikidata", "Marketaux", "Transfermarkt", "Football-Data.org"]}',
         env="JURISDICTION_ADAPTERS",
     )  # JSON mapping jurisdiction → adapter names
 

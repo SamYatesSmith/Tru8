@@ -33,7 +33,13 @@ from .economic import (
 )
 from .health import PubMedAdapter, WHOAdapter
 from .climate import NOAAAdapter, WeatherAPIAdapter, OpenMeteoAdapter
-from .legal import GovUKAdapter, HansardAdapter, GovInfoAdapter, LegislationGovUKAdapter
+from .legal import (
+    GovUKAdapter,
+    HansardAdapter,
+    GovInfoAdapter,
+    LegislationGovUKAdapter,
+    UKParliamentBillsAdapter,
+)
 from .academic import CrossRefAdapter, SemanticScholarAdapter, OpenAlexAdapter
 from .sports import TransfermarktAdapter, FootballDataAdapter
 from .archives import WikipediaAdapter, LibraryOfCongressAdapter, InternetArchiveAdapter
@@ -62,6 +68,7 @@ __all__ = [
     "HansardAdapter",
     "GovInfoAdapter",
     "LegislationGovUKAdapter",
+    "UKParliamentBillsAdapter",
     # Academic
     "CrossRefAdapter",
     "SemanticScholarAdapter",
@@ -142,6 +149,14 @@ def initialize_adapters():
     registry.register(LegislationGovUKAdapter())
     logger.info(
         "[ADAPTERS] Registered UK Legislation adapter for Law/UK (no key required)"
+    )
+
+    # Register UK Parliament Bills adapter (SC-15: Law-specialist fallback
+    # independent of legislation.gov.uk, which is IP-blocked — see SC-05).
+    # No API key required.
+    registry.register(UKParliamentBillsAdapter())
+    logger.info(
+        "[ADAPTERS] Registered UK Parliament Bills adapter for Law+Politics/UK (no key required)"
     )
 
     # Register Wikidata adapter (Week 2)

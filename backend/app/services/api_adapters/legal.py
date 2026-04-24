@@ -700,3 +700,235 @@ class LegislationGovUKAdapter(GovernmentAPIClient):
 
         logger.info(f"UK Legislation returned {len(evidence_list)} statute references")
         return evidence_list
+
+
+# ========== UK PARLIAMENT BILLS ADAPTER (SC-15) ==========
+
+
+class UKParliamentBillsAdapter(GovernmentAPIClient):
+    """
+    UK Parliament Bills API Adapter (SC-15).
+
+    Covers: Law, Politics
+    Jurisdiction: UK
+    Free tier: Unlimited (no API key required, no documented rate limits)
+    Format: JSON
+
+    Purpose: primary-source UK legislative coverage independent of
+    legislation.gov.uk (which is currently IP-blocked for our caller —
+    see SC-05). This adapter hits bills-api.parliament.uk which returns
+    the Bills index with stage, dates, and Acts status. Complements
+    Hansard (debate text) — together they cover the full legislative
+    lifecycle for a claim.
+
+    The public bills.parliament.uk UI 403s automated fetches but URLs
+    resolve for users in browsers — same pattern as Hansard, fine for
+    clickable citation.
+    """
+
+    # SC-15: bill titles are short noun phrases (usually 2-5 words).
+    # The Bills API returns 0 on full-sentence claim queries but matches
+    # well on focused bill-name terms. These boundary words terminate
+    # the noun-phrase prefix of a typical claim.
+    _BILL_QUERY_STOPWORDS = frozenset({"the", "a", "an"})
+    _BILL_QUERY_BOUNDARY_WORDS = frozenset(
+        {
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "has",
+            "have",
+            "had",
+            "requires",
+            "require",
+            "required",
+            "provides",
+            "provide",
+            "provided",
+            "makes",
+            "make",
+            "made",
+            "allows",
+            "allow",
+            "allowed",
+            "prohibits",
+            "prohibit",
+            "prohibited",
+            "introduces",
+            "introduce",
+            "introduced",
+            "repeals",
+            "repeal",
+            "repealed",
+            "amends",
+            "amend",
+            "amended",
+            "passed",
+            "passes",
+            "enacts",
+            "enacted",
+        }
+    )
+    _BILL_QUERY_MAX_TOKENS = 5
+
+    def __init__(self):
+        super().__init__(
+            api_name="UK Parliament Bills",
+            base_url="https://bills-api.parliament.uk",
+            api_key=None,
+            cache_ttl=86400,  # 1 day — bill stages change during active sessions
+            timeout=15,
+            max_results=5,
+            priority_tier=1,  # Domain specialist
+        )
+
+    def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
+        """Bills API covers Law and Politics for UK."""
+        return domain in ["Law", "Politics"] and jurisdiction == "UK"
+
+    def _extract_bill_query(self, query: str) -> str:
+        """Reduce a claim sentence to a likely bill-title noun phrase.
+
+        The Bills API returned 0 on the full Online Safety Act claim
+        sentence during SC-15 probe but matched "Online Safety" or
+        "Online Safety Act" with 9 topical results. Same class of
+        query-shape mismatch as GBIF pre-SC-06: full sentence -> 0;
+        trimmed noun prefix -> hit.
+        """
+        words = query.split()
+        while words and words[0].lower() in self._BILL_QUERY_STOPWORDS:
+            words.pop(0)
+        trimmed: List[str] = []
+        for w in words:
+            clean = w.lower().rstrip(".,;:!?")
+            if clean in self._BILL_QUERY_BOUNDARY_WORDS:
+                break
+            # SC-15: 4-digit years (e.g. "2023") kill matches against the
+            # Bills API because bill short titles don't contain the year
+            # as searchable text. "Online Safety Act 2023" returns 0; drop
+            # the year and "Online Safety Act" returns 9.
+            if len(clean) == 4 and clean.isdigit():
+                break
+            trimmed.append(w)
+            if len(trimmed) >= self._BILL_QUERY_MAX_TOKENS:
+                break
+        return " ".join(trimmed).strip() or query
+
+    def search(
+        self,
+        query: str,
+        domain: str,
+        jurisdiction: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Search UK Parliament Bills API for legislative items."""
+        if not self.is_relevant_for_domain(domain, jurisdiction):
+            return []
+
+        query = self._sanitize_query(query)
+
+        # Try the trimmed noun-phrase query first; fall back to the full
+        # claim if trimming produced an empty result set. Same cascade
+        # shape as SC-06 GBIF — covers both the "claim starts with bill
+        # name" case and the "bill name is elsewhere in the sentence" case.
+        trimmed = self._extract_bill_query(query)
+        params = {"SearchTerm": trimmed, "Take": self.max_results}
+
+        try:
+            response = self._make_request("/api/v1/Bills", params=params)
+
+            items = (response or {}).get("items") or []
+            if not items and trimmed != query:
+                # Trimmed query gave nothing; retry with the full claim.
+                response = self._make_request(
+                    "/api/v1/Bills",
+                    params={"SearchTerm": query, "Take": self.max_results},
+                )
+                items = (response or {}).get("items") or []
+
+            if not items:
+                logger.info(f"UK Parliament Bills returned 0 results for: {query[:60]}")
+                return []
+
+            return self._transform_response({"items": items})
+
+        except Exception as e:
+            logger.error(f"UK Parliament Bills search failed for '{query}': {e}")
+            return []
+
+    def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
+        """Transform Bills API response items to standardised evidence dicts."""
+        evidence_list: List[Dict[str, Any]] = []
+
+        for item in (raw_response or {}).get("items") or []:
+            try:
+                title = item.get("shortTitle") or "UK Parliament Bill"
+                bill_id = item.get("billId")
+                is_act = bool(item.get("isAct"))
+                house = (
+                    item.get("currentHouse")
+                    or item.get("originatingHouse")
+                    or "Parliament"
+                )
+                stage = (item.get("currentStage") or {}).get(
+                    "description"
+                ) or "unknown stage"
+
+                # Parse last-update timestamp for source_date.
+                source_date = None
+                date_short = ""
+                last_update = item.get("lastUpdate")
+                if last_update:
+                    try:
+                        source_date = datetime.fromisoformat(
+                            last_update.replace("Z", "+00:00")
+                        )
+                        date_short = source_date.strftime("%Y-%m-%d")
+                    except Exception:
+                        pass
+
+                url = (
+                    f"https://bills.parliament.uk/bills/{bill_id}"
+                    if bill_id
+                    else "https://bills.parliament.uk/"
+                )
+
+                # Synthesise a snippet from the metadata. The Bills API
+                # does not return a summary; the structured fields we
+                # have (house, stage, Act status, date) are the signal.
+                status_phrase = "Act" if is_act else f"Bill, {stage}"
+                snippet = (
+                    f"UK Parliament {status_phrase} in {house}"
+                    + (f" (last updated {date_short})." if date_short else ".")
+                    + f" Title: {title}"
+                )
+
+                metadata = {
+                    "api_source": "UK Parliament Bills",
+                    "bill_id": bill_id,
+                    "house": house,
+                    "current_stage": stage,
+                    "is_act": is_act,
+                }
+
+                evidence_list.append(
+                    self._create_evidence_dict(
+                        title=title,
+                        snippet=snippet,
+                        url=url,
+                        source_date=source_date,
+                        metadata=metadata,
+                    )
+                )
+
+            except Exception as e:
+                logger.warning(f"Failed to parse UK Parliament Bills item: {e}")
+                continue
+
+        logger.info(
+            f"UK Parliament Bills returned {len(evidence_list)} bill references"
+        )
+        return evidence_list

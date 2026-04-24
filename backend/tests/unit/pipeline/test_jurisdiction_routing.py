@@ -169,6 +169,9 @@ class TestJurisdictionMappingShape:
         assert "GOV.UK Content API" in uk
         assert "Companies House" in uk
         assert "UK Legislation" in uk
+        # SC-15: Bills API fallback (Law + Politics specialist independent of
+        # legislation.gov.uk, which is IP-blocked under SC-05).
+        assert "UK Parliament Bills" in uk
 
     def test_us_has_expected_adapters(self):
         us = get_adapters_for_jurisdiction("US")

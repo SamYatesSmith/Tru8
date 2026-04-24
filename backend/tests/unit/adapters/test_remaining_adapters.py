@@ -38,6 +38,7 @@ from app.services.api_adapters import (
     WorldBankAdapter,
     GovInfoAdapter,
     LegislationGovUKAdapter,
+    UKParliamentBillsAdapter,
     SemanticScholarAdapter,
     OpenAlexAdapter,
     PubMedAdapter,
@@ -404,6 +405,174 @@ class TestLegislationGovUKAdapter:
 
         # Invalid XML should also return empty
         assert adapter._transform_response("not xml at all") == []
+
+
+# ========== UK PARLIAMENT BILLS ADAPTER (SC-15) ==========
+
+
+class TestUKParliamentBillsAdapter:
+    """Test suite for UK Parliament Bills adapter (SC-15).
+
+    Logged as the user-prioritised Law-specialist fallback because
+    legislation.gov.uk is IP-blocked (SC-05) and Hansard covers debate
+    text rather than bill status. This adapter hits
+    bills-api.parliament.uk which returns the full Bills index.
+    """
+
+    def test_instantiation(self):
+        adapter = UKParliamentBillsAdapter()
+        assert adapter.api_name == "UK Parliament Bills"
+        assert "bills-api.parliament.uk" in adapter.base_url
+        assert adapter.api_key is None
+        assert adapter.priority_tier == 1
+
+    def test_is_relevant_for_domain(self):
+        adapter = UKParliamentBillsAdapter()
+        # Covers Law and Politics for UK
+        assert adapter.is_relevant_for_domain("Law", "UK") is True
+        assert adapter.is_relevant_for_domain("Politics", "UK") is True
+        # Not relevant outside UK
+        assert adapter.is_relevant_for_domain("Law", "US") is False
+        assert adapter.is_relevant_for_domain("Law", "Global") is False
+        # Not relevant for non-Law/Politics domains
+        assert adapter.is_relevant_for_domain("Finance", "UK") is False
+        assert adapter.is_relevant_for_domain("Health", "UK") is False
+
+    def test_extract_bill_query_strips_articles(self):
+        """Leading The/A/An are dropped."""
+        adapter = UKParliamentBillsAdapter()
+        assert (
+            adapter._extract_bill_query("The Online Safety Bill")
+            == "Online Safety Bill"
+        )
+        assert (
+            adapter._extract_bill_query("A Climate Change Bill")
+            == "Climate Change Bill"
+        )
+
+    def test_extract_bill_query_stops_at_verbs(self):
+        """Trim at copula / statutory verbs so the output is the bill-name prefix."""
+        adapter = UKParliamentBillsAdapter()
+        assert (
+            adapter._extract_bill_query(
+                "The Online Safety Act requires platforms to verify ages"
+            )
+            == "Online Safety Act"
+        )
+        assert (
+            adapter._extract_bill_query(
+                "The Climate Change Bill is currently at report stage"
+            )
+            == "Climate Change Bill"
+        )
+        assert (
+            adapter._extract_bill_query("The Marriage Act was passed in 2013")
+            == "Marriage Act"
+        )
+
+    def test_extract_bill_query_strips_trailing_years(self):
+        """SC-15: 4-digit years kill matches against the Bills API (bill
+        titles don't contain the year as searchable text). Live-verified:
+        'Online Safety Act 2023' -> 0 hits; 'Online Safety Act' -> 9 hits."""
+        adapter = UKParliamentBillsAdapter()
+        assert (
+            adapter._extract_bill_query(
+                "The Online Safety Act 2023 requires age verification"
+            )
+            == "Online Safety Act"
+        )
+        assert (
+            adapter._extract_bill_query("The Climate Change Act 2008")
+            == "Climate Change Act"
+        )
+
+    def test_extract_bill_query_caps_at_five_tokens(self):
+        """5-token cap covers the longest common bill titles without
+        drifting into full-sentence territory."""
+        adapter = UKParliamentBillsAdapter()
+        long_phrase = "alpha beta gamma delta epsilon zeta"
+        assert (
+            adapter._extract_bill_query(long_phrase) == "alpha beta gamma delta epsilon"
+        )
+
+    def test_extract_bill_query_fallback_to_full_when_empty(self):
+        """If trimming would produce empty (only articles / only boundary
+        words), return the original query so the search layer can still
+        try something."""
+        adapter = UKParliamentBillsAdapter()
+        assert adapter._extract_bill_query("the a an") == "the a an"
+        assert adapter._extract_bill_query("is are was") == "is are was"
+
+    def test_transform_response_parses_bill_items(self):
+        """Real-shaped Bills API response items parse to evidence dicts
+        with titles, URLs, dates, and metadata."""
+        adapter = UKParliamentBillsAdapter()
+        mock_response = {
+            "items": [
+                {
+                    "billId": 3137,
+                    "shortTitle": "Online Safety Bill",
+                    "currentHouse": "Commons",
+                    "originatingHouse": "Commons",
+                    "lastUpdate": "2023-10-26T12:00:00",
+                    "isAct": True,
+                    "currentStage": {
+                        "description": "Royal Assent",
+                        "stageId": 11,
+                    },
+                },
+                {
+                    "billId": 2843,
+                    "shortTitle": "Electrical Safety (Online Sales) Bill",
+                    "currentHouse": "Commons",
+                    "originatingHouse": "Commons",
+                    "lastUpdate": "2021-05-04T16:00:24",
+                    "isAct": False,
+                    "currentStage": {
+                        "description": "2nd reading",
+                        "stageId": 7,
+                    },
+                },
+            ]
+        }
+
+        result = adapter._transform_response(mock_response)
+
+        assert len(result) == 2
+
+        first = result[0]
+        assert first["title"] == "Online Safety Bill"
+        assert first["external_source_provider"] == "UK Parliament Bills"
+        assert "bills.parliament.uk/bills/3137" in first["url"]
+        assert first["metadata"]["is_act"] is True
+        assert first["metadata"]["bill_id"] == 3137
+        assert first["metadata"]["house"] == "Commons"
+        assert first["metadata"]["current_stage"] == "Royal Assent"
+        # Snippet mentions Act status for passed bills
+        assert "Act" in first["snippet"]
+
+        second = result[1]
+        assert "2nd reading" in second["snippet"]
+        assert second["metadata"]["is_act"] is False
+
+    def test_transform_response_handles_missing_fields(self):
+        """Malformed or partial items shouldn't crash the parser."""
+        adapter = UKParliamentBillsAdapter()
+        result = adapter._transform_response({"items": [{}, {"billId": 42}]})
+        # Items skip gracefully with logger.warning, not exceptions
+        assert isinstance(result, list)
+
+    def test_transform_response_handles_empty(self):
+        adapter = UKParliamentBillsAdapter()
+        assert adapter._transform_response({}) == []
+        assert adapter._transform_response({"items": []}) == []
+        assert adapter._transform_response(None) == []
+
+    def test_search_skipped_for_non_uk_jurisdiction(self):
+        """Adapter early-returns on non-UK jurisdiction without calling the API."""
+        adapter = UKParliamentBillsAdapter()
+        assert adapter.search("any query", domain="Law", jurisdiction="US") == []
+        assert adapter.search("any query", domain="Law", jurisdiction="Global") == []
 
 
 # ========== SEMANTIC SCHOLAR ADAPTER ==========
