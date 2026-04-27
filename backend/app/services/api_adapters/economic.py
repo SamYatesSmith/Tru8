@@ -215,6 +215,48 @@ class FREDAdapter(GovernmentAPIClient):
     API key: Required
     """
 
+    # SC-09: Common economic indicators → FRED series ID mapping.
+    # FRED's /series/search?search_text= returns 0 on long claim
+    # sentences (verified live 2026-04-23 — UNRATE 0-yield on every
+    # Finance/US claim despite the adapter firing). A direct
+    # series-ID search reliably hits the right series at the top of
+    # results because FRED indexes series IDs as searchable text.
+    # Keys are matched as case-insensitive substrings; longest match
+    # wins (sorted at use-site) so "consumer price index" beats "cpi".
+    _FRED_SERIES_KEYWORDS: Dict[str, str] = {
+        # Employment
+        "nonfarm payroll": "PAYEMS",
+        "labor force participation": "CIVPART",
+        "unemployment rate": "UNRATE",
+        "unemployment": "UNRATE",
+        "jobless": "UNRATE",
+        # Inflation / prices
+        "consumer price index": "CPIAUCSL",
+        "producer price index": "PPIACO",
+        "inflation": "CPIAUCSL",
+        "cpi": "CPIAUCSL",
+        "ppi": "PPIACO",
+        # Output
+        "gross domestic product": "GDP",
+        "real gdp": "GDPC1",
+        "gdp": "GDP",
+        "industrial production": "INDPRO",
+        # Interest rates
+        "10-year treasury": "DGS10",
+        "10 year treasury": "DGS10",
+        "30-year mortgage": "MORTGAGE30US",
+        "fed funds rate": "FEDFUNDS",
+        "federal funds rate": "FEDFUNDS",
+        "federal funds": "FEDFUNDS",
+        # Markets / sentiment
+        "consumer sentiment": "UMCSENT",
+        "personal income": "PI",
+        "retail sales": "RSAFS",
+        "housing starts": "HOUST",
+        "s&p 500": "SP500",
+        "sp500": "SP500",
+    }
+
     def __init__(self):
         from app.core.config import settings
 
@@ -234,6 +276,21 @@ class FREDAdapter(GovernmentAPIClient):
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """FRED covers Finance for US."""
         return domain == "Finance" and jurisdiction in ["US", "Global"]
+
+    def _extract_fred_series_query(self, query: str) -> Optional[str]:
+        """SC-09: map common economic concepts in a claim to a FRED series ID.
+
+        Returns the matching FRED series ID for the longest matching
+        keyword in the claim, or None if no concept keyword matches
+        (caller falls back to the original targeted query).
+        """
+        if not query:
+            return None
+        q_low = query.lower()
+        for keyword in sorted(self._FRED_SERIES_KEYWORDS, key=len, reverse=True):
+            if keyword in q_low:
+                return self._FRED_SERIES_KEYWORDS[keyword]
+        return None
 
     def search(
         self,
@@ -259,8 +316,17 @@ class FREDAdapter(GovernmentAPIClient):
 
         targeted_query = self._build_targeted_query(query, entities)
 
+        # SC-09: prefer a known FRED series ID when the claim mentions a
+        # mapped concept (UNRATE for unemployment, CPIAUCSL for inflation,
+        # etc.). FRED's /series/search hits the right series reliably on
+        # an ID and returns 0 on long claim sentences. Cascade fallback
+        # below restores the original targeted query if the ID search
+        # comes back empty.
+        fred_series = self._extract_fred_series_query(targeted_query)
+        search_text = fred_series or targeted_query
+
         params = {
-            "search_text": targeted_query,
+            "search_text": search_text,
             "api_key": self.api_key,
             "file_type": "json",
             "limit": self.max_results,
@@ -268,6 +334,16 @@ class FREDAdapter(GovernmentAPIClient):
 
         try:
             response = self._make_request("/series/search", params=params)
+
+            # SC-09 cascade: series-ID search hit nothing — retry with the
+            # original targeted query before giving up.
+            if fred_series and (not response or not response.get("seriess")):
+                logger.debug(
+                    f"FRED series-ID '{fred_series}' returned empty; "
+                    f"retrying with raw targeted query"
+                )
+                params["search_text"] = targeted_query
+                response = self._make_request("/series/search", params=params)
 
             if not response or "seriess" not in response:
                 logger.warning(f"FRED returned empty response for: {query}")

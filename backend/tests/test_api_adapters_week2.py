@@ -66,6 +66,88 @@ class TestFREDAdapter:
         assert result[0]["metadata"]["series_id"] == "UNRATE"
         assert "fred.stlouisfed.org" in result[0]["url"]
 
+    # ===== SC-09: keyword → series-ID mapping =====
+    # FRED /series/search returns 0 on long claim sentences but hits the
+    # right series reliably when given a series ID (verified live
+    # 2026-04-23 — UNRATE 0-yield on every Finance/US claim).
+    # _extract_fred_series_query picks the longest matching keyword.
+
+    def test_sc09_extract_fred_series_unemployment_returns_unrate(self):
+        adapter = FREDAdapter()
+        assert (
+            adapter._extract_fred_series_query(
+                "US unemployment rate is 3.7% as of January 2026"
+            )
+            == "UNRATE"
+        )
+        # Bare keyword
+        assert adapter._extract_fred_series_query("unemployment") == "UNRATE"
+        # Synonym
+        assert (
+            adapter._extract_fred_series_query("Jobless claims rose in Q1") == "UNRATE"
+        )
+
+    def test_sc09_extract_fred_series_inflation_returns_cpiaucsl(self):
+        adapter = FREDAdapter()
+        assert (
+            adapter._extract_fred_series_query("US inflation fell to 2.1% in 2025")
+            == "CPIAUCSL"
+        )
+        assert adapter._extract_fred_series_query("CPI rose 0.3%") == "CPIAUCSL"
+
+    def test_sc09_extract_fred_series_gdp_returns_gdp(self):
+        adapter = FREDAdapter()
+        assert (
+            adapter._extract_fred_series_query("US GDP grew 2.4% in the third quarter")
+            == "GDP"
+        )
+        assert (
+            adapter._extract_fred_series_query("Gross Domestic Product expanded")
+            == "GDP"
+        )
+
+    def test_sc09_extract_fred_series_fed_funds_returns_fedfunds(self):
+        adapter = FREDAdapter()
+        assert (
+            adapter._extract_fred_series_query(
+                "The Fed funds rate held at 5.25% in March"
+            )
+            == "FEDFUNDS"
+        )
+        assert (
+            adapter._extract_fred_series_query("Federal funds rate was raised 25bp")
+            == "FEDFUNDS"
+        )
+
+    def test_sc09_extract_fred_series_longest_match_wins(self):
+        """SC-09: longest keyword wins so 'consumer price index' maps to
+        CPIAUCSL via the full phrase, not via the bare 'cpi' substring.
+        Both happen to map to the same series here, but the order matters
+        for series where the long form is more specific (e.g. 'real gdp'
+        → GDPC1 vs 'gdp' → GDP)."""
+        adapter = FREDAdapter()
+        # real gdp → GDPC1 (real, chained), not GDP (nominal)
+        assert adapter._extract_fred_series_query("Real GDP growth was 2.4%") == "GDPC1"
+        # gdp alone → GDP
+        assert adapter._extract_fred_series_query("US GDP rose") == "GDP"
+
+    def test_sc09_extract_fred_series_returns_none_when_no_match(self):
+        adapter = FREDAdapter()
+        assert (
+            adapter._extract_fred_series_query(
+                "Tesla stock surged after Q3 earnings beat"
+            )
+            is None
+        )
+        assert adapter._extract_fred_series_query("") is None
+        assert adapter._extract_fred_series_query(None) is None
+
+    def test_sc09_extract_fred_series_case_insensitive(self):
+        adapter = FREDAdapter()
+        assert adapter._extract_fred_series_query("UNEMPLOYMENT") == "UNRATE"
+        assert adapter._extract_fred_series_query("Inflation") == "CPIAUCSL"
+        assert adapter._extract_fred_series_query("gdp") == "GDP"
+
 
 class TestWHOAdapter:
     """Test suite for WHO (World Health Organization) adapter."""
