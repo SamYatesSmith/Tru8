@@ -87,6 +87,7 @@ def get_adapter_cap_for_domain(domain: str | None) -> int:
 # classified as Climate; Law specialists Bills/Hansard/GOV.UK/Companies
 # House all cap-victimised by Climate cap=4).
 _NF09_SLOTS_PER_SECONDARY = 2
+_NF09_MAX_SECONDARIES = 2  # defensive clip — matches the classifier contract
 
 
 def get_effective_adapter_cap(
@@ -99,11 +100,16 @@ def get_effective_adapter_cap(
     classifier's max-2-secondaries constraint the worst case is
     primary_cap + 4 (e.g. Climate=4 + 2 secondaries = 8 adapters), keeping
     latency bounded while letting cross-domain specialists survive.
+
+    Defensively clips secondary count at 2 to match the classifier's
+    documented contract — guards against a future prompt regression
+    silently inflating the cap and blowing the latency budget.
     """
     base = get_adapter_cap_for_domain(primary_domain)
     if not secondary_domains:
         return base
-    return base + _NF09_SLOTS_PER_SECONDARY * len(secondary_domains)
+    secondary_count = min(len(secondary_domains), _NF09_MAX_SECONDARIES)
+    return base + _NF09_SLOTS_PER_SECONDARY * secondary_count
 
 
 def _resolve_search_country(claim: Dict[str, Any]) -> Optional[str]:

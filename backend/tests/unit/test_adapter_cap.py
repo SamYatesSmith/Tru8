@@ -157,3 +157,20 @@ class TestGetEffectiveAdapterCap:
         from app.pipeline.retrieve import get_effective_adapter_cap
 
         assert get_effective_adapter_cap("Law", []) == 4
+
+    def test_secondary_count_defensively_clipped_at_two(self):
+        """NF-09 hardening: the classifier's documented contract is max 2
+        secondaries. If a future prompt regression returns more, the cap
+        must NOT inflate beyond the worst-case design budget (base + 4).
+        Pins this so a silent prompt drift can't blow latency."""
+        from app.pipeline.retrieve import get_effective_adapter_cap
+
+        # 5 secondaries would naively give 4 + 2*5 = 14; clip enforces 4 + 2*2 = 8
+        assert (
+            get_effective_adapter_cap(
+                "Climate", ["Law", "Politics", "Finance", "Health", "Science"]
+            )
+            == 8
+        )
+        # 3 secondaries would give 4 + 2*3 = 10; clip enforces 4 + 2*2 = 8
+        assert get_effective_adapter_cap("Health", ["Finance", "Politics", "Law"]) == 8

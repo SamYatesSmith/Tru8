@@ -7,6 +7,8 @@ Tests for the 6 adapters implemented in Week 2:
 - GOV.UK, Hansard, Wikidata
 """
 
+from unittest.mock import patch
+
 import pytest
 from app.services.api_adapters import (
     FREDAdapter,
@@ -147,6 +149,71 @@ class TestFREDAdapter:
         assert adapter._extract_fred_series_query("UNEMPLOYMENT") == "UNRATE"
         assert adapter._extract_fred_series_query("Inflation") == "CPIAUCSL"
         assert adapter._extract_fred_series_query("gdp") == "GDP"
+
+    def test_sc09_extract_fred_series_word_boundary_avoids_false_positives(self):
+        """SC-09 hardening: short keys like 'gdp', 'cpi', 'ppi' must use
+        word-boundary matching so they don't false-positive inside
+        unrelated tokens. Most damaging case: 'GDPR' (EU privacy law)
+        contains the substring 'gdp' but is unrelated to economic output.
+        """
+        adapter = FREDAdapter()
+        # GDPR is a privacy regulation, not an economic indicator
+        assert (
+            adapter._extract_fred_series_query("GDPR fines exceeded $1B in 2024")
+            is None
+        )
+        # 'scpi' is a French REIT category — not CPI
+        assert adapter._extract_fred_series_query("SCPI funds outperformed") is None
+        # bare GDP at word boundary still matches
+        assert adapter._extract_fred_series_query("GDP rose 2.4%") == "GDP"
+        # bare CPI at word boundary still matches
+        assert adapter._extract_fred_series_query("CPI hit 3.1%") == "CPIAUCSL"
+
+    def test_sc09_search_cascade_falls_back_to_targeted_query(self):
+        """SC-09 hardening: when the series-ID search returns empty, the
+        cascade must retry with the original targeted query. Pins the
+        empty-response → fallback path so a future FRED response-shape
+        change can't silently break it.
+        """
+        adapter = FREDAdapter()
+        adapter.api_key = "test-key"  # bypass the no-key short-circuit
+
+        empty = {"seriess": []}
+        good = {
+            "seriess": [
+                {
+                    "id": "UNRATE",
+                    "title": "Unemployment Rate",
+                    "notes": "test",
+                    "observation_start": "1948-01-01",
+                    "frequency": "Monthly",
+                    "units": "Percent",
+                    "seasonal_adjustment": "Seasonally Adjusted",
+                }
+            ]
+        }
+
+        with patch.object(adapter, "_make_request") as mock_req, patch.object(
+            adapter, "_fetch_latest_observations", return_value=None
+        ):
+            # First call (series-ID "UNRATE") returns empty → cascade fires.
+            # Second call (raw targeted query) returns the good payload.
+            mock_req.side_effect = [empty, good]
+            results = adapter.search(
+                "US unemployment rate is 3.7% as of January 2026",
+                "Finance",
+                "US",
+            )
+
+        assert mock_req.call_count == 2, "cascade did not fire on empty response"
+        first_search_text = mock_req.call_args_list[0].kwargs["params"]["search_text"]
+        second_search_text = mock_req.call_args_list[1].kwargs["params"]["search_text"]
+        assert first_search_text == "UNRATE", "first call should be the series ID"
+        assert (
+            "unemployment" in second_search_text.lower()
+        ), "fallback should use the original targeted query, not the series ID"
+        assert len(results) == 1
+        assert results[0]["metadata"]["series_id"] == "UNRATE"
 
 
 class TestWHOAdapter:

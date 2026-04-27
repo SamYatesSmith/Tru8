@@ -283,12 +283,17 @@ class FREDAdapter(GovernmentAPIClient):
         Returns the matching FRED series ID for the longest matching
         keyword in the claim, or None if no concept keyword matches
         (caller falls back to the original targeted query).
+
+        Uses word-boundary matching so short keys like "gdp", "cpi",
+        "ppi" don't false-positive inside unrelated tokens (e.g. "GDPR
+        fines exceeded $1B" must not map to GDP).
         """
         if not query:
             return None
         q_low = query.lower()
         for keyword in sorted(self._FRED_SERIES_KEYWORDS, key=len, reverse=True):
-            if keyword in q_low:
+            pattern = r"\b" + re.escape(keyword) + r"\b"
+            if re.search(pattern, q_low):
                 return self._FRED_SERIES_KEYWORDS[keyword]
         return None
 
@@ -336,14 +341,16 @@ class FREDAdapter(GovernmentAPIClient):
             response = self._make_request("/series/search", params=params)
 
             # SC-09 cascade: series-ID search hit nothing — retry with the
-            # original targeted query before giving up.
+            # original targeted query before giving up. Uses a fresh params
+            # dict so the retry doesn't mutate the original (avoids subtle
+            # shared-state hazards if more logic is added between calls).
             if fred_series and (not response or not response.get("seriess")):
                 logger.debug(
                     f"FRED series-ID '{fred_series}' returned empty; "
                     f"retrying with raw targeted query"
                 )
-                params["search_text"] = targeted_query
-                response = self._make_request("/series/search", params=params)
+                retry_params = dict(params, search_text=targeted_query)
+                response = self._make_request("/series/search", params=retry_params)
 
             if not response or "seriess" not in response:
                 logger.warning(f"FRED returned empty response for: {query}")
