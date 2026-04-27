@@ -132,23 +132,35 @@ class TestRelevanceScorerNF07Bypass:
         assert result["_excluded"][0]["exclusion_reason"] == "irrelevant"
 
     @pytest.mark.asyncio
-    async def test_mixed_batch_adapter_kept_web_excluded(self, mock_llm_scores):
-        """In a batch with both adapter and web-search items all at score=1,
-        only adapter items survive. Demonstrates the Bills + Serper scenario
-        from TRU-E545-4080 where the final evidence was web-only."""
+    async def test_mixed_batch_canonical_kept_others_excluded(self, mock_llm_scores):
+        """NF-07-hardening (2026-04-27): with a mixed batch all at score=1,
+        only canonical-record-provider items survive (Bills, GBIF). Search-
+        shape adapters (OpenAlex, Wikipedia, GOV.UK Content API, Hansard,
+        LoC) join web-search items in the excluded bucket because their
+        snippets are content text — when the scorer says irrelevant, it
+        really is irrelevant. Pre-hardening this test asserted Hansard +
+        GOV.UK survived; that was the regression TRU-A3E8-3199 surfaced.
+        """
         mock_llm_scores.set_score_sequence(
             lambda claims, ev, ctx: self._score_all_1(claims, ev, ctx)
         )
 
         evidence = {
             "0": [
-                # 3 adapter items (Bills, Hansard, GOV.UK) — all must survive
+                # Canonical-record providers (whitelisted) — must survive
                 {
                     "url": "https://bills.parliament.uk/bills/195",
                     "title": "Equality Bill",
                     "snippet": "UK Parliament Bill, 2nd reading.",
                     "external_source_provider": "UK Parliament Bills",
                 },
+                {
+                    "url": "https://www.gbif.org/species/2418436",
+                    "title": "Carcharodon carcharias",
+                    "snippet": "Scientific classification: Animalia > Chordata.",
+                    "external_source_provider": "GBIF",
+                },
+                # Search-shape adapters (NOT whitelisted) — must be excluded
                 {
                     "url": "https://hansard.parliament.uk/Lords/2009-11-01/debates/x",
                     "title": "Equality Bill debate",
@@ -161,16 +173,23 @@ class TestRelevanceScorerNF07Bypass:
                     "snippet": "Guidance on the Equality Act.",
                     "external_source_provider": "GOV.UK Content API",
                 },
-                # 2 web-search items — both must be dropped at score=1
+                {
+                    "url": "https://doi.org/10.1234/some-paper",
+                    "title": "Off-topic paper",
+                    "snippet": "Paper abstract content.",
+                    "external_source_provider": "OpenAlex",
+                },
+                {
+                    "url": "https://en.wikipedia.org/wiki/Greenland_shark",
+                    "title": "Greenland shark",
+                    "snippet": "The Greenland shark is a large shark.",
+                    "external_source_provider": "Wikipedia",
+                },
+                # Web-search items (no provider) — also excluded
                 {
                     "url": "https://bamboohr.com/uk/blog/equality-act",
                     "title": "HR blog",
                     "snippet": "HR thoughts on the Act.",
-                },
-                {
-                    "url": "https://www.dileaders.com/equality-act",
-                    "title": "Business post",
-                    "snippet": "Business advice post.",
                 },
             ]
         }
@@ -182,20 +201,23 @@ class TestRelevanceScorerNF07Bypass:
         )
 
         kept = result["0"]
-        assert len(kept) == 3, "3 adapter items must survive"
-        kept_providers = {ev["external_source_provider"] for ev in kept}
-        assert kept_providers == {
-            "UK Parliament Bills",
-            "UK Parliament Hansard",
-            "GOV.UK Content API",
-        }
+        kept_providers = {ev.get("external_source_provider") for ev in kept}
+        assert kept_providers == {"UK Parliament Bills", "GBIF"}
         for ev in kept:
             assert ev["relevance_scorer_bypass"] == "api_adapter_canonical_source"
 
-        assert len(result.get("_excluded", [])) == 2
-        excluded_urls = {ev["url"] for ev in result["_excluded"]}
-        assert "bamboohr.com" in "|".join(excluded_urls)
-        assert "dileaders.com" in "|".join(excluded_urls)
+        assert len(result.get("_excluded", [])) == 5
+        excluded_providers = {
+            ev.get("external_source_provider") for ev in result["_excluded"]
+        }
+        # Hansard / GOV.UK / OpenAlex / Wikipedia all excluded; web item has None
+        assert excluded_providers == {
+            "UK Parliament Hansard",
+            "GOV.UK Content API",
+            "OpenAlex",
+            "Wikipedia",
+            None,
+        }
 
     @pytest.mark.asyncio
     async def test_adapter_item_with_score_gte_2_unchanged(self, mock_llm_scores):
@@ -258,6 +280,168 @@ class TestRelevanceScorerNF07Bypass:
             evidence=evidence,
             article_context="",
         )
-        # Empty string is falsy → no bypass → excluded as normal
+        # Empty string isn't in the whitelist → no bypass → excluded as normal
+        assert result["0"] == []
+        assert len(result.get("_excluded", [])) == 1
+
+
+class TestNF07HardeningWhitelist:
+    """NF-07-hardening (2026-04-27) regression guards.
+
+    The original NF-07 bypassed any item with `external_source_provider` set,
+    on the assumption that adapter URL identity overrode snippet judgement.
+    Audit of TRU-A3E8-3199 (great white sharks) showed the bypass was
+    keeping irrelevant OpenAlex/Wikipedia content snippets at score=1, with
+    only a 12% real mapping rate across 17 production bypassed items.
+
+    The fix scopes the bypass to a whitelist of canonical-record providers
+    whose snippets are STRUCTURED METADATA (taxonomic hierarchy, bill
+    stage, observation data) — for these the original NF-07 reasoning
+    holds. Search-shape providers whose snippets are CONTENT TEXT lose the
+    bypass: when the scorer judges content text irrelevant, it really is.
+    """
+
+    @pytest.fixture
+    def mock_score_1(self):
+        """Score every item as 1 deterministically."""
+        from unittest.mock import AsyncMock, patch
+
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            new_callable=AsyncMock,
+        ) as mg, patch(
+            "app.pipeline.relevance_scorer._score_with_llm",
+            new_callable=AsyncMock,
+        ) as ml, patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            new_callable=AsyncMock,
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores",
+            new_callable=AsyncMock,
+            return_value=None,
+        ):
+            score_fn = lambda claims, ev, ctx: [
+                {
+                    "evidence_index": i,
+                    "score": 1,
+                    "rationale": "off-topic",
+                    "relevant_claims": [],
+                }
+                for i in range(len(ev))
+            ]
+            mg.side_effect = score_fn
+            ml.side_effect = score_fn
+            yield
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "provider",
+        [
+            "UK Parliament Bills",
+            "Companies House",
+            "FRED",
+            "ONS Economic Statistics",
+            "World Bank",
+            "WHO",
+            "NOAA CDO",
+            "WeatherAPI",
+            "Open-Meteo",
+            "Football-Data.org",
+            "Transfermarkt",
+            "GBIF",
+            "Wikidata",
+        ],
+    )
+    async def test_canonical_record_providers_still_bypass(
+        self, mock_score_1, provider
+    ):
+        """Whitelist providers must still receive the score=1 bypass.
+        Each parameter is a provider that emits structured-metadata
+        snippets where URL identity is the primary-tier signal."""
+        evidence = {
+            "0": [
+                {
+                    "url": f"https://example.com/{provider}",
+                    "title": f"{provider} item",
+                    "snippet": "Structural metadata, not content text.",
+                    "external_source_provider": provider,
+                }
+            ]
+        }
+        result = await score_evidence_batch(
+            claims=["test claim"],
+            evidence=evidence,
+            article_context="",
+        )
+        assert len(result["0"]) == 1, f"{provider} must keep bypass"
+        assert (
+            result["0"][0]["relevance_scorer_bypass"] == "api_adapter_canonical_source"
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "provider",
+        [
+            "OpenAlex",  # paper abstracts (TRU-A3E8-3199 noise: 3 items)
+            "Semantic Scholar",  # paper abstracts
+            "PubMed",  # paper abstracts
+            "CrossRef",  # paper metadata
+            "Wikipedia",  # article intros (TRU-A3E8-3199 noise: 5 items)
+            "Marketaux",  # news snippets
+            "GOV.UK Content API",  # page descriptions (TRU-A0C5-05DB: 6 of 7 noise)
+            "UK Parliament Hansard",  # debate text snippets
+            "Library of Congress",  # mixed item descriptions
+            "Chronicling America",  # newspaper text
+            "Internet Archive",  # archived page content
+        ],
+    )
+    async def test_search_shape_providers_excluded_at_score_1(
+        self, mock_score_1, provider
+    ):
+        """Search-shape providers no longer bypass score=1 — their
+        snippets are content text that the scorer is reading correctly.
+        Pre-hardening these all flowed through the bypass and polluted
+        the mapper input; this test pins the corrected behaviour."""
+        evidence = {
+            "0": [
+                {
+                    "url": f"https://example.com/{provider}",
+                    "title": f"{provider} item",
+                    "snippet": "Content text the scorer rated 1.",
+                    "external_source_provider": provider,
+                }
+            ]
+        }
+        result = await score_evidence_batch(
+            claims=["test claim"],
+            evidence=evidence,
+            article_context="",
+        )
+        assert result["0"] == [], f"{provider} must NOT bypass under hardening"
+        assert len(result.get("_excluded", [])) == 1
+        assert result["_excluded"][0]["exclusion_reason"] == "irrelevant"
+
+    @pytest.mark.asyncio
+    async def test_unknown_provider_does_not_bypass(self, mock_score_1):
+        """Defensive: an unknown provider name (e.g. typo, new adapter
+        not yet whitelisted) does not get the bypass. Worst-case behaviour
+        is "exclude valid item" rather than "leak noise" — keeps the
+        whitelist explicit."""
+        evidence = {
+            "0": [
+                {
+                    "url": "https://example.com/x",
+                    "title": "Unknown adapter",
+                    "snippet": "x",
+                    "external_source_provider": "Brand New Adapter Not Yet Whitelisted",
+                }
+            ]
+        }
+        result = await score_evidence_batch(
+            claims=["claim"],
+            evidence=evidence,
+            article_context="",
+        )
         assert result["0"] == []
         assert len(result.get("_excluded", [])) == 1
