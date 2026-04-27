@@ -487,6 +487,26 @@ ALSO IDENTIFY:
 4. Key entities: Main people, organizations, or things mentioned (max 10)
 5. Evidence guidance: What freshness and source types are needed to verify claims in this article?
 
+JURISDICTION DETECTION PRIORITY (apply in order, highest first):
+1. Explicit country / region named in the claim ("the UK", "United Kingdom",
+   "Britain", "the US", "United States", "the EU", "European Union", "France",
+   "Germany"). When present, this signal is decisive.
+2. Jurisdiction-specific government, regulatory, or listed-corporate entities
+   (e.g. "UK Parliament", "Hansard", "the NHS", "BP plc", "Tesco plc";
+   "US Congress", "Federal Reserve", "the SEC", "Apple Inc", "ExxonMobil";
+   "European Commission", "ECB"). The entity's home jurisdiction wins, even
+   if the claim mentions a different currency or operating region.
+3. Geographic adjectives ("British", "American", "European", "French").
+4. Currency symbols and codes ("$", "GBP", "EUR", "USD", "£", "€") — USE WITH
+   CAUTION. Companies routinely report multinationally in any currency.
+   Currency alone is NOT a jurisdiction signal. If a currency symbol is the
+   only geographic cue and the entity is not jurisdiction-specific, prefer
+   "Global". Never let a currency symbol override a higher-priority signal.
+
+Apply ties by locus of the event: where the action takes place / where the
+ruling is issued / which regulator is acting. Entity origin is the tiebreaker
+when locus is unclear.
+
 HANDLING UNCERTAINTY:
 If the article spans multiple domains or is ambiguous:
 - Use "General" as primary_domain
@@ -546,6 +566,32 @@ Output: {{
     "temporal_context": "Current conservation status with historical population trends",
     "key_entities": ["IUCN", "endangered species", "conservation"],
     "evidence_guidance": "Wildlife claims require authoritative sources like IUCN Red List, GBIF, or peer-reviewed journals"
+}}
+
+Example 5 - Currency-Mismatch Trap:
+Input: BP plc reported record profits of $40 billion in 2022.
+Output: {{
+    "primary_domain": "Finance",
+    "secondary_domains": [],
+    "jurisdiction": "UK",
+    "confidence": 90,
+    "reasoning": "BP plc is a UK-listed company; the '$' figure is a reporting choice, not a jurisdiction signal. Entity origin (priority 2) overrides currency symbol (priority 4).",
+    "temporal_context": "Full-year 2022 results",
+    "key_entities": ["BP plc", "United Kingdom"],
+    "evidence_guidance": "UK regulatory filings (Companies House), London Stock Exchange disclosures, financial press"
+}}
+
+Example 6 - Currency-Mismatch Trap (symmetric):
+Input: ExxonMobil reported record profits of GBP 50 billion in 2022.
+Output: {{
+    "primary_domain": "Finance",
+    "secondary_domains": [],
+    "jurisdiction": "US",
+    "confidence": 90,
+    "reasoning": "ExxonMobil is a US-listed company; 'GBP' is a reporting choice, not a jurisdiction signal. Entity origin (priority 2) overrides currency symbol (priority 4).",
+    "temporal_context": "Full-year 2022 results",
+    "key_entities": ["ExxonMobil", "United States"],
+    "evidence_guidance": "SEC filings, NYSE disclosures, US financial press"
 }}
 
 RESPONSE FORMAT:
