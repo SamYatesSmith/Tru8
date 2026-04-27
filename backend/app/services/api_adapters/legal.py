@@ -796,6 +796,7 @@ class UKParliamentBillsAdapter(GovernmentAPIClient):
             timeout=15,
             max_results=5,
             priority_tier=1,  # Domain specialist
+            emits_structural_metadata=True,  # NF-07-v2: bill records, structural snippets
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:

@@ -39,6 +39,7 @@ class GovernmentAPIClient(ABC):
         max_results: int = 10,
         max_retries: int = 3,
         priority_tier: int = 1,
+        emits_structural_metadata: bool = False,
     ):
         """
         Initialize API client.
@@ -52,6 +53,14 @@ class GovernmentAPIClient(ABC):
             max_results: Maximum number of results to return
             max_retries: Maximum number of retry attempts (default 3)
             priority_tier: Adapter priority (1=specialist, 2=cross-domain academic, 3=general reference)
+            emits_structural_metadata: NF-07-v2 self-declaration. Set True when this
+                adapter's snippet is structural metadata (taxonomic hierarchy, bill
+                stage, observation row, series ID) AND the URL is a canonical
+                primary record. Items from such adapters bypass the relevance
+                scorer's score=1 exclusion because the scorer is reading the
+                metadata snippet, not the URL's content. Default False — search-
+                shape adapters whose snippets are content text (paper abstracts,
+                article intros, page descriptions) obey the scorer's judgement.
         """
         self.api_name = api_name
         self.base_url = base_url.rstrip("/")
@@ -61,6 +70,7 @@ class GovernmentAPIClient(ABC):
         self.max_results = max_results
         self.max_retries = max_retries
         self.priority_tier = priority_tier
+        self.emits_structural_metadata = emits_structural_metadata
 
         # Initialize sync cache (for Celery workers)
         self.cache: SyncCacheService = get_sync_cache_service()

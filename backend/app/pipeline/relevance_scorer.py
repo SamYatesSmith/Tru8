@@ -25,46 +25,48 @@ logger = logging.getLogger(__name__)
 # Cache TTL for relevance scores (1 hour default) - in seconds for Redis setex
 RELEVANCE_CACHE_TTL_SECONDS = getattr(settings, "LLM_RELEVANCE_CACHE_TTL", 3600)
 
-# NF-07-hardening (2026-04-27, after TRU-A3E8-3199 audit):
+# NF-07 history:
 #
-# The original NF-07 (commit ec175d1) bypassed the score=1 exclusion for
-# any item with `external_source_provider` set. Audit of production data
-# (TRU-A3E8-3199 sharks + TRU-A0C5-05DB DPA) showed only a 12% real
-# mapping rate (2 of 17 bypassed items actually picked by the mapper).
-# The bulk were OpenAlex / Wikipedia / GOV.UK content snippets the
-# scorer correctly judged as off-topic — the bypass was overriding
-# correct judgements.
+# - Original NF-07 (commit ec175d1, 2026-04-24): bypassed the score=1
+#   exclusion for any item with `external_source_provider` set.
+# - NF-07-hardening (commit 910c8e1, 2026-04-27): scoped via a frozen
+#   whitelist of 13 canonical-record providers after TRU-A3E8-3199
+#   audit showed the unscoped bypass had a 12% real mapping rate
+#   (2 of 17 bypassed items actually picked by the mapper).
+# - NF-07-v2 (this commit): replaced the frozen whitelist with adapter
+#   self-declaration via `emits_structural_metadata: bool = False` on
+#   the GovernmentAPIClient base class. Each adapter declares whether
+#   its snippet is structured metadata (URL identity is the
+#   primary-tier signal) or content text (scorer's judgement is
+#   final). New adapters self-classify; no central list to maintain.
 #
-# Scope tightened to providers whose snippet is STRUCTURED METADATA
-# (taxonomic hierarchy, bill stage, observation data, series ID) AND
-# whose URL is the canonical primary record itself. For these the
-# original NF-07 reasoning holds: a score=1 reflects the snippet being
-# metadata-shaped (no claim-content text to score against), not the
-# URL's relevance. URL identity is the primary-tier signal.
-#
-# Excluded providers (search-shape adapters whose snippets are content
-# text — paper abstracts, article intros, page descriptions):
-# OpenAlex, Semantic Scholar, PubMed, CrossRef, Wikipedia, Marketaux,
-# GOV.UK Content API, UK Parliament Hansard, Library of Congress,
-# Chronicling America, Internet Archive. For these the scorer's
-# judgement on the snippet IS judgement on the URL's content.
-_NF07_CANONICAL_RECORD_PROVIDERS = frozenset(
-    {
-        "UK Parliament Bills",  # bill records, structural snippets
-        "Companies House",  # company records, structural
-        "FRED",  # series IDs (structural post-SC-09 mapping)
-        "ONS Economic Statistics",  # economic series, structural
-        "World Bank",  # indicator data, structural
-        "WHO",  # indicator data, structural
-        "NOAA CDO",  # climate observations, structural
-        "WeatherAPI",  # weather observations, structural
-        "Open-Meteo",  # weather observations, structural
-        "Football-Data.org",  # match stats, structural
-        "Transfermarkt",  # transfer stats, structural
-        "GBIF",  # species records, taxonomic snippets
-        "Wikidata",  # structured entity records
-    }
-)
+# Bypass logic (below): look up the adapter in the registry by
+# external_source_provider name; if the adapter declares
+# emits_structural_metadata=True, bypass score=1 exclusion. Unknown
+# provider names default to "no bypass" — defensive for typos and
+# legacy data.
+
+
+def _adapter_emits_structural_metadata(provider: Optional[str]) -> bool:
+    """NF-07-v2: check the adapter's self-declared snippet shape.
+
+    Returns True if the adapter named by `provider` declares its snippet
+    is structured metadata (e.g. taxonomic hierarchy, bill stage, data
+    observation). False for search-shape adapters whose snippets are
+    content text — and for unknown / unregistered provider names.
+
+    Lazy import keeps this module's import-time light and avoids
+    circular dependencies between pipeline and services.
+    """
+    if not provider:
+        return False
+    try:
+        from app.services.government_api_client import get_api_registry
+
+        adapter = get_api_registry().get_adapter_by_name(provider)
+    except Exception:
+        return False
+    return bool(getattr(adapter, "emits_structural_metadata", False))
 
 
 RELEVANCE_SCORING_PROMPT = """You are an evidence analyst. Score how well each evidence piece is TOPICALLY RELEVANT to the specific claims below.
@@ -662,13 +664,12 @@ async def score_evidence_batch(
 
     # Exclude score-1 items (off-topic) with receipt tracking.
     #
-    # NF-07 bypass (scoped per hardening, 2026-04-27): items from a
-    # canonical-record adapter (see _NF07_CANONICAL_RECORD_PROVIDERS at
-    # module top) skip the score=1 exclusion because their URL identity
-    # is the primary-tier signal — the synthesised metadata snippet is
-    # what the scorer is reading, not the URL's content. Items from
-    # search-shape adapters (OpenAlex, Wikipedia, etc.) get the scorer's
-    # judgement applied normally because their snippets ARE the content.
+    # NF-07-v2 bypass: items from an adapter that self-declares
+    # `emits_structural_metadata=True` skip the score=1 exclusion
+    # because their URL identity is the primary-tier signal — the
+    # snippet is structured metadata, not content text. Items from
+    # search-shape adapters (declaring False, the default) get the
+    # scorer's judgement applied normally.
     excluded_total = 0
     bypassed_total = 0
     excluded_items = []
@@ -680,7 +681,7 @@ async def score_evidence_batch(
         for ev in ev_list:
             if ev.get("llm_relevance_score") == 1:
                 provider = ev.get("external_source_provider")
-                if provider in _NF07_CANONICAL_RECORD_PROVIDERS:
+                if _adapter_emits_structural_metadata(provider):
                     ev["relevance_scorer_bypass"] = "api_adapter_canonical_source"
                     bypassed_total += 1
                     kept.append(ev)

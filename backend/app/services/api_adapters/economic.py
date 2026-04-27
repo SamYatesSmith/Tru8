@@ -40,6 +40,7 @@ class ONSAdapter(GovernmentAPIClient):
             cache_ttl=86400,  # 24 hours
             timeout=15,
             max_results=10,
+            emits_structural_metadata=True,  # NF-07-v2: economic series, structural
         )
 
         # ONS-specific headers
@@ -267,6 +268,7 @@ class FREDAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 7,  # 7 days (economic data changes slowly)
             timeout=10,
             max_results=10,
+            emits_structural_metadata=True,  # NF-07-v2: series IDs, structural (post-SC-09)
         )
 
         # FRED uses API key as query parameter
@@ -1416,6 +1418,7 @@ class WorldBankAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 7,  # 7 days — data updates quarterly
             timeout=10,
             max_results=5,
+            emits_structural_metadata=True,  # NF-07-v2: indicator data, structural
         )
         # World Bank API uses no auth headers
         self.headers = {"Accept": "application/json"}

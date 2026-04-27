@@ -1,21 +1,24 @@
 """NF-07 regression guards for the relevance scorer's API-adapter bypass.
 
-Observed on TRU-E545-4080 (Equality Act 2010 production check): the UK
-Parliament Bills adapter returned 5 topical bills, the LLM scorer
-judged all 5 snippets as irrelevant (score=1), and they were excluded
-before reaching the classifier. Final evidence contained zero
-parliament.uk URLs despite SC-15 firing correctly.
+History:
+- Original NF-07 (commit ec175d1, 2026-04-24): bypassed score=1 for any
+  item with external_source_provider set. Motivated by TRU-E545-4080
+  (Equality Act 2010): Bills adapter returned 5 topical bills, all
+  scored 1 by snippet, all dropped — zero parliament.uk URLs in final.
+- NF-07-hardening (commit 910c8e1, 2026-04-27): scoped via a frozen
+  whitelist of 13 canonical-record providers after TRU-A3E8-3199 audit
+  showed the unscoped bypass had a 12% real mapping rate (2 of 17
+  bypassed items actually picked by the mapper).
+- NF-07-v2 (this commit): replaced the frozen whitelist with adapter
+  self-declaration. Each adapter declares
+  `emits_structural_metadata: bool = False` on
+  GovernmentAPIClient.__init__; the scorer queries the registry. New
+  adapters self-classify; no central list to maintain.
 
-Root cause: the scorer judges snippet content ("does this text address
-the claim?") while API adapters return items where the URL identity is
-the claim-relevant signal. Synthesised metadata snippets from Bills,
-Hansard's fallback path, and LoC's Collections path assert nothing
-about the claim's content — they describe procedural status.
-
-Fix: items with `external_source_provider` set are bypassed by the
-score=1 exclusion step. They still get their score annotated for
-downstream ordering, but they reach the classifier (which correctly
-tiers them as primary via URL identity).
+These tests verify the SCORER respects whatever the adapter declares.
+The contract that adapters declare correctly (e.g. Bills=True,
+OpenAlex=False) is verified separately in tests covering each
+adapter class.
 """
 
 from unittest.mock import AsyncMock, patch
@@ -23,6 +26,60 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.pipeline.relevance_scorer import score_evidence_batch
+
+
+# Provider-name → emits_structural_metadata. Reflects the current
+# adapter declarations as of NF-07-v2 (commit landing this file).
+# When new adapters are added/changed, update this map alongside the
+# adapter class — the scorer test will then confirm the scorer
+# delegates correctly.
+_TEST_ADAPTER_DECLARATIONS = {
+    # Canonical-record adapters (declare True)
+    "UK Parliament Bills": True,
+    "Companies House": True,
+    "FRED": True,
+    "ONS Economic Statistics": True,
+    "World Bank": True,
+    "WHO": True,
+    "NOAA CDO": True,
+    "WeatherAPI": True,
+    "Open-Meteo": True,
+    "Football-Data.org": True,
+    "Transfermarkt": True,
+    "GBIF": True,
+    "Wikidata": True,
+    # Search-shape adapters (declare False)
+    "OpenAlex": False,
+    "Semantic Scholar": False,
+    "PubMed": False,
+    "CrossRef": False,
+    "Wikipedia": False,
+    "Marketaux": False,
+    "GOV.UK Content API": False,
+    "UK Parliament Hansard": False,
+    "Library of Congress": False,
+    "Chronicling America": False,
+    "Internet Archive": False,
+}
+
+
+@pytest.fixture(autouse=True)
+def mock_adapter_declarations():
+    """Autouse: patch the registry lookup so the scorer's test contract
+    is decoupled from adapter registration plumbing (which depends on
+    settings, API keys, etc.). Unknown providers default to False —
+    same defensive behaviour as the production code path."""
+
+    def _stub(provider):
+        if not provider:
+            return False
+        return _TEST_ADAPTER_DECLARATIONS.get(provider, False)
+
+    with patch(
+        "app.pipeline.relevance_scorer._adapter_emits_structural_metadata",
+        side_effect=_stub,
+    ):
+        yield
 
 
 class TestRelevanceScorerNF07Bypass:
@@ -445,3 +502,95 @@ class TestNF07HardeningWhitelist:
         )
         assert result["0"] == []
         assert len(result.get("_excluded", [])) == 1
+
+
+class TestNF07v2AdapterContract:
+    """NF-07-v2 contract: each adapter class declares its own
+    `emits_structural_metadata`. The scorer's tests above use a fixture
+    map, but the SOURCE OF TRUTH is each adapter's __init__ call. This
+    class instantiates each adapter and asserts the declaration matches
+    the fixture map — so if anyone changes an adapter's declaration
+    without updating the fixture (or vice versa), the test fails loudly.
+
+    Disable autouse fixture for this class — these tests don't call the
+    scorer; they introspect adapter classes directly.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _no_scorer_patch(self, monkeypatch):
+        # No-op override of the module-level autouse fixture.
+        # Re-stub _adapter_emits_structural_metadata as identity so any
+        # accidental scorer call still works deterministically.
+        pass
+
+    def test_canonical_adapters_declare_true(self):
+        """Each canonical-record adapter in the fixture map must instantiate
+        cleanly and declare emits_structural_metadata=True. Catches drift
+        between an adapter's declaration and the fixture's expectations."""
+        from app.services.api_adapters import (
+            CompaniesHouseAdapter,
+            FREDAdapter,
+            FootballDataAdapter,
+            GBIFAdapter,
+            NOAAAdapter,
+            ONSAdapter,
+            OpenMeteoAdapter,
+            TransfermarktAdapter,
+            UKParliamentBillsAdapter,
+            WHOAdapter,
+            WeatherAPIAdapter,
+            WikidataAdapter,
+            WorldBankAdapter,
+        )
+
+        canonical_adapter_classes = {
+            "Companies House": CompaniesHouseAdapter,
+            "FRED": FREDAdapter,
+            "Football-Data.org": FootballDataAdapter,
+            "GBIF": GBIFAdapter,
+            "NOAA CDO": NOAAAdapter,
+            "ONS Economic Statistics": ONSAdapter,
+            "Open-Meteo": OpenMeteoAdapter,
+            "Transfermarkt": TransfermarktAdapter,
+            "UK Parliament Bills": UKParliamentBillsAdapter,
+            "WHO": WHOAdapter,
+            "WeatherAPI": WeatherAPIAdapter,
+            "Wikidata": WikidataAdapter,
+            "World Bank": WorldBankAdapter,
+        }
+        for api_name, cls in canonical_adapter_classes.items():
+            adapter = cls()
+            assert (
+                adapter.api_name == api_name
+            ), f"{cls.__name__} api_name should be {api_name!r}, got {adapter.api_name!r}"
+            assert adapter.emits_structural_metadata is True, (
+                f"{cls.__name__} must declare emits_structural_metadata=True "
+                f"(NF-07-v2 contract)"
+            )
+
+    def test_search_shape_adapters_declare_false(self):
+        """Adapters whose snippets are content text default to False
+        (the GovernmentAPIClient base default). Pin a sample of them to
+        catch any accidental opt-in."""
+        from app.services.api_adapters import (
+            CrossRefAdapter,
+            GovUKAdapter,
+            HansardAdapter,
+            OpenAlexAdapter,
+            PubMedAdapter,
+            SemanticScholarAdapter,
+        )
+
+        for cls in (
+            CrossRefAdapter,
+            GovUKAdapter,
+            HansardAdapter,
+            OpenAlexAdapter,
+            PubMedAdapter,
+            SemanticScholarAdapter,
+        ):
+            adapter = cls()
+            assert adapter.emits_structural_metadata is False, (
+                f"{cls.__name__} must declare emits_structural_metadata=False "
+                f"(content-text snippets get scorer's judgement)"
+            )

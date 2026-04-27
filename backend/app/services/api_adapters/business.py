@@ -41,6 +41,7 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 3,  # 3 days (company data changes slowly)
             timeout=10,
             max_results=10,
+            emits_structural_metadata=True,  # NF-07-v2: company records, structural snippets
         )
 
         # Companies House uses HTTP Basic Auth with API key as username
@@ -193,6 +194,7 @@ class WikidataAdapter(GovernmentAPIClient):
             timeout=15,
             max_results=10,
             priority_tier=3,  # General reference
+            emits_structural_metadata=True,  # NF-07-v2: structured entity records
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:

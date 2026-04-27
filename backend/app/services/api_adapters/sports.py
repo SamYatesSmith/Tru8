@@ -41,6 +41,7 @@ class TransfermarktAdapter(GovernmentAPIClient):
             cache_ttl=3600,  # 1 hour (historical data stable)
             timeout=15,
             max_results=5,
+            emits_structural_metadata=True,  # NF-07-v2: transfer stats, structural
         )
         # NO HARDCODED LISTS - use NER entities passed from pipeline
 
@@ -652,6 +653,7 @@ class FootballDataAdapter(GovernmentAPIClient):
             cache_ttl=300,  # 5 minutes - sports data changes frequently
             timeout=10,
             max_results=10,
+            emits_structural_metadata=True,  # NF-07-v2: match stats, structural
         )
 
         # Football-Data.org uses X-Auth-Token header

@@ -317,6 +317,7 @@ class WHOAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 7,  # 7 days (health data changes slowly)
             timeout=15,
             max_results=10,
+            emits_structural_metadata=True,  # NF-07-v2: indicator data, structural
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:

@@ -61,6 +61,7 @@ class NOAAAdapter(GovernmentAPIClient):
             cache_ttl=86400,  # 24 hours (climate data updates daily at most)
             timeout=15,
             max_results=10,
+            emits_structural_metadata=True,  # NF-07-v2: climate observations, structural
         )
 
         # NOAA uses token header authentication
@@ -462,6 +463,7 @@ class WeatherAPIAdapter(GovernmentAPIClient):
             cache_ttl=1800,  # 30 mins (weather updates frequently)
             timeout=10,
             max_results=5,
+            emits_structural_metadata=True,  # NF-07-v2: weather observations, structural
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
@@ -820,6 +822,7 @@ class OpenMeteoAdapter(GovernmentAPIClient):
             cache_ttl=3600,  # 1 hour — weather data is time-sensitive
             timeout=10,
             max_results=3,
+            emits_structural_metadata=True,  # NF-07-v2: weather observations, structural
         )
         # No auth headers needed
         self.headers = {}

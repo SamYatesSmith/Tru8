@@ -39,6 +39,7 @@ class GBIFAdapter(GovernmentAPIClient):
             cache_ttl=86400 * 7,  # 7 days (species data is stable)
             timeout=15,
             max_results=10,
+            emits_structural_metadata=True,  # NF-07-v2: species records, taxonomic snippets
         )
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
