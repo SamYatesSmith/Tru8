@@ -101,3 +101,59 @@ class TestGetAdapterCapForDomain:
             '{"Health": "lots", "DEFAULT": 3}',
         )
         assert retrieve.get_adapter_cap_for_domain("Health") == 3
+
+
+class TestGetEffectiveAdapterCap:
+    """NF-09: get_effective_adapter_cap widens the cap when an article
+    classifier returns secondary_domains, so cross-domain claims keep
+    their cross-specialists instead of cap-victimising them. Each
+    secondary adds 2 slots; primary keeps its full cap.
+
+    Observed motivating case: TRU-DD26-16FE ("Climate Change Act 2008")
+    classified as Climate; Bills/Hansard/GOV.UK/Companies House merged
+    into the pool by retrieve.py:2050-2061 then cap-victimised by the
+    primary-only Climate cap=4.
+    """
+
+    def test_no_secondaries_matches_base_cap(self):
+        """No secondaries → effective cap equals the primary's base cap."""
+        from app.pipeline.retrieve import get_effective_adapter_cap
+
+        assert get_effective_adapter_cap("Climate", []) == 4
+        assert get_effective_adapter_cap("Health", None) == 4
+        assert get_effective_adapter_cap("Science") == 5
+
+    def test_climate_plus_law_secondary(self):
+        """Motivating case: Climate primary + Law secondary → 4 + 2 = 6.
+        Pre-NF-09 this was 4, dropping the Law specialists."""
+        from app.pipeline.retrieve import get_effective_adapter_cap
+
+        assert get_effective_adapter_cap("Climate", ["Law"]) == 6
+
+    def test_two_secondaries_adds_four_slots(self):
+        """Classifier caps at 2 secondaries (article_classifier.py line ~484).
+        Worst case: primary=4 + 2*2 = 8 — bounded latency."""
+        from app.pipeline.retrieve import get_effective_adapter_cap
+
+        assert get_effective_adapter_cap("Health", ["Finance", "Politics"]) == 8
+
+    def test_unknown_primary_with_secondary(self):
+        """Unknown primary uses DEFAULT (3) then adds secondary slots."""
+        from app.pipeline.retrieve import get_effective_adapter_cap
+
+        assert get_effective_adapter_cap("NotARealDomain", ["Climate"]) == 5
+
+    def test_none_primary_with_secondary(self):
+        """Primary=None (classification failure) still resolves; secondary
+        bonus still applies on top of the DEFAULT cap."""
+        from app.pipeline.retrieve import get_effective_adapter_cap
+
+        assert get_effective_adapter_cap(None, ["Health"]) == 5
+
+    def test_legal_override_path_no_secondaries(self):
+        """In retrieve.py the legal-override branch sets domain='Law' and
+        leaves secondary_domains=[]. Effective cap must equal the Law base
+        cap (4) — no surprise widening from the new code path."""
+        from app.pipeline.retrieve import get_effective_adapter_cap
+
+        assert get_effective_adapter_cap("Law", []) == 4

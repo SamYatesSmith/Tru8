@@ -79,6 +79,33 @@ def get_adapter_cap_for_domain(domain: str | None) -> int:
         return _DEFAULT_ADAPTER_CAP
 
 
+# NF-09: cross-domain claims need extra cap headroom. The article classifier
+# returns up to 2 secondary domains (article_classifier.py — "Any secondary
+# domains (max 2) if the article crosses topics") and retrieve.py merges
+# their adapters into the selection pool. Without widening the cap they get
+# silently dropped — observed on TRU-DD26-16FE ("Climate Change Act 2008"
+# classified as Climate; Law specialists Bills/Hansard/GOV.UK/Companies
+# House all cap-victimised by Climate cap=4).
+_NF09_SLOTS_PER_SECONDARY = 2
+
+
+def get_effective_adapter_cap(
+    primary_domain: str | None,
+    secondary_domains: Optional[List[str]] = None,
+) -> int:
+    """NF-09: cap for the merged primary+secondary adapter pool.
+
+    Adds 2 slots per secondary domain on top of the primary cap. With the
+    classifier's max-2-secondaries constraint the worst case is
+    primary_cap + 4 (e.g. Climate=4 + 2 secondaries = 8 adapters), keeping
+    latency bounded while letting cross-domain specialists survive.
+    """
+    base = get_adapter_cap_for_domain(primary_domain)
+    if not secondary_domains:
+        return base
+    return base + _NF09_SLOTS_PER_SECONDARY * len(secondary_domains)
+
+
 def _resolve_search_country(claim: Dict[str, Any]) -> Optional[str]:
     """Resolve claim jurisdiction to a search provider country code.
 
@@ -1997,6 +2024,11 @@ class EvidenceRetriever:
             key_entities = claim.get("key_entities", [])
             entities = self._label_entities_for_api(key_entities)
 
+            # NF-09: ensure secondary_domains is always defined so the cap
+            # logic (and the secondary-merge block) can rely on it in both
+            # the legal-override and article-classification branches.
+            secondary_domains: List[str] = []
+
             if claim_type == "legal" and legal_metadata:
                 # Use legal classification for routing (override domain/jurisdiction)
                 domain = "Law"
@@ -2047,7 +2079,7 @@ class EvidenceRetriever:
             )
 
             # Also query secondary domain adapters (for cross-domain articles)
-            if "secondary_domains" in dir() and secondary_domains:
+            if secondary_domains:
                 for sec_domain in secondary_domains:
                     sec_adapters = self.api_registry.get_adapters_for_domain(
                         sec_domain, jurisdiction
@@ -2094,10 +2126,13 @@ class EvidenceRetriever:
                         f"[JURISDICTION] {jurisdiction}: {pre_filter} -> {len(relevant_adapters)} adapters"
                     )
 
-            # PQ-06 + B1: Tier-aware, domain-aware adapter cap.
+            # PQ-06 + B1 + NF-09: Tier-aware, domain-aware adapter cap.
             # Specialists first, generalists fill gaps. Cap varies by article
             # domain so Health/Science claims don't silently lose OpenAlex/S2.
-            max_adapters = get_adapter_cap_for_domain(domain)
+            # NF-09 widens the cap when secondary_domains are present so
+            # cross-domain claims (e.g. Climate+Law for "Climate Change Act
+            # 2008") keep their cross-specialists.
+            max_adapters = get_effective_adapter_cap(domain, secondary_domains)
             if len(relevant_adapters) > max_adapters:
                 allowed = allowed_names or []
 
