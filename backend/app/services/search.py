@@ -31,9 +31,9 @@ _reload_marker.write_text(
     f"search.py loaded at {_MODULE_LOAD_TIME}\nRate limiting ACTIVE\n"
 )
 
-logger.critical(
-    f"search.py MODULE LOADED at {_MODULE_LOAD_TIME} - Rate limiting ACTIVE"
-)
+# A8b: module-load marker, demoted from CRITICAL → INFO. Sentry no
+# longer flags routine worker startups as critical events.
+logger.info(f"search.py MODULE LOADED at {_MODULE_LOAD_TIME} - Rate limiting ACTIVE")
 
 # GLOBAL rate limiters to prevent concurrent burst across all concurrent claims
 # Using threading.Lock for timestamp coordination (works across event loops)

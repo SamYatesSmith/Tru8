@@ -232,9 +232,12 @@ async def retrieve_evidence_with_cache(
                     "pre_weighting_evidence", {}
                 )
 
-                # CRITICAL DIAGNOSTIC: Log evidence counts per claim
+                # A8b: diagnostic instrumentation — was logger.critical, but
+                # this is a normal stage-completion summary, not an error.
+                # Demoted to INFO so Sentry no longer flags routine pipeline
+                # runs as critical events.
                 total_ev = sum(len(ev) for ev in new_evidence.values())
-                logger.critical(
+                logger.info(
                     f"[EVIDENCE CRITICAL] Retrieved {total_ev} total evidence items for {len(new_evidence)} claims"
                 )
                 for pos, ev_list in new_evidence.items():

@@ -267,15 +267,15 @@ app.add_middleware(
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# A8a (pipeline remediation 2026-04-22): filter pipeline-instrumentation noise
-# so real errors aren't buried. A8b will remove the underlying logger.error
-# calls at source; these filters are the interim shim.
-_SENTRY_NOISE_MARKERS = (
-    "[EVIDENCE TRACE]",
-    "[EVIDENCE CRITICAL]",
-    "[API RETRIEVAL]",
-    "MODULE LOADED",
-)
+# A8a (pipeline remediation 2026-04-22): filter pipeline-instrumentation
+# noise so real errors aren't buried.
+#
+# A8b retirement note (2026-04-27): the four `_SENTRY_NOISE_MARKERS` have
+# been removed because A8b demoted the underlying logger.critical/error
+# calls to logger.info at source — they no longer reach Sentry's error
+# pipeline, so filtering them here is dead code. The breadcrumb filter
+# remains: Redis embedding cache writes still flood the 100-crumb buffer
+# and push actionable context out before real exceptions fire.
 
 
 def _filter_breadcrumb(crumb, hint):
@@ -289,32 +289,11 @@ def _filter_breadcrumb(crumb, hint):
     return crumb
 
 
-def _filter_event(event, hint):
-    """Drop high-volume pipeline-instrumentation log events that were emitted
-    via logger.error but aren't real errors (pipeline breadcrumbs, startup
-    markers). Defensive against non-string payloads to guarantee Sentry's
-    error pipeline never crashes on its own filter."""
-    msg = event.get("message")
-    if not isinstance(msg, str):
-        msg = ""
-    logentry = event.get("logentry") or {}
-    logentry_msg = ""
-    if isinstance(logentry, dict):
-        candidate = logentry.get("formatted") or logentry.get("message") or ""
-        if isinstance(candidate, str):
-            logentry_msg = candidate
-    text = f"{msg} {logentry_msg}"
-    if any(m in text for m in _SENTRY_NOISE_MARKERS):
-        return None
-    return event
-
-
 if settings.SENTRY_DSN:
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
         environment=settings.ENVIRONMENT,
         before_breadcrumb=_filter_breadcrumb,
-        before_send=_filter_event,
         max_breadcrumbs=100,
     )
     app.add_middleware(SentryAsgiMiddleware)

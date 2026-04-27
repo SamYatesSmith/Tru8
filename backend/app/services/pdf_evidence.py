@@ -2,6 +2,7 @@
 PDF Evidence Extractor with Page Number Tracking
 Extracts evidence from PDF documents with precise page citations
 """
+
 import logging
 import re
 import asyncio
@@ -11,6 +12,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+
 class PDFEvidenceExtractor:
     """Extract evidence from PDFs with page-level precision"""
 
@@ -19,10 +21,7 @@ class PDFEvidenceExtractor:
         self.max_pages_to_search = 200  # Prevent timeout on huge PDFs
 
     async def extract_evidence_from_pdf(
-        self,
-        url: str,
-        claim: str,
-        max_results: int = 3
+        self, url: str, claim: str, max_results: int = 3
     ) -> List[Dict[str, Any]]:
         """
         Extract relevant evidence snippets from PDF with page numbers.
@@ -48,52 +47,60 @@ class PDFEvidenceExtractor:
             loop = asyncio.get_event_loop()
 
             # Extract metadata (blocking operation)
-            metadata = await loop.run_in_executor(None, self._extract_pdf_metadata, pdf_bytes)
-            logger.info(f"PDF metadata: {metadata['title']}, {metadata['total_pages']} pages")
+            metadata = await loop.run_in_executor(
+                None, self._extract_pdf_metadata, pdf_bytes
+            )
+            logger.info(
+                f"PDF metadata: {metadata['title']}, {metadata['total_pages']} pages"
+            )
 
             # Search for relevant content (blocking operation)
             pdf_bytes.seek(0)  # Reset stream
             matches = await loop.run_in_executor(
-                None, self._search_pdf_for_claim, pdf_bytes, claim, metadata['total_pages']
+                None,
+                self._search_pdf_for_claim,
+                pdf_bytes,
+                claim,
+                metadata["total_pages"],
             )
 
             # Return top matches
             return matches[:max_results]
 
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to download PDF {url}: {e}")
+            # A8b: recoverable, caller treats [] as no PDF evidence available
+            logger.warning(f"Failed to download PDF {url}: {e}")
             return []
         except Exception as e:
-            logger.error(f"PDF extraction error for {url}: {e}")
+            # A8b: recoverable, caller treats [] as no PDF evidence available
+            logger.warning(f"PDF extraction error for {url}: {e}")
             return []
 
     def _extract_pdf_metadata(self, pdf_bytes: BytesIO) -> Dict[str, Any]:
         """Extract PDF metadata (title, author, pages)"""
         try:
             import PyPDF2
+
             reader = PyPDF2.PdfReader(pdf_bytes)
             metadata = reader.metadata or {}
 
             return {
-                'title': metadata.get('/Title', 'Untitled Document'),
-                'author': metadata.get('/Author', 'Unknown'),
-                'total_pages': len(reader.pages),
-                'creation_date': metadata.get('/CreationDate', '')
+                "title": metadata.get("/Title", "Untitled Document"),
+                "author": metadata.get("/Author", "Unknown"),
+                "total_pages": len(reader.pages),
+                "creation_date": metadata.get("/CreationDate", ""),
             }
         except Exception as e:
             logger.warning(f"Failed to extract PDF metadata: {e}")
             return {
-                'title': 'Document',
-                'author': 'Unknown',
-                'total_pages': 0,
-                'creation_date': ''
+                "title": "Document",
+                "author": "Unknown",
+                "total_pages": 0,
+                "creation_date": "",
             }
 
     def _search_pdf_for_claim(
-        self,
-        pdf_bytes: BytesIO,
-        claim: str,
-        total_pages: int
+        self, pdf_bytes: BytesIO, claim: str, total_pages: int
     ) -> List[Dict[str, Any]]:
         """
         Search PDF for relevant passages matching claim.
@@ -106,6 +113,7 @@ class PDFEvidenceExtractor:
         # Use pdfplumber for better text extraction
         try:
             import pdfplumber
+
             with pdfplumber.open(pdf_bytes) as pdf:
                 pages_to_search = min(len(pdf.pages), self.max_pages_to_search)
                 logger.info(f"Searching {pages_to_search} pages for relevant content")
@@ -113,7 +121,9 @@ class PDFEvidenceExtractor:
                 for page_num in range(pages_to_search):
                     # Log progress every 20 pages for large PDFs
                     if page_num % 20 == 0 and page_num > 0:
-                        logger.info(f"PDF search progress: {page_num}/{pages_to_search} pages processed")
+                        logger.info(
+                            f"PDF search progress: {page_num}/{pages_to_search} pages processed"
+                        )
 
                     page = pdf.pages[page_num]
                     page_text = page.extract_text()
@@ -122,37 +132,65 @@ class PDFEvidenceExtractor:
                         continue
 
                     # Calculate relevance score
-                    relevance_score = self._calculate_relevance(page_text, claim, claim_keywords)
+                    relevance_score = self._calculate_relevance(
+                        page_text, claim, claim_keywords
+                    )
 
                     if relevance_score > 0.3:  # Threshold for relevance
                         # Extract relevant snippet from page
-                        snippet = self._extract_relevant_snippet(page_text, claim, claim_keywords)
+                        snippet = self._extract_relevant_snippet(
+                            page_text, claim, claim_keywords
+                        )
 
-                        matches.append({
-                            'text': snippet,
-                            'page_number': page_num + 1,  # 1-indexed
-                            'relevance_score': relevance_score,
-                            'context_before': self._get_context(page_text, snippet, before=True),
-                            'context_after': self._get_context(page_text, snippet, after=True)
-                        })
+                        matches.append(
+                            {
+                                "text": snippet,
+                                "page_number": page_num + 1,  # 1-indexed
+                                "relevance_score": relevance_score,
+                                "context_before": self._get_context(
+                                    page_text, snippet, before=True
+                                ),
+                                "context_after": self._get_context(
+                                    page_text, snippet, after=True
+                                ),
+                            }
+                        )
 
         except Exception as e:
-            logger.error(f"Error searching PDF: {e}")
+            # A8b: recoverable, caller treats [] as no matches found in PDF
+            logger.warning(f"Error searching PDF: {e}")
             return []
 
         # Sort by relevance
-        matches.sort(key=lambda x: x['relevance_score'], reverse=True)
+        matches.sort(key=lambda x: x["relevance_score"], reverse=True)
         return matches
 
     def _extract_keywords(self, text: str) -> List[str]:
         """Extract important keywords from claim text"""
         # Remove stopwords and extract meaningful terms
-        stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
-        words = re.findall(r'\b\w+\b', text.lower())
+        stopwords = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+        }
+        words = re.findall(r"\b\w+\b", text.lower())
         keywords = [w for w in words if w not in stopwords and len(w) > 3]
         return keywords
 
-    def _calculate_relevance(self, page_text: str, claim: str, keywords: List[str]) -> float:
+    def _calculate_relevance(
+        self, page_text: str, claim: str, keywords: List[str]
+    ) -> float:
         """Calculate relevance score for page text"""
         page_lower = page_text.lower()
         claim_lower = claim.lower()
@@ -168,14 +206,10 @@ class PDFEvidenceExtractor:
         return keyword_score
 
     def _extract_relevant_snippet(
-        self,
-        page_text: str,
-        claim: str,
-        keywords: List[str],
-        snippet_length: int = 300
+        self, page_text: str, claim: str, keywords: List[str], snippet_length: int = 300
     ) -> str:
         """Extract most relevant snippet from page"""
-        sentences = re.split(r'[.!?]+', page_text)
+        sentences = re.split(r"[.!?]+", page_text)
 
         best_sentence_idx = 0
         best_score = 0
@@ -193,7 +227,7 @@ class PDFEvidenceExtractor:
         start_idx = max(0, best_sentence_idx - 1)
         end_idx = min(len(sentences), best_sentence_idx + 2)
 
-        snippet = '. '.join(sentences[start_idx:end_idx]).strip()
+        snippet = ". ".join(sentences[start_idx:end_idx]).strip()
 
         # Truncate if too long
         if len(snippet) > snippet_length:
@@ -201,7 +235,9 @@ class PDFEvidenceExtractor:
 
         return snippet
 
-    def _get_context(self, page_text: str, snippet: str, before: bool = False, after: bool = False) -> str:
+    def _get_context(
+        self, page_text: str, snippet: str, before: bool = False, after: bool = False
+    ) -> str:
         """Get surrounding context for snippet"""
         # Find snippet position
         snippet_start = page_text.find(snippet)
@@ -221,8 +257,10 @@ class PDFEvidenceExtractor:
 
         return ""
 
+
 # Singleton instance
 _pdf_extractor_instance = None
+
 
 def get_pdf_extractor() -> PDFEvidenceExtractor:
     """Get singleton PDFEvidenceExtractor instance"""

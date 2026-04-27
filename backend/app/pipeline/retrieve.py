@@ -1318,7 +1318,8 @@ class EvidenceRetriever:
                 api_snippets = self._convert_api_evidence_to_snippets(
                     api_evidence_items
                 )
-                logger.critical(
+                # A8b: diagnostic instrumentation, demoted from CRITICAL → INFO.
+                logger.info(
                     f"[EVIDENCE TRACE] Claim {claim_position}: {len(evidence_snippets)} web snippets + {len(api_snippets)} API snippets (from {len(api_evidence_items)} API items)"
                 )
                 all_evidence_snippets = evidence_snippets + api_snippets
@@ -1388,7 +1389,8 @@ class EvidenceRetriever:
                     )
 
                 # Step 3: Apply credibility and recency weighting (with raw evidence tracking)
-                logger.critical(
+                # A8b: diagnostic instrumentation, demoted from CRITICAL → INFO.
+                logger.info(
                     f"[EVIDENCE TRACE] Claim {claim_position}: {len(ranked_evidence)} items BEFORE evidence filtering"
                 )
                 pre_weighting_snapshot = copy.deepcopy(ranked_evidence)
@@ -1398,7 +1400,8 @@ class EvidenceRetriever:
                 final_evidence, raw_evidence = (
                     result if isinstance(result, tuple) else (result, [])
                 )
-                logger.critical(
+                # A8b: diagnostic instrumentation, demoted from CRITICAL → INFO.
+                logger.info(
                     f"[EVIDENCE TRACE] Claim {claim_position}: {len(final_evidence)} items AFTER evidence filtering"
                 )
 
@@ -2290,8 +2293,8 @@ class EvidenceRetriever:
                     idx += 1
                 all_api_evidence = interleaved
 
-            # CRITICAL DIAGNOSTIC: Log final API evidence count
-            logger.critical(
+            # A8b: diagnostic instrumentation, demoted from CRITICAL → INFO.
+            logger.info(
                 f"[API RETRIEVAL] Returning {len(all_api_evidence)} evidence items from {api_stats['total_api_calls']} API calls"
             )
             if all_api_evidence:

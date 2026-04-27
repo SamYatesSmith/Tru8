@@ -111,7 +111,8 @@ class CrossRefAdapter(GovernmentAPIClient):
             return self._transform_response(response["message"])
 
         except Exception as e:
-            logger.error(f"CrossRef search failed for '{query}': {e}")
+            # A8b: recoverable, caller treats [] as no CrossRef evidence
+            logger.warning(f"CrossRef search failed for '{query}': {e}")
             return []
 
     def _transform_response(self, raw_response: Any) -> List[Dict[str, Any]]:
@@ -324,7 +325,8 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             )
 
         except Exception as e:
-            logger.error(f"Semantic Scholar search failed: {e}")
+            # A8b: recoverable, caller continues with whatever evidence accumulated
+            logger.warning(f"Semantic Scholar search failed: {e}")
 
         return evidence
 
@@ -511,7 +513,8 @@ class OpenAlexAdapter(GovernmentAPIClient):
             )
 
         except Exception as e:
-            logger.error(f"OpenAlex search failed: {e}")
+            # A8b: recoverable, caller continues with whatever evidence accumulated
+            logger.warning(f"OpenAlex search failed: {e}")
 
         return evidence
 

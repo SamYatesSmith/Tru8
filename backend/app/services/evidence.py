@@ -347,10 +347,13 @@ class EvidenceExtractor:
         except Exception as e:
             import traceback
 
-            logger.error(
+            # A8b: recoverable, caller treats [] as no evidence extracted
+            logger.warning(
                 f"[EVIDENCE DEBUG] Evidence extraction EXCEPTION: {type(e).__name__}: {e}"
             )
-            logger.error(f"[EVIDENCE DEBUG] Full traceback:\n{traceback.format_exc()}")
+            logger.warning(
+                f"[EVIDENCE DEBUG] Full traceback:\n{traceback.format_exc()}"
+            )
             return []
 
     async def _extract_from_page(
@@ -716,7 +719,8 @@ class EvidenceExtractor:
             try:
                 return await self._extract_semantic_snippet(claim, sentences)
             except Exception as e:
-                logger.error(
+                # A8b: recoverable, falls through to word-overlap extraction below
+                logger.warning(
                     f"Semantic snippet extraction failed: {e}, falling back to word overlap"
                 )
                 # Fall through to existing logic
