@@ -114,8 +114,20 @@ support a claim about "worldwide" or "global" figures. Evidence from one time pe
 does NOT support a claim about a different time period.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
-- CROSS-ELEMENT: A single evidence item may be relevant to multiple elements. For each \
-evidence item, consider ALL elements it could inform, not just the most obvious one.
+- ELEMENT-SPECIFIC MAPPING: Each evidence item should be mapped to the element it \
+MOST DIRECTLY addresses. An item appears under multiple elements ONLY when it \
+genuinely addresses distinct sub-questions (e.g. a study reporting both prevalence \
+AND mechanism). Default to mapping each item to its single best-matching element. \
+Items that survive classification but don't add element-specific signal are correctly \
+left unmapped — they will be tagged "unmapped" downstream and surfaced to the user \
+separately. Padding every element with the same items is a quality failure, not \
+thoroughness.
+- CONTEXT DISCIPLINE: The "context" relationship is for evidence that frames the \
+element's domain without confirming or contradicting it. Use sparingly. A general \
+topical mention is NOT context — true context provides background that helps \
+interpret the supports/challenges evidence for THAT specific element. If an item is \
+merely "broadly on topic" with no element-specific signal, omit it from that element \
+rather than padding it as context.
 - PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as \
 approximate. A source saying "59%" does not challenge a claim of "approximately 60%". \
 But a source saying "25%" DOES challenge a claim of "18%".
@@ -129,7 +141,9 @@ report stating "the two-year budget was £37 billion" is "supports".
 - TOPIC vs FIGURE: Distinguish between evidence about a topic and evidence about a \
 specific statistic within that topic. An element asserting a number requires evidence \
 that addresses the number itself, not merely the surrounding subject. Evidence that \
-discusses the subject without mentioning the figure should be mapped as "context".
+discusses the subject without mentioning the figure should be mapped as "context" — \
+but only when it genuinely helps the reader interpret the element (per CONTEXT \
+DISCIPLINE above), otherwise omit.
 """
 
 BATCH_DECOMPOSITION_PROMPT = """\
@@ -208,8 +222,20 @@ support a claim about "worldwide" or "global" figures. Evidence from one time pe
 does NOT support a claim about a different time period.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
-- CROSS-ELEMENT: A single evidence item may be relevant to multiple elements. For each \
-evidence item, consider ALL elements it could inform, not just the most obvious one.
+- ELEMENT-SPECIFIC MAPPING: Each evidence item should be mapped to the element it \
+MOST DIRECTLY addresses. An item appears under multiple elements ONLY when it \
+genuinely addresses distinct sub-questions (e.g. a study reporting both prevalence \
+AND mechanism). Default to mapping each item to its single best-matching element. \
+Items that survive classification but don't add element-specific signal are correctly \
+left unmapped — they will be tagged "unmapped" downstream and surfaced to the user \
+separately. Padding every element with the same items is a quality failure, not \
+thoroughness.
+- CONTEXT DISCIPLINE: The "context" relationship is for evidence that frames the \
+element's domain without confirming or contradicting it. Use sparingly. A general \
+topical mention is NOT context — true context provides background that helps \
+interpret the supports/challenges evidence for THAT specific element. If an item is \
+merely "broadly on topic" with no element-specific signal, omit it from that element \
+rather than padding it as context.
 - PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as \
 approximate. A source saying "59%" does not challenge a claim of "approximately 60%". \
 But a source saying "25%" DOES challenge a claim of "18%".
@@ -223,7 +249,9 @@ report stating "the two-year budget was £37 billion" is "supports".
 - TOPIC vs FIGURE: Distinguish between evidence about a topic and evidence about a \
 specific statistic within that topic. An element asserting a number requires evidence \
 that addresses the number itself, not merely the surrounding subject. Evidence that \
-discusses the subject without mentioning the figure should be mapped as "context".
+discusses the subject without mentioning the figure should be mapped as "context" — \
+but only when it genuinely helps the reader interpret the element (per CONTEXT \
+DISCIPLINE above), otherwise omit.
 """
 
 
