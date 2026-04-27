@@ -80,8 +80,13 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
       }
     });
 
-    const included = all.filter((ev) => ev.receiptStatus !== 'excluded');
-    const excluded = all.filter((ev) => ev.receiptStatus === 'excluded');
+    // B3: 'unmapped' items joined 'excluded' as receipt outcomes the user
+    // should see in retrieval transparency. Both are kept out of the
+    // included pool but surfaced in the funnel.
+    const isVisibleInLandscape = (ev: Evidence) =>
+      ev.receiptStatus !== 'excluded' && ev.receiptStatus !== 'unmapped';
+    const included = all.filter(isVisibleInLandscape);
+    const excluded = all.filter((ev) => !isVisibleInLandscape(ev));
 
     return { allEvidence: all, includedEvidence: included, excludedEvidence: excluded, elementMap, claimLabelMap, elementDescriptionMap };
   }, [claims, scope]);

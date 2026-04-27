@@ -12,6 +12,16 @@ function extractDomain(url: string): string {
 }
 
 function getExclusionReason(ev: Evidence): { badge: string; explanation: string } {
+  // B3: items the mapper didn't pick are 'unmapped', not 'excluded'.
+  // They're classified valid evidence the mapper didn't connect to any
+  // claim element — surface them so the Librarian's "what we didn't
+  // include" stays honest.
+  if (ev.receiptStatus === 'unmapped') {
+    return {
+      badge: 'Not in map',
+      explanation: 'Classified but not connected to any claim element by the mapper',
+    };
+  }
   if (ev.receiptStatus === 'excluded') {
     if (ev.sourceType === 'duplicate' || ev.corroborationGroupId) {
       return { badge: 'Duplicate', explanation: 'Identical or near-identical content to another source' };

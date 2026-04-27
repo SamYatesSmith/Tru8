@@ -192,6 +192,64 @@ def extract_pipeline_metrics(
     )
 
 
+def _apply_post_mapping_receipts(
+    claim_map: Optional[Dict[str, Any]], evidence_list: List[Dict[str, Any]]
+) -> Dict[str, int]:
+    """B3: tag each surviving evidence item by mapper outcome.
+
+    Items the mapper selected for at least one element get
+    receipt_status='shown'. Items that survived classification but
+    weren't picked by the mapper get receipt_status='unmapped' +
+    exclusion_reason='not_selected_by_mapper'. Pre-existing
+    'excluded' items (satire, irrelevant, dup, quality-floor)
+    are left alone — that decision was made earlier.
+
+    Distinguishes mapper-didn't-run from mapper-rejected:
+    - claim_map is None / not a dict → mapper didn't run for this
+      claim (decompose may have failed). Preserve 'shown' rather
+      than mislabelling as deliberately rejected.
+    - claim_map has elements (possibly empty) → mapper ran. Items
+      not in any element's evidence_refs are deliberately unmapped.
+
+    Returns a counts dict {shown, unmapped, excluded} for caller
+    summary logging. Items without 'evidence_id' or 'id' default
+    to 'shown' so the worst-case bug is over-disclosure rather
+    than silent drop.
+    """
+    counts = {"shown": 0, "unmapped": 0, "excluded": 0}
+
+    mapper_ran = isinstance(claim_map, dict) and "elements" in claim_map
+    mapped_ids: set = set()
+    if mapper_ran:
+        for elem in claim_map.get("elements", []) or []:
+            if not isinstance(elem, dict):
+                continue
+            for ref in elem.get("evidence_refs", []) or []:
+                if not isinstance(ref, dict):
+                    continue
+                ev_id = ref.get("evidence_id")
+                if ev_id:
+                    mapped_ids.add(ev_id)
+
+    for ev in evidence_list:
+        # Preserve any prior 'excluded' decision (satire/irrelevant/dup
+        # written by relevance_scorer / evidence_classifier / quality_floor).
+        if ev.get("receipt_status") == "excluded":
+            counts["excluded"] += 1
+            continue
+
+        ev_id = ev.get("evidence_id") or ev.get("id")
+        if mapper_ran and ev_id and ev_id not in mapped_ids:
+            ev["receipt_status"] = "unmapped"
+            ev["exclusion_reason"] = "not_selected_by_mapper"
+            counts["unmapped"] += 1
+        else:
+            ev["receipt_status"] = "shown"
+            counts["shown"] += 1
+
+    return counts
+
+
 async def _log_stage_transition(
     check_id: str,
     from_stage: str,
@@ -2078,10 +2136,24 @@ async def run_pipeline_phase2(
     # =========================================================================
     # Build Final Result
     # =========================================================================
-    # Mark surviving evidence as "shown" (final receipt status)
-    for ev_list in evidence.values():
-        for ev in ev_list:
-            ev["receipt_status"] = "shown"
+    # B3: per-claim receipt annotation. Mapped items → 'shown'; classified
+    # items the mapper didn't pick → 'unmapped' with exclusion_reason. Items
+    # already 'excluded' (satire/irrelevant/dup/quality-floor) are left
+    # alone — that decision was made by an earlier stage.
+    receipt_summary = {"shown": 0, "unmapped": 0, "excluded": 0}
+    for claim in claims:
+        pos = str(claim.get("position", 0))
+        ev_list = evidence.get(pos, [])
+        if not ev_list:
+            continue
+        counts = _apply_post_mapping_receipts(claim.get("claim_map"), ev_list)
+        for k, v in counts.items():
+            receipt_summary[k] += v
+    logger.info(
+        f"[B3 RECEIPTS] shown={receipt_summary['shown']} "
+        f"unmapped={receipt_summary['unmapped']} "
+        f"excluded={receipt_summary['excluded']}"
+    )
 
     results = []
     for claim in claims:
