@@ -25,6 +25,19 @@ MAX_RELATED_CLAIMS = 5
 MIN_CONTEXT_TOKENS = 2
 
 
+def _entity_text(e) -> str:
+    """NF-15: extract text from typed entity {text, type} dict.
+
+    Tolerates legacy plain-string entities for in-flight checks at the
+    deploy boundary.
+    """
+    if isinstance(e, dict):
+        return e.get("text", "") or ""
+    if e is None:
+        return ""
+    return str(e)
+
+
 def _extract_context_tokens(subject_context: str | None) -> list[str]:
     """Extract meaningful tokens from subject_context for fallback matching."""
     if not subject_context:
@@ -115,8 +128,12 @@ async def find_related_claims(
     if not isinstance(target_entities, list):
         target_entities = []
 
-    # Normalise entities for comparison
-    normalised_entities = [str(e).lower().strip() for e in target_entities if e]
+    # NF-15: typed entities are {text, type} dicts; extract .text via
+    # module-level _entity_text helper. Tolerates legacy strings.
+    normalised_entities = [
+        _entity_text(e).lower().strip() for e in target_entities if e
+    ]
+    normalised_entities = [n for n in normalised_entities if n]
 
     results: list[dict] = []
 
@@ -187,9 +204,10 @@ async def _find_by_entity_overlap(
             cc.claim_type,
             cc.key_entities,
             (
+                -- NF-15: typed entities are JSONB {text, type} dicts; extract .text
                 SELECT COUNT(*)
-                FROM jsonb_array_elements_text(cc.key_entities) AS entity
-                WHERE LOWER(TRIM(entity)) = ANY(:entities)
+                FROM jsonb_array_elements(cc.key_entities) AS entity
+                WHERE LOWER(TRIM(entity ->> 'text')) = ANY(:entities)
             ) AS overlap_count
         FROM candidate_claims cc
         WHERE (
@@ -219,12 +237,15 @@ async def _find_by_entity_overlap(
         claim_hash, claim_map_raw, claim_type, key_entities, overlap_count = row
         cm = claim_map_raw if isinstance(claim_map_raw, dict) else {}
 
-        # Extract shared entities for transparency
+        # Extract shared entities for transparency.
+        # NF-15: typed entities are {text, type} dicts; extract .text.
         candidate_entities = []
         if isinstance(key_entities, list):
-            candidate_entities = [str(e).lower().strip() for e in key_entities if e]
+            candidate_entities = [
+                _entity_text(e).lower().strip() for e in key_entities if e
+            ]
         entity_set = set(normalised_entities)
-        shared = [e for e in candidate_entities if e in entity_set]
+        shared = [e for e in candidate_entities if e and e in entity_set]
 
         claims.append(_build_related_claim(cm, claim_type, claim_hash, shared))
 

@@ -435,7 +435,16 @@ class GovernmentAPIClient(ABC):
             for ent in entities:
                 text = ent.get("text", "").strip()
                 label = ent.get("label", "")
-                if text and label in ("ORG", "ENTITY", "PERSON"):
+                # NF-15: typed vocab — accept topical/named-thing labels.
+                # OTHER is the explicit catch-all for domain concepts.
+                if text and label in (
+                    "ORG",
+                    "PERSON",
+                    "LAW",
+                    "EVENT",
+                    "PRODUCT",
+                    "OTHER",
+                ):
                     if _noise_pattern.match(text):
                         continue
                     # Strip leading articles from entity text ("the virus" -> "virus")

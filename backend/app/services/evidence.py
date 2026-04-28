@@ -246,9 +246,14 @@ class EvidenceExtractor:
             search_query = claim
             logger.info(f"Search query: '{search_query[:80]}...'")
             if subject_context and key_entities:
-                # Only add entities that AREN'T already in the claim text (avoid duplication)
+                # NF-15: typed entities are {text, type} dicts; extract text.
+                # Tolerate legacy strings for in-flight checks at deploy boundary.
+                entity_texts = [
+                    (e.get("text") if isinstance(e, dict) else e)
+                    for e in key_entities[:3]
+                ]
                 unique_entities = [
-                    e for e in key_entities[:3] if e.lower() not in claim.lower()
+                    t for t in entity_texts if t and t.lower() not in claim.lower()
                 ]
                 if unique_entities:
                     entities_str = " ".join(

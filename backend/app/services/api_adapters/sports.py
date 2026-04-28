@@ -189,34 +189,11 @@ class TransfermarktAdapter(GovernmentAPIClient):
             for ent in entities:
                 if not isinstance(ent, dict):
                     continue
+                if ent.get("label") == "PERSON":
+                    persons.append(ent.get("text", ""))
 
-                text = ent.get("text", "")
-                label = ent.get("label", "")
-
-                if label == "PERSON":
-                    persons.append(text)
-                elif label == "ENTITY":
-                    # Fallback: Check if it looks like a person name
-                    # (2+ words, all capitalized, no org-like suffixes)
-                    words = text.split()
-                    org_indicators = (
-                        "FC",
-                        "United",
-                        "City",
-                        "Club",
-                        "League",
-                        "Inc",
-                        "Ltd",
-                    )
-                    if (
-                        len(words) >= 2
-                        and all(w[0].isupper() for w in words if w)
-                        and not any(ind in text for ind in org_indicators)
-                    ):
-                        entity_fallbacks.append(text)
-
-        # Use PERSON entities first, fall back to ENTITY if none found
-        return persons if persons else entity_fallbacks
+        # NF-15: typed entities — trust the PERSON label, no ENTITY fallback regex.
+        return persons
 
     def _extract_org_names(self, entities: Optional[List[Dict[str, str]]]) -> List[str]:
         """
@@ -232,52 +209,16 @@ class TransfermarktAdapter(GovernmentAPIClient):
             List of organization/club names to search for
         """
         orgs = []
-        entity_fallbacks = []
-
-        # Common sports/org indicators
-        org_indicators = (
-            "FC",
-            "United",
-            "City",
-            "Rovers",
-            "Athletic",
-            "Club",
-            "Dortmund",
-            "Arsenal",
-            "Chelsea",
-            "Munich",
-            "Madrid",
-            "Barcelona",
-            "Milan",
-            "Inter",
-            "Juventus",
-            "PSG",
-            "Bayern",
-            "Liverpool",
-            "League",
-            "Association",
-            "Federation",
-            "UEFA",
-            "FIFA",
-        )
 
         if entities:
             for ent in entities:
                 if not isinstance(ent, dict):
                     continue
+                if ent.get("label") == "ORG":
+                    orgs.append(ent.get("text", ""))
 
-                text = ent.get("text", "")
-                label = ent.get("label", "")
-
-                if label == "ORG":
-                    orgs.append(text)
-                elif label == "ENTITY":
-                    # Fallback: Check if it looks like an organization
-                    if any(ind in text for ind in org_indicators):
-                        entity_fallbacks.append(text)
-
-        # Use ORG entities first, fall back to ENTITY if none found
-        return orgs if orgs else entity_fallbacks
+        # NF-15: typed entities — trust the ORG label, no ENTITY fallback regex.
+        return orgs
 
     def _search_player_with_transfers(
         self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None
@@ -843,52 +784,16 @@ class FootballDataAdapter(GovernmentAPIClient):
             List of organization/club names to search for
         """
         orgs = []
-        entity_fallbacks = []
-
-        # Common sports/org indicators
-        org_indicators = (
-            "FC",
-            "United",
-            "City",
-            "Rovers",
-            "Athletic",
-            "Club",
-            "Dortmund",
-            "Arsenal",
-            "Chelsea",
-            "Munich",
-            "Madrid",
-            "Barcelona",
-            "Milan",
-            "Inter",
-            "Juventus",
-            "PSG",
-            "Bayern",
-            "Liverpool",
-            "League",
-            "Association",
-            "Federation",
-            "UEFA",
-            "FIFA",
-        )
 
         if entities:
             for ent in entities:
                 if not isinstance(ent, dict):
                     continue
+                if ent.get("label") == "ORG":
+                    orgs.append(ent.get("text", ""))
 
-                text = ent.get("text", "")
-                label = ent.get("label", "")
-
-                if label == "ORG":
-                    orgs.append(text)
-                elif label == "ENTITY":
-                    # Fallback: Check if it looks like an organization
-                    if any(ind in text for ind in org_indicators):
-                        entity_fallbacks.append(text)
-
-        # Use ORG entities first, fall back to ENTITY if none found
-        return orgs if orgs else entity_fallbacks
+        # NF-15: typed entities — trust the ORG label, no ENTITY fallback regex.
+        return orgs
 
     def _get_standings(
         self, query_lower: str, entities: Optional[List[Dict[str, str]]] = None

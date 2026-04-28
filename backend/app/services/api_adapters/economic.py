@@ -1188,9 +1188,8 @@ class MarketauxAdapter(GovernmentAPIClient):
             # Build targeted search term from entities when no ticker found
             search_term = query
             if not ticker and entities:
-                org_entities = [
-                    e["text"] for e in entities if e.get("label") in ("ORG", "ENTITY")
-                ]
+                # NF-15: typed entities — Marketaux is news search, accept ORG only
+                org_entities = [e["text"] for e in entities if e.get("label") == "ORG"]
                 if org_entities:
                     search_term = org_entities[0]
                     logger.debug(

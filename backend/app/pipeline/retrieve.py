@@ -1879,104 +1879,6 @@ class EvidenceRetriever:
                 return evidence_list, []
             return evidence_list
 
-    def _label_entities_for_api(self, key_entities: List[str]) -> List[Dict[str, str]]:
-        """
-        Convert string entities to labeled format for API adapters.
-
-        Uses heuristics to classify entities as PERSON, ORG, or ENTITY.
-        This enables API adapters (e.g., TransfermarktAdapter) to properly
-        query for players, clubs, etc.
-
-        Args:
-            key_entities: List of entity strings from claim extraction
-
-        Returns:
-            List of labeled entities: [{"text": "...", "label": "PERSON|ORG|ENTITY"}]
-        """
-        # Common sports organization suffixes
-        org_suffixes = (
-            "FC",
-            "United",
-            "City",
-            "Rovers",
-            "Wanderers",
-            "Athletic",
-            "Dortmund",
-            "Arsenal",
-            "Chelsea",
-            "Munich",
-            "Madrid",
-            "Barcelona",
-            "Milan",
-            "Inter",
-            "Juventus",
-            "PSG",
-            "Bayern",
-            "Liverpool",
-            "Tottenham",
-            "Spurs",
-            "Hotspur",
-            "Rangers",
-            "Celtic",
-            "Club",
-            "Association",
-            "Federation",
-            "League",
-            "UEFA",
-            "FIFA",
-            "Inc",
-            "Ltd",
-            "Corp",
-            "Company",
-            "Organization",
-            "Government",
-        )
-
-        # Common title prefixes that indicate PERSON
-        person_prefixes = (
-            "Mr",
-            "Mrs",
-            "Ms",
-            "Dr",
-            "Prof",
-            "Sir",
-            "Lord",
-            "Lady",
-            "President",
-            "Prime Minister",
-            "Minister",
-            "Senator",
-            "Governor",
-        )
-
-        labeled = []
-        for entity in key_entities:
-            if not entity or not isinstance(entity, str):
-                continue
-
-            entity_stripped = entity.strip()
-            words = entity_stripped.split()
-
-            # Check for organization indicators
-            if any(entity_stripped.endswith(suffix) for suffix in org_suffixes):
-                labeled.append({"text": entity_stripped, "label": "ORG"})
-            # Check for person name patterns (2+ capitalized words, not org)
-            elif (
-                len(words) >= 2
-                and all(w[0].isupper() for w in words if w)
-                and not any(suffix in entity_stripped for suffix in org_suffixes)
-            ):
-                labeled.append({"text": entity_stripped, "label": "PERSON"})
-            # Check for title prefix
-            elif any(entity_stripped.startswith(prefix) for prefix in person_prefixes):
-                labeled.append({"text": entity_stripped, "label": "PERSON"})
-            # Default to ENTITY (adapters can still try to use these)
-            else:
-                labeled.append({"text": entity_stripped, "label": "ENTITY"})
-
-        logger.debug(f"[API ROUTING] Labeled entities: {labeled}")
-        return labeled
-
     async def _retrieve_from_government_apis(
         self, claim_text: str, claim: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -2028,10 +1930,15 @@ class EvidenceRetriever:
             claim_type = claim.get("claim_type")
             legal_metadata = claim.get("legal_metadata", {})
 
-            # Extract entities from key_entities field (set during extraction)
-            # Convert to labeled entity format for API adapters (PERSON, ORG, etc.)
-            key_entities = claim.get("key_entities", [])
-            entities = self._label_entities_for_api(key_entities)
+            # NF-15: extract LLM emits typed entities {text, type}; map type
+            # to label for the existing adapter contract. The legacy heuristic
+            # _label_entities_for_api is gone — types are LLM-typed at extract.
+            key_entities = claim.get("key_entities") or []
+            entities = [
+                {"text": e["text"], "label": e["type"]}
+                for e in key_entities
+                if isinstance(e, dict) and e.get("text") and e.get("type")
+            ]
 
             # NF-09: ensure secondary_domains is always defined so the cap
             # logic (and the secondary-merge block) can rely on it in both
