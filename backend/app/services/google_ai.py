@@ -291,11 +291,16 @@ async def call_google_ai_with_usage(
     max_tokens: int = 1500,
     timeout: float = 30,
     model: Optional[str] = None,
+    response_schema: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, int]]]:
     """Send a prompt to Google Gemini and return parsed JSON + token usage.
 
     Returns ``(parsed_content, usage_dict)`` where usage_dict contains
     ``input_tokens`` and ``output_tokens``.  On error returns ``(None, None)``.
+
+    When ``response_schema`` is provided, Gemini constrains the model's
+    output to match the schema (OpenAPI-3.0-subset). Used by the mapper
+    to enforce structural validity at the API level.
 
     This is a companion to ``call_google_ai`` — the original function is
     unchanged so existing callers (20+) are unaffected.
@@ -310,13 +315,16 @@ async def call_google_ai_with_usage(
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent?key={api_key}"
     )
+    generation_config: Dict[str, Any] = {
+        "temperature": temperature,
+        "maxOutputTokens": max_tokens,
+        "responseMimeType": "application/json",
+    }
+    if response_schema is not None:
+        generation_config["responseSchema"] = response_schema
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": temperature,
-            "maxOutputTokens": max_tokens,
-            "responseMimeType": "application/json",
-        },
+        "generationConfig": generation_config,
     }
 
     last_status: Optional[int] = None

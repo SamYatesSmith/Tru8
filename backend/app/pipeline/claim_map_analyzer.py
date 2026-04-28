@@ -45,6 +45,76 @@ _VALID_STATES = {e.value for e in ElementState}
 _VALID_RELATIONSHIPS = {e.value for e in EvidenceRelationship}
 
 
+# ── Response schemas for Gemini structured output ───────────────────────────
+# Constrains mapper output at the API level. Mirrors the structure the prompt
+# already requires; defensive parsing in _validate_evidence_refs still strips
+# hallucinated evidence_ids (the schema can't enforce per-call enum membership).
+#
+# uncertainty is omitted from the schema entirely (rather than typed as nullable)
+# because Gemini's response_schema handling of nullable is inconsistent across
+# SDK versions. The defensive parser already treats missing uncertainty as None
+# (claim_map_analyzer.py: `mapped.get("uncertainty") or None`).
+
+_MAPPING_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "elements": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "element_id": {"type": "string"},
+                    "evidence_refs": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "evidence_id": {"type": "string"},
+                                "relationship": {
+                                    "type": "string",
+                                    "enum": list(_VALID_RELATIONSHIPS),
+                                },
+                                "reasoning": {"type": "string"},
+                            },
+                            "required": [
+                                "evidence_id",
+                                "relationship",
+                                "reasoning",
+                            ],
+                        },
+                    },
+                    "state": {
+                        "type": "string",
+                        "enum": list(_VALID_STATES),
+                    },
+                    "uncertainty": {"type": "string"},
+                },
+                "required": ["element_id", "evidence_refs", "state"],
+            },
+        },
+    },
+    "required": ["elements"],
+}
+
+_BATCH_MAPPING_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "claims": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "claim_index": {"type": "integer"},
+                    "elements": _MAPPING_RESPONSE_SCHEMA["properties"]["elements"],
+                },
+                "required": ["claim_index", "elements"],
+            },
+        },
+    },
+    "required": ["claims"],
+}
+
+
 # ── Prompts ─────────────────────────────────────────────────────────────────
 
 DECOMPOSITION_PROMPT = """\
@@ -516,7 +586,6 @@ class ClaimMapAnalyzer:
             f"[{ev.get('title', 'Untitled')}] "
             f"[Tier: {ev.get('tier') or 'unclassified'}] "
             f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
-            f"[Content: {ev.get('content_basis') or 'unknown'}] "
             f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
             for ev in evidence_list
         )
@@ -708,7 +777,6 @@ class ClaimMapAnalyzer:
                 f"[{ev_item.get('title', 'Untitled')}] "
                 f"[Tier: {ev_item.get('tier', 'unknown')}] "
                 f"[Type: {ev_item.get('evidence_type', 'unknown')}] "
-                f"[Content: {ev_item.get('content_basis') or 'unknown'}] "
                 f"{(ev_item.get('snippet') or ev_item.get('text') or '')[:self.snippet_length]}"
                 for ev_item in ev
             )
@@ -806,6 +874,15 @@ class ClaimMapAnalyzer:
         is_mapping = label in ("mapping", "batch_mapping")
         google_timeout = self.mapping_timeout if is_mapping else self.timeout
 
+        # Select response_schema for mapping calls — constrains output structure
+        # at the API level so the model can't return malformed JSON. Other
+        # labels (decomposition, batch_decomposition) pass None.
+        response_schema: Optional[Dict[str, Any]] = None
+        if label == "mapping":
+            response_schema = _MAPPING_RESPONSE_SCHEMA
+        elif label == "batch_mapping":
+            response_schema = _BATCH_MAPPING_RESPONSE_SCHEMA
+
         # Try Google first — with a time cap that leaves room for OpenAI fallback
         if self.google_ai_api_key:
             try:
@@ -819,6 +896,7 @@ class ClaimMapAnalyzer:
                         max_tokens,
                         model=model_to_use,
                         timeout=google_timeout,
+                        response_schema=response_schema,
                     ),
                     timeout=google_timeout + 5,
                 )
@@ -870,6 +948,7 @@ class ClaimMapAnalyzer:
         max_tokens: int,
         model: Optional[str] = None,
         timeout: Optional[float] = None,
+        response_schema: Optional[Dict[str, Any]] = None,
     ) -> tuple:
         return await call_google_ai_with_usage(
             prompt,
@@ -877,6 +956,7 @@ class ClaimMapAnalyzer:
             max_tokens=max_tokens,
             timeout=timeout or self.timeout,
             model=model or self.google_model,
+            response_schema=response_schema,
         )
 
     async def _call_openai(
@@ -1109,7 +1189,6 @@ class ClaimMapAnalyzer:
                 f"[{ev.get('title', 'Untitled')}] "
                 f"[Tier: {ev.get('tier') or 'unclassified'}] "
                 f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
-                f"[Content: {ev.get('content_basis') or 'unknown'}] "
                 f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
             )
         evidence_desc = "\n".join(evidence_lines)
