@@ -1,0 +1,770 @@
+{
+  "timestamp": "20260427-170833",
+  "runs_per_claim": 10,
+  "results": [
+    {
+      "id": "bp-plc-gbp",
+      "text": "BP plc reported record profits of GBP 28 billion in 2022",
+      "expected": "Finance/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 21.2
+    },
+    {
+      "id": "bp-plc-usd",
+      "text": "BP plc reported record profits of $40 billion in 2022",
+      "expected": "Finance/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 90
+        }
+      ],
+      "elapsed_s": 20.0
+    },
+    {
+      "id": "bp-bare-usd",
+      "text": "BP reported record profits of $40 billion in 2022",
+      "expected": "Finance/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 17.1
+    },
+    {
+      "id": "bp-british-usd",
+      "text": "British oil major BP reported record profits of $40 billion in 2022",
+      "expected": "Finance/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 21.7
+    },
+    {
+      "id": "exxon-bare-usd",
+      "text": "ExxonMobil reported record profits of $56 billion in 2022",
+      "expected": "Finance/US",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "US": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 18.3
+    },
+    {
+      "id": "exxon-bare-gbp",
+      "text": "ExxonMobil reported record profits of GBP 50 billion in 2022",
+      "expected": "Finance/US",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "US": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "US",
+          "secondary": [],
+          "confidence": 90
+        }
+      ],
+      "elapsed_s": 15.9
+    },
+    {
+      "id": "act-uk-bare",
+      "text": "The Climate Change Act 2008 commits the country to net zero by 2050",
+      "expected": "Climate/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Climate": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 21.3
+    },
+    {
+      "id": "act-bare",
+      "text": "The 2008 Climate Change Act commits the country to net zero by 2050",
+      "expected": "Climate/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Climate": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 13.4
+    },
+    {
+      "id": "multi-1",
+      "text": "Apple Inc paid 13 billion euros in back taxes after the EU competition ruling",
+      "expected": "Law/EU",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 0,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "EU": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Law"
+          ],
+          "confidence": 90
+        }
+      ],
+      "elapsed_s": 25.8
+    }
+  ]
+}

@@ -1,0 +1,1167 @@
+Running scorecard for 20 claims...
+
+Registered adapters (23): ['ONS Economic Statistics', 'PubMed', 'Companies House', 'FRED', 'WHO', 'NOAA CDO', 'GOV.UK Content API', 'UK Parliament Hansard', 'UK Legislation', 'Wikidata', 'GovInfo.gov', 'Football-Data.org', 'Transfermarkt', 'Marketaux', 'WeatherAPI', 'GBIF', 'Wikipedia', 'Library of Congress', 'Semantic Scholar', 'OpenAlex', 'Internet Archive', 'World Bank', 'Open-Meteo']
+
+{
+  "claim_count": 20,
+  "dry_run": false,
+  "registered_adapters": [
+    "ONS Economic Statistics",
+    "PubMed",
+    "Companies House",
+    "FRED",
+    "WHO",
+    "NOAA CDO",
+    "GOV.UK Content API",
+    "UK Parliament Hansard",
+    "UK Legislation",
+    "Wikidata",
+    "GovInfo.gov",
+    "Football-Data.org",
+    "Transfermarkt",
+    "Marketaux",
+    "WeatherAPI",
+    "GBIF",
+    "Wikipedia",
+    "Library of Congress",
+    "Semantic Scholar",
+    "OpenAlex",
+    "Internet Archive",
+    "World Bank",
+    "Open-Meteo"
+  ],
+  "adapter_stats": {
+    "GOV.UK Content API": {
+      "selected": 1,
+      "capped_out": 0,
+      "fired": 1,
+      "success": 1,
+      "zero_results": 0,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 10,
+      "avg_latency_ms": 63,
+      "max_latency_ms": 63,
+      "avg_results_per_fire": 10.0
+    },
+    "UK Parliament Hansard": {
+      "selected": 1,
+      "capped_out": 0,
+      "fired": 1,
+      "success": 0,
+      "zero_results": 1,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 0,
+      "avg_latency_ms": 1109,
+      "max_latency_ms": 1109,
+      "avg_results_per_fire": 0.0
+    },
+    "GovInfo.gov": {
+      "selected": 3,
+      "capped_out": 0,
+      "fired": 3,
+      "success": 0,
+      "zero_results": 3,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 0,
+      "avg_latency_ms": 10,
+      "max_latency_ms": 16,
+      "avg_results_per_fire": 0.0
+    },
+    "FRED": {
+      "selected": 5,
+      "capped_out": 1,
+      "fired": 4,
+      "success": 0,
+      "zero_results": 4,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 0,
+      "avg_latency_ms": 430,
+      "max_latency_ms": 687,
+      "avg_results_per_fire": 0.0
+    },
+    "PubMed": {
+      "selected": 6,
+      "capped_out": 0,
+      "fired": 6,
+      "success": 5,
+      "zero_results": 1,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 34,
+      "avg_latency_ms": 107,
+      "max_latency_ms": 593,
+      "avg_results_per_fire": 5.7
+    },
+    "WHO": {
+      "selected": 3,
+      "capped_out": 0,
+      "fired": 3,
+      "success": 0,
+      "zero_results": 3,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 0,
+      "avg_latency_ms": 511,
+      "max_latency_ms": 641,
+      "avg_results_per_fire": 0.0
+    },
+    "Wikipedia": {
+      "selected": 13,
+      "capped_out": 6,
+      "fired": 7,
+      "success": 7,
+      "zero_results": 0,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 32,
+      "avg_latency_ms": 5,
+      "max_latency_ms": 16,
+      "avg_results_per_fire": 4.6
+    },
+    "Semantic Scholar": {
+      "selected": 8,
+      "capped_out": 1,
+      "fired": 7,
+      "success": 3,
+      "zero_results": 4,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 9,
+      "avg_latency_ms": 3082,
+      "max_latency_ms": 4515,
+      "avg_results_per_fire": 1.3
+    },
+    "OpenAlex": {
+      "selected": 8,
+      "capped_out": 3,
+      "fired": 5,
+      "success": 5,
+      "zero_results": 0,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 15,
+      "avg_latency_ms": 3,
+      "max_latency_ms": 16,
+      "avg_results_per_fire": 3.0
+    },
+    "ONS Economic Statistics": {
+      "selected": 3,
+      "capped_out": 0,
+      "fired": 3,
+      "success": 3,
+      "zero_results": 0,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 15,
+      "avg_latency_ms": 1234,
+      "max_latency_ms": 3687,
+      "avg_results_per_fire": 5.0
+    },
+    "Companies House": {
+      "selected": 2,
+      "capped_out": 0,
+      "fired": 2,
+      "success": 0,
+      "zero_results": 2,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 0,
+      "avg_latency_ms": 336,
+      "max_latency_ms": 344,
+      "avg_results_per_fire": 0.0
+    },
+    "Marketaux": {
+      "selected": 5,
+      "capped_out": 0,
+      "fired": 5,
+      "success": 3,
+      "zero_results": 2,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 9,
+      "avg_latency_ms": 453,
+      "max_latency_ms": 532,
+      "avg_results_per_fire": 1.8
+    },
+    "World Bank": {
+      "selected": 5,
+      "capped_out": 0,
+      "fired": 5,
+      "success": 2,
+      "zero_results": 3,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 2,
+      "avg_latency_ms": 15,
+      "max_latency_ms": 31,
+      "avg_results_per_fire": 0.4
+    },
+    "NOAA CDO": {
+      "selected": 3,
+      "capped_out": 0,
+      "fired": 3,
+      "success": 2,
+      "zero_results": 1,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 2,
+      "avg_latency_ms": 5,
+      "max_latency_ms": 16,
+      "avg_results_per_fire": 0.7
+    },
+    "WeatherAPI": {
+      "selected": 3,
+      "capped_out": 0,
+      "fired": 3,
+      "success": 1,
+      "zero_results": 2,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 1,
+      "avg_latency_ms": 130,
+      "max_latency_ms": 375,
+      "avg_results_per_fire": 0.3
+    },
+    "Open-Meteo": {
+      "selected": 3,
+      "capped_out": 0,
+      "fired": 3,
+      "success": 1,
+      "zero_results": 2,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 1,
+      "avg_latency_ms": 313,
+      "max_latency_ms": 938,
+      "avg_results_per_fire": 0.3
+    },
+    "Internet Archive": {
+      "selected": 4,
+      "capped_out": 0,
+      "fired": 4,
+      "success": 3,
+      "zero_results": 1,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 14,
+      "avg_latency_ms": 250,
+      "max_latency_ms": 984,
+      "avg_results_per_fire": 3.5
+    },
+    "Football-Data.org": {
+      "selected": 2,
+      "capped_out": 0,
+      "fired": 2,
+      "success": 1,
+      "zero_results": 1,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 5,
+      "avg_latency_ms": 430,
+      "max_latency_ms": 844,
+      "avg_results_per_fire": 2.5
+    },
+    "Transfermarkt": {
+      "selected": 2,
+      "capped_out": 0,
+      "fired": 2,
+      "success": 0,
+      "zero_results": 2,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 0,
+      "avg_latency_ms": 8,
+      "max_latency_ms": 15,
+      "avg_results_per_fire": 0.0
+    },
+    "GBIF": {
+      "selected": 1,
+      "capped_out": 0,
+      "fired": 1,
+      "success": 1,
+      "zero_results": 0,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 3,
+      "avg_latency_ms": 1234,
+      "max_latency_ms": 1234,
+      "avg_results_per_fire": 3.0
+    },
+    "Library of Congress": {
+      "selected": 2,
+      "capped_out": 0,
+      "fired": 2,
+      "success": 0,
+      "zero_results": 0,
+      "error": 0,
+      "timeout": 2,
+      "total_results": 0,
+      "avg_latency_ms": 0,
+      "max_latency_ms": 0,
+      "avg_results_per_fire": 0.0
+    },
+    "Wikidata": {
+      "selected": 1,
+      "capped_out": 1,
+      "fired": 0,
+      "success": 0,
+      "zero_results": 0,
+      "error": 0,
+      "timeout": 0,
+      "total_results": 0,
+      "avg_latency_ms": 0,
+      "max_latency_ms": 0,
+      "avg_results_per_fire": 0.0
+    }
+  },
+  "routing_gaps": [],
+  "cap_victims": [
+    {
+      "claim_id": "sc-03",
+      "adapter": "Wikipedia",
+      "filled_by": [
+        "PubMed",
+        "WHO",
+        "Semantic Scholar",
+        "OpenAlex"
+      ]
+    },
+    {
+      "claim_id": "sc-04",
+      "adapter": "Wikipedia",
+      "filled_by": [
+        "PubMed",
+        "WHO",
+        "Semantic Scholar",
+        "OpenAlex"
+      ]
+    },
+    {
+      "claim_id": "sc-05",
+      "adapter": "FRED",
+      "filled_by": [
+        "World Bank",
+        "Marketaux",
+        "ONS Economic Statistics",
+        "Companies House"
+      ]
+    },
+    {
+      "claim_id": "sc-07",
+      "adapter": "OpenAlex",
+      "filled_by": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "Semantic Scholar"
+      ]
+    },
+    {
+      "claim_id": "sc-07",
+      "adapter": "Wikipedia",
+      "filled_by": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "Semantic Scholar"
+      ]
+    },
+    {
+      "claim_id": "sc-08",
+      "adapter": "OpenAlex",
+      "filled_by": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "Semantic Scholar"
+      ]
+    },
+    {
+      "claim_id": "sc-08",
+      "adapter": "Wikipedia",
+      "filled_by": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "Semantic Scholar"
+      ]
+    },
+    {
+      "claim_id": "sc-17",
+      "adapter": "Wikidata",
+      "filled_by": [
+        "Library of Congress",
+        "Wikipedia",
+        "Internet Archive"
+      ]
+    },
+    {
+      "claim_id": "sc-19",
+      "adapter": "Wikipedia",
+      "filled_by": [
+        "PubMed",
+        "WHO",
+        "Semantic Scholar",
+        "OpenAlex"
+      ]
+    },
+    {
+      "claim_id": "sc-20",
+      "adapter": "Semantic Scholar",
+      "filled_by": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "GovInfo.gov"
+      ]
+    },
+    {
+      "claim_id": "sc-20",
+      "adapter": "OpenAlex",
+      "filled_by": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "GovInfo.gov"
+      ]
+    },
+    {
+      "claim_id": "sc-20",
+      "adapter": "Wikipedia",
+      "filled_by": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "GovInfo.gov"
+      ]
+    }
+  ],
+  "claim_details": [
+    {
+      "claim_id": "sc-01",
+      "domain": "Law",
+      "jurisdiction": "UK",
+      "selected": [
+        "GOV.UK Content API",
+        "UK Parliament Hansard"
+      ],
+      "capped_to": [
+        "GOV.UK Content API",
+        "UK Parliament Hansard"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "GOV.UK Content API": {
+          "count": 10,
+          "latency_ms": 63
+        },
+        "UK Parliament Hansard": {
+          "count": 0,
+          "latency_ms": 1109
+        }
+      }
+    },
+    {
+      "claim_id": "sc-02",
+      "domain": "Law",
+      "jurisdiction": "US",
+      "selected": [
+        "GovInfo.gov",
+        "FRED"
+      ],
+      "capped_to": [
+        "GovInfo.gov",
+        "FRED"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "GovInfo.gov": {
+          "count": 0,
+          "latency_ms": 16
+        },
+        "FRED": {
+          "count": 0,
+          "latency_ms": 31
+        }
+      }
+    },
+    {
+      "claim_id": "sc-03",
+      "domain": "Health",
+      "jurisdiction": "Global",
+      "selected": [
+        "PubMed",
+        "WHO",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex"
+      ],
+      "capped_to": [
+        "PubMed",
+        "WHO",
+        "Semantic Scholar",
+        "OpenAlex"
+      ],
+      "cut": [
+        "Wikipedia"
+      ],
+      "gaps": [],
+      "results": {
+        "PubMed": {
+          "count": 10,
+          "latency_ms": 31
+        },
+        "WHO": {
+          "count": 0,
+          "latency_ms": 641
+        },
+        "Semantic Scholar": {
+          "count": 0,
+          "latency_ms": 3734
+        },
+        "OpenAlex": {
+          "count": 3,
+          "latency_ms": 16
+        }
+      }
+    },
+    {
+      "claim_id": "sc-04",
+      "domain": "Health",
+      "jurisdiction": "UK",
+      "selected": [
+        "PubMed",
+        "WHO",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex"
+      ],
+      "capped_to": [
+        "PubMed",
+        "WHO",
+        "Semantic Scholar",
+        "OpenAlex"
+      ],
+      "cut": [
+        "Wikipedia"
+      ],
+      "gaps": [],
+      "results": {
+        "PubMed": {
+          "count": 0,
+          "latency_ms": 593
+        },
+        "WHO": {
+          "count": 0,
+          "latency_ms": 313
+        },
+        "Semantic Scholar": {
+          "count": 3,
+          "latency_ms": 0
+        },
+        "OpenAlex": {
+          "count": 3,
+          "latency_ms": 0
+        }
+      }
+    },
+    {
+      "claim_id": "sc-05",
+      "domain": "Finance",
+      "jurisdiction": "UK",
+      "selected": [
+        "ONS Economic Statistics",
+        "Companies House",
+        "Marketaux",
+        "World Bank",
+        "FRED"
+      ],
+      "capped_to": [
+        "World Bank",
+        "Marketaux",
+        "ONS Economic Statistics",
+        "Companies House"
+      ],
+      "cut": [
+        "FRED"
+      ],
+      "gaps": [],
+      "results": {
+        "World Bank": {
+          "count": 1,
+          "latency_ms": 31
+        },
+        "Marketaux": {
+          "count": 3,
+          "latency_ms": 469
+        },
+        "ONS Economic Statistics": {
+          "count": 5,
+          "latency_ms": 16
+        },
+        "Companies House": {
+          "count": 0,
+          "latency_ms": 328
+        }
+      }
+    },
+    {
+      "claim_id": "sc-06",
+      "domain": "Finance",
+      "jurisdiction": "US",
+      "selected": [
+        "FRED",
+        "Marketaux",
+        "World Bank"
+      ],
+      "capped_to": [
+        "FRED",
+        "Marketaux",
+        "World Bank"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "FRED": {
+          "count": 0,
+          "latency_ms": 687
+        },
+        "Marketaux": {
+          "count": 0,
+          "latency_ms": 406
+        },
+        "World Bank": {
+          "count": 1,
+          "latency_ms": 0
+        }
+      }
+    },
+    {
+      "claim_id": "sc-07",
+      "domain": "Climate",
+      "jurisdiction": "Global",
+      "selected": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex",
+        "Open-Meteo"
+      ],
+      "capped_to": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "Semantic Scholar"
+      ],
+      "cut": [
+        "OpenAlex",
+        "Wikipedia"
+      ],
+      "gaps": [],
+      "results": {
+        "NOAA CDO": {
+          "count": 1,
+          "latency_ms": 16
+        },
+        "WeatherAPI": {
+          "count": 1,
+          "latency_ms": 375
+        },
+        "Open-Meteo": {
+          "count": 1,
+          "latency_ms": 938
+        },
+        "Semantic Scholar": {
+          "count": 3,
+          "latency_ms": 4359
+        }
+      }
+    },
+    {
+      "claim_id": "sc-08",
+      "domain": "Climate",
+      "jurisdiction": "Global",
+      "selected": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex",
+        "Open-Meteo"
+      ],
+      "capped_to": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "Semantic Scholar"
+      ],
+      "cut": [
+        "OpenAlex",
+        "Wikipedia"
+      ],
+      "gaps": [],
+      "results": {
+        "NOAA CDO": {
+          "count": 1,
+          "latency_ms": 0
+        },
+        "WeatherAPI": {
+          "count": 0,
+          "latency_ms": 16
+        },
+        "Open-Meteo": {
+          "count": 0,
+          "latency_ms": 0
+        },
+        "Semantic Scholar": {
+          "count": 0,
+          "latency_ms": 4281
+        }
+      }
+    },
+    {
+      "claim_id": "sc-09",
+      "domain": "Science",
+      "jurisdiction": "Global",
+      "selected": [
+        "PubMed",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex",
+        "Internet Archive"
+      ],
+      "capped_to": [
+        "PubMed",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex",
+        "Internet Archive"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "PubMed": {
+          "count": 10,
+          "latency_ms": 0
+        },
+        "Wikipedia": {
+          "count": 5,
+          "latency_ms": 0
+        },
+        "Semantic Scholar": {
+          "count": 0,
+          "latency_ms": 4515
+        },
+        "OpenAlex": {
+          "count": 3,
+          "latency_ms": 0
+        },
+        "Internet Archive": {
+          "count": 3,
+          "latency_ms": 16
+        }
+      }
+    },
+    {
+      "claim_id": "sc-10",
+      "domain": "Science",
+      "jurisdiction": "Global",
+      "selected": [
+        "PubMed",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex",
+        "Internet Archive"
+      ],
+      "capped_to": [
+        "PubMed",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex",
+        "Internet Archive"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "PubMed": {
+          "count": 1,
+          "latency_ms": 16
+        },
+        "Wikipedia": {
+          "count": 5,
+          "latency_ms": 0
+        },
+        "Semantic Scholar": {
+          "count": 3,
+          "latency_ms": 953
+        },
+        "OpenAlex": {
+          "count": 3,
+          "latency_ms": 0
+        },
+        "Internet Archive": {
+          "count": 0,
+          "latency_ms": 984
+        }
+      }
+    },
+    {
+      "claim_id": "sc-11",
+      "domain": "Sports",
+      "jurisdiction": "Global",
+      "selected": [
+        "Football-Data.org",
+        "Transfermarkt",
+        "Wikipedia"
+      ],
+      "capped_to": [
+        "Football-Data.org",
+        "Transfermarkt",
+        "Wikipedia"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "Football-Data.org": {
+          "count": 0,
+          "latency_ms": 16
+        },
+        "Transfermarkt": {
+          "count": 0,
+          "latency_ms": 15
+        },
+        "Wikipedia": {
+          "count": 2,
+          "latency_ms": 16
+        }
+      }
+    },
+    {
+      "claim_id": "sc-12",
+      "domain": "Sports",
+      "jurisdiction": "Global",
+      "selected": [
+        "Football-Data.org",
+        "Transfermarkt",
+        "Wikipedia"
+      ],
+      "capped_to": [
+        "Football-Data.org",
+        "Transfermarkt",
+        "Wikipedia"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "Football-Data.org": {
+          "count": 5,
+          "latency_ms": 844
+        },
+        "Transfermarkt": {
+          "count": 0,
+          "latency_ms": 0
+        },
+        "Wikipedia": {
+          "count": 5,
+          "latency_ms": 0
+        }
+      }
+    },
+    {
+      "claim_id": "sc-13",
+      "domain": "Finance",
+      "jurisdiction": "US",
+      "selected": [
+        "FRED",
+        "Marketaux",
+        "World Bank"
+      ],
+      "capped_to": [
+        "FRED",
+        "Marketaux",
+        "World Bank"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "FRED": {
+          "count": 0,
+          "latency_ms": 547
+        },
+        "Marketaux": {
+          "count": 3,
+          "latency_ms": 532
+        },
+        "World Bank": {
+          "count": 0,
+          "latency_ms": 15
+        }
+      }
+    },
+    {
+      "claim_id": "sc-14",
+      "domain": "Finance",
+      "jurisdiction": "UK",
+      "selected": [
+        "ONS Economic Statistics",
+        "Companies House",
+        "Marketaux",
+        "World Bank"
+      ],
+      "capped_to": [
+        "ONS Economic Statistics",
+        "Companies House",
+        "Marketaux",
+        "World Bank"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "ONS Economic Statistics": {
+          "count": 5,
+          "latency_ms": 0
+        },
+        "Companies House": {
+          "count": 0,
+          "latency_ms": 344
+        },
+        "Marketaux": {
+          "count": 3,
+          "latency_ms": 484
+        },
+        "World Bank": {
+          "count": 0,
+          "latency_ms": 16
+        }
+      }
+    },
+    {
+      "claim_id": "sc-15",
+      "domain": "Animals",
+      "jurisdiction": "Global",
+      "selected": [
+        "PubMed",
+        "GBIF",
+        "Wikipedia"
+      ],
+      "capped_to": [
+        "PubMed",
+        "GBIF",
+        "Wikipedia"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "PubMed": {
+          "count": 10,
+          "latency_ms": 0
+        },
+        "GBIF": {
+          "count": 3,
+          "latency_ms": 1234
+        },
+        "Wikipedia": {
+          "count": 5,
+          "latency_ms": 0
+        }
+      }
+    },
+    {
+      "claim_id": "sc-16",
+      "domain": "History",
+      "jurisdiction": "US",
+      "selected": [
+        "GovInfo.gov",
+        "Wikipedia",
+        "Library of Congress",
+        "Internet Archive"
+      ],
+      "capped_to": [
+        "GovInfo.gov",
+        "Wikipedia",
+        "Library of Congress",
+        "Internet Archive"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "GovInfo.gov": {
+          "count": 0,
+          "latency_ms": 0
+        },
+        "Wikipedia": {
+          "count": 5,
+          "latency_ms": 0
+        },
+        "Library of Congress": {
+          "error": "timeout"
+        },
+        "Internet Archive": {
+          "count": 10,
+          "latency_ms": 0
+        }
+      }
+    },
+    {
+      "claim_id": "sc-17",
+      "domain": "General",
+      "jurisdiction": "Global",
+      "selected": [
+        "Wikidata",
+        "Wikipedia",
+        "Library of Congress",
+        "Internet Archive"
+      ],
+      "capped_to": [
+        "Library of Congress",
+        "Wikipedia",
+        "Internet Archive"
+      ],
+      "cut": [
+        "Wikidata"
+      ],
+      "gaps": [],
+      "results": {
+        "Library of Congress": {
+          "error": "timeout"
+        },
+        "Wikipedia": {
+          "count": 5,
+          "latency_ms": 16
+        },
+        "Internet Archive": {
+          "count": 1,
+          "latency_ms": 0
+        }
+      }
+    },
+    {
+      "claim_id": "sc-18",
+      "domain": "Finance",
+      "jurisdiction": "Global",
+      "selected": [
+        "ONS Economic Statistics",
+        "FRED",
+        "Marketaux",
+        "World Bank"
+      ],
+      "capped_to": [
+        "ONS Economic Statistics",
+        "FRED",
+        "Marketaux",
+        "World Bank"
+      ],
+      "cut": [],
+      "gaps": [],
+      "results": {
+        "ONS Economic Statistics": {
+          "count": 5,
+          "latency_ms": 3687
+        },
+        "FRED": {
+          "count": 0,
+          "latency_ms": 454
+        },
+        "Marketaux": {
+          "count": 0,
+          "latency_ms": 375
+        },
+        "World Bank": {
+          "count": 0,
+          "latency_ms": 15
+        }
+      }
+    },
+    {
+      "claim_id": "sc-19",
+      "domain": "Health",
+      "jurisdiction": "UK",
+      "selected": [
+        "PubMed",
+        "WHO",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex"
+      ],
+      "capped_to": [
+        "PubMed",
+        "WHO",
+        "Semantic Scholar",
+        "OpenAlex"
+      ],
+      "cut": [
+        "Wikipedia"
+      ],
+      "gaps": [],
+      "results": {
+        "PubMed": {
+          "count": 3,
+          "latency_ms": 0
+        },
+        "WHO": {
+          "count": 0,
+          "latency_ms": 578
+        },
+        "Semantic Scholar": {
+          "count": 0,
+          "latency_ms": 3735
+        },
+        "OpenAlex": {
+          "count": 3,
+          "latency_ms": 0
+        }
+      }
+    },
+    {
+      "claim_id": "sc-20",
+      "domain": "Climate",
+      "jurisdiction": "Global",
+      "selected": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Wikipedia",
+        "Semantic Scholar",
+        "OpenAlex",
+        "Open-Meteo",
+        "GovInfo.gov"
+      ],
+      "capped_to": [
+        "NOAA CDO",
+        "WeatherAPI",
+        "Open-Meteo",
+        "GovInfo.gov"
+      ],
+      "cut": [
+        "Semantic Scholar",
+        "OpenAlex",
+        "Wikipedia"
+      ],
+      "gaps": [],
+      "results": {
+        "NOAA CDO": {
+          "count": 0,
+          "latency_ms": 0
+        },
+        "WeatherAPI": {
+          "count": 0,
+          "latency_ms": 0
+        },
+        "Open-Meteo": {
+          "count": 0,
+          "latency_ms": 0
+        },
+        "GovInfo.gov": {
+          "count": 0,
+          "latency_ms": 15
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,753 @@
+{
+  "timestamp": "20260427-163120",
+  "runs_per_claim": 10,
+  "results": [
+    {
+      "id": "verif-arc-1",
+      "text": "The Climate Change Act 2008 set the UK's target of net zero emissions by 2050",
+      "expected": "Climate/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Climate": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        }
+      ],
+      "elapsed_s": 17.2
+    },
+    {
+      "id": "verif-arc-2",
+      "text": "The 2008 Climate Change Act commits the United Kingdom to net zero by 2050",
+      "expected": "Climate/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Climate": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics"
+          ],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 12.9
+    },
+    {
+      "id": "verif-arc-3",
+      "text": "BP plc reported record profits of GBP 28 billion in 2022",
+      "expected": "Finance/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 10.8
+    },
+    {
+      "id": "variant-bp-1",
+      "text": "BP, the British oil company, reported record profits of 28 billion pounds in 2022",
+      "expected": "Finance/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "UK",
+          "secondary": [],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 13.2
+    },
+    {
+      "id": "variant-bp-2",
+      "text": "British oil major BP reported record profits of $40 billion in 2022",
+      "expected": "Finance/UK",
+      "n_runs": 10,
+      "jur_correct": 0,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "Global": 10
+      },
+      "dom_distribution": {
+        "Finance": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Finance",
+          "jurisdiction": "Global",
+          "secondary": [],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 15.1
+    },
+    {
+      "id": "variant-act-1",
+      "text": "Britain's Climate Change Act 2008 sets a 2050 net-zero target",
+      "expected": "Climate/UK",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "UK": 10
+      },
+      "dom_distribution": {
+        "Climate": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        },
+        {
+          "primary_domain": "Climate",
+          "jurisdiction": "UK",
+          "secondary": [
+            "Politics",
+            "Law"
+          ],
+          "confidence": 95
+        }
+      ],
+      "elapsed_s": 22.5
+    },
+    {
+      "id": "cross-1",
+      "text": "The US Senate passed the Inflation Reduction Act in August 2022",
+      "expected": "Politics/US",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "US": 10
+      },
+      "dom_distribution": {
+        "Politics": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Politics",
+          "jurisdiction": "US",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        }
+      ],
+      "elapsed_s": 15.5
+    },
+    {
+      "id": "cross-2",
+      "text": "GDPR fines against Meta totalled over 2 billion euros in 2023",
+      "expected": "Law/EU",
+      "n_runs": 10,
+      "jur_correct": 10,
+      "dom_primary_correct": 10,
+      "dom_any_correct": 10,
+      "jur_distribution": {
+        "EU": 10
+      },
+      "dom_distribution": {
+        "Law": 10
+      },
+      "outputs": [
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance",
+            "Politics"
+          ],
+          "confidence": 80
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance",
+            "Politics"
+          ],
+          "confidence": 80
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance"
+          ],
+          "confidence": 90
+        },
+        {
+          "primary_domain": "Law",
+          "jurisdiction": "EU",
+          "secondary": [
+            "Finance",
+            "Politics"
+          ],
+          "confidence": 80
+        }
+      ],
+      "elapsed_s": 29.0
+    }
+  ]
+}

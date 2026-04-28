@@ -1,0 +1,1961 @@
+{
+  "timestamp": "20260427-171219",
+  "mode": "both",
+  "n_claims": 40,
+  "raw": [
+    {
+      "id": "climate-uk-1",
+      "text": "The Climate Change Act 2008 set the UK's target of net zero emissions by 2050",
+      "expected_domain": "Climate",
+      "expected_jurisdiction": "UK",
+      "notes": "litmus from verification arc \u2014 classified UK historically",
+      "primary": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "UK",
+        "confidence": 95,
+        "reasoning": "The article explicitly mentions the Climate Change Act 2008 and the UK's net zero target, placing it firmly in the climate and UK politics domain.",
+        "source": "llm_fallback",
+        "temporal_context": "The article refers to the Climate Change Act 2008 and the target year of 2050, covering a period from 2008 to 2050.",
+        "key_entities": [
+          "Climate Change Act 2008",
+          "UK",
+          "net zero emissions",
+          "2050"
+        ],
+        "evidence_guidance": "Official government reports on climate policy, parliamentary records related to the Climate Change Act, and reports from environmental agencies regarding emissions targets. Freshness: pm (past month) for policy updates, historical for the act itself.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 90,
+        "reasoning": "The article discusses the UK's Climate Change Act and its net zero emissions target.",
+        "source": "llm_primary",
+        "temporal_context": "Current legislation with a target year of 2050",
+        "key_entities": [
+          "Climate Change Act 2008",
+          "UK",
+          "net zero emissions"
+        ],
+        "evidence_guidance": "Official government documents and climate policy reports - pm (past month) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "climate-uk-2",
+      "text": "The 2008 Climate Change Act commits the United Kingdom to net zero by 2050",
+      "expected_domain": "Climate",
+      "expected_jurisdiction": "UK",
+      "notes": "litmus from verification arc \u2014 classified US historically (misroute)",
+      "primary": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "UK",
+        "confidence": 95,
+        "reasoning": "The article discusses a specific piece of UK legislation related to climate change targets.",
+        "source": "llm_fallback",
+        "temporal_context": "The article refers to the 2008 Climate Change Act and the target year of 2050.",
+        "key_entities": [
+          "Climate Change Act",
+          "United Kingdom",
+          "net zero"
+        ],
+        "evidence_guidance": "Official government publications, parliamentary records, and reports from environmental agencies regarding the Climate Change Act and net zero targets.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 90,
+        "reasoning": "The article discusses the UK's Climate Change Act and its commitment to net zero emissions.",
+        "source": "llm_primary",
+        "temporal_context": "2008 to 2050, focusing on long-term climate policy",
+        "key_entities": [
+          "UK",
+          "Climate Change Act",
+          "net zero"
+        ],
+        "evidence_guidance": "Official government documents, climate policy reports, and legislative records",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "climate-us-1",
+      "text": "The Inflation Reduction Act of 2022 allocated $369 billion to US climate programmes",
+      "expected_domain": "Climate",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Politics",
+        "secondary_domains": [
+          "Climate",
+          "Finance"
+        ],
+        "jurisdiction": "US",
+        "confidence": 85,
+        "reasoning": "The article discusses a US legislative act with significant climate and financial implications.",
+        "source": "llm_fallback",
+        "temporal_context": "2022 (allocation year) and ongoing climate programs",
+        "key_entities": [
+          "Inflation Reduction Act of 2022",
+          "US climate programmes"
+        ],
+        "evidence_guidance": "Official government reports, legislative text, Congressional Budget Office analyses, and reputable news sources covering US policy and climate initiatives.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "US",
+        "confidence": 85,
+        "reasoning": "The article discusses a significant climate-related legislative act in the US.",
+        "source": "llm_primary",
+        "temporal_context": "2022, when the Inflation Reduction Act was enacted",
+        "key_entities": [
+          "Inflation Reduction Act",
+          "US climate programmes",
+          "Biden Administration"
+        ],
+        "evidence_guidance": "Official government documents, legislative records, and credible news sources from 2022",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "climate-us-2",
+      "text": "California became the first US state to mandate net-zero emissions by 2045",
+      "expected_domain": "Climate",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article discusses a state mandate on emissions, which falls under climate policy.",
+        "source": "llm_fallback",
+        "temporal_context": "The mandate is set for 2045, implying a future-oriented policy with current implications.",
+        "key_entities": [
+          "California",
+          "net-zero emissions",
+          "2045"
+        ],
+        "evidence_guidance": "Official state legislation documents, environmental agency reports, and news archives from California.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "US",
+        "confidence": 90,
+        "reasoning": "The article discusses California's legislation on net-zero emissions, clearly placing it within climate policy and political action.",
+        "source": "llm_primary",
+        "temporal_context": "Legislation aimed for implementation by 2045",
+        "key_entities": [
+          "California",
+          "net-zero emissions",
+          "US government"
+        ],
+        "evidence_guidance": "Official state legislation documents and environmental policy reports - pm (past month) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "climate-eu-1",
+      "text": "The European Green Deal aims to make the EU climate-neutral by 2050",
+      "expected_domain": "Climate",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "EU",
+        "confidence": 95,
+        "reasoning": "The article directly addresses the European Green Deal, a major EU policy initiative focused on climate neutrality.",
+        "source": "llm_fallback",
+        "temporal_context": "The stated goal is by 2050, implying a long-term focus from the present (2026) into the future.",
+        "key_entities": [
+          "European Green Deal",
+          "EU",
+          "climate-neutral",
+          "2050"
+        ],
+        "evidence_guidance": "Official EU policy documents, European Commission reports, and reputable news sources covering EU climate policy. Freshness should be recent (past year) for current progress and long-term for the overall goal.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "EU",
+        "confidence": 85,
+        "reasoning": "The article discusses the European Green Deal, which is a significant climate policy initiative within the EU.",
+        "source": "llm_primary",
+        "temporal_context": "Current initiatives aiming for climate neutrality by 2050",
+        "key_entities": [
+          "European Green Deal",
+          "EU",
+          "climate-neutral"
+        ],
+        "evidence_guidance": "Official EU documents, policy announcements, and climate reports - pm (past month) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "climate-eu-2",
+      "text": "The EU Emissions Trading System covers around 40% of European greenhouse gas emissions",
+      "expected_domain": "Climate",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Climate",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 95,
+        "reasoning": "The article explicitly mentions the EU Emissions Trading System and its coverage of greenhouse gas emissions.",
+        "source": "llm_fallback",
+        "temporal_context": "Current emissions coverage",
+        "key_entities": [
+          "EU Emissions Trading System",
+          "greenhouse gas emissions"
+        ],
+        "evidence_guidance": "Official EU reports on emissions, European Environment Agency data, and recent policy documents related to the ETS.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses the EU Emissions Trading System, which is directly related to climate and emissions regulation in Europe.",
+        "source": "llm_primary",
+        "temporal_context": "Current status of emissions trading as of 2026.",
+        "key_entities": [
+          "EU Emissions Trading System",
+          "European Union",
+          "greenhouse gas emissions"
+        ],
+        "evidence_guidance": "Official EU reports, environmental studies, and emissions data from the past year.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "climate-global-1",
+      "text": "The Paris Agreement set a target of limiting global warming to 1.5C",
+      "expected_domain": "Climate",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Climate",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article directly discusses a key target of the Paris Agreement related to global warming.",
+        "source": "llm_fallback",
+        "temporal_context": "Ongoing, with reference to the Paris Agreement's establishment and future targets.",
+        "key_entities": [
+          "Paris Agreement",
+          "global warming",
+          "1.5C target"
+        ],
+        "evidence_guidance": "Official reports from UNFCCC, IPCC assessment reports, and scientific publications on climate modeling and temperature trends.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 90,
+        "reasoning": "The article discusses the Paris Agreement, which is a global climate initiative.",
+        "source": "llm_primary",
+        "temporal_context": "Current climate targets as of 2026",
+        "key_entities": [
+          "Paris Agreement",
+          "global warming",
+          "1.5C"
+        ],
+        "evidence_guidance": "Need recent climate reports, UNFCCC documents, and scientific studies on climate targets",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "climate-global-2",
+      "text": "Global atmospheric CO2 concentration reached 421 parts per million in 2024",
+      "expected_domain": "Climate",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Science"
+        ],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article directly addresses atmospheric CO2 concentration, a key metric in climate science.",
+        "source": "llm_fallback",
+        "temporal_context": "2024, with implications for ongoing climate trends.",
+        "key_entities": [
+          "CO2 concentration",
+          "atmosphere",
+          "parts per million"
+        ],
+        "evidence_guidance": "Recent (within the last year) data from reputable climate monitoring organizations (e.g., NOAA, NASA, WMO) and peer-reviewed scientific publications are needed.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 90,
+        "reasoning": "The article discusses global atmospheric CO2 concentration, which is a key climate metric.",
+        "source": "llm_primary",
+        "temporal_context": "2024, recent data point",
+        "key_entities": [
+          "CO2",
+          "atmospheric concentration",
+          "2024"
+        ],
+        "evidence_guidance": "Scientific reports and climate monitoring data, preferably from the past year",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "politics-uk-1",
+      "text": "Keir Starmer became UK Prime Minister in July 2024",
+      "expected_domain": "Politics",
+      "expected_jurisdiction": "UK",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 95,
+        "reasoning": "The article makes a specific claim about a UK political figure becoming Prime Minister, which falls under the Politics domain.",
+        "source": "llm_fallback",
+        "temporal_context": "July 2024, a past event.",
+        "key_entities": [
+          "Keir Starmer",
+          "UK Prime Minister"
+        ],
+        "evidence_guidance": "Official election results, parliamentary records, reputable news archives from July 2024.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 90,
+        "reasoning": "The article discusses a political figure and a specific event related to UK governance.",
+        "source": "llm_primary",
+        "temporal_context": "July 2024, when Keir Starmer became Prime Minister",
+        "key_entities": [
+          "Keir Starmer",
+          "UK Prime Minister"
+        ],
+        "evidence_guidance": "Official government announcements, news articles from reputable sources, and parliamentary records from July 2024",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "politics-uk-2",
+      "text": "Labour won 411 seats at the 2024 general election in Britain",
+      "expected_domain": "Politics",
+      "expected_jurisdiction": "UK",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 95,
+        "reasoning": "The article makes a specific claim about the results of a general election in Britain.",
+        "source": "llm_fallback",
+        "temporal_context": "The 2024 general election in Britain",
+        "key_entities": [
+          "Labour",
+          "2024 general election",
+          "Britain"
+        ],
+        "evidence_guidance": "Official election results from the UK Electoral Commission or reputable news archives covering the 2024 UK general election.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 90,
+        "reasoning": "The article discusses the outcome of a general election in Britain, which is a political event.",
+        "source": "llm_primary",
+        "temporal_context": "2024 general election results",
+        "key_entities": [
+          "Labour Party",
+          "UK Parliament",
+          "2024 general election"
+        ],
+        "evidence_guidance": "Official election results and parliamentary records - need pw (past week) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "politics-us-1",
+      "text": "Donald Trump won the 2024 US Presidential election",
+      "expected_domain": "Politics",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article makes a claim about the outcome of a US Presidential election.",
+        "source": "llm_fallback",
+        "temporal_context": "The 2024 US Presidential election, which has already occurred.",
+        "key_entities": [
+          "Donald Trump",
+          "2024 US Presidential election"
+        ],
+        "evidence_guidance": "Official election results from the US Electoral Commission or reputable news archives covering the 2024 election results.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article discusses the outcome of a US presidential election, which is a political event.",
+        "source": "llm_primary",
+        "temporal_context": "2024 US Presidential election",
+        "key_entities": [
+          "Donald Trump",
+          "2024 US Presidential election"
+        ],
+        "evidence_guidance": "Official election results, news reports, and electoral commission announcements - need pw (past week) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "politics-us-2",
+      "text": "Republicans took control of the Senate in November 2024",
+      "expected_domain": "Politics",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article makes a specific claim about the control of the US Senate following an election.",
+        "source": "llm_fallback",
+        "temporal_context": "November 2024 election results and the subsequent control of the Senate.",
+        "key_entities": [
+          "Republicans",
+          "Senate",
+          "November 2024"
+        ],
+        "evidence_guidance": "Official election results from the US Federal Election Commission or reputable news archives reporting on the 2024 US Senate elections.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 90,
+        "reasoning": "The article discusses a political event regarding Senate control in the US.",
+        "source": "llm_primary",
+        "temporal_context": "November 2024, post-election period",
+        "key_entities": [
+          "Republicans",
+          "Senate",
+          "2024 elections"
+        ],
+        "evidence_guidance": "Election results and congressional records - need pm (past month) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "politics-eu-1",
+      "text": "Ursula von der Leyen was re-elected European Commission President in 2024",
+      "expected_domain": "Politics",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 95,
+        "reasoning": "The article is about the re-election of a key political figure within the European Union.",
+        "source": "llm_fallback",
+        "temporal_context": "2024 election cycle",
+        "key_entities": [
+          "Ursula von der Leyen",
+          "European Commission President"
+        ],
+        "evidence_guidance": "Official EU election results, news archives from 2024, European Parliament records",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses the re-election of a political figure within the European Commission.",
+        "source": "llm_primary",
+        "temporal_context": "2024 election period",
+        "key_entities": [
+          "Ursula von der Leyen",
+          "European Commission"
+        ],
+        "evidence_guidance": "Official election results, EU press releases, and news articles from 2024",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "politics-eu-2",
+      "text": "The European Parliament has 720 MEPs as of the 2024 elections",
+      "expected_domain": "Politics",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Politics",
+        "secondary_domains": [
+          "Demographics"
+        ],
+        "jurisdiction": "EU",
+        "confidence": 95,
+        "reasoning": "The article states a fact about the number of Members of the European Parliament following the 2024 elections.",
+        "source": "llm_fallback",
+        "temporal_context": "Post-2024 European Parliament elections",
+        "key_entities": [
+          "European Parliament",
+          "MEPs",
+          "2024 elections"
+        ],
+        "evidence_guidance": "Official European Parliament website, election results archives, and reputable news sources covering EU elections.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses the composition of the European Parliament, which is a political institution.",
+        "source": "llm_primary",
+        "temporal_context": "Post-2024 elections",
+        "key_entities": [
+          "European Parliament",
+          "MEPs",
+          "2024 elections"
+        ],
+        "evidence_guidance": "Official election results and European Parliament records - need pw (past week) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "politics-global-1",
+      "text": "The UN General Assembly has 193 member states",
+      "expected_domain": "Politics",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Demographics",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article states a factual number about the member states of the UN General Assembly.",
+        "source": "llm_fallback",
+        "temporal_context": "Current, as of 2026",
+        "key_entities": [
+          "UN General Assembly",
+          "member states"
+        ],
+        "evidence_guidance": "Official UN website or reputable encyclopedic sources for current membership numbers.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article discusses the UN General Assembly, which is a key political body with global membership.",
+        "source": "llm_primary",
+        "temporal_context": "Current context as of 2026",
+        "key_entities": [
+          "UN General Assembly",
+          "193 member states"
+        ],
+        "evidence_guidance": "Official UN documents and membership records to verify the number of member states.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "politics-global-2",
+      "text": "G20 leaders pledged climate finance support at the 2024 Rio summit",
+      "expected_domain": "Politics",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Politics",
+        "secondary_domains": [
+          "Climate"
+        ],
+        "jurisdiction": "Global",
+        "confidence": 80,
+        "reasoning": "The article discusses a pledge made by G20 leaders at a summit, indicating international relations and climate policy.",
+        "source": "llm_fallback",
+        "temporal_context": "The article refers to the 2024 Rio summit, placing the event in the past relative to the current date of 2026-04-27.",
+        "key_entities": [
+          "G20 leaders",
+          "climate finance",
+          "Rio summit",
+          "2024"
+        ],
+        "evidence_guidance": "Need to find official G20 communiques or reports from the 2024 Rio summit, and news articles from reputable international news organizations covering the event. Freshness should be around the event date (2024).",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Climate",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "Global",
+        "confidence": 85,
+        "reasoning": "The article discusses climate finance support pledged by G20 leaders, indicating a focus on climate policy and international relations.",
+        "source": "llm_primary",
+        "temporal_context": "2024 Rio summit",
+        "key_entities": [
+          "G20",
+          "climate finance",
+          "Rio summit"
+        ],
+        "evidence_guidance": "Official summit documents, press releases, and statements from participating countries - pm (past month) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "law-uk-1",
+      "text": "The Equality Act 2010 consolidated UK anti-discrimination law into a single statute",
+      "expected_domain": "Law",
+      "expected_jurisdiction": "UK",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Law",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 95,
+        "reasoning": "The article explicitly mentions the Equality Act 2010 and its function in consolidating UK anti-discrimination law.",
+        "source": "llm_fallback",
+        "temporal_context": "The article refers to the Equality Act 2010, implying a focus on the period around its enactment and its ongoing legal impact.",
+        "key_entities": [
+          "Equality Act 2010",
+          "UK anti-discrimination law"
+        ],
+        "evidence_guidance": "Official UK government legislation archives, legal commentary on the Equality Act 2010, and case law citing the act are needed.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Law",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 90,
+        "reasoning": "The article discusses the Equality Act 2010, which is a legal statute in the UK.",
+        "source": "llm_primary",
+        "temporal_context": "Post-2010, relevant to ongoing discussions about anti-discrimination law.",
+        "key_entities": [
+          "Equality Act 2010",
+          "UK",
+          "anti-discrimination law"
+        ],
+        "evidence_guidance": "Legal texts, government publications, and case law related to the Equality Act.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "law-uk-2",
+      "text": "The UK Supreme Court ruled in Miller v Prime Minister that the prorogation of Parliament was unlawful",
+      "expected_domain": "Law",
+      "expected_jurisdiction": "UK",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Law",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "UK",
+        "confidence": 95,
+        "reasoning": "The article explicitly mentions a UK Supreme Court ruling on the prorogation of Parliament.",
+        "source": "llm_fallback",
+        "temporal_context": "The specific ruling date is not provided, but the event itself is a past legal case.",
+        "key_entities": [
+          "UK Supreme Court",
+          "Miller v Prime Minister",
+          "Parliament",
+          "prorogation"
+        ],
+        "evidence_guidance": "Official UK Supreme Court judgments, legal analysis from reputable law journals, and news archives from the time of the ruling.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Law",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "UK",
+        "confidence": 90,
+        "reasoning": "The article discusses a UK Supreme Court ruling, which is a legal matter.",
+        "source": "llm_primary",
+        "temporal_context": "The ruling occurred prior to today's date in 2026.",
+        "key_entities": [
+          "UK Supreme Court",
+          "Miller v Prime Minister",
+          "Parliament"
+        ],
+        "evidence_guidance": "Legal documents, court rulings, and news articles from reputable sources for verification.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "law-us-1",
+      "text": "The US Supreme Court overturned Roe v Wade in 2022",
+      "expected_domain": "Law",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Law",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article discusses a significant US Supreme Court ruling.",
+        "source": "llm_fallback",
+        "temporal_context": "2022, with ongoing implications",
+        "key_entities": [
+          "US Supreme Court",
+          "Roe v Wade"
+        ],
+        "evidence_guidance": "Official court documents, legal analysis from reputable law journals, and news reports from the time of the ruling.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Law",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article discusses a significant Supreme Court ruling, which falls under legal analysis and has political implications.",
+        "source": "llm_primary",
+        "temporal_context": "2022, the year Roe v Wade was overturned",
+        "key_entities": [
+          "US Supreme Court",
+          "Roe v Wade"
+        ],
+        "evidence_guidance": "Legal documents, court rulings, and news articles from 2022 for verification",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "law-us-2",
+      "text": "The Voting Rights Act of 1965 was a landmark US civil rights law",
+      "expected_domain": "Law",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Law",
+        "secondary_domains": [
+          "History",
+          "Politics"
+        ],
+        "jurisdiction": "US",
+        "confidence": 90,
+        "reasoning": "The article discusses a landmark US civil rights law, placing it primarily in the legal domain with historical and political context.",
+        "source": "llm_fallback",
+        "temporal_context": "1965 and the period of the US Civil Rights Movement",
+        "key_entities": [
+          "Voting Rights Act of 1965",
+          "US civil rights law"
+        ],
+        "evidence_guidance": "Historical legal documents, government archives, and academic analyses of the Voting Rights Act of 1965 are needed.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 90,
+        "reasoning": "The article discusses the Voting Rights Act, which is a significant piece of US legislation.",
+        "source": "llm_primary",
+        "temporal_context": "1965, the year the Voting Rights Act was enacted",
+        "key_entities": [
+          "Voting Rights Act",
+          "US Congress",
+          "civil rights"
+        ],
+        "evidence_guidance": "Historical legislative documents, government archives, and academic analyses of civil rights laws",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "law-eu-1",
+      "text": "The EU's General Data Protection Regulation came into force in May 2018",
+      "expected_domain": "Law",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Law",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 95,
+        "reasoning": "The article explicitly mentions the EU's General Data Protection Regulation, which is a piece of legislation.",
+        "source": "llm_fallback",
+        "temporal_context": "May 2018 and onwards, focusing on the implementation date.",
+        "key_entities": [
+          "EU",
+          "General Data Protection Regulation",
+          "GDPR"
+        ],
+        "evidence_guidance": "Official EU legal texts, European Commission statements, and reputable legal news sources regarding GDPR implementation and impact.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Law",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses the General Data Protection Regulation, which is a legal framework established by the EU.",
+        "source": "llm_primary",
+        "temporal_context": "Since May 2018, ongoing relevance as of 2026.",
+        "key_entities": [
+          "EU",
+          "General Data Protection Regulation",
+          "GDPR"
+        ],
+        "evidence_guidance": "Legal texts, EU official publications, and regulatory updates are needed for verification.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "law-eu-2",
+      "text": "The Digital Services Act is the European Union's flagship online platform regulation",
+      "expected_domain": "Law",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Law",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "EU",
+        "confidence": 95,
+        "reasoning": "The article discusses the Digital Services Act, which is a major piece of EU regulation.",
+        "source": "llm_fallback",
+        "temporal_context": "Current EU legislative period",
+        "key_entities": [
+          "Digital Services Act",
+          "European Union"
+        ],
+        "evidence_guidance": "Official EU legislative documents, European Commission press releases, and reputable legal news sources focusing on EU law.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Politics",
+        "secondary_domains": [
+          "Law"
+        ],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses the Digital Services Act, which is a significant piece of legislation in the European Union.",
+        "source": "llm_primary",
+        "temporal_context": "Current regulations as of 2026",
+        "key_entities": [
+          "Digital Services Act",
+          "European Union",
+          "online platforms"
+        ],
+        "evidence_guidance": "Official EU documents, legislative texts, and recent news articles for updates on the Act's implementation",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "law-global-1",
+      "text": "The Geneva Conventions establish the standards of international humanitarian law",
+      "expected_domain": "Law",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Law",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article explicitly mentions the Geneva Conventions, which are international humanitarian law treaties.",
+        "source": "llm_fallback",
+        "temporal_context": "Ongoing, established historical treaties with current relevance",
+        "key_entities": [
+          "Geneva Conventions",
+          "international humanitarian law"
+        ],
+        "evidence_guidance": "Official texts of the Geneva Conventions, ICRC publications, international law journals, historical legal analyses.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Law",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 90,
+        "reasoning": "The article discusses the Geneva Conventions, which are foundational to international humanitarian law.",
+        "source": "llm_primary",
+        "temporal_context": "Current understanding of international humanitarian law as of 2026.",
+        "key_entities": [
+          "Geneva Conventions",
+          "international humanitarian law"
+        ],
+        "evidence_guidance": "Legal texts, international law journals, and official documents from recognized legal authorities.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "law-global-2",
+      "text": "The International Criminal Court is based in The Hague",
+      "expected_domain": "Law",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Law",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article states the location of the International Criminal Court, which is a legal institution with international political implications.",
+        "source": "llm_fallback",
+        "temporal_context": "Current information about the ICC's location",
+        "key_entities": [
+          "International Criminal Court",
+          "The Hague"
+        ],
+        "evidence_guidance": "Official ICC website, UN documents, or reputable news sources confirming the court's headquarters. Freshness: Current.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Law",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 90,
+        "reasoning": "The article discusses the International Criminal Court, which is a legal institution.",
+        "source": "llm_primary",
+        "temporal_context": "Current context as of 2026.",
+        "key_entities": [
+          "International Criminal Court",
+          "The Hague"
+        ],
+        "evidence_guidance": "Legal documents, court rulings, and official ICC announcements are needed for verification.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "finance-uk-1",
+      "text": "The Bank of England raised interest rates to 5.25% in August 2023",
+      "expected_domain": "Finance",
+      "expected_jurisdiction": "UK",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 95,
+        "reasoning": "The article explicitly mentions the Bank of England and an interest rate change, which falls under financial and economic policy.",
+        "source": "llm_fallback",
+        "temporal_context": "August 2023",
+        "key_entities": [
+          "Bank of England",
+          "interest rates"
+        ],
+        "evidence_guidance": "Official Bank of England press releases or financial news archives from August 2023.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 90,
+        "reasoning": "The article discusses a monetary policy action by the Bank of England, which is a financial topic.",
+        "source": "llm_primary",
+        "temporal_context": "August 2023, when the interest rate was raised.",
+        "key_entities": [
+          "Bank of England",
+          "interest rates"
+        ],
+        "evidence_guidance": "Official Bank of England announcements and financial news articles from August 2023.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "finance-uk-2",
+      "text": "BP plc reported record profits of GBP 28 billion in 2022",
+      "expected_domain": "Finance",
+      "expected_jurisdiction": "UK",
+      "notes": "litmus from verification arc \u2014 classified Global historically (misroute)",
+      "primary": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 95,
+        "reasoning": "The article reports on the financial performance of BP plc, a UK-based company, indicating record profits.",
+        "source": "llm_fallback",
+        "temporal_context": "Full-year 2022 results",
+        "key_entities": [
+          "BP plc",
+          "United Kingdom"
+        ],
+        "evidence_guidance": "Financial reports from BP plc, London Stock Exchange filings, and reputable financial news outlets for the 2022 fiscal year.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 90,
+        "reasoning": "The article reports on BP plc's financial performance, which falls under the finance domain.",
+        "source": "llm_primary",
+        "temporal_context": "Full-year 2022 results",
+        "key_entities": [
+          "BP plc",
+          "GBP",
+          "profits"
+        ],
+        "evidence_guidance": "Financial reports, regulatory filings, and news articles from 2022 for verification",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "finance-us-1",
+      "text": "The Federal Reserve cut interest rates by 50 basis points in September 2024",
+      "expected_domain": "Finance",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article discusses a decision by the Federal Reserve regarding interest rates, which is a core function of the US central bank.",
+        "source": "llm_fallback",
+        "temporal_context": "September 2024",
+        "key_entities": [
+          "Federal Reserve",
+          "interest rates"
+        ],
+        "evidence_guidance": "Official statements or press releases from the Federal Reserve, financial news archives from September 2024.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 90,
+        "reasoning": "The article discusses a Federal Reserve interest rate decision, which is a financial topic specific to the US.",
+        "source": "llm_primary",
+        "temporal_context": "September 2024",
+        "key_entities": [
+          "Federal Reserve",
+          "interest rates"
+        ],
+        "evidence_guidance": "Official Federal Reserve announcements and financial news sources from September 2024",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "finance-us-2",
+      "text": "Apple Inc became the first US company valued at $3 trillion in 2022",
+      "expected_domain": "Finance",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article discusses the market valuation of a US-based company, Apple Inc.",
+        "source": "llm_fallback",
+        "temporal_context": "2022",
+        "key_entities": [
+          "Apple Inc",
+          "$3 trillion",
+          "2022"
+        ],
+        "evidence_guidance": "Financial news archives, stock market data from 2022, and official company reports from that period.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 90,
+        "reasoning": "The article discusses Apple's market valuation, which is a financial topic related to business and markets.",
+        "source": "llm_primary",
+        "temporal_context": "2022, the year Apple reached a $3 trillion valuation",
+        "key_entities": [
+          "Apple Inc",
+          "$3 trillion",
+          "US"
+        ],
+        "evidence_guidance": "Financial reports, market analysis, and news articles from 2022 to verify valuation claims",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "finance-eu-1",
+      "text": "The European Central Bank set its deposit facility rate at 3.25% in October 2024",
+      "expected_domain": "Finance",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 95,
+        "reasoning": "The article explicitly mentions the European Central Bank and its deposit facility rate, placing it firmly in the finance domain.",
+        "source": "llm_fallback",
+        "temporal_context": "October 2024",
+        "key_entities": [
+          "European Central Bank",
+          "deposit facility rate"
+        ],
+        "evidence_guidance": "Official press releases from the European Central Bank, financial news archives from October 2024.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses the European Central Bank's deposit facility rate, which is a financial topic relevant to the EU.",
+        "source": "llm_primary",
+        "temporal_context": "October 2024",
+        "key_entities": [
+          "European Central Bank",
+          "deposit facility rate"
+        ],
+        "evidence_guidance": "Official ECB announcements and financial news articles from October 2024 for verification",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "finance-eu-2",
+      "text": "France's CAC 40 stock index closed above 8000 for the first time in March 2024",
+      "expected_domain": "Finance",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 95,
+        "reasoning": "The article discusses a stock market index, which falls under the finance domain, and explicitly mentions France.",
+        "source": "llm_fallback",
+        "temporal_context": "March 2024",
+        "key_entities": [
+          "CAC 40",
+          "France"
+        ],
+        "evidence_guidance": "Financial news archives, stock market data providers, and economic news outlets for the specified date.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses the CAC 40 stock index, which is a financial market index in France.",
+        "source": "llm_primary",
+        "temporal_context": "March 2024",
+        "key_entities": [
+          "CAC 40",
+          "France",
+          "stock index"
+        ],
+        "evidence_guidance": "Financial market reports and stock exchange data from March 2024",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "finance-global-1",
+      "text": "Global GDP grew 3.2% in 2024 according to the IMF",
+      "expected_domain": "Finance",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article discusses global GDP growth, a key economic indicator.",
+        "source": "llm_fallback",
+        "temporal_context": "2024",
+        "key_entities": [
+          "Global GDP",
+          "IMF"
+        ],
+        "evidence_guidance": "IMF reports and economic data from reputable financial news outlets for 2024.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 90,
+        "reasoning": "The article discusses GDP growth, which is a key economic indicator relevant to finance.",
+        "source": "llm_primary",
+        "temporal_context": "2024 economic performance",
+        "key_entities": [
+          "IMF",
+          "GDP",
+          "2024"
+        ],
+        "evidence_guidance": "Economic reports and IMF publications - need pw (past week) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "finance-global-2",
+      "text": "Bitcoin reached an all-time high of $100,000 in December 2024",
+      "expected_domain": "Finance",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article makes a specific claim about the price of Bitcoin, a global cryptocurrency.",
+        "source": "llm_fallback",
+        "temporal_context": "December 2024",
+        "key_entities": [
+          "Bitcoin"
+        ],
+        "evidence_guidance": "Need to find historical price data for Bitcoin from reputable financial news sources or cryptocurrency tracking websites for December 2024.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Finance",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 85,
+        "reasoning": "The article discusses Bitcoin's price, which falls under financial markets.",
+        "source": "llm_primary",
+        "temporal_context": "December 2024, when the claim states Bitcoin reached its all-time high.",
+        "key_entities": [
+          "Bitcoin"
+        ],
+        "evidence_guidance": "Cryptocurrency price data from exchanges and financial news sources - need pw (past week) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "health-uk-1",
+      "text": "The NHS treats around 1.6 million people every 24 hours",
+      "expected_domain": "Health",
+      "expected_jurisdiction": "UK",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Health",
+        "secondary_domains": [
+          "Demographics"
+        ],
+        "jurisdiction": "UK",
+        "confidence": 85,
+        "reasoning": "The article discusses the National Health Service (NHS) and patient treatment numbers, indicating a focus on healthcare within the UK.",
+        "source": "llm_fallback",
+        "temporal_context": "Daily treatment figures for the NHS",
+        "key_entities": [
+          "NHS",
+          "United Kingdom"
+        ],
+        "evidence_guidance": "Official NHS statistics, public health reports, and recent news articles from reputable UK sources are needed to verify daily treatment numbers.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 85,
+        "reasoning": "The article discusses the NHS, which is a healthcare organization in the UK, and mentions patient treatment statistics.",
+        "source": "llm_primary",
+        "temporal_context": "Current healthcare statistics as of 2026",
+        "key_entities": [
+          "NHS",
+          "patients"
+        ],
+        "evidence_guidance": "Healthcare statistics require recent reports from NHS or government health departments, ideally within the past year.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "health-uk-2",
+      "text": "The UK introduced its sugar tax on soft drinks in April 2018",
+      "expected_domain": "Health",
+      "expected_jurisdiction": "UK",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Health",
+        "secondary_domains": [
+          "Politics",
+          "Finance"
+        ],
+        "jurisdiction": "UK",
+        "confidence": 80,
+        "reasoning": "The article discusses a public health policy (sugar tax) implemented by the UK government, which has economic implications.",
+        "source": "llm_fallback",
+        "temporal_context": "April 2018 and ongoing impact",
+        "key_entities": [
+          "UK",
+          "sugar tax",
+          "soft drinks",
+          "April 2018"
+        ],
+        "evidence_guidance": "Official government reports on the sugar tax, public health studies on its impact, and economic analyses from reputable institutions. Freshness: pm (past month) for recent impacts, or archival for initial policy details.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "UK",
+        "confidence": 85,
+        "reasoning": "The article discusses a health-related policy (sugar tax) implemented in the UK.",
+        "source": "llm_primary",
+        "temporal_context": "April 2018, when the sugar tax was introduced.",
+        "key_entities": [
+          "UK",
+          "sugar tax",
+          "soft drinks"
+        ],
+        "evidence_guidance": "Official government documents and health impact studies from 2018 onwards.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "health-us-1",
+      "text": "The CDC recommended COVID-19 boosters for all Americans over 65 in 2024",
+      "expected_domain": "Health",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 95,
+        "reasoning": "The article discusses a recommendation from the CDC regarding COVID-19 boosters, which is a health-related topic within the US jurisdiction.",
+        "source": "llm_fallback",
+        "temporal_context": "2024, with a recommendation from the CDC",
+        "key_entities": [
+          "CDC",
+          "COVID-19 boosters"
+        ],
+        "evidence_guidance": "Official CDC announcements, public health advisories, and news reports from 2024 regarding booster recommendations for individuals over 65.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 90,
+        "reasoning": "The article discusses CDC recommendations regarding COVID-19 boosters, which falls under health policy in the US.",
+        "source": "llm_primary",
+        "temporal_context": "2024, regarding COVID-19 vaccination recommendations for older adults",
+        "key_entities": [
+          "CDC",
+          "COVID-19",
+          "boosters",
+          "Americans",
+          "65+"
+        ],
+        "evidence_guidance": "Official CDC announcements and health policy documents - need pm (past month) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "health-us-2",
+      "text": "Medicare covers approximately 65 million Americans",
+      "expected_domain": "Health",
+      "expected_jurisdiction": "US",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Demographics",
+        "secondary_domains": [
+          "Health"
+        ],
+        "jurisdiction": "US",
+        "confidence": 85,
+        "reasoning": "The article states a statistic about the number of Americans covered by Medicare, which is a US government health insurance program.",
+        "source": "llm_fallback",
+        "temporal_context": "Current (as of the article's publication date)",
+        "key_entities": [
+          "Medicare",
+          "Americans"
+        ],
+        "evidence_guidance": "Official Medicare enrollment statistics from CMS (Centers for Medicare & Medicaid Services) or reputable demographic reports. Freshness: Current year data.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "US",
+        "confidence": 90,
+        "reasoning": "The article discusses Medicare, which is a US healthcare program covering millions of Americans.",
+        "source": "llm_primary",
+        "temporal_context": "Current context as of 2026, reflecting ongoing Medicare coverage.",
+        "key_entities": [
+          "Medicare",
+          "Americans",
+          "healthcare"
+        ],
+        "evidence_guidance": "Official Medicare reports and healthcare policy documents - pm (past month) freshness",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "health-eu-1",
+      "text": "France introduced mandatory measles vaccination for children in 2018",
+      "expected_domain": "Health",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Health",
+        "secondary_domains": [
+          "Politics"
+        ],
+        "jurisdiction": "EU",
+        "confidence": 85,
+        "reasoning": "The article discusses a mandatory vaccination policy introduced by a specific country, which falls under health and government policy.",
+        "source": "llm_fallback",
+        "temporal_context": "2018 and onwards",
+        "key_entities": [
+          "France",
+          "measles vaccination",
+          "children"
+        ],
+        "evidence_guidance": "Official government health ministry announcements, public health records, and news reports from 2018 onwards.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 85,
+        "reasoning": "The article discusses mandatory measles vaccination, which is a health policy issue in France.",
+        "source": "llm_primary",
+        "temporal_context": "2018, when the vaccination mandate was introduced",
+        "key_entities": [
+          "France",
+          "measles vaccination",
+          "children"
+        ],
+        "evidence_guidance": "Health policy documents, government announcements, and vaccination statistics from health authorities",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "health-eu-2",
+      "text": "Germany's statutory health insurance covers about 90% of its population",
+      "expected_domain": "Health",
+      "expected_jurisdiction": "EU",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Health",
+        "secondary_domains": [
+          "Demographics"
+        ],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses the coverage of Germany's statutory health insurance, which directly relates to healthcare systems and population statistics within the EU.",
+        "source": "llm_fallback",
+        "temporal_context": "Current statistics on health insurance coverage in Germany",
+        "key_entities": [
+          "Germany",
+          "statutory health insurance",
+          "population"
+        ],
+        "evidence_guidance": "Official statistics from German health ministries or statistical offices, reports from EU health agencies, and recent academic studies on healthcare coverage in Germany are needed. Freshness should be within the last 1-2 years.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "EU",
+        "confidence": 90,
+        "reasoning": "The article discusses Germany's health insurance system, which is a healthcare topic.",
+        "source": "llm_primary",
+        "temporal_context": "Current status as of 2026",
+        "key_entities": [
+          "Germany",
+          "statutory health insurance"
+        ],
+        "evidence_guidance": "Official health policy documents, government reports, and healthcare statistics from recent years",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "health-global-1",
+      "text": "WHO declared COVID-19 a pandemic on 11 March 2020",
+      "expected_domain": "Health",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article states a declaration made by the World Health Organization regarding a disease.",
+        "source": "llm_fallback",
+        "temporal_context": "March 11, 2020, and the ongoing COVID-19 pandemic",
+        "key_entities": [
+          "WHO",
+          "COVID-19",
+          "pandemic",
+          "March 11, 2020"
+        ],
+        "evidence_guidance": "Official WHO press releases or historical records of the declaration, with a focus on the date of the declaration.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article discusses a significant health event, the declaration of COVID-19 as a pandemic by WHO.",
+        "source": "llm_primary",
+        "temporal_context": "March 2020, during the onset of the COVID-19 pandemic.",
+        "key_entities": [
+          "WHO",
+          "COVID-19"
+        ],
+        "evidence_guidance": "Official WHO announcements and health reports from March 2020 for verification.",
+        "classification_failed": false
+      }
+    },
+    {
+      "id": "health-global-2",
+      "text": "Malaria caused approximately 608,000 deaths globally in 2022",
+      "expected_domain": "Health",
+      "expected_jurisdiction": "Global",
+      "notes": "",
+      "primary": {
+        "primary_domain": "Health",
+        "secondary_domains": [
+          "Demographics"
+        ],
+        "jurisdiction": "Global",
+        "confidence": 95,
+        "reasoning": "The article directly states a statistic about global deaths from a specific disease.",
+        "source": "llm_fallback",
+        "temporal_context": "2022",
+        "key_entities": [
+          "Malaria",
+          "deaths",
+          "2022"
+        ],
+        "evidence_guidance": "Freshness: pm (past month) for recent statistics, or historical data if the claim is about trends. Source types: World Health Organization (WHO) reports, peer-reviewed medical journals, national health statistics agencies.",
+        "classification_failed": false
+      },
+      "fallback": {
+        "primary_domain": "Health",
+        "secondary_domains": [],
+        "jurisdiction": "Global",
+        "confidence": 90,
+        "reasoning": "The article discusses global health statistics related to malaria deaths.",
+        "source": "llm_primary",
+        "temporal_context": "Year 2022",
+        "key_entities": [
+          "malaria",
+          "World Health Organization",
+          "global deaths"
+        ],
+        "evidence_guidance": "Health statistics require recent reports from WHO or CDC, with a focus on 2022 data",
+        "classification_failed": false
+      }
+    }
+  ],
+  "summaries": {
+    "primary": {
+      "provider": "primary",
+      "total": 40,
+      "domain_correct": 39,
+      "primary_domain_correct": 37,
+      "jurisdiction_correct": 40,
+      "both_correct": 39,
+      "domain_acc": 0.975,
+      "primary_domain_acc": 0.925,
+      "jurisdiction_acc": 1.0,
+      "both_acc": 0.975,
+      "cell_stats": {
+        "Climate/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Climate/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Climate/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Climate/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Politics/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Politics/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Politics/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Politics/Global": {
+          "total": 2,
+          "dom_ok": 1,
+          "jur_ok": 2,
+          "both_ok": 1
+        },
+        "Law/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Law/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Law/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Law/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Finance/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Finance/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Finance/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Finance/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Health/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Health/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Health/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Health/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        }
+      },
+      "jur_confusion": {
+        "UK": {
+          "UK": 10
+        },
+        "US": {
+          "US": 10
+        },
+        "EU": {
+          "EU": 10
+        },
+        "Global": {
+          "Global": 10
+        }
+      },
+      "dom_confusion": {
+        "Climate": {
+          "Climate": 7,
+          "Politics": 1
+        },
+        "Politics": {
+          "Politics": 7,
+          "Demographics": 1
+        },
+        "Law": {
+          "Law": 8
+        },
+        "Finance": {
+          "Finance": 8
+        },
+        "Health": {
+          "Health": 7,
+          "Demographics": 1
+        }
+      },
+      "misroutes": [
+        {
+          "id": "politics-global-1",
+          "text": "The UN General Assembly has 193 member states",
+          "expected": "Politics/Global",
+          "actual_primary": "Demographics",
+          "actual_secondary": [],
+          "actual_jurisdiction": "Global",
+          "confidence": 95,
+          "reasoning": "The article states a factual number about the member states of the UN General Assembly.",
+          "dom_ok": false,
+          "primary_dom_ok": false,
+          "jur_ok": true,
+          "notes": ""
+        }
+      ]
+    },
+    "fallback": {
+      "provider": "fallback",
+      "total": 40,
+      "domain_correct": 39,
+      "primary_domain_correct": 37,
+      "jurisdiction_correct": 40,
+      "both_correct": 39,
+      "domain_acc": 0.975,
+      "primary_domain_acc": 0.925,
+      "jurisdiction_acc": 1.0,
+      "both_acc": 0.975,
+      "cell_stats": {
+        "Climate/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Climate/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Climate/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Climate/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Politics/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Politics/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Politics/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Politics/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Law/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Law/US": {
+          "total": 2,
+          "dom_ok": 1,
+          "jur_ok": 2,
+          "both_ok": 1
+        },
+        "Law/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Law/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Finance/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Finance/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Finance/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Finance/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Health/UK": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Health/US": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Health/EU": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        },
+        "Health/Global": {
+          "total": 2,
+          "dom_ok": 2,
+          "jur_ok": 2,
+          "both_ok": 2
+        }
+      },
+      "jur_confusion": {
+        "UK": {
+          "UK": 10
+        },
+        "US": {
+          "US": 10
+        },
+        "EU": {
+          "EU": 10
+        },
+        "Global": {
+          "Global": 10
+        }
+      },
+      "dom_confusion": {
+        "Climate": {
+          "Climate": 8
+        },
+        "Politics": {
+          "Politics": 7,
+          "Climate": 1
+        },
+        "Law": {
+          "Law": 6,
+          "Politics": 2
+        },
+        "Finance": {
+          "Finance": 8
+        },
+        "Health": {
+          "Health": 8
+        }
+      },
+      "misroutes": [
+        {
+          "id": "law-us-2",
+          "text": "The Voting Rights Act of 1965 was a landmark US civil rights law",
+          "expected": "Law/US",
+          "actual_primary": "Politics",
+          "actual_secondary": [],
+          "actual_jurisdiction": "US",
+          "confidence": 90,
+          "reasoning": "The article discusses the Voting Rights Act, which is a significant piece of US legislation.",
+          "dom_ok": false,
+          "primary_dom_ok": false,
+          "jur_ok": true,
+          "notes": ""
+        }
+      ]
+    }
+  }
+}

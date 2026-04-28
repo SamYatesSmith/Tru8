@@ -1,0 +1,313 @@
+{
+  "mode": "llm",
+  "timestamp": "20260428-114534",
+  "corpus_size": 12,
+  "n_runs": 1,
+  "metrics": {
+    "n_claims": 12,
+    "n_truth_entities": 36,
+    "n_matched": 36,
+    "coverage": 1.0,
+    "per_type": {
+      "AMOUNT": {
+        "tp": 8,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "DATE": {
+        "tp": 8,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "EVENT": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.5,
+        "recall": 1.0
+      },
+      "LAW": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "LOCATION": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.75
+      },
+      "ORG": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "OTHER": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "PERSON": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "PRODUCT": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    "confusion": {
+      "LAW": {
+        "LAW": 4
+      },
+      "LOCATION": {
+        "LOCATION": 3,
+        "EVENT": 1
+      },
+      "DATE": {
+        "DATE": 8
+      },
+      "ORG": {
+        "ORG": 5
+      },
+      "AMOUNT": {
+        "AMOUNT": 8
+      },
+      "PRODUCT": {
+        "PRODUCT": 2
+      },
+      "PERSON": {
+        "PERSON": 2
+      },
+      "EVENT": {
+        "EVENT": 1
+      },
+      "OTHER": {
+        "OTHER": 2
+      }
+    },
+    "unmatched_preds_sample": [
+      {
+        "claim_id": "uk-law-act-1",
+        "text": "net zero",
+        "type": "OTHER"
+      },
+      {
+        "claim_id": "uk-law-act-2",
+        "text": "platforms",
+        "type": "ORG"
+      },
+      {
+        "claim_id": "uk-law-act-2",
+        "text": "users' ages",
+        "type": "OTHER"
+      }
+    ],
+    "unmatched_preds_count": 3
+  },
+  "stability": {
+    "runs": 1,
+    "stability_n_a": true
+  },
+  "all_runs": [
+    {
+      "uk-law-act-1": [
+        {
+          "text": "Climate Change Act 2008",
+          "type": "LAW"
+        },
+        {
+          "text": "UK",
+          "type": "LOCATION"
+        },
+        {
+          "text": "net zero",
+          "type": "OTHER"
+        },
+        {
+          "text": "2050",
+          "type": "DATE"
+        }
+      ],
+      "uk-law-act-2": [
+        {
+          "text": "Online Safety Act 2023",
+          "type": "LAW"
+        },
+        {
+          "text": "platforms",
+          "type": "ORG"
+        },
+        {
+          "text": "users' ages",
+          "type": "OTHER"
+        }
+      ],
+      "uk-finance-currency": [
+        {
+          "text": "BP plc",
+          "type": "ORG"
+        },
+        {
+          "text": "GBP 28 billion",
+          "type": "AMOUNT"
+        },
+        {
+          "text": "2022",
+          "type": "DATE"
+        }
+      ],
+      "us-finance-org-1": [
+        {
+          "text": "ExxonMobil",
+          "type": "ORG"
+        },
+        {
+          "text": "$56 billion",
+          "type": "AMOUNT"
+        },
+        {
+          "text": "2022",
+          "type": "DATE"
+        }
+      ],
+      "tech-product": [
+        {
+          "text": "Tesla",
+          "type": "ORG"
+        },
+        {
+          "text": "Model Y",
+          "type": "PRODUCT"
+        },
+        {
+          "text": "1.3 million",
+          "type": "AMOUNT"
+        },
+        {
+          "text": "2022",
+          "type": "DATE"
+        }
+      ],
+      "us-bill": [
+        {
+          "text": "Inflation Reduction Act of 2022",
+          "type": "LAW"
+        },
+        {
+          "text": "$369 billion",
+          "type": "AMOUNT"
+        },
+        {
+          "text": "US",
+          "type": "LOCATION"
+        }
+      ],
+      "person-title": [
+        {
+          "text": "Keir Starmer",
+          "type": "PERSON"
+        },
+        {
+          "text": "October 2024",
+          "type": "DATE"
+        }
+      ],
+      "person-event": [
+        {
+          "text": "Joe Biden",
+          "type": "PERSON"
+        },
+        {
+          "text": "CHIPS and Science Act",
+          "type": "LAW"
+        },
+        {
+          "text": "White House",
+          "type": "LOCATION"
+        },
+        {
+          "text": "August 2022",
+          "type": "DATE"
+        }
+      ],
+      "named-event": [
+        {
+          "text": "2024 Paris Olympics",
+          "type": "EVENT"
+        },
+        {
+          "text": "9.5 million",
+          "type": "AMOUNT"
+        },
+        {
+          "text": "2024 Paris Olympics",
+          "type": "EVENT"
+        },
+        {
+          "text": "US$5.7 billion",
+          "type": "AMOUNT"
+        }
+      ],
+      "academic-product": [
+        {
+          "text": "JWST",
+          "type": "PRODUCT"
+        },
+        {
+          "text": "sulfur dioxide",
+          "type": "OTHER"
+        },
+        {
+          "text": "WASP-39b",
+          "type": "OTHER"
+        },
+        {
+          "text": "November 2022",
+          "type": "DATE"
+        }
+      ],
+      "uk-org-ltd": [
+        {
+          "text": "Aviva Investors Ltd",
+          "type": "ORG"
+        },
+        {
+          "text": "over \u00a3225 billion",
+          "type": "AMOUNT"
+        }
+      ],
+      "international-org": [
+        {
+          "text": "European Central Bank",
+          "type": "ORG"
+        },
+        {
+          "text": "4.5%",
+          "type": "AMOUNT"
+        },
+        {
+          "text": "September 2024",
+          "type": "DATE"
+        }
+      ]
+    }
+  ]
+}

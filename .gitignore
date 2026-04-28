@@ -5,6 +5,9 @@
 .env*.local
 *.env
 
+# Claude Code — contains MCP secrets
+.claude/mcp.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -116,3 +119,4 @@ backend/tests/coverage.json
 
 # Audit output
 audit/
+

@@ -1,0 +1,288 @@
+{
+  "mode": "heuristic",
+  "timestamp": "20260428-112556",
+  "corpus_size": 12,
+  "metrics": {
+    "n_claims": 12,
+    "n_truth_entities": 36,
+    "n_matched": 36,
+    "coverage": 1.0,
+    "per_type": {
+      "AMOUNT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 8,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "DATE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 8,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "ENTITY": {
+        "tp": 0,
+        "fp": 30,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "EVENT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "LAW": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 4,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "LOCATION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 4,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "ORG": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 4,
+        "precision": 1.0,
+        "recall": 0.2
+      },
+      "OTHER": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "PERSON": {
+        "tp": 2,
+        "fp": 3,
+        "fn": 0,
+        "precision": 0.4,
+        "recall": 1.0
+      },
+      "PRODUCT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "confusion": {
+      "LAW": {
+        "ENTITY": 4
+      },
+      "LOCATION": {
+        "ENTITY": 3,
+        "PERSON": 1
+      },
+      "DATE": {
+        "ENTITY": 8
+      },
+      "ORG": {
+        "ENTITY": 3,
+        "ORG": 1,
+        "PERSON": 1
+      },
+      "AMOUNT": {
+        "ENTITY": 8
+      },
+      "PRODUCT": {
+        "PERSON": 1,
+        "ENTITY": 1
+      },
+      "PERSON": {
+        "PERSON": 2
+      },
+      "EVENT": {
+        "ENTITY": 1
+      },
+      "OTHER": {
+        "ENTITY": 2
+      }
+    },
+    "unmatched_preds_sample": [],
+    "unmatched_preds_count": 0
+  },
+  "predictions": {
+    "uk-law-act-1": [
+      {
+        "text": "Climate Change Act 2008",
+        "type": "ENTITY"
+      },
+      {
+        "text": "UK",
+        "type": "ENTITY"
+      },
+      {
+        "text": "2050",
+        "type": "ENTITY"
+      }
+    ],
+    "uk-law-act-2": [
+      {
+        "text": "Online Safety Act 2023",
+        "type": "ENTITY"
+      }
+    ],
+    "uk-finance-currency": [
+      {
+        "text": "BP plc",
+        "type": "ENTITY"
+      },
+      {
+        "text": "GBP 28 billion",
+        "type": "ENTITY"
+      },
+      {
+        "text": "2022",
+        "type": "ENTITY"
+      }
+    ],
+    "us-finance-org-1": [
+      {
+        "text": "ExxonMobil",
+        "type": "ENTITY"
+      },
+      {
+        "text": "$56 billion",
+        "type": "ENTITY"
+      },
+      {
+        "text": "2022",
+        "type": "ENTITY"
+      }
+    ],
+    "tech-product": [
+      {
+        "text": "Tesla",
+        "type": "ENTITY"
+      },
+      {
+        "text": "Model Y",
+        "type": "PERSON"
+      },
+      {
+        "text": "1.3 million",
+        "type": "ENTITY"
+      },
+      {
+        "text": "2022",
+        "type": "ENTITY"
+      }
+    ],
+    "us-bill": [
+      {
+        "text": "Inflation Reduction Act of 2022",
+        "type": "ENTITY"
+      },
+      {
+        "text": "$369 billion",
+        "type": "ENTITY"
+      },
+      {
+        "text": "US",
+        "type": "ENTITY"
+      }
+    ],
+    "person-title": [
+      {
+        "text": "Keir Starmer",
+        "type": "PERSON"
+      },
+      {
+        "text": "October 2024",
+        "type": "ENTITY"
+      }
+    ],
+    "person-event": [
+      {
+        "text": "Joe Biden",
+        "type": "PERSON"
+      },
+      {
+        "text": "CHIPS and Science Act",
+        "type": "ENTITY"
+      },
+      {
+        "text": "White House",
+        "type": "PERSON"
+      },
+      {
+        "text": "August 2022",
+        "type": "ENTITY"
+      }
+    ],
+    "named-event": [
+      {
+        "text": "2024 Paris Olympics",
+        "type": "ENTITY"
+      },
+      {
+        "text": "Paris",
+        "type": "ENTITY"
+      },
+      {
+        "text": "9.5 million",
+        "type": "ENTITY"
+      },
+      {
+        "text": "US$5.7 billion",
+        "type": "ENTITY"
+      }
+    ],
+    "academic-product": [
+      {
+        "text": "JWST",
+        "type": "ENTITY"
+      },
+      {
+        "text": "WASP-39b",
+        "type": "ENTITY"
+      },
+      {
+        "text": "sulfur dioxide",
+        "type": "ENTITY"
+      },
+      {
+        "text": "November 2022",
+        "type": "ENTITY"
+      }
+    ],
+    "uk-org-ltd": [
+      {
+        "text": "Aviva Investors Ltd",
+        "type": "ORG"
+      },
+      {
+        "text": "\u00a3225 billion",
+        "type": "ENTITY"
+      }
+    ],
+    "international-org": [
+      {
+        "text": "European Central Bank",
+        "type": "PERSON"
+      },
+      {
+        "text": "4.5%",
+        "type": "ENTITY"
+      },
+      {
+        "text": "September 2024",
+        "type": "ENTITY"
+      }
+    ]
+  }
+}
