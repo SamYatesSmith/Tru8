@@ -246,6 +246,30 @@ class GovernmentAPIClient(ABC):
         )
         raise last_exception
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """Shape the inbound claim into the form this adapter's API expects.
+
+        Default returns ``claim_text`` unchanged — adapters that handle natural
+        language (OpenAlex, Wikipedia, etc.) need no override. Adapters whose
+        APIs need a specific shape (entity name, topic phrase, location+date,
+        concept keyword) override this to call helpers in
+        ``app.utils.adapter_query_helpers``.
+
+        Called from ``search_with_cache`` *before* the cache lookup, so the
+        shaped query forms the cache key — two adapters with different shape
+        needs for the same claim no longer share cache namespace.
+
+        Returning an empty string causes the caller to skip the search
+        (correct behaviour when a required entity is absent — searching with
+        the full sentence produces zero hits and pollutes the cache).
+        """
+        del entities  # default ignores entities; overrides use them
+        return claim_text
+
     def search_with_cache(
         self,
         query: str,
@@ -265,6 +289,15 @@ class GovernmentAPIClient(ABC):
         Returns:
             List of evidence dictionaries
         """
+        # Adapter-specific query shaping. Default is pass-through; overrides
+        # may return a focused query or "" to skip the call entirely.
+        query = self.prepare_query(query, entities)
+        if not query:
+            logger.info(
+                f"{self.api_name} prepare_query returned empty — skipping API call"
+            )
+            return []
+
         # Check cache first
         cached = self.cache.get_cached_api_response_sync(self.api_name, query)
         if cached is not None:

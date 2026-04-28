@@ -13,6 +13,7 @@ from datetime import datetime
 
 from app.services.government_api_client import GovernmentAPIClient
 from app.services.legal_search import LegalSearchService
+from app.utils.adapter_query_helpers import extract_topic_phrase
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,12 @@ class GovUKAdapter(GovernmentAPIClient):
             timeout=10,
             max_results=10,
         )
+
+    def prepare_query(self, claim_text, entities=None):
+        # GOV.UK search ranks on topic-keyword overlap; full sentences score
+        # poorly. _build_targeted_query (called inside search) still handles
+        # the no-entity case as a fallback.
+        return extract_topic_phrase(claim_text, entities)
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """GOV.UK covers Politics, General, History, and Law for UK only."""
@@ -167,6 +174,10 @@ class HansardAdapter(GovernmentAPIClient):
             timeout=15,
             max_results=10,
         )
+
+    def prepare_query(self, claim_text, entities=None):
+        # Hansard's searchTerm is a topic-keyword index — sentences match nothing.
+        return extract_topic_phrase(claim_text, entities)
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Hansard covers Politics and Law for UK only."""

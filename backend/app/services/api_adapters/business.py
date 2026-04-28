@@ -12,6 +12,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from app.services.government_api_client import GovernmentAPIClient
+from app.utils.adapter_query_helpers import extract_entity_name
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,12 @@ class CompaniesHouseAdapter(GovernmentAPIClient):
         if self.api_key:
             credentials = base64.b64encode(f"{self.api_key}:".encode()).decode()
             self.headers["Authorization"] = f"Basic {credentials}"
+
+    def prepare_query(self, claim_text, entities=None):
+        # Companies House is a name-prefix index — only ORG entities match.
+        # Returning "" causes search_with_cache to skip the call rather than
+        # search the full sentence (guaranteed zero, pollutes cache).
+        return extract_entity_name(claim_text, entities, label="ORG") or ""
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Companies House covers Politics and Finance for UK only."""
