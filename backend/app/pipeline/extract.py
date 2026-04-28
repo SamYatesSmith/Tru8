@@ -5,11 +5,42 @@ import re
 from typing import Dict, List, Any, Optional
 
 import httpx
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from app.core.config import settings
 from app.services.google_ai import call_google_ai, call_google_ai_with_usage
 
 logger = logging.getLogger(__name__)
+
+
+# NF-15: typed entity vocabulary. Drives adapter routing (LAW -> Hansard,
+# ORG -> Companies House, etc.). See audit/pipeline-issues/2026-04-28_typed_entities_proposal.md.
+ALLOWED_ENTITY_TYPES = frozenset(
+    {"ORG", "PERSON", "LAW", "EVENT", "PRODUCT", "LOCATION", "AMOUNT", "DATE", "OTHER"}
+)
+
+
+class TypedEntity(BaseModel):
+    """A claim entity with its semantic type.
+
+    Emitted by the extract LLM (one per name/concept/amount/date in the
+    claim). Consumed by retrieve.py to route adapters: Hansard wants LAW,
+    Companies House wants ORG, etc. Unknown types are coerced to OTHER
+    so an occasional LLM misfire doesn't crash the extract stage.
+    """
+
+    text: str = Field(min_length=1, max_length=200)
+    type: str = Field(default="OTHER")
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def coerce_unknown_to_other(cls, v: Any) -> str:
+        if not isinstance(v, str):
+            return "OTHER"
+        v_upper = v.strip().upper()
+        if v_upper not in ALLOWED_ENTITY_TYPES:
+            logger.warning(f"[EXTRACT] Unknown entity type {v!r} -> OTHER")
+            return "OTHER"
+        return v_upper
 
 
 class ExtractedClaim(BaseModel):
@@ -25,19 +56,27 @@ class ExtractedClaim(BaseModel):
     subject_context: Optional[str] = Field(
         description="Main subject/topic of the claim", default=None
     )
-    key_entities: Optional[List[str]] = Field(
-        description="Key entities mentioned (names, organizations, places)",
+    key_entities: Optional[List[TypedEntity]] = Field(
+        description=(
+            "Key entities with semantic type. Type is one of: "
+            "ORG, PERSON, LAW, EVENT, PRODUCT, LOCATION, AMOUNT, DATE, OTHER."
+        ),
         default=None,
     )
 
     class Config:
         json_schema_extra = {
             "example": {
-                "text": "The Earth's average temperature has increased by 1.1°C since pre-industrial times",
+                "text": "Tesla delivered 1.3 million Model Y vehicles in 2022",
                 "confidence": 95,
-                "category": "science",
-                "subject_context": "global warming and climate change",
-                "key_entities": ["Earth", "1.1°C", "pre-industrial times"],
+                "category": "business",
+                "subject_context": "Tesla vehicle deliveries",
+                "key_entities": [
+                    {"text": "Tesla", "type": "ORG"},
+                    {"text": "Model Y", "type": "PRODUCT"},
+                    {"text": "1.3 million", "type": "AMOUNT"},
+                    {"text": "2022", "type": "DATE"},
+                ],
             }
         }
 
@@ -152,29 +191,98 @@ For EACH claim, provide:
   - 50-74: Moderate confidence (some ambiguity or missing context)
   - Below 50: Low confidence (significant uncertainty)
 - subject_context: Main subject/topic (2-5 words)
-- key_entities: List of specific entities (names, organizations, places, amounts, dates)
+- key_entities: List of {{"text": "...", "type": "..."}} objects, where type is one of:
+    ORG       — companies, institutions, government bodies, NGOs
+                (e.g. "BP plc", "ExxonMobil", "European Central Bank", "UK Treasury")
+    PERSON    — named individuals
+                (e.g. "Joe Biden", "Keir Starmer", "Karim Adeyemi")
+    LAW       — Acts, Bills, Regulations, Codes, named statutes or treaties
+                (e.g. "Climate Change Act 2008", "CHIPS and Science Act",
+                "GDPR", "Inflation Reduction Act of 2022")
+    EVENT     — named events
+                (e.g. "2024 Paris Olympics", "COP28", "Brexit")
+    PRODUCT   — specific products, instruments, vehicles, named software
+                (e.g. "Model Y", "JWST", "iPhone 15", "Falcon 9")
+    LOCATION  — places, regions, countries, buildings used as places
+                (e.g. "UK", "Paris", "White House", "Mediterranean")
+    AMOUNT    — money, percentages, quantities with units
+                (e.g. "$40 billion", "GBP 28 billion", "4.5%", "1.3 million")
+    DATE      — years, months, full dates, time spans
+                (e.g. "2022", "September 2024", "1990-2023")
+    OTHER     — domain concepts that don't fit above
+                (e.g. "sulfur dioxide", "net zero", "Hycean planet")
+
+  Type rules:
+  - LAW takes precedence over DATE for "X Act 2008" — the whole phrase is one LAW entity, not two.
+  - "BP plc" is ORG even though "plc" is lowercase.
+  - "White House" is LOCATION when it refers to the building, ORG when it refers to the administration.
+    Default to LOCATION unless the claim clearly attributes an action to the administration.
+  - "Tesla", "ExxonMobil", "JWST" are ORG/PRODUCT respectively even when single-word.
+  - Currency-prefixed numbers ("$40 billion", "GBP 28 billion") are AMOUNT regardless of currency.
+  - Pure years ("2022") are DATE; numbered events ("2024 Paris Olympics") are EVENT.
 
 GOOD EXAMPLES:
 
 Article Title: "Tesla Q4 Earnings Report"
-Input: "The company delivered 1.3 million vehicles in 2022, exceeding expectations."
+Input: "The company delivered 1.3 million Model Y vehicles in 2022, exceeding expectations."
 Output: {{
   "claims": [{{
-    "text": "Tesla delivered 1.3 million vehicles in 2022",
+    "text": "Tesla delivered 1.3 million Model Y vehicles in 2022",
     "confidence": 95,
     "subject_context": "Tesla vehicle deliveries",
-    "key_entities": ["Tesla", "1.3 million vehicles", "2022"]
+    "key_entities": [
+      {{"text": "Tesla", "type": "ORG"}},
+      {{"text": "Model Y", "type": "PRODUCT"}},
+      {{"text": "1.3 million", "type": "AMOUNT"}},
+      {{"text": "2022", "type": "DATE"}}
+    ]
   }}]
 }}
 
-Article Title: "White House Renovation"
-Input: "The Project received $350 million in federal funding."
+Article Title: "UK Climate Policy"
+Input: "The Climate Change Act 2008 set the UK's target of net zero emissions by 2050."
 Output: {{
   "claims": [{{
-    "text": "The White House ballroom renovation project received $350 million in federal funding",
+    "text": "The Climate Change Act 2008 set the UK target of net zero emissions by 2050",
     "confidence": 95,
-    "subject_context": "White House renovation funding",
-    "key_entities": ["White House", "ballroom renovation", "$350 million", "federal funding"]
+    "subject_context": "UK climate legislation",
+    "key_entities": [
+      {{"text": "Climate Change Act 2008", "type": "LAW"}},
+      {{"text": "UK", "type": "LOCATION"}},
+      {{"text": "net zero", "type": "OTHER"}},
+      {{"text": "2050", "type": "DATE"}}
+    ]
+  }}]
+}}
+
+Article Title: "Oil Major Earnings"
+Input: "BP plc reported record profits of GBP 28 billion in 2022."
+Output: {{
+  "claims": [{{
+    "text": "BP plc reported record profits of GBP 28 billion in 2022",
+    "confidence": 95,
+    "subject_context": "BP profits",
+    "key_entities": [
+      {{"text": "BP plc", "type": "ORG"}},
+      {{"text": "GBP 28 billion", "type": "AMOUNT"}},
+      {{"text": "2022", "type": "DATE"}}
+    ]
+  }}]
+}}
+
+Article Title: "White House Ceremony"
+Input: "Joe Biden signed the CHIPS and Science Act at a White House ceremony in August 2022."
+Output: {{
+  "claims": [{{
+    "text": "Joe Biden signed the CHIPS and Science Act at a White House ceremony in August 2022",
+    "confidence": 95,
+    "subject_context": "CHIPS Act signing",
+    "key_entities": [
+      {{"text": "Joe Biden", "type": "PERSON"}},
+      {{"text": "CHIPS and Science Act", "type": "LAW"}},
+      {{"text": "White House", "type": "LOCATION"}},
+      {{"text": "August 2022", "type": "DATE"}}
+    ]
   }}]
 }}
 
@@ -333,16 +441,20 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
                 validated_response = ClaimExtractionResponse(**claims_data)
 
-                # Convert to format expected by pipeline with context preservation
+                # Convert to format expected by pipeline with context preservation.
+                # NF-15: serialise TypedEntity -> {text, type} dicts at the boundary
+                # so downstream (runner persistence, JSONB column) sees plain dicts.
                 claims = [
                     {
                         "text": claim.text,
                         "position": i,
                         "confidence": claim.confidence,
                         "category": claim.category,
-                        # Context preservation fields
                         "subject_context": claim.subject_context,
-                        "key_entities": claim.key_entities or [],
+                        "key_entities": [
+                            {"text": e.text, "type": e.type}
+                            for e in (claim.key_entities or [])
+                        ],
                     }
                     for i, claim in enumerate(validated_response.claims)
                 ]
@@ -465,7 +577,8 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
             validated_response = ClaimExtractionResponse(**claims_data)
 
-            # Convert to format expected by pipeline with context preservation
+            # NF-15: serialise TypedEntity -> {text, type} dicts at the boundary
+            # so downstream (runner persistence, JSONB column) sees plain dicts.
             claims = [
                 {
                     "text": claim.text,
@@ -473,7 +586,10 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     "confidence": claim.confidence,
                     "category": claim.category,
                     "subject_context": claim.subject_context,
-                    "key_entities": claim.key_entities or [],
+                    "key_entities": [
+                        {"text": e.text, "type": e.type}
+                        for e in (claim.key_entities or [])
+                    ],
                 }
                 for i, claim in enumerate(validated_response.claims)
             ]

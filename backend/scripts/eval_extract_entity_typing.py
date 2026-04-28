@@ -376,11 +376,70 @@ def run_heuristic() -> Dict[str, List[Dict[str, str]]]:
 
 
 async def run_llm(runs: int = 1) -> List[Dict[str, List[Dict[str, str]]]]:
-    """Run typed-extract LLM N times. Implemented after Commit 2."""
-    raise NotImplementedError(
-        "LLM mode requires Commit 2 (typed extract.py) to land first. "
-        "Run with --mode heuristic for now to record the baseline."
-    )
+    """Run typed-extract LLM ``runs`` times against each corpus claim.
+
+    Returns a list of length ``runs``; each element is a dict
+    {claim_id: [{text, type}, ...]} of the LLM's emitted entities.
+    """
+    from app.pipeline.extract import ClaimExtractor
+
+    extractor = ClaimExtractor()
+    all_runs: List[Dict[str, List[Dict[str, str]]]] = []
+
+    for run_idx in range(runs):
+        run_out: Dict[str, List[Dict[str, str]]] = {}
+        for claim in CORPUS:
+            try:
+                result = await extractor.extract_claims(claim["claim"])
+            except Exception as e:
+                print(f"  [run {run_idx}] {claim['id']}: extract error {e}")
+                run_out[claim["id"]] = []
+                continue
+            if not result.get("success") or not result.get("claims"):
+                run_out[claim["id"]] = []
+                continue
+            # Aggregate entities across all extracted claims (the corpus claim
+            # is single-fact, so we expect exactly 1 extracted claim, but be
+            # defensive — concatenate if the LLM splits)
+            entities: List[Dict[str, str]] = []
+            for ec in result["claims"]:
+                for e in ec.get("key_entities") or []:
+                    entities.append({"text": e["text"], "type": e["type"]})
+            run_out[claim["id"]] = entities
+        all_runs.append(run_out)
+        print(
+            f"  Run {run_idx + 1}/{runs} complete "
+            f"({sum(len(v) for v in run_out.values())} total entities)"
+        )
+
+    return all_runs
+
+
+def stability_summary(
+    runs_data: List[Dict[str, List[Dict[str, str]]]],
+) -> Dict[str, Any]:
+    """For each (claim_id, entity_text), did all runs assign the same type?"""
+    if len(runs_data) < 2:
+        return {"runs": len(runs_data), "stability_n_a": True}
+
+    consistency = []
+    for claim_id in runs_data[0]:
+        text_to_types: Dict[str, List[str]] = defaultdict(list)
+        for run in runs_data:
+            for e in run.get(claim_id, []):
+                text_to_types[e["text"].lower()].append(e["type"])
+        for text, types in text_to_types.items():
+            if len(types) == len(runs_data):
+                consistency.append(len(set(types)) == 1)
+
+    if not consistency:
+        return {"runs": len(runs_data), "stability_no_overlap": True}
+    stable_frac = sum(consistency) / len(consistency)
+    return {
+        "runs": len(runs_data),
+        "n_entities_in_all_runs": len(consistency),
+        "stable_fraction": round(stable_frac, 3),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -423,16 +482,16 @@ def main() -> int:
         }
     else:
         runs_data = asyncio.run(run_llm(runs=args.runs))
-        # Stability: consensus type per (claim_id, entity_text) across runs
-        # Reported when N>1; for N=1 just evaluate the single run.
         first = runs_data[0]
         metrics = evaluate_predictions(CORPUS, first)
+        stability = stability_summary(runs_data)
         report = {
             "mode": args.mode,
             "timestamp": timestamp,
             "corpus_size": len(CORPUS),
             "n_runs": args.runs,
             "metrics": metrics,
+            "stability": stability,
             "all_runs": runs_data,
         }
 
@@ -469,6 +528,10 @@ def main() -> int:
             f"Unmatched predictions: {metrics['unmatched_preds_count']} "
             f"(sample: {metrics['unmatched_preds_sample'][:3]})"
         )
+    if args.mode == "llm" and args.runs > 1:
+        print()
+        print(f"Stability across {args.runs} runs:")
+        print(f"  {report['stability']}")
 
     return 0
 

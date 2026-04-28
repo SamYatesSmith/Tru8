@@ -41,7 +41,12 @@ CREATED = "2025-11-03 16:00:00 UTC"
 
 # Import module under test
 try:
-    from app.pipeline.extract import ClaimExtractor, ExtractedClaim, ClaimExtractionResponse
+    from app.pipeline.extract import (
+        ClaimExtractor,
+        ExtractedClaim,
+        ClaimExtractionResponse,
+    )
+
     EXTRACT_AVAILABLE = True
 except ImportError:
     EXTRACT_AVAILABLE = False
@@ -54,7 +59,7 @@ try:
         MOCK_EXTRACTION_WITH_OPINION,
         MOCK_EXTRACTION_EMPTY,
         MOCK_EXTRACTION_PREDICTION,
-        get_mock_extraction
+        get_mock_extraction,
     )
     from sample_content import SAMPLE_ARTICLE_TEXT, SAMPLE_SHORT_TEXT, SAMPLE_LONG_TEXT
 except ImportError:
@@ -80,7 +85,7 @@ class TestClaimExtractor:
     def claim_extractor(self):
         """
         Create ClaimExtractor instance
-        
+
         Created: 2025-11-03
         """
         return ClaimExtractor()
@@ -102,23 +107,12 @@ class TestClaimExtractor:
         mock_response.status_code = 200
 
         mock_response.json.return_value = {
-
-            "choices": [{
-
-                "message": {
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-                }
-
-            }]
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
 
         # Act
 
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
@@ -129,8 +123,6 @@ class TestClaimExtractor:
             mock_client.post = AsyncMock(return_value=mock_response)
 
             mock_client_class.return_value = mock_client
-
-        
 
             result = await claim_extractor.extract_claims(SAMPLE_ARTICLE_TEXT)
         # Assert
@@ -158,23 +150,12 @@ class TestClaimExtractor:
         mock_response.status_code = 200
 
         mock_response.json.return_value = {
-
-            "choices": [{
-
-                "message": {
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-                }
-
-            }]
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
 
         # Act
 
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
@@ -186,8 +167,6 @@ class TestClaimExtractor:
 
             mock_client_class.return_value = mock_client
 
-        
-
             result = await claim_extractor.extract_claims(SAMPLE_ARTICLE_TEXT)
 
         # Assert
@@ -195,8 +174,14 @@ class TestClaimExtractor:
         first_claim = result["claims"][0]
         assert "subject_context" in first_claim
         assert "key_entities" in first_claim
-        assert first_claim['subject_context']  # Not empty
-        assert isinstance(first_claim['key_entities'], (list, str))
+        assert first_claim["subject_context"]  # Not empty
+        # NF-15: key_entities is List[{text, type}] dicts after typed migration
+        assert isinstance(first_claim["key_entities"], list)
+        if first_claim["key_entities"]:
+            assert all(
+                isinstance(e, dict) and "text" in e and "type" in e
+                for e in first_claim["key_entities"]
+            )
 
     @pytest.mark.asyncio
     async def test_self_contained_claims_no_pronouns(self, claim_extractor):
@@ -208,77 +193,56 @@ class TestClaimExtractor:
         CRITICAL: Self-contained claims needed for independent verification
         """
         # Arrange
-        content_with_pronouns = "The President announced new policies. He said they would help the economy."
+        content_with_pronouns = (
+            "The President announced new policies. He said they would help the economy."
+        )
 
-        mock_response = json.dumps({
-            "claims": [{
-                "text": "The President announced new policies to help the economy",
-                "position": 0,
-                "subject_context": "Presidential policy",
-                "key_entities": ["President", "new policies", "economy"]
-            }]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "The President announced new policies to help the economy",
+                        "position": 0,
+                        "subject_context": "Presidential policy",
+                        "key_entities": [
+                            {"text": "President", "type": "PERSON"},
+                            {"text": "new policies", "type": "OTHER"},
+                            {"text": "economy", "type": "OTHER"},
+                        ],
+                    }
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(content_with_pronouns)
 
         # Assert
         assert len(result["claims"]) > 0
-        claim_text = result["claims"][0]['text']
+        claim_text = result["claims"][0]["text"]
         # Should not have unresolved pronouns like "He", "they", "it"
         assert "He said" not in claim_text
         assert "they would" not in claim_text
@@ -293,71 +257,43 @@ class TestClaimExtractor:
         CRITICAL: Cost optimization for MVP
         """
         # Arrange - Response with 15 claims (over limit)
-        mock_response = json.dumps({
-            "claims": [
-                {
-                    "text": f"Claim {i}",
-                    "position": i,
-                    "subject_context": "Test",
-                    "key_entities": ["entity"]
-                } for i in range(15)
-            ]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": f"Claim {i}",
+                        "position": i,
+                        "subject_context": "Test",
+                        "key_entities": [{"text": "entity", "type": "OTHER"}],
+                    }
+                    for i in range(15)
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(SAMPLE_ARTICLE_TEXT)
 
@@ -380,15 +316,11 @@ class TestClaimExtractor:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "choices": [{
-                "message": {
-                    "content": MOCK_CLAIM_EXTRACTION
-                }
-            }]
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
 
         # Act
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
@@ -418,23 +350,12 @@ class TestClaimExtractor:
         mock_response.status_code = 200
 
         mock_response.json.return_value = {
-
-            "choices": [{
-
-                "message": {
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-                }
-
-            }]
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
 
         # Act
 
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
@@ -445,8 +366,6 @@ class TestClaimExtractor:
             mock_client.post = AsyncMock(return_value=mock_response)
 
             mock_client_class.return_value = mock_client
-
-        
 
             result = await claim_extractor.extract_claims("")
         # Assert - Empty content returns error
@@ -468,63 +387,35 @@ class TestClaimExtractor:
         opinion_only = "I think this is really nice. What do you think?"
 
         # Mock httpx response with empty claims
-        empty_extraction = json.dumps({
-            "claims": [],
-            "source_summary": "Opinion-only content",
-            "extraction_confidence": 0.3
-        })
+        empty_extraction = json.dumps(
+            {
+                "claims": [],
+                "source_summary": "Opinion-only content",
+                "extraction_confidence": 0.3,
+            }
+        )
 
         mock_response = Mock()
 
-
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": empty_extraction
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": empty_extraction}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(opinion_only)
         # Assert
@@ -542,7 +433,7 @@ class TestClaimExtractor:
         CRITICAL: Production resilience
         """
         # Arrange - Mock timeout
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
@@ -570,14 +461,10 @@ class TestClaimExtractor:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "choices": [{
-                "message": {
-                    "content": "This is not valid JSON at all {{"
-                }
-            }]
+            "choices": [{"message": {"content": "This is not valid JSON at all {{"}}]
         }
 
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
@@ -603,72 +490,49 @@ class TestClaimExtractor:
         # Arrange
         time_sensitive_content = "The stock market closed at 4,783.45 today."
 
-        mock_response = json.dumps({
-            "claims": [{
-                "text": "The stock market closed at 4,783.45 today",
-                "position": 0,
-                "subject_context": "Stock market",
-                "key_entities": ["stock market", "4,783.45", "today"],
-                "temporal_markers": ["today"],
-                "time_reference": "present",
-                "is_time_sensitive": True
-            }]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "The stock market closed at 4,783.45 today",
+                        "position": 0,
+                        "subject_context": "Stock market",
+                        "key_entities": [
+                            {"text": "stock market", "type": "OTHER"},
+                            {"text": "4,783.45", "type": "AMOUNT"},
+                            {"text": "today", "type": "DATE"},
+                        ],
+                        "temporal_markers": ["today"],
+                        "time_reference": "present",
+                        "is_time_sensitive": True,
+                    }
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(time_sensitive_content)
 
@@ -677,7 +541,7 @@ class TestClaimExtractor:
         first_claim = result["claims"][0]
         # Check if temporal fields exist (if feature enabled)
         if "temporal_markers" in first_claim:
-            assert first_claim['temporal_markers'] is not None
+            assert first_claim["temporal_markers"] is not None
 
     @pytest.mark.asyncio
     async def test_claim_classification_integration(self, claim_extractor):
@@ -689,83 +553,56 @@ class TestClaimExtractor:
         Required: Phase 2 feature integration
         """
         # Arrange
-        mixed_content = "The climate is warming. I think we should act. It will get worse."
+        mixed_content = (
+            "The climate is warming. I think we should act. It will get worse."
+        )
 
-        mock_response = json.dumps({
-            "claims": [
-                {
-                    "text": "The climate is warming",
-                    "position": 0,
-                    "subject_context": "Climate",
-                    "key_entities": ["climate"],
-                    "claim_type": "factual",
-                    "is_verifiable": True
-                },
-                {
-                    "text": "We should act on climate change",
-                    "position": 1,
-                    "subject_context": "Climate action",
-                    "key_entities": ["climate change"],
-                    "claim_type": "opinion",
-                    "is_verifiable": False
-                }
-            ]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "The climate is warming",
+                        "position": 0,
+                        "subject_context": "Climate",
+                        "key_entities": [{"text": "climate", "type": "OTHER"}],
+                        "claim_type": "factual",
+                        "is_verifiable": True,
+                    },
+                    {
+                        "text": "We should act on climate change",
+                        "position": 1,
+                        "subject_context": "Climate action",
+                        "key_entities": [{"text": "climate change", "type": "OTHER"}],
+                        "claim_type": "opinion",
+                        "is_verifiable": False,
+                    },
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(mixed_content)
 
@@ -773,7 +610,12 @@ class TestClaimExtractor:
         assert len(result["claims"]) > 0
         # Check if classification fields exist (if feature enabled)
         if "claim_type" in result["claims"][0]:
-            assert result["claims"][0]['claim_type'] in ['factual', 'opinion', 'prediction', 'personal_experience']
+            assert result["claims"][0]["claim_type"] in [
+                "factual",
+                "opinion",
+                "prediction",
+                "personal_experience",
+            ]
 
     @pytest.mark.asyncio
     async def test_rule_based_fallback_extraction(self, claim_extractor):
@@ -785,7 +627,7 @@ class TestClaimExtractor:
         Required: Fallback for reliability
         """
         # Arrange - LLM fails
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
@@ -818,23 +660,12 @@ class TestClaimExtractor:
         mock_response.status_code = 200
 
         mock_response.json.return_value = {
-
-            "choices": [{
-
-                "message": {
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-                }
-
-            }]
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
 
         # Act
 
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
@@ -846,9 +677,9 @@ class TestClaimExtractor:
 
             mock_client_class.return_value = mock_client
 
-        
-
-            result = await claim_extractor.extract_claims("This is the best policy ever.")
+            result = await claim_extractor.extract_claims(
+                "This is the best policy ever."
+            )
 
         # Assert - This test only works if claim classification is enabled
         # The implementation adds claim_type field when ENABLE_CLAIM_CLASSIFICATION is True
@@ -856,7 +687,11 @@ class TestClaimExtractor:
         # Soft assertion - only check if classification is present
         if len(result["claims"]) > 0 and "claim_type" in result["claims"][0]:
             # Check that opinion is marked as such
-            opinion_claims = [c for c in result["claims"] if "claim_type" in c and c['claim_type'] == 'opinion']
+            opinion_claims = [
+                c
+                for c in result["claims"]
+                if "claim_type" in c and c["claim_type"] == "opinion"
+            ]
             # At least one opinion should be detected (or feature is disabled)
             assert len(opinion_claims) >= 0
 
@@ -874,64 +709,35 @@ class TestClaimExtractor:
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(questions_content)
 
         # Assert
         # Questions should not be extracted as claims
-        assert len(result.get("claims", [])) == 0 or all('?' not in claim['text'] for claim in result.get("claims", []))
+        assert len(result.get("claims", [])) == 0 or all(
+            "?" not in claim["text"] for claim in result.get("claims", [])
+        )
 
     @pytest.mark.asyncio
     async def test_very_short_content_handling(self, claim_extractor):
@@ -950,23 +756,12 @@ class TestClaimExtractor:
         mock_response.status_code = 200
 
         mock_response.json.return_value = {
-
-            "choices": [{
-
-                "message": {
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-                }
-
-            }]
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
 
         # Act
 
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
@@ -977,8 +772,6 @@ class TestClaimExtractor:
             mock_client.post = AsyncMock(return_value=mock_response)
 
             mock_client_class.return_value = mock_client
-
-        
 
             result = await claim_extractor.extract_claims(SAMPLE_SHORT_TEXT)
         # Assert
@@ -1004,68 +797,54 @@ class TestClaimExtractor:
         Paragraph 3 with claim C.
         """
 
-        mock_response = json.dumps({
-            "claims": [
-                {"text": "Claim A", "position": 0, "subject_context": "Test", "key_entities": []},
-                {"text": "Claim B", "position": 1, "subject_context": "Test", "key_entities": []},
-                {"text": "Claim C", "position": 2, "subject_context": "Test", "key_entities": []}
-            ]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "Claim A",
+                        "position": 0,
+                        "subject_context": "Test",
+                        "key_entities": [],
+                    },
+                    {
+                        "text": "Claim B",
+                        "position": 1,
+                        "subject_context": "Test",
+                        "key_entities": [],
+                    },
+                    {
+                        "text": "Claim C",
+                        "position": 2,
+                        "subject_context": "Test",
+                        "key_entities": [],
+                    },
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(multi_paragraph)
 
@@ -1089,67 +868,48 @@ class TestClaimExtractor:
         - Point 3: Action is needed
         """
 
-        mock_response = json.dumps({
-            "claims": [
-                {"text": "Climate is warming", "position": 0, "subject_context": "Climate", "key_entities": []},
-                {"text": "Emissions are rising", "position": 1, "subject_context": "Emissions", "key_entities": []}
-            ]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "Climate is warming",
+                        "position": 0,
+                        "subject_context": "Climate",
+                        "key_entities": [],
+                    },
+                    {
+                        "text": "Emissions are rising",
+                        "position": 1,
+                        "subject_context": "Emissions",
+                        "key_entities": [],
+                    },
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(list_content)
 
@@ -1168,69 +928,45 @@ class TestClaimExtractor:
         # Arrange
         quoted_content = 'Dr. Smith said, "Climate change is accelerating."'
 
-        mock_response = json.dumps({
-            "claims": [{
-                "text": "Dr. Smith states that climate change is accelerating",
-                "position": 0,
-                "subject_context": "Climate change",
-                "key_entities": ["Dr. Smith", "climate change"]
-            }]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "Dr. Smith states that climate change is accelerating",
+                        "position": 0,
+                        "subject_context": "Climate change",
+                        "key_entities": [
+                            {"text": "Dr. Smith", "type": "PERSON"},
+                            {"text": "climate change", "type": "OTHER"},
+                        ],
+                    }
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(quoted_content)
 
@@ -1250,71 +986,47 @@ class TestClaimExtractor:
         # Arrange
         dated_content = "On November 1, 2024, the summit concluded."
 
-        mock_response = json.dumps({
-            "claims": [{
-                "text": "The summit concluded on November 1, 2024",
-                "position": 0,
-                "subject_context": "Summit",
-                "key_entities": ["summit", "November 1, 2024"],
-                "temporal_markers": ["November 1, 2024"],
-                "time_reference": "specific_date"
-            }]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "The summit concluded on November 1, 2024",
+                        "position": 0,
+                        "subject_context": "Summit",
+                        "key_entities": [
+                            {"text": "summit", "type": "EVENT"},
+                            {"text": "November 1, 2024", "type": "DATE"},
+                        ],
+                        "temporal_markers": ["November 1, 2024"],
+                        "time_reference": "specific_date",
+                    }
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(dated_content)
 
@@ -1334,69 +1046,47 @@ class TestClaimExtractor:
         # Arrange
         entity_content = "President Biden announced $100 billion in climate funding for developing nations."
 
-        mock_response = json.dumps({
-            "claims": [{
-                "text": "President Biden announced $100 billion in climate funding for developing nations",
-                "position": 0,
-                "subject_context": "Climate funding",
-                "key_entities": ["President Biden", "$100 billion", "climate funding", "developing nations"]
-            }]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "President Biden announced $100 billion in climate funding for developing nations",
+                        "position": 0,
+                        "subject_context": "Climate funding",
+                        "key_entities": [
+                            {"text": "President Biden", "type": "PERSON"},
+                            {"text": "$100 billion", "type": "AMOUNT"},
+                            {"text": "climate funding", "type": "OTHER"},
+                            {"text": "developing nations", "type": "LOCATION"},
+                        ],
+                    }
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(entity_content)
 
@@ -1416,71 +1106,46 @@ class TestClaimExtractor:
         Note: MVP focuses on English content
         """
         # Arrange
-        mixed_content = "The summit concluded successfully. La cumbre concluyó exitosamente."
+        mixed_content = (
+            "The summit concluded successfully. La cumbre concluyó exitosamente."
+        )
 
-        mock_response = json.dumps({
-            "claims": [{
-                "text": "The summit concluded successfully",
-                "position": 0,
-                "subject_context": "Summit",
-                "key_entities": ["summit"]
-            }]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "The summit concluded successfully",
+                        "position": 0,
+                        "subject_context": "Summit",
+                        "key_entities": [{"text": "summit", "type": "EVENT"}],
+                    }
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(mixed_content)
 
@@ -1500,69 +1165,42 @@ class TestClaimExtractor:
         # Arrange
         special_content = "Temperature increased by 1.1°C. CO₂ levels: 420 ppm."
 
-        mock_response = json.dumps({
-            "claims": [{
-                "text": "Temperature increased by 1.1°C",
-                "position": 0,
-                "subject_context": "Temperature",
-                "key_entities": ["1.1°C"]
-            }]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "Temperature increased by 1.1°C",
+                        "position": 0,
+                        "subject_context": "Temperature",
+                        "key_entities": [{"text": "1.1°C", "type": "AMOUNT"}],
+                    }
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(special_content)
 
@@ -1582,77 +1220,51 @@ class TestClaimExtractor:
         # Arrange
         long_sentence = "The global climate summit, which was attended by representatives from 195 countries including the United States, China, India, and all member states of the European Union, concluded after two weeks of intensive negotiations with an agreement to reduce carbon emissions by 45 percent by the year 2030, which scientists say is necessary but may not be sufficient to limit global warming to 1.5 degrees Celsius above pre-industrial levels as outlined in the Paris Agreement."
 
-        mock_response = json.dumps({
-            "claims": [
-                {
-                    "text": "195 countries attended the global climate summit",
-                    "position": 0,
-                    "subject_context": "Climate summit",
-                    "key_entities": ["195 countries"]
-                },
-                {
-                    "text": "Countries agreed to reduce carbon emissions by 45% by 2030",
-                    "position": 1,
-                    "subject_context": "Emissions reduction",
-                    "key_entities": ["45%", "2030"]
-                }
-            ]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "195 countries attended the global climate summit",
+                        "position": 0,
+                        "subject_context": "Climate summit",
+                        "key_entities": [{"text": "195 countries", "type": "AMOUNT"}],
+                    },
+                    {
+                        "text": "Countries agreed to reduce carbon emissions by 45% by 2030",
+                        "position": 1,
+                        "subject_context": "Emissions reduction",
+                        "key_entities": [
+                            {"text": "45%", "type": "AMOUNT"},
+                            {"text": "2030", "type": "DATE"},
+                        ],
+                    },
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(long_sentence)
 
@@ -1672,68 +1284,54 @@ class TestClaimExtractor:
         # Arrange
         nested_content = "Scientists say climate is warming, which is causing sea levels to rise, leading to coastal flooding."
 
-        mock_response = json.dumps({
-            "claims": [
-                {"text": "Climate is warming", "position": 0, "subject_context": "Climate", "key_entities": []},
-                {"text": "Climate warming is causing sea levels to rise", "position": 1, "subject_context": "Sea levels", "key_entities": []},
-                {"text": "Rising sea levels lead to coastal flooding", "position": 2, "subject_context": "Coastal flooding", "key_entities": []}
-            ]
-        })
+        mock_response = json.dumps(
+            {
+                "claims": [
+                    {
+                        "text": "Climate is warming",
+                        "position": 0,
+                        "subject_context": "Climate",
+                        "key_entities": [],
+                    },
+                    {
+                        "text": "Climate warming is causing sea levels to rise",
+                        "position": 1,
+                        "subject_context": "Sea levels",
+                        "key_entities": [],
+                    },
+                    {
+                        "text": "Rising sea levels lead to coastal flooding",
+                        "position": 2,
+                        "subject_context": "Coastal flooding",
+                        "key_entities": [],
+                    },
+                ]
+            }
+        )
 
         # Mock httpx response
 
-
         mock_response = Mock()
-
 
         mock_response.status_code = 200
 
-
         mock_response.json.return_value = {
-
-
-            "choices": [{
-
-
-                "message": {
-
-
-                    "content": MOCK_CLAIM_EXTRACTION
-
-
-                }
-
-
-            }]
-
-
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
-
-
 
         # Act
 
-
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
-
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
 
             mock_client = AsyncMock()
 
-
             mock_client.__aenter__.return_value = mock_client
-
 
             mock_client.__aexit__.return_value = None
 
-
             mock_client.post = AsyncMock(return_value=mock_response)
 
-
             mock_client_class.return_value = mock_client
-
-
-        
-
 
             result = await claim_extractor.extract_claims(nested_content)
 

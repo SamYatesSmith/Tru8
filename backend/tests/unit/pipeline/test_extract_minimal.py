@@ -1,6 +1,7 @@
 """
 Minimal test to verify ClaimExtractor mocking pattern works
 """
+
 import pytest
 import json
 from unittest.mock import Mock, patch, AsyncMock
@@ -8,16 +9,20 @@ from unittest.mock import Mock, patch, AsyncMock
 from app.pipeline.extract import ClaimExtractor
 
 # Mock response (uses 0-100 confidence scale)
-MOCK_CLAIM_EXTRACTION = json.dumps({
-    "claims": [{
-        "text": "Test claim about climate change",
-        "confidence": 95,
-        "subject_context": "Climate",
-        "key_entities": ["climate change"]
-    }],
-    "source_summary": "Test summary",
-    "extraction_confidence": 90
-})
+MOCK_CLAIM_EXTRACTION = json.dumps(
+    {
+        "claims": [
+            {
+                "text": "Test claim about climate change",
+                "confidence": 95,
+                "subject_context": "Climate",
+                "key_entities": [{"text": "climate change", "type": "OTHER"}],
+            }
+        ],
+        "source_summary": "Test summary",
+        "extraction_confidence": 90,
+    }
+)
 
 
 @pytest.mark.unit
@@ -38,15 +43,11 @@ class TestClaimExtractorMinimal:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "choices": [{
-                "message": {
-                    "content": MOCK_CLAIM_EXTRACTION
-                }
-            }]
+            "choices": [{"message": {"content": MOCK_CLAIM_EXTRACTION}}]
         }
 
         # Act
-        with patch('app.pipeline.extract.httpx.AsyncClient') as mock_client_class:
+        with patch("app.pipeline.extract.httpx.AsyncClient") as mock_client_class:
             # Create mock client that works as async context manager
             mock_client = AsyncMock()
             mock_client.__aenter__.return_value = mock_client
@@ -63,5 +64,5 @@ class TestClaimExtractorMinimal:
         assert result["claims"][0]["text"] == "Test claim about climate change"
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
