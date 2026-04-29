@@ -16,8 +16,54 @@ from datetime import datetime, timezone
 
 from app.services.government_api_client import GovernmentAPIClient
 from app.core.config import settings
+from app.utils.adapter_query_helpers import extract_concept_keyword, extract_entity_name
 
 logger = logging.getLogger(__name__)
+
+
+# B3.1: ONS recognises UK economic concepts in its dataset titles. Generic
+# claim text (e.g. "BP reported record profits") fuzzy-matches dozens of
+# unrelated UK statistics datasets — TRU-87D3-6415 surfaced 10 of 19 final
+# items as ONS dump from this exact failure mode. The mapping below acts
+# as both a relevance gate (claim must mention a known concept to fire ONS
+# at all) and a query shaper (the value is what ONS's `q` parameter
+# searches well against).
+#
+# Order matters: more-specific keywords first, so longer phrases win when
+# both a specific and a general key would match the same claim. Mapping
+# values are canonical phrasing ONS uses in its dataset titles — picked
+# from the live catalogue at https://www.ons.gov.uk/economy and
+# /labour-market.
+#
+# Expand iteratively when live verification surfaces a real claim that
+# should have routed to ONS but didn't. Don't pre-emptively bloat the
+# mapping; ONS skip-aggressively beats ONS dump.
+ONS_DATASET_MAPPING: Dict[str, str] = {
+    # Inflation
+    "consumer price index": "consumer price inflation",
+    "retail price index": "retail price index",
+    "cpi inflation": "consumer price inflation",
+    "rpi": "retail price index",
+    "inflation": "consumer price inflation",
+    # GDP
+    "gdp growth": "GDP growth",
+    "gross domestic product": "gross domestic product",
+    "gdp": "gross domestic product",
+    # Labour market
+    "unemployment rate": "unemployment rate",
+    "employment rate": "employment rate",
+    "unemployment": "unemployment",
+    "average weekly earnings": "average weekly earnings",
+    "wage growth": "wage growth",
+    # Trade & government finance
+    "trade balance": "balance of trade",
+    "public sector debt": "public sector net debt",
+    "public sector borrowing": "public sector net borrowing",
+    # Retail
+    "retail sales": "retail sales",
+    # Population
+    "population": "UK population",
+}
 
 
 # ========== ONS ECONOMIC STATISTICS ADAPTER ==========
@@ -53,6 +99,26 @@ class ONSAdapter(GovernmentAPIClient):
             "Global",
         ]  # Global allows UK data
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B3.1: skip ONS unless the claim mentions a known UK economic concept.
+
+        Returns the canonical search term from ONS_DATASET_MAPPING when
+        the claim or its OTHER-typed entities mention a mapped concept
+        (e.g. "GDP", "inflation", "unemployment rate"). Returns "" to
+        skip the call when no concept matches — generic claims about
+        companies, people, laws, or other domains should not fire ONS.
+
+        This is the structural fix for the dump pattern observed in
+        TRU-87D3-6415: better to return 0 ONS items than 5 irrelevant
+        ones picked up by ONS's loose `q` fuzzy match.
+        """
+        matched = extract_concept_keyword(claim_text, ONS_DATASET_MAPPING, entities)
+        return matched or ""
+
     def search(
         self,
         query: str,
@@ -71,7 +137,13 @@ class ONSAdapter(GovernmentAPIClient):
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
-        targeted_query = self._build_targeted_query(query, entities)
+        # B3.1: query has already been shaped by prepare_query when called via
+        # search_with_cache. Direct callers (scorecard scripts, integration
+        # tests) may still pass raw claim text; defensively re-shape so direct
+        # calls also benefit from the concept-keyword gate. extract_concept_
+        # keyword is pure and cheap, so the double call is harmless.
+        shaped = extract_concept_keyword(query, ONS_DATASET_MAPPING, entities)
+        targeted_query = shaped or query
 
         params = {
             "q": targeted_query,

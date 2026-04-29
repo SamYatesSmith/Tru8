@@ -9,6 +9,7 @@ Two layers of contract here:
 from unittest.mock import patch
 
 from app.services.api_adapters.business import CompaniesHouseAdapter, WikidataAdapter
+from app.services.api_adapters.economic import ONSAdapter
 from app.services.api_adapters.legal import GovUKAdapter, HansardAdapter
 
 
@@ -109,6 +110,95 @@ class TestBaseDefaultPassthrough:
     def test_wikidata_default_with_no_entities(self):
         adapter = WikidataAdapter()
         assert adapter.prepare_query(CLIMATE_CLAIM, None) == CLIMATE_CLAIM
+
+
+# ---------- ONS (B3.1) ----------
+
+
+class TestONSPrepareQuery:
+    """ONS skips on irrelevant claims; shapes the call when a UK economic concept matches."""
+
+    def test_inflation_claim_returns_shaped_query(self):
+        adapter = ONSAdapter()
+        claim = "UK inflation hit 3.2% in March 2024"
+        entities = [
+            {"text": "UK", "label": "LOCATION"},
+            {"text": "March 2024", "label": "DATE"},
+        ]
+        # "inflation" matches via claim-text fallback.
+        assert adapter.prepare_query(claim, entities) == "consumer price inflation"
+
+    def test_gdp_growth_specific_keyword_wins(self):
+        adapter = ONSAdapter()
+        # "gdp growth" is listed before "gdp" in the mapping; specific wins.
+        claim = "UK GDP growth slowed in Q2 2024"
+        assert adapter.prepare_query(claim, []) == "GDP growth"
+
+    def test_unemployment_rate_concept_via_other_entity(self):
+        adapter = ONSAdapter()
+        claim = "Joblessness in Britain rose last quarter"
+        entities = [{"text": "unemployment rate", "label": "OTHER"}]
+        # OTHER entity with the concept name; pass-1 match wins.
+        assert adapter.prepare_query(claim, entities) == "unemployment rate"
+
+    def test_skips_on_irrelevant_company_claim(self):
+        adapter = ONSAdapter()
+        # The TRU-87D3-6415 dump pattern: BP profits should NOT fire ONS.
+        claim = "BP plc reported record profits of $40 billion in 2022"
+        entities = [
+            {"text": "BP plc", "label": "ORG"},
+            {"text": "$40 billion", "label": "AMOUNT"},
+            {"text": "2022", "label": "DATE"},
+        ]
+        assert adapter.prepare_query(claim, entities) == ""
+
+    def test_skips_on_climate_law_claim(self):
+        adapter = ONSAdapter()
+        # Law / Climate domain — should not fire ONS.
+        claim = "The Climate Change Act 2008 set a UK net-zero target"
+        entities = [
+            {"text": "Climate Change Act 2008", "label": "LAW"},
+            {"text": "UK", "label": "LOCATION"},
+            {"text": "2008", "label": "DATE"},
+        ]
+        assert adapter.prepare_query(claim, entities) == ""
+
+    def test_skips_when_entities_none_and_no_concept_in_text(self):
+        adapter = ONSAdapter()
+        assert adapter.prepare_query("Some unrelated claim about food", None) == ""
+
+    def test_skip_path_routed_through_search_with_cache(self):
+        """Empty prepare_query result must trigger search_with_cache to skip
+        cache + API entirely (the same skip path as Companies House).
+        """
+        adapter = ONSAdapter()
+        with patch.object(adapter.cache, "get_cached_api_response_sync") as mock_get:
+            with patch.object(adapter, "search") as mock_search:
+                results = adapter.search_with_cache(
+                    "BP profits in 2022",
+                    "Finance",
+                    "UK",
+                    [{"text": "BP", "label": "ORG"}],
+                )
+        assert results == []
+        assert not mock_get.called
+        assert not mock_search.called
+
+    def test_match_path_routes_shaped_query_to_cache_key(self):
+        adapter = ONSAdapter()
+        with patch.object(
+            adapter.cache, "get_cached_api_response_sync", return_value=[]
+        ) as mock_get:
+            with patch.object(adapter, "search", return_value=[]):
+                adapter.search_with_cache(
+                    "UK inflation hit 3.2% in March 2024",
+                    "Finance",
+                    "UK",
+                    None,
+                )
+        assert mock_get.called
+        called_query = mock_get.call_args[0][1]
+        assert called_query == "consumer price inflation"
 
 
 # ---------- Cache-key seam: prepare_query must run before cache lookup ----------
