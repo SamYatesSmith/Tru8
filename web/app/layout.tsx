@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
+import { ServiceWorkerTombstone } from '@/components/layout/service-worker-tombstone'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -69,6 +70,7 @@ export default function RootLayout({
           )}
         </head>
         <body className="bg-white text-zinc-900 antialiased font-sans" suppressHydrationWarning>
+          <ServiceWorkerTombstone />
           {children}
         </body>
       </html>
