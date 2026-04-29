@@ -14,9 +14,18 @@ from app.services.api_adapters.climate import (
     OpenMeteoAdapter,
     WeatherAPIAdapter,
 )
-from app.services.api_adapters.economic import MarketauxAdapter, ONSAdapter
+from app.services.api_adapters.economic import (
+    FREDAdapter,
+    MarketauxAdapter,
+    ONSAdapter,
+)
 from app.services.api_adapters.health import WHOAdapter
-from app.services.api_adapters.legal import GovUKAdapter, HansardAdapter
+from app.services.api_adapters.legal import (
+    GovUKAdapter,
+    HansardAdapter,
+    UKParliamentBillsAdapter,
+)
+from app.services.api_adapters.nature import GBIFAdapter
 from app.services.api_adapters.sports import FootballDataAdapter, TransfermarktAdapter
 
 
@@ -525,6 +534,59 @@ class TestWHOPrepareQuery:
                 )
         assert mock_get.called
         assert mock_get.call_args[0][1] == "Life expectancy"
+
+
+# ---------- Working-adapter migrations (B2.1/2/3) ----------
+
+
+class TestWorkingAdapterMigrations:
+    """B2.1/2/3: GBIF, FRED, Bills now expose existing SC-XX trims via
+    prepare_query. The shape of the returned query must match the existing
+    private trim contract — no behaviour regression.
+    """
+
+    # --- B2.1 GBIF: _extract_species_query ---
+
+    def test_gbif_prepare_query_matches_extract_species(self):
+        adapter = GBIFAdapter()
+        claim = "The North Atlantic right whale population fell below 350 individuals"
+        # Direct call to the private trim — the contract we must preserve.
+        expected = adapter._extract_species_query(claim)
+        assert adapter.prepare_query(claim, []) == expected
+        # Sanity: trim does shorten the claim.
+        assert expected != claim
+        assert "right whale" in expected.lower()
+
+    # --- B2.2 FRED: _extract_fred_series_query (mapped concept) ---
+
+    def test_fred_prepare_query_returns_series_id_when_concept_matches(self):
+        adapter = FREDAdapter()
+        claim = "US unemployment rose to 4.2% in September 2024"
+        result = adapter.prepare_query(claim, [])
+        # SC-09 mapping returns the series ID for "unemployment".
+        assert result == "UNRATE"
+
+    def test_fred_prepare_query_falls_back_to_claim_when_no_concept(self):
+        adapter = FREDAdapter()
+        claim = "The European Central Bank raised rates"  # no FRED concept
+        # Falls back to claim text so search() can still try natural-language search.
+        assert adapter.prepare_query(claim, []) == claim
+
+    # --- B2.3 UK Bills: _extract_bill_query (year stripping) ---
+
+    def test_bills_prepare_query_strips_year(self):
+        adapter = UKParliamentBillsAdapter()
+        claim = "The Online Safety Act 2023 requires platforms to verify users' ages"
+        result = adapter.prepare_query(claim, [])
+        # SC-15 trim drops the 4-digit year so Bills API matches the short title.
+        assert "2023" not in result
+        assert "Online Safety" in result
+
+    def test_bills_prepare_query_matches_extract_bill_query(self):
+        adapter = UKParliamentBillsAdapter()
+        claim = "The Online Safety Act 2023 requires platforms to verify users' ages"
+        expected = adapter._extract_bill_query(claim)
+        assert adapter.prepare_query(claim, []) == expected
 
 
 # ---------- Cache-key seam: prepare_query must run before cache lookup ----------

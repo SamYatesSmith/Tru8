@@ -814,6 +814,29 @@ class UKParliamentBillsAdapter(GovernmentAPIClient):
         """Bills API covers Law and Politics for UK."""
         return domain in ["Law", "Politics"] and jurisdiction == "UK"
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B2.3: expose SC-15 bill-title trim via prepare_query.
+
+        _extract_bill_query has SC-15-specific logic (drops 4-digit
+        years because bill short titles don't contain the year as
+        searchable text — "Online Safety Act 2023" → 0 hits;
+        "Online Safety Act" → 9 hits). extract_topic_phrase doesn't
+        have year-stripping, so we keep the adapter-local trim rather
+        than promoting to the shared helper.
+
+        Entities unused — the trim works on word position in the
+        claim text (leading-stopword strip, copula-boundary stop,
+        4-digit year drop). Adding an entity-priority pass would be
+        possible but the trim already wins on the SC-15 verification
+        cases.
+        """
+        del entities
+        return self._extract_bill_query(claim_text)
+
     def _extract_bill_query(self, query: str) -> str:
         """Reduce a claim sentence to a likely bill-title noun phrase.
 

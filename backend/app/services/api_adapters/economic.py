@@ -351,6 +351,29 @@ class FREDAdapter(GovernmentAPIClient):
         """FRED covers Finance for US."""
         return domain == "Finance" and jurisdiction in ["US", "Global"]
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B2.2: expose SC-09 FRED series mapping via prepare_query.
+
+        Returns the FRED series ID (e.g. "UNRATE", "CPIAUCSL") when the
+        claim mentions a mapped concept; falls back to the claim text
+        when no concept keyword matches. The fallback preserves the
+        existing search() cascade behaviour: ID search first, then
+        natural-language search if the ID returns empty.
+
+        Entities unused for now — _FRED_SERIES_KEYWORDS uses
+        word-boundary regex on the claim text which is what SC-09 was
+        tuned against. Promoting to extract_concept_keyword (which adds
+        OTHER-entity matching) is a future option but unnecessary
+        without evidence the regex misses real-world cases.
+        """
+        del entities
+        series_id = self._extract_fred_series_query(claim_text)
+        return series_id or claim_text
+
     def _extract_fred_series_query(self, query: str) -> Optional[str]:
         """SC-09: map common economic concepts in a claim to a FRED series ID.
 

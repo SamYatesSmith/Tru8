@@ -122,6 +122,26 @@ class GBIFAdapter(GovernmentAPIClient):
     )
     _SPECIES_QUERY_MAX_TOKENS = 5
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B2.1: expose SC-06 species-name trim via prepare_query.
+
+        Species-name extraction (Latin binomials, common-name conventions,
+        biological-verb boundaries) is too domain-specific to belong in
+        the shared adapter_query_helpers module. Keep _extract_species_
+        query adapter-private; just route prepare_query through it so the
+        cache key benefits from the trimmed shape.
+
+        Entities are unused — GBIF doesn't have a typed-entity hook
+        (species names rarely come through NER as ORG/PERSON/LAW). The
+        regex-based trim is the load-bearing signal.
+        """
+        del entities
+        return self._extract_species_query(claim_text)
+
     def _extract_species_query(self, query: str) -> str:
         """SC-06: reduce a claim sentence to a likely species name phrase.
 
