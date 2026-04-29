@@ -101,6 +101,12 @@ class PipelineMetrics:
     elements_processed: int = 0
     sources_considered: int = 0
     sources_included: int = 0
+    # Phase 1.3: per-stage breakdown of token usage and which model served
+    # each call. Keys are pipeline component names (analyzer/classifier/
+    # distiller); values include input_tokens, output_tokens, models_used
+    # (label → model name), and fallback_fired (label → reason). Populated
+    # only for components that ran in this pipeline mode.
+    by_stage: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> dict:
         d = {
@@ -118,6 +124,8 @@ class PipelineMetrics:
             d["llm_input_tokens"] = self.llm_input_tokens
         if self.llm_output_tokens is not None:
             d["llm_output_tokens"] = self.llm_output_tokens
+        if self.by_stage is not None:
+            d["by_stage"] = self.by_stage
         return d
 
 
@@ -177,6 +185,11 @@ def extract_pipeline_metrics(
     llm_input_tokens = token_usage.get("input_tokens") or None
     llm_output_tokens = token_usage.get("output_tokens") or None
 
+    # Phase 1.3: per-stage breakdown — populated by the runner when each
+    # LLM-using component completes. None means no component reported (e.g.
+    # quick mode without classifier/distiller, or pre-1.3 cached results).
+    by_stage = final_result.get("llm_usage_by_stage")
+
     return PipelineMetrics(
         mode=config.mode,
         llm_calls=llm_calls,
@@ -189,6 +202,7 @@ def extract_pipeline_metrics(
         elements_processed=elements_count,
         sources_considered=stats.get("raw_sources_reviewed", raw_sources),
         sources_included=sources_included,
+        by_stage=by_stage,
     )
 
 
@@ -2244,6 +2258,25 @@ async def run_pipeline_phase2(
         _accumulate_tokens(final_result, distiller.get_token_usage())  # type: ignore[name-defined]
     except NameError:
         pass  # distiller not instantiated (quick mode or disabled)
+
+    # Phase 1.3: per-stage breakdown for cost monitoring + kill switch +
+    # fallback-rate tracking. Stored alongside the aggregated counts.
+    by_stage: Dict[str, Any] = {
+        "analyzer": {
+            **analyzer.get_token_usage(),
+            "models_used": analyzer.get_models_used(),
+            "fallback_fired": analyzer.get_fallback_status(),
+        }
+    }
+    try:
+        by_stage["classifier"] = classifier.get_token_usage()  # type: ignore[name-defined]
+    except NameError:
+        pass
+    try:
+        by_stage["distiller"] = distiller.get_token_usage()  # type: ignore[name-defined]
+    except NameError:
+        pass
+    final_result["llm_usage_by_stage"] = by_stage
 
     # Pipeline metrics (L-12)
     metrics = extract_pipeline_metrics(final_result, config)

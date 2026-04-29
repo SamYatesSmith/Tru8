@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import httpx
+import sentry_sdk
 
 from app.core.config import settings
 from app.services.google_ai import call_google_ai, call_google_ai_with_usage
@@ -519,10 +520,40 @@ class ClaimMapAnalyzer:
         self.timeout = 30  # decomposition, recovery (flash-lite, fast)
         self.mapping_timeout = 55  # evidence mapping (flash thinking model, slow)
         self._token_usage = {"input_tokens": 0, "output_tokens": 0}
+        # Per-stage observability (Phase 1.3): track which model served each
+        # label and whether the OpenAI fallback fired. Read by the runner to
+        # populate pipeline_metrics.by_stage.
+        self._models_used: Dict[str, str] = {}
+        self._fallback_fired: Dict[str, str] = {}
 
     def get_token_usage(self) -> Dict[str, int]:
         """Return accumulated token usage across all LLM calls."""
         return self._token_usage
+
+    def get_models_used(self) -> Dict[str, str]:
+        """Return mapping of label → last model that served the call.
+
+        Phase 1.3: distinguishes Google primary from OpenAI fallback runs
+        per pipeline label (decomposition, mapping, batch_mapping, etc).
+        """
+        return dict(self._models_used)
+
+    def get_fallback_status(self) -> Dict[str, str]:
+        """Return mapping of label → fallback reason for any label whose
+        Google call failed and triggered the OpenAI path.
+
+        Empty dict means Google primary served every call.
+        """
+        return dict(self._fallback_fired)
+
+    def _record_fallback(self, label: str, reason: str) -> None:
+        """Record that the Google primary failed for this label.
+
+        ``reason`` is "timeout" or "exception". Called from _call_llm before
+        the OpenAI fallback attempt; the actual model used is recorded
+        separately via _accumulate when the OpenAI call returns.
+        """
+        self._fallback_fired[label] = reason
 
     # ── Public: Phase 1 — Decomposition ─────────────────────────────────
 
@@ -902,16 +933,53 @@ class ClaimMapAnalyzer:
                 )
                 if parsed is not None:
                     self._last_model_used = model_to_use
+                    self._models_used[label] = model_to_use
                     self._accumulate(usage)
                     logger.info(f"[CLAIM_MAP] {label} completed via Google Gemini")
                     return parsed
             except asyncio.TimeoutError:
                 logger.warning(
                     f"[CLAIM_MAP] Google {label} timed out after {google_timeout}s, "
-                    "trying OpenAI"
+                    "trying OpenAI",
+                    extra={
+                        "event_type": "google_ai_fallback_fired",
+                        "stage": label,
+                        "fallback_reason": "timeout",
+                        "timeout_seconds": google_timeout,
+                    },
                 )
+                self._record_fallback(label, reason="timeout")
+                if settings.SENTRY_DSN:
+                    with sentry_sdk.push_scope() as scope:
+                        scope.set_tag("event_type", "google_ai_fallback_fired")
+                        scope.set_tag("stage", label)
+                        scope.set_tag("fallback_reason", "timeout")
+                        scope.set_extra("timeout_seconds", google_timeout)
+                        sentry_sdk.capture_message(
+                            f"Google AI fallback fired ({label}, timeout)",
+                            level="warning",
+                        )
             except Exception as e:
-                logger.warning(f"[CLAIM_MAP] Google {label} failed: {e}")
+                logger.warning(
+                    f"[CLAIM_MAP] Google {label} failed: {e}",
+                    extra={
+                        "event_type": "google_ai_fallback_fired",
+                        "stage": label,
+                        "fallback_reason": "exception",
+                        "exception_type": type(e).__name__,
+                    },
+                )
+                self._record_fallback(label, reason="exception")
+                if settings.SENTRY_DSN:
+                    with sentry_sdk.push_scope() as scope:
+                        scope.set_tag("event_type", "google_ai_fallback_fired")
+                        scope.set_tag("stage", label)
+                        scope.set_tag("fallback_reason", "exception")
+                        scope.set_tag("exception_type", type(e).__name__)
+                        sentry_sdk.capture_message(
+                            f"Google AI fallback fired ({label}, {type(e).__name__})",
+                            level="warning",
+                        )
 
         # Fall back to OpenAI (guaranteed to run if Google times out)
         if self.openai_api_key:
@@ -926,6 +994,7 @@ class ClaimMapAnalyzer:
                 )
                 if parsed is not None:
                     self._last_model_used = model
+                    self._models_used[label] = model
                     self._accumulate(usage)
                     logger.info(f"[CLAIM_MAP] {label} completed via OpenAI")
                     return parsed
