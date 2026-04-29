@@ -408,8 +408,8 @@ export function EvidenceMap({
             key={`band-bg-${tier}`}
             x={PADDING.left}
             y={bandTop}
-            width={containerWidth - PADDING.left - PADDING.right}
-            height={bandBottom - bandTop}
+            width={Math.max(0, containerWidth - PADDING.left - PADDING.right)}
+            height={Math.max(0, bandBottom - bandTop)}
             fill={isEven ? '#FAFAFA' : 'white'}
           />
         ))}
@@ -634,8 +634,8 @@ export function EvidenceMap({
                 href={getFaviconUrl(node.evidence.url)}
                 x={-(node.radius - 3)}
                 y={-(node.radius - 3)}
-                width={(node.radius - 3) * 2}
-                height={(node.radius - 3) * 2}
+                width={Math.max(0, (node.radius - 3) * 2)}
+                height={Math.max(0, (node.radius - 3) * 2)}
                 clipPath={`url(#clip-${node.id})`}
                 preserveAspectRatio="xMidYMid slice"
               />
