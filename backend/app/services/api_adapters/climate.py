@@ -14,8 +14,33 @@ from datetime import datetime, timedelta, timezone
 
 from app.services.government_api_client import GovernmentAPIClient
 from app.core.config import settings
+from app.utils.adapter_query_helpers import extract_location_and_date
 
 logger = logging.getLogger(__name__)
+
+
+def _location_date_cache_key(
+    entities: Optional[List[Dict[str, str]]] = None,
+) -> str:
+    """Shared B3.2/3/4 helper: produce a cache-keyable string from typed
+    location/date entities, or "" to trigger the skip path.
+
+    Climate adapters (NOAA CDO, WeatherAPI, Open-Meteo) all need a place
+    and (typically) a time window to produce meaningful data. Without
+    either, the API call returns garbage or fails outright — TRU-D44F-F326
+    surfaced "Current Weather in London" results for a Climate Change Act
+    claim because the adapters fell back to scanning claim text and
+    matched "London" elsewhere.
+
+    Returns ``f"{location}|{date}"`` (either half may be empty) when at
+    least one is present, or ``""`` when both are absent. The combined
+    string forms the search_with_cache cache key — different
+    location/date combinations are kept in separate cache namespaces.
+    """
+    location, date = extract_location_and_date(entities)
+    if not location and not date:
+        return ""
+    return f"{location or ''}|{date or ''}"
 
 
 # ========== NOAA CDO ADAPTER (Global Climate Data) ==========
@@ -74,6 +99,23 @@ class NOAAAdapter(GovernmentAPIClient):
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """NOAA covers Climate and Weather globally (historical climate data)."""
         return domain in ["Climate", "Weather"]
+
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B3.4: NOAA CDO needs a place and a time window. Skip when neither is named.
+
+        NOAA's existing keyword router already self-rejects on claims with
+        no climate-relevant keywords (verified TRU-D44F-F326). This adds
+        the structural cache-key correctness so two claims about the same
+        location/date share a cache namespace, and a third claim about
+        unrelated topics doesn't poison that namespace via raw-claim-text
+        keying.
+        """
+        del claim_text  # location/date come from entities only
+        return _location_date_cache_key(entities)
 
     def search(
         self,
@@ -470,6 +512,21 @@ class WeatherAPIAdapter(GovernmentAPIClient):
         """WeatherAPI covers Weather globally."""
         return domain in ["Weather", "Climate"]
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B3.2: skip WeatherAPI when neither location nor date is in the claim.
+
+        TRU-D44F-F326 surfaced "Current Weather in London" results for a
+        Climate Change Act claim because the adapter fell back to scanning
+        the raw claim text. Skipping cleanly is preferable to returning
+        ostensibly-relevant-but-actually-noise results.
+        """
+        del claim_text
+        return _location_date_cache_key(entities)
+
     def search(
         self,
         query: str,
@@ -830,6 +887,21 @@ class OpenMeteoAdapter(GovernmentAPIClient):
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Open-Meteo covers Weather and Climate for all jurisdictions."""
         return domain in ["Weather", "Climate"]
+
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B3.3: skip Open-Meteo when neither location nor date is in the claim.
+
+        TRU-D44F-F326 surfaced an irrelevant Open-Meteo item for a Climate
+        Change Act claim. Same skip pattern as WeatherAPI / NOAA CDO —
+        weather APIs need a place + a time, otherwise the result is
+        guaranteed noise.
+        """
+        del claim_text
+        return _location_date_cache_key(entities)
 
     def _extract_location_coords(
         self, query: str, entities: Optional[List[Dict[str, Any]]] = None

@@ -9,6 +9,11 @@ Two layers of contract here:
 from unittest.mock import patch
 
 from app.services.api_adapters.business import CompaniesHouseAdapter, WikidataAdapter
+from app.services.api_adapters.climate import (
+    NOAAAdapter,
+    OpenMeteoAdapter,
+    WeatherAPIAdapter,
+)
 from app.services.api_adapters.economic import MarketauxAdapter, ONSAdapter
 from app.services.api_adapters.legal import GovUKAdapter, HansardAdapter
 
@@ -260,6 +265,107 @@ class TestMarketauxPrepareQuery:
         assert mock_get.called
         called_query = mock_get.call_args[0][1]
         assert called_query == "BP"
+
+
+# ---------- Climate batch (B3.2/3/4) ----------
+# All three adapters share the same prepare_query shape: location|date or "".
+
+
+WEATHER_CLAIM = "Paris temperature exceeded 40°C in July 2019"
+WEATHER_ENTITIES = [
+    {"text": "Paris", "label": "LOCATION"},
+    {"text": "40°C", "label": "AMOUNT"},
+    {"text": "July 2019", "label": "DATE"},
+]
+
+# Law-only claim: only a LAW entity, no LOCATION and no DATE — the
+# pure case for the "both-none skip" path. The CLIMATE_ENTITIES fixture
+# above does include a DATE ("2050"), which intentionally produces a
+# "|2050" key (date-only, location-empty) — the plan's "skip if both
+# None" rule treats date-alone as legitimate cache namespace.
+LAW_ONLY_ENTITIES = [
+    {"text": "Climate Change Act 2008", "label": "LAW"},
+]
+
+
+class TestClimateAdaptersPrepareQuery:
+    """WeatherAPI / Open-Meteo / NOAA CDO all use _location_date_cache_key."""
+
+    def test_weatherapi_returns_location_pipe_date(self):
+        adapter = WeatherAPIAdapter()
+        assert (
+            adapter.prepare_query(WEATHER_CLAIM, WEATHER_ENTITIES) == "Paris|July 2019"
+        )
+
+    def test_openmeteo_returns_location_pipe_date(self):
+        adapter = OpenMeteoAdapter()
+        assert (
+            adapter.prepare_query(WEATHER_CLAIM, WEATHER_ENTITIES) == "Paris|July 2019"
+        )
+
+    def test_noaa_returns_location_pipe_date(self):
+        adapter = NOAAAdapter()
+        assert (
+            adapter.prepare_query(WEATHER_CLAIM, WEATHER_ENTITIES) == "Paris|July 2019"
+        )
+
+    def test_weatherapi_skips_on_law_only_claim(self):
+        # Law-only claim with neither LOCATION nor DATE entities — the
+        # pure "both-none skip" case.
+        adapter = WeatherAPIAdapter()
+        assert adapter.prepare_query(CLIMATE_CLAIM, LAW_ONLY_ENTITIES) == ""
+
+    def test_openmeteo_skips_on_law_only_claim(self):
+        adapter = OpenMeteoAdapter()
+        assert adapter.prepare_query(CLIMATE_CLAIM, LAW_ONLY_ENTITIES) == ""
+
+    def test_noaa_skips_on_law_only_claim(self):
+        adapter = NOAAAdapter()
+        assert adapter.prepare_query(CLIMATE_CLAIM, LAW_ONLY_ENTITIES) == ""
+
+    def test_returns_location_only_when_date_absent(self):
+        adapter = WeatherAPIAdapter()
+        entities = [{"text": "Berlin", "label": "LOCATION"}]
+        assert adapter.prepare_query("anything", entities) == "Berlin|"
+
+    def test_returns_date_only_when_location_absent(self):
+        adapter = OpenMeteoAdapter()
+        entities = [{"text": "March 2024", "label": "DATE"}]
+        assert adapter.prepare_query("anything", entities) == "|March 2024"
+
+    def test_skips_when_entities_none(self):
+        for adapter in [WeatherAPIAdapter(), OpenMeteoAdapter(), NOAAAdapter()]:
+            assert adapter.prepare_query("anything", None) == ""
+
+    def test_skip_path_routed_through_search_with_cache(self):
+        """All three adapters skip cache + API on no location/date."""
+        for cls in [WeatherAPIAdapter, OpenMeteoAdapter, NOAAAdapter]:
+            adapter = cls()
+            adapter.api_key = "test-key"
+            with patch.object(
+                adapter.cache, "get_cached_api_response_sync"
+            ) as mock_get:
+                with patch.object(adapter, "search") as mock_search:
+                    results = adapter.search_with_cache(
+                        CLIMATE_CLAIM, "Climate", "Global", LAW_ONLY_ENTITIES
+                    )
+            assert results == [], f"{cls.__name__} should skip"
+            assert not mock_get.called, f"{cls.__name__} cache must not be consulted"
+            assert not mock_search.called, f"{cls.__name__} search must not be called"
+
+    def test_match_path_uses_combined_key(self):
+        for cls in [WeatherAPIAdapter, OpenMeteoAdapter, NOAAAdapter]:
+            adapter = cls()
+            adapter.api_key = "test-key"
+            with patch.object(
+                adapter.cache, "get_cached_api_response_sync", return_value=[]
+            ) as mock_get:
+                with patch.object(adapter, "search", return_value=[]):
+                    adapter.search_with_cache(
+                        WEATHER_CLAIM, "Climate", "Global", WEATHER_ENTITIES
+                    )
+            assert mock_get.called
+            assert mock_get.call_args[0][1] == "Paris|July 2019"
 
 
 # ---------- Cache-key seam: prepare_query must run before cache lookup ----------
