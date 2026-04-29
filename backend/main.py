@@ -317,10 +317,14 @@ app.include_router(api_keys.router, prefix="/api/v1/api-keys", tags=["api-keys"]
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["webhooks"])
 app.include_router(agent.router, prefix="/api/v1/agent", tags=["agent"])
 
-# M-04: Public manifest verification (unauthenticated, rate-limited)
+# M-04: Public manifest verification (unauthenticated, rate-limited).
+# Mounted at root (not /api/v1) — the verify endpoint is intentionally
+# outside the auth-bearing API namespace. The verifyUrl returned in
+# _manifest is "/verify/{check_id}", and the developer page documents
+# the same path. Keep the mount path aligned with both.
 from app.api.v1 import verify
 
-app.include_router(verify.router, prefix="/api/v1", tags=["verify"])
+app.include_router(verify.router, tags=["verify"])
 
 # x402 USDC payment routes (L-05) — conditional on feature flag
 if settings.X402_ENABLED:

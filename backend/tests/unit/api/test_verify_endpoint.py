@@ -25,9 +25,13 @@ from app.api.v1.verify import router
 
 
 def _create_test_app():
-    """Minimal FastAPI app with the verify router mounted at /api/v1."""
+    """Minimal FastAPI app with the verify router mounted at root.
+
+    Mirrors main.py: verify is intentionally outside /api/v1 so the
+    public verifyUrl in _manifest matches the documented contract.
+    """
     app = FastAPI()
-    app.include_router(router, prefix="/api/v1")
+    app.include_router(router)
     return app
 
 
@@ -161,7 +165,7 @@ def _make_evidence(evidence_id="ev-001", claim_id="claim-001"):
 
 
 class TestVerifyEndpoint:
-    """Tests for GET /api/v1/verify/{check_id}."""
+    """Tests for GET /verify/{check_id}."""
 
     @pytest.mark.asyncio
     async def test_valid_manifest(self):
@@ -202,7 +206,7 @@ class TestVerifyEndpoint:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.get(f"/api/v1/verify/{check_id}")
+                resp = await client.get(f"/verify/{check_id}")
 
         assert resp.status_code == 200
         body = resp.json()
@@ -230,7 +234,7 @@ class TestVerifyEndpoint:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.get("/api/v1/verify/nonexistent-id")
+                resp = await client.get("/verify/nonexistent-id")
 
         assert resp.status_code == 200
         body = resp.json()
@@ -255,7 +259,7 @@ class TestVerifyEndpoint:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.get("/api/v1/verify/check-no-manifest")
+                resp = await client.get("/verify/check-no-manifest")
 
         assert resp.status_code == 200
         body = resp.json()
@@ -286,7 +290,7 @@ class TestVerifyEndpoint:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.get("/api/v1/verify/check-bad-sig")
+                resp = await client.get("/verify/check-bad-sig")
 
         assert resp.status_code == 200
         body = resp.json()
@@ -329,7 +333,7 @@ class TestVerifyEndpoint:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.get(f"/api/v1/verify/{check_id}")
+                resp = await client.get(f"/verify/{check_id}")
 
         assert resp.status_code == 200
         body = resp.json()
@@ -360,7 +364,7 @@ class TestVerifyEndpoint:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.get("/api/v1/verify/check-old-key")
+                resp = await client.get("/verify/check-old-key")
 
         assert resp.status_code == 200
         body = resp.json()

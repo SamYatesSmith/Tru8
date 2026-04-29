@@ -842,7 +842,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
     "checkId": "check-uuid",
     "landscapeHash": "a1b2c3d4...",
     "signedAt": "2026-03-09T12:00:00Z",
-    "signature": "hmac-sha256-...",
+    "signature": "hmac-sha256:...",
     "kid": "tru8-2026-03",
     "verifyUrl": "/verify/check-uuid"
   },

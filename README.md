@@ -152,7 +152,7 @@ Tools: `tru8_check` (evidence research with tier fallback), `tru8_get_result` (w
 Every completed check receives an HMAC-SHA256 signed manifest. Verify tamper-evidence:
 
 ```bash
-curl https://api.trueight.com/api/v1/verify/{check_id}
+curl https://api.trueight.com/verify/{check_id}
 ```
 
 ## Testing
