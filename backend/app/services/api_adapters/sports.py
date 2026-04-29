@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 from app.core.config import settings
 from app.services.government_api_client import GovernmentAPIClient
+from app.utils.adapter_query_helpers import extract_entity_name
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,24 @@ class TransfermarktAdapter(GovernmentAPIClient):
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Transfermarkt covers Sports domain globally."""
         return domain == "Sports"
+
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B4.3: Transfermarkt's player/club lookups need a person or club name.
+
+        Returns the longest PERSON entity, or the longest ORG entity as a
+        fallback (a club name like "Arsenal" should still trigger a club
+        search even when no player is named). Skips when neither is
+        present — same Companies-House skip pattern.
+        """
+        person = extract_entity_name(claim_text, entities, label="PERSON")
+        if person:
+            return person
+        org = extract_entity_name(claim_text, entities, label="ORG")
+        return org or ""
 
     def search(
         self,
@@ -626,6 +645,19 @@ class FootballDataAdapter(GovernmentAPIClient):
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """Football-Data covers Sports domain globally."""
         return domain == "Sports"
+
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B4.2: Football-Data needs a club/competition name to scope the query.
+
+        Returns the longest ORG entity ("Arsenal", "Premier League") or
+        skips. Same Companies-House skip pattern: without a recognisable
+        club or competition, the API call returns nothing useful.
+        """
+        return extract_entity_name(claim_text, entities, label="ORG") or ""
 
     def search(
         self,

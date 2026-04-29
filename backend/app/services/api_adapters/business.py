@@ -208,6 +208,23 @@ class WikidataAdapter(GovernmentAPIClient):
         """Wikidata covers structured data for General domain."""
         return domain == "General"
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B4.1: Wikidata's wbsearchentities matches single entity names well.
+
+        Use the longest topic-priority entity (LAW > EVENT > WORK_OF_ART >
+        PRODUCT > ORG) when present; fall back to claim text otherwise.
+        Wikidata is a general-reference adapter, so claim-text fallback is
+        acceptable — unlike weather APIs, the worst case is "irrelevant
+        entry returned" rather than "wasted API call".
+        """
+        from app.utils.adapter_query_helpers import extract_topic_phrase
+
+        return extract_topic_phrase(claim_text, entities)
+
     def search(
         self,
         query: str,

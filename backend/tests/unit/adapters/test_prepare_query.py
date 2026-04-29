@@ -17,6 +17,7 @@ from app.services.api_adapters.climate import (
 from app.services.api_adapters.economic import MarketauxAdapter, ONSAdapter
 from app.services.api_adapters.health import WHOAdapter
 from app.services.api_adapters.legal import GovUKAdapter, HansardAdapter
+from app.services.api_adapters.sports import FootballDataAdapter, TransfermarktAdapter
 
 
 CLIMATE_CLAIM = (
@@ -106,16 +107,111 @@ class TestCompaniesHousePrepareQuery:
 
 
 class TestBaseDefaultPassthrough:
-    """Adapters without an override must still receive claim_text unchanged."""
+    """Adapters without a prepare_query override must still receive claim_text unchanged."""
 
-    def test_wikidata_default_returns_claim_text(self):
-        # WikidataAdapter has no prepare_query override yet (Session B).
+    # NOTE: this class previously held WikidataAdapter as the default-
+    # passthrough exemplar. Wikidata now overrides prepare_query (B4.1)
+    # via extract_topic_phrase, so the assertion has moved into
+    # TestEntityAdaptersPrepareQuery below. We intentionally leave this
+    # class (empty for now) as a reminder: when every adapter has an
+    # override, B5 deletes the base default; until then, this is where
+    # un-migrated-adapter passthrough tests would land.
+
+
+# ---------- Entity adapters (B4.1/2/3) ----------
+
+
+SPORTS_PERSON_CLAIM = "Lionel Messi scored 30 goals last season"
+SPORTS_PERSON_ENTITIES = [
+    {"text": "Lionel Messi", "label": "PERSON"},
+    {"text": "30 goals", "label": "AMOUNT"},
+]
+SPORTS_CLUB_CLAIM = "Arsenal finished second in the 2023-24 Premier League"
+SPORTS_CLUB_ENTITIES = [
+    {"text": "Arsenal", "label": "ORG"},
+    {"text": "Premier League", "label": "ORG"},
+    {"text": "2023-24", "label": "DATE"},
+]
+
+
+class TestEntityAdaptersPrepareQuery:
+    """Wikidata / Football-Data / Transfermarkt — entity-shaped adapters."""
+
+    # --- Wikidata (B4.1): topic phrase, falls back to claim text ---
+
+    def test_wikidata_returns_topic_phrase(self):
         adapter = WikidataAdapter()
-        assert adapter.prepare_query(CLIMATE_CLAIM, CLIMATE_ENTITIES) == CLIMATE_CLAIM
+        assert (
+            adapter.prepare_query(CLIMATE_CLAIM, CLIMATE_ENTITIES)
+            == "Climate Change Act 2008"
+        )
 
-    def test_wikidata_default_with_no_entities(self):
+    def test_wikidata_falls_back_to_claim_when_no_topic_entity(self):
+        adapter = WikidataAdapter()
+        # No LAW/EVENT/WORK_OF_ART/PRODUCT/ORG → falls back to claim text.
+        entities = [
+            {"text": "London", "label": "LOCATION"},
+            {"text": "2024", "label": "DATE"},
+        ]
+        assert adapter.prepare_query(CLIMATE_CLAIM, entities) == CLIMATE_CLAIM
+
+    def test_wikidata_falls_back_when_entities_none(self):
         adapter = WikidataAdapter()
         assert adapter.prepare_query(CLIMATE_CLAIM, None) == CLIMATE_CLAIM
+
+    # --- Football-Data (B4.2): ORG only, skip on miss ---
+
+    def test_football_data_returns_org_entity(self):
+        adapter = FootballDataAdapter()
+        assert (
+            adapter.prepare_query(SPORTS_CLUB_CLAIM, SPORTS_CLUB_ENTITIES)
+            == "Premier League"
+        )
+
+    def test_football_data_skips_when_no_org(self):
+        adapter = FootballDataAdapter()
+        assert adapter.prepare_query(CLIMATE_CLAIM, CLIMATE_ENTITIES) == ""
+
+    def test_football_data_skips_on_person_only(self):
+        adapter = FootballDataAdapter()
+        # PERSON without ORG → skip (Football-Data is club/competition-scoped).
+        assert adapter.prepare_query(SPORTS_PERSON_CLAIM, SPORTS_PERSON_ENTITIES) == ""
+
+    # --- Transfermarkt (B4.3): PERSON preferred, ORG fallback ---
+
+    def test_transfermarkt_returns_person(self):
+        adapter = TransfermarktAdapter()
+        assert (
+            adapter.prepare_query(SPORTS_PERSON_CLAIM, SPORTS_PERSON_ENTITIES)
+            == "Lionel Messi"
+        )
+
+    def test_transfermarkt_falls_back_to_org_when_no_person(self):
+        adapter = TransfermarktAdapter()
+        # Club claim with no PERSON; should pick the longest ORG.
+        assert (
+            adapter.prepare_query(SPORTS_CLUB_CLAIM, SPORTS_CLUB_ENTITIES)
+            == "Premier League"
+        )
+
+    def test_transfermarkt_skips_on_neither(self):
+        adapter = TransfermarktAdapter()
+        assert adapter.prepare_query(CLIMATE_CLAIM, CLIMATE_ENTITIES) == ""
+
+    def test_skip_path_routed_through_search_with_cache(self):
+        for cls in [FootballDataAdapter, TransfermarktAdapter]:
+            adapter = cls()
+            adapter.api_key = "test-key"
+            with patch.object(
+                adapter.cache, "get_cached_api_response_sync"
+            ) as mock_get:
+                with patch.object(adapter, "search") as mock_search:
+                    results = adapter.search_with_cache(
+                        CLIMATE_CLAIM, "Sports", "Global", CLIMATE_ENTITIES
+                    )
+            assert results == [], f"{cls.__name__} should skip"
+            assert not mock_get.called
+            assert not mock_search.called
 
 
 # ---------- ONS (B3.1) ----------
