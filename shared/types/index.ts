@@ -78,11 +78,16 @@ export type EvidenceType =
   | 'academic';
 
 // Receipt pipeline status (E08)
+// 'unmapped' added by B3 (Track N pipeline quality): items the mapper
+// classified as valid evidence but did not connect to any claim element.
+// Surfaced in the Librarian funnel alongside 'excluded' for retrieval
+// transparency. Backend assigns this in runner._apply_post_mapping_receipts.
 export type ReceiptStatus =
   | 'found'
   | 'extracted'
   | 'classified'
   | 'excluded'
+  | 'unmapped'
   | 'shown';
 
 export interface Evidence {
