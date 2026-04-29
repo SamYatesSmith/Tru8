@@ -233,14 +233,15 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             import httpx
             from urllib.parse import quote
 
-            # Build targeted query from entities (avoids sending full claim text)
-            targeted_query = self._build_targeted_query(query, entities)
+            # B5: Semantic Scholar handles natural language well; query is
+            # already shaped by prepare_query (default passthrough = claim_text)
+            # which matches the free-text-adapter rule from Session B.
 
             # Build search URL with fields
             fields = "paperId,title,abstract,url,year,authors,citationCount,publicationDate,venue"
             current_year = datetime.now(timezone.utc).year
             min_year = current_year - 2
-            url = f"{self.base_url}/paper/search?query={quote(targeted_query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
+            url = f"{self.base_url}/paper/search?query={quote(query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
 
             # A3: retry on 429 with Retry-After honoured. Semantic Scholar
             # rate-limits aggressively; the first call of every check was

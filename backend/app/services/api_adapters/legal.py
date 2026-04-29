@@ -43,8 +43,9 @@ class GovUKAdapter(GovernmentAPIClient):
 
     def prepare_query(self, claim_text, entities=None):
         # GOV.UK search ranks on topic-keyword overlap; full sentences score
-        # poorly. _build_targeted_query (called inside search) still handles
-        # the no-entity case as a fallback.
+        # poorly. extract_topic_phrase falls back to claim_text when no
+        # priority entity is present (B5: _build_targeted_query was the
+        # legacy fallback, deleted alongside the rest of Session B cleanup).
         return extract_topic_phrase(claim_text, entities)
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
@@ -74,9 +75,8 @@ class GovUKAdapter(GovernmentAPIClient):
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
-        targeted_query = self._build_targeted_query(query, entities)
-
-        params = {"q": targeted_query, "count": self.max_results}
+        # B5: query is already shaped by prepare_query upstream.
+        params = {"q": query, "count": self.max_results}
 
         try:
             # GOV.UK search doesn't use /api/ prefix in base_url

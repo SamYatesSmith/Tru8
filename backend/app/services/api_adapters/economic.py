@@ -416,16 +416,17 @@ class FREDAdapter(GovernmentAPIClient):
             logger.warning("FRED API key not configured, skipping")
             return []
 
-        targeted_query = self._build_targeted_query(query, entities)
-
+        # B5: query is already shaped by prepare_query (B2.2 returns the
+        # FRED series ID on concept match, or claim_text as fallback).
+        # The defensive re-extract here keeps the cascade behaviour for
+        # direct callers (scorecard scripts) that bypass search_with_cache.
         # SC-09: prefer a known FRED series ID when the claim mentions a
         # mapped concept (UNRATE for unemployment, CPIAUCSL for inflation,
         # etc.). FRED's /series/search hits the right series reliably on
         # an ID and returns 0 on long claim sentences. Cascade fallback
-        # below restores the original targeted query if the ID search
-        # comes back empty.
-        fred_series = self._extract_fred_series_query(targeted_query)
-        search_text = fred_series or targeted_query
+        # below restores the original query if the ID search comes back empty.
+        fred_series = self._extract_fred_series_query(query)
+        search_text = fred_series or query
 
         params = {
             "search_text": search_text,

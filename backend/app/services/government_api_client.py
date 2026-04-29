@@ -293,7 +293,12 @@ class GovernmentAPIClient(ABC):
         # may return a focused query or "" to skip the call entirely.
         query = self.prepare_query(query, entities)
         if not query:
-            logger.info(
+            # B5: demoted INFO -> DEBUG. After Session B every adapter runs
+            # prepare_query per call, so the empty-skip line at INFO would
+            # dominate INFO logs (most claims trigger several adapters'
+            # skip path — Hansard skips on no-LAW, weather adapters skip
+            # on no-location, etc).
+            logger.debug(
                 f"{self.api_name} prepare_query returned empty — skipping API call"
             )
             return []
@@ -391,156 +396,10 @@ class GovernmentAPIClient(ABC):
         # Limit length to prevent API errors
         max_length = 500
         if len(query) > max_length:
-            query = query[:max_length]
+            query = query[:max_length].strip()
             logger.warning(f"Query truncated to {max_length} characters")
 
         return query
-
-    def _build_targeted_query(
-        self,
-        query: str,
-        entities: Optional[List[Dict[str, str]]] = None,
-        max_terms: int = 5,
-    ) -> str:
-        """Build a targeted API query from entities and claim text.
-
-        Adapters that send queries to external search APIs benefit from
-        concise, entity-focused queries rather than raw claim text.
-
-        Strategy:
-          1. If entities provided, use ORG/ENTITY/PERSON labels as primary terms.
-          2. Fall back to extracting substantive words from query text.
-          3. Always returns at least one term (first query word as fallback).
-
-        Subclasses can override to add domain-specific filtering.
-        """
-        terms: List[str] = []
-
-        # Patterns that indicate numeric/date/quantity entities — not useful
-        # as API search terms.  These are claim quantifiers, not topics.
-        import re
-
-        _noise_pattern = re.compile(
-            r"^[\d£$€%.,/\-\s]+$"  # Pure numbers, currency, percentages
-            r"|^\d{4}$"  # Bare years
-            r"|^(?:early|late|mid)[\s\-]?\d{4}$"  # "early 2025"
-            r"|^\d+(?:\.\d+)?%$"  # "4.2%"
-            r"|^[£$€]\d"  # Currency amounts ("$5 billion", "£50 billion")
-            r"|^\d+(?:\.\d+)?\s*(?:billion|million|trillion|thousand|bn|mn|m|k)\b",
-            re.IGNORECASE,
-        )
-
-        # Priority 1: Use provided entities (skip numeric/date/quantity entities)
-        if entities:
-            for ent in entities:
-                text = ent.get("text", "").strip()
-                label = ent.get("label", "")
-                # NF-15: typed vocab — accept topical/named-thing labels.
-                # OTHER is the explicit catch-all for domain concepts.
-                if text and label in (
-                    "ORG",
-                    "PERSON",
-                    "LAW",
-                    "EVENT",
-                    "PRODUCT",
-                    "OTHER",
-                ):
-                    if _noise_pattern.match(text):
-                        continue
-                    # Strip leading articles from entity text ("the virus" -> "virus")
-                    cleaned = re.sub(r"^(?:the|a|an)\s+", "", text, flags=re.IGNORECASE)
-                    if len(cleaned) > 2:
-                        terms.append(cleaned)
-
-        # Priority 2: Extract key terms from query text
-        if not terms:
-            _stopwords = {
-                "the",
-                "a",
-                "an",
-                "is",
-                "are",
-                "was",
-                "were",
-                "be",
-                "been",
-                "being",
-                "have",
-                "has",
-                "had",
-                "do",
-                "does",
-                "did",
-                "will",
-                "would",
-                "could",
-                "should",
-                "may",
-                "might",
-                "shall",
-                "can",
-                "that",
-                "this",
-                "these",
-                "those",
-                "it",
-                "its",
-                "of",
-                "in",
-                "to",
-                "for",
-                "with",
-                "on",
-                "at",
-                "by",
-                "from",
-                "as",
-                "into",
-                "than",
-                "but",
-                "or",
-                "and",
-                "not",
-                "no",
-                "so",
-                "if",
-                "then",
-                "about",
-                "up",
-                "out",
-                "more",
-                "also",
-                "very",
-                "just",
-                "exceeded",
-                "according",
-                "said",
-                "reported",
-                "announced",
-                "claimed",
-                "suggested",
-                "argued",
-                "stated",
-                "noted",
-            }
-            words = query.split()
-            terms = [
-                w
-                for w in words
-                if w.lower().strip(".,!?'\"()[]") not in _stopwords and len(w) > 2
-            ]
-
-        # Cap and join — always return at least something
-        if terms:
-            targeted = " ".join(terms[:max_terms])
-        else:
-            targeted = query.split()[0] if query.strip() else query
-
-        logger.debug(
-            f"{self.api_name} targeted query: '{targeted}' "
-            f"(from: '{query[:60]}...')"
-        )
-        return targeted
 
     def _filter_results_by_relevance(
         self,

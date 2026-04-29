@@ -116,14 +116,16 @@ class PubMedAdapter(GovernmentAPIClient):
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
-        targeted_query = self._build_targeted_query(query, entities)
+        # B5: PubMed has no prepare_query override; the base default returns
+        # claim_text unchanged. PubMed handles natural language well, so the
+        # raw query is the right shape (per Session B free-text-adapter rule).
 
         # Step 1: Search for article IDs
         # A2: tool + email are NCBI politeness params. Without them NCBI silently
         # throttles unidentified callers by returning HTTP 200 with empty body.
         search_params = {
             "db": "pubmed",
-            "term": targeted_query,
+            "term": query,
             "retmax": self.max_results,
             "retmode": "json",
             "sort": "relevance",
