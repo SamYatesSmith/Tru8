@@ -588,7 +588,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">Delivery guarantee</p>
                   <p>
-                    Webhooks are delivered best-effort with automatic retries (3 attempts, exponential backoff).
+                    Webhooks are delivered best-effort with automatic retries (2 attempts, exponential backoff).
                     If your endpoint returns a non-2xx status, delivery is retried. Design your handler to be
                     idempotent — you may receive the same event more than once.
                   </p>
