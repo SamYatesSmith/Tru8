@@ -1211,7 +1211,8 @@ class SelectClaimsRequest(BaseModel):
     """Select claims for full evidence analysis (article mode)."""
 
     selected_positions: List[int] = Field(
-        description="Claim positions to select for analysis (0-indexed). Maximum 5 claims per check.",
+        max_length=settings.MAX_SELECTED_CLAIMS,
+        description=f"Claim positions to select for analysis (0-indexed). Maximum {settings.MAX_SELECTED_CLAIMS} claims per check.",
     )
 
 

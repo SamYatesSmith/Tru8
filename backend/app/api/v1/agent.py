@@ -27,6 +27,7 @@ from app.core.agent_auth import (
     get_agent_payment,
 )
 from app.core.agent_pricing import get_tier_price
+from app.core.config import settings
 from app.core.database import get_session
 from app.core.rate_limit import limiter
 from app.models.check import Check, Claim, compute_claim_text_hash
@@ -659,7 +660,7 @@ async def agent_quick(
         },
     },
 )
-@limiter.limit("10/minute")
+@limiter.limit("5/minute")
 async def agent_full(
     body: AgentClaimRequest,
     request: Request,
@@ -840,7 +841,7 @@ async def _run_agent_pipeline(
                         c.significance_rank if c.significance_rank is not None else 999
                     ),
                 )
-                max_selected = 5
+                max_selected = settings.MAX_SELECTED_CLAIMS
                 for i, claim in enumerate(ranked):
                     claim.is_selected = i < max_selected
 
@@ -1035,7 +1036,7 @@ async def _run_pipeline_background(
                         c.significance_rank if c.significance_rank is not None else 999
                     ),
                 )
-                max_selected = 5
+                max_selected = settings.MAX_SELECTED_CLAIMS
                 for i, claim in enumerate(ranked):
                     claim.is_selected = i < max_selected
 

@@ -341,7 +341,9 @@ class Settings(BaseSettings):
     # ========== CLAIM MAP SYSTEM (Track B) ==========
     MAX_SELECTED_CLAIMS: int = Field(
         5, env="MAX_SELECTED_CLAIMS"
-    )  # Article mode: max claims for full analysis
+    )  # Article mode: max claims for full analysis. Single source of truth —
+    # referenced by SelectClaimsRequest validator (checks.py) and the agent
+    # auto-select cap (agent.py). Changing this one value adjusts both paths.
     MAX_ELEMENTS_PER_CLAIM: int = Field(
         5, env="MAX_ELEMENTS_PER_CLAIM"
     )  # Decomposition cap
