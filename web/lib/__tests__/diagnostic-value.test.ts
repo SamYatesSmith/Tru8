@@ -1,11 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { computeDiagnosticValues } from '../diagnostic-value';
+import type { Claim, EvidenceRelationship } from '@tru8/shared/types';
 
-// Minimal claim builder matching the Claim interface
+// Minimal claim builder matching the Claim interface.
+// Returning Claim explicitly so call sites pass the type check; without
+// the annotation TS infers a structural literal which doesn't satisfy
+// Claim (claimMap optional fields, evidenceRefs strictly typed).
 function makeClaim(elements: Array<{
   elementId: string;
-  evidenceRefs: Array<{ evidenceId: string; relationship: string }>;
-}>) {
+  evidenceRefs: Array<{ evidenceId: string; relationship: EvidenceRelationship }>;
+}>): Claim {
   return {
     id: 'claim-1',
     checkId: 'check-1',
@@ -13,14 +17,22 @@ function makeClaim(elements: Array<{
     evidence: [],
     position: 1,
     claimMap: {
+      claimId: 'claim-1',
       normalisedClaim: 'Test claim',
-      claimType: 'factual' as const,
+      claimType: 'empirical',
       elements: elements.map((e) => ({
         ...e,
-        text: 'Element text',
-        state: 'unresolved' as const,
+        description: 'Element text',
+        state: 'unresolved',
+        uncertainty: null,
       })),
       orientation: 'Test orientation',
+      metadata: {
+        decompositionModel: 'test-model',
+        mappingModel: 'test-model',
+        elementCount: elements.length,
+        completedAt: null,
+      },
     },
   };
 }
