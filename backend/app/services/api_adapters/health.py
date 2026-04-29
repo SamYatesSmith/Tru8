@@ -16,8 +16,46 @@ import httpx
 
 from app.core.config import settings
 from app.services.government_api_client import GovernmentAPIClient
+from app.utils.adapter_query_helpers import extract_concept_keyword
 
 logger = logging.getLogger(__name__)
+
+
+# B3.6: WHO Global Health Observatory recognises a small fixed vocabulary
+# of indicator names. The current substring-match filter against the
+# IndicatorName field needs a canonical phrase to land — generic claim
+# text (e.g. "the NHS is in crisis") matches nothing useful.
+#
+# Mapping values are the canonical phrasings WHO uses in its indicator
+# titles (Life expectancy, Tuberculosis, etc.). Order matters: more-
+# specific keywords first to win against shorter prefixes.
+#
+# Picked from the GHO catalogue at
+# https://www.who.int/data/gho/info/gho-odata-api. Expand iteratively.
+WHO_INDICATOR_MAPPING: Dict[str, str] = {
+    # Mortality
+    "infant mortality": "Infant mortality",
+    "under-5 mortality": "Under-five mortality",
+    "child mortality": "Under-five mortality",
+    "maternal mortality": "Maternal mortality",
+    # Life expectancy
+    "life expectancy": "Life expectancy",
+    # Immunisation
+    "immunisation coverage": "Immunization coverage",
+    "immunization coverage": "Immunization coverage",
+    "vaccination": "Immunization",
+    # Major diseases
+    "tuberculosis": "Tuberculosis",
+    "hiv prevalence": "HIV prevalence",
+    "hiv": "HIV",
+    "malaria": "Malaria",
+    "diabetes": "Diabetes",
+    "obesity": "Obesity",
+    # Lifestyle / risk factors
+    "tobacco use": "Tobacco use",
+    "smoking": "Tobacco use",
+    "alcohol consumption": "Alcohol",
+}
 
 
 # ========== PUBMED ADAPTER ==========
@@ -324,6 +362,22 @@ class WHOAdapter(GovernmentAPIClient):
         """WHO covers Health globally."""
         return domain == "Health"
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B3.6: skip WHO unless the claim mentions a known global-health concept.
+
+        WHO's indicator catalogue is a fixed vocabulary; substring-matching
+        a generic claim against IndicatorName produces empty results most
+        of the time and pollutes the cache with raw-claim-text keys. Only
+        fire WHO when the claim mentions a concept from
+        WHO_INDICATOR_MAPPING — same skip-aggressively philosophy as ONS.
+        """
+        matched = extract_concept_keyword(claim_text, WHO_INDICATOR_MAPPING, entities)
+        return matched or ""
+
     def search(
         self,
         query: str,
@@ -345,7 +399,11 @@ class WHOAdapter(GovernmentAPIClient):
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
 
-        targeted_query = self._build_targeted_query(query, entities)
+        # B3.6: defensively re-shape for direct callers (scorecard scripts,
+        # integration tests). prepare_query already shaped the query when
+        # called via search_with_cache; this guards against direct invocation.
+        shaped = extract_concept_keyword(query, WHO_INDICATOR_MAPPING, entities)
+        targeted_query = shaped or query
 
         # Search indicators
         try:

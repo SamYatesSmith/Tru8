@@ -15,6 +15,7 @@ from app.services.api_adapters.climate import (
     WeatherAPIAdapter,
 )
 from app.services.api_adapters.economic import MarketauxAdapter, ONSAdapter
+from app.services.api_adapters.health import WHOAdapter
 from app.services.api_adapters.legal import GovUKAdapter, HansardAdapter
 
 
@@ -366,6 +367,68 @@ class TestClimateAdaptersPrepareQuery:
                     )
             assert mock_get.called
             assert mock_get.call_args[0][1] == "Paris|July 2019"
+
+
+# ---------- WHO (B3.6) ----------
+
+
+class TestWHOPrepareQuery:
+    """WHO skips when no global-health concept is mentioned."""
+
+    def test_life_expectancy_claim(self):
+        adapter = WHOAdapter()
+        claim = "Global life expectancy rose by 6 years between 2000 and 2019"
+        assert adapter.prepare_query(claim, []) == "Life expectancy"
+
+    def test_tuberculosis_via_other_entity(self):
+        adapter = WHOAdapter()
+        entities = [{"text": "tuberculosis", "label": "OTHER"}]
+        assert adapter.prepare_query("TB rates remain high", entities) == "Tuberculosis"
+
+    def test_under_5_mortality_specific_wins(self):
+        adapter = WHOAdapter()
+        # "under-5 mortality" listed before "child mortality"; both map to
+        # the same value. Either match is acceptable.
+        result = adapter.prepare_query("Under-5 mortality fell sharply", [])
+        assert result == "Under-five mortality"
+
+    def test_skips_on_irrelevant_finance_claim(self):
+        adapter = WHOAdapter()
+        assert adapter.prepare_query("BP profits hit record highs", BP_ENTITIES) == ""
+
+    def test_skips_on_climate_claim(self):
+        adapter = WHOAdapter()
+        assert adapter.prepare_query(CLIMATE_CLAIM, CLIMATE_ENTITIES) == ""
+
+    def test_skips_when_entities_none_and_no_concept(self):
+        adapter = WHOAdapter()
+        assert adapter.prepare_query("Some unrelated text", None) == ""
+
+    def test_skip_path_routed_through_search_with_cache(self):
+        adapter = WHOAdapter()
+        with patch.object(adapter.cache, "get_cached_api_response_sync") as mock_get:
+            with patch.object(adapter, "search") as mock_search:
+                results = adapter.search_with_cache(
+                    BP_CLAIM, "Health", "Global", BP_ENTITIES
+                )
+        assert results == []
+        assert not mock_get.called
+        assert not mock_search.called
+
+    def test_match_path_routes_shaped_query_to_cache_key(self):
+        adapter = WHOAdapter()
+        with patch.object(
+            adapter.cache, "get_cached_api_response_sync", return_value=[]
+        ) as mock_get:
+            with patch.object(adapter, "search", return_value=[]):
+                adapter.search_with_cache(
+                    "Global life expectancy at 73 in 2020",
+                    "Health",
+                    "Global",
+                    None,
+                )
+        assert mock_get.called
+        assert mock_get.call_args[0][1] == "Life expectancy"
 
 
 # ---------- Cache-key seam: prepare_query must run before cache lookup ----------
