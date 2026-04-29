@@ -180,6 +180,15 @@ async def _find_by_entity_overlap(
     # and count matches against our normalised entity list.
     entity_array = normalised_entities
 
+    # NF-15 boundary: rows may contain typed entities {text, type} OR legacy
+    # plain-string entities. Use jsonb_array_elements (returns JSONB) + COALESCE
+    # so a single SQL expression handles both formats:
+    #   - object → entity ->> 'text' returns the .text field
+    #   - string → entity ->> 'text' returns NULL; entity #>> '{}' yields the
+    #     scalar text representation
+    # Filter to JSONB arrays only via jsonb_typeof so a corrupted scalar/object
+    # row cannot raise "cannot extract elements from a scalar" and propagate
+    # as a 500.
     query = text(
         """
         WITH candidate_claims AS (
@@ -197,6 +206,7 @@ async def _find_by_entity_overlap(
               AND cl.claim_text_hash IS NOT NULL
               AND (:target_hash IS NULL OR cl.claim_text_hash != :target_hash)
               AND cl.key_entities IS NOT NULL
+              AND jsonb_typeof(cl.key_entities) = 'array'
         )
         SELECT
             cc.claim_text_hash,
@@ -204,33 +214,48 @@ async def _find_by_entity_overlap(
             cc.claim_type,
             cc.key_entities,
             (
-                -- NF-15: typed entities are JSONB {text, type} dicts; extract .text
                 SELECT COUNT(*)
                 FROM jsonb_array_elements(cc.key_entities) AS entity
-                WHERE LOWER(TRIM(entity ->> 'text')) = ANY(:entities)
+                WHERE LOWER(TRIM(
+                    COALESCE(entity ->> 'text', entity #>> '{}')
+                )) = ANY(:entities)
             ) AS overlap_count
         FROM candidate_claims cc
         WHERE (
             SELECT COUNT(*)
-            FROM jsonb_array_elements_text(cc.key_entities) AS entity
-            WHERE LOWER(TRIM(entity)) = ANY(:entities)
+            FROM jsonb_array_elements(cc.key_entities) AS entity
+            WHERE LOWER(TRIM(
+                COALESCE(entity ->> 'text', entity #>> '{}')
+            )) = ANY(:entities)
         ) >= :min_overlap
         ORDER BY overlap_count DESC
         LIMIT :limit
     """
     )
 
-    result = await session.execute(
-        query,
-        {
-            "user_id": user_id,
-            "target_hash": target_hash,
-            "entities": entity_array,
-            "min_overlap": MIN_ENTITY_OVERLAP,
-            "limit": limit,
-        },
-    )
-    rows = result.fetchall()
+    try:
+        result = await session.execute(
+            query,
+            {
+                "user_id": user_id,
+                "target_hash": target_hash,
+                "entities": entity_array,
+                "min_overlap": MIN_ENTITY_OVERLAP,
+                "limit": limit,
+            },
+        )
+        rows = result.fetchall()
+    except Exception as exc:
+        # Graceful degradation: a malformed key_entities row, a driver
+        # binding hiccup, or any other DB-side issue must not 500 the
+        # public Seeker explore endpoint. Caller continues to the
+        # subject_context fallback and ultimately returns "no related
+        # claims" rather than an error page.
+        logger.warning(
+            "Entity-overlap query failed; falling back to subject context",
+            extra={"event_type": "explore_entity_overlap_failed", "exc": str(exc)},
+        )
+        return []
 
     claims = []
     for row in rows:
@@ -238,11 +263,15 @@ async def _find_by_entity_overlap(
         cm = claim_map_raw if isinstance(claim_map_raw, dict) else {}
 
         # Extract shared entities for transparency.
-        # NF-15: typed entities are {text, type} dicts; extract .text.
-        candidate_entities = []
+        # NF-15 boundary: _entity_text handles both typed {text, type} dicts
+        # and legacy plain strings. Filter empties after extraction so a
+        # mixed-format row produces a clean shared-entity list.
+        candidate_entities: list[str] = []
         if isinstance(key_entities, list):
             candidate_entities = [
-                _entity_text(e).lower().strip() for e in key_entities if e
+                t
+                for t in (_entity_text(e).lower().strip() for e in key_entities if e)
+                if t
             ]
         entity_set = set(normalised_entities)
         shared = [e for e in candidate_entities if e and e in entity_set]
