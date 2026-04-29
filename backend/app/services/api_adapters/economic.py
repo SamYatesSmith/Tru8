@@ -1227,6 +1227,26 @@ class MarketauxAdapter(GovernmentAPIClient):
         """Marketaux covers Finance globally (news focus)."""
         return domain == "Finance"
 
+    def prepare_query(
+        self,
+        claim_text: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """B3.5: Marketaux is corporate-news search; skip when no company is named.
+
+        Without an ORG entity, Marketaux's free-text endpoint fuzzy-matches
+        news headlines to the full claim text and returns irrelevant
+        company news — TRU-87D3-6415 surfaced "Photon Energy NV" stories
+        for a BP/Energy Act claim because the raw claim text mentioned
+        "energy" generically.
+
+        Same skip pattern as Companies House (Session A): return "" when
+        no ORG entity is present, triggering the search_with_cache empty-
+        skip path. Returning the ORG name otherwise keeps the cache key
+        focused (one news search per company name, not per claim).
+        """
+        return extract_entity_name(claim_text, entities, label="ORG") or ""
+
     def search(
         self,
         query: str,

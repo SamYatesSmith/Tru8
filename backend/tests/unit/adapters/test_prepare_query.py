@@ -9,7 +9,7 @@ Two layers of contract here:
 from unittest.mock import patch
 
 from app.services.api_adapters.business import CompaniesHouseAdapter, WikidataAdapter
-from app.services.api_adapters.economic import ONSAdapter
+from app.services.api_adapters.economic import MarketauxAdapter, ONSAdapter
 from app.services.api_adapters.legal import GovUKAdapter, HansardAdapter
 
 
@@ -199,6 +199,67 @@ class TestONSPrepareQuery:
         assert mock_get.called
         called_query = mock_get.call_args[0][1]
         assert called_query == "consumer price inflation"
+
+
+# ---------- Marketaux (B3.5) ----------
+
+
+class TestMarketauxPrepareQuery:
+    """Marketaux skips when no ORG entity is named — same pattern as Companies House."""
+
+    def test_returns_org_entity(self):
+        adapter = MarketauxAdapter()
+        assert adapter.prepare_query(BP_CLAIM, BP_ENTITIES) == "BP"
+
+    def test_returns_longest_org_when_multiple(self):
+        adapter = MarketauxAdapter()
+        entities = [
+            {"text": "BP", "label": "ORG"},
+            {"text": "British Petroleum", "label": "ORG"},
+        ]
+        assert adapter.prepare_query("anything", entities) == "British Petroleum"
+
+    def test_skips_on_no_org_entity(self):
+        # The TRU-87D3-6415 noise pattern: Marketaux returned "Photon Energy NV"
+        # for a generic-energy claim. Skip cleanly when no company is named.
+        adapter = MarketauxAdapter()
+        assert adapter.prepare_query(CLIMATE_CLAIM, CLIMATE_ENTITIES) == ""
+
+    def test_skips_on_law_only_entities(self):
+        adapter = MarketauxAdapter()
+        entities = [
+            {"text": "Energy Act 2008", "label": "LAW"},
+            {"text": "UK", "label": "LOCATION"},
+        ]
+        assert adapter.prepare_query("UK Energy Act provisions", entities) == ""
+
+    def test_skips_when_entities_none(self):
+        adapter = MarketauxAdapter()
+        assert adapter.prepare_query("Some news headline", None) == ""
+
+    def test_skip_path_routed_through_search_with_cache(self):
+        adapter = MarketauxAdapter()
+        adapter.api_key = "test-key"
+        with patch.object(adapter.cache, "get_cached_api_response_sync") as mock_get:
+            with patch.object(adapter, "search") as mock_search:
+                results = adapter.search_with_cache(
+                    CLIMATE_CLAIM, "Finance", "Global", CLIMATE_ENTITIES
+                )
+        assert results == []
+        assert not mock_get.called
+        assert not mock_search.called
+
+    def test_match_path_routes_shaped_query_to_cache_key(self):
+        adapter = MarketauxAdapter()
+        adapter.api_key = "test-key"
+        with patch.object(
+            adapter.cache, "get_cached_api_response_sync", return_value=[]
+        ) as mock_get:
+            with patch.object(adapter, "search", return_value=[]):
+                adapter.search_with_cache(BP_CLAIM, "Finance", "Global", BP_ENTITIES)
+        assert mock_get.called
+        called_query = mock_get.call_args[0][1]
+        assert called_query == "BP"
 
 
 # ---------- Cache-key seam: prepare_query must run before cache lookup ----------
