@@ -409,10 +409,15 @@ class TestClimateAdaptersPrepareQuery:
             adapter.prepare_query(WEATHER_CLAIM, WEATHER_ENTITIES) == "Paris|July 2019"
         )
 
-    def test_noaa_returns_location_pipe_date(self):
+    def test_noaa_returns_data_type_prefixed_key(self):
+        # NF-18: NOAA's cache key includes a data-type prefix so search()
+        # can dispatch to the right NOAA endpoint without re-classifying
+        # on the cache-key string (the original Session B regression).
         adapter = NOAAAdapter()
+        # WEATHER_CLAIM contains "temperature" → temperature data type.
         assert (
-            adapter.prepare_query(WEATHER_CLAIM, WEATHER_ENTITIES) == "Paris|July 2019"
+            adapter.prepare_query(WEATHER_CLAIM, WEATHER_ENTITIES)
+            == "temperature|Paris|July 2019"
         )
 
     def test_weatherapi_skips_on_law_only_claim(self):
@@ -460,7 +465,9 @@ class TestClimateAdaptersPrepareQuery:
             assert not mock_search.called, f"{cls.__name__} search must not be called"
 
     def test_match_path_uses_combined_key(self):
-        for cls in [WeatherAPIAdapter, OpenMeteoAdapter, NOAAAdapter]:
+        # WeatherAPI and Open-Meteo share the bare "{location}|{date}"
+        # cache-key shape. NOAA's NF-18 prefix is asserted separately.
+        for cls in [WeatherAPIAdapter, OpenMeteoAdapter]:
             adapter = cls()
             adapter.api_key = "test-key"
             with patch.object(
@@ -472,6 +479,20 @@ class TestClimateAdaptersPrepareQuery:
                     )
             assert mock_get.called
             assert mock_get.call_args[0][1] == "Paris|July 2019"
+
+    def test_noaa_match_path_uses_data_type_prefixed_key(self):
+        # NF-18: NOAA cache key carries the data-type prefix.
+        adapter = NOAAAdapter()
+        adapter.api_key = "test-key"
+        with patch.object(
+            adapter.cache, "get_cached_api_response_sync", return_value=[]
+        ) as mock_get:
+            with patch.object(adapter, "search", return_value=[]):
+                adapter.search_with_cache(
+                    WEATHER_CLAIM, "Climate", "Global", WEATHER_ENTITIES
+                )
+        assert mock_get.called
+        assert mock_get.call_args[0][1] == "temperature|Paris|July 2019"
 
 
 # ---------- WHO (B3.6) ----------

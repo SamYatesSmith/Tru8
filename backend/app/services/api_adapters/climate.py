@@ -9,7 +9,7 @@ Adapters for climate and weather data:
 
 import logging
 import re
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta, timezone
 
 from app.services.government_api_client import GovernmentAPIClient
@@ -41,6 +41,343 @@ def _location_date_cache_key(
     if not location and not date:
         return ""
     return f"{location or ''}|{date or ''}"
+
+
+# ===== NF-18 helpers (NOAA-specific) =====
+#
+# NF-18 surfaced three Session-B regressions in NOAAAdapter:
+#   Bug-1 (data-type rejection): search() classified climate data type by
+#     scanning `query`, but Session B made `query` the cache-key shape
+#     ("London|2022-07-19") which never contains climate keywords →
+#     every NOAA call returned []. Fixed by classifying in prepare_query
+#     where claim_text is in scope, and encoding the result in the cache
+#     key prefix (data_type|location|date).
+#   Bug-2 (date window): _search_*_data hardcoded the window to
+#     now()-2y → now(), ignoring the DATE entity. A claim about July 2022
+#     queried 2024-2026.
+#   Bug-3 (location map): _extract_location_id only knew country/state
+#     names, so "London" → None → unfiltered global query (US-heavy).
+#     The CITY_TO_COUNTRY_FIPS map below restores city → country routing.
+# Diagnostic record: audit/pipeline-issues/2026-04-22_remediation-plan.md §S8.
+
+# Data-type classification keywords. Walked in declaration order — first
+# match wins. Order matters: most-specific categories (precipitation,
+# sea_level) come before temperature (the catch-all default). Keep terms
+# narrow and unambiguous: generic words like "record" / "extreme" /
+# "anomaly" are deliberately omitted because they appear in
+# precipitation claims too ("rainfall record", "extreme flooding") and
+# would mis-classify them as temperature.
+_NOAA_DATA_TYPE_TERMS: Tuple[Tuple[str, Tuple[str, ...]], ...] = (
+    (
+        "precipitation",
+        (
+            "rain",
+            "rainfall",
+            "precipitation",
+            "snow",
+            "snowfall",
+            "flood",
+            "drought",
+            "storm",
+            "hurricane",
+            "cyclone",
+            "typhoon",
+            "blizzard",
+            "monsoon",
+            "deluge",
+        ),
+    ),
+    (
+        "sea_level",
+        (
+            "sea level",
+            "ocean",
+            "coastal",
+            "tide",
+            "ice cap",
+            "ice sheet",
+            "glacier",
+            "arctic",
+            "antarctic",
+            "permafrost",
+            "iceberg",
+        ),
+    ),
+    (
+        "temperature",
+        (
+            "temperature",
+            "warm",
+            "cold",
+            "heat",
+            "hot",
+            "freeze",
+            "frost",
+            "degree",
+            "celsius",
+            "fahrenheit",
+            "heatwave",
+            "heat wave",
+            "warming",
+            "warmest",
+            "hottest",
+            "coldest",
+            "°c",
+            "°f",
+        ),
+    ),
+)
+
+
+def _classify_noaa_data_type(
+    claim_text: str,
+    entities: Optional[List[Dict[str, str]]] = None,
+) -> str:
+    """Pick a NOAA data type ('temperature' / 'precipitation' / 'sea_level').
+
+    Walks _NOAA_DATA_TYPE_TERMS in declaration order. First pass scans
+    AMOUNT entities (most specific — units like "40.3°C" or "12 mm" are
+    unambiguous); second pass scans the raw claim text. Defaults to
+    "temperature" when nothing matches — temperature is NOAA's most
+    populated dataset and the most common climate-claim type.
+    """
+    # Pass 1: AMOUNT entity scan (most specific).
+    if entities:
+        for ent in entities:
+            if not isinstance(ent, dict):
+                continue
+            if ent.get("label") != "AMOUNT":
+                continue
+            etext = (ent.get("text") or "").lower().strip()
+            if not etext:
+                continue
+            for data_type, terms in _NOAA_DATA_TYPE_TERMS:
+                if any(t in etext for t in terms):
+                    return data_type
+
+    # Pass 2: raw claim text scan.
+    cl = (claim_text or "").lower()
+    for data_type, terms in _NOAA_DATA_TYPE_TERMS:
+        if any(t in cl for t in terms):
+            return data_type
+
+    return "temperature"
+
+
+# City → NOAA FIPS country code (or US state FIPS). Mirrors
+# OpenMeteoAdapter.CITY_COORDS so the three climate adapters agree on
+# which city names are recognised, then maps to the country/state code
+# NOAA's locationid parameter expects.
+#
+# Maintained centrally rather than per-adapter so adding a new city is
+# one edit. Country granularity is sufficient for NOAA — non-US data is
+# served as a single rolled-up station per country (e.g. GHCND:UK000000000).
+_NOAA_CITY_TO_FIPS: Dict[str, str] = {
+    # UK
+    "london": "FIPS:UK",
+    "manchester": "FIPS:UK",
+    "birmingham": "FIPS:UK",
+    "edinburgh": "FIPS:UK",
+    "glasgow": "FIPS:UK",
+    "liverpool": "FIPS:UK",
+    "cardiff": "FIPS:UK",
+    "belfast": "FIPS:UK",
+    "leeds": "FIPS:UK",
+    "bristol": "FIPS:UK",
+    # US (city → state FIPS where the city is unambiguous)
+    "new york": "FIPS:36",
+    "new york city": "FIPS:36",
+    "los angeles": "FIPS:06",
+    "san francisco": "FIPS:06",
+    "san diego": "FIPS:06",
+    "sacramento": "FIPS:06",
+    "chicago": "FIPS:17",
+    "houston": "FIPS:48",
+    "dallas": "FIPS:48",
+    "austin": "FIPS:48",
+    "san antonio": "FIPS:48",
+    "miami": "FIPS:12",
+    "orlando": "FIPS:12",
+    "jacksonville": "FIPS:12",
+    "phoenix": "FIPS:04",
+    "philadelphia": "FIPS:42",
+    "boston": "FIPS:25",
+    "seattle": "FIPS:53",
+    "denver": "FIPS:08",
+    "washington": "FIPS:DC",
+    "washington dc": "FIPS:DC",
+    "washington d.c.": "FIPS:DC",
+    # Ireland
+    "dublin": "FIPS:EI",
+    # Continental Europe
+    "paris": "FIPS:FR",
+    "marseille": "FIPS:FR",
+    "lyon": "FIPS:FR",
+    "berlin": "FIPS:GM",
+    "munich": "FIPS:GM",
+    "hamburg": "FIPS:GM",
+    "rome": "FIPS:IT",
+    "milan": "FIPS:IT",
+    "madrid": "FIPS:SP",
+    "barcelona": "FIPS:SP",
+    "amsterdam": "FIPS:NL",
+    "brussels": "FIPS:BE",
+    "zurich": "FIPS:SZ",
+    "geneva": "FIPS:SZ",
+    "stockholm": "FIPS:SW",
+    "oslo": "FIPS:NO",
+    "copenhagen": "FIPS:DA",
+    "vienna": "FIPS:AU",
+    "warsaw": "FIPS:PL",
+    "athens": "FIPS:GR",
+    # Middle East / Asia / Pacific
+    "istanbul": "FIPS:TU",
+    "tokyo": "FIPS:JA",
+    "osaka": "FIPS:JA",
+    "beijing": "FIPS:CH",
+    "shanghai": "FIPS:CH",
+    "hong kong": "FIPS:HK",
+    "seoul": "FIPS:KS",
+    "bangkok": "FIPS:TH",
+    "jakarta": "FIPS:ID",
+    "singapore": "FIPS:SN",
+    "mumbai": "FIPS:IN",
+    "new delhi": "FIPS:IN",
+    "delhi": "FIPS:IN",
+    "dubai": "FIPS:AE",
+    "abu dhabi": "FIPS:AE",
+    "sydney": "FIPS:AS",
+    "melbourne": "FIPS:AS",
+    # Americas (non-US)
+    "toronto": "FIPS:CA",
+    "vancouver": "FIPS:CA",
+    "montreal": "FIPS:CA",
+    "mexico city": "FIPS:MX",
+    "sao paulo": "FIPS:BR",
+    "rio de janeiro": "FIPS:BR",
+    "buenos aires": "FIPS:AR",
+    "lima": "FIPS:PE",
+    "bogota": "FIPS:CO",
+    # Africa
+    "cairo": "FIPS:EG",
+    "lagos": "FIPS:NI",
+    "nairobi": "FIPS:KE",
+    "johannesburg": "FIPS:SF",
+    "cape town": "FIPS:SF",
+}
+
+
+# Date-string parsing patterns, walked in priority order. Each returns
+# the parsed components present in the string. We don't use dateutil to
+# avoid surprising autocorrects on partial dates like "2022".
+_NOAA_MONTH_NAMES: Dict[str, int] = {
+    "january": 1,
+    "jan": 1,
+    "february": 2,
+    "feb": 2,
+    "march": 3,
+    "mar": 3,
+    "april": 4,
+    "apr": 4,
+    "may": 5,
+    "june": 6,
+    "jun": 6,
+    "july": 7,
+    "jul": 7,
+    "august": 8,
+    "aug": 8,
+    "september": 9,
+    "sep": 9,
+    "sept": 9,
+    "october": 10,
+    "oct": 10,
+    "november": 11,
+    "nov": 11,
+    "december": 12,
+    "dec": 12,
+}
+
+
+def _parse_date_window(
+    date_text: Optional[str],
+    fallback_years: int = 2,
+) -> Tuple[str, str]:
+    """Derive (startdate, enddate) for a NOAA query from a DATE entity.
+
+    Returns ISO date strings. Granularity is inferred from the input:
+      * day+month+year ("19 July 2022", "2022-07-19")  → ±30 days around the day
+      * month+year ("July 2022", "2022-07")            → that whole month
+      * year only ("2022")                              → that whole year
+      * unparseable / missing                          → now-fallback_years → now
+
+    The NOAA dataset (GSOM = monthly summaries) limits effective resolution
+    to the month, so ±30 days for a day-level claim still gives a tight
+    window without missing the claim's month.
+    """
+    today = datetime.now(timezone.utc)
+
+    if not date_text:
+        return (
+            datetime(today.year - fallback_years, 1, 1).strftime("%Y-%m-%d"),
+            today.strftime("%Y-%m-%d"),
+        )
+
+    text = date_text.strip().lower()
+
+    # ISO-like: YYYY-MM-DD, YYYY-MM, YYYY
+    iso_match = re.match(r"^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?$", text)
+    if iso_match:
+        year = int(iso_match.group(1))
+        month = int(iso_match.group(2)) if iso_match.group(2) else None
+        day = int(iso_match.group(3)) if iso_match.group(3) else None
+    else:
+        # English forms: "19 July 2022", "July 19 2022", "July 2022", "2022"
+        year_match = re.search(r"\b(19|20)\d{2}\b", text)
+        if not year_match:
+            return (
+                datetime(today.year - fallback_years, 1, 1).strftime("%Y-%m-%d"),
+                today.strftime("%Y-%m-%d"),
+            )
+        year = int(year_match.group(0))
+
+        month: Optional[int] = None
+        for name, num in _NOAA_MONTH_NAMES.items():
+            if re.search(rf"\b{name}\b", text):
+                month = num
+                break
+
+        day_match = re.search(r"\b([1-9]|[12][0-9]|3[01])\b(?!\d)", text)
+        day = None
+        if day_match and month is not None:
+            candidate = int(day_match.group(1))
+            # Skip if the matched number is the year prefix
+            if candidate != (year // 100) and candidate != (year - 2000):
+                day = candidate
+
+    try:
+        if day and month:
+            anchor = datetime(year, month, day, tzinfo=timezone.utc)
+            start = anchor - timedelta(days=30)
+            end = anchor + timedelta(days=30)
+        elif month:
+            start = datetime(year, month, 1, tzinfo=timezone.utc)
+            # End of month: roll to next month, subtract one day
+            if month == 12:
+                end = datetime(year, 12, 31, tzinfo=timezone.utc)
+            else:
+                end = datetime(year, month + 1, 1, tzinfo=timezone.utc) - timedelta(
+                    days=1
+                )
+        else:
+            start = datetime(year, 1, 1, tzinfo=timezone.utc)
+            end = datetime(year, 12, 31, tzinfo=timezone.utc)
+    except (ValueError, OverflowError):
+        return (
+            datetime(today.year - fallback_years, 1, 1).strftime("%Y-%m-%d"),
+            today.strftime("%Y-%m-%d"),
+        )
+
+    return start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
 
 
 # ========== NOAA CDO ADAPTER (Global Climate Data) ==========
@@ -105,17 +442,29 @@ class NOAAAdapter(GovernmentAPIClient):
         claim_text: str,
         entities: Optional[List[Dict[str, str]]] = None,
     ) -> str:
-        """B3.4: NOAA CDO needs a place and a time window. Skip when neither is named.
+        """NF-18: produce a NOAA cache key that encodes the data type.
 
-        NOAA's existing keyword router already self-rejects on claims with
-        no climate-relevant keywords (verified TRU-D44F-F326). This adds
-        the structural cache-key correctness so two claims about the same
-        location/date share a cache namespace, and a third claim about
-        unrelated topics doesn't poison that namespace via raw-claim-text
-        keying.
+        Cache-key shape: ``"{data_type}|{location}|{date}"`` where
+        ``data_type`` is one of ``temperature`` / ``precipitation`` /
+        ``sea_level``. The data-type classification happens here because
+        ``claim_text`` is in scope; ``search()`` only sees the prepared
+        ``query`` argument (Session B contract, see government_api_client
+        line 294) so it can no longer classify on the raw claim.
+
+        Skip path: returns ``""`` when neither LOCATION nor DATE entity
+        is present — same B3.4 rule as before, weather APIs need a place
+        + time to produce meaningful data.
+
+        Two claims about the same location/date but different data types
+        (e.g. heatwave vs flood at the same place) now have distinct
+        cache namespaces, which is correct — they call different NOAA
+        endpoints with different params and produce different evidence.
         """
-        del claim_text  # location/date come from entities only
-        return _location_date_cache_key(entities)
+        loc_date = _location_date_cache_key(entities)
+        if not loc_date:
+            return ""
+        data_type = _classify_noaa_data_type(claim_text, entities)
+        return f"{data_type}|{loc_date}"
 
     def search(
         self,
@@ -124,21 +473,12 @@ class NOAAAdapter(GovernmentAPIClient):
         jurisdiction: str,
         entities: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Search NOAA CDO for climate data.
+        """Dispatch to the right NOAA dataset based on the data-type prefix.
 
-        Strategy:
-        1. First get relevant datasets
-        2. Then query for actual data based on claim type
-
-        Args:
-            query: Search query (e.g., "average temperature 2024", "sea level rise")
-            domain: Climate
-            jurisdiction: Any (NOAA has global data)
-            entities: Optional NER entities for location extraction
-
-        Returns:
-            List of evidence dictionaries
+        ``query`` is the cache key produced by ``prepare_query`` —
+        ``"{data_type}|{location}|{date}"``. We split off the prefix and
+        delegate to the appropriate ``_search_*_data`` method, which
+        reads the location + date directly from ``entities``.
         """
         if not self.is_relevant_for_domain(domain, jurisdiction):
             return []
@@ -147,63 +487,22 @@ class NOAAAdapter(GovernmentAPIClient):
             logger.warning("NOAA API key not configured, skipping")
             return []
 
-        query_lower = query.lower()
-        evidence = []
+        # Cache key shape: "{data_type}|{location}|{date}". Tolerate the
+        # legacy "{location}|{date}" shape (cached pre-NF-18 entries) by
+        # defaulting to temperature.
+        if query.startswith(("temperature|", "precipitation|", "sea_level|")):
+            data_type, _ = query.split("|", 1)
+        else:
+            data_type = "temperature"
 
         try:
-            # Fix 4a: Expanded keyword matching for better climate data retrieval
-            temp_terms = [
-                "temperature",
-                "warm",
-                "cold",
-                "heat",
-                "hot",
-                "freeze",
-                "frost",
-                "record",
-                "extreme",
-                "anomaly",
-                "degree",
-                "celsius",
-                "fahrenheit",
-            ]
-            precip_terms = [
-                "rain",
-                "precipitation",
-                "snow",
-                "flood",
-                "drought",
-                "storm",
-                "hurricane",
-                "cyclone",
-            ]
-            sea_terms = [
-                "sea level",
-                "ocean",
-                "coastal",
-                "tide",
-                "ice",
-                "glacier",
-                "arctic",
-                "antarctic",
-            ]
-
-            # Determine what type of climate data to fetch
-            if any(term in query_lower for term in temp_terms):
-                evidence.extend(self._search_temperature_data(query, entities))
-            elif any(term in query_lower for term in precip_terms):
-                evidence.extend(self._search_precipitation_data(query, entities))
-            elif any(term in query_lower for term in sea_terms):
-                evidence.extend(self._search_sea_level_data(query, entities))
-            else:
-                # Fix 4b: No keyword match - return empty instead of metadata catalog
-                logger.info(
-                    f"[NOAA] No keyword match for query, returning empty: {query[:50]}..."
-                )
-                return []
-
-            return evidence
-
+            if data_type == "temperature":
+                return self._search_temperature_data(entities)
+            if data_type == "precipitation":
+                return self._search_precipitation_data(entities)
+            if data_type == "sea_level":
+                return self._search_sea_level_data(entities)
+            return []
         except Exception as e:
             logger.error(f"NOAA search failed for '{query}': {e}")
             return []
@@ -218,28 +517,41 @@ class NOAAAdapter(GovernmentAPIClient):
         logger.info(f"[NOAA] Dataset search bypassed (returns metadata, not evidence)")
         return []
 
-    def _search_temperature_data(
-        self, query: str, entities: Optional[List[Dict[str, str]]] = None
-    ) -> List[Dict[str, Any]]:
-        """Search for temperature-related climate data. Returns empty on failure."""
-        location_id = self._extract_location_id(entities)
+    def _build_data_query_params(
+        self,
+        datatypeid: str,
+        entities: Optional[List[Dict[str, str]]],
+    ) -> Dict[str, Any]:
+        """Build common params for a NOAA /data query.
 
-        params = {
+        NF-18 Bug-2: derive the date window from the DATE entity instead
+        of hardcoding ``now()-2y → now()``. A claim about July 2022 was
+        previously querying 2024-2026 and silently returning zero.
+        """
+        _, date_text = extract_location_and_date(entities)
+        startdate, enddate = _parse_date_window(date_text)
+
+        params: Dict[str, Any] = {
             "datasetid": "GSOM",  # Global Summary of Month
-            "datatypeid": "TAVG",  # Average temperature
+            "datatypeid": datatypeid,
             "limit": self.max_results,
             "sortfield": "date",
             "sortorder": "desc",
+            "startdate": startdate,
+            "enddate": enddate,
         }
 
+        location_id = self._extract_location_id(entities)
         if location_id:
             params["locationid"] = location_id
 
-        end_date = datetime.now(timezone.utc)
-        start_date = datetime(end_date.year - 2, 1, 1)
-        params["startdate"] = start_date.strftime("%Y-%m-%d")
-        params["enddate"] = end_date.strftime("%Y-%m-%d")
+        return params
 
+    def _search_temperature_data(
+        self, entities: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, Any]]:
+        """Search for temperature-related climate data. Returns empty on failure."""
+        params = self._build_data_query_params("TAVG", entities)
         try:
             response = self._make_request("data", params=params)
             if response and "results" in response:
@@ -247,32 +559,14 @@ class NOAAAdapter(GovernmentAPIClient):
         except Exception as e:
             logger.warning(f"NOAA temperature search failed: {e}")
 
-        # PQ-06: Honest failure — no hardcoded fallback strings
         logger.info("[NOAA] Temperature data query returned no results")
         return []
 
     def _search_precipitation_data(
-        self, query: str, entities: Optional[List[Dict[str, str]]] = None
+        self, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Search for precipitation-related climate data. Returns empty on failure."""
-        location_id = self._extract_location_id(entities)
-
-        params = {
-            "datasetid": "GSOM",
-            "datatypeid": "PRCP",  # Precipitation
-            "limit": self.max_results,
-            "sortfield": "date",
-            "sortorder": "desc",
-        }
-
-        if location_id:
-            params["locationid"] = location_id
-
-        end_date = datetime.now(timezone.utc)
-        start_date = datetime(end_date.year - 2, 1, 1)
-        params["startdate"] = start_date.strftime("%Y-%m-%d")
-        params["enddate"] = end_date.strftime("%Y-%m-%d")
-
+        params = self._build_data_query_params("PRCP", entities)
         try:
             response = self._make_request("data", params=params)
             if response and "results" in response:
@@ -280,33 +574,14 @@ class NOAAAdapter(GovernmentAPIClient):
         except Exception as e:
             logger.warning(f"NOAA precipitation search failed: {e}")
 
-        # PQ-06: Honest failure — no hardcoded fallback strings
         logger.info("[NOAA] Precipitation data query returned no results")
         return []
 
     def _search_sea_level_data(
-        self, query: str, entities: Optional[List[Dict[str, str]]] = None
+        self, entities: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, Any]]:
         """Search for sea level data via NOAA CDO."""
-        location_id = self._extract_location_id(entities)
-
-        # Query GSOM dataset for mean sea level (MMSL) observations
-        params = {
-            "datasetid": "GSOM",
-            "datatypeid": "MMSL",  # Mean sea level
-            "limit": self.max_results,
-            "sortfield": "date",
-            "sortorder": "desc",
-        }
-
-        if location_id:
-            params["locationid"] = location_id
-
-        end_date = datetime.now(timezone.utc)
-        start_date = datetime(end_date.year - 2, 1, 1)
-        params["startdate"] = start_date.strftime("%Y-%m-%d")
-        params["enddate"] = end_date.strftime("%Y-%m-%d")
-
+        params = self._build_data_query_params("MMSL", entities)
         try:
             response = self._make_request("data", params=params)
             if response and "results" in response:
@@ -314,71 +589,126 @@ class NOAAAdapter(GovernmentAPIClient):
         except Exception as e:
             logger.warning(f"NOAA sea level search failed: {e}")
 
-        # PQ-06: Honest failure — no hardcoded fallback strings
         logger.info("[NOAA] Sea level data query returned no results")
         return []
+
+    # Country / US-state name → NOAA FIPS code. Class attribute so the
+    # tests can introspect it without instantiating an adapter.
+    _COUNTRY_FIPS: Dict[str, Optional[str]] = {
+        # US
+        "US": "FIPS:US",
+        "USA": "FIPS:US",
+        "UNITED STATES": "FIPS:US",
+        "CALIFORNIA": "FIPS:06",
+        "NEW YORK": "FIPS:36",
+        "TEXAS": "FIPS:48",
+        "FLORIDA": "FIPS:12",
+        "ALASKA": "FIPS:02",
+        "ARIZONA": "FIPS:04",
+        "COLORADO": "FIPS:08",
+        # UK
+        "UK": "FIPS:UK",
+        "UNITED KINGDOM": "FIPS:UK",
+        "BRITAIN": "FIPS:UK",
+        "ENGLAND": "FIPS:UK",
+        "SCOTLAND": "FIPS:UK",
+        "WALES": "FIPS:UK",
+        "NORTHERN IRELAND": "FIPS:UK",
+        # Europe
+        "EUROPE": "FIPS:EU",
+        "GERMANY": "FIPS:GM",
+        "FRANCE": "FIPS:FR",
+        "SPAIN": "FIPS:SP",
+        "ITALY": "FIPS:IT",
+        "NETHERLANDS": "FIPS:NL",
+        "BELGIUM": "FIPS:BE",
+        "SWEDEN": "FIPS:SW",
+        "NORWAY": "FIPS:NO",
+        "DENMARK": "FIPS:DA",
+        "FINLAND": "FIPS:FI",
+        "POLAND": "FIPS:PL",
+        "AUSTRIA": "FIPS:AU",
+        "IRELAND": "FIPS:EI",
+        "GREECE": "FIPS:GR",
+        "PORTUGAL": "FIPS:PO",
+        "SWITZERLAND": "FIPS:SZ",
+        # Asia-Pacific
+        "JAPAN": "FIPS:JA",
+        "CHINA": "FIPS:CH",
+        "AUSTRALIA": "FIPS:AS",
+        "INDIA": "FIPS:IN",
+        "SOUTH KOREA": "FIPS:KS",
+        "INDONESIA": "FIPS:ID",
+        "THAILAND": "FIPS:TH",
+        "SINGAPORE": "FIPS:SN",
+        "PHILIPPINES": "FIPS:RP",
+        # Americas
+        "CANADA": "FIPS:CA",
+        "MEXICO": "FIPS:MX",
+        "BRAZIL": "FIPS:BR",
+        "ARGENTINA": "FIPS:AR",
+        "COLOMBIA": "FIPS:CO",
+        "PERU": "FIPS:PE",
+        # Africa / Middle East
+        "EGYPT": "FIPS:EG",
+        "SOUTH AFRICA": "FIPS:SF",
+        "KENYA": "FIPS:KE",
+        "NIGERIA": "FIPS:NI",
+        "TURKEY": "FIPS:TU",
+        "UNITED ARAB EMIRATES": "FIPS:AE",
+        "UAE": "FIPS:AE",
+        # No-filter sentinels — claims that explicitly reference global
+        # scope shouldn't filter to one country
+        "GLOBAL": None,
+        "WORLD": None,
+        "WORLDWIDE": None,
+        "EARTH": None,
+    }
 
     def _extract_location_id(
         self, entities: Optional[List[Dict[str, str]]] = None
     ) -> Optional[str]:
-        """Extract NOAA location ID from NER entities."""
+        """Extract NOAA location ID from typed entities.
+
+        NF-18 Bug-3:
+        * Pre-fix this read ``entity.get("type")`` and looked for legacy
+          NER labels ``"GPE"`` / ``"LOC"``. NF-15 (2026-04-28) remapped
+          entities to ``{text, label}`` with NF-15 vocabulary
+          (``"LOCATION"``), so the filter has been silently returning
+          ``None`` for every entity since NF-15 shipped.
+        * The ``location_map`` only knew countries / US states, so even
+          before NF-15 a city like "London" returned ``None`` and the
+          NOAA call fell back to an unfiltered global query (US-heavy).
+
+        Walks entities in order, picking the first match in:
+          1. Direct country / US-state lookup (``_COUNTRY_FIPS``).
+          2. Major-city → country FIPS fallback (``_NOAA_CITY_TO_FIPS``).
+        Accepts ``LOCATION`` (NF-15) as the primary label; ``GPE`` /
+        ``LOC`` are kept for back-compat in case any caller still sends
+        legacy labels.
+        """
         if not entities:
             return None
 
-        # NOAA uses FIPS codes for US states and country codes globally
-        # Example: FIPS:06 = California, FIPS:36 = New York
+        accepted_labels = {"LOCATION", "GPE", "LOC"}
+
         for entity in entities:
-            if entity.get("type") in ["GPE", "LOC"]:
-                location = entity.get("text", "").upper()
-                # Fix 4c: Expanded location mapping for global climate queries
-                location_map = {
-                    # US
-                    "US": "FIPS:US",
-                    "USA": "FIPS:US",
-                    "UNITED STATES": "FIPS:US",
-                    "CALIFORNIA": "FIPS:06",
-                    "NEW YORK": "FIPS:36",
-                    "TEXAS": "FIPS:48",
-                    "FLORIDA": "FIPS:12",
-                    "ALASKA": "FIPS:02",
-                    "ARIZONA": "FIPS:04",
-                    "COLORADO": "FIPS:08",
-                    # UK
-                    "UK": "FIPS:UK",
-                    "UNITED KINGDOM": "FIPS:UK",
-                    "BRITAIN": "FIPS:UK",
-                    "ENGLAND": "FIPS:UK",
-                    # Europe (NOAA uses FIPS 2-letter country codes)
-                    "EUROPE": "FIPS:EU",
-                    "GERMANY": "FIPS:GM",
-                    "FRANCE": "FIPS:FR",
-                    "SPAIN": "FIPS:SP",
-                    "ITALY": "FIPS:IT",
-                    "NETHERLANDS": "FIPS:NL",
-                    "BELGIUM": "FIPS:BE",
-                    "SWEDEN": "FIPS:SW",
-                    "NORWAY": "FIPS:NO",
-                    "DENMARK": "FIPS:DA",
-                    "FINLAND": "FIPS:FI",
-                    "POLAND": "FIPS:PL",
-                    "AUSTRIA": "FIPS:AU",
-                    # Asia-Pacific
-                    "JAPAN": "FIPS:JA",
-                    "CHINA": "FIPS:CH",
-                    "AUSTRALIA": "FIPS:AS",
-                    "INDIA": "FIPS:IN",
-                    "SOUTH KOREA": "FIPS:KS",
-                    # Other
-                    "CANADA": "FIPS:CA",
-                    "MEXICO": "FIPS:MX",
-                    "BRAZIL": "FIPS:BR",
-                    # Global - no filter for global queries
-                    "GLOBAL": None,
-                    "WORLD": None,
-                    "WORLDWIDE": None,
-                }
-                if location in location_map:
-                    return location_map[location]
+            if not isinstance(entity, dict):
+                continue
+            label = entity.get("label") or entity.get("type")
+            if label not in accepted_labels:
+                continue
+            raw = (entity.get("text") or "").strip()
+            if not raw:
+                continue
+
+            upper = raw.upper()
+            if upper in self._COUNTRY_FIPS:
+                return self._COUNTRY_FIPS[upper]
+
+            lower = raw.lower()
+            if lower in _NOAA_CITY_TO_FIPS:
+                return _NOAA_CITY_TO_FIPS[lower]
 
         return None
 
