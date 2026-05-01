@@ -289,7 +289,14 @@ def _filter_breadcrumb(crumb, hint):
     return crumb
 
 
-if settings.SENTRY_DSN:
+# Initialise Sentry only when running in a deployed environment.
+# Local dev (ENVIRONMENT=development) was previously polluting the
+# production Sentry project — every uvicorn run with a SENTRY_DSN in
+# .env produced 127.0.0.1:5433 connection errors against the prod
+# project. Gate on ENVIRONMENT so dev runs are silent regardless of
+# DSN presence.
+_SENTRY_ENABLED_ENVIRONMENTS = {"production", "staging"}
+if settings.SENTRY_DSN and settings.ENVIRONMENT.lower() in _SENTRY_ENABLED_ENVIRONMENTS:
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
         environment=settings.ENVIRONMENT,
@@ -297,6 +304,13 @@ if settings.SENTRY_DSN:
         max_breadcrumbs=100,
     )
     app.add_middleware(SentryAsgiMiddleware)
+elif settings.SENTRY_DSN:
+    logger.info(
+        "Sentry DSN set but ENVIRONMENT=%s — skipping Sentry init "
+        "(only enabled for %s)",
+        settings.ENVIRONMENT,
+        sorted(_SENTRY_ENABLED_ENVIRONMENTS),
+    )
 
 # Correlation ID middleware - added LAST so it executes FIRST (LIFO order)
 # This ensures all requests have a correlation ID before any other middleware runs

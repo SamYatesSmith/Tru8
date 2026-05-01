@@ -19,7 +19,7 @@ from typing import Optional
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_session
+from app.core.database import async_session
 from app.core.manifest_signer import canonical_element_id
 from app.models.claim_consensus import ClaimConsensus
 
@@ -281,7 +281,13 @@ async def _consensus_loop():
         )
         await asyncio.sleep(sleep_seconds)
         try:
-            async with get_session() as session:
+            # Use async_session() directly (it IS an async context
+            # manager). get_session() is an async generator intended
+            # for FastAPI dependency injection and cannot be entered
+            # via `async with` — that was the PYTHON-FASTAPI-20
+            # regression: TypeError 'async_generator' object does not
+            # support the asynchronous context manager protocol.
+            async with async_session() as session:
                 count = await compute_consensus(session)
                 logger.info(f"[CONSENSUS] Batch complete: {count} rows updated")
         except Exception:
