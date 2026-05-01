@@ -251,10 +251,26 @@ async def _find_by_entity_overlap(
         # public Seeker explore endpoint. Caller continues to the
         # subject_context fallback and ultimately returns "no related
         # claims" rather than an error page.
+        #
+        # The rollback is REQUIRED — without it the asyncpg transaction
+        # is left in aborted state and the next session.execute() in
+        # the fallback path raises InFailedSQLTransactionError
+        # (PYTHON-FASTAPI-1Z / 1Y in Sentry). Python rescued, Postgres
+        # didn't.
         logger.warning(
             "Entity-overlap query failed; falling back to subject context",
             extra={"event_type": "explore_entity_overlap_failed", "exc": str(exc)},
         )
+        try:
+            await session.rollback()
+        except Exception as rollback_exc:
+            logger.warning(
+                "Session rollback after entity-overlap failure also failed",
+                extra={
+                    "event_type": "explore_rollback_failed",
+                    "exc": str(rollback_exc),
+                },
+            )
         return []
 
     claims = []
@@ -341,8 +357,29 @@ async def _find_by_subject_context(
     """
     )
 
-    result = await session.execute(query, params)
-    rows = result.fetchall()
+    # Same graceful-degradation policy as _find_by_entity_overlap: a
+    # malformed row or driver hiccup must not 500 the public endpoint.
+    # Rollback on failure clears the aborted-transaction state so any
+    # subsequent enrichment query can run cleanly.
+    try:
+        result = await session.execute(query, params)
+        rows = result.fetchall()
+    except Exception as exc:
+        logger.warning(
+            "Subject-context query failed; returning empty fallback",
+            extra={"event_type": "explore_subject_context_failed", "exc": str(exc)},
+        )
+        try:
+            await session.rollback()
+        except Exception as rollback_exc:
+            logger.warning(
+                "Session rollback after subject-context failure also failed",
+                extra={
+                    "event_type": "explore_rollback_failed",
+                    "exc": str(rollback_exc),
+                },
+            )
+        return []
 
     claims = []
     for row in rows:
@@ -392,19 +429,44 @@ async def _enrich_with_consensus(
     placeholders = ", ".join(f":h{i}" for i in range(len(hashes)))
     params = {f"h{i}": h for i, h in enumerate(hashes)}
 
-    result = await session.execute(
-        text(
-            f"""
-        SELECT claim_text_hash, independent_checks, stability
-        FROM claim_consensus
-        WHERE claim_text_hash IN ({placeholders})
-    """
-        ),
-        params,
-    )
+    # Enrichment is optional — claims without consensus data are still
+    # valid for display. Same graceful-degradation pattern: rollback on
+    # query failure so the session is not poisoned for the rest of the
+    # request, and return without enrichment.
+    try:
+        result = await session.execute(
+            text(
+                f"""
+            SELECT claim_text_hash, independent_checks, stability
+            FROM claim_consensus
+            WHERE claim_text_hash IN ({placeholders})
+        """
+            ),
+            params,
+        )
+        rows = result.fetchall()
+    except Exception as exc:
+        logger.warning(
+            "Consensus enrichment query failed; returning unenriched claims",
+            extra={
+                "event_type": "explore_consensus_enrichment_failed",
+                "exc": str(exc),
+            },
+        )
+        try:
+            await session.rollback()
+        except Exception as rollback_exc:
+            logger.warning(
+                "Session rollback after consensus-enrichment failure also failed",
+                extra={
+                    "event_type": "explore_rollback_failed",
+                    "exc": str(rollback_exc),
+                },
+            )
+        return
 
     consensus_map = {}
-    for row in result.fetchall():
+    for row in rows:
         consensus_map[row[0]] = {
             "independentChecks": row[1],
             "stability": row[2],
