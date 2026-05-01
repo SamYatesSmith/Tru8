@@ -688,6 +688,25 @@ class EvidenceRetriever:
                 raw_item["is_recovery"] = True
                 raw_item["claim_position"] = claim_position
 
+            for raw in raw_evidence:
+                url_short = (raw.get("url") or "")[:120]
+                provider = raw.get("external_source_provider")
+                source_type = "api" if provider else "web"
+                if raw.get("is_included"):
+                    logger.info(
+                        f"[URL LEDGER] claim={claim_position} kept(recovery) "
+                        f"type={source_type} provider={provider or '-'} "
+                        f"url={url_short}"
+                    )
+                else:
+                    stage = raw.get("filter_stage") or "unknown"
+                    reason = (raw.get("filter_reason") or "")[:80]
+                    logger.info(
+                        f"[URL LEDGER] claim={claim_position} dropped(recovery) "
+                        f"type={source_type} provider={provider or '-'} "
+                        f"stage={stage} reason='{reason}' url={url_short}"
+                    )
+
             return final_evidence, raw_evidence
 
         except Exception as e:
@@ -1404,6 +1423,25 @@ class EvidenceRetriever:
                 logger.info(
                     f"[EVIDENCE TRACE] Claim {claim_position}: {len(final_evidence)} items AFTER evidence filtering"
                 )
+
+                for raw in raw_evidence:
+                    url_short = (raw.get("url") or "")[:120]
+                    provider = raw.get("external_source_provider")
+                    source_type = "api" if provider else "web"
+                    if raw.get("is_included"):
+                        logger.info(
+                            f"[URL LEDGER] claim={claim_position} kept "
+                            f"type={source_type} provider={provider or '-'} "
+                            f"url={url_short}"
+                        )
+                    else:
+                        stage = raw.get("filter_stage") or "unknown"
+                        reason = (raw.get("filter_reason") or "")[:80]
+                        logger.info(
+                            f"[URL LEDGER] claim={claim_position} dropped "
+                            f"type={source_type} provider={provider or '-'} "
+                            f"stage={stage} reason='{reason}' url={url_short}"
+                        )
 
                 # Step 4: Store in vector database for future retrieval
                 await self._store_evidence_embeddings(claim, final_evidence)

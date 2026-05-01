@@ -679,20 +679,36 @@ async def score_evidence_batch(
         ev_list = evidence[claim_pos]
         kept = []
         for ev in ev_list:
-            if ev.get("llm_relevance_score") == 1:
+            score = ev.get("llm_relevance_score")
+            url = (ev.get("url") or "")[:120]
+            rationale = (ev.get("llm_relevance_rationale") or "")[:120]
+            if score == 1:
                 provider = ev.get("external_source_provider")
                 if _adapter_emits_structural_metadata(provider):
                     ev["relevance_scorer_bypass"] = "api_adapter_canonical_source"
                     bypassed_total += 1
                     kept.append(ev)
+                    logger.info(
+                        f"[SCORER AUDIT] claim={claim_pos} kept(bypass) score=1 "
+                        f"provider={provider} url={url}"
+                    )
                 else:
                     ev["receipt_status"] = "excluded"
                     ev["exclusion_reason"] = "irrelevant"
                     ev["_claim_position"] = int(claim_pos)
                     excluded_items.append(ev)
                     excluded_total += 1
+                    logger.warning(
+                        f"[SCORER AUDIT] claim={claim_pos} excluded score=1 "
+                        f"url={url} rationale='{rationale}'"
+                    )
             else:
                 kept.append(ev)
+                if score is not None:
+                    logger.info(
+                        f"[SCORER AUDIT] claim={claim_pos} kept score={score} "
+                        f"url={url} rationale='{rationale}'"
+                    )
         evidence[claim_pos] = kept
     if excluded_items:
         evidence["_excluded"] = excluded_items

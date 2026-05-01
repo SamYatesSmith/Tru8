@@ -270,6 +270,11 @@ class BraveSearchProvider(BaseSearchProvider):
                 f"BRAVE FRESHNESS: Using '{freshness}' for time-sensitive claim"
             )
 
+        logger.info(
+            f"[SEARCH PAYLOAD] provider=brave count={params['count']} "
+            f"country={params.get('country', '-')} freshness={params['freshness']} q='{query[:60]}'"
+        )
+
         # Retry configuration
         max_retries = 3
         retry_delays = [5.0, 10.0, 20.0]  # Exponential backoff: 5s, 10s, 20s
@@ -488,6 +493,11 @@ class SerpAPIProvider(BaseSearchProvider):
             if country_code is not None:
                 params["gl"] = country_code.lower()
 
+            logger.info(
+                f"[SEARCH PAYLOAD] provider=serpapi num={params['num']} "
+                f"gl={params.get('gl', '-')} tbs={params['tbs']} q='{query[:60]}'"
+            )
+
             # Use persistent client instead of creating new one each time
             client = await self._get_client()
             response = await client.get(self.base_url, params=params)
@@ -653,6 +663,11 @@ class SerperProvider(BaseSearchProvider):
             }
             if country_code is not None:
                 payload["gl"] = country_code.lower()
+
+            logger.info(
+                f"[SEARCH PAYLOAD] provider=serper num={payload['num']} "
+                f"gl={payload.get('gl', '-')} tbs={payload['tbs']} q='{query[:60]}'"
+            )
 
             client = await self._get_client()
             response = await client.post(
