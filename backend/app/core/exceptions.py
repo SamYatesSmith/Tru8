@@ -160,6 +160,21 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
         },
     )
 
+    # Capture server errors (5xx) to Sentry. 4xx is client error
+    # (expected traffic — auth, validation, not-found) and would be
+    # noise. global_exception_handler captures uncaught exceptions;
+    # this branch covers explicit `raise HTTPException(status_code=5xx, ...)`
+    # paths that would otherwise be invisible in production.
+    if exc.status_code >= 500 and settings.SENTRY_DSN:
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("path", request.url.path)
+            scope.set_tag("method", request.method)
+            scope.set_tag("status_code", exc.status_code)
+            scope.set_tag("error_code", error_code)
+            if request_id:
+                scope.set_tag("request_id", request_id)
+            sentry_sdk.capture_exception(exc)
+
     return JSONResponse(
         status_code=exc.status_code,
         content=_build_error_response(
@@ -182,11 +197,13 @@ async def validation_exception_handler(
     errors = []
     for error in exc.errors():
         field = ".".join(str(loc) for loc in error["loc"])
-        errors.append({
-            "field": field,
-            "message": error["msg"],
-            "type": error["type"],
-        })
+        errors.append(
+            {
+                "field": field,
+                "message": error["msg"],
+                "type": error["type"],
+            }
+        )
 
     logger.warning(
         "Validation error on %s: %d field(s) invalid",
