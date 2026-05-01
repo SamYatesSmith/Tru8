@@ -17,18 +17,23 @@ COPY shared/ ./shared/
 # Copy web source
 COPY web/ ./web/
 
-# Build-time environment variables (public only - safe to expose)
+# Build-time environment variables (public only - safe to expose).
+# NEXT_PUBLIC_* values are inlined into the client bundle at build
+# time; without an ARG line here, Railway's runtime env var is
+# invisible to `npm run build` and the inlined value is `undefined`.
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_STRIPE_PRICE_ID_PRO
 ARG NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=false
+ARG NEXT_PUBLIC_SENTRY_DSN
 
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_STRIPE_PRICE_ID_PRO=$NEXT_PUBLIC_STRIPE_PRICE_ID_PRO
 ENV NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=$NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 
 # Build the web app
 WORKDIR /app/web
