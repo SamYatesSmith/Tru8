@@ -1037,3 +1037,233 @@ class TestEndToEnd:
                 assert ex["receipt_status"] == "excluded"
                 assert ex["exclusion_reason"] == "irrelevant"
                 assert ex["llm_relevance_score"] == 1
+
+
+class TestCacheDriftFix:
+    """Regression tests for the evidence_index drift bug.
+
+    Background: cached scores are keyed by evidence_index, which is
+    positional within selected_evidence. selected_evidence order
+    derived from evidence.items() iteration, which used to vary
+    between fresh-retrieve (asyncio.gather completion order) and
+    cache-hit (claims-list order) — same cache key, different
+    selected_evidence ordering, scores attached to wrong items.
+
+    Fix: sort evidence dict keys deterministically before flattening,
+    so evidence_index is stable across runs regardless of insertion
+    order.
+    """
+
+    @pytest.mark.asyncio
+    async def test_same_scores_regardless_of_dict_insertion_order(self):
+        """Two evidence dicts with identical data but different
+        insertion order must produce identical per-URL scoring."""
+
+        # Build two dicts with the SAME items but different insertion order
+        items_0 = [make_evidence(f"http://a.com/{i}") for i in range(3)]
+        items_1 = [make_evidence(f"http://b.com/{i}") for i in range(2)]
+
+        evidence_run_a = {}
+        evidence_run_a["0"] = items_0
+        evidence_run_a["1"] = items_1
+
+        evidence_run_b = {}
+        evidence_run_b["1"] = items_1  # opposite insertion order
+        evidence_run_b["0"] = items_0
+
+        claims = ["Claim about topic A", "Claim about topic B"]
+
+        # Mock LLM scorer: scores items by URL deterministically.
+        # If the fix works, both runs will see the same URL → score
+        # mapping regardless of evidence_index ordering.
+        url_to_intended_score = {
+            "http://a.com/0": 5,
+            "http://a.com/1": 1,
+            "http://a.com/2": 3,
+            "http://b.com/0": 1,
+            "http://b.com/1": 4,
+        }
+
+        async def mock_score_google(claims_arg, evidence_items, article_context):
+            # Return scores in the order evidence_items were given,
+            # using the URL to determine the intended score. This
+            # mirrors what a real LLM would do — score each item
+            # based on its content, not its position.
+            scores = []
+            for i, ev in enumerate(evidence_items):
+                scores.append(
+                    {
+                        "evidence_index": i,
+                        "score": url_to_intended_score[ev["url"]],
+                        "rationale": f"score for {ev['url']}",
+                        "relevant_claims": [],
+                    }
+                )
+            return scores
+
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            side_effect=mock_score_google,
+        ), patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores", return_value=None
+        ), patch(
+            "app.pipeline.relevance_scorer.settings"
+        ) as mock_settings:
+
+            mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
+            mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 50
+
+            result_a = await score_evidence_batch(
+                claims, evidence_run_a, "test article"
+            )
+            result_b = await score_evidence_batch(
+                claims, evidence_run_b, "test article"
+            )
+
+        # Build url → score maps from each run
+        def url_score_map(result):
+            mapping = {}
+            for key, ev_list in result.items():
+                if key.startswith("_"):
+                    continue
+                for ev in ev_list:
+                    mapping[ev["url"]] = ev.get("llm_relevance_score")
+            for ex in result.get("_excluded", []):
+                mapping[ex["url"]] = ex.get("llm_relevance_score")
+            return mapping
+
+        map_a = url_score_map(result_a)
+        map_b = url_score_map(result_b)
+
+        # Each URL should get the same score in both runs
+        assert map_a == map_b, (
+            f"Insertion order changed scoring outcome.\n"
+            f"Run A: {map_a}\nRun B: {map_b}"
+        )
+
+        # And every URL should get the score the LLM intended for it
+        for url, intended in url_to_intended_score.items():
+            assert (
+                map_a[url] == intended
+            ), f"URL {url} expected score {intended}, got {map_a[url]}"
+
+    @pytest.mark.asyncio
+    async def test_cached_scores_apply_to_correct_items_with_reordered_dict(self):
+        """Cached scores written under one insertion order must apply
+        to the SAME items when read back under different ordering.
+
+        This is the exact scenario observed in TRU-DB75 (write) →
+        TRU-50BA (read): cache write happened with one dict order,
+        cache read consumed it with another.
+        """
+
+        items_0 = [make_evidence(f"http://a.com/{i}") for i in range(3)]
+        items_1 = [make_evidence(f"http://b.com/{i}") for i in range(2)]
+
+        # Run A: dict ordered ["0", "1"] — simulates cache write
+        evidence_run_a = {"0": items_0, "1": items_1}
+
+        # Run B: dict ordered ["1", "0"] — simulates cache read on
+        # a different order (e.g. asyncio.gather completion order)
+        evidence_run_b = {"1": items_1, "0": items_0}
+
+        claims = ["Claim A", "Claim B"]
+
+        # Cached scores written under deterministic-sorted ordering.
+        # After the fix, this is what would actually be stored —
+        # evidence_index follows the sorted-keys flatten.
+        # Items in sort order: a/0, a/1, a/2, b/0, b/1
+        cached_scores = [
+            {
+                "evidence_index": 0,
+                "score": 5,
+                "rationale": "a/0",
+                "relevant_claims": [],
+            },
+            {
+                "evidence_index": 1,
+                "score": 1,
+                "rationale": "a/1",
+                "relevant_claims": [],
+            },
+            {
+                "evidence_index": 2,
+                "score": 3,
+                "rationale": "a/2",
+                "relevant_claims": [],
+            },
+            {
+                "evidence_index": 3,
+                "score": 1,
+                "rationale": "b/0",
+                "relevant_claims": [],
+            },
+            {
+                "evidence_index": 4,
+                "score": 4,
+                "rationale": "b/1",
+                "relevant_claims": [],
+            },
+        ]
+
+        async def mock_get_cached(*args, **kwargs):
+            return cached_scores
+
+        with patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            side_effect=mock_get_cached,
+        ), patch("app.pipeline.relevance_scorer.settings") as mock_settings:
+
+            mock_settings.ENABLE_LLM_RELEVANCE_SCORER = True
+            mock_settings.LLM_RELEVANCE_MAX_EVIDENCE = 50
+
+            result_a = await score_evidence_batch(
+                claims, evidence_run_a, "test article"
+            )
+            result_b = await score_evidence_batch(
+                claims, evidence_run_b, "test article"
+            )
+
+        def url_score_map(result):
+            mapping = {}
+            for key, ev_list in result.items():
+                if key.startswith("_"):
+                    continue
+                for ev in ev_list:
+                    mapping[ev["url"]] = ev.get("llm_relevance_score")
+            for ex in result.get("_excluded", []):
+                mapping[ex["url"]] = ex.get("llm_relevance_score")
+            return mapping
+
+        map_a = url_score_map(result_a)
+        map_b = url_score_map(result_b)
+
+        # Both runs must produce identical url→score mapping
+        assert map_a == map_b, (
+            f"Cached scores misaligned across dict orderings.\n"
+            f"Run A: {map_a}\nRun B: {map_b}"
+        )
+
+        # And the scores must match what was cached for each URL
+        expected = {
+            "http://a.com/0": 5,
+            "http://a.com/1": 1,
+            "http://a.com/2": 3,
+            "http://b.com/0": 1,
+            "http://b.com/1": 4,
+        }
+        assert map_a == expected, f"Expected {expected}, got {map_a}"
+
+    def test_cache_key_prefix_is_v2(self):
+        """Confirm the cache prefix bumped — old entries written under
+        the pre-fix index ordering must not be served to post-fix code."""
+        from app.pipeline.relevance_scorer import _generate_cache_key
+
+        key = _generate_cache_key(["claim"], ["http://a.com"])
+        assert key.startswith("relevance:v2:"), (
+            f"Cache prefix must be relevance:v2: to invalidate "
+            f"pre-fix entries, got {key}"
+        )

@@ -155,7 +155,25 @@ def _generate_cache_key(claims: List[str], evidence_urls: List[str]) -> str:
     content = json.dumps(
         {"claims": claims, "urls": sorted(evidence_urls)}, sort_keys=True
     )
-    return f"relevance:{hashlib.md5(content.encode()).hexdigest()}"
+    # v2 prefix: invalidates pre-2026-05-01 entries written before the
+    # evidence_index alignment fix in score_evidence_batch. Old entries
+    # were keyed identically but stored scores under index positions
+    # that depended on dict insertion order; reading them back into a
+    # different ordering corrupted score-to-item mapping.
+    return f"relevance:v2:{hashlib.md5(content.encode()).hexdigest()}"
+
+
+def _claim_pos_sort_key(claim_pos: str):
+    """Stable sort key for claim positions.
+
+    Numeric positions sort numerically; non-numeric tail-sort lexically.
+    Underscore-prefixed keys (e.g. _excluded) are filtered separately
+    by callers and should not be passed here.
+    """
+    try:
+        return (0, int(claim_pos))
+    except (ValueError, TypeError):
+        return (1, claim_pos)
 
 
 def _fair_select_evidence(
@@ -551,11 +569,17 @@ async def score_evidence_batch(
     if not claims or not evidence:
         return evidence
 
-    # Flatten all evidence items while tracking their original position
+    # Flatten all evidence items while tracking their original position.
+    # Sort claim_pos deterministically: scoring uses positional
+    # evidence_index, so insertion-order variance between fresh and
+    # cached retrievals would otherwise misalign cached scores to items.
     all_evidence = []
     evidence_positions = []  # Track (claim_position, index_in_claim_list)
 
-    for claim_pos, ev_list in evidence.items():
+    for claim_pos in sorted(evidence.keys(), key=_claim_pos_sort_key):
+        if claim_pos.startswith("_"):
+            continue
+        ev_list = evidence[claim_pos]
         for idx, ev in enumerate(ev_list):
             all_evidence.append(ev)
             evidence_positions.append((claim_pos, idx))

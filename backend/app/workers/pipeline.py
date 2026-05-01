@@ -194,6 +194,20 @@ async def retrieve_evidence_with_cache(
                     logger.info(
                         f"[CACHE HIT] Claim {position}: retrieved {len(cached_result)} cached evidence items"
                     )
+                    # URL ledger emission for cache-hit replays.
+                    # The ledger in retrieve.py only fires on fresh
+                    # _apply_evidence_filters runs, so without this
+                    # cache-hit checks would have no per-URL audit
+                    # trail at the retrieve stage.
+                    for ev in cached_result:
+                        url_short = (ev.get("url") or "")[:120]
+                        provider = ev.get("external_source_provider")
+                        source_type = "api" if provider else "web"
+                        logger.info(
+                            f"[URL LEDGER] claim={position} kept(cached) "
+                            f"type={source_type} provider={provider or '-'} "
+                            f"url={url_short}"
+                        )
                     continue
             # If no cache or no cached result, add to uncached list
             uncached_claims.append(claim)

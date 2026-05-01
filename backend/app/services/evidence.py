@@ -18,6 +18,45 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
+def get_runtime_blocked_domains() -> set:
+    """Return the runtime blocklist of bot-blocked + timed-out domains.
+
+    Used by EvidenceService at extraction time AND by the post-filter
+    recovery loop in runner.py — both paths must apply the same
+    blocklist or recovery items leak past it (the facebook leak fix).
+
+    Returns each observed domain plus its ``www.`` prefix variant so
+    substring matching catches both forms.
+    """
+    try:
+        tracker = get_domain_tracker()
+        bot_blocked = tracker.get_domains_by_status(DomainStatus.BOT_BLOCKED)
+        timed_out = tracker.get_domains_by_status(DomainStatus.TIMEOUT)
+        blocked = set()
+        for d in (*bot_blocked, *timed_out):
+            domain = d.get("domain", "")
+            if not domain:
+                continue
+            blocked.add(domain)
+            blocked.add(f"www.{domain}")
+        return blocked
+    except Exception as e:
+        logger.warning(f"Failed to load runtime blocked domains: {e}")
+        return {"yahoo.com", "www.yahoo.com"}
+
+
+def is_domain_blocked(url: str, blocked_domains: set) -> bool:
+    """Substring-match a URL's domain against the runtime blocklist.
+
+    Mirrors the check at ``EvidenceService._extract_from_page`` so the
+    recovery path applies identical semantics.
+    """
+    if not url or not blocked_domains:
+        return False
+    domain = extract_domain(url, fallback="unknown").lower()
+    return any(blocked in domain for blocked in blocked_domains)
+
+
 class EvidenceSnippet:
     """Extracted evidence snippet with metadata"""
 
@@ -192,19 +231,9 @@ class EvidenceExtractor:
         or return partial content.
         """
         try:
-            tracker = get_domain_tracker()
-            bot_blocked = tracker.get_domains_by_status(DomainStatus.BOT_BLOCKED)
-            timed_out = tracker.get_domains_by_status(DomainStatus.TIMEOUT)
-
-            self.blocked_domains = set()
-            for d in (*bot_blocked, *timed_out):
-                domain = d.get("domain", "")
-                self.blocked_domains.add(domain)
-                self.blocked_domains.add(f"www.{domain}")
-
+            self.blocked_domains = get_runtime_blocked_domains()
             logger.info(
-                f"[EVIDENCE] Loaded {len(self.blocked_domains)} blocked domains "
-                f"({len(bot_blocked)} bot-blocked, {len(timed_out)} timeout)"
+                f"[EVIDENCE] Loaded {len(self.blocked_domains)} blocked domains"
             )
         except Exception as e:
             logger.warning(f"[EVIDENCE] Failed to load blocked domains: {e}")

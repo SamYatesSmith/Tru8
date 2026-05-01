@@ -1515,8 +1515,19 @@ async def run_pipeline_phase2(
             stage_start = datetime.now(timezone.utc)
             try:
                 from app.services.search import SearchService
+                from app.services.evidence import (
+                    get_runtime_blocked_domains,
+                    is_domain_blocked,
+                )
 
                 recovery_search = SearchService()
+                # Recovery items used to be appended straight to the
+                # evidence dict without consulting the runtime blocklist
+                # — that allowed bot-blocked domains (notably facebook.com)
+                # to leak in via search snippets when the URL itself was
+                # never fetched. Apply the same blocklist EvidenceService
+                # uses at extraction time.
+                recovery_blocklist = get_runtime_blocked_domains()
                 existing_urls = set()
                 for ev_list in evidence.values():
                     for ev in ev_list:
@@ -1536,8 +1547,19 @@ async def run_pipeline_phase2(
                             claim_text, max_results=10, freshness="py"
                         )
                         added = 0
+                        dropped_blocked = 0
                         for r in results:
                             if r.url in existing_urls:
+                                continue
+                            if is_domain_blocked(r.url, recovery_blocklist):
+                                dropped_blocked += 1
+                                logger.info(
+                                    f"[URL LEDGER] claim={pos} dropped(recovery) "
+                                    f"type=web provider=- stage=blocklist "
+                                    f"reason='runtime_blocked_domain' "
+                                    f"url={(r.url or '')[:120]}"
+                                )
+                                existing_urls.add(r.url)
                                 continue
                             evidence[pos].append(
                                 {
@@ -1556,13 +1578,23 @@ async def run_pipeline_phase2(
                                     "metadata": {"post_filter_recovery": True},
                                 }
                             )
+                            logger.info(
+                                f"[URL LEDGER] claim={pos} kept(recovery) "
+                                f"type=web provider=- "
+                                f"url={(r.url or '')[:120]}"
+                            )
                             existing_urls.add(r.url)
                             added += 1
                             if len(ev_list) >= MIN_EVIDENCE_POST_FILTER:
                                 break
-                        if added > 0:
+                        if added > 0 or dropped_blocked > 0:
                             logger.info(
                                 f"[POST-FILTER RECOVERY] Claim {pos}: added {added} items → {len(ev_list)} total"
+                                + (
+                                    f" ({dropped_blocked} blocked-domain dropped)"
+                                    if dropped_blocked
+                                    else ""
+                                )
                             )
                     except Exception as e:
                         logger.warning(
