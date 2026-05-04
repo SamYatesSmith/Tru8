@@ -13,7 +13,9 @@ from app.utils.article_classifier import (
     VALID_JURISDICTIONS,
     URL_PATTERN_CACHE,
     _check_url_pattern_cache,
+    _inject_mechanical_secondaries,
     classify_article_sync,
+    enrich_classification_with_entities,
 )
 
 
@@ -354,3 +356,229 @@ class TestClassifyArticleSync:
         )
         assert result.primary_domain == "Science"
         assert result.jurisdiction == "Global"
+
+
+# ── B1a: mechanical secondary injection from typed entities ─────────────
+
+
+def _mk_classification(**overrides) -> ArticleClassification:
+    """Build a minimal ArticleClassification for injection tests."""
+    defaults = dict(
+        primary_domain="General",
+        secondary_domains=[],
+        jurisdiction="Global",
+        confidence=80,
+        reasoning="test",
+        source="llm_primary",
+        temporal_context="",
+        key_entities=[],
+        evidence_guidance="",
+    )
+    defaults.update(overrides)
+    return ArticleClassification(**defaults)
+
+
+class TestInjectMechanicalSecondaries:
+    """B1a injection rules R1-R5."""
+
+    # ── Rule fires ──────────────────────────────────────────────────────
+
+    def test_r1_law_entity_injects_law(self):
+        c = _mk_classification(primary_domain="Climate")
+        entities = [{"text": "Climate Change Act 2008", "type": "LAW"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert "Law" in result.secondary_domains
+
+    def test_r2_government_org_injects_politics(self):
+        c = _mk_classification(primary_domain="Finance")
+        entities = [{"text": "Ofcom", "type": "ORG"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert "Politics" in result.secondary_domains
+
+    def test_r3_research_org_injects_science(self):
+        c = _mk_classification(primary_domain="Climate")
+        entities = [{"text": "NASA", "type": "ORG"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert "Science" in result.secondary_domains
+
+    def test_r4_market_org_injects_finance(self):
+        c = _mk_classification(primary_domain="Climate")
+        entities = [{"text": "BP plc", "type": "ORG"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert "Finance" in result.secondary_domains
+
+    def test_r5_location_sets_jurisdiction_when_global(self):
+        c = _mk_classification(jurisdiction="Global")
+        entities = [{"text": "London", "type": "LOCATION"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert result.jurisdiction == "UK"
+
+    # ── Dedupe semantics ────────────────────────────────────────────────
+
+    def test_entity_matching_primary_is_skipped(self):
+        c = _mk_classification(primary_domain="Law")
+        entities = [{"text": "Equality Act 2010", "type": "LAW"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert "Law" not in result.secondary_domains
+
+    def test_entity_matching_existing_secondary_is_skipped(self):
+        c = _mk_classification(primary_domain="Climate", secondary_domains=["Law"])
+        entities = [{"text": "Climate Change Act 2008", "type": "LAW"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        # Still only one Law entry
+        assert result.secondary_domains.count("Law") == 1
+
+    def test_bank_of_england_collision_does_not_double_inject(self):
+        # Bank of England appears in both _GOV_BODIES (R2) and _MARKET_BODIES (R4).
+        # Both rules fire, but the resulting secondaries dedupe correctly.
+        c = _mk_classification(primary_domain="Climate")
+        entities = [{"text": "Bank of England", "type": "ORG"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert "Politics" in result.secondary_domains
+        assert "Finance" in result.secondary_domains
+        assert len(result.secondary_domains) == 2
+
+    # ── Cap + swap policy ───────────────────────────────────────────────
+
+    def test_llm_zero_secondaries_inject_two(self):
+        c = _mk_classification(primary_domain="Climate")
+        entities = [
+            {"text": "Climate Change Act 2008", "type": "LAW"},
+            {"text": "Ofcom", "type": "ORG"},
+        ]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert set(result.secondary_domains) == {"Law", "Politics"}
+
+    def test_overflow_swaps_unsupported_llm_secondary(self):
+        # LLM picked Sports + Entertainment (no entity backing). Entities
+        # say Law + Politics. We're at cap=2 so overflow path: drop one
+        # unsupported LLM secondary, accept one entity secondary.
+        c = _mk_classification(
+            primary_domain="Climate",
+            secondary_domains=["Sports", "Entertainment"],
+        )
+        entities = [
+            {"text": "Climate Change Act 2008", "type": "LAW"},
+            {"text": "Ofcom", "type": "ORG"},
+        ]
+        result = _inject_mechanical_secondaries(c, entities)
+        # Cap respected
+        assert len(result.secondary_domains) == 2
+        # At least one of the entity-derived secondaries got in
+        assert (
+            "Law" in result.secondary_domains or "Politics" in result.secondary_domains
+        )
+
+    def test_all_llm_secondaries_entity_backed_no_swap(self):
+        # LLM picked Law + Politics; entities also say Law + Finance.
+        # Law is already there (skip); Finance hits overflow; both LLM
+        # secondaries are entity-backed (Law via LAW, Politics via Ofcom)
+        # — swap rule declines, Finance dropped.
+        c = _mk_classification(
+            primary_domain="Climate",
+            secondary_domains=["Law", "Politics"],
+        )
+        entities = [
+            {"text": "Equality Act 2010", "type": "LAW"},
+            {"text": "Ofcom", "type": "ORG"},
+            {"text": "BP plc", "type": "ORG"},
+        ]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert result.secondary_domains == ["Law", "Politics"]
+        assert "Finance" not in result.secondary_domains
+
+    # ── Negative / no-op paths ─────────────────────────────────────────
+
+    def test_person_event_product_entities_do_not_inject(self):
+        c = _mk_classification(primary_domain="Politics")
+        entities = [
+            {"text": "Joe Biden", "type": "PERSON"},
+            {"text": "G20 Summit", "type": "EVENT"},
+            {"text": "iPhone", "type": "PRODUCT"},
+        ]
+        original = list(c.secondary_domains)
+        result = _inject_mechanical_secondaries(c, entities)
+        assert result.secondary_domains == original
+
+    def test_empty_entities_list_no_op(self):
+        c = _mk_classification(
+            primary_domain="Politics",
+            secondary_domains=["Finance"],
+        )
+        result = _inject_mechanical_secondaries(c, [])
+        assert result.secondary_domains == ["Finance"]
+
+    def test_malformed_entities_skipped(self):
+        c = _mk_classification(primary_domain="Climate")
+        entities = [
+            {"text": "", "type": "LAW"},  # empty text
+            {"text": "NASA"},  # missing type
+            {"type": "ORG"},  # missing text
+            {"text": "Ofcom", "type": "ORG"},  # the only valid one
+        ]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert result.secondary_domains == ["Politics"]
+
+    def test_jurisdiction_not_overridden_when_llm_decided(self):
+        # LLM picked US. LOCATION entity says London (UK). LLM wins.
+        c = _mk_classification(jurisdiction="US")
+        entities = [{"text": "London", "type": "LOCATION"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert result.jurisdiction == "US"
+
+    def test_unknown_location_does_not_change_jurisdiction(self):
+        c = _mk_classification(jurisdiction="Global")
+        entities = [{"text": "Atlantis", "type": "LOCATION"}]
+        result = _inject_mechanical_secondaries(c, entities)
+        assert result.jurisdiction == "Global"
+
+
+class TestEnrichClassificationWithEntities:
+    """Orchestrator that flattens claim-level entities and calls injection."""
+
+    def test_none_classification_returns_none(self):
+        claims = [{"key_entities": [{"text": "NASA", "type": "ORG"}]}]
+        assert enrich_classification_with_entities(None, claims) is None
+
+    def test_empty_claims_returns_unchanged(self):
+        c = _mk_classification(primary_domain="Politics")
+        result = enrich_classification_with_entities(c, [])
+        assert result is c
+        assert result.secondary_domains == []
+
+    def test_flattens_entities_across_claims(self):
+        c = _mk_classification(primary_domain="Climate")
+        claims = [
+            {"key_entities": [{"text": "Climate Change Act 2008", "type": "LAW"}]},
+            {"key_entities": [{"text": "Ofcom", "type": "ORG"}]},
+            {"key_entities": []},
+            {},  # no key_entities key at all
+        ]
+        result = enrich_classification_with_entities(c, claims)
+        assert "Law" in result.secondary_domains
+        assert "Politics" in result.secondary_domains
+
+    def test_tru_cf0a_7e27_regression_shape(self):
+        # The motivating production case: BP + Energy Act, classifier
+        # picked Finance/Global with no secondaries. Mechanical injection
+        # should add Law (from LAW entity) and Politics (from gov ORG)
+        # is NOT triggered here because Energy Act is LAW not ORG.
+        c = _mk_classification(
+            primary_domain="Finance",
+            secondary_domains=[],
+            jurisdiction="Global",
+        )
+        claims = [
+            {
+                "key_entities": [
+                    {"text": "BP plc", "type": "ORG"},
+                    {"text": "Energy Act 2008", "type": "LAW"},
+                    {"text": "United Kingdom", "type": "LOCATION"},
+                ]
+            }
+        ]
+        result = enrich_classification_with_entities(c, claims)
+        # Finance is primary — BP wouldn't add Finance again
+        assert "Finance" not in result.secondary_domains
+        assert "Law" in result.secondary_domains
+        assert result.jurisdiction == "UK"

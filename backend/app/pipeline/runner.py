@@ -419,7 +419,10 @@ async def run_pipeline_phase1(
         ingest_content_async,
         extract_claims_with_cache,
     )
-    from app.utils.article_classifier import classify_article
+    from app.utils.article_classifier import (
+        classify_article,
+        enrich_classification_with_entities,
+    )
     from app.services.search import warmup_search_providers
 
     warmup_search_providers()
@@ -516,6 +519,14 @@ async def run_pipeline_phase1(
             "Questions are accepted if they imply a verifiable claim.",
             stage="extract",
         )
+
+    # B1a: enrich classification with mechanical secondaries / jurisdiction
+    # derived from NF-15 typed entities. Runs after extract because the
+    # classifier itself fires before claims exist. Pure function — safe to
+    # call on every check; no-op when classification is None.
+    article_classification = enrich_classification_with_entities(
+        article_classification, claims
+    )
 
     # If input was a question and no explicit user_query, use it as search context
     if not input_data.get("user_query"):

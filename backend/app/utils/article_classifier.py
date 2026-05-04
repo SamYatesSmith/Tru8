@@ -95,6 +95,354 @@ VALID_DOMAINS = [
 VALID_JURISDICTIONS = ["UK", "US", "EU", "Global"]
 
 
+# ── B1a: mechanical secondary injection from NF-15 typed entities ──────
+#
+# The classifier sometimes returns empty `secondary_domains` on multi-signal
+# claims (TRU-CF0A-7E27: BP + Energy Act → Finance/Global, no Politics or
+# Law). When secondaries are empty, the NF-09 cap-widening can't fire and
+# cross-domain specialists get cap-victimised silently. These mechanical
+# rules run after the LLM and add entity-derived secondaries.
+#
+# Curated frozensets — high precision over recall. Seeded from observed
+# production cases; expand as new misses surface. See decision log
+# 2026-05-04 in audit/pipeline-issues/2026-04-22_remediation-plan.md.
+#
+# Entity normalisation: lower-cased, stripped. Match is exact on the
+# normalised text.
+
+# R2 — Government / regulator ORGs that signal Politics domain.
+_GOV_BODIES = frozenset(
+    {
+        # UK
+        "ofcom",
+        "ofsted",
+        "ofgem",
+        "ofwat",
+        "fca",
+        "hmrc",
+        "hm treasury",
+        "bank of england",
+        "nhs",
+        "nhs england",
+        "defra",
+        "dwp",
+        "dft",
+        "mod",
+        "home office",
+        "foreign office",
+        "fcdo",
+        "downing street",
+        "house of commons",
+        "house of lords",
+        "uk parliament",
+        "cabinet office",
+        # US
+        "sec",
+        "fda",
+        "cdc",
+        "epa",
+        "fcc",
+        "ftc",
+        "doj",
+        "department of justice",
+        "department of state",
+        "department of defense",
+        "pentagon",
+        "treasury",
+        "federal reserve",
+        "fbi",
+        "cia",
+        "nsa",
+        "white house",
+        # EU
+        "european commission",
+        "european parliament",
+        "european council",
+        "ecb",
+        "european central bank",
+        "esma",
+    }
+)
+
+# R3 — Research bodies / scientific agencies that signal Science domain.
+# Excludes universities (Oxford published a poetry anthology — too ambiguous).
+_RESEARCH_BODIES = frozenset(
+    {
+        "nasa",
+        "esa",
+        "european space agency",
+        "cern",
+        "noaa",
+        "usgs",
+        "nih",
+        "national institutes of health",
+        "nsf",
+        "nist",
+        "royal society",
+        "max planck",
+        "fraunhofer",
+        "cnrs",
+        "csiro",
+        "national academy of sciences",
+        "ipcc",
+        "wmo",
+    }
+)
+
+# R4 — Major market-listed corporates / central banks that signal Finance.
+# Bank of England / Federal Reserve / ECB also appear in _GOV_BODIES;
+# both can inject (deduped at the secondary list level, not at rule level).
+_MARKET_BODIES = frozenset(
+    {
+        # FTSE-100 majors
+        "bp",
+        "bp plc",
+        "shell",
+        "shell plc",
+        "hsbc",
+        "barclays",
+        "lloyds",
+        "natwest",
+        "rio tinto",
+        "glencore",
+        "astrazeneca",
+        "gsk",
+        "unilever",
+        "diageo",
+        "vodafone",
+        "tesco",
+        "sainsbury",
+        "marks & spencer",
+        # US majors
+        "exxonmobil",
+        "exxon",
+        "chevron",
+        "apple",
+        "microsoft",
+        "alphabet",
+        "google",
+        "meta",
+        "facebook",
+        "amazon",
+        "tesla",
+        "jpmorgan",
+        "goldman sachs",
+        "morgan stanley",
+        "berkshire hathaway",
+        # Central banks
+        "bank of england",
+        "federal reserve",
+        "ecb",
+        "european central bank",
+        "bank of japan",
+    }
+)
+
+# R5 — Canonical city/country → jurisdiction map. Same shape as the
+# _NOAA_CITY_TO_FIPS map from NF-18.
+_LOCATION_TO_JURISDICTION = {
+    # UK cities
+    "london": "UK",
+    "manchester": "UK",
+    "birmingham": "UK",
+    "liverpool": "UK",
+    "leeds": "UK",
+    "glasgow": "UK",
+    "edinburgh": "UK",
+    "cardiff": "UK",
+    "belfast": "UK",
+    "bristol": "UK",
+    "sheffield": "UK",
+    "newcastle": "UK",
+    # UK countries
+    "united kingdom": "UK",
+    "uk": "UK",
+    "great britain": "UK",
+    "britain": "UK",
+    "england": "UK",
+    "scotland": "UK",
+    "wales": "UK",
+    "northern ireland": "UK",
+    # US cities
+    "new york": "US",
+    "los angeles": "US",
+    "chicago": "US",
+    "houston": "US",
+    "phoenix": "US",
+    "philadelphia": "US",
+    "san francisco": "US",
+    "boston": "US",
+    "washington": "US",
+    "miami": "US",
+    "atlanta": "US",
+    "seattle": "US",
+    "denver": "US",
+    # US countries
+    "united states": "US",
+    "usa": "US",
+    "america": "US",
+    # EU cities
+    "paris": "EU",
+    "berlin": "EU",
+    "rome": "EU",
+    "madrid": "EU",
+    "amsterdam": "EU",
+    "brussels": "EU",
+    "vienna": "EU",
+    "stockholm": "EU",
+    "copenhagen": "EU",
+    "dublin": "EU",
+    "warsaw": "EU",
+    "lisbon": "EU",
+    "athens": "EU",
+    "frankfurt": "EU",
+    # EU countries
+    "france": "EU",
+    "germany": "EU",
+    "italy": "EU",
+    "spain": "EU",
+    "netherlands": "EU",
+    "belgium": "EU",
+    "austria": "EU",
+    "sweden": "EU",
+    "denmark": "EU",
+    "finland": "EU",
+    "ireland": "EU",
+    "poland": "EU",
+    "portugal": "EU",
+    "greece": "EU",
+    "european union": "EU",
+}
+
+# Mirrors retrieve.py::_NF09_MAX_SECONDARIES. Hardcoded here to avoid an
+# import cycle (article_classifier is a leaf utility; retrieve imports it).
+_MAX_SECONDARIES = 2
+
+
+def _inject_mechanical_secondaries(
+    classification: "ArticleClassification",
+    entities: List[Dict[str, str]],
+) -> "ArticleClassification":
+    """B1a: add entity-derived secondaries / jurisdiction to a classification.
+
+    Additive only — never removes the LLM's secondaries unless the cap is
+    hit AND an LLM secondary has no entity backing (single swap rule).
+
+    Entities have shape {"text": "...", "type": "ORG|PERSON|LAW|EVENT|..."}
+    as produced by NF-15 in app/pipeline/extract.py. Mutates and returns
+    the passed classification.
+    """
+    if not entities:
+        return classification
+
+    # Dedupe + normalise. Skip empty / malformed entries defensively.
+    seen = set()
+    deduped = []
+    for e in entities:
+        text = (e.get("text") or "").strip()
+        etype = (e.get("type") or "").strip().upper()
+        if not text or not etype:
+            continue
+        norm = text.lower()
+        key = (norm, etype)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append({"text": text, "type": etype, "_norm": norm})
+
+    if not deduped:
+        return classification
+
+    # Compute entity-derived secondaries in priority order.
+    entity_derived: List[str] = []
+    if any(e["type"] == "LAW" for e in deduped):
+        entity_derived.append("Law")
+    if any(e["type"] == "ORG" and e["_norm"] in _GOV_BODIES for e in deduped):
+        if "Politics" not in entity_derived:
+            entity_derived.append("Politics")
+    if any(e["type"] == "ORG" and e["_norm"] in _RESEARCH_BODIES for e in deduped):
+        if "Science" not in entity_derived:
+            entity_derived.append("Science")
+    if any(e["type"] == "ORG" and e["_norm"] in _MARKET_BODIES for e in deduped):
+        if "Finance" not in entity_derived:
+            entity_derived.append("Finance")
+
+    entity_derived_set = set(entity_derived)
+    original_secondaries = list(classification.secondary_domains)
+    secondaries = list(original_secondaries)
+
+    for ed in entity_derived:
+        if ed == classification.primary_domain:
+            continue
+        if ed in secondaries:
+            continue
+        if len(secondaries) < _MAX_SECONDARIES:
+            secondaries.append(ed)
+        else:
+            # Overflow — single swap if any LLM secondary lacks entity backing.
+            unsupported = [s for s in secondaries if s not in entity_derived_set]
+            if unsupported:
+                secondaries.remove(unsupported[-1])
+                secondaries.append(ed)
+            # else: all LLM secondaries are entity-backed; respect LLM, drop new injection.
+
+    # R5 — LOCATION → jurisdiction. Only fill in when LLM returned Global
+    # (i.e. couldn't decide). Don't override a confident UK/US/EU.
+    original_jurisdiction = classification.jurisdiction
+    if classification.jurisdiction == "Global":
+        for e in deduped:
+            if e["type"] == "LOCATION":
+                derived = _LOCATION_TO_JURISDICTION.get(e["_norm"])
+                if derived:
+                    classification.jurisdiction = derived
+                    break
+
+    classification.secondary_domains = secondaries
+
+    if (
+        entity_derived
+        or secondaries != original_secondaries
+        or classification.jurisdiction != original_jurisdiction
+    ):
+        added = [s for s in secondaries if s not in original_secondaries]
+        removed = [s for s in original_secondaries if s not in secondaries]
+        logger.info(
+            f"[CLASSIFICATION INJECT] primary={classification.primary_domain} "
+            f"entity_derived={entity_derived} added={added} removed={removed} "
+            f"final_secondaries={secondaries} "
+            f"jurisdiction={original_jurisdiction}->{classification.jurisdiction}"
+        )
+
+    return classification
+
+
+def enrich_classification_with_entities(
+    classification: Optional["ArticleClassification"],
+    claims: List[Dict[str, Any]],
+) -> Optional["ArticleClassification"]:
+    """B1a entry point — flatten typed entities from extracted claims and
+    inject mechanical secondaries / jurisdiction into the classification.
+
+    No-op when classification is None or claims list is empty / has no
+    typed entities. Pure function over the inputs (modulo classification
+    field mutation).
+
+    Called from runner.py after extract_claims_with_cache so entities
+    are available; the classifier itself runs before extract and has no
+    access to entities.
+    """
+    if classification is None or not claims:
+        return classification
+
+    flat_entities: List[Dict[str, str]] = []
+    for claim in claims:
+        for ent in claim.get("key_entities") or []:
+            if isinstance(ent, dict):
+                flat_entities.append(ent)
+
+    return _inject_mechanical_secondaries(classification, flat_entities)
+
+
 def detect_jurisdiction_from_text(text: str) -> str:
     """Lightweight keyword-based jurisdiction detection for focused mode.
 
