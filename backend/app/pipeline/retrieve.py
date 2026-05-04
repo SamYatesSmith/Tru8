@@ -258,6 +258,10 @@ class EvidenceRetriever:
                                 "text": claim.get("text", ""),
                                 "claim_index": i,
                                 "elements": elem_list,
+                                # B4: typed entities for freshness injection
+                                # (NF-15 DATE entities → mechanical "none" override
+                                # for historical claims).
+                                "key_entities": claim.get("key_entities") or [],
                             }
                         )
 

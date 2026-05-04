@@ -15,6 +15,7 @@ Key Features:
 
 import logging
 import json
+import re
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 import httpx
@@ -22,6 +23,92 @@ from app.core.config import settings
 from app.services.google_ai import call_google_ai
 
 logger = logging.getLogger(__name__)
+
+
+# B4: Mechanical freshness injection for historical claims.
+#
+# The LLM rubric maps "historical" → "py" (Brave/Google qdr:y = past 12 months
+# from today), which excludes original-period evidence for any event >12 months
+# ago. Live observation: TRU-341B-764F (London 2022 heatwave) and TRU-82CF-2F81
+# (BP 2022 profits) returned zero 2022 articles because every search was
+# `tbs=qdr:y` filtered. The scorer correctly excluded the date-drifted items
+# (15/17 on the BP run) and the recovery loop filled with more off-period items.
+#
+# Same mechanical-compensator-at-LLM-seam pattern as B1a: scan the claim's
+# NF-15 typed entities for DATE values, extract the latest 4-digit year,
+# and if it's strictly less than current_year, force freshness="none".
+#
+# See audit/pipeline-issues/2026-04-22_remediation-plan.md decision log
+# 2026-05-04 (B4 / NF-20).
+
+_YEAR_RE = re.compile(r"\b(19\d{2}|20\d{2})\b")
+
+
+def _extract_max_year_from_entities(
+    entities: List[Dict[str, Any]],
+) -> Optional[int]:
+    """B4: latest 4-digit year mentioned in DATE-typed entities, or None."""
+    if not entities:
+        return None
+    max_year: Optional[int] = None
+    for ent in entities:
+        if not isinstance(ent, dict):
+            continue
+        if (ent.get("type") or "").upper() != "DATE":
+            continue
+        text = ent.get("text") or ""
+        for match in _YEAR_RE.finditer(text):
+            year = int(match.group(0))
+            if max_year is None or year > max_year:
+                max_year = year
+    return max_year
+
+
+def _inject_freshness_for_historical_dates(
+    plans: List[Dict[str, Any]],
+    claims_with_elements: List[Dict[str, Any]],
+    current_year: int,
+) -> List[Dict[str, Any]]:
+    """B4: override freshness="none" on plans whose claim has a DATE entity
+    referring to a year strictly before current_year.
+
+    Mutates plans in place and returns the same list. No-op when no claim
+    has a parseable DATE entity.
+    """
+    claim_max_year: Dict[int, int] = {}
+    for claim in claims_with_elements:
+        idx = claim.get("claim_index", 0)
+        max_year = _extract_max_year_from_entities(claim.get("key_entities") or [])
+        if max_year is not None:
+            claim_max_year[idx] = max_year
+
+    if not claim_max_year:
+        return plans
+
+    overridden = 0
+    for plan in plans:
+        claim_idx = plan.get("claim_index", 0)
+        max_year = claim_max_year.get(claim_idx)
+        if max_year is None:
+            continue
+        if max_year < current_year:
+            old_freshness = plan.get("freshness", "py")
+            if old_freshness != "none":
+                plan["freshness"] = "none"
+                overridden += 1
+                logger.info(
+                    f"[FRESHNESS INJECT] claim={claim_idx} max_year={max_year} "
+                    f"current_year={current_year} '{old_freshness}'->'none' "
+                    f"(historical event, no time filter)"
+                )
+
+    if overridden:
+        logger.info(
+            f"[FRESHNESS INJECT] Overrode {overridden} plan(s) to "
+            f"freshness='none' for historical claims"
+        )
+
+    return plans
 
 
 # ============================================================
@@ -295,6 +382,12 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
                 query_plans, total_elements, element_texts
             )
 
+            # B4: mechanical freshness injection — historical claims get
+            # freshness="none" so original-period evidence isn't filtered out.
+            validated_plans = _inject_freshness_for_historical_dates(
+                validated_plans, claims_with_elements, datetime.now().year
+            )
+
             if len(validated_plans) < total_elements:
                 logger.warning(
                     f"[QUERY_PLANNER] Only {len(validated_plans)} plans for {total_elements} elements - some elements will use fallback"
@@ -373,7 +466,9 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
                 years the user typed in the claim are preserved verbatim.
         """
         validated = []
-        valid_freshness = {"pd", "pw", "pm", "py", "2y"}
+        # "none" is the B4 sentinel meaning "no freshness filter" — used by
+        # _inject_freshness_for_historical_dates for events >12 months ago.
+        valid_freshness = {"pd", "pw", "pm", "py", "2y", "none"}
         current_year = datetime.now().year
 
         for i, plan in enumerate(plans):

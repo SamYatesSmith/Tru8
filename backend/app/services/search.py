@@ -248,20 +248,24 @@ class BraveSearchProvider(BaseSearchProvider):
 
     async def _execute_search(self, query: str, **kwargs) -> List[SearchResult]:
         """Execute the actual search request with exponential backoff retry on 429 errors"""
-        # Freshness parameter: pd (past day), pw (past week), pm (past month), py (past year), 2y (2 years)
-        # Use passed freshness or default to 2y
+        # Freshness parameter: pd (past day), pw (past week), pm (past month),
+        # py (past year), 2y (2 years), or "none" (B4: no time filter — for
+        # historical claims so original-period evidence is not excluded).
         freshness = kwargs.get("freshness", "2y")
 
         country_code = kwargs.get("country", "gb")
         params = {
             "q": query,
             "count": min(kwargs.get("max_results", self.max_results), 20),
-            "freshness": freshness,
             "text_decorations": False,
             "search_lang": "en",
             "safesearch": "moderate",
             "extra_snippets": True,  # Get up to 5 snippets for better context (Pro plans only, ignored otherwise)
         }
+        # B4: omit freshness param entirely when "none" so Brave returns
+        # results from any time period.
+        if freshness != "none":
+            params["freshness"] = freshness
         if country_code is not None:
             params["country"] = country_code.upper()  # Brave uses uppercase: GB, US
 
@@ -272,7 +276,7 @@ class BraveSearchProvider(BaseSearchProvider):
 
         logger.info(
             f"[SEARCH PAYLOAD] provider=brave count={params['count']} "
-            f"country={params.get('country', '-')} freshness={params['freshness']} q='{query[:60]}'"
+            f"country={params.get('country', '-')} freshness={params.get('freshness', 'none')} q='{query[:60]}'"
         )
 
         # Retry configuration
@@ -396,13 +400,15 @@ class BraveSearchProvider(BaseSearchProvider):
 class SerpAPIProvider(BaseSearchProvider):
     """SerpAPI Google Search implementation"""
 
-    # Mapping from Brave freshness to Google tbs parameter
+    # Mapping from Brave freshness to Google tbs parameter.
+    # "none" → empty string sentinel; _execute_search omits tbs entirely.
     FRESHNESS_TO_TBS = {
         "pd": "qdr:d",  # past day
         "pw": "qdr:w",  # past week
         "pm": "qdr:m",  # past month
         "py": "qdr:y",  # past year
         "2y": "qdr:y2",  # 2 years (default)
+        "none": "",  # B4: no time filter (historical claims)
     }
 
     def __init__(self):
@@ -488,14 +494,17 @@ class SerpAPIProvider(BaseSearchProvider):
                 "api_key": self.api_key,
                 "num": min(kwargs.get("max_results", self.max_results), 20),
                 "hl": "en",
-                "tbs": tbs_value,
             }
+            # B4: omit tbs entirely when freshness="none" so Google returns
+            # results from any time period (historical claims).
+            if tbs_value:
+                params["tbs"] = tbs_value
             if country_code is not None:
                 params["gl"] = country_code.lower()
 
             logger.info(
                 f"[SEARCH PAYLOAD] provider=serpapi num={params['num']} "
-                f"gl={params.get('gl', '-')} tbs={params['tbs']} q='{query[:60]}'"
+                f"gl={params.get('gl', '-')} tbs={params.get('tbs', 'none')} q='{query[:60]}'"
             )
 
             # Use persistent client instead of creating new one each time
@@ -591,13 +600,15 @@ class SerpAPIProvider(BaseSearchProvider):
 class SerperProvider(BaseSearchProvider):
     """Serper.dev Google Search implementation (high-throughput secondary provider)"""
 
-    # Reuse same freshness-to-tbs mapping as SerpAPI
+    # Reuse same freshness-to-tbs mapping as SerpAPI.
+    # "none" → empty string sentinel; _execute_search omits tbs entirely.
     FRESHNESS_TO_TBS = {
         "pd": "qdr:d",  # past day
         "pw": "qdr:w",  # past week
         "pm": "qdr:m",  # past month
         "py": "qdr:y",  # past year
         "2y": "qdr:y2",  # 2 years (default)
+        "none": "",  # B4: no time filter (historical claims)
     }
 
     def __init__(self):
@@ -659,14 +670,17 @@ class SerperProvider(BaseSearchProvider):
                 "q": query,
                 "num": min(kwargs.get("max_results", self.max_results), 20),
                 "hl": "en",
-                "tbs": tbs_value,
             }
+            # B4: omit tbs entirely when freshness="none" so Google returns
+            # results from any time period (historical claims).
+            if tbs_value:
+                payload["tbs"] = tbs_value
             if country_code is not None:
                 payload["gl"] = country_code.lower()
 
             logger.info(
                 f"[SEARCH PAYLOAD] provider=serper num={payload['num']} "
-                f"gl={payload.get('gl', '-')} tbs={payload['tbs']} q='{query[:60]}'"
+                f"gl={payload.get('gl', '-')} tbs={payload.get('tbs', 'none')} q='{query[:60]}'"
             )
 
             client = await self._get_client()

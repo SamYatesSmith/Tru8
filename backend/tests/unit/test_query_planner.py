@@ -481,3 +481,199 @@ class TestArticleContextIntegration:
             assert "Politics" in user_message
             assert "December 2024" in user_message
             assert "Congress" in user_message
+
+
+# ── B4: mechanical freshness injection from typed entities ──────────────
+
+
+class TestExtractMaxYearFromEntities:
+    """B4 helper: latest 4-digit year from DATE-typed entities."""
+
+    def test_returns_none_for_empty_list(self):
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        assert _extract_max_year_from_entities([]) is None
+
+    def test_returns_none_for_no_date_entities(self):
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        entities = [
+            {"text": "BP plc", "type": "ORG"},
+            {"text": "London", "type": "LOCATION"},
+        ]
+        assert _extract_max_year_from_entities(entities) is None
+
+    def test_extracts_single_year(self):
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        entities = [{"text": "19 July 2022", "type": "DATE"}]
+        assert _extract_max_year_from_entities(entities) == 2022
+
+    def test_extracts_year_only_text(self):
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        entities = [{"text": "2022", "type": "DATE"}]
+        assert _extract_max_year_from_entities(entities) == 2022
+
+    def test_returns_max_across_multiple_dates(self):
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        entities = [
+            {"text": "2018", "type": "DATE"},
+            {"text": "December 2024", "type": "DATE"},
+            {"text": "March 2020", "type": "DATE"},
+        ]
+        assert _extract_max_year_from_entities(entities) == 2024
+
+    def test_ignores_non_year_numbers(self):
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        # 1234 is not a year (regex matches 19xx/20xx only)
+        entities = [{"text": "1234 cases", "type": "DATE"}]
+        assert _extract_max_year_from_entities(entities) is None
+
+    def test_case_insensitive_type_match(self):
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        entities = [{"text": "2022", "type": "date"}]
+        assert _extract_max_year_from_entities(entities) == 2022
+
+    def test_skips_malformed_entities(self):
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        entities = [
+            "not a dict",
+            {"type": "DATE"},  # missing text
+            {"text": "2022", "type": "DATE"},  # the only valid one
+            None,
+        ]
+        assert _extract_max_year_from_entities(entities) == 2022
+
+
+class TestInjectFreshnessForHistoricalDates:
+    """B4: post-LLM freshness override for historical claims."""
+
+    def test_overrides_py_to_none_for_historical_year(self):
+        from app.utils.query_planner import _inject_freshness_for_historical_dates
+
+        plans = [
+            {"claim_index": 0, "freshness": "py", "queries": ["BP profit 2022"]},
+        ]
+        claims = [
+            {
+                "claim_index": 0,
+                "key_entities": [{"text": "2022", "type": "DATE"}],
+            }
+        ]
+        result = _inject_freshness_for_historical_dates(
+            plans, claims, current_year=2026
+        )
+        assert result[0]["freshness"] == "none"
+
+    def test_does_not_override_for_current_year(self):
+        from app.utils.query_planner import _inject_freshness_for_historical_dates
+
+        plans = [{"claim_index": 0, "freshness": "py"}]
+        claims = [
+            {
+                "claim_index": 0,
+                "key_entities": [{"text": "March 2026", "type": "DATE"}],
+            }
+        ]
+        result = _inject_freshness_for_historical_dates(
+            plans, claims, current_year=2026
+        )
+        assert result[0]["freshness"] == "py"
+
+    def test_does_not_override_when_no_date_entity(self):
+        from app.utils.query_planner import _inject_freshness_for_historical_dates
+
+        plans = [{"claim_index": 0, "freshness": "py"}]
+        claims = [
+            {
+                "claim_index": 0,
+                "key_entities": [{"text": "BP plc", "type": "ORG"}],
+            }
+        ]
+        result = _inject_freshness_for_historical_dates(
+            plans, claims, current_year=2026
+        )
+        assert result[0]["freshness"] == "py"
+
+    def test_does_not_override_when_no_entities_field(self):
+        from app.utils.query_planner import _inject_freshness_for_historical_dates
+
+        plans = [{"claim_index": 0, "freshness": "py"}]
+        claims = [{"claim_index": 0}]  # no key_entities at all
+        result = _inject_freshness_for_historical_dates(
+            plans, claims, current_year=2026
+        )
+        assert result[0]["freshness"] == "py"
+
+    def test_overrides_only_matching_claim_index(self):
+        from app.utils.query_planner import _inject_freshness_for_historical_dates
+
+        plans = [
+            {"claim_index": 0, "freshness": "py"},
+            {"claim_index": 1, "freshness": "pw"},
+        ]
+        claims = [
+            {
+                "claim_index": 0,
+                "key_entities": [{"text": "2022", "type": "DATE"}],
+            },
+            {
+                "claim_index": 1,
+                "key_entities": [{"text": "2026", "type": "DATE"}],
+            },
+        ]
+        result = _inject_freshness_for_historical_dates(
+            plans, claims, current_year=2026
+        )
+        assert result[0]["freshness"] == "none"  # historical, overridden
+        assert result[1]["freshness"] == "pw"  # current year, untouched
+
+    def test_no_op_when_no_claim_has_year(self):
+        from app.utils.query_planner import _inject_freshness_for_historical_dates
+
+        plans = [{"claim_index": 0, "freshness": "py"}]
+        claims = [{"claim_index": 0, "key_entities": []}]
+        result = _inject_freshness_for_historical_dates(
+            plans, claims, current_year=2026
+        )
+        assert result[0]["freshness"] == "py"
+
+    def test_idempotent_when_already_none(self):
+        from app.utils.query_planner import _inject_freshness_for_historical_dates
+
+        plans = [{"claim_index": 0, "freshness": "none"}]
+        claims = [
+            {
+                "claim_index": 0,
+                "key_entities": [{"text": "2022", "type": "DATE"}],
+            }
+        ]
+        result = _inject_freshness_for_historical_dates(
+            plans, claims, current_year=2026
+        )
+        assert result[0]["freshness"] == "none"
+
+
+class TestValidateFreshnessNoneIsAccepted:
+    """B4: 'none' is now a valid freshness value."""
+
+    def test_validate_plans_accepts_none_freshness(self):
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        plans = [
+            {
+                "claim_index": 0,
+                "element_id": "e1",
+                "queries": ["historical query"],
+                "freshness": "none",
+                "reasoning": "Historical event",
+            }
+        ]
+        validated = planner._validate_plans(plans, 1)
+        assert validated[0]["freshness"] == "none"
