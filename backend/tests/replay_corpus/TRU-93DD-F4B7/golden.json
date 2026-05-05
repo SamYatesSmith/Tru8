@@ -1,0 +1,92 @@
+{
+  "claim_id": "TRU-93DD-F4B7",
+  "captured_at": "2026-05-05T10:44:26.758912+00:00",
+  "captured_with": "280e534",
+  "captured_with_known_bugs": [],
+  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "hard_invariants": {
+    "freshness_inject_must_fire_on_claims": [
+      0
+    ],
+    "must_have_url_substrings": [],
+    "must_not_have_url_substrings": [],
+    "expected_adapters_subset": [],
+    "coverage_recovery_failures_max": 6
+  },
+  "tolerant_counters": {
+    "sources_included": {
+      "value": 14,
+      "tolerance": 8
+    },
+    "claims": {
+      "value": 1,
+      "tolerance": 1
+    },
+    "elements": {
+      "value": 3,
+      "tolerance": 3
+    },
+    "web_search": {
+      "value": 19,
+      "tolerance": 8
+    },
+    "api_adapters": {
+      "value": 0,
+      "tolerance": 8
+    },
+    "tier_commentary": {
+      "value": 1,
+      "tolerance": 4
+    },
+    "tier_primary": {
+      "value": 11,
+      "tolerance": 5
+    },
+    "tier_reporting": {
+      "value": 2,
+      "tolerance": 4
+    }
+  },
+  "set_jaccard": {
+    "url_ledger_flat": {
+      "golden": [
+        "https://community.netweather.tv/topic/95008-february-2021-cet-and-ewp-forecast-contests/page/9/",
+        "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/t/february-2/",
+        "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.19",
+        "https://pynck.com/2021/01/ceciles-top-picks-of-whats-on-in-edinburgh-february-2021.html",
+        "https://weather.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/interesti",
+        "https://weatherspark.com/h/m/38026/2021/2/Historical-Weather-in-February-2021-in-Edinburgh-United-Kingdom",
+        "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh...",
+        "https://www.alledinburghtheatre.com/2021/02/11/",
+        "https://www.bbc.com/pages/content-index/2021/02/11?page=27",
+        "https://www.dailyrecord.co.uk/news/scottish-news/temperatures-plummet-22c-scotland-records-23481646",
+        "https://www.extremeweatherwatch.com/cities/edinburgh/day/february-25",
+        "https://www.extremeweatherwatch.com/cities/edinburgh/year-2021",
+        "https://www.forres-gazette.co.uk/news/coldest-night-for-26-years-227783/",
+        "https://www.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/summaries/uk_",
+        "https://www.parliament.scot/chamber-and-committees/official-report/search-what-was-said-in-parliament/dplr-11-02-2021?me",
+        "https://www.scotsman.com/archive/2021-02-11",
+        "https://www.timeanddate.com/weather/uk/edinburgh/climate",
+        "https://www.weatherapi.com/weather/q/Edinburgh"
+      ],
+      "min_similarity": 0.35
+    },
+    "domain_set": {
+      "golden": [
+        "dailyrecord.co.uk",
+        "en.climate-data.org",
+        "extremeweatherwatch.com",
+        "forres-gazette.co.uk",
+        "metoffice.gov.uk",
+        "ncei.noaa.gov",
+        "open-meteo.com",
+        "pynck.com",
+        "timeanddate.com",
+        "weather.metoffice.gov.uk",
+        "weatherapi.com",
+        "weatherspark.com"
+      ],
+      "min_similarity": 0.3
+    }
+  }
+}

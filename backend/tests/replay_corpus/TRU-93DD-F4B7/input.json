@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-93DD-F4B7",
+  "description": "Edinburgh weather — NF-18 wired prepare_query path (NOAA CDO end-to-end)",
+  "tests": ["NF-18 4-bug cluster fix", "NOAA CDO city → FIPS lookup", "DATE-entity-driven date window"],
+  "input_type": "text",
+  "content": "Edinburgh recorded its lowest February temperature in 60 years at -16°C on 11 February 2021.",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "focused",
+  "selected_positions": [0]
+}

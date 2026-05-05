@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-B4A3-C42D",
+  "description": "Liz Truss mini-budget — Phase B verification (B1a + B4 + Phase C target case + .co.uk blocking)",
+  "tests": ["B1a classification inject", "B4 freshness inject", "NF-11 Growth Plan exclusion", "SC-11 .co.uk gap (BoE)", "NF-21 coverage recovery"],
+  "input_type": "text",
+  "content": "Liz Truss's mini-budget on 23 September 2022 caused 30-year UK gilt yields to spike to 5.1%, prompting Bank of England emergency intervention.",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "article",
+  "selected_positions": [0, 1, 2]
+}

@@ -1,0 +1,85 @@
+{
+  "claim_id": "TRU-A3E8-3199",
+  "captured_at": "2026-05-05T10:45:23.876797+00:00",
+  "captured_with": "280e534",
+  "captured_with_known_bugs": [],
+  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "hard_invariants": {
+    "must_have_url_substrings": [],
+    "must_not_have_url_substrings": [],
+    "expected_adapters_subset": [],
+    "coverage_recovery_failures_max": 6
+  },
+  "tolerant_counters": {
+    "sources_included": {
+      "value": 10,
+      "tolerance": 8
+    },
+    "claims": {
+      "value": 1,
+      "tolerance": 1
+    },
+    "elements": {
+      "value": 3,
+      "tolerance": 3
+    },
+    "web_search": {
+      "value": 19,
+      "tolerance": 8
+    },
+    "api_adapters": {
+      "value": 0,
+      "tolerance": 8
+    },
+    "tier_commentary": {
+      "value": 1,
+      "tolerance": 4
+    },
+    "tier_primary": {
+      "value": 2,
+      "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 7,
+      "tolerance": 4
+    }
+  },
+  "set_jaccard": {
+    "url_ledger_flat": {
+      "golden": [
+        "https://en.wikipedia.org/wiki/Greenland_shark",
+        "https://en.wikipedia.org/wiki/Leopard_shark",
+        "https://en.wikipedia.org/wiki/Megalodon",
+        "https://en.wikipedia.org/wiki/Pacific_sleeper_shark",
+        "https://en.wikipedia.org/wiki/Whale_shark",
+        "https://insideclimatenews.org/news/16042026/great-white-sharks-ocean-warming/",
+        "https://trackingsharks.com/2026-shark-attack-map/",
+        "https://www.bristolpost.co.uk/news/uk-world-news/shark-fin-spotted-uk-coast-10649464",
+        "https://www.countryfile.com/wildlife/marine-life/are-there-any-great-white-sharks-in-uk-waters",
+        "https://www.express.co.uk/news/uk/2051898/seven-foot-great-white-shark-spotted-uk-coast",
+        "https://www.gbif.org/species/113272801",
+        "https://www.gbif.org/species/206230133",
+        "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
+        "https://www.msn.com/en-za/news/other/great-white-sharks-could-soon-appear-in-britain-thanks-to-warming-seas-experts-warn",
+        "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
+        "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
+        "https://www.youtube.com/watch?v=_swHuC5uFys"
+      ],
+      "min_similarity": 0.35
+    },
+    "domain_set": {
+      "golden": [
+        "bristolpost.co.uk",
+        "countryfile.com",
+        "express.co.uk",
+        "gbif.org",
+        "gbnews.com",
+        "insideclimatenews.org",
+        "msn.com",
+        "theguardian.com",
+        "tiktok.com"
+      ],
+      "min_similarity": 0.3
+    }
+  }
+}

@@ -1,0 +1,329 @@
+{
+  "allowlist_bypassed_domains": [],
+  "analyzer_summary": {
+    "domains": 35,
+    "items": 42,
+    "urls": 42
+  },
+  "article_classification": "Finance",
+  "b3_receipts": {
+    "excluded": 0,
+    "shown": 11,
+    "unmapped": 31
+  },
+  "classifier_inject": {
+    "added": [],
+    "entity_derived": [
+      "Politics",
+      "Finance"
+    ],
+    "final_secondaries": [
+      "Politics"
+    ],
+    "jurisdiction_from": "UK",
+    "jurisdiction_to": "UK",
+    "primary": "Finance",
+    "removed": []
+  },
+  "classifier_overrides": [
+    {
+      "from_tier": "commentary",
+      "from_type": "academic",
+      "to_tier": "primary",
+      "to_type": "academic",
+      "url_prefix": "https://www.researchgate.net/publication/370219335_Britain's"
+    },
+    {
+      "from_tier": "commentary",
+      "from_type": "academic",
+      "to_tier": "primary",
+      "to_type": "academic",
+      "url_prefix": "https://www.sciencedirect.com/science/article/abs/pii/S03044"
+    },
+    {
+      "from_tier": "commentary",
+      "from_type": "analysis",
+      "to_tier": "primary",
+      "to_type": "academic",
+      "url_prefix": "https://niesr.ac.uk/blog/could-gilt-market-shock-derail-econ"
+    },
+    {
+      "from_tier": "reporting",
+      "from_type": "news_reporting",
+      "to_tier": "primary",
+      "to_type": "data",
+      "url_prefix": "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-e"
+    },
+    {
+      "from_tier": "commentary",
+      "from_type": "analysis",
+      "to_tier": "primary",
+      "to_type": "data",
+      "url_prefix": "https://www.economicshelp.org/blog/2597/interest-rates/how-t"
+    },
+    {
+      "from_tier": "reporting",
+      "from_type": "news_reporting",
+      "to_tier": "primary",
+      "to_type": "data",
+      "url_prefix": "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-e"
+    },
+    {
+      "from_tier": "commentary",
+      "from_type": "analysis",
+      "to_tier": "primary",
+      "to_type": "academic",
+      "url_prefix": "https://niesr.ac.uk/blog/truss-kwarteng-mini-budget-one-year"
+    }
+  ],
+  "coverage_recovery_done": null,
+  "coverage_recovery_failures": 0,
+  "domain_distribution": {
+    "ajbell.co.uk": 1,
+    "annpettifor.substack.com": 1,
+    "bankofengland.co.uk": 3,
+    "bbc.com": 2,
+    "bishopfleming.co.uk": 1,
+    "blackrock.com": 1,
+    "bloomberg.com": 2,
+    "bsic.it": 1,
+    "cbreim.com": 1,
+    "cipp.org.uk": 1,
+    "cnbc.com": 1,
+    "commonslibrary.parliament.uk": 1,
+    "dsburge.co.uk": 1,
+    "economics.stackexchange.com": 1,
+    "economicshelp.org": 2,
+    "fsb.org": 1,
+    "fullfact.org": 1,
+    "icmagroup.org": 1,
+    "ifs.org.uk": 1,
+    "kids.kiddle.co": 1,
+    "lovewell-blake.co.uk": 1,
+    "mallowstreet.com": 1,
+    "media.quilter.com": 1,
+    "mitchellcharlesworth.co.uk": 1,
+    "niesr.ac.uk": 2,
+    "quiltercheviot.com": 1,
+    "researchgate.net": 1,
+    "resolutionfoundation.org": 1,
+    "rte.ie": 2,
+    "sciencedirect.com": 1,
+    "theguardian.com": 1,
+    "thisismoney.co.uk": 1,
+    "tradingeconomics.com": 1,
+    "trustnet.com": 1,
+    "vanguard.co.uk": 1
+  },
+  "domain_set": [
+    "ajbell.co.uk",
+    "annpettifor.substack.com",
+    "bankofengland.co.uk",
+    "bbc.com",
+    "bishopfleming.co.uk",
+    "blackrock.com",
+    "bloomberg.com",
+    "bsic.it",
+    "cbreim.com",
+    "cipp.org.uk",
+    "cnbc.com",
+    "commonslibrary.parliament.uk",
+    "dsburge.co.uk",
+    "economics.stackexchange.com",
+    "economicshelp.org",
+    "fsb.org",
+    "fullfact.org",
+    "icmagroup.org",
+    "ifs.org.uk",
+    "kids.kiddle.co",
+    "lovewell-blake.co.uk",
+    "mallowstreet.com",
+    "media.quilter.com",
+    "mitchellcharlesworth.co.uk",
+    "niesr.ac.uk",
+    "quiltercheviot.com",
+    "researchgate.net",
+    "resolutionfoundation.org",
+    "rte.ie",
+    "sciencedirect.com",
+    "theguardian.com",
+    "thisismoney.co.uk",
+    "tradingeconomics.com",
+    "trustnet.com",
+    "vanguard.co.uk"
+  ],
+  "factchecks_per_claim": {
+    "0": 1
+  },
+  "final_adapter_set": [
+    "Companies House",
+    "GOV.UK Content API",
+    "Marketaux",
+    "ONS Economic Statistics",
+    "UK Parliament Hansard",
+    "World Bank"
+  ],
+  "freshness_inject_per_claim": {
+    "0": {
+      "current_year": 2026,
+      "fired": true,
+      "from": "py",
+      "max_year": 2022,
+      "to": "none"
+    }
+  },
+  "pipeline_metrics": {
+    "api_adapters": 0,
+    "claims": 3,
+    "elements": 8,
+    "llm_calls": 5,
+    "sources_considered": 43,
+    "sources_included": 42,
+    "web_search": 43
+  },
+  "scorer_excluded_per_claim": {
+    "0": 1,
+    "1": 1
+  },
+  "scorer_kept_per_claim": {
+    "0": 14,
+    "1": 13,
+    "2": 15
+  },
+  "scorer_summary": {
+    "excluded": 2,
+    "keeping": 42,
+    "scored": 44,
+    "total": 44
+  },
+  "tier_caps": [
+    {
+      "cap": 6,
+      "domain": "Finance",
+      "n_in": 9,
+      "n_out": 6,
+      "selected": [
+        "World Bank",
+        "Marketaux",
+        "ONS Economic Statistics",
+        "UK Parliament Hansard",
+        "GOV.UK Content API",
+        "Companies House"
+      ],
+      "victims": [
+        "UK Parliament Bills",
+        "Wikipedia",
+        "Internet Archive"
+      ]
+    }
+  ],
+  "tier_distribution": {
+    "commentary": 11,
+    "primary": 16,
+    "reporting": 15
+  },
+  "type_distribution": {
+    "academic": 4,
+    "analysis": 10,
+    "data": 3,
+    "news_reporting": 15,
+    "official_statement": 9,
+    "opinion": 1
+  },
+  "url_ledger_flat": [
+    "https://annpettifor.substack.com/p/blame-the-bank-of-england-for-bond",
+    "https://bsic.it/uk-in-transition-inside-the-gilt-market-turmoil/",
+    "https://commonslibrary.parliament.uk/research-briefings/cbp-9643/",
+    "https://economics.stackexchange.com/questions/57875/why-was-the-september-2022-united-kingdom-mini-budget-so-badly-recei",
+    "https://hansard.parliament.uk/commons/2025-11-27/debates/24A9775E-F739-4E12-B492-C837D3565DC6/BudgetResolutions",
+    "https://ifs.org.uk/publications/budget-and-bond-markets-when-youre-hole-stop-digging",
+    "https://kids.kiddle.co/September_2022_United_Kingdom_mini-budget",
+    "https://mallowstreet.com/Article/b77563",
+    "https://media.quilter.com/search/2025/three-years-on-from-disastrous-mini-budget-uk-government-bonds-remain-in-focus/",
+    "https://niesr.ac.uk/blog/could-gilt-market-shock-derail-economy-2026",
+    "https://niesr.ac.uk/blog/truss-kwarteng-mini-budget-one-year",
+    "https://tradingeconomics.com/united-kingdom/government-bond-yield/news/531319",
+    "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
+    "https://www.bankofengland.co.uk/markets/bank-of-england-market-operations-guide/our-objectives",
+    "https://www.bankofengland.co.uk/monetary-policy/quantitative-easing",
+    "https://www.bankofengland.co.uk/paper/2025/discussion-paper/enhancing-the-resilience-of-the-gilt-repo-market",
+    "https://www.bbc.com/news/business-62920969",
+    "https://www.bbc.com/news/business-66897881",
+    "https://www.bishopfleming.co.uk/insights/emergency-mini-budget-2022-glance",
+    "https://www.blackrock.com/corporate/literature/publication/boe-enhancing-the-resilience-of-the-gilt-repo-market-120825.p",
+    "https://www.bloomberg.com/news/articles/2022-09-23/liz-truss-s-historic-gamble-with-the-uk-economy-is-already-unraveling",
+    "https://www.bloomberg.com/news/articles/2026-03-23/gilts-face-worst-month-since-truss-as-oil-spike-jolts-uk-market",
+    "https://www.cbreim.com/insights/articles/assessing-risks-in-the-uk-s-risk-free-rate",
+    "https://www.cipp.org.uk/static/38ccda3a-f312-4756-8e40b2d6ca242530/Growth-Plan-Mini-budget-summary.pdf",
+    "https://www.cnbc.com/2026/03/25/uk-exchange-nesletter-gilts-bonds-iran-war-inflation.html",
+    "https://www.dsburge.co.uk/news/mini-budget-2022/",
+    "https://www.economicshelp.org/blog/219688/economics/how-liz-truss-crashed-the-uk-economy/",
+    "https://www.economicshelp.org/blog/2597/interest-rates/how-the-bank-of-england-set-interest-rates/",
+    "https://www.fsb.org/uploads/P040226.pdf",
+    "https://www.gov.uk/government/speeches/the-growth-plan-2022-speech",
+    "https://www.icmagroup.org/assets/documents/Regulatory/Repo/ICMA_BoE_Enhancing-the-resilience-of-the-gilt-repo-market_DP_",
+    "https://www.lovewell-blake.co.uk/mini-budget-september-2022",
+    "https://www.mitchellcharlesworth.co.uk/wp-content/uploads/2023/06/2022-09-24-mini-budget-summary.pdf",
+    "https://www.quiltercheviot.com/news-and-events/articles/gilt-markets-crisis-or-opportunity/",
+    "https://www.researchgate.net/publication/370219335_Britain's_economic_crisis_in_Mini-budget_perspective",
+    "https://www.resolutionfoundation.org/publications/the-obr-15-years-on/",
+    "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-england-rates-decision/",
+    "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-england-on-uk-economy/",
+    "https://www.sciencedirect.com/science/article/abs/pii/S0304405X25001904",
+    "https://www.theguardian.com/business/2022/oct/20/the-mini-budget-that-broke-britain-and-liz-truss",
+    "https://www.thisismoney.co.uk/money/markets/article-15670845/Households-face-FOUR-rate-hikes-year-Trumpflation-batters-B",
+    "https://www.trustnet.com/news/13458938/is-a-2022-style-gilt-sell-off-on-the-horizon",
+    "https://www.vanguard.co.uk/professional/insights/whats-driving-the-outlook-fo-gilt-returns"
+  ],
+  "url_ledger_per_claim": {
+    "0": [
+      "https://www.bishopfleming.co.uk/insights/emergency-mini-budget-2022-glance",
+      "https://www.theguardian.com/business/2022/oct/20/the-mini-budget-that-broke-britain-and-liz-truss",
+      "https://www.cipp.org.uk/static/38ccda3a-f312-4756-8e40b2d6ca242530/Growth-Plan-Mini-budget-summary.pdf",
+      "https://niesr.ac.uk/blog/truss-kwarteng-mini-budget-one-year",
+      "https://commonslibrary.parliament.uk/research-briefings/cbp-9643/",
+      "https://www.bloomberg.com/news/articles/2022-09-23/liz-truss-s-historic-gamble-with-the-uk-economy-is-already-unraveling",
+      "https://www.gov.uk/government/speeches/the-growth-plan-2022-speech",
+      "https://www.bbc.com/news/business-62920969",
+      "https://www.mitchellcharlesworth.co.uk/wp-content/uploads/2023/06/2022-09-24-mini-budget-summary.pdf",
+      "https://www.bbc.com/news/business-66897881",
+      "https://economics.stackexchange.com/questions/57875/why-was-the-september-2022-united-kingdom-mini-budget-so-badly-recei",
+      "https://www.lovewell-blake.co.uk/mini-budget-september-2022",
+      "https://www.dsburge.co.uk/news/mini-budget-2022/",
+      "https://kids.kiddle.co/September_2022_United_Kingdom_mini-budget"
+    ],
+    "1": [
+      "https://media.quilter.com/search/2025/three-years-on-from-disastrous-mini-budget-uk-government-bonds-remain-in-focus/",
+      "https://bsic.it/uk-in-transition-inside-the-gilt-market-turmoil/",
+      "https://www.quiltercheviot.com/news-and-events/articles/gilt-markets-crisis-or-opportunity/",
+      "https://hansard.parliament.uk/commons/2025-11-27/debates/24A9775E-F739-4E12-B492-C837D3565DC6/BudgetResolutions",
+      "https://www.thisismoney.co.uk/money/markets/article-15670845/Households-face-FOUR-rate-hikes-year-Trumpflation-batters-B",
+      "https://tradingeconomics.com/united-kingdom/government-bond-yield/news/531319",
+      "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
+      "https://ifs.org.uk/publications/budget-and-bond-markets-when-youre-hole-stop-digging",
+      "https://www.vanguard.co.uk/professional/insights/whats-driving-the-outlook-fo-gilt-returns",
+      "https://www.cbreim.com/insights/articles/assessing-risks-in-the-uk-s-risk-free-rate",
+      "https://www.trustnet.com/news/13458938/is-a-2022-style-gilt-sell-off-on-the-horizon",
+      "https://www.cnbc.com/2026/03/25/uk-exchange-nesletter-gilts-bonds-iran-war-inflation.html",
+      "https://mallowstreet.com/Article/b77563",
+      "https://www.bloomberg.com/news/articles/2026-03-23/gilts-face-worst-month-since-truss-as-oil-spike-jolts-uk-market"
+    ],
+    "2": [
+      "https://www.economicshelp.org/blog/219688/economics/how-liz-truss-crashed-the-uk-economy/",
+      "https://www.researchgate.net/publication/370219335_Britain's_economic_crisis_in_Mini-budget_perspective",
+      "https://www.bankofengland.co.uk/monetary-policy/quantitative-easing",
+      "https://www.resolutionfoundation.org/publications/the-obr-15-years-on/",
+      "https://www.bankofengland.co.uk/paper/2025/discussion-paper/enhancing-the-resilience-of-the-gilt-repo-market",
+      "https://www.icmagroup.org/assets/documents/Regulatory/Repo/ICMA_BoE_Enhancing-the-resilience-of-the-gilt-repo-market_DP_",
+      "https://www.blackrock.com/corporate/literature/publication/boe-enhancing-the-resilience-of-the-gilt-repo-market-120825.p",
+      "https://www.sciencedirect.com/science/article/abs/pii/S0304405X25001904",
+      "https://annpettifor.substack.com/p/blame-the-bank-of-england-for-bond",
+      "https://www.fsb.org/uploads/P040226.pdf",
+      "https://niesr.ac.uk/blog/could-gilt-market-shock-derail-economy-2026",
+      "https://www.bankofengland.co.uk/markets/bank-of-england-market-operations-guide/our-objectives",
+      "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-england-on-uk-economy/",
+      "https://www.economicshelp.org/blog/2597/interest-rates/how-the-bank-of-england-set-interest-rates/",
+      "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-england-rates-decision/"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-82CF-2F81",
+  "description": "BP / Energy Act — B1a LAW→Law entity-derived secondary",
+  "tests": ["B1a LAW entity → Law secondary", "cap widening", "Finance/UK adapter routing"],
+  "input_type": "text",
+  "content": "BP plc reported £28bn profit in 2022 under the Energy Act",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "article",
+  "selected_positions": [0, 1]
+}

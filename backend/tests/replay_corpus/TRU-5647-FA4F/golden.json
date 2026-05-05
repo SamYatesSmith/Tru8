@@ -1,0 +1,114 @@
+{
+  "claim_id": "TRU-5647-FA4F",
+  "captured_at": "2026-05-05T10:43:16.056048+00:00",
+  "captured_with": "280e534",
+  "captured_with_known_bugs": [],
+  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "hard_invariants": {
+    "freshness_inject_must_fire_on_claims": [
+      0
+    ],
+    "must_have_url_substrings": [],
+    "must_not_have_url_substrings": [],
+    "expected_adapters_subset": [],
+    "coverage_recovery_failures_max": 6
+  },
+  "tolerant_counters": {
+    "sources_included": {
+      "value": 22,
+      "tolerance": 8
+    },
+    "claims": {
+      "value": 2,
+      "tolerance": 1
+    },
+    "elements": {
+      "value": 6,
+      "tolerance": 3
+    },
+    "web_search": {
+      "value": 34,
+      "tolerance": 8
+    },
+    "api_adapters": {
+      "value": 0,
+      "tolerance": 8
+    },
+    "tier_commentary": {
+      "value": 6,
+      "tolerance": 4
+    },
+    "tier_primary": {
+      "value": 9,
+      "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 7,
+      "tolerance": 4
+    }
+  },
+  "set_jaccard": {
+    "url_ledger_flat": {
+      "golden": [
+        "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%20-%20Burt%20-%20Evaluation%20and%20verification%20of%20new%2",
+        "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
+        "https://doi.org/10.1007/s13753-024-00610-5",
+        "https://doi.org/10.1038/s41598-024-54495-x",
+        "https://doi.org/10.1109/tvt.2024.3355181",
+        "https://doi.org/10.1111/nyas.15148",
+        "https://doi.org/10.1186/s12864-024-10103-w",
+        "https://doi.org/10.1787/e09c21e2-en",
+        "https://engageenvironmentagency.uk.engagementhq.com/portreath-flood-resilience-proposal",
+        "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
+        "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
+        "https://timesofindia.indiatimes.com/world/uk/80-of-englands-high-risk-flood-homes-now-in-urban-areas/articleshow/1306052",
+        "https://www.bbc.com/news/articles/cgkp7ee4e2ro",
+        "https://www.bbc.com/news/articles/cwyx8v2q6j4o",
+        "https://www.bbc.com/news/science-environment-63244353",
+        "https://www.carbonbrief.org/science/temperature/uk-temperature/",
+        "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
+        "https://www.confused.com/home-insurance/flood-risk-map",
+        "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
+        "https://www.gov.uk/government/publications/state-of-the-estate-in-202425/state-of-the-estate-2024-25-html",
+        "https://www.gov.uk/government/publications/water-situation-national-monthly-reports-for-england-2026/water-situation-feb",
+        "https://www.gov.wales/decision-reports-2026",
+        "https://www.greenpeace.org/international/story/82686/climate-emergencies-photos-of-2026-so-far/",
+        "https://www.hackney.gov.uk/community-safety-and-environment/community-safety-and-crime-prevention/emergency-planning-and",
+        "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
+        "https://www.lse.ac.uk/granthaminstitute/extreme-heat-preparedness-and-resilience-in-the-uk/",
+        "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
+        "https://www.theguardian.com/environment/2026/apr/29/england-homes-high-risk-flooding-towns-cities-urban-environment-stud",
+        "https://www.theguardian.com/uk-news/2023/jul/27/2022-warmest-year-record-uk-met-office-extreme-heat",
+        "https://www.usatoday.com/press-release/story/31610/birmingham-businesses-owed-millions-top-debt-recovery-firm-urges-busi",
+        "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
+        "https://www.weatherapi.com/weather/q/London",
+        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
+      ],
+      "min_similarity": 0.4
+    },
+    "domain_set": {
+      "golden": [
+        "bbc.com",
+        "carbonbrief.org",
+        "centaur.reading.ac.uk",
+        "cnbc.com",
+        "community.netweather.tv",
+        "confused.com",
+        "engageenvironmentagency.uk.engagementhq.com",
+        "gov.uk",
+        "hackney.gov.uk",
+        "internetgeography.net",
+        "lse.ac.uk",
+        "ncei.noaa.gov",
+        "open-meteo.com",
+        "reddit.com",
+        "rmets.onlinelibrary.wiley.com",
+        "theguardian.com",
+        "timesofindia.indiatimes.com",
+        "weather.gov",
+        "worldweatherattribution.org"
+      ],
+      "min_similarity": 0.45
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-5647-FA4F",
+  "description": "London 40.3°C — NF-11 baseline reference (canonical scorer-leniency test)",
+  "tests": ["NF-11 baseline UK source coverage", "Climate routing", "B4 freshness inject (2022)"],
+  "input_type": "text",
+  "content": "London hit 40.3°C on 19 July 2022.  The damages are estimated at $1 billion across affected boroughs",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "article",
+  "selected_positions": [0, 1]
+}

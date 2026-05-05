@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-A3E8-3199",
+  "description": "Great whites in British waters — NF-07 hardening (API-adapter scorer bypass discrimination)",
+  "tests": ["NF-07-v2 emits_structural_metadata bypass", "GBIF species extraction", "biodiversity adapter routing"],
+  "input_type": "text",
+  "content": "Great white sharks are starting to inhabit British waters",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "focused",
+  "selected_positions": [0]
+}
