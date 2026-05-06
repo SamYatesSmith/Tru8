@@ -21,6 +21,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from app.models.claim_map import ElementState, EvidenceRelationship
 from app.pipeline.retrieve import EvidenceRetriever
 from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer, derive_orientation
+from app.services.search import SearchResult
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -444,6 +445,42 @@ class TestRetrieveForElements:
             "is_recovery",
         }
         assert set(evidence[0].keys()) == required_keys
+
+    @pytest.mark.asyncio
+    async def test_search_result_object_does_not_crash(self):
+        """Recovery loop accepts real SearchResult objects, not just dicts.
+
+        Regression for NF-21: search providers return SearchResult instances
+        (no `.get()` method); calling `r.get(...)` on them raised
+        AttributeError, silently failing recovery.
+        """
+        search_results = [
+            SearchResult(
+                title="Real SearchResult",
+                url="https://example.com/sr",
+                snippet="Snippet text from a real SearchResult instance",
+                published_date="2026-01-15",
+                source="example.com",
+            )
+        ]
+        retriever = self._make_retriever(search_results)
+        elements = [{"element_id": "e1", "description": "Test element"}]
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_RECOVERY_QUERY_PLANNING = False
+            mock_settings.RECOVERY_MAX_RESULTS_PER_ELEMENT = 5
+            mock_settings.ENABLE_RECOVERY_ENRICHMENT = False
+
+            evidence = await retriever.retrieve_for_elements(
+                elements=elements,
+                claim_text="Test claim",
+                existing_urls=set(),
+            )
+
+        assert len(evidence) == 1
+        assert evidence[0]["url"] == "https://example.com/sr"
+        assert evidence[0]["title"] == "Real SearchResult"
+        assert evidence[0]["content_basis"] == "snippet"
 
     @pytest.mark.asyncio
     async def test_one_query_per_element_naive(self):

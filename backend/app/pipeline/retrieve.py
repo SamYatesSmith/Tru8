@@ -956,7 +956,11 @@ class EvidenceRetriever:
                                     "coverage_recovery": True,
                                     "target_element": elem["element_id"],
                                 },
-                                "content_basis": r.get("content_basis", "snippet"),
+                                "content_basis": (
+                                    r.get("content_basis", "snippet")
+                                    if isinstance(r, dict)
+                                    else "snippet"
+                                ),
                                 "is_recovery": True,
                             }
                         )

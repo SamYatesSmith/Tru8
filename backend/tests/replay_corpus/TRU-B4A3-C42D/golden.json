@@ -18,7 +18,7 @@
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
     "expected_adapters_subset": [],
-    "coverage_recovery_failures_max": 6
+    "coverage_recovery_failures_max": 2
   },
   "tolerant_counters": {
     "sources_included": {
