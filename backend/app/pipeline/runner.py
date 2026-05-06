@@ -206,6 +206,105 @@ def extract_pipeline_metrics(
     )
 
 
+def _compute_element_resolution(claim_map: Optional[Dict[str, Any]]) -> float:
+    """V3 quality signal: fraction of claim_map elements with state != 'unresolved'.
+
+    Returns 0.0 if claim_map is missing or has no elements. Returns a rounded
+    fraction otherwise. Used by [B3 QUALITY] log.
+    """
+    if not isinstance(claim_map, dict):
+        return 0.0
+    elements = claim_map.get("elements", []) or []
+    if not elements:
+        return 0.0
+    resolved = 0
+    for elem in elements:
+        if not isinstance(elem, dict):
+            continue
+        state = elem.get("state")
+        if hasattr(state, "value"):
+            state = state.value
+        if state and state != "unresolved":
+            resolved += 1
+    return round(resolved / len(elements), 2)
+
+
+def _compute_claim_quality_signals(
+    claim_map: Optional[Dict[str, Any]], evidence_list: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """V3 quality signals: measure user-facing quality on MAPPED items only.
+
+    Computed after `_apply_post_mapping_receipts` has tagged items. Returns
+    per-claim signals that the bench captures and the verdict framework
+    consumes:
+
+      - mapped_count: items with receipt_status='shown'
+      - unique_domains: count of distinct domains in mapped set
+      - top_domain: (name, share) of dominant single domain
+      - wikipedia_share: fraction of mapped items on wikipedia.org
+      - tier_mix: counts per tier (primary/reporting/commentary)
+      - type_mix: counts per type (academic/official_statement/data/...)
+      - factual_weight_share: (academic + official_statement + data) / mapped
+      - element_resolution: fraction of claim_map elements not 'unresolved'
+
+    Mapping rate (retrieved → mapped) is tracked elsewhere as DIAGNOSTIC and
+    is deliberately NOT a quality signal — low mapping rate with high-quality
+    mapped items can still be excellent.
+    """
+    from app.utils.url_utils import extract_domain
+
+    mapped = [ev for ev in evidence_list if ev.get("receipt_status") == "shown"]
+    n = len(mapped)
+
+    base = {
+        "mapped_count": n,
+        "unique_domains": 0,
+        "top_domain": ("", 0.0),
+        "wikipedia_share": 0.0,
+        "tier_mix": {},
+        "type_mix": {},
+        "factual_weight_share": 0.0,
+        "element_resolution": _compute_element_resolution(claim_map),
+    }
+    if n == 0:
+        return base
+
+    domain_counts: Dict[str, int] = {}
+    tier_counts: Dict[str, int] = {}
+    type_counts: Dict[str, int] = {}
+
+    for ev in mapped:
+        url = ev.get("url", "") or ""
+        domain = extract_domain(url, fallback=ev.get("source", "unknown")) or "unknown"
+        domain_counts[domain] = domain_counts.get(domain, 0) + 1
+
+        tier = ev.get("tier") or "unclassified"
+        tier_counts[tier] = tier_counts.get(tier, 0) + 1
+
+        ev_type = ev.get("evidence_type") or "unclassified"
+        type_counts[ev_type] = type_counts.get(ev_type, 0) + 1
+
+    top_name, top_count = max(domain_counts.items(), key=lambda x: x[1])
+    wiki_count = sum(c for d, c in domain_counts.items() if "wikipedia.org" in d)
+    factual_count = (
+        type_counts.get("academic", 0)
+        + type_counts.get("official_statement", 0)
+        + type_counts.get("data", 0)
+    )
+
+    base.update(
+        {
+            "unique_domains": len(domain_counts),
+            "top_domain": (top_name, round(top_count / n, 2)),
+            "wikipedia_share": round(wiki_count / n, 2),
+            "tier_mix": tier_counts,
+            "type_mix": type_counts,
+            "factual_weight_share": round(factual_count / n, 2),
+        }
+    )
+    return base
+
+
 def _apply_post_mapping_receipts(
     claim_map: Optional[Dict[str, Any]], evidence_list: List[Dict[str, Any]]
 ) -> Dict[str, int]:
@@ -2211,6 +2310,29 @@ async def run_pipeline_phase2(
         f"unmapped={receipt_summary['unmapped']} "
         f"excluded={receipt_summary['excluded']}"
     )
+
+    # V3 per-claim quality signals on MAPPED items only.
+    # Mapping rate is diagnostic (retrieve.py:retrieve_for_elements vs B3 RECEIPTS);
+    # the user-facing quality dimensions are computed here from what reaches the UI.
+    for claim in claims:
+        pos = str(claim.get("position", 0))
+        ev_list = evidence.get(pos, [])
+        if not ev_list:
+            continue
+        signals = _compute_claim_quality_signals(claim.get("claim_map"), ev_list)
+        if signals["mapped_count"] == 0:
+            continue
+        top_d, top_s = signals["top_domain"]
+        logger.info(
+            f"[B3 QUALITY] claim={pos} mapped={signals['mapped_count']} "
+            f"unique_domains={signals['unique_domains']} "
+            f"top_domain={top_d}@{int(top_s * 100)}% "
+            f"wikipedia={int(signals['wikipedia_share'] * 100)}% "
+            f"factual_weight={int(signals['factual_weight_share'] * 100)}% "
+            f"element_resolution={int(signals['element_resolution'] * 100)}% "
+            f"tier_mix={signals['tier_mix']} "
+            f"type_mix={signals['type_mix']}"
+        )
 
     results = []
     for claim in claims:
