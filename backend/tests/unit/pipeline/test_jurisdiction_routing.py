@@ -85,8 +85,13 @@ class TestUKJurisdictionAdapterOrdering:
 
 class TestUSJurisdictionAdapterOrdering:
     def test_us_prefers_fred_govinfo_loc(self):
+        # B2 (2026-05-06): ONS removed from this input. ONS now lives in
+        # JURISDICTION_ADAPTERS["global"] so it's in the routing allow-list
+        # for US queries, but in production its own is_relevant_for_domain
+        # rejects jurisdiction=US (economic.py:95-100), so it never reaches
+        # the cap-stage sort. The test still pins that US specialists win
+        # over UK-only adapters at the sort stage.
         adapters = [
-            _make_adapter("ONS Economic Statistics"),
             _make_adapter("FRED"),
             _make_adapter("GovInfo.gov"),
             _make_adapter("Library of Congress"),
@@ -214,3 +219,37 @@ class TestJurisdictionMappingShape:
                 assert len(adapters) == len(
                     set(adapters)
                 ), f"Duplicates in {jurisdiction}"
+
+    def test_ons_present_in_global_for_classifier_drift(self):
+        """B2 / Thread 2: ONS is in BOTH uk and global allow-lists.
+
+        ONSAdapter.is_relevant_for_domain accepts jurisdiction in {UK, Global}
+        (economic.py:95-100) — but classifier-drift on UK economic claims
+        (e.g. BP+Energy Act → Finance/Global on TRU-87D3-6415) used to drop
+        ONS at the JURISDICTION_ADAPTERS gate before its own filter ran.
+
+        Adding ONS to global keeps it in the candidate pool when the
+        classifier picks Global, letting its own filter then accept Finance/
+        Demographics queries. Other UK specialists (Hansard, Companies House,
+        GOV.UK, Bills) deliberately reject Global at adapter level, so they
+        stay UK-only here.
+        """
+        global_names = get_adapters_for_jurisdiction(None)
+        assert global_names is not None
+        assert "ONS Economic Statistics" in global_names, (
+            "ONS missing from global jurisdiction allow-list — classifier-"
+            "drift cases (Finance/Global on UK economic claims) will silently "
+            "lose ONS coverage"
+        )
+        # Pin: other UK specialists deliberately stay UK-only
+        for uk_only in (
+            "UK Parliament Hansard",
+            "Companies House",
+            "GOV.UK Content API",
+            "UK Parliament Bills",
+        ):
+            assert uk_only not in global_names, (
+                f"{uk_only} is UK-only at adapter level (rejects Global in its "
+                f"own is_relevant_for_domain); should not be in global allow-"
+                f"list — would create cap-victim noise without any benefit"
+            )

@@ -34,17 +34,21 @@ def get_adapters_for_jurisdiction(jurisdiction: str | None) -> list[str] | None:
     """Return allowed adapter names for a jurisdiction, or None for unrestricted.
 
     - None jurisdiction → global adapters only
-    - Known jurisdiction → global + jurisdiction-specific
+    - Known jurisdiction → global + jurisdiction-specific (deduped, order preserved)
     - Returns None if config is empty (no filtering applied)
+
+    Adapters intentionally listed in both `global` and a jurisdiction-specific
+    list (e.g. ONS in `uk` + `global` post-B2) are deduped here so callers see
+    each name once.
     """
     mapping = _load_jurisdiction_adapters()
     if not mapping:
         return None  # No config — don't filter
     global_names = mapping.get("global", [])
     if not jurisdiction:
-        return global_names
+        return list(dict.fromkeys(global_names))
     specific = mapping.get(jurisdiction.lower(), mapping.get(jurisdiction, []))
-    return global_names + specific
+    return list(dict.fromkeys(global_names + specific))
 
 
 # B1 (audit §2.2): Per-domain adapter caps (config-driven).

@@ -382,9 +382,9 @@ class Settings(BaseSettings):
 
     # M-05: Jurisdiction-aware source routing
     JURISDICTION_ADAPTERS: str = Field(
-        '{"uk": ["ONS Economic Statistics", "UK Parliament Hansard", "GOV.UK Content API", "Companies House", "UK Legislation", "UK Parliament Bills"], "us": ["FRED", "GovInfo.gov", "Library of Congress"], "eu": [], "global": ["Semantic Scholar", "OpenAlex", "Wikipedia", "PubMed", "WHO", "NOAA CDO", "WeatherAPI", "Open-Meteo", "GBIF", "World Bank", "Internet Archive", "Wikidata", "Marketaux", "Transfermarkt", "Football-Data.org"]}',
+        '{"uk": ["ONS Economic Statistics", "UK Parliament Hansard", "GOV.UK Content API", "Companies House", "UK Legislation", "UK Parliament Bills"], "us": ["FRED", "GovInfo.gov", "Library of Congress"], "eu": [], "global": ["Semantic Scholar", "OpenAlex", "Wikipedia", "PubMed", "WHO", "NOAA CDO", "WeatherAPI", "Open-Meteo", "GBIF", "World Bank", "Internet Archive", "Wikidata", "Marketaux", "Transfermarkt", "Football-Data.org", "ONS Economic Statistics"]}',
         env="JURISDICTION_ADAPTERS",
-    )  # JSON mapping jurisdiction → adapter names
+    )  # ONS is in both UK and global because its own is_relevant_for_domain accepts UK+Global (Finance/Demographics) — when classifier drifts to Finance/Global on UK economic claims, ONS still routes correctly. Other UK specialists (Hansard, Companies House, GOV.UK, Bills) are deliberately UK-only at adapter level.
 
     # B1 (audit §2.2): Per-domain adapter caps. DEFAULT is used when a domain
     # is unlisted. Higher caps stop the PQ-06 tier sort silently dropping
