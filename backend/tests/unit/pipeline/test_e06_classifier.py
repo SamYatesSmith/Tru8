@@ -790,3 +790,118 @@ class TestQualityFloor:
         assert floor is None
         assert evidence["tier"] == "primary"
         assert evidence["evidence_type"] == "official_statement"
+
+    # ── B3 / NF-13: infrastructure subdomain + low-authority firm floors ──
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "subdomain",
+        ["ftp", "cache", "mirror", "cdn", "static", "assets"],
+    )
+    def test_infrastructure_subdomain_floored(self, subdomain):
+        """B3 / NF-13: infrastructure subdomains (ftp., cache., mirror., etc.)
+        get demoted regardless of LLM verdict. Original NF-13 case was
+        ftp.bills.com.au — LLM read as primary/data because the parent
+        domain is authoritative."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": f"https://{subdomain}.example.com/file/123",
+            "source": f"{subdomain}.example.com",
+            "title": "Some content",
+            "tier": "primary",
+            "evidence_type": "data",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor == "infrastructure_subdomain_floor"
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "opinion"
+        assert evidence["classification_method"] == "infrastructure_subdomain_floor"
+
+    @pytest.mark.unit
+    def test_infrastructure_subdomain_substring_does_not_false_match(self):
+        """Words containing 'ftp' or 'cdn' as substrings (e.g. softpedia,
+        cdnetworks) must NOT be matched — only true subdomain prefixes."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://www.softpedia.com/article/123",
+            "source": "softpedia.com",
+            "title": "Software review",
+            "tier": "reporting",
+            "evidence_type": "news_reporting",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor is None  # 'ftp' inside 'softpedia' is a false-positive trap
+        assert evidence["tier"] == "reporting"
+
+    @pytest.mark.unit
+    def test_infrastructure_subdomain_already_commentary_is_no_op(self):
+        """Idempotency — no re-write if already commentary."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://ftp.example.com/file",
+            "source": "ftp.example.com",
+            "tier": "commentary",
+            "evidence_type": "opinion",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor is None
+        assert evidence["tier"] == "commentary"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "domain",
+        [
+            "lovewell-blake.co.uk",
+            "sgllp.co.uk",
+            "lkassociates.co.uk",
+            "bishopfleming.co.uk",
+        ],
+    )
+    def test_low_authority_firm_floored(self, domain):
+        """B3 (NF-13 commercial extension): small commercial firm marketing
+        pages observed leaking on TRU-B4A3-C42D at score=4-5. Their snippets
+        read knowledgeable so the LLM rated them reporting/primary, but they're
+        firm-marketing 'insights' pages, not authoritative reporting."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": f"https://www.{domain}/insights/mini-budget-summary",
+            "source": domain,
+            "title": "Mini-budget summary 2022",
+            "tier": "reporting",
+            "evidence_type": "analysis",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor == "low_authority_firm_floor"
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "opinion"
+        assert evidence["classification_method"] == "low_authority_firm_floor"
+
+    @pytest.mark.unit
+    def test_legitimate_co_uk_unaffected(self):
+        """Legitimate UK research / news / institutional `.co.uk` domains
+        must NOT be matched — the firm floor is a narrow allowlist of
+        observed leakers, not a sweeping `.co.uk` heuristic."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        for domain in ("bbc.co.uk", "ifs.org.uk", "bankofengland.co.uk"):
+            evidence = {
+                "url": f"https://www.{domain}/article/123",
+                "source": domain,
+                "tier": "reporting",
+                "evidence_type": "news_reporting",
+            }
+            floor = _apply_quality_floor(evidence)
+            assert floor is None, f"{domain} should not match low-authority floor"
+            assert evidence["tier"] == "reporting"

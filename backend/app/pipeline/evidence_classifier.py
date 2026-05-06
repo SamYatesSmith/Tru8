@@ -205,6 +205,30 @@ _TABLOID_DOMAINS = re.compile(
     re.IGNORECASE,
 )
 
+# B3 / NF-13 (subdomain shape): infrastructure subdomains that occasionally
+# surface as evidence URLs. Anchored at scheme boundary OR string start so
+# `xftp.example.com` doesn't match but `https://ftp.example.com` does.
+_INFRASTRUCTURE_SUBDOMAIN = re.compile(
+    r"(?:^|//)(?:ftp|cache|mirror|cdn|static|assets)\.",
+    re.IGNORECASE,
+)
+
+# B3 (NF-13 commercial extension): small commercial firm marketing pages that
+# leaked through at score=4-5 on TRU-B4A3-C42D (UK fiscal claims). Their
+# snippets read knowledgeable so the LLM rated them as reporting/primary, but
+# they're firm-marketing "insights" pages, not authoritative reporting.
+#
+# Deliberately a narrow allowlist of observed leakers — extended only when a
+# new one is documented from a live audit. Do NOT generalise to "any small
+# `.co.uk`" — that would false-positive legitimate UK research and news sites.
+_LOW_AUTHORITY_FIRMS = re.compile(
+    r"lovewell-blake\.co\.uk"
+    r"|sgllp\.co\.uk"
+    r"|lkassociates\.co\.uk"
+    r"|bishopfleming\.co\.uk",
+    re.IGNORECASE,
+)
+
 # B5a: Joke / parody markers in arXiv titles or snippets. Conservative —
 # only unambiguous signals. Catches cases like the K2-18b April Fool's
 # paper "Evidence for THC and CBD in the Atmosphere of K2-18b".
@@ -438,6 +462,20 @@ def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
             evidence["evidence_type"] = "opinion"
             evidence["classification_method"] = "blog_platform_floor"
             return "blog_platform_floor"
+
+    if _INFRASTRUCTURE_SUBDOMAIN.search(url):
+        if evidence.get("tier") != "commentary":
+            evidence["tier"] = "commentary"
+            evidence["evidence_type"] = "opinion"
+            evidence["classification_method"] = "infrastructure_subdomain_floor"
+            return "infrastructure_subdomain_floor"
+
+    if _LOW_AUTHORITY_FIRMS.search(url) or _LOW_AUTHORITY_FIRMS.search(source):
+        if evidence.get("tier") != "commentary":
+            evidence["tier"] = "commentary"
+            evidence["evidence_type"] = "opinion"
+            evidence["classification_method"] = "low_authority_firm_floor"
+            return "low_authority_firm_floor"
 
     return None
 
