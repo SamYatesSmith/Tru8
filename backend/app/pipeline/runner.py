@@ -9,6 +9,7 @@ running them in a thread pool with asyncio.run() for proper isolation
 import asyncio
 import json
 import logging
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from functools import partial
@@ -204,6 +205,90 @@ def extract_pipeline_metrics(
         sources_included=sources_included,
         by_stage=by_stage,
     )
+
+
+DOMAIN_CONCENTRATION_THRESHOLD = 0.35
+
+
+def _apply_domain_concentration_cap(
+    evidence_list: List[Dict[str, Any]],
+    claim_position: Any = None,
+    threshold: float = DOMAIN_CONCENTRATION_THRESHOLD,
+) -> int:
+    """Demote per-claim items when a single domain dominates the mapped set.
+
+    When any domain's share of receipt_status='shown' items exceeds the
+    threshold, demote the lowest-relevance excess primary/reporting items to
+    tier='commentary', evidence_type='analysis',
+    classification_method='domain_concentration_cap'. Items remain visible
+    (no hidden curation — receipts trail the decision).
+
+    Returns the count of demoted items. (Bug D — V1 quality plan 2026-05-06.)
+
+    Target case: TRU-B3A4 (UK election) had Wikipedia at 12 of 25 = 48%
+    and the LLM classifier was over-promoting Wikipedia entries to primary
+    tier, inflating the apparent authority of the evidence landscape.
+
+    The cap measures the share of PRIMARY/REPORTING items at each domain
+    (not raw shown-item share). Demoting reduces that share, so the cap is
+    self-limiting and idempotent. Items already at tier='commentary' are
+    counted toward visual presence at that domain but are never re-demoted;
+    if half of a domain's items are already commentary, the
+    primary/reporting share may already be honestly below the threshold
+    and no demotion fires.
+    """
+    from app.utils.url_utils import extract_domain
+
+    shown = [ev for ev in evidence_list if ev.get("receipt_status") == "shown"]
+    total = len(shown)
+    if total == 0:
+        return 0
+
+    by_domain: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for ev in shown:
+        url = ev.get("url", "") or ""
+        domain = extract_domain(url, fallback=ev.get("source", "unknown")) or "unknown"
+        by_domain[domain].append(ev)
+
+    demoted_total = 0
+    for domain, items in by_domain.items():
+        # Demote candidates: only primary/reporting items can be demoted.
+        # Sort ascending by relevance so we drop the weakest first.
+        demote_candidates = sorted(
+            [ev for ev in items if ev.get("tier") in ("primary", "reporting")],
+            key=lambda ev: ev.get("llm_relevance_score")
+            or ev.get("relevance_score")
+            or 0,
+        )
+        pr_count = len(demote_candidates)
+        if pr_count == 0:
+            continue  # already all commentary; honestly labelled
+
+        pr_share = pr_count / total
+        if pr_share <= threshold:
+            continue  # primary/reporting share already below cap
+
+        target_pr_count = max(1, int(threshold * total))
+        excess = pr_count - target_pr_count
+        if excess <= 0:
+            continue
+
+        to_demote = demote_candidates[:excess]
+        for ev in to_demote:
+            ev["tier"] = "commentary"
+            ev["evidence_type"] = "analysis"
+            ev["classification_method"] = "domain_concentration_cap"
+        demoted_total += len(to_demote)
+
+        post_pr_share = (pr_count - len(to_demote)) / total
+        logger.info(
+            f"[DOMAIN CAP] claim={claim_position} domain={domain} "
+            f"pre_pr_share={int(pr_share * 100)}% "
+            f"post_pr_share={int(post_pr_share * 100)}% "
+            f"demoted={len(to_demote)}"
+        )
+
+    return demoted_total
 
 
 def _compute_recovery_timeout(n_candidates: int) -> int:
@@ -2326,6 +2411,21 @@ async def run_pipeline_phase2(
         f"unmapped={receipt_summary['unmapped']} "
         f"excluded={receipt_summary['excluded']}"
     )
+
+    # Bug D: per-claim domain concentration cap. Demote excess primary/reporting
+    # items at any domain whose share exceeds 35% of shown items, so the
+    # Librarian view's tier×type heatmap reflects honest authority shape.
+    # Runs AFTER receipts (so 'shown' set is final) and BEFORE [B3 QUALITY]
+    # (so the logged tier_mix shows the post-demote distribution).
+    domain_cap_total = 0
+    for claim in claims:
+        pos = str(claim.get("position", 0))
+        ev_list = evidence.get(pos, [])
+        if not ev_list:
+            continue
+        domain_cap_total += _apply_domain_concentration_cap(ev_list, claim_position=pos)
+    if domain_cap_total:
+        logger.info(f"[DOMAIN CAP] total demoted across all claims: {domain_cap_total}")
 
     # V3 per-claim quality signals on MAPPED items only.
     # Mapping rate is diagnostic (retrieve.py:retrieve_for_elements vs B3 RECEIPTS);
