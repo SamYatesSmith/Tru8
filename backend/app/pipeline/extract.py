@@ -2,7 +2,8 @@ import logging
 import json
 import asyncio
 import re
-from typing import Dict, List, Any, Optional
+from collections import defaultdict
+from typing import Dict, List, Any, Optional, Set, Tuple
 
 import httpx
 from pydantic import BaseModel, Field, ValidationError, field_validator
@@ -104,7 +105,7 @@ class ClaimExtractor:
     def __init__(self):
         self.openai_api_key = settings.OPENAI_API_KEY
         self.google_ai_api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
-        self.max_claims = settings.MAX_CLAIMS_PER_CHECK  # 12 for Quick mode
+        self.max_claims = settings.MAX_CLAIMS_PER_CHECK
         self.timeout = 30
 
         # System prompt for claim extraction
@@ -139,7 +140,7 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
    ✓ GOOD: "The policy was opposed by 67% of surveyed voters" (measurable fact)
 
 7. PRESENT IN SOURCE - Extract only explicitly stated or directly implied claims
-8. Maximum {max_claims} claims for Quick mode
+8. Maximum {max_claims} claims per check
 9. QUESTIONS AS CLAIMS - If the input is a question, extract the implicit factual claim:
    ✓ "Is sea level rising 3mm per year?" → "Sea level is rising 3mm per year"
    ✓ "Did the UK leave the EU?" → "The UK left the EU"
@@ -663,17 +664,191 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
     def _validate_and_refine_claims(
         self, claims: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Filter out unverifiable claims, refine problematic ones, and dedupe similar claims"""
-        validated_claims = []
-        filtered_count = 0
+        """Filter unverifiable claims, dedupe near-duplicates, merge over-decompositions."""
+        validated = self._validate_individual_claims(claims)
+        deduped = self._deduplicate_similar_claims(validated)
+        merged = self._merge_redecomposed_claims(deduped)
+        return merged
 
-        # First pass: validate individual claims
-        pre_dedup_claims = self._validate_individual_claims(claims)
+    @staticmethod
+    def _normalise_subject_context(ctx: Any) -> Optional[str]:
+        """Normalise a subject_context for grouping. None / empty → None (never groups).
 
-        # Second pass: deduplicate semantically similar claims
-        validated_claims = self._deduplicate_similar_claims(pre_dedup_claims)
+        Strips case, surrounding whitespace, and surrounding punctuation
+        (real LLM output sometimes has trailing punctuation or stray spaces).
+        """
+        if not isinstance(ctx, str):
+            return None
+        normalised = ctx.lower().strip().strip(".,;:").strip()
+        return normalised or None
 
-        return validated_claims
+    @staticmethod
+    def _entity_set(claim: Dict[str, Any]) -> Set[Tuple[str, str]]:
+        """Convert key_entities to a set of (text_lower, type_upper) tuples."""
+        out: Set[Tuple[str, str]] = set()
+        for e in claim.get("key_entities") or []:
+            if not isinstance(e, dict):
+                continue
+            text = e.get("text")
+            typ = e.get("type")
+            if isinstance(text, str) and isinstance(typ, str):
+                t = text.lower().strip()
+                if t:
+                    out.add((t, typ.upper().strip()))
+        return out
+
+    @staticmethod
+    def _has_org_date_backbone(entities: Set[Tuple[str, str]]) -> bool:
+        """True if the entity set contains an ORG/PRODUCT and a DATE.
+
+        Both anchors required: bare DATE overlap is too weak (every news claim
+        shares a year), bare ORG overlap is too weak (companies appear in many
+        unrelated claims). Together they identify a same-event/same-finding
+        anchor that's unlikely to be coincidental.
+        """
+        has_org = any(typ in ("ORG", "PRODUCT") for _, typ in entities)
+        has_date = any(typ == "DATE" for _, typ in entities)
+        return has_org and has_date
+
+    def _merge_claim_group(self, group: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Combine a list of claims into one. Concat text, union entities,
+        max confidence. Caller renumbers position."""
+        texts = [c.get("text", "").rstrip(".") for c in group if c.get("text")]
+        text = ". ".join(t for t in texts if t)
+        if text:
+            text = text + "."
+
+        confidence = max((c.get("confidence", 0) or 0 for c in group), default=0)
+        category = next(
+            (c.get("category") for c in group if c.get("category") is not None),
+            None,
+        )
+        subject_context = next(
+            (c.get("subject_context") for c in group if c.get("subject_context")),
+            None,
+        )
+
+        seen: Set[Tuple[str, str]] = set()
+        entities: List[Dict[str, str]] = []
+        for c in group:
+            for e in c.get("key_entities") or []:
+                if not isinstance(e, dict):
+                    continue
+                t_raw = e.get("text") or ""
+                ty_raw = e.get("type") or ""
+                key = (t_raw.lower().strip(), ty_raw.upper().strip())
+                if not key[0]:
+                    continue
+                if key in seen:
+                    continue
+                seen.add(key)
+                entities.append({"text": t_raw, "type": ty_raw})
+
+        # Inherit other fields from the first claim (source_*, confidence-derived flags
+        # from validation, etc.). Position renumbering happens in the caller.
+        merged = dict(group[0])
+        merged.update(
+            {
+                "text": text,
+                "confidence": confidence,
+                "category": category,
+                "subject_context": subject_context,
+                "key_entities": entities,
+                "was_merged": True,
+                "merged_from": [c.get("position") for c in group],
+            }
+        )
+        return merged
+
+    def _merge_redecomposed_claims(
+        self, claims: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Merge claims the LLM over-decomposed from a single substantive claim.
+
+        Two passes operating on the LLM's own structured output (no LLM call,
+        no prompt change). Complements the cosine-0.85 dedup that runs before
+        it (which catches semantic-near-duplicates, not parent-child
+        redecomposition).
+
+        Pass 1 — claims sharing a normalised subject_context get merged.
+                 Strongest signal: the LLM's own labelling tells us these
+                 claims are about the same thing.
+        Pass 2 — remaining singletons that share ≥3 key_entities including
+                 an ORG/PRODUCT anchor and a DATE anchor get merged.
+                 Catches paired findings of one event when subject_context
+                 happens to differ on a modifier word (e.g. "false positives"
+                 vs "false negatives" of the same study).
+
+        See V1 quality plan 2026-05-06 for diagnostic data and design rationale.
+        """
+        if len(claims) <= 1:
+            return claims
+
+        # Pass 1: group by normalised subject_context
+        by_ctx: Dict[str, List[int]] = defaultdict(list)
+        no_ctx_idxs: List[int] = []
+        for i, c in enumerate(claims):
+            ctx = self._normalise_subject_context(c.get("subject_context"))
+            if ctx:
+                by_ctx[ctx].append(i)
+            else:
+                no_ctx_idxs.append(i)
+
+        consumed: Set[int] = set()
+        results: List[Tuple[int, Dict[str, Any]]] = []  # (anchor_position, claim)
+
+        for ctx, idxs in by_ctx.items():
+            if len(idxs) >= 2:
+                group = [claims[i] for i in idxs]
+                merged = self._merge_claim_group(group)
+                anchor = min(claims[i].get("position", i) for i in idxs)
+                results.append((anchor, merged))
+                consumed.update(idxs)
+                logger.info(
+                    f"[EXTRACT] CLAIM MERGE (subject_context): "
+                    f"{len(idxs)} → 1 context='{ctx}' "
+                    f"positions={sorted(claims[i].get('position', i) for i in idxs)}"
+                )
+
+        # Pass 2: greedy entity-overlap merge on whatever remains as singletons
+        remaining: List[Tuple[int, Dict[str, Any]]] = [
+            (i, claims[i]) for i in range(len(claims)) if i not in consumed
+        ]
+
+        while remaining:
+            head_idx, head_claim = remaining.pop(0)
+            merge_group: List[Tuple[int, Dict[str, Any]]] = [(head_idx, head_claim)]
+            head_ents = self._entity_set(head_claim)
+
+            j = 0
+            while j < len(remaining):
+                cand_idx, cand_claim = remaining[j]
+                cand_ents = self._entity_set(cand_claim)
+                overlap = head_ents & cand_ents
+                if len(overlap) >= 3 and self._has_org_date_backbone(overlap):
+                    merge_group.append((cand_idx, cand_claim))
+                    head_ents = head_ents | cand_ents  # greedy union
+                    remaining.pop(j)
+                else:
+                    j += 1
+
+            if len(merge_group) >= 2:
+                group_claims = [c for _, c in merge_group]
+                merged = self._merge_claim_group(group_claims)
+                anchor = min(c.get("position", idx) for idx, c in merge_group)
+                results.append((anchor, merged))
+                logger.info(
+                    f"[EXTRACT] CLAIM MERGE (entity-overlap): "
+                    f"{len(merge_group)} → 1 "
+                    f"positions={sorted(c.get('position', idx) for idx, c in merge_group)}"
+                )
+            else:
+                anchor = head_claim.get("position", head_idx)
+                results.append((anchor, head_claim))
+
+        # Stable order by original anchor position
+        results.sort(key=lambda x: x[0])
+        return [c for _, c in results]
 
     def _deduplicate_similar_claims(
         self, claims: List[Dict[str, Any]]
