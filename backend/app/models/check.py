@@ -408,8 +408,14 @@ class Evidence(SQLModel, table=True):
     )
     classification_method: Optional[str] = Field(
         default=None,
-        max_length=20,
-        description="How tier/type was assigned: 'llm' or 'heuristic'",
+        max_length=64,
+        description=(
+            "How tier/type was assigned: 'llm' | 'heuristic' | 'llm+override' "
+            "| quality-floor markers (e.g. 'arxiv_unvetted_demotion', "
+            "'infrastructure_subdomain_floor') | 'domain_concentration_cap' "
+            "(Bug D demotion). Widened from varchar(20) to varchar(64) on "
+            "2026-05-07 after live test exposed truncation."
+        ),
     )
     content_basis: Optional[str] = Field(
         default=None,
