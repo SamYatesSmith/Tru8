@@ -321,7 +321,10 @@ class Settings(BaseSettings):
     )  # Max elements to recover per claim
     RECOVERY_TIMEOUT_SECONDS: int = Field(
         20, env="RECOVERY_TIMEOUT_SECONDS"
-    )  # Hard time cap for coverage recovery
+    )  # Floor for coverage recovery wait; preserves 1-2 candidate behaviour
+    RECOVERY_TIMEOUT_SECONDS_PER_CLAIM: int = Field(
+        7, env="RECOVERY_TIMEOUT_SECONDS_PER_CLAIM"
+    )  # Per-candidate seconds; total = max(floor, n_candidates * this) (Bug B)
     MAX_SOURCES_PER_CLAIM: int = Field(
         20, env="MAX_SOURCES_PER_CLAIM"
     )  # Max evidence sources per claim during retrieval

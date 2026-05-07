@@ -206,6 +206,20 @@ def extract_pipeline_metrics(
     )
 
 
+def _compute_recovery_timeout(n_candidates: int) -> int:
+    """Coverage-recovery wait-for timeout in seconds. Scales with the qualifying
+    claim count, floored at the legacy fixed value so 1-2 candidate cases
+    preserve current behaviour. (Bug B — V1 quality plan 2026-05-06.)
+
+    Pre-Bug-B the timeout was a hard 20s ceiling regardless of claim count,
+    causing 4+ claim cases to time out and silently lose recovery results.
+    """
+    return max(
+        settings.RECOVERY_TIMEOUT_SECONDS,
+        n_candidates * settings.RECOVERY_TIMEOUT_SECONDS_PER_CLAIM,
+    )
+
+
 def _compute_element_resolution(claim_map: Optional[Dict[str, Any]]) -> float:
     """V3 quality signal: fraction of claim_map elements with state != 'unresolved'.
 
@@ -2057,7 +2071,8 @@ async def run_pipeline_phase2(
     COVERAGE_RECOVERY_THRESHOLD = 0.4  # Trigger when >40% unresolved
     RECOVERY_MAX_CLAIMS = settings.RECOVERY_MAX_CLAIMS
     RECOVERY_MAX_ELEMENTS = settings.RECOVERY_MAX_ELEMENTS_PER_CLAIM
-    RECOVERY_TIMEOUT_SECONDS = settings.RECOVERY_TIMEOUT_SECONDS
+    # RECOVERY_TIMEOUT_SECONDS is now derived per-run via _compute_recovery_timeout
+    # (Bug B — scales with len(recovery_candidates)).
 
     _skip_coverage_recovery = not config.enable_coverage_recovery
     # Skip coverage recovery for small checks (≤2 claims) — disproportionate
@@ -2104,13 +2119,16 @@ async def run_pipeline_phase2(
         recovery_candidates.sort(key=lambda x: -x["ratio"])
         recovery_candidates = recovery_candidates[:RECOVERY_MAX_CLAIMS]
 
+        recovery_timeout = _compute_recovery_timeout(len(recovery_candidates))
+
         candidate_info = [
             (c["claim"].get("position", "?"), f"{c['unresolved']}/{c['total']}")
             for c in recovery_candidates
         ]
         logger.info(
             f"[COVERAGE RECOVERY] {len(recovery_candidates)} claims qualify "
-            f"(>{COVERAGE_RECOVERY_THRESHOLD*100:.0f}% unresolved): {candidate_info}"
+            f"(>{COVERAGE_RECOVERY_THRESHOLD*100:.0f}% unresolved): {candidate_info} "
+            f"timeout={recovery_timeout}s"
         )
 
         # Collect existing URLs for dedup
@@ -2228,12 +2246,10 @@ async def run_pipeline_phase2(
                     *[_recover_single_claim(c) for c in recovery_candidates],
                     return_exceptions=True,
                 ),
-                timeout=RECOVERY_TIMEOUT_SECONDS,
+                timeout=recovery_timeout,
             )
         except asyncio.TimeoutError:
-            logger.warning(
-                f"[COVERAGE RECOVERY] Timed out after {RECOVERY_TIMEOUT_SECONDS}s"
-            )
+            logger.warning(f"[COVERAGE RECOVERY] Timed out after {recovery_timeout}s")
 
         recovery_elapsed = (datetime.now(timezone.utc) - recovery_start).total_seconds()
         stage_timings["coverage_recovery"] = recovery_elapsed
