@@ -461,7 +461,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 ]
 
                 # Validate and refine claims (filter unverifiable, strip procedural negatives)
-                claims = self._validate_and_refine_claims(claims)
+                claims = await self._validate_and_refine_claims(claims)
 
                 # Re-number positions after filtering
                 for i, claim in enumerate(claims):
@@ -596,7 +596,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             ]
 
             # Validate and refine claims
-            claims = self._validate_and_refine_claims(claims)
+            claims = await self._validate_and_refine_claims(claims)
 
             # Re-number positions after filtering
             for i, claim in enumerate(claims):
@@ -661,12 +661,12 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             logger.error(f"Google AI extraction error: {e}")
             return {"success": False, "error": str(e)}
 
-    def _validate_and_refine_claims(
+    async def _validate_and_refine_claims(
         self, claims: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """Filter unverifiable claims, dedupe near-duplicates, merge over-decompositions."""
         validated = self._validate_individual_claims(claims)
-        deduped = self._deduplicate_similar_claims(validated)
+        deduped = await self._deduplicate_similar_claims(validated)
         merged = self._merge_redecomposed_claims(deduped)
         return merged
 
@@ -850,7 +850,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
         results.sort(key=lambda x: x[0])
         return [c for _, c in results]
 
-    def _deduplicate_similar_claims(
+    async def _deduplicate_similar_claims(
         self, claims: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """Remove semantically similar claims using embedding similarity"""
@@ -858,12 +858,13 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
             return claims
 
         try:
-            from app.services.embeddings import get_embeddings
+            from app.services.embeddings import get_embedding_service
             import numpy as np
 
             # Get embeddings for all claims
             claim_texts = [c["text"] for c in claims]
-            embeddings = get_embeddings(claim_texts)
+            service = await get_embedding_service()
+            embeddings = await service.embed_batch(claim_texts)
 
             if embeddings is None or len(embeddings) == 0:
                 logger.warning(

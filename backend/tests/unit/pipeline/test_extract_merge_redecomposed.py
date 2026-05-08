@@ -11,8 +11,9 @@ TRU-B3A4 UK election (over-decomposed) and TRU-8EBE Ozempic, TRU-A755
 GBR coral, TRU-EF3F Sha'Carri (negative cases).
 """
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import numpy as np
 import pytest
 
 from app.pipeline.extract import ClaimExtractor
@@ -33,6 +34,26 @@ def _claim(text, position, subject_context=None, key_entities=None, confidence=8
         "subject_context": subject_context,
         "key_entities": key_entities or [],
     }
+
+
+def _orthogonal_embedding_service(n: int):
+    """Mock embedding service whose embed_batch returns n orthogonal unit
+    vectors. Cosine similarity between any two is 0, well below the 0.85
+    dedup threshold — so dedup runs but never fires."""
+    service = MagicMock()
+    embeddings = [np.eye(max(n, 2))[i] for i in range(n)]
+    service.embed_batch = AsyncMock(return_value=embeddings)
+    return service
+
+
+def _identical_embedding_service(n: int):
+    """Mock embedding service whose embed_batch returns n copies of the
+    same unit vector. Cosine similarity between any pair is 1.0 — dedup
+    fires aggressively, keeping the longest claim."""
+    service = MagicMock()
+    embeddings = [np.array([1.0, 0.0, 0.0]) for _ in range(n)]
+    service.embed_batch = AsyncMock(return_value=embeddings)
+    return service
 
 
 # ---------- Pass 1: subject_context grouping ----------
@@ -478,13 +499,11 @@ class TestWiredSeam:
     """The actual call path the extract pipeline uses. NF-21 lesson:
     test the seam, not just helpers."""
 
-    def test_validate_and_refine_runs_merge_after_dedup(self, extractor):
-        # Dedup pass silently skips when embeddings unavailable (the
-        # current production behaviour — the get_embeddings symbol does
-        # not exist on app.services.embeddings, so the import in
-        # _deduplicate_similar_claims hits ImportError and returns claims
-        # unchanged). For this test that's fine — none of the claim
-        # texts below are cosine-near-duplicates anyway.
+    async def test_validate_and_refine_runs_merge_after_dedup(self, extractor):
+        # Dedup pass runs but none of these claim texts are cosine
+        # ≥0.85 near-duplicates — they all describe distinct facts.
+        # Mock embeddings that produce distinct unit vectors so
+        # cosine similarity stays well below the 0.85 threshold.
         claims = [
             _claim(
                 "Reform UK won 14.3% of the vote in 2024 UK general election",
@@ -512,19 +531,123 @@ class TestWiredSeam:
                 "2024 UK election disproportionality",
             ),
         ]
-        result = extractor._validate_and_refine_claims(claims)
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_orthogonal_embedding_service(len(claims))),
+        ):
+            result = await extractor._validate_and_refine_claims(claims)
         # 4 election-results claims → 1 merged; disproportionality → 1 standalone
         assert len(result) == 2
 
-    def test_validate_and_refine_preserves_validation_filters(self, extractor):
+    async def test_validate_and_refine_preserves_validation_filters(self, extractor):
         # Pronoun-leading claim must still get filtered out by the
         # individual-validation pass even with merge in the chain.
         claims = [
             _claim("They announced something in 2023", 0, "ctx"),  # pronoun → filtered
             _claim("BlackRock announced a layoff in 2023", 1, "ctx"),
         ]
-        result = extractor._validate_and_refine_claims(claims)
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_orthogonal_embedding_service(len(claims))),
+        ):
+            result = await extractor._validate_and_refine_claims(claims)
         # The pronoun claim is filtered before merge sees it; the survivor
         # is a singleton, no merge.
         assert len(result) == 1
         assert "BlackRock" in result[0]["text"]
+
+
+# ---------- Dedup pass: cosine-similarity claim deduplication ----------
+
+
+class TestDedupPass:
+    """Coverage for _deduplicate_similar_claims, which sits between
+    individual validation and the merge pass. Was a silent no-op for an
+    unknown duration prior to 2026-05-08 — the import targeted a symbol
+    (`get_embeddings`) that does not exist on app.services.embeddings,
+    so every call hit ImportError and returned claims unchanged."""
+
+    async def test_import_path_resolves(self, extractor):
+        # Smoke test: the function must import a real symbol from
+        # app.services.embeddings. If anyone renames or removes
+        # get_embedding_service this test catches it before the bug
+        # silently re-emerges.
+        from app.services.embeddings import get_embedding_service  # noqa: F401
+
+    async def test_no_dedup_when_single_claim(self, extractor):
+        # Short-circuit before any embedding work happens.
+        claims = [_claim("Only one claim", 0)]
+        # Patch must NOT be called — assert by leaving it real;
+        # if anything tries the network the test would hang.
+        result = await extractor._deduplicate_similar_claims(claims)
+        assert len(result) == 1
+        assert result[0] is claims[0]
+
+    async def test_near_duplicate_pair_collapses(self, extractor):
+        # Two claims with identical embeddings (cosine = 1.0 > 0.85)
+        # → only the longer one survives (per the keep-longest rule
+        # at extract.py:892-905).
+        claims = [
+            _claim("Russia spent 6.7% of GDP on military in 2024", 0),
+            _claim(
+                "Russia's military spending reached 6.7% of GDP in 2024 according to SIPRI",
+                1,
+            ),
+        ]
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_identical_embedding_service(len(claims))),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        assert len(result) == 1
+        # Longer text wins.
+        assert "SIPRI" in result[0]["text"]
+
+    async def test_distinct_claims_all_survive(self, extractor):
+        # Orthogonal embeddings (cosine = 0 < 0.85) → no dedup.
+        claims = [
+            _claim("BlackRock had $39bn outflows in Q3 2023", 0),
+            _claim("Reform UK won 14.3% of vote in 2024 election", 1),
+            _claim("EMA added Ozempic warning in 2024", 2),
+        ]
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_orthogonal_embedding_service(len(claims))),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        assert len(result) == 3
+
+    async def test_embedding_failure_returns_claims_unchanged(self, extractor):
+        # If the service raises, dedup must fall back to passthrough.
+        # Any exception class — protects against future API changes.
+        claims = [
+            _claim("Claim one", 0),
+            _claim("Claim two", 1),
+        ]
+        broken_service = MagicMock()
+        broken_service.embed_batch = AsyncMock(
+            side_effect=RuntimeError("model unavailable")
+        )
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=broken_service),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        assert len(result) == 2
+
+    async def test_import_error_returns_claims_unchanged(self, extractor):
+        # The original failure mode: import raises. Existing handler
+        # must catch and passthrough so extraction never breaks.
+        import builtins
+
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name == "app.services.embeddings":
+                raise ImportError("simulated missing module")
+            return real_import(name, *args, **kwargs)
+
+        claims = [_claim("Claim one", 0), _claim("Claim two", 1)]
+        with patch.object(builtins, "__import__", side_effect=fake_import):
+            result = await extractor._deduplicate_similar_claims(claims)
+        assert len(result) == 2
