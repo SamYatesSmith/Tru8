@@ -25,6 +25,7 @@ from app.pipeline.claim_map_analyzer import (
     derive_orientation,
     compute_orientation_basis,
     _compute_element_basis,
+    _derive_element_state_with_authority,
 )
 
 
@@ -715,3 +716,258 @@ class TestContentBasisBreakdown:
         }
         basis = _compute_element_basis(elem, evidence_list)
         assert basis["content_basis_breakdown"] == {"full": 1}
+
+
+# ── Authority-weighted state derivation (V1 acceptance fix 2026-05-08) ──────
+
+
+class TestDeriveElementStateWithAuthority:
+    """Tier-weighted majority rule that overrides the LLM mapper's state.
+
+    Reason for fix: TRU-EF20 (UK election 2024) showed Statista's outlier
+    'Reform UK won 4 seats' marking the element disputed despite Royal
+    Holloway, Wikipedia, Commons Library all stating 5 seats. The LLM
+    mapper was binary: any 'challenges' relationship → state=disputed.
+    The fix counts evidence_refs by relationship and weighs by source
+    tier (primary=3, reporting=2, commentary=1).
+    """
+
+    def _evi(self, evidence_id, tier):
+        return {"evidence_id": evidence_id, "tier": tier}
+
+    def _ref(self, evidence_id, relationship):
+        return {"evidence_id": evidence_id, "relationship": relationship}
+
+    def test_no_evidence_returns_unresolved(self):
+        elem = {"evidence_refs": []}
+        state, basis = _derive_element_state_with_authority(elem, [])
+        assert state == ElementState.unresolved
+        assert basis["rule_applied"] == "no_evidence"
+        assert basis["caveat"] is None
+
+    def test_only_supports_returns_supported(self):
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "supports"),
+                self._ref("ev-2", "supports"),
+            ]
+        }
+        evi = [self._evi("ev-1", "primary"), self._evi("ev-2", "reporting")]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.supported
+        assert basis["rule_applied"] == "all_supports"
+        assert basis["caveat"] is None
+
+    def test_only_challenges_returns_disputed(self):
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "challenges"),
+            ]
+        }
+        evi = [self._evi("ev-1", "primary")]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.disputed
+        assert basis["rule_applied"] == "all_challenges"
+
+    def test_one_primary_support_one_commentary_challenge_supports_dominant(
+        self,
+    ):
+        # Layer 2 — tier weighting protects against single low-authority
+        # outliers. 1 primary support (weight 3) vs 1 commentary
+        # challenge (weight 1) → 3 ≥ 2*1 → supported with caveat.
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "supports"),
+                self._ref("ev-2", "challenges"),
+            ]
+        }
+        evi = [
+            self._evi("ev-1", "primary"),
+            {
+                "evidence_id": "ev-2",
+                "tier": "commentary",
+                "url": "https://outlier.example/x",
+            },
+        ]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.supported
+        assert basis["rule_applied"] == "supports_dominant_2x"
+        assert basis["weighted_supports"] == 3
+        assert basis["weighted_challenges"] == 1
+        assert basis["caveat"] is not None
+        assert "outlier.example" in basis["caveat"]
+
+    def test_two_primary_supports_one_primary_challenge_supports_dominant(
+        self,
+    ):
+        # 2 primary supports (6) vs 1 primary challenge (3) → 6 ≥ 2*3 → supported.
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "supports"),
+                self._ref("ev-2", "supports"),
+                self._ref("ev-3", "challenges"),
+            ]
+        }
+        evi = [
+            self._evi("ev-1", "primary"),
+            self._evi("ev-2", "primary"),
+            {"evidence_id": "ev-3", "tier": "primary", "url": "https://statista.com/x"},
+        ]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.supported
+        assert basis["weighted_supports"] == 6
+        assert basis["weighted_challenges"] == 3
+        assert basis["caveat"] is not None
+        assert "statista.com" in basis["caveat"]
+
+    def test_one_one_same_tier_close_split_disputed(self):
+        # TRU-EF20 Reform UK / Royal Holloway vs Statista — both
+        # primary tier, weights 3 vs 3. Neither rule fires → close_split
+        # → disputed. This is the case Layer 1+2 alone cannot fix; needs
+        # Layer 3 (mapping efficiency) to surface more supports.
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-rh", "supports"),
+                self._ref("ev-stat", "challenges"),
+            ]
+        }
+        evi = [
+            self._evi("ev-rh", "primary"),
+            self._evi("ev-stat", "primary"),
+        ]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.disputed
+        assert basis["rule_applied"] == "close_split"
+        # Caveat surfaces the breakdown so UI can render mixed-evidence
+        assert basis["caveat"] is not None
+        assert "mixed" in basis["caveat"].lower()
+
+    def test_three_challenges_one_support_disputed(self):
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "supports"),
+                self._ref("ev-2", "challenges"),
+                self._ref("ev-3", "challenges"),
+                self._ref("ev-4", "challenges"),
+            ]
+        }
+        evi = [
+            self._evi("ev-1", "commentary"),  # 1
+            self._evi("ev-2", "primary"),  # 3
+            self._evi("ev-3", "primary"),  # 3
+            self._evi("ev-4", "primary"),  # 3
+        ]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.disputed
+        assert basis["rule_applied"] == "challenges_dominant_2x"
+        assert basis["weighted_supports"] == 1
+        assert basis["weighted_challenges"] == 9
+
+    def test_context_only_returns_unresolved(self):
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "context"),
+                self._ref("ev-2", "context"),
+            ]
+        }
+        evi = [self._evi("ev-1", "primary"), self._evi("ev-2", "reporting")]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.unresolved
+        assert basis["rule_applied"] == "no_evidence"
+        assert basis["context_count"] == 2
+
+    def test_context_does_not_count_toward_supports(self):
+        # Mixed: 1 support, 1 challenge, 2 context. Context excluded
+        # from the support/challenge counts.
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "supports"),
+                self._ref("ev-2", "challenges"),
+                self._ref("ev-3", "context"),
+                self._ref("ev-4", "context"),
+            ]
+        }
+        evi = [
+            self._evi("ev-1", "primary"),
+            self._evi("ev-2", "primary"),
+            self._evi("ev-3", "reporting"),
+            self._evi("ev-4", "commentary"),
+        ]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        # 1v1 same tier → close split
+        assert state == ElementState.disputed
+        assert basis["supports_count"] == 1
+        assert basis["challenges_count"] == 1
+        assert basis["context_count"] == 2
+
+    def test_unknown_evidence_id_falls_back_to_weight_one(self):
+        # Defensive: if the mapper somehow refs an evidence_id we can't
+        # resolve, weight=1 (treat as commentary). Don't crash.
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-known", "supports"),
+                self._ref("ev-missing", "challenges"),
+            ]
+        }
+        evi = [self._evi("ev-known", "primary")]  # ev-missing absent
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        # 3 vs 1 — supports dominant 2x.
+        assert state == ElementState.supported
+        assert basis["weighted_supports"] == 3
+        assert basis["weighted_challenges"] == 1
+
+    def test_caveat_lists_up_to_three_domains(self):
+        # When supports dominant but multiple challenger domains exist,
+        # caveat lists the first 3 for legibility.
+        elem = {
+            "evidence_refs": [
+                self._ref("ev-1", "supports"),
+                self._ref("ev-2", "supports"),
+                self._ref("ev-3", "supports"),
+                self._ref("ev-4", "supports"),
+                self._ref("ev-5", "challenges"),
+                self._ref("ev-6", "challenges"),
+                self._ref("ev-7", "challenges"),
+                self._ref("ev-8", "challenges"),
+            ]
+        }
+        evi = [
+            self._evi("ev-1", "primary"),
+            self._evi("ev-2", "primary"),
+            self._evi("ev-3", "primary"),
+            self._evi("ev-4", "primary"),
+            {"evidence_id": "ev-5", "tier": "commentary", "url": "https://a.com/"},
+            {"evidence_id": "ev-6", "tier": "commentary", "url": "https://b.com/"},
+            {"evidence_id": "ev-7", "tier": "commentary", "url": "https://c.com/"},
+            {"evidence_id": "ev-8", "tier": "commentary", "url": "https://d.com/"},
+        ]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        # Weighted supports 12, challenges 4 — supports dominant 2x (12 >= 2*4).
+        assert state == ElementState.supported
+        assert basis["caveat"] is not None
+        # First 3 domains listed, 4th omitted.
+        assert "a.com" in basis["caveat"]
+        assert "b.com" in basis["caveat"]
+        assert "c.com" in basis["caveat"]
+        assert "d.com" not in basis["caveat"]
+
+    def test_state_basis_includes_llm_state_when_attached(self):
+        # The wired-seam path attaches llm_state to state_basis. Pure
+        # helper doesn't (it's the caller's responsibility), but the
+        # field is reserved on the basis dict shape.
+        elem = {"evidence_refs": [self._ref("ev-1", "supports")]}
+        evi = [self._evi("ev-1", "primary")]
+        state, basis = _derive_element_state_with_authority(elem, evi)
+        # llm_state is added by the caller, not by this function
+        assert "llm_state" not in basis
+        # All other keys present
+        for key in [
+            "supports_count",
+            "challenges_count",
+            "context_count",
+            "weighted_supports",
+            "weighted_challenges",
+            "rule_applied",
+            "caveat",
+        ]:
+            assert key in basis

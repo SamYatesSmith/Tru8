@@ -1434,15 +1434,25 @@ class TestRecoverySuccess:
         )
 
         e1 = cm["elements"][0]
-        assert e1["state"] == ElementState.disputed
+        # Authority-weighted override (V1 acceptance fix 2026-05-08):
+        # 2 supports + 1 challenge with equal weights → supports_dominant_2x
+        # → supported (with caveat noting the 1 disagreeing source). Old
+        # behaviour blindly trusted the LLM's "disputed" — exactly the
+        # pattern that surfaced TRU-EF20's Reform UK 5-seats false dispute.
+        assert e1["state"] == ElementState.supported
         assert len(e1["evidence_refs"]) == 3
         # Verify mixed relationships survived validation
         relationships = {r["relationship"] for r in e1["evidence_refs"]}
         assert EvidenceRelationship.supports in relationships
         assert EvidenceRelationship.challenges in relationships
+        # state_derivation captures the override
+        sd = e1.get("basis", {}).get("state_derivation", {})
+        assert sd.get("rule_applied") == "supports_dominant_2x"
+        assert sd.get("llm_state") == "disputed"
+        assert sd.get("caveat") is not None  # caveat surfaces the outlier
         assert (
             cm["orientation"]
-            == "Of 1 element examined, retrieved evidence both supports and conflicts with it."
+            == "Of 1 element examined, retrieved evidence predominantly supports it."
         )
 
     @pytest.mark.asyncio
@@ -1830,8 +1840,11 @@ class TestQualityGates:
     async def test_hallucinated_evidence_ids_stripped(self):
         """Fake evidence_id from LLM is stripped by real _validate_evidence_refs.
 
-        Documents state-vs-ref independence: LLM-assigned state persists even
-        when all evidence refs are invalid (claim_map_analyzer.py:857-861).
+        After the V1 acceptance fix (2026-05-08), state is derived from
+        the surviving (validated) evidence_refs — not the LLM's claim.
+        With all refs stripped → no evidence → state=unresolved. The
+        previous "state-vs-ref independence" was the exact failure mode
+        we hardened against.
         """
         cm = _make_full_claim_map(
             [
@@ -1876,15 +1889,20 @@ class TestQualityGates:
         e1 = cm["elements"][0]
         # Hallucinated ref stripped — 0 valid refs
         assert len(e1["evidence_refs"]) == 0
-        # State still set by LLM (state-vs-ref independence)
-        assert e1["state"] == ElementState.supported
+        # Override: 0 refs → unresolved (LLM's "supported" no longer
+        # honoured when nothing supports it).
+        assert e1["state"] == ElementState.unresolved
+        sd = e1.get("basis", {}).get("state_derivation", {})
+        assert sd.get("rule_applied") == "no_evidence"
+        assert sd.get("llm_state") == "supported"
 
     @pytest.mark.asyncio
     async def test_invalid_relationship_stripped(self):
         """Valid evidence_id but invalid relationship ('proves') is stripped.
 
         Documents that only 3 relationship types pass validation:
-        supports, challenges, context.
+        supports, challenges, context. After the V1 acceptance override
+        (2026-05-08), all-stripped refs → unresolved.
         """
         cm = _make_full_claim_map(
             [
@@ -1927,8 +1945,11 @@ class TestQualityGates:
         e1 = cm["elements"][0]
         # Invalid relationship stripped — 0 valid refs
         assert len(e1["evidence_refs"]) == 0
-        # State still set by LLM (state-vs-ref independence)
-        assert e1["state"] == ElementState.supported
+        # Override: 0 refs → unresolved
+        assert e1["state"] == ElementState.unresolved
+        sd = e1.get("basis", {}).get("state_derivation", {})
+        assert sd.get("rule_applied") == "no_evidence"
+        assert sd.get("llm_state") == "supported"
 
     @pytest.mark.asyncio
     async def test_duplicate_urls_excluded_by_real_retrieval(self):

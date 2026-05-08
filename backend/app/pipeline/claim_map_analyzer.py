@@ -20,7 +20,7 @@ import logging
 import re
 from collections import Counter
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 import sentry_sdk
@@ -428,6 +428,153 @@ def compute_orientation_basis(elements: List[ClaimElement]) -> dict:
         "total_elements": len(elements),
         "state_distribution": state_distribution,
     }
+
+
+# Tier weights for authority-weighted state derivation (V1 plan post-acceptance
+# fix, 2026-05-08). primary > reporting > commentary so a single low-tier
+# challenger cannot flip an element to disputed when authoritative sources
+# support it. Mirrors the tier classification produced by evidence_classifier.
+_STATE_TIER_WEIGHTS = {"primary": 3, "reporting": 2, "commentary": 1}
+
+
+def _derive_element_state_with_authority(
+    elem: ClaimElement, evidence_list: List[Dict[str, Any]]
+) -> Tuple[ElementState, dict]:
+    """Override the LLM mapper's state with a tier-weighted majority rule.
+
+    Surfaces the issue exposed by TRU-EF20 / Reform UK 5 seats: a single
+    outlier source ("4 seats" on Statista) was tagged as challenges by
+    the mapper, and the LLM's state assignment flipped the element to
+    `disputed` despite multiple authoritative sources confirming. This
+    function applies a mechanical, no-LLM rule.
+
+    Rules (counts of evidence_refs by relationship):
+
+      n_supports == 0 AND n_challenges == 0 → unresolved
+      n_supports == 0 AND n_challenges  > 0 → disputed
+      n_challenges == 0 AND n_supports  > 0 → supported
+      weighted_supports   ≥ 2 × weighted_challenges → supported (caveat if challenges)
+      weighted_challenges ≥ 2 × weighted_supports   → disputed
+      otherwise (close split)                       → disputed
+
+    Tier weights: primary=3, reporting=2, commentary=1. Items whose
+    evidence_id can't be resolved against ``evidence_list`` default to
+    weight=1. ``context``-relationship refs are counted but neither
+    support nor challenge.
+
+    Returns (state, state_basis_dict). The state_basis is attached to
+    ``elem["basis"]["state_derivation"]`` by the caller for transparency
+    (UI may use it to surface caveat notes; debugging uses it to audit
+    why an element ended up in a particular state).
+    """
+    refs = elem.get("evidence_refs", []) or []
+    ev_index = {
+        ev.get("evidence_id"): ev for ev in evidence_list if ev.get("evidence_id")
+    }
+
+    supports_refs: List[Dict[str, Any]] = []
+    challenges_refs: List[Dict[str, Any]] = []
+    context_count = 0
+
+    for ref in refs:
+        rel = (
+            ref.get("relationship")
+            if isinstance(ref, dict)
+            else getattr(ref, "relationship", None)
+        )
+        rel_val = (
+            rel.value
+            if hasattr(rel, "value")
+            else str(rel) if rel is not None else None
+        )
+        if rel_val == "supports":
+            supports_refs.append(ref)
+        elif rel_val == "challenges":
+            challenges_refs.append(ref)
+        elif rel_val == "context":
+            context_count += 1
+
+    def _ref_weight(ref) -> int:
+        eid = (
+            ref.get("evidence_id", "")
+            if isinstance(ref, dict)
+            else getattr(ref, "evidence_id", "")
+        )
+        ev = ev_index.get(eid)
+        if not ev:
+            return 1
+        tier = ev.get("tier") or "commentary"
+        return _STATE_TIER_WEIGHTS.get(tier, 1)
+
+    weighted_supports = sum(_ref_weight(r) for r in supports_refs)
+    weighted_challenges = sum(_ref_weight(r) for r in challenges_refs)
+
+    n_supports = len(supports_refs)
+    n_challenges = len(challenges_refs)
+
+    if n_supports == 0 and n_challenges == 0:
+        state = ElementState.unresolved
+        rule = "no_evidence"
+    elif n_supports == 0:
+        state = ElementState.disputed
+        rule = "all_challenges"
+    elif n_challenges == 0:
+        state = ElementState.supported
+        rule = "all_supports"
+    elif weighted_supports >= 2 * weighted_challenges:
+        state = ElementState.supported
+        rule = "supports_dominant_2x"
+    elif weighted_challenges >= 2 * weighted_supports:
+        state = ElementState.disputed
+        rule = "challenges_dominant_2x"
+    else:
+        state = ElementState.disputed
+        rule = "close_split"
+
+    caveat: Optional[str] = None
+    if state == ElementState.supported and n_challenges > 0:
+        domains = []
+        for ref in challenges_refs:
+            eid = (
+                ref.get("evidence_id", "")
+                if isinstance(ref, dict)
+                else getattr(ref, "evidence_id", "")
+            )
+            ev = ev_index.get(eid) or {}
+            url = ev.get("url") or ""
+            if url:
+                try:
+                    from urllib.parse import urlparse
+
+                    domain = urlparse(url).netloc.replace("www.", "").lower()
+                except Exception:
+                    domain = ""
+                if domain:
+                    domains.append(domain)
+        if domains:
+            label = "source disagrees" if n_challenges == 1 else "sources disagree"
+            caveat = f"{n_challenges} {label}: {', '.join(domains[:3])}"
+        else:
+            caveat = (
+                f"{n_challenges} outlier challenge{'s' if n_challenges != 1 else ''}"
+            )
+    elif state == ElementState.disputed and n_supports > 0 and n_challenges > 0:
+        # Close split — surface the breakdown so UI can show "mixed evidence"
+        caveat = (
+            f"mixed: {n_supports} support / {n_challenges} disagree "
+            f"(weighted {weighted_supports} vs {weighted_challenges})"
+        )
+
+    state_basis = {
+        "supports_count": n_supports,
+        "challenges_count": n_challenges,
+        "context_count": context_count,
+        "weighted_supports": weighted_supports,
+        "weighted_challenges": weighted_challenges,
+        "rule_applied": rule,
+        "caveat": caveat,
+    }
+    return state, state_basis
 
 
 def _compute_element_basis(
@@ -1151,17 +1298,36 @@ class ClaimMapAnalyzer:
                 raw_refs, evidence_list
             )
 
-            # Validate state
+            # Validate state — LLM's value is the seed, but the
+            # mechanical override below is authoritative. Kept for
+            # observability (state_basis records the LLM's call too).
             raw_state = mapped.get("state", "unresolved")
             if raw_state not in _VALID_STATES:
                 raw_state = "unresolved"
-            elem["state"] = ElementState(raw_state)
 
             # Uncertainty (optional)
             elem["uncertainty"] = mapped.get("uncertainty") or None
 
             # PQ-03: Attach evidence basis metadata
             elem["basis"] = _compute_element_basis(elem, evidence_list)
+
+            # Authority-weighted state override (V1 acceptance fix
+            # 2026-05-08, after TRU-EF20 surfaced an outlier source
+            # flipping settled facts to disputed).
+            mech_state, state_basis = _derive_element_state_with_authority(
+                elem, evidence_list
+            )
+            state_basis["llm_state"] = raw_state
+            elem["basis"]["state_derivation"] = state_basis
+            elem["state"] = mech_state
+            if mech_state.value != raw_state:
+                logger.info(
+                    f"[STATE OVERRIDE] elem={elem.get('element_id')}: "
+                    f"llm={raw_state} → mechanical={mech_state.value} "
+                    f"(rule={state_basis['rule_applied']}, "
+                    f"supports={state_basis['weighted_supports']}, "
+                    f"challenges={state_basis['weighted_challenges']})"
+                )
 
     def _validate_evidence_refs(
         self,
@@ -1318,9 +1484,23 @@ class ClaimMapAnalyzer:
                         raw_state = mapped.get("state", "unresolved")
                         if raw_state not in _VALID_STATES:
                             raw_state = "unresolved"
-                        elem["state"] = ElementState(raw_state)
                         elem["uncertainty"] = mapped.get("uncertainty") or None
-                        logger.info(f"[RECOVERY MAP] {eid}: state → {raw_state}")
+                        # Authority-weighted override (parity with the main
+                        # mapping path). Recovery only sees new_evidence for
+                        # tier lookup; refs that pre-date this round resolve
+                        # to weight=1 (acceptable: the override is still
+                        # majority-rule, just not fully tier-weighted across
+                        # the merged ref set).
+                        mech_state, state_basis = _derive_element_state_with_authority(
+                            elem, new_evidence
+                        )
+                        state_basis["llm_state"] = raw_state
+                        elem.setdefault("basis", {})["state_derivation"] = state_basis
+                        elem["state"] = mech_state
+                        logger.info(
+                            f"[RECOVERY MAP] {eid}: state → {mech_state.value} "
+                            f"(llm={raw_state}, rule={state_basis['rule_applied']})"
+                        )
 
             except Exception as e:
                 logger.warning(
