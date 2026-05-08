@@ -940,10 +940,49 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
         results.sort(key=lambda x: x[0])
         return [c for _, c in results]
 
+    @staticmethod
+    def _discriminating_entity_set(
+        claim: Dict[str, Any],
+    ) -> Set[Tuple[str, str]]:
+        """Entity set with the OTHER type stripped.
+
+        Used to gate cosine-similarity dedup. Two claims with high
+        embedding similarity are paraphrases (true duplicates) ONLY if
+        their discriminating-entity sets match. Different
+        DATE/AMOUNT/LOCATION/PERSON/ORG/PRODUCT/EVENT/LAW values signal
+        paired-comparison claims that have similar template but state
+        distinct facts (e.g. "BlackRock Q3 2023 inflows = $39bn" vs
+        "BlackRock Q3 2022 inflows = $122bn" cosine ~0.92 but DATE and
+        AMOUNT differ → distinct facts). OTHER is excluded because it
+        is the paraphrase-prone junk-drawer type.
+        """
+        out: Set[Tuple[str, str]] = set()
+        for e in claim.get("key_entities") or []:
+            if not isinstance(e, dict):
+                continue
+            text = e.get("text")
+            typ = e.get("type")
+            if not isinstance(text, str) or not isinstance(typ, str):
+                continue
+            t_upper = typ.upper().strip()
+            if t_upper == "OTHER" or not t_upper:
+                continue
+            t_lower = text.lower().strip()
+            if t_lower:
+                out.add((t_lower, t_upper))
+        return out
+
     async def _deduplicate_similar_claims(
         self, claims: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Remove semantically similar claims using embedding similarity"""
+        """Remove semantically similar claims using embedding similarity.
+
+        Gated by an entity-set equality check: two claims with cosine
+        ≥0.85 are removed ONLY if their discriminating-entity sets
+        match. Without this gate the cosine pass destroys paired
+        comparisons (e.g. Q3 2023 vs Q3 2022 inflows, Texas vs Florida
+        pension funds — same template, different facts).
+        """
         if len(claims) <= 1:
             return claims
 
@@ -979,6 +1018,21 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                     )
 
                     if sim > SIMILARITY_THRESHOLD:
+                        # Entity-aware safeguard: paired comparisons share
+                        # template but state distinct facts. Cosine alone
+                        # reads "X did Y in 2022" / "X did Y in 2023" as
+                        # ~0.92 similar, even though DATE differs. Only
+                        # treat as duplicates when the discriminating
+                        # entity sets are equal.
+                        ents_i = self._discriminating_entity_set(claims[i])
+                        ents_j = self._discriminating_entity_set(claims[j])
+                        if ents_i != ents_j:
+                            logger.info(
+                                f"[EXTRACT] CLAIM DEDUP: keep both (sim={sim:.2f}, entity sets differ) — "
+                                f"i={claims[i]['text'][:60]!r} j={claims[j]['text'][:60]!r}"
+                            )
+                            continue
+
                         # Keep the longer/more detailed claim, remove the shorter one
                         if len(claims[i]["text"]) >= len(claims[j]["text"]):
                             to_remove.add(j)

@@ -667,6 +667,205 @@ class TestDedupPass:
             result = await extractor._deduplicate_similar_claims(claims)
         assert len(result) == 2
 
+    async def test_paired_comparison_different_dates_not_deduped(self, extractor):
+        # TRU-9D05 BlackRock case: Q3 2023 vs Q3 2022 — same template,
+        # cosine ~0.92, but different DATE and AMOUNT → NOT duplicates.
+        claims = [
+            _claim(
+                "BlackRock's Q3 2023 net inflows fell to $39 billion",
+                0,
+                "BlackRock net inflows",
+                [
+                    {"text": "BlackRock", "type": "ORG"},
+                    {"text": "Q3 2023", "type": "DATE"},
+                    {"text": "$39 billion", "type": "AMOUNT"},
+                ],
+            ),
+            _claim(
+                "BlackRock's Q3 2022 net inflows were $122 billion",
+                1,
+                "BlackRock net inflows",
+                [
+                    {"text": "BlackRock", "type": "ORG"},
+                    {"text": "Q3 2022", "type": "DATE"},
+                    {"text": "$122 billion", "type": "AMOUNT"},
+                ],
+            ),
+        ]
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_identical_embedding_service(len(claims))),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        assert len(result) == 2  # BOTH must survive
+
+    async def test_paired_comparison_different_locations_not_deduped(self, extractor):
+        # TRU-9D05 BlackRock case: Texas vs Florida pension funds —
+        # same template, cosine ~0.87, but different LOCATION → NOT
+        # duplicates.
+        claims = [
+            _claim(
+                "Texas pension funds pulled $13 billion from BlackRock citing ESG",
+                0,
+                "Pension fund withdrawals",
+                [
+                    {"text": "Texas", "type": "LOCATION"},
+                    {"text": "BlackRock", "type": "ORG"},
+                    {"text": "$13 billion", "type": "AMOUNT"},
+                ],
+            ),
+            _claim(
+                "Florida pension funds pulled $13 billion from BlackRock citing ESG",
+                1,
+                "Pension fund withdrawals",
+                [
+                    {"text": "Florida", "type": "LOCATION"},
+                    {"text": "BlackRock", "type": "ORG"},
+                    {"text": "$13 billion", "type": "AMOUNT"},
+                ],
+            ),
+        ]
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_identical_embedding_service(len(claims))),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        assert len(result) == 2  # BOTH must survive
+
+    async def test_paired_comparison_different_persons_not_deduped(self, extractor):
+        # Generalises: same template, different PERSON → distinct facts.
+        claims = [
+            _claim(
+                "Sha'Carri Richardson ran 10.65 in Budapest 2023",
+                0,
+                "Race record",
+                [
+                    {"text": "Sha'Carri Richardson", "type": "PERSON"},
+                    {"text": "10.65", "type": "AMOUNT"},
+                    {"text": "Budapest", "type": "LOCATION"},
+                    {"text": "2023", "type": "DATE"},
+                ],
+            ),
+            _claim(
+                "Marie-Josee Ta Lou ran 10.81 in Budapest 2023",
+                1,
+                "Race record",
+                [
+                    {"text": "Marie-Josee Ta Lou", "type": "PERSON"},
+                    {"text": "10.81", "type": "AMOUNT"},
+                    {"text": "Budapest", "type": "LOCATION"},
+                    {"text": "2023", "type": "DATE"},
+                ],
+            ),
+        ]
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_identical_embedding_service(len(claims))),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        assert len(result) == 2
+
+    async def test_paraphrase_with_same_entities_still_deduped(self, extractor):
+        # Proves the safeguard didn't kill legitimate dedup. Two
+        # paraphrases of the SAME fact (identical entity sets) still
+        # collapse to one.
+        claims = [
+            _claim(
+                "Russia spent 6.7% of GDP on military in 2024",
+                0,
+                "Russia military spending",
+                [
+                    {"text": "Russia", "type": "LOCATION"},
+                    {"text": "6.7%", "type": "AMOUNT"},
+                    {"text": "2024", "type": "DATE"},
+                ],
+            ),
+            _claim(
+                "In 2024, Russia's military spending reached 6.7% of GDP",
+                1,
+                "Russia military spending",
+                [
+                    {"text": "Russia", "type": "LOCATION"},
+                    {"text": "6.7%", "type": "AMOUNT"},
+                    {"text": "2024", "type": "DATE"},
+                ],
+            ),
+        ]
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_identical_embedding_service(len(claims))),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        # Identical entity sets → still deduped.
+        assert len(result) == 1
+
+    async def test_other_type_entity_diff_does_not_block_dedup(self, extractor):
+        # OTHER is paraphrase-prone (LLM might tag "flu jab" once and
+        # "flu vaccine" the next). Difference on OTHER alone must NOT
+        # block dedup when the discriminating entities match.
+        claims = [
+            _claim(
+                "WHO recommended flu vaccines in 2024",
+                0,
+                "WHO flu recommendation",
+                [
+                    {"text": "WHO", "type": "ORG"},
+                    {"text": "2024", "type": "DATE"},
+                    {"text": "flu vaccine", "type": "OTHER"},
+                ],
+            ),
+            _claim(
+                "WHO recommended flu jabs in 2024",
+                1,
+                "WHO flu recommendation",
+                [
+                    {"text": "WHO", "type": "ORG"},
+                    {"text": "2024", "type": "DATE"},
+                    {"text": "flu jab", "type": "OTHER"},
+                ],
+            ),
+        ]
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_identical_embedding_service(len(claims))),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        # Discriminating sets equal (only OTHER differs) → still deduped.
+        assert len(result) == 1
+
+    async def test_asymmetric_entities_not_deduped(self, extractor):
+        # One claim has DATE entity, the other doesn't. Sets unequal
+        # → keep both. (Real case: LLM imperfectly tags entities; we
+        # don't want this asymmetry to manufacture false duplicates.)
+        claims = [
+            _claim(
+                "BlackRock reported $39bn inflows",
+                0,
+                "BlackRock inflows",
+                [
+                    {"text": "BlackRock", "type": "ORG"},
+                    {"text": "$39bn", "type": "AMOUNT"},
+                ],
+            ),
+            _claim(
+                "BlackRock reported $39bn inflows in 2023",
+                1,
+                "BlackRock inflows",
+                [
+                    {"text": "BlackRock", "type": "ORG"},
+                    {"text": "$39bn", "type": "AMOUNT"},
+                    {"text": "2023", "type": "DATE"},
+                ],
+            ),
+        ]
+        with patch(
+            "app.services.embeddings.get_embedding_service",
+            new=AsyncMock(return_value=_identical_embedding_service(len(claims))),
+        ):
+            result = await extractor._deduplicate_similar_claims(claims)
+        # Asymmetric (one has DATE, the other doesn't) → keep both.
+        assert len(result) == 2
+
 
 # ---------- Synthesis pass: LLM rewrite of merged claim text (V1 plan follow-up #2) ----------
 
