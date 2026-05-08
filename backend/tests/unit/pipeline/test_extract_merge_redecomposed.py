@@ -24,6 +24,19 @@ def extractor():
     return ClaimExtractor()
 
 
+@pytest.fixture(autouse=True)
+def _disable_synthesis_by_default(monkeypatch):
+    """Default the LLM synthesis call to None so existing merge-mechanic
+    tests fall back to naive concat (their assertions pin the concat
+    shape). Tests that want synthesis to actually fire override this
+    with their own patch on `app.pipeline.extract.call_google_ai`."""
+
+    async def _no_synthesis(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("app.pipeline.extract.call_google_ai", _no_synthesis)
+
+
 def _claim(text, position, subject_context=None, key_entities=None, confidence=85):
     """Builder mirroring the dict shape of LLM output post-serialisation."""
     return {
@@ -60,13 +73,13 @@ def _identical_embedding_service(n: int):
 
 
 class TestPass1SubjectContext:
-    def test_no_merge_when_single_claim(self, extractor):
+    async def test_no_merge_when_single_claim(self, extractor):
         claims = [_claim("BlackRock Q3 2023 inflows fell to $39bn", 0, "BlackRock")]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 1
         assert result[0] is claims[0]
 
-    def test_no_merge_when_distinct_subject_contexts(self, extractor):
+    async def test_no_merge_when_distinct_subject_contexts(self, extractor):
         # TRU-8EBE shape: 2 claims, distinct contexts → no merge
         claims = [
             _claim(
@@ -91,12 +104,12 @@ class TestPass1SubjectContext:
                 ],
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 2
         assert not result[0].get("was_merged")
         assert not result[1].get("was_merged")
 
-    def test_pass1_merges_identical_subject_context_pair(self, extractor):
+    async def test_pass1_merges_identical_subject_context_pair(self, extractor):
         # TRU-5411 inflows pair
         claims = [
             _claim(
@@ -120,14 +133,14 @@ class TestPass1SubjectContext:
                 ],
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 1
         assert result[0]["was_merged"] is True
         assert result[0]["merged_from"] == [0, 1]
         assert "$39 billion" in result[0]["text"]
         assert "$122 billion" in result[0]["text"]
 
-    def test_pass1_merges_two_pairs_independently(self, extractor):
+    async def test_pass1_merges_two_pairs_independently(self, extractor):
         # TRU-5411 full shape: 4 claims, 2 distinct subject_context pairs → 2 merged claims
         claims = [
             _claim(
@@ -161,7 +174,7 @@ class TestPass1SubjectContext:
                 ],
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 2
         # Order preserved by anchor position: inflows-pair (anchor=0) first
         assert "BlackRock" in result[0]["text"]
@@ -169,7 +182,7 @@ class TestPass1SubjectContext:
         assert "Texas" in result[1]["text"]
         assert "Florida" in result[1]["text"]
 
-    def test_pass1_merges_four_into_one(self, extractor):
+    async def test_pass1_merges_four_into_one(self, extractor):
         # TRU-15A8 Russia shape: 4 claims, all share subject_context → 1 merged claim
         claims = [
             _claim(
@@ -193,12 +206,12 @@ class TestPass1SubjectContext:
                 "Russia military spending",
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 1
         assert result[0]["was_merged"] is True
         assert result[0]["merged_from"] == [0, 1, 2, 3]
 
-    def test_pass1_keeps_singleton_with_distinct_context(self, extractor):
+    async def test_pass1_keeps_singleton_with_distinct_context(self, extractor):
         # TRU-B3A4 UK election: 4 share, 1 distinct → 2 claims out
         claims = [
             _claim("Reform 14.3% vote", 0, "2024 UK election results"),
@@ -211,38 +224,38 @@ class TestPass1SubjectContext:
                 "2024 UK election disproportionality",
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 2
         # Anchor sort: merged group anchor=0, standalone anchor=4
         assert result[0]["was_merged"] is True
         assert result[1].get("was_merged") is not True
         assert "disproportionality" in result[1]["text"].lower()
 
-    def test_pass1_handles_none_subject_context(self, extractor):
+    async def test_pass1_handles_none_subject_context(self, extractor):
         # None contexts must NOT group together
         claims = [
             _claim("Claim with no context A", 0, None),
             _claim("Claim with no context B", 1, None),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 2
 
-    def test_pass1_handles_empty_string_subject_context(self, extractor):
+    async def test_pass1_handles_empty_string_subject_context(self, extractor):
         claims = [
             _claim("Claim A", 0, ""),
             _claim("Claim B", 1, "   "),
             _claim("Claim C", 2, ".,;:"),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 3  # all normalise to None, none group
 
-    def test_pass1_normalisation_handles_case_and_trailing_punct(self, extractor):
+    async def test_pass1_normalisation_handles_case_and_trailing_punct(self, extractor):
         claims = [
             _claim("A", 0, "Russia Military Spending"),
             _claim("B", 1, "russia military spending."),
             _claim("C", 2, "RUSSIA MILITARY SPENDING ;"),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 1
         assert result[0]["was_merged"] is True
 
@@ -251,7 +264,7 @@ class TestPass1SubjectContext:
 
 
 class TestPass2EntityOverlap:
-    def test_pass2_merges_org_plus_date_overlap(self, extractor):
+    async def test_pass2_merges_org_plus_date_overlap(self, extractor):
         # TRU-7C40 Pos 0+3 shape: distinct subject_contexts, but share
         # 4 entities including ORG (Google Health) and DATE (2020).
         claims = [
@@ -280,13 +293,13 @@ class TestPass2EntityOverlap:
                 ],
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 1
         assert result[0]["was_merged"] is True
         assert "5.7%" in result[0]["text"]
         assert "9.4%" in result[0]["text"]
 
-    def test_pass2_skips_date_only_overlap(self, extractor):
+    async def test_pass2_skips_date_only_overlap(self, extractor):
         # TRU-EF3F Sha'Carri shape: shared AMOUNT only, no ORG+DATE backbone
         claims = [
             _claim(
@@ -307,10 +320,10 @@ class TestPass2EntityOverlap:
                 [{"text": "10.65", "type": "AMOUNT"}],
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 2  # no merge
 
-    def test_pass2_skips_below_3_entity_threshold(self, extractor):
+    async def test_pass2_skips_below_3_entity_threshold(self, extractor):
         # Two claims share only ORG + DATE (2 entities, but not 3) → no merge
         claims = [
             _claim(
@@ -332,10 +345,10 @@ class TestPass2EntityOverlap:
                 ],
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 2  # 2-entity overlap insufficient
 
-    def test_pass2_does_not_merge_unrelated_org_claims(self, extractor):
+    async def test_pass2_does_not_merge_unrelated_org_claims(self, extractor):
         # Two claims share ORG and DATE but fewer than 3 total — must NOT merge
         # (guards against incidental same-company-same-year coincidence)
         claims = [
@@ -361,10 +374,12 @@ class TestPass2EntityOverlap:
             ),
         ]
         # Overlap: {(microsoft, ORG), (2023, DATE)} = 2 → below threshold
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 2
 
-    def test_combined_pass1_then_pass2_runs_on_residual_singletons(self, extractor):
+    async def test_combined_pass1_then_pass2_runs_on_residual_singletons(
+        self, extractor
+    ):
         # Full TRU-7C40 shape: 4 claims.
         # Pos 1+2 share subject_context "AI mammogram study data" → Pass 1 merges them.
         # Pos 0 and 3 are singletons after Pass 1 but share 5-entity ORG+DATE backbone → Pass 2 merges them.
@@ -417,7 +432,7 @@ class TestPass2EntityOverlap:
                 ],
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert len(result) == 2, f"Expected 2 merged claims, got {len(result)}"
         # Anchor 0 = Pos 0+3 entity-merged; Anchor 1 = Pos 1+2 context-merged
         assert all(c["was_merged"] for c in result)
@@ -427,15 +442,15 @@ class TestPass2EntityOverlap:
 
 
 class TestMergeMechanics:
-    def test_merge_concatenates_text_with_period_separator(self, extractor):
+    async def test_merge_concatenates_text_with_period_separator(self, extractor):
         claims = [
             _claim("First fact", 0, "shared"),
             _claim("Second fact", 1, "shared"),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert result[0]["text"] == "First fact. Second fact."
 
-    def test_merge_unions_key_entities_dedup(self, extractor):
+    async def test_merge_unions_key_entities_dedup(self, extractor):
         claims = [
             _claim(
                 "A",
@@ -457,36 +472,36 @@ class TestMergeMechanics:
                 ],
             ),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         ents = result[0]["key_entities"]
         # 3 unique: BlackRock(ORG), 2023(DATE), $39bn(AMOUNT)
         keys = {(e["text"].lower(), e["type"].upper()) for e in ents}
         assert len(keys) == 3
 
-    def test_merge_takes_max_confidence(self, extractor):
+    async def test_merge_takes_max_confidence(self, extractor):
         claims = [
             _claim("A", 0, "shared", confidence=70),
             _claim("B", 1, "shared", confidence=92),
             _claim("C", 2, "shared", confidence=85),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert result[0]["confidence"] == 92
 
-    def test_merge_sets_was_merged_and_merged_from(self, extractor):
+    async def test_merge_sets_was_merged_and_merged_from(self, extractor):
         claims = [
             _claim("A", 5, "shared"),
             _claim("B", 9, "shared"),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         assert result[0]["was_merged"] is True
         assert result[0]["merged_from"] == [5, 9]
 
-    def test_singletons_do_not_get_was_merged_flag(self, extractor):
+    async def test_singletons_do_not_get_was_merged_flag(self, extractor):
         claims = [
             _claim("Lonely", 0, "ctx-A"),
             _claim("Also lonely", 1, "ctx-B"),
         ]
-        result = extractor._merge_redecomposed_claims(claims)
+        result = await extractor._merge_redecomposed_claims(claims)
         for c in result:
             assert c.get("was_merged") is not True
             assert "merged_from" not in c
@@ -651,3 +666,243 @@ class TestDedupPass:
         with patch.object(builtins, "__import__", side_effect=fake_import):
             result = await extractor._deduplicate_similar_claims(claims)
         assert len(result) == 2
+
+
+# ---------- Synthesis pass: LLM rewrite of merged claim text (V1 plan follow-up #2) ----------
+
+
+def _synthesis_returns(text: str):
+    """Helper: an AsyncMock for call_google_ai that returns a JSON dict
+    with the given synthesised text."""
+
+    async def _call(*args, **kwargs):
+        return {"text": text}
+
+    return _call
+
+
+def _synthesis_returns_raw(value):
+    """Helper: an AsyncMock for call_google_ai that returns whatever
+    raw value is passed (used to test malformed shapes)."""
+
+    async def _call(*args, **kwargs):
+        return value
+
+    return _call
+
+
+def _synthesis_raises(exc: Exception):
+    async def _call(*args, **kwargs):
+        raise exc
+
+    return _call
+
+
+class TestSynthesis:
+    """Coverage for _synthesise_merged_claim_text + its integration into
+    _merge_claim_group. Default fixture stubs synthesis to None
+    (concat fallback); each test here overrides with a custom mock."""
+
+    async def test_synthesis_happy_path_replaces_text(self, extractor, monkeypatch):
+        # Russia-shape input: 4 sentences sharing a long prefix; LLM
+        # returns one fluent sentence that mentions every entity.
+        synthesised_text = (
+            "Russia's 2024 military spending hit 6.7% of GDP "
+            "($149 billion per SIPRI's April 2025 estimate), the highest "
+            "share since the Soviet era and a 38% real-terms increase."
+        )
+        monkeypatch.setattr(
+            "app.pipeline.extract.call_google_ai",
+            _synthesis_returns(synthesised_text),
+        )
+        claims = [
+            _claim(
+                "Russia spent 6.7% of GDP on military in 2024",
+                0,
+                "Russia military spending",
+                [
+                    {"text": "Russia", "type": "LOCATION"},
+                    {"text": "6.7%", "type": "AMOUNT"},
+                    {"text": "2024", "type": "DATE"},
+                ],
+            ),
+            _claim(
+                "SIPRI estimated Russia military spending at $149 billion April 2025",
+                1,
+                "Russia military spending",
+                [
+                    {"text": "SIPRI", "type": "ORG"},
+                    {"text": "$149 billion", "type": "AMOUNT"},
+                    {"text": "April 2025", "type": "DATE"},
+                ],
+            ),
+            _claim(
+                "Russia military spending highest share since the Soviet era",
+                2,
+                "Russia military spending",
+                [{"text": "Soviet era", "type": "EVENT"}],
+            ),
+            _claim(
+                "Russia military spending 38% real-terms YoY increase",
+                3,
+                "Russia military spending",
+                [{"text": "38%", "type": "AMOUNT"}],
+            ),
+        ]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert len(result) == 1
+        assert result[0]["text"] == synthesised_text
+        assert result[0]["merge_text_source"] == "synthesised"
+        # Provenance preserved regardless of which path runs.
+        assert result[0]["merged_source_texts"] == [c["text"] for c in claims]
+
+    async def test_synthesis_drops_entity_falls_back_to_concat(
+        self, extractor, monkeypatch
+    ):
+        # LLM returns text that omits a required entity → fallback to concat.
+        monkeypatch.setattr(
+            "app.pipeline.extract.call_google_ai",
+            # SIPRI absent on purpose
+            _synthesis_returns("Russia spent 6.7% of GDP on military in 2024."),
+        )
+        claims = [
+            _claim(
+                "Russia 6.7% GDP military 2024",
+                0,
+                "Russia military spending",
+                [{"text": "Russia", "type": "LOCATION"}],
+            ),
+            _claim(
+                "SIPRI $149 billion April 2025",
+                1,
+                "Russia military spending",
+                [{"text": "SIPRI", "type": "ORG"}],
+            ),
+        ]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert len(result) == 1
+        # SIPRI is missing from the LLM output → fallback ran
+        assert result[0]["merge_text_source"] == "concat"
+        # Concat shape is the period-joined original
+        assert (
+            result[0]["text"]
+            == "Russia 6.7% GDP military 2024. SIPRI $149 billion April 2025."
+        )
+
+    async def test_synthesis_llm_error_falls_back(self, extractor, monkeypatch):
+        # LLM call raises → caller catches and falls back.
+        monkeypatch.setattr(
+            "app.pipeline.extract.call_google_ai",
+            _synthesis_raises(RuntimeError("upstream timeout")),
+        )
+        claims = [
+            _claim("First fact", 0, "shared"),
+            _claim("Second fact", 1, "shared"),
+        ]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert len(result) == 1
+        assert result[0]["merge_text_source"] == "concat"
+        assert result[0]["text"] == "First fact. Second fact."
+
+    async def test_synthesis_llm_returns_none_falls_back(self, extractor, monkeypatch):
+        # call_google_ai returns None on retries-exhausted etc.
+        monkeypatch.setattr(
+            "app.pipeline.extract.call_google_ai",
+            _synthesis_returns_raw(None),
+        )
+        claims = [
+            _claim("First fact", 0, "shared"),
+            _claim("Second fact", 1, "shared"),
+        ]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert result[0]["merge_text_source"] == "concat"
+
+    async def test_synthesis_malformed_response_falls_back(
+        self, extractor, monkeypatch
+    ):
+        # JSON parsed but missing the "text" key.
+        monkeypatch.setattr(
+            "app.pipeline.extract.call_google_ai",
+            _synthesis_returns_raw({"unrelated": "shape"}),
+        )
+        claims = [
+            _claim("First fact", 0, "shared"),
+            _claim("Second fact", 1, "shared"),
+        ]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert result[0]["merge_text_source"] == "concat"
+
+    async def test_synthesis_empty_string_falls_back(self, extractor, monkeypatch):
+        monkeypatch.setattr(
+            "app.pipeline.extract.call_google_ai",
+            _synthesis_returns_raw({"text": "   "}),
+        )
+        claims = [
+            _claim("First fact", 0, "shared"),
+            _claim("Second fact", 1, "shared"),
+        ]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert result[0]["merge_text_source"] == "concat"
+
+    async def test_synthesis_not_attempted_on_singleton(self, extractor, monkeypatch):
+        # No merge group means no synthesis call should ever happen.
+        # Tracking via a Mock so we can assert it wasn't called.
+        from unittest.mock import AsyncMock
+
+        spy = AsyncMock(return_value={"text": "should never be returned"})
+        monkeypatch.setattr("app.pipeline.extract.call_google_ai", spy)
+        claims = [_claim("Lonely claim", 0, "ctx-A")]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert len(result) == 1
+        assert result[0] is claims[0]
+        # No singleton metadata leaked
+        assert result[0].get("was_merged") is not True
+        assert "merged_source_texts" not in result[0]
+        assert "merge_text_source" not in result[0]
+        spy.assert_not_called()
+
+    async def test_merged_source_texts_populated_on_concat_fallback(self, extractor):
+        # Default autouse fixture forces fallback. Provenance must still
+        # be present on the merged claim.
+        claims = [
+            _claim("First fact", 0, "shared"),
+            _claim("Second fact", 1, "shared"),
+        ]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert result[0]["merged_source_texts"] == ["First fact", "Second fact"]
+        assert result[0]["merge_text_source"] == "concat"
+
+    async def test_synthesis_case_insensitive_entity_check(
+        self, extractor, monkeypatch
+    ):
+        # "BlackRock" extracted entity, LLM rewrites as "blackrock" —
+        # case-insensitive check passes, synthesis succeeds.
+        monkeypatch.setattr(
+            "app.pipeline.extract.call_google_ai",
+            _synthesis_returns(
+                "blackrock's Q3 2023 inflows of $39bn were down from $122bn in Q3 2022."
+            ),
+        )
+        claims = [
+            _claim(
+                "BlackRock Q3 2023 inflows $39bn",
+                0,
+                "BlackRock net inflows",
+                [
+                    {"text": "BlackRock", "type": "ORG"},
+                    {"text": "Q3 2023", "type": "DATE"},
+                    {"text": "$39bn", "type": "AMOUNT"},
+                ],
+            ),
+            _claim(
+                "BlackRock Q3 2022 inflows $122bn",
+                1,
+                "BlackRock net inflows",
+                [
+                    {"text": "Q3 2022", "type": "DATE"},
+                    {"text": "$122bn", "type": "AMOUNT"},
+                ],
+            ),
+        ]
+        result = await extractor._merge_redecomposed_claims(claims)
+        assert result[0]["merge_text_source"] == "synthesised"

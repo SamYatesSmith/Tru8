@@ -667,7 +667,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
         """Filter unverifiable claims, dedupe near-duplicates, merge over-decompositions."""
         validated = self._validate_individual_claims(claims)
         deduped = await self._deduplicate_similar_claims(validated)
-        merged = self._merge_redecomposed_claims(deduped)
+        merged = await self._merge_redecomposed_claims(deduped)
         return merged
 
     @staticmethod
@@ -710,13 +710,88 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
         has_date = any(typ == "DATE" for _, typ in entities)
         return has_org and has_date
 
-    def _merge_claim_group(self, group: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def _synthesise_merged_claim_text(
+        self, group_texts: List[str], required_entities: List[str]
+    ) -> Optional[str]:
+        """LLM rewrite N short factual sentences into one fluent sentence.
+
+        Returns the synthesised text on success. Returns ``None`` on any
+        failure — LLM call returned ``None``, malformed JSON shape, empty
+        output, or an entity from ``required_entities`` was dropped from
+        the rewrite. Caller falls back to the period-joined concat.
+
+        The entity-preservation check is case-insensitive substring. False
+        negatives (e.g. LLM rewrites "$149 billion" as "$149bn") fail the
+        check and fall back — strictly safe: worst case is the original
+        concat, never worse than today's behaviour.
+        """
+        if len(group_texts) < 2:
+            return None
+
+        numbered = "\n".join(f"{i + 1}. {t}" for i, t in enumerate(group_texts))
+        entity_list = ", ".join(required_entities) if required_entities else "(none)"
+        prompt = (
+            "You are merging short factual sentences about the same topic "
+            "into ONE fluent, readable sentence. Every named entity, "
+            "figure, percentage, and date from the inputs MUST appear in "
+            "your output. Do not add new claims, interpretations, or "
+            "facts. Do not omit any fact.\n\n"
+            f"Inputs:\n{numbered}\n\n"
+            f"Required entities to preserve verbatim or as close-equivalent: {entity_list}\n\n"
+            'Output JSON: {"text": "<one fluent sentence containing every input fact>"}'
+        )
+
+        try:
+            result = await call_google_ai(
+                prompt,
+                temperature=0.1,
+                max_tokens=400,
+                timeout=15,
+            )
+        except Exception as exc:
+            logger.warning(f"[EXTRACT] CLAIM SYNTHESIS error: {exc}")
+            return None
+
+        if not isinstance(result, dict):
+            return None
+
+        synthesised = result.get("text")
+        if not isinstance(synthesised, str) or not synthesised.strip():
+            return None
+
+        synthesised = synthesised.strip()
+        lowered = synthesised.lower()
+        for ent in required_entities:
+            if not ent:
+                continue
+            if ent.lower() not in lowered:
+                logger.info(
+                    f"[EXTRACT] CLAIM SYNTHESIS: dropped entity {ent!r}, falling back to concat"
+                )
+                return None
+
+        return synthesised
+
+    async def _merge_claim_group(self, group: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Combine a list of claims into one. Concat text, union entities,
-        max confidence. Caller renumbers position."""
-        texts = [c.get("text", "").rstrip(".") for c in group if c.get("text")]
-        text = ". ".join(t for t in texts if t)
-        if text:
-            text = text + "."
+        max confidence. Caller renumbers position.
+
+        Attempts an LLM synthesis pass (Flash Lite) to produce a single
+        fluent sentence preserving every entity. Falls back to naive
+        period-joined concat if the LLM call fails, returns malformed
+        JSON, drops an entity, or for any other reason. Original
+        sentences are preserved on the merged claim as
+        ``merged_source_texts`` regardless of which path is taken, so
+        downstream debugging never loses provenance.
+        """
+        # Original texts: input to synthesis + provenance storage
+        original_texts = [c.get("text", "") for c in group if c.get("text")]
+
+        # Naive concat — always computed; used as fallback when synthesis fails
+        stripped = [t.rstrip(".") for t in original_texts]
+        fallback_text = ". ".join(t for t in stripped if t)
+        if fallback_text:
+            fallback_text = fallback_text + "."
 
         confidence = max((c.get("confidence", 0) or 0 for c in group), default=0)
         category = next(
@@ -744,23 +819,38 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 seen.add(key)
                 entities.append({"text": t_raw, "type": ty_raw})
 
+        # LLM synthesis: best-effort, falls back to concat on any failure
+        entity_strings = [e["text"] for e in entities if e.get("text")]
+        synthesised = await self._synthesise_merged_claim_text(
+            original_texts, entity_strings
+        )
+        final_text = synthesised if synthesised else fallback_text
+
+        if synthesised:
+            logger.info(
+                f"[EXTRACT] CLAIM SYNTHESIS: rewrote {len(group)}-claim merge "
+                f"({len(fallback_text)}→{len(synthesised)} chars)"
+            )
+
         # Inherit other fields from the first claim (source_*, confidence-derived flags
         # from validation, etc.). Position renumbering happens in the caller.
         merged = dict(group[0])
         merged.update(
             {
-                "text": text,
+                "text": final_text,
                 "confidence": confidence,
                 "category": category,
                 "subject_context": subject_context,
                 "key_entities": entities,
                 "was_merged": True,
                 "merged_from": [c.get("position") for c in group],
+                "merged_source_texts": original_texts,
+                "merge_text_source": "synthesised" if synthesised else "concat",
             }
         )
         return merged
 
-    def _merge_redecomposed_claims(
+    async def _merge_redecomposed_claims(
         self, claims: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """Merge claims the LLM over-decomposed from a single substantive claim.
@@ -800,7 +890,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
         for ctx, idxs in by_ctx.items():
             if len(idxs) >= 2:
                 group = [claims[i] for i in idxs]
-                merged = self._merge_claim_group(group)
+                merged = await self._merge_claim_group(group)
                 anchor = min(claims[i].get("position", i) for i in idxs)
                 results.append((anchor, merged))
                 consumed.update(idxs)
@@ -834,7 +924,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
 
             if len(merge_group) >= 2:
                 group_claims = [c for _, c in merge_group]
-                merged = self._merge_claim_group(group_claims)
+                merged = await self._merge_claim_group(group_claims)
                 anchor = min(c.get("position", idx) for idx, c in merge_group)
                 results.append((anchor, merged))
                 logger.info(
