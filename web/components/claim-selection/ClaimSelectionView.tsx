@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import type { ClaimForSelection } from './types';
+import { MAX_SELECTABLE_CLAIMS } from './types';
 import { ExtractionSummaryStrip } from './ExtractionSummaryStrip';
 import { ClaimSelectionToolbar } from './ClaimSelectionToolbar';
 import { ClaimSelectionCard } from './ClaimSelectionCard';
@@ -25,11 +26,19 @@ export function ClaimSelectionView({
 }: ClaimSelectionViewProps) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
+  const capExceedsClaims = claims.length > MAX_SELECTABLE_CLAIMS;
+  const isAtCap = selected.size >= MAX_SELECTABLE_CLAIMS;
+
   const toggleClaim = useCallback((position: number) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(position)) {
         next.delete(position);
+      } else if (next.size >= MAX_SELECTABLE_CLAIMS) {
+        // At cap — additions are no-ops. User must deselect first
+        // to swap. The card itself renders disabled state so this
+        // path is reached only via keyboard / programmatic toggle.
+        return prev;
       } else {
         next.add(position);
       }
@@ -38,7 +47,10 @@ export function ClaimSelectionView({
   }, []);
 
   const selectAll = useCallback(() => {
-    setSelected(new Set(claims.map((c) => c.position)));
+    // Cap-respecting: select up to MAX_SELECTABLE_CLAIMS by current
+    // ordering (claims arrive pre-sorted by significance rank).
+    const top = claims.slice(0, MAX_SELECTABLE_CLAIMS).map((c) => c.position);
+    setSelected(new Set(top));
   }, [claims]);
 
   const clearAll = useCallback(() => {
@@ -61,30 +73,45 @@ export function ClaimSelectionView({
       />
 
       <p className="text-sm text-zinc-500 mb-8">
-        Select the claims you&apos;d like to investigate. We&apos;ll gather evidence for each.
+        Select up to {MAX_SELECTABLE_CLAIMS} claims to investigate. We do our most
+        thorough work when you pick the ones that matter most.
       </p>
 
       <ClaimSelectionToolbar
         count={claims.length}
+        selectAllLabel={capExceedsClaims ? `Select top ${MAX_SELECTABLE_CLAIMS}` : 'Select all'}
         onSelectAll={selectAll}
         onClear={clearAll}
       />
 
-      <div className="space-y-3 mb-12">
-        {claims.map((claim) => (
-          <ClaimSelectionCard
-            key={claim.position}
-            claim={claim}
-            isSelected={selected.has(claim.position)}
-            onToggle={() => toggleClaim(claim.position)}
-          />
-        ))}
+      <div className="space-y-3 mb-4">
+        {claims.map((claim) => {
+          const isSelected = selected.has(claim.position);
+          return (
+            <ClaimSelectionCard
+              key={claim.position}
+              claim={claim}
+              isSelected={isSelected}
+              isDisabled={isAtCap && !isSelected}
+              onToggle={() => toggleClaim(claim.position)}
+            />
+          );
+        })}
+      </div>
+
+      <div className="mb-12 min-h-[1.25rem]">
+        {isAtCap && capExceedsClaims && (
+          <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+            {MAX_SELECTABLE_CLAIMS} of {MAX_SELECTABLE_CLAIMS} selected &middot;
+            deselect one to swap
+          </p>
+        )}
       </div>
 
       <div>
         <div className="flex items-center justify-end gap-6 mb-4">
           <span className="font-mono text-[10px] text-zinc-400">
-            {selectedCount} of {claims.length} claims selected
+            {selectedCount} of {Math.min(claims.length, MAX_SELECTABLE_CLAIMS)} claims selected
           </span>
         </div>
         <div className="flex justify-end">

@@ -486,6 +486,18 @@ a:focus-visible {
   opacity: 1;
 }
 
+.claim-select-card.cap-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.claim-select-card.cap-disabled:hover {
+  border-color: #E5E7EB;
+  background: #FAFAFA;
+  transform: none;
+}
+
 /* Heatmap cells (E10 — Librarian) */
 .heatmap-cell {
   transition: all 0.15s ease;

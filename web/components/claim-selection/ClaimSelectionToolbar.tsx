@@ -2,12 +2,14 @@
 
 interface ClaimSelectionToolbarProps {
   count: number;
+  selectAllLabel?: string;
   onSelectAll: () => void;
   onClear: () => void;
 }
 
 export function ClaimSelectionToolbar({
   count,
+  selectAllLabel = 'Select all',
   onSelectAll,
   onClear,
 }: ClaimSelectionToolbarProps) {
@@ -22,7 +24,7 @@ export function ClaimSelectionToolbar({
           onClick={onSelectAll}
           className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors"
         >
-          Select all
+          {selectAllLabel}
         </button>
         <span className="text-zinc-200">|</span>
         <button

@@ -6,34 +6,50 @@ import type { ClaimForSelection } from './types';
 interface ClaimSelectionCardProps {
   claim: ClaimForSelection;
   isSelected: boolean;
+  isDisabled?: boolean;
   onToggle: () => void;
 }
 
 export function ClaimSelectionCard({
   claim,
   isSelected,
+  isDisabled = false,
   onToggle,
 }: ClaimSelectionCardProps) {
+  const handleClick = useCallback(() => {
+    if (isDisabled) return;
+    onToggle();
+  }, [isDisabled, onToggle]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (isDisabled) return;
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         onToggle();
       }
     },
-    [onToggle]
+    [isDisabled, onToggle]
   );
 
   const rankLabel = String(claim.significanceRank).padStart(2, '0');
+  const className = [
+    'claim-select-card px-6 py-5',
+    isSelected ? 'selected' : '',
+    isDisabled ? 'cap-disabled' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div
       role="checkbox"
       aria-checked={isSelected}
-      tabIndex={0}
-      onClick={onToggle}
+      aria-disabled={isDisabled}
+      tabIndex={isDisabled ? -1 : 0}
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
-      className={`claim-select-card px-6 py-5${isSelected ? ' selected' : ''}`}
+      className={className}
     >
       <div className="flex items-start justify-between gap-4 mb-3">
         <span className="rank-num font-mono text-sm font-bold">{rankLabel}</span>
