@@ -340,7 +340,23 @@ class EvidenceRetriever:
                 progressive_results["pre_weighting_evidence"] = pre_weighting_by_claim
 
             async def _retrieve_and_store(claim_index: int, claim: Dict):
-                """Retrieve evidence for one claim and store immediately."""
+                """Retrieve evidence for one claim and store immediately.
+
+                Keys evidence_by_claim / pre_weighting_by_claim by the claim's
+                actual position (e.g. "3" for a claim at position=3), not by
+                the enumerate index. The previous keying-by-index caused
+                cross-attribution whenever selected positions were not
+                contiguous: _ensure_minimum_evidence (line 454) and every
+                downstream consumer (runner.py result-building at L2454,
+                workers/pipeline.py cache merge at L296) look up evidence
+                by claim["position"], so an index-keyed entry for the
+                selected claim at position=3 ended up attributed to the
+                claim at position=1, while position=3 then looked empty
+                and re-triggered recovery. The dict accumulated both sets
+                of keys (index + position), and unselected claims silently
+                absorbed mis-attributed evidence at save time.
+                """
+                claim_position_key = str(claim.get("position", claim_index))
                 try:
                     result = await self._retrieve_evidence_for_single_claim(
                         claim,
@@ -350,20 +366,21 @@ class EvidenceRetriever:
                     )
                 except Exception as exc:
                     logger.error(
-                        f"[RETRIEVER DEBUG] Result {claim_index}: EXCEPTION {type(exc).__name__}: {exc}"
+                        f"[RETRIEVER DEBUG] Result idx={claim_index} pos={claim_position_key}: "
+                        f"EXCEPTION {type(exc).__name__}: {exc}"
                     )
-                    evidence_by_claim[str(claim_index)] = []
+                    evidence_by_claim[claim_position_key] = []
                     return
 
                 if isinstance(result, dict):
-                    evidence_by_claim[str(claim_index)] = result.get(
+                    evidence_by_claim[claim_position_key] = result.get(
                         "filtered_evidence", []
                     )
-                    pre_weighting_by_claim[str(claim_index)] = result.get(
+                    pre_weighting_by_claim[claim_position_key] = result.get(
                         "pre_weighting_evidence", []
                     )
                     raw_evidence = result.get("raw_evidence", [])
-                    claim_position = result.get("claim_position", claim_index)
+                    claim_position = result.get("claim_position", claim_position_key)
                     claim_text = result.get("claim_text", "")
                     for raw_item in raw_evidence:
                         raw_item["claim_position"] = claim_position
@@ -374,13 +391,13 @@ class EvidenceRetriever:
                         "search_results_count", len(raw_evidence)
                     )
                     logger.info(
-                        f"[RETRIEVER DEBUG] Result {claim_index}: dict with "
-                        f"{len(result.get('filtered_evidence', []))} filtered, "
+                        f"[RETRIEVER DEBUG] Result idx={claim_index} pos={claim_position_key}: "
+                        f"dict with {len(result.get('filtered_evidence', []))} filtered, "
                         f"{len(result.get('raw_evidence', []))} raw"
                     )
                 else:
-                    # Legacy list format (backward compatibility)
-                    evidence_by_claim[str(claim_index)] = (
+                    # Legacy list format (backward compatibility).
+                    evidence_by_claim[claim_position_key] = (
                         result if isinstance(result, list) else []
                     )
 
