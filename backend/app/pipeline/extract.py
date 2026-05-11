@@ -166,7 +166,7 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
    TRULY DIFFERENT allegations (different events, different subjects) = separate claims.
 
 11. EXTRACT COMPREHENSIVELY - Extract ALL distinct verifiable facts, not just the main headline.
-   Each of these deserves a separate claim:
+   Each of these deserves a separate claim when they describe SEPARATE events/topics:
    - Dates/timelines ("completed in 2019", "happened last week")
    - Costs/figures (monetary amounts, statistics, quantities)
    - Named individuals and their roles/titles
@@ -175,7 +175,41 @@ RULES FOR EXTRACTING VERIFIABLE CLAIMS:
    - Historical context facts
    - Attributions ("X said", "Y denied", "Z confirmed")
 
-   If an article contains 10 facts, extract 10 claims. Never summarize multiple facts into one.
+   If an article contains 10 facts about 10 SEPARATE events or topics, extract 10 claims.
+   BUT — see rule 12 — facts describing aspects of the SAME event collapse to one claim.
+
+12. SINGLE-EVENT MULTI-FACT MERGE - When the source describes ONE event with multiple
+    aspects (the event itself + the actor + the method + the extent + the attribution),
+    produce ONE comprehensive claim that captures all aspects, NOT 4-5 atomic claims that
+    each emphasise a single aspect.
+
+    The atomic-claim rule (rule 3) is about not chaining UNRELATED facts with "and" —
+    not about splitting every fact of one event into its own claim.
+
+    Test before splitting: "Would a single primary source — one report, one survey, one
+    paper, one filing — verify all of these facts together?" If yes, they are aspects
+    of one event. Merge them into one claim that names the actor, the action, the
+    quantified result, and the date/location.
+
+    ✗ BAD: A single paragraph about one coral bleaching event split into 5 atomic claims:
+      - "The Great Barrier Reef experienced its fifth mass coral bleaching event in March 2024"
+      - "Aerial surveys documented bleaching across two-thirds of the reef system"
+      - "The Great Barrier Reef Marine Park Authority conducted aerial surveys"
+      - "Sustained ocean heat anomalies of 1.5°C above the long-term March average occurred"
+      - "The Australian Institute of Marine Science attributed the event to ocean heat anomalies"
+    ✓ GOOD: ONE or TWO comprehensive claims for the same input:
+      - "The Great Barrier Reef Marine Park Authority documented its fifth mass coral
+         bleaching event since 2016 across two-thirds of the reef system in March 2024"
+      - "The Australian Institute of Marine Science attributed the March 2024 bleaching
+         to sustained ocean heat anomalies of 1.5°C above the long-term March average
+         across the Coral Sea"
+    (Two claims: one for the event + survey aspects, one for the cause + attribution.
+     A primary GBRMPA / AIMS source verifies each comprehensively.)
+
+    Distinguish from genuine paired comparisons — those remain separate claims:
+    ✓ "HSBC pre-tax profit reached $9.5bn in Q4 2024" and
+      "Barclays pre-tax profit reached £1.7bn in Q4 2024" are TWO claims (different
+      actors, different quantified results, would require different primary sources).
 
 HANDLING UNCERTAINTY:
 If you cannot confidently extract a claim:
@@ -698,17 +732,25 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
         return out
 
     @staticmethod
-    def _has_org_date_backbone(entities: Set[Tuple[str, str]]) -> bool:
-        """True if the entity set contains an ORG/PRODUCT and a DATE.
+    def _has_event_anchor_backbone(entities: Set[Tuple[str, str]]) -> bool:
+        """True if the entity set contains a DATE anchor paired with an
+        ORG/PRODUCT or a LOCATION anchor.
 
         Both anchors required: bare DATE overlap is too weak (every news claim
-        shares a year), bare ORG overlap is too weak (companies appear in many
-        unrelated claims). Together they identify a same-event/same-finding
-        anchor that's unlikely to be coincidental.
+        shares a year), bare ORG/LOCATION overlap is too weak (companies and
+        countries appear in many unrelated claims). Paired with a DATE they
+        identify a same-event anchor that's unlikely to be coincidental.
+
+        LOCATION + DATE was added (Thread C, 2026-05-11) after TRU-E317-4192
+        showed natural-event articles where the actor entity differs across
+        atomized claims (event vs observation-team vs cause-attributor) but
+        the place + date stay constant. ORG/PRODUCT alone misses these.
         """
-        has_org = any(typ in ("ORG", "PRODUCT") for _, typ in entities)
+        has_actor_or_place = any(
+            typ in ("ORG", "PRODUCT", "LOCATION") for _, typ in entities
+        )
         has_date = any(typ == "DATE" for _, typ in entities)
-        return has_org and has_date
+        return has_actor_or_place and has_date
 
     async def _synthesise_merged_claim_text(
         self, group_texts: List[str], required_entities: List[str]
@@ -864,10 +906,13 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                  Strongest signal: the LLM's own labelling tells us these
                  claims are about the same thing.
         Pass 2 — remaining singletons that share ≥3 key_entities including
-                 an ORG/PRODUCT anchor and a DATE anchor get merged.
-                 Catches paired findings of one event when subject_context
-                 happens to differ on a modifier word (e.g. "false positives"
-                 vs "false negatives" of the same study).
+                 an event-anchor backbone (DATE + ORG/PRODUCT/LOCATION) get
+                 merged. Catches paired findings of one event when
+                 subject_context happens to differ on a modifier word (e.g.
+                 "false positives" vs "false negatives" of the same study).
+                 LOCATION variant added 2026-05-11 for natural-event articles
+                 (TRU-E317 GBR coral) where the place + date are stable but
+                 actor entities differ across atomized aspects.
 
         See V1 quality plan 2026-05-06 for diagnostic data and design rationale.
         """
@@ -915,7 +960,7 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                 cand_idx, cand_claim = remaining[j]
                 cand_ents = self._entity_set(cand_claim)
                 overlap = head_ents & cand_ents
-                if len(overlap) >= 3 and self._has_org_date_backbone(overlap):
+                if len(overlap) >= 3 and self._has_event_anchor_backbone(overlap):
                     merge_group.append((cand_idx, cand_claim))
                     head_ents = head_ents | cand_ents  # greedy union
                     remaining.pop(j)
