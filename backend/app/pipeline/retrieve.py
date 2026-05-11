@@ -7,7 +7,12 @@ from typing import List, Dict, Any, Optional, Tuple, Union
 from datetime import datetime, timezone
 import os
 from app.services.search import SearchService, SearchResult, JURISDICTION_TO_COUNTRY
-from app.services.evidence import EvidenceExtractor, EvidenceSnippet
+from app.services.evidence import (
+    EvidenceExtractor,
+    EvidenceSnippet,
+    get_runtime_blocked_domains,
+    is_domain_blocked,
+)
 from app.services.embeddings import get_embedding_service
 from app.services.vector_store import get_vector_store
 from app.utils.url_utils import extract_domain
@@ -598,6 +603,17 @@ class EvidenceRetriever:
                 f"authoritative sources={authoritative_sources[:3]}"
             )
 
+            # Runtime blocklist for recovery URL filtering. The main retrieve
+            # path filters at fetch time in EvidenceService._extract_from_page;
+            # this recovery loop uses search snippets directly (no fetch), so
+            # the blocklist must be applied here. Same pattern as the
+            # post-filter-recovery fix in 330ab44 — the bot_blocked-domains
+            # (notably facebook.com / instagram.com, pre-seeded since
+            # 2025-12-01) leaked into the evidence pool via this path on
+            # TRU-E317-4192 because no check existed between search return
+            # and EvidenceSnippet construction.
+            blocked_domains = get_runtime_blocked_domains()
+
             # Generate targeted queries
             # Query 1: Direct claim text with site filter for authoritative sources
             # Query 2: Simplified key phrase extraction
@@ -630,6 +646,15 @@ class EvidenceRetriever:
                                 else r.get("url", "")
                             )
                             if url in existing_urls:
+                                continue
+
+                            if is_domain_blocked(url, blocked_domains):
+                                logger.info(
+                                    f"[URL LEDGER] claim={claim_position} "
+                                    f"dropped(recovery) "
+                                    f"reason='runtime_blocked_domain' "
+                                    f"url={url[:120]}"
+                                )
                                 continue
 
                             snippet = EvidenceSnippet(
@@ -850,6 +875,15 @@ class EvidenceRetriever:
         all_evidence = []
         claim_context = claim_text[:100]
 
+        # Runtime blocklist for recovery URL filtering (same rationale as
+        # _recover_evidence_for_claim above). The main retrieve path's
+        # blocklist check at EvidenceService._extract_from_page fires at
+        # fetch time, but Stage 5.1 coverage recovery uses search snippets
+        # directly — so blocked domains (facebook.com, instagram.com)
+        # leaked through this path on TRU-E317-4192. The drop is mirrored
+        # to the URL ledger so the receipt-disclosure stays honest.
+        blocked_domains = get_runtime_blocked_domains()
+
         # Use LLM query planner for targeted recovery queries
         element_queries = {}  # element_id -> [{"query": str, "freshness": str}]
 
@@ -931,6 +965,15 @@ class EvidenceRetriever:
                             else r.get("url", "")
                         )
                         if url in existing_urls:
+                            continue
+
+                        if is_domain_blocked(url, blocked_domains):
+                            logger.info(
+                                f"[URL LEDGER] element={elem['element_id']} "
+                                f"dropped(recovery) "
+                                f"reason='runtime_blocked_domain' "
+                                f"url={url[:120]}"
+                            )
                             continue
 
                         ev_hash = hashlib.sha256(url.encode()).hexdigest()[:8]
