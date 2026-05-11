@@ -80,11 +80,13 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
       }
     });
 
-    // B3: 'unmapped' items joined 'excluded' as receipt outcomes the user
-    // should see in retrieval transparency. Both are kept out of the
-    // included pool but surfaced in the funnel.
+    // Show all classified evidence in the landscape; only truly-excluded
+    // items (extraction failures, duplicates, satire) drop out. Unmapped
+    // items appear in the heatmap/ledger with no element badge — matches
+    // Cartographer + Chronologist + Correspondent filtering and the
+    // "no hidden curation" invariant.
     const isVisibleInLandscape = (ev: Evidence) =>
-      ev.receiptStatus !== 'excluded' && ev.receiptStatus !== 'unmapped';
+      ev.receiptStatus !== 'excluded';
     const included = all.filter(isVisibleInLandscape);
     const excluded = all.filter((ev) => !isVisibleInLandscape(ev));
 
