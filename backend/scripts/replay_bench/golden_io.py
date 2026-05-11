@@ -74,6 +74,31 @@ def derive_default_golden(
     obs_cov_failures = int(observation.get("coverage_recovery_failures", 0))
     hard_invariants["coverage_recovery_failures_max"] = max(6, obs_cov_failures + 2)
 
+    # V1 Step 5 — V3 quality floors (Poor thresholds) and warn band (Mediocre).
+    # Universal thresholds per the V1 quality plan; do NOT derive from this
+    # observation (Poor floor must catch regression, not snapshot today's run).
+    # Tune by hand only when a corpus claim is known to legitimately sit below
+    # a floor — e.g. a Sports claim known to have <5 unique_domains in V1
+    # because no dedicated sport adapter exists.
+    hard_invariants["v3_quality_floors"] = {
+        "unique_domains_min": 5,
+        "top_domain_share_max": 0.45,
+        "wikipedia_share_max": 0.40,
+        "factual_weight_share_min": 0.15,
+        "element_resolution_min": 0.30,
+    }
+    hard_invariants["v3_quality_warn_band"] = {
+        "unique_domains_min": 7,
+        "top_domain_share_max": 0.30,
+        "wikipedia_share_max": 0.25,
+        "factual_weight_share_min": 0.25,
+        "element_resolution_min": 0.50,
+    }
+    # Bug B (commit c132704) scaled the recovery timeout per claim. Any post-fix
+    # timeout is a regression to investigate; default this invariant ON for new
+    # goldens and rely on hand-tuning to relax it for legitimate outlier cases.
+    hard_invariants["coverage_recovery_must_not_timeout"] = True
+
     # Counter tolerances are intentionally loose by default; tighten by hand
     # once you know the natural drift for each claim.
     tolerant_counters: Dict[str, Dict[str, int]] = {}

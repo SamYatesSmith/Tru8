@@ -105,6 +105,42 @@ RE_COVERAGE_RECOVERY_DONE = re.compile(
 
 RE_ALLOWLIST_BYPASS = re.compile(r"\[ALLOWLIST BYPASS\] (?P<domain>\S+)\s+—")
 
+# V1 Step 5 — V3 quality signals per claim.
+# Emitted in runner.py after [B3 RECEIPTS] / [DOMAIN CAP], format:
+#   [B3 QUALITY] claim=N mapped=M unique_domains=K top_domain=X@Y% wikipedia=Z%
+#   factual_weight=W% element_resolution=R% tier_mix={...} type_mix={...}
+RE_B3_QUALITY = re.compile(
+    r"\[B3 QUALITY\]\s+claim=(?P<claim>\d+)\s+"
+    r"mapped=(?P<mapped>\d+)\s+"
+    r"unique_domains=(?P<unique_domains>\d+)\s+"
+    r"top_domain=(?P<top_domain>[^@\s]+)@(?P<top_share>\d+)%\s+"
+    r"wikipedia=(?P<wikipedia>\d+)%\s+"
+    r"factual_weight=(?P<factual_weight>\d+)%\s+"
+    r"element_resolution=(?P<element_resolution>\d+)%\s+"
+    r"tier_mix=(?P<tier_mix>\{[^}]*\})\s+"
+    r"type_mix=(?P<type_mix>\{[^}]*\})"
+)
+
+# Per-claim domain concentration cap demote line:
+#   [DOMAIN CAP] claim=N domain=X pre_pr_share=P% post_pr_share=Q% demoted=D
+RE_DOMAIN_CAP_DEMOTE = re.compile(
+    r"\[DOMAIN CAP\]\s+claim=(?P<claim>\d+)\s+domain=(?P<domain>\S+)\s+"
+    r"pre_pr_share=(?P<pre>\d+)%\s+post_pr_share=(?P<post>\d+)%\s+"
+    r"demoted=(?P<demoted>\d+)"
+)
+
+# Per-run aggregate cap summary:
+#   [DOMAIN CAP] total demoted across all claims: N
+RE_DOMAIN_CAP_TOTAL = re.compile(
+    r"\[DOMAIN CAP\] total demoted across all claims:\s+(?P<total>\d+)"
+)
+
+# Coverage recovery hit its async timeout (emitted at WARNING level):
+#   [COVERAGE RECOVERY] Timed out after Ns
+RE_COVERAGE_RECOVERY_TIMEOUT = re.compile(
+    r"\[COVERAGE RECOVERY\]\s+Timed out after (?P<seconds>\d+)s"
+)
+
 RE_FACTCHECKS = re.compile(
     r"Found (?P<count>\d+) fact-checks for claim position (?P<position>\d+)"
 )
@@ -160,7 +196,17 @@ class Observation:
     pipeline_metrics: Optional[Dict[str, int]] = None
     coverage_recovery_failures: int = 0
     coverage_recovery_done: Optional[Dict[str, int]] = None
+    coverage_recovery_timed_out: bool = False
+    coverage_recovery_timeout_seconds: Optional[int] = None
     allowlist_bypassed_domains: Set[str] = field(default_factory=set)
+    # V1 Step 5 — V3 per-claim quality signals from [B3 QUALITY] log line.
+    # Percentages stored as floats in 0.0-1.0 range.
+    b3_quality_per_claim: Dict[int, Dict[str, Any]] = field(default_factory=dict)
+    # Per-claim DOMAIN CAP demote events. Shape per entry:
+    #   {"claim": int, "domain": str, "pre_pr_share": float,
+    #    "post_pr_share": float, "demoted": int}
+    domain_cap_events: List[Dict[str, Any]] = field(default_factory=list)
+    domain_cap_total: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {
@@ -197,7 +243,14 @@ class Observation:
             "pipeline_metrics": self.pipeline_metrics,
             "coverage_recovery_failures": self.coverage_recovery_failures,
             "coverage_recovery_done": self.coverage_recovery_done,
+            "coverage_recovery_timed_out": self.coverage_recovery_timed_out,
+            "coverage_recovery_timeout_seconds": self.coverage_recovery_timeout_seconds,
             "allowlist_bypassed_domains": sorted(self.allowlist_bypassed_domains),
+            "b3_quality_per_claim": {
+                str(k): v for k, v in self.b3_quality_per_claim.items()
+            },
+            "domain_cap_events": self.domain_cap_events,
+            "domain_cap_total": self.domain_cap_total,
         }
         return d
 
@@ -399,6 +452,50 @@ class PipelineCaptureHandler(logging.Handler):
         if m:
             self.obs.allowlist_bypassed_domains.add(m.group("domain"))
 
+    def _match_b3_quality(self, msg: str) -> None:
+        m = RE_B3_QUALITY.search(msg)
+        if not m:
+            return
+        claim = int(m.group("claim"))
+        self.obs.b3_quality_per_claim[claim] = {
+            "mapped": int(m.group("mapped")),
+            "unique_domains": int(m.group("unique_domains")),
+            "top_domain": m.group("top_domain"),
+            "top_domain_share": int(m.group("top_share")) / 100.0,
+            "wikipedia_share": int(m.group("wikipedia")) / 100.0,
+            "factual_weight_share": int(m.group("factual_weight")) / 100.0,
+            "element_resolution": int(m.group("element_resolution")) / 100.0,
+            "tier_mix": _parse_dict(m.group("tier_mix")),
+            "type_mix": _parse_dict(m.group("type_mix")),
+        }
+
+    def _match_domain_cap(self, msg: str) -> None:
+        # Match the per-claim demote line first (more specific) before the
+        # total summary line — both start with "[DOMAIN CAP]" but only the
+        # demote line has claim=/domain=.
+        m = RE_DOMAIN_CAP_DEMOTE.search(msg)
+        if m:
+            self.obs.domain_cap_events.append(
+                {
+                    "claim": int(m.group("claim")),
+                    "domain": m.group("domain"),
+                    "pre_pr_share": int(m.group("pre")) / 100.0,
+                    "post_pr_share": int(m.group("post")) / 100.0,
+                    "demoted": int(m.group("demoted")),
+                }
+            )
+            return
+        m2 = RE_DOMAIN_CAP_TOTAL.search(msg)
+        if m2:
+            self.obs.domain_cap_total = int(m2.group("total"))
+
+    def _match_coverage_recovery_timeout(self, msg: str) -> None:
+        m = RE_COVERAGE_RECOVERY_TIMEOUT.search(msg)
+        if not m:
+            return
+        self.obs.coverage_recovery_timed_out = True
+        self.obs.coverage_recovery_timeout_seconds = int(m.group("seconds"))
+
     # Order matters only for shared regex prefixes; each matcher is independent.
     _matchers = [
         _match_classifier_inject,
@@ -416,5 +513,8 @@ class PipelineCaptureHandler(logging.Handler):
         _match_b3_receipts,
         _match_pipeline_metrics,
         _match_coverage_recovery,
+        _match_coverage_recovery_timeout,
         _match_allowlist_bypass,
+        _match_b3_quality,
+        _match_domain_cap,
     ]

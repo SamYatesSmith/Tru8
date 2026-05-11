@@ -86,6 +86,14 @@ def compare_hard_invariants(obs: Dict[str, Any], hard: Dict[str, Any]) -> List[D
     if expected_recovery_failures_max is not None:
         out.append(_check_coverage_recovery(obs, expected_recovery_failures_max))
 
+    if hard.get("coverage_recovery_must_not_timeout"):
+        out.append(_check_coverage_recovery_timeout(obs))
+
+    v3_floors = hard.get("v3_quality_floors")
+    v3_warn = hard.get("v3_quality_warn_band")
+    if v3_floors:
+        out.extend(_check_v3_quality_per_claim(obs, v3_floors, v3_warn or {}))
+
     return out
 
 
@@ -288,6 +296,166 @@ def _check_coverage_recovery(obs: Dict[str, Any], max_failures: int) -> Diff:
         expected=f"<={max_failures}",
         observed=fails,
         message="coverage recovery within tolerance",
+    )
+
+
+def _check_coverage_recovery_timeout(obs: Dict[str, Any]) -> Diff:
+    """Hard invariant: [COVERAGE RECOVERY] Timed out must not appear.
+
+    Bug B (V1 plan Step 2, commit c132704) scales the recovery budget per
+    claim. If the line fires post-fix, something regressed — either the
+    per-claim scaling broke or the candidate count is wildly higher than
+    expected for this corpus case.
+    """
+    timed_out = bool(obs.get("coverage_recovery_timed_out", False))
+    seconds = obs.get("coverage_recovery_timeout_seconds")
+    if timed_out:
+        return Diff(
+            level="failure",
+            signal="coverage_recovery_timed_out",
+            expected=False,
+            observed=f"after {seconds}s",
+            message="[COVERAGE RECOVERY] Timed out — Bug B regression suspect",
+        )
+    return Diff(
+        level="ok",
+        signal="coverage_recovery_timed_out",
+        expected=False,
+        observed=False,
+        message="coverage recovery did not time out",
+    )
+
+
+# V3 signals — see audit/pipeline-issues/2026-05-06_v1_quality_plan.md.
+# Each signal is either *_min (higher is better — FAIL below Poor floor,
+# WARN between Poor floor and Mediocre floor) or *_max (lower is better —
+# FAIL above Poor cap, WARN between Mediocre cap and Poor cap). Quality
+# verdict is judged on MAPPED items only; mapping rate itself is diagnostic.
+_V3_MIN_SIGNALS = ("unique_domains", "factual_weight_share", "element_resolution")
+_V3_MAX_SIGNALS = ("top_domain_share", "wikipedia_share")
+
+
+def _check_v3_quality_per_claim(
+    obs: Dict[str, Any],
+    floors: Dict[str, Any],
+    warn_band: Dict[str, Any],
+) -> List[Diff]:
+    """Per-claim V3 quality floor check.
+
+    `floors` carries Poor thresholds (FAIL crosses these); `warn_band` carries
+    Mediocre thresholds (WARN inside [Poor, Mediocre], OK beyond Mediocre).
+
+    Claims absent from `b3_quality_per_claim` are skipped silently — no log
+    line means no mapped evidence, which is its own observable elsewhere.
+    """
+    out: List[Diff] = []
+    b3_quality = obs.get("b3_quality_per_claim") or {}
+    if not b3_quality:
+        return out
+
+    for claim_key, signals in b3_quality.items():
+        if not isinstance(signals, dict):
+            continue
+        for name in _V3_MIN_SIGNALS:
+            out.append(
+                _check_v3_min(
+                    claim_key,
+                    name,
+                    signals.get(name),
+                    floors.get(f"{name}_min"),
+                    warn_band.get(f"{name}_min"),
+                )
+            )
+        for name in _V3_MAX_SIGNALS:
+            out.append(
+                _check_v3_max(
+                    claim_key,
+                    name,
+                    signals.get(name),
+                    floors.get(f"{name}_max"),
+                    warn_band.get(f"{name}_max"),
+                )
+            )
+    return [d for d in out if d is not None]
+
+
+def _check_v3_min(
+    claim_key: str,
+    name: str,
+    observed: Any,
+    poor_floor: Any,
+    mediocre_floor: Any,
+) -> Diff:
+    if poor_floor is None or observed is None:
+        return None  # type: ignore[return-value]
+    signal = f"v3:{name}.claim={claim_key}"
+    obs_f = float(observed)
+    poor_f = float(poor_floor)
+    if obs_f < poor_f:
+        return Diff(
+            level="failure",
+            signal=signal,
+            expected=f">={poor_f}",
+            observed=obs_f,
+            message=f"{name}={obs_f} below Poor floor {poor_f} on claim {claim_key}",
+        )
+    if mediocre_floor is not None and obs_f < float(mediocre_floor):
+        return Diff(
+            level="warning",
+            signal=signal,
+            expected=f">={mediocre_floor}",
+            observed=obs_f,
+            message=(
+                f"{name}={obs_f} in Mediocre band [{poor_f}, {mediocre_floor}) "
+                f"on claim {claim_key} — drifting toward Poor"
+            ),
+        )
+    return Diff(
+        level="ok",
+        signal=signal,
+        expected=f">={mediocre_floor or poor_f}",
+        observed=obs_f,
+        message=f"{name} OK on claim {claim_key}",
+    )
+
+
+def _check_v3_max(
+    claim_key: str,
+    name: str,
+    observed: Any,
+    poor_cap: Any,
+    mediocre_cap: Any,
+) -> Diff:
+    if poor_cap is None or observed is None:
+        return None  # type: ignore[return-value]
+    signal = f"v3:{name}.claim={claim_key}"
+    obs_f = float(observed)
+    poor_f = float(poor_cap)
+    if obs_f > poor_f:
+        return Diff(
+            level="failure",
+            signal=signal,
+            expected=f"<={poor_f}",
+            observed=obs_f,
+            message=f"{name}={obs_f} above Poor cap {poor_f} on claim {claim_key}",
+        )
+    if mediocre_cap is not None and obs_f > float(mediocre_cap):
+        return Diff(
+            level="warning",
+            signal=signal,
+            expected=f"<={mediocre_cap}",
+            observed=obs_f,
+            message=(
+                f"{name}={obs_f} in Mediocre band ({mediocre_cap}, {poor_f}] "
+                f"on claim {claim_key} — drifting toward Poor"
+            ),
+        )
+    return Diff(
+        level="ok",
+        signal=signal,
+        expected=f"<={mediocre_cap or poor_f}",
+        observed=obs_f,
+        message=f"{name} OK on claim {claim_key}",
     )
 
 
