@@ -278,6 +278,23 @@ class EvidenceRetriever:
                             f"for {len(claims)} claims"
                         )
 
+                        # Step 3 (2026-05-12): mechanical date-anchor
+                        # augmentation. When a claim has a single
+                        # specific year in its DATE entities and the
+                        # LLM-generated query doesn't include the
+                        # year, append it. Addresses the recency-bias
+                        # failure mode surfaced by Prompt 1 (November
+                        # 2023 Autumn Statement returning 2025 Budget
+                        # content). Runs BEFORE class augmentation so
+                        # class-targeted variants inherit the year.
+                        from app.utils.query_date_anchor import (
+                            augment_plans_with_date_anchor,
+                        )
+
+                        query_plans = augment_plans_with_date_anchor(
+                            query_plans, claims_with_elements
+                        )
+
                         # Step 1 (2026-05-12): mechanical class-targeted
                         # query augmentation. Adds one or two
                         # site:-filtered queries per element targeting
