@@ -2097,7 +2097,12 @@ async def run_pipeline_phase2(
                 scaffold, ev_list
             )
 
-    analyze_timeout = 90  # 55s Google thinking model + 30s OpenAI fallback + margin
+    # Budget: ~55s Google thinking model batch mapping + ~25s parallel
+    # completion passes (Step 2 NF-19 fix, 2026-05-12) + ~30s OpenAI
+    # fallback + margin. Bumped 90 → 120 when Step 1's class-targeted
+    # query augmentation grew pool size + Step 2 added per-claim
+    # completion-pass LLM calls.
+    analyze_timeout = 120
 
     try:
         batch_input = []

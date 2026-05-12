@@ -1,35 +1,37 @@
 {
   "allowlist_bypassed_domains": [],
   "analyzer_summary": {
-    "domains": 6,
-    "items": 9,
-    "urls": 9
+    "domains": 5,
+    "items": 11,
+    "urls": 11
   },
   "article_classification": "Finance",
   "b3_quality_per_claim": {
     "0": {
-      "element_resolution": 0.67,
+      "element_resolution": 1.0,
       "factual_weight_share": 0.56,
       "mapped": 9,
       "tier_mix": {
-        "primary": 3,
-        "reporting": 6
+        "commentary": 1,
+        "primary": 5,
+        "reporting": 3
       },
-      "top_domain": "ft.com",
-      "top_domain_share": 0.33,
+      "top_domain": "bp.com",
+      "top_domain_share": 0.44,
       "type_mix": {
-        "data": 2,
-        "news_reporting": 4,
-        "official_statement": 3
+        "analysis": 1,
+        "data": 3,
+        "news_reporting": 3,
+        "official_statement": 2
       },
-      "unique_domains": 6,
+      "unique_domains": 5,
       "wikipedia_share": 0.0
     }
   },
   "b3_receipts": {
     "excluded": 0,
     "shown": 9,
-    "unmapped": 0
+    "unmapped": 2
   },
   "classifier_inject": {
     "added": [],
@@ -50,22 +52,28 @@
   "coverage_recovery_failures": 0,
   "coverage_recovery_timed_out": false,
   "coverage_recovery_timeout_seconds": null,
-  "domain_cap_events": [],
-  "domain_cap_total": 0,
+  "domain_cap_events": [
+    {
+      "claim": 0,
+      "demoted": 1,
+      "domain": "bp.com",
+      "post_pr_share": 0.33,
+      "pre_pr_share": 0.44
+    }
+  ],
+  "domain_cap_total": 1,
   "domain_distribution": {
-    "bbc.co.uk": 1,
-    "bp.com": 2,
-    "finbox.com": 1,
-    "ft.com": 3,
+    "bp.com": 4,
+    "ft.com": 4,
     "macrotrends.net": 1,
+    "markets.ft.com": 1,
     "sec.gov": 1
   },
   "domain_set": [
-    "bbc.co.uk",
     "bp.com",
-    "finbox.com",
     "ft.com",
     "macrotrends.net",
+    "markets.ft.com",
     "sec.gov"
   ],
   "factchecks_per_claim": {},
@@ -84,78 +92,72 @@
   "pipeline_metrics": {
     "api_adapters": 0,
     "claims": 1,
-    "elements": 3,
+    "elements": 4,
     "llm_calls": 5,
-    "sources_considered": 21,
-    "sources_included": 9,
-    "web_search": 21
+    "sources_considered": 17,
+    "sources_included": 11,
+    "web_search": 17
   },
   "scorer_excluded_per_claim": {
-    "0": 11
+    "0": 6
   },
   "scorer_kept_per_claim": {
-    "0": 9
+    "0": 11
   },
   "scorer_summary": {
-    "excluded": 11,
-    "keeping": 9,
-    "scored": 20,
-    "total": 20
+    "excluded": 6,
+    "keeping": 11,
+    "scored": 17,
+    "total": 17
   },
   "tier_caps": [],
   "tier_distribution": {
-    "primary": 3,
-    "reporting": 6
+    "primary": 6,
+    "reporting": 5
   },
   "type_distribution": {
-    "data": 2,
-    "news_reporting": 4,
+    "data": 3,
+    "news_reporting": 5,
     "official_statement": 3
   },
   "url_ledger_flat": [
-    "https://companiesmarketcap.com/bp/revenue/",
-    "https://finbox.com/LSE:BP./explorer/gp/",
+    "https://companiesmarketcap.com/bp/annual-reports/",
+    "https://markets.ft.com/data/announce/detail?dockey=1323-15870657-1UMB9LLT6HRNBSODALA576E8JC",
+    "https://markets.ft.com/data/equities/tearsheet/summary?s=BP:NYQ",
+    "https://www.alpha-sense.com/earnings/bp/",
     "https://www.annualreports.com/Company/bp-plc",
-    "https://www.bbc.co.uk/news/business-68206788",
-    "https://www.bbc.com/news/articles/cz0g4dkm77zo",
+    "https://www.bp.com/en/global/corporate/investors.html",
     "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/annual-report.html",
     "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive.html",
-    "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/1q-2022.html",
-    "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/2q-2022.html",
     "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/quarterly-results-and-webcast.html",
     "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/bp-files-annual-report-on-form-20-f-for-2022.htm",
-    "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/fourth-quarter-2022-results.html",
+    "https://www.ft.com/bp?desktop=true&page=5",
     "https://www.ft.com/content/189a9248-d724-4128-b53a-b7afb33bcac4?syn-25a6b1a6=1",
-    "https://www.ft.com/content/419f137c-3a83-4c9c-9957-34b6609bcdf7?syn-25a6b1a6=1",
-    "https://www.ft.com/content/425c205c-0be4-46a0-bcce-26d906298577?syn-25a6b1a6=1",
+    "https://www.ft.com/content/df9ac1a8-ef9a-46a7-a6bf-733dc3d3c4f3?syn-25a6b1a6=1",
     "https://www.ft.com/content/f1b91245-39f4-443b-a0f1-022974a9b28b",
-    "https://www.ft.com/content/f68de669-9e91-4aba-8fd4-9aa6eeae5886",
     "https://www.hl.co.uk/shares/shares-search-results/b/bp-plc-ordinary-us$0.25",
-    "https://www.macrotrends.net/stocks/charts/BP/bp/operating-income",
+    "https://www.macrotrends.net/stocks/charts/BP/bp/financial-statements",
     "https://www.sec.gov/Archives/edgar/data/313807/000031380723000009/bp-20221231.htm"
   ],
   "url_ledger_per_claim": {
     "0": [
-      "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/fourth-quarter-2022-results.html",
-      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/2q-2022.html",
-      "https://www.macrotrends.net/stocks/charts/BP/bp/operating-income",
-      "https://companiesmarketcap.com/bp/revenue/",
-      "https://www.sec.gov/Archives/edgar/data/313807/000031380723000009/bp-20221231.htm",
-      "https://finbox.com/LSE:BP./explorer/gp/",
-      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/1q-2022.html",
-      "https://www.bbc.com/news/articles/cz0g4dkm77zo",
-      "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/bp-files-annual-report-on-form-20-f-for-2022.htm",
       "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive.html",
       "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/annual-report.html",
-      "https://www.annualreports.com/Company/bp-plc",
+      "https://www.sec.gov/Archives/edgar/data/313807/000031380723000009/bp-20221231.htm",
+      "https://companiesmarketcap.com/bp/annual-reports/",
+      "https://www.macrotrends.net/stocks/charts/BP/bp/financial-statements",
+      "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/bp-files-annual-report-on-form-20-f-for-2022.htm",
       "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/quarterly-results-and-webcast.html",
+      "https://www.annualreports.com/Company/bp-plc",
+      "https://www.bp.com/en/global/corporate/investors.html",
       "https://www.hl.co.uk/shares/shares-search-results/b/bp-plc-ordinary-us$0.25",
-      "https://www.ft.com/content/f1b91245-39f4-443b-a0f1-022974a9b28b",
-      "https://www.bbc.co.uk/news/business-68206788",
-      "https://www.ft.com/content/425c205c-0be4-46a0-bcce-26d906298577?syn-25a6b1a6=1",
-      "https://www.ft.com/content/419f137c-3a83-4c9c-9957-34b6609bcdf7?syn-25a6b1a6=1",
+      "https://www.alpha-sense.com/earnings/bp/",
       "https://www.ft.com/content/189a9248-d724-4128-b53a-b7afb33bcac4?syn-25a6b1a6=1",
-      "https://www.ft.com/content/f68de669-9e91-4aba-8fd4-9aa6eeae5886"
+      "https://markets.ft.com/data/equities/tearsheet/summary?s=BP:NYQ",
+      "https://www.ft.com/content/f1b91245-39f4-443b-a0f1-022974a9b28b",
+      "https://www.ft.com/bp?desktop=true&page=5",
+      "https://markets.ft.com/data/announce/detail?dockey=1323-15870657-1UMB9LLT6HRNBSODALA576E8JC",
+      "https://www.ft.com/content/df9ac1a8-ef9a-46a7-a6bf-733dc3d3c4f3?syn-25a6b1a6=1"
     ]
   }
 }

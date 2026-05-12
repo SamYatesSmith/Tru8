@@ -1,54 +1,53 @@
 {
   "allowlist_bypassed_domains": [],
   "analyzer_summary": {
-    "domains": 18,
-    "items": 25,
-    "urls": 24
+    "domains": 22,
+    "items": 29,
+    "urls": 28
   },
   "article_classification": "Weather",
   "b3_quality_per_claim": {
     "0": {
       "element_resolution": 1.0,
-      "factual_weight_share": 0.33,
-      "mapped": 9,
+      "factual_weight_share": 0.25,
+      "mapped": 12,
       "tier_mix": {
-        "commentary": 1,
         "primary": 3,
-        "reporting": 5
+        "reporting": 9
       },
       "top_domain": "theguardian.com",
       "top_domain_share": 0.33,
       "type_mix": {
-        "academic": 2,
-        "news_reporting": 6,
-        "official_statement": 1
+        "academic": 1,
+        "news_reporting": 9,
+        "official_statement": 2
       },
-      "unique_domains": 7,
+      "unique_domains": 9,
       "wikipedia_share": 0.0
     },
     "1": {
-      "element_resolution": 0.33,
-      "factual_weight_share": 0.25,
-      "mapped": 4,
+      "element_resolution": 1.0,
+      "factual_weight_share": 0.14,
+      "mapped": 7,
       "tier_mix": {
         "primary": 1,
-        "reporting": 3
+        "reporting": 6
       },
-      "top_domain": "civilbeat.org",
-      "top_domain_share": 0.25,
+      "top_domain": "cmbinsurance.ca",
+      "top_domain_share": 0.14,
       "type_mix": {
         "academic": 1,
-        "analysis": 1,
-        "news_reporting": 2
+        "analysis": 3,
+        "news_reporting": 3
       },
-      "unique_domains": 4,
+      "unique_domains": 7,
       "wikipedia_share": 0.0
     }
   },
   "b3_receipts": {
     "excluded": 0,
-    "shown": 13,
-    "unmapped": 12
+    "shown": 19,
+    "unmapped": 10
   },
   "classifier_inject": null,
   "classifier_overrides": [
@@ -68,10 +67,24 @@
     },
     {
       "from_tier": "reporting",
+      "from_type": "news_reporting",
+      "to_tier": "primary",
+      "to_type": "official_statement",
+      "url_prefix": "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_ju"
+    },
+    {
+      "from_tier": "reporting",
       "from_type": "analysis",
       "to_tier": "primary",
       "to_type": "academic",
       "url_prefix": "https://www.lse.ac.uk/granthaminstitute/news/one-year-on-fro"
+    },
+    {
+      "from_tier": "reporting",
+      "from_type": "analysis",
+      "to_tier": "primary",
+      "to_type": "academic",
+      "url_prefix": "https://www.anderson.ucla.edu/about/centers/ucla-anderson-fo"
     }
   ],
   "coverage_recovery_done": null,
@@ -81,42 +94,50 @@
   "domain_cap_events": [],
   "domain_cap_total": 0,
   "domain_distribution": {
+    "anderson.ucla.edu": 1,
+    "audubon.org": 1,
     "bbc.co.uk": 1,
     "bbc.com": 1,
-    "centaur.reading.ac.uk": 1,
     "civilbeat.org": 1,
     "climatecentral.org": 1,
+    "cmbinsurance.ca": 1,
     "cnbc.com": 1,
     "community.netweather.tv": 1,
-    "downloads.ctfassets.net": 1,
+    "environmentamerica.org": 1,
     "gov.uk": 1,
     "lse.ac.uk": 1,
     "ncei.noaa.gov": 2,
     "nhm.ac.uk": 1,
     "npr.org": 1,
-    "nytimes.com": 1,
+    "obr.uk": 1,
+    "redcross.org.uk": 1,
     "reddit.com": 1,
     "rmets.onlinelibrary.wiley.com": 1,
+    "sfchronicle.com": 1,
     "theguardian.com": 7,
     "weather.gov": 1
   },
   "domain_set": [
+    "anderson.ucla.edu",
+    "audubon.org",
     "bbc.co.uk",
     "bbc.com",
-    "centaur.reading.ac.uk",
     "civilbeat.org",
     "climatecentral.org",
+    "cmbinsurance.ca",
     "cnbc.com",
     "community.netweather.tv",
-    "downloads.ctfassets.net",
+    "environmentamerica.org",
     "gov.uk",
     "lse.ac.uk",
     "ncei.noaa.gov",
     "nhm.ac.uk",
     "npr.org",
-    "nytimes.com",
+    "obr.uk",
+    "redcross.org.uk",
     "reddit.com",
     "rmets.onlinelibrary.wiley.com",
+    "sfchronicle.com",
     "theguardian.com",
     "weather.gov"
   ],
@@ -147,23 +168,24 @@
   "pipeline_metrics": {
     "api_adapters": 0,
     "claims": 2,
-    "elements": 6,
+    "elements": 4,
     "llm_calls": 5,
-    "sources_considered": 29,
-    "sources_included": 25,
-    "web_search": 29
+    "sources_considered": 42,
+    "sources_included": 29,
+    "web_search": 42
   },
   "scorer_excluded_per_claim": {
-    "1": 3
+    "1": 8
   },
   "scorer_kept_per_claim": {
-    "0": 19
+    "0": 19,
+    "1": 8
   },
   "scorer_summary": {
-    "excluded": 3,
-    "keeping": 21,
-    "scored": 24,
-    "total": 24
+    "excluded": 8,
+    "keeping": 29,
+    "scored": 37,
+    "total": 37
   },
   "tier_caps": [
     {
@@ -184,36 +206,50 @@
     }
   ],
   "tier_distribution": {
-    "commentary": 2,
+    "commentary": 1,
     "primary": 9,
-    "reporting": 14
+    "reporting": 19
   },
   "type_distribution": {
-    "academic": 6,
-    "analysis": 1,
+    "academic": 4,
+    "analysis": 5,
     "data": 2,
     "news_reporting": 15,
-    "official_statement": 1
+    "official_statement": 2,
+    "opinion": 1
   },
   "url_ledger_flat": [
-    "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%20-%20Burt%20-%20Evaluation%20and%20verification%20of%20new%2",
+    "https://cmbinsurance.ca/blog/damages-from-ontario-flash-floods-could-top-1-billion/",
     "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
+    "https://content.tfl.gov.uk/casualties-in-greater-london-2024.pdf",
     "https://doi.org/10.1007/s13753-024-00610-5",
     "https://doi.org/10.1038/s41598-024-54495-x",
     "https://doi.org/10.1109/tvt.2024.3355181",
     "https://doi.org/10.1111/nyas.15148",
     "https://doi.org/10.1186/s12864-024-10103-w",
     "https://doi.org/10.1787/e09c21e2-en",
+    "https://environmentamerica.org/center/updates/there-were-23-billion-dollar-weather-disasters-in-the-u-s-in-2025/",
+    "https://obr.uk/frs/fiscal-risks-and-sustainability-july-2025/",
     "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
     "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
+    "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
+    "https://www.audubon.org/magazine/rise-billion-dollar-disasters",
     "https://www.bbc.co.uk/news/live/uk-62184978",
     "https://www.bbc.com/news/uk-62217282",
+    "https://www.civilbeat.org/2026/03/hawai%CA%BBi-governor-estimates-storm-damage-has-already-hit-1-billion/",
+    "https://www.climatecentral.org/climate-matters/2025-in-review",
     "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
+    "https://www.ft.com/video/82d31915-6121-4be8-93a7-1a68a53d6ae9",
     "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
+    "https://www.instituteofhealthequity.org/resources-reports/evidence-review-cost-of-living-and-health-inequalities-in-lond",
+    "https://www.london.gov.uk/violent-crime-leading-injury-falling-every-london-borough",
     "https://www.lse.ac.uk/granthaminstitute/news/one-year-on-from-record-breaking-40-degrees-heat-in-the-uk-and-were-still-n",
     "https://www.nhm.ac.uk/discover/news/2022/july/40-degree-heatwaves-could-happen-every-few-years-because-climate-change.ht",
     "https://www.npr.org/2022/07/19/1112220447/britons-awake-from-their-warmest-ever-night-and-brace-for-record-smashing-heat",
+    "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/met-office-report-confirms-uk-climate-is-changing",
     "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
+    "https://www.sfchronicle.com/us-world/article/hawaii-storm-recovery-la-fires-22090181.php",
+    "https://www.theguardian.com/environment/2016/jul/13/us-food-waste-ugly-fruit-vegetables-perfect",
     "https://www.theguardian.com/media/2022/jul/20/hellfire-what-the-papers-say-about-uks-hottest-ever-day",
     "https://www.theguardian.com/uk-news/2022/jul/19/a-wake-up-call-as-extreme-heat-blazes-across-uk-experts-say-net-zero-is-",
     "https://www.theguardian.com/uk-news/2023/jan/20/hottest-day-of-2022-saw-638-more-deaths-than-normal-in-england",
@@ -227,17 +263,17 @@
     "0": [
       "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
       "https://www.bbc.com/news/uk-62217282",
+      "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live",
       "https://www.nhm.ac.uk/discover/news/2022/july/40-degree-heatwaves-could-happen-every-few-years-because-climate-change.ht",
       "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
-      "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live",
       "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
-      "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
       "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
       "https://www.theguardian.com/uk-news/2023/jul/27/2022-warmest-year-record-uk-met-office-extreme-heat",
       "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
       "https://www.npr.org/2022/07/19/1112220447/britons-awake-from-their-warmest-ever-night-and-brace-for-record-smashing-heat",
+      "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/met-office-report-confirms-uk-climate-is-changing",
+      "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
       "https://www.lse.ac.uk/granthaminstitute/news/one-year-on-from-record-breaking-40-degrees-heat-in-the-uk-and-were-still-n",
-      "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%20-%20Burt%20-%20Evaluation%20and%20verification%20of%20new%2",
       "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live?fi",
       "https://www.theguardian.com/world/2022/jul/19/europes-heatwave-moves-north-as-uk-braces-for-hottest-day-on-record",
       "https://www.theguardian.com/media/2022/jul/20/hellfire-what-the-papers-say-about-uks-hottest-ever-day",
@@ -250,6 +286,19 @@
       "https://doi.org/10.1109/tvt.2024.3355181"
     ],
     "1": [
+      "https://www.london.gov.uk/violent-crime-leading-injury-falling-every-london-borough",
+      "https://obr.uk/frs/fiscal-risks-and-sustainability-july-2025/",
+      "https://www.instituteofhealthequity.org/resources-reports/evidence-review-cost-of-living-and-health-inequalities-in-lond",
+      "https://cmbinsurance.ca/blog/damages-from-ontario-flash-floods-could-top-1-billion/",
+      "https://content.tfl.gov.uk/casualties-in-greater-london-2024.pdf",
+      "https://www.audubon.org/magazine/rise-billion-dollar-disasters",
+      "https://www.civilbeat.org/2026/03/hawai%CA%BBi-governor-estimates-storm-damage-has-already-hit-1-billion/",
+      "https://www.climatecentral.org/climate-matters/2025-in-review",
+      "https://www.sfchronicle.com/us-world/article/hawaii-storm-recovery-la-fires-22090181.php",
+      "https://environmentamerica.org/center/updates/there-were-23-billion-dollar-weather-disasters-in-the-u-s-in-2025/",
+      "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
+      "https://www.ft.com/video/82d31915-6121-4be8-93a7-1a68a53d6ae9",
+      "https://www.theguardian.com/environment/2016/jul/13/us-food-waste-ugly-fruit-vegetables-perfect",
       "https://doi.org/10.1111/nyas.15148",
       "https://doi.org/10.1787/e09c21e2-en",
       "https://doi.org/10.1038/s41598-024-54495-x"

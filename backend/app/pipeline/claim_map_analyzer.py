@@ -326,6 +326,55 @@ DISCIPLINE above), otherwise omit.
 """
 
 
+COMPLETION_PROMPT = """\
+You are completing an evidence mapping pass. The main mapper has \
+already assigned the highest-confidence items to each element. Your \
+job: find any LEFTOVER items that ALSO fit one or more elements — \
+items the main mapper deemed too weak for primary assignment but \
+which still substantiate, contradict, or contextualise specific \
+elements.
+
+This is a SECOND pass with a different intent than the first:
+
+The main mapper is conservative by design — it picks 1-2 \
+representative items per element and omits "broadly on topic" \
+content. That conservatism is correct for primary assignment but \
+leaves rich pool content invisible to users. This completion pass \
+re-examines the leftovers with a more permissive eye for \
+"context" relationships — evidence that informs the broader \
+phenomenon even when not directly substantiating.
+
+Output JSON:
+{
+  "elements": [
+    {
+      "element_id": "<e1..e5>",
+      "additional_refs": [
+        {"evidence_id": "ev-abc", "relationship": "supports|challenges|context", "reasoning": "<one sentence>"}
+      ]
+    }
+  ]
+}
+
+Rules:
+- Only include items from the LEFTOVER list. Do not re-include items \
+already mapped by the main pass.
+- Be MORE generous with "context" than the main pass. Context-tier \
+relevance — geographically adjacent, temporally adjacent, addressing \
+the same broader phenomenon — should be mapped, not omitted.
+- Still require ELEMENT-LEVEL relevance. An item about a different \
+topic entirely should not be force-fitted to an element.
+- Reasoning is REQUIRED on every additional_ref. One sentence \
+explaining the relationship.
+- "supports" / "challenges" still need DIRECT substantiation or \
+contradiction. Use "context" for the looser matches that you would \
+have omitted in main pass.
+- Omit elements that have no additional refs — don't return empty \
+additional_refs arrays. Don't pad.
+- relationship must be exactly one of: supports, challenges, context.
+"""
+
+
 # ── Orientation line derivation (pure function, no LLM) ────────────────────
 
 # Prose mappings for orientation templates — centres evidence as the actor.
@@ -818,6 +867,14 @@ class ClaimMapAnalyzer:
                             )
                         except Exception:
                             pass  # Keep original result if retry also fails
+
+                # Step 2 (2026-05-12): per-element mapper completion pass.
+                # NF-19 mitigation. The main mapper is instructed to be
+                # conservative (MAPPING_PROMPT line 296: "Padding every
+                # element with the same items is a quality failure"); this
+                # second pass re-examines leftovers with a more permissive
+                # eye for context-tier matches. See COMPLETION_PROMPT.
+                await self._complete_unmapped_evidence(claim_map, evidence_list)
             except Exception as e:
                 logger.warning(
                     f"Mapping parse failed for claim {claim_map['claim_id']}: {e}"
@@ -1019,9 +1076,47 @@ class ClaimMapAnalyzer:
             )
             failed_indices = list(range(len(with_evidence)))
 
+        # Step 2 (2026-05-12): completion pass for successfully batch-mapped
+        # claims. Failed claims hit map_evidence_to_elements (per-claim retry
+        # below) which invokes completion pass internally. Run completions
+        # in parallel to keep wall-time bounded (max single-call time, not
+        # sum). Each guarded by its own timeout — a slow completion can't
+        # block the whole batch.
+        failed_set = set(failed_indices)
+        successful_items = [
+            item for i, item in enumerate(with_evidence) if i not in failed_set
+        ]
+        if successful_items:
+            import asyncio as _asyncio
+
+            _COMPLETION_TIMEOUT = 25  # seconds per claim; fails open
+
+            async def _run_completion(item):
+                try:
+                    await _asyncio.wait_for(
+                        self._complete_unmapped_evidence(
+                            item["claim_map"], item["evidence"]
+                        ),
+                        timeout=_COMPLETION_TIMEOUT,
+                    )
+                except _asyncio.TimeoutError:
+                    logger.warning(
+                        f"[MAP COMPLETION] Claim "
+                        f"{item['claim_map'].get('claim_id', '?')}: "
+                        f"timeout after {_COMPLETION_TIMEOUT}s — "
+                        f"preserving main-pass mapping"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"[MAP COMPLETION] Claim "
+                        f"{item['claim_map'].get('claim_id', '?')}: "
+                        f"unexpected error — {e} — preserving main-pass mapping"
+                    )
+
+            await _asyncio.gather(*[_run_completion(it) for it in successful_items])
+
         # Derive orientation + set metadata for successfully batch-mapped claims
         # (failed claims get this via per-claim map_evidence_to_elements)
-        failed_set = set(failed_indices)
         model_used = self._last_model_used
         for i, item in enumerate(with_evidence):
             if i not in failed_set:
@@ -1396,6 +1491,215 @@ class ClaimMapAnalyzer:
                 completed_at=None,
             ),
         )
+
+    async def _complete_unmapped_evidence(
+        self,
+        claim_map: ClaimMap,
+        evidence_list: List[Dict[str, Any]],
+    ) -> None:
+        """NF-19 mitigation: per-claim second mapping pass over leftovers.
+
+        The main batched mapper (``map_evidence_to_elements`` →
+        ``_parse_mapping_response``) operates under MAPPING_PROMPT which
+        explicitly instructs the LLM to be conservative — "Padding every
+        element with the same items is a quality failure, not
+        thoroughness" (line 296). That conservatism is correct for
+        primary assignment but leaves rich pool content unattached.
+
+        This completion pass:
+          1. Computes the set of evidence items not referenced by ANY
+             element after the main pass.
+          2. If the leftover set is non-trivial (≥ threshold), calls
+             the LLM with COMPLETION_PROMPT — a different prompt that
+             instructs more permissive context-tier matching.
+          3. Merges the additional refs into each element's
+             evidence_refs (deduping by evidence_id).
+          4. Re-derives each element's state via
+             _derive_element_state_with_authority — the new refs may
+             promote an element from unresolved to contextual /
+             supported / disputed.
+
+        Mutates claim_map in place. No-op on:
+          - empty leftover set (every item already mapped)
+          - leftover set below threshold (cost vs leverage)
+          - LLM failure (preserves main-pass output)
+          - JSON parse failure (preserves main-pass output)
+
+        Cost: ~$0.001 per claim on Flash Lite. Adds one LLM call per
+        claim that has ≥3 leftover items (most claims after rich-pool
+        retrieval).
+
+        Counterpart to ``map_evidence_to_specific_elements`` (coverage
+        recovery operates on NEW evidence from re-search); this
+        operates on ALREADY-RETRIEVED evidence the mapper skipped.
+        """
+        # Threshold: skip when too few leftovers to be worth a call.
+        MIN_LEFTOVER_FOR_COMPLETION = 3
+
+        all_elements = claim_map["elements"]
+        if not all_elements or not evidence_list:
+            return
+
+        # Identify items already referenced by ANY element from the
+        # main mapping pass.
+        referenced_ids: set = set()
+        for elem in all_elements:
+            for ref in elem.get("evidence_refs", []) or []:
+                eid = (
+                    ref.get("evidence_id")
+                    if isinstance(ref, dict)
+                    else getattr(ref, "evidence_id", None)
+                )
+                if eid:
+                    referenced_ids.add(eid)
+
+        leftover = [
+            ev
+            for ev in evidence_list
+            if ev.get("evidence_id") and ev["evidence_id"] not in referenced_ids
+        ]
+
+        if len(leftover) < MIN_LEFTOVER_FOR_COMPLETION:
+            logger.info(
+                f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
+                f"{len(leftover)} leftover items (<{MIN_LEFTOVER_FOR_COMPLETION}), "
+                f"skipping completion pass"
+            )
+            return
+
+        # Build prompt
+        elements_desc = "\n".join(
+            f"- {e['element_id']}: {e['description']}" for e in all_elements
+        )
+        leftover_desc = "\n".join(
+            f"- {ev.get('evidence_id', 'unknown')}: "
+            f"[{ev.get('title', 'Untitled')}] "
+            f"[Tier: {ev.get('tier') or 'unclassified'}] "
+            f"[Type: {ev.get('evidence_type') or 'unclassified'}] "
+            f"{(ev.get('snippet') or ev.get('text') or '')[:self.snippet_length]}"
+            for ev in leftover
+        )
+        prompt = (
+            f"{COMPLETION_PROMPT}\n\n"
+            f"Claim: {claim_map['normalised_claim']}\n\n"
+            f"Elements:\n{elements_desc}\n\n"
+            f"LEFTOVER Evidence (not referenced by the main pass):\n"
+            f"{leftover_desc}"
+        )
+
+        logger.info(
+            f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
+            f"{len(leftover)} leftover items, {len(all_elements)} elements"
+        )
+
+        parsed = await self._call_llm(
+            prompt=prompt,
+            temperature=self.analyzer_temperature,
+            max_tokens=self.analyzer_max_tokens,
+            label="map_completion",
+        )
+
+        if parsed is None:
+            logger.info(
+                f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
+                f"LLM returned None — preserving main-pass mapping"
+            )
+            return
+
+        try:
+            raw_elements = parsed.get("elements", [])
+            raw_by_id = {e.get("element_id"): e for e in raw_elements}
+
+            total_added = 0
+            for elem in all_elements:
+                eid = elem["element_id"]
+                mapped = raw_by_id.get(eid)
+                if not mapped:
+                    continue
+
+                raw_refs = mapped.get("additional_refs", [])
+                if not raw_refs:
+                    continue
+
+                # Validate against the LEFTOVER set (not the full
+                # evidence_list) so the LLM can't reuse already-mapped IDs.
+                new_refs = self._validate_evidence_refs(raw_refs, leftover)
+                if not new_refs:
+                    continue
+
+                # Dedupe by evidence_id against existing refs (defensive —
+                # shouldn't happen since leftover excludes referenced IDs).
+                existing_ref_ids = {
+                    (
+                        r.get("evidence_id")
+                        if isinstance(r, dict)
+                        else getattr(r, "evidence_id", None)
+                    )
+                    for r in elem.get("evidence_refs", []) or []
+                }
+                new_refs_filtered = [
+                    r
+                    for r in new_refs
+                    if (
+                        r.get("evidence_id")
+                        if isinstance(r, dict)
+                        else getattr(r, "evidence_id", None)
+                    )
+                    not in existing_ref_ids
+                ]
+
+                if not new_refs_filtered:
+                    continue
+
+                elem["evidence_refs"] = (
+                    list(elem.get("evidence_refs", []) or []) + new_refs_filtered
+                )
+                total_added += len(new_refs_filtered)
+
+                # Re-derive state with the merged refs. Recompute basis
+                # too so the per-element metrics reflect the completion
+                # pass's additions.
+                elem["basis"] = _compute_element_basis(elem, evidence_list)
+                mech_state, state_basis = _derive_element_state_with_authority(
+                    elem, evidence_list
+                )
+                # Preserve the main pass's llm_state record if present.
+                prior_basis = (
+                    elem["basis"].get("state_derivation")
+                    if isinstance(elem.get("basis"), dict)
+                    else None
+                )
+                if prior_basis and prior_basis.get("llm_state"):
+                    state_basis["llm_state"] = prior_basis["llm_state"]
+                elem["basis"]["state_derivation"] = state_basis
+                elem["state"] = mech_state
+
+                ref_ids = [
+                    (
+                        r.get("evidence_id")
+                        if isinstance(r, dict)
+                        else getattr(r, "evidence_id", None)
+                    )
+                    for r in new_refs_filtered
+                ]
+                logger.info(
+                    f"[MAP COMPLETION] {eid}: +{len(new_refs_filtered)} refs "
+                    f"{ref_ids}, state→{mech_state.value} "
+                    f"(rule={state_basis['rule_applied']})"
+                )
+
+            if total_added > 0:
+                logger.info(
+                    f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
+                    f"+{total_added} additional refs across "
+                    f"{len(all_elements)} elements from {len(leftover)} leftovers"
+                )
+
+        except Exception as e:
+            logger.warning(
+                f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
+                f"parse failed — {e} — preserving main-pass mapping"
+            )
 
     async def map_evidence_to_specific_elements(
         self,
