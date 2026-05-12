@@ -26,6 +26,9 @@ export function StitchHero() {
             </h1>
             <p className="text-sm md:text-base lg:text-lg text-zinc-500 mb-8 md:mb-12 max-w-xl leading-relaxed">
               Tru8 isn&apos;t a fact checker. Headlines make claims every day, and the evidence behind them is scattered across dozens of sources. Tru8 gathers that evidence, classifies it by proximity and type, and organises the full landscape — so you don&apos;t have to. We organise. You decide.
+              <span className="block mt-3 text-zinc-400">
+                Building an agent? The same evidence research is available as a structured API — <a href="/developers" className="underline underline-offset-2 hover:text-zinc-900 transition-colors">read the dev docs</a>.
+              </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
