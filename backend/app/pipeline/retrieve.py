@@ -179,7 +179,12 @@ class EvidenceRetriever:
         self.max_concurrent_claims = (
             10  # High ceiling — shared URL pool governs total concurrency
         )
-        self.max_queries_per_element = 3  # Cap queries per element (L-04)
+        # Per-element query cap. Raised 3 → 5 on 2026-05-12 to accommodate
+        # Step 1 class-targeted query augmentation. LLM Planner produces
+        # 2-3 queries; mechanical augmentation adds 1-2 class-targeted
+        # queries; total caps at 5 so we never run >5 provider calls per
+        # element regardless of how many classes apply.
+        self.max_queries_per_element = 5
 
         # Phase 5: Government API Integration
         self.api_registry = get_api_registry()
@@ -272,6 +277,37 @@ class EvidenceRetriever:
                             f"Query planning complete: {len(query_plans)} element plans "
                             f"for {len(claims)} claims"
                         )
+
+                        # Step 1 (2026-05-12): mechanical class-targeted
+                        # query augmentation. Adds one or two
+                        # site:-filtered queries per element targeting
+                        # authoritative news / official / academic
+                        # sources for the claim's domain. Mirrors the
+                        # mechanical-compensator pattern of B4 freshness
+                        # injection and NF-20-B DATE propagation.
+                        # See app/utils/query_class_augmentation.py.
+                        from app.utils.query_class_augmentation import (
+                            augment_plans_with_class_queries,
+                        )
+
+                        pre_count = sum(
+                            len(p.get("queries") or []) for p in query_plans
+                        )
+                        query_plans = augment_plans_with_class_queries(
+                            query_plans, article_context
+                        )
+                        post_count = sum(
+                            len(p.get("queries") or []) for p in query_plans
+                        )
+                        if post_count > pre_count:
+                            logger.info(
+                                f"[QUERY AUGMENT] Added "
+                                f"{post_count - pre_count} class-targeted queries "
+                                f"(domain={article_context.get('primary_domain') if article_context else 'unknown'}, "
+                                f"jurisdiction={article_context.get('jurisdiction') if article_context else 'unknown'}, "
+                                f"base={pre_count}, total={post_count})"
+                            )
+
                         # Group plans by claim_index and build merged query plans
                         plans_by_claim = {}
                         for plan in query_plans:

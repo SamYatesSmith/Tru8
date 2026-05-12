@@ -1,37 +1,35 @@
 {
   "allowlist_bypassed_domains": [],
   "analyzer_summary": {
-    "domains": 11,
-    "items": 12,
-    "urls": 12
+    "domains": 12,
+    "items": 15,
+    "urls": 15
   },
   "article_classification": "Animals",
   "b3_quality_per_claim": {
     "0": {
       "element_resolution": 1.0,
-      "factual_weight_share": 0.25,
-      "mapped": 8,
+      "factual_weight_share": 0.17,
+      "mapped": 6,
       "tier_mix": {
         "commentary": 2,
-        "primary": 2,
-        "reporting": 4
+        "primary": 1,
+        "reporting": 3
       },
-      "top_domain": "gbif.org",
-      "top_domain_share": 0.25,
+      "top_domain": "tiktok.com",
+      "top_domain_share": 0.17,
       "type_mix": {
-        "analysis": 1,
-        "data": 2,
-        "news_reporting": 3,
-        "opinion": 2
+        "data": 1,
+        "news_reporting": 5
       },
-      "unique_domains": 7,
+      "unique_domains": 6,
       "wikipedia_share": 0.0
     }
   },
   "b3_receipts": {
     "excluded": 0,
-    "shown": 8,
-    "unmapped": 4
+    "shown": 6,
+    "unmapped": 9
   },
   "classifier_inject": null,
   "classifier_overrides": [],
@@ -42,27 +40,29 @@
   "domain_cap_events": [],
   "domain_cap_total": 0,
   "domain_distribution": {
+    "apnews.com": 1,
+    "bbc.co.uk": 1,
+    "bristolpost.co.uk": 1,
     "countryfile.com": 1,
-    "express.co.uk": 1,
-    "gbif.org": 2,
+    "gbif.org": 1,
     "gbnews.com": 1,
+    "mirror.co.uk": 1,
     "msn.com": 1,
     "reddit.com": 1,
-    "semanticscholar.org": 1,
-    "theconversation.com": 1,
-    "theguardian.com": 1,
+    "theguardian.com": 4,
     "tiktok.com": 1,
     "youtube.com": 1
   },
   "domain_set": [
+    "apnews.com",
+    "bbc.co.uk",
+    "bristolpost.co.uk",
     "countryfile.com",
-    "express.co.uk",
     "gbif.org",
     "gbnews.com",
+    "mirror.co.uk",
     "msn.com",
     "reddit.com",
-    "semanticscholar.org",
-    "theconversation.com",
     "theguardian.com",
     "tiktok.com",
     "youtube.com"
@@ -82,66 +82,82 @@
     "claims": 1,
     "elements": 3,
     "llm_calls": 5,
-    "sources_considered": 24,
-    "sources_included": 12,
-    "web_search": 24
+    "sources_considered": 31,
+    "sources_included": 15,
+    "web_search": 31
   },
   "scorer_excluded_per_claim": {
-    "0": 8
+    "0": 5
   },
   "scorer_kept_per_claim": {
-    "0": 10
+    "0": 14
   },
   "scorer_summary": {
-    "excluded": 8,
-    "keeping": 12,
+    "excluded": 5,
+    "keeping": 15,
     "scored": 20,
     "total": 20
   },
   "tier_caps": [],
   "tier_distribution": {
-    "commentary": 2,
-    "primary": 3,
-    "reporting": 7
+    "commentary": 5,
+    "primary": 1,
+    "reporting": 9
   },
   "type_distribution": {
-    "academic": 1,
-    "analysis": 1,
-    "data": 2,
-    "news_reporting": 6,
-    "opinion": 2
+    "data": 1,
+    "news_reporting": 13,
+    "opinion": 1
   },
   "url_ledger_flat": [
+    "https://apnews.com/article/great-white-sharks-stats-north-climate-9d80868940a9ae7bc45764dedb6f2823",
     "https://doi.org/10.1371/journal.pone.0306813",
     "https://doi.org/10.3389/fmars.2024.1282091",
     "https://en.wikipedia.org/wiki/Greenland_shark",
     "https://en.wikipedia.org/wiki/Megalodon",
     "https://en.wikipedia.org/wiki/Whale_shark",
-    "https://theconversation.com/could-warming-seas-bring-great-white-sharks-back-to-the-north-sea-a-5-million-year-old-shark",
+    "https://www.bbc.co.uk/news/articles/c0err023g5lo",
+    "https://www.bbc.co.uk/news/articles/c9qe9wvq534o",
+    "https://www.bbc.co.uk/news/articles/cwy8ded4890o",
+    "https://www.bristolpost.co.uk/news/uk-world-news/shark-fin-spotted-uk-coast-10649464",
     "https://www.countryfile.com/wildlife/marine-life/are-there-any-great-white-sharks-in-uk-waters",
-    "https://www.discoverwildlife.com/animal-facts/marine-animals/great-white-shark-scar",
-    "https://www.express.co.uk/news/world/2170344/panic-great-white-shark-breeding-mediterranean-british-tourists",
     "https://www.gbif.org/species/113272801",
     "https://www.gbif.org/species/206230133",
     "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
+    "https://www.mirror.co.uk/news/world-news/shark-prowling-brit-favourite-holiday-36939965",
     "https://www.msn.com/en-us/news/world/great-white-sharks-could-soon-appear-in-britain-thanks-to-warming-seas-experts-warn",
     "https://www.reddit.com/r/sharks/comments/1qkoy4v/great_white_sharks_of_europe/",
+    "https://www.theguardian.com/australia-news/2025/dec/10/hundreds-sharks-byron-bay-australia-feeding-frenzy",
+    "https://www.theguardian.com/australia-news/2026/apr/06/shark-attack-teenage-surfer-bitten-south-australia",
+    "https://www.theguardian.com/environment/2025/may/17/are-surging-shark-sightings-and-strandings-linked-to-south-australia",
     "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
+    "https://www.theguardian.com/environment/2026/jan/20/why-have-there-been-so-many-shark-bites-in-sydney-experts-say-the-co",
+    "https://www.theguardian.com/environment/video/2026/feb/18/helicopter-crew-sounds-siren-as-45-meter-white-shark-spotted-o",
     "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
+    "https://www.tiktok.com/@wildlifewithcookie/video/7608591653737221398",
     "https://www.youtube.com/watch?v=_swHuC5uFys"
   ],
   "url_ledger_per_claim": {
     "0": [
+      "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
+      "https://www.countryfile.com/wildlife/marine-life/are-there-any-great-white-sharks-in-uk-waters",
+      "https://www.youtube.com/watch?v=_swHuC5uFys",
       "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
       "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
-      "https://www.youtube.com/watch?v=_swHuC5uFys",
-      "https://www.countryfile.com/wildlife/marine-life/are-there-any-great-white-sharks-in-uk-waters",
+      "https://www.bristolpost.co.uk/news/uk-world-news/shark-fin-spotted-uk-coast-10649464",
+      "https://www.tiktok.com/@wildlifewithcookie/video/7608591653737221398",
       "https://www.msn.com/en-us/news/world/great-white-sharks-could-soon-appear-in-britain-thanks-to-warming-seas-experts-warn",
-      "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
-      "https://theconversation.com/could-warming-seas-bring-great-white-sharks-back-to-the-north-sea-a-5-million-year-old-shark",
-      "https://www.express.co.uk/news/world/2170344/panic-great-white-shark-breeding-mediterranean-british-tourists",
       "https://www.reddit.com/r/sharks/comments/1qkoy4v/great_white_sharks_of_europe/",
-      "https://www.discoverwildlife.com/animal-facts/marine-animals/great-white-shark-scar",
+      "https://www.mirror.co.uk/news/world-news/shark-prowling-brit-favourite-holiday-36939965",
+      "https://www.bbc.co.uk/news/articles/c0err023g5lo",
+      "https://www.bbc.co.uk/news/articles/c9qe9wvq534o",
+      "https://www.theguardian.com/environment/2026/jan/20/why-have-there-been-so-many-shark-bites-in-sydney-experts-say-the-co",
+      "https://www.theguardian.com/environment/video/2026/feb/18/helicopter-crew-sounds-siren-as-45-meter-white-shark-spotted-o",
+      "https://www.bbc.co.uk/news/articles/cwy8ded4890o",
+      "https://www.theguardian.com/environment/2025/may/17/are-surging-shark-sightings-and-strandings-linked-to-south-australia",
+      "https://apnews.com/article/great-white-sharks-stats-north-climate-9d80868940a9ae7bc45764dedb6f2823",
+      "https://www.theguardian.com/australia-news/2026/apr/06/shark-attack-teenage-surfer-bitten-south-australia",
+      "https://www.theguardian.com/australia-news/2025/dec/10/hundreds-sharks-byron-bay-australia-feeding-frenzy",
       "https://www.gbif.org/species/206230133",
       "https://en.wikipedia.org/wiki/Greenland_shark",
       "https://doi.org/10.3389/fmars.2024.1282091",

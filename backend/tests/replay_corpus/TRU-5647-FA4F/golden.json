@@ -1,21 +1,37 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-05-05T10:43:16.056048+00:00",
-  "captured_with": "280e534",
+  "captured_at": "2026-05-12T13:33:40.509227+00:00",
+  "captured_with": "aea508c",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
-      0
+      0,
+      1
     ],
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
     "expected_adapters_subset": [],
-    "coverage_recovery_failures_max": 6
+    "coverage_recovery_failures_max": 6,
+    "v3_quality_floors": {
+      "unique_domains_min": 5,
+      "top_domain_share_max": 0.45,
+      "wikipedia_share_max": 0.4,
+      "factual_weight_share_min": 0.15,
+      "element_resolution_min": 0.3
+    },
+    "v3_quality_warn_band": {
+      "unique_domains_min": 7,
+      "top_domain_share_max": 0.3,
+      "wikipedia_share_max": 0.25,
+      "factual_weight_share_min": 0.25,
+      "element_resolution_min": 0.5
+    },
+    "coverage_recovery_must_not_timeout": true
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 22,
+      "value": 25,
       "tolerance": 8
     },
     "claims": {
@@ -27,23 +43,23 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 34,
+      "value": 29,
       "tolerance": 8
     },
     "api_adapters": {
       "value": 0,
       "tolerance": 8
     },
-    "tier_commentary": {
-      "value": 6,
-      "tolerance": 4
+    "tier_reporting": {
+      "value": 14,
+      "tolerance": 7
     },
     "tier_primary": {
       "value": 9,
       "tolerance": 4
     },
-    "tier_reporting": {
-      "value": 7,
+    "tier_commentary": {
+      "value": 2,
       "tolerance": 4
     }
   },
@@ -58,55 +74,47 @@
         "https://doi.org/10.1111/nyas.15148",
         "https://doi.org/10.1186/s12864-024-10103-w",
         "https://doi.org/10.1787/e09c21e2-en",
-        "https://engageenvironmentagency.uk.engagementhq.com/portreath-flood-resilience-proposal",
         "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
-        "https://timesofindia.indiatimes.com/world/uk/80-of-englands-high-risk-flood-homes-now-in-urban-areas/articleshow/1306052",
-        "https://www.bbc.com/news/articles/cgkp7ee4e2ro",
-        "https://www.bbc.com/news/articles/cwyx8v2q6j4o",
-        "https://www.bbc.com/news/science-environment-63244353",
-        "https://www.carbonbrief.org/science/temperature/uk-temperature/",
+        "https://www.bbc.co.uk/news/live/uk-62184978",
+        "https://www.bbc.com/news/uk-62217282",
         "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
-        "https://www.confused.com/home-insurance/flood-risk-map",
         "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
-        "https://www.gov.uk/government/publications/state-of-the-estate-in-202425/state-of-the-estate-2024-25-html",
-        "https://www.gov.uk/government/publications/water-situation-national-monthly-reports-for-england-2026/water-situation-feb",
-        "https://www.gov.wales/decision-reports-2026",
-        "https://www.greenpeace.org/international/story/82686/climate-emergencies-photos-of-2026-so-far/",
-        "https://www.hackney.gov.uk/community-safety-and-environment/community-safety-and-crime-prevention/emergency-planning-and",
-        "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
-        "https://www.lse.ac.uk/granthaminstitute/extreme-heat-preparedness-and-resilience-in-the-uk/",
+        "https://www.lse.ac.uk/granthaminstitute/news/one-year-on-from-record-breaking-40-degrees-heat-in-the-uk-and-were-still-n",
+        "https://www.nhm.ac.uk/discover/news/2022/july/40-degree-heatwaves-could-happen-every-few-years-because-climate-change.ht",
+        "https://www.npr.org/2022/07/19/1112220447/britons-awake-from-their-warmest-ever-night-and-brace-for-record-smashing-heat",
         "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
-        "https://www.theguardian.com/environment/2026/apr/29/england-homes-high-risk-flooding-towns-cities-urban-environment-stud",
+        "https://www.theguardian.com/media/2022/jul/20/hellfire-what-the-papers-say-about-uks-hottest-ever-day",
+        "https://www.theguardian.com/uk-news/2022/jul/19/a-wake-up-call-as-extreme-heat-blazes-across-uk-experts-say-net-zero-is-",
+        "https://www.theguardian.com/uk-news/2023/jan/20/hottest-day-of-2022-saw-638-more-deaths-than-normal-in-england",
         "https://www.theguardian.com/uk-news/2023/jul/27/2022-warmest-year-record-uk-met-office-extreme-heat",
-        "https://www.usatoday.com/press-release/story/31610/birmingham-businesses-owed-millions-top-debt-recovery-firm-urges-busi",
-        "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
-        "https://www.weatherapi.com/weather/q/London",
-        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
+        "https://www.theguardian.com/world/2022/jul/19/europes-heatwave-moves-north-as-uk-braces-for-hottest-day-on-record",
+        "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live",
+        "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live?fi",
+        "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf"
       ],
-      "min_similarity": 0.4
+      "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
+        "bbc.co.uk",
         "bbc.com",
-        "carbonbrief.org",
         "centaur.reading.ac.uk",
+        "civilbeat.org",
+        "climatecentral.org",
         "cnbc.com",
         "community.netweather.tv",
-        "confused.com",
-        "engageenvironmentagency.uk.engagementhq.com",
+        "downloads.ctfassets.net",
         "gov.uk",
-        "hackney.gov.uk",
-        "internetgeography.net",
         "lse.ac.uk",
         "ncei.noaa.gov",
-        "open-meteo.com",
+        "nhm.ac.uk",
+        "npr.org",
+        "nytimes.com",
         "reddit.com",
         "rmets.onlinelibrary.wiley.com",
         "theguardian.com",
-        "timesofindia.indiatimes.com",
-        "weather.gov",
-        "worldweatherattribution.org"
+        "weather.gov"
       ],
       "min_similarity": 0.45
     }
