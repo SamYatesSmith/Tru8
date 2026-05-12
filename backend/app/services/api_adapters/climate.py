@@ -298,29 +298,27 @@ _NOAA_MONTH_NAMES: Dict[str, int] = {
 }
 
 
-def _parse_date_window(
+def _parse_date_anchor(
     date_text: Optional[str],
-    fallback_years: int = 2,
-) -> Tuple[str, str]:
-    """Derive (startdate, enddate) for a NOAA query from a DATE entity.
+) -> Optional[Tuple[datetime, datetime]]:
+    """Parse a DATE entity text into a granularity-matched (start, end) window.
 
-    Returns ISO date strings. Granularity is inferred from the input:
-      * day+month+year ("19 July 2022", "2022-07-19")  → ±30 days around the day
-      * month+year ("July 2022", "2022-07")            → that whole month
-      * year only ("2022")                              → that whole year
-      * unparseable / missing                          → now-fallback_years → now
+    Returns ``None`` when ``date_text`` is missing or no year can be
+    extracted. Unlike :func:`_parse_date_window` there is no fallback —
+    callers can distinguish "could not determine temporal scope" from
+    "found a parseable window".
 
-    The NOAA dataset (GSOM = monthly summaries) limits effective resolution
-    to the month, so ±30 days for a day-level claim still gives a tight
-    window without missing the claim's month.
+    Granularity inference (mirrors :func:`_parse_date_window`):
+      * day+month+year ("19 July 2022", "2022-07-19")  → ±30 days
+      * month+year ("July 2022", "2022-07")            → whole month
+      * year only ("2022")                              → whole year
+
+    Used by :func:`classify_temporal_intent` for adapter dispatch (Open-Meteo
+    and WeatherAPI both pick historical vs forecast vs current based on
+    where today sits relative to this window — NF-18 sweep 2026-05-12).
     """
-    today = datetime.now(timezone.utc)
-
     if not date_text:
-        return (
-            datetime(today.year - fallback_years, 1, 1).strftime("%Y-%m-%d"),
-            today.strftime("%Y-%m-%d"),
-        )
+        return None
 
     text = date_text.strip().lower()
 
@@ -331,13 +329,9 @@ def _parse_date_window(
         month = int(iso_match.group(2)) if iso_match.group(2) else None
         day = int(iso_match.group(3)) if iso_match.group(3) else None
     else:
-        # English forms: "19 July 2022", "July 19 2022", "July 2022", "2022"
         year_match = re.search(r"\b(19|20)\d{2}\b", text)
         if not year_match:
-            return (
-                datetime(today.year - fallback_years, 1, 1).strftime("%Y-%m-%d"),
-                today.strftime("%Y-%m-%d"),
-            )
+            return None
         year = int(year_match.group(0))
 
         month: Optional[int] = None
@@ -350,7 +344,6 @@ def _parse_date_window(
         day = None
         if day_match and month is not None:
             candidate = int(day_match.group(1))
-            # Skip if the matched number is the year prefix
             if candidate != (year // 100) and candidate != (year - 2000):
                 day = candidate
 
@@ -361,7 +354,6 @@ def _parse_date_window(
             end = anchor + timedelta(days=30)
         elif month:
             start = datetime(year, month, 1, tzinfo=timezone.utc)
-            # End of month: roll to next month, subtract one day
             if month == 12:
                 end = datetime(year, 12, 31, tzinfo=timezone.utc)
             else:
@@ -372,12 +364,70 @@ def _parse_date_window(
             start = datetime(year, 1, 1, tzinfo=timezone.utc)
             end = datetime(year, 12, 31, tzinfo=timezone.utc)
     except (ValueError, OverflowError):
+        return None
+
+    return start, end
+
+
+def _parse_date_window(
+    date_text: Optional[str],
+    fallback_years: int = 2,
+) -> Tuple[str, str]:
+    """Derive (startdate, enddate) ISO strings for a NOAA query.
+
+    Thin wrapper over :func:`_parse_date_anchor` that adds the
+    historical-fallback semantics NOAA needs: when no parseable DATE,
+    return ``(now-fallback_years, now)``. Open-Meteo / WeatherAPI use
+    the same fallback when their callers haven't propagated DATE
+    (NF-18 sweep 2026-05-12).
+    """
+    today = datetime.now(timezone.utc)
+    parsed = _parse_date_anchor(date_text)
+    if parsed is None:
         return (
             datetime(today.year - fallback_years, 1, 1).strftime("%Y-%m-%d"),
             today.strftime("%Y-%m-%d"),
         )
-
+    start, end = parsed
     return start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
+
+
+def classify_temporal_intent(
+    entities: Optional[List[Dict[str, str]]] = None,
+) -> str:
+    """Return ``"past"``, ``"future"``, or ``"current"`` from DATE entities.
+
+    Weather/climate adapter dispatch helper. After NF-20-B propagation
+    (2026-05-12), every claim in a date-anchored article carries a DATE
+    entity, so this classification is reliable for the historical-vs-
+    forecast routing decision.
+
+    Comparison is granularity-matched: today is checked against the
+    DATE entity's window (a year-coarse DATE has a year-wide
+    "tolerance"):
+
+      * today AFTER window  → ``"past"``    (route to archive API)
+      * today BEFORE window → ``"future"``  (route to forecast API)
+      * today WITHIN window → ``"current"`` (route to current
+                                              conditions / forecast)
+
+    Returns ``"current"`` when no DATE entity is present or the DATE
+    text cannot be parsed. Selection rule mirrors
+    :func:`extract_location_and_date` — the longest DATE entity text
+    wins (longer phrases are more specific).
+    """
+    _, date_text = extract_location_and_date(entities)
+    parsed = _parse_date_anchor(date_text)
+    if parsed is None:
+        return "current"
+
+    start, end = parsed
+    today = datetime.now(timezone.utc)
+    if today > end:
+        return "past"
+    if today < start:
+        return "future"
+    return "current"
 
 
 # ========== NOAA CDO ADAPTER (Global Climate Data) ==========
@@ -883,7 +933,6 @@ class WeatherAPIAdapter(GovernmentAPIClient):
             logger.warning("WeatherAPI key not configured, skipping")
             return []
 
-        query_lower = query.lower()
         evidence = []
 
         try:
@@ -896,19 +945,21 @@ class WeatherAPIAdapter(GovernmentAPIClient):
                 )
                 return []
 
-            # Determine what type of weather data to fetch
-            if any(
-                term in query_lower
-                for term in ["forecast", "tomorrow", "next week", "will it"]
-            ):
+            # NF-18 sweep (2026-05-12): route from DATE entity, not query
+            # keywords. ``query`` is the cache-key shape ``"{loc}|{date}"``
+            # post-Session-B; the historical/forecast/current dispatch
+            # below was scanning that key and matching nothing. After
+            # NF-20-B propagation every date-anchored claim has a DATE
+            # entity, so classify_temporal_intent routes deterministically.
+            intent = classify_temporal_intent(entities)
+            if intent == "past":
+                evidence.extend(self._get_historical(location, query, entities))
+            elif intent == "future":
                 evidence.extend(self._get_forecast(location, query))
-            elif any(
-                term in query_lower
-                for term in ["yesterday", "last week", "was it", "historical"]
-            ):
-                evidence.extend(self._get_historical(location, query))
             else:
-                # Default: get current conditions
+                # Intent "current" — DATE absent, unparseable, or its
+                # granularity window contains today. Return current
+                # conditions as the most representative snapshot.
                 evidence.extend(self._get_current_weather(location, query))
 
             return evidence
@@ -1067,17 +1118,41 @@ class WeatherAPIAdapter(GovernmentAPIClient):
             logger.error(f"WeatherAPI current weather fetch failed: {e}")
             return []
 
-    def _get_historical(self, location: str, query: str) -> List[Dict[str, Any]]:
-        """Get historical weather data (yesterday)."""
+    def _get_historical(
+        self,
+        location: str,
+        query: str,
+        entities: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Get historical weather data for the DATE the claim anchors.
+
+        NF-18 sweep (2026-05-12): derive the target date from the DATE
+        entity rather than hardcoding "yesterday". Pre-fix, a Coral Sea
+        March 2024 claim was getting yesterday's weather. WeatherAPI
+        history.json takes a single date param, so we use the START of
+        the DATE entity's granularity window — for "March 2024" that's
+        2024-03-01, which the API will accept on plans that cover that
+        period. Older periods may return empty (free-tier limit ~7
+        days back); empty result is safer than wrong-date noise.
+
+        Fall back to yesterday only when no parseable DATE is present.
+        """
         evidence = []
 
         try:
             import httpx
             from urllib.parse import quote
 
-            # Get yesterday's date
-            yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-            url = f"{self.base_url}/history.json?key={self.api_key}&q={quote(location)}&dt={yesterday}"
+            _, date_text = extract_location_and_date(entities)
+            parsed = _parse_date_anchor(date_text)
+            if parsed is None:
+                target_date_str = (datetime.now() - timedelta(days=1)).strftime(
+                    "%Y-%m-%d"
+                )
+            else:
+                start, _ = parsed
+                target_date_str = start.strftime("%Y-%m-%d")
+            url = f"{self.base_url}/history.json?key={self.api_key}&q={quote(location)}&dt={target_date_str}"
 
             with httpx.Client(timeout=10) as client:
                 response = client.get(url)
@@ -1103,7 +1178,7 @@ class WeatherAPIAdapter(GovernmentAPIClient):
             precip = day_data.get("totalprecip_mm", 0)
 
             snippet = (
-                f"Weather in {location_name} on {yesterday}:\n"
+                f"Weather in {location_name} on {target_date_str}:\n"
                 f"Temperature: {min_temp}°C - {max_temp}°C (avg: {avg_temp}°C)\n"
                 f"Conditions: {condition}\n"
                 f"Precipitation: {precip}mm"
@@ -1111,16 +1186,16 @@ class WeatherAPIAdapter(GovernmentAPIClient):
 
             evidence.append(
                 {
-                    "title": f"Historical Weather for {location_name} ({yesterday})",
+                    "title": f"Historical Weather for {location_name} ({target_date_str})",
                     "url": f"https://www.weatherapi.com/weather/q/{quote(location)}",
                     "snippet": snippet,
                     "source": "WeatherAPI.com",
-                    "date": yesterday,
+                    "date": target_date_str,
                     "metadata": {
                         "api_source": "WeatherAPI",
                         "data_type": "historical_weather",
                         "location": location_name,
-                        "date": yesterday,
+                        "date": target_date_str,
                     },
                 }
             )
@@ -1306,27 +1381,18 @@ class OpenMeteoAdapter(GovernmentAPIClient):
             return []
 
         lat, lon, location_name = coords
-        query_lower = query.lower()
         evidence = []
 
+        # NF-18 sweep (2026-05-12): route from DATE entity, not query
+        # keywords. ``query`` is the cache-key shape ``"{loc}|{date}"`` —
+        # never contains historical-vs-forecast keywords. After NF-20-B
+        # propagation every date-anchored claim carries a DATE entity.
         try:
-            # Decide: forecast or historical
-            is_historical = any(
-                term in query_lower
-                for term in [
-                    "last year",
-                    "historical",
-                    "average",
-                    "record",
-                    "was the",
-                    "in 20",
-                    "in 19",
-                    "climate",
-                ]
-            )
-
-            if is_historical:
-                evidence.extend(self._get_historical(lat, lon, location_name, query))
+            intent = classify_temporal_intent(entities)
+            if intent == "past":
+                evidence.extend(
+                    self._get_historical(lat, lon, location_name, query, entities)
+                )
             else:
                 evidence.extend(self._get_forecast(lat, lon, location_name, query))
 
@@ -1401,14 +1467,34 @@ class OpenMeteoAdapter(GovernmentAPIClient):
             return []
 
     def _get_historical(
-        self, lat: float, lon: float, location_name: str, query: str
+        self,
+        lat: float,
+        lon: float,
+        location_name: str,
+        query: str,
+        entities: Optional[List[Dict[str, Any]]] = None,
     ) -> List[Dict[str, Any]]:
-        """Get historical climate data (last 12 months)."""
+        """Get historical climate data for the period the DATE entity anchors.
+
+        NF-18 sweep (2026-05-12): derive the date window from the DATE
+        entity rather than hardcoding ``now-365d → now``. Pre-fix, a
+        claim about Coral Sea March 2024 was returning 2025-2026 data
+        (today's archive window) instead of the actual claim period.
+
+        Fall back to ``now-365d → now`` only when no parseable DATE
+        is present (matches the old behaviour for ad-hoc weather
+        queries that lack temporal anchoring).
+        """
         try:
             import httpx
 
-            end_date = datetime.now(timezone.utc)
-            start_date = end_date - timedelta(days=365)
+            _, date_text = extract_location_and_date(entities)
+            parsed = _parse_date_anchor(date_text)
+            if parsed is None:
+                end_date = datetime.now(timezone.utc)
+                start_date = end_date - timedelta(days=365)
+            else:
+                start_date, end_date = parsed
 
             params = {
                 "latitude": lat,

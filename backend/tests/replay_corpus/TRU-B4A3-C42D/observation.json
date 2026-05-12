@@ -1,53 +1,58 @@
 {
   "allowlist_bypassed_domains": [],
   "analyzer_summary": {
-    "domains": 22,
-    "items": 25,
-    "urls": 24
+    "domains": 23,
+    "items": 26,
+    "urls": 25
   },
   "article_classification": "Finance",
   "b3_quality_per_claim": {
     "0": {
       "element_resolution": 0.8,
-      "factual_weight_share": 0.28,
-      "mapped": 7,
+      "factual_weight_share": 0.2,
+      "mapped": 10,
       "tier_mix": {
         "commentary": 5,
-        "reporting": 2
+        "primary": 2,
+        "reporting": 3
       },
       "top_domain": "tradingeconomics.com",
-      "top_domain_share": 0.14,
+      "top_domain_share": 0.1,
       "type_mix": {
         "analysis": 4,
         "data": 2,
+        "news_reporting": 3,
         "opinion": 1
       },
-      "unique_domains": 7,
+      "unique_domains": 10,
       "wikipedia_share": 0.0
     },
     "1": {
       "element_resolution": 1.0,
-      "factual_weight_share": 0.33,
-      "mapped": 6,
+      "factual_weight_share": 0.38,
+      "mapped": 8,
       "tier_mix": {
         "commentary": 4,
-        "primary": 2
+        "primary": 2,
+        "reporting": 2
       },
-      "top_domain": "dbrs.morningstar.com",
-      "top_domain_share": 0.17,
+      "top_domain": "cepr.org",
+      "top_domain_share": 0.12,
       "type_mix": {
-        "analysis": 4,
+        "academic": 1,
+        "analysis": 3,
         "data": 1,
+        "news_reporting": 2,
         "official_statement": 1
       },
-      "unique_domains": 6,
+      "unique_domains": 8,
       "wikipedia_share": 0.0
     }
   },
   "b3_receipts": {
     "excluded": 0,
-    "shown": 13,
-    "unmapped": 12
+    "shown": 18,
+    "unmapped": 8
   },
   "classifier_inject": {
     "added": [],
@@ -73,14 +78,7 @@
     },
     {
       "from_tier": "reporting",
-      "from_type": "official_statement",
-      "to_tier": "primary",
-      "to_type": "data",
-      "url_prefix": "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-e"
-    },
-    {
-      "from_tier": "reporting",
-      "from_type": "official_statement",
+      "from_type": "news_reporting",
       "to_tier": "primary",
       "to_type": "data",
       "url_prefix": "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-e"
@@ -93,48 +91,50 @@
   "domain_cap_events": [],
   "domain_cap_total": 0,
   "domain_distribution": {
+    "adamtooze.substack.com": 1,
     "ajbell.co.uk": 1,
     "avivainvestors.com": 1,
-    "bankofengland.co.uk": 1,
+    "bankofengland.co.uk": 2,
     "bloomberg.com": 1,
     "cepr.org": 2,
     "chicagofed.org": 1,
+    "cityam.com": 1,
+    "cnbc.com": 1,
     "corporate-adviser.com": 1,
+    "crfb.org": 1,
     "dbrs.morningstar.com": 1,
     "dmo.gov.uk": 1,
-    "ebury.com": 1,
-    "goldmansachs.com": 1,
     "ifs.org.uk": 1,
     "media.quilter.com": 1,
     "niesr.ac.uk": 1,
-    "podcasts.apple.com": 1,
     "publications.parliament.uk": 1,
     "reddit.com": 1,
-    "rsmuk.com": 1,
-    "rte.ie": 2,
+    "robeco.com": 1,
+    "rte.ie": 1,
     "tradingeconomics.com": 2,
     "worldgovernmentbonds.com": 1,
     "xpsgroup.com": 1
   },
   "domain_set": [
+    "adamtooze.substack.com",
     "ajbell.co.uk",
     "avivainvestors.com",
     "bankofengland.co.uk",
     "bloomberg.com",
     "cepr.org",
     "chicagofed.org",
+    "cityam.com",
+    "cnbc.com",
     "corporate-adviser.com",
+    "crfb.org",
     "dbrs.morningstar.com",
     "dmo.gov.uk",
-    "ebury.com",
-    "goldmansachs.com",
     "ifs.org.uk",
     "media.quilter.com",
     "niesr.ac.uk",
-    "podcasts.apple.com",
     "publications.parliament.uk",
     "reddit.com",
-    "rsmuk.com",
+    "robeco.com",
     "rte.ie",
     "tradingeconomics.com",
     "worldgovernmentbonds.com",
@@ -170,23 +170,23 @@
     "claims": 2,
     "elements": 9,
     "llm_calls": 5,
-    "sources_considered": 30,
-    "sources_included": 25,
-    "web_search": 30
+    "sources_considered": 33,
+    "sources_included": 26,
+    "web_search": 33
   },
   "scorer_excluded_per_claim": {
     "0": 1,
-    "1": 3
+    "1": 5
   },
   "scorer_kept_per_claim": {
-    "0": 12,
+    "0": 13,
     "1": 13
   },
   "scorer_summary": {
-    "excluded": 4,
-    "keeping": 25,
-    "scored": 29,
-    "total": 29
+    "excluded": 6,
+    "keeping": 26,
+    "scored": 32,
+    "total": 32
   },
   "tier_caps": [
     {
@@ -210,62 +210,67 @@
     }
   ],
   "tier_distribution": {
-    "commentary": 15,
-    "primary": 6,
-    "reporting": 4
+    "commentary": 11,
+    "primary": 8,
+    "reporting": 7
   },
   "type_distribution": {
-    "academic": 1,
-    "analysis": 13,
-    "data": 8,
+    "academic": 2,
+    "analysis": 9,
+    "data": 6,
+    "news_reporting": 7,
     "official_statement": 1,
-    "opinion": 2
+    "opinion": 1
   },
   "url_ledger_flat": [
+    "http://www.worldgovernmentbonds.com/bond-historical-data/united-kingdom/30-years/",
+    "https://adamtooze.substack.com/p/chartbook-157-the-bond-market-massacre",
     "https://cepr.org/voxeu/columns/role-borrowing-rise-gilt-yields-during-truss-episode-and-some-possible-implications",
     "https://corporate-adviser.com/gilt-yields-higher-than-truss-budget-aftermath-but-unlikely-to-cause-same-problems-for-pen",
     "https://dbrs.morningstar.com/research/404017/uk-pressures-in-the-uk-gilt-market-continue-to-raise-concerns",
-    "https://ebury.com/resources/blog/pound-roars-back-after-boe-steps-in-to-calm-bond-markets",
     "https://ifs.org.uk/publications/budget-and-bond-markets-when-youre-hole-stop-digging",
     "https://media.quilter.com/search/2025/three-years-on-from-disastrous-mini-budget-uk-government-bonds-remain-in-focus/",
     "https://niesr.ac.uk/blog/could-gilt-market-shock-derail-economy-2026",
-    "https://podcasts.apple.com/fr/podcast/whats-gone-wrong-for-the-uks-finances-is-it-rachel/id979600898?i=1000683507063",
     "https://publications.parliament.uk/pa/cm5804/cmselect/cmtreasy/219/report.html",
     "https://tradingeconomics.com/united-kingdom/30-year-bond-yield",
     "https://tradingeconomics.com/united-kingdom/government-bond-yield",
     "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
     "https://www.avivainvestors.com/en-gb/capabilities/gilt-yields/",
     "https://www.bankofengland.co.uk/bank-insights/2026/what-were-the-drivers-of-uk-long-term-interest-rates-in-2025",
+    "https://www.bankofengland.co.uk/markets/bank-of-england-market-operations-guide/results-and-usage-data",
+    "https://www.bankofengland.co.uk/markets/market-intelligence/survey-results/market-participants-survey-results-september-",
     "https://www.bankofengland.co.uk/monetary-policy/quantitative-easing",
-    "https://www.bloomberg.com/markets/rates-bonds/government-bonds/uk",
+    "https://www.bloomberg.com/news/articles/2025-09-23/uk-30-year-bond-sale-receives-fewest-orders-since-2022",
     "https://www.chicagofed.org/publications/chicago-fed-letter/2023/480",
+    "https://www.cityam.com/borrowing-costs-set-for-worst-month-since-truss/",
+    "https://www.cnbc.com/2022/10/21/3-charts-showing-the-market-turmoil-wreaked-during-uk-pm-truss-tenure.html",
+    "https://www.crfb.org/blogs/americas-truss-moment",
     "https://www.dmo.gov.uk/data/gilt-market/historical-prices-and-yields/",
     "https://www.economicshelp.org/blog/2597/interest-rates/how-the-bank-of-england-set-interest-rates/",
-    "https://www.elibrary.imf.org/view/journals/001/2024/160/article-A001-en.xml",
-    "https://www.goldmansachs.com/insights/articles/why-are-uk-gilt-yields-so-high",
     "https://www.investing.com/rates-bonds/uk-30-year-bond-yield-historical-data",
+    "https://www.isda.org/a/GnvgE/ISDA-Responds-to-Bank-of-England-on-Gilt-Market-Resilience.pdf",
     "https://www.reddit.com/r/ukpolitics/comments/1gbd8i5/10year_gilt_just_traded_425_higher_yield_than/",
-    "https://www.rsmuk.com/insights/economic-voice/gilt-rout-is-not-liz-truss-2-point-0",
+    "https://www.robeco.com/en-int/insights/2022/10/volatility-strikes-in-the-uk-bond-market",
     "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-england-rates-decision/",
     "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-england-on-uk-economy/",
-    "https://www.worldgovernmentbonds.com/spread/united-kingdom-30-years-vs-united-states-30-years/",
     "https://www.xpsgroup.com/news-views/insights-briefings/gilt-yields-soar-out-control-bank-england-steps/"
   ],
   "url_ledger_per_claim": {
     "0": [
+      "https://www.dmo.gov.uk/data/gilt-market/historical-prices-and-yields/",
       "https://tradingeconomics.com/united-kingdom/30-year-bond-yield",
       "https://www.investing.com/rates-bonds/uk-30-year-bond-yield-historical-data",
-      "https://www.dmo.gov.uk/data/gilt-market/historical-prices-and-yields/",
-      "https://www.bloomberg.com/markets/rates-bonds/government-bonds/uk",
-      "https://www.worldgovernmentbonds.com/spread/united-kingdom-30-years-vs-united-states-30-years/",
+      "http://www.worldgovernmentbonds.com/bond-historical-data/united-kingdom/30-years/",
+      "https://www.bloomberg.com/news/articles/2025-09-23/uk-30-year-bond-sale-receives-fewest-orders-since-2022",
       "https://www.avivainvestors.com/en-gb/capabilities/gilt-yields/",
-      "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
-      "https://www.reddit.com/r/ukpolitics/comments/1gbd8i5/10year_gilt_just_traded_425_higher_yield_than/",
       "https://corporate-adviser.com/gilt-yields-higher-than-truss-budget-aftermath-but-unlikely-to-cause-same-problems-for-pen",
-      "https://media.quilter.com/search/2025/three-years-on-from-disastrous-mini-budget-uk-government-bonds-remain-in-focus/",
-      "https://www.rsmuk.com/insights/economic-voice/gilt-rout-is-not-liz-truss-2-point-0",
+      "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
       "https://cepr.org/voxeu/columns/role-borrowing-rise-gilt-yields-during-truss-episode-and-some-possible-implications",
-      "https://podcasts.apple.com/fr/podcast/whats-gone-wrong-for-the-uks-finances-is-it-rachel/id979600898?i=1000683507063"
+      "https://media.quilter.com/search/2025/three-years-on-from-disastrous-mini-budget-uk-government-bonds-remain-in-focus/",
+      "https://www.reddit.com/r/ukpolitics/comments/1gbd8i5/10year_gilt_just_traded_425_higher_yield_than/",
+      "https://www.cityam.com/borrowing-costs-set-for-worst-month-since-truss/",
+      "https://www.cnbc.com/2022/10/21/3-charts-showing-the-market-turmoil-wreaked-during-uk-pm-truss-tenure.html",
+      "https://www.crfb.org/blogs/americas-truss-moment"
     ],
     "1": [
       "https://www.bankofengland.co.uk/bank-insights/2026/what-were-the-drivers-of-uk-long-term-interest-rates-in-2025",
@@ -274,13 +279,15 @@
       "https://www.bankofengland.co.uk/monetary-policy/quantitative-easing",
       "https://cepr.org/voxeu/columns/role-borrowing-rise-gilt-yields-during-truss-episode-and-some-possible-implications",
       "https://www.xpsgroup.com/news-views/insights-briefings/gilt-yields-soar-out-control-bank-england-steps/",
-      "https://ifs.org.uk/publications/budget-and-bond-markets-when-youre-hole-stop-digging",
-      "https://tradingeconomics.com/united-kingdom/government-bond-yield",
-      "https://www.goldmansachs.com/insights/articles/why-are-uk-gilt-yields-so-high",
+      "https://www.bankofengland.co.uk/markets/market-intelligence/survey-results/market-participants-survey-results-september-",
       "https://www.chicagofed.org/publications/chicago-fed-letter/2023/480",
+      "https://www.bankofengland.co.uk/markets/bank-of-england-market-operations-guide/results-and-usage-data",
+      "https://tradingeconomics.com/united-kingdom/government-bond-yield",
+      "https://www.isda.org/a/GnvgE/ISDA-Responds-to-Bank-of-England-on-Gilt-Market-Resilience.pdf",
       "https://publications.parliament.uk/pa/cm5804/cmselect/cmtreasy/219/report.html",
-      "https://www.elibrary.imf.org/view/journals/001/2024/160/article-A001-en.xml",
-      "https://ebury.com/resources/blog/pound-roars-back-after-boe-steps-in-to-calm-bond-markets",
+      "https://ifs.org.uk/publications/budget-and-bond-markets-when-youre-hole-stop-digging",
+      "https://adamtooze.substack.com/p/chartbook-157-the-bond-market-massacre",
+      "https://www.robeco.com/en-int/insights/2022/10/volatility-strikes-in-the-uk-bond-market",
       "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-england-on-uk-economy/",
       "https://www.economicshelp.org/blog/2597/interest-rates/how-the-bank-of-england-set-interest-rates/",
       "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-england-rates-decision/"
