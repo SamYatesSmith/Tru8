@@ -1,53 +1,66 @@
 {
   "allowlist_bypassed_domains": [],
   "analyzer_summary": {
-    "domains": 12,
-    "items": 15,
-    "urls": 15
+    "domains": 11,
+    "items": 12,
+    "urls": 12
   },
   "article_classification": "Weather",
+  "b3_quality_per_claim": {
+    "0": {
+      "element_resolution": 1.0,
+      "factual_weight_share": 0.67,
+      "mapped": 3,
+      "tier_mix": {
+        "primary": 2,
+        "reporting": 1
+      },
+      "top_domain": "extremeweatherwatch.com",
+      "top_domain_share": 0.33,
+      "type_mix": {
+        "data": 2,
+        "news_reporting": 1
+      },
+      "unique_domains": 3,
+      "wikipedia_share": 0.0
+    }
+  },
   "b3_receipts": {
     "excluded": 0,
-    "shown": 5,
-    "unmapped": 10
+    "shown": 3,
+    "unmapped": 9
   },
   "classifier_inject": null,
-  "classifier_overrides": [
-    {
-      "from_tier": "commentary",
-      "from_type": "data",
-      "to_tier": "primary",
-      "to_type": "data",
-      "url_prefix": "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.1"
-    }
-  ],
+  "classifier_overrides": [],
   "coverage_recovery_done": null,
   "coverage_recovery_failures": 0,
+  "coverage_recovery_timed_out": false,
+  "coverage_recovery_timeout_seconds": null,
+  "domain_cap_events": [],
+  "domain_cap_total": 0,
   "domain_distribution": {
+    "bbc.com": 1,
     "dailyrecord.co.uk": 1,
-    "en.climate-data.org": 2,
-    "extremeweatherwatch.com": 2,
-    "metoffice.gov.uk": 1,
+    "en.climate-data.org": 1,
+    "extremeweatherwatch.com": 1,
     "ncei.noaa.gov": 1,
     "open-meteo.com": 1,
-    "theweatheroutlook.com": 1,
+    "pynck.com": 1,
+    "scotsman.com": 1,
     "timeanddate.com": 1,
-    "weather.metoffice.gov.uk": 1,
-    "weatherapi.com": 1,
     "weatherspark.com": 2,
     "world-weather.info": 1
   },
   "domain_set": [
+    "bbc.com",
     "dailyrecord.co.uk",
     "en.climate-data.org",
     "extremeweatherwatch.com",
-    "metoffice.gov.uk",
     "ncei.noaa.gov",
     "open-meteo.com",
-    "theweatheroutlook.com",
+    "pynck.com",
+    "scotsman.com",
     "timeanddate.com",
-    "weather.metoffice.gov.uk",
-    "weatherapi.com",
     "weatherspark.com",
     "world-weather.info"
   ],
@@ -71,70 +84,65 @@
     "claims": 1,
     "elements": 2,
     "llm_calls": 5,
-    "sources_considered": 19,
-    "sources_included": 15,
-    "web_search": 19
+    "sources_considered": 16,
+    "sources_included": 12,
+    "web_search": 16
   },
   "scorer_excluded_per_claim": {
     "0": 4
   },
   "scorer_kept_per_claim": {
-    "0": 15
+    "0": 11
   },
   "scorer_summary": {
     "excluded": 4,
-    "keeping": 15,
-    "scored": 19,
-    "total": 19
+    "keeping": 12,
+    "scored": 16,
+    "total": 16
   },
   "tier_caps": [],
   "tier_distribution": {
-    "commentary": 10,
-    "primary": 4,
-    "reporting": 1
+    "commentary": 1,
+    "primary": 8,
+    "reporting": 3
   },
   "type_distribution": {
-    "data": 14,
-    "news_reporting": 1
+    "data": 8,
+    "news_reporting": 3,
+    "opinion": 1
   },
   "url_ledger_flat": [
-    "https://community.netweather.tv/topic/95008-february-2021-cet-and-ewp-forecast-contests/page/9/",
-    "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/",
+    "https://democracy.edinburgh.gov.uk/mgConvert2PDF.aspx?ID=31628",
     "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/t/february-2/",
     "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.19",
     "https://pynck.com/2021/01/ceciles-top-picks-of-whats-on-in-edinburgh-february-2021.html",
-    "https://weather.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/interesti",
     "https://weatherspark.com/h/m/38026/2021/2/Historical-Weather-in-February-2021-in-Edinburgh-United-Kingdom",
     "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh...",
     "https://world-weather.info/forecast/united_kingdom/edinburgh/february-2021/",
     "https://www.alledinburghtheatre.com/2021/02/11/",
+    "https://www.bbc.com/news/uk-63893192",
     "https://www.dailyrecord.co.uk/news/scottish-news/temperatures-plummet-22c-scotland-records-23481646",
-    "https://www.extremeweatherwatch.com/cities/edinburgh/day/february-25",
     "https://www.extremeweatherwatch.com/cities/edinburgh/year-2021",
-    "https://www.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/summaries/uk_",
+    "https://www.metoffice.gov.uk/research/climate/maps-and-data/summaries",
     "https://www.scotsman.com/archive/2021-02-11",
-    "https://www.theweatheroutlook.com/twocommunity/Posts/t21886-Low-temperature-watch---9-to-11-February/page6",
-    "https://www.timeanddate.com/weather/uk/edinburgh/climate",
+    "https://www.timeanddate.com/weather/uk/edinburgh/historic",
     "https://www.weatherapi.com/weather/q/Edinburgh"
   ],
   "url_ledger_per_claim": {
     "0": [
-      "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh...",
-      "https://www.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/summaries/uk_",
-      "https://www.extremeweatherwatch.com/cities/edinburgh/day/february-25",
       "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/t/february-2/",
-      "https://www.timeanddate.com/weather/uk/edinburgh/climate",
+      "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh...",
+      "https://www.timeanddate.com/weather/uk/edinburgh/historic",
+      "https://www.extremeweatherwatch.com/cities/edinburgh/year-2021",
+      "https://www.bbc.com/news/uk-63893192",
       "https://www.dailyrecord.co.uk/news/scottish-news/temperatures-plummet-22c-scotland-records-23481646",
-      "https://weather.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/interesti",
-      "https://community.netweather.tv/topic/95008-february-2021-cet-and-ewp-forecast-contests/page/9/",
-      "https://www.theweatheroutlook.com/twocommunity/Posts/t21886-Low-temperature-watch---9-to-11-February/page6",
-      "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/",
+      "https://www.metoffice.gov.uk/research/climate/maps-and-data/summaries",
       "https://www.alledinburghtheatre.com/2021/02/11/",
       "https://www.scotsman.com/archive/2021-02-11",
       "https://weatherspark.com/h/m/38026/2021/2/Historical-Weather-in-February-2021-in-Edinburgh-United-Kingdom",
-      "https://www.extremeweatherwatch.com/cities/edinburgh/year-2021",
       "https://pynck.com/2021/01/ceciles-top-picks-of-whats-on-in-edinburgh-february-2021.html",
       "https://world-weather.info/forecast/united_kingdom/edinburgh/february-2021/",
+      "https://democracy.edinburgh.gov.uk/mgConvert2PDF.aspx?ID=31628",
       "https://www.weatherapi.com/weather/q/Edinburgh",
       "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.19"
     ]

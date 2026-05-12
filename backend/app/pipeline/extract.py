@@ -698,10 +698,18 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
     async def _validate_and_refine_claims(
         self, claims: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Filter unverifiable claims, dedupe near-duplicates, merge over-decompositions."""
+        """Filter unverifiable claims, dedupe near-duplicates, propagate article-level DATEs, merge over-decompositions.
+
+        Order is load-bearing:
+          * dedup runs BEFORE propagation so the discriminating-entity
+            safeguard (d78b4c3) operates on the LLM's raw entities.
+          * propagation runs BEFORE merge so Pass 2's event-anchor
+            backbone can see inherited DATEs in entity overlap.
+        """
         validated = self._validate_individual_claims(claims)
         deduped = await self._deduplicate_similar_claims(validated)
-        merged = await self._merge_redecomposed_claims(deduped)
+        propagated = self._propagate_article_dates(deduped)
+        merged = await self._merge_redecomposed_claims(propagated)
         return merged
 
     @staticmethod
@@ -751,6 +759,115 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
         )
         has_date = any(typ == "DATE" for _, typ in entities)
         return has_actor_or_place and has_date
+
+    @staticmethod
+    def _propagate_article_dates(
+        claims: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Inject article-level DATE entities into claims that have none.
+
+        NF-20-B canonical fix (logged 2026-05-05, deferred until now).
+        The LLM produces per-claim entities and typically anchors DATE
+        on one claim (often the first) when multiple claims describe
+        aspects of the same event. Downstream consumers that read DATE
+        per-claim then miss the article-level temporal context:
+
+          * ``_inject_freshness_for_historical_dates`` (query_planner)
+            keeps freshness="py" on dateless claims, filtering out
+            original-period content for events >12 months old.
+          * Adapter ``prepare_query`` paths (NOAA CDO post-NF-18,
+            et al.) that derive date windows from claim entities fall
+            back to the adapter's hardcoded default — or fail the
+            LOCATION+DATE skip-guard entirely.
+
+        Behaviour:
+          * Compute the UNION of DATE entities across all claims.
+          * For each claim with ZERO DATE-typed entities, append every
+            article-level DATE to its ``key_entities`` with provenance
+            ``source: "article_inheritance"``.
+          * Conservative: never overrides a claim's own DATE. Claims
+            with any DATE entity are left untouched even when the
+            article carries additional DATEs.
+          * Idempotent: a second call is a no-op because all claims
+            either have their own DATE or already have inherited ones.
+
+        Order in ``_validate_and_refine_claims``::
+
+            validated -> deduped -> propagated -> merged
+
+        Dedup runs FIRST so the discriminator (which strips OTHER but
+        keeps DATE/LOCATION/etc.) operates on the LLM's raw entity
+        assignments, preserving the d78b4c3 paired-comparison
+        safeguard. Merge runs AFTER so Pass 2's event-anchor backbone
+        (DATE × ORG/PRODUCT/LOCATION) can match inherited DATEs in
+        entity overlap. Note: Pass 2 still requires ≥3 shared
+        entities, so propagation alone won't merge claims where the
+        LLM atomised entities below that threshold (separate scope:
+        C2 article-level LLM event-clustering).
+
+        Provenance flag rationale:
+          * ``retrieve.py:2046-2051`` adapter translation picks only
+            ``text`` and ``type`` per entity, silently dropping the
+            extra key — zero adapter-contract impact.
+          * ``_inject_freshness_for_historical_dates`` reads DATE type
+            agnostic of source — works transparently.
+          * The flag is future-proofing for ``services/explore.py``
+            cross-user relatedness clustering (could exclude
+            inherited entries to avoid false-positive clustering on
+            the article's shared DATE) and for Seeker-view display.
+        """
+        if len(claims) <= 1:
+            return claims
+
+        article_dates: List[Dict[str, str]] = []
+        seen: Set[Tuple[str, str]] = set()
+        claims_without_date: List[int] = []
+
+        for idx, claim in enumerate(claims):
+            has_date = False
+            for ent in claim.get("key_entities") or []:
+                if not isinstance(ent, dict):
+                    continue
+                ent_type = (ent.get("type") or "").upper().strip()
+                if ent_type != "DATE":
+                    continue
+                ent_text = ent.get("text") or ""
+                if not isinstance(ent_text, str) or not ent_text.strip():
+                    continue
+                has_date = True
+                key = (ent_text.lower().strip(), ent_type)
+                if key not in seen:
+                    seen.add(key)
+                    article_dates.append({"text": ent_text, "type": "DATE"})
+
+            if not has_date:
+                claims_without_date.append(idx)
+
+        if not article_dates or not claims_without_date:
+            return claims
+
+        for idx in claims_without_date:
+            claim = claims[idx]
+            existing_entities = claim.get("key_entities") or []
+            inherited = [
+                {"text": d["text"], "type": "DATE", "source": "article_inheritance"}
+                for d in article_dates
+            ]
+            claim["key_entities"] = list(existing_entities) + inherited
+
+            inherited_texts = ", ".join(d["text"] for d in article_dates)
+            logger.info(
+                f"[EXTRACT] DATE PROPAGATION: claim_position="
+                f"{claim.get('position', idx)} inherited={inherited_texts!r}"
+            )
+
+        logger.info(
+            f"[EXTRACT] DATE PROPAGATION: {len(claims_without_date)} of "
+            f"{len(claims)} claims received article-level DATE inheritance "
+            f"(article DATEs: {[d['text'] for d in article_dates]})"
+        )
+
+        return claims
 
     async def _synthesise_merged_claim_text(
         self, group_texts: List[str], required_entities: List[str]

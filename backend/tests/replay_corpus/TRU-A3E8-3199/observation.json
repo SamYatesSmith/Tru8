@@ -1,72 +1,73 @@
 {
   "allowlist_bypassed_domains": [],
   "analyzer_summary": {
-    "domains": 10,
-    "items": 11,
-    "urls": 11
+    "domains": 12,
+    "items": 13,
+    "urls": 13
   },
-  "article_classification": null,
+  "article_classification": "Animals",
+  "b3_quality_per_claim": {
+    "0": {
+      "element_resolution": 0.67,
+      "factual_weight_share": 0.33,
+      "mapped": 9,
+      "tier_mix": {
+        "commentary": 3,
+        "primary": 3,
+        "reporting": 3
+      },
+      "top_domain": "gbif.org",
+      "top_domain_share": 0.22,
+      "type_mix": {
+        "academic": 1,
+        "data": 2,
+        "news_reporting": 5,
+        "opinion": 1
+      },
+      "unique_domains": 8,
+      "wikipedia_share": 0.0
+    }
+  },
   "b3_receipts": {
     "excluded": 0,
-    "shown": 8,
-    "unmapped": 3
+    "shown": 9,
+    "unmapped": 4
   },
   "classifier_inject": null,
-  "classifier_overrides": [
-    {
-      "from_tier": "reporting",
-      "from_type": "news_reporting",
-      "to_tier": "primary",
-      "to_type": "academic",
-      "url_prefix": "https://www.floridamuseum.ufl.edu/science/theres-something-f"
-    },
-    {
-      "from_tier": "reporting",
-      "from_type": "analysis",
-      "to_tier": "primary",
-      "to_type": "academic",
-      "url_prefix": "https://www.whoi.edu/ocean-learning-hub/ocean-topics/ocean-l"
-    },
-    {
-      "from_tier": "commentary",
-      "from_type": "data",
-      "to_tier": "primary",
-      "to_type": "data",
-      "url_prefix": "https://www.gbif.org/species/113272801"
-    },
-    {
-      "from_tier": "commentary",
-      "from_type": "data",
-      "to_tier": "primary",
-      "to_type": "data",
-      "url_prefix": "https://www.gbif.org/species/206230133"
-    }
-  ],
+  "classifier_overrides": [],
   "coverage_recovery_done": null,
   "coverage_recovery_failures": 0,
+  "coverage_recovery_timed_out": false,
+  "coverage_recovery_timeout_seconds": null,
+  "domain_cap_events": [],
+  "domain_cap_total": 0,
   "domain_distribution": {
-    "bbc.com": 1,
-    "divernet.com": 1,
-    "floridamuseum.ufl.edu": 1,
+    "bristolpost.co.uk": 1,
+    "countryfile.com": 1,
+    "express.co.uk": 1,
     "gbif.org": 2,
     "gbnews.com": 1,
     "msn.com": 1,
+    "reddit.com": 1,
+    "semanticscholar.org": 1,
+    "theconversation.com": 1,
     "theguardian.com": 1,
     "tiktok.com": 1,
-    "vancouverisawesome.com": 1,
-    "whoi.edu": 1
+    "youtube.com": 1
   },
   "domain_set": [
-    "bbc.com",
-    "divernet.com",
-    "floridamuseum.ufl.edu",
+    "bristolpost.co.uk",
+    "countryfile.com",
+    "express.co.uk",
     "gbif.org",
     "gbnews.com",
     "msn.com",
+    "reddit.com",
+    "semanticscholar.org",
+    "theconversation.com",
     "theguardian.com",
     "tiktok.com",
-    "vancouverisawesome.com",
-    "whoi.edu"
+    "youtube.com"
   ],
   "factchecks_per_claim": {},
   "final_adapter_set": [
@@ -83,82 +84,77 @@
     "claims": 1,
     "elements": 3,
     "llm_calls": 5,
-    "sources_considered": 24,
-    "sources_included": 11,
-    "web_search": 24
+    "sources_considered": 25,
+    "sources_included": 13,
+    "web_search": 25
   },
   "scorer_excluded_per_claim": {
-    "0": 9
+    "0": 7
   },
   "scorer_kept_per_claim": {
-    "0": 9
+    "0": 11
   },
   "scorer_summary": {
-    "excluded": 9,
-    "keeping": 11,
+    "excluded": 7,
+    "keeping": 13,
     "scored": 20,
     "total": 20
   },
   "tier_caps": [],
   "tier_distribution": {
-    "commentary": 1,
-    "primary": 4,
+    "commentary": 4,
+    "primary": 3,
     "reporting": 6
   },
   "type_distribution": {
-    "academic": 2,
+    "academic": 1,
+    "analysis": 1,
     "data": 2,
-    "news_reporting": 6,
+    "news_reporting": 8,
     "opinion": 1
   },
   "url_ledger_flat": [
-    "https://divernet.com/world-dives/could-warming-seas-return-great-white-sharks-to-north-sea/",
-    "https://doi.org/10.1184/r1/6687011",
     "https://doi.org/10.1371/journal.pone.0306813",
     "https://doi.org/10.3389/fmars.2024.1282091",
     "https://en.wikipedia.org/wiki/Greenland_shark",
-    "https://en.wikipedia.org/wiki/Leopard_shark",
     "https://en.wikipedia.org/wiki/Megalodon",
-    "https://en.wikipedia.org/wiki/Pacific_sleeper_shark",
     "https://en.wikipedia.org/wiki/Whale_shark",
-    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12720348/",
-    "https://trackingsharks.com/2026-shark-attack-map/",
-    "https://www.bbc.com/news/articles/c9qe9wvq534o",
-    "https://www.floridamuseum.ufl.edu/science/theres-something-fishy-going-on-with-great-white-sharks-that-scientists-cant-e",
+    "https://theconversation.com/could-warming-seas-bring-great-white-sharks-back-to-the-north-sea-a-5-million-year-old-shark",
+    "https://www.bristolpost.co.uk/news/uk-world-news/shark-fin-spotted-uk-coast-10649464",
+    "https://www.countryfile.com/wildlife/marine-life/are-there-any-great-white-sharks-in-uk-waters",
+    "https://www.discoverwildlife.com/animal-facts/marine-animals/great-white-shark-scar",
+    "https://www.express.co.uk/news/world/2170344/panic-great-white-shark-breeding-mediterranean-british-tourists",
     "https://www.gbif.org/species/113272801",
     "https://www.gbif.org/species/206230133",
     "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
-    "https://www.msn.com/en-za/news/other/great-white-sharks-could-soon-appear-in-britain-thanks-to-warming-seas-experts-warn",
+    "https://www.msn.com/en-nz/news/other/great-white-sharks-could-soon-appear-in-britain-thanks-to-warming-seas-experts-warn",
+    "https://www.reddit.com/r/sharks/comments/1qkoy4v/great_white_sharks_of_europe/",
     "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
     "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
-    "https://www.vancouverisawesome.com/local-news/great-white-shark-vancouver-march-2026-11986089",
-    "https://www.whoi.edu/ocean-learning-hub/ocean-topics/ocean-life/sharks-other-fish/shark-facts/",
+    "https://www.tiktok.com/@wildlifewithcookie/video/7608591653737221398",
     "https://www.youtube.com/watch?v=_swHuC5uFys"
   ],
   "url_ledger_per_claim": {
     "0": [
-      "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
+      "https://www.countryfile.com/wildlife/marine-life/are-there-any-great-white-sharks-in-uk-waters",
       "https://www.youtube.com/watch?v=_swHuC5uFys",
-      "https://www.msn.com/en-za/news/other/great-white-sharks-could-soon-appear-in-britain-thanks-to-warming-seas-experts-warn",
-      "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
-      "https://divernet.com/world-dives/could-warming-seas-return-great-white-sharks-to-north-sea/",
-      "https://www.vancouverisawesome.com/local-news/great-white-shark-vancouver-march-2026-11986089",
-      "https://trackingsharks.com/2026-shark-attack-map/",
-      "https://www.bbc.com/news/articles/c9qe9wvq534o",
-      "https://www.floridamuseum.ufl.edu/science/theres-something-fishy-going-on-with-great-white-sharks-that-scientists-cant-e",
-      "https://pmc.ncbi.nlm.nih.gov/articles/PMC12720348/",
       "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
-      "https://www.whoi.edu/ocean-learning-hub/ocean-topics/ocean-life/sharks-other-fish/shark-facts/",
-      "https://www.gbif.org/species/113272801",
+      "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
+      "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
+      "https://www.bristolpost.co.uk/news/uk-world-news/shark-fin-spotted-uk-coast-10649464",
+      "https://www.tiktok.com/@wildlifewithcookie/video/7608591653737221398",
+      "https://www.express.co.uk/news/world/2170344/panic-great-white-shark-breeding-mediterranean-british-tourists",
+      "https://theconversation.com/could-warming-seas-bring-great-white-sharks-back-to-the-north-sea-a-5-million-year-old-shark",
+      "https://www.msn.com/en-nz/news/other/great-white-sharks-could-soon-appear-in-britain-thanks-to-warming-seas-experts-warn",
+      "https://www.reddit.com/r/sharks/comments/1qkoy4v/great_white_sharks_of_europe/",
+      "https://www.discoverwildlife.com/animal-facts/marine-animals/great-white-shark-scar",
       "https://www.gbif.org/species/206230133",
       "https://en.wikipedia.org/wiki/Greenland_shark",
-      "https://en.wikipedia.org/wiki/Megalodon",
-      "https://en.wikipedia.org/wiki/Whale_shark",
-      "https://en.wikipedia.org/wiki/Leopard_shark",
-      "https://en.wikipedia.org/wiki/Pacific_sleeper_shark",
       "https://doi.org/10.3389/fmars.2024.1282091",
+      "https://www.gbif.org/species/113272801",
+      "https://en.wikipedia.org/wiki/Megalodon",
       "https://doi.org/10.1371/journal.pone.0306813",
-      "https://doi.org/10.1184/r1/6687011"
+      "https://en.wikipedia.org/wiki/Whale_shark"
     ]
   }
 }

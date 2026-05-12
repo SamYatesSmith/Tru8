@@ -2,14 +2,52 @@
   "allowlist_bypassed_domains": [],
   "analyzer_summary": {
     "domains": 19,
-    "items": 21,
-    "urls": 21
+    "items": 20,
+    "urls": 19
   },
   "article_classification": "Weather",
+  "b3_quality_per_claim": {
+    "0": {
+      "element_resolution": 1.0,
+      "factual_weight_share": 0.56,
+      "mapped": 9,
+      "tier_mix": {
+        "commentary": 1,
+        "primary": 4,
+        "reporting": 4
+      },
+      "top_domain": "worldweatherattribution.org",
+      "top_domain_share": 0.11,
+      "type_mix": {
+        "academic": 4,
+        "analysis": 1,
+        "news_reporting": 3,
+        "official_statement": 1
+      },
+      "unique_domains": 9,
+      "wikipedia_share": 0.0
+    },
+    "1": {
+      "element_resolution": 1.0,
+      "factual_weight_share": 0.0,
+      "mapped": 3,
+      "tier_mix": {
+        "reporting": 3
+      },
+      "top_domain": "cmbinsurance.ca",
+      "top_domain_share": 0.33,
+      "type_mix": {
+        "analysis": 1,
+        "news_reporting": 2
+      },
+      "unique_domains": 3,
+      "wikipedia_share": 0.0
+    }
+  },
   "b3_receipts": {
     "excluded": 0,
-    "shown": 9,
-    "unmapped": 12
+    "shown": 12,
+    "unmapped": 8
   },
   "classifier_inject": null,
   "classifier_overrides": [
@@ -21,72 +59,55 @@
       "url_prefix": "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709"
     },
     {
-      "from_tier": "commentary",
+      "from_tier": "reporting",
       "from_type": "analysis",
       "to_tier": "primary",
       "to_type": "academic",
       "url_prefix": "https://www.nhm.ac.uk/discover/news/2022/july/40-degree-heat"
-    },
-    {
-      "from_tier": "commentary",
-      "from_type": "academic",
-      "to_tier": "primary",
-      "to_type": "official_statement",
-      "url_prefix": "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_ju"
-    },
-    {
-      "from_tier": "commentary",
-      "from_type": "academic",
-      "to_tier": "primary",
-      "to_type": "academic",
-      "url_prefix": "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%2"
-    },
-    {
-      "from_tier": "commentary",
-      "from_type": "data",
-      "to_tier": "primary",
-      "to_type": "official_statement",
-      "url_prefix": "https://www.gov.uk/government/publications/heat-mortality-mo"
     }
   ],
   "coverage_recovery_done": null,
   "coverage_recovery_failures": 0,
+  "coverage_recovery_timed_out": false,
+  "coverage_recovery_timeout_seconds": null,
+  "domain_cap_events": [],
+  "domain_cap_total": 0,
   "domain_distribution": {
-    "bbc.com": 2,
+    "bbc.com": 1,
+    "carbonbrief.org": 1,
     "centaur.reading.ac.uk": 1,
     "civilbeat.org": 1,
-    "climatecentral.org": 1,
-    "cnbc.com": 1,
-    "coast.noaa.gov": 1,
+    "cmbinsurance.ca": 1,
     "community.netweather.tv": 1,
-    "downloads.ctfassets.net": 1,
+    "eciu.net": 1,
     "gov.uk": 1,
-    "internetgeography.net": 1,
-    "ncei.noaa.gov": 1,
+    "ncei.noaa.gov": 2,
     "nhm.ac.uk": 1,
-    "nytimes.com": 1,
+    "npr.org": 1,
+    "obr.uk": 1,
     "open-meteo.com": 1,
+    "redcross.org.uk": 1,
     "reddit.com": 1,
     "rmets.onlinelibrary.wiley.com": 1,
-    "theguardian.com": 2,
+    "theguardian.com": 1,
     "weather.gov": 1,
     "worldweatherattribution.org": 1
   },
   "domain_set": [
     "bbc.com",
+    "carbonbrief.org",
     "centaur.reading.ac.uk",
     "civilbeat.org",
-    "climatecentral.org",
-    "cnbc.com",
-    "coast.noaa.gov",
+    "cmbinsurance.ca",
     "community.netweather.tv",
-    "downloads.ctfassets.net",
+    "eciu.net",
     "gov.uk",
-    "internetgeography.net",
     "ncei.noaa.gov",
     "nhm.ac.uk",
-    "nytimes.com",
+    "npr.org",
+    "obr.uk",
     "open-meteo.com",
+    "redcross.org.uk",
     "reddit.com",
     "rmets.onlinelibrary.wiley.com",
     "theguardian.com",
@@ -108,6 +129,13 @@
       "from": "py",
       "max_year": 2022,
       "to": "none"
+    },
+    "1": {
+      "current_year": 2026,
+      "fired": true,
+      "from": "pm",
+      "max_year": 2022,
+      "to": "none"
     }
   },
   "pipeline_metrics": {
@@ -115,22 +143,23 @@
     "claims": 2,
     "elements": 5,
     "llm_calls": 5,
-    "sources_considered": 35,
-    "sources_included": 21,
-    "web_search": 35
+    "sources_considered": 37,
+    "sources_included": 20,
+    "web_search": 37
   },
   "scorer_excluded_per_claim": {
     "0": 4,
-    "1": 15
+    "1": 14
   },
   "scorer_kept_per_claim": {
-    "0": 14
+    "0": 13,
+    "1": 3
   },
   "scorer_summary": {
-    "excluded": 19,
-    "keeping": 16,
-    "scored": 35,
-    "total": 35
+    "excluded": 18,
+    "keeping": 19,
+    "scored": 37,
+    "total": 37
   },
   "tier_caps": [
     {
@@ -151,69 +180,70 @@
     }
   ],
   "tier_distribution": {
-    "commentary": 4,
+    "commentary": 2,
     "primary": 9,
-    "reporting": 8
+    "reporting": 9
   },
   "type_distribution": {
-    "academic": 4,
-    "analysis": 3,
-    "data": 5,
-    "news_reporting": 7,
-    "official_statement": 2
+    "academic": 5,
+    "analysis": 4,
+    "data": 3,
+    "news_reporting": 6,
+    "official_statement": 1,
+    "opinion": 1
   },
   "url_ledger_flat": [
-    "https://cee.illinois.edu/news/trade-across-wealth-gap-linked-to-1-in-7-global-air-pollution-deaths-Illinois-led-study-fi",
-    "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%20-%20Burt%20-%20Evaluation%20and%20verification%20of%20new%2",
+    "https://centaur.reading.ac.uk/111004/9/2023-03-23%20Hawkins.pdf",
+    "https://cmbinsurance.ca/blog/damages-from-ontario-flash-floods-could-top-1-billion/",
     "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
+    "https://content.tfl.gov.uk/casualties-in-greater-london-2024.pdf",
     "https://doi.org/10.1007/s13753-024-00610-5",
     "https://doi.org/10.1038/s41598-024-54495-x",
     "https://doi.org/10.1109/tvt.2024.3355181",
     "https://doi.org/10.1111/nyas.15148",
     "https://doi.org/10.1186/s12864-024-10103-w",
     "https://doi.org/10.1787/e09c21e2-en",
-    "https://engageenvironmentagency.uk.engagementhq.com/portreath-flood-resilience-proposal",
+    "https://eciu.net/analysis/briefings/climate-impacts/flood-risk-and-the-uk",
+    "https://ifs.org.uk/publications/how-have-english-councils-funding-and-spending-changed-2010-2024",
+    "https://metro.co.uk/2024/03/19/map-reveals-uk-areas-facing-biggest-pothole-repair-bills-20492541/",
+    "https://obr.uk/frs/fiscal-risks-and-sustainability-july-2025/",
     "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
     "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
-    "https://timesofindia.indiatimes.com/world/uk/80-of-englands-high-risk-flood-homes-now-in-urban-areas/articleshow/1306052",
-    "https://www.bbc.com/news/articles/cgkp7ee4e2ro",
-    "https://www.bbc.com/news/articles/cwyx8v2q6j4o",
-    "https://www.bbc.com/news/science-environment-63244353",
-    "https://www.bbc.com/news/uk-62217282",
-    "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
-    "https://www.gov.uk/government/publications/flood-forecasting-centre-services-flood-guidance-statement/flood-guidance-sta",
+    "https://uk-air.defra.gov.uk/assets/documents/reports/cat05/2512151700_Damage_cost_update_2025_Defra_FINAL.pdf",
+    "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
+    "https://www.blackcircles.com/news/uk-pothole-report",
+    "https://www.carbonbrief.org/science/temperature/uk-temperature/",
+    "https://www.express.co.uk/news/uk/2156401/uk-pothole-map-shows-worst-britain-roads",
+    "https://www.gov.uk/government/publications/assess-air-quality-impacts/air-quality-appraisal-damage-cost-guidance",
     "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
-    "https://www.gov.uk/government/publications/water-situation-national-monthly-reports-for-england-2026/water-situation-feb",
-    "https://www.greenpeace.org/international/story/82686/climate-emergencies-photos-of-2026-so-far/",
-    "https://www.hackney.gov.uk/community-safety-and-environment/community-safety-and-crime-prevention/emergency-planning-and",
-    "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
+    "https://www.instituteofhealthequity.org/resources-reports/evidence-review-cost-of-living-and-health-inequalities-in-lond",
+    "https://www.london.gov.uk/violent-crime-leading-injury-falling-every-london-borough",
+    "https://www.mirror.co.uk/news/uk-news/worst-areas-potholes-revealed-how-36855072",
     "https://www.nhm.ac.uk/discover/news/2022/july/40-degree-heatwaves-could-happen-every-few-years-because-climate-change.ht",
-    "https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/bulletins/crimeinenglandandwales/yearendingdecember2",
+    "https://www.npr.org/2022/07/19/1112220447/britons-awake-from-their-warmest-ever-night-and-brace-for-record-smashing-heat",
+    "https://www.rac.co.uk/drive/advice/driving-advice/rac-pothole-index-statistics-data-and-projections/",
+    "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/met-office-report-confirms-uk-climate-is-changing",
     "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
-    "https://www.theguardian.com/environment/2026/apr/29/england-homes-high-risk-flooding-towns-cities-urban-environment-stud",
     "https://www.theguardian.com/uk-news/2023/jul/27/2022-warmest-year-record-uk-met-office-extreme-heat",
-    "https://www.theguardian.com/world/2026/apr/30/uk-stole-25-million-years-of-life-and-labour-through-slavery-in-barbados-r",
-    "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live",
     "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
     "https://www.weatherapi.com/weather/q/London",
     "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
   ],
   "url_ledger_per_claim": {
     "0": [
-      "https://www.bbc.com/news/uk-62217282",
-      "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
       "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
       "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee",
-      "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live",
+      "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
       "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
       "https://www.nhm.ac.uk/discover/news/2022/july/40-degree-heatwaves-could-happen-every-few-years-because-climate-change.ht",
+      "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
+      "https://www.carbonbrief.org/science/temperature/uk-temperature/",
       "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
-      "https://www.bbc.com/news/science-environment-63244353",
-      "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
-      "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%20-%20Burt%20-%20Evaluation%20and%20verification%20of%20new%2",
       "https://www.theguardian.com/uk-news/2023/jul/27/2022-warmest-year-record-uk-met-office-extreme-heat",
       "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
-      "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
+      "https://www.npr.org/2022/07/19/1112220447/britons-awake-from-their-warmest-ever-night-and-brace-for-record-smashing-heat",
+      "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/met-office-report-confirms-uk-climate-is-changing",
+      "https://centaur.reading.ac.uk/111004/9/2023-03-23%20Hawkins.pdf",
       "https://www.weatherapi.com/weather/q/London",
       "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
       "https://doi.org/10.1186/s12864-024-10103-w",
@@ -221,18 +251,20 @@
       "https://doi.org/10.1109/tvt.2024.3355181"
     ],
     "1": [
-      "https://www.bbc.com/news/articles/cwyx8v2q6j4o",
-      "https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/bulletins/crimeinenglandandwales/yearendingdecember2",
-      "https://www.theguardian.com/world/2026/apr/30/uk-stole-25-million-years-of-life-and-labour-through-slavery-in-barbados-r",
-      "https://cee.illinois.edu/news/trade-across-wealth-gap-linked-to-1-in-7-global-air-pollution-deaths-Illinois-led-study-fi",
-      "https://www.theguardian.com/environment/2026/apr/29/england-homes-high-risk-flooding-towns-cities-urban-environment-stud",
-      "https://timesofindia.indiatimes.com/world/uk/80-of-englands-high-risk-flood-homes-now-in-urban-areas/articleshow/1306052",
-      "https://www.gov.uk/government/publications/water-situation-national-monthly-reports-for-england-2026/water-situation-feb",
-      "https://www.bbc.com/news/articles/cgkp7ee4e2ro",
-      "https://www.greenpeace.org/international/story/82686/climate-emergencies-photos-of-2026-so-far/",
-      "https://www.hackney.gov.uk/community-safety-and-environment/community-safety-and-crime-prevention/emergency-planning-and",
-      "https://engageenvironmentagency.uk.engagementhq.com/portreath-flood-resilience-proposal",
-      "https://www.gov.uk/government/publications/flood-forecasting-centre-services-flood-guidance-statement/flood-guidance-sta",
+      "https://www.london.gov.uk/violent-crime-leading-injury-falling-every-london-borough",
+      "https://obr.uk/frs/fiscal-risks-and-sustainability-july-2025/",
+      "https://www.instituteofhealthequity.org/resources-reports/evidence-review-cost-of-living-and-health-inequalities-in-lond",
+      "https://cmbinsurance.ca/blog/damages-from-ontario-flash-floods-could-top-1-billion/",
+      "https://content.tfl.gov.uk/casualties-in-greater-london-2024.pdf",
+      "https://www.mirror.co.uk/news/uk-news/worst-areas-potholes-revealed-how-36855072",
+      "https://www.rac.co.uk/drive/advice/driving-advice/rac-pothole-index-statistics-data-and-projections/",
+      "https://metro.co.uk/2024/03/19/map-reveals-uk-areas-facing-biggest-pothole-repair-bills-20492541/",
+      "https://www.gov.uk/government/publications/assess-air-quality-impacts/air-quality-appraisal-damage-cost-guidance",
+      "https://uk-air.defra.gov.uk/assets/documents/reports/cat05/2512151700_Damage_cost_update_2025_Defra_FINAL.pdf",
+      "https://www.express.co.uk/news/uk/2156401/uk-pothole-map-shows-worst-britain-roads",
+      "https://ifs.org.uk/publications/how-have-english-councils-funding-and-spending-changed-2010-2024",
+      "https://www.blackcircles.com/news/uk-pothole-report",
+      "https://eciu.net/analysis/briefings/climate-impacts/flood-risk-and-the-uk",
       "https://doi.org/10.1111/nyas.15148",
       "https://doi.org/10.1787/e09c21e2-en",
       "https://doi.org/10.1038/s41598-024-54495-x"

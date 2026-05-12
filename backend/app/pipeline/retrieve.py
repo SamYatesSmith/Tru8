@@ -172,18 +172,6 @@ class EvidenceRetriever:
         "general": ["reuters.com", "apnews.com", "bbc.com"],
     }
 
-    # Mapping from temporal_window (from claim extraction) to Brave freshness parameter
-    # temporal_window values: current_day, current_week, current_month, current_year, any, historical
-    # Brave freshness values: pd (past day), pw (past week), pm (past month), py (past year), 2y (2 years)
-    TEMPORAL_TO_FRESHNESS = {
-        "current_day": "pd",  # Past day - breaking news, live events
-        "current_week": "pw",  # Past week - recent developments
-        "current_month": "pm",  # Past month - recent news
-        "current_year": "py",  # Past year - annual events, seasons
-        "any": "2y",  # Default 2 years
-        "historical": "2y",  # Historical claims - use 2 years
-    }
-
     def __init__(self):
         self.search_service = SearchService()
         self.evidence_extractor = EvidenceExtractor()
@@ -1215,13 +1203,6 @@ class EvidenceRetriever:
                 # Step 1: Parallel retrieval from web search AND government APIs
                 subject_context = claim.get("subject_context")
                 key_entities = claim.get("key_entities", [])
-                temporal_analysis = claim.get(
-                    "temporal_analysis"
-                )  # TIER 1: For query refinement
-
-                # Article context grounding (Phase 4)
-                article_title = claim.get("source_title")
-                article_date = claim.get("source_date")
 
                 # Context logging moved to DEBUG to reduce noise
                 if subject_context:
@@ -1232,16 +1213,6 @@ class EvidenceRetriever:
                 # Check for query plan (from Query Planning Agent)
                 query_plan = claim.get("query_plan")
 
-                # DEPRECATED: Extract freshness from temporal_analysis (now disabled, Query Planner provides freshness)
-                freshness = None
-                if temporal_analysis:
-                    temporal_window = temporal_analysis.get("temporal_window", "any")
-                    freshness = self.TEMPORAL_TO_FRESHNESS.get(temporal_window, "2y")
-                    if freshness != "2y":
-                        logger.info(
-                            f"[RETRIEVE] FRESHNESS | Claim {claim_position} | temporal_window={temporal_window} -> freshness={freshness}"
-                        )
-
                 # Run web search and API retrieval in parallel
                 if query_plan and query_plan.get("queries"):
                     # Use Query Planning Agent's targeted queries
@@ -1251,7 +1222,6 @@ class EvidenceRetriever:
                         query_plan,
                         excluded_domain=excluded_domain,
                         max_sources=self.max_sources_per_claim * 2,
-                        freshness=freshness,
                         url_fetch_semaphore=url_fetch_semaphore,
                         search_country=search_country,
                     )
@@ -1262,18 +1232,17 @@ class EvidenceRetriever:
                 else:
                     # Fallback: Standard query formulation
                     search_country = _resolve_search_country(claim)
-                    web_search_task = self.evidence_extractor.extract_evidence_for_claim(
-                        claim_text,
-                        max_sources=self.max_sources_per_claim
-                        * 2,  # Get extra for filtering
-                        subject_context=subject_context,
-                        key_entities=key_entities,
-                        excluded_domain=excluded_domain,
-                        temporal_analysis=temporal_analysis,  # TIER 1: Pass to query formulation
-                        article_title=article_title,  # Article context grounding
-                        article_date=article_date,  # Article context grounding
-                        url_fetch_semaphore=url_fetch_semaphore,
-                        search_country=search_country,
+                    web_search_task = (
+                        self.evidence_extractor.extract_evidence_for_claim(
+                            claim_text,
+                            max_sources=self.max_sources_per_claim
+                            * 2,  # Get extra for filtering
+                            subject_context=subject_context,
+                            key_entities=key_entities,
+                            excluded_domain=excluded_domain,
+                            url_fetch_semaphore=url_fetch_semaphore,
+                            search_country=search_country,
+                        )
                     )
 
                 # Phase 5: Government API retrieval (parallel with web search)
@@ -1545,7 +1514,6 @@ class EvidenceRetriever:
         query_plan: Dict[str, Any],
         excluded_domain: Optional[str] = None,
         max_sources: int = 20,
-        freshness: Optional[str] = None,
         url_fetch_semaphore: Optional[asyncio.Semaphore] = None,
         search_country: Optional[str] = "gb",
     ) -> List[EvidenceSnippet]:
@@ -1557,10 +1525,16 @@ class EvidenceRetriever:
             query_plan: Query plan with targeted queries and source priorities
             excluded_domain: Domain to exclude from results
             max_sources: Maximum total sources to return
-            freshness: Brave freshness filter (pd/pw/pm/py/2y) from temporal_analysis
 
         Returns:
             List of deduplicated EvidenceSnippet from all queries
+
+        Freshness is sourced from the query plan itself (per-query via
+        ``query_freshness`` array, plan-level fallback via ``freshness``)
+        rather than as a caller-supplied parameter. The Query Planning
+        Agent owns freshness decisions; mechanical overrides happen via
+        ``_inject_freshness_for_historical_dates`` upstream of plan
+        consumption.
         """
         try:
             queries = query_plan.get("queries", [])

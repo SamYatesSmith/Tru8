@@ -659,6 +659,105 @@ class TestInjectFreshnessForHistoricalDates:
         assert result[0]["freshness"] == "none"
 
 
+class TestB4InjectOnPropagatedDates:
+    """NF-20-B canonical fix (2026-05-12) — extract.py's
+    `_propagate_article_dates` injects article-level DATEs into
+    dateless claims with provenance ``source="article_inheritance"``.
+    This wired-seam test feeds the post-propagation shape into B4 and
+    locks the behaviour: freshness inject fires on inherited DATEs
+    just as it does on LLM-emitted ones, because the inject function
+    only reads ``type`` and ``text``.
+
+    The reference data is TRU-E4C5-E295 (GBR coral 2026-05-12): claim 0
+    had March 2024 DATE; claims 1-3 did not. Pre-fix, B4 inject only
+    fired on claim 0 and claims 1-3 kept freshness="py", filtering out
+    original-period content (March 2024 is ~26 months stale as of
+    May 2026)."""
+
+    def test_inherited_dates_trigger_freshness_inject(self):
+        from app.utils.query_planner import _inject_freshness_for_historical_dates
+
+        # All four claims now have a DATE entity — claim 0 has its own,
+        # claims 1-3 have inherited entries carrying the provenance
+        # flag. Inject must fire on ALL of them.
+        plans = [
+            {"claim_index": 0, "freshness": "py", "queries": ["GBR bleaching 2024"]},
+            {"claim_index": 1, "freshness": "py", "queries": ["GBRMPA surveys"]},
+            {"claim_index": 2, "freshness": "py", "queries": ["Coral Sea anomaly"]},
+            {"claim_index": 3, "freshness": "py", "queries": ["AIMS attribution"]},
+        ]
+        claims = [
+            {
+                "claim_index": 0,
+                "key_entities": [
+                    {"text": "Great Barrier Reef", "type": "LOCATION"},
+                    {"text": "March 2024", "type": "DATE"},
+                ],
+            },
+            {
+                "claim_index": 1,
+                "key_entities": [
+                    {"text": "GBRMPA", "type": "ORG"},
+                    {"text": "two-thirds", "type": "AMOUNT"},
+                    {
+                        "text": "March 2024",
+                        "type": "DATE",
+                        "source": "article_inheritance",
+                    },
+                ],
+            },
+            {
+                "claim_index": 2,
+                "key_entities": [
+                    {"text": "1.5°C", "type": "AMOUNT"},
+                    {"text": "Coral Sea", "type": "LOCATION"},
+                    {
+                        "text": "March 2024",
+                        "type": "DATE",
+                        "source": "article_inheritance",
+                    },
+                ],
+            },
+            {
+                "claim_index": 3,
+                "key_entities": [
+                    {"text": "AIMS", "type": "ORG"},
+                    {
+                        "text": "March 2024",
+                        "type": "DATE",
+                        "source": "article_inheritance",
+                    },
+                ],
+            },
+        ]
+        result = _inject_freshness_for_historical_dates(
+            plans, claims, current_year=2026
+        )
+        # All four plans now have freshness="none" — historical
+        # event, original-period content allowed through.
+        for plan in result:
+            assert plan["freshness"] == "none", (
+                f"plan claim_index={plan['claim_index']} kept "
+                f"freshness={plan['freshness']!r} — propagation broken"
+            )
+
+    def test_provenance_flag_does_not_affect_year_extraction(self):
+        # Defensive: the provenance flag is an extra key; the year
+        # extractor must ignore it and work identically to LLM-emitted
+        # DATEs.
+        from app.utils.query_planner import _extract_max_year_from_entities
+
+        with_flag = [
+            {"text": "March 2024", "type": "DATE", "source": "article_inheritance"}
+        ]
+        without_flag = [{"text": "March 2024", "type": "DATE"}]
+        assert (
+            _extract_max_year_from_entities(with_flag)
+            == _extract_max_year_from_entities(without_flag)
+            == 2024
+        )
+
+
 class TestValidateFreshnessNoneIsAccepted:
     """B4: 'none' is now a valid freshness value."""
 

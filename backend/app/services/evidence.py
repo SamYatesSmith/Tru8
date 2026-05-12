@@ -247,9 +247,6 @@ class EvidenceExtractor:
         subject_context: str = None,
         key_entities: list = None,
         excluded_domain: Optional[str] = None,
-        temporal_analysis: Dict = None,
-        article_title: Optional[str] = None,
-        article_date: Optional[str] = None,
         url_fetch_semaphore: Optional[asyncio.Semaphore] = None,
         search_country: Optional[str] = None,
     ) -> List[EvidenceSnippet]:
@@ -262,10 +259,8 @@ class EvidenceExtractor:
             subject_context: Main subject/topic for context-aware search
             key_entities: Key entities to boost in search query
             excluded_domain: Domain to exclude from search results (for self-citation filtering)
-            temporal_analysis: Temporal analysis from claim extraction (for query refinement)
-            article_title: Title of source article (for context grounding)
-            article_date: Publication date of source article (for temporal context)
             url_fetch_semaphore: Shared semaphore for cross-claim URL fetch concurrency control
+            search_country: ISO country code for geo-targeted search
         """
         try:
             # Step 1: Build context-enriched search query

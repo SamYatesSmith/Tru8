@@ -1,15 +1,35 @@
 {
   "allowlist_bypassed_domains": [],
   "analyzer_summary": {
-    "domains": 5,
-    "items": 7,
-    "urls": 7
+    "domains": 4,
+    "items": 5,
+    "urls": 5
   },
   "article_classification": "Finance",
+  "b3_quality_per_claim": {
+    "0": {
+      "element_resolution": 0.67,
+      "factual_weight_share": 0.8,
+      "mapped": 5,
+      "tier_mix": {
+        "commentary": 1,
+        "primary": 4
+      },
+      "top_domain": "bp.com",
+      "top_domain_share": 0.4,
+      "type_mix": {
+        "analysis": 1,
+        "data": 2,
+        "official_statement": 2
+      },
+      "unique_domains": 4,
+      "wikipedia_share": 0.0
+    }
+  },
   "b3_receipts": {
     "excluded": 0,
     "shown": 5,
-    "unmapped": 2
+    "unmapped": 0
   },
   "classifier_inject": {
     "added": [],
@@ -28,16 +48,26 @@
   "classifier_overrides": [],
   "coverage_recovery_done": null,
   "coverage_recovery_failures": 0,
+  "coverage_recovery_timed_out": false,
+  "coverage_recovery_timeout_seconds": null,
+  "domain_cap_events": [
+    {
+      "claim": 0,
+      "demoted": 1,
+      "domain": "bp.com",
+      "post_pr_share": 0.2,
+      "pre_pr_share": 0.4
+    }
+  ],
+  "domain_cap_total": 1,
   "domain_distribution": {
-    "bp.com": 3,
-    "cnbc.com": 1,
+    "bp.com": 2,
     "finbox.com": 1,
     "macrotrends.net": 1,
     "sec.gov": 1
   },
   "domain_set": [
     "bp.com",
-    "cnbc.com",
     "finbox.com",
     "macrotrends.net",
     "sec.gov"
@@ -60,61 +90,62 @@
     "claims": 1,
     "elements": 3,
     "llm_calls": 5,
-    "sources_considered": 12,
-    "sources_included": 7,
-    "web_search": 12
+    "sources_considered": 14,
+    "sources_included": 5,
+    "web_search": 14
   },
   "scorer_excluded_per_claim": {
-    "0": 5
+    "0": 9
   },
   "scorer_kept_per_claim": {
-    "0": 7
+    "0": 5
   },
   "scorer_summary": {
-    "excluded": 5,
-    "keeping": 7,
-    "scored": 12,
-    "total": 12
+    "excluded": 9,
+    "keeping": 5,
+    "scored": 14,
+    "total": 14
   },
   "tier_caps": [],
   "tier_distribution": {
-    "commentary": 2,
-    "primary": 4,
-    "reporting": 1
+    "primary": 5
   },
   "type_distribution": {
     "data": 2,
-    "news_reporting": 1,
-    "official_statement": 4
+    "official_statement": 3
   },
   "url_ledger_flat": [
+    "https://companiesmarketcap.com/bp/revenue/",
     "https://finbox.com/LSE:BP./explorer/gp/",
     "https://www.annualreports.com/Company/bp-plc",
     "https://www.bbc.com/news/articles/cz0g4dkm77zo",
-    "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations.html",
+    "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/annual-report.html",
     "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive.html",
     "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/1q-2022.html",
     "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/2q-2022.html",
+    "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/quarterly-results-and-webcast.html",
     "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/bp-files-annual-report-on-form-20-f-for-2022.htm",
     "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/fourth-quarter-2022-results.html",
-    "https://www.cnbc.com/2023/02/07/bp-earnings-q4-and-fy-2022.html",
+    "https://www.hl.co.uk/shares/shares-search-results/b/bp-plc-ordinary-us$0.25",
     "https://www.macrotrends.net/stocks/charts/BP/bp/operating-income",
     "https://www.sec.gov/Archives/edgar/data/313807/000031380723000009/bp-20221231.htm"
   ],
   "url_ledger_per_claim": {
     "0": [
-      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/1q-2022.html",
       "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/fourth-quarter-2022-results.html",
+      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/1q-2022.html",
       "https://www.macrotrends.net/stocks/charts/BP/bp/operating-income",
-      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/2q-2022.html",
+      "https://companiesmarketcap.com/bp/revenue/",
       "https://www.sec.gov/Archives/edgar/data/313807/000031380723000009/bp-20221231.htm",
       "https://finbox.com/LSE:BP./explorer/gp/",
+      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/2q-2022.html",
       "https://www.bbc.com/news/articles/cz0g4dkm77zo",
       "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/bp-files-annual-report-on-form-20-f-for-2022.htm",
-      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations.html",
       "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive.html",
+      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/annual-report.html",
       "https://www.annualreports.com/Company/bp-plc",
-      "https://www.cnbc.com/2023/02/07/bp-earnings-q4-and-fy-2022.html"
+      "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/quarterly-results-and-webcast.html",
+      "https://www.hl.co.uk/shares/shares-search-results/b/bp-plc-ordinary-us$0.25"
     ]
   }
 }
