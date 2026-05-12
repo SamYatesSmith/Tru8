@@ -28,6 +28,8 @@
   --state-disputed-bg: #FFFBEB;
   --state-unresolved: #94A3B8;
   --state-unresolved-bg: #F8FAFC;
+  --state-contextual: #0EA5E9;
+  --state-contextual-bg: #F0F9FF;
 
   /* System feedback */
   --success: #059669;

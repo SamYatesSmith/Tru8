@@ -69,12 +69,14 @@ export const ELEMENT_STATE_COLORS = {
   supported: '#22c55e',
   disputed: '#f59e0b',
   unresolved: '#94a3b8',
+  contextual: '#0ea5e9',
 } as const;
 
 export const ELEMENT_STATE_LABELS = {
   supported: 'Supported',
   disputed: 'Disputed',
   unresolved: 'Unresolved',
+  contextual: 'Contextual',
 } as const;
 
 export const CLAIM_TYPE_LABELS = {

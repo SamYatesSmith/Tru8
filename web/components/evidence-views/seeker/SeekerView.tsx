@@ -53,12 +53,16 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
   }, [readOnly, token]);
 
   // Compute metrics
+  // 2026-05-12: contextual state has evidence in the pool (context-tier
+  // refs); it is NOT a gap and NOT a known-unknown. Counted toward
+  // coverage, excluded from unresolved/gaps so the Seeker re-search
+  // button only targets genuinely empty elements.
   const metrics = useMemo(() => {
     let unresolved = 0;
     let gaps = 0;
 
     for (const el of elements) {
-      if (el.state !== 'supported' && el.state !== 'disputed') unresolved++;
+      if (el.state === 'unresolved') unresolved++;
       if (!el.evidenceRefs || el.evidenceRefs.length === 0) gaps++;
     }
 
@@ -89,7 +93,10 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
     return () => { cancelled = true; };
   }, [hasUnknowns, readOnly, checkId, claim.id, token]);
 
-  // Sort elements: gaps first, then unresolved, then resolved
+  // Sort elements: gaps first, then unresolved, then resolved.
+  // 2026-05-12: contextual elements have evidence in pool — they sit
+  // with resolved (Seeker re-search shouldn't target them; the badge
+  // distinguishes them visually).
   const { gapElements, unresolvedElements, resolvedElements } = useMemo(() => {
     const gapEls: IndexedElement[] = [];
     const unresolvedEls: IndexedElement[] = [];
@@ -97,11 +104,11 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
 
     elements.forEach((element, originalIndex) => {
       const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
-      const isResolved = element.state === 'supported' || element.state === 'disputed';
+      const isAssessed = element.state === 'supported' || element.state === 'disputed' || element.state === 'contextual';
 
       if (isGap) {
         gapEls.push({ element, originalIndex });
-      } else if (!isResolved) {
+      } else if (!isAssessed) {
         unresolvedEls.push({ element, originalIndex });
       } else {
         resolvedEls.push({ element, originalIndex });

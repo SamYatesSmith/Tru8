@@ -40,7 +40,11 @@ export function UnknownElementCard({
   gapIndex,
   totalGaps,
 }: UnknownElementCardProps) {
-  const isKnown = element.state === 'supported' || element.state === 'disputed';
+  // 2026-05-12: contextual elements have evidence in the pool; render
+  // them in the collapsed (known) layout alongside supported/disputed.
+  // They are not Seeker "unknowns" — direct substantiation may be
+  // absent but context-tier sources are mapped.
+  const isKnown = element.state === 'supported' || element.state === 'disputed' || element.state === 'contextual';
   const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
   const refCount = element.evidenceRefs?.length || 0;
   const label = String(index + 1).padStart(2, '0');

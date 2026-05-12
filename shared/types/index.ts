@@ -225,7 +225,7 @@ export interface VideoRecommendationsResponse {
 
 // --- Claim Map types (Track B) ---
 export type ClaimType = 'empirical' | 'definitional' | 'causal_interpretive' | 'predictive' | 'normative_flagged';
-export type ElementState = 'supported' | 'disputed' | 'unresolved';
+export type ElementState = 'supported' | 'disputed' | 'unresolved' | 'contextual';
 export type EvidenceRelationship = 'supports' | 'challenges' | 'context';
 
 export interface EvidenceRef {

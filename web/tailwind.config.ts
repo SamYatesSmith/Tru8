@@ -28,6 +28,8 @@ const config: Config = {
         'state-disputed-bg': 'var(--state-disputed-bg)',
         'state-unresolved': 'var(--state-unresolved)',
         'state-unresolved-bg': 'var(--state-unresolved-bg)',
+        'state-contextual': 'var(--state-contextual)',
+        'state-contextual-bg': 'var(--state-contextual-bg)',
         success: 'var(--success)',
         danger: 'var(--danger)',
         warning: 'var(--warning)',

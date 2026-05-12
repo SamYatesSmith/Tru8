@@ -333,18 +333,21 @@ _SINGLE_PHRASE = {
     "supported": "predominantly supports it",
     "disputed": "both supports and conflicts with it",
     "unresolved": "is insufficient to assess it",
+    "contextual": "provides context for it without directly substantiating",
 }
 
 _UNANIMOUS_PHRASE = {
     "supported": "predominantly supports",
     "disputed": "both supports and conflicts with",
     "unresolved": "is insufficient to assess",
+    "contextual": "provides context for",
 }
 
 _ITEM_PHRASE = {
     "supported": "predominantly supported",
     "disputed": "with conflicting evidence",
     "unresolved": "lacking sufficient evidence",
+    "contextual": "informed by contextual evidence",
 }
 
 
@@ -380,6 +383,8 @@ def derive_orientation(elements: List[ClaimElement]) -> str:
         state = state_values[0]
         if state == "unresolved":
             return f"Of {total} elements examined, retrieved evidence is insufficient to assess any."
+        if state == "contextual":
+            return f"Of {total} elements examined, retrieved evidence provides context for all without directly substantiating."
         phrase = _UNANIMOUS_PHRASE.get(state, state)
         return f"Of {total} elements examined, retrieved evidence {phrase} all {total}."
 
@@ -417,6 +422,7 @@ def compute_orientation_basis(elements: List[ClaimElement]) -> dict:
         "supported": 0,
         "disputed": 0,
         "unresolved": 0,
+        "contextual": 0,
     }
     for elem in elements:
         state = elem.get("state")
@@ -513,8 +519,16 @@ def _derive_element_state_with_authority(
     n_challenges = len(challenges_refs)
 
     if n_supports == 0 and n_challenges == 0:
-        state = ElementState.unresolved
-        rule = "no_evidence"
+        # Distinguish truly-empty (no refs at all) from context-only
+        # (context refs present, no supports/challenges). 2026-05-12:
+        # pre-fix both collapsed to "unresolved" + rule "no_evidence",
+        # which misrepresented context-tier evidence as absent.
+        if context_count > 0:
+            state = ElementState.contextual
+            rule = "context_only"
+        else:
+            state = ElementState.unresolved
+            rule = "no_evidence"
     elif n_supports == 0:
         state = ElementState.disputed
         rule = "all_challenges"

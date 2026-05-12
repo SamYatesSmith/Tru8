@@ -485,6 +485,75 @@ class TestDeriveOrientation:
             == "Of 4 elements examined, retrieved evidence is insufficient to assess any."
         )
 
+    def test_unanimous_contextual(self):
+        # 2026-05-12: contextual state has its own unanimous phrasing —
+        # honest about having related evidence without claiming
+        # substantiation. Distinct from "insufficient to assess".
+        elements = [
+            ClaimElement(
+                element_id=f"e{i}",
+                description=f"Elem {i}",
+                evidence_refs=[],
+                state=ElementState.contextual,
+                uncertainty=None,
+            )
+            for i in range(1, 4)
+        ]
+        result = derive_orientation(elements)
+        assert (
+            result
+            == "Of 3 elements examined, retrieved evidence provides context for all without directly substantiating."
+        )
+
+    def test_single_contextual(self):
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description="Only one",
+                evidence_refs=[],
+                state=ElementState.contextual,
+                uncertainty=None,
+            )
+        ]
+        result = derive_orientation(elements)
+        assert (
+            result
+            == "Of 1 element examined, retrieved evidence provides context for it without directly substantiating."
+        )
+
+    def test_mixed_with_contextual(self):
+        # 1 supported, 1 contextual, 1 unresolved — orientation must
+        # enumerate the distinct buckets with their own phrasing.
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description="A",
+                evidence_refs=[],
+                state=ElementState.supported,
+                uncertainty=None,
+            ),
+            ClaimElement(
+                element_id="e2",
+                description="B",
+                evidence_refs=[],
+                state=ElementState.contextual,
+                uncertainty=None,
+            ),
+            ClaimElement(
+                element_id="e3",
+                description="C",
+                evidence_refs=[],
+                state=ElementState.unresolved,
+                uncertainty=None,
+            ),
+        ]
+        result = derive_orientation(elements)
+        assert "Of 3 elements examined" in result
+        # Tied 3-way → "evidence is mixed:" template.
+        assert "1 predominantly supported" in result
+        assert "1 informed by contextual evidence" in result
+        assert "1 lacking sufficient evidence" in result
+
     def test_majority_supported(self):
         """2 of 3 supported, 1 disputed → majority template."""
         elements = [
@@ -589,6 +658,7 @@ class TestDeriveOrientation:
             "supported": "predominantly supports it",
             "disputed": "both supports and conflicts with it",
             "unresolved": "is insufficient to assess it",
+            "contextual": "provides context for it without directly substantiating",
         }
         elements = [
             ClaimElement(
@@ -863,7 +933,12 @@ class TestDeriveElementStateWithAuthority:
         assert basis["weighted_supports"] == 1
         assert basis["weighted_challenges"] == 9
 
-    def test_context_only_returns_unresolved(self):
+    def test_context_only_returns_contextual(self):
+        # 2026-05-12: context-only evidence is now its own state — pre-fix
+        # this conflated with "unresolved" / "no_evidence" rule, hiding
+        # the fact that related evidence was actually mapped to the
+        # element. The new "contextual" state surfaces this distinction
+        # in the UI (sky-blue badge, distinct from grey unresolved).
         elem = {
             "evidence_refs": [
                 self._ref("ev-1", "context"),
@@ -872,9 +947,25 @@ class TestDeriveElementStateWithAuthority:
         }
         evi = [self._evi("ev-1", "primary"), self._evi("ev-2", "reporting")]
         state, basis = _derive_element_state_with_authority(elem, evi)
+        assert state == ElementState.contextual
+        assert basis["rule_applied"] == "context_only"
+        assert basis["context_count"] == 2
+        assert basis["supports_count"] == 0
+        assert basis["challenges_count"] == 0
+        assert basis["caveat"] is None
+
+    def test_truly_empty_returns_unresolved(self):
+        # Pinned 2026-05-12: a refs list with ZERO context entries (and
+        # zero supports/challenges) is the only state that maps to
+        # unresolved + rule_applied="no_evidence". Context-only inputs
+        # now route to contextual (see test above).
+        elem = {"evidence_refs": []}
+        state, basis = _derive_element_state_with_authority(elem, [])
         assert state == ElementState.unresolved
         assert basis["rule_applied"] == "no_evidence"
-        assert basis["context_count"] == 2
+        assert basis["context_count"] == 0
+        assert basis["supports_count"] == 0
+        assert basis["challenges_count"] == 0
 
     def test_context_does_not_count_toward_supports(self):
         # Mixed: 1 support, 1 challenge, 2 context. Context excluded

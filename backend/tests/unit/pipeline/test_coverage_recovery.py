@@ -1603,8 +1603,15 @@ class TestRecoveryFutility:
     """Prove that when evidence doesn't help, the system reports honestly."""
 
     @pytest.mark.asyncio
-    async def test_evidence_found_but_all_elements_stay_unresolved(self):
-        """Context-only evidence → all elements remain unresolved, orientation unchanged."""
+    async def test_evidence_found_promotes_elements_to_contextual(self):
+        """Context-only evidence → mapped elements promote from unresolved
+        to contextual; element with no refs stays unresolved; orientation
+        updates accordingly.
+
+        Pre-2026-05-12 this test asserted all elements stayed unresolved
+        (rule_applied="no_evidence" conflated empty-pool and context-only
+        pool). The new contextual state surfaces the distinction.
+        """
         cm = _make_full_claim_map(
             [
                 ("e1", "unresolved", "Claim sub-assertion A", []),
@@ -1674,12 +1681,14 @@ class TestRecoveryFutility:
             new_evidence=new_evidence,
         )
 
-        # All elements remain unresolved
-        for e in cm["elements"]:
-            assert e["state"] == ElementState.unresolved
-        # Orientation unchanged
-        assert cm["orientation"] == before_orientation
-        # Context refs were still added (evidence found, just not decisive)
+        # Elements with context refs are promoted to contextual.
+        # Element with no refs stays unresolved.
+        assert cm["elements"][0]["state"] == ElementState.contextual
+        assert cm["elements"][1]["state"] == ElementState.contextual
+        assert cm["elements"][2]["state"] == ElementState.unresolved
+        # Orientation re-derived to reflect the new state mix.
+        assert cm["orientation"] != before_orientation
+        # Refs preserved as mapped.
         assert len(cm["elements"][0]["evidence_refs"]) == 1
         assert len(cm["elements"][1]["evidence_refs"]) == 1
         assert len(cm["elements"][2]["evidence_refs"]) == 0
@@ -1756,8 +1765,12 @@ class TestRecoveryFutility:
         assert cm["orientation"] == before_orientation
 
     @pytest.mark.asyncio
-    async def test_elements_resolved_counter_zero_when_nothing_improves(self):
-        """Runner.py counting logic (lines 1569-1580) yields 0 when nothing improves."""
+    async def test_elements_resolved_counter_counts_contextual_promotions(self):
+        """Runner.py counting logic counts any transition away from
+        unresolved — including the new contextual state. Context-tier
+        evidence is a substantive improvement; the recovery-futility
+        counter reflects that. Pre-2026-05-12 this asserted == 0
+        because context refs didn't change state."""
         cm = _make_full_claim_map(
             [
                 ("e1", "unresolved", "First element", []),
@@ -1825,7 +1838,9 @@ class TestRecoveryFutility:
             != "unresolved"
         )
 
-        assert newly_resolved == 0
+        # e1 transitions to contextual; e2 and e3 stay unresolved.
+        # Runner counts 1 newly-resolved (any non-unresolved state).
+        assert newly_resolved == 1
 
 
 # =============================================================================

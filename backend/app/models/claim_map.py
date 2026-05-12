@@ -20,6 +20,12 @@ class ElementState(str, Enum):
     supported = "supported"
     disputed = "disputed"
     unresolved = "unresolved"
+    # contextual (2026-05-12) — element has only context-tier evidence
+    # (no supports, no challenges). Distinguishes "we have related
+    # evidence but nothing directly substantiating" from "we have
+    # nothing at all". Pre-fix, both rendered as unresolved/gap which
+    # misrepresented the pool to users.
+    contextual = "contextual"
 
 
 class EvidenceRelationship(str, Enum):

@@ -12,12 +12,14 @@ const STATE_ICONS: Record<ElementState, string> = {
   supported: '\u2713',
   disputed: '\u26A0',
   unresolved: '\u25CB',
+  contextual: '\u24D8',
 };
 
 const STATE_CLASSES: Record<ElementState, string> = {
   supported: 'bg-state-supported/10 text-state-supported border-state-supported/20',
   disputed: 'bg-state-disputed/10 text-state-disputed border-state-disputed/20',
   unresolved: 'bg-state-unresolved/10 text-state-unresolved border-state-unresolved/20',
+  contextual: 'bg-state-contextual/10 text-state-contextual border-state-contextual/20',
 };
 
 const SIZE_CLASSES = {

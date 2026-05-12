@@ -31,11 +31,13 @@ export function ClaimHeader({ claim, position, inputType }: ClaimHeaderProps) {
     normative_flagged: 'Normative',
   };
 
-  // Count element states
-  const stateCounts = { supported: 0, disputed: 0, gap: 0 };
+  // Count element states. 2026-05-12: contextual elements have
+  // evidence in the pool (context-tier only) — they're not a gap.
+  const stateCounts = { supported: 0, disputed: 0, contextual: 0, gap: 0 };
   for (const el of elements) {
     if (el.state === 'supported') stateCounts.supported++;
     else if (el.state === 'disputed') stateCounts.disputed++;
+    else if (el.state === 'contextual') stateCounts.contextual++;
     else stateCounts.gap++;
   }
 
@@ -68,7 +70,7 @@ export function ClaimHeader({ claim, position, inputType }: ClaimHeaderProps) {
         <span className="font-mono text-[10px] text-zinc-400">
           Sources {evidenceCount}
         </span>
-        {(stateCounts.supported > 0 || stateCounts.disputed > 0 || stateCounts.gap > 0) && (
+        {(stateCounts.supported > 0 || stateCounts.disputed > 0 || stateCounts.contextual > 0 || stateCounts.gap > 0) && (
           <>
             <span className="text-zinc-200">&middot;</span>
             {stateCounts.supported > 0 && (
@@ -79,6 +81,11 @@ export function ClaimHeader({ claim, position, inputType }: ClaimHeaderProps) {
             {stateCounts.disputed > 0 && (
               <span className="font-mono text-[10px] text-amber-500">
                 {stateCounts.disputed} disputed
+              </span>
+            )}
+            {stateCounts.contextual > 0 && (
+              <span className="font-mono text-[10px] text-sky-500">
+                {stateCounts.contextual} contextual
               </span>
             )}
             {stateCounts.gap > 0 && (
