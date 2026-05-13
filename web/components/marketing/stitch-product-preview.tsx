@@ -1,130 +1,229 @@
-import Image from 'next/image';
+'use client';
 
-/**
- * Stitch W-01 Product Preview
- *
- * Replaces the previous placeholder video. Split layout:
- *  - LEFT: product screenshot (Librarian view by default) inside a 1px
- *    zinc-bordered frame with a mono micro-label.
- *  - RIGHT: a faithful /agent/quick response snippet (real shape from
- *    response_builder._compute_landscape + _meta block).
- *
- * Stitch theme: white surfaces, 1px zinc borders, mono micro-labels,
- * no shadows on the content frames. The JSON block uses a dark zinc-950
- * surface — the only dark element, mirroring the developer page.
- *
- * NOTE: the screenshot file at /imagery/screenshots/librarian-landscape.png
- * is a placeholder until real captures land. See
- * audit/2026-05-12_homepage_screenshots.md for the capture spec.
- */
+import { useState, type ReactNode } from 'react';
+import Image from 'next/image';
+import { ArrowUpRight } from 'lucide-react';
+
+import { ScrollReveal } from './scroll-reveal';
+import { ScreenshotLightbox, type ScreenshotSlide } from './screenshot-lightbox';
+
+interface Panel {
+  number: string;
+  label: string;
+  route: string;
+  headline: ReactNode;
+  description: string;
+  src: string;
+  alt: string;
+  lightboxTitle: string;
+}
+
+const PANELS: Panel[] = [
+  {
+    number: '01',
+    label: 'Librarian',
+    route: '/dashboard/check/[id]?view=librarian',
+    headline: (
+      <>
+        Every source <span className="font-bold">classified.</span>
+      </>
+    ),
+    description:
+      'Tier × type heatmap and ledger. Filter, sort, browse. Receipts for everything excluded — no hidden curation.',
+    src: '/imagery/screenshots/librarian-landscape.png',
+    alt: 'The Librarian view — evidence classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Heatmap grid with a ledger of source rows underneath.',
+    lightboxTitle: 'Librarian — evidence landscape',
+  },
+  {
+    number: '02',
+    label: 'Cartographer',
+    route: '/dashboard/check/[id]?view=cartographer',
+    headline: (
+      <>
+        The shape of the <span className="font-bold">conversation.</span>
+      </>
+    ),
+    description:
+      'A citation cascade. See where sources agree, where they diverge, and which are just echoing the same original.',
+    src: '/imagery/screenshots/cartographer-network.png',
+    alt: 'The Cartographer view — a Dagre layout of evidence nodes clustered by source and connected by citation relationships. Tier-coloured nodes; one claim node selected with its evidence panel populated.',
+    lightboxTitle: 'Cartographer — citation cascade',
+  },
+  {
+    number: '03',
+    label: 'Seeker',
+    route: '/dashboard/check/[id]?view=seeker',
+    headline: (
+      <>
+        What we <span className="font-bold">don&rsquo;t know yet.</span>
+      </>
+    ),
+    description:
+      'Every evidence gap, surfaced clearly. Specify what data would fill each one, then trigger a targeted re-search.',
+    src: '/imagery/screenshots/seeker-unknowns.png',
+    alt: 'The Seeker view — a ledger of unresolved elements with their uncertainty notes, bounty text, and a "Re-search" action button per gap.',
+    lightboxTitle: 'Seeker — known unknowns',
+  },
+  {
+    number: '04',
+    label: 'Chronologist',
+    route: '/dashboard/check/[id]?view=chronologist',
+    headline: (
+      <>
+        When did each piece of evidence <span className="font-bold">appear?</span>
+      </>
+    ),
+    description:
+      'A timeline of every source, ordered by publication date. See how the conversation developed and where the reporting clusters.',
+    src: '/imagery/screenshots/chronologist-timeline.png',
+    alt: 'The Chronologist view — a horizontal SVG timeline with evidence markers plotted by publication date, grouped into temporal clusters with tier indicators.',
+    lightboxTitle: 'Chronologist — evidence timeline',
+  },
+];
+
+const SLIDES: ScreenshotSlide[] = PANELS.map((p) => ({
+  src: p.src,
+  alt: p.alt,
+  title: p.lightboxTitle,
+  route: p.route,
+}));
+
 export function StitchProductPreview() {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const openAt = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
   return (
-    <section id="preview" className="py-24 md:py-32 bg-white">
+    <section id="preview" className="py-24 md:py-32 bg-white border-t border-zinc-100">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Header */}
-        <div className="mb-12 md:mb-16 max-w-2xl">
-          <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 block">
-            Module — See It Work
-          </span>
-          <h2 className="text-3xl md:text-4xl font-light tracking-tight text-zinc-900">
-            One submission. <span className="font-bold">Two surfaces.</span>
-          </h2>
-          <p className="text-sm md:text-base text-zinc-500 leading-relaxed mt-4">
-            The same evidence research powers the browser dashboard and the agent API. Read it in the
-            Librarian on the left, or consume it as structured JSON on the right.
+        <ScrollReveal>
+          <div className="mb-20 md:mb-28 max-w-3xl">
+            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 block">
+              Module — See It Work
+            </span>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-extralight tracking-[-0.02em] text-zinc-900 leading-[0.95]">
+              Four views.<br />
+              One <span className="font-bold">landscape.</span>
+            </h2>
+            <p className="text-sm md:text-base text-zinc-500 leading-relaxed mt-6 max-w-xl">
+              The same evidence research, surfaced four ways. Click any panel to open it full-size with zoom.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        <div className="space-y-24 md:space-y-32">
+          {PANELS.map((panel, index) => (
+            <PanelRow
+              key={panel.number}
+              panel={panel}
+              index={index}
+              total={PANELS.length}
+              flipped={index % 2 === 1}
+              onOpen={() => openAt(index)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <ScreenshotLightbox
+        slides={SLIDES}
+        open={lightboxOpen}
+        index={lightboxIndex}
+        onClose={() => setLightboxOpen(false)}
+        onIndexChange={setLightboxIndex}
+      />
+    </section>
+  );
+}
+
+interface PanelRowProps {
+  panel: Panel;
+  index: number;
+  total: number;
+  flipped: boolean;
+  onOpen: () => void;
+}
+
+function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
+  const pagination = `${panel.number} / ${String(total).padStart(2, '0')}`;
+
+  return (
+    <ScrollReveal>
+      <div
+        className={`grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center ${
+          flipped ? 'lg:[&>*:first-child]:order-2' : ''
+        }`}
+      >
+        {/* Caption rail */}
+        <div className="lg:col-span-4 flex flex-col">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-accent">
+              {pagination}
+            </span>
+            <div className="h-px flex-grow bg-zinc-200" />
+            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400">
+              {panel.label}
+            </span>
+          </div>
+          <h3 className="text-3xl md:text-4xl lg:text-5xl font-extralight tracking-[-0.02em] text-zinc-900 leading-[1.05] mb-5">
+            {panel.headline}
+          </h3>
+          <p className="text-sm md:text-base text-zinc-500 leading-relaxed mb-8">
+            {panel.description}
           </p>
+          <button
+            type="button"
+            onClick={onOpen}
+            className="group inline-flex items-center gap-2 self-start font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-900 hover:text-accent transition-colors"
+            aria-label={`Open ${panel.label} screenshot full-size`}
+          >
+            <span>Click to zoom</span>
+            <ArrowUpRight
+              size={14}
+              className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
+          </button>
         </div>
 
-        {/* Split panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* LEFT — product screenshot */}
-          <div className="border border-zinc-200 bg-white overflow-hidden flex flex-col">
+        {/* Screenshot frame */}
+        <div className="lg:col-span-8">
+          <button
+            type="button"
+            onClick={onOpen}
+            className="group block w-full text-left border border-zinc-200 bg-white overflow-hidden transition-colors hover:border-zinc-900 focus-visible:border-zinc-900"
+            aria-label={`Open ${panel.label} screenshot full-size`}
+          >
             <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100">
               <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400">
-                Librarian view — Dashboard
+                {panel.label} view — Dashboard
               </span>
-              <span className="font-mono text-[10px] text-zinc-300">/dashboard/check/[id]</span>
+              <span className="font-mono text-[10px] text-zinc-300 hidden sm:inline">
+                {panel.route}
+              </span>
             </div>
             <div className="relative aspect-[4/3] bg-zinc-50">
               <Image
-                src="/imagery/screenshots/librarian-landscape.png"
-                alt="Tru8 Librarian view — evidence classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic)"
+                src={panel.src}
+                alt={panel.alt}
                 fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover object-top"
-                priority={false}
+                sizes="(min-width: 1024px) 66vw, 100vw"
+                className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.01]"
+                priority={index === 0}
               />
-            </div>
-          </div>
-
-          {/* RIGHT — JSON snippet */}
-          <div className="border border-zinc-200 bg-white overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100">
-              <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-accent">
-                POST /agent/quick — Response
+              <span
+                className="absolute bottom-3 right-3 font-mono text-[10px] tracking-[0.3em] uppercase bg-white/95 text-zinc-900 px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-hidden="true"
+              >
+                Open ↗
               </span>
-              <span className="font-mono text-[10px] text-zinc-300">200 OK</span>
             </div>
-            <pre className="bg-zinc-950 text-zinc-300 px-5 py-5 overflow-x-auto text-[11px] md:text-xs font-mono leading-relaxed flex-1">
-{`{
-  "id": "chk_8f3a...",
-  "status": "complete",
-  "claims": [
-    {
-      "id": "clm_01",
-      "text": "Global average temperature rose 1.1°C since pre-industrial times",
-      "claimMap": {
-        "normalisedClaim": "...",
-        "claimType": "scientific",
-        "elements": [
-          {
-            "elementId": "el_01",
-            "description": "1.1°C rise figure",
-            "state": "supported",
-            "evidenceRefs": [
-              { "evidenceId": "ev_a1", "relationship": "supports" },
-              { "evidenceId": "ev_b2", "relationship": "supports" }
-            ]
-          }
-        ],
-        "orientation": "Evidence converges on the 1.1°C figure across primary and academic sources."
-      }
-    }
-  ],
-  "_meta": {
-    "executedTier": "quick",
-    "chargedPence": 7,
-    "landscape": {
-      "elementCount": 4,
-      "elementStates": { "supported": 3, "unresolved": 1 },
-      "evidenceDensity": 24,
-      "sourcesConsidered": 24,
-      "sourceDiversity": {
-        "tierSpread": { "primary": 6, "reporting": 12, "commentary": 6 },
-        "uniqueDomains": 18,
-        "typeCoverage": 5
-      },
-      "freshness": { "freshestDaysAgo": 3, "dateSpanDays": 412 },
-      "gaps": [{ "reason": "no_academic_sources" }]
-    },
-    "limitations": ["heuristic_classification", "single_query_per_element"]
-  },
-  "_manifest": {
-    "checkId": "chk_8f3a...",
-    "landscapeHash": "9c14...",
-    "signature": "hmac-sha256:...",
-    "verifyUrl": "/verify/chk_8f3a..."
-  }
-}`}
-            </pre>
-          </div>
+          </button>
         </div>
-
-        {/* Footnote */}
-        <p className="text-xs text-zinc-400 mt-6 font-mono">
-          Response shape is the live /agent/quick contract. Field values are illustrative.
-        </p>
       </div>
-    </section>
+    </ScrollReveal>
   );
 }

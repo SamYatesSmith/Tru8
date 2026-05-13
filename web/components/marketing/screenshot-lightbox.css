@@ -1,0 +1,64 @@
+/* Stitch-themed overrides for yet-another-react-lightbox.
+   Scoped via the .stitch-lightbox class on the Lightbox root.
+   Mirrors the dark zinc-950 surface used by the developer/JSON band. */
+
+.stitch-lightbox {
+  --yarl__color_backdrop: rgba(9, 9, 11, 0.96);
+  --yarl__color_button: #d4d4d8;
+  --yarl__color_button_active: #ffffff;
+  --yarl__color_button_disabled: #52525b;
+  --yarl__slide_captions_container_background: linear-gradient(
+    to top,
+    rgba(9, 9, 11, 0.92) 0%,
+    rgba(9, 9, 11, 0.0) 100%
+  );
+}
+
+.stitch-lightbox .yarl__slide_image {
+  border: 1px solid #3f3f46;
+  background: #18181b;
+}
+
+.stitch-lightbox .yarl__slide_title {
+  font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #fafafa;
+  font-weight: 500;
+}
+
+.stitch-lightbox .yarl__slide_description {
+  font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: lowercase;
+  color: #a1a1aa;
+  font-weight: 400;
+  margin-top: 6px;
+}
+
+.stitch-lightbox .yarl__counter {
+  font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: #a1a1aa;
+  font-variant-numeric: tabular-nums;
+}
+
+.stitch-lightbox .yarl__button {
+  filter: none;
+}
+
+.stitch-lightbox .yarl__toolbar {
+  padding: 24px 32px;
+}
+
+.stitch-lightbox .yarl__navigation_prev,
+.stitch-lightbox .yarl__navigation_next {
+  padding: 0 32px;
+}
+
+.stitch-lightbox .yarl__slide_captions_container {
+  padding: 32px;
+}

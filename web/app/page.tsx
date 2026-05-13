@@ -5,8 +5,9 @@ import { Footer } from '@/components/layout/footer'
 import { StitchHero } from '@/components/marketing/stitch-hero'
 import { StitchProcess } from '@/components/marketing/stitch-process'
 import { StitchFeatures } from '@/components/marketing/stitch-features'
-import { StitchApiBand } from '@/components/marketing/stitch-api-band'
 import { StitchProductPreview } from '@/components/marketing/stitch-product-preview'
+import { StitchApiBand } from '@/components/marketing/stitch-api-band'
+import { StitchDeveloperShowcase } from '@/components/marketing/stitch-developer-showcase'
 import { StitchPricing } from '@/components/marketing/stitch-pricing'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
@@ -64,8 +65,9 @@ export default function Home({
         <StitchHero />
         <StitchProcess />
         <StitchFeatures />
-        <StitchApiBand />
         <StitchProductPreview />
+        <StitchApiBand />
+        <StitchDeveloperShowcase />
         <StitchPricing />
       </main>
 
