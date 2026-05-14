@@ -43,7 +43,20 @@ export function ScrollReveal({
       { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
     );
     observer.observe(node);
-    return () => observer.disconnect();
+
+    // Fallback for full-page screenshot capture (e.g. Chrome DevTools "Capture
+    // full size screenshot") which snapshots the whole document without
+    // triggering scroll-based observers. After 1.5s with no intersection,
+    // reveal anyway so below-the-fold sections aren't blank in captures.
+    const fallback = window.setTimeout(() => {
+      setVisible(true);
+      observer.disconnect();
+    }, 1500);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   return (
