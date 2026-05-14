@@ -15,13 +15,14 @@ export function StitchHero() {
 
   return (
     <>
-      <section className="relative pt-16 pb-16 md:pt-32 md:pb-40 bg-grid-dot overflow-hidden border-b border-zinc-100">
+      <section className="relative pt-8 pb-16 md:pt-32 md:pb-40 bg-grid-dot overflow-hidden border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
           <div className="max-w-4xl">
-            {/* Mobile-only brand anchor — desktop has the Navigation bar, mobile shows nothing
-                up top because the bottom nav handles links. Subtle inline logo + wordmark
-                so the page still says "Tru8" before the copy starts. */}
-            <div className="md:hidden flex items-center gap-2 mb-6">
+            {/* Mobile-only brand anchor — logo at left edge, wordmark at right edge.
+                Section pt-8 + this row's mb-8 give equidistant 32px breathing room
+                above and below the brand row. Desktop unchanged (Navigation handles
+                brand on md+). */}
+            <div className="md:hidden flex items-center justify-between mb-8">
               <Tru8Mark size={28} />
               <span className="text-lg font-bold tracking-tighter uppercase">
                 TRU<span className="text-zinc-400 font-normal">8</span>
