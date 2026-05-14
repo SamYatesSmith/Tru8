@@ -23,8 +23,8 @@ export function StitchHero() {
                 above and below the brand row. Desktop unchanged (Navigation handles
                 brand on md+). */}
             <div className="md:hidden flex items-center justify-between mb-8">
-              <Tru8Mark size={28} />
-              <span className="text-lg font-bold tracking-tighter uppercase">
+              <Tru8Mark size={40} />
+              <span className="text-[26px] font-bold tracking-tighter uppercase leading-none">
                 TRU<span className="text-zinc-400 font-normal">8</span>
               </span>
             </div>
