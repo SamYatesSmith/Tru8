@@ -59,13 +59,15 @@ export function UnknownElementCard({
   }, [evidence]);
 
   // Known elements: collapsed single line
+  // Order: number → description → state badge → source count.
+  // Content leads, qualifier trails (marketing review).
   if (isKnown) {
     return (
       <div className="flex items-center gap-3 px-4 py-2.5 bg-zinc-50/50 border border-zinc-100">
         <span className="font-mono text-[10px] text-zinc-300 font-bold">{label}</span>
+        <span className="text-sm text-zinc-700 truncate flex-grow min-w-0">{element.description}</span>
         {element.state && <ElementStateBadge state={element.state} size="sm" />}
-        <span className="text-sm text-zinc-500 truncate">{element.description}</span>
-        <span className="ml-auto font-mono text-[10px] text-zinc-300 whitespace-nowrap">
+        <span className="font-mono text-[10px] text-zinc-400 whitespace-nowrap">
           {refCount} {refCount === 1 ? 'source' : 'sources'}
         </span>
       </div>

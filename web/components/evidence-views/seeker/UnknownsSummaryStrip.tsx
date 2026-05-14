@@ -10,19 +10,25 @@ export function UnknownsSummaryStrip({
   coverage,
 }: UnknownsSummaryStripProps) {
   return (
-    <div className="grid grid-cols-3 gap-4 border border-zinc-200 bg-[var(--surface-raised)] p-5">
-      <div className="flex flex-col items-center gap-1">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Gaps</span>
-        <span className="font-mono text-2xl font-semibold text-zinc-900">{gaps}</span>
+    <div className="border border-zinc-200 bg-[var(--surface-raised)] p-5">
+      <div className="grid grid-cols-3 gap-4">
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Gaps</span>
+          <span className="font-mono text-2xl font-semibold text-zinc-900">{gaps}</span>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Unresolved</span>
+          <span className="font-mono text-2xl font-semibold text-zinc-500">{unresolved}</span>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Coverage</span>
+          <span className="font-mono text-2xl font-semibold text-zinc-700">{coverage}%</span>
+        </div>
       </div>
-      <div className="flex flex-col items-center gap-1">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Unresolved</span>
-        <span className="font-mono text-2xl font-semibold text-zinc-500">{unresolved}</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Coverage</span>
-        <span className="font-mono text-2xl font-semibold text-zinc-700">{coverage}%</span>
-      </div>
+      <p className="text-center font-mono text-[10px] text-zinc-400 mt-3 leading-relaxed">
+        <span className="font-bold">Gaps</span> have no evidence retrieved.{' '}
+        <span className="font-bold">Unresolved</span> have evidence but no settled state.
+      </p>
     </div>
   );
 }

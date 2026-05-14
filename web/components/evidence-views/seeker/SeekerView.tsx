@@ -9,6 +9,7 @@ import { CoverageMap } from './CoverageMap';
 import { ResearchButton } from './ResearchButton';
 import { SeekerProvenanceNote } from './SeekerProvenanceNote';
 import { ExplorePanel } from './ExplorePanel';
+import { DiagnosticFlag } from '../DiagnosticFlag';
 
 interface SeekerViewProps {
   claim: Claim;
@@ -201,23 +202,22 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
         </div>
       )}
 
-      {/* Explore mode — shown when no unknowns remain */}
-      {!hasUnknowns && !readOnly && checkId && token && (
-        <div className="space-y-3">
-          <div className="border-t border-zinc-200 pt-6">
-            <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-4">
-              Evidence landscape well-covered — explore related investigations
-            </p>
-          </div>
-          {exploreLoading ? (
-            <div className="py-6 text-center">
-              <p className="font-mono text-[10px] text-zinc-400 animate-pulse">
-                Finding related claims...
-              </p>
-            </div>
-          ) : (
-            <ExplorePanel relatedClaims={exploreData} />
-          )}
+      {/* Well-covered empty state — positive reframe, no deflection */}
+      {!hasUnknowns && (
+        <div className="space-y-4">
+          <DiagnosticFlag label="Well covered">
+            All {elements.length} {elements.length === 1 ? 'element is' : 'elements are'} substantiated by available evidence — no outstanding gaps or unresolved questions for this claim.
+          </DiagnosticFlag>
+        </div>
+      )}
+
+      {/* Adjacent investigations — only when the explore panel actually has data */}
+      {!hasUnknowns && !readOnly && checkId && token && exploreData.length > 0 && (
+        <div className="border-t border-zinc-200 pt-6 space-y-3">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+            Adjacent investigations
+          </p>
+          <ExplorePanel relatedClaims={exploreData} />
         </div>
       )}
 
