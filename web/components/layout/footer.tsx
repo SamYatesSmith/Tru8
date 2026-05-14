@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { Tru8Mark } from '@/components/brand/tru8-mark';
 
 export function Footer() {
   const platformLinks = [
@@ -32,13 +32,7 @@ export function Footer() {
           {/* Logo + Tagline */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Image
-                src="/logo.proper.png"
-                alt="Tru8 logo"
-                width={24}
-                height={24}
-                className="grayscale opacity-80"
-              />
+              <Tru8Mark size={24} animated={false} className="opacity-80" />
               <span className="font-bold tracking-tighter uppercase">
                 TRU<span className="text-zinc-400 font-normal">8</span>
               </span>

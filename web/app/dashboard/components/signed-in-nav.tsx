@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Plus, LayoutDashboard, Clock, Settings } from 'lucide-react';
 import { UserMenuDropdown } from './user-menu-dropdown';
+import { Tru8Mark } from '@/components/brand/tru8-mark';
 
 interface SignedInNavProps {
   user: {
@@ -49,14 +49,8 @@ export function SignedInNav({ user }: SignedInNavProps) {
         <div className="container mx-auto px-4 md:px-6 max-w-7xl">
           <div className="flex items-center justify-between h-14 md:h-16">
             {/* Left: Logo */}
-            <Link href="/" className="flex-shrink-0 flex items-center gap-2">
-              <Image
-                src="/logo.proper.png"
-                alt="Tru8"
-                width={40}
-                height={40}
-                className="object-contain md:w-[50px] md:h-[50px]"
-              />
+            <Link href="/" className="flex-shrink-0 flex items-center gap-2" aria-label="Tru8 home">
+              <Tru8Mark size={40} />
               <span className="text-lg font-bold tracking-tighter uppercase hidden sm:inline">
                 TRU<span className="text-zinc-400 font-normal">8</span>
               </span>
