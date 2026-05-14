@@ -52,7 +52,7 @@ export function ScreenshotLightbox({
       controller={{ closeOnBackdropClick: true }}
       carousel={{ finite: true, padding: 0, imageFit: 'contain' }}
       animation={{ fade: 300, swipe: 400 }}
-      zoom={{ maxZoomPixelRatio: 3, scrollToZoom: true, doubleTapDelay: 200 }}
+      zoom={{ maxZoomPixelRatio: 3, scrollToZoom: false, doubleTapDelay: 200 }}
       counter={{ container: { style: { top: 24, left: 32, bottom: 'unset', right: 'unset' } } }}
       captions={{ showToggle: false, descriptionTextAlign: 'start' }}
       on={{

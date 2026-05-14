@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 
 import { ScrollReveal } from './scroll-reveal';
-import { ScreenshotLightbox, type ScreenshotSlide } from './screenshot-lightbox';
+import { ScreenshotScrollLightbox, type ScreenshotSlide } from './screenshot-scroll-lightbox';
 
 interface Panel {
   number: string;
@@ -14,6 +14,10 @@ interface Panel {
   headline: ReactNode;
   description: string;
   src: string;
+  /** Optional separate higher-resolution / longer image shown in the lightbox.
+   *  When omitted, lightbox uses `src`. Use this for tall full-page captures
+   *  whose 4:3 thumbnail crop hides most of the content. */
+  lightboxSrc?: string;
   alt: string;
   lightboxTitle: string;
 }
@@ -31,6 +35,7 @@ const PANELS: Panel[] = [
     description:
       'Tier × type heatmap and ledger. Filter, sort, browse. Receipts for everything excluded — no hidden curation.',
     src: '/imagery/screenshots/librarian-landscape.png',
+    lightboxSrc: '/imagery/screenshots/librarian-landscape-full.png',
     alt: 'The Librarian view — evidence classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Heatmap grid with a ledger of source rows underneath.',
     lightboxTitle: 'Librarian — evidence landscape',
   },
@@ -46,6 +51,7 @@ const PANELS: Panel[] = [
     description:
       'A citation cascade. See where sources agree, where they diverge, and which are just echoing the same original.',
     src: '/imagery/screenshots/cartographer-network.png',
+    lightboxSrc: '/imagery/screenshots/cartographer-network-full.png',
     alt: 'The Cartographer view — a Dagre layout of evidence nodes clustered by source and connected by citation relationships. Tier-coloured nodes; one claim node selected with its evidence panel populated.',
     lightboxTitle: 'Cartographer — citation cascade',
   },
@@ -61,6 +67,7 @@ const PANELS: Panel[] = [
     description:
       'Every evidence gap, surfaced clearly. Specify what data would fill each one, then trigger a targeted re-search.',
     src: '/imagery/screenshots/seeker-unknowns.png',
+    lightboxSrc: '/imagery/screenshots/seeker-unknowns-full.png',
     alt: 'The Seeker view — a ledger of unresolved elements with their uncertainty notes, bounty text, and a "Re-search" action button per gap.',
     lightboxTitle: 'Seeker — known unknowns',
   },
@@ -76,13 +83,14 @@ const PANELS: Panel[] = [
     description:
       'A timeline of every source, ordered by publication date. See how the conversation developed and where the reporting clusters.',
     src: '/imagery/screenshots/chronologist-timeline.png',
+    lightboxSrc: '/imagery/screenshots/chronologist-timeline-full.png',
     alt: 'The Chronologist view — a horizontal SVG timeline with evidence markers plotted by publication date, grouped into temporal clusters with tier indicators.',
     lightboxTitle: 'Chronologist — evidence timeline',
   },
 ];
 
 const SLIDES: ScreenshotSlide[] = PANELS.map((p) => ({
-  src: p.src,
+  src: p.lightboxSrc ?? p.src,
   alt: p.alt,
   title: p.lightboxTitle,
   route: p.route,
@@ -129,7 +137,7 @@ export function StitchProductPreview() {
         </div>
       </div>
 
-      <ScreenshotLightbox
+      <ScreenshotScrollLightbox
         slides={SLIDES}
         open={lightboxOpen}
         index={lightboxIndex}
