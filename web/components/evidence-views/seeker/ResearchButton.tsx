@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { apiClient } from '@/lib/api';
 
 interface ResearchButtonProps {
@@ -20,6 +21,10 @@ const STATUS_MESSAGES: Record<string, string> = {
   mapping: 'Mapping evidence...',
 };
 
+// Backend pipeline can take a couple of minutes for slow gap claims. Cap polling
+// at 5 minutes so a broken/forgotten poll can never loop indefinitely.
+const POLL_TIMEOUT_MS = 5 * 60 * 1000;
+
 export function ResearchButton({
   checkId,
   claimId,
@@ -29,6 +34,14 @@ export function ResearchButton({
   coverageBefore,
   onComplete,
 }: ResearchButtonProps) {
+  // Use Clerk's getToken directly so each API call (start + every poll) gets a
+  // freshly-refreshed JWT. The `token` prop is kept for the "is signed in?" check
+  // since the parent already wires it that way — but we never use that stale token
+  // for the actual requests. Without this, ~60s into a re-search the JWT expires,
+  // every poll returns 401, and the UI is stuck on "Searching…" while the
+  // backend has completed the work successfully.
+  const { getToken } = useAuth();
+
   const [status, setStatus] = useState<'idle' | 'running' | 'completed' | 'error' | 'limit_reached'>('idle');
   const [message, setMessage] = useState('');
   const [totalNewCount, setTotalNewCount] = useState(0);
@@ -51,18 +64,42 @@ export function ResearchButton({
     setMessage(`Searching ${gapElementIds.length} gap${gapElementIds.length !== 1 ? 's' : ''}...`);
 
     try {
-      await apiClient.startGapResearch(checkId, claimId, token);
+      const startToken = await getToken();
+      if (!startToken) {
+        setStatus('error');
+        setMessage('Authentication expired — please refresh');
+        return;
+      }
+      await apiClient.startGapResearch(checkId, claimId, startToken);
 
-      // Poll status for each gap element
+      const startedAt = Date.now();
+
       pollRef.current = setInterval(async () => {
+        // Hard timeout — never poll forever
+        if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
+          cleanup();
+          setStatus('error');
+          setMessage('Search timed out — refresh to see what completed');
+          return;
+        }
+
         try {
+          // Fresh token per poll; Clerk auto-refreshes when needed
+          const pollToken = await getToken();
+          if (!pollToken) {
+            cleanup();
+            setStatus('error');
+            setMessage('Session expired — please refresh');
+            return;
+          }
+
           let allDone = true;
           let anyError = false;
           let totalNew = 0;
           let latestMessage = '';
 
           for (const eid of gapElementIds) {
-            const result = await apiClient.getResearchStatus(checkId, claimId, eid, token);
+            const result = await apiClient.getResearchStatus(checkId, claimId, eid, pollToken);
             if (!result) { allDone = false; continue; }
 
             if (result.status === 'completed') {
@@ -101,7 +138,7 @@ export function ResearchButton({
             }, 1500);
           }
         } catch {
-          // Polling error — continue polling
+          // Per-poll transient error — continue polling, hard timeout will bail eventually
         }
       }, 2500);
     } catch (err) {
@@ -114,7 +151,7 @@ export function ResearchButton({
         setMessage(errMsg || 'Failed to start research');
       }
     }
-  }, [checkId, claimId, token, gapElementIds, status, cleanup, onComplete]);
+  }, [checkId, claimId, token, getToken, gapElementIds, status, cleanup, onComplete]);
 
   if (gapElementIds.length === 0) return null;
 
