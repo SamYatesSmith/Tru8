@@ -205,13 +205,14 @@ function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
                 {panel.route}
               </span>
             </div>
-            <div className="relative aspect-[4/3] bg-zinc-50">
+            <div className="relative aspect-[4/3] bg-zinc-50 flex items-center justify-center">
+              {/* object-contain so the entire screenshot is visible inline; lightbox handles zoom */}
               <Image
                 src={panel.src}
                 alt={panel.alt}
                 fill
                 sizes="(min-width: 1024px) 66vw, 100vw"
-                className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.01]"
+                className="object-contain transition-transform duration-500 group-hover:scale-[1.01]"
                 priority={index === 0}
               />
               <span

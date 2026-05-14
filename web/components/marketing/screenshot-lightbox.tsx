@@ -38,6 +38,7 @@ export function ScreenshotLightbox({
     alt: slide.alt,
     title: slide.title,
     description: slide.route,
+    imageFit: 'contain' as const,
   }));
 
   return (
@@ -49,7 +50,7 @@ export function ScreenshotLightbox({
       plugins={[Captions, Counter, Zoom]}
       className="stitch-lightbox"
       controller={{ closeOnBackdropClick: true }}
-      carousel={{ finite: true, padding: 0 }}
+      carousel={{ finite: true, padding: 0, imageFit: 'contain' }}
       animation={{ fade: 300, swipe: 400 }}
       zoom={{ maxZoomPixelRatio: 3, scrollToZoom: true, doubleTapDelay: 200 }}
       counter={{ container: { style: { top: 24, left: 32, bottom: 'unset', right: 'unset' } } }}
