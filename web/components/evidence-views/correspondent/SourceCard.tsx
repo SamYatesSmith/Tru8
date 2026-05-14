@@ -1,7 +1,7 @@
 'use client';
 
 import { EvidenceTier } from '@shared/types';
-import { TierStamp } from '../librarian/TierStamp';
+import { ElementRefs } from '../ElementRefs';
 
 const TIER_BORDER_COLOURS: Record<EvidenceTier, string> = {
   primary: '#EA580C',
@@ -16,7 +16,7 @@ interface SourceCardProps {
   evidenceCount: number;
   evidenceTitles: string[];
   claimCoverage: string;
-  elementCoverage: string;
+  elementIds: string[];
   dateRange: string;
   soleSourceFor: string[];
   isExpanded: boolean;
@@ -31,7 +31,7 @@ export function SourceCard({
   evidenceCount,
   evidenceTitles,
   claimCoverage,
-  elementCoverage,
+  elementIds,
   dateRange,
   soleSourceFor,
   isExpanded,
@@ -39,7 +39,6 @@ export function SourceCard({
   scope,
 }: SourceCardProps) {
   const borderColour = TIER_BORDER_COLOURS[tier];
-  const coverageText = scope === 'check' ? claimCoverage : elementCoverage;
   const fallbackLetter = domain[0]?.toUpperCase() || '?';
 
   return (
@@ -71,7 +70,6 @@ export function SourceCard({
           />
         </div>
         <span className="text-sm font-medium text-zinc-900 flex-1">{domain}</span>
-        <TierStamp tier={tier} />
       </div>
 
       {/* Row 2: Count + date range */}
@@ -88,9 +86,15 @@ export function SourceCard({
       </div>
 
       {/* Row 3: Coverage */}
-      {coverageText && (
+      {scope === 'check' && claimCoverage && (
         <div className="mt-1.5">
-          <span className="font-mono text-[10px] text-zinc-400">{coverageText}</span>
+          <span className="font-mono text-[10px] text-zinc-400">{claimCoverage}</span>
+        </div>
+      )}
+      {scope === 'claim' && elementIds.length > 0 && (
+        <div className="mt-1.5 flex items-center gap-2">
+          <span className="font-mono text-[10px] text-zinc-400">Addresses</span>
+          <ElementRefs elementIds={elementIds} />
         </div>
       )}
 

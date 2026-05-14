@@ -1,8 +1,8 @@
 'use client';
 
 import { Evidence } from '@shared/types';
-import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
+import { ElementRefs } from '../ElementRefs';
 
 function extractDomain(url: string): string {
   try {
@@ -59,7 +59,6 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, diagn
 
       <div className="flex items-start gap-3">
         <div className="flex flex-col gap-1.5 pt-0.5 shrink-0">
-          {evidence.tier && <TierStamp tier={evidence.tier} />}
           {evidence.evidenceType && <TypeStamp type={evidence.evidenceType} />}
         </div>
         <div className="flex-grow min-w-0">
@@ -77,9 +76,7 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, diagn
             {elementIds && elementIds.length > 0 && (
               <>
                 <span className="font-mono text-[10px] text-zinc-300">&middot;</span>
-                <span className="font-mono text-[10px] text-zinc-400">
-                  Elements: {elementIds.map(id => id.replace('e', '')).join(', ')}
-                </span>
+                <ElementRefs elementIds={elementIds} />
               </>
             )}
             {claimLabel && (

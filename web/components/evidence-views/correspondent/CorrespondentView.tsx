@@ -288,28 +288,12 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
     return labels;
   }
 
-  // Build coverage labels
-  function getCoverageLabels(group: DomainGroup): { claimCoverage: string; elementCoverage: string } {
+  // Build claim-coverage label (element refs now render as chips via ElementRefs)
+  function getClaimCoverage(group: DomainGroup): string {
     const claimLabels = [...group.claimIndices]
       .sort((a, b) => a - b)
       .map((i) => `Claim ${String(i + 1).padStart(2, '0')}`);
-    const claimCoverage = claimLabels.length > 0 ? `Speaks to ${claimLabels.join(', ')}` : '';
-
-    const elementLabels: string[] = [];
-    for (const elId of group.elementIds) {
-      for (const claim of claims) {
-        const el = claim.claimMap?.elements?.find((e) => e.elementId === elId);
-        if (el) {
-          const idx = claim.claimMap!.elements.indexOf(el);
-          elementLabels.push(`Element ${String(idx + 1).padStart(2, '0')}`);
-          break;
-        }
-      }
-    }
-    const uniqueElLabels = Array.from(new Set(elementLabels)).sort();
-    const elementCoverage = uniqueElLabels.length > 0 ? `Addresses ${uniqueElLabels.join(', ')}` : '';
-
-    return { claimCoverage, elementCoverage };
+    return claimLabels.length > 0 ? `Speaks to ${claimLabels.join(', ')}` : '';
   }
 
   return (
@@ -332,26 +316,23 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
             </div>
 
             <div className="space-y-3">
-              {group.map((g) => {
-                const { claimCoverage, elementCoverage } = getCoverageLabels(g);
-                return (
-                  <SourceCard
-                    key={g.domain}
-                    domain={g.domain}
-                    faviconUrl={getFaviconUrl(g.domain)}
-                    tier={g.tier}
-                    evidenceCount={g.evidenceItems.length}
-                    evidenceTitles={g.evidenceItems.map((ev) => ev.title)}
-                    claimCoverage={claimCoverage}
-                    elementCoverage={elementCoverage}
-                    dateRange={g.dateRange}
-                    soleSourceFor={getSoleSourceLabels(g)}
-                    isExpanded={expandedDomain === g.domain}
-                    onClick={() => setExpandedDomain((prev) => (prev === g.domain ? null : g.domain))}
-                    scope={scope}
-                  />
-                );
-              })}
+              {group.map((g) => (
+                <SourceCard
+                  key={g.domain}
+                  domain={g.domain}
+                  faviconUrl={getFaviconUrl(g.domain)}
+                  tier={g.tier}
+                  evidenceCount={g.evidenceItems.length}
+                  evidenceTitles={g.evidenceItems.map((ev) => ev.title)}
+                  claimCoverage={getClaimCoverage(g)}
+                  elementIds={g.elementIds}
+                  dateRange={g.dateRange}
+                  soleSourceFor={getSoleSourceLabels(g)}
+                  isExpanded={expandedDomain === g.domain}
+                  onClick={() => setExpandedDomain((prev) => (prev === g.domain ? null : g.domain))}
+                  scope={scope}
+                />
+              ))}
             </div>
           </div>
         );
