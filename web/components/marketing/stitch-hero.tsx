@@ -18,17 +18,21 @@ export function StitchHero() {
       <section className="relative pt-8 pb-16 md:pt-32 md:pb-40 bg-grid-dot overflow-hidden border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
           <div className="max-w-4xl">
-            {/* Mobile-only brand anchor — logo at left edge, wordmark at right edge.
-                Section pt-8 + this row's mb-8 give equidistant 32px breathing room
-                above and below the brand row. Desktop unchanged (Navigation handles
-                brand on md+). */}
-            <div className="md:hidden flex items-center justify-between mb-8">
+            {/* Mobile-only brand row: logo | tagline | wordmark — three-up layout
+                with the platform tagline anchored between the two brand elements.
+                flex-1 on the centre span lets it absorb the remaining width and
+                wrap to two lines on narrow screens if necessary. */}
+            <div className="md:hidden flex items-center justify-between gap-3 mb-8">
               <Tru8Mark size={40} />
+              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-zinc-400 text-center flex-1 leading-tight">
+                News Evidence Research Platform
+              </span>
               <span className="text-[26px] font-bold tracking-tighter uppercase leading-none">
                 TRU<span className="text-zinc-400 font-normal">8</span>
               </span>
             </div>
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 md:mb-6">
+            {/* Desktop tagline — mobile version lives inside the brand row above */}
+            <div className="hidden md:block font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-6">
               News Evidence Research Platform
             </div>
             <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-[84px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-6 md:mb-8">
