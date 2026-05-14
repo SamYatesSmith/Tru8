@@ -359,9 +359,10 @@ export function EvidenceMap({
   );
 
   // Smart element labels — strip common prefix, show differentiating tail
+  // Char-width budget scales with the 10px excerpt font (~7px per mono char)
   const descriptions = elements.map((el) => el.description);
   const commonPrefix = findCommonPrefix(descriptions);
-  const maxLabelChars = Math.max(10, Math.floor(columnWidth / 5.5));
+  const maxLabelChars = Math.max(10, Math.floor(columnWidth / 7));
 
   const elementColumns = elements.map((el, i) => ({
     index: i,
@@ -434,25 +435,6 @@ export function EvidenceMap({
             />
           );
         })}
-
-        {/* ── Tier watermark labels ── */}
-        {populatedBands.map(({ tier, yCenter, bandTop, bandBottom, config }) => (
-          <text
-            key={`wm-${tier}`}
-            x={PADDING.left + innerWidth / 2}
-            y={yCenter}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="#F4F4F5"
-            fontSize={Math.min(28, (bandBottom - bandTop) * 0.35)}
-            fontFamily="var(--font-mono, monospace)"
-            fontWeight={700}
-            letterSpacing="0.25em"
-            style={{ textTransform: 'uppercase', pointerEvents: 'none' }}
-          >
-            {config.label}
-          </text>
-        ))}
 
         {/* ── Band boundary lines ── */}
         {populatedBands.map(({ tier, bandTop, bandBottom }, idx) => (
@@ -656,7 +638,22 @@ export function EvidenceMap({
           style={{ textTransform: 'uppercase' }}
           transform={`translate(16, ${PADDING.top + innerHeight / 2}) rotate(-90)`}
         >
-          Source Type
+          Tier
+        </text>
+
+        {/* ── Right-axis title above the count badges ── */}
+        <text
+          x={containerWidth - PADDING.right + 10}
+          y={PADDING.top - 18}
+          textAnchor="start"
+          fill="#D4D4D8"
+          fontSize={9}
+          fontFamily="var(--font-mono, monospace)"
+          fontWeight={600}
+          letterSpacing="0.15em"
+          style={{ textTransform: 'uppercase' }}
+        >
+          Count
         </text>
 
         {/* Y-axis tier labels */}
@@ -726,10 +723,10 @@ export function EvidenceMap({
             {/* Smart excerpt — differentiating tail */}
             <text
               x={x}
-              y={height - PADDING.bottom + 32}
+              y={height - PADDING.bottom + 34}
               textAnchor="middle"
-              fill="#A1A1AA"
-              fontSize={8}
+              fill="#52525B"
+              fontSize={10}
               fontFamily="var(--font-mono, monospace)"
             >
               {excerpt}
@@ -762,14 +759,14 @@ export function EvidenceMap({
         </div>
       )}
 
-      {/* ── Interaction hint (fades after first interaction) ── */}
+      {/* ── Interaction hint — subtle, fades after first interaction ── */}
       {!hasInteracted && nodes.length > 0 && (
         <div
           className="absolute left-0 right-0 text-center pointer-events-none"
-          style={{ top: height - PADDING.bottom + 48 }}
+          style={{ top: height - PADDING.bottom + 52 }}
         >
-          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-300">
-            Hover or tap any source to explore
+          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-zinc-300">
+            Sources interactive
           </span>
         </div>
       )}
