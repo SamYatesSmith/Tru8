@@ -122,7 +122,8 @@ export function UnknownElementCard({
       )}
 
       {/* Uncertainty note */}
-      {element.uncertainty && (
+      {/* Filter "null"/"none"/"n/a" string leakage from the mapper at the UI boundary */}
+      {element.uncertainty && element.uncertainty.trim() && !['null', 'none', 'n/a'].includes(element.uncertainty.trim().toLowerCase()) && (
         <div className="border-l-2 border-amber-400 bg-amber-50/50 px-3 py-2 mb-3">
           <p className="text-[11px] text-amber-700 leading-relaxed">{element.uncertainty}</p>
         </div>
