@@ -6,7 +6,6 @@ import { StitchHero } from '@/components/marketing/stitch-hero'
 import { StitchProcess } from '@/components/marketing/stitch-process'
 import { StitchFeatures } from '@/components/marketing/stitch-features'
 import { StitchProductPreview } from '@/components/marketing/stitch-product-preview'
-import { StitchApiBand } from '@/components/marketing/stitch-api-band'
 import { StitchDeveloperShowcase } from '@/components/marketing/stitch-developer-showcase'
 import { StitchPricing } from '@/components/marketing/stitch-pricing'
 
@@ -66,7 +65,6 @@ export default function Home({
         <StitchProcess />
         <StitchFeatures />
         <StitchProductPreview />
-        <StitchApiBand />
         <StitchDeveloperShowcase />
         <StitchPricing />
       </main>
