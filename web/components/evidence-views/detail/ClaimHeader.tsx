@@ -1,6 +1,7 @@
 'use client';
 
 import { Claim, InputType } from '@shared/types';
+import { DiagnosticFlag } from '../DiagnosticFlag';
 
 const CONTEXT_LABELS: Record<string, string> = {
   url: 'Extracted Claim',
@@ -97,9 +98,11 @@ export function ClaimHeader({ claim, position, inputType }: ClaimHeaderProps) {
         )}
       </div>
 
-      {/* Orientation line */}
+      {/* Orientation line — Tru8's mechanically-derived honest read on element states */}
       {orientation && (
-        <p className="text-sm text-zinc-500 mt-2">{orientation}</p>
+        <div className="mt-4">
+          <DiagnosticFlag label="Orientation">{orientation}</DiagnosticFlag>
+        </div>
       )}
     </div>
   );

@@ -275,13 +275,34 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
         </table>
       </div>
 
-      {/* Expandable legend */}
-      <div className="mt-3">
+      {/* Always-visible tier legend — the most load-bearing part of the classification guide */}
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-zinc-500">
+        <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-zinc-400">
+          Tiers
+        </span>
+        <span>
+          <span className="text-[#EA580C] font-medium">Primary</span>
+          <span className="text-zinc-400"> — closest to original info</span>
+        </span>
+        <span className="text-zinc-200">·</span>
+        <span>
+          <span className="text-zinc-700 font-medium">Reporting</span>
+          <span className="text-zinc-400"> — investigated coverage</span>
+        </span>
+        <span className="text-zinc-200">·</span>
+        <span>
+          <span className="text-zinc-500 font-medium">Commentary</span>
+          <span className="text-zinc-400"> — analysis & opinion</span>
+        </span>
+      </div>
+
+      {/* Expandable full guide — type descriptions live here */}
+      <div className="mt-2">
         <button
           onClick={toggleLegend}
           className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors"
         >
-          {legendOpen ? '− Hide' : '+ Show'} classification guide
+          {legendOpen ? '− Hide' : '+ Show'} content type descriptions
         </button>
 
         {legendOpen && (

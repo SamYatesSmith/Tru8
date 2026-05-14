@@ -98,16 +98,17 @@ export function SourceCard({
         </div>
       )}
 
-      {/* Row 4: Sole source warnings */}
+      {/* Row 4: Sole source warnings — single-point-of-failure flags, the strongest Tru8 honesty moment */}
       {soleSourceFor.length > 0 && (
-        <div className="mt-2">
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {soleSourceFor.map((label) => (
-            <div
+            <span
               key={label}
-              className="font-mono text-[9px] text-zinc-400 border-b border-dashed border-zinc-300 pb-0.5 mb-0.5"
+              className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider border border-amber-300 bg-amber-50 px-2 py-0.5"
             >
-              Sole source for {label}
-            </div>
+              <span className="font-bold text-amber-700">Sole source</span>
+              <span className="text-zinc-600">for {label}</span>
+            </span>
           ))}
         </div>
       )}
