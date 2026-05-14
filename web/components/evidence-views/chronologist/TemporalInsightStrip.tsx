@@ -13,6 +13,15 @@ function formatRelative(date: Date): string {
   return `${Math.floor(days / 365)}yr`;
 }
 
+// Two-faced metric — celebration when small, embarrassment when large. Colour-code so the
+// page communicates the difference at a glance rather than rendering the same way for both.
+function getFreshnessColour(latest: Date): string {
+  const days = Math.floor((Date.now() - latest.getTime()) / (1000 * 60 * 60 * 24));
+  if (days < 30) return 'text-emerald-600';
+  if (days < 180) return 'text-amber-600';
+  return 'text-red-600';
+}
+
 interface TemporalInsightStripProps {
   earliest: Date;
   latest: Date;
@@ -42,7 +51,7 @@ export function TemporalInsightStrip({
       </div>
       <div className="flex flex-col items-center gap-1">
         <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Freshness</span>
-        <span className="font-mono text-2xl font-semibold text-zinc-700">{formatRelative(latest)}</span>
+        <span className={`font-mono text-2xl font-semibold ${getFreshnessColour(latest)}`}>{formatRelative(latest)}</span>
       </div>
       <div className="flex flex-col items-center gap-1">
         <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Gaps</span>

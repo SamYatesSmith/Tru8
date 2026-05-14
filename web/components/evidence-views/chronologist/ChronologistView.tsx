@@ -314,6 +314,12 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
     );
   }
 
+  // Freshness — bolden the TODAY marker when corpus is fresh (<30d)
+  const daysSinceLatest = data.latest
+    ? Math.floor((Date.now() - data.latest.getTime()) / (1000 * 60 * 60 * 24))
+    : Infinity;
+  const corpusIsFresh = daysSinceLatest < 30;
+
   // --- Main render ---
   return (
     <div>
@@ -350,22 +356,29 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
             <div className="absolute left-0 right-0 border-t border-dashed border-zinc-100" style={{ bottom: `${TIER_BAND_OFFSET.primary - 10}px` }} />
             <div className="absolute left-0 right-0 border-t border-dashed border-zinc-100" style={{ bottom: `${TIER_BAND_OFFSET.reporting - 10}px` }} />
 
-            {/* Gap zones with label */}
-            {data.gaps.map((gap, i) => (
-              <div
-                key={`gap-${i}`}
-                className="absolute top-0 bottom-8 bg-zinc-50/50 border-x border-dashed border-zinc-200 flex items-center justify-center"
-                style={{ left: `${gap.startPos}%`, width: `${gap.endPos - gap.startPos}%` }}
-              >
-                <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-300">Gap</span>
-              </div>
-            ))}
+            {/* Gap zones — render visual only when wide enough to read; label only when meaningful.
+                Reduces "GAP GAP GAP" repetition that made the page look 80% absent. */}
+            {data.gaps.map((gap, i) => {
+              const width = gap.endPos - gap.startPos;
+              if (width < 4) return null;
+              return (
+                <div
+                  key={`gap-${i}`}
+                  className="absolute top-0 bottom-8 bg-zinc-50/50 border-x border-dashed border-zinc-200 flex items-center justify-center"
+                  style={{ left: `${gap.startPos}%`, width: `${width}%` }}
+                >
+                  {width >= 10 && (
+                    <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-300">Gap</span>
+                  )}
+                </div>
+              );
+            })}
 
-            {/* Today marker */}
+            {/* Today marker — bolden when corpus is fresh so the now-anchor is visible */}
             {data.todayPosition !== null && (
               <div className="absolute top-0 bottom-0" style={{ left: `${data.todayPosition}%` }}>
-                <div className="w-[1px] h-full border-l border-dashed border-zinc-400" />
-                <span className="absolute -top-1 -translate-x-1/2 font-mono text-[8px] uppercase tracking-widest text-zinc-400">
+                <div className={`w-[1px] h-full border-l ${corpusIsFresh ? 'border-solid border-emerald-500' : 'border-dashed border-zinc-400'}`} />
+                <span className={`absolute -top-1 -translate-x-1/2 font-mono text-[8px] uppercase tracking-widest ${corpusIsFresh ? 'font-bold text-emerald-600' : 'text-zinc-400'}`}>
                   Today
                 </span>
               </div>
