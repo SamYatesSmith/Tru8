@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AuthModal } from '@/components/auth/auth-modal';
+import { Tru8Mark } from '@/components/brand/tru8-mark';
 
 /**
  * Stitch W-01 Hero Section
@@ -17,6 +18,15 @@ export function StitchHero() {
       <section className="relative pt-16 pb-16 md:pt-32 md:pb-40 bg-grid-dot overflow-hidden border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
           <div className="max-w-4xl">
+            {/* Mobile-only brand anchor — desktop has the Navigation bar, mobile shows nothing
+                up top because the bottom nav handles links. Subtle inline logo + wordmark
+                so the page still says "Tru8" before the copy starts. */}
+            <div className="md:hidden flex items-center gap-2 mb-6">
+              <Tru8Mark size={28} />
+              <span className="text-lg font-bold tracking-tighter uppercase">
+                TRU<span className="text-zinc-400 font-normal">8</span>
+              </span>
+            </div>
             <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 md:mb-6">
               News Evidence Research Platform
             </div>
