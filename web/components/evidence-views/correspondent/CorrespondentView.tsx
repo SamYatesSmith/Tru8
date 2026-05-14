@@ -300,6 +300,9 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
     <div>
       <CorrespondentSummary {...summary} />
 
+      {/* Diversity flags lead the view — these are the strongest single Tru8 honesty moment */}
+      <SourceGaps gaps={gaps} />
+
       {TIER_GROUPS.map((tier) => {
         const group = tierGrouped[tier];
         if (group.length === 0) return null;
@@ -337,8 +340,6 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
           </div>
         );
       })}
-
-      <SourceGaps gaps={gaps} />
     </div>
   );
 }
