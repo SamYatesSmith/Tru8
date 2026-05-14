@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { AuthModal } from '@/components/auth/auth-modal';
+import { Tru8Mark } from '@/components/brand/tru8-mark';
 
 /**
  * Desktop Navigation Component (Stitch W-01)
@@ -33,13 +33,7 @@ export function Navigation({
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Left: Logo */}
           <Link href="/" className="flex items-center gap-3" aria-label="Tru8 home">
-            <Image
-              src="/logo.proper.png"
-              alt="Tru8 logo"
-              width={40}
-              height={40}
-              className="object-contain md:w-[50px] md:h-[50px]"
-            />
+            <Tru8Mark size={40} />
             <span className="text-xl font-bold tracking-tighter uppercase">
               TRU<span className="text-zinc-400 font-normal">8</span>
             </span>
