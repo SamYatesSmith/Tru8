@@ -127,7 +127,7 @@ export function EvidenceHeatmap({ evidence, onCellClick }: EvidenceHeatmapProps)
   return (
     <div className="mb-10">
       <div className="font-mono text-sm font-bold uppercase tracking-[0.3em] text-zinc-600 mb-6 border-b border-zinc-200 pb-2">
-        Evidence Profile
+        At a Glance
       </div>
 
       {/* Desktop: Tiers as rows, Types as columns (3×6) */}
