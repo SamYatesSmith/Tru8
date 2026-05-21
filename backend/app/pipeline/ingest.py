@@ -11,6 +11,7 @@ from readability import Document
 import bleach
 from youtube_transcript_api import YouTubeTranscriptApi
 from app.core.config import settings
+from app.core.url_safety import UnsafeUrlError, safe_get
 
 # Note: PIL imports moved inside functions to prevent heavy ML libraries (numpy)
 # from loading at startup. They will only load when image OCR is actually used.
@@ -175,14 +176,23 @@ class UrlIngester(BaseIngester):
                 for attempt, user_agent in enumerate(user_agents):
                     try:
                         headers = self._get_browser_headers(user_agent)
-                        response = session.get(
+                        # F-SEC-02: safe_get validates the URL + every redirect
+                        # hop. Replaces the previous allow_redirects=True path
+                        # that would happily follow a 302 to http://10.0.0.1/.
+                        response = safe_get(
                             url,
+                            session=session,
                             timeout=self.timeout,
-                            allow_redirects=True,
                             headers=headers,
                         )
                         response.raise_for_status()
                         return response
+
+                    except UnsafeUrlError as e:
+                        # Refuse to retry an SSRF-flagged URL with a different UA —
+                        # the address resolution doesn't depend on UA. Fail fast.
+                        logger.warning(f"Refusing unsafe URL {url}: {e}")
+                        raise
 
                     except requests.HTTPError as e:
                         last_error = e

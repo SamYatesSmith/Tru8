@@ -19,6 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session
+from app.core.url_safety import UnsafeUrlError, safe_async_post
 from app.models.webhook import Webhook
 
 logger = logging.getLogger(__name__)
@@ -95,7 +96,14 @@ async def _deliver(webhook: Webhook, event: str, data: Dict[str, Any]) -> None:
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             async with httpx.AsyncClient(timeout=WEBHOOK_TIMEOUT) as client:
-                response = await client.post(
+                # F-SEC-02: safe_async_post validates the URL before connect
+                # (rejects RFC1918/loopback/link-local/CGNAT/IPv6 ULA) and
+                # disables redirect-following — a webhook receiver redirecting
+                # elsewhere is the textbook exfiltration vector. DNS is
+                # re-resolved per delivery, so receivers that rotate IPs are
+                # still re-validated.
+                response = await safe_async_post(
+                    client,
                     webhook.url,
                     content=payload_bytes,
                     headers=headers,
@@ -113,6 +121,12 @@ async def _deliver(webhook: Webhook, event: str, data: Dict[str, Any]) -> None:
                     f"[WEBHOOK] {webhook.url} returned {response.status_code} "
                     f"(attempt {attempt}/{MAX_RETRIES})"
                 )
+        except UnsafeUrlError as e:
+            # SSRF-flagged URL — fail the delivery without retry. The URL is
+            # not going to become public on a backoff.
+            logger.warning(f"[WEBHOOK] Refusing unsafe URL {webhook.url}: {e}")
+            await _update_webhook_status(webhook.id, success=False)
+            return
         except Exception as e:
             logger.warning(
                 f"[WEBHOOK] Delivery failed to {webhook.url}: {e} "
