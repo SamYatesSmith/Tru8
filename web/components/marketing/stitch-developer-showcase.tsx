@@ -55,8 +55,8 @@ const SAMPLE_RESPONSE = `{
   }
 }`;
 
-const SAMPLE_CURL = `curl -X POST https://api.trueight.com/agent/quick \\
-  -H "Authorization: Bearer $TRU8_API_KEY" \\
+const SAMPLE_CURL = `curl -X POST https://api.trueight.com/api/v1/agent/quick \\
+  -H "X-API-Key: $TRU8_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{ "claim": "Global average temperature rose 1.1°C since pre-industrial times" }'`;
 

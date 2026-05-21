@@ -488,7 +488,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 {
   "accepted": 3,
   "tier": "quick",
-  "totalChargedCents": 21,
+  "totalChargedPence": 21,
   "estimatedSeconds": 15,
   "checks": [
     { "index": 0, "checkId": "...", "pollUrl": "/api/v1/agent/result/..." },

@@ -393,7 +393,7 @@ export function DeveloperTab() {
         </p>
         <pre className="bg-white border border-zinc-200 p-4 overflow-x-auto text-xs font-mono text-zinc-700 leading-relaxed">
 {`curl -H "X-API-Key: tru8_sk_..." \\
-     https://api.tru8.com/api/v1/checks`}
+     https://api.trueight.com/api/v1/checks`}
         </pre>
         <div className="mt-3 flex items-center gap-4">
           <a
