@@ -92,7 +92,13 @@ class SkyfirePaymentProvider(PaymentProvider):
         return await self._verify_jwt(token)
 
     async def _verify_jwt(self, token: str) -> dict:
-        """Verify Skyfire JWT via JWKS.  Raises on invalid/expired token."""
+        """Verify Skyfire JWT via JWKS.  Raises on invalid/expired token.
+
+        F-AUTH-03: enforce ``service_id`` claim matches ``SKYFIRE_SERVICE_ID``
+        when configured. Without this, a Skyfire JWT minted for a different
+        service in the same env could mint a Tru8 identity. Defence-in-depth
+        alongside the existing ``_charge`` payload check.
+        """
         try:
             client = _get_jwks_client()
             signing_key = client.get_signing_key_from_jwt(token)
@@ -104,12 +110,24 @@ class SkyfirePaymentProvider(PaymentProvider):
                 options={"verify_aud": False},
                 leeway=10,
             )
+
+            expected_service_id = settings.SKYFIRE_SERVICE_ID
+            if expected_service_id:
+                token_service_id = payload.get("service_id")
+                if token_service_id != expected_service_id:
+                    raise ValueError(
+                        f"Skyfire token service_id mismatch: "
+                        f"got {token_service_id!r}, expected {expected_service_id!r}"
+                    )
+
             return payload
 
         except jwt.ExpiredSignatureError:
             raise ValueError("Skyfire token has expired")
         except jwt.InvalidTokenError as e:
             raise ValueError(f"Invalid Skyfire token: {e}")
+        except ValueError:
+            raise
         except Exception as e:
             raise ValueError(f"Skyfire JWT verification failed: {e}")
 

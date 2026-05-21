@@ -141,6 +141,18 @@ async def get_agent_identity(
                 status_code=401, detail="Skyfire token missing 'sub' claim"
             )
 
+        # F-AUTH-03: belt-and-braces — _verify_jwt already enforces this when
+        # SKYFIRE_SERVICE_ID is configured, but a future code change that
+        # bypasses _verify_jwt should still trip here.
+        from app.core.config import settings as _settings
+
+        expected_service_id = _settings.SKYFIRE_SERVICE_ID
+        if expected_service_id and payload.get("service_id") != expected_service_id:
+            raise HTTPException(
+                status_code=401,
+                detail="Skyfire token service_id mismatch",
+            )
+
         # Lazy-create Tru8 user for Skyfire identity
         from app.models.user import User
 

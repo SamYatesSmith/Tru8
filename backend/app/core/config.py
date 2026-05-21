@@ -42,6 +42,16 @@ class Settings(BaseSettings):
     CLERK_SECRET_KEY: str = Field(..., env="CLERK_SECRET_KEY")
     CLERK_PUBLISHABLE_KEY: str = Field(..., env="CLERK_PUBLISHABLE_KEY")
     CLERK_JWT_ISSUER: str = Field(..., env="CLERK_JWT_ISSUER")
+    # F-AUTH-03: when set, JWTs are validated against this audience. Leave empty
+    # to keep backward-compatible behaviour (no aud check); set in production to
+    # tighten defence against cross-application token reuse on the same Clerk
+    # instance. Must match the `aud` claim configured in the Clerk JWT template.
+    CLERK_JWT_AUDIENCE: str = Field("", env="CLERK_JWT_AUDIENCE")
+    # F-AUTH-02: Svix signing secret for the Clerk webhook endpoint
+    # (POST /api/v1/webhooks/clerk). When empty the endpoint refuses every
+    # request — set in production to wire up user.deleted / user.updated
+    # propagation from Clerk to the local DB.
+    CLERK_WEBHOOK_SECRET: str = Field("", env="CLERK_WEBHOOK_SECRET")
 
     # APIs
     BRAVE_API_KEY: str = Field("", env="BRAVE_API_KEY")

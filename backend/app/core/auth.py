@@ -36,19 +36,30 @@ API_KEY_PREFIX = "tru8_sk_"
 
 
 async def _verify_jwt_token(token: str) -> dict:
-    """Shared JWT verification logic"""
+    """Shared JWT verification logic.
+
+    F-AUTH-03: when ``settings.CLERK_JWT_AUDIENCE`` is set, the ``aud`` claim
+    is enforced. When unset, the legacy permissive behaviour is retained so
+    operators not yet running a Clerk JWT template with an audience aren't
+    locked out — set it as part of the launch checklist.
+    """
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
         expected_issuer = f"https://{settings.CLERK_JWT_ISSUER}"
-        payload = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=["RS256"],
-            issuer=expected_issuer,
-            leeway=60,
-            options={"verify_aud": False},
-        )
+        expected_audience = settings.CLERK_JWT_AUDIENCE or None
+
+        decode_options = {"verify_aud": bool(expected_audience)}
+        decode_kwargs = {
+            "algorithms": ["RS256"],
+            "issuer": expected_issuer,
+            "leeway": 60,
+            "options": decode_options,
+        }
+        if expected_audience:
+            decode_kwargs["audience"] = expected_audience
+
+        payload = jwt.decode(token, signing_key.key, **decode_kwargs)
 
         return payload
     except jwt.ExpiredSignatureError:
