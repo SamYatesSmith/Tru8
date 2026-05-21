@@ -10,7 +10,7 @@ export default function CookiePolicyPage() {
   return (
     <LegalPageLayout
       title="Cookie Policy"
-      lastUpdated="18 March 2026"
+      lastUpdated="27 May 2026"
     >
       <div className="prose-legal">
         <h2>1. What Are Cookies?</h2>

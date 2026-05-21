@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout
       title="Privacy Policy"
-      lastUpdated="18 March 2026"
+      lastUpdated="27 May 2026"
     >
       <div className="prose-legal">
         <h2>1. Introduction</h2>
@@ -200,7 +200,9 @@ export default function PrivacyPolicyPage() {
           Wilmslow, Cheshire SK9 5AF<br />
           Website: <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a>
         </p>
-        {/* ICO registration number: pending — to be added before launch */}
+        <p>
+          <strong>Our ICO registration:</strong> ZC110163
+        </p>
 
         <h2>14. Cross-User Consensus Analysis</h2>
         <p>

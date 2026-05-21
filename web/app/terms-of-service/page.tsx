@@ -9,7 +9,7 @@ export default function TermsOfServicePage() {
   return (
     <LegalPageLayout
       title="Terms of Service"
-      lastUpdated="18 March 2026"
+      lastUpdated="27 May 2026"
     >
       <div className="prose-legal">
         <h2>1. Agreement to Terms</h2>
@@ -280,8 +280,8 @@ export default function TermsOfServicePage() {
         <h2>14. Contact</h2>
         <p>
           <strong>Company:</strong> Trueight Ltd (company number 17090683), trading as Tru8<br />
-          <strong>Email:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a>
-          {/* ICO registration number: pending — to be added before launch */}
+          <strong>Email:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a><br />
+          <strong>ICO registration:</strong> ZC110163
         </p>
       </div>
     </LegalPageLayout>
