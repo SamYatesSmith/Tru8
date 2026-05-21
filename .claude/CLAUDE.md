@@ -78,7 +78,7 @@ Parallel tasks (fire-and-forget):
 |------|----------|-------|--------|
 | Cartographer | Shape of the conversation? | Overview + Detail | Dagre cascade layout |
 | Librarian | Full set, clearly labelled? | Overview + Detail | Tier×Type heatmap + ledger + receipts |
-| Interpreter | Answer this sub-question? | Detail only | Disposition panel with element focus |
+| Correspondent | Answer this sub-question? | Detail only | Disposition panel with element focus (renamed from Interpreter for audience reasons) |
 | Projectionist | What's said on camera? | Overview + Detail | YouTube video cards |
 | Chronologist | When did evidence appear? | Overview + Detail | Pure SVG timeline |
 | Seeker | What don't we know? | Detail only | Unknowns ledger + bounty text + re-search |
@@ -124,7 +124,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 | `backend/app/core/agent_auth.py` | Agent auth + concurrency limits |
 | `backend/app/core/agent_pricing.py` | Agent pricing (lookup $0.02, consensus $0.03, quick $0.07, full $0.15) |
 | `backend/app/middleware/x402_audit.py` | x402 payment middleware |
-| `backend/tru8_mcp/server.py` | MCP server for Claude/agents (single tru8_check tool with tier fallback) |
+| `backend/tru8_mcp/server.py` | MCP server for Claude/agents — 3 tools: `tru8_check` (submit with tier fallback), `tru8_get_result` (computed analytics), `tru8_get_result_raw` (raw data). Thin HTTP client over `/agent/*` + `/checks/*`; inherits pipeline upgrades automatically. |
 
 ### Frontend
 | Directory / File | Purpose |
@@ -169,7 +169,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 - **Redis 7** (port 6379) — cache + Celery broker
 - **Qdrant** (port 6333) — vector similarity
 - **Auth:** Clerk (JWT + JWKS) + API keys (dual auth)
-- **Payments:** Stripe (4 tiers: Free/Pro/Developer/Enterprise) + Agent payments (x402/Skyfire/credits)
+- **Payments:** Stripe (4 tiers: Free Trial / Starter £7 / Professional £29 / Enterprise) + Agent payments (x402/Skyfire/credits). Note: legacy Stripe env vars are still named `_PRO` and `_DEVELOPER` for the £7 and £29 tiers respectively; user-facing names are Starter and Professional. "Developer" was retired because it narrowed the audience.
 
 ## Code Style
 - Python: async/await, type hints on public functions, `black` for formatting
