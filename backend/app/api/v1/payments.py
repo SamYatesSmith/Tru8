@@ -202,6 +202,27 @@ async def stripe_webhook(
             invoice = event["data"]["object"]
             await handle_invoice_paid(invoice, session)
 
+        # F-PAY-02 / F-PAY-03: previously missing event handlers
+        elif event["type"] == "charge.refunded":
+            charge = event["data"]["object"]
+            await handle_charge_refunded(charge, session)
+
+        elif event["type"] == "charge.dispute.created":
+            dispute = event["data"]["object"]
+            await handle_charge_dispute(dispute, session)
+
+        elif event["type"] == "invoice.payment_failed":
+            invoice = event["data"]["object"]
+            await handle_invoice_payment_failed(invoice, session)
+
+        elif event["type"] == "customer.subscription.trial_will_end":
+            subscription = event["data"]["object"]
+            await handle_trial_will_end(subscription, session)
+
+        elif event["type"] == "customer.deleted":
+            customer = event["data"]["object"]
+            await handle_customer_deleted(customer, session)
+
         else:
             logger.info(f"Unhandled event type: {event['type']}")
     except Exception as e:
@@ -355,11 +376,33 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
     logger.info(f"Successfully processed payment for user {user_id}, plan: {plan}")
 
 
+def _plan_from_price_id(price_id: str):
+    """F-PAY-04 helper: map a Stripe price ID to (plan_name, credits_per_month).
+
+    Returns ``None`` if the price ID is unknown — caller decides whether to
+    treat that as a hard error or fall through to status-only updates.
+
+    NB: env vars are named STRIPE_PRICE_ID_PRO / _DEVELOPER for historical
+    reasons; user-facing names are 'starter' / 'professional'. M-04 in the
+    audit tracks renaming env vars post-launch.
+    """
+    mapping = {
+        settings.STRIPE_PRICE_ID_PRO: ("starter", 40),
+        settings.STRIPE_PRICE_ID_DEVELOPER: ("professional", 200),
+    }
+    return mapping.get(price_id)
+
+
 async def handle_subscription_updated(subscription: dict, session: AsyncSession):
-    """Handle subscription updates from Stripe"""
+    """Handle ``customer.subscription.updated`` from Stripe.
+
+    F-PAY-04: re-derive ``plan`` + ``credits_per_month`` from the active
+    item's price ID on every update. Without this, Stripe Customer Portal
+    upgrades (Starter -> Professional) silently leave the DB at the old
+    plan + old credit allocation.
+    """
     stripe_subscription_id = subscription["id"]
 
-    # Find subscription in our database
     stmt = select(Subscription).where(
         Subscription.stripe_subscription_id == stripe_subscription_id
     )
@@ -370,7 +413,6 @@ async def handle_subscription_updated(subscription: dict, session: AsyncSession)
         logger.error(f"Subscription {stripe_subscription_id} not found in database")
         return
 
-    # Update subscription status
     db_subscription.status = subscription["status"]
     db_subscription.current_period_start = datetime.fromtimestamp(
         subscription["current_period_start"], tz=timezone.utc
@@ -380,10 +422,39 @@ async def handle_subscription_updated(subscription: dict, session: AsyncSession)
     ).replace(tzinfo=None)
     db_subscription.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
-    # If subscription renewed, reset credits
-    if subscription["status"] == "active":
+    # F-PAY-04: re-derive plan + credit allocation from price ID
+    items = subscription.get("items", {}).get("data", [])
+    plan_changed = False
+    if items:
+        price_id = items[0].get("price", {}).get("id")
+        mapped = _plan_from_price_id(price_id) if price_id else None
+        if mapped:
+            new_plan, new_credits = mapped
+            if (
+                db_subscription.plan != new_plan
+                or db_subscription.credits_per_month != new_credits
+            ):
+                logger.info(
+                    f"[F-PAY-04] plan change for {stripe_subscription_id}: "
+                    f"{db_subscription.plan}/{db_subscription.credits_per_month} -> "
+                    f"{new_plan}/{new_credits} (price_id={price_id})"
+                )
+                db_subscription.plan = new_plan
+                db_subscription.credits_per_month = new_credits
+                plan_changed = True
+        else:
+            logger.warning(
+                f"[F-PAY-04] unknown price_id {price_id!r} on {stripe_subscription_id}; "
+                f"leaving plan/credits unchanged. Expected one of: "
+                f"{[settings.STRIPE_PRICE_ID_PRO, settings.STRIPE_PRICE_ID_DEVELOPER]}"
+            )
+
+    # Renewal OR plan change -> reset to new allocation.
+    if subscription["status"] == "active" and (
+        plan_changed
+        or db_subscription.credits_remaining < db_subscription.credits_per_month
+    ):
         db_subscription.credits_remaining = db_subscription.credits_per_month
-        # Update user credits too
         user_stmt = select(User).where(User.id == db_subscription.user_id)
         user_result = await session.execute(user_stmt)
         user = user_result.scalar_one_or_none()
@@ -394,7 +465,145 @@ async def handle_subscription_updated(subscription: dict, session: AsyncSession)
     await session.commit()
     logger.info(
         f"Updated subscription {stripe_subscription_id} status to {subscription['status']}"
+        + (" (plan changed)" if plan_changed else "")
     )
+
+
+# ---------------------------------------------------------------------------
+# F-PAY-02 / F-PAY-03: handlers for refund / dispute / failed renewal /
+# trial-ending / deleted customer. Without these, refunded users keep their
+# credits, disputed charges leave subscriptions active, failed renewals
+# stay "active", and deleted Stripe customers remain billable in our DB.
+# ---------------------------------------------------------------------------
+
+
+async def _revoke_credits_for_charge(
+    charge: dict,
+    session: AsyncSession,
+    reason: str,
+) -> None:
+    """Best-effort: clear monthly subscription credits + zero user.credits for
+    the user associated with a refunded / disputed Stripe charge.
+
+    We deliberately do NOT touch ``credit_balance_pence`` (agent credit
+    packs) because refund-vs-purchase reconciliation for those is policy
+    not code — flagged for separate post-launch policy work."""
+    customer_id = charge.get("customer")
+    if not customer_id:
+        logger.warning(
+            f"[{reason}] charge {charge.get('id')} has no customer; skipping"
+        )
+        return
+
+    sub_stmt = select(Subscription).where(
+        Subscription.stripe_customer_id == customer_id
+    )
+    result = await session.execute(sub_stmt)
+    db_subs = result.scalars().all()
+
+    for sub in db_subs:
+        logger.info(
+            f"[{reason}] revoking credits on subscription {sub.id} "
+            f"(user={sub.user_id}, charge={charge.get('id')})"
+        )
+        sub.credits_remaining = 0
+        sub.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        user_stmt = select(User).where(User.id == sub.user_id)
+        user_result = await session.execute(user_stmt)
+        user = user_result.scalar_one_or_none()
+        if user:
+            user.credits = 0
+            user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    if not db_subs:
+        logger.info(
+            f"[{reason}] no subscription found for stripe_customer_id={customer_id}"
+        )
+
+
+async def handle_charge_refunded(charge: dict, session: AsyncSession) -> None:
+    """F-PAY-03: Stripe charge refunded — revoke matching subscription credits."""
+    await _revoke_credits_for_charge(charge, session, reason="REFUND")
+    await session.commit()
+
+
+async def handle_charge_dispute(dispute: dict, session: AsyncSession) -> None:
+    """F-PAY-02: chargeback / dispute filed — revoke matching subscription credits.
+
+    Stripe will follow up with a ``charge.dispute.closed`` event for the
+    outcome; for now we treat the dispute as cash-loss until proven otherwise."""
+    # Dispute objects reference a charge id (string).
+    charge_id = dispute.get("charge")
+    if not charge_id:
+        logger.warning("Dispute event with no charge id; skipping")
+        return
+    try:
+        charge = stripe.Charge.retrieve(charge_id)
+    except Exception as e:
+        logger.error(f"Could not retrieve charge {charge_id} for dispute: {e}")
+        return
+    await _revoke_credits_for_charge(charge, session, reason="DISPUTE")
+    await session.commit()
+
+
+async def handle_invoice_payment_failed(invoice: dict, session: AsyncSession) -> None:
+    """F-PAY-02: renewal payment failed — mark subscription past_due so the
+    rest of the app can downgrade access. Credits are NOT reset to zero here;
+    Stripe will retry the payment and either succeed (invoice.paid) or move
+    to subscription cancellation."""
+    sub_id = invoice.get("subscription")
+    if not sub_id:
+        logger.info(
+            f"invoice.payment_failed for non-subscription invoice {invoice.get('id')}; skipping"
+        )
+        return
+    sub_stmt = select(Subscription).where(Subscription.stripe_subscription_id == sub_id)
+    result = await session.execute(sub_stmt)
+    db_subscription = result.scalar_one_or_none()
+    if not db_subscription:
+        logger.warning(f"invoice.payment_failed for unknown subscription {sub_id}")
+        return
+
+    db_subscription.status = "past_due"
+    db_subscription.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    await session.commit()
+    logger.info(
+        f"[PAYMENT_FAILED] subscription {sub_id} marked past_due "
+        f"(user={db_subscription.user_id}, invoice={invoice.get('id')})"
+    )
+
+
+async def handle_trial_will_end(subscription: dict, session: AsyncSession) -> None:
+    """F-PAY-02: 3 days before a trial converts. Log only — actual email send
+    is handled by Clerk/Resend email templates downstream of this signal."""
+    logger.info(
+        f"[TRIAL_WILL_END] subscription {subscription.get('id')} "
+        f"customer={subscription.get('customer')} trial_end={subscription.get('trial_end')}"
+    )
+
+
+async def handle_customer_deleted(customer: dict, session: AsyncSession) -> None:
+    """F-PAY-02: Stripe customer object deleted (rare, usually admin action).
+    Null out the stripe_customer_id link on every local Subscription so we
+    don't keep trying to bill an orphan."""
+    customer_id = customer.get("id")
+    if not customer_id:
+        return
+    sub_stmt = select(Subscription).where(
+        Subscription.stripe_customer_id == customer_id
+    )
+    result = await session.execute(sub_stmt)
+    db_subs = result.scalars().all()
+    for sub in db_subs:
+        sub.stripe_customer_id = None
+        sub.status = "cancelled"
+        sub.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    if db_subs:
+        await session.commit()
+        logger.info(
+            f"[CUSTOMER_DELETED] cleared stripe_customer_id on {len(db_subs)} subscriptions "
+            f"for customer={customer_id}"
+        )
 
 
 async def handle_subscription_cancelled(subscription: dict, session: AsyncSession):
