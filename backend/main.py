@@ -148,10 +148,10 @@ For cost-sensitive agent workflows, use the `/agent/` endpoints:
 
 | Tier | Endpoint | Time | Cost | Description |
 |------|----------|------|------|-------------|
-| Lookup | `POST /agent/lookup` | Instant | $0.02 | Cached result lookup |
-| Consensus | via `/agent/check` | Instant | $0.03 | Cross-user consensus (k≥3) |
-| Quick | `POST /agent/quick` | ~15s | $0.07 | Reduced pipeline, heuristic classification |
-| Full | `POST /agent/full` | ~90s | $0.15 | Complete pipeline, 30+ sources |
+| Lookup | `POST /agent/lookup` | Instant | £0.02 | Cached result lookup |
+| Consensus | via `/agent/check` | Instant | £0.03 | Cross-user consensus (k≥3) |
+| Quick | `POST /agent/quick` | ~15s | £0.07 | Reduced pipeline, heuristic classification |
+| Full | `POST /agent/full` | ~90s | £0.15 | Complete pipeline, 30+ sources |
 | Smart | `POST /agent/check` | Varies | Varies | Automatic fallback: lookup → consensus → quick → full |
 
 Payment via prepaid credits, Skyfire JWT, or x402 (USDC/SIWE).
@@ -289,6 +289,71 @@ def _filter_breadcrumb(crumb, hint):
     return crumb
 
 
+# F-SEC-07: keys that may carry user-submitted content or PII; redacted before
+# any event leaves the process.
+_PII_REDACT_KEYS = {
+    "content",
+    "url",
+    "claim",
+    "input_content",
+    "input_url",
+    "user_query",
+    "email",
+    "password",
+    "api_key",
+    "x-api-key",
+    "authorization",
+    "skyfire-pay-id",
+    "x-payer-address",
+}
+
+
+def _redact_pii(obj):
+    """Recursively redact known PII-carrying keys from an arbitrary structure."""
+    if isinstance(obj, dict):
+        return {
+            k: ("[REDACTED]" if k.lower() in _PII_REDACT_KEYS else _redact_pii(v))
+            for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [_redact_pii(item) for item in obj]
+    return obj
+
+
+def _scrub_event_pii(event, hint):
+    """F-SEC-07: drop PII from Sentry events before they leave the process.
+    Strips user email/IP, request body fields carrying claim text or URLs,
+    and sensitive headers (API keys, auth tokens, wallet addresses)."""
+    if not isinstance(event, dict):
+        return event
+
+    # Drop the user.email + user.ip_address that send_default_pii would carry.
+    user = event.get("user")
+    if isinstance(user, dict):
+        for key in ("email", "ip_address", "username"):
+            user.pop(key, None)
+
+    request = event.get("request")
+    if isinstance(request, dict):
+        if "data" in request:
+            request["data"] = _redact_pii(request["data"])
+        headers = request.get("headers")
+        if isinstance(headers, dict):
+            request["headers"] = {
+                k: ("[REDACTED]" if k.lower() in _PII_REDACT_KEYS else v)
+                for k, v in headers.items()
+            }
+        query = request.get("query_string")
+        if query and isinstance(query, str) and "token=" in query.lower():
+            request["query_string"] = "[REDACTED]"
+
+    extra = event.get("extra")
+    if isinstance(extra, dict):
+        event["extra"] = _redact_pii(extra)
+
+    return event
+
+
 # Initialise Sentry only when running in a deployed environment.
 # Local dev (ENVIRONMENT=development) was previously polluting the
 # production Sentry project — every uvicorn run with a SENTRY_DSN in
@@ -301,6 +366,8 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT.lower() in _SENTRY_ENABLED_ENVIR
         dsn=settings.SENTRY_DSN,
         environment=settings.ENVIRONMENT,
         before_breadcrumb=_filter_breadcrumb,
+        before_send=_scrub_event_pii,
+        send_default_pii=False,
         max_breadcrumbs=100,
     )
     app.add_middleware(SentryAsgiMiddleware)
