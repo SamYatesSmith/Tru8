@@ -56,7 +56,8 @@ class AgentClaimRequest(BaseModel):
     """Submit a claim or URL for evidence research."""
 
     claim: str = Field(
-        description="The claim text to analyse, or a URL to extract claims from"
+        max_length=10_000,
+        description="The claim text to analyse, or a URL to extract claims from",
     )
     input_type: Optional[str] = Field(
         None,
@@ -72,7 +73,8 @@ class SmartCheckRequest(BaseModel):
     """Request for the smart /agent/check endpoint with automatic tier fallback."""
 
     claim: str = Field(
-        description="The claim text to analyse, or a URL to extract claims from"
+        max_length=10_000,
+        description="The claim text to analyse, or a URL to extract claims from",
     )
     input_type: Optional[str] = Field(
         None,
@@ -95,7 +97,9 @@ class SmartCheckRequest(BaseModel):
 class BatchClaimItem(BaseModel):
     """A single claim within a batch request."""
 
-    claim: str = Field(description="The claim text to analyse, or a URL")
+    claim: str = Field(
+        max_length=10_000, description="The claim text to analyse, or a URL"
+    )
     input_type: Optional[str] = Field(
         None, description="'text' or 'url'. Auto-detected if omitted."
     )
