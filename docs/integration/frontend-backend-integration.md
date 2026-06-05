@@ -62,12 +62,12 @@ if (token) {
 Frontend:
 ```
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_c2ltcGxlLXBvbGVjYXQtOTguY2xlcmsuYWNjb3VudHMuZGV2JA
-CLERK_SECRET_KEY=sk_test_7jxii4PIkreDHYD86dEEDkB5fOoFlfmLTGKPbc8RYa
+CLERK_SECRET_KEY=sk_test_xxxx
 ```
 
 Backend:
 ```
-CLERK_SECRET_KEY=sk_test_7jxii4PIkreDHYD86dEEDkB5fOoFlfmLTGKPbc8RYa
+CLERK_SECRET_KEY=sk_test_xxxx
 CLERK_PUBLISHABLE_KEY=pk_test_c2ltcGxlLXBvbGVjYXQtOTguY2xlcmsuYWNjb3VudHMuZGV2JA
 CLERK_JWT_ISSUER=simple-polecat-98.clerk.accounts.dev
 ```
