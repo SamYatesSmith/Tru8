@@ -52,10 +52,14 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built assets from standalone output
-COPY --from=builder /app/web/public ./public
+# Copy built assets from standalone output.
+# outputFileTracingRoot=<repo root> makes the standalone bundle nest the app
+# under web/ (server.js at standalone/web/server.js) with hoisted node_modules
+# at standalone root. public/ and static/ must therefore land under web/ so the
+# nested server resolves them. CMD runs web/server.js.
 COPY --from=builder /app/web/.next/standalone ./
-COPY --from=builder /app/web/.next/static ./.next/static
+COPY --from=builder /app/web/public ./web/public
+COPY --from=builder /app/web/.next/static ./web/.next/static
 
 USER nextjs
 
@@ -64,4 +68,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["node", "web/server.js"]

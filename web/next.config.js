@@ -1,3 +1,5 @@
+const path = require("path");
+
 // Sentry is optional - only load if installed and configured
 let withSentryConfig;
 try {
@@ -28,6 +30,14 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@clerk/nextjs'],
+    // Monorepo: deps hoist to the repo root node_modules. Without this, the
+    // standalone tracer infers the root as web/ and fails to bundle the
+    // hoisted `next` package, crashing the container at runtime with
+    // "Cannot find module 'next'". Pointing the trace root at the repo root
+    // nests output under standalone/web/ and bundles node_modules correctly.
+    // (Top-level in Next 15; under `experimental` in 14.2.) Dockerfile
+    // COPY/CMD paths are aligned to this nested layout.
+    outputFileTracingRoot: path.join(__dirname, '..'),
   },
   async headers() {
     // F-SEC-03: CSP whitelists Clerk, Stripe, Sentry (de.sentry.io), and
