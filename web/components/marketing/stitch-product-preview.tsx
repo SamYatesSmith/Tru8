@@ -114,11 +114,11 @@ export function StitchProductPreview() {
               Module — See It Work
             </span>
             <h2 className="text-4xl md:text-6xl lg:text-7xl font-extralight tracking-[-0.02em] text-zinc-900 leading-[0.95]">
-              Four views.<br />
+              Six views.<br />
               One <span className="font-bold">landscape.</span>
             </h2>
             <p className="text-sm md:text-base text-zinc-500 leading-relaxed mt-6 max-w-xl">
-              The same evidence research, surfaced four ways. Click any panel to open it full-size with zoom.
+              The same evidence research, surfaced six ways. Four are shown here — click any panel to open it full-size with zoom.
             </p>
           </div>
         </ScrollReveal>

@@ -1,59 +1,76 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { Tru8Mark } from '@/components/brand/tru8-mark';
 
 /**
  * Stitch W-01 Hero Section
  *
- * Grid-dot background, mono micro-label, large headline,
- * black CTA with orange diamond accent.
+ * Grid-dot background, mono product eyebrow, large definitive headline,
+ * black primary CTA with orange diamond accent + quiet secondary CTA.
  */
 export function StitchHero() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
     <>
-      <section className="relative pt-8 pb-16 md:pt-32 md:pb-40 bg-grid-dot overflow-hidden border-b border-zinc-100">
+      <section className="relative pt-12 pb-16 md:pt-32 md:pb-40 bg-grid-dot overflow-hidden border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
           <div className="max-w-4xl">
-            {/* Mobile-only brand row: logo | tagline | wordmark — three-up layout
-                with the platform tagline anchored between the two brand elements.
-                flex-1 on the centre span lets it absorb the remaining width and
-                wrap to two lines on narrow screens if necessary. */}
-            <div className="md:hidden flex items-center justify-between gap-3 mb-8">
-              <Tru8Mark size={40} />
-              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-zinc-400 text-center flex-1 leading-tight">
-                News Evidence Research Platform
-              </span>
-              <span className="text-[26px] font-bold tracking-tighter uppercase leading-none">
+            {/* Mobile-only masthead: a single brand lockup (mark + wordmark together).
+                The desktop nav supplies branding >= 768px, so this renders on mobile only.
+                The product descriptor lives in the eyebrow below — no longer squeezed
+                between two competing brand signals. */}
+            <div className="md:hidden flex items-center gap-2.5 mb-10">
+              <Tru8Mark size={36} />
+              <span className="text-2xl font-bold tracking-tighter uppercase leading-none">
                 TRU<span className="text-zinc-400 font-normal">8</span>
               </span>
             </div>
-            {/* Desktop tagline — mobile version lives inside the brand row above */}
-            <div className="hidden md:block font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-6">
+
+            {/* Product eyebrow — shown on all sizes; tells a first-time visitor what this is */}
+            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-5 md:mb-6">
               News Evidence Research Platform
             </div>
-            <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-[84px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-6 md:mb-8">
-              Look behind the headlines.<br />
-              <span className="font-bold">Form your view.</span>
+
+            <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-[84px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-5 md:mb-8">
+              The evidence behind the headlines.<br />
+              <span className="font-bold">Gathered, classified, organised.</span>
             </h1>
+
             <p className="text-sm md:text-base lg:text-lg text-zinc-500 mb-8 md:mb-12 max-w-xl leading-relaxed">
-              Tru8 isn&apos;t a fact checker. Headlines make claims every day, and the evidence behind them is scattered across dozens of sources. Tru8 gathers that evidence, classifies it by proximity and type, and organises the full landscape — so you don&apos;t have to. We organise. You decide.
-              <span className="block mt-3 text-zinc-400">
-                Building an agent? The same evidence research is available as a structured API — <a href="/developers" className="underline underline-offset-2 hover:text-zinc-900 transition-colors">read the dev docs</a>.
-              </span>
+              Paste a headline, article, or claim. Tru8 pulls the evidence from dozens of sources, classifies each one by proximity and type, and maps the full landscape. We organise; you decide.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+
+            <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="group relative flex items-center justify-between bg-black text-white px-6 py-3 md:px-10 md:py-6 text-xs md:text-sm font-bold tracking-[0.3em] uppercase w-[65%] sm:w-72 transition-all hover:bg-zinc-900"
+                className="group inline-flex items-center justify-center gap-4 bg-black text-white px-8 py-4 md:px-12 md:py-6 text-xs md:text-sm font-bold tracking-[0.3em] uppercase w-full sm:w-auto transition-all hover:bg-zinc-900"
               >
                 <span>Start Analysing</span>
-                <div className="w-3 h-3 bg-accent absolute right-0 top-1/2 -translate-y-1/2 translate-x-1.5 rotate-45" />
+                {/* Orange diamond signature — kept inside the button bounds so it never clips */}
+                <span className="w-2.5 h-2.5 bg-accent rotate-45 transition-transform group-hover:translate-x-1" />
               </button>
+              <a
+                href="#preview"
+                className="group inline-flex items-center justify-center gap-2 border border-zinc-200 px-8 py-4 md:px-10 md:py-6 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-zinc-900 w-full sm:w-auto transition-colors hover:border-zinc-900"
+              >
+                <span>See a Sample</span>
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+              </a>
             </div>
+
+            {/* Developer aside — decoupled from the consumer pitch and visually quieter,
+                so it no longer splits the audience inside the main paragraph. */}
+            <p className="mt-7 md:mt-8 text-xs md:text-sm text-zinc-400 max-w-xl leading-relaxed">
+              Building an agent? The same evidence research is available as a structured API —{' '}
+              <a href="/developers" className="underline underline-offset-2 hover:text-zinc-900 transition-colors">
+                read the dev docs
+              </a>
+              .
+            </p>
           </div>
         </div>
       </section>
