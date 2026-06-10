@@ -102,7 +102,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 | File | Purpose |
 |------|---------|
 | `backend/app/models/claim_map.py` | ClaimMap types + enums (includes basis, orientation_basis) |
-| `backend/app/models/check.py` | DB schema (Evidence has tier, type, receipt_status, content_basis, archived_url, provenance fields; Check has manifest JSONB) |
+| `backend/app/models/check.py` | DB schema (Evidence has tier, type, receipt_status, content_basis, archived_url, provenance fields; Check has manifest JSONB + `client` first-party-attribution column) |
 | `backend/app/models/agent_transaction.py` | Agent transaction model (5 statuses, idempotency) |
 | `backend/app/models/claim_consensus.py` | ClaimConsensus model (k≥3 cross-user consensus, stability classification) |
 | `backend/app/api/v1/checks.py` | API endpoints (dual auth, computed analytics, snapshot mode) |
@@ -122,9 +122,11 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 | `backend/app/core/manifest_signer.py` | HMAC-SHA256 manifest signing, canonical payload, pipeline fingerprint |
 | `backend/app/services/payments/` | PaymentProvider ABC, credit + Skyfire providers |
 | `backend/app/core/agent_auth.py` | Agent auth + concurrency limits |
+| `backend/app/core/client_origin.py` | `resolve_client(request)` — normalises `X-Tru8-Client` header (e.g. `mcp/1.0.2` → `mcp`) onto `Check.client` for first-party usage attribution |
 | `backend/app/core/agent_pricing.py` | Agent pricing (lookup $0.02, consensus $0.03, quick $0.07, full $0.15) |
 | `backend/app/middleware/x402_audit.py` | x402 payment middleware |
-| `backend/tru8_mcp/server.py` | MCP server for Claude/agents — 3 tools: `tru8_check` (submit with tier fallback), `tru8_get_result` (computed analytics), `tru8_get_result_raw` (raw data). Thin HTTP client over `/agent/*` + `/checks/*`; inherits pipeline upgrades automatically. |
+| `backend/tru8_mcp/server.py` | MCP server for Claude/agents — 3 tools: `tru8_check` (submit with tier fallback), `tru8_get_result` (computed analytics), `tru8_get_result_raw` (raw data). Thin HTTP client over `/agent/*` + `/checks/*`; inherits pipeline upgrades automatically. Sends `X-Tru8-Client: mcp/<version>` on every request (see `tru8_mcp/tools.py::_headers`). |
+| `backend/scripts/mcp_usage.py` | "Is the MCP package being used?" report — counts `Check.client` by client with 24h/7d/30d windows + distinct users. Run `python -m scripts.mcp_usage` (or `railway run python -m scripts.mcp_usage` against prod). |
 
 ### Frontend
 | Directory / File | Purpose |
@@ -170,6 +172,12 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 - **Qdrant** (port 6333) — vector similarity
 - **Auth:** Clerk (JWT + JWKS) + API keys (dual auth)
 - **Payments:** Stripe (4 tiers: Free Trial / Starter £7 / Professional £29 / Enterprise) + Agent payments (x402/Skyfire/credits). Note: legacy Stripe env vars are still named `_PRO` and `_DEVELOPER` for the £7 and £29 tiers respectively; user-facing names are Starter and Professional. "Developer" was retired because it narrowed the audience.
+
+## Pending deploy / verify (as of 2026-06-10 — MCP-origin tracking)
+Committed locally, **NOT pushed** (commit after `7ca2689`). Verify tomorrow, then push:
+1. **Alembic migration `client_origin`** adds `check.client` (varchar32, indexed). New single head. Runs automatically via `entrypoint.sh` on Railway deploy — confirm it applied (`alembic current` → `client_origin`).
+2. **Publish `tru8-mcp` 1.0.2 to PyPI** — `1.0.1` (currently live) does NOT send `X-Tru8-Client`, so MCP usage is only tracked once users install ≥1.0.2. Build+upload from `backend/tru8_mcp/` (`.pypirc` already configured). Version already bumped in `pyproject.toml`.
+3. **Confirm tracking works** — after deploy + an MCP-submitted check, run `python -m scripts.mcp_usage` and check the `mcp` row is non-zero. (Local fast test: `pytest tests/unit/test_client_origin.py` — 9 pass.)
 
 ## Code Style
 - Python: async/await, type hints on public functions, `black` for formatting
