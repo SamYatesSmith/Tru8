@@ -26,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.agent_auth import AgentPaymentContext, compute_request_hash
 from app.core.agent_pricing import get_tier_price
+from app.core.client_origin import resolve_client
 from app.core.config import settings
 from app.core.database import get_session
 from app.core.rate_limit import limiter
@@ -170,6 +171,7 @@ async def _run_x402_pipeline(
         status="processing",
         credits_used=0,
         initiated_via="agent_x402",
+        client=resolve_client(request),  # first-party client attribution (e.g. "mcp")
         executed_tier=tier,  # M-03: record pipeline tier at creation
     )
     session.add(check)

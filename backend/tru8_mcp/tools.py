@@ -8,11 +8,20 @@ import asyncio
 import json
 import logging
 import os
+from importlib.metadata import PackageNotFoundError, version
 from typing import Optional
 
 import httpx
 
 logger = logging.getLogger(__name__)
+
+# Client identifier sent on every request so the backend can attribute usage to
+# the MCP package (persisted as Check.client). Format: "mcp/<version>".
+try:
+    _CLIENT_VERSION = version("tru8-mcp")
+except PackageNotFoundError:  # running from source, not installed
+    _CLIENT_VERSION = "dev"
+CLIENT_HEADER = f"mcp/{_CLIENT_VERSION}"
 
 # Pipeline timeouts (seconds)
 PIPELINE_TIMEOUT = 180.0
@@ -55,7 +64,11 @@ class Tru8APIClient:
             )
 
     def _headers(self) -> dict:
-        return {"X-API-Key": self.api_key, "Accept": "application/json"}
+        return {
+            "X-API-Key": self.api_key,
+            "Accept": "application/json",
+            "X-Tru8-Client": CLIENT_HEADER,
+        }
 
     @staticmethod
     def _detect_input_type(claim: str) -> Optional[str]:

@@ -27,6 +27,7 @@ from app.core.agent_auth import (
     get_agent_payment,
 )
 from app.core.agent_pricing import get_tier_price
+from app.core.client_origin import resolve_client
 from app.core.config import settings
 from app.core.database import get_session
 from app.core.rate_limit import limiter
@@ -373,6 +374,7 @@ async def agent_smart_check(
         payment=payment,
         session=session,
         idempotency_key=idempotency_key,
+        client=resolve_client(request),
     )
 
 
@@ -634,6 +636,7 @@ async def agent_quick(
         session=session,
         idempotency_key=idempotency_key,
         async_mode=async_mode,
+        client=resolve_client(request),
     )
 
 
@@ -702,6 +705,7 @@ async def agent_full(
         session=session,
         idempotency_key=idempotency_key,
         async_mode=async_mode,
+        client=resolve_client(request),
     )
 
 
@@ -722,6 +726,7 @@ async def _run_agent_pipeline(
     session: AsyncSession,
     idempotency_key: Optional[str],
     async_mode: bool = False,
+    client: Optional[str] = None,
 ) -> JSONResponse:
     """Create check, charge, run pipeline, return response with _meta."""
     from app.core.database import async_session
@@ -771,6 +776,7 @@ async def _run_agent_pipeline(
         status="processing",
         credits_used=0,  # Agent checks don't use dashboard credits
         initiated_via=f"agent_{payment.provider}",
+        client=client,  # first-party client attribution (e.g. "mcp")
         executed_tier=tier,  # M-03: record pipeline tier at creation
     )
     session.add(check)
@@ -1554,6 +1560,7 @@ async def agent_batch(
             status="processing",
             credits_used=0,
             initiated_via=f"agent_{payment.provider}",
+            client=resolve_client(request),
             executed_tier=tier,
         )
         session.add(check)

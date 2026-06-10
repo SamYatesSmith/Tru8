@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from pydantic import BaseModel, Field
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from app.core.client_origin import resolve_client
 from app.core.database import get_session
 from app.core.auth import (
     get_current_user,
@@ -93,6 +94,7 @@ async def _validate_and_create_check(
     current_user: dict,
     session: AsyncSession,
     initiated_via: str = "dashboard",
+    client: Optional[str] = None,
 ) -> tuple:
     """Validate input, enforce credits, and create a Check record.
 
@@ -202,6 +204,7 @@ async def _validate_and_create_check(
         credits_used=1,
         user_query=body.user_query,
         initiated_via=initiated_via,
+        client=client,  # first-party client attribution (e.g. "mcp")
         executed_tier="full",  # M-03: dashboard always runs full pipeline
     )
 
@@ -634,7 +637,7 @@ async def create_check_streaming(
 
     via = "api_key" if request.headers.get("X-API-Key") else "dashboard"
     user, check = await _validate_and_create_check(
-        body, current_user, session, initiated_via=via
+        body, current_user, session, initiated_via=via, client=resolve_client(request)
     )
 
     # Prepare input data for pipeline
@@ -895,7 +898,7 @@ async def create_check_sync(
 
     via = "api_key" if request.headers.get("X-API-Key") else "dashboard"
     user, check = await _validate_and_create_check(
-        body, current_user, session, initiated_via=via
+        body, current_user, session, initiated_via=via, client=resolve_client(request)
     )
 
     # Prepare input data for pipeline

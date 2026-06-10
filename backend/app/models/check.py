@@ -58,6 +58,13 @@ class Check(SQLModel, table=True):
         max_length=20,
         description="Origin: dashboard | api_key | agent_x402 | agent_skyfire | agent_credit",
     )
+    client: Optional[str] = Field(
+        default=None,
+        max_length=32,
+        index=True,
+        description="First-party client that submitted the check, from the "
+        "X-Tru8-Client header (e.g. 'mcp'). NULL for web/raw-API traffic.",
+    )
     executed_tier: Optional[str] = Field(
         default=None,
         max_length=20,
