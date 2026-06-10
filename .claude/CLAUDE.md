@@ -16,7 +16,7 @@ AI-powered evidence research platform. Users submit a URL or claim, the pipeline
 | G | COMPLETE | The Seeker (known unknowns) + Re-search mechanism. |
 | H API | COMPLETE | Agent API (8 PRs), MCP server, dual auth, webhooks, snapshot mode, sync `/run` endpoint. |
 | H NAV | COMPLETE | Unified check detail — single page, state-driven claim focus. Commit `6403227`. |
-| I | IN PROGRESS | Pre-release readiness. Subs LIVE in production (`SUBSCRIPTIONS_ENABLED=True` deployed long ago — confirmed 2026-05-01; I-03/I-04 closed). Remaining: I-06 OG cards visual review, I-07 MCP publication. See `audit/track-i/PROGRESS.md`. |
+| I | IN PROGRESS | Pre-release readiness. Subs LIVE in production (`SUBSCRIPTIONS_ENABLED=True` deployed long ago — confirmed 2026-05-01; I-03/I-04 closed). I-07 MCP publication DONE — `tru8-mcp` 1.0.1 on PyPI (2026-06-10). Remaining: I-06 OG cards visual review, I-07 directory submissions (mcp.so/PulseMCP/Smithery/official registry, non-blocking). See `audit/track-i/PROGRESS.md`. |
 | J | COMPLETE | Test suite overhaul — 0 failures, +87 new tests. Commit `a5ed52d`. |
 | K | COMPLETE | Endpoint + efficacy testing. 1,092 tests collected. Commit `14371cf` + subsequent. |
 | L | COMPLETE | Agent Commerce Gateway — 3 tiers (Lookup/Quick/Full), 3 payment rails (x402/Skyfire/credits), `/agent/` endpoints, MCP tier tool. Deployment-only items remain (Stripe credit packs, PyPI publish). |

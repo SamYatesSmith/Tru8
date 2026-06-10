@@ -4,14 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tru8-mcp"
-version = "1.0.0"
+version = "1.0.1"
 description = "Tru8 Evidence Research MCP server — structured evidence research tools for AI agents"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
+authors = [{ name = "SamYatesSmith", email = "samyatessmith@gmail.com" }]
 keywords = ["mcp", "evidence", "fact-check", "ai-agent", "research"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -22,5 +23,31 @@ dependencies = [
     "httpx>=0.25.0",
 ]
 
+[project.urls]
+Homepage = "https://www.trueight.com"
+Documentation = "https://www.trueight.com/developers"
+Repository = "https://github.com/SamYatesSmith/tru8-mcp"
+Issues = "https://github.com/SamYatesSmith/tru8-mcp/issues"
+
 [project.scripts]
 tru8-mcp = "tru8_mcp.server:main"
+
+# The package modules live flat alongside this pyproject.toml (the project
+# directory itself is the `tru8_mcp` package, with relative imports). Map them
+# into a proper `tru8_mcp/` package inside the built sdist + wheel.
+[tool.hatch.build.targets.wheel.force-include]
+"__init__.py" = "tru8_mcp/__init__.py"
+"__main__.py" = "tru8_mcp/__main__.py"
+"server.py" = "tru8_mcp/server.py"
+"tools.py" = "tru8_mcp/tools.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "__init__.py",
+    "__main__.py",
+    "server.py",
+    "tools.py",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
