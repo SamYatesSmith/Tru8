@@ -173,11 +173,12 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 - **Auth:** Clerk (JWT + JWKS) + API keys (dual auth)
 - **Payments:** Stripe (4 tiers: Free Trial / Starter £7 / Professional £29 / Enterprise) + Agent payments (x402/Skyfire/credits). Note: legacy Stripe env vars are still named `_PRO` and `_DEVELOPER` for the £7 and £29 tiers respectively; user-facing names are Starter and Professional. "Developer" was retired because it narrowed the audience.
 
-## Pending deploy / verify (as of 2026-06-10 — MCP-origin tracking)
-Committed locally, **NOT pushed** (commit after `7ca2689`). Verify tomorrow, then push:
-1. **Alembic migration `client_origin`** adds `check.client` (varchar32, indexed). New single head. Runs automatically via `entrypoint.sh` on Railway deploy — confirm it applied (`alembic current` → `client_origin`).
-2. **Publish `tru8-mcp` 1.0.2 to PyPI** — `1.0.1` (currently live) does NOT send `X-Tru8-Client`, so MCP usage is only tracked once users install ≥1.0.2. Build+upload from `backend/tru8_mcp/` (`.pypirc` already configured). Version already bumped in `pyproject.toml`.
-3. **Confirm tracking works** — after deploy + an MCP-submitted check, run `python -m scripts.mcp_usage` and check the `mcp` row is non-zero. (Local fast test: `pytest tests/unit/test_client_origin.py` — 9 pass.)
+## Pending deploy / verify (as of 2026-06-11 — MCP-origin tracking)
+1. ✅ **Pushed 2026-06-11** — `7ca2689..4818c54` (feat `932cd9d` X-Tru8-Client + migration; docs `4818c54`). Railway auto-deploy triggered; backend `/api/v1/health/` → healthy/production post-push.
+2. ✅ **`tru8-mcp` 1.0.2 published to PyPI 2026-06-11** — https://pypi.org/project/tru8-mcp/1.0.2/. `twine check` PASSED; shipped wheel confirmed to contain the `X-Tru8-Client` header (1.0.1 did NOT — MCP usage only tracks once users install ≥1.0.2).
+3. ⏳ **VERIFY (needs Railway login — interactive):**
+   - **Migration applied:** `railway run python -m alembic current` → expect `client_origin (head)` (runs automatically via `entrypoint.sh` on deploy; `check.client` varchar32 indexed, single head, revises `classification_method_64`).
+   - **Tracking works:** after one MCP-submitted check on 1.0.2, `railway run python -m scripts.mcp_usage` → `mcp` row non-zero. (Local fast test: `pytest tests/unit/test_client_origin.py` — 9 pass.)
 
 ## Code Style
 - Python: async/await, type hints on public functions, `black` for formatting
