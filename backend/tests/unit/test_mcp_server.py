@@ -10,6 +10,13 @@ from datetime import datetime
 import pytest
 from unittest.mock import AsyncMock, patch
 
+# tru8_mcp.server imports mcp.server.fastmcp (FastMCP), which only exists in
+# mcp >= 1.2. The backend's pinned pydantic-settings==2.1.0 makes pip resolve
+# an older mcp in clean installs (e.g. CI), so skip this module there instead
+# of aborting the entire collection. See OPEN_WORK: mcp/pydantic-settings dep
+# alignment. tru8_mcp is exercised separately on its own package build.
+pytest.importorskip("mcp.server.fastmcp")
+
 import tru8_mcp.server as server_module
 from tru8_mcp.server import (
     _format,
