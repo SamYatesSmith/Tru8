@@ -58,6 +58,13 @@ jobs:
           CLERK_JWT_ISSUER: https://ci-dummy.clerk.accounts.dev
           ENVIRONMENT: test
           DEBUG: 'false'
+          # Dummy LLM keys: the pipeline gates each provider call behind a
+          # truthy api_key check, so the mock-based unit tests (claim map,
+          # extract, query answer/planner, fallback chain) need a key present
+          # to reach their mocks. No real call is made — the HTTP layer is
+          # mocked. Live-LLM tests stay opt-in (TRU8_RUN_LIVE_LLM_TESTS).
+          GOOGLE_AI_API_KEY: ci-dummy-key
+          OPENAI_API_KEY: ci-dummy-key
 
   frontend:
     runs-on: ubuntu-latest

@@ -13,6 +13,7 @@ Run with: pytest tests/unit/pipeline/test_question_extraction.py -v
 """
 
 import json
+import os
 import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock, patch, MagicMock
@@ -307,7 +308,14 @@ class TestLLMQuestionExtraction:
 
     def setup_method(self):
         self.extractor = ClaimExtractor()
-        # Skip if no API key configured
+        # These hit the LIVE LLM, so they need an explicit opt-in. CI sets
+        # dummy LLM keys (to satisfy the mock-based tests in this repo), which
+        # would otherwise make these fire real calls against a placeholder key
+        # and fail. Run locally with TRU8_RUN_LIVE_LLM_TESTS=1 + real keys.
+        if os.environ.get("TRU8_RUN_LIVE_LLM_TESTS") != "1":
+            pytest.skip(
+                "Live LLM tests disabled (set TRU8_RUN_LIVE_LLM_TESTS=1 to run)"
+            )
         if not self.extractor.google_ai_api_key and not self.extractor.openai_api_key:
             pytest.skip("No LLM API keys configured")
 
