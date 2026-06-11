@@ -7,7 +7,7 @@ and error handling for the MCP API client wrapper.
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from tru8_mcp.tools import Tru8APIClient
+from tru8_mcp.tools import CLIENT_HEADER, Tru8APIClient
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +70,11 @@ class TestConstructor:
     def test_headers(self):
         client = Tru8APIClient(api_url="http://localhost:8000", api_key="sk-test")
         headers = client._headers()
-        assert headers == {"X-API-Key": "sk-test", "Accept": "application/json"}
+        assert headers == {
+            "X-API-Key": "sk-test",
+            "Accept": "application/json",
+            "X-Tru8-Client": CLIENT_HEADER,
+        }
 
 
 # ===========================================================================

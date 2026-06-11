@@ -82,6 +82,30 @@ class TestUrlIngester:
         """
         return UrlIngester()
 
+    @pytest.fixture(autouse=True)
+    def _stub_safe_get(self):
+        """Stub the F-SEC-02 SSRF wrapper at the ingest boundary.
+
+        Since 2026-05-21 (commit cae242d) UrlIngester fetches through
+        ``app.core.url_safety.safe_get``, which does real DNS resolution
+        (``assert_public_url``) and follows redirects manually by inspecting
+        ``response.is_redirect``. The pre-SSRF mocks in this suite return a
+        bare ``Mock()`` — so safe_get hit the network on fake test domains and
+        treated every truthy child-Mock as a redirect. These are
+        ingest-extraction tests, not SSRF tests (SSRF behaviour belongs in a
+        dedicated url_safety suite), so we delegate safe_get straight to the
+        mocked session: offline, deterministic, redirect-agnostic.
+        """
+
+        def _delegating_safe_get(
+            url, *, session=None, timeout=None, headers=None, **kwargs
+        ):
+            sess = session if session is not None else requests.Session()
+            return sess.get(url, timeout=timeout, headers=headers)
+
+        with patch("app.pipeline.ingest.safe_get", side_effect=_delegating_safe_get):
+            yield
+
     @pytest.mark.asyncio
     async def test_successful_url_extraction_with_trafilatura(self, url_ingester):
         """
