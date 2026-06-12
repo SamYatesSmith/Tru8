@@ -40,17 +40,20 @@ const nextConfig = {
     outputFileTracingRoot: path.join(__dirname, '..'),
   },
   async headers() {
-    // F-SEC-03: CSP whitelists Clerk, Stripe, Sentry (de.sentry.io), and
-    // cdn.jsdelivr.net (Swagger UI). 'unsafe-inline'/'unsafe-eval' kept on
+    // F-SEC-03: CSP whitelists Clerk, Stripe, Sentry (de.sentry.io),
+    // cdn.jsdelivr.net (Swagger UI), and PostHog EU (eu.i.posthog.com +
+    // eu-assets.i.posthog.com — analytics ingestion + lazy-loaded helpers;
+    // without these connect-src entries the browser silently drops every
+    // PostHog event). 'unsafe-inline'/'unsafe-eval' kept on
     // script-src because Next.js App Router relies on them; nonce-based CSP
     // is post-launch work bundled with the Next 16 migration.
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.trueight.com https://js.stripe.com https://browser.sentry-cdn.com https://*.sentry.io https://*.ingest.de.sentry.io https://cdn.jsdelivr.net",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.trueight.com https://js.stripe.com https://browser.sentry-cdn.com https://*.sentry.io https://*.ingest.de.sentry.io https://cdn.jsdelivr.net https://eu-assets.i.posthog.com",
       "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.trueight.com https://*.clerk.accounts.dev https://clerk.trueight.com https://api.stripe.com https://*.sentry.io https://*.ingest.de.sentry.io",
+      "connect-src 'self' https://api.trueight.com https://*.clerk.accounts.dev https://clerk.trueight.com https://api.stripe.com https://*.sentry.io https://*.ingest.de.sentry.io https://eu.i.posthog.com https://eu-assets.i.posthog.com",
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
