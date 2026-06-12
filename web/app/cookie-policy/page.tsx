@@ -47,10 +47,10 @@ export default function CookiePolicyPage() {
               <td>Session</td>
             </tr>
             <tr>
-              <td><code>cookieyes-consent</code></td>
-              <td>CookieYes</td>
+              <td><code>tru8-consent</code></td>
+              <td>Tru8</td>
               <td>Stores your cookie preferences</td>
-              <td>1 year</td>
+              <td>180 days</td>
             </tr>
           </tbody>
         </table>

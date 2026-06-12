@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Tru8Mark } from '@/components/brand/tru8-mark';
+import { openConsentBanner } from '@/lib/consent';
 
 export function Footer() {
   const platformLinks = [
@@ -83,11 +84,7 @@ export function Footer() {
               ))}
               <li>
                 <button
-                  onClick={() => {
-                    if (typeof window !== 'undefined' && (window as any).cookieyes) {
-                      (window as any).cookieyes.showBanner();
-                    }
-                  }}
+                  onClick={() => openConsentBanner()}
                   className="text-zinc-500 hover:text-black transition-colors"
                 >
                   Cookie Preferences
