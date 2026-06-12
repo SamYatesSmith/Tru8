@@ -10,7 +10,7 @@ from fastapi import APIRouter, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_session
+from app.core.database import async_session
 from app.core.manifest_signer import (
     build_canonical_data,
     compute_canonical_hash,
@@ -52,6 +52,10 @@ async def _load_claims_for_verify(check_id: str, session: AsyncSession) -> list[
                     "evidence_type": ev.evidence_type,
                     "content_basis": ev.content_basis,
                     "classification_method": ev.classification_method,
+                    # Required so the recomputed landscape matches signing time:
+                    # _compute_landscape derives uniqueDomains from evidence URLs,
+                    # and the signing path (runner) passes evidence dicts with url.
+                    "url": ev.url,
                 }
             )
 
@@ -89,7 +93,7 @@ async def verify_check(check_id: str, request: Request):
 
     **Rate limit:** 60/minute per IP
     """
-    async with get_session() as session:
+    async with async_session() as session:
         check = await session.get(Check, check_id)
         if not check or not check.manifest:
             return {"valid": False, "reason": "not_found"}

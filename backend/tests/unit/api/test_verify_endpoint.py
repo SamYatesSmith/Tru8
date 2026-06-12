@@ -184,7 +184,7 @@ class TestVerifyEndpoint:
         app = _create_test_app()
 
         with (
-            patch("app.api.v1.verify.get_session") as mock_get_session,
+            patch("app.api.v1.verify.async_session") as mock_get_session,
             patch("app.api.v1.verify.verify_manifest") as mock_verify,
             patch("app.api.v1.verify.build_canonical_data") as mock_build,
             patch("app.api.v1.verify.compute_canonical_hash") as mock_hash,
@@ -225,7 +225,7 @@ class TestVerifyEndpoint:
 
         app = _create_test_app()
 
-        with patch("app.api.v1.verify.get_session") as mock_get_session:
+        with patch("app.api.v1.verify.async_session") as mock_get_session:
             mock_ctx = AsyncMock()
             mock_ctx.__aenter__ = AsyncMock(return_value=session)
             mock_ctx.__aexit__ = AsyncMock(return_value=False)
@@ -250,7 +250,7 @@ class TestVerifyEndpoint:
 
         app = _create_test_app()
 
-        with patch("app.api.v1.verify.get_session") as mock_get_session:
+        with patch("app.api.v1.verify.async_session") as mock_get_session:
             mock_ctx = AsyncMock()
             mock_ctx.__aenter__ = AsyncMock(return_value=session)
             mock_ctx.__aexit__ = AsyncMock(return_value=False)
@@ -277,7 +277,7 @@ class TestVerifyEndpoint:
         app = _create_test_app()
 
         with (
-            patch("app.api.v1.verify.get_session") as mock_get_session,
+            patch("app.api.v1.verify.async_session") as mock_get_session,
             patch("app.api.v1.verify.verify_manifest") as mock_verify,
         ):
             mock_ctx = AsyncMock()
@@ -314,7 +314,7 @@ class TestVerifyEndpoint:
         app = _create_test_app()
 
         with (
-            patch("app.api.v1.verify.get_session") as mock_get_session,
+            patch("app.api.v1.verify.async_session") as mock_get_session,
             patch("app.api.v1.verify.verify_manifest") as mock_verify,
             patch("app.api.v1.verify.build_canonical_data") as mock_build,
             patch("app.api.v1.verify.compute_canonical_hash") as mock_hash,
@@ -351,7 +351,7 @@ class TestVerifyEndpoint:
         app = _create_test_app()
 
         with (
-            patch("app.api.v1.verify.get_session") as mock_get_session,
+            patch("app.api.v1.verify.async_session") as mock_get_session,
             patch("app.api.v1.verify.verify_manifest") as mock_verify,
         ):
             mock_ctx = AsyncMock()
