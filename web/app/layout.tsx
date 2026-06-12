@@ -1,6 +1,5 @@
 import { ClerkProvider } from '@clerk/nextjs'
 import { Inter, JetBrains_Mono } from 'next/font/google'
-import Script from 'next/script'
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { ServiceWorkerTombstone } from '@/components/layout/service-worker-tombstone'
@@ -59,16 +58,15 @@ export default function RootLayout({
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
     >
       <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-        <head>
-          {/* CookieYes Cookie Consent Banner */}
-          {process.env.NEXT_PUBLIC_COOKIEYES_ID && (
-            <Script
-              id="cookieyes"
-              src={`https://cdn-cookieyes.com/client_data/${process.env.NEXT_PUBLIC_COOKIEYES_ID}/script.js`}
-              strategy="afterInteractive"
-            />
-          )}
-        </head>
+        {/* CookieYes consent banner — TEMPORARILY DISABLED 2026-06-12.
+            The cdn-cookieyes.com script crashes hydration site-wide (React
+            #418/#423/#425): its auto-blocking rewrites/disables scripts —
+            including Next.js's own hydration chunks — once it loads, which
+            breaks React under both beforeInteractive and afterInteractive.
+            Re-enable only after configuring CookieYes auto-blocking to skip
+            first-party scripts (dashboard) and verifying against a LOCAL
+            production build (`npm run build && npm run start`) first.
+            The NEXT_PUBLIC_COOKIEYES_ID Railway var is now inert. */}
         <body className="bg-white text-zinc-900 antialiased font-sans" suppressHydrationWarning>
           <ServiceWorkerTombstone />
           {children}
