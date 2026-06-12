@@ -714,6 +714,28 @@ async def agent_full(
 # ---------------------------------------------------------------------------
 
 
+# Strong refs for fire-and-forget tasks so they aren't garbage-collected
+# mid-flight (same pattern as checks.py).
+_background_tasks: set = set()
+
+
+def _launch_archiving(check_id: str) -> None:
+    """Fire-and-forget Wayback archiving for a completed agent check.
+
+    F10 parity with the dashboard pipeline path — without this, agent-submitted
+    checks never get archived_url populated.
+    """
+    try:
+        from app.services.wayback_archive import archive_evidence_urls
+
+        task = asyncio.create_task(archive_evidence_urls(check_id))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
+        logger.info(f"[AGENT] Archive task launched for check {check_id}")
+    except Exception as exc:
+        logger.debug(f"[AGENT] Archiving skipped for {check_id}: {exc}")
+
+
 async def _run_agent_pipeline(
     *,
     body: AgentClaimRequest,
@@ -878,6 +900,9 @@ async def _run_agent_pipeline(
         async with async_session() as save_session:
             await save_check_results_async(check.id, result, save_session)
             await save_session.commit()
+
+        # Fire-and-forget URL archiving (F10)
+        _launch_archiving(check.id)
 
         # Mark transaction completed + attach pipeline metrics (L-12)
         tx.status = "completed"
@@ -1072,6 +1097,9 @@ async def _run_pipeline_background(
         async with async_session() as save_session:
             await save_check_results_async(check_id, result, save_session)
             await save_session.commit()
+
+        # Fire-and-forget URL archiving (F10)
+        _launch_archiving(check_id)
 
         # Mark transaction completed
         async with async_session() as tx_session:
