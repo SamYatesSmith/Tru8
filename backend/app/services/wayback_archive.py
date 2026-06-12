@@ -20,7 +20,9 @@ from app.models import Claim, Evidence
 logger = logging.getLogger(__name__)
 
 WAYBACK_SAVE_URL = "https://web.archive.org/save/"
-REQUEST_TIMEOUT = 30.0
+# Wayback's Save API routinely takes 60-120s to capture a page; a short
+# timeout silently zeroes the archive yield (observed live 2026-06-12).
+REQUEST_TIMEOUT = 120.0
 INTER_REQUEST_DELAY = 4.0  # seconds between requests (~15/min)
 RETRY_DELAYS = {
     429: 60.0,  # Rate limited — wait longer
