@@ -23,7 +23,7 @@ const professions = [
     name: 'The Librarian',
     question: 'Show me the full set, clearly labelled.',
     description:
-      'Every source classified by proximity and type. Filter, sort, browse. Nothing hidden.',
+      'Every source classified by tier and type. Filter, sort, browse. Nothing hidden.',
   },
   {
     icon: Users,

@@ -20,7 +20,7 @@ const steps = [
     number: '02',
     label: 'Research',
     title: 'Evidence Gathered',
-    description: 'Tru8 searches government data, news archives, academic papers, and official records. Each piece of evidence is classified by proximity and type.',
+    description: 'Tru8 searches government data, news archives, academic papers, and official records. Each piece of evidence is classified by tier and type.',
   },
   {
     icon: ClipboardCheck,

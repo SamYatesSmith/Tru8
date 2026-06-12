@@ -163,6 +163,13 @@ export function StitchDeveloperShowcase() {
                   Signed manifests, MCP server, webhooks
                 </div>
               </div>
+
+              <Link
+                href="/compare"
+                className="inline-block text-sm text-zinc-400 underline underline-offset-2 hover:text-zinc-200 transition-colors"
+              >
+                See how this compares to Web IQ, check-grounding and Sonar →
+              </Link>
             </div>
           </ScrollReveal>
         </div>

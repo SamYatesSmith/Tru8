@@ -7,6 +7,7 @@
 Base: https://api.trueight.com/api/v1/agent
 Auth: X-API-Key header
 Docs: https://www.trueight.com/developers
+Compare: https://www.trueight.com/compare — capability comparison vs Web IQ / Google check-grounding / Perplexity / Parallel, with live response captures
 
 Endpoints:
 - POST /agent/check — Smart endpoint, automatic tier fallback (lookup → consensus → quick → full)

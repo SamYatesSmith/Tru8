@@ -82,7 +82,7 @@ export default function EvidenceResearchForAgentsPage() {
             </p>
 
             <p>
-              Tru8 sits in the gap between search and synthesis. Given a claim, it searches across 30+ source categories — government data, academic papers, news, official records, legislation, economic indicators, health data — and returns a structured evidence landscape. Every source is classified by proximity (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Nothing is hidden; exclusions are logged with reasons.
+              Tru8 sits in the gap between search and synthesis. Given a claim, it searches across 30+ source categories — government data, academic papers, news, official records, legislation, economic indicators, health data — and returns a structured evidence landscape. Every source is classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Nothing is hidden; exclusions are logged with reasons.
             </p>
 
             <p>

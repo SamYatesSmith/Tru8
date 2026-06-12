@@ -36,12 +36,12 @@ export function StitchHero() {
             </div>
 
             <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-[84px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-5 md:mb-8">
-              The evidence behind the headlines.<br />
-              <span className="font-bold">Gathered, classified, organised.</span>
+              The evidence landscape<br />
+              <span className="font-bold">behind any claim.</span>
             </h1>
 
             <p className="text-sm md:text-base lg:text-lg text-zinc-500 mb-8 md:mb-12 max-w-xl leading-relaxed">
-              Paste a headline, article, or claim. Tru8 pulls the evidence from dozens of sources, classifies each one by proximity and type, and maps the full landscape. We organise; you decide.
+              Paste a headline, article, or claim. Tru8 maps the full evidence landscape — every source classified by tier and type, mapped to what it supports or challenges, with the gaps named. We organise; you decide.
             </p>
 
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
@@ -65,9 +65,9 @@ export function StitchHero() {
             {/* Developer aside — decoupled from the consumer pitch and visually quieter,
                 so it no longer splits the audience inside the main paragraph. */}
             <p className="mt-7 md:mt-8 text-xs md:text-sm text-zinc-400 max-w-xl leading-relaxed">
-              Building an agent? The same evidence research is available as a structured API —{' '}
-              <a href="/developers" className="underline underline-offset-2 hover:text-zinc-900 transition-colors">
-                read the dev docs
+              Building an agent? The same landscape is one API call —{' '}
+              <a href="/compare" className="underline underline-offset-2 hover:text-zinc-900 transition-colors">
+                see how it compares to grounding APIs
               </a>
               .
             </p>

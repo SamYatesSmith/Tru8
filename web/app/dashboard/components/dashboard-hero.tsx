@@ -23,7 +23,7 @@ const PROCESS_STEPS = [
     label: 'Research',
     title: 'Evidence Gathered',
     description:
-      'Government data, news, academic papers, and official records — classified by proximity and type.',
+      'Government data, news, academic papers, and official records — classified by tier and type.',
   },
   {
     icon: ClipboardCheck,

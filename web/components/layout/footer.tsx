@@ -10,6 +10,7 @@ export function Footer() {
     { label: 'Pricing', href: '/#pricing' },
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Developers', href: '/developers' },
+    { label: 'Compare', href: '/compare' },
   ];
 
   const companyLinks = [

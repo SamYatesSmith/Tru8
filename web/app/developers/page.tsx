@@ -48,7 +48,7 @@ export default function DevelopersPage() {
               Module — Developer API
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 mb-6 md:mb-8">
-              Evidence Research for AI Agents
+              The evidence landscape behind any claim. One API call.
             </h1>
 
             <div className="space-y-6 text-base md:text-lg text-zinc-600 leading-relaxed">
@@ -56,6 +56,23 @@ export default function DevelopersPage() {
                 Submit a claim, URL, or article. Get back structured evidence — organised by source tier
                 (primary, reporting, commentary) and type (data, official, news, analysis, academic),
                 with element decomposition and relationship mapping.
+              </p>
+
+              <p>
+                Grounding APIs return passages and a score. Tru8 returns structure:{' '}
+                <code className="text-sm font-mono text-zinc-900">tier</code>,{' '}
+                <code className="text-sm font-mono text-zinc-900">type</code>,{' '}
+                <code className="text-sm font-mono text-zinc-900">relationship</code>,{' '}
+                <code className="text-sm font-mono text-zinc-900">state</code>,{' '}
+                <code className="text-sm font-mono text-zinc-900">gaps</code>,{' '}
+                <code className="text-sm font-mono text-zinc-900">receipts</code>,{' '}
+                <code className="text-sm font-mono text-zinc-900">manifest</code>.{' '}
+                <Link
+                  href="/compare"
+                  className="text-accent underline underline-offset-2 hover:text-zinc-900 transition-colors"
+                >
+                  Same claim, Tru8 vs four grounding APIs →
+                </Link>
               </p>
 
               <div className="bg-zinc-50 border-l-4 border-accent px-6 py-5 my-8">
