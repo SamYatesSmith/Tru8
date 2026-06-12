@@ -65,7 +65,7 @@ export default function RootLayout({
             <Script
               id="cookieyes"
               src={`https://cdn-cookieyes.com/client_data/${process.env.NEXT_PUBLIC_COOKIEYES_ID}/script.js`}
-              strategy="beforeInteractive"
+              strategy="afterInteractive"
             />
           )}
         </head>
