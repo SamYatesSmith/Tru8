@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Bell, Check, ArrowRight, X } from 'lucide-react';
 import Link from 'next/link';
+import { capture } from '@/lib/analytics';
 
 interface SubscriptionsComingSoonProps {
   /** Where the user came from, for context in the waitlist signup */
@@ -25,10 +26,16 @@ export function SubscriptionsComingSoon({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
 
+  // Paywall shown to the user.
+  useEffect(() => {
+    capture('paywall_hit', { surface: 'coming_soon', source });
+  }, [source]);
+
   const handleWaitlistSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
 
+    capture('upgrade_click', { surface: 'waitlist', source });
     setIsSubmitting(true);
     setError('');
 

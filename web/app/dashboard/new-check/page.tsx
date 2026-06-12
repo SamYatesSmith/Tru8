@@ -115,6 +115,11 @@ export default function NewCheckPage() {
     checkUsage();
   }, [getToken]);
 
+  // Monthly-limit paywall shown.
+  useEffect(() => {
+    if (isLimitReached) capture('paywall_hit', { surface: 'limit_banner' });
+  }, [isLimitReached]);
+
   const isValidUrl = (url: string): boolean => {
     try {
       new URL(url);
@@ -293,6 +298,7 @@ export default function NewCheckPage() {
               </p>
               <Link
                 href="/dashboard/settings?tab=subscription"
+                onClick={() => capture('upgrade_click', { surface: 'limit_banner' })}
                 className="inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] py-3 px-6 transition-colors"
               >
                 Upgrade

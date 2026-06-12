@@ -4,6 +4,7 @@ import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { ServiceWorkerTombstone } from '@/components/layout/service-worker-tombstone'
 import { AnalyticsProvider } from '@/components/analytics/posthog-provider'
+import { AnalyticsIdentify } from '@/components/analytics/analytics-identify'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -70,6 +71,7 @@ export default function RootLayout({
             The NEXT_PUBLIC_COOKIEYES_ID Railway var is now inert. */}
         <body className="bg-white text-zinc-900 antialiased font-sans" suppressHydrationWarning>
           <ServiceWorkerTombstone />
+          <AnalyticsIdentify />
           <AnalyticsProvider>
             {children}
           </AnalyticsProvider>

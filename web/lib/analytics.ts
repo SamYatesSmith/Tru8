@@ -94,3 +94,13 @@ export function capture(
   if (!initialized || typeof window === 'undefined') return;
   posthog.capture(event, properties);
 }
+
+/** Associate subsequent events with a known user (e.g. after Clerk auth). */
+export function identifyUser(
+  id: string,
+  properties?: Record<string, unknown>,
+): void {
+  initAnalytics();
+  if (!initialized || typeof window === 'undefined') return;
+  posthog.identify(id, properties);
+}

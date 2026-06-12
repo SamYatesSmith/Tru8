@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import { X, Lock, FileSearch, Download, Filter, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { capture } from '@/lib/analytics';
 
 interface UpgradeModalProps {
   feature: 'sources';
@@ -11,6 +13,10 @@ interface UpgradeModalProps {
 }
 
 export function UpgradeModal({ feature, sourcesCount, onClose, subscriptionsEnabled = false }: UpgradeModalProps) {
+  useEffect(() => {
+    capture('paywall_hit', { surface: 'sources_modal', feature, subscriptionsEnabled });
+  }, [feature, subscriptionsEnabled]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
@@ -89,6 +95,7 @@ export function UpgradeModal({ feature, sourcesCount, onClose, subscriptionsEnab
           </button>
           <Link
             href="/dashboard/settings?tab=subscription"
+            onClick={() => capture('upgrade_click', { surface: 'sources_modal', subscriptionsEnabled })}
             className="flex-1 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-bold uppercase tracking-[0.2em] text-center transition-colors"
           >
             {subscriptionsEnabled ? 'Upgrade to Pro' : 'Join Waitlist'}
