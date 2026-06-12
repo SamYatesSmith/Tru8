@@ -45,6 +45,18 @@ _VALID_CLAIM_TYPES = {e.value for e in ClaimType}
 _VALID_STATES = {e.value for e in ElementState}
 _VALID_RELATIONSHIPS = {e.value for e in EvidenceRelationship}
 
+# The mapping schema types uncertainty as plain string (see schema note below),
+# so when the prompt says "<one sentence or null>" the LLM emits the LITERAL
+# string "null". Mechanical normalisation — never rely on the prompt for this.
+_UNCERTAINTY_SENTINELS = {"null", "none", "n/a", "na", ""}
+
+
+def _clean_uncertainty(value) -> Optional[str]:
+    """Normalise LLM sentinel strings ("null", "none", …) to real None."""
+    if not value or not isinstance(value, str):
+        return None
+    return None if value.strip().lower() in _UNCERTAINTY_SENTINELS else value
+
 
 # ── Response schemas for Gemini structured output ───────────────────────────
 # Constrains mapper output at the API level. Mirrors the structure the prompt
@@ -1415,7 +1427,7 @@ class ClaimMapAnalyzer:
                 raw_state = "unresolved"
 
             # Uncertainty (optional)
-            elem["uncertainty"] = mapped.get("uncertainty") or None
+            elem["uncertainty"] = _clean_uncertainty(mapped.get("uncertainty"))
 
             # PQ-03: Attach evidence basis metadata
             elem["basis"] = _compute_element_basis(elem, evidence_list)
@@ -1802,7 +1814,9 @@ class ClaimMapAnalyzer:
                         raw_state = mapped.get("state", "unresolved")
                         if raw_state not in _VALID_STATES:
                             raw_state = "unresolved"
-                        elem["uncertainty"] = mapped.get("uncertainty") or None
+                        elem["uncertainty"] = _clean_uncertainty(
+                            mapped.get("uncertainty")
+                        )
                         # Authority-weighted override (parity with the main
                         # mapping path). Recovery only sees new_evidence for
                         # tier lookup; refs that pre-date this round resolve

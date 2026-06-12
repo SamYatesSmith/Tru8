@@ -1062,3 +1062,32 @@ class TestDeriveElementStateWithAuthority:
             "caveat",
         ]:
             assert key in basis
+
+
+class TestCleanUncertainty:
+    """LLM sentinel normalisation — the mapping schema types uncertainty as a
+    plain string, so the model emits the literal "null" when there is nothing
+    to say. Found verbatim in the 2026-06-12 /compare capture."""
+
+    def test_literal_null_string_becomes_none(self):
+        from app.pipeline.claim_map_analyzer import _clean_uncertainty
+
+        assert _clean_uncertainty("null") is None
+        assert _clean_uncertainty("None") is None
+        assert _clean_uncertainty("NULL") is None
+        assert _clean_uncertainty("n/a") is None
+        assert _clean_uncertainty("  null  ") is None
+
+    def test_falsy_and_non_string_become_none(self):
+        from app.pipeline.claim_map_analyzer import _clean_uncertainty
+
+        assert _clean_uncertainty(None) is None
+        assert _clean_uncertainty("") is None
+        assert _clean_uncertainty(0) is None
+        assert _clean_uncertainty({"text": "x"}) is None
+
+    def test_real_sentence_passes_through(self):
+        from app.pipeline.claim_map_analyzer import _clean_uncertainty
+
+        sentence = "Newer research challenges the protective effect."
+        assert _clean_uncertainty(sentence) == sentence
