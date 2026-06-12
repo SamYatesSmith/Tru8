@@ -6,6 +6,7 @@ import { useAuth } from '@clerk/nextjs';
 import { Loader2, Twitter, Linkedin, MessageCircle, Lock, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
+import { capture } from '@/lib/analytics';
 import { PageHeader } from '../components/page-header';
 import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
 
@@ -174,6 +175,7 @@ export default function NewCheckPage() {
     }
 
     setIsSubmitting(true);
+    capture('check_submitted', { input_type: activeTab });
 
     try {
       const token = await getToken();

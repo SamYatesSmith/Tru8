@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { ServiceWorkerTombstone } from '@/components/layout/service-worker-tombstone'
+import { AnalyticsProvider } from '@/components/analytics/posthog-provider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -69,7 +70,9 @@ export default function RootLayout({
             The NEXT_PUBLIC_COOKIEYES_ID Railway var is now inert. */}
         <body className="bg-white text-zinc-900 antialiased font-sans" suppressHydrationWarning>
           <ServiceWorkerTombstone />
-          {children}
+          <AnalyticsProvider>
+            {children}
+          </AnalyticsProvider>
         </body>
       </html>
     </ClerkProvider>
