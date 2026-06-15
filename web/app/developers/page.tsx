@@ -3,6 +3,7 @@ import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 import { Footer } from '@/components/layout/footer';
 import { ArrowLeft, Key, Search, FileJson, BarChart3, ShieldCheck, Bell, Layers, Radio } from 'lucide-react';
 import Link from 'next/link';
+import { TrackedLink } from '@/components/analytics/tracked-link';
 
 export const metadata = {
   title: 'API & MCP Server for AI Agents',
@@ -956,12 +957,14 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
             <p className="text-zinc-500 mb-6 max-w-lg mx-auto">
               Create an API key and submit your first check in under a minute.
             </p>
-            <Link
+            <TrackedLink
+              event="get_api_key_click"
+              eventProps={{ surface: 'developers_cta' }}
               href="/dashboard/settings?tab=developer"
               className="inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent/90 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
             >
               Get API Key
-            </Link>
+            </TrackedLink>
           </div>
 
           {/* Mono metadata footer */}

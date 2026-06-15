@@ -154,6 +154,14 @@ class Check(SQLModel, table=True):
         description="Signed manifest: landscape_hash, signature, signed_at, kid, scheme",
     )
 
+    # Per-check COGS telemetry (P1, 2026-06-15) — raw tokens/calls = ground truth
+    # for the P5 pricing decision; estimated_cost_usd is a derived, recomputable view.
+    cost_telemetry: Optional[dict] = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+        description="COGS telemetry: llm tokens by captured stage, search/api RESULT counts, timing, PARTIAL estimated_cost_usd (raw counts are ground truth)",
+    )
+
     # Raw Sources List feature (Pro feature - shows all sources reviewed)
     raw_sources_count: Optional[int] = Field(
         default=0, description="Total number of sources reviewed before filtering"

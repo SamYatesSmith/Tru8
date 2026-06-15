@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { Tru8Mark } from '@/components/brand/tru8-mark';
+import { capture } from '@/lib/analytics';
 
 /**
  * Stitch W-01 Hero Section
@@ -46,7 +47,10 @@ export function StitchHero() {
 
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
               <button
-                onClick={() => setIsAuthModalOpen(true)}
+                onClick={() => {
+                  capture('try_in_browser_click', { surface: 'hero' });
+                  setIsAuthModalOpen(true);
+                }}
                 className="group inline-flex items-center justify-center gap-4 bg-black text-white px-8 py-4 md:px-12 md:py-6 text-xs md:text-sm font-bold tracking-[0.3em] uppercase w-full sm:w-auto transition-all hover:bg-zinc-900"
               >
                 <span>Start Analysing</span>

@@ -78,7 +78,11 @@ export type AnalyticsEvent =
   | 'signup'
   | 'check_submitted'
   | 'paywall_hit'
-  | 'upgrade_click';
+  | 'upgrade_click'
+  // Verification-repositioning funnel (P1, 2026-06-15). Wired to existing
+  // durable surfaces now; more added in P4 when the homepage is rebuilt.
+  | 'get_api_key_click' // developer-conversion CTA (developers page)
+  | 'try_in_browser_click'; // hero primary CTA (research entry)
 
 export function capture(
   event: AnalyticsEvent,

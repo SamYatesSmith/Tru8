@@ -2730,6 +2730,14 @@ async def save_check_results_async(
         if provider_status:
             check.provider_status = provider_status
 
+        # Per-check COGS telemetry (P1, 2026-06-15) — non-critical; never block a save
+        try:
+            from app.core.cost_constants import build_cost_telemetry
+
+            check.cost_telemetry = build_cost_telemetry(results)
+        except Exception as e:  # pragma: no cover - defensive
+            logger.warning(f"cost_telemetry build failed for {check_id}: {e}")
+
         # Query response
         query_data = results.get("query_response")
         if query_data:
