@@ -64,6 +64,13 @@ async def main(claim_id: str) -> None:
         "user_query": input_data.get("user_query"),
     }
 
+    # Mirror the bench: bust Redis caches so retrieve actually runs (otherwise a
+    # warm search_results/evidence_extract cache short-circuits adapters and the
+    # probe is non-deterministic).
+    from scripts.replay_bench.runner import _bust_pipeline_caches
+
+    await _bust_pipeline_caches()
+
     with cassette:
         result = await run_pipeline(check_id, user_id, pin, ProgressReporter(check_id))
         if result is None:
@@ -95,6 +102,12 @@ async def main(claim_id: str) -> None:
 
     print("=== final_result top-level keys ===")
     print(sorted(result.keys()))
+    print("\n=== provider_status (also reads claim['api_stats']) ===")
+    ps = result.get("provider_status") or {}
+    api_providers = {
+        k: v for k, v in ps.items() if (v or {}).get("type") != "web_search"
+    }
+    print(json.dumps(api_providers, indent=2, default=str)[:1200])
     print("\n=== top-level api_stats ===")
     print(json.dumps(result.get("api_stats"), indent=2, default=str)[:1500])
     print("\n=== has top-level api_stats? ===", "api_stats" in result)

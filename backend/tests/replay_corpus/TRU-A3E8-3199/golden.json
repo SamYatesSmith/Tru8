@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-A3E8-3199",
-  "captured_at": "2026-06-16T09:30:09.705116+00:00",
-  "captured_with": "1f7c0ba",
+  "captured_at": "2026-06-16T10:16:31.881345+00:00",
+  "captured_with": "8604213",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -43,7 +43,7 @@
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 0,
+      "value": 2,
       "tolerance": 8
     },
     "tier_reporting": {

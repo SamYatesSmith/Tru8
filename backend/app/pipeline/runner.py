@@ -171,18 +171,18 @@ def extract_pipeline_metrics(
     if config.enable_query_answering and final_result.get("query_response"):
         llm_calls += 1
 
-    # API adapter calls from api_stats
-    # NF-03 (KNOWN BROKEN — reads 0): the per-claim api_stats set at
-    # retrieve.py:1408 does not survive into final_result. _aggregate_api_stats
-    # comes back with apis_queried=[] even when adapters were called (proven via
-    # the cassette bench: GovInfo queried twice on TRU-82CF yet total_api_calls=0),
-    # and final_result["claims"] is the rebuilt `results` list that never copies
-    # api_stats. Fixing this is an upstream dataflow change (retrieve -> runner),
-    # not this counter line — tracked separately. See audit/2026-06-15_pipeline_should_vs_is.md.
-    api_adapter_calls = 0
-    for source, source_stats in api_stats.items():
-        if isinstance(source_stats, dict):
-            api_adapter_calls += source_stats.get("results_returned", 0) > 0
+    # API adapter calls: count adapters that returned >=1 result. The aggregated
+    # per-adapter detail lives in api_stats["apis_queried"] (a list of
+    # {name, results}) built by _aggregate_api_stats. NF-03: the old code
+    # iterated api_stats.items() — i.e. the top-level keys apis_queried (a list),
+    # total_api_calls/total_api_results (ints), ... — none of which are
+    # {results_returned: N} dicts, so it always counted 0. Verified against the
+    # deterministic cassette bench (e.g. TRU-B4A3: GOV.UK 15 / Hansard 4 / Marketaux 3).
+    api_adapter_calls = sum(
+        1
+        for adapter in api_stats.get("apis_queried", [])
+        if isinstance(adapter, dict) and adapter.get("results", 0) > 0
+    )
 
     # Web search: derive from raw sources minus API sources
     raw_sources = final_result.get("raw_sources_count", 0)

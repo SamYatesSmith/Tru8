@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-93DD-F4B7",
-  "captured_at": "2026-06-16T09:30:02.066109+00:00",
-  "captured_with": "1f7c0ba",
+  "captured_at": "2026-06-16T10:16:24.279696+00:00",
+  "captured_with": "8604213",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -46,7 +46,7 @@
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 0,
+      "value": 2,
       "tolerance": 8
     },
     "tier_primary": {
