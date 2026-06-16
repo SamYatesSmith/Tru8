@@ -105,7 +105,7 @@ def _report(claim_text: str, result: dict) -> None:
         print(f"  [{i}] domain/juris: {c.get('article_classification')}")
         print(f"      text: {(c.get('text') or '')[:100]}")
         ents = c.get("key_entities") or []
-        print(f"      key_entities: {[(e.get('text'), e.get('label')) for e in ents]}")
+        print(f"      key_entities (raw): {ents}")
 
     print("\nadapters queried (provider_status, API only):")
     ps = result.get("provider_status") or {}
