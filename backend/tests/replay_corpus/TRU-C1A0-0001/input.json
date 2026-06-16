@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-C1A0-0001",
+  "description": "ONS-shaped UK CPI inflation claim — proves ONS Economic Statistics yields on indicator claims (Finance/UK). Cluster-probe fixture.",
+  "tests": ["ONS routing + yield", "Finance/UK jurisdiction", "ONS_DATASET_MAPPING concept match (inflation/CPI)"],
+  "input_type": "text",
+  "content": "UK inflation, measured by the Office for National Statistics' Consumer Prices Index, rose to 11.1% in October 2022.",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "article",
+  "selected_positions": [0]
+}
