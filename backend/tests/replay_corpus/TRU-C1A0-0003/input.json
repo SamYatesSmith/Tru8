@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-C1A0-0003",
+  "description": "Biomedical claim — proves PubMed yields on Health/Science claims (Pfizer-BioNTech vaccine efficacy). Cluster-probe fixture. Also captures the Semantic Scholar 429 (keyless rate-limit) deterministically.",
+  "tests": ["PubMed routing + yield", "Health domain", "Semantic Scholar 429 (keyless rate-limit, env)"],
+  "input_type": "text",
+  "content": "A 2021 New England Journal of Medicine trial found the Pfizer-BioNTech COVID-19 vaccine had 95% efficacy against symptomatic infection.",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "focused",
+  "selected_positions": [0]
+}
