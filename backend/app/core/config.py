@@ -98,6 +98,9 @@ class Settings(BaseSettings):
     NCBI_CONTACT_EMAIL: str = Field(
         "hello@trueight.com", env="NCBI_CONTACT_EMAIL"
     )  # NCBI politeness contact — included in PubMed eutils params to avoid silent throttling (A2)
+    SEMANTIC_SCHOLAR_API_KEY: str = Field(
+        "", env="SEMANTIC_SCHOLAR_API_KEY"
+    )  # Semantic Scholar Academic Graph — sent as x-api-key header; lifts the keyless 100-req/5min limit that 429s under bench/pipeline load
 
     # Storage
     S3_BUCKET: str = Field("tru8-uploads", env="S3_BUCKET")

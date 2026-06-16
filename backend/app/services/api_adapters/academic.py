@@ -12,6 +12,7 @@ import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
+from app.core.config import settings
 from app.services.government_api_client import GovernmentAPIClient
 from app.utils.adapter_query_helpers import extract_claim_year
 
@@ -222,6 +223,12 @@ class SemanticScholarAdapter(GovernmentAPIClient):
         self.headers["User-Agent"] = (
             "Tru8FactChecker/1.0 (https://tru8.com; hello@trueight.com)"
         )
+        # Authenticated requests lift the keyless 100-req/5min public limit
+        # (which 429s under bench/pipeline burst load). Semantic Scholar
+        # authenticates via the x-api-key header; absent the key the adapter
+        # still works keyless, just rate-limited.
+        if settings.SEMANTIC_SCHOLAR_API_KEY:
+            self.headers["x-api-key"] = settings.SEMANTIC_SCHOLAR_API_KEY
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
         """
