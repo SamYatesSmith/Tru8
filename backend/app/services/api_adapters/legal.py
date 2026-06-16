@@ -38,7 +38,11 @@ class GovUKAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400,  # 1 day
             timeout=10,
-            max_results=10,
+            # P2: capped 10->5. GOV.UK is single-domain (gov.uk); 10 same-domain
+            # results flooded multi-claim pools, spiking top_domain_share and
+            # diluting factual_weight_share (replay bench, TRU-B4A3). 5 keeps the
+            # primary-source win without dominating the landscape.
+            max_results=5,
         )
 
     def prepare_query(self, claim_text, entities=None):
@@ -49,9 +53,17 @@ class GovUKAdapter(GovernmentAPIClient):
         return extract_topic_phrase(claim_text, entities)
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """GOV.UK covers Politics, General, History, and Law for UK only."""
+        """GOV.UK covers Politics, General, History, Law, and Finance for UK only.
+
+        P2: Finance was wrongly excluded — Treasury/HMRC/OBR/Budget & Autumn
+        Statement content is squarely on gov.uk. A live probe showed the same
+        query returning 0 under Finance routing but 10 under Politics, so fiscal
+        claims (which classify as Finance) were self-excluded from the primary
+        UK-gov corpus. See audit/2026-05-15_adapter_prepare_query_audit.md.
+        """
         return (
-            domain in ["Politics", "General", "History", "Law"] and jurisdiction == "UK"
+            domain in ["Politics", "General", "History", "Law", "Finance"]
+            and jurisdiction == "UK"
         )
 
     def search(
@@ -83,7 +95,7 @@ class GovUKAdapter(GovernmentAPIClient):
             response = self._make_request("", params=params)
 
             if not response or "results" not in response:
-                logger.warning(f"GOV.UK returned empty response for: {targeted_query}")
+                logger.warning(f"GOV.UK returned empty response for: {query}")
                 return []
 
             return self._transform_response(response)
@@ -172,7 +184,9 @@ class HansardAdapter(GovernmentAPIClient):
             api_key=None,
             cache_ttl=86400 * 7,  # 7 days (historical records)
             timeout=15,
-            max_results=10,
+            # P2: capped 10->5 (same single-domain flooding concern as GOV.UK —
+            # parliament.uk). Applies to debates + surfaced contributions combined.
+            max_results=5,
         )
 
     def prepare_query(self, claim_text, entities=None):
@@ -180,8 +194,13 @@ class HansardAdapter(GovernmentAPIClient):
         return extract_topic_phrase(claim_text, entities)
 
     def is_relevant_for_domain(self, domain: str, jurisdiction: str) -> bool:
-        """Hansard covers Politics and Law for UK only."""
-        return domain in ["Politics", "Law"] and jurisdiction == "UK"
+        """Hansard covers Politics, Law, and Finance for UK only.
+
+        P2: Finance was wrongly excluded — Treasury questions, Budget/Autumn
+        Statement debates and Bank of England discussions are core Hansard
+        content. Fiscal claims classify as Finance and were self-excluded.
+        """
+        return domain in ["Politics", "Law", "Finance"] and jurisdiction == "UK"
 
     def search(
         self,
@@ -215,7 +234,9 @@ class HansardAdapter(GovernmentAPIClient):
             # no "Response" wrapper — arrays are at the top level.
             response = self._make_request("/search.json", params=params)
 
-            if not response or "Debates" not in response:
+            if not response or (
+                "Debates" not in response and "Contributions" not in response
+            ):
                 logger.warning(f"Hansard returned empty response for: {query}")
                 return []
 
@@ -304,6 +325,71 @@ class HansardAdapter(GovernmentAPIClient):
 
             except Exception as e:
                 logger.warning(f"Failed to parse Hansard debate: {e}")
+                continue
+
+        # P2: surface Contributions whose debate wasn't in the returned Debates
+        # set. These carry real speech text and were previously discarded — a
+        # topic-keyword query that returns 0 Debates can still return several
+        # Contributions (live-verified), so the adapter yielded 0 despite having
+        # genuine evidence in hand. Capped at max_results.
+        returned_debate_ids = {
+            d.get("DebateSectionExtId") for d in (raw_response.get("Debates") or [])
+        }
+        for c in raw_response.get("Contributions") or []:
+            if len(evidence_list) >= self.max_results:
+                break
+            did = c.get("DebateSectionExtId")
+            if did and did in returned_debate_ids:
+                continue  # already represented by its debate above
+            text = (
+                c.get("ContributionText") or c.get("ContributionTextFull") or ""
+            ).strip()
+            if not text:
+                continue
+            try:
+                section = c.get("DebateSection") or "Parliamentary Contribution"
+                member = c.get("MemberName")
+                house = c.get("House") or "Commons"
+                sitting_date_str = c.get("SittingDate")
+
+                source_date = None
+                date_short = ""
+                if sitting_date_str:
+                    try:
+                        source_date = datetime.fromisoformat(
+                            sitting_date_str.replace("Z", "+00:00")
+                        )
+                        date_short = source_date.strftime("%Y-%m-%d")
+                    except Exception:
+                        pass
+
+                if did and date_short:
+                    url = (
+                        f"https://hansard.parliament.uk/{house}/{date_short}"
+                        f"/debates/{did}/"
+                    )
+                else:
+                    url = "https://hansard.parliament.uk/"
+
+                title = f"{section} — {member}" if member else section
+                metadata = {
+                    "api_source": "UK Parliament Hansard",
+                    "house": house,
+                    "member": member,
+                    "debate_section": section,
+                    "contribution_ext_id": c.get("ContributionExtId"),
+                }
+                evidence_list.append(
+                    self._create_evidence_dict(
+                        title=title,
+                        snippet=text[:300],
+                        url=url,
+                        source_date=source_date,
+                        metadata=metadata,
+                    )
+                )
+            except Exception as e:
+                logger.warning(f"Failed to parse Hansard contribution: {e}")
                 continue
 
         logger.info(f"Hansard returned {len(evidence_list)} evidence items")
