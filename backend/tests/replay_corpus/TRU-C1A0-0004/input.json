@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-C1A0-0004",
+  "description": "US federal statute claim — proves GovInfo yields after the GET->POST fix (Search Service requires POST+JSON; GET returned 400 → chronic 0-yield). Cluster-probe fixture.",
+  "tests": ["GovInfo routing + yield (Politics/US)", "GovInfo GET->POST 400 fix", "US jurisdiction classification"],
+  "input_type": "text",
+  "content": "The US Inflation Reduction Act of 2022 was signed into law by President Biden, authorising $369 billion for climate and energy programmes.",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "article",
+  "selected_positions": [0, 1]
+}

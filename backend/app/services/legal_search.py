@@ -186,15 +186,17 @@ class LegalSearchService:
             keywords = self._extract_search_keywords(claim_text)
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                # Search public laws from that year
-                response = await client.get(
+                # Search public laws from that year. GovInfo's Search Service
+                # requires POST + JSON body with `collections` as an array; the
+                # legacy GET-with-params form returns 400 (chronic 0-yield bug).
+                response = await client.post(
                     "https://api.govinfo.gov/search",
-                    params={
+                    params={"api_key": self.govinfo_api_key},
+                    json={
                         "query": f"{keywords} publishedDate:[{year}-01-01 TO {year}-12-31]",
                         "pageSize": 3,
                         "offsetMark": "*",
-                        "collection": "PLAW",
-                        "api_key": self.govinfo_api_key,
+                        "collections": ["PLAW"],
                     },
                     headers={"Accept": "application/json"},
                 )
@@ -228,14 +230,15 @@ class LegalSearchService:
             keywords = self._extract_search_keywords(claim_text)
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
+                # POST + JSON body (Search Service v3); GET-with-params returns 400.
+                response = await client.post(
                     "https://api.govinfo.gov/search",
-                    params={
+                    params={"api_key": self.govinfo_api_key},
+                    json={
                         "query": keywords,
                         "pageSize": 5,
                         "offsetMark": "*",
-                        "collection": "USCODE,PLAW",
-                        "api_key": self.govinfo_api_key,
+                        "collections": ["USCODE", "PLAW"],
                     },
                     headers={"Accept": "application/json"},
                 )
