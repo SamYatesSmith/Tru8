@@ -13,8 +13,26 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
 from app.services.government_api_client import GovernmentAPIClient
+from app.utils.adapter_query_helpers import extract_claim_year
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_min_year(current_year: int, entities=None, fallback_years: int = 2) -> int:
+    """Lower bound for an academic paper-search year filter.
+
+    Defaults to ``current_year - fallback_years`` (a deliberate recency bias
+    for current-events verification), but widens *backward* to the claim's own
+    year when a DATE entity carries one — never narrower. A claim about 2021
+    must be able to surface 2021-era papers; the fixed now-2y window excluded
+    them (NF-18 Bug-2 / NF-20 historical-recency class). The upper bound stays
+    at ``current_year`` so later analysis of a past event is still captured.
+    """
+    min_year = current_year - fallback_years
+    claim_year = extract_claim_year(entities)
+    if claim_year and claim_year < min_year:
+        return claim_year
+    return min_year
 
 
 # ========== CROSSREF ADAPTER (Academic Research Metadata) ==========
@@ -91,7 +109,7 @@ class CrossRefAdapter(GovernmentAPIClient):
         query = self._sanitize_query(query)
 
         current_year = datetime.now(timezone.utc).year
-        min_year = current_year - 2
+        min_year = _resolve_min_year(current_year, entities)
 
         params = {
             "query": query,
@@ -240,7 +258,7 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             # Build search URL with fields
             fields = "paperId,title,abstract,url,year,authors,citationCount,publicationDate,venue"
             current_year = datetime.now(timezone.utc).year
-            min_year = current_year - 2
+            min_year = _resolve_min_year(current_year, entities)
             url = f"{self.base_url}/paper/search?query={quote(query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
 
             # A3: retry on 429 with Retry-After honoured. Semantic Scholar
@@ -390,7 +408,7 @@ class OpenAlexAdapter(GovernmentAPIClient):
 
             # Build search URL with mailto for polite pool
             current_year = datetime.now(timezone.utc).year
-            min_year = current_year - 2
+            min_year = _resolve_min_year(current_year, entities)
             url = f"{self.base_url}/works?search={quote(query)}&per-page={self.max_results}&mailto=hello@trueight.com&filter=from_publication_date:{min_year}-01-01"
 
             # A3: retry on 429 with Retry-After honoured. Same pattern as

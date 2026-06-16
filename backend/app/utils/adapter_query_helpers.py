@@ -18,6 +18,7 @@ NF-15 boundary note:
     ``{ORG, PERSON, LAW, EVENT, PRODUCT, LOCATION, AMOUNT, DATE, OTHER}``.
 """
 
+import re
 from typing import Dict, List, Optional, Tuple
 
 
@@ -140,6 +141,30 @@ def extract_location_and_date(
     location = max(locations, key=len) if locations else None
     date = max(dates, key=len) if dates else None
     return location, date
+
+
+def extract_claim_year(
+    entities: Optional[List[Dict[str, str]]] = None
+) -> Optional[int]:
+    """Return the 4-digit year from the claim's DATE entity, or ``None``.
+
+    Reads the longest ``label == "DATE"`` entity (via
+    :func:`extract_location_and_date`) and pulls the first 19xx/20xx year out
+    of it. Returns ``None`` when there is no DATE entity or it carries no
+    parseable year (e.g. "last summer").
+
+    Used by recency-windowed adapters (academic paper search) to widen their
+    publication-year filter so a historically-dated claim's own era is
+    included. A fixed ``now-2y`` window otherwise silently excludes the
+    claim's own sources — a 2021 claim queried 2024-2026 and never saw the
+    2021 paper it is about. Same NF-18 Bug-2 / NF-20 historical-recency class
+    that NOAA already fixed by anchoring its window to the DATE entity.
+    """
+    _, date_text = extract_location_and_date(entities)
+    if not date_text:
+        return None
+    match = re.search(r"\b(?:19|20)\d{2}\b", date_text)
+    return int(match.group(0)) if match else None
 
 
 def extract_concept_keyword(
