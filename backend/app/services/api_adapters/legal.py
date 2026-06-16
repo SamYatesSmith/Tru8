@@ -460,6 +460,35 @@ class GovInfoAdapter(GovernmentAPIClient):
             "Global",
         ]
 
+    @staticmethod
+    def _extract_act_name(entities: Optional[List[Dict[str, str]]]) -> Optional[str]:
+        """Pick an act/bill TITLE from typed entities for a precise GovInfo query.
+
+        Prefers LAW-labelled entities; falls back to the longest entity whose
+        text contains an act-like word. Returns None when nothing suitable.
+        """
+        if not entities:
+            return None
+        act_words = {"act", "bill", "code", "amendment", "statute", "resolution"}
+
+        def _text(e):
+            return (e.get("text") or "").strip()
+
+        def _label(e):
+            return e.get("label") or e.get("type") or ""
+
+        laws = [_text(e) for e in entities if _label(e) == "LAW"]
+        if not laws:
+            laws = [
+                _text(e)
+                for e in entities
+                if any(
+                    w in _text(e).lower().replace(".", " ").split() for w in act_words
+                )
+            ]
+        laws = [t for t in laws if t]
+        return max(laws, key=len) if laws else None
+
     def search(
         self,
         query: str,
@@ -511,6 +540,15 @@ class GovInfoAdapter(GovernmentAPIClient):
                 return []
 
             legal_metadata = result.get("metadata", {})
+
+            # Prefer the act/bill TITLE as the GovInfo query — the LegalSearch
+            # keyword fallback strips stopwords (and short words like "Act"),
+            # producing low-relevance hits that get filtered before the landscape.
+            # Pull the LAW entity (or the longest act-like entity) for an exact title.
+            act_name = self._extract_act_name(entities)
+            if act_name:
+                legal_metadata["act_name"] = act_name
+                logger.info(f"   [GOVINFO] querying by act title: {act_name!r}")
 
             logger.info(
                 f"GovInfo: Searching for legal claim with metadata: "

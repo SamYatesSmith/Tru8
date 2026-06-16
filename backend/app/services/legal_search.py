@@ -105,16 +105,22 @@ class LegalSearchService:
                 citation_results = await self._search_govinfo_by_citation(citation)
                 results.extend(citation_results)
 
+        # Prefer the act/bill title (LAW entity, injected by the adapter) over
+        # stopword-stripped keywords — the latter produce low-relevance hits.
+        act_name = metadata.get("act_name")
+
         # Priority 2: Year + keyword search (if year available)
         if metadata.get("year") and len(results) < 3:
             year_results = await self._search_govinfo_by_year(
-                claim_text, metadata["year"]
+                claim_text, metadata["year"], act_name=act_name
             )
             results.extend(year_results)
 
         # Priority 3: Broad keyword search (fallback)
         if len(results) < 3:
-            keyword_results = await self._search_govinfo_fulltext(claim_text)
+            keyword_results = await self._search_govinfo_fulltext(
+                claim_text, act_name=act_name
+            )
             results.extend(keyword_results)
 
         # Deduplicate by URL
@@ -171,7 +177,7 @@ class LegalSearchService:
             return []
 
     async def _search_govinfo_by_year(
-        self, claim_text: str, year: str
+        self, claim_text: str, year: str, act_name=None
     ) -> List[Dict[str, Any]]:
         """
         Search GovInfo filtered by year.
@@ -182,21 +188,25 @@ class LegalSearchService:
             return []
 
         try:
-            # Extract keywords from claim
-            keywords = self._extract_search_keywords(claim_text)
+            # Prefer the quoted act/bill title; else keyword fallback. The
+            # collection filter MUST live in the query string — GovInfo ignores
+            # a `collections` body field (and GET returns 400). PLAW = enacted
+            # public laws.
+            terms = (
+                f'"{act_name}"'
+                if act_name
+                else self._extract_search_keywords(claim_text)
+            )
+            query = f"{terms} {year} collection:PLAW"
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                # Search public laws from that year. GovInfo's Search Service
-                # requires POST + JSON body with `collections` as an array; the
-                # legacy GET-with-params form returns 400 (chronic 0-yield bug).
                 response = await client.post(
                     "https://api.govinfo.gov/search",
                     params={"api_key": self.govinfo_api_key},
                     json={
-                        "query": f"{keywords} publishedDate:[{year}-01-01 TO {year}-12-31]",
+                        "query": query,
                         "pageSize": 3,
                         "offsetMark": "*",
-                        "collections": ["PLAW"],
                     },
                     headers={"Accept": "application/json"},
                 )
@@ -205,7 +215,9 @@ class LegalSearchService:
                     data = response.json()
                     results = []
                     for item in data.get("results", []):
-                        results.append(self._format_govinfo_result(item, {}))
+                        results.append(
+                            self._format_govinfo_result(item, {}, act_name=act_name)
+                        )
                     return results
                 else:
                     logger.warning(
@@ -217,7 +229,9 @@ class LegalSearchService:
             logger.error(f"GovInfo year search error: {e}")
             return []
 
-    async def _search_govinfo_fulltext(self, claim_text: str) -> List[Dict[str, Any]]:
+    async def _search_govinfo_fulltext(
+        self, claim_text: str, act_name=None
+    ) -> List[Dict[str, Any]]:
         """
         Broad full-text search of GovInfo.
 
@@ -227,18 +241,24 @@ class LegalSearchService:
             return []
 
         try:
-            keywords = self._extract_search_keywords(claim_text)
+            terms = (
+                f'"{act_name}"'
+                if act_name
+                else self._extract_search_keywords(claim_text)
+            )
+            query = f"{terms} collection:PLAW"
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                # POST + JSON body (Search Service v3); GET-with-params returns 400.
+                # POST + JSON; collection filter in the query string (the
+                # `collections` body field is ignored, which otherwise returns
+                # tens of thousands of unranked cross-collection results).
                 response = await client.post(
                     "https://api.govinfo.gov/search",
                     params={"api_key": self.govinfo_api_key},
                     json={
-                        "query": keywords,
+                        "query": query,
                         "pageSize": 5,
                         "offsetMark": "*",
-                        "collections": ["USCODE", "PLAW"],
                     },
                     headers={"Accept": "application/json"},
                 )
@@ -247,7 +267,9 @@ class LegalSearchService:
                     data = response.json()
                     results = []
                     for item in data.get("results", []):
-                        results.append(self._format_govinfo_result(item, {}))
+                        results.append(
+                            self._format_govinfo_result(item, {}, act_name=act_name)
+                        )
                     return results
                 else:
                     logger.warning(
@@ -340,13 +362,25 @@ class LegalSearchService:
             return None
 
     def _format_govinfo_result(
-        self, item: Dict[str, Any], citation: Dict[str, str]
+        self, item: Dict[str, Any], citation: Dict[str, str], act_name=None
     ) -> Dict[str, Any]:
-        """Format GovInfo API response into standard result format"""
+        """Format GovInfo API response into standard result format.
+
+        GovInfo PLAW titles are OFFICIAL (e.g. "An act to provide for
+        reconciliation pursuant to title II of H. Con. Res. 14"), not the
+        popular name a claim uses ("Inflation Reduction Act of 2022"). Prepend
+        the popular act title so downstream relevance scoring can recognise the
+        match — otherwise the correct primary-source statute is filtered out.
+        """
+        official_title = item.get("title", "US Code Section")
+        if act_name and act_name.lower() not in official_title.lower():
+            title = f"{act_name} — {official_title}"
+        else:
+            title = official_title
         return {
             "url": item.get("packageLink") or item.get("detailsLink", ""),
-            "title": item.get("title", "US Code Section"),
-            "snippet": item.get("summary", ""),
+            "title": title,
+            "snippet": item.get("summary", "") or title,
             "published_date": item.get("dateIssued"),
             "source": "govinfo.gov",
             "citation": citation.get("full_text", ""),
