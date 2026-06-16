@@ -116,6 +116,9 @@ backend/harness/jwt_token.txt
 
 # Generated output
 backend/tests/coverage.json
+# Replay-bench per-run observation dumps — deterministic + reproducible from
+# cassette.json.gz + golden.json; tracked copies just churn every run.
+backend/tests/replay_corpus/*/observation.json
 
 # Audit output
 audit/
