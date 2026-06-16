@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-82CF-2F81",
-  "captured_at": "2026-06-16T10:16:13.790404+00:00",
-  "captured_with": "8604213",
+  "captured_at": "2026-06-16T15:53:52.402158+00:00",
+  "captured_with": "9231994",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -37,7 +37,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 8,
+      "value": 10,
       "tolerance": 8
     },
     "claims": {
@@ -45,23 +45,23 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 3,
+      "value": 4,
       "tolerance": 3
     },
     "web_search": {
-      "value": 17,
+      "value": 18,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 0,
+      "value": 1,
       "tolerance": 8
     },
-    "tier_primary": {
-      "value": 3,
+    "tier_reporting": {
+      "value": 9,
       "tolerance": 4
     },
-    "tier_reporting": {
-      "value": 5,
+    "tier_primary": {
+      "value": 1,
       "tolerance": 4
     }
   },
@@ -78,6 +78,7 @@
         "https://www.bp.com/investors/results-reporting-and-presentations/archive-of-results-reports-and-presentations",
         "https://www.bp.com/press-and-publications/press-releases",
         "https://www.cnbc.com/2023/02/07/bp-earnings-q4-and-fy-2022.html",
+        "https://www.fidelity.co.uk/factsheet-data/factsheet/GB0007980591-bp/financials",
         "https://www.ft.com/content/189a9248-d724-4128-b53a-b7afb33bcac4?syn-25a6b1a6=1",
         "https://www.ft.com/content/425c205c-0be4-46a0-bcce-26d906298577?syn-25a6b1a6=1",
         "https://www.ft.com/content/f1b91245-39f4-443b-a0f1-022974a9b28b",

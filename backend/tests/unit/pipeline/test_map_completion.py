@@ -112,8 +112,11 @@ class TestCompletionNoOpCases:
         analyzer._call_llm.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_no_op_when_leftover_below_threshold(self):
-        # 2 leftover items < MIN_LEFTOVER_FOR_COMPLETION=3 → skip
+    async def test_runs_even_for_small_leftover_set(self):
+        # NF-19 (2026-06-16): the gate dropped 3→1. The census now runs
+        # whenever ANY item is unmapped, because even one missed support
+        # can flip the mechanical state. 2 leftovers used to skip; now it
+        # runs.
         cm = _claim_map(
             [
                 ("e1", "supported", "Element A", [_ref("ev-mapped", "supports")]),
@@ -124,9 +127,9 @@ class TestCompletionNoOpCases:
             _evi("ev-leftover-1"),
             _evi("ev-leftover-2"),
         ]
-        analyzer = _make_analyzer(None)
+        analyzer = _make_analyzer({"elements": []})
         await analyzer._complete_unmapped_evidence(cm, evi)
-        analyzer._call_llm.assert_not_called()
+        analyzer._call_llm.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_no_op_when_everything_already_mapped(self):
@@ -511,3 +514,123 @@ class TestCompletionRobustness:
         assert "ev-leftover-C" in prompt
         assert "ev-already-1" not in prompt
         assert "ev-already-2" not in prompt
+
+
+# ── NF-19 SOLVE (2026-06-16): census fixes state, not just visibility ──
+#
+# The bug NF-19 actually was: element state is derived by COUNTING the
+# mapped evidence_refs, but the main mapper maps only a representative
+# sample → the count is over a biased sample → wrong state. The census
+# backstop merges the missed supports/challenges so state is counted over
+# the complete set. See audit/2026-06-16_nf19_design_review.md (Option D).
+
+
+from app.pipeline.claim_map_analyzer import _derive_element_state_with_authority
+
+
+class TestCensusFixesState:
+    """The core NF-19 fix: a complete supports/challenges census corrects
+    the mechanical element state."""
+
+    @pytest.mark.asyncio
+    async def test_census_flips_close_split_to_supported(self):
+        # Reproduces the TRU-EF20 shape: main pass mapped only 1 of 8
+        # supports plus the lone (erroneous) challenger. With just those
+        # two refs the mechanical rule sees a close split → "disputed".
+        cm = _claim_map(
+            [
+                (
+                    "e1",
+                    "disputed",
+                    "Reform UK won 5 seats",
+                    [
+                        _ref("ev-royalholloway", "supports"),
+                        _ref("ev-statista", "challenges"),  # "4 seats" data error
+                    ],
+                ),
+            ]
+        )
+        leftover_support_ids = [f"ev-support-{i}" for i in range(7)]
+        evi = [_evi("ev-royalholloway"), _evi("ev-statista")] + [
+            _evi(e) for e in leftover_support_ids
+        ]
+
+        # BEFORE the census: the 2 mapped refs derive "disputed" (close_split).
+        pre_state, pre_basis = _derive_element_state_with_authority(
+            cm["elements"][0], evi
+        )
+        assert pre_state == ElementState.disputed
+        assert pre_basis["rule_applied"] == "close_split"
+
+        # Census returns the 7 missed supports.
+        llm_response = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "additional_refs": [
+                        {
+                            "evidence_id": e,
+                            "relationship": "supports",
+                            "reasoning": "Independent source confirming 5 seats",
+                        }
+                        for e in leftover_support_ids
+                    ],
+                }
+            ]
+        }
+        analyzer = _make_analyzer(llm_response)
+        await analyzer._complete_unmapped_evidence(cm, evi)
+
+        elem = cm["elements"][0]
+        # AFTER: 8 supports + 1 challenge → supports dominate → supported.
+        assert len(elem["evidence_refs"]) == 9
+        assert elem["state"] == ElementState.supported
+        sd = elem["basis"]["state_derivation"]
+        assert sd["rule_applied"] == "supports_dominant_2x"
+        assert sd["supports_count"] == 8
+        assert sd["challenges_count"] == 1
+        # The lone challenger is surfaced as a caveat, not buried.
+        assert sd["caveat"]
+
+    @pytest.mark.asyncio
+    async def test_census_preserves_disputed_when_challenges_are_real(self):
+        # Guard against a supported-bias: if the census surfaces genuine
+        # challenges, the element stays disputed. Main mapped 1 support;
+        # 5 leftover challenges get mapped → challenges dominate.
+        cm = _claim_map(
+            [
+                (
+                    "e1",
+                    "supported",
+                    "Drug X cures disease Y",
+                    [_ref("ev-pro", "supports")],
+                ),
+            ]
+        )
+        challenge_ids = [f"ev-con-{i}" for i in range(5)]
+        evi = [_evi("ev-pro")] + [_evi(e) for e in challenge_ids]
+        llm_response = {
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "additional_refs": [
+                        {
+                            "evidence_id": e,
+                            "relationship": "challenges",
+                            "reasoning": "Trial found no effect",
+                        }
+                        for e in challenge_ids
+                    ],
+                }
+            ]
+        }
+        analyzer = _make_analyzer(llm_response)
+        await analyzer._complete_unmapped_evidence(cm, evi)
+
+        elem = cm["elements"][0]
+        assert len(elem["evidence_refs"]) == 6
+        assert elem["state"] == ElementState.disputed
+        sd = elem["basis"]["state_derivation"]
+        assert sd["supports_count"] == 1
+        assert sd["challenges_count"] == 5
+        assert sd["rule_applied"] == "challenges_dominant_2x"

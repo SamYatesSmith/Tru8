@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-C1A0-0004",
-  "captured_at": "2026-06-16T13:05:20.934586+00:00",
-  "captured_with": "ecb5e05",
+  "captured_at": "2026-06-16T15:55:21.707547+00:00",
+  "captured_with": "9231994",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -35,7 +35,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 35,
+      "value": 34,
       "tolerance": 8
     },
     "claims": {
@@ -47,7 +47,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 52,
+      "value": 53,
       "tolerance": 8
     },
     "api_adapters": {
@@ -55,16 +55,16 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 9,
+      "value": 7,
       "tolerance": 4
     },
     "tier_commentary": {
-      "value": 16,
-      "tolerance": 8
+      "value": 15,
+      "tolerance": 7
     },
     "tier_reporting": {
-      "value": 10,
-      "tolerance": 5
+      "value": 12,
+      "tolerance": 6
     }
   },
   "set_jaccard": {
@@ -73,6 +73,7 @@
         "http://cohen.house.gov/issues/energy",
         "https://apnews.com/article/what-is-republican-trump-tax-bill-f65be44e1050431a601320197322551b",
         "https://asuene.com/us/blog/what-happens-if-the-inflation-reduction-act-disappears-the-global-implications-for-sustainabi",
+        "https://axerecruiting.com/how-the-inflation-reduction-act-is-reshaping-clean-energy-hiring-what-developers-epcs-and-util",
         "https://en.wikipedia.org/wiki/Banking_in_India",
         "https://en.wikipedia.org/wiki/COVID-19_pandemic",
         "https://en.wikipedia.org/wiki/Economic_policy_of_the_Biden_administration",
@@ -82,11 +83,12 @@
         "https://en.wikipedia.org/wiki/Joe_Biden",
         "https://en.wikipedia.org/wiki/Presidency_of_Joe_Biden",
         "https://en.wikipedia.org/wiki/United_Kingdom_constitutional_law",
+        "https://energy.ri.gov/federalfunding",
         "https://journals.stecab.com/jece/article/download/1038/458",
         "https://link.springer.com/article/10.1007/s10584-026-04133-4",
         "https://pmc.ncbi.nlm.nih.gov/articles/PMC12956879/",
         "https://public.unpri.org/pri-blog/the-inflation-reduction-act-supports-us-competitiveness-and-financial-prosperity/13316",
-        "https://triagecancer.org/inflation-reduction-act-vaccines-blog",
+        "https://taxlawcenter.org/blog/key-implementation-lessons-for-future-clean-energy-tax-policy",
         "https://www.americanprogress.org/topic/inflation-reduction-act/",
         "https://www.energy.gov/edf/inflation-reduction-act-2022",
         "https://www.epa.gov/inflation-reduction-act/select-infrastructure-investment-and-jobs-act-and-inflation-reduction-act",
@@ -99,11 +101,9 @@
         "https://www.law.georgetown.edu/environmental-law-review/blog/is-the-inflation-reduction-act-just-applying-the-ira-to-the",
         "https://www.lexisnexis.com/community/insights/legal/practical-guidance-journal/b/pa/posts/energy-security-and-climate-ch",
         "https://www.nrdc.org/stories/consumer-guide-inflation-reduction-act",
-        "https://www.nyserda.ny.gov/All-Programs/Inflation-Reduction-Act/Inflation-Reduction-Act-homeowners",
         "https://www.pillsburylaw.com/en/inflation-reduction-act-resource-center.html",
         "https://www.plantemoran.com/explore-our-thinking/areas-of-focus/inflation-reduction-act-tax-credits",
         "https://www.politico.com/newsletters/power-switch/2025/08/08/lessons-from-the-rise-and-fall-of-bidens-ira-00499441",
-        "https://www.princetonair.com/inflation-reduction-act-incentives/",
         "https://www.sierraclub.org/harnessing-power-inflation-reduction-act",
         "https://www.sierraclub.org/sierra/4-november-december/top/how-climate-bill-became-law",
         "https://www.solar.com/learn/inflation-reduction-act/",
@@ -116,6 +116,8 @@
         "americanprogress.org",
         "apnews.com",
         "asuene.com",
+        "axerecruiting.com",
+        "cohen.house.gov",
         "en.wikipedia.org",
         "energy.gov",
         "epa.gov",
@@ -124,22 +126,18 @@
         "healthinsurance.org",
         "iea.org",
         "journals.stecab.com",
-        "law.georgetown.edu",
         "lexisnexis.com",
         "link.springer.com",
         "nrdc.org",
-        "nyserda.ny.gov",
         "pillsburylaw.com",
         "plantemoran.com",
         "pmc.ncbi.nlm.nih.gov",
         "politico.com",
         "politifact.com",
-        "princetonair.com",
-        "public.unpri.org",
         "sierraclub.org",
         "solar.com",
+        "taxlawcenter.org",
         "theguardian.com",
-        "triagecancer.org",
         "usatoday.com"
       ],
       "min_similarity": 0.45

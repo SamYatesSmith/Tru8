@@ -197,14 +197,18 @@ support a claim about "worldwide" or "global" figures. Evidence from one time pe
 does NOT support a claim about a different time period.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
-- ELEMENT-SPECIFIC MAPPING: Each evidence item should be mapped to the element it \
-MOST DIRECTLY addresses. An item appears under multiple elements ONLY when it \
-genuinely addresses distinct sub-questions (e.g. a study reporting both prevalence \
-AND mechanism). Default to mapping each item to its single best-matching element. \
-Items that survive classification but don't add element-specific signal are correctly \
-left unmapped — they will be tagged "unmapped" downstream and surfaced to the user \
-separately. Padding every element with the same items is a quality failure, not \
-thoroughness.
+- STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
+is computed mechanically by COUNTING its supporting vs challenging evidence. You MUST \
+therefore map EVERY item that genuinely supports or challenges an element's specific \
+assertion — a complete census, NOT a representative 1-2 sample. Omitting genuine \
+supports or challenges produces a WRONG state: mapping 1 of 8 supporting sources \
+alongside a lone challenger makes a well-supported fact look "disputed". Map each item \
+to the SINGLE element it most directly addresses; an item appears under multiple \
+elements ONLY when it genuinely addresses distinct sub-questions (e.g. a study \
+reporting both prevalence AND mechanism). Do NOT duplicate the same item across \
+elements, and do not force-fit. Items with no supporting, challenging, or genuine \
+context relationship to any element are correctly left unmapped — tagged "unmapped" \
+downstream and surfaced to the user separately.
 - CONTEXT DISCIPLINE: The "context" relationship is for evidence that frames the \
 element's domain without confirming or contradicting it. Use sparingly. A general \
 topical mention is NOT context — true context provides background that helps \
@@ -305,14 +309,18 @@ support a claim about "worldwide" or "global" figures. Evidence from one time pe
 does NOT support a claim about a different time period.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
-- ELEMENT-SPECIFIC MAPPING: Each evidence item should be mapped to the element it \
-MOST DIRECTLY addresses. An item appears under multiple elements ONLY when it \
-genuinely addresses distinct sub-questions (e.g. a study reporting both prevalence \
-AND mechanism). Default to mapping each item to its single best-matching element. \
-Items that survive classification but don't add element-specific signal are correctly \
-left unmapped — they will be tagged "unmapped" downstream and surfaced to the user \
-separately. Padding every element with the same items is a quality failure, not \
-thoroughness.
+- STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
+is computed mechanically by COUNTING its supporting vs challenging evidence. You MUST \
+therefore map EVERY item that genuinely supports or challenges an element's specific \
+assertion — a complete census, NOT a representative 1-2 sample. Omitting genuine \
+supports or challenges produces a WRONG state: mapping 1 of 8 supporting sources \
+alongside a lone challenger makes a well-supported fact look "disputed". Map each item \
+to the SINGLE element it most directly addresses; an item appears under multiple \
+elements ONLY when it genuinely addresses distinct sub-questions (e.g. a study \
+reporting both prevalence AND mechanism). Do NOT duplicate the same item across \
+elements, and do not force-fit. Items with no supporting, challenging, or genuine \
+context relationship to any element are correctly left unmapped — tagged "unmapped" \
+downstream and surfaced to the user separately.
 - CONTEXT DISCIPLINE: The "context" relationship is for evidence that frames the \
 element's domain without confirming or contradicting it. Use sparingly. A general \
 topical mention is NOT context — true context provides background that helps \
@@ -340,21 +348,19 @@ DISCIPLINE above), otherwise omit.
 
 COMPLETION_PROMPT = """\
 You are completing an evidence mapping pass. The main mapper has \
-already assigned the highest-confidence items to each element. Your \
-job: find any LEFTOVER items that ALSO fit one or more elements — \
-items the main mapper deemed too weak for primary assignment but \
-which still substantiate, contradict, or contextualise specific \
-elements.
+already assigned evidence to each element, but may have MISSED \
+genuine supports or challenges. Your job: examine EVERY leftover \
+item and map any that supports, challenges, or genuinely \
+contextualises a specific element.
 
-This is a SECOND pass with a different intent than the first:
-
-The main mapper is conservative by design — it picks 1-2 \
-representative items per element and omits "broadly on topic" \
-content. That conservatism is correct for primary assignment but \
-leaves rich pool content invisible to users. This completion pass \
-re-examines the leftovers with a more permissive eye for \
-"context" relationships — evidence that informs the broader \
-phenomenon even when not directly substantiating.
+WHY THIS MATTERS: an element's state (supported / disputed / \
+unresolved) is computed mechanically by COUNTING its supporting vs \
+challenging evidence. A single missed support can make a \
+well-supported element look "disputed". Completeness of \
+supports/challenges is therefore REQUIRED — this is NOT an optional \
+context-only pass. Map every leftover that directly substantiates or \
+contradicts an element, so the state reflects the FULL weight of \
+evidence in the pool.
 
 Output JSON:
 {
@@ -371,18 +377,22 @@ Output JSON:
 Rules:
 - Only include items from the LEFTOVER list. Do not re-include items \
 already mapped by the main pass.
-- Be MORE generous with "context" than the main pass. Context-tier \
-relevance — geographically adjacent, temporally adjacent, addressing \
-the same broader phenomenon — should be mapped, not omitted.
-- Still require ELEMENT-LEVEL relevance. An item about a different \
-topic entirely should not be force-fitted to an element.
+- Map EVERY leftover item that DIRECTLY supports or challenges an \
+element's specific assertion (its figure, date, entity, or event) as \
+"supports" / "challenges". These change the element's state and must \
+be complete — do not sample.
+- Use "context" only for items that frame an element without \
+confirming or contradicting it, and keep context SPARSE — only where \
+it genuinely helps interpret the supports/challenges evidence. Do not \
+relabel a genuine support/challenge as context.
+- Map each item to the SINGLE element it most directly addresses; do \
+not duplicate the same item across elements.
+- An item about a different topic entirely should be omitted (left \
+unmapped), not force-fitted.
 - Reasoning is REQUIRED on every additional_ref. One sentence \
 explaining the relationship.
-- "supports" / "challenges" still need DIRECT substantiation or \
-contradiction. Use "context" for the looser matches that you would \
-have omitted in main pass.
 - Omit elements that have no additional refs — don't return empty \
-additional_refs arrays. Don't pad.
+additional_refs arrays.
 - relationship must be exactly one of: supports, challenges, context.
 """
 
@@ -1509,44 +1519,57 @@ class ClaimMapAnalyzer:
         claim_map: ClaimMap,
         evidence_list: List[Dict[str, Any]],
     ) -> None:
-        """NF-19 mitigation: per-claim second mapping pass over leftovers.
+        """NF-19 SOLVE (2026-06-16): relationship-census backstop.
 
-        The main batched mapper (``map_evidence_to_elements`` →
-        ``_parse_mapping_response``) operates under MAPPING_PROMPT which
-        explicitly instructs the LLM to be conservative — "Padding every
-        element with the same items is a quality failure, not
-        thoroughness" (line 296). That conservatism is correct for
-        primary assignment but leaves rich pool content unattached.
+        The mapper's element state is derived mechanically by COUNTING
+        supporting vs challenging evidence_refs. If the main pass maps
+        only a representative subset, that count is taken over a
+        non-representative sample and the state is WRONG (the original
+        TRU-EF20 failure: 1 of ~10 supports mapped alongside a lone
+        challenger → "disputed" instead of "supported"). The fix is to
+        guarantee the state is counted over a COMPLETE supports/challenges
+        census, not the display sample. See
+        audit/2026-06-16_nf19_design_review.md (Option D).
 
-        This completion pass:
+        This pass is that guarantee. It:
           1. Computes the set of evidence items not referenced by ANY
-             element after the main pass.
-          2. If the leftover set is non-trivial (≥ threshold), calls
-             the LLM with COMPLETION_PROMPT — a different prompt that
-             instructs more permissive context-tier matching.
+             element after the main pass (the leftovers).
+          2. Whenever there is ≥1 leftover, calls the LLM with
+             COMPLETION_PROMPT — which classifies leftover
+             supports/challenges comprehensively (NOT context-only) so no
+             genuine support/challenge is omitted from the census.
           3. Merges the additional refs into each element's
-             evidence_refs (deduping by evidence_id).
+             evidence_refs (deduping by evidence_id). The merge is
+             relationship-agnostic — supports/challenges are merged, not
+             just context.
           4. Re-derives each element's state via
-             _derive_element_state_with_authority — the new refs may
-             promote an element from unresolved to contextual /
-             supported / disputed.
+             _derive_element_state_with_authority over the now-complete
+             refs — a 1-support/1-challenge close-split correctly becomes
+             "supported" once the other supports are merged.
+          5. Logs census completeness (how many leftovers remained
+             unmapped) so under-mapping is measurable, not silent.
 
         Mutates claim_map in place. No-op on:
           - empty leftover set (every item already mapped)
-          - leftover set below threshold (cost vs leverage)
           - LLM failure (preserves main-pass output)
           - JSON parse failure (preserves main-pass output)
 
         Cost: ~$0.001 per claim on Flash Lite. Adds one LLM call per
-        claim that has ≥3 leftover items (most claims after rich-pool
-        retrieval).
+        claim that has ≥1 leftover item (most claims) — the correctness
+        of the element state is worth the call; revisit with a gate only
+        if COGS telemetry demands it.
 
         Counterpart to ``map_evidence_to_specific_elements`` (coverage
         recovery operates on NEW evidence from re-search); this
         operates on ALREADY-RETRIEVED evidence the mapper skipped.
         """
-        # Threshold: skip when too few leftovers to be worth a call.
-        MIN_LEFTOVER_FOR_COMPLETION = 3
+        # NF-19 (2026-06-16): this is the relationship-CENSUS backstop, not a
+        # cost-gated extra. A single missed support can flip an element's
+        # mechanical state (close-split → disputed), so we run whenever ANY
+        # item is unmapped. (Was 3 — a cost/leverage gate that let 1-2 missed
+        # supports corrupt the state. The census→state aggregation below is
+        # mechanical; the prompt only judges per-item relationship.)
+        MIN_LEFTOVER_FOR_COMPLETION = 1
 
         all_elements = claim_map["elements"]
         if not all_elements or not evidence_list:
@@ -1574,8 +1597,7 @@ class ClaimMapAnalyzer:
         if len(leftover) < MIN_LEFTOVER_FOR_COMPLETION:
             logger.info(
                 f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
-                f"{len(leftover)} leftover items (<{MIN_LEFTOVER_FOR_COMPLETION}), "
-                f"skipping completion pass"
+                f"no leftover items — census already complete"
             )
             return
 
@@ -1700,12 +1722,31 @@ class ClaimMapAnalyzer:
                     f"(rule={state_basis['rule_applied']})"
                 )
 
-            if total_added > 0:
-                logger.info(
-                    f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
-                    f"+{total_added} additional refs across "
-                    f"{len(all_elements)} elements from {len(leftover)} leftovers"
-                )
+            # NF-19 census-completeness instrumentation: how many leftovers
+            # the census still left unmapped. A high residual on claims with
+            # rich pools is the signal that the census prompt is under-mapping
+            # supports/challenges (the failure mode this pass exists to catch)
+            # — measurable here rather than silently corrupting state.
+            now_referenced: set = set()
+            for elem in all_elements:
+                for ref in elem.get("evidence_refs", []) or []:
+                    rid = (
+                        ref.get("evidence_id")
+                        if isinstance(ref, dict)
+                        else getattr(ref, "evidence_id", None)
+                    )
+                    if rid:
+                        now_referenced.add(rid)
+            still_unmapped = sum(
+                1 for ev in leftover if ev.get("evidence_id") not in now_referenced
+            )
+            logger.info(
+                f"[MAP COMPLETION] Claim {claim_map.get('claim_id', '?')}: "
+                f"census added {total_added} refs across {len(all_elements)} "
+                f"elements from {len(leftover)} leftovers; "
+                f"{still_unmapped} leftover(s) remain unmapped (genuinely "
+                f"off-element or census miss)"
+            )
 
         except Exception as e:
             logger.warning(

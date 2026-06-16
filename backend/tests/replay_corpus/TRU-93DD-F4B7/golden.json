@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-93DD-F4B7",
-  "captured_at": "2026-06-16T10:16:24.279696+00:00",
-  "captured_with": "8604213",
+  "captured_at": "2026-06-16T15:54:02.964158+00:00",
+  "captured_with": "9231994",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 17,
+      "value": 13,
       "tolerance": 8
     },
     "claims": {
@@ -38,11 +38,11 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 2,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 29,
+      "value": 27,
       "tolerance": 8
     },
     "api_adapters": {
@@ -50,7 +50,7 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 9,
+      "value": 5,
       "tolerance": 4
     },
     "tier_reporting": {
@@ -61,32 +61,31 @@
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://edinburgh.public-i.tv/core/l/en_GB/portal/webcast_interactive/543721/start_time/8111000",
         "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/t/february-2/",
+        "https://groups.google.com/g/weatherandclimate/c/SP51s4JFzus",
         "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.19",
-        "https://pynck.com/2021/01/ceciles-top-picks-of-whats-on-in-edinburgh-february-2021.html",
+        "https://pubmed.ncbi.nlm.nih.gov/33357491/",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/joc.7787",
-        "https://weatherspark.com/h/m/38026/2021/2/Historical-Weather-in-February-2021-in-Edinburgh-United-Kingdom",
         "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh...",
-        "https://world-weather.info/forecast/united_kingdom/edinburgh/february-2021/",
-        "https://www.bbc.co.uk/news/articles/c7vevn46gv8o",
         "https://www.bbc.co.uk/news/articles/ckg9gxlg7x4o",
         "https://www.bbc.co.uk/news/uk-55992385",
+        "https://www.bbc.co.uk/news/uk-scotland-56007118",
         "https://www.bbc.co.uk/news/uk-scotland-63930618",
         "https://www.bbc.co.uk/news/uk-scotland-64196889",
         "https://www.bbc.co.uk/news/uk-scotland-highlands-islands-55981029",
         "https://www.bbc.co.uk/news/uk-scotland-highlands-islands-56022387",
         "https://www.bbc.com/news/uk-63893192",
-        "https://www.bbc.com/pages/content-index/2021/02/11?page=27",
-        "https://www.dailyrecord.co.uk/news/scottish-news/temperatures-plummet-22c-scotland-records-23481646",
-        "https://www.espn.com/soccer/team/results/_/id/2832/season/2021",
-        "https://www.flickr.com/photos/83661834@N05/50933116503/",
+        "https://www.clarsachsociety.co.uk/events/category/edinburgh-branch/list/?tribe-bar-date=2021-12-11",
+        "https://www.edinburghhsc.scot/the-ijb/jsna/populationanddemographics/",
+        "https://www.eif.co.uk/",
+        "https://www.portsamerica.com/who-we-are/news/port-of-baltimore-set-another-record-for-container-moves-with-6-000-from-si",
+        "https://www.scottishdailyexpress.co.uk/news/scottish-news/scotlands-weather-round-up-2021-25692426",
+        "https://www.sec.gov/ix?doc=/Archives/edgar/data/1816581/000162828022028989/oust-20220930.htm",
         "https://www.theguardian.com/uk-news/2021/feb/09/uk-temperatures-snow-ice-close-vaccination-centres-schools",
         "https://www.theguardian.com/uk-news/2021/feb/11/uk-temperature-falls-lowest-level-decade-extreme-freeze",
         "https://www.theweatheroutlook.com/twocommunity/Posts/t21886-Low-temperature-watch---9-to-11-February/page6",
         "https://www.timeanddate.com/weather/uk/edinburgh/climate",
-        "https://www.timeanddate.com/worldclock/converted.html?iso=20210210T231500&p1=407&p2=304",
-        "https://www.wildlifeonline.me.uk/blog/post/seasonal-update-march-2021"
+        "https://www.timeanddate.com/weather/uk/edinburgh/historic"
       ],
       "min_similarity": 0.35
     },
@@ -94,16 +93,13 @@
       "golden": [
         "bbc.co.uk",
         "bbc.com",
-        "dailyrecord.co.uk",
         "en.climate-data.org",
-        "flickr.com",
-        "pynck.com",
         "rmets.onlinelibrary.wiley.com",
+        "scottishdailyexpress.co.uk",
         "theguardian.com",
         "theweatheroutlook.com",
         "timeanddate.com",
-        "weatherspark.com",
-        "world-weather.info"
+        "weatherspark.com"
       ],
       "min_similarity": 0.3
     }

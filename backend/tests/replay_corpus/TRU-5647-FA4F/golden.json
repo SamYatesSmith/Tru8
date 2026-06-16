@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-06-16T10:16:06.513991+00:00",
-  "captured_with": "8604213",
+  "captured_at": "2026-06-16T15:53:44.229978+00:00",
+  "captured_with": "9231994",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -31,7 +31,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 24,
+      "value": 27,
       "tolerance": 8
     },
     "claims": {
@@ -43,7 +43,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 49,
+      "value": 51,
       "tolerance": 8
     },
     "api_adapters": {
@@ -51,11 +51,11 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 8,
-      "tolerance": 4
+      "value": 14,
+      "tolerance": 7
     },
     "tier_commentary": {
-      "value": 7,
+      "value": 4,
       "tolerance": 4
     },
     "tier_reporting": {
@@ -67,13 +67,9 @@
     "url_ledger_flat": {
       "golden": [
         "https://abcnews.com/US/damage-weather-climate-disasters-exceed-100b-2022-noaa/story?id=91345859",
-        "https://apnews.com/article/floods-pakistan-south-asia-islamabad-25ee9dc0ec7aee6f4f2ef7b557216ee7",
-        "https://apnews.com/article/toms-river-toxic-waste-cancer-ciba-geigy-90b270b4c3cec258923fb4bb85c816f0",
-        "https://apnews.com/article/wildfires-france-fires-london-england-b9bc07c1685b76ddf377b65f19fb811b",
-        "https://cbcny.org/research/no-fare",
         "https://centaur.reading.ac.uk/111004/9/2023-03-23%20Hawkins.pdf",
-        "https://commonslibrary.parliament.uk/heatwaves-in-the-uk/",
         "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
+        "https://comptroller.nyc.gov/reports/annual-claims-report/",
         "https://comptroller.nyc.gov/reports/ten-years-after-sandy/",
         "https://doi.org/10.1016/j.jpsychores.2024.111832",
         "https://doi.org/10.1186/s44263-024-00071-4",
@@ -81,9 +77,11 @@
         "https://doi.org/10.3390/informatics11010004",
         "https://doi.org/10.5194/nhess-24-973-2024",
         "https://doi.org/10.58088/sq6f-2k98",
+        "https://journals.ametsoc.org/view/journals/bams/106/1/BAMS-D-23-0280.1.xml",
+        "https://obr.uk/frs/fiscal-risks-and-sustainability-september-2024/",
         "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
-        "https://thebulletin.org/2022/04/damage-to-ukraines-renewable-energy-sector-could-surpass-1-billion/",
+        "https://www.ajg.com/gallagherre/-/media/files/gallagher/gallagherre/gallagher-re-nat-cat-review-2022.pdf",
         "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
         "https://www.bbc.co.uk/news/live/uk-62184978",
         "https://www.bbc.co.uk/news/uk-62217282",
@@ -92,24 +90,28 @@
         "https://www.carbonbrief.org/guest-post-a-met-office-review-of-the-uks-record-breaking-summer-in-2022/",
         "https://www.climate.gov/news-features/blogs/beyond-data/2022-us-billion-dollar-weather-and-climate-disasters-historical",
         "https://www.climatecentral.org/climate-services/billion-dollar-disasters",
-        "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
-        "https://www.cssny.org/news/entry/congestion-pricing-outer-borough-new-yorkers-poverty-data-analysis",
-        "https://www.fox43.com/article/weather/billion-dollar-weather-disasters-2022-weather-rewind/521-3af834b1-99f8-46bf-9498-a",
+        "https://www.economist.com/graphic-detail/2022/04/05/russias-war-in-ukraine-has-caused-at-least-68bn-in-physical-damage",
         "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
         "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
-        "https://www.lse.ac.uk/granthaminstitute/extreme-heat-preparedness-and-resilience-in-the-uk/",
-        "https://www.lse.ac.uk/granthaminstitute/publication/turning-up-the-heat/",
+        "https://www.lse.ac.uk/granthaminstitute/wp-content/uploads/2022/05/What-will-climate-change-cost-the-UK-risks-impacts-mi",
+        "https://www.mentalhealth.org.uk/about-us/news/mental-health-problems-cost-uk-economy-least-gbp-118-billion-year",
+        "https://www.nature.com/articles/s41598-022-15474-2",
         "https://www.ncei.noaa.gov/access/billions/",
         "https://www.pbs.org/newshour/nation/climate-change-helped-fuel-18-billion-dollar-disasters-in-2022-noaa-says",
+        "https://www.pnas.org/doi/10.1073/pnas.1805048115",
         "https://www.reddit.com/r/UKWeather/comments/1s8eyj6/remember_the_heat_wave_of_2022/",
         "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
-        "https://www.smartcitiesdive.com/news/us-costs-damages-extreme-weather-climate-disasters-noaa-2022/640108/",
-        "https://www.theguardian.com/environment/2023/aug/03/chemical-companies-pfas-payouts-forever-chemicals",
+        "https://www.russiamatters.org/news/russia-ukraine-war-report-card/russia-ukraine-war-report-card-april-8-2026",
+        "https://www.sciencedirect.com/science/article/pii/S2542519625000257",
+        "https://www.statista.com/statistics/1323651/highest-temperatures-united-kingdom-by-location/?srsltid=AfmBOorC7oWIEosy7bW",
+        "https://www.theguardian.com/media/2022/jul/20/hellfire-what-the-papers-say-about-uks-hottest-ever-day",
+        "https://www.theguardian.com/society/2022/jun/17/emergency-council-cuts-feared-after-higher-costs-create-17bn-shortfall",
+        "https://www.theguardian.com/society/2022/oct/13/cost-eradicating-nhs-england-repairs-backlog",
         "https://www.theguardian.com/uk-news/2023/jan/20/hottest-day-of-2022-saw-638-more-deaths-than-normal-in-england",
         "https://www.theguardian.com/uk-news/2023/jul/27/2022-warmest-year-record-uk-met-office-extreme-heat",
+        "https://www.theguardian.com/world/2025/jul/07/londons-low-traffic-zones-cut-deaths-and-injuries-by-more-than-a-third",
         "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live",
         "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live?fi",
-        "https://www.valuepenguin.com/severe-weather-property-damages-study",
         "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
         "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
       ],
@@ -122,20 +124,21 @@
         "bbc.com",
         "carbonbrief.org",
         "centaur.reading.ac.uk",
+        "climate.gov",
         "climatecentral.org",
-        "cnbc.com",
-        "commonslibrary.parliament.uk",
         "community.netweather.tv",
-        "fox43.com",
+        "comptroller.nyc.gov",
         "gov.uk",
         "internetgeography.net",
         "lse.ac.uk",
+        "nature.com",
         "ncei.noaa.gov",
         "pbs.org",
         "reddit.com",
         "rmets.onlinelibrary.wiley.com",
+        "sciencedirect.com",
+        "statista.com",
         "theguardian.com",
-        "valuepenguin.com",
         "weather.gov",
         "worldweatherattribution.org"
       ],

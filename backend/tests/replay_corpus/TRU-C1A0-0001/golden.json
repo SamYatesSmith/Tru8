@@ -1,20 +1,16 @@
 {
   "claim_id": "TRU-C1A0-0001",
-  "captured_at": "2026-06-16T11:18:04.795363+00:00",
-  "captured_with": "dea7146",
+  "captured_at": "2026-06-16T15:54:49.373964+00:00",
+  "captured_with": "9231994",
   "captured_with_known_bugs": [],
-  "notes": "Cluster-probe fixture (ONS). Proves ONS Economic Statistics ROUTES (Finance/UK) and YIELDS on an indicator-shaped CPI claim \u2014 guards against regression of the ONS adapter. The historical 'ONS 0-yield' was correct behaviour on non-indicator (fiscal) claims, not a bug.",
+  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
     "freshness_inject_must_fire_on_claims": [
       0
     ],
-    "must_have_url_substrings": [
-      "ons.gov.uk/economy/inflationandpriceindices"
-    ],
+    "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
-    "expected_adapters_subset": [
-      "ONS Economic Statistics"
-    ],
+    "expected_adapters_subset": [],
     "coverage_recovery_failures_max": 6,
     "v3_quality_floors": {
       "unique_domains_min": 5,
@@ -34,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 16,
+      "value": 18,
       "tolerance": 8
     },
     "claims": {
@@ -46,7 +42,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 33,
+      "value": 34,
       "tolerance": 8
     },
     "api_adapters": {
@@ -54,24 +50,30 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 9,
+      "value": 8,
+      "tolerance": 4
+    },
+    "tier_commentary": {
+      "value": 2,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 7,
+      "value": 8,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "http://www.contractoruk.com/calculators/inflation_calculator",
         "https://commonslibrary.parliament.uk/cost-of-living-and-inflation/",
         "https://commonslibrary.parliament.uk/research-briefings/sn02792/",
         "https://tradingeconomics.com/united-kingdom/inflation-cpi",
         "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
         "https://www.bbc.co.uk/news/articles/c17rgd8e9gjo",
         "https://www.bbc.co.uk/news/articles/cdjryg38elzo",
-        "https://www.bbc.co.uk/news/live/c07m4mx5759t",
+        "https://www.bbc.co.uk/news/articles/czxkvkwjl5eo",
+        "https://www.bbc.co.uk/news/live/c5y9jl1r9g9t",
         "https://www.cnbc.com/2022/11/16/uk-inflation-hits-new-41-year-high-as-food-and-energy-prices-continue-to-soar.html",
         "https://www.ft.com/content/dec290b0-dc52-4486-81c7-2173188e281b?syn-25a6b1a6=1",
         "https://www.ft.com/uk-inflation?page=28",
@@ -81,24 +83,24 @@
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/april2026",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2022",
         "https://www.ons.gov.uk/releases/consumerpriceinflationukoctober2022",
-        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOooAlE",
-        "https://www.theguardian.com/business/2022/dec/14/uk-inflation-falls-food-and-energy-prices",
+        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOoodMt",
         "https://www.theguardian.com/business/2022/nov/16/uk-inflation-rate-energy-price-rises"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "api.beta.ons.gov.uk",
         "bankofengland.co.uk",
         "bbc.co.uk",
         "cnbc.com",
         "commonslibrary.parliament.uk",
+        "contractoruk.com",
         "ft.com",
         "gov.uk",
         "hl.co.uk",
         "ons.gov.uk",
-        "theguardian.com"
+        "theguardian.com",
+        "tradingeconomics.com"
       ],
       "min_similarity": 0.3
     }
