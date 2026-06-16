@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from .capture import PipelineCaptureHandler, Observation
+from .cassette import HttpxCassette
 from .fixtures import DomainStatusFixture
 
 
@@ -200,14 +201,26 @@ async def _run_one_claim_async(
     return check_id
 
 
+def _cassette_path(corpus_dir: Path, claim_id: str) -> Path:
+    return corpus_dir / claim_id / "cassette.json.gz"
+
+
 async def run_one_async(
-    corpus_dir: Path, claim_id: str, fixture: DomainStatusFixture
+    corpus_dir: Path,
+    claim_id: str,
+    fixture: DomainStatusFixture,
+    cassette_mode: str = "off",
 ) -> Observation:
     """Run the bench for a single claim_id and return the Observation.
 
     All DB / cache / pipeline I/O happens inside the *caller's* event loop —
     the caller (the CLI) wraps the whole bench session in a single asyncio.run()
     so the asyncpg engine doesn't span multiple closed loops.
+
+    ``cassette_mode``:
+      - ``"off"``    — live network (legacy behaviour; subject to provider drift).
+      - ``"record"`` — live network, captured to the claim's cassette.json.
+      - ``"replay"`` — served from cassette.json; deterministic, no network.
     """
     input_path = _resolve_input_path(corpus_dir, claim_id)
     input_data = json.loads(input_path.read_text(encoding="utf-8"))
@@ -220,13 +233,28 @@ async def run_one_async(
     prev_level = root.level
     root.setLevel(logging.INFO)
 
+    cassette: Optional[HttpxCassette] = None
+    if cassette_mode in ("record", "replay"):
+        cassette = HttpxCassette(_cassette_path(corpus_dir, claim_id), cassette_mode)
+
     check_id: Optional[str] = None
     try:
-        check_id = await _run_one_claim_async(
-            input_data,
-            input_data.get("selected_positions"),
-            handler,
-        )
+        if cassette is not None:
+            with cassette:
+                check_id = await _run_one_claim_async(
+                    input_data,
+                    input_data.get("selected_positions"),
+                    handler,
+                )
+            logging.info(
+                f"[BENCH] cassette[{cassette_mode}] {claim_id}: {cassette.stats}"
+            )
+        else:
+            check_id = await _run_one_claim_async(
+                input_data,
+                input_data.get("selected_positions"),
+                handler,
+            )
     finally:
         root.removeHandler(handler)
         root.setLevel(prev_level)
@@ -243,8 +271,11 @@ async def run_one_async(
 
 
 def run_one(
-    corpus_dir: Path, claim_id: str, fixture: DomainStatusFixture
+    corpus_dir: Path,
+    claim_id: str,
+    fixture: DomainStatusFixture,
+    cassette_mode: str = "off",
 ) -> Observation:
     """Synchronous wrapper for one-shot single-claim use. The CLI's --all path
     avoids this and uses run_one_async directly inside a shared event loop."""
-    return asyncio.run(run_one_async(corpus_dir, claim_id, fixture))
+    return asyncio.run(run_one_async(corpus_dir, claim_id, fixture, cassette_mode))

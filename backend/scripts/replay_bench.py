@@ -62,19 +62,28 @@ def current_git_sha() -> str:
 
 
 async def run_bench(
-    claims: List[str], update_golden: bool, verbose: bool
+    claims: List[str], update_golden: bool, verbose: bool, cassette_mode: str = "off"
 ) -> Tuple[str, int]:
     per_claim_diffs: List[Tuple[str, List[Diff]]] = []
     git_sha = current_git_sha()
 
+    if cassette_mode == "replay":
+        source = "cassette (deterministic, no network)"
+    elif cassette_mode == "record":
+        source = "live LLM + Serper, RECORDING to cassette"
+    else:
+        source = "live LLM + Serper"
+
     with DomainStatusFixture() as fixture:
         for claim_id in claims:
             print(
-                f"\n... running {claim_id} (this exercises live LLM + Serper) ...",
+                f"\n... running {claim_id} ({source}) ...",
                 flush=True,
             )
             try:
-                obs = await run_one_async(CORPUS_DIR, claim_id, fixture)
+                obs = await run_one_async(
+                    CORPUS_DIR, claim_id, fixture, cassette_mode=cassette_mode
+                )
             except Exception as e:
                 print(f"  [FATAL] {claim_id}: {type(e).__name__}: {e}", flush=True)
                 per_claim_diffs.append(
@@ -152,6 +161,17 @@ def main() -> int:
         action="store_true",
         help="Print full observation alongside the diff report",
     )
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument(
+        "--record",
+        action="store_true",
+        help="Run live and capture each claim's HTTP traffic to cassette.json",
+    )
+    mode_group.add_argument(
+        "--live",
+        action="store_true",
+        help="Run live with no cassette (legacy; subject to provider drift)",
+    )
     parser.add_argument(
         "--fast",
         action="store_true",
@@ -162,6 +182,14 @@ def main() -> int:
     if args.fast:
         print("[BENCH] --fast not yet implemented; running full mode.", flush=True)
 
+    # Default to deterministic replay; --record captures, --live bypasses.
+    if args.record:
+        cassette_mode = "record"
+    elif args.live:
+        cassette_mode = "off"
+    else:
+        cassette_mode = "replay"
+
     if args.all:
         claims = discover_claims(CORPUS_DIR)
         if not claims:
@@ -170,7 +198,9 @@ def main() -> int:
     else:
         claims = [args.claim]
 
-    text, exit_code = asyncio.run(run_bench(claims, args.update_golden, args.verbose))
+    text, exit_code = asyncio.run(
+        run_bench(claims, args.update_golden, args.verbose, cassette_mode)
+    )
     print(text, flush=True)
     return exit_code
 

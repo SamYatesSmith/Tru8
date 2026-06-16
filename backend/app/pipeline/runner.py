@@ -172,6 +172,13 @@ def extract_pipeline_metrics(
         llm_calls += 1
 
     # API adapter calls from api_stats
+    # NF-03 (KNOWN BROKEN — reads 0): the per-claim api_stats set at
+    # retrieve.py:1408 does not survive into final_result. _aggregate_api_stats
+    # comes back with apis_queried=[] even when adapters were called (proven via
+    # the cassette bench: GovInfo queried twice on TRU-82CF yet total_api_calls=0),
+    # and final_result["claims"] is the rebuilt `results` list that never copies
+    # api_stats. Fixing this is an upstream dataflow change (retrieve -> runner),
+    # not this counter line — tracked separately. See audit/2026-06-15_pipeline_should_vs_is.md.
     api_adapter_calls = 0
     for source, source_stats in api_stats.items():
         if isinstance(source_stats, dict):

@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-05-12T14:57:10.610177+00:00",
-  "captured_with": "5f361ef",
+  "captured_at": "2026-06-16T09:29:44.265001+00:00",
+  "captured_with": "1f7c0ba",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -31,7 +31,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 29,
+      "value": 24,
       "tolerance": 8
     },
     "claims": {
@@ -39,99 +39,105 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 4,
+      "value": 5,
       "tolerance": 3
     },
     "web_search": {
-      "value": 42,
+      "value": 49,
       "tolerance": 8
     },
     "api_adapters": {
       "value": 0,
       "tolerance": 8
     },
-    "tier_reporting": {
-      "value": 19,
-      "tolerance": 9
-    },
     "tier_primary": {
-      "value": 9,
+      "value": 8,
       "tolerance": 4
     },
     "tier_commentary": {
-      "value": 1,
+      "value": 7,
+      "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 9,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://cmbinsurance.ca/blog/damages-from-ontario-flash-floods-could-top-1-billion/",
+        "https://abcnews.com/US/damage-weather-climate-disasters-exceed-100b-2022-noaa/story?id=91345859",
+        "https://apnews.com/article/floods-pakistan-south-asia-islamabad-25ee9dc0ec7aee6f4f2ef7b557216ee7",
+        "https://apnews.com/article/toms-river-toxic-waste-cancer-ciba-geigy-90b270b4c3cec258923fb4bb85c816f0",
+        "https://apnews.com/article/wildfires-france-fires-london-england-b9bc07c1685b76ddf377b65f19fb811b",
+        "https://cbcny.org/research/no-fare",
+        "https://centaur.reading.ac.uk/111004/9/2023-03-23%20Hawkins.pdf",
+        "https://commonslibrary.parliament.uk/heatwaves-in-the-uk/",
         "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
-        "https://content.tfl.gov.uk/casualties-in-greater-london-2024.pdf",
-        "https://doi.org/10.1007/s13753-024-00610-5",
-        "https://doi.org/10.1038/s41598-024-54495-x",
-        "https://doi.org/10.1109/tvt.2024.3355181",
-        "https://doi.org/10.1111/nyas.15148",
-        "https://doi.org/10.1186/s12864-024-10103-w",
+        "https://comptroller.nyc.gov/reports/ten-years-after-sandy/",
+        "https://doi.org/10.1016/j.jpsychores.2024.111832",
+        "https://doi.org/10.1186/s44263-024-00071-4",
         "https://doi.org/10.1787/e09c21e2-en",
-        "https://environmentamerica.org/center/updates/there-were-23-billion-dollar-weather-disasters-in-the-u-s-in-2025/",
-        "https://obr.uk/frs/fiscal-risks-and-sustainability-july-2025/",
+        "https://doi.org/10.3390/informatics11010004",
+        "https://doi.org/10.5194/nhess-24-973-2024",
+        "https://doi.org/10.58088/sq6f-2k98",
         "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
+        "https://thebulletin.org/2022/04/damage-to-ukraines-renewable-energy-sector-could-surpass-1-billion/",
         "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
-        "https://www.audubon.org/magazine/rise-billion-dollar-disasters",
         "https://www.bbc.co.uk/news/live/uk-62184978",
-        "https://www.bbc.com/news/uk-62217282",
-        "https://www.civilbeat.org/2026/03/hawai%CA%BBi-governor-estimates-storm-damage-has-already-hit-1-billion/",
-        "https://www.climatecentral.org/climate-matters/2025-in-review",
+        "https://www.bbc.co.uk/news/uk-62217282",
+        "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
+        "https://www.britannica.com/event/Hurricane-Ian-2022",
+        "https://www.carbonbrief.org/guest-post-a-met-office-review-of-the-uks-record-breaking-summer-in-2022/",
+        "https://www.climate.gov/news-features/blogs/beyond-data/2022-us-billion-dollar-weather-and-climate-disasters-historical",
+        "https://www.climatecentral.org/climate-services/billion-dollar-disasters",
         "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
-        "https://www.ft.com/video/82d31915-6121-4be8-93a7-1a68a53d6ae9",
+        "https://www.cssny.org/news/entry/congestion-pricing-outer-borough-new-yorkers-poverty-data-analysis",
+        "https://www.fox43.com/article/weather/billion-dollar-weather-disasters-2022-weather-rewind/521-3af834b1-99f8-46bf-9498-a",
         "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
-        "https://www.instituteofhealthequity.org/resources-reports/evidence-review-cost-of-living-and-health-inequalities-in-lond",
-        "https://www.london.gov.uk/violent-crime-leading-injury-falling-every-london-borough",
-        "https://www.lse.ac.uk/granthaminstitute/news/one-year-on-from-record-breaking-40-degrees-heat-in-the-uk-and-were-still-n",
-        "https://www.nhm.ac.uk/discover/news/2022/july/40-degree-heatwaves-could-happen-every-few-years-because-climate-change.ht",
-        "https://www.npr.org/2022/07/19/1112220447/britons-awake-from-their-warmest-ever-night-and-brace-for-record-smashing-heat",
-        "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/met-office-report-confirms-uk-climate-is-changing",
+        "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
+        "https://www.lse.ac.uk/granthaminstitute/extreme-heat-preparedness-and-resilience-in-the-uk/",
+        "https://www.lse.ac.uk/granthaminstitute/publication/turning-up-the-heat/",
+        "https://www.ncei.noaa.gov/access/billions/",
+        "https://www.pbs.org/newshour/nation/climate-change-helped-fuel-18-billion-dollar-disasters-in-2022-noaa-says",
+        "https://www.reddit.com/r/UKWeather/comments/1s8eyj6/remember_the_heat_wave_of_2022/",
         "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
-        "https://www.sfchronicle.com/us-world/article/hawaii-storm-recovery-la-fires-22090181.php",
-        "https://www.theguardian.com/environment/2016/jul/13/us-food-waste-ugly-fruit-vegetables-perfect",
-        "https://www.theguardian.com/media/2022/jul/20/hellfire-what-the-papers-say-about-uks-hottest-ever-day",
-        "https://www.theguardian.com/uk-news/2022/jul/19/a-wake-up-call-as-extreme-heat-blazes-across-uk-experts-say-net-zero-is-",
+        "https://www.smartcitiesdive.com/news/us-costs-damages-extreme-weather-climate-disasters-noaa-2022/640108/",
+        "https://www.theguardian.com/environment/2023/aug/03/chemical-companies-pfas-payouts-forever-chemicals",
         "https://www.theguardian.com/uk-news/2023/jan/20/hottest-day-of-2022-saw-638-more-deaths-than-normal-in-england",
         "https://www.theguardian.com/uk-news/2023/jul/27/2022-warmest-year-record-uk-met-office-extreme-heat",
-        "https://www.theguardian.com/world/2022/jul/19/europes-heatwave-moves-north-as-uk-braces-for-hottest-day-on-record",
         "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live",
         "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live?fi",
-        "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf"
+        "https://www.valuepenguin.com/severe-weather-property-damages-study",
+        "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
+        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
       ],
       "min_similarity": 0.4
     },
     "domain_set": {
       "golden": [
-        "anderson.ucla.edu",
-        "audubon.org",
+        "abcnews.com",
         "bbc.co.uk",
         "bbc.com",
-        "civilbeat.org",
+        "carbonbrief.org",
+        "centaur.reading.ac.uk",
         "climatecentral.org",
-        "cmbinsurance.ca",
         "cnbc.com",
+        "commonslibrary.parliament.uk",
         "community.netweather.tv",
-        "environmentamerica.org",
+        "fox43.com",
         "gov.uk",
+        "internetgeography.net",
         "lse.ac.uk",
         "ncei.noaa.gov",
-        "nhm.ac.uk",
-        "npr.org",
-        "obr.uk",
-        "redcross.org.uk",
+        "pbs.org",
         "reddit.com",
         "rmets.onlinelibrary.wiley.com",
-        "sfchronicle.com",
         "theguardian.com",
-        "weather.gov"
+        "valuepenguin.com",
+        "weather.gov",
+        "worldweatherattribution.org"
       ],
       "min_similarity": 0.45
     }

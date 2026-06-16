@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-82CF-2F81",
-  "captured_at": "2026-05-05T10:43:42.340060+00:00",
-  "captured_with": "280e534",
+  "captured_at": "2026-06-16T09:29:51.569035+00:00",
+  "captured_with": "1f7c0ba",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -18,7 +18,22 @@
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
     "expected_adapters_subset": [],
-    "coverage_recovery_failures_max": 6
+    "coverage_recovery_failures_max": 6,
+    "v3_quality_floors": {
+      "unique_domains_min": 5,
+      "top_domain_share_max": 0.45,
+      "wikipedia_share_max": 0.4,
+      "factual_weight_share_min": 0.15,
+      "element_resolution_min": 0.3
+    },
+    "v3_quality_warn_band": {
+      "unique_domains_min": 7,
+      "top_domain_share_max": 0.3,
+      "wikipedia_share_max": 0.25,
+      "factual_weight_share_min": 0.25,
+      "element_resolution_min": 0.5
+    },
+    "coverage_recovery_must_not_timeout": true
   },
   "tolerant_counters": {
     "sources_included": {
@@ -34,7 +49,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 13,
+      "value": 17,
       "tolerance": 8
     },
     "api_adapters": {
@@ -42,39 +57,44 @@
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 4,
+      "value": 3,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 4,
+      "value": 5,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "https://companiesmarketcap.com/bp/annual-reports/",
         "https://finbox.com/LSE:BP./explorer/gp/",
         "https://www.annualreports.com/Company/bp-plc",
-        "https://www.bbc.com/news/articles/cz0g4dkm77zo",
-        "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations.html",
-        "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive.html",
-        "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/1q-2022.html",
-        "https://www.bp.com/en/global/corporate/investors/results-reporting-and-presentations/archive/2q-2022.html",
-        "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/bp-files-annual-report-on-form-20-f-for-2022.htm",
-        "https://www.bp.com/en/global/corporate/news-and-insights/press-releases/fourth-quarter-2022-results.html",
+        "https://www.bbc.co.uk/news/articles/cz0g4dkm77zo",
+        "https://www.bbc.co.uk/news/business-68206788",
+        "https://www.bbc.com/news/business-68206788",
+        "https://www.bp.com/investors",
+        "https://www.bp.com/investors/results-reporting-and-presentations/archive-of-results-reports-and-presentations",
+        "https://www.bp.com/press-and-publications/press-releases",
         "https://www.cnbc.com/2023/02/07/bp-earnings-q4-and-fy-2022.html",
+        "https://www.ft.com/content/189a9248-d724-4128-b53a-b7afb33bcac4?syn-25a6b1a6=1",
+        "https://www.ft.com/content/425c205c-0be4-46a0-bcce-26d906298577?syn-25a6b1a6=1",
+        "https://www.ft.com/content/f1b91245-39f4-443b-a0f1-022974a9b28b",
         "https://www.hl.co.uk/shares/shares-search-results/b/bp-plc-ordinary-us$0.25",
-        "https://www.macrotrends.net/stocks/charts/BP/bp/operating-income",
+        "https://www.macrotrends.net/stocks/charts/BP/bp/financial-statements",
+        "https://www.macrotrends.net/stocks/charts/BP/bp/gross-profit",
         "https://www.sec.gov/Archives/edgar/data/313807/000031380723000009/bp-20221231.htm"
       ],
-      "min_similarity": 0.25
+      "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
+        "bbc.co.uk",
         "bbc.com",
-        "bp.com",
         "cnbc.com",
         "finbox.com",
+        "ft.com",
         "macrotrends.net",
         "sec.gov"
       ],

@@ -83,8 +83,12 @@ Three categories of assertion. All optional — omit a category to skip it.
 
 ### Why three categories
 
-LLM and live-search non-determinism means *exact* equality on full output is
-useless (everything looks red even when nothing's wrong). The bench discriminates:
+Historically, LLM and live-search non-determinism meant *exact* equality on full
+output was useless (everything looked red even when nothing was wrong). With
+cassette replay that non-determinism is now frozen, so tighter comparison is
+viable — but the three categories are retained: they still document intent
+(what *must* hold vs what may vary) and they keep `--live`/`--record` runs
+interpretable. The bench discriminates:
 
 - **Hard invariants** — boolean/structural signals that should *not* drift
   between runs unless code changed (a classifier inject either fired or it
@@ -116,18 +120,45 @@ When goldens change in a fix commit, the diff is the *evidence* that the fix
 did what was intended. Reviewing this diff is the regression-prevention
 discipline that compensates for trunk-based-with-no-PR.
 
+## Deterministic replay (cassettes)
+
+Each claim has a `cassette.json.gz` — a gzipped record of **every** HTTP
+interaction the pipeline made (web search, all API adapters, Gemini, OpenAI;
+they all ride `httpx`, so one mechanism captures the lot). By default the bench
+**replays** from the cassette, so no network is touched and the run is
+byte-for-byte reproducible. This removes the provider-side drift (Serper/Brave
+re-ranking + cache rotation) and LLM variance that previously swamped the
+signal: a red result now means *your code changed behaviour*, not that the
+internet shifted under you.
+
+```bash
+python scripts/replay_bench.py --all              # default: deterministic replay
+python scripts/replay_bench.py --all --record     # live + capture new cassettes
+python scripts/replay_bench.py --all --live       # live, no cassette (legacy/drift)
+```
+
+Cassettes scrub credentials (secret query params + auth headers) before they
+touch disk, and exclude them from the match key, so a rotated API key never
+invalidates a cassette and no secret is ever committed.
+
+**When to re-record:** after a deliberate pipeline change that alters the
+requests made (new adapter, changed prompt, different query shaping), or to
+refresh against the live world. A replay **miss** (an unrecorded request) is a
+hard error naming the request — that's the signal the pipeline's behaviour
+moved and the cassette needs a `--record`.
+
+**Caveat — wall-clock in prompts:** if a prompt/query embeds today's date, its
+body hash shifts daily and will miss on replay. Re-record, or normalise the date
+in `cassette._canonical_signature`.
+
 ## Running the bench
 
 ```bash
-# Full bench — all 5 claims
+# Full bench — all 5 claims (deterministic replay)
 python scripts/replay_bench.py --all
 
 # Single claim
 python scripts/replay_bench.py --claim TRU-B4A3-C42D
-
-# Fast mode — skip retrieve, replay from cached pool (deterministic)
-# Useful when iterating on classify / score / map
-python scripts/replay_bench.py --all --fast
 
 # Verbose — print full captured observation alongside diff
 python scripts/replay_bench.py --claim TRU-B4A3-C42D --verbose

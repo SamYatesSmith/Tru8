@@ -1,18 +1,33 @@
 {
   "claim_id": "TRU-A3E8-3199",
-  "captured_at": "2026-05-05T10:45:23.876797+00:00",
-  "captured_with": "280e534",
+  "captured_at": "2026-06-16T09:30:09.705116+00:00",
+  "captured_with": "1f7c0ba",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
     "expected_adapters_subset": [],
-    "coverage_recovery_failures_max": 6
+    "coverage_recovery_failures_max": 6,
+    "v3_quality_floors": {
+      "unique_domains_min": 5,
+      "top_domain_share_max": 0.45,
+      "wikipedia_share_max": 0.4,
+      "factual_weight_share_min": 0.15,
+      "element_resolution_min": 0.3
+    },
+    "v3_quality_warn_band": {
+      "unique_domains_min": 7,
+      "top_domain_share_max": 0.3,
+      "wikipedia_share_max": 0.25,
+      "factual_weight_share_min": 0.25,
+      "element_resolution_min": 0.5
+    },
+    "coverage_recovery_must_not_timeout": true
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 10,
+      "value": 19,
       "tolerance": 8
     },
     "claims": {
@@ -24,60 +39,70 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 19,
+      "value": 27,
       "tolerance": 8
     },
     "api_adapters": {
       "value": 0,
       "tolerance": 8
     },
+    "tier_reporting": {
+      "value": 13,
+      "tolerance": 6
+    },
     "tier_commentary": {
-      "value": 1,
+      "value": 4,
       "tolerance": 4
     },
     "tier_primary": {
       "value": 2,
-      "tolerance": 4
-    },
-    "tier_reporting": {
-      "value": 7,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
+        "https://apnews.com/article/great-white-sharks-moving-north-new-england-181c9f93da860f60a680abb7c447da05",
+        "https://apnews.com/article/great-white-sharks-stats-north-climate-9d80868940a9ae7bc45764dedb6f2823",
         "https://en.wikipedia.org/wiki/Greenland_shark",
-        "https://en.wikipedia.org/wiki/Leopard_shark",
         "https://en.wikipedia.org/wiki/Megalodon",
         "https://en.wikipedia.org/wiki/Pacific_sleeper_shark",
         "https://en.wikipedia.org/wiki/Whale_shark",
-        "https://insideclimatenews.org/news/16042026/great-white-sharks-ocean-warming/",
-        "https://trackingsharks.com/2026-shark-attack-map/",
+        "https://en.wikipedia.org/wiki/Winghead_shark",
+        "https://www.bbc.co.uk/news/articles/c9qe9wvq534o",
+        "https://www.bbc.co.uk/newsround/articles/c1jydgz6g6zo",
+        "https://www.bbc.co.uk/programmes/l0058fcs",
+        "https://www.bbc.com/news/videos/cd6p6zqzj6do",
         "https://www.bristolpost.co.uk/news/uk-world-news/shark-fin-spotted-uk-coast-10649464",
-        "https://www.countryfile.com/wildlife/marine-life/are-there-any-great-white-sharks-in-uk-waters",
-        "https://www.express.co.uk/news/uk/2051898/seven-foot-great-white-shark-spotted-uk-coast",
-        "https://www.gbif.org/species/113272801",
+        "https://www.discoverwildlife.com/animal-facts/fish/great-white-shark-facts-2",
+        "https://www.gbif.org/species/165636544",
         "https://www.gbif.org/species/206230133",
         "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
-        "https://www.msn.com/en-za/news/other/great-white-sharks-could-soon-appear-in-britain-thanks-to-warming-seas-experts-warn",
+        "https://www.reddit.com/r/sharks/comments/1qkoy4v/great_white_sharks_of_europe/",
+        "https://www.reddit.com/r/uknews/comments/1u4ybbo/great_white_sharks_inevitable_in_the_uk_after/",
         "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
+        "https://www.theguardian.com/environment/video/2026/feb/18/helicopter-crew-sounds-siren-as-45-meter-white-shark-spotted-o",
+        "https://www.theguardian.com/environment/video/2026/jun/08/rare-footage-great-white-shark-mediterranean-sea-video",
         "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
+        "https://www.tiktok.com/@wildlifewithcookie/video/7608591653737221398",
+        "https://www.wildlifeonline.me.uk/animals/species/sharks-and-rays-in-british-waters",
         "https://www.youtube.com/watch?v=_swHuC5uFys"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
+        "apnews.com",
+        "bbc.co.uk",
+        "bbc.com",
         "bristolpost.co.uk",
-        "countryfile.com",
-        "express.co.uk",
+        "discoverwildlife.com",
         "gbif.org",
         "gbnews.com",
-        "insideclimatenews.org",
-        "msn.com",
+        "reddit.com",
         "theguardian.com",
-        "tiktok.com"
+        "tiktok.com",
+        "wildlifeonline.me.uk"
       ],
       "min_similarity": 0.3
     }
