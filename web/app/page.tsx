@@ -86,6 +86,16 @@ export default function Home({
         >
           TRU8 · EVIDENCE VERIFICATION INFRASTRUCTURE · REV 2026.06
         </div>
+        {/* Inset document frame — continuous 1px column edges at the max-w-7xl
+            boundary, drawn over every section/room so the stacked sheets read as
+            one document. xl+ only (where a gutter exists), matching the spine. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-1/2 z-30 hidden w-full max-w-7xl -translate-x-1/2 xl:block"
+        >
+          <div className="absolute inset-y-0 left-0 w-px bg-zinc-200" />
+          <div className="absolute inset-y-0 right-0 w-px bg-zinc-200" />
+        </div>
         <StitchHero />
         <StitchProblem />
         <StitchRecord />

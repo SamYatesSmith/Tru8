@@ -1,5 +1,3 @@
-import { Upload, GitBranch, Search, ShieldCheck } from 'lucide-react';
-
 import { SheetHeader } from './sheet-header';
 
 /**
@@ -8,7 +6,6 @@ import { SheetHeader } from './sheet-header';
  */
 const steps = [
   {
-    icon: Upload,
     number: '01',
     label: 'Submit',
     title: 'Submit content or a claim',
@@ -16,7 +13,6 @@ const steps = [
       'Send AI-generated text, a URL, or a single claim — via the API or the Research Console.',
   },
   {
-    icon: GitBranch,
     number: '02',
     label: 'Decompose',
     title: 'Decompose into elements',
@@ -24,7 +20,6 @@ const steps = [
       'Each claim is broken into 1–5 checkable factual elements, so evidence maps to specifics, not vibes.',
   },
   {
-    icon: Search,
     number: '03',
     label: 'Retrieve',
     title: 'Retrieve external sources at depth',
@@ -32,7 +27,6 @@ const steps = [
       'Tru8 searches official data, research, legislation, and reporting — each source classified by tier and type.',
   },
   {
-    icon: ShieldCheck,
     number: '04',
     label: 'Return',
     title: 'Return a structured record',
@@ -54,13 +48,11 @@ export function StitchProcess() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10">
           {steps.map((step) => {
-            const Icon = step.icon;
             return (
               <div key={step.number} className="flex flex-col">
                 <div className="flex items-center gap-3 mb-6">
-                  <Icon className="text-zinc-300 flex-shrink-0" size={28} aria-hidden="true" />
-                  <div className="h-px flex-grow bg-zinc-100" />
                   <span className="font-mono text-[10px] text-zinc-400">{step.number}</span>
+                  <div className="h-px flex-grow bg-zinc-100" />
                 </div>
                 <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-500 mb-2">
                   {step.label}

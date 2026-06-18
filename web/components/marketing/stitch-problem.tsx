@@ -12,7 +12,7 @@ export function StitchProblem() {
         <SheetHeader number="00" label="Problem" refText="THE GAP" />
         <ScrollReveal>
           <div className="max-w-4xl">
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-normal tracking-[-0.02em] text-zinc-900 leading-[1.04]">
+            <h2 className="text-4xl md:text-6xl lg:text-[80px] font-normal tracking-[-0.02em] text-zinc-900 leading-[1.04]">
               AI ships factual claims faster than anyone can assemble the
               evidence behind them.
             </h2>
