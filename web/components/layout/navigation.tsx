@@ -12,7 +12,7 @@ import { capture } from '@/lib/analytics';
  *
  * Desktop only (>= 768px); mobile uses <MobileNav/>.
  * - Left: logo
- * - Centre: Product · API · MCP · Compare · Pricing · Docs
+ * - Centre: Product · Compare · Pricing · Developers (MCP/Docs are /developers sections)
  * - Right (signed out): Sign In (AuthModal) · Research App (→/research) · Get API Key (→/developers)
  *
  * Per design-review B2: the primary CTAs NAVIGATE (Link), they do not open the
@@ -20,11 +20,9 @@ import { capture } from '@/lib/analytics';
  */
 const NAV_LINKS = [
   { label: 'Product', href: '/#record' },
-  { label: 'API', href: '/developers' },
-  { label: 'MCP', href: '/developers#mcp' },
   { label: 'Compare', href: '/compare' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'Docs', href: '/developers#docs' },
+  { label: 'Developers', href: '/developers' },
 ];
 
 export function Navigation({

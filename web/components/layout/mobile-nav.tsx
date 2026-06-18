@@ -17,11 +17,9 @@ import { capture } from '@/lib/analytics';
  */
 const NAV_LINKS = [
   { label: 'Product', href: '/#record' },
-  { label: 'API', href: '/developers' },
-  { label: 'MCP', href: '/developers#mcp' },
   { label: 'Compare', href: '/compare' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'Docs', href: '/developers#docs' },
+  { label: 'Developers', href: '/developers' },
 ];
 
 export function MobileNav() {
