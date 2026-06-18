@@ -81,8 +81,9 @@ export type AnalyticsEvent =
   | 'upgrade_click'
   // Verification-repositioning funnel (P1, 2026-06-15). Wired to existing
   // durable surfaces now; more added in P4 when the homepage is rebuilt.
-  | 'get_api_key_click' // developer-conversion CTA (developers page)
-  | 'try_in_browser_click'; // hero primary CTA (research entry)
+  | 'get_api_key_click' // developer-conversion CTA (nav/hero/developers)
+  | 'try_in_browser_click' // legacy hero primary CTA (pre-repositioning)
+  | 'research_app_click'; // human-path CTA → /research (P4 repositioning)
 
 export function capture(
   event: AnalyticsEvent,

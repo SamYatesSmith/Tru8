@@ -1,31 +1,44 @@
-# Tru8 — Evidence Research API
+# Tru8 — Evidence Verification Infrastructure
 
-> Submit a claim or URL. Get structured evidence from 30+ sources, classified by source tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic). No verdicts — organised evidence.
+> Verify the evidence behind factual AI output before it ships. Tru8 decomposes content into checkable claims, retrieves external published sources (30+: official data, research, legislation, reporting), classifies each by tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic), and maps every source to a claim element by relationship (supports/challenges/context). It returns a structured, inspectable, tamper-evident evidence record — never a verdict. We organize; you decide.
+
+## What it returns
+
+A verification record per claim:
+- Elements — each claim broken into 1–5 checkable factual parts
+- Evidence mapped to each element with a relationship (supports / challenges / context) and a one-line reason
+- Element states, plus named gaps (what evidence is missing)
+- Exclusion receipts — every source set aside carries a reason; no silent curation
+- Source-diversity metrics — unique domains, tier spread, type coverage; echo/corroboration detection
+- A signed, tamper-evident manifest (HMAC-SHA256) with a /verify endpoint
+
+You decide what to publish, escalate, re-check or block.
 
 ## API
 
 Base: https://api.trueight.com/api/v1/agent
 Auth: X-API-Key header
 Docs: https://www.trueight.com/developers
-Compare: https://www.trueight.com/compare — capability comparison vs Web IQ / Google check-grounding / Perplexity / Parallel, with live response captures
+Compare: https://www.trueight.com/compare — capability comparison vs search/grounding, eval/guardrail, and fact-checking tools, with live response captures
+Pricing: https://www.trueight.com/pricing — current rates per tier
 
-Endpoints:
-- POST /agent/check — Smart endpoint, automatic tier fallback (lookup → consensus → quick → full)
-- POST /agent/lookup — Cached prior analysis (£0.02, instant)
-- POST /agent/quick — Web search + heuristic classification (£0.07, ~15s)
-- POST /agent/full — Full 30+ source pipeline (£0.15, ~60-90s)
-- Consensus tier (£0.03, cross-user aggregate) — reachable via /agent/check with max_tier=consensus
-- GET /agent/result/{id} — Retrieve completed check (free)
-- POST /agent/batch — Up to 10 claims (per-claim pricing, async)
+Tiers (depth and cost increase down the list):
+- POST /agent/lookup — cached prior record, instant
+- Consensus — privacy-preserving cross-user aggregate (via /agent/check with max_tier=consensus)
+- POST /agent/quick — web search + heuristic classification, ~15s
+- POST /agent/full — full 30+ source pipeline, ~60–90s
+- POST /agent/check — smart endpoint, automatic tier fallback (lookup → consensus → quick → full)
+- GET /agent/result/{id} — retrieve a completed record (free)
+- POST /agent/batch — up to 10 claims (async)
 
-Payment: Prepaid credits, x402 (USDC/SIWE), or Skyfire (JWT)
+Payment: prepaid credits, x402 (USDC/SIWE), or Skyfire (JWT)
 
 ## MCP Server
 
-Package: tru8-mcp (Python)
+Package: tru8-mcp (Python, PyPI)
 Tools: tru8_check (with max_tier param), tru8_get_result, tru8_get_result_raw
 Compatible with Claude, GPT, Gemini, and any MCP-capable agent.
 
-## Response
+## Human console
 
-Returns: claims, elements, evidence with tier/type classification, element-evidence mapping with relationship (supports/challenges/context), orientation summary. Optional: computed analytics, manifest signing for tamper evidence.
+Tru8 Console — https://www.trueight.com/research — the same evidence record in a browser, with six ways to read it: the classified evidence set, a citation map, a publication timeline, source diversity, named gaps, and on-camera video context.

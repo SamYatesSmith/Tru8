@@ -1,5 +1,5 @@
 import { Navigation } from '@/components/layout/navigation';
-import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
+import { MobileNav } from '@/components/layout/mobile-nav';
 import { Footer } from '@/components/layout/footer';
 import { ArrowLeft, Key, Search, FileJson, BarChart3, ShieldCheck, Bell, Layers, Radio } from 'lucide-react';
 import Link from 'next/link';
@@ -30,9 +30,9 @@ export default function DevelopersPage() {
   return (
     <>
       <Navigation />
-      <MobileBottomNav />
+      <MobileNav />
 
-      <main className="min-h-screen pt-24 md:pt-32 pb-24 md:pb-20">
+      <main id="main-content" className="min-h-screen pt-24 md:pt-32 pb-24 md:pb-20">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {/* Back Button */}
           <Link

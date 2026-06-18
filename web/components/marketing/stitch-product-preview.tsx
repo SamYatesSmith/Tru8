@@ -2,9 +2,11 @@
 
 import { useState, type ReactNode } from 'react';
 import Image from 'next/image';
-import { ArrowUpRight } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowUpRight, ArrowRight } from 'lucide-react';
 
 import { ScrollReveal } from './scroll-reveal';
+import { SheetHeader } from './sheet-header';
 import { ScreenshotScrollLightbox, type ScreenshotSlide } from './screenshot-scroll-lightbox';
 
 interface Panel {
@@ -106,24 +108,21 @@ export function StitchProductPreview() {
   };
 
   return (
-    <section id="preview" className="py-24 md:py-32 bg-white border-t border-zinc-100">
+    <section id="preview" className="py-24 md:py-32 bg-white border-t border-zinc-100 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
+        <SheetHeader number="05" label="Console" refText="6 VIEWS" />
         <ScrollReveal>
-          <div className="mb-20 md:mb-28 max-w-3xl">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 block">
-              Module — See It Work
-            </span>
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-extralight tracking-[-0.02em] text-zinc-900 leading-[0.95]">
-              Six views.<br />
-              One <span className="font-bold">landscape.</span>
+          <div className="mb-16 md:mb-20 max-w-3xl">
+            <h2 className="text-3xl md:text-5xl font-normal tracking-[-0.02em] text-zinc-900 leading-[1.0]">
+              Prefer to review in a browser?
             </h2>
             <p className="text-sm md:text-base text-zinc-500 leading-relaxed mt-6 max-w-xl">
-              The same evidence research, surfaced six ways. Four are shown here — click any panel to open it full-size with zoom.
+              The same structured record, as a human console — six ways to read the evidence.
             </p>
           </div>
         </ScrollReveal>
 
-        <div className="space-y-24 md:space-y-32">
+        <div className="space-y-20 md:space-y-28">
           {PANELS.map((panel, index) => (
             <PanelRow
               key={panel.number}
@@ -134,6 +133,16 @@ export function StitchProductPreview() {
               onOpen={() => openAt(index)}
             />
           ))}
+        </div>
+
+        <div className="mt-20 md:mt-28 pt-12 border-t border-zinc-100">
+          <Link
+            href="/research"
+            className="group inline-flex items-center gap-3 bg-black text-white px-10 py-5 text-xs md:text-sm font-bold tracking-[0.3em] uppercase transition-all hover:bg-zinc-900"
+          >
+            <span>Open the Research App</span>
+            <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
       </div>
 
@@ -169,7 +178,7 @@ function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
         {/* Caption rail */}
         <div className="lg:col-span-4 flex flex-col">
           <div className="flex items-center gap-3 mb-6">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-accent">
+            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
               {pagination}
             </span>
             <div className="h-px flex-grow bg-zinc-200" />
@@ -177,7 +186,7 @@ function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
               {panel.label}
             </span>
           </div>
-          <h3 className="text-3xl md:text-4xl lg:text-5xl font-extralight tracking-[-0.02em] text-zinc-900 leading-[1.05] mb-5">
+          <h3 className="text-3xl md:text-4xl lg:text-5xl font-normal tracking-[-0.02em] text-zinc-900 leading-[1.05] mb-5">
             {panel.headline}
           </h3>
           <p className="text-sm md:text-base text-zinc-500 leading-relaxed mb-8">

@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 
 import { ScrollReveal } from './scroll-reveal';
 import { CopyCodeButton } from './copy-code-button';
+import { SheetHeader } from './sheet-header';
 
 const SAMPLE_RESPONSE = `{
   "id": "chk_8f3a...",
@@ -82,19 +83,17 @@ export function StitchDeveloperShowcase() {
   return (
     <section id="developer-showcase" className="py-24 md:py-32 bg-zinc-950 text-zinc-100">
       <div className="max-w-7xl mx-auto px-6">
+        <SheetHeader number="03" label="API" refText="POST /agent/*" tone="dark" />
         <ScrollReveal>
           <div className="mb-16 md:mb-20 max-w-3xl">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-accent mb-4 block">
-              Module — For Builders
-            </span>
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-extralight tracking-[-0.02em] text-zinc-50 leading-[0.95]">
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-normal tracking-[-0.02em] text-zinc-50 leading-[0.95]">
               One submission,<br />
-              <span className="font-bold">structured for agents.</span>
+              structured for agents.
             </h2>
             <p className="text-sm md:text-base text-zinc-400 leading-relaxed mt-6 max-w-2xl">
-              The same evidence research, returned as a stable JSON contract. Per-claim element
-              decomposition, computed landscape metrics, and a signed manifest your callers can
-              verify.
+              The same structured evidence record, returned as a stable JSON contract. Per-claim
+              element decomposition, computed landscape metrics, and a signed manifest your callers
+              can verify.
             </p>
           </div>
         </ScrollReveal>
@@ -159,7 +158,6 @@ export function StitchDeveloperShowcase() {
                   />
                 </Link>
                 <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 leading-relaxed">
-                  Per-call pricing from £0.02<br />
                   Signed manifests, MCP server, webhooks
                 </div>
               </div>

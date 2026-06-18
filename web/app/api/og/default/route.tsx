@@ -50,7 +50,7 @@ export async function GET() {
             letterSpacing: '0.05em',
           }}
         >
-          Evidence research, organised.
+          Evidence verification infrastructure.
         </div>
 
         {/* Bottom accent line */}

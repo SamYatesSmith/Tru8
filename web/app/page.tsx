@@ -1,19 +1,20 @@
 import type { Metadata } from 'next'
 import { Navigation } from '@/components/layout/navigation'
-import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
+import { MobileNav } from '@/components/layout/mobile-nav'
 import { Footer } from '@/components/layout/footer'
 import { StitchHero } from '@/components/marketing/stitch-hero'
+import { StitchProblem } from '@/components/marketing/stitch-problem'
+import { StitchRecord } from '@/components/marketing/stitch-record'
 import { StitchProcess } from '@/components/marketing/stitch-process'
-import { StitchFeatures } from '@/components/marketing/stitch-features'
-import { StitchProductPreview } from '@/components/marketing/stitch-product-preview'
 import { StitchDeveloperShowcase } from '@/components/marketing/stitch-developer-showcase'
-import { StitchPricing } from '@/components/marketing/stitch-pricing'
+import { StitchCompareTeaser } from '@/components/marketing/stitch-compare-teaser'
+import { StitchProductPreview } from '@/components/marketing/stitch-product-preview'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
 export const metadata: Metadata = {
-  title: 'Tru8 — AI-Powered News Evidence Research',
-  description: 'Paste a news article, headline, or claim. Tru8 searches multiple source types, classifies evidence by tier and type, and maps the full evidence landscape. No verdicts — just structured evidence so you can form your own view.',
+  title: 'Tru8 — Evidence Verification Infrastructure',
+  description: 'Verify the evidence behind factual AI output before it ships. Tru8 turns AI content into checkable claims and returns a structured, tamper-evident evidence record — external sources, what supports each, what challenges it, what is missing.',
   alternates: { canonical: '/' },
 }
 
@@ -22,26 +23,41 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Organization',
+      '@id': `${baseUrl}/#organization`,
       name: 'Tru8',
+      alternateName: 'Trueight',
       url: baseUrl,
       logo: `${baseUrl}/favicon.proper.png`,
-      description: 'AI-powered news evidence research platform. Research what\u2019s behind the headlines. We organise; you decide.',
+      description: 'Evidence verification infrastructure for factual AI-generated content. Tru8 returns a structured, inspectable evidence record — supports, challenges, gaps and a signed manifest — so you decide what ships. We organize; you decide.',
+      sameAs: [
+        'https://x.com/tru8app',
+        'https://pypi.org/project/tru8-mcp/',
+      ],
     },
     {
       '@type': 'WebSite',
+      '@id': `${baseUrl}/#website`,
       name: 'Tru8',
       url: baseUrl,
+      publisher: { '@id': `${baseUrl}/#organization` },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Tru8',
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'Web',
+      url: `${baseUrl}/developers`,
+      publisher: { '@id': `${baseUrl}/#organization` },
+      description: 'Evidence verification API and MCP server for AI agents. Decomposes factual AI output into checkable claims, retrieves external published sources, and returns a structured, tamper-evident evidence record.',
     },
   ],
 }
 
 /**
- * Home Page (Stitch W-01 Landing)
+ * Home Page — verification/developer-led repositioning (asymmetric, no splash).
  *
- * Unified Auth Flow Integration:
- * - Detects auth_redirect=true parameter (set by middleware)
- * - Auto-opens auth modal when user tried to access protected route
- * - Stores redirect_url to send user back after sign-in
+ * Auth-redirect handling: middleware sets ?auth_redirect=true when a user hits a
+ * protected route signed-out; the nav opens the auth modal and stores redirect_url.
  */
 export default function Home({
   searchParams,
@@ -58,15 +74,25 @@ export default function Home({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <Navigation initialAuthOpen={shouldOpenAuth} redirectUrl={redirectUrl} />
-      <MobileBottomNav />
+      <MobileNav />
 
       <main id="main-content" className="relative">
+        {/* Document edge — one decisive accent stroke (Phase 1 art-direction) */}
+        <div aria-hidden="true" className="h-[2px] w-full bg-accent" />
+        {/* Persistent title-block spine in the left margin (wide screens only) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed left-1.5 top-1/2 z-40 hidden -translate-y-1/2 rotate-180 select-none font-mono text-[9px] tracking-[0.3em] text-zinc-300 [writing-mode:vertical-rl] xl:block"
+        >
+          TRU8 · EVIDENCE VERIFICATION INFRASTRUCTURE · REV 2026.06
+        </div>
         <StitchHero />
+        <StitchProblem />
+        <StitchRecord />
         <StitchProcess />
-        <StitchFeatures />
-        <StitchProductPreview />
         <StitchDeveloperShowcase />
-        <StitchPricing />
+        <StitchCompareTeaser />
+        <StitchProductPreview />
       </main>
 
       <Footer />

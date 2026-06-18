@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
+      // Allow the dynamic OG image routes even though /api/ is otherwise blocked,
+      // so social/link unfurlers can fetch share-card images.
+      allow: ['/', '/api/og/'],
       disallow: ['/dashboard/', '/api/', '/sign-in/', '/sign-up/'],
     },
     sitemap: `${baseUrl}/sitemap.xml`,

@@ -6,11 +6,16 @@ import { openConsentBanner } from '@/lib/consent';
 
 export function Footer() {
   const platformLinks = [
-    { label: 'Features', href: '/#features' },
-    { label: 'Pricing', href: '/#pricing' },
-    { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Developers', href: '/developers' },
+    { label: 'Product', href: '/#record' },
+    { label: 'Research App', href: '/research' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Compare', href: '/compare' },
+  ];
+
+  const developerLinks = [
+    { label: 'API', href: '/developers' },
+    { label: 'MCP', href: '/developers#mcp' },
+    { label: 'Docs', href: '/developers#docs' },
   ];
 
   const companyLinks = [
@@ -29,8 +34,8 @@ export function Footer() {
   return (
     <footer className="bg-zinc-50 pt-20 pb-12 border-t border-zinc-100">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Grid: Logo + 3 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+        {/* Grid: Logo + 4 link columns */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-20">
           {/* Logo + Tagline */}
           <div>
             <div className="flex items-center gap-3 mb-6">
@@ -39,8 +44,9 @@ export function Footer() {
                 TRU<span className="text-zinc-400 font-normal">8</span>
               </span>
             </div>
-            <p className="text-sm text-zinc-400 leading-relaxed max-w-xs">
-              Research the evidence behind the news. We organise; you decide.
+            <p className="text-sm text-zinc-500 leading-relaxed max-w-xs">
+              Evidence verification infrastructure for factual AI content. We organize; you
+              decide.
             </p>
           </div>
 
@@ -49,6 +55,20 @@ export function Footer() {
             <h5 className="font-mono text-[10px] font-bold tracking-widest uppercase mb-6">Platform</h5>
             <ul className="space-y-3 text-sm text-zinc-500">
               {platformLinks.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="hover:text-black transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Developers */}
+          <div>
+            <h5 className="font-mono text-[10px] font-bold tracking-widest uppercase mb-6">Developers</h5>
+            <ul className="space-y-3 text-sm text-zinc-500">
+              {developerLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="hover:text-black transition-colors">
                     {link.label}
@@ -72,7 +92,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Legal + Connect */}
+          {/* Legal */}
           <div>
             <h5 className="font-mono text-[10px] font-bold tracking-widest uppercase mb-6">Legal</h5>
             <ul className="space-y-3 text-sm text-zinc-500">

@@ -25,10 +25,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Tru8 — AI-Powered News Evidence Research',
+    default: 'Tru8 — Evidence Verification Infrastructure',
     template: '%s | Tru8',
   },
-  description: 'AI-powered news evidence research. Paste a news article or claim, and Tru8 searches multiple source types to organise the evidence landscape. No verdicts — just clarity.',
+  description: 'Evidence verification infrastructure for factual AI content. Tru8 decomposes content into checkable claims, retrieves external published sources, and returns a structured, tamper-evident evidence record. We organize; you decide.',
   icons: {
     icon: '/favicon.proper.png',
     apple: '/apple-touch-icon.png',
@@ -37,12 +37,21 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'Tru8',
-    locale: 'en_GB',
-    images: [{ url: '/api/og/default', width: 1200, height: 630 }],
+    locale: 'en_US',
+    description: 'Verify the evidence behind factual AI output before it ships. We organize; you decide.',
+    images: [
+      {
+        url: '/api/og/default',
+        width: 1200,
+        height: 630,
+        alt: 'Tru8 — Evidence Verification Infrastructure',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     site: '@tru8app',
+    description: 'Verify the evidence behind factual AI output before it ships. We organize; you decide.',
   },
   robots: {
     index: true,
@@ -62,6 +71,12 @@ export default function RootLayout({
     >
       <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
         <body className="bg-white text-zinc-900 antialiased font-sans" suppressHydrationWarning>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-3 focus:left-3 focus:bg-black focus:text-white focus:px-4 focus:py-2 focus:text-xs focus:font-bold focus:uppercase focus:tracking-widest"
+          >
+            Skip to content
+          </a>
           <ServiceWorkerTombstone />
           <AnalyticsIdentify />
           <AnalyticsProvider>
