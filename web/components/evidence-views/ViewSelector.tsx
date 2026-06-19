@@ -18,13 +18,16 @@ const DETAIL_ONLY_TOOLTIPS: Record<string, string> = {
   seeker: 'Available when viewing a specific claim — click a claim card above to surface unknowns.',
 };
 
+// Plain-language label leads; the profession is kept as flavour in the subtitle
+// (D-R1, §7.4). `value` strings are unchanged — ?view= deep links stay stable.
+// Order leads with Evidence (the default lens, §7.2.2).
 const ALL_TABS: { value: ViewTab; label: string; subtitle: string }[] = [
-  { value: 'cartographer', label: 'CARTOGRAPHER', subtitle: 'Shape of the conversation' },
-  { value: 'librarian', label: 'LIBRARIAN', subtitle: 'Full evidence set, classified' },
-  { value: 'correspondent', label: 'CORRESPONDENT', subtitle: "Who's in the room?" },
-  { value: 'seeker', label: 'SEEKER', subtitle: "What don't we know yet?" },
-  { value: 'projectionist', label: 'PROJECTIONIST', subtitle: "What's been said on camera?" },
-  { value: 'chronologist', label: 'CHRONOLOGIST', subtitle: 'When did evidence appear?' },
+  { value: 'librarian', label: 'EVIDENCE', subtitle: 'Librarian · full classified set' },
+  { value: 'correspondent', label: 'SOURCES', subtitle: "Correspondent · who's in the room" },
+  { value: 'chronologist', label: 'TIMELINE', subtitle: 'Chronologist · when evidence appeared' },
+  { value: 'seeker', label: 'GAPS', subtitle: "Seeker · what we don't know yet" },
+  { value: 'cartographer', label: 'MAP', subtitle: 'Cartographer · shape of the conversation' },
+  { value: 'projectionist', label: 'VIDEO', subtitle: 'Projectionist · on camera' },
 ];
 
 export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: ViewSelectorProps) {

@@ -1,12 +1,7 @@
 'use client';
 
 import { Claim, EvidenceTier, InputType } from '@shared/types';
-
-const STATE_BADGE_CONFIG: Record<string, { label: string; className: string }> = {
-  supported: { label: 'Supported', className: 'bg-emerald-50 text-emerald-600' },
-  disputed: { label: 'Disputed', className: 'bg-amber-50 text-amber-600' },
-  unresolved: { label: 'Unresolved', className: 'bg-slate-50 text-slate-500' },
-};
+import { ElementStateBadge, ElementStateKey } from '../ElementStateBadge';
 
 const TYPE_LABELS: Record<string, string> = {
   empirical: 'Empirical',
@@ -106,9 +101,8 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
         <div className="border-t border-zinc-100 px-5 py-3 space-y-1.5">
           {elements.map((element, i) => {
             const sourceCount = element.evidenceRefs?.length || 0;
-            const state = element.state || 'unresolved';
+            const state = (element.state || 'unresolved') as ElementStateKey;
             const elIsGap = sourceCount === 0;
-            const badge = STATE_BADGE_CONFIG[state] || STATE_BADGE_CONFIG.unresolved;
 
             return (
               <div key={element.elementId} className="flex items-center gap-3 py-1">
@@ -121,11 +115,10 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
                 <span className={`font-mono text-[10px] shrink-0 ${elIsGap ? 'text-zinc-300' : 'text-zinc-400'}`}>
                   {sourceCount}
                 </span>
-                <span className={`px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider shrink-0 rounded ${
-                  elIsGap ? 'bg-slate-50 text-slate-400' : badge.className
-                }`}>
-                  {elIsGap ? 'Gap' : badge.label}
-                </span>
+                <ElementStateBadge
+                  state={elIsGap ? 'unresolved' : state}
+                  label={elIsGap ? 'Gap' : undefined}
+                />
               </div>
             );
           })}

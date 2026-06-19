@@ -25,7 +25,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   const [copied, setCopied] = useState(false);
   const [activeClaimIndex, setActiveClaimIndex] = useState(0);
   const [claimView, setClaimView] = useState<string>(
-    highlightView && VALID_DETAIL_VIEWS.includes(highlightView) ? highlightView : 'cartographer'
+    highlightView && VALID_DETAIL_VIEWS.includes(highlightView) ? highlightView : 'librarian'
   );
   const claimDetailRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +38,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   const updateUrlViewParam = useCallback((view: string) => {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
-    if (view !== 'cartographer') {
+    if (view !== 'librarian') {
       url.searchParams.set('view', view);
     } else {
       url.searchParams.delete('view');

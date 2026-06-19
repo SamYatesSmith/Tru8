@@ -2,6 +2,7 @@
 
 import { Claim, InputType } from '@shared/types';
 import { DiagnosticFlag } from '../DiagnosticFlag';
+import { ELEMENT_STATE } from '../ElementStateBadge';
 
 const CONTEXT_LABELS: Record<string, string> = {
   url: 'Extracted Claim',
@@ -75,17 +76,17 @@ export function ClaimHeader({ claim, position, inputType }: ClaimHeaderProps) {
           <>
             <span className="text-zinc-200">&middot;</span>
             {stateCounts.supported > 0 && (
-              <span className="font-mono text-[10px] text-emerald-500">
+              <span className={`font-mono text-[10px] ${ELEMENT_STATE.supported.text}`}>
                 {stateCounts.supported} supported
               </span>
             )}
             {stateCounts.disputed > 0 && (
-              <span className="font-mono text-[10px] text-amber-500">
+              <span className={`font-mono text-[10px] ${ELEMENT_STATE.disputed.text}`}>
                 {stateCounts.disputed} disputed
               </span>
             )}
             {stateCounts.contextual > 0 && (
-              <span className="font-mono text-[10px] text-sky-500">
+              <span className={`font-mono text-[10px] ${ELEMENT_STATE.contextual.text}`}>
                 {stateCounts.contextual} contextual
               </span>
             )}

@@ -65,9 +65,9 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     if (initialClaim !== undefined || isSingleClaim) {
       const viewParam = searchParams?.get('view');
       const validViews = ['cartographer', 'librarian', 'correspondent', 'seeker', 'projectionist', 'chronologist'];
-      return viewParam && validViews.includes(viewParam) ? viewParam : 'cartographer';
+      return viewParam && validViews.includes(viewParam) ? viewParam : 'librarian';
     }
-    return 'cartographer';
+    return 'librarian';
   });
 
 
@@ -102,7 +102,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     if (activeClaimIndex !== null) {
       url.searchParams.set('claim', String(activeClaimIndex));
     }
-    if (tab !== 'cartographer') {
+    if (tab !== 'librarian') {
       url.searchParams.set('view', tab);
     } else {
       url.searchParams.delete('view');
@@ -113,7 +113,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   // Focus a claim (from grid click or prev/next)
   const handleClaimSelect = useCallback((position: number) => {
     setActiveClaimIndex(position);
-    setClaimView('cartographer');
+    setClaimView('librarian');
     const url = new URL(window.location.href);
     url.searchParams.set('claim', String(position));
     url.searchParams.delete('view');
@@ -169,7 +169,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   // Auto-switch away from Projectionist if it becomes hidden (no videos)
   useEffect(() => {
     if (claimView === 'projectionist' && !claimVideosLoading && claimVideos.length === 0) {
-      handleClaimTabChange('cartographer');
+      handleClaimTabChange('librarian');
     }
   }, [claimView, claimVideosLoading, claimVideos.length, handleClaimTabChange]);
 

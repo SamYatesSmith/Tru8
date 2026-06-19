@@ -11,19 +11,21 @@ describe('ViewSelector', () => {
 
   it('renders all 6 view tabs', () => {
     render(<ViewSelector {...defaultProps} />);
-    expect(screen.getByText('CARTOGRAPHER')).toBeInTheDocument();
-    expect(screen.getByText('LIBRARIAN')).toBeInTheDocument();
-    expect(screen.getByText('CORRESPONDENT')).toBeInTheDocument();
-    expect(screen.getByText('SEEKER')).toBeInTheDocument();
-    expect(screen.getByText('PROJECTIONIST')).toBeInTheDocument();
-    expect(screen.getByText('CHRONOLOGIST')).toBeInTheDocument();
+    // Plain-language labels lead (D-R1); the profession is the subtitle flavour.
+    expect(screen.getByText('EVIDENCE')).toBeInTheDocument();
+    expect(screen.getByText('SOURCES')).toBeInTheDocument();
+    expect(screen.getByText('TIMELINE')).toBeInTheDocument();
+    expect(screen.getByText('GAPS')).toBeInTheDocument();
+    expect(screen.getByText('MAP')).toBeInTheDocument();
+    expect(screen.getByText('VIDEO')).toBeInTheDocument();
   });
 
   it('calls onTabChange when a tab is clicked', () => {
     const onTabChange = vi.fn();
     render(<ViewSelector {...defaultProps} onTabChange={onTabChange} />);
 
-    fireEvent.click(screen.getByText('LIBRARIAN'));
+    // EVIDENCE is the relabelled Librarian tab — value string is unchanged.
+    fireEvent.click(screen.getByText('EVIDENCE'));
     expect(onTabChange).toHaveBeenCalledWith('librarian');
   });
 
@@ -31,7 +33,8 @@ describe('ViewSelector', () => {
     const onTabChange = vi.fn();
     render(<ViewSelector {...defaultProps} mode="overview" onTabChange={onTabChange} />);
 
-    const seekerButton = screen.getByText('SEEKER').closest('button')!;
+    // GAPS is the relabelled Seeker tab (detail-only).
+    const seekerButton = screen.getByText('GAPS').closest('button')!;
     expect(seekerButton).toBeDisabled();
 
     fireEvent.click(seekerButton);
@@ -42,7 +45,7 @@ describe('ViewSelector', () => {
     const onTabChange = vi.fn();
     render(<ViewSelector {...defaultProps} mode="detail" onTabChange={onTabChange} />);
 
-    const seekerButton = screen.getByText('SEEKER').closest('button')!;
+    const seekerButton = screen.getByText('GAPS').closest('button')!;
     expect(seekerButton).not.toBeDisabled();
 
     fireEvent.click(seekerButton);
@@ -53,19 +56,18 @@ describe('ViewSelector', () => {
     const onTabChange = vi.fn();
     render(<ViewSelector {...defaultProps} mode="overview" onTabChange={onTabChange} />);
 
-    // Click all tabs — only non-disabled ones should fire
-    fireEvent.click(screen.getByText('CARTOGRAPHER'));
-    fireEvent.click(screen.getByText('SEEKER'));
+    // Click a live tab then the disabled one — only the live tab fires.
+    fireEvent.click(screen.getByText('MAP'));   // cartographer — enabled
+    fireEvent.click(screen.getByText('GAPS'));  // seeker — disabled in overview
 
-    // Cartographer fires, Seeker does not
     expect(onTabChange).toHaveBeenCalledTimes(1);
     expect(onTabChange).toHaveBeenCalledWith('cartographer');
   });
 
   it('shows subtitles on desktop (hidden md:block)', () => {
     render(<ViewSelector {...defaultProps} />);
-    // Subtitles are rendered but hidden on mobile via CSS
-    expect(screen.getByText('Shape of the conversation')).toBeInTheDocument();
-    expect(screen.getByText('Full evidence set, classified')).toBeInTheDocument();
+    // Subtitles are rendered but hidden on mobile via CSS.
+    expect(screen.getByText('Cartographer · shape of the conversation')).toBeInTheDocument();
+    expect(screen.getByText('Librarian · full classified set')).toBeInTheDocument();
   });
 });

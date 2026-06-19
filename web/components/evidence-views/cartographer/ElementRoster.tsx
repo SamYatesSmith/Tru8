@@ -1,12 +1,7 @@
 'use client';
 
 import { ClaimElement } from '@shared/types';
-
-const STATE_BADGE_CONFIG: Record<string, { label: string; className: string }> = {
-  supported: { label: 'Supported', className: 'bg-emerald-50 text-emerald-600' },
-  disputed: { label: 'Disputed', className: 'bg-amber-50 text-amber-600' },
-  unresolved: { label: 'Unresolved', className: 'bg-slate-50 text-slate-500' },
-};
+import { ElementStateBadge, ElementStateKey } from '../ElementStateBadge';
 
 interface ElementRosterProps {
   elements: ClaimElement[];
@@ -21,9 +16,8 @@ export function ElementRoster({ elements }: ElementRosterProps) {
       <div className="space-y-3">
         {elements.map((element, i) => {
           const sourceCount = element.evidenceRefs?.length || 0;
-          const state = element.state || 'unresolved';
+          const state = (element.state || 'unresolved') as ElementStateKey;
           const isGap = sourceCount === 0;
-          const badge = STATE_BADGE_CONFIG[state] || STATE_BADGE_CONFIG.unresolved;
 
           return (
             <div
@@ -46,11 +40,11 @@ export function ElementRoster({ elements }: ElementRosterProps) {
                 <span className={`font-mono text-[10px] ${isGap ? 'text-zinc-300' : 'text-zinc-400'}`}>
                   {sourceCount} {sourceCount === 1 ? 'source' : 'sources'}
                 </span>
-                <span className={`px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded ${
-                  isGap ? 'bg-slate-50 text-slate-500' : badge.className
-                }`}>
-                  {isGap ? 'Gap' : badge.label}
-                </span>
+                <ElementStateBadge
+                  state={isGap ? 'unresolved' : state}
+                  label={isGap ? 'Gap' : undefined}
+                  size="md"
+                />
               </div>
             </div>
           );
