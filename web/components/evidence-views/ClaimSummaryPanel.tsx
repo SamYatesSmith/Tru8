@@ -37,11 +37,17 @@ interface ClaimSummaryPanelProps {
   claim: Claim;
   position: number;
   inputType?: InputType;
+  /**
+   * Rank indicator shown before the context badge. Per-surface (D-R3 decision):
+   * `undefined` → zero-padded position (dashboard "02"); a string → custom
+   * (public report "Claim 2 of 5"); `null` → hidden (public single-claim).
+   */
+  rankLabel?: string | null;
   /** Switch the active lens to the Gaps (Seeker) view from the gaps-named list. */
   onNavigateToGaps?: () => void;
 }
 
-export function ClaimSummaryPanel({ claim, position, inputType, onNavigateToGaps }: ClaimSummaryPanelProps) {
+export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNavigateToGaps }: ClaimSummaryPanelProps) {
   const claimMap = claim.claimMap;
   const elements = claimMap?.elements || [];
   const evidence = claim.evidence || [];
@@ -49,7 +55,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, onNavigateToGaps
   const orientation = claimMap?.orientation;
   const claimType = claimMap?.claimType || claim.claimType;
 
-  const rankLabel = String(position + 1).padStart(2, '0');
+  const rankText = rankLabel === undefined ? String(position + 1).padStart(2, '0') : rankLabel;
   const contextLabel = CONTEXT_LABELS[inputType || ''] || 'Submitted Claim';
 
   // Element state tally (2026-05-12: contextual elements carry context-tier
@@ -74,7 +80,9 @@ export function ClaimSummaryPanel({ claim, position, inputType, onNavigateToGaps
     <div>
       {/* Position + context label + type badge */}
       <div className="flex items-center gap-3 mb-2">
-        <span className="font-mono text-xs font-bold text-zinc-300">{rankLabel}</span>
+        {rankText !== null && (
+          <span className="font-mono text-xs font-bold text-zinc-300">{rankText}</span>
+        )}
         <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
           {contextLabel}
         </span>

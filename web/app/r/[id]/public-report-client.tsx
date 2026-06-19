@@ -12,6 +12,7 @@ import { CorrespondentView } from '@/components/evidence-views/correspondent';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { SeekerView } from '@/components/evidence-views/seeker';
+import { ClaimSummaryPanel } from '@/components/evidence-views/ClaimSummaryPanel';
 
 interface PublicReportClientProps {
   check: any;
@@ -32,7 +33,6 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   const claims = check.claims || [];
   const videos = check.videos || [];
   const isSingleClaim = claims.length === 1;
-  const contextLabel = check.inputType === 'url' ? 'Extracted Claim' : 'Submitted Claim';
 
   // F07: Sync active view tab to URL for shareability
   const updateUrlViewParam = useCallback((view: string) => {
@@ -137,16 +137,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   };
 
   // Claim type labels
-  const typeLabels: Record<string, string> = {
-    empirical: 'Empirical',
-    definitional: 'Definitional',
-    causal_interpretive: 'Causal',
-    predictive: 'Predictive',
-    normative_flagged: 'Normative',
-  };
-
   const activeClaim = claims[activeClaimIndex];
-  const activeClaimType = activeClaim?.claimMap?.claimType || activeClaim?.claimType;
   const content = getContentDisplay();
   const totalSources = claims.reduce((sum: number, c: any) => sum + (c.evidence?.length || 0), 0);
 
@@ -213,31 +204,18 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
           {/* Section 6: Per-Claim Detail */}
           <div ref={claimDetailRef} id="claim-detail">
 
-            {/* 6a: Claim Header */}
+            {/* 6a: Claim Summary panel (shared with the dashboard) */}
             {activeClaim && (
               <div className="bg-[#F9FAFB] border border-zinc-200 p-6 mb-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    {!isSingleClaim && (
-                      <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
-                        Claim {activeClaimIndex + 1} of {claims.length}
-                      </span>
-                    )}
-                    <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
-                      {contextLabel}
-                    </span>
-                  </div>
-                  {activeClaimType && (
-                    <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400 ml-auto">
-                      {typeLabels[activeClaimType] || activeClaimType}
-                    </span>
-                  )}
-                </div>
-                <p className="text-base font-medium text-zinc-900 leading-relaxed">
-                  {activeClaim.text}
-                </p>
+                <ClaimSummaryPanel
+                  claim={activeClaim}
+                  position={activeClaimIndex}
+                  inputType={check.inputType}
+                  rankLabel={isSingleClaim ? null : `Claim ${activeClaimIndex + 1} of ${claims.length}`}
+                  onNavigateToGaps={() => { setClaimView('seeker'); updateUrlViewParam('seeker'); }}
+                />
 
-                {/* Prev/Next Navigation */}
+                {/* Prev/Next Navigation (outside the panel) */}
                 {!isSingleClaim && (
                   <div className="mt-4 pt-4 border-t border-zinc-200 flex items-center justify-between">
                     {activeClaimIndex > 0 ? (
