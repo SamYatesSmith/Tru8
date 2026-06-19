@@ -1,1 +1,0 @@
-export { ClaimHeader } from './ClaimHeader';

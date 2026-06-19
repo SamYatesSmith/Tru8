@@ -19,7 +19,7 @@ import { LibrarianView } from '@/components/evidence-views/librarian';
 import { CartographerView } from '@/components/evidence-views/cartographer';
 import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
-import { ClaimHeader } from '@/components/evidence-views/detail/ClaimHeader';
+import { ClaimSummaryPanel } from '@/components/evidence-views/ClaimSummaryPanel';
 import { CorrespondentView } from '@/components/evidence-views/correspondent';
 import { SeekerView } from '@/components/evidence-views/seeker';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
@@ -420,7 +420,12 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
               )}
               {/* Claim header with prev/next (multi-claim only) */}
               <div className="flex flex-col-reverse lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
-                <ClaimHeader claim={focusedClaim} position={activeClaimIndex!} inputType={checkData.inputType} />
+                <ClaimSummaryPanel
+                  claim={focusedClaim}
+                  position={activeClaimIndex!}
+                  inputType={checkData.inputType}
+                  onNavigateToGaps={() => handleClaimTabChange('seeker')}
+                />
                 {!isSingleClaim && claims.length > 1 && (
                   <div className="flex items-center gap-2 shrink-0 lg:ml-6">
                     <button

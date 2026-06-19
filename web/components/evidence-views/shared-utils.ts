@@ -1,5 +1,7 @@
 /** Shared utility functions for evidence views. */
 
+import type { EvidenceTier } from '@shared/types';
+
 export function extractDomain(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
@@ -39,4 +41,19 @@ const TIER_COLORS: Record<string, string> = {
 
 export function getTierColor(tier?: string): string {
   return TIER_COLORS[tier || 'commentary'] || TIER_COLORS.commentary;
+}
+
+/**
+ * Count evidence by tier, defaulting an unset/null tier to `commentary`
+ * (matches CartographerView's bucketing). Used by the claim Summary panel's
+ * source-mix line.
+ */
+export function tierCounts(
+  evidence: { tier?: EvidenceTier | null }[]
+): Record<EvidenceTier, number> {
+  const counts: Record<EvidenceTier, number> = { primary: 0, reporting: 0, commentary: 0 };
+  for (const ev of evidence) {
+    counts[ev.tier || 'commentary'] += 1;
+  }
+  return counts;
 }

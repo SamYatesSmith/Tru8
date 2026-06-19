@@ -7,7 +7,7 @@
  * visually distinct from a true gap.
  *
  * Two render shapes share one config:
- *   - `.text`  → text-colour class for inline state counts (e.g. ClaimHeader)
+ *   - `.text`  → text-colour class for inline state counts (e.g. ClaimSummaryPanel)
  *   - `.badge` → filled pill classes for roster/card badges
  */
 
