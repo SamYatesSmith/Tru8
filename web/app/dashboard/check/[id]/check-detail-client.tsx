@@ -418,8 +418,8 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                   Claim Detail
                 </div>
               )}
-              {/* Claim header with prev/next (multi-claim only) */}
-              <div className="flex flex-col-reverse lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
+              {/* Framed Summary panel, with prev/next below it (multi-claim only) */}
+              <div className="mb-6">
                 <ClaimSummaryPanel
                   claim={focusedClaim}
                   position={activeClaimIndex!}
@@ -427,7 +427,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                   onNavigateToGaps={() => handleClaimTabChange('seeker')}
                 />
                 {!isSingleClaim && claims.length > 1 && (
-                  <div className="flex items-center gap-2 shrink-0 lg:ml-6">
+                  <div className="mt-4 flex items-center justify-end gap-2">
                     <button
                       onClick={handlePrevClaim}
                       disabled={activeClaimIndex === 0}

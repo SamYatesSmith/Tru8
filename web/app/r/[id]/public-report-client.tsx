@@ -204,9 +204,9 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
           {/* Section 6: Per-Claim Detail */}
           <div ref={claimDetailRef} id="claim-detail">
 
-            {/* 6a: Claim Summary panel (shared with the dashboard) */}
+            {/* 6a: Claim Summary panel (framed; shared with the dashboard) */}
             {activeClaim && (
-              <div className="bg-[#F9FAFB] border border-zinc-200 p-6 mb-6">
+              <div className="mb-6">
                 <ClaimSummaryPanel
                   claim={activeClaim}
                   position={activeClaimIndex}
@@ -215,9 +215,9 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                   onNavigateToGaps={() => { setClaimView('seeker'); updateUrlViewParam('seeker'); }}
                 />
 
-                {/* Prev/Next Navigation (outside the panel) */}
+                {/* Prev/Next Navigation — below the framed panel */}
                 {!isSingleClaim && (
-                  <div className="mt-4 pt-4 border-t border-zinc-200 flex items-center justify-between">
+                  <div className="mt-4 flex items-center justify-between">
                     {activeClaimIndex > 0 ? (
                       <button
                         onClick={() => {

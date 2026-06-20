@@ -77,8 +77,14 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   const gapElements = elements.filter((el) => !el.state || el.state === 'unresolved');
 
   return (
-    <div>
-      {/* Position + context label + type badge */}
+    // The panel owns its frame (single source of truth for both surfaces): a
+    // raised-surface card with a 2px orange top rule marking it as the page's
+    // first-glance answer. Accent is a rule, never a fill (Stitch colour lock).
+    <div
+      className="border border-zinc-200 border-t-2 bg-[var(--surface-raised)] p-6"
+      style={{ borderTopColor: 'var(--accent)' }}
+    >
+      {/* Zone 1 — identity: position + context label + type badge */}
       <div className="flex items-center gap-3 mb-2">
         {rankText !== null && (
           <span className="font-mono text-xs font-bold text-zinc-300">{rankText}</span>
@@ -98,83 +104,81 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         {claim.text}
       </h2>
 
-      {/* Element summary + state counts (kept) */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span className="font-mono text-[10px] text-zinc-400">Elements {elements.length}</span>
-        <span className="text-zinc-200">&middot;</span>
-        <span className="font-mono text-[10px] text-zinc-400">Sources {evidenceCount}</span>
-        {hasStates && (
-          <>
-            <span className="text-zinc-200">&middot;</span>
-            {stateCounts.supported > 0 && (
-              <span className={`font-mono text-[10px] ${ELEMENT_STATE.supported.text}`}>
-                {stateCounts.supported} supported
-              </span>
-            )}
-            {stateCounts.disputed > 0 && (
-              <span className={`font-mono text-[10px] ${ELEMENT_STATE.disputed.text}`}>
-                {stateCounts.disputed} disputed
-              </span>
-            )}
-            {stateCounts.contextual > 0 && (
-              <span className={`font-mono text-[10px] ${ELEMENT_STATE.contextual.text}`}>
-                {stateCounts.contextual} contextual
-              </span>
-            )}
-            {stateCounts.gap > 0 && (
-              <span className="font-mono text-[10px] text-zinc-400">
-                {stateCounts.gap} {stateCounts.gap === 1 ? 'gap' : 'gaps'}
-              </span>
-            )}
-          </>
+      {/* Zone 2 — the answer: element states at a glance (coloured counts) +
+          the mechanically-derived orientation read, promoted directly under
+          the claim. States stay MUTED context indicators, never verdicts. */}
+      {hasStates && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
+          {stateCounts.supported > 0 && (
+            <span className={`font-mono text-[11px] ${ELEMENT_STATE.supported.text}`}>
+              {stateCounts.supported} supported
+            </span>
+          )}
+          {stateCounts.disputed > 0 && (
+            <span className={`font-mono text-[11px] ${ELEMENT_STATE.disputed.text}`}>
+              {stateCounts.disputed} disputed
+            </span>
+          )}
+          {stateCounts.contextual > 0 && (
+            <span className={`font-mono text-[11px] ${ELEMENT_STATE.contextual.text}`}>
+              {stateCounts.contextual} contextual
+            </span>
+          )}
+          {stateCounts.gap > 0 && (
+            <span className="font-mono text-[11px] text-zinc-400">
+              {stateCounts.gap} {stateCounts.gap === 1 ? 'gap' : 'gaps'}
+            </span>
+          )}
+        </div>
+      )}
+
+      {orientation && (
+        <DiagnosticFlag label="Orientation">{orientation}</DiagnosticFlag>
+      )}
+
+      {/* Zone 3 — plumbing footer (demoted below a hairline): the merged
+          element/source line with tier mix, then the named gaps list. */}
+      <div className="mt-4 pt-4 border-t border-zinc-200 space-y-2">
+        <div className="font-mono text-[10px] text-zinc-400 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span>Elements {elements.length}</span>
+          <span className="text-zinc-200">&middot;</span>
+          <span>Sources {evidenceCount}</span>
+          {evidenceCount > 0 && (
+            <>
+              <span className="text-zinc-300">&mdash;</span>
+              <span style={{ color: getTierColor('primary') }}>{tiers.primary} primary</span>
+              <span className="text-zinc-200">&middot;</span>
+              <span style={{ color: getTierColor('reporting') }}>{tiers.reporting} reporting</span>
+              <span className="text-zinc-200">&middot;</span>
+              <span style={{ color: getTierColor('commentary') }}>{tiers.commentary} commentary</span>
+            </>
+          )}
+        </div>
+
+        {gapElements.length > 0 && (
+          <div className="flex items-start gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400 w-16 shrink-0 pt-0.5">Gaps</span>
+            <div className="flex-grow">
+              <ul className="space-y-0.5">
+                {gapElements.map((el) => (
+                  <li key={el.elementId} className="font-mono text-[10px] text-zinc-500 flex items-start gap-1.5">
+                    <span className="text-zinc-300 shrink-0">&bull;</span>
+                    <span>{el.description}</span>
+                  </li>
+                ))}
+              </ul>
+              {onNavigateToGaps && (
+                <button
+                  onClick={onNavigateToGaps}
+                  className="mt-1 font-mono text-[10px] text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1"
+                >
+                  Open Gaps lens &rarr;
+                </button>
+              )}
+            </div>
+          </div>
         )}
       </div>
-
-      {/* Source mix by tier (S3) */}
-      {evidenceCount > 0 && (
-        <div className="flex items-center gap-2 mt-1.5">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400 w-16 shrink-0">Sources</span>
-          <span className="font-mono text-[10px] text-zinc-500">
-            <span style={{ color: getTierColor('primary') }}>{tiers.primary} primary</span>
-            <span className="text-zinc-300"> · </span>
-            <span style={{ color: getTierColor('reporting') }}>{tiers.reporting} reporting</span>
-            <span className="text-zinc-300"> · </span>
-            <span style={{ color: getTierColor('commentary') }}>{tiers.commentary} commentary</span>
-          </span>
-        </div>
-      )}
-
-      {/* Gaps named (S3) */}
-      {gapElements.length > 0 && (
-        <div className="flex items-start gap-2 mt-1.5">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400 w-16 shrink-0 pt-0.5">Gaps</span>
-          <div className="flex-grow">
-            <ul className="space-y-0.5">
-              {gapElements.map((el) => (
-                <li key={el.elementId} className="font-mono text-[10px] text-zinc-500 flex items-start gap-1.5">
-                  <span className="text-zinc-300 shrink-0">&bull;</span>
-                  <span>{el.description}</span>
-                </li>
-              ))}
-            </ul>
-            {onNavigateToGaps && (
-              <button
-                onClick={onNavigateToGaps}
-                className="mt-1 font-mono text-[10px] text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1"
-              >
-                Open Gaps lens &rarr;
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Orientation line — mechanically-derived honest read on element states */}
-      {orientation && (
-        <div className="mt-4">
-          <DiagnosticFlag label="Orientation">{orientation}</DiagnosticFlag>
-        </div>
-      )}
     </div>
   );
 }
