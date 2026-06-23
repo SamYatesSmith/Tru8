@@ -6,6 +6,8 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 // routes to a real content date (rather than new Date() on every deploy) keeps
 // <lastmod> an honest signal instead of "everything changed today".
 const REPOSITIONED = new Date('2026-06-18')
+// /research was rebuilt researcher-led (item 2) on this date — honest per-route lastmod.
+const RESEARCH_UPDATED = new Date('2026-06-23')
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -29,7 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/research`,
-      lastModified: REPOSITIONED,
+      lastModified: RESEARCH_UPDATED,
       changeFrequency: 'monthly',
       priority: 0.8,
     },

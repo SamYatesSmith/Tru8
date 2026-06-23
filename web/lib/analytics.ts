@@ -84,6 +84,7 @@ export type AnalyticsEvent =
   | 'get_api_key_click' // developer-conversion CTA (nav/hero/developers)
   | 'try_in_browser_click' // legacy hero primary CTA (pre-repositioning)
   | 'research_app_click' // human-path CTA → /research (P4 repositioning)
+  | 'research_start_click' // /research primary CTA → /dashboard (item 2, property: surface)
   // Researcher funnel (Phase 1 instrumentation, 2026-06-23)
   | 'report_viewed' // a check report opened (public /r/ or dashboard)
   | 'evidence_expanded' // a supports/challenges evidence item expanded
