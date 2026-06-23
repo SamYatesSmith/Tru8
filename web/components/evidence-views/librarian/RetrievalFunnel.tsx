@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Evidence } from '@shared/types';
+import { capture } from '@/lib/analytics';
 
 function extractDomain(url: string): string {
   try {
@@ -106,7 +107,7 @@ export function RetrievalFunnel({ reviewedCount, includedCount, excludedEvidence
       {excludedCount > 0 && (
         <>
           <button
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => { if (!isOpen) capture('receipt_opened'); setIsOpen(!isOpen); }}
             className="w-full flex items-center justify-between px-4 py-2 border-t border-zinc-100 hover:bg-zinc-50 transition-colors"
           >
             <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">

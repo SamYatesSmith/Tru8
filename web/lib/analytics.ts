@@ -83,7 +83,14 @@ export type AnalyticsEvent =
   // durable surfaces now; more added in P4 when the homepage is rebuilt.
   | 'get_api_key_click' // developer-conversion CTA (nav/hero/developers)
   | 'try_in_browser_click' // legacy hero primary CTA (pre-repositioning)
-  | 'research_app_click'; // human-path CTA → /research (P4 repositioning)
+  | 'research_app_click' // human-path CTA → /research (P4 repositioning)
+  // Researcher funnel (Phase 1 instrumentation, 2026-06-23)
+  | 'report_viewed' // a check report opened (public /r/ or dashboard)
+  | 'evidence_expanded' // a supports/challenges evidence item expanded
+  | 'receipt_opened' // the excluded-evidence / receipts disclosure opened
+  | 'view_opened' // a profession view switched to (property: view)
+  | 'share_clicked' // a share button clicked (property: platform)
+  | 'export_clicked'; // PDF evidence record downloaded (Phase 2; property: surface)
 
 export function capture(
   event: AnalyticsEvent,

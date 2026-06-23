@@ -332,6 +332,7 @@
     .st-supported { color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); }
     .st-disputed { color: var(--amber); background: var(--amber-bg); border: 1px solid var(--amber-border); }
     .st-unresolved { color: var(--slate); background: var(--slate-bg); border: 1px solid var(--slate-border); }
+    .st-contextual { color: var(--ink-3); background: var(--surface-alt); border: 1px solid var(--border); }
 
     .el-refs {
       margin-top: 1px;
@@ -556,10 +557,21 @@
     </div>
     {% endif %}
 
-    {% if claim.evidence %}
+    {% set gaps = claim.elements | selectattr('state', 'equalto', 'unresolved') | list %}
+    {% if gaps %}
     <hr class="sep-light" />
-    <div class="sub-hd">Evidence Sources &mdash; {{ claim.evidence|length }}</div>
-    {% for ev in claim.evidence %}
+    <div class="sub-hd">Gaps &mdash; What we don't know ({{ gaps|length }})</div>
+    {% for g in gaps %}
+    <div class="el-unc" style="margin-bottom: 3px;">&bull; {{ g.description }}{% if g.bounty_text %} &mdash; {{ g.bounty_text }}{% elif g.uncertainty %} &mdash; {{ g.uncertainty }}{% endif %}</div>
+    {% endfor %}
+    {% endif %}
+
+    {% set shown = claim.evidence | rejectattr('receipt_status', 'equalto', 'excluded') | list %}
+    {% set excluded = claim.evidence | selectattr('receipt_status', 'equalto', 'excluded') | list %}
+    {% if shown %}
+    <hr class="sep-light" />
+    <div class="sub-hd">Evidence Sources &mdash; {{ shown|length }}</div>
+    {% for ev in shown %}
     {% set ev_id = ev.evidence_id or ev.id|string %}
     {% set ev_num = claim.evidence_index.get(ev_id, loop.index) %}
     {% set title = ev.title or 'Untitled source' %}
@@ -575,7 +587,21 @@
     {% endfor %}
     {% else %}
     <hr class="sep-light" />
-    <div class="no-ev">No sources were found during evidence retrieval for this claim.</div>
+    <div class="no-ev">No sources were shown for this claim.</div>
+    {% endif %}
+
+    {% if excluded %}
+    <hr class="sep-light" />
+    <div class="sub-hd">Receipts &mdash; Excluded ({{ excluded|length }})</div>
+    {% for ev in excluded %}
+    {% set title = ev.title or 'Untitled source' %}
+    <div class="ev ev-commentary">
+      <div class="ev-title">
+        {% if ev.url %}<a href="{{ ev.url }}">{{ title[:95] }}{% if title|length > 95 %}&hellip;{% endif %}</a>{% else %}{{ title[:95] }}{% if title|length > 95 %}&hellip;{% endif %}{% endif %}
+      </div>
+      <div class="ev-meta">{{ ev.source or '' }}{% if ev.exclusion_reason %} &middot; excluded: {{ ev.exclusion_reason|replace('_', ' ') }}{% endif %}</div>
+    </div>
+    {% endfor %}
     {% endif %}
   </div>
   {% endfor %}
@@ -584,6 +610,9 @@
   <div class="ftr">
     <span class="ftr-brand">TRU8</span> &nbsp;&middot;&nbsp; We organise; you decide.
     <div class="ftr-disc">This report presents evidence sources and their relationships to claim elements. It does not render verdicts. Evaluate evidence and verify critical information independently.</div>
+    {% if check.manifest and check.manifest.signature %}
+    <div class="ftr-id">Signed record &middot; {{ check.manifest.signature[:40] }}&hellip; &middot; verify: trueight.com/verify/{{ check.id }}</div>
+    {% endif %}
     <div class="ftr-id">Report {{ check.id[:8] | upper }} &middot; Generated {{ now.strftime('%d %b %Y, %H:%M UTC') }} &middot; trueight.com</div>
   </div>
 

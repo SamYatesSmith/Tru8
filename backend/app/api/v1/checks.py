@@ -2045,32 +2045,11 @@ async def stream_check_progress(
     )
 
 
-@router.get("/{check_id}/export/pdf", summary="Export check as PDF")
-async def export_check_pdf(
-    check_id: str,
-    current_user: dict = Depends(get_current_user_or_api_key),
-    session: AsyncSession = Depends(get_session),
-):
-    """Export fact-check as PDF report"""
-
-    # Fetch check with user verification
-    stmt = select(Check).where(
-        Check.id == check_id, Check.user_id == current_user["id"]
-    )
-    result = await session.execute(stmt)
-    check = result.scalar_one_or_none()
-
-    if not check:
-        raise HTTPException(status_code=404, detail="Check not found")
-
-    if check.status != "completed":
-        raise HTTPException(
-            status_code=400, detail="PDF export only available for completed checks"
-        )
-
+async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
+    """Render a completed check to PDF bytes. Shared by the owner and public export routes."""
     # Fetch claims ordered by position
     claims_stmt = (
-        select(Claim).where(Claim.check_id == check_id).order_by(Claim.position)
+        select(Claim).where(Claim.check_id == check.id).order_by(Claim.position)
     )
     claims_result = await session.execute(claims_stmt)
     claims = claims_result.scalars().all()
@@ -2147,7 +2126,68 @@ async def export_check_pdf(
             status_code=500, detail="Failed to generate PDF. Please try again."
         )
 
+    return pdf_bytes
+
+
+@router.get("/{check_id}/export/pdf", summary="Export check as PDF")
+async def export_check_pdf(
+    check_id: str,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    """Export fact-check as PDF report"""
+
+    # Fetch check with user verification
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    if check.status != "completed":
+        raise HTTPException(
+            status_code=400, detail="PDF export only available for completed checks"
+        )
+
+    pdf_bytes = await _build_check_pdf_bytes(check, session)
+
     # Return PDF as downloadable file
+    filename = f"tru8-report-{check_id[:8]}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Cache-Control": "no-cache",
+        },
+    )
+
+
+@router.get(
+    "/public/{check_id}/export/pdf", summary="Export public check as PDF (no auth)"
+)
+async def export_public_check_pdf(
+    check_id: str,
+    session: AsyncSession = Depends(get_session),
+):
+    """Export a completed check as PDF. Public, no auth.
+
+    Mirrors GET /public/{check_id}: any completed check is publicly viewable by
+    id (no user verification). The PDF template never renders the raw input
+    prompt (F-SEC-06).
+    """
+    stmt = select(Check).where(Check.id == check_id)
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check or check.status != "completed":
+        raise HTTPException(status_code=404, detail="Check not found or not completed")
+
+    pdf_bytes = await _build_check_pdf_bytes(check, session)
+
     filename = f"tru8-report-{check_id[:8]}.pdf"
     return Response(
         content=pdf_bytes,

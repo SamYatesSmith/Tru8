@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Reply, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Reply, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { isTweetUrl, extractTweetId, buildTwitterReplyUrl } from '@/lib/twitter-utils';
 import { ViewSelector, ViewGuide, EvidenceMetaStrip } from '@/components/evidence-views';
 import { ClaimSectionStack } from '@/components/evidence-views/overview';
@@ -13,6 +13,7 @@ import { ProjectionistView } from '@/components/evidence-views/projectionist';
 import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { SeekerView } from '@/components/evidence-views/seeker';
 import { ClaimSummaryPanel } from '@/components/evidence-views/ClaimSummaryPanel';
+import { capture } from '@/lib/analytics';
 
 interface PublicReportClientProps {
   check: any;
@@ -49,6 +50,12 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   // Detect if source is a tweet
   const isSourceTweet = isTweetUrl(check.inputUrl);
   const tweetId = isSourceTweet ? extractTweetId(check.inputUrl) : null;
+
+  // Phase 1 instrumentation: report opened (public /r/), once per report.
+  useEffect(() => {
+    capture('report_viewed', { surface: 'public', claims: claims.length });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [check.id]);
 
   // Handle highlighted claim on mount
   useEffect(() => {
@@ -93,6 +100,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
     };
 
     if (platform in shareUrls) {
+      capture('share_clicked', { platform });
       window.open(shareUrls[platform], '_blank', 'noopener,noreferrer,width=600,height=400');
     }
   };
@@ -100,11 +108,18 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
+      capture('share_clicked', { platform: 'copy' });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Copy failed:', error);
     }
+  };
+
+  const handleDownloadPdf = () => {
+    capture('export_clicked', { surface: 'public' });
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    window.open(`${apiUrl}/api/v1/checks/public/${check.id}/export/pdf`, '_blank');
   };
 
   const handleReplyOnTwitter = () => {
@@ -308,6 +323,15 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
       {/* Section 7: Share Section */}
       <div className="border border-zinc-200 p-6">
         <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-4">Share This Report</h3>
+
+        {/* Download the full evidence record (public, no auth) */}
+        <button
+          onClick={handleDownloadPdf}
+          className="w-full flex items-center justify-center gap-3 px-6 py-3 mb-6 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
+        >
+          <Download size={18} />
+          Download Evidence Record (PDF)
+        </button>
 
         {/* Reply on X Section (only when source is a tweet) */}
         {isSourceTweet && tweetId && (

@@ -23,6 +23,7 @@ import { ClaimSummaryPanel } from '@/components/evidence-views/ClaimSummaryPanel
 import { CorrespondentView } from '@/components/evidence-views/correspondent';
 import { SeekerView } from '@/components/evidence-views/seeker';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
+import { capture } from '@/lib/analytics';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -85,6 +86,16 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
     }, 2500);
     return () => clearTimeout(timer);
   }, [showFreshProcessing, initialData]);
+
+  // Phase 1 instrumentation: dashboard report viewed once, when results are revealed.
+  const reportViewedRef = useRef(false);
+  useEffect(() => {
+    if (reportViewedRef.current) return;
+    if (checkData.status === 'completed' && !showFreshProcessing) {
+      reportViewedRef.current = true;
+      capture('report_viewed', { surface: 'dashboard', claims: checkData.claims?.length ?? 0 });
+    }
+  }, [checkData.status, showFreshProcessing]);
 
   // Auto-focus the only claim when a single-claim check completes
   // (handles SSE race: initial render may have status='processing')

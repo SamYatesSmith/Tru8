@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { capture } from '@/lib/analytics';
 import { Claim, Evidence, EvidenceTier, EvidenceType } from '@shared/types';
 import { computeDiagnosticValues } from '@/lib/diagnostic-value';
 import { EvidenceHeatmap } from './EvidenceHeatmap';
@@ -159,7 +160,11 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
 
   const handleCardClick = useCallback((ev: Evidence) => {
     const evId = ev.evidenceId || ev.id;
-    setReadingTableEvId((prev) => (prev === evId ? null : evId));
+    setReadingTableEvId((prev) => {
+      const next = prev === evId ? null : evId;
+      if (next) capture('evidence_expanded');
+      return next;
+    });
   }, []);
 
   // Build element descriptions for the active evidence reading table

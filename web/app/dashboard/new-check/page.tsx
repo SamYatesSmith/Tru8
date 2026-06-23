@@ -180,7 +180,9 @@ export default function NewCheckPage() {
     }
 
     setIsSubmitting(true);
-    capture('check_submitted', { input_type: activeTab });
+    const inputType =
+      activeTab === 'text' && textInput.trim().endsWith('?') ? 'question' : activeTab;
+    capture('check_submitted', { input_type: inputType });
 
     try {
       const token = await getToken();

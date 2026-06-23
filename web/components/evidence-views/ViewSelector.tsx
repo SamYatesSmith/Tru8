@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { capture } from '@/lib/analytics';
 
 export type ViewTab = 'cartographer' | 'librarian' | 'correspondent' | 'seeker' | 'projectionist' | 'chronologist';
 
@@ -44,7 +45,11 @@ export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: 
         return (
           <div key={tab.value} className="relative text-center lg:flex-1 group">
             <button
-              onClick={() => !isDisabled && onTabChange(tab.value)}
+              onClick={() => {
+                if (isDisabled) return;
+                if (tab.value !== activeTab) capture('view_opened', { view: tab.value });
+                onTabChange(tab.value);
+              }}
               onMouseEnter={() => isDisabled && setHoveredTab(tab.value)}
               onMouseLeave={() => setHoveredTab(null)}
               className={`w-full min-h-[44px] px-2 py-2.5 lg:px-4 lg:py-4 font-bold uppercase font-mono transition-all duration-200 ${

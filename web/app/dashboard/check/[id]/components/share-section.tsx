@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Download, Reply } from 'lucide-react';
 import { isTweetUrl, extractTweetId, buildTwitterReplyUrl } from '@/lib/twitter-utils';
+import { capture } from '@/lib/analytics';
 
 interface ShareSectionProps {
   checkId: string;
@@ -34,6 +35,7 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
           text: shareText,
           url: shareUrl,
         });
+        capture('share_clicked', { platform: 'native', surface: 'dashboard' });
       } catch (error) {
         console.error('Share failed:', error);
       }
@@ -47,6 +49,7 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
     };
 
     if (platform in shareUrls) {
+      capture('share_clicked', { platform, surface: 'dashboard' });
       window.open(shareUrls[platform], '_blank', 'noopener,noreferrer,width=600,height=400');
     }
   };
@@ -60,6 +63,7 @@ export function ShareSection({ checkId, inputUrl, title }: ShareSectionProps) {
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
+      capture('share_clicked', { platform: 'copy', surface: 'dashboard' });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
