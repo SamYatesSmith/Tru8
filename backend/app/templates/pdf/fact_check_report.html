@@ -557,11 +557,14 @@
     </div>
     {% endif %}
 
-    {% set gaps = claim.elements | selectattr('state', 'equalto', 'unresolved') | list %}
-    {% if gaps %}
+    {% set ns_g = namespace(gaps=[]) %}
+    {% for el in claim.elements %}
+      {% if el.state == 'unresolved' or not el.evidence_refs %}{% set _ = ns_g.gaps.append(el) %}{% endif %}
+    {% endfor %}
+    {% if ns_g.gaps %}
     <hr class="sep-light" />
-    <div class="sub-hd">Gaps &mdash; What we don't know ({{ gaps|length }})</div>
-    {% for g in gaps %}
+    <div class="sub-hd">Gaps &mdash; What we don't know ({{ ns_g.gaps|length }})</div>
+    {% for g in ns_g.gaps %}
     <div class="el-unc" style="margin-bottom: 3px;">&bull; {{ g.description }}{% if g.bounty_text %} &mdash; {{ g.bounty_text }}{% elif g.uncertainty %} &mdash; {{ g.uncertainty }}{% endif %}</div>
     {% endfor %}
     {% endif %}
