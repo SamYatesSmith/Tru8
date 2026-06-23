@@ -10,8 +10,10 @@ import { SheetHeader } from './sheet-header';
  * — distinct from the Process grid below and the dark dev-showcase panel later.
  *
  * Constraints: no verdict language (object is the record, never "the claim is…");
- * no "policy" noun (D15); manifest is "tamper-evident", not "independently verifiable"
- * (HMAC today). US spelling (D13). Accent budget: eyebrow + 5 numbers + 1 seal only.
+ * no "policy" noun (D15); manifest is a "signed record", not "tamper-evident" — HMAC
+ * self-signed today, so verify confirms the signed fields haven't changed since signing;
+ * an independent timestamp + content hashing (release-plan item 6) is the path to a true
+ * tamper-evident claim. US spelling (D13). Accent budget: eyebrow + 5 numbers + 1 seal only.
  */
 
 // Group A — what makes the record hard to copy (lead, emphasised).
@@ -167,7 +169,7 @@ export function StitchRecord() {
                 </span>
               </div>
               <span className="text-xs text-zinc-500 sm:text-right">
-                Tamper-evident record of exactly what was returned.
+                Signed record of exactly what was returned.
               </span>
             </div>
           </div>

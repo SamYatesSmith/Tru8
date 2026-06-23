@@ -656,7 +656,7 @@ class AgentMeta(BaseModel):
 
 
 class AgentManifest(BaseModel):
-    """HMAC-signed tamper-evidence manifest. Verify via GET /verify/{checkId}."""
+    """HMAC-signed manifest. Verify the signed fields haven't changed since signing via GET /verify/{checkId}."""
 
     checkId: str = Field(description="Check ID this manifest covers")
     landscapeHash: str = Field(
@@ -712,7 +712,7 @@ class AgentCheckResponse(BaseModel):
     )
     manifest: Optional[AgentManifest] = Field(
         None,
-        description="(JSON key: `_manifest`) HMAC-signed tamper-evidence manifest. Agents can verify results haven't been modified.",
+        description="(JSON key: `_manifest`) HMAC-signed manifest. Agents can verify the signed fields haven't changed since signing.",
         json_schema_extra={"title": "_manifest"},
     )
     computed: Optional[Dict[str, Any]] = Field(

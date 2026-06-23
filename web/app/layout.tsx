@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     default: 'Tru8 — Evidence Verification Infrastructure',
     template: '%s | Tru8',
   },
-  description: 'Evidence verification infrastructure for factual AI content. Tru8 decomposes content into checkable claims, retrieves external published sources, and returns a structured, tamper-evident evidence record. We organize; you decide.',
+  description: 'Evidence verification infrastructure for factual AI content. Tru8 decomposes content into checkable claims, retrieves external published sources, and returns a structured, signed evidence record. We organize; you decide.',
   icons: {
     icon: '/favicon.proper.png',
     apple: '/apple-touch-icon.png',

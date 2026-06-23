@@ -163,7 +163,7 @@ Every completed check returns:
 - **claims[].claimMap** — elements, evidence refs, orientation line
 - **claims[].evidence[]** — sources with URL, snippet, tier, type, relevance
 - **_meta** (agent endpoints) — tier executed, cost, landscape metrics
-- **_manifest** (agent endpoints) — HMAC-signed tamper-evidence, verifiable via `GET /verify/{id}`
+- **_manifest** (agent endpoints) — HMAC-signed manifest; verify the signed fields haven't changed since signing via `GET /verify/{id}`
 
 ## Rate Limits
 

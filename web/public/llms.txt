@@ -1,6 +1,6 @@
 # Tru8 — Evidence Verification Infrastructure
 
-> Verify the evidence behind factual AI output before it ships. Tru8 decomposes content into checkable claims, retrieves external published sources (30+: official data, research, legislation, reporting), classifies each by tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic), and maps every source to a claim element by relationship (supports/challenges/context). It returns a structured, inspectable, tamper-evident evidence record — never a verdict. We organize; you decide.
+> Verify the evidence behind factual AI output before it ships. Tru8 decomposes content into checkable claims, retrieves external published sources (30+: official data, research, legislation, reporting), classifies each by tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic), and maps every source to a claim element by relationship (supports/challenges/context). It returns a structured, inspectable, signed evidence record — never a verdict. We organize; you decide.
 
 ## What it returns
 
@@ -10,7 +10,7 @@ A verification record per claim:
 - Element states, plus named gaps (what evidence is missing)
 - Exclusion receipts — every source set aside carries a reason; no silent curation
 - Source-diversity metrics — unique domains, tier spread, type coverage; echo/corroboration detection
-- A signed, tamper-evident manifest (HMAC-SHA256) with a /verify endpoint
+- A signed manifest (HMAC-SHA256) with a /verify endpoint to confirm the signed fields haven't changed since signing
 
 You decide what to publish, escalate, re-check or block.
 

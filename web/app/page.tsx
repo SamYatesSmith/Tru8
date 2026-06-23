@@ -14,7 +14,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
 export const metadata: Metadata = {
   title: 'Tru8 — Evidence Verification Infrastructure',
-  description: 'Verify the evidence behind factual AI output before it ships. Tru8 turns AI content into checkable claims and returns a structured, tamper-evident evidence record — external sources, what supports each, what challenges it, what is missing.',
+  description: 'Verify the evidence behind factual AI output before it ships. Tru8 turns AI content into checkable claims and returns a structured, signed evidence record — external sources, what supports each, what challenges it, what is missing.',
   alternates: { canonical: '/' },
 }
 
@@ -48,7 +48,7 @@ const jsonLd = {
       operatingSystem: 'Web',
       url: `${baseUrl}/developers`,
       publisher: { '@id': `${baseUrl}/#organization` },
-      description: 'Evidence verification API and MCP server for AI agents. Decomposes factual AI output into checkable claims, retrieves external published sources, and returns a structured, tamper-evident evidence record.',
+      description: 'Evidence verification API and MCP server for AI agents. Decomposes factual AI output into checkable claims, retrieves external published sources, and returns a structured, signed evidence record.',
     },
   ],
 }

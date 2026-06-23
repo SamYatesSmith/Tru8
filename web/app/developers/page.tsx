@@ -893,7 +893,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
                 <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">_manifest</p>
-                  <p>HMAC-signed tamper-evidence. Agents can verify results haven&apos;t been modified via <code className="text-zinc-400">GET /verify/{'{'}<span>check_id</span>{'}'}</code>.</p>
+                  <p>HMAC-signed manifest. Agents can verify the signed fields haven&apos;t changed since signing via <code className="text-zinc-400">GET /verify/{'{'}<span>check_id</span>{'}'}</code>.</p>
                 </div>
               </div>
             </div>

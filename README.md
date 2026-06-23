@@ -149,7 +149,7 @@ Tools: `tru8_check` (evidence research with tier fallback), `tru8_get_result` (w
 
 ### Manifest Verification
 
-Every completed check receives an HMAC-SHA256 signed manifest. Verify tamper-evidence:
+Every completed check receives an HMAC-SHA256 signed manifest. Verify the signed fields haven't changed since signing:
 
 ```bash
 curl https://api.trueight.com/verify/{check_id}

@@ -81,7 +81,9 @@ async def _load_claims_for_verify(check_id: str, session: AsyncSession) -> list[
     },
 )
 async def verify_check(check_id: str, request: Request):
-    """Verify tamper-evidence for a completed check.
+    """Verify the signed manifest for a completed check.
+
+    Confirms the signed fields haven't changed since signing.
 
     **Public endpoint** — no authentication required.
 
