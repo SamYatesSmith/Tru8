@@ -290,11 +290,13 @@ async def get_current_user_or_api_key(
         user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
+        request.state.auth_method = "jwt"
         return await _fetch_user_data_from_clerk(user_id, payload)
 
     # API key
     api_key = request.headers.get("X-API-Key")
     if api_key:
+        request.state.auth_method = "api_key"
         return await _verify_api_key(api_key, session)
 
     raise HTTPException(
@@ -364,6 +366,7 @@ async def get_current_user_or_api_key_sse(
         check_id = request.path_params.get("check_id")
         stream_user = await _verify_stream_token(token, check_id)
         if stream_user:
+            request.state.auth_method = "stream_token"
             return stream_user
 
         # Fall back to JWT (deprecated path)
@@ -375,6 +378,7 @@ async def get_current_user_or_api_key_sse(
         user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
+        request.state.auth_method = "jwt"
         return await _fetch_user_data_from_clerk(user_id, payload)
 
     # Bearer JWT from header
@@ -385,11 +389,13 @@ async def get_current_user_or_api_key_sse(
         user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
+        request.state.auth_method = "jwt"
         return await _fetch_user_data_from_clerk(user_id, payload)
 
     # API key from header
     api_key = request.headers.get("X-API-Key")
     if api_key:
+        request.state.auth_method = "api_key"
         return await _verify_api_key(api_key, session)
 
     raise HTTPException(

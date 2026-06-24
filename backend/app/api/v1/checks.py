@@ -89,6 +89,33 @@ def safe_json_dumps(data: dict) -> str:
     return json.dumps(data, ensure_ascii=True, separators=(",", ":"))
 
 
+def _require_console_submission(request: Request) -> str:
+    """Reject programmatic (API-key) submission on the Console /checks endpoints.
+
+    Console check submission is for signed-in users (Clerk JWT) and the SSE
+    stream token only. Programmatic callers must use the metered /agent
+    endpoints, which bill against the prepaid credit balance — otherwise an API
+    key could ride the human subscription's fair-use quota. This is the
+    two-product boundary: Console = /checks = sign-in; API = /agent = metered.
+    Read-only /checks endpoints still accept API keys; only submission is walled.
+
+    Keys off the resolved auth method (set on request.state by the dual-auth
+    dependency), with the X-API-Key header as a belt-and-braces fallback.
+
+    Returns the initiated_via tag ("dashboard") for the created Check.
+    """
+    auth_method = getattr(request.state, "auth_method", None)
+    if auth_method == "api_key" or request.headers.get("X-API-Key"):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "This endpoint is for signed-in Console users. Programmatic / agent "
+                "access uses the metered /agent endpoints (see /developers)."
+            ),
+        )
+    return "dashboard"
+
+
 async def _validate_and_create_check(
     body,
     current_user: dict,
@@ -635,7 +662,7 @@ async def create_check_streaming(
         PipelineError,
     )
 
-    via = "api_key" if request.headers.get("X-API-Key") else "dashboard"
+    via = _require_console_submission(request)
     user, check = await _validate_and_create_check(
         body, current_user, session, initiated_via=via, client=resolve_client(request)
     )
@@ -896,7 +923,7 @@ async def create_check_sync(
         PipelineError,
     )
 
-    via = "api_key" if request.headers.get("X-API-Key") else "dashboard"
+    via = _require_console_submission(request)
     user, check = await _validate_and_create_check(
         body, current_user, session, initiated_via=via, client=resolve_client(request)
     )
@@ -1574,10 +1601,14 @@ async def _deduct_credit(session: AsyncSession, user):
 async def start_gap_research(
     check_id: str,
     claim_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Start targeted re-search for ALL gap elements in a claim (1 credit)."""
+    # Console-only: re-search bills the subscription, so reject API-key callers
+    # (the metered /agent path has no re-search). See the path-separation wall.
+    _require_console_submission(request)
     from app.pipeline.re_search import run_element_re_search, get_research_status
 
     # 1. Validate check
@@ -1678,10 +1709,14 @@ async def start_element_research(
     check_id: str,
     claim_id: str,
     element_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user_or_api_key),
     session: AsyncSession = Depends(get_session),
 ):
     """Start targeted re-search for a single element (G02)."""
+    # Console-only: re-search bills the subscription, so reject API-key callers
+    # (the metered /agent path has no re-search). See the path-separation wall.
+    _require_console_submission(request)
     from app.pipeline.re_search import run_element_re_search, get_research_status
 
     # 1. Validate check exists + user owns it
