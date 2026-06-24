@@ -91,7 +91,12 @@ export type AnalyticsEvent =
   | 'receipt_opened' // the excluded-evidence / receipts disclosure opened
   | 'view_opened' // a profession view switched to (property: view)
   | 'share_clicked' // a share button clicked (property: platform)
-  | 'export_clicked'; // PDF evidence record downloaded (Phase 2; property: surface)
+  | 'export_clicked' // PDF evidence record downloaded (Phase 2; property: surface)
+  // Pricing page (P3 packaging, 2026-06-24; all carry property: surface)
+  | 'pricing_console_click' // Console "Start in the browser" CTA → /dashboard
+  | 'pricing_free_click' // Free taster CTA → /dashboard
+  | 'pricing_teams_click' // Teams "Talk to us" CTA → /contact
+  | 'pricing_api_click'; // quiet API band "See the API" → /developers
 
 export function capture(
   event: AnalyticsEvent,

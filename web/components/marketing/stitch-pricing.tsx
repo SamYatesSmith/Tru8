@@ -1,163 +1,185 @@
 'use client';
 
-import { useState } from 'react';
-import { CheckCircle } from 'lucide-react';
-import { AuthModal } from '@/components/auth/auth-modal';
-import { useAuth } from '@clerk/nextjs';
-import { apiClient } from '@/lib/api';
-import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
-import { TIERS, getTierPriceId, type TierConfig } from '@/lib/tiers';
+import Link from 'next/link';
 
-const SUBSCRIPTIONS_ENABLED = process.env.NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED === 'true';
+import { SheetHeader } from './sheet-header';
+import { capture } from '@/lib/analytics';
 
 /**
- * Stitch W-01 Pricing Section
+ * Pricing — Direction B: the Console (£20/mo) rendered as the site's signature
+ * "artifact" datasheet panel (mono spine, numbered feature ledger, signed-manifest
+ * footer), with Free + Teams as a supporting rail and a deliberately quiet API band.
+ * Document-grammar vocabulary, zero new colours.
  *
- * Four cards: Free Trial, Starter, Professional (highlighted), Enterprise.
- * Black CTAs, orange accent on highlighted card. Stripe checkout for paid tiers.
+ * P3 routes CTAs to the app / contact / developers — a real £20 Stripe checkout
+ * needs a new Stripe product + price-id env (deferred to P4/deploy). tiers.ts is
+ * left intact for the dashboard's existing-subscriber config; this surface no
+ * longer displays the legacy £7/£29 plans.
  */
+
+const CONSOLE_FEATURES = [
+  {
+    n: '01',
+    key: 'Fair-use unlimited',
+    desc: 'Run as many checks as your research needs.',
+  },
+  {
+    n: '02',
+    key: 'All six views',
+    desc: 'Evidence, Sources, Timeline, Gaps, Map and Video.',
+  },
+  {
+    n: '03',
+    key: 'Full export',
+    desc: 'Download the record as PDF, CSV or JSON.',
+  },
+  {
+    n: '04',
+    key: 'Signed record + receipts',
+    desc: 'A signed evidence record, with a receipt for every exclusion.',
+  },
+  {
+    n: '05',
+    key: 'Personal API allowance',
+    desc: 'Light scripting against your own account.',
+  },
+];
+
 export function StitchPricing() {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [processingTier, setProcessingTier] = useState<string | null>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
-  const { isSignedIn, getToken } = useAuth();
-
-  const handleTierClick = async (tier: TierConfig) => {
-    // Free tier — just open auth modal
-    if (tier.id === 'free') {
-      setIsAuthModalOpen(true);
-      return;
-    }
-
-    // Enterprise — open contact link
-    if (tier.contactUrl) {
-      window.location.href = tier.contactUrl;
-      return;
-    }
-
-    // Paid tiers — Stripe checkout
-    if (!SUBSCRIPTIONS_ENABLED) {
-      setShowComingSoon(true);
-      return;
-    }
-
-    if (!isSignedIn) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-
-    const priceId = getTierPriceId(tier);
-    if (!priceId) {
-      alert('This plan is not yet available. Please try again later.');
-      return;
-    }
-
-    setProcessingTier(tier.id);
-    try {
-      const token = await getToken();
-      const session = await apiClient.createCheckoutSession({
-        price_id: priceId,
-        plan: tier.id,
-      }, token) as { session_id: string; url: string };
-
-      if (session.url) {
-        window.location.href = session.url;
-      }
-    } catch (error: any) {
-      console.error('Failed to create checkout session:', error);
-      if (error.message?.includes('coming soon') || error.message?.includes('beta')) {
-        setShowComingSoon(true);
-      } else {
-        alert('Failed to start checkout. Please try again.');
-      }
-      setProcessingTier(null);
-    }
-  };
-
   return (
-    <>
-      <section id="pricing" className="py-24 md:py-32 border-t border-zinc-100">
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Header */}
-          <div className="text-center mb-20">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 block">
-              Plans
-            </span>
-            <h2 className="text-3xl md:text-4xl font-light tracking-tight">
-              Choose your <span className="font-bold">plan</span>
-            </h2>
+    <section id="pricing" className="py-24 md:py-32">
+      <div className="max-w-6xl mx-auto px-6">
+        <SheetHeader number="05" label="Pricing" refText="CONSOLE · TEAMS · API" />
+
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.03em] text-zinc-900 mb-12 md:mb-16">
+          Choose how you <span className="font-bold">work.</span>
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* CONSOLE — hero artifact panel */}
+          <div className="lg:col-span-7 flex flex-col border border-zinc-200 border-t-2 border-t-accent bg-white">
+            {/* spine */}
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 px-6 py-3">
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-900">
+                Tru8 Console
+              </span>
+              <span className="font-mono text-[10px] text-zinc-400">
+                claimMap · export · signed
+              </span>
+            </div>
+
+            {/* price block */}
+            <div className="px-6 py-8">
+              <div className="flex items-baseline gap-2">
+                <span className="text-5xl font-light text-zinc-900">£20</span>
+                <span className="text-lg text-zinc-400">/mo</span>
+              </div>
+              <p className="text-sm text-zinc-500 mt-2">
+                or £200/yr · fair-use unlimited evidence research in the browser.
+              </p>
+            </div>
+
+            {/* feature ledger */}
+            <div>
+              {CONSOLE_FEATURES.map((f) => (
+                <div
+                  key={f.n}
+                  className="px-6 py-4 border-t border-zinc-100 md:grid md:grid-cols-12 md:gap-6 md:items-baseline"
+                >
+                  <div className="flex items-center gap-3 md:col-span-5">
+                    <span className="font-mono text-xs text-accent w-5 shrink-0">
+                      {f.n}
+                    </span>
+                    <h3 className="font-mono text-[11px] tracking-[0.15em] uppercase font-bold text-zinc-900">
+                      {f.key}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-zinc-500 leading-relaxed md:col-span-7 mt-1 md:mt-0">
+                    {f.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* manifest footer + primary CTA */}
+            <div className="mt-auto border-t border-zinc-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500">
+                <span aria-hidden="true" className="w-2 h-2 bg-accent rotate-45 shrink-0" />
+                signed record
+              </span>
+              <Link
+                href="/dashboard"
+                onClick={() => capture('pricing_console_click', { surface: 'pricing' })}
+                className="bg-black text-white px-6 py-3 text-[11px] font-bold tracking-[0.2em] uppercase hover:bg-zinc-800 transition-colors text-center"
+              >
+                Start in the browser →
+              </Link>
+            </div>
           </div>
 
-          {/* Pricing cards — 2x2 grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {TIERS.map((tier) => (
-              <div
-                key={tier.id}
-                className="border border-zinc-200 p-8 md:p-12 flex flex-col bg-white relative"
+          {/* RAIL — Free + Teams (supporting, un-elevated) */}
+          <div className="lg:col-span-5 flex flex-col gap-8">
+            <div className="flex flex-col flex-1 border border-zinc-200 bg-white p-6">
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-900">
+                Free taster
+              </span>
+              <div className="text-3xl font-light text-zinc-900 mt-4">Free</div>
+              <p className="text-sm text-zinc-500 mt-2 flex-grow">
+                3 checks · all features · all six views. See exactly what a record
+                looks like.
+              </p>
+              <Link
+                href="/dashboard"
+                onClick={() => capture('pricing_free_click', { surface: 'pricing' })}
+                className="mt-6 inline-block font-mono text-[11px] tracking-[0.2em] uppercase text-zinc-900 hover:text-accent transition-colors"
               >
-                {tier.highlighted && (
-                  <div className="absolute top-4 right-4 bg-accent w-2 h-2" />
-                )}
+                Start free →
+              </Link>
+            </div>
 
-                <div className="mb-10">
-                  <h3 className="text-2xl font-bold uppercase tracking-tight mb-2">
-                    {tier.name}
-                  </h3>
-                  <p className="text-zinc-500 text-sm">{tier.description}</p>
-                </div>
-
-                <div className="text-5xl font-light mb-10">
-                  {tier.price !== null ? (
-                    <>
-                      £{tier.price}
-                      <span className="text-lg text-zinc-400">
-                        /{tier.period === 'lifetime' ? 'mo' : 'mo'}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-3xl">Custom</span>
-                  )}
-                </div>
-
-                <ul className="space-y-4 mb-12 flex-grow">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm text-zinc-600">
-                      <CheckCircle
-                        className={`flex-shrink-0 mt-0.5 ${
-                          tier.highlighted ? 'text-accent' : 'text-zinc-300'
-                        }`}
-                        size={18}
-                      />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => handleTierClick(tier)}
-                  disabled={processingTier === tier.id}
-                  className="w-full bg-black text-white py-4 text-[11px] font-bold tracking-[0.2em] uppercase hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {processingTier === tier.id ? 'Processing...' : tier.cta}
-                </button>
+            <div className="flex flex-col flex-1 border border-zinc-200 bg-white p-6">
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-900">
+                Teams
+              </span>
+              <div className="text-3xl font-light text-zinc-900 mt-4">
+                From £75
+                <span className="text-lg text-zinc-400">/mo</span>
               </div>
-            ))}
+              <p className="text-sm text-zinc-500 mt-2 flex-grow">
+                Shared workspace, retention controls and an SLA for newsrooms and
+                research teams.
+              </p>
+              <Link
+                href="/contact"
+                onClick={() => capture('pricing_teams_click', { surface: 'pricing' })}
+                className="mt-6 inline-block font-mono text-[11px] tracking-[0.2em] uppercase text-zinc-900 hover:text-accent transition-colors"
+              >
+                Talk to us →
+              </Link>
+            </div>
           </div>
         </div>
-      </section>
 
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
-
-      {showComingSoon && (
-        <SubscriptionsComingSoon
-          variant="modal"
-          source="pricing"
-          onDismiss={() => setShowComingSoon(false)}
-        />
-      )}
-    </>
+        {/* Quiet API band */}
+        <div className="mt-8 border-t border-zinc-200 pt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500">
+              API — metered
+            </span>
+            <p className="text-sm text-zinc-500 mt-1">
+              For systems and agents: metered verification, billed per call from a
+              prepaid balance.
+            </p>
+          </div>
+          <Link
+            href="/developers"
+            onClick={() => capture('pricing_api_click', { surface: 'pricing' })}
+            className="font-mono text-[11px] tracking-[0.2em] uppercase text-zinc-900 hover:text-accent transition-colors whitespace-nowrap"
+          >
+            See the API →
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
