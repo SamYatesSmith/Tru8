@@ -15,7 +15,7 @@
  * Prev/next claim nav is intentionally OUT of scope here (surface-specific).
  */
 
-import { Claim, InputType } from '@shared/types';
+import { Claim, InputType, EvidenceRelationship } from '@shared/types';
 import { DiagnosticFlag } from './DiagnosticFlag';
 import { ELEMENT_STATE } from './ElementStateBadge';
 import { getTierColor, tierCounts } from './shared-utils';
@@ -51,7 +51,7 @@ interface ClaimSummaryPanelProps {
    * lens + scrolls it into view. Lens values match `ViewSelector` (`librarian`,
    * `correspondent`, `chronologist`, `seeker`, `cartographer`, `projectionist`).
    */
-  onNavigate?: (view: string) => void;
+  onNavigate?: (view: string, params?: { rel?: EvidenceRelationship[]; element?: string }) => void;
   /** Lens values to hide from the Explore rail (e.g. `['projectionist']` when no videos). */
   hiddenViews?: string[];
 }
@@ -90,6 +90,43 @@ function MetricLink({
   );
 }
 
+/**
+ * A claim element-state count, rendered as a QOL deep-link into the filtered
+ * Evidence lens when navigation is wired, or plain coloured text otherwise.
+ * Keeps the muted element-state colour (an element-context indicator, never a
+ * page-level verdict — Stitch colour lock).
+ */
+function StateChip({
+  enabled,
+  colorClass,
+  count,
+  label,
+  ariaLabel,
+  onClick,
+}: {
+  enabled: boolean;
+  colorClass: string;
+  count: number;
+  label: string;
+  ariaLabel: string;
+  onClick: () => void;
+}) {
+  if (!enabled) {
+    return <span className={`font-mono text-[11px] ${colorClass}`}>{count} {label}</span>;
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={`group font-mono text-[11px] ${colorClass} inline-flex items-center gap-1 cursor-pointer transition-colors hover:underline`}
+    >
+      {count} {label}
+      <span aria-hidden className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+    </button>
+  );
+}
+
 export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNavigate, hiddenViews = [] }: ClaimSummaryPanelProps) {
   const claimMap = claim.claimMap;
   const elements = claimMap?.elements || [];
@@ -122,12 +159,16 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   // Slice 0a — summary as a navigation hub. Each link attributes the lens
   // switch to the summary so we can see it driving the truth journey, then
   // hands off to the client to switch the lens + scroll it into view.
-  const go = (view: string) => {
+  const go = (view: string, params?: { rel?: EvidenceRelationship[]; element?: string }) => {
     if (!onNavigate) return;
-    capture('view_opened', { view, source: 'summary' });
-    onNavigate(view);
+    capture('view_opened', { view, source: 'summary', ...(params?.rel ? { rel: params.rel.join(',') } : {}) });
+    onNavigate(view, params);
   };
   const exploreTabs = ALL_TABS.filter((t) => !hiddenViews.includes(t.value));
+
+  // For the disputed state-count deep link: focus the disputed element when
+  // exactly one element is disputed (otherwise just filter Evidence to challenges).
+  const disputedElementIds = elements.filter((el) => el.state === 'disputed').map((el) => el.elementId);
 
   return (
     // The panel owns its frame (single source of truth for both surfaces): a
@@ -163,24 +204,49 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
       {hasStates && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
           {stateCounts.supported > 0 && (
-            <span className={`font-mono text-[11px] ${ELEMENT_STATE.supported.text}`}>
-              {stateCounts.supported} supported
-            </span>
+            <StateChip
+              enabled={!!onNavigate}
+              colorClass={ELEMENT_STATE.supported.text}
+              count={stateCounts.supported}
+              label="supported"
+              ariaLabel="Show supporting evidence"
+              onClick={() => go('librarian', { rel: ['supports'] })}
+            />
           )}
           {stateCounts.disputed > 0 && (
-            <span className={`font-mono text-[11px] ${ELEMENT_STATE.disputed.text}`}>
-              {stateCounts.disputed} disputed
-            </span>
+            <StateChip
+              enabled={!!onNavigate}
+              colorClass={ELEMENT_STATE.disputed.text}
+              count={stateCounts.disputed}
+              label="disputed"
+              ariaLabel="Show challenging evidence"
+              onClick={() =>
+                go('librarian', {
+                  rel: ['challenges'],
+                  ...(disputedElementIds.length === 1 ? { element: disputedElementIds[0] } : {}),
+                })
+              }
+            />
           )}
           {stateCounts.contextual > 0 && (
-            <span className={`font-mono text-[11px] ${ELEMENT_STATE.contextual.text}`}>
-              {stateCounts.contextual} contextual
-            </span>
+            <StateChip
+              enabled={!!onNavigate}
+              colorClass={ELEMENT_STATE.contextual.text}
+              count={stateCounts.contextual}
+              label="contextual"
+              ariaLabel="Show context evidence"
+              onClick={() => go('librarian', { rel: ['context'] })}
+            />
           )}
           {stateCounts.gap > 0 && (
-            <span className="font-mono text-[11px] text-zinc-400">
-              {stateCounts.gap} {stateCounts.gap === 1 ? 'gap' : 'gaps'}
-            </span>
+            <StateChip
+              enabled={!!onNavigate}
+              colorClass="text-zinc-400"
+              count={stateCounts.gap}
+              label={stateCounts.gap === 1 ? 'gap' : 'gaps'}
+              ariaLabel="Show gaps"
+              onClick={() => go('seeker')}
+            />
           )}
         </div>
       )}

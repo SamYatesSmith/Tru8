@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { capture } from '@/lib/analytics';
-import { Claim, Evidence, EvidenceTier, EvidenceType } from '@shared/types';
+import { Claim, Evidence, EvidenceTier, EvidenceType, EvidenceRelationship } from '@shared/types';
 import { computeDiagnosticValues } from '@/lib/diagnostic-value';
 import { EvidenceHeatmap } from './EvidenceHeatmap';
 import { FilterPills } from './FilterPills';
@@ -22,13 +22,32 @@ const TYPE_CODES: Record<string, string> = {
 interface LibrarianViewProps {
   scope: 'check' | 'claim';
   claims: Claim[];
+  /** Deep-link entry filter (Slice 0b) — set when arriving from a summary
+   *  state-count click. `initialRelationships` filters by disposition;
+   *  `focusElementId` narrows to one claim element. Both are clearable in-view. */
+  initialRelationships?: EvidenceRelationship[];
+  focusElementId?: string;
 }
 
-export function LibrarianView({ scope, claims }: LibrarianViewProps) {
+export function LibrarianView({ scope, claims, initialRelationships, focusElementId }: LibrarianViewProps) {
   const [activeTiers, setActiveTiers] = useState<Set<EvidenceTier>>(new Set());
   const [activeTypes, setActiveTypes] = useState<Set<EvidenceType>>(new Set());
+  const [activeRelationships, setActiveRelationships] = useState<Set<EvidenceRelationship>>(
+    () => new Set(initialRelationships || [])
+  );
+  const [focusElement, setFocusElement] = useState<string | undefined>(focusElementId);
   const [sortField, setSortField] = useState<SortField>('date');
   const [readingTableEvId, setReadingTableEvId] = useState<string | null>(null);
+
+  // Re-sync the filter when a NEW deep-link arrives (e.g. clicking a different
+  // summary state-count while already on the Evidence lens). Keyed on the
+  // serialised deep-link so manual in-view filter changes are preserved.
+  const deepLinkKey = `${(initialRelationships || []).join(',')}|${focusElementId || ''}`;
+  useEffect(() => {
+    setActiveRelationships(new Set(initialRelationships || []));
+    setFocusElement(focusElementId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkKey]);
 
   // Diagnostic value computation
   const diagnostic = useMemo(() => computeDiagnosticValues(claims), [claims]);
@@ -36,12 +55,14 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
   const showDiagnosticToggle = diagnostic.hasDiagnosticVariance;
 
   // Pool all evidence across claims (deduped by evidenceId for check-wide)
-  const { allEvidence, includedEvidence, excludedEvidence, elementMap, claimLabelMap, elementDescriptionMap } = useMemo(() => {
+  const { allEvidence, includedEvidence, excludedEvidence, elementMap, claimLabelMap, elementDescriptionMap, relationshipRefs } = useMemo(() => {
     const seen = new Set<string>();
     const all: Evidence[] = [];
     const elementMap = new Map<string, string[]>();
     const claimLabelMap = new Map<string, string>();
     const elementDescriptionMap = new Map<string, string>();
+    // evidenceId → its (element, disposition) refs (Slice 0b).
+    const relationshipRefs = new Map<string, { elementId: string; relationship: EvidenceRelationship }[]>();
 
     claims.forEach((claim, claimIdx) => {
       const evidence = claim.evidence || [];
@@ -59,6 +80,9 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
               existing.push(element.elementId);
               elementMap.set(ref.evidenceId, existing);
             }
+            const rExisting = relationshipRefs.get(ref.evidenceId) || [];
+            rExisting.push({ elementId: element.elementId, relationship: ref.relationship });
+            relationshipRefs.set(ref.evidenceId, rExisting);
           }
         }
       }
@@ -91,8 +115,21 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
     const included = all.filter(isVisibleInLandscape);
     const excluded = all.filter((ev) => !isVisibleInLandscape(ev));
 
-    return { allEvidence: all, includedEvidence: included, excludedEvidence: excluded, elementMap, claimLabelMap, elementDescriptionMap };
+    return { allEvidence: all, includedEvidence: included, excludedEvidence: excluded, elementMap, claimLabelMap, elementDescriptionMap, relationshipRefs };
   }, [claims, scope]);
+
+  // Distinct disposition(s) per evidenceId — for the ledger card marker. When an
+  // element is focused, the marker shows only this evidence's relation to THAT
+  // element; otherwise it shows all distinct relations across mapped elements.
+  const relationshipSummaryMap = useMemo(() => {
+    const map = new Map<string, EvidenceRelationship[]>();
+    relationshipRefs.forEach((refs, evId) => {
+      const scoped = focusElement ? refs.filter((r) => r.elementId === focusElement) : refs;
+      const distinct = Array.from(new Set(scoped.map((r) => r.relationship)));
+      if (distinct.length > 0) map.set(evId, distinct);
+    });
+    return map;
+  }, [relationshipRefs, focusElement]);
 
   // Compute call numbers from includedEvidence (stable, before filtering)
   const callNumberMap = useMemo(() => {
@@ -115,14 +152,22 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
     return map;
   }, [includedEvidence]);
 
-  // Apply filters
+  // Apply filters — tier, type, disposition (Slice 0b), and element focus.
   const filteredEvidence = useMemo(() => {
     return includedEvidence.filter((ev) => {
+      const evId = ev.evidenceId || ev.id;
       if (activeTiers.size > 0 && !activeTiers.has(ev.tier || 'commentary')) return false;
       if (activeTypes.size > 0 && !activeTypes.has(ev.evidenceType || 'news_reporting')) return false;
+      const refs = relationshipRefs.get(evId) || [];
+      const scoped = focusElement ? refs.filter((r) => r.elementId === focusElement) : refs;
+      // Element focus: keep only evidence mapped to the focused element.
+      if (focusElement && scoped.length === 0) return false;
+      // Disposition: evidence must carry a matching relationship — to the focused
+      // element when focused, otherwise to any element it maps to.
+      if (activeRelationships.size > 0 && !scoped.some((r) => activeRelationships.has(r.relationship))) return false;
       return true;
     });
-  }, [includedEvidence, activeTiers, activeTypes]);
+  }, [includedEvidence, activeTiers, activeTypes, activeRelationships, focusElement, relationshipRefs]);
 
   // Find the active evidence for the desktop reading table
   const activeEvidence = useMemo(() => {
@@ -148,9 +193,19 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
     });
   }, []);
 
+  const handleToggleRelationship = useCallback((rel: EvidenceRelationship) => {
+    setActiveRelationships((prev) => {
+      const next = new Set(prev);
+      if (next.has(rel)) next.delete(rel);
+      else next.add(rel);
+      return next;
+    });
+  }, []);
+
   const handleClearAll = useCallback(() => {
     setActiveTiers(new Set());
     setActiveTypes(new Set());
+    setActiveRelationships(new Set());
   }, []);
 
   const handleCellClick = useCallback((tier: EvidenceTier, type: EvidenceType) => {
@@ -188,10 +243,30 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
       <FilterPills
         activeTiers={activeTiers}
         activeTypes={activeTypes}
+        activeRelationships={activeRelationships}
         onToggleTier={handleToggleTier}
         onToggleType={handleToggleType}
+        onToggleRelationship={handleToggleRelationship}
         onClearAll={handleClearAll}
       />
+
+      {/* Element-focus context (Slice 0b) — arrived from a summary state-count
+          deep-link; names the focused element and offers a clear affordance. */}
+      {focusElement && (
+        <div className="flex items-start gap-2 mb-4 border-l-2 border-zinc-300 pl-3 py-1">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 pt-0.5 shrink-0">Focus</span>
+          <span className="text-[11px] text-zinc-600 flex-grow">
+            {elementDescriptionMap.get(focusElement) || 'Selected element'}
+          </span>
+          <button
+            type="button"
+            onClick={() => setFocusElement(undefined)}
+            className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors shrink-0 cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
       {/* Diagnostic toggle */}
       {showDiagnosticToggle && (
@@ -236,6 +311,7 @@ export function LibrarianView({ scope, claims }: LibrarianViewProps) {
         activeEvidenceId={readingTableEvId}
         onCardClick={handleCardClick}
         elementDescriptionMap={elementDescriptionMap}
+        relationshipMap={relationshipSummaryMap}
       />
 
       <RetrievalFunnel

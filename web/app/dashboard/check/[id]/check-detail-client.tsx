@@ -24,6 +24,7 @@ import { CorrespondentView } from '@/components/evidence-views/correspondent';
 import { SeekerView } from '@/components/evidence-views/seeker';
 import { useVideoRecommendations } from '@/hooks/use-video-recommendations';
 import { capture } from '@/lib/analytics';
+import { EvidenceRelationship } from '@shared/types';
 
 interface CheckDetailClientProps {
   initialData: any;
@@ -125,9 +126,13 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   const handleClaimSelect = useCallback((position: number) => {
     setActiveClaimIndex(position);
     setClaimView('librarian');
+    // A focused element / disposition filter belongs to one claim — clear it.
+    setEvidenceFilter({});
     const url = new URL(window.location.href);
     url.searchParams.set('claim', String(position));
     url.searchParams.delete('view');
+    url.searchParams.delete('rel');
+    url.searchParams.delete('element');
     window.history.replaceState({}, '', url.toString());
     // Scroll to detail section
     setTimeout(() => {
@@ -163,15 +168,32 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
 
   const handleSwitchToLibrarian = useCallback(() => handleClaimTabChange('librarian'), [handleClaimTabChange]);
 
-  // Slice 0a — summary hub: switch lens, then scroll the lens section into view
-  // so a click on a summary link lands the reader on the chosen lens.
+  // Slice 0a/0b — summary hub: switch lens (+ optional deep-link filter for
+  // Evidence), persist the filter to the URL (shareable, survives reload), then
+  // scroll the lens section into view.
   const lensSectionRef = useRef<HTMLDivElement>(null);
-  const handleNavigateFromSummary = useCallback((view: string) => {
-    handleClaimTabChange(view);
-    setTimeout(() => {
-      lensSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
-  }, [handleClaimTabChange]);
+  const [evidenceFilter, setEvidenceFilter] = useState<{ rel?: EvidenceRelationship[]; element?: string }>(() => {
+    if (typeof window === 'undefined') return {};
+    const p = new URLSearchParams(window.location.search);
+    const rel = p.get('rel');
+    return { rel: rel ? (rel.split(',') as EvidenceRelationship[]) : undefined, element: p.get('element') || undefined };
+  });
+  const handleNavigateFromSummary = useCallback(
+    (view: string, params?: { rel?: EvidenceRelationship[]; element?: string }) => {
+      handleClaimTabChange(view);
+      const url = new URL(window.location.href);
+      if (params?.rel && params.rel.length) url.searchParams.set('rel', params.rel.join(','));
+      else url.searchParams.delete('rel');
+      if (params?.element) url.searchParams.set('element', params.element);
+      else url.searchParams.delete('element');
+      window.history.replaceState({}, '', url.toString());
+      setEvidenceFilter({ rel: params?.rel, element: params?.element });
+      setTimeout(() => {
+        lensSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    },
+    [handleClaimTabChange]
+  );
 
   // G02: Refresh page data after element re-search completes
   const handleResearchComplete = useCallback(() => {
@@ -488,7 +510,12 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                 />
               )}
               {claimView === 'librarian' && (
-                <LibrarianView scope="claim" claims={[focusedClaim]} />
+                <LibrarianView
+                  scope="claim"
+                  claims={[focusedClaim]}
+                  initialRelationships={evidenceFilter.rel}
+                  focusElementId={evidenceFilter.element}
+                />
               )}
               {claimView === 'correspondent' && (
                 <CorrespondentView scope="claim" claims={[focusedClaim]} />

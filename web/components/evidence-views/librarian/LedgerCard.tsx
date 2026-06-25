@@ -1,8 +1,16 @@
 'use client';
 
-import { Evidence } from '@shared/types';
+import { Evidence, EvidenceRelationship } from '@shared/types';
 import { TypeStamp } from './TypeStamp';
 import { ElementRefs } from '../ElementRefs';
+
+// Disposition labels — an organising axis (how the source relates to the
+// claim), never an argument. Colour-restrained on purpose (no traffic light).
+const RELATIONSHIP_LABELS: Record<EvidenceRelationship, string> = {
+  supports: 'supports',
+  challenges: 'challenges',
+  context: 'context',
+};
 
 function extractDomain(url: string): string {
   try {
@@ -27,13 +35,15 @@ interface LedgerCardProps {
   callNumber?: string;
   elementIds?: string[];
   claimLabel?: string;
+  /** Distinct dispositions of this source toward the claim (Slice 0b). */
+  relationships?: EvidenceRelationship[];
   diagnosticValue?: number;
   diagnosticActive?: boolean;
   isActive?: boolean;
   onClick?: () => void;
 }
 
-export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, diagnosticValue, diagnosticActive, isActive, onClick }: LedgerCardProps) {
+export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relationships, diagnosticValue, diagnosticActive, isActive, onClick }: LedgerCardProps) {
   const domain = extractDomain(evidence.url);
   const date = formatDate(evidence.publishedDate);
 
@@ -77,6 +87,14 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, diagn
               <>
                 <span className="font-mono text-[10px] text-zinc-300">&middot;</span>
                 <ElementRefs elementIds={elementIds} />
+              </>
+            )}
+            {relationships && relationships.length > 0 && (
+              <>
+                <span className="font-mono text-[10px] text-zinc-300">&middot;</span>
+                <span className="font-mono text-[10px] italic text-zinc-500">
+                  {relationships.map((r) => RELATIONSHIP_LABELS[r]).join(' / ')}
+                </span>
               </>
             )}
             {claimLabel && (

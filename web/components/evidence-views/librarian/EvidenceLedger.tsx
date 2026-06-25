@@ -1,6 +1,6 @@
 'use client';
 
-import { Evidence, EvidenceTier } from '@shared/types';
+import { Evidence, EvidenceTier, EvidenceRelationship } from '@shared/types';
 import { LedgerCard } from './LedgerCard';
 import { ReadingTable } from './ReadingTable';
 import { SortControl, SortField } from './SortControl';
@@ -60,6 +60,8 @@ interface EvidenceLedgerProps {
   activeEvidenceId: string | null;
   onCardClick?: (evidence: Evidence) => void;
   elementDescriptionMap: Map<string, string>;
+  /** Distinct disposition(s) per evidenceId (Slice 0b); undefined → no marker. */
+  relationshipMap?: Map<string, EvidenceRelationship[]>;
   mobileReadingTable?: React.ReactNode;
 }
 
@@ -76,6 +78,7 @@ export function EvidenceLedger({
   activeEvidenceId,
   onCardClick,
   elementDescriptionMap,
+  relationshipMap,
 }: EvidenceLedgerProps) {
   // Group evidence by tier, then sort within each group
   const tierGroups = TIER_GROUPS.map((tier) => {
@@ -126,6 +129,7 @@ export function EvidenceLedger({
                     callNumber={callNumberMap.get(evId)}
                     elementIds={elementMap.get(evId)}
                     claimLabel={claimLabelMap?.get(evId)}
+                    relationships={relationshipMap?.get(evId)}
                     diagnosticValue={diagnosticValues?.get(evId)}
                     diagnosticActive={diagnosticActive}
                     isActive={isActive}

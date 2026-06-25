@@ -14,6 +14,7 @@ import { ChronologistView } from '@/components/evidence-views/chronologist';
 import { SeekerView } from '@/components/evidence-views/seeker';
 import { ClaimSummaryPanel } from '@/components/evidence-views/ClaimSummaryPanel';
 import { capture } from '@/lib/analytics';
+import { EvidenceRelationship } from '@shared/types';
 
 interface PublicReportClientProps {
   check: any;
@@ -135,15 +136,43 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
   const handleSwitchToLibrarian = useCallback(() => { setClaimView('librarian'); updateUrlViewParam('librarian'); }, [updateUrlViewParam]);
 
-  // Slice 0a — summary hub: switch lens, then scroll the lens section into view.
+  // Slice 0a/0b — summary hub: switch lens (+ optional Evidence deep-link
+  // filter), persist the filter to the URL, then scroll the lens into view.
   const lensSectionRef = useRef<HTMLDivElement>(null);
-  const handleNavigateFromSummary = useCallback((view: string) => {
+  const [evidenceFilter, setEvidenceFilter] = useState<{ rel?: EvidenceRelationship[]; element?: string }>(() => {
+    if (typeof window === 'undefined') return {};
+    const p = new URLSearchParams(window.location.search);
+    const rel = p.get('rel');
+    return { rel: rel ? (rel.split(',') as EvidenceRelationship[]) : undefined, element: p.get('element') || undefined };
+  });
+  const handleNavigateFromSummary = useCallback((view: string, params?: { rel?: EvidenceRelationship[]; element?: string }) => {
     setClaimView(view);
     updateUrlViewParam(view);
+    const url = new URL(window.location.href);
+    if (params?.rel && params.rel.length) url.searchParams.set('rel', params.rel.join(','));
+    else url.searchParams.delete('rel');
+    if (params?.element) url.searchParams.set('element', params.element);
+    else url.searchParams.delete('element');
+    window.history.replaceState({}, '', url.toString());
+    setEvidenceFilter({ rel: params?.rel, element: params?.element });
     setTimeout(() => {
       lensSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
   }, [updateUrlViewParam]);
+
+  // A focused element / disposition filter belongs to one claim — clear it when
+  // the active claim changes (but NOT on mount, so a shared deep-link survives).
+  const didMountClaim = useRef(false);
+  useEffect(() => {
+    if (!didMountClaim.current) { didMountClaim.current = true; return; }
+    setEvidenceFilter({});
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('rel');
+      url.searchParams.delete('element');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [activeClaimIndex]);
 
   // Get content display for input context
   const getContentDisplay = () => {
@@ -296,7 +325,12 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                   />
                 )}
                 {claimView === 'librarian' && (
-                  <LibrarianView scope="claim" claims={[activeClaim]} />
+                  <LibrarianView
+                    scope="claim"
+                    claims={[activeClaim]}
+                    initialRelationships={evidenceFilter.rel}
+                    focusElementId={evidenceFilter.element}
+                  />
                 )}
                 {claimView === 'correspondent' && (
                   <CorrespondentView scope="claim" claims={[activeClaim]} />
