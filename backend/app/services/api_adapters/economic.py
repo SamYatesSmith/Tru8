@@ -447,7 +447,7 @@ class FREDAdapter(GovernmentAPIClient):
                     f"FRED series-ID '{fred_series}' returned empty; "
                     f"retrying with raw targeted query"
                 )
-                retry_params = dict(params, search_text=targeted_query)
+                retry_params = dict(params, search_text=query)
                 response = self._make_request("/series/search", params=retry_params)
 
             if not response or "seriess" not in response:

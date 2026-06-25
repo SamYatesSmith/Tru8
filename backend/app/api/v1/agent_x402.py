@@ -24,6 +24,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.agent import _resolve_input
 from app.core.agent_auth import AgentPaymentContext, compute_request_hash
 from app.core.agent_pricing import get_tier_price
 from app.core.client_origin import resolve_client
@@ -45,6 +46,7 @@ router = APIRouter()
 
 class X402ClaimRequest(BaseModel):
     claim: str
+    input_type: Optional[str] = None
     compact: Optional[bool] = False
 
 
@@ -162,12 +164,17 @@ async def _run_x402_pipeline(
     # Set tx ID on request state for audit middleware correlation
     request.state.agent_tx_id = tx.id
 
+    # Honour input_type (parity with /agent): auto-detect URL vs text so a URL
+    # submitted via x402 is fetched/extracted rather than treated as literal text.
+    resolved_type, input_data = _resolve_input(body.claim, body.input_type)
+
     # Create check record
     check = Check(
         id=str(uuid.uuid4()),
         user_id=payment.user_id,
-        input_type="text",
-        input_content=json.dumps({"content": body.claim}),
+        input_type=resolved_type,
+        input_content=json.dumps(input_data),
+        input_url=input_data.get("url"),
         status="processing",
         credits_used=0,
         initiated_via="agent_x402",
@@ -181,7 +188,6 @@ async def _run_x402_pipeline(
     tx.check_id = check.id
     await session.commit()
 
-    input_data = {"input_type": "text", "content": body.claim}
     progress_reporter = ProgressReporter(check.id)
 
     try:

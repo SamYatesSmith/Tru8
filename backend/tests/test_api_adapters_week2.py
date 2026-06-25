@@ -432,13 +432,15 @@ class TestHansardAdapter:
         """Test Hansard domain relevance."""
         adapter = HansardAdapter()
 
-        # Should be relevant for Politics and Law + UK
+        # Should be relevant for Politics, Law, and Finance + UK
+        # (P2.1: Finance was wrongly excluded — Treasury questions, Budget/Autumn
+        # Statement debates are Hansard content; fiscal claims classify as Finance.)
         assert adapter.is_relevant_for_domain("Politics", "UK") == True
         assert adapter.is_relevant_for_domain("Law", "UK") == True
+        assert adapter.is_relevant_for_domain("Finance", "UK") == True
 
         # Should not be relevant for other domains/jurisdictions (UK-only adapter)
         assert adapter.is_relevant_for_domain("Politics", "Global") == False
-        assert adapter.is_relevant_for_domain("Finance", "UK") == False
         assert adapter.is_relevant_for_domain("Politics", "US") == False
 
     def test_transform_response(self):

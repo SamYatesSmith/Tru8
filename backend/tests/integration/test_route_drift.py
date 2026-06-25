@@ -67,3 +67,22 @@ class TestRouteDrift:
         from app.api.v1.agent_x402 import QUICK_LIMITATIONS as x402_limits
 
         assert agent_limits == x402_limits
+
+    def test_x402_honours_input_type(self):
+        """Parity fix: x402 now resolves input_type via the same _resolve_input
+        helper as /agent (previously it hardcoded input_type='text', so a URL
+        submitted via x402 was treated as literal text instead of being fetched).
+        """
+        from app.api.v1.agent import _resolve_input
+        from app.api.v1.agent_x402 import X402ClaimRequest
+
+        # A URL claim auto-detects to 'url' (the behaviour x402 previously lacked).
+        req = X402ClaimRequest(claim="https://example.com/article")
+        resolved_type, input_data = _resolve_input(req.claim, req.input_type)
+        assert resolved_type == "url"
+        assert input_data["url"] == "https://example.com/article"
+
+        # An explicit text type is honoured even when the claim looks like a URL.
+        req2 = X402ClaimRequest(claim="https://example.com", input_type="text")
+        resolved_type2, _ = _resolve_input(req2.claim, req2.input_type)
+        assert resolved_type2 == "text"
