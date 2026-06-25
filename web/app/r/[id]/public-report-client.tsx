@@ -135,6 +135,16 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
   const handleSwitchToLibrarian = useCallback(() => { setClaimView('librarian'); updateUrlViewParam('librarian'); }, [updateUrlViewParam]);
 
+  // Slice 0a — summary hub: switch lens, then scroll the lens section into view.
+  const lensSectionRef = useRef<HTMLDivElement>(null);
+  const handleNavigateFromSummary = useCallback((view: string) => {
+    setClaimView(view);
+    updateUrlViewParam(view);
+    setTimeout(() => {
+      lensSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }, [updateUrlViewParam]);
+
   // Get content display for input context
   const getContentDisplay = () => {
     if (check.inputUrl || check.sourceUrl) {
@@ -227,7 +237,8 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                   position={activeClaimIndex}
                   inputType={check.inputType}
                   rankLabel={isSingleClaim ? null : `Claim ${activeClaimIndex + 1} of ${claims.length}`}
-                  onNavigateToGaps={() => { setClaimView('seeker'); updateUrlViewParam('seeker'); }}
+                  onNavigate={handleNavigateFromSummary}
+                  hiddenViews={activeClaim && videos.filter((v: any) => v.claimId === activeClaim.id).length === 0 ? ['projectionist'] : []}
                 />
 
                 {/* Prev/Next Navigation — below the framed panel */}
@@ -265,6 +276,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
             )}
 
             {/* 6b: Per-Claim View Selector */}
+            <div ref={lensSectionRef} className="scroll-mt-4" />
             <ViewSelector
               mode="detail"
               activeTab={claimView}

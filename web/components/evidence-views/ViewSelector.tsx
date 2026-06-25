@@ -22,7 +22,7 @@ const DETAIL_ONLY_TOOLTIPS: Record<string, string> = {
 // Plain-language label leads; the profession is kept as flavour in the subtitle
 // (D-R1, §7.4). `value` strings are unchanged — ?view= deep links stay stable.
 // Order leads with Evidence (the default lens, §7.2.2).
-const ALL_TABS: { value: ViewTab; label: string; subtitle: string }[] = [
+export const ALL_TABS: { value: ViewTab; label: string; subtitle: string }[] = [
   { value: 'librarian', label: 'EVIDENCE', subtitle: 'Librarian · full classified set' },
   { value: 'correspondent', label: 'SOURCES', subtitle: "Correspondent · who's in the room" },
   { value: 'chronologist', label: 'TIMELINE', subtitle: 'Chronologist · when evidence appeared' },

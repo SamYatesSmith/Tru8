@@ -19,6 +19,8 @@ import { Claim, InputType } from '@shared/types';
 import { DiagnosticFlag } from './DiagnosticFlag';
 import { ELEMENT_STATE } from './ElementStateBadge';
 import { getTierColor, tierCounts } from './shared-utils';
+import { ALL_TABS } from './ViewSelector';
+import { capture } from '@/lib/analytics';
 
 const CONTEXT_LABELS: Record<string, string> = {
   url: 'Extracted Claim',
@@ -43,11 +45,52 @@ interface ClaimSummaryPanelProps {
    * (public report "Claim 2 of 5"); `null` → hidden (public single-claim).
    */
   rankLabel?: string | null;
-  /** Switch the active lens to the Gaps (Seeker) view from the gaps-named list. */
-  onNavigateToGaps?: () => void;
+  /**
+   * Switch the active lens (Slice 0a — summary as a navigation hub). The panel
+   * fires `view_opened {source:'summary'}` itself; the client just switches the
+   * lens + scrolls it into view. Lens values match `ViewSelector` (`librarian`,
+   * `correspondent`, `chronologist`, `seeker`, `cartographer`, `projectionist`).
+   */
+  onNavigate?: (view: string) => void;
+  /** Lens values to hide from the Explore rail (e.g. `['projectionist']` when no videos). */
+  hiddenViews?: string[];
 }
 
-export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNavigateToGaps }: ClaimSummaryPanelProps) {
+/**
+ * A footer metric rendered as a QOL link into a lens when navigation is wired,
+ * or as plain text otherwise (public single-claim with no handler). Affordance:
+ * hover-darken + a trailing arrow that appears on hover; accessible label.
+ */
+function MetricLink({
+  enabled,
+  view,
+  label,
+  go,
+  children,
+}: {
+  enabled: boolean;
+  view: string;
+  label: string;
+  go: (view: string) => void;
+  children: React.ReactNode;
+}) {
+  if (!enabled) {
+    return <span className="inline-flex items-center gap-1">{children}</span>;
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => go(view)}
+      aria-label={`Open ${label} lens`}
+      className="group inline-flex items-center gap-1 hover:text-zinc-900 transition-colors cursor-pointer"
+    >
+      {children}
+      <span aria-hidden className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+    </button>
+  );
+}
+
+export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNavigate, hiddenViews = [] }: ClaimSummaryPanelProps) {
   const claimMap = claim.claimMap;
   const elements = claimMap?.elements || [];
   const evidence = claim.evidence || [];
@@ -76,6 +119,16 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   // Gaps named (S3) — unresolved/unstated elements, named for the reader.
   const gapElements = elements.filter((el) => !el.state || el.state === 'unresolved');
 
+  // Slice 0a — summary as a navigation hub. Each link attributes the lens
+  // switch to the summary so we can see it driving the truth journey, then
+  // hands off to the client to switch the lens + scroll it into view.
+  const go = (view: string) => {
+    if (!onNavigate) return;
+    capture('view_opened', { view, source: 'summary' });
+    onNavigate(view);
+  };
+  const exploreTabs = ALL_TABS.filter((t) => !hiddenViews.includes(t.value));
+
   return (
     // The panel owns its frame (single source of truth for both surfaces): a
     // raised-surface card with a 2px orange top rule marking it as the page's
@@ -99,8 +152,8 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         )}
       </div>
 
-      {/* Claim text */}
-      <h2 className="text-xl font-medium text-zinc-900 leading-relaxed mb-3">
+      {/* Claim text — the headline (the question being answered). */}
+      <h2 className="text-2xl font-medium text-zinc-900 leading-snug mb-3">
         {claim.text}
       </h2>
 
@@ -137,22 +190,29 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
       )}
 
       {/* Zone 3 — plumbing footer (demoted below a hairline): the merged
-          element/source line with tier mix, then the named gaps list. */}
+          element/source line with tier mix (each a QOL link into its lens),
+          then the named gaps list. */}
       <div className="mt-4 pt-4 border-t border-zinc-200 space-y-2">
         <div className="font-mono text-[10px] text-zinc-400 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span>Elements {elements.length}</span>
+          {/* Elements → Sources (Correspondent: who's addressing each element). */}
+          <MetricLink enabled={!!onNavigate} view="correspondent" label="Sources" go={go}>
+            <span>Elements {elements.length}</span>
+          </MetricLink>
           <span className="text-zinc-200">&middot;</span>
-          <span>Sources {evidenceCount}</span>
-          {evidenceCount > 0 && (
-            <>
-              <span className="text-zinc-300">&mdash;</span>
-              <span style={{ color: getTierColor('primary') }}>{tiers.primary} primary</span>
-              <span className="text-zinc-200">&middot;</span>
-              <span style={{ color: getTierColor('reporting') }}>{tiers.reporting} reporting</span>
-              <span className="text-zinc-200">&middot;</span>
-              <span style={{ color: getTierColor('commentary') }}>{tiers.commentary} commentary</span>
-            </>
-          )}
+          {/* Sources + tier mix → Evidence (Librarian: the full classified set). */}
+          <MetricLink enabled={!!onNavigate} view="librarian" label="Evidence" go={go}>
+            <span>Sources {evidenceCount}</span>
+            {evidenceCount > 0 && (
+              <>
+                <span className="text-zinc-300">&mdash;</span>
+                <span style={{ color: getTierColor('primary') }}>{tiers.primary} primary</span>
+                <span className="text-zinc-200">&middot;</span>
+                <span style={{ color: getTierColor('reporting') }}>{tiers.reporting} reporting</span>
+                <span className="text-zinc-200">&middot;</span>
+                <span style={{ color: getTierColor('commentary') }}>{tiers.commentary} commentary</span>
+              </>
+            )}
+          </MetricLink>
         </div>
 
         {gapElements.length > 0 && (
@@ -167,10 +227,12 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
                   </li>
                 ))}
               </ul>
-              {onNavigateToGaps && (
+              {onNavigate && (
                 <button
-                  onClick={onNavigateToGaps}
-                  className="mt-1 font-mono text-[10px] text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1"
+                  type="button"
+                  onClick={() => go('seeker')}
+                  aria-label="Open Gaps lens"
+                  className="mt-1 font-mono text-[10px] text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1 cursor-pointer"
                 >
                   Open Gaps lens &rarr;
                 </button>
@@ -179,6 +241,30 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
           </div>
         )}
       </div>
+
+      {/* Explore rail — the persistent launchpad: one-click QOL links into every
+          relevant lens for the reader's truth journey. Hidden lenses (e.g. Video
+          when no videos) are dropped. Only rendered when navigation is wired. */}
+      {onNavigate && exploreTabs.length > 0 && (
+        <nav
+          aria-label="Explore evidence views"
+          className="mt-4 pt-4 border-t border-zinc-200 flex flex-wrap items-center gap-x-4 gap-y-2"
+        >
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Explore</span>
+          {exploreTabs.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => go(t.value)}
+              aria-label={`Open ${t.label} lens`}
+              className="group font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1 cursor-pointer"
+            >
+              {t.label}
+              <span aria-hidden className="text-zinc-300 group-hover:text-[var(--accent)] transition-colors">&rarr;</span>
+            </button>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }

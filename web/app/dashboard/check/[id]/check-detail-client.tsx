@@ -163,6 +163,16 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
 
   const handleSwitchToLibrarian = useCallback(() => handleClaimTabChange('librarian'), [handleClaimTabChange]);
 
+  // Slice 0a — summary hub: switch lens, then scroll the lens section into view
+  // so a click on a summary link lands the reader on the chosen lens.
+  const lensSectionRef = useRef<HTMLDivElement>(null);
+  const handleNavigateFromSummary = useCallback((view: string) => {
+    handleClaimTabChange(view);
+    setTimeout(() => {
+      lensSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }, [handleClaimTabChange]);
+
   // G02: Refresh page data after element re-search completes
   const handleResearchComplete = useCallback(() => {
     router.refresh();
@@ -435,7 +445,8 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                   claim={focusedClaim}
                   position={activeClaimIndex!}
                   inputType={checkData.inputType}
-                  onNavigateToGaps={() => handleClaimTabChange('seeker')}
+                  onNavigate={handleNavigateFromSummary}
+                  hiddenViews={!claimVideosLoading && claimVideos.length === 0 ? ['projectionist'] : []}
                 />
                 {!isSingleClaim && claims.length > 1 && (
                   <div className="mt-4 flex items-center justify-end gap-2">
@@ -460,6 +471,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                 )}
               </div>
 
+              <div ref={lensSectionRef} className="scroll-mt-4" />
               <ViewSelector
                 mode="detail"
                 activeTab={claimView}
