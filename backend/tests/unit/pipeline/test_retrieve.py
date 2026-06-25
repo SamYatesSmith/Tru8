@@ -1060,3 +1060,68 @@ class TestEvidenceRetrieval:
             assert "text" in evidence, "Evidence must have text"
             assert "url" in evidence, "Evidence must have URL"
             assert "source" in evidence, "Evidence must have source"
+
+
+class TestGovernmentApiRoutingRobustness:
+    """Regression cover for government-API routing edge cases."""
+
+    @pytest.mark.asyncio
+    async def test_routing_handles_none_confidence(self, caplog):
+        """Sentry PYTHON-FASTAPI-28: a degraded article_classification can carry
+        ``confidence=None`` (the key is present with a None value, so the .get
+        default never applies). The ``confidence={confidence:.2f}`` debug log
+        then raised ``TypeError: unsupported format string passed to NoneType``,
+        which was swallowed by the method's try/except and logged as
+        'Government API retrieval error'. The fix coerces None -> 0.0, so routing
+        must complete with NO error logged.
+        """
+        import logging
+
+        registry = MagicMock()
+        # Non-empty so the method skips its emergency re-initialisation branch.
+        registry.adapters = {"dummy": object()}
+        # No adapters for the domain -> the method hits its clean empty return
+        # at the "if not relevant_adapters" guard, with no live API calls.
+        registry.get_adapters_for_domain.return_value = []
+
+        keyword_router = MagicMock()
+        keyword_router.get_additional_adapters.return_value = []
+
+        with (
+            patch("app.pipeline.retrieve.SearchService"),
+            patch("app.pipeline.retrieve.EvidenceExtractor"),
+            patch("app.pipeline.retrieve.get_api_registry", return_value=registry),
+            patch("app.core.config.settings.ENABLE_API_RETRIEVAL", True),
+            patch(
+                "app.utils.claim_keyword_router.get_keyword_router",
+                return_value=keyword_router,
+            ),
+        ):
+            retriever = EvidenceRetriever()
+
+            claim = {
+                "text": "A UK-based child received vaccinations at age 1",
+                "claim_type": None,
+                "key_entities": [],
+                "article_classification": {
+                    "primary_domain": "Health",
+                    "jurisdiction": "UK",
+                    "confidence": None,  # the value that crashed the format string
+                    "secondary_domains": [],
+                    "source": "fallback_general",
+                    "classification_failed": True,
+                },
+            }
+
+            with caplog.at_level(logging.ERROR, logger="app.pipeline.retrieve"):
+                result = await retriever._retrieve_from_government_apis(
+                    claim["text"], claim
+                )
+
+        # Clean empty return, and crucially NO swallowed format error.
+        assert result == {"evidence": [], "api_stats": {}}
+        assert not any(
+            "Government API retrieval error" in rec.message
+            or "unsupported format string" in rec.message
+            for rec in caplog.records
+        ), "None confidence must not raise a format error during routing"

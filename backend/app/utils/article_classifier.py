@@ -16,6 +16,7 @@ import re
 import json
 import logging
 import hashlib
+import httpx
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any
 from datetime import timedelta
@@ -969,10 +970,7 @@ async def _classify_with_llm(
     - Output: ~100 tokens (JSON response with context fields)
     """
     try:
-        import openai
         from datetime import datetime
-
-        client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
         # Get current date for temporal context
         now = datetime.now()
@@ -990,21 +988,35 @@ async def _classify_with_llm(
             content=content_preview or "No content available",
         )
 
-        response = await client.chat.completions.create(
-            model="gpt-4o-mini-2024-07-18",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a Tru8 fact-checking specialist. Always respond with valid JSON only, no markdown.",
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                    "Content-Type": "application/json",
                 },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.1,  # Low temperature for consistent classification
-            max_tokens=300,  # Increased for new context fields
-            response_format={"type": "json_object"},
-        )
+                json={
+                    "model": "gpt-4o-mini-2024-07-18",
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are a Tru8 fact-checking specialist. Always respond with valid JSON only, no markdown.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.1,  # Low temperature for consistent classification
+                    "max_tokens": 300,  # Increased for new context fields
+                    "response_format": {"type": "json_object"},
+                },
+            )
 
-        result_text = response.choices[0].message.content
+        if response.status_code != 200:
+            logger.error(f"OpenAI classification error: {response.status_code}")
+            raise RuntimeError(
+                f"OpenAI classification returned HTTP {response.status_code}"
+            )
+
+        result_text = response.json()["choices"][0]["message"]["content"]
         result = json.loads(result_text)
 
         # Validate and sanitize response

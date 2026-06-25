@@ -15,6 +15,7 @@ Architecture:
 import json
 import logging
 import hashlib
+import httpx
 from typing import Dict, List, Any, Optional
 
 from app.core.config import settings
@@ -407,10 +408,6 @@ async def _score_with_llm(
     Returns:
         List of score dicts with evidence_index, score, rationale, relevant_claims
     """
-    import openai
-
-    client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-
     # Format claims for prompt
     claims_text = "\n".join([f"[Claim {i}]: {claim}" for i, claim in enumerate(claims)])
 
@@ -457,24 +454,41 @@ async def _score_with_llm(
         f"[LLM SCORER] Scoring {len(evidence_to_score)} items, max_tokens={max_output_tokens}"
     )
 
-    response = await client.chat.completions.create(
-        model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": "You are an evidence relevance analyst. Return only valid JSON arrays.",
+    timeout = getattr(settings, "LLM_RELEVANCE_TIMEOUT", 90)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                "Content-Type": "application/json",
             },
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.1,  # Low temperature for consistency
-        max_tokens=max_output_tokens,  # Dynamic based on evidence count
-        response_format={"type": "json_object"},
-    )
+            json={
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are an evidence relevance analyst. Return only valid JSON arrays.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,  # Low temperature for consistency
+                "max_tokens": max_output_tokens,  # Dynamic based on evidence count
+                "response_format": {"type": "json_object"},
+            },
+        )
 
-    result_text = response.choices[0].message.content
+    if response.status_code != 200:
+        logger.error(
+            f"[LLM SCORER] OpenAI relevance scoring error: {response.status_code}"
+        )
+        return []
+
+    response_data = response.json()
+    choice = response_data["choices"][0]
+    result_text = choice["message"]["content"]
 
     # Check for truncation (finish_reason="length" means max_tokens was hit)
-    finish_reason = response.choices[0].finish_reason
+    finish_reason = choice.get("finish_reason")
     if finish_reason == "length":
         logger.error(
             f"[LLM SCORER] Response truncated (max_tokens={max_output_tokens} insufficient). "
@@ -483,10 +497,11 @@ async def _score_with_llm(
         # Try to parse anyway - might have partial valid JSON
 
     # Log token usage for monitoring
-    if hasattr(response, "usage") and response.usage:
+    usage = response_data.get("usage")
+    if usage:
         logger.info(
-            f"[LLM SCORER] Token usage: input={response.usage.prompt_tokens}, "
-            f"output={response.usage.completion_tokens}, total={response.usage.total_tokens}"
+            f"[LLM SCORER] Token usage: input={usage.get('prompt_tokens')}, "
+            f"output={usage.get('completion_tokens')}, total={usage.get('total_tokens')}"
         )
 
     # Parse JSON response - handle both array and object formats

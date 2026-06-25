@@ -2097,7 +2097,9 @@ class EvidenceRetriever:
                     # Use article-level classification
                     domain = article_classification.get("primary_domain", "General")
                     jurisdiction = article_classification.get("jurisdiction", "Global")
-                    confidence = article_classification.get("confidence", 0.0)
+                    # Coerce None → 0.0: the key may be present with a None value
+                    # (degraded classification), so the .get default never applies.
+                    confidence = article_classification.get("confidence") or 0.0
                     secondary_domains = article_classification.get(
                         "secondary_domains", []
                     )

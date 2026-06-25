@@ -66,7 +66,11 @@ class VectorStore:
             self._initialized = True
 
         except Exception as e:
-            logger.error(f"Failed to initialize Qdrant: {e}")
+            # Non-fatal: the vector store is an optional embedding cache and the
+            # caller (_store_evidence_embeddings) swallows this without failing the
+            # pipeline. Logged at warning so a missing/decommissioned Qdrant does
+            # not raise a Sentry error event on every check.
+            logger.warning(f"Failed to initialize Qdrant: {e}")
             raise
 
     async def _ensure_collection_exists(self):

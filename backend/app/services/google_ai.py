@@ -276,7 +276,11 @@ async def call_google_ai(
         delay = _jittered_delay(attempt, retry_after)
         await asyncio.sleep(delay)
 
-    logger.error(
+    # Transient 429/503 after exhausting retries is an upstream availability blip
+    # (e.g. Gemini overloaded), not a Tru8 bug — log at warning so it does not
+    # raise a Sentry error event. Any other terminal status stays at error.
+    _terminal_log = logger.warning if last_status in (429, 503) else logger.error
+    _terminal_log(
         "Google AI failed after %d retries (last status: %s)",
         _MAX_RETRIES,
         last_status,
@@ -403,7 +407,11 @@ async def call_google_ai_with_usage(
         delay = _jittered_delay(attempt, retry_after)
         await asyncio.sleep(delay)
 
-    logger.error(
+    # Transient 429/503 after exhausting retries is an upstream availability blip
+    # (e.g. Gemini overloaded), not a Tru8 bug — log at warning so it does not
+    # raise a Sentry error event. Any other terminal status stays at error.
+    _terminal_log = logger.warning if last_status in (429, 503) else logger.error
+    _terminal_log(
         "Google AI failed after %d retries (last status: %s)",
         _MAX_RETRIES,
         last_status,
