@@ -28,9 +28,31 @@ export const metadata = {
   },
 };
 
+// FAQPage schema for the visible "Obvious Question" Q&A below — marks up content
+// that genuinely exists on the page (answer text mirrors the rendered prose), so
+// it is machine-readable for AI answer engines and eligible for FAQ rich results.
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'If grounding APIs spent 90 seconds on a claim, would they return the same thing as Tru8?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. Time changes how much a grounding API returns, not what it returns — give a search API longer and you get more passages, but the response contract (title, URL, snippet) is unchanged; there is no field for a dispute state to arrive in. Grounding APIs are built to ground answers fast at serving time. Tru8 answers a different question — what does the whole evidence landscape look like? — classifying every source by tier and type, mapping each to what it supports or challenges, and leaving the conflicts visible. We organise; you decide.',
+      },
+    },
+  ],
+};
+
 export default function ComparePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
+      />
       <Navigation />
       <MobileBottomNav />
 
