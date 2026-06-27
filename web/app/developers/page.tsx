@@ -23,12 +23,58 @@ const TOC_ITEMS = [
   { id: 'rate-limits', label: 'Limits' },
   { id: 'errors', label: 'Errors' },
   { id: 'response', label: 'Response' },
+  { id: 'faq', label: 'FAQ' },
   { id: 'docs', label: 'Docs' },
 ];
+
+// One source array drives both the visible FAQ and the FAQPage JSON-LD, so the
+// markup always matches the rendered answers (a Google requirement). Answers are
+// grounded in this page's own content. No verdict language; functional manifest
+// "verify" wording mirrors the response section above.
+const DEV_FAQS: ReadonlyArray<{ q: string; a: string }> = [
+  {
+    q: 'How do I get started with the Tru8 API?',
+    a: 'Create an API key in your dashboard settings, then POST a claim or URL to the API. The Quick Start above shows a working request; a single call returns a structured evidence landscape.',
+  },
+  {
+    q: 'What does a Tru8 API call return?',
+    a: 'A structured evidence landscape: each claim is decomposed into 1–5 elements, evidence is mapped to those elements with supports, challenges or context relationships, every source is classified by tier and type, gaps are named, and the response carries an HMAC-signed manifest. It does not return a true/false verdict. We organise; you decide.',
+  },
+  {
+    q: 'Is there an MCP server for Claude and other AI agents?',
+    a: 'Yes. The tru8-mcp package is published on PyPI and exposes tools for submitting a check and retrieving results, so Claude and other agents can request an evidence landscape directly.',
+  },
+  {
+    q: 'How are API calls priced?',
+    a: 'Calls are metered per request across three tiers — lookup, quick and full — billed from prepaid credits. See the Pricing section above for the current per-tier rates.',
+  },
+  {
+    q: 'How can an agent confirm a result has not changed?',
+    a: 'Every response includes a signed _manifest. A caller can verify the signed fields have not changed since signing by calling GET /verify/{check_id}.',
+  },
+  {
+    q: 'How long does a check take?',
+    a: 'Typically 15–90 seconds depending on the tier, because Tru8 retrieves and classifies evidence across 30+ sources rather than returning passages and a score.',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: DEV_FAQS.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
 
 export default function DevelopersPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
+      />
       <Navigation />
       <MobileNav />
 
@@ -944,6 +990,31 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
                 <div className="font-mono text-xs text-zinc-400 mt-3">/api/redoc</div>
               </Link>
             </div>
+          </section>
+
+          {/* Divider */}
+          <div className="border-t border-zinc-200 my-12 md:my-16" />
+
+          {/* FAQ */}
+          <section id="faq" className="mb-16 md:mb-20 scroll-mt-28">
+            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+              Module — FAQ
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-8 md:mb-10">
+              Frequently asked questions
+            </h2>
+            <dl className="divide-y divide-zinc-100 border-t border-zinc-100">
+              {DEV_FAQS.map((item) => (
+                <div key={item.q} className="py-6 md:py-7">
+                  <dt className="text-base md:text-lg font-semibold text-zinc-900 mb-2">
+                    {item.q}
+                  </dt>
+                  <dd className="text-sm md:text-base text-zinc-600 leading-relaxed">
+                    {item.a}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </section>
 
           {/* CTA */}
