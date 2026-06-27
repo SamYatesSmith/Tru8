@@ -126,3 +126,9 @@ audit/
 
 # A/B mapping harness (scripts + run artefacts, kept untracked)
 backend/scripts/ab/
+
+# Local-only cost/profiling tooling + bench backups (keep untracked)
+backend/scripts/check_cost_snapshot.py
+backend/scripts/demo_candidates.py
+backend/scripts/profile_stage_timings.py
+backend/data/*.bench_backup
