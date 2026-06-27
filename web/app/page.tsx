@@ -9,6 +9,7 @@ import { StitchProcess } from '@/components/marketing/stitch-process'
 import { StitchDeveloperShowcase } from '@/components/marketing/stitch-developer-showcase'
 import { StitchCompareTeaser } from '@/components/marketing/stitch-compare-teaser'
 import { StitchProductPreview } from '@/components/marketing/stitch-product-preview'
+import { StitchFaq } from '@/components/marketing/stitch-faq'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
@@ -103,6 +104,7 @@ export default function Home({
         <StitchDeveloperShowcase />
         <StitchCompareTeaser />
         <StitchProductPreview />
+        <StitchFaq />
       </main>
 
       <Footer />

@@ -1,0 +1,92 @@
+/**
+ * Stitch FAQ — answer-first Q&A block + FAQPage JSON-LD.
+ *
+ * Server component (no 'use client') so the questions and answers ship as clean
+ * server HTML, high in the DOM and free of JS dependency — the structure that
+ * AI answer engines (ChatGPT/Claude/Perplexity/AI Overviews) parse and quote,
+ * and that earns FAQ rich results. Copy obeys the positioning locks: no verdict
+ * language, "We organize; you decide", US spelling (D13). Functional manifest
+ * "confirm/checked" wording is used instead of "verify a claim".
+ */
+
+interface QA {
+  q: string;
+  a: string;
+}
+
+const FAQS: ReadonlyArray<QA> = [
+  {
+    q: 'What is Tru8?',
+    a: 'Tru8 is evidence research infrastructure. You submit a URL or a claim, and Tru8 decomposes it into checkable elements, retrieves evidence from more than 30 published sources, and organizes the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Tru8 does not issue a verdict. We organize; you decide.',
+  },
+  {
+    q: 'How is Tru8 different from a fact-checker?',
+    a: 'A fact-checker hands you a rating — true, false, misleading. Tru8 hands you the organized evidence and its provenance, and leaves the judgement to you. You see every source, how it relates to the claim, and what could not be found, so you can show your working.',
+  },
+  {
+    q: 'Who is Tru8 for?',
+    a: 'Researchers, journalists, analysts and developers who need to show their working — people who would rather present an organized evidence trail than ask others to trust a single score.',
+  },
+  {
+    q: 'What sources does Tru8 search?',
+    a: 'More than 30, across government, legislation, academic literature, economic data, news, archives and more — for example GOV.UK, Hansard, FRED, Semantic Scholar, PubMed, the World Bank and the Internet Archive. Every source that is included, and every one that is excluded, carries a receipt.',
+  },
+  {
+    q: 'Does Tru8 use AI to decide what is true?',
+    a: 'No. AI is used to decompose claims, retrieve evidence and classify it by source type and tier. It never scores credibility and never issues a verdict. The judgement stays with you.',
+  },
+  {
+    q: 'Is there an API?',
+    a: 'Yes. Tru8 offers a developer API and an MCP server so agents and applications can request a structured, signed evidence record programmatically. See the developer docs to get an API key.',
+  },
+  {
+    q: 'Can a Tru8 report be checked independently?',
+    a: 'Every report includes an HMAC-signed manifest. Anyone can confirm the signed fields have not changed since the report was generated, and every source in the landscape links out so you can read it yourself.',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.a,
+    },
+  })),
+};
+
+export function StitchFaq() {
+  return (
+    <section className="relative py-20 md:py-28 border-t border-zinc-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
+      />
+      <div className="max-w-7xl mx-auto px-5 md:px-6">
+        <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 mb-5 md:mb-6">
+          Common Questions
+        </div>
+        <h2 className="max-w-3xl text-2xl sm:text-3xl md:text-4xl font-normal tracking-[-0.02em] text-zinc-900 leading-tight mb-12 md:mb-16">
+          What Tru8 does &mdash; and what it deliberately does not.
+        </h2>
+
+        <dl className="max-w-3xl divide-y divide-zinc-100 border-t border-zinc-100">
+          {FAQS.map((item) => (
+            <div key={item.q} className="py-7 md:py-8">
+              <dt className="text-base md:text-lg font-medium text-zinc-900 mb-3 flex gap-3">
+                <span aria-hidden="true" className="mt-2 w-1.5 h-1.5 bg-accent rotate-45 shrink-0" />
+                <span>{item.q}</span>
+              </dt>
+              <dd className="text-sm md:text-base text-zinc-500 leading-relaxed pl-[18px]">
+                {item.a}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  );
+}
