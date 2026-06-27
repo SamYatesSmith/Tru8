@@ -39,6 +39,20 @@ const nextConfig = {
     // COPY/CMD paths are aligned to this nested layout.
     outputFileTracingRoot: path.join(__dirname, '..'),
   },
+  async redirects() {
+    // SEO canonicalisation: the apex (trueight.com) and www both resolve on
+    // Railway with no redirect between them, so Google indexes them as two
+    // separate sites and splits ranking signals. Force the apex to 308-redirect
+    // to www — the canonical host used by sitemap.ts, robots.ts and metadataBase.
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'trueight.com' }],
+        destination: 'https://www.trueight.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     // F-SEC-03: CSP whitelists Clerk, Stripe, Sentry (de.sentry.io),
     // cdn.jsdelivr.net (Swagger UI), and PostHog EU (eu.i.posthog.com +
