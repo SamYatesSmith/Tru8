@@ -8,6 +8,8 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 const REPOSITIONED = new Date('2026-06-18')
 // /research was rebuilt researcher-led (item 2) on this date — honest per-route lastmod.
 const RESEARCH_UPDATED = new Date('2026-06-23')
+// Second blog post publish date.
+const AGENTS_POST = new Date('2026-03-25')
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -60,6 +62,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
     {
+      url: `${baseUrl}/blog/evidence-research-for-agents`,
+      lastModified: AGENTS_POST,
+      changeFrequency: 'yearly',
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -74,6 +82,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/terms-of-service`,
       lastModified: new Date('2026-03-09'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/refund-policy`,
+      lastModified: new Date('2026-05-27'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/cookie-policy`,
+      lastModified: new Date('2026-05-27'),
       changeFrequency: 'yearly',
       priority: 0.3,
     },

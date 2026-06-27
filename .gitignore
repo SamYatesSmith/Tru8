@@ -123,3 +123,6 @@ backend/tests/replay_corpus/*/observation.json
 # Audit output
 audit/
 
+
+# A/B mapping harness (scripts + run artefacts, kept untracked)
+backend/scripts/ab/

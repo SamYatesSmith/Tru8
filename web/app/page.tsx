@@ -13,8 +13,8 @@ import { StitchProductPreview } from '@/components/marketing/stitch-product-prev
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
 export const metadata: Metadata = {
-  title: 'Tru8 — Evidence Verification Infrastructure',
-  description: 'Verify the evidence behind factual AI output before it ships. Tru8 turns AI content into checkable claims and returns a structured, signed evidence record — external sources, what supports each, what challenges it, what is missing.',
+  title: 'Tru8 — Evidence Research Infrastructure',
+  description: 'Research the evidence behind factual AI output before it ships. Tru8 turns AI content into checkable claims and returns a structured, signed evidence record — external sources, what supports each, what challenges it, what is missing.',
   alternates: { canonical: '/' },
 }
 
@@ -28,7 +28,7 @@ const jsonLd = {
       alternateName: 'Trueight',
       url: baseUrl,
       logo: `${baseUrl}/favicon.proper.png`,
-      description: 'Evidence verification infrastructure for factual AI-generated content. Tru8 returns a structured, inspectable evidence record — supports, challenges, gaps and a signed manifest — so you decide what ships. We organize; you decide.',
+      description: 'Evidence research infrastructure for factual AI-generated content. Tru8 returns a structured, inspectable evidence record — supports, challenges, gaps and a signed manifest — so you decide what ships. We organize; you decide.',
       sameAs: [
         'https://x.com/tru8app',
         'https://pypi.org/project/tru8-mcp/',
@@ -48,7 +48,7 @@ const jsonLd = {
       operatingSystem: 'Web',
       url: `${baseUrl}/developers`,
       publisher: { '@id': `${baseUrl}/#organization` },
-      description: 'Evidence verification API and MCP server for AI agents. Decomposes factual AI output into checkable claims, retrieves external published sources, and returns a structured, signed evidence record.',
+      description: 'Evidence research API and MCP server for AI agents. Decomposes factual AI output into checkable claims, retrieves external published sources, and returns a structured, signed evidence record.',
     },
   ],
 }
@@ -84,7 +84,7 @@ export default function Home({
           aria-hidden="true"
           className="pointer-events-none fixed left-1.5 top-1/2 z-40 hidden -translate-y-1/2 rotate-180 select-none font-mono text-[9px] tracking-[0.3em] text-zinc-300 [writing-mode:vertical-rl] xl:block"
         >
-          TRU8 · EVIDENCE VERIFICATION INFRASTRUCTURE · REV 2026.06
+          TRU8 · EVIDENCE RESEARCH INFRASTRUCTURE · REV 2026.06
         </div>
         {/* Inset document frame — continuous 1px column edges at the max-w-7xl
             boundary, drawn over every section/room so the stacked sheets read as

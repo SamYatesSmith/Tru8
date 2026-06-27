@@ -4,6 +4,7 @@ import { CookiePreferencesButton } from '@/components/legal/cookie-preferences-b
 export const metadata = {
   title: 'Cookie Policy | Tru8',
   description: 'How Tru8 uses cookies and similar technologies',
+  alternates: { canonical: '/cookie-policy' },
 };
 
 export default function CookiePolicyPage() {

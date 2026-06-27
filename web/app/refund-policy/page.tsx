@@ -3,6 +3,7 @@ import { LegalPageLayout } from '@/components/legal/legal-page-layout';
 export const metadata = {
   title: 'Refund Policy | Tru8',
   description: 'Tru8 refund policy and cancellation terms',
+  alternates: { canonical: '/refund-policy' },
 };
 
 export default function RefundPolicyPage() {

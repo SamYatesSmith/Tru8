@@ -25,10 +25,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Tru8 — Evidence Verification Infrastructure',
+    default: 'Tru8 — Evidence Research Infrastructure',
     template: '%s | Tru8',
   },
-  description: 'Evidence verification infrastructure for factual AI content. Tru8 decomposes content into checkable claims, retrieves external published sources, and returns a structured, signed evidence record. We organize; you decide.',
+  description: 'Evidence research infrastructure for factual AI content. Tru8 decomposes content into checkable claims, retrieves external published sources, and returns a structured, signed evidence record. We organize; you decide.',
   icons: {
     icon: '/favicon.proper.png',
     apple: '/apple-touch-icon.png',
@@ -38,20 +38,20 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'Tru8',
     locale: 'en_US',
-    description: 'Verify the evidence behind factual AI output before it ships. We organize; you decide.',
+    description: 'Research the evidence behind factual AI output before it ships. We organize; you decide.',
     images: [
       {
         url: '/api/og/default',
         width: 1200,
         height: 630,
-        alt: 'Tru8 — Evidence Verification Infrastructure',
+        alt: 'Tru8 — Evidence Research Infrastructure',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     site: '@tru8app',
-    description: 'Verify the evidence behind factual AI output before it ships. We organize; you decide.',
+    description: 'Research the evidence behind factual AI output before it ships. We organize; you decide.',
   },
   robots: {
     index: true,

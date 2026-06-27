@@ -32,7 +32,7 @@ export function StitchHero() {
       <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
         {/* Category eyebrow (zinc-400 — accent lives only in the marks) */}
         <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 mb-5 md:mb-6">
-          Evidence Verification Infrastructure
+          Evidence Research Infrastructure
         </div>
 
         {/* Statement — full measure */}
