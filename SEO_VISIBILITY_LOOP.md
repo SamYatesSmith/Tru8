@@ -32,20 +32,25 @@ as the priority finding and STOP.
 Pick the **first** item below that is **not already done** (inspect the code to
 decide). Implement only that one, to a high standard.
 
-1. **`/r/[id]` report pages** (`web/app/r/[id]/`): ensure clean server-rendered
-   HTML, indexable, an answer-first summary high in the DOM, sound heading
-   hierarchy. Improve the existing JSON-LD only if clearly incomplete.
-2. **Answer-first opening paragraph** (a concise direct answer, ~40–80 words) placed
-   high on `/research`, `/compare`, and `/developers` — the structure AI answer
-   engines quote. One page per run is fine.
-3. **FAQ + FAQPage JSON-LD** on `/developers` and `/pricing`. Mirror the existing
-   pattern in `web/components/marketing/stitch-faq.tsx` (a server component that
-   renders visible Q&A + a `FAQPage` `application/ld+json` script). Reuse, don't
-   reinvent.
-4. **Internal linking** — add a few genuinely useful contextual links between the
+DONE (2026-06-27, do not redo — verify in code before assuming): homepage FAQ +
+FAQPage (`web/components/marketing/stitch-faq.tsx`); `/compare` FAQPage; `/developers`
+FAQ + FAQPage; `/r/[id]` assessed — already emits substantive content in server HTML
+with WebPage+Dataset JSON-LD, dynamic metadata + canonical; `/compare` and `/research`
+already lead answer-first.
+
+Remaining backlog, in priority order:
+1. **`/pricing` depth** (`web/app/pricing/`) — the page is thin (~150 words). Add a
+   product FAQ (reuse the `stitch-faq.tsx` pattern) + FAQPage schema. **CAUTION:
+   pricing is founder-gated** — do NOT introduce, change, or restate specific prices
+   or billing terms you cannot verify in the code; keep answers to product behaviour
+   (what a check is, what's returned, no-verdict, sources). If unsure, skip and report.
+2. **Internal linking** — add a few genuinely useful contextual links between the
    marketing pages and the two blog posts (`web/app/blog/*`).
-5. **Core Web Vitals** — find a marketing component marked `'use client'` that has
+3. **Core Web Vitals** — find a marketing component marked `'use client'` that has
    no real interactivity and convert it to a server component. One per run.
+4. **`/r/[id]` answer-first lead** (optional, only if confident) — a server-rendered
+   summary above the client report. Risk: avoid a second `<h1>` and visual clashes
+   with `PublicReportClient`; verify rendered output before committing.
 
 ---
 
