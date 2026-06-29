@@ -4,6 +4,12 @@
 > This document supersedes nothing. It is the pre-launch review only.
 
 
+## Status — 2026-06-29 update (post-review build)
+
+Shipped under the phased-build-loop (commits on `main`): **UK English everywhere** (`207c317`; D13 reversed — the "US on marketing" item is resolved British), legal-footer "policy" + self-link fix, blog compliance→"Filings and disclosures" recast, `DESIGN_SYSTEM.md` replaced; **views named by action** on `/` + `/research` (`421ead3`; profession demoted to subtitle, leaked raw route removed); **homepage developers-section progressive disclosure** (`a8b105b`; code collapsed by default, AEO preserved).
+
+**WITHDRAWN — the "hard-coded GBP prices" launch blocker + its P0 roadmap row.** It rested on the 2026-06-23 "no display price" lock, which was SUPERSEDED on 2026-06-24/25 (founder validated "£20 holds" and chose show-now). Founder confirmed 2026-06-29: **keep the prices; currency = GBP (£)** — closing the open £/$ question. Per-call API rates are live charges; surfaces verified £-consistent. Do NOT re-raise price gating.
+
 ## Positioning drift map
 
 | Route | Speaks to | Verdict |
