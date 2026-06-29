@@ -49,6 +49,28 @@ export const CAPTURE_SECONDS = {
   parallel: '4m 40s',
 } as const;
 
+/** Human-readable proof for /compare — the disputed element from the verified
+ *  capture (mirrors the TRU8_RESPONSE element e3). Used by the on-page proof
+ *  panel so a researcher can read the for-and-against without parsing JSON. */
+export const TRU8_PROOF = {
+  claim: CLAIM_TEXT,
+  disputed: {
+    description:
+      'Individuals who consume alcohol moderately exhibit a lower incidence or severity of heart disease compared to those who do not consume alcohol or consume it heavily.',
+    supports: 4,
+    challenges: 6,
+    context: 4,
+    weightedSupports: 8,
+    weightedChallenges: 15,
+    uncertainty:
+      'The scientific consensus on the cardiovascular benefits of moderate alcohol consumption is evolving, with newer research challenging previously accepted protective effects and suggesting potential risks even at low levels.',
+    support:
+      'An academic study found J- or U-shaped relationships between alcohol consumption and ischaemic heart disease, implying moderate consumption is associated with a lower risk than abstinence or heavy consumption for this condition.',
+    challenge:
+      'The American Heart Association states no research has proven a cause-and-effect link between drinking alcohol and better heart health, does not recommend drinking for health benefits, and notes moderation may worsen high blood pressure for some.',
+  },
+} as const;
+
 export const TRU8_RESPONSE = `{
   "id": "2484b9da-4c94-4042-9fac-61919b93e008",
   "inputType": "text",

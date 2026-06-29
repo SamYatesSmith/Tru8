@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { ComparisonTable } from './comparison-table';
 import { ResponseTabs } from './response-tabs';
+import { ProofPanel } from './proof-panel';
 import { CHECK_ID } from './demo-data';
 
 const PAGE_TITLE = 'Tru8 vs four grounding APIs — same claim, verbatim responses';
@@ -61,7 +62,7 @@ export default function ComparePage() {
         <div className="container mx-auto px-4 md:px-6 max-w-5xl">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors mb-6 md:mb-8"
+            className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 transition-colors mb-6 md:mb-8"
           >
             <ArrowLeft size={20} />
             <span className="text-sm font-medium">Back to Home</span>
@@ -89,6 +90,9 @@ export default function ComparePage() {
             <ComparisonTable />
           </section>
         </div>
+
+        {/* What Tru8 returns, in human form — before the raw JSON band */}
+        <ProofPanel />
 
         {/* Dark band — same claim, verbatim responses */}
         <section className="py-20 md:py-28 bg-zinc-950 text-zinc-100">
@@ -159,20 +163,26 @@ export default function ComparePage() {
                 dispute states, named gaps, exclusion receipts, archived URLs, and a signed
                 manifest. If your product needs to show its working, the structure is the product.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <Link
-                  href="/developers"
+                  href={`/r/${CHECK_ID}`}
                   className="group inline-flex items-center justify-center gap-4 bg-black text-white px-8 py-4 md:px-10 md:py-5 text-xs font-bold tracking-[0.3em] uppercase transition-colors hover:bg-zinc-900"
                 >
-                  <span>Read the API docs</span>
+                  <span>See the live report</span>
                   <span className="w-2.5 h-2.5 bg-accent rotate-45 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
-                  href={`/r/${CHECK_ID}`}
+                  href="/research"
                   className="group inline-flex items-center justify-center gap-2 border border-zinc-200 px-8 py-4 md:px-10 md:py-5 text-xs font-bold tracking-[0.3em] uppercase text-zinc-900 transition-colors hover:border-zinc-900"
                 >
-                  <span>See the live report</span>
+                  <span>Try it in the browser</span>
                   <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                </Link>
+                <Link
+                  href="/developers"
+                  className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500 hover:text-zinc-900 transition-colors sm:ml-2"
+                >
+                  Read the API docs →
                 </Link>
               </div>
             </div>

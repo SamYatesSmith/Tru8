@@ -123,10 +123,10 @@ function CellContent({ cell, isTru8 }: { cell: Cell; isTru8: boolean }) {
         <Check size={14} className="text-accent shrink-0 mt-0.5" aria-label="Yes" />
       )}
       {cell.mark === 'no' && (
-        <Minus size={14} className="text-zinc-300 shrink-0 mt-0.5" aria-label="No" />
+        <Minus size={14} className="text-zinc-500 shrink-0 mt-0.5" aria-label="No" />
       )}
       {cell.mark === 'unknown' && (
-        <HelpCircle size={14} className="text-zinc-400 shrink-0 mt-0.5" aria-label="Unverified" />
+        <HelpCircle size={14} className="text-zinc-500 shrink-0 mt-0.5" aria-label="Unverified" />
       )}
       {cell.note && (
         <span className={`text-xs leading-snug ${isTru8 ? 'text-zinc-900' : 'text-zinc-500'}`}>
