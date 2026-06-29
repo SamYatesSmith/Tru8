@@ -29,7 +29,7 @@ const jsonLd = {
       alternateName: 'Trueight',
       url: baseUrl,
       logo: `${baseUrl}/favicon.proper.png`,
-      description: 'Evidence research infrastructure for factual AI-generated content. Tru8 returns a structured, inspectable evidence record — supports, challenges, gaps and a signed manifest — so you decide what ships. We organize; you decide.',
+      description: 'Evidence research infrastructure for factual AI-generated content. Tru8 returns a structured, inspectable evidence record — supports, challenges, gaps and a signed manifest — so you decide what ships. We organise; you decide.',
       sameAs: [
         'https://x.com/tru8app',
         'https://pypi.org/project/tru8-mcp/',

@@ -213,7 +213,7 @@ export default function TermsOfServicePage() {
         <h3>8.2 Your Content</h3>
         <ul>
           <li>You retain ownership of content you submit</li>
-          <li>You grant us license to process content for analysis</li>
+          <li>You grant us a licence to process content for analysis</li>
           <li>We may use anonymized data to improve our services</li>
         </ul>
 

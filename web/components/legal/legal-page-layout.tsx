@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/footer';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface LegalPageLayoutProps {
   title: string;
@@ -13,6 +14,7 @@ interface LegalPageLayoutProps {
 }
 
 export function LegalPageLayout({ title, lastUpdated, children }: LegalPageLayoutProps) {
+  const pathname = usePathname();
   return (
     <>
       {/* Navigation */}
@@ -49,18 +51,20 @@ export function LegalPageLayout({ title, lastUpdated, children }: LegalPageLayou
             </div>
           </div>
 
-          {/* Contact Footer */}
-          <div className="mt-12 text-center">
-            <p className="text-zinc-500 text-sm mb-4">
-              Have questions about this policy?
-            </p>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
-            >
-              Contact Us
-            </Link>
-          </div>
+          {/* Contact Footer — hidden on /contact itself to avoid a self-link */}
+          {pathname !== '/contact' && (
+            <div className="mt-12 text-center">
+              <p className="text-zinc-500 text-sm mb-4">
+                Have a question, or need something clarified?
+              </p>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
+              >
+                Contact Us
+              </Link>
+            </div>
+          )}
         </div>
       </main>
 

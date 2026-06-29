@@ -183,7 +183,7 @@ export default function EvidenceResearchForAgentsPage() {
               <li><span className="font-medium text-zinc-900">AI assistants</span> — adding evidence grounding to conversational agents, so claims are checked before being surfaced to users</li>
               <li><span className="font-medium text-zinc-900">Content moderation</span> — automated evidence checks on user-submitted claims or flagged content</li>
               <li><span className="font-medium text-zinc-900">Research tools</span> — integrating structured evidence search into academic or journalistic workflows</li>
-              <li><span className="font-medium text-zinc-900">Compliance and risk</span> — verifying claims in regulatory filings, reports, or public statements</li>
+              <li><span className="font-medium text-zinc-900">Filings and disclosures</span> — checking claims in regulatory filings, reports, or public statements</li>
               <li><span className="font-medium text-zinc-900">Browser extensions</span> — inline evidence checks on articles, social media posts, or search results</li>
               <li><span className="font-medium text-zinc-900">Agent pipelines</span> — evidence research as one step in a larger automated reasoning or decision-making workflow</li>
             </ul>

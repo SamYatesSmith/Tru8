@@ -5,7 +5,7 @@
  * server HTML, high in the DOM and free of JS dependency — the structure that
  * AI answer engines (ChatGPT/Claude/Perplexity/AI Overviews) parse and quote,
  * and that earns FAQ rich results. Copy obeys the positioning locks: no verdict
- * language, "We organize; you decide", US spelling (D13). Functional manifest
+ * language, "We organise; you decide", UK spelling (D13, updated 2026-06-29). Functional manifest
  * "confirm/checked" wording is used instead of "verify a claim".
  */
 
@@ -17,15 +17,15 @@ interface QA {
 const FAQS: ReadonlyArray<QA> = [
   {
     q: 'What is Tru8?',
-    a: 'Tru8 is evidence research infrastructure. You submit a URL or a claim, and Tru8 decomposes it into checkable elements, retrieves evidence from more than 30 published sources, and organizes the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Tru8 does not issue a verdict. We organize; you decide.',
+    a: 'Tru8 is evidence research infrastructure. You submit a URL or a claim, and Tru8 decomposes it into checkable elements, retrieves evidence from more than 30 published sources, and organises the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Tru8 does not issue a verdict. We organise; you decide.',
   },
   {
     q: 'How is Tru8 different from a fact-checker?',
-    a: 'A fact-checker hands you a rating — true, false, misleading. Tru8 hands you the organized evidence and its provenance, and leaves the judgement to you. You see every source, how it relates to the claim, and what could not be found, so you can show your working.',
+    a: 'A fact-checker hands you a rating — true, false, misleading. Tru8 hands you the organised evidence and its provenance, and leaves the judgement to you. You see every source, how it relates to the claim, and what could not be found, so you can show your working.',
   },
   {
     q: 'Who is Tru8 for?',
-    a: 'Researchers, journalists, analysts and developers who need to show their working — people who would rather present an organized evidence trail than ask others to trust a single score.',
+    a: 'Researchers, journalists, analysts and developers who need to show their working — people who would rather present an organised evidence trail than ask others to trust a single score.',
   },
   {
     q: 'What sources does Tru8 search?',

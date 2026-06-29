@@ -8,7 +8,7 @@ import { StitchPricing } from '@/components/marketing/stitch-pricing';
 export const metadata: Metadata = {
   title: 'Pricing — Console & API',
   description:
-    'Tru8 Console: fair-use unlimited evidence research in the browser for £20/month. Plus a metered API for systems and agents. We organize; you decide.',
+    'Tru8 Console: fair-use unlimited evidence research in the browser for £20/month. Plus a metered API for systems and agents. We organise; you decide.',
   alternates: { canonical: '/pricing' },
 };
 

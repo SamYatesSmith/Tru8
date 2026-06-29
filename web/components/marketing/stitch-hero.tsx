@@ -52,7 +52,7 @@ export function StitchHero() {
               what&rsquo;s missing. You decide what to publish, escalate, re-check or block.
             </p>
             <p className="text-sm md:text-base text-zinc-900 mb-8 md:mb-10">
-              We organize; you decide.
+              We organise; you decide.
             </p>
 
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">

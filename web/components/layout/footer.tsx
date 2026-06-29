@@ -45,7 +45,7 @@ export function Footer() {
               </span>
             </div>
             <p className="text-sm text-zinc-500 leading-relaxed max-w-xs">
-              Evidence research infrastructure for factual AI content. We organize; you
+              Evidence research infrastructure for factual AI content. We organise; you
               decide.
             </p>
           </div>

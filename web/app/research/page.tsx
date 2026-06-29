@@ -11,7 +11,7 @@ import { ResearchStartCta } from '@/components/marketing/research-start-cta';
 
 const PAGE_TITLE = 'Research the evidence for and against — Tru8 Research Console';
 const PAGE_DESCRIPTION =
-  'See the evidence for and against any claim — and show your working. Tru8 organizes external published sources into a structured, inspectable record: what supports each claim, what challenges it, and what is missing. No verdict — you decide. We organize; you decide.';
+  'See the evidence for and against any claim — and show your working. Tru8 organises external published sources into a structured, inspectable record: what supports each claim, what challenges it, and what is missing. No verdict — you decide. We organise; you decide.';
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -71,7 +71,7 @@ const WORKING = [
 const LIMITS = [
   {
     head: 'Not a verdict.',
-    body: 'Tru8 organizes the evidence and shows how it relates to each claim. It does not score truth or tell you what to conclude — you read the record and decide.',
+    body: 'Tru8 organises the evidence and shows how it relates to each claim. It does not score truth or tell you what to conclude — you read the record and decide.',
   },
   {
     head: "Bounded by what's public.",
@@ -112,7 +112,7 @@ export default function ResearchPage() {
                 published sources — official data, research, legislation, and reporting —
                 classifies each by tier and type, and maps what supports each claim, what
                 challenges it, and what is missing. You read the record and decide. We
-                organize; you decide.
+                organise; you decide.
               </p>
               <ResearchStartCta surface="research_hero" />
             </div>
@@ -183,7 +183,7 @@ export default function ResearchPage() {
               </h2>
               <p className="text-sm md:text-base text-zinc-500 leading-relaxed max-w-xl mb-8">
                 Paste a headline, article, or claim and read the evidence for and against
-                — in your browser. We organize; you decide.
+                — in your browser. We organise; you decide.
               </p>
               <ResearchStartCta surface="research_footer" />
             </div>
