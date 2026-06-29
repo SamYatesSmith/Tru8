@@ -37,7 +37,7 @@ export function ElementRoster({ elements }: ElementRosterProps) {
                 </span>
               </div>
               <div className="flex items-center gap-3 pl-6 lg:pl-0 lg:contents">
-                <span className={`font-mono text-[10px] ${isGap ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                <span className={`font-mono text-[10px] ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   {sourceCount} {sourceCount === 1 ? 'source' : 'sources'}
                 </span>
                 <ElementStateBadge

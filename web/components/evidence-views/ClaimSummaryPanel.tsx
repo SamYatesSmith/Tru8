@@ -17,7 +17,6 @@
 
 import { Claim, InputType, EvidenceRelationship } from '@shared/types';
 import { DiagnosticFlag } from './DiagnosticFlag';
-import { ELEMENT_STATE } from './ElementStateBadge';
 import { getTierColor, tierCounts } from './shared-utils';
 import { ALL_TABS } from './ViewSelector';
 import { capture } from '@/lib/analytics';
@@ -92,9 +91,10 @@ function MetricLink({
 
 /**
  * A claim element-state count, rendered as a QOL deep-link into the filtered
- * Evidence lens when navigation is wired, or plain coloured text otherwise.
- * Keeps the muted element-state colour (an element-context indicator, never a
- * page-level verdict — Stitch colour lock).
+ * Evidence lens when navigation is wired, or plain text otherwise. The count is
+ * NEUTRAL zinc — no element-state colour at summary altitude (Stitch colour lock).
+ * Element-state colour belongs inside the element/map context, not in this
+ * first-glance answer, where coloured counts would read as a verdict.
  */
 function StateChip({
   enabled,
@@ -187,7 +187,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
           {contextLabel}
         </span>
         {claimType && (
-          <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">
+          <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
             {TYPE_LABELS[claimType] || claimType}
           </span>
         )}
@@ -198,15 +198,15 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         {claim.text}
       </h2>
 
-      {/* Zone 2 — the answer: element states at a glance (coloured counts) +
-          the mechanically-derived orientation read, promoted directly under
-          the claim. States stay MUTED context indicators, never verdicts. */}
+      {/* Zone 2 — the answer: element states at a glance (NEUTRAL zinc counts,
+          no verdict colour at summary altitude) + the mechanically-derived
+          orientation read, promoted directly under the claim. */}
       {hasStates && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
           {stateCounts.supported > 0 && (
             <StateChip
               enabled={!!onNavigate}
-              colorClass={ELEMENT_STATE.supported.text}
+              colorClass="text-zinc-700"
               count={stateCounts.supported}
               label="supported"
               ariaLabel="Show supporting evidence"
@@ -216,7 +216,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
           {stateCounts.disputed > 0 && (
             <StateChip
               enabled={!!onNavigate}
-              colorClass={ELEMENT_STATE.disputed.text}
+              colorClass="text-zinc-700"
               count={stateCounts.disputed}
               label="disputed"
               ariaLabel="Show challenging evidence"
@@ -231,7 +231,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
           {stateCounts.contextual > 0 && (
             <StateChip
               enabled={!!onNavigate}
-              colorClass={ELEMENT_STATE.contextual.text}
+              colorClass="text-zinc-700"
               count={stateCounts.contextual}
               label="contextual"
               ariaLabel="Show context evidence"
@@ -241,7 +241,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
           {stateCounts.gap > 0 && (
             <StateChip
               enabled={!!onNavigate}
-              colorClass="text-zinc-400"
+              colorClass="text-zinc-700"
               count={stateCounts.gap}
               label={stateCounts.gap === 1 ? 'gap' : 'gaps'}
               ariaLabel="Show gaps"
@@ -259,7 +259,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
           element/source line with tier mix (each a QOL link into its lens),
           then the named gaps list. */}
       <div className="mt-4 pt-4 border-t border-zinc-200 space-y-2">
-        <div className="font-mono text-[10px] text-zinc-400 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div className="font-mono text-[10px] text-zinc-500 flex flex-wrap items-center gap-x-2 gap-y-1">
           {/* Elements → Sources (Correspondent: who's addressing each element). */}
           <MetricLink enabled={!!onNavigate} view="correspondent" label="Sources" go={go}>
             <span>Elements {elements.length}</span>
@@ -283,7 +283,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
 
         {gapElements.length > 0 && (
           <div className="flex items-start gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400 w-16 shrink-0 pt-0.5">Gaps</span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 w-16 shrink-0 pt-0.5">Gaps</span>
             <div className="flex-grow">
               <ul className="space-y-0.5">
                 {gapElements.map((el) => (
@@ -298,7 +298,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
                   type="button"
                   onClick={() => go('seeker')}
                   aria-label="Open Gaps lens"
-                  className="mt-1 font-mono text-[10px] text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                  className="mt-1 font-mono text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors inline-flex items-center gap-1 cursor-pointer"
                 >
                   Open Gaps lens &rarr;
                 </button>
@@ -316,14 +316,14 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
           aria-label="Explore evidence views"
           className="mt-4 pt-4 border-t border-zinc-200 flex flex-wrap items-center gap-x-4 gap-y-2"
         >
-          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">Explore</span>
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">Explore</span>
           {exploreTabs.map((t) => (
             <button
               key={t.value}
               type="button"
               onClick={() => go(t.value)}
               aria-label={`Open ${t.label} lens`}
-              className="group font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1 cursor-pointer"
+              className="group font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 transition-colors inline-flex items-center gap-1 cursor-pointer"
             >
               {t.label}
               <span aria-hidden className="text-zinc-300 group-hover:text-[var(--accent)] transition-colors">&rarr;</span>

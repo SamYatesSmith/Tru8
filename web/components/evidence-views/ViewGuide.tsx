@@ -62,7 +62,7 @@ export function ViewGuide({ activeView }: ViewGuideProps) {
 
   return (
     <div className="flex items-start gap-3 px-4 py-3 bg-zinc-50 border border-zinc-200 mb-6">
-      <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 shrink-0 pt-0.5">
+      <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500 shrink-0 pt-0.5">
         Guide
       </span>
       <p className="text-[12px] text-zinc-500 leading-relaxed flex-1">
@@ -70,7 +70,7 @@ export function ViewGuide({ activeView }: ViewGuideProps) {
       </p>
       <button
         onClick={handleDismiss}
-        className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 hover:text-zinc-600 transition-colors shrink-0 pt-0.5"
+        className="font-mono text-[9px] uppercase tracking-widest text-zinc-500 hover:text-zinc-700 transition-colors shrink-0 pt-0.5"
       >
         Got it
       </button>

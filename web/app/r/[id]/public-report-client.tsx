@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { Twitter, Linkedin, MessageCircle, Link as LinkIcon, Check, Reply, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { Linkedin, MessageCircle, Link as LinkIcon, Check, Reply, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { isTweetUrl, extractTweetId, buildTwitterReplyUrl } from '@/lib/twitter-utils';
 import { ViewSelector, ViewGuide, EvidenceMetaStrip } from '@/components/evidence-views';
 import { ClaimSectionStack } from '@/components/evidence-views/overview';
@@ -200,13 +200,11 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
       {/* Section 1: Report Header */}
       <header className="mb-2 bg-grid-dot py-8">
-        <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-3">Evidence Report</p>
+        <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 mb-3">Evidence Report</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 leading-tight mb-4">
           {check.title || 'Evidence Report'}
         </h1>
-        <div className="flex flex-wrap items-center gap-4 font-mono text-[10px] tracking-widest uppercase text-zinc-400">
-          <span>REF: TRU-{check.id?.slice(0, 4).toUpperCase()}-{check.id?.slice(4, 8).toUpperCase()}</span>
-          <span>&middot;</span>
+        <div className="flex flex-wrap items-center gap-4 font-mono text-[10px] tracking-widest uppercase text-zinc-500">
           <span>{check.createdAt ? new Date(check.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</span>
         </div>
       </header>
@@ -225,7 +223,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
       {/* Section 3: Input Context */}
       {content && (
         <div className="border border-zinc-200 p-4">
-          <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-400 mb-1">Analysed</p>
+          <p className="font-mono text-[10px] tracking-widest uppercase text-zinc-500 mb-1">Analysed</p>
           {content.type === 'url' ? (
             <a
               href={content.value}
@@ -279,7 +277,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                           setActiveClaimIndex(prev => prev - 1);
                           claimDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }}
-                        className="font-mono text-[10px] text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1"
+                        className="font-mono text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors inline-flex items-center gap-1"
                       >
                         <ChevronLeft size={12} /> Previous claim
                       </button>
@@ -292,7 +290,7 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
                           setActiveClaimIndex(prev => prev + 1);
                           claimDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }}
-                        className="font-mono text-[10px] text-zinc-400 hover:text-zinc-900 transition-colors inline-flex items-center gap-1"
+                        className="font-mono text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors inline-flex items-center gap-1"
                       >
                         Next claim <ChevronRight size={12} />
                       </button>
@@ -368,80 +366,75 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
 
       {/* Section 7: Share Section */}
       <div className="border border-zinc-200 p-6">
-        <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-4">Share This Report</h3>
+        <h3 className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-4">Share this record</h3>
 
-        {/* Download the full evidence record (public, no auth) */}
-        <button
-          onClick={handleDownloadPdf}
-          className="w-full flex items-center justify-center gap-3 px-6 py-3 mb-6 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
-        >
-          <Download size={18} />
-          Download Evidence Record (PDF)
-        </button>
+        {/* Professional affordances first: a stable permalink and the full record. */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <button
+            onClick={handleCopyLink}
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border border-zinc-300 hover:border-zinc-900 text-zinc-900 text-xs font-bold uppercase tracking-[0.2em] transition-colors"
+          >
+            {copied ? (<><Check size={16} /> Copied</>) : (<><LinkIcon size={16} /> Copy permalink</>)}
+          </button>
+          <button
+            onClick={handleDownloadPdf}
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
+          >
+            <Download size={16} />
+            Download Evidence Record (PDF)
+          </button>
+        </div>
 
-        {/* Reply on X Section (only when source is a tweet) */}
+        {/* Reply in the original thread (only when the source is a tweet) */}
         {isSourceTweet && tweetId && (
-          <div className="mb-6">
-            <p className="text-sm text-zinc-500 mb-3">Reply to the original post:</p>
-            <button
-              onClick={handleReplyOnTwitter}
-              className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
-            >
-              <Reply size={20} />
-              Reply on X
-            </button>
-            <p className="text-xs text-zinc-400 mt-2">Post your findings in the original thread</p>
-          </div>
+          <button
+            onClick={handleReplyOnTwitter}
+            className="mb-4 inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+          >
+            <Reply size={16} />
+            Reply in the original thread
+          </button>
         )}
 
-        {/* Share Icons */}
-        <p className="text-sm text-zinc-500 mb-3">
-          {isSourceTweet ? 'Share as a new post:' : 'Share your findings:'}
-        </p>
-        <div className="flex items-center gap-3 flex-wrap">
+        {/* Quieter social row */}
+        <div className="flex items-center gap-3 flex-wrap pt-4 border-t border-zinc-100">
+          <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500 mr-1">Share</span>
           <button
             onClick={() => handleShare('x')}
-            className="flex items-center justify-center w-10 h-10 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-colors"
+            className="flex items-center justify-center w-9 h-9 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-colors"
             aria-label="Share on X"
           >
-            <Twitter size={20} />
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
           </button>
           <button
             onClick={() => handleShare('linkedin')}
-            className="flex items-center justify-center w-10 h-10 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-colors"
+            className="flex items-center justify-center w-9 h-9 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-colors"
             aria-label="Share on LinkedIn"
           >
-            <Linkedin size={20} />
+            <Linkedin size={18} />
           </button>
           <button
             onClick={() => handleShare('whatsapp')}
-            className="flex items-center justify-center w-10 h-10 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-colors"
+            className="flex items-center justify-center w-9 h-9 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-colors"
             aria-label="Share on WhatsApp"
           >
-            <MessageCircle size={20} />
-          </button>
-          <button
-            onClick={handleCopyLink}
-            className="flex items-center gap-2 px-4 py-2 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-colors"
-          >
-            {copied ? (
-              <>
-                <Check size={18} />
-                <span className="text-sm font-medium">Copied!</span>
-              </>
-            ) : (
-              <>
-                <LinkIcon size={18} />
-                <span className="text-sm font-medium">Copy Link</span>
-              </>
-            )}
+            <MessageCircle size={18} />
           </button>
         </div>
       </div>
 
-      {/* Section 8: Disclaimer */}
-      <div className="pt-6 border-t border-zinc-100">
-        <p className="text-[12px] text-zinc-400 leading-relaxed">
+      {/* Section 8: Verify + Disclaimer */}
+      <div className="pt-6 border-t border-zinc-100 flex flex-col gap-3">
+        <Link
+          href={`/verify/${check.id}`}
+          className="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500 hover:text-zinc-900 transition-colors"
+        >
+          <span aria-hidden className="w-2 h-2 bg-accent rotate-45 shrink-0" />
+          Signed record · verify integrity →
+        </Link>
+        <p className="text-[13px] text-zinc-500 leading-relaxed">
           This report was generated by Tru8, an evidence research platform. Sources are gathered from publicly available material and classified automatically. Results should be used as a starting point for further research, not as definitive fact.
         </p>
       </div>

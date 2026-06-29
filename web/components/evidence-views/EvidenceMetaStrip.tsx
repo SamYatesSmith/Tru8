@@ -32,7 +32,7 @@ export function EvidenceMetaStrip({
     <div className="border border-zinc-200 bg-[var(--surface-raised)] p-4">
       <div className="flex flex-wrap items-center justify-between gap-6">
         <div className="flex flex-col gap-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
             Reference
           </span>
           <span className="font-mono text-[11px] font-medium">
@@ -43,7 +43,7 @@ export function EvidenceMetaStrip({
         <Divider />
 
         <div className="flex flex-col gap-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
             Claims Analysed
           </span>
           <span className="font-mono text-[11px] font-medium">{claimsCount}</span>
@@ -52,7 +52,7 @@ export function EvidenceMetaStrip({
         <Divider />
 
         <div className="flex flex-col gap-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
             Sources Reviewed
           </span>
           <span className="font-mono text-[11px] font-medium">{sourcesFoundCount || sourcesCount}</span>
@@ -61,7 +61,7 @@ export function EvidenceMetaStrip({
         <Divider />
 
         <div className="flex flex-col gap-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
             Sources Organised
           </span>
           <span className="font-mono text-[11px] font-medium">{sourcesCount}</span>
@@ -71,7 +71,7 @@ export function EvidenceMetaStrip({
           <>
             <Divider />
             <div className="flex flex-col gap-1">
-              <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+              <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
                 Processed
               </span>
               <span className="font-mono text-[11px] font-medium">

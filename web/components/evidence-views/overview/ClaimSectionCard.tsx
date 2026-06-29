@@ -65,12 +65,12 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
               {contextLabel}
             </span>
             {claimType && (
-              <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">
+              <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
                 {TYPE_LABELS[claimType] || claimType}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 font-mono text-[10px] text-zinc-400">
+          <div className="flex items-center gap-3 font-mono text-[10px] text-zinc-500">
             <span>{elements.length} elements</span>
             <span className="text-zinc-200">&middot;</span>
             <span>{evidence.length} sources</span>
@@ -106,13 +106,13 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
 
             return (
               <div key={element.elementId} className="flex items-center gap-3 py-1">
-                <span className="font-mono text-[10px] text-zinc-300 w-4 shrink-0">
+                <span className="font-mono text-[10px] text-zinc-400 w-4 shrink-0">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 <span className={`text-[13px] flex-grow truncate ${elIsGap ? 'text-zinc-400' : 'text-zinc-700'}`}>
                   {element.description}
                 </span>
-                <span className={`font-mono text-[10px] shrink-0 ${elIsGap ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                <span className={`font-mono text-[10px] shrink-0 ${elIsGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   {sourceCount}
                 </span>
                 <ElementStateBadge
@@ -130,7 +130,7 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
         <p className={`text-[12px] leading-relaxed flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
           {orientation || 'No orientation available.'}
         </p>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-300 shrink-0 flex items-center gap-1.5 transition-colors group-hover:text-zinc-900">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 shrink-0 flex items-center gap-1.5 transition-colors group-hover:text-zinc-900">
           Explore &rarr;
         </span>
       </div>
