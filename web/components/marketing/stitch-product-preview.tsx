@@ -12,6 +12,7 @@ import { ScreenshotScrollLightbox, type ScreenshotSlide } from './screenshot-scr
 interface Panel {
   number: string;
   label: string;
+  profession: string;
   route: string;
   headline: ReactNode;
   description: string;
@@ -27,7 +28,8 @@ interface Panel {
 const PANELS: Panel[] = [
   {
     number: '01',
-    label: 'Librarian',
+    label: 'Evidence',
+    profession: 'Librarian',
     route: '/dashboard/check/[id]?view=librarian',
     headline: (
       <>
@@ -38,12 +40,13 @@ const PANELS: Panel[] = [
       'Tier × type heatmap and ledger. Filter, sort, browse. Receipts for everything excluded — no hidden curation.',
     src: '/imagery/screenshots/librarian-landscape.png',
     lightboxSrc: '/imagery/screenshots/librarian-landscape-full.png',
-    alt: 'The Librarian view — evidence classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Heatmap grid with a ledger of source rows underneath.',
-    lightboxTitle: 'Librarian — evidence landscape',
+    alt: 'The Evidence view — evidence classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Heatmap grid with a ledger of source rows underneath.',
+    lightboxTitle: 'Evidence — classified landscape',
   },
   {
     number: '02',
-    label: 'Cartographer',
+    label: 'Map',
+    profession: 'Cartographer',
     route: '/dashboard/check/[id]?view=cartographer',
     headline: (
       <>
@@ -54,12 +57,13 @@ const PANELS: Panel[] = [
       'A citation cascade. See where sources agree, where they diverge, and which are just echoing the same original.',
     src: '/imagery/screenshots/cartographer-network.png',
     lightboxSrc: '/imagery/screenshots/cartographer-network-full.png',
-    alt: 'The Cartographer view — a Dagre layout of evidence nodes clustered by source and connected by citation relationships. Tier-coloured nodes; one claim node selected with its evidence panel populated.',
-    lightboxTitle: 'Cartographer — citation cascade',
+    alt: 'The Map view — a Dagre layout of evidence nodes clustered by source and connected by citation relationships. Tier-coloured nodes; one claim node selected with its evidence panel populated.',
+    lightboxTitle: 'Map — citation cascade',
   },
   {
     number: '03',
-    label: 'Seeker',
+    label: 'Gaps',
+    profession: 'Seeker',
     route: '/dashboard/check/[id]?view=seeker',
     headline: (
       <>
@@ -70,12 +74,13 @@ const PANELS: Panel[] = [
       'Every evidence gap, surfaced clearly. Specify what data would fill each one, then trigger a targeted re-search.',
     src: '/imagery/screenshots/seeker-unknowns.png',
     lightboxSrc: '/imagery/screenshots/seeker-unknowns-full.png',
-    alt: 'The Seeker view — a ledger of unresolved elements with their uncertainty notes, bounty text, and a "Re-search" action button per gap.',
-    lightboxTitle: 'Seeker — known unknowns',
+    alt: 'The Gaps view — a ledger of unresolved elements with their uncertainty notes, bounty text, and a "Re-search" action button per gap.',
+    lightboxTitle: 'Gaps — known unknowns',
   },
   {
     number: '04',
-    label: 'Chronologist',
+    label: 'Timeline',
+    profession: 'Chronologist',
     route: '/dashboard/check/[id]?view=chronologist',
     headline: (
       <>
@@ -86,8 +91,8 @@ const PANELS: Panel[] = [
       'A timeline of every source, ordered by publication date. See how the conversation developed and where the reporting clusters.',
     src: '/imagery/screenshots/chronologist-timeline.png',
     lightboxSrc: '/imagery/screenshots/chronologist-timeline-full.png',
-    alt: 'The Chronologist view — a horizontal SVG timeline with evidence markers plotted by publication date, grouped into temporal clusters with tier indicators.',
-    lightboxTitle: 'Chronologist — evidence timeline',
+    alt: 'The Timeline view — a horizontal SVG timeline with evidence markers plotted by publication date, grouped into temporal clusters with tier indicators.',
+    lightboxTitle: 'Timeline — evidence timeline',
   },
 ];
 
@@ -216,10 +221,10 @@ function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
           >
             <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100">
               <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400">
-                {panel.label} view — Dashboard
+                {panel.label} view — Console
               </span>
-              <span className="font-mono text-[10px] text-zinc-300 hidden sm:inline">
-                {panel.route}
+              <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 hidden sm:inline">
+                {panel.profession}
               </span>
             </div>
             <div className="relative aspect-[4/3] bg-zinc-50 flex items-center justify-center">

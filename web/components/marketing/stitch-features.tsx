@@ -13,6 +13,7 @@ import { Map, BookOpen, Users, Video, Clock, Compass } from 'lucide-react';
 const professions = [
   {
     icon: Map,
+    action: 'Map',
     name: 'The Cartographer',
     question: 'What\u2019s the shape of the conversation?',
     description:
@@ -20,6 +21,7 @@ const professions = [
   },
   {
     icon: BookOpen,
+    action: 'Evidence',
     name: 'The Librarian',
     question: 'Show me the full set, clearly labelled.',
     description:
@@ -27,6 +29,7 @@ const professions = [
   },
   {
     icon: Users,
+    action: 'Sources',
     name: 'The Correspondent',
     question: 'Who\u2019s in the room?',
     description:
@@ -34,6 +37,7 @@ const professions = [
   },
   {
     icon: Video,
+    action: 'Video',
     name: 'The Projectionist',
     question: 'What\u2019s being said about this on camera?',
     description:
@@ -41,6 +45,7 @@ const professions = [
   },
   {
     icon: Clock,
+    action: 'Timeline',
     name: 'The Chronologist',
     question: 'When did each piece of evidence appear?',
     description:
@@ -48,6 +53,7 @@ const professions = [
   },
   {
     icon: Compass,
+    action: 'Gaps',
     name: 'The Seeker',
     question: 'What don\u2019t we know yet?',
     description:
@@ -96,7 +102,7 @@ export function StitchFeatures() {
         {/* Header */}
         <div className="mb-16">
           <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4 block">
-            Your Research Team
+            Six Evidence Views
           </span>
           <h2 className="text-3xl md:text-4xl font-light tracking-tight">
             Six ways to <span className="font-bold">explore</span>
@@ -163,9 +169,12 @@ export function StitchFeatures() {
                     }`}
                     size={24}
                   />
-                  <h4 className="font-bold uppercase tracking-wider text-sm mb-2">
-                    {profession.name}
+                  <h4 className="font-bold uppercase tracking-wider text-sm mb-1">
+                    {profession.action}
                   </h4>
+                  <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-3">
+                    {profession.name}
+                  </p>
                   <p className="text-sm text-zinc-500 italic mb-4">
                     &ldquo;{profession.question}&rdquo;
                   </p>
@@ -189,7 +198,7 @@ export function StitchFeatures() {
                   ? 'bg-zinc-900 w-4'
                   : 'bg-zinc-300 w-1.5 hover:bg-zinc-400'
               }`}
-              aria-label={`View ${professions[index].name}`}
+              aria-label={`View ${professions[index].action}`}
             />
           ))}
         </div>
