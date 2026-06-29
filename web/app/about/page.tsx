@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'About',
-  description: 'Tru8 researches the evidence behind news articles and claims so you can form your own view. Built for anyone who wants clarity on what\u2019s being reported.',
+  description: 'Tru8 lays out the evidence for and against a claim \u2014 every source classified by tier and type, every exclusion receipted, no verdict. For researchers, journalists and analysts who need to show their working. We organise; you decide.',
   alternates: { canonical: '/about' },
 };
 
@@ -46,25 +46,25 @@ export default function AboutPage() {
               </p>
 
               <p>
-                Tru8 takes that complexity and makes it manageable. You paste a news article, headline, or claim, and Tru8 searches across multiple source types, organises the evidence, and gives you a structured report you can explore.
+                Tru8 takes that complexity and makes it manageable. You paste a news article, headline, or claim, and Tru8 searches across 30+ public sources, classifies each by tier and type, maps what supports and challenges each claim, names what is missing, and gives you a structured evidence record you can explore — and defend.
               </p>
 
               {/* Emphasis Block */}
               <div className="bg-zinc-50 border-l-4 border-accent px-6 py-5 my-8">
                 <p className="text-zinc-900 font-medium text-lg md:text-xl leading-relaxed">
-                  No noise.<br />
-                  No pressure.<br />
-                  No agenda.<br />
-                  <span className="text-accent">Just clarity you can use.</span>
+                  Every source shown.<br />
+                  Every exclusion receipted.<br />
+                  No verdict.<br />
+                  <span className="text-accent">You decide.</span>
                 </p>
               </div>
 
               <p>
-                Tru8 is built for anyone who wants to understand what&apos;s behind the news — whether you&apos;re a professional analyst, a journalist, a researcher, or simply someone who reads the news and wants clarity. The mission stays the same:
+                Tru8 is built for people who have to show their working — journalists, analysts, policy researchers and independent writers who need to see the evidence for and against a claim, and stand behind their sources. (And anyone who simply wants to understand what&apos;s behind the news.) The mission stays the same:
               </p>
 
               <p className="text-zinc-900 text-lg md:text-xl font-medium">
-                Make evidence accessible, calm, and clear — in a world that often feels anything but.
+                Make the evidence accessible and defensible. We organise; you decide.
               </p>
             </div>
           </section>
@@ -125,17 +125,25 @@ export default function AboutPage() {
           {/* CTA Section */}
           <div className="mt-16 md:mt-20 text-center border border-zinc-200 p-8 md:p-12">
             <h3 className="text-2xl md:text-3xl font-bold text-zinc-900 mb-4">
-              Ready to try Tru8?
+              See the evidence for yourself
             </h3>
             <p className="text-zinc-500 mb-6 max-w-lg mx-auto">
-              Your first checks are free.
+              Your first checks are free — no card required.
             </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
-            >
-              Try Tru8 Today
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
+              >
+                Start in the browser
+              </Link>
+              <Link
+                href="/research"
+                className="inline-flex items-center gap-2 px-8 py-4 border border-zinc-300 text-zinc-900 hover:border-zinc-900 text-xs font-bold uppercase tracking-[0.2em] transition-colors"
+              >
+                How it works
+              </Link>
+            </div>
           </div>
 
           {/* Mono metadata footer */}
