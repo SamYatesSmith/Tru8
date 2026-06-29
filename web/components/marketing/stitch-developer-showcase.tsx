@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 
 import { ScrollReveal } from './scroll-reveal';
 import { CopyCodeButton } from './copy-code-button';
+import { CodeDisclosure } from './code-disclosure';
 import { SheetHeader } from './sheet-header';
 
 const SAMPLE_RESPONSE = `{
@@ -98,79 +99,68 @@ export function StitchDeveloperShowcase() {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
-          {/* JSON response panel */}
-          <ScrollReveal className="lg:col-span-7">
-            <div className="border border-zinc-800 bg-black overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
-                <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-accent">
-                  POST /agent/quick — Response
-                </span>
-                <span className="font-mono text-[10px] text-zinc-500">200 OK</span>
+        {/* Value first — what the response gives you, in plain terms (not a JSON wall) */}
+        <ScrollReveal>
+          <div className="grid grid-cols-1 md:grid-cols-3 border border-zinc-800 mb-10 md:mb-12">
+            {CALLOUTS.map((callout, i) => (
+              <div
+                key={callout.key}
+                className={`flex flex-col gap-2 p-6 md:p-7 ${
+                  i > 0 ? 'border-t md:border-t-0 md:border-l border-zinc-800' : ''
+                }`}
+              >
+                <code className="font-mono text-sm text-accent tracking-tight">{callout.key}</code>
+                <p className="text-sm text-zinc-400 leading-relaxed">{callout.description}</p>
               </div>
+            ))}
+          </div>
+        </ScrollReveal>
+
+        {/* Code on demand — collapsed by default so it doesn't overwhelm the lay reader */}
+        <ScrollReveal delay={120}>
+          <div className="space-y-4">
+            <CodeDisclosure label="Sample response" meta="POST /agent/quick · 200 OK">
               <pre className="px-5 py-5 overflow-x-auto text-[11px] md:text-xs font-mono leading-relaxed text-zinc-300">
                 {SAMPLE_RESPONSE}
               </pre>
+            </CodeDisclosure>
+            <CodeDisclosure
+              label="Sample request"
+              meta="curl"
+              headerAction={<CopyCodeButton value={SAMPLE_CURL} />}
+            >
+              <pre className="px-5 py-4 overflow-x-auto text-[11px] font-mono leading-relaxed text-zinc-300">
+                {SAMPLE_CURL}
+              </pre>
+            </CodeDisclosure>
+          </div>
+        </ScrollReveal>
+
+        {/* CTAs */}
+        <ScrollReveal delay={160}>
+          <div className="mt-10 md:mt-12 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <Link
+              href="/developers"
+              className="group inline-flex items-center justify-between gap-6 bg-white text-zinc-950 px-8 py-5 text-xs font-bold tracking-[0.3em] uppercase transition-colors hover:bg-zinc-100"
+            >
+              <span>Read the docs</span>
+              <ArrowUpRight
+                size={18}
+                className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
+            </Link>
+            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 leading-relaxed">
+              Signed manifests, MCP server, webhooks
             </div>
-          </ScrollReveal>
+          </div>
 
-          {/* Right column — callouts, curl, CTA */}
-          <ScrollReveal className="lg:col-span-5" delay={120}>
-            <div className="space-y-10">
-              {/* Callouts */}
-              <div className="space-y-6">
-                <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 block">
-                  What&rsquo;s in the response
-                </span>
-                <ul className="space-y-5">
-                  {CALLOUTS.map((callout) => (
-                    <li key={callout.key} className="flex flex-col gap-2 border-l border-zinc-800 pl-4">
-                      <code className="font-mono text-sm text-accent tracking-tight">{callout.key}</code>
-                      <p className="text-sm text-zinc-400 leading-relaxed">{callout.description}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Curl */}
-              <div className="border border-zinc-800 bg-black overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
-                  <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
-                    Curl — one call
-                  </span>
-                  <CopyCodeButton value={SAMPLE_CURL} />
-                </div>
-                <pre className="px-5 py-4 overflow-x-auto text-[11px] font-mono leading-relaxed text-zinc-300">
-                  {SAMPLE_CURL}
-                </pre>
-              </div>
-
-              {/* CTA */}
-              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-                <Link
-                  href="/developers"
-                  className="group inline-flex items-center justify-between gap-6 bg-white text-zinc-950 px-8 py-5 text-xs font-bold tracking-[0.3em] uppercase transition-colors hover:bg-zinc-100"
-                >
-                  <span>Read the docs</span>
-                  <ArrowUpRight
-                    size={18}
-                    className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  />
-                </Link>
-                <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 leading-relaxed">
-                  Signed manifests, MCP server, webhooks
-                </div>
-              </div>
-
-              <Link
-                href="/compare"
-                className="inline-block text-sm text-zinc-400 underline underline-offset-2 hover:text-zinc-200 transition-colors"
-              >
-                See how this compares to Web IQ, check-grounding and Sonar →
-              </Link>
-            </div>
-          </ScrollReveal>
-        </div>
+          <Link
+            href="/compare"
+            className="mt-6 inline-block text-sm text-zinc-400 underline underline-offset-2 hover:text-zinc-200 transition-colors"
+          >
+            See how this compares to Web IQ, check-grounding and Sonar →
+          </Link>
+        </ScrollReveal>
       </div>
     </section>
   );
