@@ -2884,6 +2884,22 @@ async def save_check_results_async(
                     or None,
                     classification_method=ev_data.get("classification_method"),
                     content_basis=ev_data.get("content_basis"),
+                    # Fact-check persistence (#14). Computed in-pipeline but
+                    # previously dropped here. The confirmed-relevance gate
+                    # (parse_success && !low_relevance) is applied at
+                    # serialization, so the rating only surfaces for a
+                    # fact-check verified to match THIS claim.
+                    is_factcheck=bool(ev_data.get("is_factcheck", False)),
+                    source_type=ev_data.get("source_type"),
+                    factcheck_publisher=ev_data.get("factcheck_publisher"),
+                    factcheck_rating=ev_data.get("factcheck_rating"),
+                    factcheck_date=parse_date(ev_data.get("factcheck_date")),
+                    factcheck_parse_success=bool(
+                        ev_data.get("factcheck_parse_success", False)
+                    ),
+                    factcheck_low_relevance=bool(
+                        ev_data.get("factcheck_low_relevance", False)
+                    ),
                 )
                 session.add(evidence)
 

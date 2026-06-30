@@ -3,6 +3,7 @@
 import { Evidence, EvidenceTier } from '@shared/types';
 import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
+import { FactCheckRating } from '../FactCheckRating';
 
 function extractDomain(url: string): string {
   try {
@@ -97,6 +98,9 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
         {evidence.tier && <TierStamp tier={evidence.tier} />}
         {evidence.evidenceType && <TypeStamp type={evidence.evidenceType} />}
       </div>
+
+      {/* Fact-check rating (attributed, only for a confirmed fact-check) */}
+      <FactCheckRating evidence={evidence} />
 
       {/* Addressed elements */}
       {elementDescriptions.length > 0 && (

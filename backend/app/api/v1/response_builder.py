@@ -110,6 +110,21 @@ def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
         "classificationMethod": ev.classification_method,
         "contentBasis": ev.content_basis,
     }
+    # #14: surface publisher + rating ONLY for a fact-check confirmed to be
+    # about THIS claim (parsed successfully AND above the relevance threshold).
+    # Prevents attributing a publisher's verdict on a different claim to ours.
+    if (
+        ev.is_factcheck
+        and ev.factcheck_parse_success
+        and not ev.factcheck_low_relevance
+        and ev.factcheck_rating
+    ):
+        result["factcheckPublisher"] = ev.factcheck_publisher
+        result["factcheckRating"] = ev.factcheck_rating
+        result["factcheckDate"] = (
+            ev.factcheck_date.isoformat() if ev.factcheck_date else None
+        )
+
     if include_factcheck_detail:
         result["factcheckPublisher"] = ev.factcheck_publisher
         result["factcheckRating"] = ev.factcheck_rating

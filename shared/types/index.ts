@@ -111,9 +111,11 @@ export interface Evidence {
   isFactcheck?: boolean;
   externalSourceProvider?: string;
   sourceType?: string;
-  // Fact-check detail (public report only)
+  // Fact-check detail — surfaced (dashboard + public) only for a fact-check
+  // confirmed to be about THIS claim (parsed + above relevance threshold).
   factcheckPublisher?: string;
   factcheckRating?: string;
+  factcheckDate?: string; // ISO string
   contextBefore?: string;
   contextAfter?: string;
   // Auto-archiving (F10)

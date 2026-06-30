@@ -3,6 +3,7 @@
 import { Evidence, EvidenceRelationship } from '@shared/types';
 import { TypeStamp } from './TypeStamp';
 import { ElementRefs } from '../ElementRefs';
+import { FactCheckRating } from '../FactCheckRating';
 import { getFaviconUrl } from '../shared-utils';
 
 // Disposition labels — an organising axis (how the source relates to the
@@ -132,6 +133,7 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relat
               </>
             )}
           </div>
+          <FactCheckRating evidence={evidence} />
         </div>
       </div>
     </div>
