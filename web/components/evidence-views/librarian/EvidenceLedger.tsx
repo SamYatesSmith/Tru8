@@ -130,6 +130,7 @@ export function EvidenceLedger({
                     elementIds={elementMap.get(evId)}
                     claimLabel={claimLabelMap?.get(evId)}
                     relationships={relationshipMap?.get(evId)}
+                    elementDescriptions={elementDescriptionMap}
                     diagnosticValue={diagnosticValues?.get(evId)}
                     diagnosticActive={diagnosticActive}
                     isActive={isActive}

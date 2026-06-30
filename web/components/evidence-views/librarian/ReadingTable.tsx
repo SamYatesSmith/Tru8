@@ -65,7 +65,7 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
       {/* Header: favicon + domain + call number */}
       <div className="flex items-center gap-3 mb-3">
         <div
-          className="w-6 h-6 rounded-full border flex items-center justify-center overflow-hidden bg-white shrink-0"
+          className="relative w-6 h-6 rounded-full border flex items-center justify-center overflow-hidden bg-white shrink-0"
           style={{ borderColor: TIER_BORDER_COLORS[tier] }}
         >
           <span className="font-mono text-[9px] font-bold text-zinc-400">{firstLetter}</span>
@@ -73,7 +73,7 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
             <img
               src={faviconUrl}
               alt=""
-              className="w-6 h-6 rounded-full absolute"
+              className="absolute inset-0 w-6 h-6 rounded-full"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}

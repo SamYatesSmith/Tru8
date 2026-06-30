@@ -207,7 +207,9 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
           const el = claim.claimMap?.elements?.find((e) => e.elementId === elId);
           if (el) {
             const idx = claim.claimMap!.elements.indexOf(el);
-            elDesc = `Element ${String(idx + 1).padStart(2, '0')}`;
+            elDesc = el.description
+              ? (el.description.length > 60 ? `${el.description.slice(0, 59)}…` : el.description)
+              : `Element ${String(idx + 1).padStart(2, '0')}`;
             break;
           }
         }
@@ -279,7 +281,11 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
           const el = claim.claimMap?.elements?.find((e) => e.elementId === elId);
           if (el) {
             const idx = claim.claimMap!.elements.indexOf(el);
-            labels.push(`Element ${String(idx + 1).padStart(2, '0')}`);
+            labels.push(
+              el.description
+                ? (el.description.length > 48 ? `${el.description.slice(0, 47)}…` : el.description)
+                : `Element ${String(idx + 1).padStart(2, '0')}`
+            );
             break;
           }
         }

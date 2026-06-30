@@ -18,10 +18,12 @@ interface UnknownElementCardProps {
   totalGaps?: number;
 }
 
-const RELATIONSHIP_COLOURS: Record<string, string> = {
-  supports: 'text-emerald-600',
-  challenges: 'text-amber-600',
-  context: 'text-zinc-400',
+// Neutral — stance is conveyed by the word, never by a verdict colour
+// (no green/red/amber on supports/challenges). No-verdict lock.
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  supports: 'supports',
+  challenges: 'challenges',
+  context: 'context',
 };
 
 function truncateTitle(title: string, maxLen = 40): string {
@@ -107,15 +109,15 @@ export function UnknownElementCard({
           {element.evidenceRefs.map((ref) => {
             const ev = evidenceById.get(ref.evidenceId);
             const title = ev?.title || ev?.url || ref.evidenceId;
-            const relColour = RELATIONSHIP_COLOURS[ref.relationship] || 'text-zinc-400';
             return (
               <span
                 key={ref.evidenceId}
-                className="inline-flex items-center gap-1 border border-zinc-200 bg-white px-2 py-0.5 text-[10px]"
+                className="inline-flex items-center gap-1.5 border border-zinc-200 bg-white px-2 py-0.5 text-[10px]"
               >
-                <span className={`font-mono uppercase font-bold ${relColour}`}>
-                  {ref.relationship === 'supports' ? 'sup' : ref.relationship === 'challenges' ? 'chl' : 'ctx'}
+                <span className="font-mono lowercase text-zinc-600">
+                  {RELATIONSHIP_LABELS[ref.relationship] || ref.relationship}
                 </span>
+                <span className="text-zinc-300">·</span>
                 <span className="text-zinc-500">{truncateTitle(title)}</span>
               </span>
             );

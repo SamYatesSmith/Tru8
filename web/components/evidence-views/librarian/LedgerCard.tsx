@@ -3,6 +3,7 @@
 import { Evidence, EvidenceRelationship } from '@shared/types';
 import { TypeStamp } from './TypeStamp';
 import { ElementRefs } from '../ElementRefs';
+import { getFaviconUrl } from '../shared-utils';
 
 // Disposition labels — an organising axis (how the source relates to the
 // claim), never an argument. Colour-restrained on purpose (no traffic light).
@@ -37,13 +38,15 @@ interface LedgerCardProps {
   claimLabel?: string;
   /** Distinct dispositions of this source toward the claim (Slice 0b). */
   relationships?: EvidenceRelationship[];
+  /** elementId → description, so element refs read as meaning, not "E01". */
+  elementDescriptions?: Map<string, string>;
   diagnosticValue?: number;
   diagnosticActive?: boolean;
   isActive?: boolean;
   onClick?: () => void;
 }
 
-export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relationships, diagnosticValue, diagnosticActive, isActive, onClick }: LedgerCardProps) {
+export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relationships, elementDescriptions, diagnosticValue, diagnosticActive, isActive, onClick }: LedgerCardProps) {
   const domain = extractDomain(evidence.url);
   const date = formatDate(evidence.publishedDate);
 
@@ -76,7 +79,18 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relat
             {evidence.title || 'Untitled source'}
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="font-mono text-[10px] text-zinc-400">{domain}</span>
+            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-zinc-500">
+              <img
+                src={getFaviconUrl(evidence.url)}
+                alt=""
+                width={12}
+                height={12}
+                loading="lazy"
+                className="w-3 h-3 shrink-0 rounded-sm"
+                onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+              />
+              {domain}
+            </span>
             {date && (
               <>
                 <span className="font-mono text-[10px] text-zinc-300">&middot;</span>
@@ -86,7 +100,7 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relat
             {elementIds && elementIds.length > 0 && (
               <>
                 <span className="font-mono text-[10px] text-zinc-300">&middot;</span>
-                <ElementRefs elementIds={elementIds} />
+                <ElementRefs elementIds={elementIds} descriptions={elementDescriptions} />
               </>
             )}
             {relationships && relationships.length > 0 && (

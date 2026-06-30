@@ -38,6 +38,11 @@ export const ALL_TABS: { value: ViewTab; label: string; subtitle: string }[] = [
 export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: ViewSelectorProps) {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const visibleTabs = ALL_TABS.filter((tab) => !hiddenTabs.includes(tab.value));
+  // Active tab's question — surfaced as a caption on mobile, where the per-tab
+  // subtitles are hidden (so the wayfinding scent isn't desktop-only).
+  const active = visibleTabs.find(
+    (t) => t.value === activeTab && !(mode === 'overview' && DETAIL_ONLY_TABS.includes(t.value))
+  );
 
   return (
     // Segmented control: one connected, bordered track signals "same analysis,
@@ -45,7 +50,8 @@ export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: 
     // px so cells read as one calibrated control. Mobile = 3-col grid, lg = single
     // row. Active = filled (≥2 cues: fill + bold + white). Orange is the hover/
     // wayfinding accent; inactive stays clearly visible (never greyed-to-disabled).
-    <div className="grid grid-cols-3 lg:grid-cols-6 border border-zinc-300 mb-6">
+    <div className="mb-6">
+      <div className="grid grid-cols-3 lg:grid-cols-6 border border-zinc-300">
       {visibleTabs.map((tab) => {
         const isDisabled = mode === 'overview' && DETAIL_ONLY_TABS.includes(tab.value);
         const isActive = activeTab === tab.value && !isDisabled;
@@ -84,7 +90,7 @@ export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: 
               </span>
               {/* Recommended "start here" cue on the default lens when not active. */}
               {tab.value === 'librarian' && !isActive && !isDisabled && (
-                <span className="absolute top-1 right-1.5 font-mono text-[7px] tracking-[0.15em] uppercase text-[var(--accent)]">
+                <span className="absolute top-1 right-1.5 font-mono text-[9px] font-bold tracking-[0.1em] uppercase text-[var(--accent)]">
                   start
                 </span>
               )}
@@ -100,6 +106,12 @@ export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: 
           </div>
         );
       })}
+      </div>
+      {active && (
+        <p className="lg:hidden mt-2 text-xs text-zinc-500">
+          <span className="font-medium text-zinc-700">{active.label}</span> — {active.subtitle}
+        </p>
+      )}
     </div>
   );
 }

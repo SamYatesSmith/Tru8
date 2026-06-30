@@ -32,6 +32,7 @@ import {
   hasRelationship,
   stanceCounts,
   extractDomain,
+  getFaviconUrl,
 } from './shared-utils';
 import { capture } from '@/lib/analytics';
 
@@ -97,8 +98,6 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   // Coverage: elements that carry a resolved state (gap = no/unresolved state).
   const coveredElements = elements.filter((el) => el.state && el.state !== 'unresolved').length;
   const gapElements = elements.filter((el) => !el.state || el.state === 'unresolved');
-  // Preserve the prior nuance: focus the single disputed element on a challenges jump.
-  const disputedElementIds = elements.filter((el) => el.state === 'disputed').map((el) => el.elementId);
 
   // Source mix by tier (nullable tier → commentary in the helper).
   const tiers = tierCounts(evidence);
@@ -108,7 +107,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   const breadth = barTotal >= 15 ? 'a broad set' : barTotal >= 6 ? 'a moderate set' : barTotal > 0 ? 'a small set' : 'few sources';
   const confidenceLine =
     elements.length > 0
-      ? `Based on ${breadth} of sources · ${coveredElements} of ${elements.length} sub-elements covered.`
+      ? `Based on ${breadth} of sources · ${coveredElements} of ${elements.length} elements covered.`
       : `Based on ${breadth} of sources.`;
 
   // ── Relevance ranking for findings/strongest (selection by membership, so a
@@ -132,11 +131,9 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   const nav = !!onNavigate;
 
   const STANCE_ORDER: EvidenceRelationship[] = ['supports', 'context', 'challenges'];
-  const goStance = (s: EvidenceRelationship) =>
-    go('librarian', {
-      rel: [s],
-      ...(s === 'challenges' && disputedElementIds.length === 1 ? { element: disputedElementIds[0] } : {}),
-    });
+  // Band count = items carrying that relationship = exactly the filtered Evidence
+  // list this jump lands on (no element-focus, so the count and the list match).
+  const goStance = (s: EvidenceRelationship) => go('librarian', { rel: [s] });
 
   return (
     // The panel owns its frame: raised surface + 2px orange top rule marking it
@@ -158,8 +155,11 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         )}
       </div>
 
-      {/* Claim text — the headline */}
-      <h2 className="text-xl md:text-2xl font-medium text-zinc-900 leading-snug mb-3">{claim.text}</h2>
+      {/* Claim restated neutrally — prefer the pipeline's normalised wording over
+          the article's loaded phrasing (BLUF #1). */}
+      <h2 className="text-xl md:text-2xl font-medium text-zinc-900 leading-snug mb-3">
+        {claimMap?.normalisedClaim || claim.text}
+      </h2>
 
       {/* The lean (BLUF) — subject is the evidence, never the claim — + confidence (separate) */}
       {orientation && <p className="text-base md:text-lg text-zinc-900 leading-snug">{orientation}</p>}
@@ -170,7 +170,9 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         <div className="mt-4">
           <div className="flex items-center justify-between mb-1.5">
             <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500">
-              Evidence mapped · {barTotal} {barTotal === 1 ? 'source' : 'sources'}
+              {barTotal < evidenceCount
+                ? `${barTotal} of ${evidenceCount} sources mapped`
+                : `${barTotal} ${barTotal === 1 ? 'source' : 'sources'} mapped`}
             </span>
             {nav && <span className="font-mono text-[10px] text-zinc-400">click a band &rarr;</span>}
           </div>
@@ -191,8 +193,9 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
                   key={s}
                   onClick={() => goStance(s)}
                   style={{ width: `${pct}%` }}
+                  title={`${meta.label} — ${n} ${n === 1 ? 'source' : 'sources'}`}
                   aria-label={`Show the ${n} ${meta.label.toLowerCase()} sources`}
-                  className={`group flex items-center gap-1.5 px-3 min-w-0 cursor-pointer transition-all hover:ring-2 hover:ring-inset hover:ring-[var(--accent)] ${meta.band}`}
+                  className={`group flex items-center gap-1.5 px-2 min-w-[2.75rem] cursor-pointer transition-all hover:ring-2 hover:ring-inset hover:ring-[var(--accent)] ${meta.band}`}
                 >
                   {inner}
                 </button>
@@ -217,13 +220,22 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
             {keyFindings.map((ev) => (
               <li key={ev.evidenceId || ev.id} className="flex items-start gap-2 text-sm text-zinc-700">
                 <span aria-hidden className="mt-2 w-1 h-1 bg-zinc-400 shrink-0" />
-                <span className="flex-1 leading-snug">{ev.snippet || ev.title}</span>
+                <span className="flex-1 leading-snug line-clamp-2">{(ev.snippet || ev.title || '').slice(0, 220)}</span>
                 <a
                   href={ev.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 inline-flex items-center gap-0.5 text-xs text-zinc-500 hover:text-[var(--accent)] transition-colors"
+                  className="shrink-0 inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-[var(--accent)] transition-colors"
                 >
+                  <img
+                    src={getFaviconUrl(ev.url)}
+                    alt=""
+                    width={12}
+                    height={12}
+                    loading="lazy"
+                    className="w-3 h-3 shrink-0 rounded-sm"
+                    onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                  />
                   {extractDomain(ev.url)} <ArrowUpRight size={12} />
                 </a>
               </li>
@@ -235,8 +247,8 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
       {/* Strongest support / challenge — labelled by direction, link into Evidence */}
       {(strongestSupport || strongestChallenge) && (
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-          {strongestSupport && <PointCard kind="supports" title={strongestSupport.title} domain={extractDomain(strongestSupport.url)} nav={nav} onOpen={() => goStance('supports')} />}
-          {strongestChallenge && <PointCard kind="challenges" title={strongestChallenge.title} domain={extractDomain(strongestChallenge.url)} nav={nav} onOpen={() => goStance('challenges')} />}
+          {strongestSupport && <PointCard kind="supports" title={strongestSupport.title} url={strongestSupport.url} nav={nav} onOpen={() => goStance('supports')} />}
+          {strongestChallenge && <PointCard kind="challenges" title={strongestChallenge.title} url={strongestChallenge.url} nav={nav} onOpen={() => goStance('challenges')} />}
         </div>
       )}
 
@@ -267,12 +279,19 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
             <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 w-16 shrink-0 pt-0.5">Gaps</span>
             <div className="flex-grow">
               <ul className="space-y-0.5">
-                {gapElements.map((el) => (
-                  <li key={el.elementId} className="font-mono text-[10px] text-zinc-500 flex items-start gap-1.5">
-                    <span className="text-zinc-300 shrink-0">&bull;</span>
-                    <span>{el.description}</span>
-                  </li>
-                ))}
+                {gapElements.map((el) => {
+                  const u = el.uncertainty?.trim();
+                  const showU = u && !['null', 'none', 'n/a'].includes(u.toLowerCase());
+                  return (
+                    <li key={el.elementId} className="font-mono text-[10px] text-zinc-500 flex items-start gap-1.5">
+                      <span className="text-zinc-300 shrink-0">&bull;</span>
+                      <span>
+                        {el.description}
+                        {showU && <span className="text-zinc-400"> — {u}</span>}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
               {nav && (
                 <button
@@ -292,7 +311,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   );
 }
 
-function PointCard({ kind, title, domain, nav, onOpen }: { kind: EvidenceRelationship; title: string; domain: string; nav: boolean; onOpen: () => void }) {
+function PointCard({ kind, title, url, nav, onOpen }: { kind: EvidenceRelationship; title: string; url: string; nav: boolean; onOpen: () => void }) {
   const meta = STANCE_META[kind];
   const body = (
     <>
@@ -300,7 +319,18 @@ function PointCard({ kind, title, domain, nav, onOpen }: { kind: EvidenceRelatio
         {meta.glyph} Strongest {meta.label.toLowerCase()}
       </span>
       <p className="mt-1.5 text-sm text-zinc-900 leading-snug">{title}</p>
-      <p className="mt-1 text-xs text-zinc-500">{domain}</p>
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-zinc-500">
+        <img
+          src={getFaviconUrl(url)}
+          alt=""
+          width={12}
+          height={12}
+          loading="lazy"
+          className="w-3 h-3 shrink-0 rounded-sm"
+          onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+        />
+        {extractDomain(url)}
+      </p>
       {nav && (
         <span className="mt-2 inline-flex items-center gap-1 text-xs text-zinc-500 group-hover:text-[var(--accent)] transition-colors">
           see in evidence <ArrowRight size={12} />

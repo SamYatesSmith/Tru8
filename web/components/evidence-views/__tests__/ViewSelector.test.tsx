@@ -16,7 +16,9 @@ describe('ViewSelector', () => {
     expect(screen.getByText('SOURCES')).toBeInTheDocument();
     expect(screen.getByText('TIMELINE')).toBeInTheDocument();
     expect(screen.getByText('GAPS')).toBeInTheDocument();
-    expect(screen.getByText('MAP')).toBeInTheDocument();
+    // MAP is the active tab → its label also appears in the mobile caption,
+    // so query the button by role rather than by (now duplicated) text.
+    expect(screen.getByRole('button', { name: /MAP/ })).toBeInTheDocument();
     expect(screen.getByText('VIDEO')).toBeInTheDocument();
   });
 
@@ -57,7 +59,7 @@ describe('ViewSelector', () => {
     render(<ViewSelector {...defaultProps} mode="overview" onTabChange={onTabChange} />);
 
     // Click a live tab then the disabled one — only the live tab fires.
-    fireEvent.click(screen.getByText('MAP'));   // cartographer — enabled
+    fireEvent.click(screen.getByRole('button', { name: /MAP/ }));   // cartographer — enabled
     fireEvent.click(screen.getByText('GAPS'));  // seeker — disabled in overview
 
     expect(onTabChange).toHaveBeenCalledTimes(1);
@@ -66,8 +68,9 @@ describe('ViewSelector', () => {
 
   it('shows subtitles on desktop (hidden md:block)', () => {
     render(<ViewSelector {...defaultProps} />);
-    // Subtitles are rendered but hidden on mobile via CSS.
-    expect(screen.getByText('Shape of the debate?')).toBeInTheDocument();
+    // Subtitles are rendered but hidden on mobile via CSS. The active tab's
+    // subtitle also appears in the mobile caption, so allow >=1 match.
+    expect(screen.getAllByText('Shape of the debate?').length).toBeGreaterThan(0);
     expect(screen.getByText('What does the evidence say?')).toBeInTheDocument();
   });
 });

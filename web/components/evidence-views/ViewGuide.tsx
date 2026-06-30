@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 
 const VIEW_GUIDES: Record<string, string> = {
   cartographer:
-    'This map shows how evidence flows from sources to claims. Nodes are grouped by source tier\u2009—\u2009primary (green), reporting (blue), commentary (grey). Lines connect evidence to the claim elements they address.',
+    'This map shows how evidence flows from sources to claims. Nodes are grouped by source tier\u2009—\u2009primary (orange), reporting (dark grey), commentary (grey). Lines connect evidence to the claim elements they address.',
   librarian:
     'Your complete evidence library, classified by source tier (rows) and content type (columns). Click any heatmap cell to filter. The ledger below shows every source with its full classification.',
   correspondent:
