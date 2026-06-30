@@ -1,5 +1,6 @@
 import { Navigation } from '@/components/layout/navigation';
 import { MobileNav } from '@/components/layout/mobile-nav';
+import { SheetHeader } from '@/components/marketing/sheet-header';
 import { Footer } from '@/components/layout/footer';
 import { ArrowLeft, Key, Search, FileJson, BarChart3, ShieldCheck, Bell, Layers, Radio } from 'lucide-react';
 import Link from 'next/link';
@@ -79,6 +80,13 @@ export default function DevelopersPage() {
       <MobileNav />
 
       <main id="main-content" className="min-h-screen pt-24 md:pt-32 pb-24 md:pb-20">
+        {/* Document-grammar spine (xl+) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed left-1.5 top-1/2 z-40 hidden -translate-y-1/2 rotate-180 select-none font-mono text-[9px] tracking-[0.3em] text-zinc-300 [writing-mode:vertical-rl] xl:block"
+        >
+          TRU8 · DEVELOPERS · REV 2026.06
+        </div>
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {/* Back Button */}
           <Link
@@ -91,10 +99,8 @@ export default function DevelopersPage() {
 
           {/* Hero */}
           <section className="mb-12 md:mb-16">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Developer API
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="01" label="Developer API" />
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal text-zinc-900 mb-6 md:mb-8">
               The evidence landscape behind any claim. One API call.
             </h1>
 
@@ -122,7 +128,7 @@ export default function DevelopersPage() {
                 </Link>
               </p>
 
-              <div className="bg-zinc-50 border-l-4 border-accent px-6 py-5 my-8">
+              <div className="bg-zinc-50 border-l-2 border-accent px-6 py-5 my-8">
                 <p className="text-zinc-900 font-medium text-lg md:text-xl leading-relaxed">
                   One API call.<br />
                   Multi-source evidence retrieval.<br />
@@ -170,17 +176,15 @@ export default function DevelopersPage() {
 
           {/* Quick Start */}
           <section id="quick-start" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Quick Start
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="02" label="Quick Start" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Three Steps
             </h2>
 
             <div className="space-y-8">
               {/* Step 1 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-sm font-bold">
                   1
                 </div>
                 <div className="min-w-0 flex-1">
@@ -214,7 +218,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
               {/* Step 2 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-sm font-bold">
                   2
                 </div>
                 <div className="min-w-0 flex-1">
@@ -233,7 +237,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
               {/* Step 3 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-accent text-white flex items-center justify-center font-mono text-sm font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-sm font-bold">
                   3
                 </div>
                 <div className="min-w-0 flex-1">
@@ -255,10 +259,8 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
           {/* Pipeline Depth */}
           <section id="pipeline" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Pipeline
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="03" label="Pipeline" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               What Each Tier Runs
             </h2>
 
@@ -293,10 +295,8 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
           {/* MCP Server */}
           <section id="mcp" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — MCP Integration
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="04" label="MCP Integration" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               MCP Server
             </h2>
 
@@ -330,7 +330,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                   primary: false,
                 },
               ].map((tool) => (
-                <div key={tool.name} className={`flex items-start gap-4 border border-zinc-200 p-4 ${tool.primary ? 'border-l-4 border-l-accent' : ''}`}>
+                <div key={tool.name} className={`flex items-start gap-4 border border-zinc-200 p-4 ${tool.primary ? 'border-l-2 border-l-accent' : ''}`}>
                   <div className="flex-shrink-0 mt-0.5">
                     {tool.icon === 'search' ? <Search size={16} className="text-accent" /> :
                      tool.icon === 'chart' ? <BarChart3 size={16} className="text-zinc-400" /> :
@@ -376,10 +376,8 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
           {/* Pricing Model */}
           <section id="pricing" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Pricing
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="05" label="Pricing" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               What You Pay For
             </h2>
 
@@ -462,7 +460,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
               </div>
 
               <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">Agent credits vs dashboard subscription</p>
                   <p>
@@ -480,10 +478,8 @@ export TRU8_API_KEY="tru8_sk_..."`}
 
           {/* Async Mode */}
           <section id="async" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Async Mode
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="06" label="Async Mode" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Non-Blocking Submission
             </h2>
 
@@ -531,10 +527,8 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Batch Submission */}
           <section id="batch" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Batch Mode
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="07" label="Batch Mode" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Multi-Claim Submission
             </h2>
 
@@ -596,7 +590,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
               </div>
 
               <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">Idempotency in batch</p>
                   <p>
@@ -615,10 +609,8 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Webhooks */}
           <section id="webhooks" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Webhooks
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="08" label="Webhooks" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Event Notifications
             </h2>
 
@@ -658,7 +650,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
               </div>
 
               <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">Delivery guarantee</p>
                   <p>
@@ -676,10 +668,8 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Agent Discovery */}
           <section id="discovery" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Agent Discovery
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="09" label="Agent Discovery" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Self-Service Endpoints
             </h2>
 
@@ -757,10 +747,8 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Rate Limits */}
           <section id="rate-limits" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Rate Limits
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="10" label="Rate Limits" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Throttling
             </h2>
 
@@ -804,10 +792,8 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Error Codes */}
           <section id="errors" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Error Handling
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="11" label="Error Handling" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Error Codes
             </h2>
 
@@ -839,7 +825,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
               </div>
 
               <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">Refund policy</p>
                   <p>
@@ -856,10 +842,8 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Response Shape */}
           <section id="response" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Response Shape
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="12" label="Response Shape" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               What You Get Back
             </h2>
 
@@ -932,21 +916,21 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
             <div className="mt-6 space-y-3">
               <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">claims[].claimMap</p>
                   <p>Each claim is decomposed into 1–5 elements. Evidence maps to elements with relationship types (supports/challenges/context) and reasoning.</p>
                 </div>
               </div>
               <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">_meta vs _computed</p>
                   <p><code className="text-zinc-400">_meta</code> is always present — tier, cost, limitations, landscape. <code className="text-zinc-400">_computed</code> requires <code className="text-zinc-400">?computed=true</code> — adds analytics, corroboration, diagnostics.</p>
                 </div>
               </div>
               <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
                 <div className="text-xs text-zinc-600">
                   <p className="font-semibold text-zinc-900 mb-1">_manifest</p>
                   <p>HMAC-signed manifest. Agents can verify the signed fields haven&apos;t changed since signing via <code className="text-zinc-400">GET /verify/{'{'}<span>check_id</span>{'}'}</code>.</p>
@@ -960,10 +944,8 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* API Docs + Resources */}
           <section id="docs" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Resources
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="13" label="Resources" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Documentation
             </h2>
 
@@ -1007,10 +989,8 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* FAQ */}
           <section id="faq" className="mb-16 md:mb-20 scroll-mt-28">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — FAQ
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-8 md:mb-10">
+            <SheetHeader number="14" label="FAQ" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-8 md:mb-10">
               Frequently asked questions
             </h2>
             <dl className="divide-y divide-zinc-100 border-t border-zinc-100">
@@ -1032,7 +1012,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
             <div className="flex justify-center mb-4">
               <Key size={32} className="text-zinc-300" />
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-zinc-900 mb-4">
+            <h3 className="text-2xl md:text-3xl font-normal text-zinc-900 mb-4">
               Start Building
             </h3>
             <p className="text-zinc-500 mb-6 max-w-lg mx-auto">
@@ -1042,7 +1022,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
               event="get_api_key_click"
               eventProps={{ surface: 'developers_cta' }}
               href="/dashboard/settings?tab=developer"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent/90 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
             >
               Get API Key
             </TrackedLink>

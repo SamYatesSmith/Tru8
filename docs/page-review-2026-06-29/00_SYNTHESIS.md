@@ -8,6 +8,10 @@
 
 Shipped under the phased-build-loop (commits on `main`): **UK English everywhere** (`207c317`; D13 reversed — the "US on marketing" item is resolved British), legal-footer "policy" + self-link fix, blog compliance→"Filings and disclosures" recast, `DESIGN_SYSTEM.md` replaced; **views named by action** on `/` + `/research` (`421ead3`; profession demoted to subtitle, leaked raw route removed); **homepage developers-section progressive disclosure** (`a8b105b`; code collapsed by default, AEO preserved).
 
+**P1 phases SHIPPED (each independently verified):** `507b7b1` /about re-anchored on the researcher (founder story preserved); `75d4387` /r/[id] — new `/verify/[id]` page ("signed record", not "tamper-evident") + desaturated summary counts + share reframe + contrast bump; `ed3f1f3` /compare — `ProofPanel` (human-readable disputed element) before the JSON + CTAs reordered + table-icon contrast; `55a9337` /developers → /research funnel link. **All P0s + queued P1s done + deployed.**
+
+**P2 design-system migration — IN PROGRESS:** `/developers` migrated to "document-grammar-lite" (SheetHeaders + font-normal + spine + **de-orange to match homepage**: orange = glyph/2px-rule only, CTAs black, no fills) — **founder signed off the look 2026-06-30, committed.** Reference-page-first: replication pattern now rolls out to /about, /compare chrome, /contact+legal, /blog, then the remaining public pages. See `audit/OPEN_WORK.md` for the exact state + the `.next` cache caveat.
+
 **WITHDRAWN — the "hard-coded GBP prices" launch blocker + its P0 roadmap row.** It rested on the 2026-06-23 "no display price" lock, which was SUPERSEDED on 2026-06-24/25 (founder validated "£20 holds" and chose show-now). Founder confirmed 2026-06-29: **keep the prices; currency = GBP (£)** — closing the open £/$ question. Per-call API rates are live charges; surfaces verified £-consistent. Do NOT re-raise price gating.
 
 ## Positioning drift map
