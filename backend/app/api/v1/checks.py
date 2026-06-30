@@ -2691,6 +2691,52 @@ async def get_public_check(
     }
 
 
+@router.get(
+    "/public/{check_id}/videos",
+    summary="Get video recommendations (public, no auth)",
+)
+async def get_public_check_videos(
+    check_id: str,
+    claim_id: Optional[str] = None,
+    session: AsyncSession = Depends(get_session),
+):
+    """Public video recommendations for a check.
+
+    Mirrors the authenticated `/{check_id}/videos` endpoint without the
+    ownership gate — public reports already expose the full check (claims,
+    evidence, videos) by id, and videos are public YouTube links (no PII).
+    Lets the public report re-poll for videos that the fire-and-forget task
+    writes ~1s after the check completes (after the cached page first renders).
+    """
+    from app.models.video_recommendation import VideoRecommendation
+
+    query = select(VideoRecommendation).where(VideoRecommendation.check_id == check_id)
+    if claim_id:
+        query = query.where(VideoRecommendation.claim_id == claim_id)
+    videos = (await session.execute(query)).scalars().all()
+    return {
+        "checkId": check_id,
+        "videos": [
+            {
+                "id": v.id,
+                "claimId": v.claim_id,
+                "videoId": v.video_id,
+                "title": v.title,
+                "description": v.description,
+                "channelName": v.channel_name,
+                "channelId": v.channel_id,
+                "publishDate": (v.publish_date.isoformat() if v.publish_date else None),
+                "videoUrl": v.video_url,
+                "thumbnailUrl": v.thumbnail_url,
+                "duration": v.duration,
+                "tierLabel": v.tier_label,
+                "typeLabel": v.type_label,
+            }
+            for v in videos
+        ],
+    }
+
+
 @router.get("/{check_id}/sources/export", summary="Export sources as CSV/BibTeX/APA")
 async def export_check_sources(
     check_id: str,

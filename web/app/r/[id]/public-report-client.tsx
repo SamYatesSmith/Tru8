@@ -33,8 +33,44 @@ export function PublicReportClient({ check, highlightClaim, highlightView }: Pub
   const claimDetailRef = useRef<HTMLDivElement>(null);
 
   const claims = check.claims || [];
-  const videos = check.videos || [];
+  const [videos, setVideos] = useState<any[]>(check.videos || []);
   const isSingleClaim = claims.length === 1;
+
+  // Re-poll for videos when the cached SSR render had none for the active claim.
+  // Video recs are written by a fire-and-forget task ~1s after the check
+  // completes — after the (60s-cached) report first renders — so the first view
+  // can miss them. Public endpoint (no auth); stops the moment videos land.
+  useEffect(() => {
+    const activeClaim = claims[activeClaimIndex];
+    if (!activeClaim) return;
+    const haveFromSSR = (check.videos || []).filter((v: any) => v.claimId === activeClaim.id).length;
+    if (haveFromSSR > 0) return;
+    let cancelled = false;
+    let attempt = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const poll = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/api/v1/checks/public/${check.id}/videos`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled && Array.isArray(data.videos) && data.videos.length > 0) {
+            setVideos(data.videos);
+            return;
+          }
+        }
+      } catch {
+        /* transient — retry below */
+      }
+      if (!cancelled && attempt < 4) {
+        attempt += 1;
+        timer = setTimeout(poll, 2500);
+      }
+    };
+    poll();
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeClaimIndex, check.id]);
 
   // F07: Sync active view tab to URL for shareability
   const updateUrlViewParam = useCallback((view: string) => {
