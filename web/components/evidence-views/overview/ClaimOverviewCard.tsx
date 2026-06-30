@@ -90,18 +90,19 @@ export function ClaimOverviewCard({ claim, position, checkId, isActive, onSelect
         {(stateCounts.supported > 0 || stateCounts.disputed > 0 || stateCounts.contextual > 0 || stateCounts.gap > 0) && (
           <>
             <span className="text-zinc-200">&middot;</span>
+            {/* Neutral — no verdict colour on state at summary altitude. */}
             {stateCounts.supported > 0 && (
-              <span className="font-mono text-[10px] text-emerald-500">
+              <span className="font-mono text-[10px] text-zinc-600">
                 {stateCounts.supported} supported
               </span>
             )}
             {stateCounts.disputed > 0 && (
-              <span className="font-mono text-[10px] text-amber-500">
+              <span className="font-mono text-[10px] text-zinc-600">
                 {stateCounts.disputed} disputed
               </span>
             )}
             {stateCounts.contextual > 0 && (
-              <span className="font-mono text-[10px] text-sky-500">
+              <span className="font-mono text-[10px] text-zinc-500">
                 {stateCounts.contextual} contextual
               </span>
             )}

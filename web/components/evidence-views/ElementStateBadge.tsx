@@ -13,14 +13,18 @@
 
 export type ElementStateKey = 'supported' | 'disputed' | 'unresolved' | 'contextual';
 
+// NEUTRAL by design (no-verdict colour lock): state is differentiated by ICON +
+// tonal WEIGHT + filled-vs-outline, never by green/amber. supported = filled dark
+// (most-evidenced, by weight not hue); disputed = outlined (contested); contextual
+// = light fill; unresolved = dashed outline (open). The word carries the meaning.
 export const ELEMENT_STATE: Record<
   ElementStateKey,
-  { label: string; text: string; badge: string }
+  { label: string; icon: string; text: string; badge: string }
 > = {
-  supported: { label: 'Supported', text: 'text-emerald-500', badge: 'bg-emerald-50 text-emerald-600' },
-  disputed: { label: 'Disputed', text: 'text-amber-500', badge: 'bg-amber-50 text-amber-600' },
-  contextual: { label: 'Contextual', text: 'text-sky-500', badge: 'bg-sky-50 text-sky-600' },
-  unresolved: { label: 'Unresolved', text: 'text-slate-500', badge: 'bg-slate-50 text-slate-500' },
+  supported: { label: 'Supported', icon: '+', text: 'text-zinc-700', badge: 'bg-zinc-800 text-white border border-zinc-800' },
+  disputed: { label: 'Disputed', icon: '±', text: 'text-zinc-700', badge: 'bg-white text-zinc-800 border border-zinc-400' },
+  contextual: { label: 'Contextual', icon: 'ⓘ', text: 'text-zinc-500', badge: 'bg-zinc-100 text-zinc-600 border border-zinc-200' },
+  unresolved: { label: 'Unresolved', icon: '○', text: 'text-zinc-500', badge: 'bg-white text-zinc-500 border border-dashed border-zinc-300' },
 };
 
 // Two badge scales live in the app: the dense overview cards (`sm`) and the
@@ -44,8 +48,9 @@ export function ElementStateBadge({ state, label, size = 'sm', className = '' }:
   const cfg = ELEMENT_STATE[state] ?? ELEMENT_STATE.unresolved;
   return (
     <span
-      className={`${BADGE_SIZE[size]} font-mono font-bold uppercase tracking-wider shrink-0 rounded ${cfg.badge} ${className}`}
+      className={`${BADGE_SIZE[size]} inline-flex items-center gap-1 font-mono font-bold uppercase tracking-wider shrink-0 rounded ${cfg.badge} ${className}`}
     >
+      <span aria-hidden className="not-italic">{cfg.icon}</span>
       {label ?? cfg.label}
     </span>
   );

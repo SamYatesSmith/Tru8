@@ -8,18 +8,21 @@ interface ElementStateBadgeProps {
   size?: 'sm' | 'md';
 }
 
+// Neutral icons (no verdict glyphs): + supports-weighted, \u00B1 contested, \u25CB open,
+// \u24D8 contextual. Colour neutralised below \u2014 no green/amber on state.
 const STATE_ICONS: Record<ElementState, string> = {
-  supported: '\u2713',
-  disputed: '\u26A0',
+  supported: '+',
+  disputed: '\u00B1',
   unresolved: '\u25CB',
   contextual: '\u24D8',
 };
 
+// NEUTRAL (no-verdict colour lock): tonal weight + filled-vs-outline, never hue.
 const STATE_CLASSES: Record<ElementState, string> = {
-  supported: 'bg-state-supported/10 text-state-supported border-state-supported/20',
-  disputed: 'bg-state-disputed/10 text-state-disputed border-state-disputed/20',
-  unresolved: 'bg-state-unresolved/10 text-state-unresolved border-state-unresolved/20',
-  contextual: 'bg-state-contextual/10 text-state-contextual border-state-contextual/20',
+  supported: 'bg-zinc-800 text-white border-zinc-800',
+  disputed: 'bg-white text-zinc-800 border-zinc-400',
+  unresolved: 'bg-white text-zinc-500 border-dashed border-zinc-300',
+  contextual: 'bg-zinc-100 text-zinc-600 border-zinc-200',
 };
 
 const SIZE_CLASSES = {

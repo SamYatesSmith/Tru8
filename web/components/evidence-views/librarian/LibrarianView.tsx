@@ -268,6 +268,29 @@ export function LibrarianView({ scope, claims, initialRelationships, focusElemen
         </div>
       )}
 
+      {/* Disposition-filter context — arrived from a digest band / state-count
+          deep-link. Tells the reader WHY the list is filtered + how to clear it
+          (the QOL gap: a highlighted FilterPill alone wasn't legible). Orange
+          left rule = wayfinding accent. */}
+      {activeRelationships.size > 0 && (
+        <div className="flex items-start gap-2 mb-4 border-l-2 border-[var(--accent)] pl-3 py-1">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 pt-0.5 shrink-0">Showing</span>
+          <span className="text-[11px] text-zinc-600 flex-grow">
+            {filteredEvidence.length} {Array.from(activeRelationships)
+              .map((r) => ({ supports: 'supporting', challenges: 'challenging', context: 'context' }[r]))
+              .join(' / ')}{' '}
+            {filteredEvidence.length === 1 ? 'source' : 'sources'}
+          </span>
+          <button
+            type="button"
+            onClick={() => setActiveRelationships(new Set())}
+            className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors shrink-0 cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* Diagnostic toggle */}
       {showDiagnosticToggle && (
         <div className="flex items-center gap-2 mb-4">

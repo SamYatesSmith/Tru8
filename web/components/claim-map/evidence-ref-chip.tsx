@@ -8,9 +8,10 @@ interface EvidenceRefChipProps {
   onClick?: () => void;
 }
 
+// Neutral — stance by word, never verdict colour (no-verdict lock).
 const RELATIONSHIP_CLASSES: Record<EvidenceRelationship, string> = {
-  supports: 'text-state-supported',
-  challenges: 'text-state-disputed',
+  supports: 'text-zinc-600',
+  challenges: 'text-zinc-600',
   context: 'text-zinc-400',
 };
 
