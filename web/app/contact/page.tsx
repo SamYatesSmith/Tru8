@@ -11,6 +11,7 @@ export default function ContactPage() {
   return (
     <LegalPageLayout
       title="Contact Us"
+      sheetLabel="Support"
     >
       <div className="prose-legal">
         <p className="text-lg text-zinc-600 mb-12">
@@ -24,7 +25,7 @@ export default function ContactPage() {
               <Mail className="text-white" size={32} />
             </div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold text-zinc-900 mb-3">Get in Touch</h3>
+              <h3 className="text-2xl font-normal text-zinc-900 mb-3">Get in Touch</h3>
               <p className="text-zinc-600 mb-4">
                 For all enquiries including general support, privacy/GDPR requests, billing issues, refunds, and feedback:
               </p>
@@ -54,7 +55,7 @@ export default function ContactPage() {
         <h2>Business Information</h2>
         <div className="bg-zinc-50 border border-zinc-200 p-6 not-prose">
           <p className="text-zinc-600 mb-2 flex items-center gap-2">
-            <MapPin className="text-accent flex-shrink-0" size={18} />
+            <MapPin className="text-zinc-500 flex-shrink-0" size={18} />
             <span><strong className="text-zinc-900">Location:</strong> London, UK</span>
           </p>
           <p className="text-zinc-600 ml-[26px]">
