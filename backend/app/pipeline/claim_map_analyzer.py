@@ -662,13 +662,102 @@ def _derive_element_state_with_authority(
     return state, state_basis
 
 
+def _domain_of(url: str) -> str:
+    """Bare domain (no leading www.) for a URL; '' when unparseable."""
+    if not url:
+        return ""
+    try:
+        from urllib.parse import urlparse
+
+        return urlparse(url).netloc.replace("www.", "").lower()
+    except Exception:
+        return ""
+
+
+# Tier buckets for the support/challenge structure. Mirrors the classifier's
+# vocabulary; any missing/unknown tier is bucketed as "commentary" so the
+# counts always sum to the side's item count.
+_STRUCTURE_TIERS = ("primary", "reporting", "commentary")
+
+
+def _compute_relationship_structure(
+    rel_refs: List[Dict[str, Any]],
+    ev_index: Dict[str, Dict[str, Any]],
+    derivative_ids: set,
+) -> dict:
+    """Mechanical, no-LLM structural summary of the evidence on ONE side
+    (supports or challenges) of an element.
+
+    Reports STRUCTURE ONLY — count, distinct source domains, tier mix, and
+    derivation (how much of the apparent breadth merely re-reports a primary
+    source). It assigns NO "thin"/"echo" verdict and NO score; the
+    presentation layer decides how to flag the structure. This keeps the
+    pipeline neutral — it describes our collection, never the claim.
+
+    Surfaces echo / thin-support patterns so a researcher can see when
+    apparent support is narrow or derivative rather than independent.
+
+    Fields:
+      count             — refs on this side
+      distinct_domains  — distinct source domains among them
+      tier_counts       — {primary, reporting, commentary}; missing→commentary
+      derivation.originals        — primary items here that have ≥1 derivative
+      derivation.derivative_count — items here that re-report a primary (their
+                                    id appears in some item's derivation_chain)
+    """
+    tier_counts = {t: 0 for t in _STRUCTURE_TIERS}
+    domains = set()
+    originals = 0
+    derivative_count = 0
+
+    for ref in rel_refs:
+        eid = (
+            ref.get("evidence_id", "")
+            if isinstance(ref, dict)
+            else getattr(ref, "evidence_id", "")
+        )
+        ev = ev_index.get(eid)
+        if not ev:
+            # Unresolved reference — bucket as commentary so the tier counts
+            # still sum to `count` rather than silently dropping the item.
+            tier_counts["commentary"] += 1
+            continue
+
+        tier = ev.get("tier") or "commentary"
+        if tier not in tier_counts:
+            tier = "commentary"
+        tier_counts[tier] += 1
+
+        domain = _domain_of(ev.get("url") or "")
+        if domain:
+            domains.add(domain)
+
+        if tier == "primary" and (ev.get("derivation_chain") or []):
+            originals += 1
+        if eid and eid in derivative_ids:
+            derivative_count += 1
+
+    return {
+        "count": len(rel_refs),
+        "distinct_domains": len(domains),
+        "tier_counts": tier_counts,
+        "derivation": {
+            "originals": originals,
+            "derivative_count": derivative_count,
+        },
+    }
+
+
 def _compute_element_basis(
     elem: ClaimElement, evidence_list: List[Dict[str, Any]]
 ) -> dict:
     """Compute basis metadata for an element's state.
 
     Aggregates relationship counts, tier counts, and classification method
-    counts from the evidence items referenced by this element.
+    counts from the evidence items referenced by this element, plus a
+    mechanical support/challenge STRUCTURE summary (counts, domain breadth,
+    tier mix, derivation) used to surface echo / thin-support patterns. The
+    structure carries no verdict — see ``_compute_relationship_structure``.
     """
     refs = elem.get("evidence_refs", [])
     if not refs:
@@ -678,6 +767,8 @@ def _compute_element_basis(
             "tier_breakdown": {},
             "classification_breakdown": {},
             "content_basis_breakdown": {},
+            "support_structure": _compute_relationship_structure([], {}, set()),
+            "challenge_structure": _compute_relationship_structure([], {}, set()),
         }
 
     # Build evidence_id → evidence_item index
@@ -687,10 +778,20 @@ def _compute_element_basis(
         if eid:
             ev_index[eid] = ev
 
+    # Union of every derivation chain in the pool — an item whose id appears
+    # here re-reports a primary source (echo), per the corroboration engine.
+    derivative_ids = set()
+    for ev in evidence_list:
+        for did in ev.get("derivation_chain") or []:
+            if did:
+                derivative_ids.add(did)
+
     relationship_counts: Dict[str, int] = {}
     tier_counts: Dict[str, int] = {}
     classification_counts: Dict[str, int] = {}
     content_basis_counts: Dict[str, int] = {}
+    supports_refs: List[Dict[str, Any]] = []
+    challenges_refs: List[Dict[str, Any]] = []
 
     for ref in refs:
         # Relationship breakdown
@@ -698,6 +799,10 @@ def _compute_element_basis(
         if rel is not None:
             rel_val = rel.value if hasattr(rel, "value") else str(rel)
             relationship_counts[rel_val] = relationship_counts.get(rel_val, 0) + 1
+            if rel_val == "supports":
+                supports_refs.append(ref)
+            elif rel_val == "challenges":
+                challenges_refs.append(ref)
 
         # Look up the full evidence item
         eid = ref.get("evidence_id", "")
@@ -724,6 +829,12 @@ def _compute_element_basis(
         "tier_breakdown": tier_counts,
         "classification_breakdown": classification_counts,
         "content_basis_breakdown": content_basis_counts,
+        "support_structure": _compute_relationship_structure(
+            supports_refs, ev_index, derivative_ids
+        ),
+        "challenge_structure": _compute_relationship_structure(
+            challenges_refs, ev_index, derivative_ids
+        ),
     }
 
 
@@ -1415,12 +1526,10 @@ class ClaimMapAnalyzer:
                 elem["evidence_refs"] = []
                 elem["state"] = ElementState.unresolved
                 elem["uncertainty"] = None
-                elem["basis"] = {
-                    "evidence_count": 0,
-                    "relationship_breakdown": {},
-                    "tier_breakdown": {},
-                    "classification_breakdown": {},
-                }
+                # Use the shared basis builder (empty-refs path) so every
+                # element — even LLM-omitted ones — carries a uniform basis
+                # incl. support_structure/challenge_structure for the frontend.
+                elem["basis"] = _compute_element_basis(elem, evidence_list)
                 continue
 
             # Validate and filter evidence_refs
