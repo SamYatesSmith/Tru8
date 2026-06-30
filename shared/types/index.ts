@@ -233,6 +233,26 @@ export interface EvidenceRef {
   relationship: EvidenceRelationship;
 }
 
+// Mechanical, no-LLM structural summary of the evidence on ONE side
+// (supports or challenges) of an element — produced by the pipeline
+// (claim_map_analyzer). Describes the SOURCES, never the claim's truth.
+// NOTE: snake_case keys — the API serializer passes element `basis` through
+// without recursively camelCasing its nested objects.
+export interface EvidenceSideStructure {
+  count: number;
+  distinct_domains: number;
+  tier_counts: { primary: number; reporting: number; commentary: number };
+  derivation: { originals: number; derivative_count: number };
+}
+
+// Per-element basis metadata. Only the fields the frontend reads are typed;
+// other keys (state_derivation, *_breakdown) are present but untyped.
+export interface ElementBasis {
+  support_structure?: EvidenceSideStructure;
+  challenge_structure?: EvidenceSideStructure;
+  [key: string]: unknown;
+}
+
 export interface ClaimElement {
   elementId: string;
   description: string;
@@ -240,6 +260,7 @@ export interface ClaimElement {
   state: ElementState | null;
   uncertainty: string | null;
   bountyText?: string; // G01: User-supplied research brief
+  basis?: ElementBasis; // Phase 1: support/challenge structure (echo / thin-support)
 }
 
 export interface ClaimMap {

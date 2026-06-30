@@ -2,6 +2,7 @@
 
 import { ClaimElement } from '@shared/types';
 import { ElementStateBadge, ElementStateKey } from '../ElementStateBadge';
+import { EvidenceQualityNote } from '../EvidenceQualityNote';
 
 interface ElementRosterProps {
   elements: ClaimElement[];
@@ -22,30 +23,37 @@ export function ElementRoster({ elements }: ElementRosterProps) {
           return (
             <div
               key={element.elementId}
-              className={`flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-6 px-3 lg:px-4 py-3 border ${
+              className={`px-3 lg:px-4 py-3 border ${
                 isGap
                   ? 'border-dashed border-zinc-200 bg-zinc-50/30'
                   : 'border-zinc-100'
               }`}
             >
-              <div className="flex items-center gap-2 lg:contents">
-                <span className="font-mono text-xs text-zinc-300">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span className={`text-sm font-medium flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-900'}`}>
-                  {element.description}
-                </span>
+              <div className="flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-6">
+                <div className="flex items-center gap-2 lg:contents">
+                  <span className="font-mono text-xs text-zinc-300">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className={`text-sm font-medium flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-900'}`}>
+                    {element.description}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 pl-6 lg:pl-0 lg:contents">
+                  <span className={`font-mono text-[10px] ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                    {sourceCount} {sourceCount === 1 ? 'source' : 'sources'}
+                  </span>
+                  <ElementStateBadge
+                    state={isGap ? 'unresolved' : state}
+                    label={isGap ? 'Gap' : undefined}
+                    size="md"
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-3 pl-6 lg:pl-0 lg:contents">
-                <span className={`font-mono text-[10px] ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                  {sourceCount} {sourceCount === 1 ? 'source' : 'sources'}
-                </span>
-                <ElementStateBadge
-                  state={isGap ? 'unresolved' : state}
-                  label={isGap ? 'Gap' : undefined}
-                  size="md"
-                />
-              </div>
+              {!isGap && (
+                <div className="pl-6 lg:pl-7">
+                  <EvidenceQualityNote basis={element.basis} />
+                </div>
+              )}
             </div>
           );
         })}
