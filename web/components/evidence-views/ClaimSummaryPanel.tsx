@@ -263,9 +263,11 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         </div>
       )}
 
-      {/* Strongest support / challenge — labelled by direction, link into Evidence */}
+      {/* Most relevant support / challenge — labelled by direction, link into Evidence.
+          Two cards sit side by side; a lone card takes the FULL width so the article
+          title has room to print (no empty half, no needless truncation). */}
       {(strongestSupport || strongestChallenge) && (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className={`mt-4 grid gap-3 ${strongestSupport && strongestChallenge ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
           {strongestSupport && <PointCard kind="supports" title={strongestSupport.title} url={strongestSupport.url} nav={nav} onOpen={() => goStance('supports')} />}
           {strongestChallenge && <PointCard kind="challenges" title={strongestChallenge.title} url={strongestChallenge.url} nav={nav} onOpen={() => goStance('challenges')} />}
         </div>
