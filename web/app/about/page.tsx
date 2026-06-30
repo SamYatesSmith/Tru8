@@ -1,5 +1,6 @@
 import { Navigation } from '@/components/layout/navigation';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
+import { SheetHeader } from '@/components/marketing/sheet-header';
 import { Footer } from '@/components/layout/footer';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -17,11 +18,18 @@ export default function AboutPage() {
       <MobileBottomNav />
 
       <main className="min-h-screen pt-24 md:pt-32 pb-24 md:pb-20">
+        {/* Document-grammar spine (xl+) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed left-1.5 top-1/2 z-40 hidden -translate-y-1/2 rotate-180 select-none font-mono text-[9px] tracking-[0.3em] text-zinc-300 [writing-mode:vertical-rl] xl:block"
+        >
+          TRU8 · ABOUT · REV 2026.06
+        </div>
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {/* Back Button */}
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors mb-6 md:mb-8"
+            className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 transition-colors mb-6 md:mb-8"
           >
             <ArrowLeft size={20} />
             <span className="text-sm font-medium">Back to Home</span>
@@ -29,10 +37,8 @@ export default function AboutPage() {
 
           {/* About Tru8 Section */}
           <section className="mb-16 md:mb-20">
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Company Overview
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="01" label="Company Overview" />
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal text-zinc-900 mb-6 md:mb-8">
               About Tru8
             </h1>
 
@@ -50,12 +56,12 @@ export default function AboutPage() {
               </p>
 
               {/* Emphasis Block */}
-              <div className="bg-zinc-50 border-l-4 border-accent px-6 py-5 my-8">
+              <div className="bg-zinc-50 border-l-2 border-accent px-6 py-5 my-8">
                 <p className="text-zinc-900 font-medium text-lg md:text-xl leading-relaxed">
                   Every source shown.<br />
                   Every exclusion receipted.<br />
                   No verdict.<br />
-                  <span className="text-accent">You decide.</span>
+                  <span className="font-semibold text-zinc-900">You decide.</span>
                 </p>
               </div>
 
@@ -74,10 +80,8 @@ export default function AboutPage() {
 
           {/* About the Founder Section */}
           <section>
-            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
-              Module — Founder
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 md:mb-8">
+            <SheetHeader number="02" label="Founder" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               About the Founder
             </h2>
 
@@ -124,7 +128,7 @@ export default function AboutPage() {
 
           {/* CTA Section */}
           <div className="mt-16 md:mt-20 text-center border border-zinc-200 p-8 md:p-12">
-            <h3 className="text-2xl md:text-3xl font-bold text-zinc-900 mb-4">
+            <h3 className="text-2xl md:text-3xl font-normal text-zinc-900 mb-4">
               See the evidence for yourself
             </h3>
             <p className="text-zinc-500 mb-6 max-w-lg mx-auto">
@@ -148,8 +152,8 @@ export default function AboutPage() {
 
           {/* Mono metadata footer */}
           <div className="mt-12 pt-6 border-t border-zinc-100">
-            <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-400">
-              TRU8 — ABOUT — V1.0
+            <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-500">
+              TRU8 · ABOUT · REV 2026.06
             </span>
           </div>
         </div>
