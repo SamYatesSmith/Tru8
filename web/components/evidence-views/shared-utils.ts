@@ -1,6 +1,6 @@
 /** Shared utility functions for evidence views. */
 
-import type { EvidenceTier } from '@shared/types';
+import type { EvidenceTier, EvidenceRelationship } from '@shared/types';
 
 export function extractDomain(url: string): string {
   try {
@@ -56,4 +56,63 @@ export function tierCounts(
     counts[ev.tier || 'commentary'] += 1;
   }
   return counts;
+}
+
+/* ── Evidence-stance helpers (Evidence Digest, 2026-06-30) ─────────────────
+ * Stance lives on the ClaimMap evidence_refs (the locked source of truth), not
+ * on the Evidence object. These mirror LibrarianView's relationshipRefs model
+ * so the digest's distribution bar is consistent with how Evidence filters.
+ */
+
+interface ElementLike {
+  evidenceRefs?: { evidenceId: string; relationship: EvidenceRelationship }[];
+}
+
+/** evidenceId → distinct relationships across ALL elements (an item can carry
+ * more than one, exactly like LibrarianView's relationshipSummaryMap). */
+export function relationshipByEvidence(
+  elements: ElementLike[]
+): Map<string, EvidenceRelationship[]> {
+  const sets = new Map<string, Set<EvidenceRelationship>>();
+  for (const el of elements) {
+    for (const ref of el.evidenceRefs || []) {
+      const s = sets.get(ref.evidenceId) || new Set<EvidenceRelationship>();
+      s.add(ref.relationship);
+      sets.set(ref.evidenceId, s);
+    }
+  }
+  const out = new Map<string, EvidenceRelationship[]>();
+  sets.forEach((s, id) => out.set(id, Array.from(s)));
+  return out;
+}
+
+/** True if an evidence item carries at least one ref of the given relationship
+ * — exactly the predicate LibrarianView uses to filter, so a digest band's
+ * count equals the filtered Evidence list a user sees when they click it. */
+export function hasRelationship(
+  rels: EvidenceRelationship[] | undefined,
+  stance: EvidenceRelationship
+): boolean {
+  return !!rels && rels.includes(stance);
+}
+
+/**
+ * Distribution of mapped evidence across the three stances (the bar). Counts by
+ * MEMBERSHIP (an item with both supports + challenges is counted in BOTH bands)
+ * so each band's count matches clicking it through to the filtered Evidence
+ * lens. `total` is the count of DISTINCT mapped items; with overlap the three
+ * bands can sum above `total` (rare — most items carry a single relationship).
+ */
+export function stanceCounts(
+  evidence: { id: string; evidenceId?: string }[],
+  relMap: Map<string, EvidenceRelationship[]>
+): { supports: number; challenges: number; context: number; total: number } {
+  const c = { supports: 0, challenges: 0, context: 0, total: 0 };
+  for (const ev of evidence) {
+    const rels = relMap.get(ev.evidenceId || ev.id);
+    if (!rels || rels.length === 0) continue;
+    c.total += 1;
+    for (const r of rels) c[r] += 1;
+  }
+  return c;
 }

@@ -67,7 +67,7 @@ describe('ViewSelector', () => {
   it('shows subtitles on desktop (hidden md:block)', () => {
     render(<ViewSelector {...defaultProps} />);
     // Subtitles are rendered but hidden on mobile via CSS.
-    expect(screen.getByText('Cartographer · shape of the conversation')).toBeInTheDocument();
-    expect(screen.getByText('Librarian · full classified set')).toBeInTheDocument();
+    expect(screen.getByText('Shape of the debate?')).toBeInTheDocument();
+    expect(screen.getByText('What does the evidence say?')).toBeInTheDocument();
   });
 });

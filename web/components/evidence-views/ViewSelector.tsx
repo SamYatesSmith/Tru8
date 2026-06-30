@@ -19,31 +19,40 @@ const DETAIL_ONLY_TOOLTIPS: Record<string, string> = {
   seeker: 'Available when viewing a specific claim — click a claim card above to surface unknowns.',
 };
 
-// Plain-language label leads; the profession is kept as flavour in the subtitle
-// (D-R1, §7.4). `value` strings are unchanged — ?view= deep links stay stable.
-// Order leads with Evidence (the default lens, §7.2.2).
+// Action label leads; the SUBTITLE is the QUESTION each lens answers (the value
+// signpost — NN/g information scent; fixes the bare "VIDEO" format-label). The
+// profession is internal only (kept in this comment, not user-facing):
+//   librarian=Evidence · correspondent=Sources · chronologist=Timeline ·
+//   seeker=Gaps · cartographer=Map · projectionist=Video.
+// `value` strings are unchanged — ?view= deep links stay stable. Order leads
+// with Evidence (the recommended default lens).
 export const ALL_TABS: { value: ViewTab; label: string; subtitle: string }[] = [
-  { value: 'librarian', label: 'EVIDENCE', subtitle: 'Librarian · full classified set' },
-  { value: 'correspondent', label: 'SOURCES', subtitle: "Correspondent · who's in the room" },
-  { value: 'chronologist', label: 'TIMELINE', subtitle: 'Chronologist · when evidence appeared' },
-  { value: 'seeker', label: 'GAPS', subtitle: "Seeker · what we don't know yet" },
-  { value: 'cartographer', label: 'MAP', subtitle: 'Cartographer · shape of the conversation' },
-  { value: 'projectionist', label: 'VIDEO', subtitle: 'Projectionist · on camera' },
+  { value: 'librarian', label: 'EVIDENCE', subtitle: 'What does the evidence say?' },
+  { value: 'correspondent', label: 'SOURCES', subtitle: 'Is the full set here?' },
+  { value: 'chronologist', label: 'TIMELINE', subtitle: 'When did it appear?' },
+  { value: 'seeker', label: 'GAPS', subtitle: "What don't we know yet?" },
+  { value: 'cartographer', label: 'MAP', subtitle: 'Shape of the debate?' },
+  { value: 'projectionist', label: 'VIDEO', subtitle: "What's said on camera?" },
 ];
 
 export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: ViewSelectorProps) {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
-  const visibleTabs = ALL_TABS.filter(tab => !hiddenTabs.includes(tab.value));
+  const visibleTabs = ALL_TABS.filter((tab) => !hiddenTabs.includes(tab.value));
 
   return (
-    <div className="relative grid grid-cols-3 lg:flex lg:justify-between border-b border-zinc-200 mb-6">
+    // Segmented control: one connected, bordered track signals "same analysis,
+    // different views" (not separate-content tabs). Borders collapse via -ml/-mt
+    // px so cells read as one calibrated control. Mobile = 3-col grid, lg = single
+    // row. Active = filled (≥2 cues: fill + bold + white). Orange is the hover/
+    // wayfinding accent; inactive stays clearly visible (never greyed-to-disabled).
+    <div className="grid grid-cols-3 lg:grid-cols-6 border border-zinc-300 mb-6">
       {visibleTabs.map((tab) => {
         const isDisabled = mode === 'overview' && DETAIL_ONLY_TABS.includes(tab.value);
         const isActive = activeTab === tab.value && !isDisabled;
         const showTooltip = isDisabled && hoveredTab === tab.value;
 
         return (
-          <div key={tab.value} className="relative text-center lg:flex-1 group">
+          <div key={tab.value} className="relative -ml-px -mt-px">
             <button
               onClick={() => {
                 if (isDisabled) return;
@@ -52,31 +61,38 @@ export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: 
               }}
               onMouseEnter={() => isDisabled && setHoveredTab(tab.value)}
               onMouseLeave={() => setHoveredTab(null)}
-              className={`w-full min-h-[44px] px-2 py-2.5 lg:px-4 lg:py-4 font-bold uppercase font-mono transition-all duration-200 ${
-                isActive
-                  ? 'border-b-2 border-[var(--accent)] text-black text-[10px] lg:text-[13px] tracking-[0.08em] lg:tracking-[0.25em]'
-                  : isDisabled
-                    ? 'text-zinc-200 cursor-default text-[9px] lg:text-[11px] tracking-[0.08em] lg:tracking-[0.25em]'
-                    : 'text-zinc-400 text-[9px] lg:text-[11px] tracking-[0.08em] lg:tracking-[0.25em] hover:text-zinc-800 hover:text-[10px] hover:lg:text-[13px]'
-              }`}
               disabled={isDisabled}
               aria-disabled={isDisabled}
-            >
-              {tab.label}
-              <span className={`hidden lg:block font-normal tracking-normal normal-case font-sans mt-0.5 transition-all duration-200 ${
+              aria-pressed={isActive}
+              className={`relative w-full h-full min-h-[52px] px-2 py-2.5 lg:px-3 lg:py-3 border border-zinc-200 text-center transition-colors duration-150 ${
                 isActive
-                  ? 'text-zinc-500 text-[9px]'
+                  ? 'z-10 bg-zinc-900 border-zinc-900 text-white cursor-pointer'
                   : isDisabled
-                    ? 'text-zinc-200 text-[8px]'
-                    : 'text-zinc-400 text-[8px] group-hover:text-[9px] group-hover:text-zinc-500'
-              }`}>
+                    ? 'bg-zinc-50 text-zinc-300 cursor-default'
+                    : 'bg-white text-zinc-700 hover:bg-zinc-50 hover:text-[var(--accent)] cursor-pointer'
+              }`}
+            >
+              <span className="block font-mono font-bold uppercase text-[10px] lg:text-[12px] tracking-[0.12em]">
+                {tab.label}
+              </span>
+              <span
+                className={`hidden lg:block font-sans font-normal normal-case tracking-normal text-[10px] mt-0.5 ${
+                  isActive ? 'text-zinc-300' : isDisabled ? 'text-zinc-300' : 'text-zinc-500'
+                }`}
+              >
                 {tab.subtitle}
               </span>
+              {/* Recommended "start here" cue on the default lens when not active. */}
+              {tab.value === 'librarian' && !isActive && !isDisabled && (
+                <span className="absolute top-1 right-1.5 font-mono text-[7px] tracking-[0.15em] uppercase text-[var(--accent)]">
+                  start
+                </span>
+              )}
             </button>
 
             {/* Tooltip for disabled tabs */}
             {showTooltip && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-56 px-3 py-2 bg-zinc-900 text-white text-[10px] leading-relaxed rounded shadow-lg pointer-events-none">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-56 px-3 py-2 bg-zinc-900 text-white text-[10px] leading-relaxed shadow-lg pointer-events-none">
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 rotate-45" />
                 {DETAIL_ONLY_TOOLTIPS[tab.value]}
               </div>
