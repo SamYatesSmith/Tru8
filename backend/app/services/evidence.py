@@ -494,11 +494,16 @@ class EvidenceExtractor:
                                 f"Extracted date from HTML: {published_date} for {search_result.url}"
                             )
 
+                    # Prefer the page's own (complete) title over the search
+                    # provider's — which Google/Serper truncate with an ellipsis.
+                    # HTML is already in memory; no extra fetch.
+                    page_title = self._extract_title_from_html(response.text)
+
                     return EvidenceSnippet(
                         text=snippet_text,
                         source=search_result.source,
                         url=search_result.url,
-                        title=search_result.title,
+                        title=page_title or search_result.title,
                         published_date=published_date,
                         relevance_score=relevance_score,
                         content_basis="snippet" if _fell_back_to_snippet else "full",
@@ -607,6 +612,61 @@ class EvidenceExtractor:
             content = re.sub(pattern, "", content, flags=re.IGNORECASE)
 
         return content.strip()
+
+    # Titles served by bot-walls / JS interstitials — never let one of these
+    # replace the search title.
+    _JUNK_TITLE_MARKERS = (
+        "just a moment",
+        "attention required",
+        "access denied",
+        "access to this page has been denied",
+        "are you a robot",
+        "please enable javascript",
+        "enable javascript to",
+        "checking your browser",
+        "captcha",
+        "403 forbidden",
+        "before you continue",
+        "one moment",
+        "site not available",
+    )
+
+    def _extract_title_from_html(self, html: str) -> Optional[str]:
+        """Extract the page's own title from already-fetched HTML.
+
+        We fetch and parse every evidence page anyway (for content + date), but
+        keep the search provider's title — which Google/Serper truncate with an
+        ellipsis. The page's own title is complete. Prefer the clean social
+        title, then the document ``<title>``.
+
+        Priority: ``og:title`` → ``twitter:title`` → ``<title>``. Returns None
+        (caller keeps the search title) when nothing valid is found or the page
+        served a bot-wall interstitial. No new fetch — HTML is already in memory.
+        """
+        try:
+            soup = BeautifulSoup(html, "html.parser")
+            candidates: list[str] = []
+            for prop in ("og:title", "twitter:title"):
+                tag = soup.find("meta", attrs={"property": prop}) or soup.find(
+                    "meta", attrs={"name": prop}
+                )
+                content = tag.get("content") if tag else None
+                if content:
+                    candidates.append(content)
+            if soup.title and soup.title.string:
+                candidates.append(soup.title.string)
+
+            for raw in candidates:
+                title = re.sub(r"\s+", " ", raw).strip()
+                if len(title) < 5:
+                    continue
+                if any(m in title.lower() for m in self._JUNK_TITLE_MARKERS):
+                    continue
+                return title
+            return None
+        except Exception as e:
+            logger.debug(f"Title extraction failed: {e}")
+            return None
 
     def _extract_date_from_html(self, html: str) -> Optional[str]:
         """
