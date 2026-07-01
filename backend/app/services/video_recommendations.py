@@ -125,20 +125,28 @@ async def fetch_video_recommendations(
         seen_video_ids: set = set()
         all_recommendations: List[Dict[str, Any]] = []
 
-        for claim in claims:
-            claim_id = claim.get("id")
-            claim_text = claim.get("text", "")
-            if not claim_id or not claim_text:
+        # Fetch every claim's videos CONCURRENTLY — collapses the fire-and-forget
+        # window from (claims x ~1-2s) to ~1-2s flat, so an API restart is far
+        # less likely to catch the task mid-flight. return_exceptions keeps one
+        # claim's failure from sinking the rest.
+        valid_claims = [c for c in claims if c.get("id") and c.get("text")]
+        search_results = await asyncio.gather(
+            *[
+                search_youtube_videos(query=c["text"][:200], max_results=max_per_claim)
+                for c in valid_claims
+            ],
+            return_exceptions=True,
+        )
+
+        # Process in claim order so cross-claim dedupe stays deterministic
+        # (the first claim to surface a video keeps it).
+        for claim, videos in zip(valid_claims, search_results):
+            if isinstance(videos, Exception):
+                logger.warning(
+                    f"[VIDEO RECS] Search failed for claim {claim.get('id')}: {videos}"
+                )
                 continue
-
-            # Derive search query from claim text (truncate for API)
-            query = claim_text[:200]
-
-            videos = await search_youtube_videos(
-                query=query,
-                max_results=max_per_claim,
-            )
-
+            claim_id = claim["id"]
             for video in videos:
                 vid_id = video["video_id"]
                 if vid_id in seen_video_ids:

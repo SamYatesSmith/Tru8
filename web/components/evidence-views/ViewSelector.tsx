@@ -15,6 +15,17 @@ interface ViewSelectorProps {
 /** Tabs that only make sense at the per-claim detail level. */
 const DETAIL_ONLY_TABS: ViewTab[] = ['seeker'];
 
+// Desktop column count follows the number of VISIBLE tabs, so hiding one (e.g.
+// Video when a check has none) closes the row up instead of leaving a blank
+// cell. Static class strings so Tailwind's JIT keeps them.
+const LG_GRID_COLS: Record<number, string> = {
+  2: 'lg:grid-cols-2',
+  3: 'lg:grid-cols-3',
+  4: 'lg:grid-cols-4',
+  5: 'lg:grid-cols-5',
+  6: 'lg:grid-cols-6',
+};
+
 const DETAIL_ONLY_TOOLTIPS: Record<string, string> = {
   seeker: 'Available when viewing a specific claim — click a claim card above to surface unknowns.',
 };
@@ -51,7 +62,7 @@ export function ViewSelector({ mode, activeTab, onTabChange, hiddenTabs = [] }: 
     // row. Active = filled (≥2 cues: fill + bold + white). Orange is the hover/
     // wayfinding accent; inactive stays clearly visible (never greyed-to-disabled).
     <div className="mb-6">
-      <div className="grid grid-cols-3 lg:grid-cols-6 border border-zinc-300">
+      <div className={`grid grid-cols-3 ${LG_GRID_COLS[visibleTabs.length] || 'lg:grid-cols-6'} border border-zinc-300`}>
       {visibleTabs.map((tab) => {
         const isDisabled = mode === 'overview' && DETAIL_ONLY_TABS.includes(tab.value);
         const isActive = activeTab === tab.value && !isDisabled;
