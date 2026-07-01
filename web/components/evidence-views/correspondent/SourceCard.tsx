@@ -3,6 +3,7 @@
 import { EvidenceTier } from '@shared/types';
 import { ElementRefs } from '../ElementRefs';
 import { ElementBadge } from '../ElementBadge';
+import { cleanTitle } from '../shared-utils';
 
 const TIER_BORDER_COLOURS: Record<EvidenceTier, string> = {
   primary: '#EA580C',
@@ -117,7 +118,7 @@ export function SourceCard({
         <div className="border-t border-zinc-100 mt-3 pt-3">
           {evidenceTitles.map((title, i) => (
             <div key={i} className="text-[11px] text-zinc-500 mb-1">
-              {title}
+              {cleanTitle(title)}
             </div>
           ))}
         </div>

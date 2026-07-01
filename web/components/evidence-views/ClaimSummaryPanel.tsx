@@ -33,6 +33,7 @@ import {
   stanceCounts,
   extractDomain,
   getFaviconUrl,
+  cleanTitle,
 } from './shared-utils';
 import { capture } from '@/lib/analytics';
 import { ElementList } from './ElementList';
@@ -267,7 +268,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
                 <span aria-hidden className="mt-2 w-1 h-1 bg-zinc-400 shrink-0" />
                 {/* Source title, not the raw snippet — source-platforming invariant
                     (relevance summaries drive visits; never reproduce article content). */}
-                <span className="flex-1 leading-snug line-clamp-2">{ev.title || extractDomain(ev.url)}</span>
+                <span className="flex-1 leading-snug line-clamp-2">{cleanTitle(ev.title) || extractDomain(ev.url)}</span>
                 <a
                   href={ev.url}
                   target="_blank"
@@ -338,24 +339,28 @@ function PointCard({ kind, title, url, nav, onOpen }: { kind: EvidenceRelationsh
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600">
         {meta.glyph} Most relevant {adj} source
       </span>
-      <p className="mt-1.5 text-sm text-zinc-900 leading-snug">{title}</p>
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-zinc-500">
-        <img
-          src={getFaviconUrl(url)}
-          alt=""
-          width={12}
-          height={12}
-          loading="lazy"
-          className="w-3 h-3 shrink-0 rounded-sm"
-          onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
-        />
-        {extractDomain(url)}
-      </p>
-      {nav && (
-        <span className="mt-2 inline-flex items-center gap-1 text-xs text-zinc-500 group-hover:text-[var(--accent)] transition-colors">
-          see in evidence <ArrowRight size={12} />
+      <p className="mt-1.5 text-sm text-zinc-900 leading-snug">{cleanTitle(title)}</p>
+      {/* Domain left, "see in evidence →" pinned far-right so the clickable
+          aligns with the other right-edge affordances (not quashed by the domain). */}
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <span className="inline-flex items-center gap-1 text-xs text-zinc-500 min-w-0">
+          <img
+            src={getFaviconUrl(url)}
+            alt=""
+            width={12}
+            height={12}
+            loading="lazy"
+            className="w-3 h-3 shrink-0 rounded-sm"
+            onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+          />
+          <span className="truncate">{extractDomain(url)}</span>
         </span>
-      )}
+        {nav && (
+          <span className="shrink-0 inline-flex items-center gap-1 text-xs text-zinc-500 group-hover:text-[var(--accent)] transition-colors">
+            see in evidence <ArrowRight size={12} />
+          </span>
+        )}
+      </div>
     </>
   );
   return nav ? (

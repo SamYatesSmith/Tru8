@@ -6,6 +6,7 @@ import { LandscapeSummaryStrip } from './LandscapeSummaryStrip';
 import { EvidenceMap, type ElementMapping } from './EvidenceMap';
 import { GapIndicator } from './GapIndicator';
 import { ElementBadge } from '../ElementBadge';
+import { cleanTitle } from '../shared-utils';
 
 // --- Mobile helpers ---
 
@@ -250,7 +251,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian }: Cartogr
                       {ev.source}
                     </div>
                     <div className="text-[12px] text-zinc-900 font-medium leading-snug mb-1.5">
-                      {ev.title}
+                      {cleanTitle(ev.title)}
                     </div>
                     {ev.publishedDate && (
                       <div className="text-[10px] text-zinc-400 font-mono mb-2">

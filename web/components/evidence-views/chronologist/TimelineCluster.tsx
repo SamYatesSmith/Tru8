@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Evidence } from '@shared/types';
 import { TimelineNode } from './TimelineNode';
-import { extractDomain, formatShortDate } from '../shared-utils';
+import { extractDomain, formatShortDate, cleanTitle } from '../shared-utils';
 import type { DatedItem } from './ChronologistView';
 
 interface TimelineClusterProps {
@@ -68,7 +68,7 @@ export function TimelineCluster({ count, items, dominantColor, onNodeClick, sele
             {count} sources on {formatShortDate(items[0].date)}
           </p>
           {items.slice(0, 3).map((item, i) => (
-            <p key={i} className="font-mono text-[10px] truncate">{item.evidence.title || 'Untitled'}</p>
+            <p key={i} className="font-mono text-[10px] truncate">{cleanTitle(item.evidence.title) || 'Untitled'}</p>
           ))}
           {items.length > 3 && (
             <p className="font-mono text-[9px] text-zinc-500 mt-1">+{items.length - 3} more &middot; Click to expand</p>

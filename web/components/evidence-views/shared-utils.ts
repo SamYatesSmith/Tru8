@@ -10,6 +10,26 @@ export function extractDomain(url: string): string {
   }
 }
 
+/**
+ * Tidy an evidence title for display. Search providers (Serper/Google) hand us
+ * titles already truncated with a trailing ellipsis, often followed by a
+ * redundant " - Site" / " | Site" suffix (we show the domain separately). We
+ * can't recover the dropped words, but we can strip the lazy trailing "…" and
+ * the orphaned site suffix so a title reads "…triggered seismicity" cleanly
+ * rather than "…triggered seismicity … - Science". Clean titles (no ellipsis)
+ * are left untouched — this only removes a dangling truncation marker.
+ */
+export function cleanTitle(title?: string | null): string {
+  if (!title) return '';
+  return title
+    .trim()
+    // trailing "… - Site" / "... | Site" (ellipsis + orphaned site suffix)
+    .replace(/\s*(?:\.{2,}|…)\s*[-|–—]\s*[^-|–—]+$/, '')
+    // bare trailing ellipsis
+    .replace(/\s*(?:\.{2,}|…)\s*$/, '')
+    .trim();
+}
+
 export function formatShortDate(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }

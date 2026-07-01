@@ -3,7 +3,7 @@
 import { Evidence, EvidenceTier } from '@shared/types';
 import { TierStamp } from '../librarian/TierStamp';
 import { TypeStamp } from '../librarian/TypeStamp';
-import { extractDomain, formatDateStr, getFaviconUrl } from '../shared-utils';
+import { extractDomain, formatDateStr, getFaviconUrl, cleanTitle } from '../shared-utils';
 
 const TIER_BORDER_COLORS: Record<EvidenceTier, string> = {
   primary: '#EA580C',
@@ -60,7 +60,7 @@ export function EvidenceDetailCard({ evidence, elementDescriptions, onClose }: E
 
       {/* Title */}
       <p className="text-sm font-medium text-zinc-900 mb-1">
-        {evidence.title || 'Untitled source'}
+        {cleanTitle(evidence.title) || 'Untitled source'}
       </p>
 
       {/* Date */}

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Evidence, EvidenceTier, ClaimElement } from '@shared/types';
+import { cleanTitle } from '../shared-utils';
 import {
   forceSimulation,
   forceX,
@@ -790,7 +791,7 @@ export function EvidenceMap({
             {hoveredNode.evidence.source}
           </div>
           <div className="text-[11px] text-zinc-800 font-medium line-clamp-2 leading-tight">
-            {hoveredNode.evidence.title}
+            {cleanTitle(hoveredNode.evidence.title)}
           </div>
           {hoveredNode.evidence.publishedDate && (
             <div className="text-[10px] text-zinc-400 mt-1 font-mono">

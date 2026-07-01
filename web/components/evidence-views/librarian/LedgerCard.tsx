@@ -4,7 +4,7 @@ import { Evidence, EvidenceRelationship } from '@shared/types';
 import { TypeStamp } from './TypeStamp';
 import { ElementRefs } from '../ElementRefs';
 import { FactCheckRating } from '../FactCheckRating';
-import { getFaviconUrl } from '../shared-utils';
+import { getFaviconUrl, cleanTitle } from '../shared-utils';
 
 // Disposition labels — an organising axis (how the source relates to the
 // claim), never an argument. Colour-restrained on purpose (no traffic light).
@@ -77,7 +77,7 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relat
         </div>
         <div className="flex-grow min-w-0">
           <div className="text-sm font-medium text-zinc-900 mb-1">
-            {evidence.title || 'Untitled source'}
+            {cleanTitle(evidence.title) || 'Untitled source'}
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex items-center gap-1 font-mono text-[10px] text-zinc-500">

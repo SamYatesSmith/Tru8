@@ -4,6 +4,7 @@ import { Evidence, EvidenceTier } from '@shared/types';
 import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
 import { FactCheckRating } from '../FactCheckRating';
+import { cleanTitle } from '../shared-utils';
 
 function extractDomain(url: string): string {
   try {
@@ -85,7 +86,7 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
 
       {/* Title */}
       <div className="text-sm font-medium text-zinc-900 mb-1">
-        {evidence.title || 'Untitled source'}
+        {cleanTitle(evidence.title) || 'Untitled source'}
       </div>
 
       {/* Date */}
