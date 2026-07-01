@@ -1995,6 +1995,22 @@ async def run_pipeline_phase2(
                 for ev in ev_list:
                     ev.pop("_full_text", None)
 
+    # --- Derivation chains (echo / thin-support signal) ---
+    # MUST run after classify: _detect_derivation_chains keys off tier="primary",
+    # which classify has now assigned. The corroboration pass at retrieve time
+    # runs before tiers exist, so its chain step no-ops; this writes the chains
+    # that feed the per-element basis. Same in-memory objects flow to analyze.
+    if evidence:
+        from app.utils.corroboration import annotate_derivation_chains
+
+        total_chains = 0
+        for ev_list in evidence.values():
+            total_chains += annotate_derivation_chains(ev_list)
+        if total_chains:
+            logger.info(
+                f"[DERIVATION] Wrote {total_chains} derivation chain(s) post-classify"
+            )
+
     article_excerpt = content.get("content", "")[:5000]
 
     # =========================================================================

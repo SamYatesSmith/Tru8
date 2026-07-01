@@ -364,3 +364,36 @@ def apply_corroboration_boost(
         )
 
     return evidence_list, stats
+
+
+def annotate_derivation_chains(evidence_list: List[Dict[str, Any]]) -> int:
+    """Write `derivation_chain` onto primary items that ≥2 independent
+    reporting/commentary sources re-report — the signal behind the per-element
+    echo / thin-support note.
+
+    MUST run AFTER classification. `_detect_derivation_chains` keys off
+    `tier == "primary"`, but `apply_corroboration_boost` runs at retrieve time
+    (before tiers exist), so its chain step always no-ops. This recomputes the
+    corroboration pairs on the now-classified pool and writes the chains that
+    feed `_compute_element_basis`. Corroboration group ids assigned at retrieve
+    are left untouched. Mutates items in place; returns the number of chains
+    written.
+    """
+    if len(evidence_list) < 2:
+        return 0
+
+    corroboration_map = find_corroborating_sources(evidence_list)
+    if not corroboration_map:
+        return 0
+
+    chains = _detect_derivation_chains(evidence_list, corroboration_map)
+    for idx, derived in chains.items():
+        if idx < len(evidence_list):
+            evidence_list[idx]["derivation_chain"] = derived
+
+    if chains:
+        logger.info(
+            f"[CORROBORATION] Post-classify derivation: {len(chains)} chain(s) "
+            f"written across {len(evidence_list)} items"
+        )
+    return len(chains)
