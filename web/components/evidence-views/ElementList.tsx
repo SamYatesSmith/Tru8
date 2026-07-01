@@ -4,9 +4,21 @@ import { ClaimElement } from '@shared/types';
 import { ElementBadge } from './ElementBadge';
 import { ElementStateBadge, ElementStateKey } from './ElementStateBadge';
 import { EvidenceQualityNote } from './EvidenceQualityNote';
+import { TopUpButton } from './TopUpButton';
+import { elementIsThin } from '@/lib/support-structure';
+
+/** Dashboard-only capability to top up a thin element. Absent on the public report. */
+export interface TopUpCapability {
+  checkId: string;
+  claimId: string;
+  token: string | null;
+  onComplete?: () => void;
+}
 
 interface ElementListProps {
   elements: ClaimElement[];
+  /** When present, thin elements show a "Get more sources" trigger. */
+  topUp?: TopUpCapability;
 }
 
 /**
@@ -18,7 +30,7 @@ interface ElementListProps {
  *
  * Migrated up out of the Map lens, where it used to sit at the bottom.
  */
-export function ElementList({ elements }: ElementListProps) {
+export function ElementList({ elements, topUp }: ElementListProps) {
   if (elements.length === 0) return null;
 
   return (
@@ -60,6 +72,18 @@ export function ElementList({ elements }: ElementListProps) {
                   </div>
                 </div>
                 {!isGap && <EvidenceQualityNote basis={element.basis} />}
+                {topUp && !isGap && elementIsThin(element) && (
+                  <div className="mt-2">
+                    <TopUpButton
+                      mode="element"
+                      checkId={topUp.checkId}
+                      claimId={topUp.claimId}
+                      token={topUp.token}
+                      elementId={element.elementId}
+                      onComplete={topUp.onComplete}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

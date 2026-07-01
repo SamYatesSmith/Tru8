@@ -1,4 +1,4 @@
-import type { EvidenceSideStructure } from '@shared/types';
+import type { ClaimElement, ElementBasis, EvidenceSideStructure } from '@shared/types';
 
 /**
  * Presentation-layer flag over the structure the pipeline produced for one
@@ -54,4 +54,43 @@ export function evidenceQualityNote(
   }
 
   return null;
+}
+
+/** True when EITHER side of the element carries a thin/echo note. */
+export function elementHasQualityNote(basis: ElementBasis | undefined | null): boolean {
+  if (!basis) return false;
+  return (
+    evidenceQualityNote(basis.support_structure) !== null ||
+    evidenceQualityNote(basis.challenge_structure) !== null
+  );
+}
+
+/**
+ * Does this element show a "top-up" trigger? A THIN element the user can pull
+ * more evidence into — NOT a gap (the Seeker owns 0-source elements).
+ *
+ * MUST stay in lock-step with the backend `element_is_thin`
+ * (`backend/app/pipeline/support_structure.py`), which the claim-level
+ * "Strengthen this claim" endpoint uses to pick which elements to top up — so
+ * the button never appears on an element the endpoint wouldn't strengthen, and
+ * never hides on one it would.
+ *
+ * Thin iff ≥1 mapped source AND state is not `disputed` AND any of:
+ *   - ≤ 2 mapped sources, OR
+ *   - state is `unresolved` / unset, OR
+ *   - either side carries a thin/echo note.
+ */
+export function elementIsThin(element: ClaimElement): boolean {
+  const refs = element.evidenceRefs || [];
+  if (refs.length === 0) return false; // gap → Seeker's territory
+  if (element.state === 'disputed') return false; // evidence-rich, contested
+  if (refs.length <= 2) return true;
+  if (element.state == null || element.state === 'unresolved') return true;
+  if (elementHasQualityNote(element.basis)) return true;
+  return false;
+}
+
+/** Count of thin elements — drives the claim-level button's visibility/label. */
+export function thinElementCount(elements: ClaimElement[]): number {
+  return elements.reduce((n, el) => n + (elementIsThin(el) ? 1 : 0), 0);
 }

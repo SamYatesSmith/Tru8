@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { evidenceQualityNote } from '../support-structure';
-import type { EvidenceSideStructure } from '@shared/types';
+import { evidenceQualityNote, elementIsThin, thinElementCount } from '../support-structure';
+import type { ClaimElement, ElementBasis, ElementState, EvidenceSideStructure } from '@shared/types';
 
 function side(p: Partial<EvidenceSideStructure>): EvidenceSideStructure {
   return {
@@ -101,5 +101,85 @@ describe('evidenceQualityNote', () => {
       }),
     );
     expect(note?.kind).toBe('echo');
+  });
+});
+
+// Mirrors backend tests/unit/pipeline/test_thin_support.py::element_is_thin so
+// the digest trigger and the `research-thin` endpoint agree on "thin".
+function elem(
+  refCount: number,
+  state: ElementState | null,
+  basis?: ElementBasis,
+): ClaimElement {
+  return {
+    elementId: 'e1',
+    description: 'd',
+    evidenceRefs: Array.from({ length: refCount }, (_, i) => ({
+      evidenceId: `x${i}`,
+      relationship: 'supports' as const,
+    })),
+    state,
+    uncertainty: null,
+    ...(basis ? { basis } : {}),
+  };
+}
+
+const HEALTHY_BASIS: ElementBasis = {
+  support_structure: side({
+    count: 3,
+    distinct_domains: 3,
+    tier_counts: { primary: 1, reporting: 2, commentary: 0 },
+  }),
+  challenge_structure: side({ count: 0 }),
+};
+
+const THIN_BASIS: ElementBasis = {
+  support_structure: side({
+    count: 4,
+    distinct_domains: 1,
+    tier_counts: { primary: 0, reporting: 0, commentary: 4 },
+  }),
+  challenge_structure: side({ count: 0 }),
+};
+
+describe('elementIsThin', () => {
+  it('excludes a gap (no mapped sources)', () => {
+    expect(elementIsThin(elem(0, 'unresolved'))).toBe(false);
+  });
+
+  it('excludes disputed even with few refs', () => {
+    expect(elementIsThin(elem(2, 'disputed'))).toBe(false);
+  });
+
+  it('flags few refs (<=2)', () => {
+    expect(elementIsThin(elem(2, 'supported'))).toBe(true);
+    expect(elementIsThin(elem(1, 'supported'))).toBe(true);
+  });
+
+  it('flags unresolved / null state', () => {
+    expect(elementIsThin(elem(5, 'unresolved'))).toBe(true);
+    expect(elementIsThin(elem(5, null))).toBe(true);
+  });
+
+  it('flags a well-counted element whose sourcing carries a note', () => {
+    expect(elementIsThin(elem(4, 'supported', THIN_BASIS))).toBe(true);
+  });
+
+  it('does NOT flag a well-covered element', () => {
+    expect(elementIsThin(elem(3, 'supported', HEALTHY_BASIS))).toBe(false);
+    expect(elementIsThin(elem(4, 'contextual', HEALTHY_BASIS))).toBe(false);
+  });
+});
+
+describe('thinElementCount', () => {
+  it('counts only the thin elements', () => {
+    const elements = [
+      elem(0, 'unresolved'), // gap → not counted
+      elem(2, 'supported'), // few refs → thin
+      elem(2, 'disputed'), // disputed → not counted
+      elem(3, 'supported', HEALTHY_BASIS), // well-covered → not counted
+      elem(5, 'unresolved'), // unresolved → thin
+    ];
+    expect(thinElementCount(elements)).toBe(2);
   });
 });

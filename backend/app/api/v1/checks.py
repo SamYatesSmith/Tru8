@@ -1691,6 +1691,111 @@ async def start_gap_research(
 
 
 @router.post(
+    "/{check_id}/claims/{claim_id}/research-thin",
+    summary="Start top-up re-search for all thin elements in a claim",
+    responses={
+        200: {"description": "Top-up re-search started for thin elements"},
+        404: {"description": "Check or claim not found", "model": ErrorResponse},
+        409: {
+            "description": "Check is not completed or research already in progress",
+            "model": ErrorResponse,
+        },
+    },
+)
+async def start_thin_research(
+    check_id: str,
+    claim_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    """Top up ALL thin (not-gap) elements in a claim in one run (1 credit).
+
+    Mirrors ``start_gap_research`` but targets thin elements — pulling MORE
+    evidence into the existing pool for elements that came back weak. "Thin"
+    is defined in ``app.pipeline.support_structure`` (the backend twin of the
+    frontend digest read). Gaps (0 sources) are the Seeker's territory and are
+    excluded here.
+    """
+    # Console-only: re-search bills the subscription, so reject API-key callers
+    # (the metered /agent path has no re-search). See the path-separation wall.
+    _require_console_submission(request)
+    from app.pipeline.re_search import run_element_re_search, get_research_status
+    from app.pipeline.support_structure import thin_element_ids
+
+    # 1. Validate check
+    stmt = select(Check).where(
+        Check.id == check_id, Check.user_id == current_user["id"]
+    )
+    result = await session.execute(stmt)
+    check = result.scalar_one_or_none()
+
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+
+    if check.status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail="Re-search is only available on completed checks",
+        )
+
+    # 2. Validate claim + find thin elements
+    claim_stmt = select(Claim).where(Claim.id == claim_id, Claim.check_id == check_id)
+    claim_result = await session.execute(claim_stmt)
+    db_claim = claim_result.scalar_one_or_none()
+
+    if not db_claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+
+    claim_map = db_claim.claim_map
+    if isinstance(claim_map, str):
+        claim_map = json.loads(claim_map)
+
+    if not claim_map or not isinstance(claim_map, dict):
+        raise HTTPException(status_code=404, detail="Claim map not found")
+
+    thin_ids = thin_element_ids(claim_map)
+
+    if not thin_ids:
+        raise HTTPException(
+            status_code=409,
+            detail="No thin elements found — nothing to strengthen",
+        )
+
+    # 3. Check none are already running
+    for eid in thin_ids:
+        existing_status = get_research_status(check_id, claim_id, eid)
+        if existing_status and existing_status.get("status") in (
+            "planning",
+            "retrieving",
+            "classifying",
+            "mapping",
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail="Research is already in progress for one or more elements",
+            )
+
+    # 4. Credit validation — 1 credit for the whole top-up run
+    user = await _check_credits(session, current_user)
+
+    # 5. Start background tasks for each thin element
+    for eid in thin_ids:
+        asyncio.create_task(run_element_re_search(check_id, claim_id, eid))
+
+    # 6. Deduct 1 credit
+    await _deduct_credit(session, user)
+
+    return {
+        "status": "started",
+        "message": f"Top-up started for {len(thin_ids)} element{'s' if len(thin_ids) != 1 else ''}",
+        "elementIds": thin_ids,
+        "thinCount": len(thin_ids),
+        "creditsUsed": 1,
+    }
+
+
+@router.post(
     "/{check_id}/claims/{claim_id}/elements/{element_id}/research",
     summary="Start element re-search",
     responses={

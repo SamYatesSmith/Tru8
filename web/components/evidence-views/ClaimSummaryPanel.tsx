@@ -36,7 +36,9 @@ import {
   cleanTitle,
 } from './shared-utils';
 import { capture } from '@/lib/analytics';
-import { ElementList } from './ElementList';
+import { ElementList, TopUpCapability } from './ElementList';
+import { TopUpButton } from './TopUpButton';
+import { thinElementCount } from '@/lib/support-structure';
 
 const CONTEXT_LABELS: Record<string, string> = {
   url: 'Extracted Claim',
@@ -78,9 +80,15 @@ interface ClaimSummaryPanelProps {
   onNavigate?: (view: string, params?: { rel?: EvidenceRelationship[]; element?: string }) => void;
   /** Retained for call-site compatibility (was the Explore-rail hide list). */
   hiddenViews?: string[];
+  /**
+   * Dashboard-only: enables "top up a thin claim" triggers (per-element +
+   * claim-level). Absent on the read-only public `/r/` report, so no trigger
+   * ever renders there.
+   */
+  topUp?: TopUpCapability;
 }
 
-export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNavigate }: ClaimSummaryPanelProps) {
+export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNavigate, topUp }: ClaimSummaryPanelProps) {
   const claimMap = claim.claimMap;
   const elements = claimMap?.elements || [];
   // Match the Evidence lens, which shows only non-excluded sources, so a band's
@@ -103,6 +111,8 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   // Coverage: elements that carry a resolved state (gap = no/unresolved state).
   const coveredElements = elements.filter((el) => el.state && el.state !== 'unresolved').length;
   const gapElements = elements.filter((el) => !el.state || el.state === 'unresolved');
+  // Thin elements the signed-in user can top up (dashboard-only capability).
+  const thinCount = topUp ? thinElementCount(elements) : 0;
 
   // Source mix by tier (nullable tier → commentary in the helper).
   const tiers = tierCounts(evidence);
@@ -193,8 +203,21 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
             in the report.
           </p>
           <div className="mt-3">
-            <ElementList elements={elements} />
+            <ElementList elements={elements} topUp={topUp} />
           </div>
+          {/* Claim-level top-up: strengthen ALL thin elements in one run (dashboard-only). */}
+          {topUp && thinCount > 0 && (
+            <div className="mt-3">
+              <TopUpButton
+                mode="claim"
+                checkId={topUp.checkId}
+                claimId={topUp.claimId}
+                token={topUp.token}
+                thinCount={thinCount}
+                onComplete={topUp.onComplete}
+              />
+            </div>
+          )}
           {nav && gapElements.length > 0 && (
             <button
               type="button"

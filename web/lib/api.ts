@@ -337,6 +337,20 @@ class ApiClient {
   }
 
   /**
+   * POST /api/v1/checks/{check_id}/claims/{claim_id}/research-thin
+   * Top up ALL thin (not-gap) elements in a claim in one run (1 credit)
+   */
+  async startThinResearch(
+    checkId: string,
+    claimId: string,
+    token?: string | null
+  ): Promise<{ status: string; message: string; elementIds: string[]; thinCount: number; creditsUsed: number }> {
+    return this.request(`/api/v1/checks/${checkId}/claims/${claimId}/research-thin`, {
+      method: 'POST',
+    }, token);
+  }
+
+  /**
    * POST /api/v1/checks/{check_id}/claims/{claim_id}/elements/{element_id}/research
    * Start targeted re-search for a single element (G02)
    */

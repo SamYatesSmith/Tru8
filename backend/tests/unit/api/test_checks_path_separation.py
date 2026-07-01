@@ -182,6 +182,24 @@ class TestReSearchWall:
         session.execute.assert_not_called()  # guard short-circuits before any DB
 
     @pytest.mark.asyncio
+    async def test_thin_research_rejects_api_key_before_billing(self):
+        from app.api.v1.checks import start_thin_research
+
+        request = _make_request({}, auth_method="api_key")
+        session = AsyncMock()
+        with pytest.raises(HTTPException) as exc:
+            await start_thin_research(
+                check_id="c1",
+                claim_id="cl1",
+                request=request,
+                current_user={"id": "u1"},
+                session=session,
+            )
+        assert exc.value.status_code == 403
+        assert "/agent" in exc.value.detail
+        session.execute.assert_not_called()  # guard short-circuits before any DB
+
+    @pytest.mark.asyncio
     async def test_element_research_rejects_api_key_before_billing(self):
         from app.api.v1.checks import start_element_research
 

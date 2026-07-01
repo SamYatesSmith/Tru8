@@ -469,6 +469,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
                   inputType={checkData.inputType}
                   onNavigate={handleNavigateFromSummary}
                   hiddenViews={!claimVideosLoading && claimVideos.length === 0 ? ['projectionist'] : []}
+                  topUp={{ checkId, claimId: focusedClaim.id, token, onComplete: handleResearchComplete }}
                 />
                 {!isSingleClaim && claims.length > 1 && (
                   <div className="mt-4 flex items-center justify-end gap-2">
