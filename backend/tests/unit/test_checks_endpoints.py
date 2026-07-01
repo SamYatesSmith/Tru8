@@ -715,3 +715,114 @@ class TestGetSources:
         assert resp.status_code == 200
         data = resp.json()
         assert data["requiresUpgrade"] is True
+
+
+# ===========================================================================
+# POST /{id}/videos/recover — on-demand durable video recovery
+# ===========================================================================
+
+
+def _make_video(vid="v1", claim_id="claim-1"):
+    v = MagicMock()
+    v.id = f"vr-{vid}"
+    v.claim_id = claim_id
+    v.video_id = vid
+    v.title = "T"
+    v.description = "D"
+    v.channel_name = "BBC News"
+    v.channel_id = "c1"
+    v.publish_date = None
+    v.video_url = f"https://youtu.be/{vid}"
+    v.thumbnail_url = None
+    v.duration = None
+    v.tier_label = "reporting"
+    v.type_label = "news_reporting"
+    return v
+
+
+class TestRecoverVideos:
+    """POST /api/v1/checks/{id}/videos/recover — durable on-demand recovery."""
+
+    @pytest.mark.asyncio
+    async def test_recover_returns_existing_without_regenerating(self):
+        from unittest.mock import patch, AsyncMock
+
+        check = _make_check(check_id="chk-r1")
+        app = _create_test_app()
+        session = _make_session(
+            {"scalar": check},  # ownership
+            {"rows": [_make_video("v1"), _make_video("v2")]},  # existing videos
+        )
+        app.dependency_overrides[get_current_user_or_api_key] = _mock_auth_override()
+        app.dependency_overrides[get_session] = lambda: session
+
+        with patch(
+            "app.services.video_recommendations.fetch_video_recommendations",
+            new=AsyncMock(),
+        ) as gen:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                resp = await client.post("/api/v1/checks/chk-r1/videos/recover")
+
+        assert resp.status_code == 200
+        assert len(resp.json()["videos"]) == 2
+        gen.assert_not_awaited()  # idempotent — never regenerate over a set
+
+    @pytest.mark.asyncio
+    async def test_recover_generates_when_missing(self):
+        from unittest.mock import patch, AsyncMock
+
+        check = _make_check(check_id="chk-r4", status="completed")
+        claim = _make_claim(claim_id="cl1", check_id="chk-r4", text="ocean claim")
+        app = _create_test_app()
+        session = _make_session(
+            {"scalar": check},  # ownership
+            {"rows": []},  # no existing videos
+            {"rows": [claim]},  # is_selected claims
+            {"rows": [_make_video("v9")]},  # after generation
+        )
+        app.dependency_overrides[get_current_user_or_api_key] = _mock_auth_override()
+        app.dependency_overrides[get_session] = lambda: session
+
+        with patch(
+            "app.services.video_recommendations.fetch_video_recommendations",
+            new=AsyncMock(),
+        ) as gen:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                resp = await client.post("/api/v1/checks/chk-r4/videos/recover")
+
+        assert resp.status_code == 200
+        assert len(resp.json()["videos"]) == 1
+        gen.assert_awaited_once()  # durable, awaited generation
+
+    @pytest.mark.asyncio
+    async def test_recover_wrong_user_403(self):
+        check = _make_check(check_id="chk-r2", user_id="someone-else")
+        app = _create_test_app()
+        session = _make_session({"scalar": check})
+        app.dependency_overrides[get_current_user_or_api_key] = _mock_auth_override()
+        app.dependency_overrides[get_session] = lambda: session
+
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            resp = await client.post("/api/v1/checks/chk-r2/videos/recover")
+
+        assert resp.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_recover_not_found_404(self):
+        app = _create_test_app()
+        session = _make_session({"scalar": None})
+        app.dependency_overrides[get_current_user_or_api_key] = _mock_auth_override()
+        app.dependency_overrides[get_session] = lambda: session
+
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            resp = await client.post("/api/v1/checks/chk-r404/videos/recover")
+
+        assert resp.status_code == 404

@@ -21,12 +21,29 @@ def _video(vid: str, channel: str = "Random Channel"):
     }
 
 
+class _FakeResult:
+    def __init__(self, rows):
+        self._rows = rows
+
+    def scalars(self):
+        return self
+
+    def all(self):
+        return self._rows
+
+
 class _FakeSession:
-    def __init__(self):
+    def __init__(self, existing_video_ids=None):
         self.added = []
+        self._existing = existing_video_ids or []
 
     def add(self, obj):
         self.added.append(obj)
+
+    async def execute(self, *a, **k):
+        # The only execute() the orchestrator issues is the "already stored"
+        # video-id lookup before saving.
+        return _FakeResult(self._existing)
 
     async def commit(self):
         pass
@@ -97,6 +114,23 @@ async def test_fetch_skips_claims_missing_id_or_text(monkeypatch):
         ],
     )
     assert len(calls) == 1  # only the valid claim searched
+
+
+@pytest.mark.asyncio
+async def test_fetch_skips_videos_already_stored(monkeypatch):
+    """A video already stored for the check is not re-inserted (guards the
+    recover endpoint / a second generation from double-inserting)."""
+
+    async def fake_search(query, max_results):
+        return [_video("v1"), _video("v2")]
+
+    monkeypatch.setattr(vr, "search_youtube_videos", fake_search)
+    fake = _FakeSession(existing_video_ids=["v1"])  # v1 already in the DB
+    monkeypatch.setattr(vr, "async_session", lambda: fake)
+
+    await vr.fetch_video_recommendations("chk", [{"id": "c1", "text": "a claim"}])
+
+    assert [v.video_id for v in fake.added] == ["v2"]
 
 
 class TestClassifyChannel:

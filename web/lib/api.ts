@@ -402,6 +402,15 @@ class ApiClient {
   }
 
   /**
+   * POST /api/v1/checks/{checkId}/videos/recover
+   * Owner-only, idempotent: generate videos on demand if the fire-and-forget
+   * task lost them (returns existing untouched if any exist).
+   */
+  async recoverCheckVideos(checkId: string, token?: string | null) {
+    return this.request(`/api/v1/checks/${checkId}/videos/recover`, { method: 'POST' }, token);
+  }
+
+  /**
    * POST /api/v1/payments/create-checkout-session
    * Create Stripe checkout session for a paid plan
    *

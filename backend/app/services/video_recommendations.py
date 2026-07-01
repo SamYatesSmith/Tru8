@@ -176,14 +176,31 @@ async def fetch_video_recommendations(
             logger.info(f"[VIDEO RECS] No videos found for check {check_id}")
             return
 
-        # Save to database
+        # Save to database — skip any video already stored for this check so a
+        # re-run (the recover endpoint after a lost fire-and-forget task, or a
+        # second generation) can't double-insert the same video.
         async with async_session() as session:
-            for rec in all_recommendations:
+            existing_ids = set(
+                (
+                    await session.execute(
+                        select(VideoRecommendation.video_id).where(
+                            VideoRecommendation.check_id == check_id
+                        )
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            to_add = [
+                r for r in all_recommendations if r["video_id"] not in existing_ids
+            ]
+            for rec in to_add:
                 session.add(VideoRecommendation(**rec))
             await session.commit()
 
         logger.info(
-            f"[VIDEO RECS] Saved {len(all_recommendations)} videos "
+            f"[VIDEO RECS] Saved {len(to_add)} new videos "
+            f"({len(all_recommendations) - len(to_add)} already stored) "
             f"for check {check_id} ({len(claims)} claims)"
         )
 

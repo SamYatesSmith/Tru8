@@ -2476,6 +2476,111 @@ async def get_check_videos(
     }
 
 
+def _video_to_dict(v) -> dict:
+    return {
+        "id": v.id,
+        "claimId": v.claim_id,
+        "videoId": v.video_id,
+        "title": v.title,
+        "description": v.description,
+        "channelName": v.channel_name,
+        "channelId": v.channel_id,
+        "publishDate": (v.publish_date.isoformat() if v.publish_date else None),
+        "videoUrl": v.video_url,
+        "thumbnailUrl": v.thumbnail_url,
+        "duration": v.duration,
+        "tierLabel": v.tier_label,
+        "typeLabel": v.type_label,
+    }
+
+
+@router.post(
+    "/{check_id}/videos/recover",
+    summary="Recover missing video recommendations",
+    responses={
+        200: {"description": "Video recommendations", "model": VideosResponse},
+        404: {"description": "Check not found", "model": ErrorResponse},
+        403: {"description": "Not authorised", "model": ErrorResponse},
+    },
+)
+async def recover_check_videos(
+    check_id: str,
+    current_user: dict = Depends(get_current_user_or_api_key),
+    session: AsyncSession = Depends(get_session),
+):
+    """Owner-only, idempotent on-demand recovery for videos that the
+    fire-and-forget generation task lost (e.g. an API restart during its short
+    window). Returns existing videos untouched if any exist; otherwise
+    generates them durably (awaited, in-request, so it survives) for a
+    completed check and returns them.
+    """
+    from app.models.video_recommendation import VideoRecommendation
+    from app.services.video_recommendations import fetch_video_recommendations
+
+    check = (
+        await session.execute(select(Check).where(Check.id == check_id))
+    ).scalar_one_or_none()
+    if not check:
+        raise HTTPException(status_code=404, detail="Check not found")
+    if check.user_id != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Idempotent: never regenerate over an existing set.
+    existing = (
+        (
+            await session.execute(
+                select(VideoRecommendation).where(
+                    VideoRecommendation.check_id == check_id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if existing:
+        return {"checkId": check_id, "videos": [_video_to_dict(v) for v in existing]}
+
+    # Only a finished check can have videos.
+    if check.status != "completed":
+        return {"checkId": check_id, "videos": []}
+
+    # Durable generation — awaited in-request, so unlike the fire-and-forget
+    # task it can't be orphaned by a restart.
+    claims = (
+        (
+            await session.execute(
+                select(Claim)
+                .where(Claim.check_id == check_id)
+                .where(Claim.is_selected == True)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if not claims:
+        claims = (
+            (await session.execute(select(Claim).where(Claim.check_id == check_id)))
+            .scalars()
+            .all()
+        )
+    claims_for_videos = [{"id": c.id, "text": c.text} for c in claims]
+    if claims_for_videos:
+        await fetch_video_recommendations(check_id, claims_for_videos)
+
+    videos = (
+        (
+            await session.execute(
+                select(VideoRecommendation).where(
+                    VideoRecommendation.check_id == check_id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return {"checkId": check_id, "videos": [_video_to_dict(v) for v in videos]}
+
+
 # ============================================================================
 # PUBLIC ENDPOINT - For OG Image Generation (no auth required)
 # ============================================================================

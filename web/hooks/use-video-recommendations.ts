@@ -35,6 +35,26 @@ export function useVideoRecommendations(
     let cancelled = false;
     let attempt = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let recoveryTried = false;
+
+    // Last resort: if the retry window elapses with still no videos, the
+    // fire-and-forget generation task was almost certainly lost (an API
+    // restart in its short window). Trigger a durable, owner-only regeneration
+    // once — the Video tab then self-heals when the videos land.
+    const maybeRecover = () => {
+      if (recoveryTried || cancelled || !token) return;
+      recoveryTried = true;
+      apiClient
+        .recoverCheckVideos(checkId, token)
+        .then((result) => {
+          if (cancelled) return;
+          const vids = (result as { videos?: VideoRecommendation[] }).videos || [];
+          if (vids.length > 0) setVideos(vids);
+        })
+        .catch(() => {
+          /* silent — this is already the fallback */
+        });
+    };
 
     const fetchVideos = async (isRetry: boolean) => {
       if (!isRetry) setIsLoading(true);
@@ -56,6 +76,8 @@ export function useVideoRecommendations(
         if (attempt < MAX_ATTEMPTS - 1) {
           attempt += 1;
           timer = setTimeout(() => fetchVideos(true), RETRY_MS);
+        } else {
+          maybeRecover();
         }
       } catch (e: any) {
         if (cancelled) return;
@@ -68,6 +90,8 @@ export function useVideoRecommendations(
         if (attempt < MAX_ATTEMPTS - 1) {
           attempt += 1;
           timer = setTimeout(() => fetchVideos(true), RETRY_MS);
+        } else {
+          maybeRecover();
         }
       }
     };
