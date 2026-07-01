@@ -2,6 +2,7 @@
 
 import { RelatedClaim } from '@shared/types';
 import { ElementStateBadge } from '@/components/claim-map/element-state-badge';
+import { ElementBadge } from '../ElementBadge';
 
 interface RelatedClaimCardProps {
   claim: RelatedClaim;
@@ -42,9 +43,7 @@ export function RelatedClaimCard({ claim }: RelatedClaimCardProps) {
         <div className="space-y-1.5 mb-3">
           {claim.elements.map((el, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <span className="font-mono text-[10px] text-zinc-300 font-bold shrink-0">
-                {String(idx + 1).padStart(2, '0')}
-              </span>
+              <ElementBadge n={idx + 1} size="sm" />
               {el.state && <ElementStateBadge state={el.state} size="sm" />}
               <span className="text-[12px] text-zinc-600 truncate">
                 {el.description}

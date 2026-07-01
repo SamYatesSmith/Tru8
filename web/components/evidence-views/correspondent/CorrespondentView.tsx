@@ -198,27 +198,10 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
       });
     }
 
-    // Sole source elements
-    for (const [elId, domainArr] of Array.from(elementDomainMap.entries())) {
-      if (domainArr.length === 1) {
-        const singleDomain = domainArr[0];
-        let elDesc = elId;
-        for (const claim of claims) {
-          const el = claim.claimMap?.elements?.find((e) => e.elementId === elId);
-          if (el) {
-            const idx = claim.claimMap!.elements.indexOf(el);
-            elDesc = el.description
-              ? (el.description.length > 60 ? `${el.description.slice(0, 59)}…` : el.description)
-              : `Element ${String(idx + 1).padStart(2, '0')}`;
-            break;
-          }
-        }
-        gaps.push({
-          type: 'sole_source',
-          message: `All evidence for ${elDesc} comes from a single domain (${singleDomain})`,
-        });
-      }
-    }
+    // NB: per-element single-source depth is owned by the per-element quality
+    // note in the digest roster (EvidenceQualityNote). The sole-source signal
+    // survives here only as a per-domain badge on the SourceCard (which domains
+    // are the only source for which elements) — not as a duplicate prose gap.
 
     // No academic sources
     const hasAcademic = allEvidence.some((ev) => ev.evidenceType === 'academic');
@@ -271,27 +254,23 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
     );
   }
 
-  // Build sole-source labels per domain
-  function getSoleSourceLabels(group: DomainGroup): string[] {
-    const labels: string[] = [];
+  // Element numbers this domain is the SOLE source for — rendered as element
+  // badges on the card (no truncated prose; the roster carries the wording).
+  function getSoleSourceElementNumbers(group: DomainGroup): number[] {
+    const nums: number[] = [];
     for (const elId of group.elementIds) {
       const domainArr = elementDomainMap.get(elId);
       if (domainArr && domainArr.length === 1) {
         for (const claim of claims) {
           const el = claim.claimMap?.elements?.find((e) => e.elementId === elId);
           if (el) {
-            const idx = claim.claimMap!.elements.indexOf(el);
-            labels.push(
-              el.description
-                ? (el.description.length > 48 ? `${el.description.slice(0, 47)}…` : el.description)
-                : `Element ${String(idx + 1).padStart(2, '0')}`
-            );
+            nums.push(claim.claimMap!.elements.indexOf(el) + 1);
             break;
           }
         }
       }
     }
-    return labels;
+    return nums;
   }
 
   // Build claim-coverage label (element refs now render as chips via ElementRefs)
@@ -336,7 +315,7 @@ export function CorrespondentView({ scope, claims }: CorrespondentViewProps) {
                   claimCoverage={getClaimCoverage(g)}
                   elementIds={g.elementIds}
                   dateRange={g.dateRange}
-                  soleSourceFor={getSoleSourceLabels(g)}
+                  soleSourceForNums={getSoleSourceElementNumbers(g)}
                   isExpanded={expandedDomain === g.domain}
                   onClick={() => setExpandedDomain((prev) => (prev === g.domain ? null : g.domain))}
                   scope={scope}

@@ -5,7 +5,7 @@ import { Claim, Evidence, EvidenceTier, ClaimElement } from '@shared/types';
 import { LandscapeSummaryStrip } from './LandscapeSummaryStrip';
 import { EvidenceMap, type ElementMapping } from './EvidenceMap';
 import { GapIndicator } from './GapIndicator';
-import { ElementRoster } from './ElementRoster';
+import { ElementBadge } from '../ElementBadge';
 
 // --- Mobile helpers ---
 
@@ -265,12 +265,10 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian }: Cartogr
                         {mappings.map((m) => (
                           <div
                             key={m.elementIndex}
-                            className="text-[11px] text-zinc-500 mb-0.5"
+                            className="flex items-start gap-1.5 text-[11px] text-zinc-500 mb-1"
                           >
-                            Element{' '}
-                            {String(m.elementIndex + 1).padStart(2, '0')}
-                            <span className="text-zinc-400"> &mdash; </span>
-                            <span className="text-zinc-400">
+                            <ElementBadge n={m.elementIndex + 1} size="sm" />
+                            <span className="text-zinc-400 pt-0.5">
                               {m.elementDescription}
                             </span>
                           </div>
@@ -317,11 +315,6 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian }: Cartogr
             })}
           </div>
         </div>
-      )}
-
-      {/* Element Roster */}
-      {elements.length > 0 && (
-        <ElementRoster elements={elements} />
       )}
 
       {/* Switch to Librarian */}

@@ -35,6 +35,7 @@ import {
   getFaviconUrl,
 } from './shared-utils';
 import { capture } from '@/lib/analytics';
+import { ElementList } from './ElementList';
 
 const CONTEXT_LABELS: Record<string, string> = {
   url: 'Extracted Claim',
@@ -179,6 +180,33 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
       ) : null}
       <p className="text-sm text-zinc-500 mt-1">{confidenceLine}</p>
 
+      {/* The elements — introduced here (the reference frame the rest of the report
+          cites). Owns being honest that we reframe + decompose, and declares the
+          numbered badge as the reference token. */}
+      {elements.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-zinc-100">
+          <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500">Elements examined</span>
+          <p className="mt-2 text-sm text-zinc-600 leading-relaxed">
+            We restate the claim in neutral terms and break it into the checkable elements below — that&apos;s how we
+            find the strongest evidence for each. Every element is numbered, so you can follow it wherever it appears
+            in the report.
+          </p>
+          <div className="mt-3">
+            <ElementList elements={elements} />
+          </div>
+          {nav && gapElements.length > 0 && (
+            <button
+              type="button"
+              onClick={() => go('seeker')}
+              aria-label="Open Gaps lens"
+              className="mt-2 font-mono text-[10px] text-zinc-500 hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1 cursor-pointer"
+            >
+              {gapElements.length} {gapElements.length === 1 ? 'gap' : 'gaps'} — open the Gaps lens &rarr;
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Distribution bar — click a band → filtered Evidence */}
       {barTotal > 0 && (
         <div className="mt-4">
@@ -273,7 +301,8 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         </div>
       )}
 
-      {/* Footer — source mix by tier (classification colour restored) + gaps */}
+      {/* Footer — source mix by tier (classification colour restored). Gaps now
+          live in the elements roster above (with a Gaps-lens link), not here. */}
       <div className="mt-5 pt-4 border-t border-zinc-200 space-y-2">
         <div className="font-mono text-[10px] text-zinc-500 flex flex-wrap items-center gap-x-2 gap-y-1">
           <FooterLink nav={nav} label="Map" onClick={() => go('cartographer')}>
@@ -294,39 +323,6 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
             )}
           </FooterLink>
         </div>
-
-        {gapElements.length > 0 && (
-          <div className="flex items-start gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 w-16 shrink-0 pt-0.5">Gaps</span>
-            <div className="flex-grow">
-              <ul className="space-y-0.5">
-                {gapElements.map((el) => {
-                  const u = el.uncertainty?.trim();
-                  const showU = u && !['null', 'none', 'n/a'].includes(u.toLowerCase());
-                  return (
-                    <li key={el.elementId} className="font-mono text-[10px] text-zinc-500 flex items-start gap-1.5">
-                      <span className="text-zinc-300 shrink-0">&bull;</span>
-                      <span>
-                        {el.description}
-                        {showU && <span className="text-zinc-400"> — {u}</span>}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-              {nav && (
-                <button
-                  type="button"
-                  onClick={() => go('seeker')}
-                  aria-label="Open Gaps lens"
-                  className="mt-1 font-mono text-[10px] text-zinc-500 hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1 cursor-pointer"
-                >
-                  Open Gaps lens &rarr;
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

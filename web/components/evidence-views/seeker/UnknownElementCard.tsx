@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { ClaimElement, Evidence } from '@shared/types';
 import { ElementStateBadge } from '@/components/claim-map/element-state-badge';
+import { ElementBadge } from '../ElementBadge';
 import { GapHighlight } from './GapHighlight';
 import { BountyField } from './BountyField';
 
@@ -49,7 +50,6 @@ export function UnknownElementCard({
   const isKnown = element.state === 'supported' || element.state === 'disputed' || element.state === 'contextual';
   const isGap = !element.evidenceRefs || element.evidenceRefs.length === 0;
   const refCount = element.evidenceRefs?.length || 0;
-  const label = String(index + 1).padStart(2, '0');
 
   // Build evidence lookup by ID for title display
   const evidenceById = useMemo(() => {
@@ -66,7 +66,7 @@ export function UnknownElementCard({
   if (isKnown) {
     return (
       <div className="flex items-center gap-3 px-4 py-2.5 bg-zinc-50/50 border border-zinc-100">
-        <span className="font-mono text-[10px] text-zinc-300 font-bold">{label}</span>
+        <ElementBadge n={index + 1} size="sm" />
         <span className="text-sm text-zinc-700 truncate flex-grow min-w-0">{element.description}</span>
         {element.state && <ElementStateBadge state={element.state} size="sm" />}
         <span className="font-mono text-[10px] text-zinc-400 whitespace-nowrap">
@@ -85,7 +85,7 @@ export function UnknownElementCard({
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-xs font-bold text-zinc-400">{label}</span>
+        <ElementBadge n={index + 1} size="md" />
         {element.state && <ElementStateBadge state={element.state} size="md" />}
       </div>
 

@@ -17,7 +17,7 @@ export function SourceGaps({ gaps }: SourceGapsProps) {
   return (
     <div className="space-y-4 mb-8">
       {gaps.map((gap, i) => (
-        <DiagnosticFlag key={i} label="Diversity note">{gap.message}</DiagnosticFlag>
+        <DiagnosticFlag key={i} label="Collection note">{gap.message}</DiagnosticFlag>
       ))}
     </div>
   );

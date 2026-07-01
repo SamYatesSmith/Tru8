@@ -2,6 +2,7 @@
 
 import { EvidenceTier } from '@shared/types';
 import { ElementRefs } from '../ElementRefs';
+import { ElementBadge } from '../ElementBadge';
 
 const TIER_BORDER_COLOURS: Record<EvidenceTier, string> = {
   primary: '#EA580C',
@@ -18,7 +19,8 @@ interface SourceCardProps {
   claimCoverage: string;
   elementIds: string[];
   dateRange: string;
-  soleSourceFor: string[];
+  /** Element numbers this domain is the SOLE source for (rendered as badges). */
+  soleSourceForNums: number[];
   isExpanded: boolean;
   onClick: () => void;
   scope: 'check' | 'claim';
@@ -33,7 +35,7 @@ export function SourceCard({
   claimCoverage,
   elementIds,
   dateRange,
-  soleSourceFor,
+  soleSourceForNums,
   isExpanded,
   onClick,
   scope,
@@ -99,16 +101,13 @@ export function SourceCard({
       )}
 
       {/* Row 4: Sole source warnings — single-point-of-failure flags, the strongest Tru8 honesty moment */}
-      {soleSourceFor.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {soleSourceFor.map((label) => (
-            <span
-              key={label}
-              className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider border border-amber-300 bg-amber-50 px-2 py-0.5"
-            >
-              <span className="font-bold text-amber-700">Sole source</span>
-              <span className="text-zinc-600">for {label}</span>
-            </span>
+      {soleSourceForNums.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider font-bold text-amber-700">
+            Sole source for
+          </span>
+          {soleSourceForNums.map((n) => (
+            <ElementBadge key={n} n={n} size="sm" />
           ))}
         </div>
       )}
