@@ -39,6 +39,14 @@ def _results():
         },
         "provider_status": {"Serper": {"status": "ok", "count": 30}},
         "processing_time_ms": 42_000,
+        "pipeline_stats": {
+            "stage_timings": {
+                "retrieve": 17.8612345,
+                "analyze": 40.04,
+                "classify": 16.95,
+            },
+            "total_stage_time": 74.85,
+        },
     }
 
 
@@ -112,6 +120,13 @@ def test_build_basic_shape_and_honest_naming():
     assert out["timing"]["wall_time_ms"] == 42_000
 
 
+def test_build_persists_stage_timings_rounded():
+    # V1 telemetry: per-stage seconds persist alongside wall time, 2dp.
+    out = build_cost_telemetry(_results())
+    timings = out["timing"]["stage_timings_s"]
+    assert timings == {"retrieve": 17.86, "analyze": 40.04, "classify": 16.95}
+
+
 def test_build_empty_results_is_safe():
     out = build_cost_telemetry({})
     assert out["llm"]["input_tokens"] == 0
@@ -119,6 +134,8 @@ def test_build_empty_results_is_safe():
     assert out["search"]["web_results_reviewed"] == 0
     assert out["estimated_cost_usd"]["llm_partial"] == 0.0
     assert out["estimated_cost_usd"]["search"] is None
+    # No pipeline_stats → stage timings recorded as None, never raises
+    assert out["timing"]["stage_timings_s"] is None
 
 
 def test_build_tolerates_malformed_inputs():
@@ -131,3 +148,18 @@ def test_build_tolerates_malformed_inputs():
     out = build_cost_telemetry(bad)
     assert out["llm"]["input_tokens"] == 0
     assert out["search"]["web_results_reviewed"] == 0
+
+
+def test_build_filters_malformed_stage_timings():
+    # stage_timings as non-dict → None; non-numeric values filtered out
+    bad_list = {"pipeline_stats": {"stage_timings": ["not", "a", "dict"]}}
+    assert build_cost_telemetry(bad_list)["timing"]["stage_timings_s"] is None
+
+    mixed = {
+        "pipeline_stats": {
+            "stage_timings": {"retrieve": 12.5, "bogus": "n/a", "flag": True}
+        }
+    }
+    out = build_cost_telemetry(mixed)
+    # bools are ints in Python — excluded explicitly; strings excluded
+    assert out["timing"]["stage_timings_s"] == {"retrieve": 12.5}

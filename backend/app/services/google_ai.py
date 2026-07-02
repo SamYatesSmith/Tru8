@@ -379,6 +379,13 @@ async def call_google_ai_with_usage(
                             "input_tokens": usage_meta.get("promptTokenCount", 0),
                             "output_tokens": usage_meta.get("candidatesTokenCount", 0),
                         }
+                        # Thinking models (e.g. gemini-2.5-flash on mapping)
+                        # report thought tokens separately from candidate
+                        # tokens. Include only when present so the usage
+                        # shape is unchanged for non-thinking models.
+                        thoughts = usage_meta.get("thoughtsTokenCount", 0)
+                        if thoughts:
+                            usage["thinking_tokens"] = thoughts
                         return parsed, usage
                     except (KeyError, IndexError) as exc:
                         logger.error("Google AI response structure error: %s", exc)

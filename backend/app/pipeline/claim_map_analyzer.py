@@ -1324,7 +1324,13 @@ class ClaimMapAnalyzer:
                     self._last_model_used = model_to_use
                     self._models_used[label] = model_to_use
                     self._accumulate(usage)
-                    logger.info(f"[CLAIM_MAP] {label} completed via Google Gemini")
+                    _u = usage or {}
+                    logger.info(
+                        f"[CLAIM_MAP] {label} completed via Google Gemini "
+                        f"(in={_u.get('input_tokens', 0)}, "
+                        f"out={_u.get('output_tokens', 0)}, "
+                        f"thinking={_u.get('thinking_tokens', 0)})"
+                    )
                     return parsed
             except asyncio.TimeoutError:
                 logger.warning(
@@ -1398,6 +1404,13 @@ class ClaimMapAnalyzer:
         if usage:
             self._token_usage["input_tokens"] += usage.get("input_tokens", 0)
             self._token_usage["output_tokens"] += usage.get("output_tokens", 0)
+            # Thinking tokens arrive only from thinking-model calls (mapping
+            # labels on gemini-2.5-flash). Track separately when present so
+            # the dict shape is unchanged for non-thinking runs.
+            if usage.get("thinking_tokens"):
+                self._token_usage["thinking_tokens"] = self._token_usage.get(
+                    "thinking_tokens", 0
+                ) + usage.get("thinking_tokens", 0)
 
     async def _call_google(
         self,

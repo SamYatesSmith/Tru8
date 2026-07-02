@@ -227,3 +227,44 @@ class TestCallGoogleAi:
 
         assert parsed == {"data": "ok"}
         assert usage == {"input_tokens": 100, "output_tokens": 50}
+
+    @pytest.mark.asyncio
+    async def test_usage_includes_thinking_tokens_when_present(self):
+        """Thinking-model responses report thoughtsTokenCount → thinking_tokens."""
+        usage_meta = {
+            "promptTokenCount": 100,
+            "candidatesTokenCount": 50,
+            "thoughtsTokenCount": 900,
+        }
+        self.mock_client.post.return_value = _gemini_response(
+            '{"data": "ok"}',
+            usage=usage_meta,
+        )
+
+        parsed, usage = await call_google_ai_with_usage("thinking prompt")
+
+        assert parsed == {"data": "ok"}
+        assert usage == {
+            "input_tokens": 100,
+            "output_tokens": 50,
+            "thinking_tokens": 900,
+        }
+
+    @pytest.mark.asyncio
+    async def test_usage_omits_thinking_tokens_when_zero(self):
+        """A zero thoughtsTokenCount must not add the key — non-thinking
+        models keep the original usage dict shape."""
+        usage_meta = {
+            "promptTokenCount": 100,
+            "candidatesTokenCount": 50,
+            "thoughtsTokenCount": 0,
+        }
+        self.mock_client.post.return_value = _gemini_response(
+            '{"data": "ok"}',
+            usage=usage_meta,
+        )
+
+        parsed, usage = await call_google_ai_with_usage("non-thinking prompt")
+
+        assert parsed == {"data": "ok"}
+        assert usage == {"input_tokens": 100, "output_tokens": 50}

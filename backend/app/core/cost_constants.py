@@ -133,6 +133,20 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
     # PARTIAL — captured LLM stages only (limitation #1 in module docstring).
     llm_cost = estimate_llm_cost_usd(in_tok, out_tok, by_stage)
 
+    # Per-stage wall-clock (seconds) — measured every run by the pipeline
+    # (runner.py stage_timings) but previously discarded at save time.
+    # Rounded to 2dp; non-numeric values filtered defensively; None when the
+    # results dict carries no pipeline_stats (e.g. legacy callers).
+    raw_stage_timings = (results.get("pipeline_stats") or {}).get("stage_timings")
+    if isinstance(raw_stage_timings, dict):
+        stage_timings_s: Optional[Dict[str, float]] = {
+            k: round(v, 2)
+            for k, v in raw_stage_timings.items()
+            if isinstance(v, (int, float)) and not isinstance(v, bool)
+        }
+    else:
+        stage_timings_s = None
+
     return {
         "pricing_version": PRICING_VERSION,
         "llm": {
@@ -148,7 +162,10 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
             "provider_status": results.get("provider_status"),
             "note": "result counts, NOT query counts — true per-query call counts not yet instrumented",
         },
-        "timing": {"wall_time_ms": int(results.get("processing_time_ms", 0) or 0)},
+        "timing": {
+            "wall_time_ms": int(results.get("processing_time_ms", 0) or 0),
+            "stage_timings_s": stage_timings_s,
+        },
         "estimated_cost_usd": {
             "llm_partial": llm_cost,
             "search": None,  # not computable without true query counts

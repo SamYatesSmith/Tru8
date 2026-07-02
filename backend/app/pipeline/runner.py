@@ -1960,19 +1960,30 @@ async def run_pipeline_phase2(
         # Run classify and distil concurrently — they write disjoint fields
         # Classify writes: tier, evidence_type, classification_method, receipt_status
         # Distil writes: text, _distilled, content_basis (removes _full_text)
+        # Each task is timed individually so stage_timings separates the pair
+        # (previously both keys got the shared block elapsed).
+        task_timings: Dict[str, float] = {}
+
+        async def _timed(key: str, coro):
+            t0 = datetime.now(timezone.utc)
+            try:
+                return await coro
+            finally:
+                task_timings[key] = (datetime.now(timezone.utc) - t0).total_seconds()
+
         concurrent_tasks = []
         if _run_classify:
-            concurrent_tasks.append(_do_classify())
+            concurrent_tasks.append(_timed("classify", _do_classify()))
         if _run_distil:
-            concurrent_tasks.append(_do_distil())
+            concurrent_tasks.append(_timed("distil", _do_distil()))
 
         await asyncio.gather(*concurrent_tasks)
 
         elapsed = (datetime.now(timezone.utc) - classify_distil_start).total_seconds()
         if _run_classify:
-            stage_timings["classify"] = elapsed
+            stage_timings["classify"] = task_timings.get("classify", elapsed)
         if _run_distil:
-            stage_timings["distil"] = elapsed
+            stage_timings["distil"] = task_timings.get("distil", elapsed)
 
         if _run_classify and ledger:
             from collections import Counter
