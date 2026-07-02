@@ -60,7 +60,7 @@ Phase 2 (30-100%):
   RETRIEVE (60%)      → Per-element multi-source search (2 queries/element)
   SCORE (65%)         → LLM topical relevance scoring (1-5 scale, max 50 items)
   CLASSIFY (75%)      → Tier/Type classification (batched LLM + heuristic fallback)
-  MAP (85%)           → Evidence → element mapping + state assignment (Gemini 2.5 Flash thinking model, 1000-char snippets)
+  MAP (85%)           → Evidence → element mapping + state assignment (Gemini 2.5 Flash, 1000-char snippets; thinking OFF in prod via MAPPING_THINKING_BUDGET=0 — sweep-verified equal-or-better quality at −64-74% latency, 2026-07-02)
   ORIENTATION         → Mechanical derivation from element states (no LLM) + orientation_basis
   QUERY (90%)         → Optional search clarity
   COMPLETE (100%)
@@ -172,6 +172,9 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 - **Qdrant** (port 6333) — vector similarity
 - **Auth:** Clerk (JWT + JWKS) + API keys (dual auth)
 - **Payments:** Stripe (4 tiers: Free Trial / Starter £7 / Professional £29 / Enterprise) + Agent payments (x402/Skyfire/credits). Note: legacy Stripe env vars are still named `_PRO` and `_DEVELOPER` for the £7 and £29 tiers respectively; user-facing names are Starter and Professional. "Developer" was retired because it narrowed the audience.
+
+## Latency review state (2026-07-02 — full check ~96s → high-50s, quality gated throughout)
+Shipped same day, all deployed: **V1** `f00e0e4` (cost_telemetry gains `timing.stage_timings_s` per-stage seconds + Gemini `thinking_tokens`; classify/distil timed separately; classifier+distiller tokens reach `by_stage` for the first time — a NameError had silently dropped them since inception). **M1** `b1c838b` + Railway env `MAPPING_THINKING_BUDGET=0` LIVE (mapping thinking OFF: 35–50s → ~11–15s; sweep across 5 pools incl. adversarial = equal-or-better quality, disputed-detection 3/3; rollback = delete env var, or `=1024` first on regression). **D1** `a324e8b` (`DISTIL_BATCH_SIZE=5` concurrent distil batches: 16.7–24.5s flaky → ~10s reliable, 15/17 items distilled vs 2/17 — old 15-article batch sat ON its own 15s timeout). **Bench** `9ba5266` re-baselined + GREEN (date-normalised cassette signatures; mapping schema enums `sorted()` — `list(set)` had made every mapping body unreplayable per-process; loud CASSETTE DRIFT failures; `--record-missing` patch mode; 3 hard invariants adjusted with dated in-file notes). Docs: `audit/2026-07-02_pipeline_timing_context.md` + `audit/2026-07-02_pipeline_latency_options.md` (local-only). **NEXT:** read prod `stage_timings_s` distribution after a few days of real checks → decides retrieve-tail work (R1/R2) and whether A1 (quick-tier lite mapping) is still needed. Local `OPENAI_API_KEY` is dead (401, fallback chain inoperative locally); prod key unverified — parked by founder.
 
 ## Pending deploy / verify (as of 2026-06-11 — MCP-origin tracking)
 1. ✅ **Pushed 2026-06-11** — `7ca2689..4818c54` (feat `932cd9d` X-Tru8-Client + migration; docs `4818c54`). Railway auto-deploy triggered; backend `/api/v1/health/` → healthy/production post-push.
