@@ -69,8 +69,6 @@ def retriever_env():
         patch("app.pipeline.retrieve.SearchService") as MockSearchService,
         patch("app.pipeline.retrieve.EvidenceExtractor") as MockExtractor,
         patch("app.pipeline.retrieve.get_api_registry", return_value=MagicMock()),
-        patch("app.pipeline.retrieve.get_embedding_service", return_value=MagicMock()),
-        patch("app.pipeline.retrieve.get_vector_store", return_value=MagicMock()),
         patch("app.pipeline.retrieve.settings") as mock_settings,
         patch(
             "app.utils.deduplication.EvidenceDeduplicator.deduplicate",
@@ -113,9 +111,6 @@ def retriever_env():
         retriever._retrieve_from_government_apis = AsyncMock(
             return_value={"evidence": [], "api_stats": {}}
         )
-
-        # Mock _store_evidence_embeddings to no-op
-        retriever._store_evidence_embeddings = AsyncMock(return_value=None)
 
         retriever.search_service = mock_search_service
 

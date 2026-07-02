@@ -34,10 +34,6 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = Field("redis://localhost:6379/0", env="REDIS_URL")
 
-    # Qdrant
-    QDRANT_URL: str = Field("http://localhost:6333", env="QDRANT_URL")
-    QDRANT_API_KEY: str = Field("", env="QDRANT_API_KEY")
-
     # Auth
     CLERK_SECRET_KEY: str = Field(..., env="CLERK_SECRET_KEY")
     CLERK_PUBLISHABLE_KEY: str = Field(..., env="CLERK_PUBLISHABLE_KEY")

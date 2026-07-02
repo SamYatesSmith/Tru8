@@ -4,7 +4,6 @@ import logging
 import asyncio
 import re
 from typing import List, Dict, Any, Optional, Tuple, Union
-from datetime import datetime, timezone
 import os
 from app.services.search import SearchService, SearchResult, JURISDICTION_TO_COUNTRY
 from app.services.evidence import (
@@ -13,8 +12,6 @@ from app.services.evidence import (
     get_runtime_blocked_domains,
     is_domain_blocked,
 )
-from app.services.embeddings import get_embedding_service
-from app.services.vector_store import get_vector_store
 from app.utils.url_utils import extract_domain
 from app.services.government_api_client import get_api_registry
 from app.core.config import settings
@@ -1537,9 +1534,6 @@ class EvidenceRetriever:
                             f"stage={stage} reason='{reason}' url={url_short}"
                         )
 
-                # Step 4: Store in vector database for future retrieval
-                await self._store_evidence_embeddings(claim, final_evidence)
-
                 # Return top evidence along with raw evidence metadata
                 return {
                     "filtered_evidence": final_evidence[: self.max_sources_per_claim],
@@ -2407,61 +2401,3 @@ class EvidenceRetriever:
             )
 
         return snippets
-
-    async def _store_evidence_embeddings(
-        self, claim: Dict[str, Any], evidence_list: List[Dict[str, Any]]
-    ):
-        """Store evidence embeddings in vector database for future use"""
-        try:
-            if not evidence_list:
-                return
-
-            embedding_service = await get_embedding_service()
-            vector_store = await get_vector_store()
-
-            # Generate embeddings for evidence texts
-            evidence_texts = [evidence["text"] for evidence in evidence_list]
-            embeddings = await embedding_service.embed_batch(evidence_texts)
-
-            # Prepare data for vector storage
-            evidence_data = []
-            for evidence, embedding in zip(evidence_list, embeddings):
-                evidence_item = {
-                    **evidence,
-                    "embedding": embedding,
-                    "claim_text": claim.get("text"),
-                    "claim_position": claim.get("position"),
-                    "created_at": datetime.now(timezone.utc).isoformat(),
-                }
-                evidence_data.append(evidence_item)
-
-            # Store embeddings
-            stored_ids = await vector_store.store_evidence_embeddings(evidence_data)
-            logger.debug(f"Stored {len(stored_ids)} embeddings")
-
-        except Exception as e:
-            logger.warning(f"Evidence storage error: {e}")
-            # Don't fail the pipeline if storage fails
-
-    async def retrieve_from_vector_store(
-        self, claim: str, limit: int = 5
-    ) -> List[Dict[str, Any]]:
-        """Retrieve similar evidence from vector store"""
-        try:
-            embedding_service = await get_embedding_service()
-            vector_store = await get_vector_store()
-
-            # Generate claim embedding
-            claim_embedding = await embedding_service.embed_text(claim)
-
-            # Search for similar evidence
-            similar_evidence = await vector_store.search_similar_evidence(
-                query_embedding=claim_embedding, limit=limit, score_threshold=0.7
-            )
-
-            logger.debug(f"Vector store: {len(similar_evidence)} items")
-            return similar_evidence
-
-        except Exception as e:
-            logger.error(f"Vector store retrieval error: {e}")
-            return []

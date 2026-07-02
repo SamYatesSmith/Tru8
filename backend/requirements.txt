@@ -43,9 +43,6 @@ jinja2==3.1.6  # Template engine for PDF reports
 PyPDF2>=3.0.0  # Phase 2: PDF page extraction
 pdfplumber>=0.10.0  # Phase 2: PDF text extraction with page numbers
 
-# Search & Vector
-qdrant-client==1.9.0  # Updated from 1.7.0 (CVE-2024-3829)
-
 # MCP (Model Context Protocol)
 mcp[cli]>=1.0.0  # H-API-07: MCP server for AI agent discovery
 
