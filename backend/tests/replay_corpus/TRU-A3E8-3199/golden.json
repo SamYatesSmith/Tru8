@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-A3E8-3199",
-  "captured_at": "2026-06-16T15:54:12.204649+00:00",
-  "captured_with": "9231994",
+  "captured_at": "2026-07-02T17:26:00.879152+00:00",
+  "captured_with": "a324e8b",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -27,7 +27,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 11,
+      "value": 20,
       "tolerance": 8
     },
     "claims": {
@@ -39,69 +39,69 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 30,
+      "value": 27,
       "tolerance": 8
     },
     "api_adapters": {
       "value": 2,
       "tolerance": 8
     },
-    "tier_reporting": {
-      "value": 7,
+    "tier_commentary": {
+      "value": 6,
       "tolerance": 4
     },
-    "tier_commentary": {
-      "value": 3,
-      "tolerance": 4
+    "tier_reporting": {
+      "value": 11,
+      "tolerance": 5
     },
     "tier_primary": {
-      "value": 1,
+      "value": 3,
       "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://aiep.pensoft.net/article/173786/",
         "https://apnews.com/article/great-white-sharks-moving-north-new-england-181c9f93da860f60a680abb7c447da05",
-        "https://apnews.com/article/great-white-sharks-stats-north-climate-9d80868940a9ae7bc45764dedb6f2823",
+        "https://en.wikipedia.org/wiki/Ganges_shark",
         "https://en.wikipedia.org/wiki/Greenland_shark",
         "https://en.wikipedia.org/wiki/Megalodon",
         "https://en.wikipedia.org/wiki/Pacific_sleeper_shark",
         "https://en.wikipedia.org/wiki/Whale_shark",
-        "https://en.wikipedia.org/wiki/Winghead_shark",
-        "https://news.sky.com/story/extraordinary-and-poorly-understood-the-mediterraneans-great-white-sharks-13552002",
+        "https://theconversation.com/could-warming-seas-bring-great-white-sharks-back-to-the-north-sea-a-5-million-year-old-shark",
+        "https://www.bbc.co.uk/news/articles/c70jzkl0pgpo",
+        "https://www.bbc.co.uk/news/articles/c9qe9wvq534o",
+        "https://www.bbc.co.uk/news/videos/cd6p6zqzj6do",
         "https://www.bbc.co.uk/newsround/articles/c1jydgz6g6zo",
-        "https://www.bbc.com/news/articles/c9qe9wvq534o",
-        "https://www.bbc.com/news/videos/cd6p6zqzj6do",
-        "https://www.bristolpost.co.uk/news/uk-world-news/shark-fin-spotted-uk-coast-10649464",
-        "https://www.discoverwildlife.com/animal-facts/fish/great-white-shark-facts-2",
+        "https://www.bbc.co.uk/programmes/l0058fcs",
         "https://www.gbif.org/species/165636544",
         "https://www.gbif.org/species/206230133",
         "https://www.gbnews.com/science/science-breakthrough-great-white-sharks-britain-seas-bone-chilling-new-study",
         "https://www.ntu.ac.uk/about-us/news/news-articles/2026/06/the-ghosts-of-the-mediterranean-what-a-rare-great-white-shark-",
-        "https://www.reddit.com/r/sharks/comments/1qkoy4v/great_white_sharks_of_europe/",
         "https://www.reddit.com/r/uknews/comments/1u4ybbo/great_white_sharks_inevitable_in_the_uk_after/",
         "https://www.theguardian.com/environment/2026/apr/30/could-the-warming-north-sea-attract-great-white-sharks",
-        "https://www.theguardian.com/environment/gallery/2026/jun/12/week-in-wildlife-squirrel-hyenas-great-white-shark",
-        "https://www.theguardian.com/environment/video/2026/feb/18/helicopter-crew-sounds-siren-as-45-meter-white-shark-spotted-o",
+        "https://www.theguardian.com/environment/2026/jun/11/great-white-shark-nantucket-beach-catch",
+        "https://www.theguardian.com/environment/commentisfree/2026/jun/17/ocean-swimmer-australia-sharks-territory",
         "https://www.theguardian.com/environment/video/2026/jun/08/rare-footage-great-white-shark-mediterranean-sea-video",
+        "https://www.tiktok.com/@stevebackshallofficial/video/7653779572881755414",
         "https://www.tiktok.com/@wildlifewithcookie/video/7608255253452000535",
-        "https://www.youtube.com/watch?v=_swHuC5uFys"
+        "https://www.youtube.com/shorts/hnQH87ufSsc",
+        "https://www.youtube.com/watch?v=CDja_Gamub8"
       ],
       "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
         "apnews.com",
-        "bbc.com",
-        "bristolpost.co.uk",
-        "discoverwildlife.com",
+        "bbc.co.uk",
         "gbif.org",
         "gbnews.com",
+        "ntu.ac.uk",
         "reddit.com",
+        "theconversation.com",
         "theguardian.com",
-        "tiktok.com"
+        "tiktok.com",
+        "youtube.com"
       ],
       "min_similarity": 0.3
     }

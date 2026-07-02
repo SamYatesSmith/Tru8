@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-C1A0-0001",
-  "captured_at": "2026-06-16T15:54:49.373964+00:00",
-  "captured_with": "9231994",
+  "captured_at": "2026-07-02T17:26:28.243009+00:00",
+  "captured_with": "a324e8b",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -30,7 +30,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 18,
+      "value": 17,
       "tolerance": 8
     },
     "claims": {
@@ -42,23 +42,19 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 34,
+      "value": 28,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 4,
+      "value": 3,
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 8,
-      "tolerance": 4
-    },
-    "tier_commentary": {
-      "value": 2,
-      "tolerance": 4
+      "value": 11,
+      "tolerance": 5
     },
     "tier_reporting": {
-      "value": 8,
+      "value": 6,
       "tolerance": 4
     }
   },
@@ -73,17 +69,16 @@
         "https://www.bbc.co.uk/news/articles/c17rgd8e9gjo",
         "https://www.bbc.co.uk/news/articles/cdjryg38elzo",
         "https://www.bbc.co.uk/news/articles/czxkvkwjl5eo",
-        "https://www.bbc.co.uk/news/live/c5y9jl1r9g9t",
         "https://www.cnbc.com/2022/11/16/uk-inflation-hits-new-41-year-high-as-food-and-energy-prices-continue-to-soar.html",
+        "https://www.crosslandsolicitors.com/site/media/October-2022-inflation-data-CPI-CPIH-RPI",
         "https://www.ft.com/content/dec290b0-dc52-4486-81c7-2173188e281b?syn-25a6b1a6=1",
         "https://www.ft.com/uk-inflation?page=28",
         "https://www.gov.uk/government/statistics/consumer-price-inflation-uk-october-2022-time-series",
         "https://www.hl.co.uk/tools/calculators/inflation-calculator",
         "https://www.ons.gov.uk/economy/inflationandpriceindices",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/april2026",
         "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2022",
-        "https://www.ons.gov.uk/releases/consumerpriceinflationukoctober2022",
-        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOoodMt",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2024",
+        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOoqtWG",
         "https://www.theguardian.com/business/2022/nov/16/uk-inflation-rate-energy-price-rises"
       ],
       "min_similarity": 0.35
@@ -95,12 +90,13 @@
         "cnbc.com",
         "commonslibrary.parliament.uk",
         "contractoruk.com",
+        "crosslandsolicitors.com",
+        "data.worldbank.org",
         "ft.com",
         "gov.uk",
         "hl.co.uk",
         "ons.gov.uk",
-        "theguardian.com",
-        "tradingeconomics.com"
+        "theguardian.com"
       ],
       "min_similarity": 0.3
     }

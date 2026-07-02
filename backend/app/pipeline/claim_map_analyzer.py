@@ -85,7 +85,12 @@ _MAPPING_RESPONSE_SCHEMA = {
                                 "evidence_id": {"type": "string"},
                                 "relationship": {
                                     "type": "string",
-                                    "enum": list(_VALID_RELATIONSHIPS),
+                                    # sorted, not list(set): set order follows
+                                    # the per-process hash seed, which made the
+                                    # request body non-deterministic across
+                                    # interpreters (broke replay-bench cassette
+                                    # matching). Enum order has no API meaning.
+                                    "enum": sorted(_VALID_RELATIONSHIPS),
                                 },
                                 "reasoning": {"type": "string"},
                             },
@@ -98,7 +103,7 @@ _MAPPING_RESPONSE_SCHEMA = {
                     },
                     "state": {
                         "type": "string",
-                        "enum": list(_VALID_STATES),
+                        "enum": sorted(_VALID_STATES),
                     },
                     "uncertainty": {"type": "string"},
                 },

@@ -8,13 +8,19 @@ what makes a *deterministic* bench possible: patch ``httpx.AsyncClient.send`` fo
 the duration of one bench claim and the entire non-deterministic surface — search
 provider drift AND LLM variance — is frozen at once.
 
-Two modes
----------
+Three modes
+-----------
 - **record**: requests go live; each request/response pair is captured and, on
   exit, written to the claim's ``cassette.json`` (secrets scrubbed first).
 - **replay**: requests are served from the cassette. A miss is a *hard error*
   naming the unmatched request — that surfaces real drift (e.g. a prompt that
   changed shape) instead of silently falling back to the live network.
+- **patch**: replay, but a miss goes LIVE and is APPENDED to the cassette.
+  Needed because record-time request construction can differ from replay-time
+  for calls whose prompt embeds upstream-merge ordering (the evidence-mapping
+  prompt: live network latencies order the web∥api merge differently than
+  instant replay does). Replay-vs-replay is byte-deterministic (verified), so
+  one patch pass after recording completes the cassette permanently.
 
 Why a miss is fatal in replay
 ------------------------------
@@ -29,10 +35,18 @@ Matching key
 query params and auth headers are excluded from the key (and scrubbed from disk),
 so a rotated API key never invalidates a cassette and no key is ever committed.
 
-Known caveat: a prompt or query that embeds the wall-clock date will change its
-body hash each day and miss on replay. If that bites, normalise the date in
-``_canonical_signature`` or freeze the clock for the bench run; for now the miss
-error tells you precisely which request drifted.
+Date normalisation (2026-07-02)
+-------------------------------
+Three pipeline prompts embed the wall-clock date (extract.py x2,
+article_classifier.py, query_planner.py). Un-normalised, their body hashes
+drifted DAILY, so every cassette recorded before "today" missed — and the
+miss was swallowed by extract's heuristic fallback, silently collapsing the
+whole bench (~2 weeks undetected). ``_normalise_body_for_signature`` rewrites
+those exact boilerplates to fixed tokens before hashing. Add any NEW
+date-embedding prompt boilerplate to ``_DATE_BOILERPLATE_PATTERNS``.
+Deliberately NOT normalised: ISO dates in URL query params (e.g. climate
+adapters' date windows) — collapsing those could alias two legitimately
+different requests; if they drift, the loud miss report names them.
 """
 
 from __future__ import annotations
@@ -41,6 +55,7 @@ import base64
 import gzip
 import hashlib
 import json
+import re
 import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -83,8 +98,41 @@ _KEEP_RESPONSE_HEADERS = {"content-type"}
 _DROP_ON_REPLAY = {"content-encoding", "content-length", "transfer-encoding"}
 
 
+# Wall-clock-date boilerplates embedded in pipeline prompts. Normalised to
+# fixed tokens before hashing so a cassette recorded on day X still matches
+# on day Y. Keep patterns EXACT — over-broad date scrubbing could alias two
+# genuinely different requests (see module docstring).
+_DATE_BOILERPLATE_PATTERNS = [
+    # extract.py:419/581 + article_classifier.py:805
+    (
+        re.compile(r"Today's date is \d{4}-\d{2}-\d{2} \(Year: \d{4}\)\."),
+        "Today's date is <TODAY> (Year: <YR>).",
+    ),
+    # query_planner.py:310
+    (
+        re.compile(r"TODAY'S DATE: \d{4}-\d{2}-\d{2} \(CURRENT YEAR: \d{4}\)"),
+        "TODAY'S DATE: <TODAY> (CURRENT YEAR: <YR>)",
+    ),
+]
+
+
+def _normalise_body_for_signature(body: bytes) -> bytes:
+    """Rewrite known date boilerplates to fixed tokens (signature only —
+    stored bodies are untouched). Non-UTF-8 bodies pass through unchanged."""
+    if not body:
+        return body
+    try:
+        text = body.decode("utf-8")
+    except UnicodeDecodeError:
+        return body
+    for pattern, replacement in _DATE_BOILERPLATE_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text.encode("utf-8")
+
+
 def _canonical_signature(request: httpx.Request) -> str:
-    """Stable identity for a request, independent of credentials and header order."""
+    """Stable identity for a request, independent of credentials, header
+    order, and the wall-clock date boilerplates in pipeline prompts."""
     url = request.url
     safe_query = [
         (k, v)
@@ -95,7 +143,7 @@ def _canonical_signature(request: httpx.Request) -> str:
     query = urlencode(safe_query)
 
     body = request.content or b""
-    body_hash = hashlib.sha256(body).hexdigest()
+    body_hash = hashlib.sha256(_normalise_body_for_signature(body)).hexdigest()
 
     base = f"{request.method} {url.scheme}://{url.host}{url.path}"
     if query:
@@ -158,8 +206,10 @@ class HttpxCassette:
     _patch_lock = threading.Lock()
 
     def __init__(self, cassette_path: Path, mode: str) -> None:
-        if mode not in ("record", "replay"):
-            raise ValueError(f"mode must be 'record' or 'replay', got {mode!r}")
+        if mode not in ("record", "replay", "patch"):
+            raise ValueError(
+                f"mode must be 'record', 'replay' or 'patch', got {mode!r}"
+            )
         self.cassette_path = cassette_path
         self.mode = mode
         self._lock = threading.Lock()
@@ -168,11 +218,12 @@ class HttpxCassette:
         self._replay_cursor: Dict[str, int] = {}
         self._miss_count = 0
         self._hit_count = 0
+        self._patched_count = 0
 
     # -- lifecycle ---------------------------------------------------------
 
     def __enter__(self) -> "HttpxCassette":
-        if self.mode == "replay":
+        if self.mode in ("replay", "patch"):
             self._load()
         cassette = self
 
@@ -192,7 +243,7 @@ class HttpxCassette:
             if HttpxCassette._depth == 0 and HttpxCassette._orig_send is not None:
                 httpx.AsyncClient.send = HttpxCassette._orig_send  # type: ignore[assignment]
                 HttpxCassette._orig_send = None
-        if self.mode == "record":
+        if self.mode == "record" or (self.mode == "patch" and self._patched_count):
             self._dump()
 
     # -- request handling --------------------------------------------------
@@ -201,11 +252,33 @@ class HttpxCassette:
         sig = _canonical_signature(request)
         if self.mode == "replay":
             return self._replay(sig, request)
+        if self.mode == "patch":
+            try:
+                return self._replay(sig, request)
+            except CassetteMiss:
+                # Go live for just this request and append it to the cassette
+                # so subsequent pure-replay runs are complete.
+                self._patched_count += 1
+                return await self._record(client, sig, request, **kwargs)
         return await self._record(client, sig, request, **kwargs)
 
     async def _record(self, client, sig: str, request: httpx.Request, **kwargs):  # type: ignore[no-untyped-def]
         assert HttpxCassette._orig_send is not None
-        response = await HttpxCassette._orig_send(client, request, **kwargs)
+        try:
+            response = await HttpxCassette._orig_send(client, request, **kwargs)
+        except httpx.HTTPError as exc:
+            # Record transport failures too (timeouts, refused connections):
+            # otherwise a URL that fails live is never captured, and replay
+            # misses on it forever (e.g. hard-blocking hosts like WaPo).
+            # Replay re-raises an equivalent exception — same pipeline path.
+            entry = {
+                "_exception": type(exc).__name__,
+                "_url": _redact_url(request),
+                "_method": request.method,
+            }
+            with self._lock:
+                self._recorded.setdefault(sig, []).append(entry)
+            raise
         body = await response.aread()  # buffers content; response stays usable
         entry = _serialise_response(response, body)
         entry["_url"] = _redact_url(request)
@@ -231,6 +304,11 @@ class HttpxCassette:
             entry = entries[min(idx, len(entries) - 1)]
             self._replay_cursor[sig] = idx + 1
             self._hit_count += 1
+        if "_exception" in entry:
+            # Recorded transport failure — replay it as an equivalent error so
+            # the pipeline takes the same fetch-failed path deterministically.
+            exc_cls = getattr(httpx, entry["_exception"], httpx.ConnectError)
+            raise exc_cls(f"replayed {entry['_exception']} for {entry.get('_url')}")
         headers = {
             k: v
             for k, v in entry.get("headers", {}).items()
@@ -278,4 +356,5 @@ class HttpxCassette:
             "signatures": len(self._recorded),
             "hits": self._hit_count,
             "misses": self._miss_count,
+            "patched": self._patched_count,
         }

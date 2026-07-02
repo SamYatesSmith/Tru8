@@ -71,6 +71,8 @@ async def run_bench(
         source = "cassette (deterministic, no network)"
     elif cassette_mode == "record":
         source = "live LLM + Serper, RECORDING to cassette"
+    elif cassette_mode == "patch":
+        source = "cassette replay, PATCHING misses live into cassette"
     else:
         source = "live LLM + Serper"
 
@@ -96,6 +98,46 @@ async def run_bench(
                                 expected="completed",
                                 observed=f"{type(e).__name__}: {e}",
                                 message="bench run threw — investigate before relying on diff",
+                            )
+                        ],
+                    )
+                )
+                continue
+
+            # Replay-mode cassette misses mean the pipeline's requests no
+            # longer match the recording — the run silently degraded (missed
+            # calls fall back through the pipeline's own error handling), so
+            # the observation is NOT comparable to golden. Fail loudly with
+            # the reason instead of diffing garbage. (This exact failure mode
+            # went undetected for ~2 weeks when date-drift misses were
+            # swallowed by extract's heuristic fallback.)
+            cassette_stats = getattr(obs, "cassette_stats", None) or {}
+            misses = cassette_stats.get("misses", 0)
+            if cassette_mode == "replay" and misses > 0:
+                print(
+                    f"\n  {'!' * 62}\n"
+                    f"  !! CASSETTE DRIFT: {misses} miss(es), "
+                    f"{cassette_stats.get('hits', 0)} hit(s) for {claim_id}\n"
+                    f"  !! Results are NOT comparable to golden — skipping diff.\n"
+                    f"  !! Re-record if the pipeline legitimately changed:\n"
+                    f"  !!   python scripts/replay_bench.py --claim {claim_id} --record\n"
+                    f"  {'!' * 62}",
+                    flush=True,
+                )
+                per_claim_diffs.append(
+                    (
+                        claim_id,
+                        [
+                            Diff(
+                                level="failure",
+                                signal="cassette_drift",
+                                expected="0 cassette misses",
+                                observed=f"{misses} misses / {cassette_stats.get('hits', 0)} hits",
+                                message=(
+                                    "pipeline requests no longer match the recording — "
+                                    "re-record the cassette (and review goldens) before "
+                                    "trusting this bench"
+                                ),
                             )
                         ],
                     )
@@ -172,6 +214,17 @@ def main() -> int:
         action="store_true",
         help="Run live with no cassette (legacy; subject to provider drift)",
     )
+    mode_group.add_argument(
+        "--record-missing",
+        action="store_true",
+        help=(
+            "Replay, but send cassette MISSES live and append them to the "
+            "cassette. Run once after --record: record-time request "
+            "construction differs from replay-time for order-sensitive "
+            "prompts (evidence mapping), so one patch pass completes the "
+            "cassette for deterministic replay."
+        ),
+    )
     parser.add_argument(
         "--fast",
         action="store_true",
@@ -182,11 +235,14 @@ def main() -> int:
     if args.fast:
         print("[BENCH] --fast not yet implemented; running full mode.", flush=True)
 
-    # Default to deterministic replay; --record captures, --live bypasses.
+    # Default to deterministic replay; --record captures, --live bypasses,
+    # --record-missing patches replay misses live into the cassette.
     if args.record:
         cassette_mode = "record"
     elif args.live:
         cassette_mode = "off"
+    elif args.record_missing:
+        cassette_mode = "patch"
     else:
         cassette_mode = "replay"
 

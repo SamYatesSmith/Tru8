@@ -234,7 +234,7 @@ async def run_one_async(
     root.setLevel(logging.INFO)
 
     cassette: Optional[HttpxCassette] = None
-    if cassette_mode in ("record", "replay"):
+    if cassette_mode in ("record", "replay", "patch"):
         cassette = HttpxCassette(_cassette_path(corpus_dir, claim_id), cassette_mode)
 
     check_id: Optional[str] = None
@@ -267,7 +267,12 @@ async def run_one_async(
             except Exception:
                 pass
 
-    return handler.observation()
+    obs = handler.observation()
+    # Surface cassette hit/miss stats to the CLI: replay-mode misses mean the
+    # pipeline's requests no longer match the recording, so the observation
+    # is NOT comparable to golden — the CLI must fail loudly, not diff it.
+    obs.cassette_stats = cassette.stats if cassette is not None else None
+    return obs
 
 
 def run_one(

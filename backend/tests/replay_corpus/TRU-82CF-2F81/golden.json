@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-82CF-2F81",
-  "captured_at": "2026-06-16T15:53:52.402158+00:00",
-  "captured_with": "9231994",
+  "captured_at": "2026-07-02T17:25:41.930339+00:00",
+  "captured_with": "a324e8b",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -45,11 +45,11 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 4,
+      "value": 3,
       "tolerance": 3
     },
     "web_search": {
-      "value": 18,
+      "value": 19,
       "tolerance": 8
     },
     "api_adapters": {
@@ -68,23 +68,23 @@
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://companiesmarketcap.com/bp/annual-reports/",
         "https://finbox.com/LSE:BP./explorer/gp/",
+        "https://markets.ft.com/data/equities/tearsheet/summary?s=BP.:LSE",
+        "https://www.alpha-sense.com/earnings/bp/",
         "https://www.annualreports.com/Company/bp-plc",
-        "https://www.bbc.co.uk/news/articles/cz0g4dkm77zo",
         "https://www.bbc.co.uk/news/business-68206788",
-        "https://www.bbc.com/news/business-68206788",
-        "https://www.bp.com/investors",
+        "https://www.bbc.com/news/articles/cz0g4dkm77zo",
+        "https://www.bp.com/investors/results-reporting-and-presentations/annual-report",
         "https://www.bp.com/investors/results-reporting-and-presentations/archive-of-results-reports-and-presentations",
         "https://www.bp.com/press-and-publications/press-releases",
         "https://www.cnbc.com/2023/02/07/bp-earnings-q4-and-fy-2022.html",
-        "https://www.fidelity.co.uk/factsheet-data/factsheet/GB0007980591-bp/financials",
-        "https://www.ft.com/content/189a9248-d724-4128-b53a-b7afb33bcac4?syn-25a6b1a6=1",
-        "https://www.ft.com/content/425c205c-0be4-46a0-bcce-26d906298577?syn-25a6b1a6=1",
+        "https://www.ft.com/content/6f584312-d760-4978-9be0-4897cbc8b172",
         "https://www.ft.com/content/f1b91245-39f4-443b-a0f1-022974a9b28b",
+        "https://www.ft.com/content/f68de669-9e91-4aba-8fd4-9aa6eeae5886",
         "https://www.hl.co.uk/shares/shares-search-results/b/bp-plc-ordinary-us$0.25",
         "https://www.macrotrends.net/stocks/charts/BP/bp/financial-statements",
         "https://www.macrotrends.net/stocks/charts/BP/bp/gross-profit",
+        "https://www.scribd.com/presentation/676673741/Bp-Mba7060",
         "https://www.sec.gov/Archives/edgar/data/313807/000031380723000009/bp-20221231.htm"
       ],
       "min_similarity": 0.35
@@ -97,9 +97,10 @@
         "finbox.com",
         "ft.com",
         "macrotrends.net",
+        "scribd.com",
         "sec.gov"
       ],
-      "min_similarity": 0.2
+      "min_similarity": 0.3
     }
   }
 }

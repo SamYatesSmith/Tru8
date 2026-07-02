@@ -1,7 +1,7 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-06-16T15:53:44.229978+00:00",
-  "captured_with": "9231994",
+  "captured_at": "2026-07-02T17:25:34.488404+00:00",
+  "captured_with": "a324e8b",
   "captured_with_known_bugs": [],
   "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
   "hard_invariants": {
@@ -31,7 +31,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 27,
+      "value": 28,
       "tolerance": 8
     },
     "claims": {
@@ -43,7 +43,7 @@
       "tolerance": 3
     },
     "web_search": {
-      "value": 51,
+      "value": 48,
       "tolerance": 8
     },
     "api_adapters": {
@@ -59,59 +59,54 @@
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 9,
-      "tolerance": 4
+      "value": 10,
+      "tolerance": 5
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
         "https://abcnews.com/US/damage-weather-climate-disasters-exceed-100b-2022-noaa/story?id=91345859",
-        "https://centaur.reading.ac.uk/111004/9/2023-03-23%20Hawkins.pdf",
+        "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%20-%20Burt%20-%20Evaluation%20and%20verification%20of%20new%2",
         "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
-        "https://comptroller.nyc.gov/reports/annual-claims-report/",
         "https://comptroller.nyc.gov/reports/ten-years-after-sandy/",
-        "https://doi.org/10.1016/j.jpsychores.2024.111832",
-        "https://doi.org/10.1186/s44263-024-00071-4",
-        "https://doi.org/10.1787/e09c21e2-en",
-        "https://doi.org/10.3390/informatics11010004",
-        "https://doi.org/10.5194/nhess-24-973-2024",
-        "https://doi.org/10.58088/sq6f-2k98",
+        "https://ifs.org.uk/publications/how-much-public-spending-does-each-area-receive-local-authority-level-estimates-health",
         "https://journals.ametsoc.org/view/journals/bams/106/1/BAMS-D-23-0280.1.xml",
-        "https://obr.uk/frs/fiscal-risks-and-sustainability-september-2024/",
+        "https://onebillionresilient.org/hot-cities-chilled-economies-london/",
         "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
         "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
+        "https://theconversation.com/2022s-billion-dollar-disasters-climate-change-helped-make-it-uss-3rd-most-expensive-year-on-",
         "https://www.ajg.com/gallagherre/-/media/files/gallagher/gallagherre/gallagher-re-nat-cat-review-2022.pdf",
         "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
+        "https://www.bbc.co.uk/news/av/uk-england-london-60987260",
         "https://www.bbc.co.uk/news/live/uk-62184978",
         "https://www.bbc.co.uk/news/uk-62217282",
         "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
-        "https://www.britannica.com/event/Hurricane-Ian-2022",
-        "https://www.carbonbrief.org/guest-post-a-met-office-review-of-the-uks-record-breaking-summer-in-2022/",
         "https://www.climate.gov/news-features/blogs/beyond-data/2022-us-billion-dollar-weather-and-climate-disasters-historical",
         "https://www.climatecentral.org/climate-services/billion-dollar-disasters",
-        "https://www.economist.com/graphic-detail/2022/04/05/russias-war-in-ukraine-has-caused-at-least-68bn-in-physical-damage",
+        "https://www.ft.com/content/ebc33f14-6af9-4c76-acba-46dde8e2b73d?syn-25a6b1a6=1",
         "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
+        "https://www.instituteofhealthequity.org/resources-reports/evidence-review-cost-of-living-and-health-inequalities-in-lond",
         "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
-        "https://www.lse.ac.uk/granthaminstitute/wp-content/uploads/2022/05/What-will-climate-change-cost-the-UK-risks-impacts-mi",
+        "https://www.london.gov.uk/programmes-strategies/health-and-wellbeing/health-inequalities/health-inequalities-strategy",
         "https://www.mentalhealth.org.uk/about-us/news/mental-health-problems-cost-uk-economy-least-gbp-118-billion-year",
-        "https://www.nature.com/articles/s41598-022-15474-2",
+        "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/july-heat-review",
         "https://www.ncei.noaa.gov/access/billions/",
         "https://www.pbs.org/newshour/nation/climate-change-helped-fuel-18-billion-dollar-disasters-in-2022-noaa-says",
-        "https://www.pnas.org/doi/10.1073/pnas.1805048115",
         "https://www.reddit.com/r/UKWeather/comments/1s8eyj6/remember_the_heat_wave_of_2022/",
-        "https://www.reddit.com/r/science/comments/15aysgk/2022_was_uks_warmest_year_on_record_a_new_alltime/",
         "https://www.russiamatters.org/news/russia-ukraine-war-report-card/russia-ukraine-war-report-card-april-8-2026",
         "https://www.sciencedirect.com/science/article/pii/S2542519625000257",
-        "https://www.statista.com/statistics/1323651/highest-temperatures-united-kingdom-by-location/?srsltid=AfmBOorC7oWIEosy7bW",
-        "https://www.theguardian.com/media/2022/jul/20/hellfire-what-the-papers-say-about-uks-hottest-ever-day",
-        "https://www.theguardian.com/society/2022/jun/17/emergency-council-cuts-feared-after-higher-costs-create-17bn-shortfall",
-        "https://www.theguardian.com/society/2022/oct/13/cost-eradicating-nhs-england-repairs-backlog",
+        "https://www.statista.com/statistics/1323651/highest-temperatures-united-kingdom-by-location/?srsltid=AfmBOorImlh2c1MOQYZ",
+        "https://www.theguardian.com/business/live/2022/nov/16/uk-inflation-high-energy-food-house-prices-bank-of-england-busines",
+        "https://www.theguardian.com/environment/2026/jun/24/uk-records-hottest-june-day",
+        "https://www.theguardian.com/environment/2026/jun/24/why-humidity-making-uk-record-breaking-june-day-feel-even-hotter",
+        "https://www.theguardian.com/global-development/2022/oct/30/britain-collision-course-us-aid-pledge-global-health-fund-don",
+        "https://www.theguardian.com/inequality/2022/dec/04/health-and-wealth-divides-in-uk-worsening-despite-levelling-up-drive-",
+        "https://www.theguardian.com/politics/2015/jun/18/palace-of-westminster-renovation-options-report",
+        "https://www.theguardian.com/uk-news/2021/mar/28/as-england-faces-2bn-council-tax-rise-nottingham-pays-highest-bill",
         "https://www.theguardian.com/uk-news/2023/jan/20/hottest-day-of-2022-saw-638-more-deaths-than-normal-in-england",
-        "https://www.theguardian.com/uk-news/2023/jul/27/2022-warmest-year-record-uk-met-office-extreme-heat",
-        "https://www.theguardian.com/world/2025/jul/07/londons-low-traffic-zones-cut-deaths-and-injuries-by-more-than-a-third",
-        "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live",
-        "https://www.theguardian.com/world/live/2022/jul/19/uk-weather-extreme-heatwave-forecast-temperature-today-latest-live?fi",
+        "https://www.theguardian.com/uk/2001/may/22/immigration.immigrationandpublicservices1",
+        "https://www.theguardian.com/world/live/2026/jun/23/europe-heatwave-live-news-updates-uk-red-temperature-warnings-40-degr",
         "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
         "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
       ],
@@ -120,24 +115,25 @@
     "domain_set": {
       "golden": [
         "abcnews.com",
+        "ajg.com",
         "bbc.co.uk",
         "bbc.com",
-        "carbonbrief.org",
         "centaur.reading.ac.uk",
         "climate.gov",
         "climatecentral.org",
         "community.netweather.tv",
-        "comptroller.nyc.gov",
         "gov.uk",
         "internetgeography.net",
-        "lse.ac.uk",
-        "nature.com",
+        "metoffice.gov.uk",
         "ncei.noaa.gov",
+        "onebillionresilient.org",
+        "open-meteo.com",
         "pbs.org",
         "reddit.com",
         "rmets.onlinelibrary.wiley.com",
         "sciencedirect.com",
         "statista.com",
+        "theconversation.com",
         "theguardian.com",
         "weather.gov",
         "worldweatherattribution.org"
