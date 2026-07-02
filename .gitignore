@@ -116,6 +116,9 @@ backend/harness/jwt_token.txt
 
 # Generated output
 backend/tests/coverage.json
+# Runtime-written domain access cache — the pipeline appends every new domain it
+# meets (paywall/timeout/bot-blocked), so a tracked copy churns on every run.
+backend/data/domain_status.json
 # Replay-bench per-run observation dumps — deterministic + reproducible from
 # cassette.json.gz + golden.json; tracked copies just churn every run.
 backend/tests/replay_corpus/*/observation.json
