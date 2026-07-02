@@ -222,6 +222,11 @@ class Settings(BaseSettings):
     DISTIL_TIMEOUT: float = Field(15.0, env="DISTIL_TIMEOUT")
     DISTIL_MAX_FACTS_PER_ITEM: int = Field(8, env="DISTIL_MAX_FACTS_PER_ITEM")
     DISTIL_MIN_TEXT_LENGTH: int = Field(500, env="DISTIL_MIN_TEXT_LENGTH")
+    DISTIL_BATCH_SIZE: int = Field(
+        5, env="DISTIL_BATCH_SIZE"
+    )  # Articles per distil LLM call; batches run CONCURRENTLY (D1 latency
+    # fix). 15-article batches measured ~15.6s — exactly ON the 15s timeout
+    # (silent flaky failure) and at the 4,000 output-token cap. ~1s/article.
 
     # Domain Capping Configuration
     MAX_EVIDENCE_PER_DOMAIN: int = Field(

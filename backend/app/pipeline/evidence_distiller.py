@@ -10,6 +10,7 @@ Falls back to existing snippets on any failure — no regression risk.
 Cost: ~$0.004/claim, ~$0.02/check. Adds ~3-5s latency (parallelisable).
 """
 
+import asyncio
 import json
 import logging
 from typing import Any, Dict, List, Optional
@@ -55,7 +56,12 @@ MAX_ARTICLE_CHARS = 8000
 class EvidenceDistiller:
     """Extract claim-relevant atomic facts from full article text."""
 
-    BATCH_SIZE = 15
+    # D1 (latency): 15-article batches ran ~15.6s — exactly ON the 15s
+    # timeout (silent coin-flip failure, measured 2/17 items distilled) and
+    # at 3,986/4,000 output tokens (truncation-close). Latency is ~1s/article
+    # (output-generation bound), so small batches fired CONCURRENTLY give the
+    # same facts for the same tokens in the time of the slowest small batch.
+    BATCH_SIZE = 15  # legacy default; instance uses DISTIL_BATCH_SIZE below
 
     def __init__(self):
         self.google_ai_api_key = getattr(settings, "GOOGLE_AI_API_KEY", "")
@@ -63,6 +69,7 @@ class EvidenceDistiller:
         self.timeout = getattr(settings, "DISTIL_TIMEOUT", 15)
         self.max_facts = getattr(settings, "DISTIL_MAX_FACTS_PER_ITEM", 8)
         self.min_text_length = getattr(settings, "DISTIL_MIN_TEXT_LENGTH", 500)
+        self.batch_size = getattr(settings, "DISTIL_BATCH_SIZE", 5)
         self._token_usage: Dict[str, int] = {"input_tokens": 0, "output_tokens": 0}
 
     def get_token_usage(self) -> Dict[str, int]:
@@ -101,15 +108,29 @@ class EvidenceDistiller:
             self._cleanup_full_text(evidence_items)
             return evidence_items
 
-        # Process in batches
-        for batch_start in range(0, len(distillable_indices), self.BATCH_SIZE):
-            batch_end = min(batch_start + self.BATCH_SIZE, len(distillable_indices))
-            batch_indices = distillable_indices[batch_start:batch_end]
-            batch_items = [evidence_items[i] for i in batch_indices]
+        # Process in small CONCURRENT batches (D1). Each article's facts
+        # depend only on (claim, article) — no cross-article reasoning — so
+        # batch composition doesn't change per-article output; concurrency
+        # only changes wall time. A failed batch keeps snippets for ITS
+        # items only, exactly as the old sequential loop did.
+        batch_size = max(1, self.batch_size)
+        batches: List[List[int]] = [
+            distillable_indices[s : s + batch_size]
+            for s in range(0, len(distillable_indices), batch_size)
+        ]
 
-            facts_list = await self._distil_batch(claim_text, batch_items)
+        facts_lists = await asyncio.gather(
+            *[
+                self._distil_batch(
+                    claim_text, [evidence_items[i] for i in batch_indices]
+                )
+                for batch_indices in batches
+            ],
+            return_exceptions=True,
+        )
 
-            if facts_list is None:
+        for batch_indices, facts_list in zip(batches, facts_lists):
+            if facts_list is None or isinstance(facts_list, BaseException):
                 # LLM call failed — keep all snippets in this batch
                 continue
 

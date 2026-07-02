@@ -1853,6 +1853,13 @@ async def run_pipeline_phase2(
             "[CLASSIFY] SKIPPED — V2 frozen evidence replay (deterministic bypass)"
         )
 
+    # Classifier/distiller instances are created inside the task closures
+    # below; they publish themselves here so token usage reaches the
+    # by_stage telemetry. (Previously referenced as bare names under
+    # try/except NameError — which fired every run, silently dropping
+    # classifier+distiller tokens from cost_telemetry.)
+    _stage_components: Dict[str, Any] = {}
+
     if _run_classify or _run_distil:
         await _log_stage_transition(
             check_id, current_stage, "classify", progress_reporter
@@ -1878,6 +1885,7 @@ async def run_pipeline_phase2(
 
                     if pooled_items:
                         classifier = EvidenceClassifier()
+                        _stage_components["classifier"] = classifier
                         classified_pool = await classifier.classify_batch(pooled_items)
 
                         for pos, start_idx, count in claim_boundaries:
@@ -1912,6 +1920,7 @@ async def run_pipeline_phase2(
                 from app.pipeline.evidence_distiller import EvidenceDistiller
 
                 distiller = EvidenceDistiller()
+                _stage_components["distiller"] = distiller
                 claim_lookup = {str(c.get("position", 0)): c for c in selected_claims}
 
                 async def _distil_one_claim(claim_pos, ev_list, claim_text):
@@ -2568,16 +2577,18 @@ async def run_pipeline_phase2(
             frozen_evidence_replay.reset(_replay_evidence_token)
         logger.info("[FROZEN EVIDENCE REPLAY] Reset replay overrides")
 
-    # Token accumulation from LLM-calling modules (L-12)
+    # Token accumulation from LLM-calling modules (L-12). Classifier and
+    # distiller are closure-local in their task wrappers and publish
+    # themselves into _stage_components; absent = not instantiated (quick
+    # mode / disabled). The old bare-name + except-NameError pattern here
+    # ALWAYS raised, so their tokens never reached telemetry.
     _accumulate_tokens(final_result, analyzer.get_token_usage())
-    try:
-        _accumulate_tokens(final_result, classifier.get_token_usage())  # type: ignore[name-defined]
-    except NameError:
-        pass  # classifier not instantiated (quick mode uses heuristic)
-    try:
-        _accumulate_tokens(final_result, distiller.get_token_usage())  # type: ignore[name-defined]
-    except NameError:
-        pass  # distiller not instantiated (quick mode or disabled)
+    _classifier = _stage_components.get("classifier")
+    if _classifier is not None:
+        _accumulate_tokens(final_result, _classifier.get_token_usage())
+    _distiller = _stage_components.get("distiller")
+    if _distiller is not None:
+        _accumulate_tokens(final_result, _distiller.get_token_usage())
 
     # Phase 1.3: per-stage breakdown for cost monitoring + kill switch +
     # fallback-rate tracking. Stored alongside the aggregated counts.
@@ -2588,14 +2599,10 @@ async def run_pipeline_phase2(
             "fallback_fired": analyzer.get_fallback_status(),
         }
     }
-    try:
-        by_stage["classifier"] = classifier.get_token_usage()  # type: ignore[name-defined]
-    except NameError:
-        pass
-    try:
-        by_stage["distiller"] = distiller.get_token_usage()  # type: ignore[name-defined]
-    except NameError:
-        pass
+    if _classifier is not None:
+        by_stage["classifier"] = _classifier.get_token_usage()
+    if _distiller is not None:
+        by_stage["distiller"] = _distiller.get_token_usage()
     final_result["llm_usage_by_stage"] = by_stage
 
     # Pipeline metrics (L-12)

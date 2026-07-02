@@ -212,9 +212,9 @@ class TestDistilCoreFunction:
     @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_distil_batch_splitting(self):
-        """More than BATCH_SIZE items should trigger multiple LLM calls."""
+        """More than batch_size items should trigger multiple LLM calls."""
         distiller = EvidenceDistiller()
-        distiller.BATCH_SIZE = 2
+        distiller.batch_size = 2
         items = [_make_evidence(full_text=LONG_TEXT) for _ in range(5)]
 
         mock_response_2 = {
@@ -252,7 +252,7 @@ class TestDistilCoreFunction:
     async def test_distil_token_usage_accumulated(self):
         """get_token_usage() should sum across multiple LLM calls."""
         distiller = EvidenceDistiller()
-        distiller.BATCH_SIZE = 2
+        distiller.batch_size = 2
         items = [_make_evidence(full_text=LONG_TEXT) for _ in range(3)]
 
         mock_response = {
@@ -278,6 +278,47 @@ class TestDistilCoreFunction:
         usage = distiller.get_token_usage()
         assert usage["input_tokens"] == 180
         assert usage["output_tokens"] == 50
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_failed_batch_isolated_from_successful_batch(self):
+        """D1 (concurrent batches): a batch that raises keeps snippets for
+        ITS items only — sibling batches still apply their facts."""
+        distiller = EvidenceDistiller()
+        distiller.batch_size = 2
+        items = [_make_evidence(full_text=LONG_TEXT) for _ in range(4)]
+
+        call_count = 0
+
+        async def mock_call(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("simulated LLM failure")
+            return (
+                {
+                    "results": [
+                        {"index": 0, "facts": ["Fact A."]},
+                        {"index": 1, "facts": ["Fact B."]},
+                    ]
+                },
+                {"input_tokens": 50, "output_tokens": 20},
+            )
+
+        with patch(
+            "app.pipeline.evidence_distiller.call_google_ai_with_usage",
+            side_effect=mock_call,
+        ):
+            await distiller.distil_evidence_for_claim("Test claim", items)
+
+        # Batch 1 (items 0-1) failed -> snippets kept, not distilled
+        assert not items[0].get("_distilled")
+        assert not items[1].get("_distilled")
+        # Batch 2 (items 2-3) succeeded -> distilled
+        assert items[2].get("_distilled") is True
+        assert items[3].get("_distilled") is True
+        # _full_text cleaned up everywhere regardless
+        assert all("_full_text" not in it for it in items)
 
 
 # ============================================================
