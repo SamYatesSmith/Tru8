@@ -218,6 +218,68 @@ class TestCallLlmFallback:
 
         assert analyzer._last_model_used == analyzer.google_model
 
+
+# ── MAPPING_THINKING_BUDGET plumbing (M1 latency lever) ──────────────────
+
+
+@pytest.mark.asyncio
+class TestThinkingBudgetPlumbing:
+    """The budget must reach mapping labels only, and default to unset."""
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
+    async def test_budget_passed_on_mapping_labels(self, mock_client_cls, mock_google):
+        mock_google.return_value = (
+            {"test": True},
+            {"input_tokens": 0, "output_tokens": 0},
+        )
+        analyzer = ClaimMapAnalyzer()
+        analyzer.mapping_thinking_budget = 2048
+
+        await analyzer._call_llm("prompt", 0.2, 2000, "batch_mapping")
+        assert mock_google.call_args.kwargs["thinking_budget"] == 2048
+
+        await analyzer._call_llm("prompt", 0.2, 2000, "mapping")
+        assert mock_google.call_args.kwargs["thinking_budget"] == 2048
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
+    async def test_budget_not_passed_on_non_mapping_labels(
+        self, mock_client_cls, mock_google
+    ):
+        """Decomposition/completion/recovery run on flash-lite — no budget."""
+        mock_google.return_value = (
+            {"test": True},
+            {"input_tokens": 0, "output_tokens": 0},
+        )
+        analyzer = ClaimMapAnalyzer()
+        analyzer.mapping_thinking_budget = 2048
+
+        for label in (
+            "decomposition",
+            "batch_decomposition",
+            "map_completion",
+            "recovery_mapping",
+        ):
+            await analyzer._call_llm("prompt", 0.2, 2000, label)
+            assert mock_google.call_args.kwargs["thinking_budget"] is None, label
+
+    @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
+    @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
+    async def test_budget_defaults_to_none_even_on_mapping(
+        self, mock_client_cls, mock_google
+    ):
+        """Unset setting (default) → thinking_budget=None on mapping calls —
+        request body byte-identical to pre-M1 (cassette-safe)."""
+        mock_google.return_value = (
+            {"test": True},
+            {"input_tokens": 0, "output_tokens": 0},
+        )
+        analyzer = ClaimMapAnalyzer()  # settings default: None
+
+        await analyzer._call_llm("prompt", 0.2, 2000, "batch_mapping")
+        assert mock_google.call_args.kwargs["thinking_budget"] is None
+
     @patch("app.pipeline.claim_map_analyzer.call_google_ai_with_usage")
     @patch("app.pipeline.claim_map_analyzer.httpx.AsyncClient")
     async def test_sets_last_model_used_openai(self, mock_client_cls, mock_google):

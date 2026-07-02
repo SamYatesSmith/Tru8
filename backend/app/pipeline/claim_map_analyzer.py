@@ -860,6 +860,12 @@ class ClaimMapAnalyzer:
         self.mapping_google_model = getattr(
             settings, "MAPPING_GOOGLE_MODEL", self.google_model
         )
+        # Thinking-token cap for mapping calls (None = dynamic, current
+        # behaviour; 0 = off; >0 = cap). Applied ONLY to mapping labels —
+        # decomposition/completion/recovery run on flash-lite (no thinking).
+        self.mapping_thinking_budget = getattr(
+            settings, "MAPPING_THINKING_BUDGET", None
+        )
         self.timeout = 30  # decomposition, recovery (flash-lite, fast)
         self.mapping_timeout = 55  # evidence mapping (flash thinking model, slow)
         self._token_usage = {"input_tokens": 0, "output_tokens": 0}
@@ -1317,6 +1323,9 @@ class ClaimMapAnalyzer:
                         model=model_to_use,
                         timeout=google_timeout,
                         response_schema=response_schema,
+                        thinking_budget=(
+                            self.mapping_thinking_budget if is_mapping else None
+                        ),
                     ),
                     timeout=google_timeout + 5,
                 )
@@ -1420,6 +1429,7 @@ class ClaimMapAnalyzer:
         model: Optional[str] = None,
         timeout: Optional[float] = None,
         response_schema: Optional[Dict[str, Any]] = None,
+        thinking_budget: Optional[int] = None,
     ) -> tuple:
         return await call_google_ai_with_usage(
             prompt,
@@ -1428,6 +1438,7 @@ class ClaimMapAnalyzer:
             timeout=timeout or self.timeout,
             model=model or self.google_model,
             response_schema=response_schema,
+            thinking_budget=thinking_budget,
         )
 
     async def _call_openai(

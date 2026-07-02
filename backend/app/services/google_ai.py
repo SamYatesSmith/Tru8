@@ -296,6 +296,7 @@ async def call_google_ai_with_usage(
     timeout: float = 30,
     model: Optional[str] = None,
     response_schema: Optional[Dict[str, Any]] = None,
+    thinking_budget: Optional[int] = None,
 ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, int]]]:
     """Send a prompt to Google Gemini and return parsed JSON + token usage.
 
@@ -326,6 +327,11 @@ async def call_google_ai_with_usage(
     }
     if response_schema is not None:
         generation_config["responseSchema"] = response_schema
+    # `is not None` deliberately: 0 is a real value (thinking OFF), None means
+    # omit the field so the API applies its default (dynamic thinking) and the
+    # request body stays byte-identical for replay-bench cassettes.
+    if thinking_budget is not None:
+        generation_config["thinkingConfig"] = {"thinkingBudget": int(thinking_budget)}
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": generation_config,

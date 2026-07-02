@@ -268,3 +268,35 @@ class TestCallGoogleAi:
 
         assert parsed == {"data": "ok"}
         assert usage == {"input_tokens": 100, "output_tokens": 50}
+
+    @pytest.mark.asyncio
+    async def test_thinking_budget_included_when_set(self):
+        """thinking_budget=N adds generationConfig.thinkingConfig to the body."""
+        self.mock_client.post.return_value = _gemini_response('{"ok": true}')
+
+        await call_google_ai_with_usage("prompt", thinking_budget=1024)
+
+        body = self.mock_client.post.call_args.kwargs["json"]
+        assert body["generationConfig"]["thinkingConfig"] == {"thinkingBudget": 1024}
+
+    @pytest.mark.asyncio
+    async def test_thinking_budget_zero_is_a_real_value(self):
+        """0 (thinking OFF) must be sent, not treated as unset."""
+        self.mock_client.post.return_value = _gemini_response('{"ok": true}')
+
+        await call_google_ai_with_usage("prompt", thinking_budget=0)
+
+        body = self.mock_client.post.call_args.kwargs["json"]
+        assert body["generationConfig"]["thinkingConfig"] == {"thinkingBudget": 0}
+
+    @pytest.mark.asyncio
+    async def test_no_thinking_config_when_budget_none(self):
+        """Default (None) omits thinkingConfig entirely — request body stays
+        byte-identical to pre-M1 (replay-bench cassette signatures depend on
+        the body hash)."""
+        self.mock_client.post.return_value = _gemini_response('{"ok": true}')
+
+        await call_google_ai_with_usage("prompt")
+
+        body = self.mock_client.post.call_args.kwargs["json"]
+        assert "thinkingConfig" not in body["generationConfig"]

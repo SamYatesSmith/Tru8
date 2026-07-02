@@ -375,6 +375,12 @@ class Settings(BaseSettings):
     MAPPING_GOOGLE_MODEL: str = Field(
         "gemini-2.5-flash", env="MAPPING_GOOGLE_MODEL"
     )  # Google model for evidence mapping (highest-stakes call)
+    MAPPING_THINKING_BUDGET: Optional[int] = Field(
+        None, env="MAPPING_THINKING_BUDGET"
+    )  # Thinking-token cap for mapping calls only. None = omit thinkingConfig
+    # entirely (API default: dynamic thinking — current behaviour, and keeps
+    # the request body byte-identical for replay-bench cassettes); 0 = thinking
+    # off; >0 = cap. Latency lever — see audit/2026-07-02_pipeline_latency_options.md (M1).
 
     # ========== TRACK M: EVIDENCE INFRASTRUCTURE ==========
 
