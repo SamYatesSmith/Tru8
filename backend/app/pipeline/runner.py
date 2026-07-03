@@ -26,6 +26,7 @@ from app.pipeline.progress import ProgressReporter
 from app.services.push_notifications import push_notification_service
 from app.services.email_notifications import email_notification_service
 from app.services.cache import get_cache_service
+from app.utils.date_provenance import derive_date_basis
 from app.utils.date_utils import parse_date
 from dataclasses import dataclass, field
 
@@ -1787,6 +1788,10 @@ async def run_pipeline_phase2(
                                     "url": r.url,
                                     "title": r.title or "",
                                     "published_date": r.published_date,
+                                    # No page fetched here — engine date, unconfirmed
+                                    "date_basis": derive_date_basis(
+                                        r.url, r.published_date
+                                    ),
                                     "relevance_score": 0.0,
                                     "semantic_similarity": 0.0,
                                     "receipt_status": "extracted",
@@ -2890,6 +2895,7 @@ async def save_check_results_async(
                     title=ev_data.get("title", ""),
                     snippet=ev_data.get("snippet", ev_data.get("text", "")),
                     published_date=parse_date(ev_data.get("published_date")),
+                    date_basis=ev_data.get("date_basis"),
                     relevance_score=float(rel_score) if rel_score is not None else 0.0,
                     page_number=(
                         metadata_dict.get("page_number") if metadata_dict else None

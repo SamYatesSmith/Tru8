@@ -57,6 +57,7 @@ def _make_evidence(**overrides):
         "llm_relevance_score": None,
         "classification_method": None,
         "content_basis": None,
+        "date_basis": None,
     }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)

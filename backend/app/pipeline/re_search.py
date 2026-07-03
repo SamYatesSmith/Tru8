@@ -285,6 +285,7 @@ async def run_element_re_search(
                     title=ev_data.get("title", ""),
                     snippet=ev_data.get("snippet", ev_data.get("text", "")),
                     published_date=parse_date(ev_data.get("published_date")),
+                    date_basis=ev_data.get("date_basis"),
                     relevance_score=float(ev_data.get("relevance_score", 0.0) or 0.0),
                     tier=ev_data.get("tier"),
                     evidence_type=ev_data.get("evidence_type"),

@@ -435,6 +435,7 @@ class TestRetrieveForElements:
             "url",
             "title",
             "published_date",
+            "date_basis",
             "relevance_score",
             "semantic_similarity",
             "combined_score",

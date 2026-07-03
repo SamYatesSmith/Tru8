@@ -295,6 +295,14 @@ class Evidence(SQLModel, table=True):
     title: str
     snippet: str
     published_date: Optional[datetime] = None
+    date_basis: Optional[str] = Field(
+        default=None,
+        max_length=32,
+        description=(
+            "Provenance of published_date (F2): page_metadata|engine|"
+            "url_inferred_suspect|api_adapter. NULL = no date / pre-F2 row."
+        ),
+    )
     relevance_score: float = Field(ge=0, le=1)  # 0-1
     created_at: datetime = Field(default_factory=_utcnow_naive)
 

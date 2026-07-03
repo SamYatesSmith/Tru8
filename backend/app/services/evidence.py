@@ -10,6 +10,7 @@ from readability import Document
 import bleach
 from bs4 import BeautifulSoup
 from app.services.search import SearchResult, SearchService
+from app.utils.date_provenance import derive_date_basis
 from app.utils.url_utils import extract_domain
 from app.utils.domain_status_tracker import get_domain_tracker, DomainStatus
 from app.utils.encoding import fix_mojibake
@@ -70,6 +71,7 @@ class EvidenceSnippet:
         relevance_score: float = 0.0,
         metadata: Optional[Dict[str, Any]] = None,
         content_basis: str = "full",
+        date_basis: Optional[str] = None,  # F2: provenance of published_date
         _full_text: Optional[str] = None,  # Transient — never persisted
     ):
         self.text = text
@@ -81,6 +83,7 @@ class EvidenceSnippet:
         self.word_count = len(text.split())
         self.metadata = metadata or {}  # Store page numbers, context
         self.content_basis = content_basis
+        self.date_basis = date_basis
         self._full_text = _full_text
 
     def to_dict(self) -> Dict[str, Any]:
@@ -94,6 +97,7 @@ class EvidenceSnippet:
             "word_count": self.word_count,
             "metadata": self.metadata,
             "content_basis": self.content_basis,
+            "date_basis": self.date_basis,
         }
 
 
@@ -417,6 +421,12 @@ class EvidenceExtractor:
                                 "context_after": best_match.get("context_after"),
                             },
                             content_basis="pdf",
+                            # PDFs carry no HTML metadata — engine date, or
+                            # suspect when it echoes the URL upload path (the
+                            # exact TRU-EC8D-8BC8 source-1 failure shape).
+                            date_basis=derive_date_basis(
+                                search_result.url, search_result.published_date
+                            ),
                         )
                     else:
                         logger.warning(
@@ -485,14 +495,19 @@ class EvidenceExtractor:
                     # Calculate relevance score
                     relevance_score = self._calculate_relevance(snippet_text, claim)
 
-                    # Extract date from HTML if not provided by search API
-                    published_date = search_result.published_date
-                    if not published_date:
-                        published_date = self._extract_date_from_html(response.text)
-                        if published_date:
-                            logger.debug(
-                                f"Extracted date from HTML: {published_date} for {search_result.url}"
-                            )
+                    # F2: the page's own declared date beats the search
+                    # engine's guess — engines sometimes synthesise dates from
+                    # URL upload paths. HTML is already in memory, no extra
+                    # fetch (same seam as the title preference below).
+                    page_date = self._extract_date_from_html(response.text)
+                    published_date = page_date or search_result.published_date
+                    date_basis = derive_date_basis(
+                        search_result.url, search_result.published_date, page_date
+                    )
+                    if page_date:
+                        logger.debug(
+                            f"Using page-declared date: {page_date} for {search_result.url}"
+                        )
 
                     # Prefer the page's own (complete) title over the search
                     # provider's — which Google/Serper truncate with an ellipsis.
@@ -507,6 +522,7 @@ class EvidenceExtractor:
                         published_date=published_date,
                         relevance_score=relevance_score,
                         content_basis="snippet" if _fell_back_to_snippet else "full",
+                        date_basis=date_basis,
                         _full_text=content if not _fell_back_to_snippet else None,
                     )
 
@@ -553,6 +569,10 @@ class EvidenceExtractor:
                         published_date=search_result.published_date,
                         relevance_score=0.5,  # Lower score for fallback
                         content_basis="snippet",
+                        # No page fetched (403/429) — engine date, unconfirmed
+                        date_basis=derive_date_basis(
+                            search_result.url, search_result.published_date
+                        ),
                     )
                 return None
             except Exception as e:

@@ -35,6 +35,7 @@ def _ev(**overrides):
         llm_relevance_score=None,
         classification_method=None,
         content_basis=None,
+        date_basis=None,
         # fact-check fields
         factcheck_publisher=None,
         factcheck_rating=None,

@@ -109,6 +109,8 @@ def _serialize_evidence(ev, include_factcheck_detail: bool = False) -> dict:
         "llmRelevanceScore": ev.llm_relevance_score,
         "classificationMethod": ev.classification_method,
         "contentBasis": ev.content_basis,
+        # Date provenance (F2): page_metadata|engine|url_inferred_suspect|api_adapter
+        "dateBasis": ev.date_basis,
     }
     # #14: surface publisher + rating ONLY for a fact-check confirmed to be
     # about THIS claim (parsed successfully AND above the relevance threshold).

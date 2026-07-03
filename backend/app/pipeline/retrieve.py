@@ -12,6 +12,7 @@ from app.services.evidence import (
     get_runtime_blocked_domains,
     is_domain_blocked,
 )
+from app.utils.date_provenance import DATE_BASIS_API, derive_date_basis
 from app.utils.url_utils import extract_domain
 from app.services.government_api_client import get_api_registry
 from app.core.config import settings
@@ -723,6 +724,15 @@ class EvidenceRetriever:
                                     "recovery_search": True,
                                     "domain_key": domain_key,
                                 },
+                                # No page fetched here — engine date, unconfirmed
+                                date_basis=derive_date_basis(
+                                    url,
+                                    (
+                                        getattr(r, "published_date", None)
+                                        if hasattr(r, "published_date")
+                                        else r.get("published_date")
+                                    ),
+                                ),
                             )
                             all_snippets.append(snippet)
 
@@ -752,6 +762,7 @@ class EvidenceRetriever:
                         "url": snippet.url,
                         "title": snippet.title,
                         "published_date": snippet.published_date,
+                        "date_basis": snippet.date_basis,
                         "relevance_score": float(snippet.relevance_score),
                         "semantic_similarity": 0.0,
                         "combined_score": 0.0,
@@ -1047,6 +1058,8 @@ class EvidenceRetriever:
                                 "url": url,
                                 "title": title,
                                 "published_date": pub_date,
+                                # No page fetched here — engine date, unconfirmed
+                                "date_basis": derive_date_basis(url, pub_date),
                                 "relevance_score": 0.0,
                                 "semantic_similarity": 0.0,
                                 "combined_score": 0.0,
@@ -1124,6 +1137,11 @@ class EvidenceRetriever:
                     ev["text"] = snippet.text
                     ev["snippet"] = snippet.text[:500]
                     ev["word_count"] = snippet.word_count
+                    # F2: the fetch may have surfaced the page's own declared
+                    # date — upgrade the engine guess (precedence rule)
+                    if snippet.date_basis == "page_metadata":
+                        ev["published_date"] = snippet.published_date
+                        ev["date_basis"] = snippet.date_basis
                     ev.setdefault("metadata", {})["enriched"] = True
                     logger.debug(
                         f"[RECOVERY ENRICHMENT] {url}: {snippet.word_count} words"
@@ -1214,6 +1232,7 @@ class EvidenceRetriever:
                                 "url": item.get("url", ""),
                                 "title": item.get("title", ""),
                                 "published_date": item.get("published_date"),
+                                "date_basis": item.get("date_basis"),
                                 "relevance_score": float(
                                     item.get("relevance_score", 0.0)
                                 ),
@@ -1486,6 +1505,7 @@ class EvidenceRetriever:
                             "url": snippet.url,
                             "title": snippet.title,
                             "published_date": snippet.published_date,
+                            "date_basis": snippet.date_basis,
                             "relevance_score": float(snippet.relevance_score),
                             "semantic_similarity": 0.0,
                             "combined_score": 0.0,
@@ -1879,6 +1899,10 @@ class EvidenceRetriever:
                         "fallback_reason": str(e)[:100],
                         "element_ids": element_ids,
                     },
+                    # Page fetch failed — engine date, unconfirmed
+                    date_basis=derive_date_basis(
+                        search_result.url, search_result.published_date
+                    ),
                 )
             else:
                 # Other failure or fallback disabled: Drop
@@ -2388,6 +2412,10 @@ class EvidenceRetriever:
                         ),
                     },
                     content_basis="api",
+                    # F2: adapter source_date is authoritative for that source
+                    date_basis=(
+                        DATE_BASIS_API if evidence.get("source_date") else None
+                    ),
                 )
                 snippets.append(snippet)
             except Exception as e:
