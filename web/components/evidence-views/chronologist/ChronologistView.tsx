@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useCallback } from 'react';
 import { Claim, Evidence } from '@shared/types';
+import { timelineDate } from '@/lib/evidence-date';
 import { extractDomain, formatShortDate, getTierColor } from '../shared-utils';
 import { TemporalInsightStrip } from './TemporalInsightStrip';
 import { TimelineAxis } from './TimelineAxis';
@@ -143,12 +144,12 @@ export function ChronologistView({ scope, claims, onSwitchToLibrarian }: Chronol
     const undated: Evidence[] = [];
 
     for (const { evidence, claimIdx } of allEvidence) {
-      if (evidence.publishedDate) {
-        const parsed = new Date(evidence.publishedDate);
-        if (!isNaN(parsed.getTime())) {
-          dated.push({ evidence, date: parsed, claimIdx });
-          continue;
-        }
+      // F2: timelineDate treats suspect dates (host-upload echoes) as
+      // undated — the axis only plots dates we can stand behind.
+      const parsed = timelineDate(evidence);
+      if (parsed) {
+        dated.push({ evidence, date: parsed, claimIdx });
+        continue;
       }
       undated.push(evidence);
     }

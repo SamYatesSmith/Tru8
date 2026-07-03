@@ -4,6 +4,7 @@ import { Evidence, EvidenceRelationship } from '@shared/types';
 import { TypeStamp } from './TypeStamp';
 import { ElementRefs } from '../ElementRefs';
 import { FactCheckRating } from '../FactCheckRating';
+import { DateHint } from '../DateHint';
 import { getFaviconUrl, cleanTitle } from '../shared-utils';
 
 // Disposition labels — an organising axis (how the source relates to the
@@ -95,7 +96,10 @@ export function LedgerCard({ evidence, callNumber, elementIds, claimLabel, relat
             {date && (
               <>
                 <span className="font-mono text-[10px] text-zinc-300">&middot;</span>
-                <span className="font-mono text-[10px] text-zinc-400">{date}</span>
+                <span className="font-mono text-[10px] text-zinc-400">
+                  {date}
+                  <DateHint evidence={evidence} />
+                </span>
               </>
             )}
             {elementIds && elementIds.length > 0 && (

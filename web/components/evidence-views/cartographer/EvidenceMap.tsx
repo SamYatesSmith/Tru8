@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Evidence, EvidenceTier, ClaimElement } from '@shared/types';
+import { DateHint } from '../DateHint';
 import { cleanTitle } from '../shared-utils';
 import {
   forceSimulation,
@@ -838,6 +839,7 @@ export function EvidenceMap({
           {selectedNode.evidence.publishedDate && (
             <div className="text-[10px] text-zinc-400 font-mono mb-3">
               {formatDate(selectedNode.evidence.publishedDate)}
+              <DateHint evidence={selectedNode.evidence} />
             </div>
           )}
 

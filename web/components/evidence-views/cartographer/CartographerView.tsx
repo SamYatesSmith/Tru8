@@ -6,6 +6,7 @@ import { LandscapeSummaryStrip } from './LandscapeSummaryStrip';
 import { EvidenceMap, type ElementMapping } from './EvidenceMap';
 import { GapIndicator } from './GapIndicator';
 import { ElementBadge } from '../ElementBadge';
+import { DateHint } from '../DateHint';
 import { cleanTitle } from '../shared-utils';
 
 // --- Mobile helpers ---
@@ -256,6 +257,7 @@ export function CartographerView({ scope, claims, onSwitchToLibrarian }: Cartogr
                     {ev.publishedDate && (
                       <div className="text-[10px] text-zinc-400 font-mono mb-2">
                         {formatDate(ev.publishedDate)}
+                        <DateHint evidence={ev} />
                       </div>
                     )}
                     {mappings.length > 0 && (

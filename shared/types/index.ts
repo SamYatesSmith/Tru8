@@ -99,6 +99,10 @@ export interface Evidence {
   title: string;
   snippet: string;
   publishedDate?: string; // ISO string from backend, not Date
+  // Date provenance (F2): where publishedDate came from.
+  // 'page_metadata' | 'engine' | 'url_inferred_suspect' | 'api_adapter'
+  // Suspect = engine date echoing a /YYYY/MM/ URL path, unconfirmed by the page.
+  dateBasis?: string;
   relevanceScore: number; // 0-1 (semantic similarity)
   // Classification (E06)
   tier?: EvidenceTier;

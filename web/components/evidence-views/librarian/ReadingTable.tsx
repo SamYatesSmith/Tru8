@@ -4,6 +4,7 @@ import { Evidence, EvidenceTier } from '@shared/types';
 import { TierStamp } from './TierStamp';
 import { TypeStamp } from './TypeStamp';
 import { FactCheckRating } from '../FactCheckRating';
+import { DateHint } from '../DateHint';
 import { cleanTitle } from '../shared-utils';
 
 function extractDomain(url: string): string {
@@ -91,7 +92,10 @@ export function ReadingTable({ evidence, callNumber, elementDescriptions, claimL
 
       {/* Date */}
       {date && (
-        <div className="font-mono text-[10px] text-zinc-400 mb-3">{date}</div>
+        <div className="font-mono text-[10px] text-zinc-400 mb-3">
+          {date}
+          <DateHint evidence={evidence} />
+        </div>
       )}
 
       {/* Stamps */}

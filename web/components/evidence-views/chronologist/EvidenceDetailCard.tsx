@@ -3,6 +3,7 @@
 import { Evidence, EvidenceTier } from '@shared/types';
 import { TierStamp } from '../librarian/TierStamp';
 import { TypeStamp } from '../librarian/TypeStamp';
+import { DateHint } from '../DateHint';
 import { extractDomain, formatDateStr, getFaviconUrl, cleanTitle } from '../shared-utils';
 
 const TIER_BORDER_COLORS: Record<EvidenceTier, string> = {
@@ -65,7 +66,10 @@ export function EvidenceDetailCard({ evidence, elementDescriptions, onClose }: E
 
       {/* Date */}
       {date && (
-        <p className="font-mono text-[10px] text-zinc-400 mb-3">{date}</p>
+        <p className="font-mono text-[10px] text-zinc-400 mb-3">
+          {date}
+          <DateHint evidence={evidence} />
+        </p>
       )}
 
       {/* Stamps */}
