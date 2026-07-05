@@ -30,7 +30,30 @@ function PageviewTracker() {
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    initAnalytics();
+    // Defer init until the page has fully loaded AND the main thread is idle.
+    // posthog-js lazy-loads extension scripts (web-vitals etc.) by inserting
+    // <script type="text/javascript"> BEFORE the first `body > script` — if
+    // that runs while React is still hydrating a route that renders a
+    // body-level <script> (our JSON-LD), positional hydration matches the
+    // wrong node and throws React #418/#422 (prod incident, 2026-07-05).
+    let cancelled = false;
+    const start = () => {
+      if (cancelled) return;
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => { if (!cancelled) initAnalytics(); });
+      } else {
+        setTimeout(() => { if (!cancelled) initAnalytics(); }, 1);
+      }
+    };
+    if (document.readyState === 'complete') {
+      start();
+    } else {
+      window.addEventListener('load', start, { once: true });
+    }
+    return () => {
+      cancelled = true;
+      window.removeEventListener('load', start);
+    };
   }, []);
 
   return (

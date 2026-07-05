@@ -70,14 +70,17 @@ export default function Home({
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
       <Navigation initialAuthOpen={shouldOpenAuth} redirectUrl={redirectUrl} />
       <MobileNav />
 
       <main id="main-content" className="relative">
+        {/* JSON-LD lives INSIDE main, not as a direct body child: posthog-js
+            inserts its lazy scripts before the first `body > script`, which
+            breaks React positional hydration (#418/#422) if that's ours. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
         {/* Document edge — one decisive accent stroke (Phase 1 art-direction) */}
         <div aria-hidden="true" className="h-[2px] w-full bg-accent" />
         {/* Persistent title-block spine in the left margin (wide screens only) */}

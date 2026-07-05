@@ -126,18 +126,17 @@ export default async function PublicReportPage({ params, searchParams }: PagePro
 
   return (
     <>
-      {/* JSON-LD Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
-
       {/* Navigation */}
       <Navigation />
       <MobileBottomNav />
 
       {/* Main Content */}
       <main className="min-h-screen bg-white pt-24 md:pt-32 pb-24 md:pb-20">
+        {/* JSON-LD inside main, not a direct body child — see app/page.tsx note */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           <PublicReportClient
             check={check}

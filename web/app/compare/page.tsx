@@ -50,14 +50,15 @@ const faqJsonLd = {
 export default function ComparePage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
-      />
       <Navigation />
       <MobileBottomNav />
 
       <main className="min-h-screen pt-24 md:pt-32 pb-24 md:pb-20">
+        {/* Inside main, not a direct body child — see app/page.tsx JSON-LD note */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
+        />
         {/* Header */}
         <div className="container mx-auto px-4 md:px-6 max-w-5xl">
           <Link

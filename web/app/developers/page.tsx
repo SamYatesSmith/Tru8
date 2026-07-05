@@ -72,14 +72,15 @@ const faqJsonLd = {
 export default function DevelopersPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
-      />
       <Navigation />
       <MobileNav />
 
       <main id="main-content" className="min-h-screen pt-24 md:pt-32 pb-24 md:pb-20">
+        {/* Inside main, not a direct body child — see app/page.tsx JSON-LD note */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
+        />
         {/* Document-grammar spine (xl+) */}
         <div
           aria-hidden="true"
