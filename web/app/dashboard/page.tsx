@@ -48,7 +48,7 @@ export default async function DashboardPage({
 }: {
   searchParams: { upgraded?: string; cancelled?: string };
 }) {
-  const { getToken } = auth();
+  const { getToken } = await auth();
   const token = await getToken();
   const [user, subscription, usage, checksResponse, stats] = await Promise.all([
     apiClient.getCurrentUser(token) as Promise<User>,

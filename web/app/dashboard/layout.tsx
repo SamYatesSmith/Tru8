@@ -25,7 +25,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   // Middleware guarantees authentication - just get the token
-  const { getToken } = auth();
+  const { getToken } = await auth();
   const token = await getToken();
 
   // Fetch authenticated user data

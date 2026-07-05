@@ -13,7 +13,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@clerk/nextjs": "^5.7.6",
+    "@clerk/nextjs": "^6.39.5",
     "@sentry/nextjs": "^10.53.1",
     "@tru8/shared": "*",
     "@vercel/og": "^0.8.6",

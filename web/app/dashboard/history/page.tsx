@@ -9,7 +9,7 @@ interface ChecksResponse {
 }
 
 export default async function HistoryPage() {
-  const { getToken } = auth();
+  const { getToken } = await auth();
 
   // Fetch first page of checks
   const token = await getToken();

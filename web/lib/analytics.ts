@@ -96,7 +96,8 @@ export type AnalyticsEvent =
   | 'pricing_console_click' // Console "Start in the browser" CTA → /dashboard
   | 'pricing_free_click' // Free taster CTA → /dashboard
   | 'pricing_teams_click' // Teams "Talk to us" CTA → /contact
-  | 'pricing_api_click'; // quiet API band "See the API" → /developers
+  | 'pricing_api_click' // quiet API band "See the API" → /developers
+  | 'auth_stale_session_reset'; // wedged Clerk session auto-signed-out in AuthModal (2026-07-05 incident)
 
 export function capture(
   event: AnalyticsEvent,

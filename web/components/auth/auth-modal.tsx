@@ -1,8 +1,9 @@
 'use client';
 
-import { SignIn, SignUp } from '@clerk/nextjs';
-import { useState, useEffect } from 'react';
+import { SignIn, SignUp, useAuth, useClerk } from '@clerk/nextjs';
+import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { capture } from '@/lib/analytics';
 
 /**
  * Tru8-Styled Clerk Authentication Modal
@@ -34,6 +35,30 @@ interface AuthModalProps {
 export function AuthModal({ isOpen, onClose, redirectUrl }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const afterAuthUrl = redirectUrl || '/dashboard';
+  const { isLoaded, isSignedIn } = useAuth();
+  const { signOut } = useClerk();
+  // One stale-session check per modal-open, evaluated at the first moment
+  // Clerk is loaded — BEFORE the user can have signed in through the form,
+  // so a successful sign-in inside the modal can never trigger the reset.
+  const staleCheckDone = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      staleCheckDone.current = false;
+      return;
+    }
+    if (!isLoaded || staleCheckDone.current) return;
+    staleCheckDone.current = true;
+    // This modal only opens from signed-out UI (or a middleware bounce off a
+    // protected route). If Clerk's client still holds a session here, the
+    // session is wedged — server rejects it, client believes it — and
+    // <SignIn> renders an empty panel (prod incident, 2026-07-05). Sign the
+    // stale client out in place so the form can render.
+    if (isSignedIn) {
+      capture('auth_stale_session_reset');
+      void signOut(() => {});
+    }
+  }, [isOpen, isLoaded, isSignedIn, signOut]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {

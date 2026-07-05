@@ -30,7 +30,7 @@ interface CheckData {
 }
 
 export default async function CheckDetailPage({ params, searchParams }: CheckDetailPageProps) {
-  const { getToken } = auth();
+  const { getToken } = await auth();
 
   // Fetch check data and subscription status in parallel
   const token = await getToken();
