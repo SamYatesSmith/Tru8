@@ -1,12 +1,15 @@
 """Deterministic HTTP record/replay for the replay bench (a "cassette").
 
-Every external call in the pipeline rides ``httpx.AsyncClient`` — web search
-(``app/services/search.py``), all API adapters (``app/services/api_adapters/*``),
-Gemini (``app/services/google_ai.py`` uses the REST/httpx transport) and OpenAI
-(``openai.AsyncOpenAI`` runs on httpx under the hood). That single chokepoint is
-what makes a *deterministic* bench possible: patch ``httpx.AsyncClient.send`` for
-the duration of one bench claim and the entire non-deterministic surface — search
-provider drift AND LLM variance — is frozen at once.
+Every external call in the pipeline rides httpx — web search
+(``app/services/search.py``), Gemini (``app/services/google_ai.py`` REST) and
+OpenAI (``openai.AsyncOpenAI``) on ``httpx.AsyncClient``; every
+GovernmentAPIClient adapter (NOAA, GovInfo, Hansard, GOV.UK, ONS, Semantic
+Scholar, OpenAlex, ...) on sync ``httpx.Client``
+(``_make_request_with_retries``). Patching ``send`` on BOTH client classes for
+the duration of one bench claim freezes the entire non-deterministic surface —
+search provider drift, adapter API variance AND LLM variance — at once.
+(Sync interception added 2026-07-06; before that, sync-client adapters ran
+LIVE inside "deterministic" replay — see the class docstring.)
 
 Three modes
 -----------
@@ -192,16 +195,28 @@ class CassetteMiss(RuntimeError):
 
 
 class HttpxCassette:
-    """Context manager that records or replays all ``httpx.AsyncClient`` traffic.
+    """Context manager that records or replays all ``httpx.AsyncClient`` AND
+    sync ``httpx.Client`` traffic.
 
-    Patches the class-level ``send`` so every client instance — including the
-    ones openai / google-ai create internally — is captured, without editing any
-    adapter. Restores the original on exit.
+    Patches the class-level ``send`` on both client classes so every client
+    instance — including the ones openai / google-ai create internally — is
+    captured, without editing any adapter. Restores the originals on exit.
+
+    Sync interception (2026-07-06): every GovernmentAPIClient adapter (NOAA,
+    GovInfo, Hansard, GOV.UK, ONS, Semantic Scholar, OpenAlex, ...) rides a
+    sync ``httpx.Client`` (``_make_request_with_retries``), which the original
+    async-only patch never saw — those adapters ran LIVE inside "deterministic"
+    replay. The hole was masked by the 24h+ ``tru8:api_response`` Redis cache
+    (warm cache → record-day data → deterministic-looking) and surfaced as
+    Friday-green/Monday-red cassette drift when the cache expired: live NOAA
+    returned different observation sets run-to-run, downstream LLM prompt
+    bodies embedded them, and ``--record-missing`` could never converge.
     """
 
-    # The genuine method, saved across nested/concurrent uses via a refcount so
-    # we never double-patch or restore early.
+    # The genuine methods, saved across nested/concurrent uses via a refcount
+    # so we never double-patch or restore early.
     _orig_send = None
+    _orig_send_sync = None
     _depth = 0
     _patch_lock = threading.Lock()
 
@@ -230,10 +245,15 @@ class HttpxCassette:
         async def _patched_send(client, request, **kwargs):  # type: ignore[no-untyped-def]
             return await cassette._handle(client, request, **kwargs)
 
+        def _patched_send_sync(client, request, **kwargs):  # type: ignore[no-untyped-def]
+            return cassette._handle_sync(client, request, **kwargs)
+
         with HttpxCassette._patch_lock:
             if HttpxCassette._depth == 0:
                 HttpxCassette._orig_send = httpx.AsyncClient.send
                 httpx.AsyncClient.send = _patched_send  # type: ignore[assignment]
+                HttpxCassette._orig_send_sync = httpx.Client.send
+                httpx.Client.send = _patched_send_sync  # type: ignore[assignment]
             HttpxCassette._depth += 1
         return self
 
@@ -243,6 +263,9 @@ class HttpxCassette:
             if HttpxCassette._depth == 0 and HttpxCassette._orig_send is not None:
                 httpx.AsyncClient.send = HttpxCassette._orig_send  # type: ignore[assignment]
                 HttpxCassette._orig_send = None
+                if HttpxCassette._orig_send_sync is not None:
+                    httpx.Client.send = HttpxCassette._orig_send_sync  # type: ignore[assignment]
+                    HttpxCassette._orig_send_sync = None
         if self.mode == "record" or (self.mode == "patch" and self._patched_count):
             self._dump()
 
@@ -280,6 +303,45 @@ class HttpxCassette:
                 self._recorded.setdefault(sig, []).append(entry)
             raise
         body = await response.aread()  # buffers content; response stays usable
+        entry = _serialise_response(response, body)
+        entry["_url"] = _redact_url(request)
+        entry["_method"] = request.method
+        with self._lock:
+            self._recorded.setdefault(sig, []).append(entry)
+        return response
+
+    # -- sync twin (httpx.Client) -------------------------------------------
+    # Same store, same signature scheme, same FIFO cursor — a request is a
+    # request regardless of which client class sent it. All state access is
+    # threading.Lock-protected, so sync calls from executor threads and async
+    # calls on the event loop interleave safely.
+
+    def _handle_sync(self, client, request: httpx.Request, **kwargs):  # type: ignore[no-untyped-def]
+        sig = _canonical_signature(request)
+        if self.mode == "replay":
+            return self._replay(sig, request)
+        if self.mode == "patch":
+            try:
+                return self._replay(sig, request)
+            except CassetteMiss:
+                self._patched_count += 1
+                return self._record_sync(client, sig, request, **kwargs)
+        return self._record_sync(client, sig, request, **kwargs)
+
+    def _record_sync(self, client, sig: str, request: httpx.Request, **kwargs):  # type: ignore[no-untyped-def]
+        assert HttpxCassette._orig_send_sync is not None
+        try:
+            response = HttpxCassette._orig_send_sync(client, request, **kwargs)
+        except httpx.HTTPError as exc:
+            entry = {
+                "_exception": type(exc).__name__,
+                "_url": _redact_url(request),
+                "_method": request.method,
+            }
+            with self._lock:
+                self._recorded.setdefault(sig, []).append(entry)
+            raise
+        body = response.read()  # buffers content; response stays usable
         entry = _serialise_response(response, body)
         entry["_url"] = _redact_url(request)
         entry["_method"] = request.method

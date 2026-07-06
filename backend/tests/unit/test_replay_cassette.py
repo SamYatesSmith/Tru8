@@ -96,3 +96,90 @@ async def test_replay_miss_is_fatal(tmp_path: Path, fake_network):
         async with httpx.AsyncClient() as c:
             with pytest.raises(CassetteMiss):
                 await c.post("https://api/search?key=K", json={"q": "UNRECORDED"})
+
+
+# -- sync httpx.Client interception (2026-07-06) ----------------------------
+# GovernmentAPIClient adapters (NOAA, GovInfo, Hansard, ...) ride sync
+# httpx.Client; before the sync patch they ran LIVE inside "deterministic"
+# replay (masked by the 24h tru8:api_response cache — the Friday-green/
+# Monday-red drift). These tests pin the sync path so it can't regress.
+
+
+@pytest.fixture
+def fake_sync_network(monkeypatch):
+    """Patch sync Client.send so 'live' sync calls echo deterministically."""
+    counter = {"n": 0}
+
+    def _fake_send(self, request, **kwargs):
+        counter["n"] += 1
+        payload = json.loads(request.content) if request.content else {}
+        return httpx.Response(
+            200, json={"echo": payload.get("q"), "call": counter["n"]}, request=request
+        )
+
+    monkeypatch.setattr(httpx.Client, "send", _fake_send)
+    return counter
+
+
+def test_sync_record_and_replay(tmp_path: Path, fake_sync_network):
+    cassette_path = tmp_path / "cassette.json"
+    with HttpxCassette(cassette_path, "record"):
+        with httpx.Client() as c:
+            r = c.post("https://api/adapter?key=SECRET9", json={"q": "noaa"})
+            assert r.json()["echo"] == "noaa"
+
+    raw = cassette_path.read_text(encoding="utf-8")
+    assert "SECRET9" not in raw
+    assert "__REDACTED__" in raw
+
+    calls_before = fake_sync_network["n"]
+    with HttpxCassette(cassette_path, "replay"):
+        with httpx.Client() as c:
+            r = c.post("https://api/adapter?key=ROTATED", json={"q": "noaa"})
+            assert r.json()["echo"] == "noaa"
+    assert fake_sync_network["n"] == calls_before  # replay made no live sync call
+
+
+def test_sync_replay_miss_is_fatal(tmp_path: Path, fake_sync_network):
+    cassette_path = tmp_path / "cassette.json"
+    with HttpxCassette(cassette_path, "record"):
+        with httpx.Client() as c:
+            c.post("https://api/adapter?key=K", json={"q": "recorded"})
+
+    with HttpxCassette(cassette_path, "replay"):
+        with httpx.Client() as c:
+            with pytest.raises(CassetteMiss):
+                c.post("https://api/adapter?key=K", json={"q": "UNRECORDED"})
+
+
+def test_sync_send_restored_after_exit(tmp_path: Path, fake_sync_network):
+    cassette_path = tmp_path / "cassette.json"
+    before = httpx.Client.send
+    with HttpxCassette(cassette_path, "record"):
+        assert httpx.Client.send is not before
+        with httpx.Client() as c:
+            c.post("https://api/adapter", json={"q": "x"})
+    assert httpx.Client.send is before
+
+
+@pytest.mark.asyncio
+async def test_sync_and_async_share_one_cassette(
+    tmp_path: Path, fake_network, fake_sync_network
+):
+    """One recorded store serves both client classes — a request is a request."""
+    cassette_path = tmp_path / "cassette.json"
+    with HttpxCassette(cassette_path, "record"):
+        async with httpx.AsyncClient() as ac:
+            await ac.post("https://api/llm", json={"q": "async-call"})
+        with httpx.Client() as sc:
+            sc.post("https://api/adapter", json={"q": "sync-call"})
+
+    with HttpxCassette(cassette_path, "replay") as cas:
+        async with httpx.AsyncClient() as ac:
+            r1 = await ac.post("https://api/llm", json={"q": "async-call"})
+        with httpx.Client() as sc:
+            r2 = sc.post("https://api/adapter", json={"q": "sync-call"})
+        assert r1.json()["echo"] == "async-call"
+        assert r2.json()["echo"] == "sync-call"
+        assert cas.stats["misses"] == 0
+        assert cas.stats["hits"] == 2

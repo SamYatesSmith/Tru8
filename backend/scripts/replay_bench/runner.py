@@ -138,11 +138,30 @@ async def _bust_pipeline_caches() -> None:
         "search_results:*",
         "url_content:*",
         "relevance:*",
+        # Adapter response cache (GovernmentAPIClient.cache_api_response_sync,
+        # 24h-4d TTLs). A warm entry suppresses the adapter's HTTP call, so
+        # record-time warmth bakes un-replayable gaps into cassettes: the call
+        # is absent from the recording, replays green while the cache lives,
+        # then misses forever once it expires (2026-07-06 diagnosis — the
+        # Friday-green/Monday-red drift on TRU-82CF-2F81 / TRU-5647-FA4F).
+        "api_response:*",
     ):
         try:
             await cache.invalidate_pattern(pattern)
         except Exception:
             pass
+
+    # relevance_scorer.py writes raw "relevance:v2:<md5>" keys via
+    # app.core.redis directly — WITHOUT CacheService's "tru8:" prefix — so the
+    # prefixed "relevance:*" pattern above has never matched them (its 1h TTL
+    # hid this on most days). Bust them directly so the relevance LLM call
+    # always fires in replay with a deterministic, recorded construction.
+    try:
+        raw_keys = await cache.redis_client.keys("relevance:*")
+        if raw_keys:
+            await cache.redis_client.delete(*raw_keys)
+    except Exception:
+        pass
 
 
 async def _run_one_claim_async(
