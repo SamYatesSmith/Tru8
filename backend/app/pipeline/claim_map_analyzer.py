@@ -519,6 +519,17 @@ def compute_orientation_basis(elements: List[ClaimElement]) -> dict:
 # support it. Mirrors the tier classification produced by evidence_classifier.
 _STATE_TIER_WEIGHTS = {"primary": 3, "reporting": 2, "commentary": 1}
 
+# F3 Phase B1 (R-U1): descriptive caveat for a `supported` element that makes a
+# universal claim ("only"/"first"/"no other") which positive evidence cannot
+# establish. Tier-gated: suppressed when a primary-tier source backs it (a
+# complete-registry / official-list source legitimately settles a universal).
+# Wording locked by founder 2026-07-07 (design §7, Option A). Describes the
+# evidential limit — never adjudicates the claim.
+_UNIVERSAL_CAVEAT = (
+    "'only'/'first'-type claim — evidence is consistent "
+    "but cannot establish a universal"
+)
+
 
 def _derive_element_state_with_authority(
     elem: ClaimElement, evidence_list: List[Dict[str, Any]]
@@ -577,13 +588,15 @@ def _derive_element_state_with_authority(
         elif rel_val == "context":
             context_count += 1
 
-    def _ref_weight(ref) -> int:
-        eid = (
+    def _ref_evidence_id(ref) -> str:
+        return (
             ref.get("evidence_id", "")
             if isinstance(ref, dict)
             else getattr(ref, "evidence_id", "")
         )
-        ev = ev_index.get(eid)
+
+    def _ref_weight(ref) -> int:
+        ev = ev_index.get(_ref_evidence_id(ref))
         if not ev:
             return 1
         tier = ev.get("tier") or "commentary"
@@ -656,6 +669,33 @@ def _derive_element_state_with_authority(
             f"(weighted {weighted_supports} vs {weighted_challenges})"
         )
 
+    # F3 Phase B1 (R-U1): universal-claim caveat. A `supported` element whose
+    # own wording asserts a universal ("only"/"first"/"no other" — tagged at
+    # decompose, scope_flags.universal) is supported by positive instances that
+    # cannot establish the universal. Fire ONLY when no challenge caveat already
+    # occupies the channel (caveat is None ⇒ the unanimous-supported path F3
+    # targets) and TIER-GATED: a primary-tier supporter (a complete registry /
+    # official list) legitimately settles a universal, so it is exempt. The
+    # state is unchanged — this describes the evidential limit, it does not
+    # adjudicate (design §7, decision #7). scope_flags is set by
+    # app.utils.scope_sensitivity at decompose; absent ⇒ not scope-sensitive.
+    scope_basis: Optional[Dict[str, Any]] = None
+    if caveat is None and state == ElementState.supported:
+        universal_terms = ((elem.get("scope_flags") or {}).get("universal")) or []
+        if universal_terms:
+            has_primary_support = any(
+                (ev_index.get(_ref_evidence_id(r)) or {}).get("tier") == "primary"
+                for r in supports_refs
+            )
+            if not has_primary_support:
+                caveat = _UNIVERSAL_CAVEAT
+            scope_basis = {
+                "trigger": "universal",
+                "terms": universal_terms,
+                "primary_support": has_primary_support,
+                "caveated": caveat == _UNIVERSAL_CAVEAT,
+            }
+
     state_basis = {
         "supports_count": n_supports,
         "challenges_count": n_challenges,
@@ -665,6 +705,8 @@ def _derive_element_state_with_authority(
         "rule_applied": rule,
         "caveat": caveat,
     }
+    if scope_basis is not None:
+        state_basis["scope"] = scope_basis
     return state, state_basis
 
 
