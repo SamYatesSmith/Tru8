@@ -36,6 +36,7 @@ from app.models.claim_map import (
     EvidenceRef,
     EvidenceRelationship,
 )
+from app.utils.scope_sensitivity import apply_scope_flags
 
 logger = logging.getLogger(__name__)
 
@@ -1519,6 +1520,11 @@ class ClaimMapAnalyzer:
         if not elements:
             raise ValueError("All elements had empty descriptions")
 
+        # F3 Phase A: tag scope-sensitive wording mechanically at decompose
+        # time (design audit/2026-07-07_f3_design_review.md §3.1). Inert to the
+        # mapper prompt (id+description only); read by Phase B state derivation.
+        apply_scope_flags(elements)
+
         return ClaimMap(
             claim_id=claim_id,
             normalised_claim=normalised,
@@ -1630,19 +1636,23 @@ class ClaimMapAnalyzer:
 
     def _fallback_decomposition(self, claim_text: str, claim_id: str) -> ClaimMap:
         """Return single-element ClaimMap when decomposition fails."""
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description=claim_text,
+                evidence_refs=[],
+                state=None,
+                uncertainty=None,
+            )
+        ]
+        # F3 Phase A: tag the fallback element too (the raw claim text often
+        # carries the scope word — e.g. "Britain is the only country…").
+        apply_scope_flags(elements)
         return ClaimMap(
             claim_id=claim_id,
             normalised_claim=claim_text,
             claim_type=ClaimType.empirical,
-            elements=[
-                ClaimElement(
-                    element_id="e1",
-                    description=claim_text,
-                    evidence_refs=[],
-                    state=None,
-                    uncertainty=None,
-                )
-            ],
+            elements=elements,
             orientation=None,
             metadata=ClaimMapMetadata(
                 decomposition_model="fallback",

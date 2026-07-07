@@ -48,6 +48,9 @@ class ClaimElement(TypedDict):
     uncertainty: Optional[str]
     bounty_text: Optional[str]  # G01: User-supplied research brief (max 200 chars)
     basis: Optional[dict]  # PQ-03: Evidence basis metadata for state transparency
+    scope_flags: Optional[
+        dict
+    ]  # F3: {geographic, universal} scope-sensitive wording (set at decompose; absent = not scope-sensitive)
 
 
 class ClaimMapMetadata(TypedDict):
