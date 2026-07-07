@@ -52,12 +52,12 @@ Phase 1 (0-30%):
   INGEST (10%)        → Fetch URL / OCR / transcript
   EXTRACT (20%)       → LLM atomises into ≤12 claims (questions accepted via implicit claim extraction)
   SELECT/RANK (28%)   → Article classification + claim ranking
-  [PAUSE]             → waiting_for_selection (article mode only)
+  [PAUSE]             → waiting_for_selection (ALL input modes — text checks pause too; verified live 2026-07-06)
 
 Phase 2 (30-100%):
   FACTCHECK (35%)     → Google Fact-Check API lookup
   DECOMPOSE (45%)     → Claim → 1-5 elements (LLM call)
-  RETRIEVE (60%)      → Per-element multi-source search (2 queries/element)
+  RETRIEVE (60%)      → Per-element multi-source search (2 queries/element; element's 2nd query runs unwindowed unless planner chose pd/pw — F1-D3 recency hedge 2026-07-06; two-year claims get both years anchored — F1-D1)
   SCORE (65%)         → LLM topical relevance scoring (1-5 scale, max 50 items)
   CLASSIFY (75%)      → Tier/Type classification (batched LLM + heuristic fallback)
   MAP (85%)           → Evidence → element mapping + state assignment (Gemini 2.5 Flash, 1000-char snippets; thinking OFF in prod via MAPPING_THINKING_BUDGET=0 — sweep-verified equal-or-better quality at −64-74% latency, 2026-07-02)

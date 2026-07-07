@@ -99,10 +99,13 @@ class TestNoOpCases:
         result = augment_plans_with_date_anchor(plans, claims)
         assert result[0]["queries"] == ["x"]
 
-    def test_multiple_years_skip(self):
-        # Multi-year DATE entities → ambiguous → no-op.
+    def test_three_plus_years_skip(self):
+        # 3+ distinct years → genuinely ambiguous → no-op.
+        # [Updated 2026-07-06, F1-D1: this test previously asserted no-op for
+        # TWO years; two-year claims are now range/comparison-anchored — see
+        # TestRangeAnchor. Three or more stays a no-op.]
         plans = [_plan(0, ["UK economy"])]
-        claims = [_claim(0, [_date("2008"), _date("2020")])]
+        claims = [_claim(0, [_date("2008"), _date("2020"), _date("1997")])]
         result = augment_plans_with_date_anchor(plans, claims)
         assert result[0]["queries"] == ["UK economy"]
 
@@ -175,6 +178,108 @@ class TestAnchorAppended:
         claims = [_claim(0, [_date("2023")])]
         result = augment_plans_with_date_anchor(plans, claims)
         assert result is plans
+
+
+# ── F1-D1: two-year range/comparison anchoring (2026-07-06) ─────────
+# Design: audit/2026-07-03_f1f2_design_review.md §3 (Option D1). A range
+# claim ("built between 1998 and 2008") yields exactly two DATE-entity
+# years; the old exactly-one rule left such queries unanchored and the
+# providers' recency ranking buried period material. Both years are
+# appended (ascending): range-covering for era claims and side-neutral
+# for two-year comparison claims.
+
+
+class TestRangeAnchor:
+    def test_two_years_both_appended_ascending(self):
+        plans = [_plan(0, ["LHC construction timeline"])]
+        claims = [_claim(0, [_date("1998"), _date("2008")])]
+        result = augment_plans_with_date_anchor(plans, claims)
+        assert result[0]["queries"] == ["LHC construction timeline 1998 2008"]
+
+    def test_two_years_in_one_entity_phrase(self):
+        # "between 1998 and 2008" arrives as a single DATE entity.
+        plans = [_plan(0, ["LHC construction timeline"])]
+        claims = [_claim(0, [_date("between 1998 and 2008")])]
+        result = augment_plans_with_date_anchor(plans, claims)
+        assert result[0]["queries"] == ["LHC construction timeline 1998 2008"]
+
+    def test_only_missing_year_appended(self):
+        plans = [_plan(0, ["LHC 2008 completion"])]
+        claims = [_claim(0, [_date("1998"), _date("2008")])]
+        result = augment_plans_with_date_anchor(plans, claims)
+        assert result[0]["queries"] == ["LHC 2008 completion 1998"]
+
+    def test_both_years_present_no_op(self):
+        plans = [_plan(0, ["LHC 1998 2008 construction"])]
+        claims = [_claim(0, [_date("1998"), _date("2008")])]
+        result = augment_plans_with_date_anchor(plans, claims)
+        assert result[0]["queries"] == ["LHC 1998 2008 construction"]
+
+    def test_comparison_shape_gets_both_sides(self):
+        # Two-year comparison claims must not be skewed to one side.
+        plans = [_plan(0, ["UK GDP growth comparison"])]
+        claims = [_claim(0, [_date("2019"), _date("2024")])]
+        result = augment_plans_with_date_anchor(plans, claims)
+        assert result[0]["queries"] == ["UK GDP growth comparison 2019 2024"]
+
+    def test_single_year_behaviour_unchanged(self):
+        plans = [_plan(0, ["water privatisation England"])]
+        claims = [_claim(0, [_date("1989")])]
+        result = augment_plans_with_date_anchor(plans, claims)
+        assert result[0]["queries"] == ["water privatisation England 1989"]
+
+
+# ── F1-D1 corrective: current/future years excluded (2026-07-06) ─────
+# Found by the bench gate: TRU-5647-FA4F claim 1 carried DATE entities
+# [2022, <current>] (the current year arrives spuriously via article
+# context / "as of" references). Anchoring BOTH polluted a past-event
+# query with today's year — and the same current-year entity disables
+# B4. Rule: drop years >= current year from the anchor set BEFORE the
+# 1-or-2 rule. The recent side of any comparison needs no anchoring
+# help; recency ranking already favours it.
+
+
+class TestCurrentYearExcluded:
+    CY = 2026  # injected current year for determinism
+
+    def test_past_plus_current_anchors_past_only(self):
+        plans = [_plan(0, ["London boroughs damage estimate"])]
+        claims = [_claim(0, [_date("2022"), _date("2026")])]
+        result = augment_plans_with_date_anchor(plans, claims, _current_year=self.CY)
+        assert result[0]["queries"] == ["London boroughs damage estimate 2022"]
+
+    def test_two_past_years_still_both(self):
+        plans = [_plan(0, ["LHC construction timeline"])]
+        claims = [_claim(0, [_date("1998"), _date("2008")])]
+        result = augment_plans_with_date_anchor(plans, claims, _current_year=self.CY)
+        assert result[0]["queries"] == ["LHC construction timeline 1998 2008"]
+
+    def test_single_current_year_still_anchors(self):
+        # Documented behaviour preserved: a lone current-year claim still
+        # anchors ("lower stakes since recent content is what Google wants
+        # to return anyway").
+        plans = [_plan(0, ["UK spring statement"])]
+        claims = [_claim(0, [_date("2026")])]
+        result = augment_plans_with_date_anchor(plans, claims, _current_year=self.CY)
+        assert result[0]["queries"] == ["UK spring statement 2026"]
+
+    def test_future_year_dropped(self):
+        plans = [_plan(0, ["stadium completion deadline"])]
+        claims = [_claim(0, [_date("2030"), _date("2022")])]
+        result = augment_plans_with_date_anchor(plans, claims, _current_year=self.CY)
+        assert result[0]["queries"] == ["stadium completion deadline 2022"]
+
+    def test_recent_past_pair_drops_current_only(self):
+        plans = [_plan(0, ["rate decision comparison"])]
+        claims = [_claim(0, [_date("2025"), _date("2026")])]
+        result = augment_plans_with_date_anchor(plans, claims, _current_year=self.CY)
+        assert result[0]["queries"] == ["rate decision comparison 2025"]
+
+    def test_three_past_years_still_no_op(self):
+        plans = [_plan(0, ["UK economy"])]
+        claims = [_claim(0, [_date("1997"), _date("2008"), _date("2020")])]
+        result = augment_plans_with_date_anchor(plans, claims, _current_year=self.CY)
+        assert result[0]["queries"] == ["UK economy"]
 
 
 # ── Composition with class augmentation ──────────────────────────────

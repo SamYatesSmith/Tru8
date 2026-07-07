@@ -148,6 +148,59 @@ SATIRE_DOMAINS = {
 }
 
 
+def _hedged_query_freshness(element_freshness: str, query_position: int) -> str:
+    """F1-D3 recency hedge (2026-07-06, design audit/2026-07-03_f1f2_design_review.md).
+
+    Of each element's planned queries, the SECOND (position 1) runs with no
+    freshness window so historical/contemporaneous material always has a
+    retrieval lane. Claims about the past that carry no explicit year token
+    were structurally windowed to the last 12 months (report-quality review
+    F1 — the all-2026 evidence set for a 1998-2008 topic): the planner's
+    default freshness is "py" and B4's unwindowing only triggers on an
+    explicit past-year DATE entity.
+
+    Breaking-news elements are exempt (founder decision #2): when the planner
+    chose pd/pw, every lane stays recent. Positions 0 and 2+ (class-augmented
+    extras) keep the element's freshness; B4's "none" is already unwindowed.
+    """
+    if query_position == 1 and element_freshness not in ("pd", "pw"):
+        return "none"
+    return element_freshness
+
+
+def _merge_element_plans(
+    plans: List[Dict[str, Any]], max_queries_per_element: int
+) -> Dict[str, Any]:
+    """Merge one claim's per-element query plans into a claim-level query_plan.
+
+    Builds the parallel arrays consumed by execute_planned_queries
+    (queries / query_element_ids / query_freshness), applying the per-element
+    query cap (L-04) and the F1-D3 recency hedge per position. Plan-level
+    freshness/reasoning fall back to the first element's plan, matching the
+    pre-extraction behaviour (2026-07-06 — pulled out of retrieve_evidence's
+    inline loop so the hedge is testable at the wired seam).
+    """
+    merged_queries: List[str] = []
+    query_element_ids: List[str] = []
+    query_freshness: List[str] = []
+    for p in plans:
+        element_id = p.get("element_id", "e1")
+        element_freshness = p.get("freshness", "py")
+        # Cap queries per element (L-04)
+        elem_queries = (p.get("queries") or [])[:max_queries_per_element]
+        for pos, q in enumerate(elem_queries):
+            merged_queries.append(q)
+            query_element_ids.append(element_id)
+            query_freshness.append(_hedged_query_freshness(element_freshness, pos))
+    return {
+        "queries": merged_queries,
+        "query_element_ids": query_element_ids,
+        "query_freshness": query_freshness,
+        "freshness": plans[0].get("freshness", "py") if plans else "py",
+        "reasoning": plans[0].get("reasoning", "") if plans else "",
+    }
+
+
 class EvidenceRetriever:
     """Retrieve and rank evidence for claims using search, embeddings, and vector storage"""
 
@@ -333,30 +386,14 @@ class EvidenceRetriever:
 
                         for claim_idx, plans in plans_by_claim.items():
                             if claim_idx < len(claims):
-                                # Merge element plans into one query_plan with element tracking
-                                merged_queries = []
-                                query_element_ids = []
-                                query_freshness = []
-                                for p in plans:
-                                    element_id = p.get("element_id", "e1")
-                                    element_freshness = p.get("freshness", "py")
-                                    elem_queries = p.get("queries", [])
-                                    # Cap queries per element (L-04)
-                                    elem_queries = elem_queries[
-                                        : self.max_queries_per_element
-                                    ]
-                                    for q in elem_queries:
-                                        merged_queries.append(q)
-                                        query_element_ids.append(element_id)
-                                        query_freshness.append(element_freshness)
-                                claims[claim_idx]["query_plan"] = {
-                                    "queries": merged_queries,
-                                    "query_element_ids": query_element_ids,
-                                    "query_freshness": query_freshness,
-                                    "claim_index": claim_idx,
-                                    "freshness": plans[0].get("freshness", "py"),
-                                    "reasoning": plans[0].get("reasoning", ""),
-                                }
+                                # Merge element plans into one query_plan with
+                                # element tracking + the F1-D3 recency hedge
+                                # (see _merge_element_plans).
+                                merged_plan = _merge_element_plans(
+                                    plans, self.max_queries_per_element
+                                )
+                                merged_plan["claim_index"] = claim_idx
+                                claims[claim_idx]["query_plan"] = merged_plan
                     else:
                         logger.warning(
                             "Query planning returned no plans, using fallback"

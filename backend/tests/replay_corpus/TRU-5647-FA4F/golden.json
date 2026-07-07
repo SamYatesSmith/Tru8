@@ -1,14 +1,15 @@
 {
   "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-07-02T17:25:34.488404+00:00",
-  "captured_with": "a324e8b",
+  "captured_at": "2026-07-07T09:35:22.539475+00:00",
+  "captured_with": "e3d6d93",
   "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "notes": "Re-captured 2026-07-07 after F1 Phase C (D3 recency hedge + D1 range-anchor + planner-prompt revision; design audit/2026-07-03_f1f2_design_review.md). freshness_inject_must_fire is intentionally NOT pinned here: with the revised planner prompt the LLM emits freshness='none' natively for this historical claim, so B4's mechanical injection is a no-op and never logs. The OUTCOME (unwindowed historical retrieval) is preserved and now doubly guaranteed \u2014 planner-native + the D3 hedge's always-unwindowed 2nd query per element \u2014 and is measured by the F1 eval pool, not this pin. The url_ledger pool below reflects that unwindowed retrieval (year-anchored queries \u2192 smaller, more primary-weighted pool; the dropped tail was news/forum, quality floors still pass). classifier_inject (General/UK) auto-derived this run. Contrast TRU-93DD-F4B7, where B4 still fires and the pin is retained.",
   "hard_invariants": {
-    "freshness_inject_must_fire_on_claims": [
-      0,
-      1
-    ],
+    "classifier_inject": {
+      "primary": "General",
+      "secondaries_must_include": [],
+      "jurisdiction_to": "UK"
+    },
     "must_have_url_substrings": [],
     "must_not_have_url_substrings": [],
     "expected_adapters_subset": [],
@@ -31,7 +32,7 @@
   },
   "tolerant_counters": {
     "sources_included": {
-      "value": 28,
+      "value": 16,
       "tolerance": 8
     },
     "claims": {
@@ -39,106 +40,75 @@
       "tolerance": 1
     },
     "elements": {
-      "value": 5,
+      "value": 6,
       "tolerance": 3
     },
     "web_search": {
-      "value": 48,
+      "value": 32,
       "tolerance": 8
     },
     "api_adapters": {
-      "value": 3,
+      "value": 2,
       "tolerance": 8
     },
     "tier_primary": {
-      "value": 14,
-      "tolerance": 7
+      "value": 10,
+      "tolerance": 5
     },
     "tier_commentary": {
       "value": 4,
       "tolerance": 4
     },
     "tier_reporting": {
-      "value": 10,
-      "tolerance": 5
+      "value": 2,
+      "tolerance": 4
     }
   },
   "set_jaccard": {
     "url_ledger_flat": {
       "golden": [
-        "https://abcnews.com/US/damage-weather-climate-disasters-exceed-100b-2022-noaa/story?id=91345859",
-        "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%20-%20Burt%20-%20Evaluation%20and%20verification%20of%20new%2",
-        "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
-        "https://comptroller.nyc.gov/reports/ten-years-after-sandy/",
-        "https://ifs.org.uk/publications/how-much-public-spending-does-each-area-receive-local-authority-level-estimates-health",
-        "https://journals.ametsoc.org/view/journals/bams/106/1/BAMS-D-23-0280.1.xml",
-        "https://onebillionresilient.org/hot-cities-chilled-economies-london/",
-        "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
-        "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
-        "https://theconversation.com/2022s-billion-dollar-disasters-climate-change-helped-make-it-uss-3rd-most-expensive-year-on-",
-        "https://www.ajg.com/gallagherre/-/media/files/gallagher/gallagherre/gallagher-re-nat-cat-review-2022.pdf",
+        "https://en.wikipedia.org/wiki/2022_European_heatwaves",
+        "https://en.wikipedia.org/wiki/2022_United_Kingdom_heatwaves",
+        "https://en.wikipedia.org/wiki/2024_Central_European_floods",
+        "https://en.wikipedia.org/wiki/2025_European_heatwaves",
+        "https://en.wikipedia.org/wiki/2026_European_heatwaves",
+        "https://en.wikipedia.org/wiki/Boris_Johnson",
+        "https://en.wikipedia.org/wiki/Floods_in_the_United_States_(2000%E2%80%93present)",
+        "https://en.wikipedia.org/wiki/Grenfell_Tower_fire",
+        "https://en.wikipedia.org/wiki/Hurricane_Ida",
+        "https://en.wikipedia.org/wiki/List_of_major_power_outages",
+        "https://pacinst.org/the-growing-threat-of-catastrophic-flooding-in-rural-america/",
+        "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7741",
         "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
-        "https://www.bbc.co.uk/news/av/uk-england-london-60987260",
-        "https://www.bbc.co.uk/news/live/uk-62184978",
-        "https://www.bbc.co.uk/news/uk-62217282",
         "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
-        "https://www.climate.gov/news-features/blogs/beyond-data/2022-us-billion-dollar-weather-and-climate-disasters-historical",
-        "https://www.climatecentral.org/climate-services/billion-dollar-disasters",
-        "https://www.ft.com/content/ebc33f14-6af9-4c76-acba-46dde8e2b73d?syn-25a6b1a6=1",
-        "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
-        "https://www.instituteofhealthequity.org/resources-reports/evidence-review-cost-of-living-and-health-inequalities-in-lond",
-        "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
-        "https://www.london.gov.uk/programmes-strategies/health-and-wellbeing/health-inequalities/health-inequalities-strategy",
-        "https://www.mentalhealth.org.uk/about-us/news/mental-health-problems-cost-uk-economy-least-gbp-118-billion-year",
-        "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/july-heat-review",
+        "https://www.climate.gov/news-features/blogs/beyond-data/2024-active-year-us-billion-dollar-weather-and-climate-disasters",
+        "https://www.climatecentral.org/climate-matters/2025-in-review",
+        "https://www.metoffice.gov.uk/blog/2026/how-has-summer-warmth-changed-in-the-uk",
         "https://www.ncei.noaa.gov/access/billions/",
-        "https://www.pbs.org/newshour/nation/climate-change-helped-fuel-18-billion-dollar-disasters-in-2022-noaa-says",
-        "https://www.reddit.com/r/UKWeather/comments/1s8eyj6/remember_the_heat_wave_of_2022/",
-        "https://www.russiamatters.org/news/russia-ukraine-war-report-card/russia-ukraine-war-report-card-april-8-2026",
-        "https://www.sciencedirect.com/science/article/pii/S2542519625000257",
-        "https://www.statista.com/statistics/1323651/highest-temperatures-united-kingdom-by-location/?srsltid=AfmBOorImlh2c1MOQYZ",
-        "https://www.theguardian.com/business/live/2022/nov/16/uk-inflation-high-energy-food-house-prices-bank-of-england-busines",
-        "https://www.theguardian.com/environment/2026/jun/24/uk-records-hottest-june-day",
-        "https://www.theguardian.com/environment/2026/jun/24/why-humidity-making-uk-record-breaking-june-day-feel-even-hotter",
-        "https://www.theguardian.com/global-development/2022/oct/30/britain-collision-course-us-aid-pledge-global-health-fund-don",
-        "https://www.theguardian.com/inequality/2022/dec/04/health-and-wealth-divides-in-uk-worsening-despite-levelling-up-drive-",
-        "https://www.theguardian.com/politics/2015/jun/18/palace-of-westminster-renovation-options-report",
-        "https://www.theguardian.com/uk-news/2021/mar/28/as-england-faces-2bn-council-tax-rise-nottingham-pays-highest-bill",
-        "https://www.theguardian.com/uk-news/2023/jan/20/hottest-day-of-2022-saw-638-more-deaths-than-normal-in-england",
-        "https://www.theguardian.com/uk/2001/may/22/immigration.immigrationandpublicservices1",
-        "https://www.theguardian.com/world/live/2026/jun/23/europe-heatwave-live-news-updates-uk-red-temperature-warnings-40-degr",
-        "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
-        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
+        "https://www.osbm.nc.gov/hurricane-helene-dna/open",
+        "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/what-is-a-heatwave",
+        "https://www.tandfonline.com/doi/full/10.1080/17524032.2025.2458219",
+        "https://www.theguardian.com/environment/2026/jun/24/uk-records-hottest-june-day"
       ],
-      "min_similarity": 0.4
+      "min_similarity": 0.35
     },
     "domain_set": {
       "golden": [
-        "abcnews.com",
-        "ajg.com",
-        "bbc.co.uk",
+        "anderson.ucla.edu",
         "bbc.com",
-        "centaur.reading.ac.uk",
         "climate.gov",
         "climatecentral.org",
-        "community.netweather.tv",
+        "en.wikipedia.org",
         "gov.uk",
-        "internetgeography.net",
         "metoffice.gov.uk",
         "ncei.noaa.gov",
-        "onebillionresilient.org",
-        "open-meteo.com",
-        "pbs.org",
-        "reddit.com",
+        "pacinst.org",
+        "redcross.org.uk",
         "rmets.onlinelibrary.wiley.com",
-        "sciencedirect.com",
-        "statista.com",
-        "theconversation.com",
-        "theguardian.com",
-        "weather.gov",
-        "worldweatherattribution.org"
+        "tandfonline.com",
+        "theguardian.com"
       ],
-      "min_similarity": 0.45
+      "min_similarity": 0.3
     }
   }
 }

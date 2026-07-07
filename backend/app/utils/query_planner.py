@@ -308,7 +308,7 @@ ARTICLE CONTEXT:
                 )
 
             user_prompt = f"""TODAY'S DATE: {current_date} (CURRENT YEAR: {current_year})
-Use {current_year} in queries for recent events - NEVER use older years unless the claim explicitly refers to those years.
+Use {current_year} in queries for RECENT events. For claims about PAST events (completed projects, past decisions, historical records), use the event's own years in queries - do NOT rewrite past events to {current_year}.
 {article_context_section}
 Generate query plans for each ELEMENT below. Each element is a specific condition of a claim that needs evidence.
 {claims_elements_text}
