@@ -107,6 +107,12 @@ _MAPPING_RESPONSE_SCHEMA = {
                         "enum": sorted(_VALID_STATES),
                     },
                     "uncertainty": {"type": "string"},
+                    # F3 B2 (R-G2): short factual name of what the supporting
+                    # evidence covers when the element's own scope is broader
+                    # (e.g. "England and Wales" for a "Britain" element). Plain
+                    # string like uncertainty; the LLM emits literal "null" when
+                    # absent, normalised on parse.
+                    "scope_caveat": {"type": "string"},
                 },
                 "required": ["element_id", "evidence_refs", "state"],
             },
@@ -200,7 +206,12 @@ says and why the relationship applies. Cite specific figures, dates, or entities
 - SCOPE CHECK: Before assigning "supports", verify that the evidence's geographic \
 and temporal scope matches the element's scope. Evidence about one country does NOT \
 support a claim about "worldwide" or "global" figures. Evidence from one time period \
-does NOT support a claim about a different time period.
+does NOT support a claim about a different time period. When an element's OWN scope is \
+BROADER than the reach of its supporting evidence (e.g. the element says "Britain" but \
+the sources address only England and Wales), still map the genuine supports, but set \
+that element's "scope_caveat" to a SHORT factual name of what the evidence actually \
+covers (e.g. "England and Wales"). Otherwise set "scope_caveat" to null. Do NOT restate \
+or judge the claim in scope_caveat — describe only the evidence's reach.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
 - STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
@@ -312,7 +323,12 @@ says and why the relationship applies. Cite specific figures, dates, or entities
 - SCOPE CHECK: Before assigning "supports", verify that the evidence's geographic \
 and temporal scope matches the element's scope. Evidence about one country does NOT \
 support a claim about "worldwide" or "global" figures. Evidence from one time period \
-does NOT support a claim about a different time period.
+does NOT support a claim about a different time period. When an element's OWN scope is \
+BROADER than the reach of its supporting evidence (e.g. the element says "Britain" but \
+the sources address only England and Wales), still map the genuine supports, but set \
+that element's "scope_caveat" to a SHORT factual name of what the evidence actually \
+covers (e.g. "England and Wales"). Otherwise set "scope_caveat" to null. Do NOT restate \
+or judge the claim in scope_caveat — describe only the evidence's reach.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
 - STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
@@ -530,6 +546,30 @@ _UNIVERSAL_CAVEAT = (
     "but cannot establish a universal"
 )
 
+# F3 Phase B2 (R-G2): reach caveat template. {reach} = the mapper's short factual
+# name of what the supporting evidence covers; {term} = display form of the
+# tagger's matched composite-geography term. Wording locked by founder
+# 2026-07-07 (design §7, Option A). Describes the evidence's reach, never
+# re-scopes the claim.
+_REACH_CAVEAT = "evidence covers {reach}, narrower than '{term}'"
+
+# Display form for composite-geography lexicon terms (title-case mangles the
+# acronyms). Anything not listed is Title Cased.
+_SCOPE_TERM_DISPLAY = {
+    "uk": "the UK",
+    "usa": "the USA",
+    "eu": "the EU",
+    "european union": "the European Union",
+    "united kingdom": "the United Kingdom",
+    "united states": "the United States",
+    "the americas": "the Americas",
+    "british isles": "the British Isles",
+}
+
+
+def _display_scope_term(term: str) -> str:
+    return _SCOPE_TERM_DISPLAY.get(term, term.title())
+
 
 def _derive_element_state_with_authority(
     elem: ClaimElement, evidence_list: List[Dict[str, Any]]
@@ -669,20 +709,45 @@ def _derive_element_state_with_authority(
             f"(weighted {weighted_supports} vs {weighted_challenges})"
         )
 
-    # F3 Phase B1 (R-U1): universal-claim caveat. A `supported` element whose
-    # own wording asserts a universal ("only"/"first"/"no other" — tagged at
-    # decompose, scope_flags.universal) is supported by positive instances that
-    # cannot establish the universal. Fire ONLY when no challenge caveat already
-    # occupies the channel (caveat is None ⇒ the unanimous-supported path F3
-    # targets) and TIER-GATED: a primary-tier supporter (a complete registry /
-    # official list) legitimately settles a universal, so it is exempt. The
-    # state is unchanged — this describes the evidential limit, it does not
-    # adjudicate (design §7, decision #7). scope_flags is set by
-    # app.utils.scope_sensitivity at decompose; absent ⇒ not scope-sensitive.
+    # F3 scope caveats. Fire ONLY on a `supported` element with the caveat
+    # channel free (caveat is None ⇒ the unanimous-supported path F3 targets;
+    # a disagreement caveat always keeps priority). The state is never changed
+    # — these describe the evidential limit, they do not adjudicate (design §7,
+    # decision #7). scope_flags is set by app.utils.scope_sensitivity at
+    # decompose; absent ⇒ not scope-sensitive. Reach (R-G2, more specific) is
+    # tried before universal (R-U1) when an element carries both.
     scope_basis: Optional[Dict[str, Any]] = None
     if caveat is None and state == ElementState.supported:
-        universal_terms = ((elem.get("scope_flags") or {}).get("universal")) or []
-        if universal_terms:
+        flags = elem.get("scope_flags") or {}
+        geographic_terms = flags.get("geographic") or []
+        universal_terms = flags.get("universal") or []
+        reach = elem.get("scope_reach")  # mapper's narrower-reach assessment
+
+        # F3 B2 (R-G2): reach caveat. The mapper judged the supporting evidence
+        # NARROWER than the element's scope AND the tagger independently flagged
+        # a composite-geography term (LLM ∧ lexicon agreement cuts LLM false
+        # positives). Template the founder-locked wording from both.
+        term = _display_scope_term(geographic_terms[0]) if geographic_terms else ""
+        # Echo guard: skip when the mapper's "reach" just restates the scope
+        # term ("evidence covers Britain, narrower than 'Britain'" is nonsense).
+        reach_echoes_term = bool(reach) and reach.strip().lower() in {
+            geographic_terms[0] if geographic_terms else None,
+            term.lower(),
+            term.lower().removeprefix("the "),
+        }
+        if reach and geographic_terms and not reach_echoes_term:
+            caveat = _REACH_CAVEAT.format(reach=reach, term=term)
+            scope_basis = {
+                "trigger": "reach",
+                "geographic_terms": geographic_terms,
+                "reach": reach,
+                "caveated": True,
+            }
+        # F3 B1 (R-U1): universal caveat. A universal ("only"/"first"/"no
+        # other") that positive instances cannot establish. TIER-GATED: a
+        # primary-tier supporter (a complete registry / official list)
+        # legitimately settles a universal, so it is exempt.
+        elif universal_terms:
             has_primary_support = any(
                 (ev_index.get(_ref_evidence_id(r)) or {}).get("tier") == "primary"
                 for r in supports_refs
@@ -1624,6 +1689,13 @@ class ClaimMapAnalyzer:
 
             # Uncertainty (optional)
             elem["uncertainty"] = _clean_uncertainty(mapped.get("uncertainty"))
+
+            # F3 B2 (R-G2): the mapper's assessment of what the supporting
+            # evidence actually covers, when narrower than the element's scope
+            # ("England and Wales" for a "Britain" element). Same null-sentinel
+            # normalisation as uncertainty. Read by the derivation to build the
+            # reach caveat, gated on the tagger's geographic flag.
+            elem["scope_reach"] = _clean_uncertainty(mapped.get("scope_caveat"))
 
             # PQ-03: Attach evidence basis metadata
             elem["basis"] = _compute_element_basis(elem, evidence_list)
