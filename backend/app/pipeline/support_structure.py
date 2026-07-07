@@ -21,9 +21,11 @@ def side_has_quality_note(side: Any) -> bool:
     """True when one side's sourcing is thin or echoey.
 
     Mirrors ``evidenceQualityNote`` in ``support-structure.ts``:
-      - echo   → an original repeated by ≥2 derivative sources
-      - thin   → commentary-grade only (no primary/reporting), OR
-                 ≥2 items all from a single outlet.
+      - echo       → an original repeated by ≥2 derivative sources
+      - repetition → ≥3 sources on this side recite the SAME wording across ≥2
+                     domains with NO primary here (talking-point, finding F4)
+      - thin       → commentary-grade only (no primary/reporting), OR
+                     ≥2 items all from a single outlet.
     An empty / absent side has no note.
     """
     if not isinstance(side, dict):
@@ -33,13 +35,24 @@ def side_has_quality_note(side: Any) -> bool:
     if not count:
         return False
 
+    tier_counts = side.get("tier_counts") or {}
+
     derivation = side.get("derivation") or {}
     if (derivation.get("originals") or 0) >= 1 and (
         derivation.get("derivative_count") or 0
     ) >= 2:
         return True  # echo
 
-    tier_counts = side.get("tier_counts") or {}
+    # Unanchored repetition (F4): several sources on this side share the same
+    # wording, across ≥2 domains, with no primary source here.
+    repetition = side.get("repetition") or {}
+    if (
+        (repetition.get("max_cluster_on_side") or 0) >= 3
+        and (repetition.get("distinct_domains") or 0) >= 2
+        and (tier_counts.get("primary") or 0) == 0
+    ):
+        return True  # repetition
+
     commentary_only = (tier_counts.get("primary") or 0) == 0 and (
         tier_counts.get("reporting") or 0
     ) == 0

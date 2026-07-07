@@ -79,6 +79,18 @@ describe('evidenceQualityNote', () => {
     expect(note).toBeNull();
   });
 
+  it('classifies a side missing distinct_domains as single-outlet thin (parity)', () => {
+    // distinct_domains absent -> (s.distinct_domains || 0) -> 0 -> single-outlet,
+    // matching the backend `... or 0`. Real data always includes it (the type
+    // forbids omission); this locks the two ports on malformed/legacy payloads.
+    const partial = {
+      count: 3,
+      tier_counts: { primary: 0, reporting: 3, commentary: 0 },
+      derivation: { originals: 0, derivative_count: 0 },
+    } as unknown as EvidenceSideStructure;
+    expect(evidenceQualityNote(partial)?.kind).toBe('thin');
+  });
+
   it('does not throw on a side missing the derivation object', () => {
     // Defensive: real pipeline data always includes derivation, but a
     // truncated/legacy payload must not crash the render.
@@ -101,6 +113,56 @@ describe('evidenceQualityNote', () => {
       }),
     );
     expect(note?.kind).toBe('echo');
+  });
+
+  it('flags REPETITION — same wording, >=3 on side, >=2 domains, no primary (F4)', () => {
+    const note = evidenceQualityNote(
+      side({
+        count: 3,
+        distinct_domains: 3,
+        tier_counts: { primary: 0, reporting: 2, commentary: 1 },
+        repetition: { max_cluster_on_side: 3, distinct_domains: 3 },
+      }),
+    );
+    expect(note?.kind).toBe('repetition');
+    expect(note?.label).toBe('Same wording, no primary');
+  });
+
+  it('suppresses REPETITION when the side has its own primary', () => {
+    const note = evidenceQualityNote(
+      side({
+        count: 4,
+        distinct_domains: 3,
+        tier_counts: { primary: 1, reporting: 2, commentary: 1 },
+        repetition: { max_cluster_on_side: 3, distinct_domains: 3 },
+      }),
+    );
+    // No echo/thin either → null.
+    expect(note).toBeNull();
+  });
+
+  it('does not flag REPETITION below the on-side threshold (2 < 3)', () => {
+    const note = evidenceQualityNote(
+      side({
+        count: 3,
+        distinct_domains: 2,
+        tier_counts: { primary: 0, reporting: 2, commentary: 1 },
+        repetition: { max_cluster_on_side: 2, distinct_domains: 2 },
+      }),
+    );
+    expect(note).toBeNull();
+  });
+
+  it('repetition takes priority over thin (commentary-only side that also repeats)', () => {
+    const note = evidenceQualityNote(
+      side({
+        count: 3,
+        distinct_domains: 3,
+        tier_counts: { primary: 0, reporting: 0, commentary: 3 },
+        repetition: { max_cluster_on_side: 3, distinct_domains: 3 },
+      }),
+    );
+    expect(note?.kind).toBe('repetition');
   });
 });
 
@@ -142,6 +204,16 @@ const THIN_BASIS: ElementBasis = {
   challenge_structure: side({ count: 0 }),
 };
 
+const REPETITION_BASIS: ElementBasis = {
+  support_structure: side({
+    count: 4,
+    distinct_domains: 3,
+    tier_counts: { primary: 0, reporting: 3, commentary: 1 },
+    repetition: { max_cluster_on_side: 3, distinct_domains: 3 },
+  }),
+  challenge_structure: side({ count: 0 }),
+};
+
 describe('elementIsThin', () => {
   it('excludes a gap (no mapped sources)', () => {
     expect(elementIsThin(elem(0, 'unresolved'))).toBe(false);
@@ -163,6 +235,10 @@ describe('elementIsThin', () => {
 
   it('flags a well-counted element whose sourcing carries a note', () => {
     expect(elementIsThin(elem(4, 'supported', THIN_BASIS))).toBe(true);
+  });
+
+  it('flags a repetition-only element as toppable (F4)', () => {
+    expect(elementIsThin(elem(4, 'supported', REPETITION_BASIS))).toBe(true);
   });
 
   it('does NOT flag a well-covered element', () => {

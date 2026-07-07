@@ -249,6 +249,9 @@ export interface EvidenceSideStructure {
   distinct_domains: number;
   tier_counts: { primary: number; reporting: number; commentary: number };
   derivation: { originals: number; derivative_count: number };
+  // F4: dominant unanchored-repetition cluster on this side (optional — older
+  // checks predate it). Drives the "same wording, no primary" note.
+  repetition?: { max_cluster_on_side: number; distinct_domains: number };
 }
 
 // Per-element basis metadata. Only the fields the frontend reads are typed;

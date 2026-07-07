@@ -9,7 +9,7 @@ import type { ClaimElement, ElementBasis, EvidenceSideStructure } from '@shared/
  * pipeline stays judgment-free; the thin/echo thresholds live here so they can
  * be tuned without a re-run.
  */
-export type QualityNoteKind = 'echo' | 'thin';
+export type QualityNoteKind = 'echo' | 'repetition' | 'thin';
 
 export interface QualityNote {
   kind: QualityNoteKind;
@@ -23,6 +23,7 @@ export function evidenceQualityNote(
   if (!s || !s.count) return null;
 
   const d = s.derivation || { originals: 0, derivative_count: 0 };
+  const tc = s.tier_counts || { primary: 0, reporting: 0, commentary: 0 };
 
   // Echo: apparent breadth is mostly re-reporting a single original source.
   if (d.originals >= 1 && d.derivative_count >= 2) {
@@ -33,9 +34,25 @@ export function evidenceQualityNote(
     };
   }
 
-  const tc = s.tier_counts || { primary: 0, reporting: 0, commentary: 0 };
+  // Repetition (F4): several sources on this side recite the same wording
+  // across ≥2 domains, with no primary source here — a talking point.
+  const rep = s.repetition || { max_cluster_on_side: 0, distinct_domains: 0 };
+  if (
+    rep.max_cluster_on_side >= 3 &&
+    rep.distinct_domains >= 2 &&
+    (tc.primary || 0) === 0
+  ) {
+    return {
+      kind: 'repetition',
+      label: 'Same wording, no primary',
+      detail: 'Several sources share the same wording; no primary source found behind them.',
+    };
+  }
+
   const commentaryOnly = (tc.primary || 0) === 0 && (tc.reporting || 0) === 0;
-  const singleOutlet = s.count >= 2 && s.distinct_domains <= 1;
+  // (s.distinct_domains || 0) mirrors the backend's `... or 0` so a malformed /
+  // legacy side missing the field classifies identically across both ports.
+  const singleOutlet = s.count >= 2 && (s.distinct_domains || 0) <= 1;
 
   // Thin: low-grade sourcing only, or several items from a single outlet.
   if (commentaryOnly) {

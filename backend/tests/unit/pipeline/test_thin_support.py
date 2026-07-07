@@ -88,6 +88,36 @@ PARITY_CASES = [
         ),
         True,
     ),
+    (
+        "repetition — same wording, ≥3 on side, ≥2 domains, no primary (F4)",
+        _side(
+            count=3,
+            distinct_domains=3,
+            tier_counts={"primary": 0, "reporting": 2, "commentary": 1},
+            repetition={"max_cluster_on_side": 3, "distinct_domains": 3},
+        ),
+        True,
+    ),
+    (
+        "repetition suppressed — side has its own primary",
+        _side(
+            count=4,
+            distinct_domains=3,
+            tier_counts={"primary": 1, "reporting": 2, "commentary": 1},
+            repetition={"max_cluster_on_side": 3, "distinct_domains": 3},
+        ),
+        False,
+    ),
+    (
+        "repetition below on-side threshold (2 < 3) → no note",
+        _side(
+            count=3,
+            distinct_domains=2,
+            tier_counts={"primary": 0, "reporting": 2, "commentary": 1},
+            repetition={"max_cluster_on_side": 2, "distinct_domains": 2},
+        ),
+        False,
+    ),
 ]
 
 
@@ -102,6 +132,16 @@ def test_side_note_missing_derivation_does_not_crash():
         "count": 4,
         "distinct_domains": 2,
         "tier_counts": {"primary": 0, "reporting": 0, "commentary": 4},
+    }
+    assert side_has_quality_note(partial) is True
+
+
+def test_side_note_missing_distinct_domains_is_single_outlet():
+    # distinct_domains absent -> defaults to 0 -> single-outlet thin, in parity
+    # with the frontend `(s.distinct_domains || 0)`.
+    partial = {
+        "count": 3,
+        "tier_counts": {"primary": 0, "reporting": 3, "commentary": 0},
     }
     assert side_has_quality_note(partial) is True
 
@@ -194,6 +234,21 @@ def test_note_makes_a_well_counted_element_thin():
         "challenge_structure": _side(count=0),
     }
     assert element_is_thin(_elem(_refs(4), state="supported", basis=thin_basis)) is True
+
+
+def test_repetition_only_element_is_toppable():
+    # 4 resolved refs, no thin/echo, but the support side is a talking-point
+    # repetition cluster → thin (toppable via "Strengthen this claim").
+    rep_basis = {
+        "support_structure": _side(
+            count=4,
+            distinct_domains=3,
+            tier_counts={"primary": 0, "reporting": 3, "commentary": 1},
+            repetition={"max_cluster_on_side": 3, "distinct_domains": 3},
+        ),
+        "challenge_structure": _side(count=0),
+    }
+    assert element_is_thin(_elem(_refs(4), state="supported", basis=rep_basis)) is True
 
 
 def test_well_covered_is_not_thin():
