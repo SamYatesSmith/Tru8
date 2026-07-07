@@ -366,6 +366,161 @@ def apply_corroboration_boost(
     return evidence_list, stats
 
 
+# ── F4: unanchored talking-point repetition ─────────────────────────────────
+#
+# Distinct from echo. Echo = a PRIMARY source re-reported by ≥2 derivatives
+# (`_detect_derivation_chains`, needs a primary anchor). This detects the
+# opposite shape the echo machinery is blind to: several NON-primary sources
+# reciting the SAME formulation with NO primary source behind them — how a
+# talking point propagates. A repetition cluster therefore contains ZERO
+# primary-tier items (a primary makes it echo's job) and spans ≥2 independent
+# ownership groups (a single outlet is already "thin"). Purely structural: it
+# describes that the wording is shared, never that the claim is false.
+
+# A sentence must have at least this many words to be a repetition candidate —
+# short boilerplate ("Read more", consent notices) would otherwise match.
+_MIN_SENTENCE_WORDS = 8
+# Word-shingle width for the sentence-pair comparison.
+_SHINGLE_SIZE = 4
+# Jaccard overlap on shingles above which two sentences are "the same wording".
+_MIN_SHINGLE_JACCARD = 0.6
+# Minimum members for a repetition cluster to be reported.
+_MIN_REPETITION_CLUSTER = 3
+
+
+def _item_sentence_shingles(text: str) -> List[Set[str]]:
+    """One word-shingle set per qualifying (long-enough) sentence in the item.
+
+    Short sentences are dropped so shared boilerplate can't create a match.
+    """
+    import re
+
+    if not text:
+        return []
+
+    out: List[Set[str]] = []
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", text):
+        words = re.findall(r"[a-z0-9]+", sentence.lower())
+        if len(words) < _MIN_SENTENCE_WORDS:
+            continue
+        shingles = {
+            " ".join(words[i : i + _SHINGLE_SIZE])
+            for i in range(len(words) - _SHINGLE_SIZE + 1)
+        }
+        if shingles:
+            out.append(shingles)
+    return out
+
+
+def _best_sentence_jaccard(
+    shingles_a: List[Set[str]], shingles_b: List[Set[str]]
+) -> float:
+    """Highest shingle-Jaccard over any sentence pair between two items."""
+    best = 0.0
+    for sa in shingles_a:
+        for sb in shingles_b:
+            inter = len(sa & sb)
+            if not inter:
+                continue
+            union = len(sa | sb)
+            j = inter / union if union else 0.0
+            if j > best:
+                best = j
+                if best >= 1.0:
+                    return best
+    return best
+
+
+def annotate_repetition_clusters(evidence_list: List[Dict[str, Any]]) -> int:
+    """Mark items that recite a shared formulation with NO primary source behind
+    them ("talking-point repetition" — finding F4).
+
+    Writes ``repetition_cluster_id`` (int, per surviving cluster) onto each
+    member. A cluster survives only when it has ≥ ``_MIN_REPETITION_CLUSTER``
+    members, contains **zero** primary-tier items (a primary anchor is echo's
+    territory), and spans **≥2** independent ownership groups (a single outlet
+    is already "thin sourcing").
+
+    MUST run after classification — the primary-tier exclusion needs tiers, and
+    tiers are assigned by CLASSIFY (the retrieve-time corroboration pass runs
+    before they exist). Mutates items in place; returns the number of clusters
+    written. Pure structural annotation — no score, no verdict.
+    """
+    n = len(evidence_list)
+    if n < _MIN_REPETITION_CLUSTER:
+        return 0
+
+    shingles = [
+        _item_sentence_shingles(ev.get("text") or ev.get("snippet") or "")
+        for ev in evidence_list
+    ]
+
+    # Union-find over items that share a formulation.
+    parent: Dict[int, int] = {}
+
+    def find(x: int) -> int:
+        if x not in parent:
+            parent[x] = x
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    linked = False
+    for i in range(n):
+        if not shingles[i]:
+            continue
+        for j in range(i + 1, n):
+            if not shingles[j]:
+                continue
+            if _best_sentence_jaccard(shingles[i], shingles[j]) >= _MIN_SHINGLE_JACCARD:
+                union(i, j)
+                linked = True
+
+    if not linked:
+        return 0
+
+    # Gather connected components.
+    components: Dict[int, List[int]] = defaultdict(list)
+    for idx in parent:
+        components[find(idx)].append(idx)
+
+    next_id = 1
+    written = 0
+    for members in components.values():
+        if len(members) < _MIN_REPETITION_CLUSTER:
+            continue
+        # A primary in the cluster ⇒ this is syndication-from-primary (echo),
+        # not unanchored repetition.
+        if any((evidence_list[m].get("tier") or "") == "primary" for m in members):
+            continue
+        # Must span ≥2 independent ownership groups — else it's a single outlet.
+        groups = {
+            _get_ownership_group(
+                evidence_list[m].get("source", ""), evidence_list[m].get("url", "")
+            )
+            for m in members
+        }
+        if len(groups) < 2:
+            continue
+        for m in members:
+            evidence_list[m]["repetition_cluster_id"] = next_id
+        next_id += 1
+        written += 1
+
+    if written:
+        logger.info(
+            f"[CORROBORATION] Post-classify repetition: {written} unanchored "
+            f"cluster(s) across {n} items"
+        )
+    return written
+
+
 def annotate_derivation_chains(evidence_list: List[Dict[str, Any]]) -> int:
     """Write `derivation_chain` onto primary items that ≥2 independent
     reporting/commentary sources re-report — the signal behind the per-element

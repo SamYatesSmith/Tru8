@@ -131,6 +131,7 @@ def test_structure_empty_side():
         "distinct_domains": 0,
         "tier_counts": {"primary": 0, "reporting": 0, "commentary": 0},
         "derivation": {"originals": 0, "derivative_count": 0},
+        "repetition": {"max_cluster_on_side": 0, "distinct_domains": 0},
     }
 
 

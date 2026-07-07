@@ -18,7 +18,7 @@ import asyncio
 import json
 import logging
 import re
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -817,11 +817,17 @@ def _compute_relationship_structure(
       derivation.originals        — primary items here that have ≥1 derivative
       derivation.derivative_count — items here that re-report a primary (their
                                     id appears in some item's derivation_chain)
+      repetition.max_cluster_on_side — largest single unanchored-repetition
+                                    cluster represented on THIS side (F4)
+      repetition.distinct_domains — distinct source domains among that cluster's
+                                    on-side members (independence proxy)
     """
     tier_counts = {t: 0 for t in _STRUCTURE_TIERS}
     domains = set()
     originals = 0
     derivative_count = 0
+    # F4: on-side members of each unanchored-repetition cluster, by domain.
+    repetition_domains: Dict[int, List[str]] = defaultdict(list)
 
     for ref in rel_refs:
         eid = (
@@ -850,6 +856,18 @@ def _compute_relationship_structure(
         if eid and eid in derivative_ids:
             derivative_count += 1
 
+        rep_id = ev.get("repetition_cluster_id")
+        if rep_id:
+            repetition_domains[rep_id].append(domain)
+
+    # Summarise the dominant repetition cluster on this side.
+    max_cluster_on_side = 0
+    rep_distinct_domains = 0
+    for members in repetition_domains.values():
+        if len(members) > max_cluster_on_side:
+            max_cluster_on_side = len(members)
+            rep_distinct_domains = len({d for d in members if d})
+
     return {
         "count": len(rel_refs),
         "distinct_domains": len(domains),
@@ -857,6 +875,10 @@ def _compute_relationship_structure(
         "derivation": {
             "originals": originals,
             "derivative_count": derivative_count,
+        },
+        "repetition": {
+            "max_cluster_on_side": max_cluster_on_side,
+            "distinct_domains": rep_distinct_domains,
         },
     }
 

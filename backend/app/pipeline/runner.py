@@ -2026,14 +2026,24 @@ async def run_pipeline_phase2(
     # runs before tiers exist, so its chain step no-ops; this writes the chains
     # that feed the per-element basis. Same in-memory objects flow to analyze.
     if evidence:
-        from app.utils.corroboration import annotate_derivation_chains
+        from app.utils.corroboration import (
+            annotate_derivation_chains,
+            annotate_repetition_clusters,
+        )
 
         total_chains = 0
+        total_repetition = 0
         for ev_list in evidence.values():
             total_chains += annotate_derivation_chains(ev_list)
+            # F4: unanchored talking-point repetition — same seam, needs tiers.
+            total_repetition += annotate_repetition_clusters(ev_list)
         if total_chains:
             logger.info(
                 f"[DERIVATION] Wrote {total_chains} derivation chain(s) post-classify"
+            )
+        if total_repetition:
+            logger.info(
+                f"[REPETITION] Wrote {total_repetition} unanchored cluster(s) post-classify"
             )
 
     article_excerpt = content.get("content", "")[:5000]
