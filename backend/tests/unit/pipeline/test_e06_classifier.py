@@ -43,9 +43,10 @@ class TestEvidenceClassifierHeuristic:
         assert evidence_type == "official_statement"
 
     @pytest.mark.unit
-    def test_edu_url_classified_as_primary_academic(self):
-        """Evidence with .edu or .ac.uk URL should be tier=primary, type=academic."""
-        # Test .edu
+    def test_edu_url_classified_as_commentary_analysis(self):
+        """F7a: a bare .edu / .ac.uk host is NOT a peer-reviewed venue — a
+        self-hosted university paper is institutional analysis, not academic.
+        (The peer-reviewed record lives on a publisher domain.)"""
         evidence_edu = {
             "evidence_id": "ev-edu",
             "title": "Research Paper on Employment",
@@ -55,8 +56,8 @@ class TestEvidenceClassifierHeuristic:
         }
 
         tier, evidence_type = _classify_heuristic(evidence_edu)
-        assert tier == "primary"
-        assert evidence_type == "academic"
+        assert tier == "commentary"
+        assert evidence_type == "analysis"
 
         # Test .ac.uk
         evidence_acuk = {
@@ -68,8 +69,50 @@ class TestEvidenceClassifierHeuristic:
         }
 
         tier, evidence_type = _classify_heuristic(evidence_acuk)
-        assert tier == "primary"
-        assert evidence_type == "academic"
+        assert tier == "commentary"
+        assert evidence_type == "analysis"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "source,url",
+        [
+            ("ssrn.com", "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1"),
+            ("researchgate.net", "https://www.researchgate.net/publication/123"),
+            ("biorxiv.org", "https://www.biorxiv.org/content/10.1101/2024.01.01"),
+            ("medrxiv.org", "https://www.medrxiv.org/content/10.1101/2024.01.02"),
+            ("mdpi.com", "https://www.mdpi.com/2076-3417/14/1/1"),
+        ],
+    )
+    def test_preprint_repositories_are_analysis_not_academic(self, source, url):
+        """F7a: preprint / working-paper repositories → commentary/analysis,
+        never academic (they are not peer-reviewed venues)."""
+        tier, evidence_type = _classify_heuristic(
+            {
+                "evidence_id": f"ev-{source}",
+                "title": "A working paper",
+                "source": source,
+                "url": url,
+                "snippet": "...",
+            }
+        )
+        assert tier == "commentary"
+        assert evidence_type == "analysis"
+
+    @pytest.mark.unit
+    def test_education_dotcom_not_mismatched_as_preprint(self):
+        """F7a anchor: `.edu` must not substring-match a `.com` like
+        education.com — it should NOT be demoted to analysis by the preprint rule."""
+        tier, evidence_type = _classify_heuristic(
+            {
+                "evidence_id": "ev-educom",
+                "title": "Teaching resources",
+                "source": "education.com",
+                "url": "https://www.education.com/resources/123",
+                "snippet": "Lesson plans...",
+            }
+        )
+        # Falls through to the default, NOT the preprint (commentary/analysis) rule.
+        assert (tier, evidence_type) == ("commentary", "news_reporting")
 
     @pytest.mark.unit
     def test_news_source_classified_as_reporting(self):
@@ -750,6 +793,98 @@ class TestQualityFloor:
         assert floor == "blog_platform_floor"
         assert evidence["tier"] == "commentary"
         assert evidence["evidence_type"] == "opinion"
+
+    @pytest.mark.unit
+    def test_social_media_analysis_leak_is_floored_to_opinion(self):
+        """F7b regression: a Reddit thread the LLM placed at commentary/ANALYSIS
+        must still be corrected to commentary/opinion — the type is fixed even
+        when the tier is already commentary (the 'Reddit as analysis' defect)."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://www.reddit.com/r/science/comments/abc/",
+            "source": "reddit.com",
+            "title": "Discussion thread",
+            "tier": "commentary",
+            "evidence_type": "analysis",
+        }
+
+        floor = _apply_quality_floor(evidence)
+
+        assert floor == "social_media_floor"
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "opinion"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "source,url,tier,etype",
+        [
+            ("ssrn.com", "https://papers.ssrn.com/x", "primary", "academic"),
+            (
+                "researchgate.net",
+                "https://researchgate.net/publication/1",
+                "primary",
+                "academic",
+            ),
+            ("biorxiv.org", "https://www.biorxiv.org/content/1", "primary", "academic"),
+            ("mdpi.com", "https://www.mdpi.com/1/1/1", "primary", "academic"),
+            ("mit.edu", "https://economics.mit.edu/paper", "primary", "academic"),
+        ],
+    )
+    def test_preprint_floor_demotes_to_analysis(self, source, url, tier, etype):
+        """F7a: a preprint/repository/.edu item an LLM called primary/academic is
+        floored to commentary/analysis, never academic."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": url,
+            "source": source,
+            "title": "A paper",
+            "tier": tier,
+            "evidence_type": etype,
+        }
+        floor = _apply_quality_floor(evidence)
+
+        assert floor == "preprint_floor"
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "analysis"
+
+    @pytest.mark.unit
+    def test_preprint_floor_does_not_upgrade_opinion(self):
+        """N3: the preprint floor only demotes the over-claim (academic/primary).
+        A university-hosted op-ed already at commentary/opinion stays opinion —
+        it must NOT be upgraded to analysis."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://blogs.harvard.edu/someone/my-take",
+            "source": "harvard.edu",
+            "title": "My take on policy",
+            "tier": "commentary",
+            "evidence_type": "opinion",
+        }
+        floor = _apply_quality_floor(evidence)
+        assert floor is None
+        assert evidence["tier"] == "commentary"
+        assert evidence["evidence_type"] == "opinion"
+
+    @pytest.mark.unit
+    def test_peer_reviewed_venue_not_preprint_floored(self):
+        """A genuine peer-reviewed venue (nature.com) is NOT preprint-floored —
+        it stays primary/academic."""
+        from app.pipeline.evidence_classifier import _apply_quality_floor
+
+        evidence = {
+            "url": "https://www.nature.com/articles/s41586-024-00001",
+            "source": "nature.com",
+            "title": "A peer-reviewed study",
+            "tier": "primary",
+            "evidence_type": "academic",
+        }
+        floor = _apply_quality_floor(evidence)
+        assert floor is None
+        assert evidence["tier"] == "primary"
+        assert evidence["evidence_type"] == "academic"
 
     @pytest.mark.unit
     def test_legitimate_news_source_unaffected(self):

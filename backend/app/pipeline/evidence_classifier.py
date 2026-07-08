@@ -98,15 +98,29 @@ _GOV_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
+# F7a: "academic" = peer-reviewed VENUES only (journals / established
+# publishers / indexes of published work). Preprint servers, working-paper
+# repositories and bare university hosts are NOT here — they go to
+# `_PREPRINT_PATTERNS` → analysis. arXiv stays (the arXiv smell test refines it).
 _ACADEMIC_PATTERNS = re.compile(
-    r"\.(edu|ac\.uk|ac\.jp)"
-    r"|pubmed\.ncbi|arxiv\.org|nature\.com|sciencedirect\.com"
+    r"pubmed\.ncbi|arxiv\.org|nature\.com|sciencedirect\.com"
     r"|springer\.com|wiley\.com|jstor\.org|ncbi\.nlm\.nih\.gov"
     r"|scholar\.google|thelancet\.com|jamanetwork\.com|science\.org"
     r"|ipcc\.ch|semanticscholar\.org|openalex\.org|academic\.oup\.com"
-    r"|clinicaltrials\.gov|researchgate\.net|ssrn\.com|biorxiv\.org"
-    r"|medrxiv\.org|pubs\.acs\.org|pmc\.ncbi|cell\.com|pnas\.org"
-    r"|bmj\.com|frontiersin\.org|mdpi\.com|plos\.org|royalsocietypublishing\.org",
+    r"|clinicaltrials\.gov|pubs\.acs\.org|pmc\.ncbi|cell\.com|pnas\.org"
+    r"|bmj\.com|frontiersin\.org|plos\.org|royalsocietypublishing\.org",
+    re.IGNORECASE,
+)
+
+# F7a: preprint / working-paper repositories + bare university hosts →
+# analysis, NOT academic. Not peer-reviewed venues: an SSRN working paper or a
+# self-hosted .edu paper is institutional analysis, not the peer-reviewed record
+# (which lives on a publisher domain above). Kept mechanical (NF-11), enforced
+# both in the heuristic and as a quality floor so the LLM can't re-upgrade them.
+_PREPRINT_PATTERNS = re.compile(
+    r"researchgate\.net|ssrn\.com|biorxiv\.org|medrxiv\.org|mdpi\.com"
+    # \b anchors the TLD so `.edu` can't substring-match `www.education.com`.
+    r"|\.(edu|ac\.uk|ac\.jp)\b",
     re.IGNORECASE,
 )
 
@@ -296,6 +310,12 @@ def _classify_heuristic(evidence: Dict[str, Any]) -> Tuple[str, str]:
     if _ACADEMIC_PATTERNS.search(url) or _ACADEMIC_PATTERNS.search(source):
         return ("primary", "academic")
 
+    # Preprints / working papers / bare university hosts → commentary/analysis
+    # (not peer-reviewed academic — F7a). After academic so a peer-reviewed
+    # venue always wins.
+    if _PREPRINT_PATTERNS.search(url) or _PREPRINT_PATTERNS.search(source):
+        return ("commentary", "analysis")
+
     # Government sources → primary/official_statement
     if _GOV_PATTERNS.search(url) or _GOV_PATTERNS.search(source):
         return ("primary", "official_statement")
@@ -450,14 +470,26 @@ def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
         return "tabloid_floor"
 
     if _SOCIAL_MEDIA.search(url) or _SOCIAL_MEDIA.search(source):
-        if evidence.get("tier") != "commentary":
+        # F7b: correct the TYPE too, not only when the tier is wrong. A forum
+        # thread the LLM placed at commentary/ANALYSIS would otherwise keep
+        # "analysis" (the "Reddit as analysis" defect). Idempotent when already
+        # commentary/opinion.
+        if (
+            evidence.get("tier") != "commentary"
+            or evidence.get("evidence_type") != "opinion"
+        ):
             evidence["tier"] = "commentary"
             evidence["evidence_type"] = "opinion"
             evidence["classification_method"] = "social_media_floor"
             return "social_media_floor"
 
     if _BLOG_PLATFORMS.search(url) or _BLOG_PLATFORMS.search(source):
-        if evidence.get("tier") != "commentary":
+        # Same type-leak fix as social media (an LLM commentary/analysis verdict
+        # on a Medium/Substack post would otherwise survive).
+        if (
+            evidence.get("tier") != "commentary"
+            or evidence.get("evidence_type") != "opinion"
+        ):
             evidence["tier"] = "commentary"
             evidence["evidence_type"] = "opinion"
             evidence["classification_method"] = "blog_platform_floor"
@@ -476,6 +508,23 @@ def _apply_quality_floor(evidence: Dict[str, Any]) -> Optional[str]:
             evidence["evidence_type"] = "opinion"
             evidence["classification_method"] = "low_authority_firm_floor"
             return "low_authority_firm_floor"
+
+    # F7a: preprint/working-paper repositories + bare university hosts → analysis,
+    # never academic — beats an LLM/override "academic" verdict on a study-shaped
+    # preprint. Last (after the opinion floors) so a preprint that's also
+    # tabloid/social/blog/infra gets the harder opinion floor first.
+    if _PREPRINT_PATTERNS.search(url) or _PREPRINT_PATTERNS.search(source):
+        # Only correct the OVER-claim (academic, or any primary-tier reading) —
+        # never touch a lower reading. A university-hosted op-ed the LLM already
+        # called commentary/opinion must stay opinion, not be upgraded to analysis.
+        if (
+            evidence.get("evidence_type") == "academic"
+            or evidence.get("tier") == "primary"
+        ):
+            evidence["tier"] = "commentary"
+            evidence["evidence_type"] = "analysis"
+            evidence["classification_method"] = "preprint_floor"
+            return "preprint_floor"
 
     return None
 

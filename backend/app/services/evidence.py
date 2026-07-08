@@ -649,6 +649,10 @@ class EvidenceExtractor:
         "before you continue",
         "one moment",
         "site not available",
+        # F7c: Reddit's network-verification interstitial
+        # ("Reddit - Please wait for verification") + generic wait screens.
+        "please wait",
+        "wait for verification",
     )
 
     def _extract_title_from_html(self, html: str) -> Optional[str]:

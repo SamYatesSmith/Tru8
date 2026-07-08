@@ -61,6 +61,10 @@ def test_rejects_bot_wall_titles():
         "Access Denied",
         "Attention Required! | Cloudflare",
         "Please enable JavaScript to continue",
+        # F7c: Reddit's network-verification interstitial + generic wait screens.
+        "Reddit - Please wait for verification",
+        "Please wait...",
+        "Wait for verification",
     ):
         html = f"<html><head><title>{junk}</title></head></html>"
         assert _extractor()._extract_title_from_html(html) is None, junk
