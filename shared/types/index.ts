@@ -104,6 +104,10 @@ export interface Evidence {
   // Suspect = engine date echoing a /YYYY/MM/ URL path, unconfirmed by the page.
   dateBasis?: string;
   relevanceScore: number; // 0-1 (semantic similarity)
+  // LLM TOPICAL relevance, 1-5 (5 directly addresses … 1 off-topic→excluded).
+  // Topical proximity ONLY — the scorer never judges source reputation/quality
+  // (relevance_scorer.py). Null on unscored/over-cap items and pre-scorer checks.
+  llmRelevanceScore?: number;
   // Classification (E06)
   tier?: EvidenceTier;
   evidenceType?: EvidenceType;

@@ -117,6 +117,15 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   // Source mix by tier (nullable tier → commentary in the helper).
   const tiers = tierCounts(evidence);
 
+  // F6 — topical-relevance coverage. How many SHOWN sources bear directly on the
+  // claim = llmRelevanceScore >= 4 ("directly/strongly addresses", scorer rubric).
+  // A COUNT, not a per-source score — topical proximity, never source quality
+  // (classify-don't-score). Hidden when nothing is scored (pre-scorer/older
+  // checks or all over-cap), so it never shows a misleading "0 of N".
+  const scoredCount = evidence.filter((ev) => typeof ev.llmRelevanceScore === 'number').length;
+  const directCount = evidence.filter((ev) => (ev.llmRelevanceScore ?? 0) >= 4).length;
+  const showCoverage = scoredCount > 0 && evidenceCount > 0;
+
   // Confidence-in-the-lean, kept SEPARATE from direction (GRADE). Describes
   // breadth of the set + element coverage, never the claim's truth.
   // Breadth describes the gathered set (evidenceCount), not just the mapped
@@ -190,6 +199,13 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         </p>
       ) : null}
       <p className="text-sm text-zinc-500 mt-1">{confidenceLine}</p>
+      {/* F6 — topical coverage: a count of directly-relevant sources, never a
+          per-source quality score. Answers "several sources add little". */}
+      {showCoverage && (
+        <p className="text-sm text-zinc-500 mt-1">
+          {directCount} of {evidenceCount} {evidenceCount === 1 ? 'source bears' : 'sources bear'} directly on the claim.
+        </p>
+      )}
 
       {/* The elements — introduced here (the reference frame the rest of the report
           cites). Owns being honest that we reframe + decompose, and declares the
