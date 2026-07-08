@@ -245,10 +245,13 @@ def test_f3_caveat_rendered(rendered_html):
 
 def test_brand_chassis_present(rendered_html):
     assert 'class="brand-rule"' in rendered_html  # 6px accent top-rule
-    assert 'class="diamond"' in rendered_html  # accent diamond glyph
+    assert 'class="diamond"' in rendered_html  # accent diamond glyph (hero eyebrow)
     assert 'class="hdr-brand-8"' in rendered_html  # split-weight wordmark
     assert "radial-gradient" in rendered_html  # dotted-grid ground
     assert "--accent: #EA580C" in rendered_html  # brand accent retained
+    # The diamond must NOT prefix the wordmark — it reads oddly and isn't used
+    # that way anywhere else in the product (kept only in the hero eyebrow).
+    assert 'diamond"></span><span class="hdr-brand"' not in rendered_html
 
 
 # ── WeasyPrint smoke (skips cleanly without GTK libs) ─────────────────────────
