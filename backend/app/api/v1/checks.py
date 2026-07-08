@@ -15,6 +15,7 @@ from app.core.auth import (
 )
 from app.core.config import settings
 from app.core.pdf_assets import FONT_FACE_CSS
+from app.pipeline.support_structure import side_quality_note
 from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription
 from datetime import datetime, timezone
 import uuid
@@ -2195,6 +2196,44 @@ async def stream_check_progress(
     )
 
 
+def _element_quality_notes(element: dict) -> list[dict]:
+    """Per-element thin/echo/repetition notes for the PDF (parity-locked to the
+    frontend via ``side_quality_note``), one per side that carries a note and
+    tagged with the side label. Grey, structural — never a verdict."""
+    if not isinstance(element, dict):
+        return []
+    basis = element.get("basis") or {}
+    notes: list[dict] = []
+    for side_key, side_label in (
+        ("support_structure", "Support"),
+        ("challenge_structure", "Challenge"),
+    ):
+        note = side_quality_note(basis.get(side_key))
+        if note:
+            notes.append({"side": side_label, **note})
+    return notes
+
+
+def _claim_stance_counts(elements: list) -> dict:
+    """Aggregate a claim's evidence stance across its elements' refs. Neutral
+    disposition of the evidence (supports/context/challenges) — not a verdict."""
+    counts = {"supports": 0, "challenges": 0, "context": 0}
+    for el in elements or []:
+        if not isinstance(el, dict):
+            continue
+        for ref in el.get("evidence_refs") or []:
+            if not isinstance(ref, dict):
+                continue
+            rel = ref.get("relationship")
+            if rel == "supports":
+                counts["supports"] += 1
+            elif rel == "challenges":
+                counts["challenges"] += 1
+            else:
+                counts["context"] += 1
+    return counts
+
+
 async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
     """Render a completed check to PDF bytes. Shared by the owner and public export routes."""
     # Fetch claims ordered by position
@@ -2230,13 +2269,19 @@ async def _build_check_pdf_bytes(check: Check, session: AsyncSession) -> bytes:
                 type_counts[ev.evidence_type] = type_counts.get(ev.evidence_type, 0) + 1
 
         claim_map = claim.claim_map if claim.claim_map else None
+        elements = claim_map.get("elements", []) if claim_map else []
+        # Pre-compute presentation reads (like tier_counts) so Jinja stays dumb.
+        for el in elements:
+            if isinstance(el, dict):
+                el["quality_notes"] = _element_quality_notes(el)
         claims_with_evidence.append(
             {
                 "text": claim.text,
                 "claim_type": claim.claim_type,
                 "claim_map": claim_map,
                 "orientation": claim_map.get("orientation") if claim_map else None,
-                "elements": claim_map.get("elements", []) if claim_map else [],
+                "elements": elements,
+                "stance": _claim_stance_counts(elements),
                 "evidence": evidence_list,
                 "evidence_index": evidence_index,
             }

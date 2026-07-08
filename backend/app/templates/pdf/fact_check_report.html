@@ -525,6 +525,145 @@
       color: var(--ink-4);
     }
 
+    /* ── RECORD HERO (models the OG share card) ───────────────────── */
+
+    .hero {
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--accent);
+      padding: 10px 14px 11px 14px;
+      margin-bottom: 12px;
+      background-image: radial-gradient(var(--ink-5) 0.6px, transparent 0.6px);
+      background-size: 14px 14px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 7px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--ink-4);
+      margin-bottom: 5px;
+    }
+
+    .hero-eyebrow .accent { color: var(--accent); }
+
+    .hero-claim {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+      letter-spacing: -0.2px;
+    }
+
+    .hero-signed {
+      font-family: var(--mono);
+      font-size: 6.5px;
+      color: var(--ink-4);
+      margin-top: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .hero-signed a { color: var(--ink-4); }
+
+    /* ── STANCE DISTRIBUTION BAR (neutral — no verdict colour) ─────── */
+
+    .stance { margin: 6px 0 9px 0; }
+
+    .stance-lbl {
+      font-family: var(--mono);
+      font-size: 6.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ink-4);
+      margin-bottom: 3px;
+    }
+
+    .stance-bar {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .stance-bar td {
+      font-family: var(--mono);
+      font-size: 7px;
+      font-weight: 700;
+      padding: 3px 4px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* Stance = evidence disposition, read by tonal WEIGHT not hue. */
+    .seg-support { background: var(--ink); color: var(--surface); }
+    .seg-context { background: var(--ink-5); color: var(--ink-2); }
+    .seg-challenge { background: var(--ink-3); color: var(--surface); }
+
+    .stance-legend {
+      font-family: var(--mono);
+      font-size: 6px;
+      color: var(--ink-4);
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .lg-sw {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      vertical-align: middle;
+      margin: 0 2px 0 6px;
+    }
+
+    /* ── ELEMENT QUALITY NOTE (thin / echo / repetition) ──────────── */
+
+    .el-note {
+      font-size: 7.5px;
+      color: var(--ink-3);
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+
+    .el-note-side {
+      font-family: var(--mono);
+      font-size: 6.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--ink-4);
+    }
+
+    .el-note-detail { color: var(--ink-4); }
+
+    /* ── NAVIGATION (cross-links, contents, bookmarks) ────────────── */
+
+    .el-refs a { color: var(--ink-2); }
+
+    .claim-top {
+      float: right;
+      font-family: var(--mono);
+      font-size: 6.5px;
+      color: var(--ink-4);
+      letter-spacing: 0.3px;
+    }
+
+    .toc {
+      margin-bottom: 12px;
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 0.3px;
+      color: var(--ink-4);
+    }
+
+    .toc a { color: var(--ink-2); margin-right: 10px; }
+
+    /* PDF outline / bookmarks — the reader-app navigation sidebar. */
+    .claim-hd { bookmark-level: 1; bookmark-label: content(text); }
+    .sub-hd { bookmark-level: 2; bookmark-label: content(text); }
+
     /* ── FOOTER ───────────────────────────────────────────────────── */
 
     .ftr {
@@ -577,6 +716,19 @@
     </div>
   </div>
 
+  <!-- RECORD HERO (models the OG share card) -->
+  <div class="hero" id="top">
+    <div class="hero-eyebrow"><span class="diamond"></span><span class="accent">Signed</span> &middot; Evidence Record</div>
+    {% if claims|length == 1 %}
+    <div class="hero-claim">&ldquo;{{ claims[0].text }}&rdquo;</div>
+    {% else %}
+    <div class="hero-claim">{{ claims|length }} claims examined</div>
+    {% endif %}
+    {% if check.manifest and check.manifest.signature %}
+    <div class="hero-signed">hmac-sha256 &middot; verify at <a href="https://trueight.com/verify/{{ check.id }}">trueight.com/verify/{{ check.id[:8]|lower }}</a></div>
+    {% endif %}
+  </div>
+
   <!-- STATS -->
   <table class="stats"><tr>
     <td><div class="stats-num">{{ claims|length }}</div><div class="stats-lbl">Claims</div></td>
@@ -603,16 +755,37 @@
 
   <hr class="sep" />
   <div class="sec-hd">Claims &mdash; {{ claims|length }}</div>
+  {% if claims|length > 1 %}
+  <div class="toc">Contents:
+    {% for claim in claims %}<a href="#claim-{{ loop.index }}">Claim {{ '%02d' | format(loop.index) }}</a>{% endfor %}
+  </div>
+  {% endif %}
 
   <!-- CLAIMS -->
   {% for claim in claims %}
-  <div class="claim">
+  {% set claim_idx = loop.index %}
+  <div class="claim" id="claim-{{ claim_idx }}">
     <div class="claim-hd">
-      Claim {{ '%02d' | format(loop.index) }}
+      {% if claims|length > 1 %}<a class="claim-top" href="#top">&uarr; top</a>{% endif %}
+      Claim {{ '%02d' | format(claim_idx) }}
       {% if claim.claim_type %}<span class="claim-badge">{{ claim.claim_type|replace('_', ' ') }}</span>{% endif %}
     </div>
 
     <div class="claim-txt">{{ claim.text }}</div>
+
+    {% set st = claim.stance %}
+    {% set stotal = (st.supports + st.challenges + st.context) if st else 0 %}
+    {% if stotal > 0 %}
+    <div class="stance">
+      <div class="stance-lbl">Evidence &middot; {{ stotal }} mapped across {{ claim.elements|length }} element{{ 's' if claim.elements|length != 1 else '' }}</div>
+      <table class="stance-bar"><tr>
+        {% if st.supports %}<td class="seg-support" style="width: {{ (st.supports / stotal * 100)|round(1) }}%;">+ {{ st.supports }}</td>{% endif %}
+        {% if st.context %}<td class="seg-context" style="width: {{ (st.context / stotal * 100)|round(1) }}%;">&middot; {{ st.context }}</td>{% endif %}
+        {% if st.challenges %}<td class="seg-challenge" style="width: {{ (st.challenges / stotal * 100)|round(1) }}%;">&ndash; {{ st.challenges }}</td>{% endif %}
+      </tr></table>
+      <div class="stance-legend"><span class="lg-sw seg-support"></span>Supports<span class="lg-sw seg-context"></span>Context<span class="lg-sw seg-challenge"></span>Challenges &middot; you decide</div>
+    </div>
+    {% endif %}
 
     {% if claim.elements %}
     <hr class="sep-light" />
@@ -626,19 +799,22 @@
       {% set ns = namespace(supports=[], challenges=[], context=[]) %}
       {% for ref in element.evidence_refs %}
         {% set ref_num = claim.evidence_index.get(ref.evidence_id, claim.evidence_index.get(ref.get('evidenceId', ''), 0)) %}
+        {% if ref_num %}{# skip refs whose evidence isn't in this claim — no dead #sX-0 anchor #}
         {% if ref.relationship == 'supports' %}{% set _ = ns.supports.append(ref_num) %}
         {% elif ref.relationship == 'challenges' %}{% set _ = ns.challenges.append(ref_num) %}
         {% else %}{% set _ = ns.context.append(ref_num) %}{% endif %}
+        {% endif %}
       {% endfor %}
       <div class="el-refs">
-        {% if ns.supports %}<span class="r-s">{{ ns.supports|length }} supporting</span> <span class="r-n">[{% for n in ns.supports|sort %}{{ n }}{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
-        {% if ns.challenges %}{% if ns.supports %} &middot; {% endif %}<span class="r-c">{{ ns.challenges|length }} challenging</span> <span class="r-n">[{% for n in ns.challenges|sort %}{{ n }}{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
-        {% if ns.context %}{% if ns.supports or ns.challenges %} &middot; {% endif %}<span class="r-x">{{ ns.context|length }} context</span> <span class="r-n">[{% for n in ns.context|sort %}{{ n }}{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
+        {% if ns.supports %}<span class="r-s">{{ ns.supports|length }} supporting</span> <span class="r-n">[{% for n in ns.supports|sort %}<a href="#s{{ claim_idx }}-{{ n }}">{{ n }}</a>{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
+        {% if ns.challenges %}{% if ns.supports %} &middot; {% endif %}<span class="r-c">{{ ns.challenges|length }} challenging</span> <span class="r-n">[{% for n in ns.challenges|sort %}<a href="#s{{ claim_idx }}-{{ n }}">{{ n }}</a>{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
+        {% if ns.context %}{% if ns.supports or ns.challenges %} &middot; {% endif %}<span class="r-x">{{ ns.context|length }} context</span> <span class="r-n">[{% for n in ns.context|sort %}<a href="#s{{ claim_idx }}-{{ n }}">{{ n }}</a>{% if not loop.last %}, {% endif %}{% endfor %}]</span>{% endif %}
       </div>
       {% endif %}
       {% if element.uncertainty %}<div class="el-unc">{{ element.uncertainty }}</div>{% endif %}
       {% set caveat = ((element.get('basis') or {}).get('state_derivation') or {}).get('caveat') %}
       {% if caveat %}<div class="el-caveat">{{ caveat }}</div>{% endif %}
+      {% if element.quality_notes %}{% for qn in element.quality_notes %}<div class="el-note"><span class="el-note-side">{{ qn.side }}</span> {{ qn.label }} <span class="el-note-detail">&mdash; {{ qn.detail }}</span></div>{% endfor %}{% endif %}
     </div>
     {% endfor %}
     {% endif %}
@@ -671,7 +847,7 @@
     {% set ev_id = ev.evidence_id or ev.id|string %}
     {% set ev_num = claim.evidence_index.get(ev_id, loop.index) %}
     {% set title = ev.title or 'Untitled source' %}
-    <div class="ev ev-{{ ev.tier or 'commentary' }}">
+    <div class="ev ev-{{ ev.tier or 'commentary' }}" id="s{{ claim_idx }}-{{ ev_num }}">
       <div class="ev-n">{{ ev_num }}</div>
       <div class="ev-title">
         <span class="ev-tier ev-tier-{{ ev.tier or 'commentary' }}">{{ ev.tier or 'commentary' }}</span>

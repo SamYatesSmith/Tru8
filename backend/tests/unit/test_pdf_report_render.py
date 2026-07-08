@@ -24,6 +24,7 @@ import pytest
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.pdf_assets import FONT_FACE_CSS
+from app.api.v1.checks import _element_quality_notes, _claim_stance_counts
 
 TEMPLATE_DIR = Path(__file__).resolve().parents[2] / "app" / "templates"
 
@@ -73,8 +74,16 @@ def _context():
                 {"evidence_id": "ev2", "relationship": "supports"},
             ],
             "uncertainty": None,
-            # F3: the reach caveat rides the neutral state_derivation channel.
-            "basis": {"state_derivation": {"caveat": CAVEAT_TEXT}},
+            # F3: the reach caveat rides the neutral state_derivation channel;
+            # a thin support side also fires an echo/thin quality note.
+            "basis": {
+                "state_derivation": {"caveat": CAVEAT_TEXT},
+                "support_structure": {
+                    "count": 2,
+                    "distinct_domains": 2,
+                    "tier_counts": {"primary": 0, "reporting": 0, "commentary": 2},
+                },
+            },
         },
         {
             "description": "It is the only such system in the world.",
@@ -87,6 +96,10 @@ def _context():
             "basis": {},
         },
     ]
+
+    # Mirror the builder: pre-compute the presentation reads Jinja consumes.
+    for el in elements:
+        el["quality_notes"] = _element_quality_notes(el)
 
     evidence = [
         _evidence(evidence_id="ev1", id="ev1", tier="primary", title="Ofwat report"),
@@ -121,6 +134,7 @@ def _context():
         "claim_map": {"elements": elements},
         "orientation": "Of 2 elements examined, 1 is supported and 1 is disputed.",
         "elements": elements,
+        "stance": _claim_stance_counts(elements),
         "evidence": evidence,
         "evidence_index": {"ev1": 1, "ev2": 2, "ev3": 3, "ev4": 4},
     }
@@ -284,3 +298,91 @@ def test_production_fetcher_allows_data_uri():
     # "hi" base64 — decodes inline per RFC 2397, no network/file access.
     result = _block_pdf_network_fetch("data:text/plain;base64,aGk=")
     assert result  # a truthy fetch dict, no exception raised
+
+
+# ── Phase B: Record hero, stance bar, quality note, cross-links, bookmarks ────
+
+
+def test_record_hero_present(rendered_html):
+    assert 'class="hero"' in rendered_html
+    assert 'id="top"' in rendered_html
+    assert "Evidence Record" in rendered_html
+    # single-claim report → the claim is quoted in the hero (curly-quoted form)
+    assert "&ldquo;Britain is the only country" in rendered_html
+    assert "verify at" in rendered_html
+
+
+def test_stance_bar_present_and_neutral(rendered_html):
+    assert 'class="stance-bar"' in rendered_html
+    assert "seg-support" in rendered_html
+    assert "seg-challenge" in rendered_html
+    assert "mapped across" in rendered_html
+    assert "you decide" in rendered_html
+    # stance bands are tonal, not hued — reuse the no-verdict guard's intent
+    assert "seg-support { background: var(--ink)" in rendered_html
+
+
+def test_claim_stance_counts_arithmetic():
+    from app.api.v1.checks import _claim_stance_counts
+
+    elements = [
+        {"evidence_refs": [{"relationship": "supports"}, {"relationship": "supports"}]},
+        {
+            "evidence_refs": [
+                {"relationship": "challenges"},
+                {"relationship": "context"},
+                {"relationship": None},  # real ref, unknown relationship → context
+            ]
+        },
+    ]
+    assert _claim_stance_counts(elements) == {
+        "supports": 2,
+        "challenges": 1,
+        "context": 2,
+    }
+    assert _claim_stance_counts([]) == {"supports": 0, "challenges": 0, "context": 0}
+    # non-dict refs are skipped, not miscounted
+    assert _claim_stance_counts([{"evidence_refs": [None, "garbage"]}]) == {
+        "supports": 0,
+        "challenges": 0,
+        "context": 0,
+    }
+
+
+def test_quality_note_rendered(rendered_html):
+    assert 'class="el-note"' in rendered_html
+    assert "Thin sourcing" in rendered_html
+    assert 'class="el-note-side"' in rendered_html
+
+
+def test_internal_cross_links(rendered_html):
+    # element ref number links DOWN to the evidence card, which carries the id
+    assert 'href="#s1-1"' in rendered_html
+    assert 'id="s1-1"' in rendered_html
+
+
+def test_pdf_bookmarks_declared(rendered_html):
+    assert "bookmark-level" in rendered_html
+    assert "bookmark-label" in rendered_html
+
+
+def _multi_claim_html():
+    ctx = _context()
+    second = dict(ctx["claims"][0])
+    second["text"] = "A second, distinct claim."
+    ctx["claims"] = [ctx["claims"][0], second]
+    env = Environment(
+        loader=FileSystemLoader(str(TEMPLATE_DIR)),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+    return env.get_template("pdf/fact_check_report.html").render(**ctx)
+
+
+def test_multi_claim_contents_and_back_to_top():
+    html = _multi_claim_html()
+    assert 'class="toc"' in html  # jump-linked contents
+    assert 'href="#claim-2"' in html
+    assert 'class="claim-top"' in html  # back-to-top link
+    assert 'id="claim-2"' in html
+    # multi-claim hero shows a count, not a single quoted claim
+    assert "claims examined" in html

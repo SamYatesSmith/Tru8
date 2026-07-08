@@ -9,6 +9,7 @@ endpoint (``research-thin``).
 
 from app.pipeline.support_structure import (
     side_has_quality_note,
+    side_quality_note,
     element_has_quality_note,
     element_is_thin,
     thin_element_ids,
@@ -124,6 +125,72 @@ PARITY_CASES = [
 def test_side_note_parity_with_frontend():
     for label, side, expect in PARITY_CASES:
         assert side_has_quality_note(side) is expect, f"parity drift: {label}"
+
+
+def test_side_quality_note_kinds_and_labels():
+    """The label-returning note is locked to the TS evidenceQualityNote payloads
+    (kind + exact label), incl. precedence echo → repetition → thin."""
+    echo = side_quality_note(
+        _side(
+            count=3,
+            distinct_domains=3,
+            tier_counts={"primary": 1, "reporting": 2, "commentary": 0},
+            derivation={"originals": 1, "derivative_count": 2},
+        )
+    )
+    assert echo == {
+        "kind": "echo",
+        "label": "Mostly one source repeated",
+        "detail": "Several of these sources repeat a single original report.",
+    }
+
+    rep = side_quality_note(
+        _side(
+            count=3,
+            distinct_domains=3,
+            tier_counts={"primary": 0, "reporting": 2, "commentary": 1},
+            repetition={"max_cluster_on_side": 3, "distinct_domains": 3},
+        )
+    )
+    assert rep["kind"] == "repetition" and rep["label"] == "Same wording, no primary"
+
+    thin_commentary = side_quality_note(
+        _side(
+            count=4,
+            distinct_domains=2,
+            tier_counts={"primary": 0, "reporting": 0, "commentary": 4},
+        )
+    )
+    assert (
+        thin_commentary["kind"] == "thin"
+        and thin_commentary["label"] == "Thin sourcing"
+    )
+
+    thin_single = side_quality_note(
+        _side(
+            count=3,
+            distinct_domains=1,
+            tier_counts={"primary": 0, "reporting": 3, "commentary": 0},
+        )
+    )
+    assert thin_single == {
+        "kind": "thin",
+        "label": "Thin sourcing",
+        "detail": "All from a single website.",
+    }
+
+    assert side_quality_note(_side(count=0)) is None
+    assert side_quality_note(None) is None
+    # A returned note must be a copy — mutating it can't poison the next call.
+    echo["label"] = "MUTATED"
+    again = side_quality_note(
+        _side(
+            count=3,
+            tier_counts={"primary": 1, "reporting": 2},
+            derivation={"originals": 1, "derivative_count": 2},
+        )
+    )
+    assert again["label"] == "Mostly one source repeated"
 
 
 def test_side_note_missing_derivation_does_not_crash():

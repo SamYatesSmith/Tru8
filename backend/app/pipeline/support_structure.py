@@ -17,23 +17,50 @@ from __future__ import annotations
 from typing import Any
 
 
-def side_has_quality_note(side: Any) -> bool:
-    """True when one side's sourcing is thin or echoey.
+# The note payloads — kind + label + detail — locked CHARACTER-FOR-CHARACTER to
+# ``evidenceQualityNote`` in ``support-structure.ts``. Precedence: echo →
+# repetition → thin(commentary) → thin(single-outlet). Grey, no verdict.
+_ECHO_NOTE = {
+    "kind": "echo",
+    "label": "Mostly one source repeated",
+    "detail": "Several of these sources repeat a single original report.",
+}
+_REPETITION_NOTE = {
+    "kind": "repetition",
+    "label": "Same wording, no primary",
+    "detail": "Several sources share the same wording; no primary source found behind them.",
+}
+_THIN_COMMENTARY_NOTE = {
+    "kind": "thin",
+    "label": "Thin sourcing",
+    "detail": "Only commentary-grade sources — no primary or reporting evidence.",
+}
+_THIN_SINGLE_OUTLET_NOTE = {
+    "kind": "thin",
+    "label": "Thin sourcing",
+    "detail": "All from a single website.",
+}
 
-    Mirrors ``evidenceQualityNote`` in ``support-structure.ts``:
+
+def side_quality_note(side: Any) -> dict | None:
+    """The thin/echo/repetition note for one side, or ``None`` if it's healthy.
+
+    Parity twin of ``evidenceQualityNote`` (``support-structure.ts``) — same
+    thresholds, same precedence, same labels:
       - echo       → an original repeated by ≥2 derivative sources
       - repetition → ≥3 sources on this side recite the SAME wording across ≥2
                      domains with NO primary here (talking-point, finding F4)
       - thin       → commentary-grade only (no primary/reporting), OR
                      ≥2 items all from a single outlet.
-    An empty / absent side has no note.
+    An empty / absent side has no note. Returns a fresh dict so callers can't
+    mutate the shared payload. It describes the SOURCES, never the claim's truth.
     """
     if not isinstance(side, dict):
-        return False
+        return None
 
     count = side.get("count") or 0
     if not count:
-        return False
+        return None
 
     tier_counts = side.get("tier_counts") or {}
 
@@ -41,7 +68,7 @@ def side_has_quality_note(side: Any) -> bool:
     if (derivation.get("originals") or 0) >= 1 and (
         derivation.get("derivative_count") or 0
     ) >= 2:
-        return True  # echo
+        return dict(_ECHO_NOTE)
 
     # Unanchored repetition (F4): several sources on this side share the same
     # wording, across ≥2 domains, with no primary source here.
@@ -51,14 +78,24 @@ def side_has_quality_note(side: Any) -> bool:
         and (repetition.get("distinct_domains") or 0) >= 2
         and (tier_counts.get("primary") or 0) == 0
     ):
-        return True  # repetition
+        return dict(_REPETITION_NOTE)
 
     commentary_only = (tier_counts.get("primary") or 0) == 0 and (
         tier_counts.get("reporting") or 0
     ) == 0
-    single_outlet = count >= 2 and (side.get("distinct_domains") or 0) <= 1
+    if commentary_only:
+        return dict(_THIN_COMMENTARY_NOTE)
 
-    return commentary_only or single_outlet
+    single_outlet = count >= 2 and (side.get("distinct_domains") or 0) <= 1
+    if single_outlet:
+        return dict(_THIN_SINGLE_OUTLET_NOTE)
+
+    return None
+
+
+def side_has_quality_note(side: Any) -> bool:
+    """True when one side's sourcing is thin or echoey (see ``side_quality_note``)."""
+    return side_quality_note(side) is not None
 
 
 def element_has_quality_note(basis: Any) -> bool:
