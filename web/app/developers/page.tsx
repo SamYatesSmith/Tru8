@@ -8,15 +8,14 @@ import { TrackedLink } from '@/components/analytics/tracked-link';
 
 export const metadata = {
   title: 'API & MCP Server for AI Agents',
-  description: 'Structured evidence research in one API call. Three tiers, three payment rails, MCP server for Claude and other AI agents. From £0.02/query.',
+  description: 'Structured evidence research in one API call. Four call tiers, MCP server for Claude and other AI agents. From £0.02/query.',
   alternates: { canonical: '/developers' },
 };
 
 const TOC_ITEMS = [
   { id: 'quick-start', label: 'Quick Start' },
-  { id: 'pipeline', label: 'Pipeline' },
+  { id: 'pricing', label: 'Tiers & Pricing' },
   { id: 'mcp', label: 'MCP' },
-  { id: 'pricing', label: 'Pricing' },
   { id: 'async', label: 'Async' },
   { id: 'batch', label: 'Batch' },
   { id: 'webhooks', label: 'Webhooks' },
@@ -47,7 +46,7 @@ const DEV_FAQS: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: 'How are API calls priced?',
-    a: 'Calls are metered per request across three tiers — lookup, quick and full — billed from prepaid credits. See the Pricing section above for the current per-tier rates.',
+    a: 'Calls are metered per request across four tiers — lookup, consensus, quick and full — billed from prepaid credits. See the Tiers & Pricing section above for the current per-tier rates.',
   },
   {
     q: 'How can an agent confirm a result has not changed?',
@@ -86,7 +85,7 @@ export default function DevelopersPage() {
           aria-hidden="true"
           className="pointer-events-none fixed left-1.5 top-1/2 z-40 hidden -translate-y-1/2 rotate-180 select-none font-mono text-[9px] tracking-[0.3em] text-zinc-300 [writing-mode:vertical-rl] xl:block"
         >
-          TRU8 · DEVELOPERS · REV 2026.06
+          TRU8 · DEVELOPERS · REV 2026.07
         </div>
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {/* Back Button */}
@@ -137,6 +136,28 @@ export default function DevelopersPage() {
                   <span className="text-accent">Your agent decides what matters.</span>
                 </p>
               </div>
+
+              {/* Hero CTAs (C1 S3) — act from the top, not only from §Resources */}
+              <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
+                <TrackedLink
+                  href="/dashboard/settings?tab=developer"
+                  event="get_api_key_click"
+                  eventProps={{ surface: 'developers_hero' }}
+                  className="group inline-flex items-center justify-center gap-4 bg-black text-white px-8 py-4 text-xs font-bold tracking-[0.3em] uppercase w-full sm:w-auto transition-all hover:bg-zinc-900"
+                >
+                  <span>Get API key</span>
+                  <span aria-hidden="true" className="w-2 h-2 bg-accent rotate-45 transition-transform group-hover:translate-x-1" />
+                </TrackedLink>
+                <a
+                  href="#response"
+                  className="inline-flex items-center justify-center gap-2 border border-zinc-200 px-8 py-4 text-xs font-bold tracking-[0.3em] uppercase text-zinc-900 w-full sm:w-auto transition-colors hover:border-zinc-900"
+                >
+                  See the response shape
+                </a>
+              </div>
+              <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-400">
+                From £0.02 per call · no subscription required · signed manifests
+              </p>
 
               <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-zinc-500">
                 Prefer to research in the browser?{' '}
@@ -258,37 +279,96 @@ export TRU8_API_KEY="tru8_sk_..."`}
           {/* Divider */}
           <div className="border-t border-zinc-200 my-12 md:my-16" />
 
-          {/* Pipeline Depth */}
-          <section id="pipeline" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="03" label="Pipeline" />
+          {/* Tiers & Pricing — merged Pipeline + Pricing (C1 S3, 2026-07-09):
+              the tier IS the depth IS the price, so it is one table said once.
+              The old #pipeline anchor is preserved for inbound links. */}
+          <section id="pricing" className="mb-16 md:mb-20 scroll-mt-28">
+            <span id="pipeline" className="block scroll-mt-28" aria-hidden="true" />
+            <SheetHeader number="03" label="Tiers & Pricing" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
-              What Each Tier Runs
+              Four depths. One record shape.
             </h2>
+
+            <p className="text-base text-zinc-600 leading-relaxed mb-8">
+              Agent API calls are charged <strong className="text-zinc-900">per call</strong>, deducted
+              from your prepaid credit balance. Every tier returns the same record shape — the price
+              buys retrieval depth, not a different contract.
+            </p>
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-zinc-200">
-                    <th className="text-left py-3 pr-4 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Pipeline stage</th>
-                    <th className="text-center py-3 px-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Quick</th>
-                    <th className="text-center py-3 pl-2 font-mono text-[10px] tracking-widest uppercase text-accent">Full</th>
+                    <th className="text-left py-3 pr-4 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Tier</th>
+                    <th className="text-left py-3 px-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">What runs</th>
+                    <th className="text-left py-3 px-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Time</th>
+                    <th className="text-right py-3 pl-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Per call</th>
                   </tr>
                 </thead>
-                <tbody className="text-zinc-600">
-                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Claim extraction + decomposition</td><td className="text-center">Yes</td><td className="text-center">Yes</td></tr>
-                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Web search (Serper/Brave/SerpAPI)</td><td className="text-center">1 query/element</td><td className="text-center">3 queries/element</td></tr>
-                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Government + academic APIs</td><td className="text-center text-zinc-300">No</td><td className="text-center">Yes</td></tr>
-                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Google Fact-Check API</td><td className="text-center text-zinc-300">No</td><td className="text-center">Yes</td></tr>
-                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Evidence classification</td><td className="text-center">Heuristic</td><td className="text-center">LLM</td></tr>
-                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">LLM relevance scoring</td><td className="text-center text-zinc-300">No</td><td className="text-center">Yes</td></tr>
-                  <tr className="border-b border-zinc-50"><td className="py-2 pr-4">Evidence mapping + orientation</td><td className="text-center">Yes</td><td className="text-center">Yes</td></tr>
-                  <tr><td className="py-2 pr-4">Coverage recovery</td><td className="text-center text-zinc-300">No</td><td className="text-center">Yes</td></tr>
+                <tbody className="text-zinc-600 align-top">
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-zinc-900">Lookup</code></td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">Cached prior analysis — instant hash match on your previous research. No pipeline run.</td>
+                    <td className="py-3 px-2 font-mono text-xs text-zinc-400">instant</td>
+                    <td className="py-3 pl-2 text-right font-mono text-zinc-900">£0.02</td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-zinc-900">Consensus</code></td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">Cross-user aggregate landscape. Available when 3+ independent checks exist. No pipeline run.</td>
+                    <td className="py-3 px-2 font-mono text-xs text-zinc-400">instant</td>
+                    <td className="py-3 pl-2 text-right font-mono text-zinc-900">£0.03</td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-zinc-900">Quick</code></td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">Web search (1 query/element), heuristic classification, evidence mapping + orientation. Fast triage.</td>
+                    <td className="py-3 px-2 font-mono text-xs text-zinc-400">~15s</td>
+                    <td className="py-3 pl-2 text-right font-mono text-zinc-900">£0.07</td>
+                  </tr>
+                  <tr className="border-t-2 border-accent">
+                    <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-accent">Full</code></td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">The complete pipeline: 3 queries/element across 30+ sources incl. government + academic APIs and fact-check lookup, LLM classification + relevance scoring, coverage recovery.</td>
+                    <td className="py-3 px-2 font-mono text-xs text-zinc-400">~60–90s</td>
+                    <td className="py-3 pl-2 text-right font-mono text-accent">£0.15</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-zinc-400 mt-4">
-              Lookup and Consensus tiers return previously computed results — no pipeline execution.
-            </p>
+
+            <div className="bg-zinc-50 border border-zinc-200 p-6 mt-8">
+              <h3 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-4">
+                How it works
+              </h3>
+              <ul className="space-y-2 text-sm text-zinc-600">
+                <li className="flex items-start gap-2">
+                  <span className="text-accent mt-0.5">1.</span>
+                  <span>Top up your agent credit balance (prepaid, in GBP pence)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-accent mt-0.5">2.</span>
+                  <span>Each API call deducts the tier price from your balance</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-accent mt-0.5">3.</span>
+                  <span>Use <code className="text-zinc-400">max_tier</code> to cap maximum spend per call</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-accent mt-0.5">4.</span>
+                  <span>You are only charged for the tier actually executed, not the tier requested</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4 mt-6">
+              <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+              <div className="text-xs text-zinc-600">
+                <p className="font-semibold text-zinc-900 mb-1">Agent credits vs dashboard subscription</p>
+                <p>
+                  Dashboard subscriptions (Starter, Professional) give you a monthly check allowance for the web dashboard.
+                  Agent API credits are a separate prepaid balance for programmatic access. Both are available on any account —
+                  you can use the dashboard and the API independently.
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* Divider */}
@@ -372,114 +452,15 @@ export TRU8_API_KEY="tru8_sk_..."`}
             </div>
           </section>
 
-          {/* Divider */}
-          <div className="border-t border-zinc-200 my-12 md:my-16" />
-
-          {/* Pricing Model */}
-          <section id="pricing" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="05" label="Pricing" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
-              What You Pay For
-            </h2>
-
-            <div className="space-y-6 text-base text-zinc-600 leading-relaxed">
-              <p>
-                Agent API calls are charged <strong className="text-zinc-900">per call</strong>, deducted
-                from your prepaid credit balance. This is separate from dashboard subscriptions.
-              </p>
-
-              <div className="bg-zinc-50 border border-zinc-200 p-6">
-                <h3 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-4">
-                  Per-call pricing
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-baseline border-b border-zinc-100 pb-2">
-                    <div>
-                      <code className="text-sm font-mono font-semibold text-zinc-900">Lookup</code>
-                      <span className="text-xs text-zinc-400 ml-2">instant</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono text-sm text-zinc-900">£0.02</span>
-                      <p className="text-xs text-zinc-400">Cached prior analysis. Instant hash match on your previous research.</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-baseline border-b border-zinc-100 pb-2">
-                    <div>
-                      <code className="text-sm font-mono font-semibold text-zinc-900">Consensus</code>
-                      <span className="text-xs text-zinc-400 ml-2">instant</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono text-sm text-zinc-900">£0.03</span>
-                      <p className="text-xs text-zinc-400">Cross-user aggregate landscape. Available when 3+ independent checks exist.</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-baseline border-b border-zinc-100 pb-2">
-                    <div>
-                      <code className="text-sm font-mono font-semibold text-zinc-900">Quick</code>
-                      <span className="text-xs text-zinc-400 ml-2">~15s</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono text-sm text-zinc-900">£0.07</span>
-                      <p className="text-xs text-zinc-400">Web search + heuristic classification. Fast triage for time-sensitive queries.</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-baseline">
-                    <div>
-                      <code className="text-sm font-mono font-semibold text-accent">Full</code>
-                      <span className="text-xs text-zinc-400 ml-2">~60-90s</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono text-sm text-accent">£0.15</span>
-                      <p className="text-xs text-zinc-400">30+ sources, LLM classification, element decomposition, coverage recovery.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-zinc-50 border border-zinc-200 p-6">
-                <h3 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-4">
-                  How it works
-                </h3>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-0.5">1.</span>
-                    <span>Top up your agent credit balance (prepaid, in GBP pence)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-0.5">2.</span>
-                    <span>Each API call deducts the tier price from your balance</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-0.5">3.</span>
-                    <span>Use <code className="text-zinc-400">max_tier</code> to cap maximum spend per call</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-0.5">4.</span>
-                    <span>You are only charged for the tier actually executed, not the tier requested</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
-                <div className="text-xs text-zinc-600">
-                  <p className="font-semibold text-zinc-900 mb-1">Agent credits vs dashboard subscription</p>
-                  <p>
-                    Dashboard subscriptions (Starter, Professional) give you a monthly check allowance for the web dashboard.
-                    Agent API credits are a separate prepaid balance for programmatic access. Both are available on any account —
-                    you can use the dashboard and the API independently.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Divider */}
-          <div className="border-t border-zinc-200 my-12 md:my-16" />
+          {/* Divider + full-reference seam — everything below is the deep spec */}
+          <div className="border-t border-zinc-200 mt-12 md:mt-16 mb-4" />
+          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-12 md:mb-16">
+            Full reference — the deep spec continues below
+          </p>
 
           {/* Async Mode */}
           <section id="async" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="06" label="Async Mode" />
+            <SheetHeader number="05" label="Async Mode" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Non-Blocking Submission
             </h2>
@@ -528,7 +509,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Batch Submission */}
           <section id="batch" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="07" label="Batch Mode" />
+            <SheetHeader number="06" label="Batch Mode" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Multi-Claim Submission
             </h2>
@@ -610,7 +591,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Webhooks */}
           <section id="webhooks" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="08" label="Webhooks" />
+            <SheetHeader number="07" label="Webhooks" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Event Notifications
             </h2>
@@ -669,7 +650,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Agent Discovery */}
           <section id="discovery" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="09" label="Agent Discovery" />
+            <SheetHeader number="08" label="Agent Discovery" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Self-Service Endpoints
             </h2>
@@ -748,7 +729,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Rate Limits */}
           <section id="rate-limits" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="10" label="Rate Limits" />
+            <SheetHeader number="09" label="Rate Limits" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Throttling
             </h2>
@@ -793,7 +774,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Error Codes */}
           <section id="errors" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="11" label="Error Handling" />
+            <SheetHeader number="10" label="Error Handling" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Error Codes
             </h2>
@@ -843,7 +824,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* Response Shape */}
           <section id="response" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="12" label="Response Shape" />
+            <SheetHeader number="11" label="Response Shape" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               What You Get Back
             </h2>
@@ -945,7 +926,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* API Docs + Resources */}
           <section id="docs" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="13" label="Resources" />
+            <SheetHeader number="12" label="Resources" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Documentation
             </h2>
@@ -990,7 +971,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* FAQ */}
           <section id="faq" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="14" label="FAQ" />
+            <SheetHeader number="13" label="FAQ" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-8 md:mb-10">
               Frequently asked questions
             </h2>
