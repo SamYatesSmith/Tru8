@@ -422,9 +422,14 @@ additional_refs arrays.
 # ── Orientation line derivation (pure function, no LLM) ────────────────────
 
 # Prose mappings for orientation templates — centres evidence as the actor.
+# "challenged_only" is a prose-only refinement of `disputed` (2026-07-09): the
+# state vocabulary is contract-locked, but a disputed element whose refs carry
+# challenges and ZERO supports must not be described as "both supports and
+# conflicts" — that manufactures false balance on a one-sided record.
 _SINGLE_PHRASE = {
     "supported": "predominantly supports it",
     "disputed": "both supports and conflicts with it",
+    "challenged_only": "challenges it, with none supporting",
     "unresolved": "is insufficient to assess it",
     "contextual": "provides context for it without directly substantiating",
 }
@@ -432,6 +437,7 @@ _SINGLE_PHRASE = {
 _UNANIMOUS_PHRASE = {
     "supported": "predominantly supports",
     "disputed": "both supports and conflicts with",
+    "challenged_only": "challenges",
     "unresolved": "is insufficient to assess",
     "contextual": "provides context for",
 }
@@ -439,27 +445,48 @@ _UNANIMOUS_PHRASE = {
 _ITEM_PHRASE = {
     "supported": "predominantly supported",
     "disputed": "with conflicting evidence",
+    "challenged_only": "challenged with none supporting",
     "unresolved": "lacking sufficient evidence",
     "contextual": "informed by contextual evidence",
 }
 
 
+def _orientation_prose_state(elem: ClaimElement) -> Optional[str]:
+    """Map an element to its orientation prose key.
+
+    Identical to the element state except for one refinement: a `disputed`
+    element with challenging refs and no supporting refs renders as
+    "challenged_only". Mechanical — reads evidence_refs (the contract's
+    source of truth), no LLM. Context refs neither support nor challenge.
+    """
+    state = elem.get("state")
+    if not state:
+        return None
+    sv = state.value if hasattr(state, "value") else state
+    if sv == "disputed":
+        rels = set()
+        for ref in elem.get("evidence_refs") or []:
+            rel = ref.get("relationship")
+            rels.add(rel.value if hasattr(rel, "value") else rel)
+        if "challenges" in rels and "supports" not in rels:
+            return "challenged_only"
+    return sv
+
+
 def derive_orientation(elements: List[ClaimElement]) -> str:
     """Derive orientation line mechanically from element states.
 
-    Contract Section 5: deterministic, no LLM, fully derivable from states.
-    Every orientation starts with "Of {N} elements examined" — framing Tru8 as
-    examiner of evidence, not arbiter of truth.
+    Contract Section 5: deterministic, no LLM. Derived from element states
+    plus evidence_refs relationships (both mechanical) — refs distinguish a
+    genuinely split `disputed` from a challenges-only one. Every orientation
+    starts with "Of {N} elements examined" — framing Tru8 as examiner of
+    evidence, not arbiter of truth.
     """
     total = len(elements)
     if total == 0:
         return "No elements to assess."
 
-    state_values = [
-        e["state"].value if hasattr(e["state"], "value") else e["state"]
-        for e in elements
-        if e.get("state")
-    ]
+    state_values = [s for s in (_orientation_prose_state(e) for e in elements) if s]
     if not state_values:
         return "No element states have been assigned."
 
@@ -478,6 +505,8 @@ def derive_orientation(elements: List[ClaimElement]) -> str:
             return f"Of {total} elements examined, retrieved evidence is insufficient to assess any."
         if state == "contextual":
             return f"Of {total} elements examined, retrieved evidence provides context for all without directly substantiating."
+        if state == "challenged_only":
+            return f"Of {total} elements examined, retrieved evidence challenges all {total}, with none supporting."
         phrase = _UNANIMOUS_PHRASE.get(state, state)
         return f"Of {total} elements examined, retrieved evidence {phrase} all {total}."
 

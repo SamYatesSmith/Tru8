@@ -468,6 +468,157 @@ class TestDeriveOrientation:
             == "Of 2 elements examined, retrieved evidence both supports and conflicts with all 2."
         )
 
+    def test_unanimous_disputed_challenges_only(self):
+        """2026-07-09: disputed elements whose refs are all challenges (zero
+        supports) must not render as "both supports and conflicts" — that
+        manufactures false balance on a one-sided record (TRU-D64E-0520)."""
+        elements = [
+            ClaimElement(
+                element_id=f"e{i}",
+                description=f"Elem {i}",
+                evidence_refs=[
+                    {
+                        "evidence_id": f"ev-{i}a",
+                        "relationship": "challenges",
+                        "reasoning": None,
+                    },
+                    {
+                        "evidence_id": f"ev-{i}b",
+                        "relationship": "context",
+                        "reasoning": None,
+                    },
+                ],
+                state=ElementState.disputed,
+                uncertainty=None,
+            )
+            for i in range(1, 4)
+        ]
+        result = derive_orientation(elements)
+        assert (
+            result
+            == "Of 3 elements examined, retrieved evidence challenges all 3, with none supporting."
+        )
+
+    def test_single_disputed_challenges_only(self):
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description="Only one",
+                evidence_refs=[
+                    {
+                        "evidence_id": "ev-1",
+                        "relationship": "challenges",
+                        "reasoning": None,
+                    }
+                ],
+                state=ElementState.disputed,
+                uncertainty=None,
+            )
+        ]
+        result = derive_orientation(elements)
+        assert (
+            result
+            == "Of 1 element examined, retrieved evidence challenges it, with none supporting."
+        )
+
+    def test_disputed_with_both_sides_keeps_original_phrase(self):
+        """Regression: a genuinely split disputed element keeps the
+        "both supports and conflicts" phrasing."""
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description="Split",
+                evidence_refs=[
+                    {
+                        "evidence_id": "ev-1",
+                        "relationship": "supports",
+                        "reasoning": None,
+                    },
+                    {
+                        "evidence_id": "ev-2",
+                        "relationship": "challenges",
+                        "reasoning": None,
+                    },
+                ],
+                state=ElementState.disputed,
+                uncertainty=None,
+            )
+        ]
+        result = derive_orientation(elements)
+        assert (
+            result
+            == "Of 1 element examined, retrieved evidence both supports and conflicts with it."
+        )
+
+    def test_disputed_with_empty_refs_keeps_original_phrase(self):
+        """Regression: disputed with no refs at all (shouldn't occur under the
+        mechanical state rule, but LLM states can persist) is left as-is."""
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description="No refs",
+                evidence_refs=[],
+                state=ElementState.disputed,
+                uncertainty=None,
+            )
+        ]
+        result = derive_orientation(elements)
+        assert (
+            result
+            == "Of 1 element examined, retrieved evidence both supports and conflicts with it."
+        )
+
+    def test_mixed_supported_and_challenges_only(self):
+        """Listing branch uses the challenges-only item phrase."""
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description="A",
+                evidence_refs=[],
+                state=ElementState.supported,
+                uncertainty=None,
+            ),
+            ClaimElement(
+                element_id="e2",
+                description="B",
+                evidence_refs=[
+                    {
+                        "evidence_id": "ev-1",
+                        "relationship": "challenges",
+                        "reasoning": None,
+                    }
+                ],
+                state=ElementState.disputed,
+                uncertainty=None,
+            ),
+        ]
+        result = derive_orientation(elements)
+        assert "1 predominantly supported" in result
+        assert "1 challenged with none supporting" in result
+
+    def test_enum_relationship_values_also_detected(self):
+        """EvidenceRelationship enum members (not just plain strings) count."""
+        elements = [
+            ClaimElement(
+                element_id="e1",
+                description="Enum refs",
+                evidence_refs=[
+                    {
+                        "evidence_id": "ev-1",
+                        "relationship": EvidenceRelationship.challenges,
+                        "reasoning": None,
+                    }
+                ],
+                state=ElementState.disputed,
+                uncertainty=None,
+            )
+        ]
+        result = derive_orientation(elements)
+        assert (
+            result
+            == "Of 1 element examined, retrieved evidence challenges it, with none supporting."
+        )
+
     def test_unanimous_unresolved(self):
         elements = [
             ClaimElement(

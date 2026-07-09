@@ -1359,8 +1359,11 @@ class TestRecoverySuccess:
 
         assert cm["elements"][1]["state"] == ElementState.disputed
         assert cm["elements"][1]["uncertainty"] is not None
-        # Orientation mentions conflicting evidence, not insufficient
-        assert "conflicting evidence" in cm["orientation"]
+        # Orientation names the challenge, not insufficiency. 2026-07-09: a
+        # disputed element whose refs are challenges-only (no supports)
+        # renders "challenged with none supporting", not "conflicting
+        # evidence" — no false balance on a one-sided record.
+        assert "challenged with none supporting" in cm["orientation"]
         assert "insufficient" not in cm["orientation"]
 
     @pytest.mark.asyncio
@@ -1587,11 +1590,13 @@ class TestRecoverySuccess:
         assert cm["elements"][1]["state"] == ElementState.supported
         assert cm["elements"][2]["state"] == ElementState.disputed
         assert cm["elements"][3]["state"] == ElementState.unresolved
-        # Orientation must mention all three states honestly
+        # Orientation must mention all three states honestly. 2026-07-09:
+        # e3's refs are challenges-only, so it renders "challenged with none
+        # supporting" rather than the false-balance "conflicting evidence".
         orientation = cm["orientation"]
         assert "Of 4 elements examined" in orientation
         assert "predominantly supported" in orientation
-        assert "conflicting evidence" in orientation
+        assert "challenged with none supporting" in orientation
         assert "lacking sufficient evidence" in orientation
 
 
