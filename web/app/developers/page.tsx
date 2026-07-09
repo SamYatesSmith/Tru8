@@ -141,10 +141,10 @@ export default function DevelopersPage() {
               <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-zinc-500">
                 Prefer to research in the browser?{' '}
                 <Link
-                  href="/research"
+                  href="/dashboard"
                   className="text-zinc-900 underline underline-offset-2 hover:text-accent transition-colors"
                 >
-                  Open the Research App →
+                  Start a check →
                 </Link>
               </p>
             </div>

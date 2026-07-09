@@ -51,6 +51,13 @@ const nextConfig = {
         destination: 'https://www.trueight.com/:path*',
         permanent: true,
       },
+      // C1 S2 (2026-07-09): /research retired — its hero and edges moved to /
+      // (one front door). 301 keeps old shared links + any earned SEO signals.
+      {
+        source: '/research',
+        destination: '/',
+        permanent: true,
+      },
     ];
   },
   async headers() {

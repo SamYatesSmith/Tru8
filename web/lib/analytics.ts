@@ -84,7 +84,7 @@ export type AnalyticsEvent =
   | 'get_api_key_click' // developer-conversion CTA (nav/hero/developers)
   | 'try_in_browser_click' // legacy hero primary CTA (pre-repositioning)
   | 'research_app_click' // human-path CTA → /research (retired with /research, C1 2026-07-09)
-  | 'research_start_click' // /research primary CTA → /dashboard (item 2, property: surface)
+  | 'research_start_click' // /research primary CTA → /dashboard (retired with /research, C1 2026-07-09)
   // C1 entry-point clarity (2026-07-09): the single human start funnel
   | 'start_check_click' // "Start a check" CTA → /dashboard (property: surface — nav/mobile-nav/hero/record/closing/footer)
   | 'view_sample_click' // "See a sample record" → public demo /r/ (property: surface — hero/closing)

@@ -4,9 +4,9 @@ import { SheetHeader } from './sheet-header';
 /**
  * Homepage — Sheet 04, Edges (C1 entry-point clarity, 2026-07-09).
  *
- * The honest-limitations section, ported home from /research (which retires in
- * C1 slice S2 — its copy was already locked there). Trust-builder: an evidence
- * platform that names its own edges. No verdict language; UK spelling.
+ * The honest-limitations section, ported home from the retired /research page
+ * (301 → / since C1 S2; its copy was already locked there). Trust-builder: an
+ * evidence platform that names its own edges. No verdict language; UK spelling.
  */
 const LIMITS: ReadonlyArray<{ head: string; body: string }> = [
   {

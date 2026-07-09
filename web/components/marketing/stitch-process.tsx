@@ -37,7 +37,7 @@ const steps = [
 
 export function StitchProcess() {
   return (
-    <section className="py-20 md:py-24 bg-white border-t border-zinc-100">
+    <section id="how-it-works" className="py-20 md:py-24 bg-white border-t border-zinc-100 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
         <SheetHeader number="03" label="How it works" refText="~60–90s · IDEMPOTENT" />
         <div className="max-w-3xl mb-12 md:mb-14">
