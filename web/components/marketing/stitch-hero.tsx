@@ -38,11 +38,10 @@ export function StitchHero() {
           Evidence research — not fact-checking
         </div>
 
-        {/* Statement — full measure */}
-        <h1 className="max-w-5xl text-3xl sm:text-5xl md:text-7xl lg:text-[80px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-10 md:mb-14">
-          See the evidence for and against.
-          <br />
-          <span className="font-bold">Show your working.</span>
+        {/* Statement — full measure. Founder-chosen 2026-07-09: the whole
+            positioning in three words. */}
+        <h1 className="max-w-5xl text-4xl sm:text-6xl md:text-7xl lg:text-[92px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-10 md:mb-14">
+          Evidence, <span className="font-bold">not verdicts.</span>
         </h1>
 
         {/* Asymmetric split — supporting copy left, proof panel right */}
@@ -55,7 +54,7 @@ export function StitchHero() {
               returns a signed, organised evidence record.
             </p>
             <p className="text-sm md:text-base text-zinc-900 mb-8 md:mb-10">
-              Not a verdict — we organise; you decide.
+              We organise; you decide.
             </p>
 
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
