@@ -2,22 +2,27 @@
 
 /**
  * ClaimSummaryPanel — the Evidence Digest: the first-glance answer for a focused
- * claim (results-UX redesign 2026-06-30, evolving the S3 summary panel). Shared
+ * claim (results-UX redesign 2026-06-30; C2 clarity pass 2026-07-09). Shared
  * by the dashboard check detail and the public `/r/` report so both surfaces get
  * the same digest.
  *
- * Reads, top to bottom: identity → claim → the lean line (mechanical orientation,
- * BLUF) → a confidence/coverage line (kept SEPARATE from the lean, GRADE-style) →
- * a neutral evidence-stance DISTRIBUTION BAR (click a band → filtered Evidence) →
- * KEY FINDINGS (top sources by relevance) → STRONGEST support / challenge → a
- * source-mix-by-tier line and the named gaps. It doubles as navigation: the bar,
- * findings, strongest cards and gaps all deep-link into the relevant lens via the
- * same `go(view, {rel, element})` contract used before — nothing interactive lost.
+ * C2 rule: EVERY FACT GETS EXACTLY ONE HOME. Reads, top to bottom: identity →
+ * claim → the lean line (mechanical orientation, BLUF) → ONE stat line (sources ·
+ * directly-relevant count · element coverage only when partial) → ELEMENTS
+ * EXAMINED (the roster — one-line intro, not a paragraph) → SOURCES MAPPED (the
+ * neutral stance distribution bar; click a band → filtered Evidence) → NOTABLES
+ * (the labelled most-relevant support/challenge cards; top-relevance rows only
+ * as a fallback when no directional card exists) → footer, the single numeric
+ * register (elements · sources — tier mix). Section titles carry the accent
+ * diamond so they can't be missed. It doubles as navigation: the bar, notables
+ * and gaps all deep-link into the relevant lens via the same `go(view, {rel,
+ * element})` contract — nothing interactive lost.
  *
  * No-verdict lock: stance is shown by icon + word + position, NEVER colour
  * (no green/red); the lean sentence's subject is the EVIDENCE, never the claim.
- * Orange is used only as a wayfinding/interaction accent (hover, links), never on
- * stance. Tier classification colour is legitimate (classification ≠ verdict).
+ * Orange is used only as a wayfinding/interaction accent (rule, diamonds, hover),
+ * never on stance. Tier classification colour is legitimate (classification ≠
+ * verdict).
  *
  * Null-safe: a completed check can carry a null claimMap per-claim (partial
  * decompose) and nullable evidence tier — both guarded.
@@ -39,11 +44,6 @@ import { capture } from '@/lib/analytics';
 import { ElementList, TopUpCapability } from './ElementList';
 import { TopUpButton } from './TopUpButton';
 import { thinElementCount } from '@/lib/support-structure';
-
-const CONTEXT_LABELS: Record<string, string> = {
-  url: 'Extracted Claim',
-  text: 'Submitted Claim',
-};
 
 const TYPE_LABELS: Record<string, string> = {
   empirical: 'Empirical',
@@ -100,7 +100,9 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   const claimType = claimMap?.claimType || claim.claimType;
 
   const rankText = rankLabel === undefined ? String(position + 1).padStart(2, '0') : rankLabel;
-  const contextLabel = CONTEXT_LABELS[inputType || ''] || 'Submitted Claim';
+  // R1 — provenance chip only where it informs: a URL check EXTRACTED the claim
+  // (worth saying); on a text check "Submitted Claim" restates the obvious.
+  const contextLabel = inputType === 'url' ? 'Extracted Claim' : null;
 
   // ── Evidence-stance distribution (the bar) — mirrors Librarian's join. ──
   const relMap = relationshipByEvidence(elements);
@@ -126,27 +128,31 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   const directCount = evidence.filter((ev) => (ev.llmRelevanceScore ?? 0) >= 4).length;
   const showCoverage = scoredCount > 0 && evidenceCount > 0;
 
-  // Confidence-in-the-lean, kept SEPARATE from direction (GRADE). Describes
-  // breadth of the set + element coverage, never the claim's truth.
-  // Breadth describes the gathered set (evidenceCount), not just the mapped
-  // subset — so it can never contradict the "Sources N" footer.
-  const breadth = evidenceCount >= 15 ? 'a broad set' : evidenceCount >= 6 ? 'a moderate set' : evidenceCount > 0 ? 'a small set' : 'few sources';
-  const confidenceLine =
-    elements.length > 0
-      ? `Based on ${breadth} of sources · ${coveredElements} of ${elements.length} elements covered.`
-      : `Based on ${breadth} of sources.`;
+  // R2 — ONE stat line under the lean (replaces the qualitative "broad set"
+  // confidence line + the separate F6 line). Element coverage prints ONLY when
+  // partial — "3 of 3 covered" says nothing. Totals otherwise live in the footer.
+  const statParts: string[] = [];
+  if (evidenceCount > 0) {
+    statParts.push(`${evidenceCount} ${evidenceCount === 1 ? 'source' : 'sources'}`);
+  }
+  if (showCoverage) {
+    statParts.push(`${directCount} ${directCount === 1 ? 'bears' : 'bear'} directly on the claim`);
+  }
+  if (elements.length > 0 && coveredElements < elements.length) {
+    statParts.push(`${coveredElements} of ${elements.length} elements covered`);
+  }
+  const statLine = statParts.length > 0 ? `${statParts.join(' · ')}.` : null;
 
-  // ── Relevance ranking for findings/strongest (selection by membership, so a
-  // "strongest support" is the top-relevance item carrying a supports ref). ──
+  // ── Relevance ranking for the Notables (selection by membership, so a
+  // "most relevant support" is the top-relevance item carrying a supports ref). ──
   const relsOf = (ev: Evidence) => relMap.get(ev.evidenceId || ev.id);
   const mappedEvidence = evidence.filter((ev) => (relsOf(ev)?.length ?? 0) > 0);
   const byRelevance = [...mappedEvidence].sort((a, b) => (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0));
   const strongestSupport = byRelevance.find((ev) => hasRelationship(relsOf(ev), 'supports'));
   const strongestChallenge = byRelevance.find((ev) => hasRelationship(relsOf(ev), 'challenges'));
-  const featuredIds = new Set(
-    [strongestSupport?.evidenceId || strongestSupport?.id, strongestChallenge?.evidenceId || strongestChallenge?.id].filter(Boolean)
-  );
-  const keyFindings = byRelevance.filter((ev) => !featuredIds.has(ev.evidenceId || ev.id)).slice(0, 3);
+  // R5 fallback ONLY: when no directional card exists (e.g. all-context claims),
+  // the top-relevance rows keep the Notables section from going empty.
+  const fallbackFindings = !strongestSupport && !strongestChallenge ? byRelevance.slice(0, 3) : [];
 
   // summary-as-navigation: attribute the lens switch to the summary.
   const go = (view: string, params?: { rel?: EvidenceRelationship[]; element?: string }) => {
@@ -168,18 +174,23 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
       className="border border-zinc-200 border-t-2 bg-[var(--surface-raised)] p-5 md:p-6"
       style={{ borderTopColor: 'var(--accent)' }}
     >
-      {/* Zone 1 — identity */}
+      {/* Zone 1 — identity (skipped entirely when every part is absent — e.g. a
+          public single-claim text check with no claimType — no empty spacer). */}
+      {(rankText !== null || contextLabel || claimType) && (
       <div className="flex items-center gap-3 mb-2">
         {rankText !== null && <span className="font-mono text-xs font-bold text-zinc-500">{rankText}</span>}
-        <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
-          {contextLabel}
-        </span>
+        {contextLabel && (
+          <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+            {contextLabel}
+          </span>
+        )}
         {claimType && (
           <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
             {TYPE_LABELS[claimType] || claimType}
           </span>
         )}
       </div>
+      )}
 
       {/* Claim restated neutrally — prefer the pipeline's normalised wording over
           the article's loaded phrasing (BLUF #1). */}
@@ -187,7 +198,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         {claimMap?.normalisedClaim || claim.text}
       </h2>
 
-      {/* The lean (BLUF) — subject is the evidence, never the claim — + confidence (separate).
+      {/* The lean (BLUF) — subject is the evidence, never the claim.
           Null orientation gets an explicit line, never a blank where the answer should be. */}
       {orientation ? (
         <p className="text-base md:text-lg text-zinc-900 leading-snug">{orientation}</p>
@@ -198,25 +209,14 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
             : 'The gathered evidence doesn’t clearly lean either way — elements remain unresolved.'}
         </p>
       ) : null}
-      <p className="text-sm text-zinc-500 mt-1">{confidenceLine}</p>
-      {/* F6 — topical coverage: a count of directly-relevant sources, never a
-          per-source quality score. Answers "several sources add little". */}
-      {showCoverage && (
-        <p className="text-sm text-zinc-500 mt-1">
-          {directCount} of {evidenceCount} {evidenceCount === 1 ? 'source bears' : 'sources bear'} directly on the claim.
-        </p>
-      )}
+      {statLine && <p className="text-sm text-zinc-500 mt-1">{statLine}</p>}
 
-      {/* The elements — introduced here (the reference frame the rest of the report
-          cites). Owns being honest that we reframe + decompose, and declares the
-          numbered badge as the reference token. */}
+      {/* The elements — the reference frame the rest of the report cites. */}
       {elements.length > 0 && (
         <div className="mt-5 pt-4 border-t border-zinc-100">
-          <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500">Elements examined</span>
-          <p className="mt-2 text-sm text-zinc-600 leading-relaxed">
-            We restate the claim in neutral terms and break it into the checkable elements below — that&apos;s how we
-            find the strongest evidence for each. Every element is numbered, so you can follow it wherever it appears
-            in the report.
+          <SectionTitle>Elements examined</SectionTitle>
+          <p className="mt-1.5 text-xs text-zinc-400 leading-relaxed">
+            The claim, restated neutrally and broken into its checkable parts.
           </p>
           <div className="mt-3">
             <ElementList elements={elements} topUp={topUp} />
@@ -247,15 +247,14 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         </div>
       )}
 
-      {/* Distribution bar — click a band → filtered Evidence */}
+      {/* Distribution bar — click a band → filtered Evidence. R4: titled section;
+          the count only prints when it differs from the shown set (partial mapping). */}
       {barTotal > 0 && (
-        <div className="mt-4">
+        <div className="mt-5 pt-4 border-t border-zinc-100">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500">
-              {barTotal < evidenceCount
-                ? `${barTotal} of ${evidenceCount} sources mapped`
-                : `${barTotal} ${barTotal === 1 ? 'source' : 'sources'} mapped`}
-            </span>
+            <SectionTitle>
+              {barTotal < evidenceCount ? `${barTotal} of ${evidenceCount} sources mapped` : 'Sources mapped'}
+            </SectionTitle>
             {nav && <span className="font-mono text-[10px] text-zinc-400">click a band &rarr;</span>}
           </div>
           <div className="flex w-full h-10 overflow-hidden border border-zinc-200">
@@ -297,52 +296,62 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         </div>
       )}
 
-      {/* Key findings — top sources by relevance, each linking out to the source */}
-      {keyFindings.length > 0 && (
+      {/* Notables (R5) — the labelled most-relevant support/challenge cards carry
+          the section; unlabelled top-relevance rows appear ONLY as a fallback when
+          no directional card exists. The full classified set is one click away. */}
+      {(strongestSupport || strongestChallenge || fallbackFindings.length > 0) && (
         <div className="mt-5 pt-4 border-t border-zinc-100">
-          <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500">Key findings</span>
-          <ul className="mt-2.5 space-y-2">
-            {keyFindings.map((ev) => (
-              <li key={ev.evidenceId || ev.id} className="flex items-start gap-2 text-sm text-zinc-700">
-                <span aria-hidden className="mt-2 w-1 h-1 bg-zinc-400 shrink-0" />
-                {/* Source title, not the raw snippet — source-platforming invariant
-                    (relevance summaries drive visits; never reproduce article content). */}
-                <span className="flex-1 leading-snug line-clamp-2">{cleanTitle(ev.title) || extractDomain(ev.url)}</span>
-                <a
-                  href={ev.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-[var(--accent)] transition-colors"
-                >
-                  <img
-                    src={getFaviconUrl(ev.url)}
-                    alt=""
-                    width={12}
-                    height={12}
-                    loading="lazy"
-                    className="w-3 h-3 shrink-0 rounded-sm"
-                    onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
-                  />
-                  {extractDomain(ev.url)} <ArrowUpRight size={12} />
-                </a>
-              </li>
-            ))}
-          </ul>
+          <SectionTitle>Notables</SectionTitle>
+          {strongestSupport || strongestChallenge ? (
+            <div className={`mt-3 grid gap-3 ${strongestSupport && strongestChallenge ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+              {strongestSupport && <PointCard kind="supports" title={strongestSupport.title} url={strongestSupport.url} nav={nav} onOpen={() => goStance('supports')} />}
+              {strongestChallenge && <PointCard kind="challenges" title={strongestChallenge.title} url={strongestChallenge.url} nav={nav} onOpen={() => goStance('challenges')} />}
+            </div>
+          ) : (
+            <ul className="mt-2.5 space-y-2">
+              {fallbackFindings.map((ev) => (
+                <li key={ev.evidenceId || ev.id} className="flex items-start gap-2 text-sm text-zinc-700">
+                  <span aria-hidden className="mt-2 w-1 h-1 bg-zinc-400 shrink-0" />
+                  {/* Source title, not the raw snippet — source-platforming invariant
+                      (relevance summaries drive visits; never reproduce article content). */}
+                  <span className="flex-1 leading-snug line-clamp-2">{cleanTitle(ev.title) || extractDomain(ev.url)}</span>
+                  <a
+                    href={ev.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-[var(--accent)] transition-colors"
+                  >
+                    <img
+                      src={getFaviconUrl(ev.url)}
+                      alt=""
+                      width={12}
+                      height={12}
+                      loading="lazy"
+                      className="w-3 h-3 shrink-0 rounded-sm"
+                      onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                    />
+                    {extractDomain(ev.url)} <ArrowUpRight size={12} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          {nav && evidenceCount > 0 && (
+            // Visible text is the accessible name (WCAG 2.5.3 label-in-name) —
+            // no aria-label override needed.
+            <button
+              type="button"
+              onClick={() => go('librarian')}
+              className="mt-2.5 font-mono text-[10px] text-zinc-500 hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1 cursor-pointer"
+            >
+              All {evidenceCount}, classified and filterable, in the Evidence lens &rarr;
+            </button>
+          )}
         </div>
       )}
 
-      {/* Most relevant support / challenge — labelled by direction, link into Evidence.
-          Two cards sit side by side; a lone card takes the FULL width so the article
-          title has room to print (no empty half, no needless truncation). */}
-      {(strongestSupport || strongestChallenge) && (
-        <div className={`mt-4 grid gap-3 ${strongestSupport && strongestChallenge ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
-          {strongestSupport && <PointCard kind="supports" title={strongestSupport.title} url={strongestSupport.url} nav={nav} onOpen={() => goStance('supports')} />}
-          {strongestChallenge && <PointCard kind="challenges" title={strongestChallenge.title} url={strongestChallenge.url} nav={nav} onOpen={() => goStance('challenges')} />}
-        </div>
-      )}
-
-      {/* Footer — source mix by tier (classification colour restored). Gaps now
-          live in the elements roster above (with a Gaps-lens link), not here. */}
+      {/* Footer (R6) — the single numeric register: elements · sources — tier mix
+          (classification colour restored). Gaps live in the roster above. */}
       <div className="mt-5 pt-4 border-t border-zinc-200 space-y-2">
         <div className="font-mono text-[10px] text-zinc-500 flex flex-wrap items-center gap-x-2 gap-y-1">
           <FooterLink nav={nav} label="Map" onClick={() => go('cartographer')}>
@@ -365,6 +374,18 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
         </div>
       </div>
     </div>
+  );
+}
+
+/** R3 — section titles that can't be missed: accent diamond + darker mono weight
+ *  (the marketing SheetHeader idiom, miniaturised). The diamond is wayfinding
+ *  accent, never stance. */
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-700">
+      <span aria-hidden className="w-1.5 h-1.5 bg-[var(--accent)] rotate-45 shrink-0" />
+      <span>{children}</span>
+    </span>
   );
 }
 

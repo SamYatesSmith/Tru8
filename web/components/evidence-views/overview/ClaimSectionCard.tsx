@@ -11,10 +11,6 @@ const TYPE_LABELS: Record<string, string> = {
   normative_flagged: 'Normative',
 };
 
-const CONTEXT_LABELS: Record<string, string> = {
-  url: 'Extracted Claim',
-  text: 'Submitted Claim',
-};
 
 interface ClaimSectionCardProps {
   claim: Claim;
@@ -30,7 +26,10 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
   const orientation = claimMap?.orientation;
   const claimType = claimMap?.claimType || claim.claimType;
   const rankLabel = String(position + 1).padStart(2, '0');
-  const contextLabel = CONTEXT_LABELS[inputType || ''] || 'Submitted Claim';
+  // C2 R1 (mirrors ClaimSummaryPanel): the provenance chip only where it
+  // informs — URL checks EXTRACTED the claim; on text checks "Submitted
+  // Claim" restates the obvious.
+  const contextLabel = inputType === 'url' ? 'Extracted Claim' : null;
 
   // Count element states
   const stateCounts = { supported: 0, disputed: 0, unresolved: 0 };
@@ -61,9 +60,11 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs font-bold text-zinc-300">{rankLabel}</span>
-            <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
-              {contextLabel}
-            </span>
+            {contextLabel && (
+              <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+                {contextLabel}
+              </span>
+            )}
             {claimType && (
               <span className="px-2.5 py-0.5 bg-zinc-50 border border-zinc-200 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
                 {TYPE_LABELS[claimType] || claimType}
