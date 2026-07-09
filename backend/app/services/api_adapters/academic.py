@@ -15,11 +15,23 @@ from datetime import datetime, timezone
 from app.core.config import settings
 from app.services.government_api_client import GovernmentAPIClient
 from app.utils.adapter_query_helpers import extract_claim_year
+from app.utils.temporal_markers import has_historical_marker
 
 logger = logging.getLogger(__name__)
 
 
-def _resolve_min_year(current_year: int, entities=None, fallback_years: int = 2) -> int:
+# F-R2a: floor applied when a claim is historical but names no year — wide
+# enough for the whole modern research literature (the TRU-C051-3024 miss was
+# 1990s French-paradox papers excluded by the now-2y window).
+HISTORICAL_MIN_YEAR = 1900
+
+
+def _resolve_min_year(
+    current_year: int,
+    entities=None,
+    fallback_years: int = 2,
+    claim_text: str = "",
+) -> int:
     """Lower bound for an academic paper-search year filter.
 
     Defaults to ``current_year - fallback_years`` (a deliberate recency bias
@@ -28,11 +40,21 @@ def _resolve_min_year(current_year: int, entities=None, fallback_years: int = 2)
     must be able to surface 2021-era papers; the fixed now-2y window excluded
     them (NF-18 Bug-2 / NF-20 historical-recency class). The upper bound stays
     at ``current_year`` so later analysis of a past event is still captured.
+
+    F-R2a (2026-07-09, audit/2026-07-09_retrieval_quality_plan.md): a claim
+    that is historical WITHOUT a year token ("doctors historically
+    recommended…") carries no DATE entity, so the backward widening never
+    fired and the window silently excluded the period literature at the API
+    (TRU-C051-3024). When ``claim_text`` carries a mechanical historical
+    marker and no older DATE year exists, widen to ``HISTORICAL_MIN_YEAR``.
+    An explicit DATE year still wins — it is the more precise signal.
     """
     min_year = current_year - fallback_years
     claim_year = extract_claim_year(entities)
     if claim_year and claim_year < min_year:
         return claim_year
+    if has_historical_marker(claim_text):
+        return HISTORICAL_MIN_YEAR
     return min_year
 
 
@@ -110,7 +132,9 @@ class CrossRefAdapter(GovernmentAPIClient):
         query = self._sanitize_query(query)
 
         current_year = datetime.now(timezone.utc).year
-        min_year = _resolve_min_year(current_year, entities)
+        # F-R2a: consistent with Semantic Scholar/OpenAlex (CrossRef is
+        # unregistered since PQ-06, kept wired for correctness).
+        min_year = _resolve_min_year(current_year, entities, claim_text=query)
 
         params = {
             "query": query,
@@ -265,7 +289,10 @@ class SemanticScholarAdapter(GovernmentAPIClient):
             # Build search URL with fields
             fields = "paperId,title,abstract,url,year,authors,citationCount,publicationDate,venue"
             current_year = datetime.now(timezone.utc).year
-            min_year = _resolve_min_year(current_year, entities)
+            # F-R2a: query is the claim text (B5 passthrough) — scan it for
+            # historical markers so year-less historical claims aren't
+            # windowed to now-2y.
+            min_year = _resolve_min_year(current_year, entities, claim_text=query)
             url = f"{self.base_url}/paper/search?query={quote(query)}&limit={self.max_results}&fields={fields}&year={min_year}-{current_year}"
 
             # A3: retry on 429 with Retry-After honoured. Semantic Scholar
@@ -415,7 +442,9 @@ class OpenAlexAdapter(GovernmentAPIClient):
 
             # Build search URL with mailto for polite pool
             current_year = datetime.now(timezone.utc).year
-            min_year = _resolve_min_year(current_year, entities)
+            # F-R2a: scan the claim-text query for historical markers (see
+            # Semantic Scholar note above).
+            min_year = _resolve_min_year(current_year, entities, claim_text=query)
             url = f"{self.base_url}/works?search={quote(query)}&per-page={self.max_results}&mailto=hello@trueight.com&filter=from_publication_date:{min_year}-01-01"
 
             # A3: retry on 429 with Retry-After honoured. Same pattern as

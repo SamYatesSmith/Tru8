@@ -20,6 +20,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.services.api_adapters.academic import (
+    HISTORICAL_MIN_YEAR,
     CrossRefAdapter,
     OpenAlexAdapter,
     SemanticScholarAdapter,
@@ -87,6 +88,39 @@ class TestResolveMinYear:
     def test_does_not_narrow_for_future_claim(self):
         assert _resolve_min_year(2026, [{"text": "2030", "label": "DATE"}]) == 2024
 
+    # F-R2a (2026-07-09, TRU-C051-3024): historical claims WITHOUT a year
+    # token carry no DATE entity — the backward widening never fired and the
+    # French-paradox literature was excluded at the API.
+
+    def test_historical_marker_without_year_widens(self):
+        assert (
+            _resolve_min_year(
+                2026,
+                None,
+                claim_text="Many doctors historically recommended a daily glass of red wine",
+            )
+            == HISTORICAL_MIN_YEAR
+        )
+
+    def test_explicit_date_year_wins_over_marker(self):
+        # An explicit older year is the more precise signal — keep it.
+        assert (
+            _resolve_min_year(
+                2026,
+                DATE_2021,
+                claim_text="Doctors historically recommended this treatment in 2021",
+            )
+            == 2021
+        )
+
+    def test_non_historical_text_keeps_default_window(self):
+        assert (
+            _resolve_min_year(
+                2026, None, claim_text="Moderate alcohol consumption protects the heart"
+            )
+            == 2024
+        )
+
 
 # ---------- wired HTTP seam ----------
 
@@ -128,6 +162,22 @@ class TestSemanticScholarYearWindow:
             adapter.search("vaccine efficacy", "Health", "Global", entities=None)
         assert f"year={DEFAULT_MIN}-{CURRENT_YEAR}" in captured["url"]
 
+    def test_historical_marker_no_year_widens_window(self):
+        """F-R2a wired seam: the TRU-C051-3024 claim shape must leave the
+        adapter with the widened year filter."""
+        adapter = SemanticScholarAdapter()
+        with _capture_httpx_get({"data": []}) as captured:
+            adapter.search(
+                "Many doctors historically recommended a daily glass of red wine",
+                "Health",
+                "Global",
+                entities=[
+                    {"text": "Many doctors", "label": "PERSON"},
+                    {"text": "red wine", "label": "OTHER"},
+                ],
+            )
+        assert f"year={HISTORICAL_MIN_YEAR}-{CURRENT_YEAR}" in captured["url"]
+
 
 class TestOpenAlexYearWindow:
     def test_historical_claim_widens_year_window(self):
@@ -141,6 +191,18 @@ class TestOpenAlexYearWindow:
         with _capture_httpx_get({"results": []}) as captured:
             adapter.search("vaccine efficacy", "Health", "Global", entities=None)
         assert f"from_publication_date:{DEFAULT_MIN}-01-01" in captured["url"]
+
+    def test_historical_marker_no_year_widens_window(self):
+        """F-R2a wired seam (OpenAlex leg of TRU-C051-3024)."""
+        adapter = OpenAlexAdapter()
+        with _capture_httpx_get({"results": []}) as captured:
+            adapter.search(
+                "Many doctors historically recommended a daily glass of red wine",
+                "Health",
+                "Global",
+                entities=None,
+            )
+        assert f"from_publication_date:{HISTORICAL_MIN_YEAR}-01-01" in captured["url"]
 
 
 class TestCrossRefYearWindow:

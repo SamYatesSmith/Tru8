@@ -28,6 +28,7 @@ from app.services.email_notifications import email_notification_service
 from app.services.cache import get_cache_service
 from app.utils.date_provenance import derive_date_basis
 from app.utils.date_utils import parse_date
+from app.utils.temporal_markers import has_historical_marker
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
@@ -1760,8 +1761,17 @@ async def run_pipeline_phase2(
                         continue
 
                     try:
+                        # F-R2f (2026-07-09, audit/2026-07-09_retrieval_quality_plan.md):
+                        # the hardcoded past-year window made this last-resort
+                        # backfill fetch ONLY recent chatter for historical
+                        # claims (TRU-C051-3024: reddit/tiktok for "doctors
+                        # historically recommended…"). Historical claims get
+                        # an unwindowed recovery search.
+                        recovery_freshness = (
+                            "none" if has_historical_marker(claim_text) else "py"
+                        )
                         results = await recovery_search.search_for_evidence(
-                            claim_text, max_results=10, freshness="py"
+                            claim_text, max_results=10, freshness=recovery_freshness
                         )
                         added = 0
                         dropped_blocked = 0
@@ -2512,6 +2522,25 @@ async def run_pipeline_phase2(
             f"tier_mix={signals['tier_mix']} "
             f"type_mix={signals['type_mix']}"
         )
+
+    # F-R2e (2026-07-09): persist the retrieval query plan onto claim_map
+    # metadata so zero-yield queries leave a trace. The TRU-C051-3024
+    # investigation had to diagnose the web path blind because only queries
+    # that RETURNED evidence reached the DB (metadata.query_used on surviving
+    # items); the diagnostic case — a query that found nothing — vanished.
+    for claim in claims:
+        qp = claim.get("query_plan")
+        cm = claim.get("claim_map")
+        if qp and isinstance(cm, dict):
+            md = cm.get("metadata")
+            if not isinstance(md, dict):
+                md = {}
+                cm["metadata"] = md
+            md["query_plan"] = {
+                "queries": qp.get("queries", []),
+                "element_ids": qp.get("query_element_ids", []),
+                "freshness": qp.get("query_freshness", []),
+            }
 
     results = []
     for claim in claims:

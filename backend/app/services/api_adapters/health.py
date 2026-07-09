@@ -8,6 +8,7 @@ Adapters for health and medical data:
 
 import logging
 import os
+import re
 import xml.etree.ElementTree as ET
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -32,6 +33,32 @@ logger = logging.getLogger(__name__)
 #
 # Picked from the GHO catalogue at
 # https://www.who.int/data/gho/info/gho-odata-api. Expand iteratively.
+# F-R1a (2026-07-09, audit/2026-07-09_retrieval_quality_plan.md): the GHO
+# /Indicator catalogue mixes measurable statistics with policy/administrative
+# bookkeeping entries ("Existence of operational policy/strategy/action plan
+# to reduce the harmful use of alcohol", "Standards of care for
+# professionals…"). Those rows are indicator TITLES about governance
+# machinery, carry no Definition and no data, and are useless as evidence —
+# three of them reached a shown pool on TRU-C051-3024. Name-lexicon filter;
+# a real statistic ("Alcohol, recorded per capita (15+ years) consumption")
+# never matches these phrases.
+WHO_POLICY_INDICATOR_PATTERN = re.compile(
+    r"(?:"
+    r"\bpolic(?:y|ies)\b"
+    r"|\bstrateg(?:y|ies)\b"
+    r"|\baction plans?\b"
+    r"|\bstandards of care\b"
+    r"|\blegislation\b"
+    r"|\bnational plans?\b"
+    r"|\bexistence of\b"
+    r"|\bguidelines?\b"
+    r"|\bcommittees?\b"
+    r"|\bmonitoring systems?\b"
+    r")",
+    re.IGNORECASE,
+)
+
+
 WHO_INDICATOR_MAPPING: Dict[str, str] = {
     # Mortality
     "infant mortality": "Infant mortality",
@@ -416,13 +443,27 @@ class WHOAdapter(GovernmentAPIClient):
                 logger.warning("WHO returned empty indicator response")
                 return []
 
-            # Filter indicators by query terms
+            # Filter indicators by query terms. F-R1a: policy/administrative
+            # bookkeeping indicators are dropped BEFORE the max_results slice
+            # so the slots go to substantive statistics.
             query_lower = targeted_query.lower()
-            matching_indicators = [
+            name_matched = [
                 ind
                 for ind in indicator_response.get("value", [])
                 if query_lower in ind.get("IndicatorName", "").lower()
-            ][: self.max_results]
+            ]
+            substantive = [
+                ind
+                for ind in name_matched
+                if not WHO_POLICY_INDICATOR_PATTERN.search(ind.get("IndicatorName", ""))
+            ]
+            matching_indicators = substantive[: self.max_results]
+            dropped = len(name_matched) - len(substantive)
+            if dropped:
+                logger.info(
+                    f"WHO: dropped {dropped} policy/admin indicator(s) "
+                    f"for query '{targeted_query}' (F-R1a)"
+                )
 
             return self._transform_response({"indicators": matching_indicators})
 

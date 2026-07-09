@@ -5,7 +5,7 @@ Canonical contract: audit/track-b/2026-02-12_claim-map-contract.md
 
 from enum import Enum
 from typing import Optional
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 
 class ClaimType(str, Enum):
@@ -58,6 +58,12 @@ class ClaimMapMetadata(TypedDict):
     mapping_model: Optional[str]
     element_count: int
     completed_at: Optional[str]  # ISO 8601
+    # F-R2e (2026-07-09, additive — audit/2026-07-09_retrieval_quality_plan.md):
+    # the retrieval query plan that ran for this claim, INCLUDING zero-yield
+    # queries. {queries: [str], element_ids: [str], freshness: [str]},
+    # parallel arrays. Diagnostic provenance only — absent on pre-R2e rows
+    # and when query planning fell back.
+    query_plan: NotRequired[dict]
 
 
 class ClaimMap(TypedDict):

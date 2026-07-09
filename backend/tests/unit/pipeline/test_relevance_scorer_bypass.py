@@ -504,6 +504,141 @@ class TestNF07HardeningWhitelist:
         assert len(result.get("_excluded", [])) == 1
 
 
+class TestFR1bStubSnippetGuard:
+    """F-R1b (2026-07-09, TRU-C051-3024): the bypass must not rescue a
+    score-1 item whose snippet is a content-less stub — a restatement of
+    the item's own title (the WHO adapter's fallback shape). Structured
+    snippets with real payload keep the bypass.
+    """
+
+    @pytest.fixture
+    def mock_score_1(self):
+        with patch(
+            "app.pipeline.relevance_scorer._score_with_google",
+            new_callable=AsyncMock,
+        ) as mg, patch(
+            "app.pipeline.relevance_scorer._score_with_llm",
+            new_callable=AsyncMock,
+        ) as ml, patch(
+            "app.pipeline.relevance_scorer._get_cached_relevance_scores",
+            new_callable=AsyncMock,
+            return_value=None,
+        ), patch(
+            "app.pipeline.relevance_scorer._cache_relevance_scores",
+            new_callable=AsyncMock,
+            return_value=None,
+        ):
+            score_fn = lambda claims, ev, ctx: [
+                {
+                    "evidence_index": i,
+                    "score": 1,
+                    "rationale": "off-topic",
+                    "relevant_claims": [],
+                }
+                for i in range(len(ev))
+            ]
+            mg.side_effect = score_fn
+            ml.side_effect = score_fn
+            yield
+
+    @pytest.mark.asyncio
+    async def test_who_stub_snippet_does_not_bypass(self, mock_score_1):
+        """The exact TRU-C051-3024 shape: WHO indicator page whose snippet
+        is the fallback 'WHO health indicator: <title>' — scorer said 1,
+        and the bypass must NOT rescue it."""
+        title = (
+            "Existence of operational policy/strategy/action plan to "
+            "reduce the harmful use of alcohol"
+        )
+        evidence = {
+            "0": [
+                {
+                    "url": "https://www.who.int/data/gho/data/indicators/indicator-details/GHO/NCD_CCS_AlcPlan",
+                    "title": title,
+                    "snippet": f"WHO health indicator: {title}",
+                    "external_source_provider": "WHO",
+                }
+            ]
+        }
+        result = await score_evidence_batch(
+            claims=["Moderate alcohol consumption protects against heart disease"],
+            evidence=evidence,
+            article_context="",
+        )
+        assert result["0"] == [], "stub-snippet WHO item must NOT bypass"
+        assert len(result.get("_excluded", [])) == 1
+        assert result["_excluded"][0]["exclusion_reason"] == "irrelevant"
+
+    @pytest.mark.asyncio
+    async def test_who_item_with_real_definition_keeps_bypass(self, mock_score_1):
+        """A WHO indicator that carries a real Definition-based snippet is
+        structural metadata — the bypass still applies at score=1."""
+        evidence = {
+            "0": [
+                {
+                    "url": "https://www.who.int/data/gho/data/indicators/indicator-details/GHO/SA_0000001400",
+                    "title": "Alcohol, recorded per capita (15+) consumption",
+                    "snippet": (
+                        "Recorded alcohol per capita consumption of pure "
+                        "alcohol, calculated as the sum of beverage-specific "
+                        "production and import data minus exports."
+                    ),
+                    "external_source_provider": "WHO",
+                }
+            ]
+        }
+        result = await score_evidence_batch(
+            claims=["Moderate alcohol consumption protects against heart disease"],
+            evidence=evidence,
+            article_context="",
+        )
+        assert len(result["0"]) == 1, "substantive WHO snippet must keep bypass"
+        assert (
+            result["0"][0]["relevance_scorer_bypass"] == "api_adapter_canonical_source"
+        )
+
+    @pytest.mark.asyncio
+    async def test_empty_snippet_does_not_bypass(self, mock_score_1):
+        """No snippet at all = nothing behind the title = no bypass."""
+        evidence = {
+            "0": [
+                {
+                    "url": "https://example.com/x",
+                    "title": "Some indicator",
+                    "snippet": "",
+                    "external_source_provider": "WHO",
+                }
+            ]
+        }
+        result = await score_evidence_batch(
+            claims=["claim"], evidence=evidence, article_context=""
+        )
+        assert result["0"] == []
+
+    def test_is_stub_snippet_unit(self):
+        """Direct unit coverage of the stub decision boundary."""
+        from app.pipeline.relevance_scorer import _is_stub_snippet
+
+        t = "National alcohol policy specifically involves young people activities"
+        assert _is_stub_snippet(f"WHO health indicator: {t}", t) is True
+        assert _is_stub_snippet(t, t) is True
+        assert _is_stub_snippet("", t) is True
+        assert _is_stub_snippet(None, t) is True
+        # Real payload — not stubs
+        assert _is_stub_snippet("Observation: 4.2% annual rate (2023-11)", t) is False
+        # Title embedded but with substantial extra content (> 40 chars)
+        assert (
+            _is_stub_snippet(
+                f"{t}. Measured across 194 member states via the Global survey "
+                f"on alcohol and health, latest wave 2022.",
+                t,
+            )
+            is False
+        )
+        # No title to compare against — cannot call it a stub
+        assert _is_stub_snippet("Some snippet", "") is False
+
+
 class TestNF07v2AdapterContract:
     """NF-07-v2 contract: each adapter class declares its own
     `emits_structural_metadata`. The scorer's tests above use a fixture

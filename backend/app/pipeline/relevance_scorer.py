@@ -70,6 +70,30 @@ def _adapter_emits_structural_metadata(provider: Optional[str]) -> bool:
     return bool(getattr(adapter, "emits_structural_metadata", False))
 
 
+def _is_stub_snippet(snippet: Optional[str], title: Optional[str]) -> bool:
+    """F-R1b (2026-07-09, audit/2026-07-09_retrieval_quality_plan.md): true
+    when a snippet carries no content beyond the item's own title — e.g. the
+    WHO adapter's fallback ``"WHO health indicator: <IndicatorName>"``.
+
+    The NF-07 bypass exists because structured-metadata snippets (a bill
+    stage, a data observation) can be substantive even when the scorer rates
+    them 1. A snippet that merely restates the title is not metadata — there
+    is nothing behind it, so the scorer's judgement should stand. Deliberately
+    conservative: only fires when the title is embedded with ≤40 chars of
+    boilerplate around it (worst case = a content-less item is excluded, the
+    NF-07-hardening preference).
+    """
+    s = (snippet or "").strip()
+    t = (title or "").strip()
+    if not s:
+        return True
+    if not t:
+        return False
+    if s.lower() == t.lower():
+        return True
+    return t.lower() in s.lower() and (len(s) - len(t)) <= 40
+
+
 RELEVANCE_SCORING_PROMPT = """You are an evidence analyst. Score how well each evidence piece is TOPICALLY RELEVANT to the specific claims below.
 
 CRITICAL: Score based on TOPICAL RELEVANCE ONLY. Do NOT judge source reputation, authority, or trustworthiness. A blog post that directly addresses a claim is more relevant than a prestigious journal article about a different topic.
@@ -723,7 +747,13 @@ async def score_evidence_batch(
             rationale = (ev.get("llm_relevance_rationale") or "")[:120]
             if score == 1:
                 provider = ev.get("external_source_provider")
-                if _adapter_emits_structural_metadata(provider):
+                # F-R1b: a stub snippet (title restated, nothing behind it)
+                # is not structural metadata — the bypass does not apply.
+                if _adapter_emits_structural_metadata(
+                    provider
+                ) and not _is_stub_snippet(
+                    ev.get("snippet", ev.get("text")), ev.get("title")
+                ):
                     ev["relevance_scorer_bypass"] = "api_adapter_canonical_source"
                     bypassed_total += 1
                     kept.append(ev)

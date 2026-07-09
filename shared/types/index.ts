@@ -287,6 +287,10 @@ export interface ClaimMap {
     mappingModel: string | null;
     elementCount: number;
     completedAt: string | null;
+    // F-R2e (2026-07-09): retrieval query plan incl. zero-yield queries.
+    // Diagnostic provenance — absent on pre-R2e checks and planner fallback.
+    // Inner keys stay snake_case (only top-level metadata keys are camelCased).
+    queryPlan?: { queries: string[]; element_ids: string[]; freshness: string[] };
   };
 }
 

@@ -260,6 +260,51 @@ class TestWHOAdapter:
         assert result[0]["external_source_provider"] == "WHO"
         assert result[0]["metadata"]["indicator_code"] == "WHS9_86"
 
+    def test_policy_indicators_filtered_from_search(self):
+        """F-R1a (TRU-C051-3024): GHO policy/administrative bookkeeping
+        indicators must not survive into results — they are governance
+        titles with no data. Substantive statistics must survive."""
+        from unittest.mock import patch
+
+        adapter = WHOAdapter()
+
+        catalogue = {
+            "value": [
+                # The three noise rows seen live on TRU-C051-3024
+                {
+                    "IndicatorCode": "NCD_CCS_AlcPlan",
+                    "IndicatorName": "Existence of operational policy/strategy/action plan to reduce the harmful use of alcohol",
+                },
+                {
+                    "IndicatorCode": "SA_0000001725",
+                    "IndicatorName": "National alcohol policy specifically involves young people activities",
+                },
+                {
+                    "IndicatorCode": "RSUD_750",
+                    "IndicatorName": "Standards of care for professionals providing treatment for alcohol and drug use disorders",
+                },
+                # Substantive statistics — must survive
+                {
+                    "IndicatorCode": "SA_0000001400",
+                    "IndicatorName": "Alcohol, recorded per capita (15+) consumption (in litres of pure alcohol)",
+                    "Definition": "Recorded alcohol per capita consumption...",
+                },
+                {
+                    "IndicatorCode": "SA_0000001462",
+                    "IndicatorName": "Alcohol, heavy episodic drinking (15+) past 30 days",
+                },
+            ]
+        }
+
+        with patch.object(adapter, "_make_request", return_value=catalogue):
+            results = adapter.search("Alcohol", "Health", "Global")
+
+        titles = [r["title"] for r in results]
+        assert len(results) == 2, f"expected only substantive indicators, got {titles}"
+        assert all("per capita" in t or "episodic" in t for t in titles)
+        assert not any("policy" in t.lower() for t in titles)
+        assert not any("Standards of care" in t for t in titles)
+
 
 class TestCrossRefAdapter:
     """Test suite for CrossRef (Academic Research) adapter."""
