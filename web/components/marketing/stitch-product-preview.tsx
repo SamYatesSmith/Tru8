@@ -35,11 +35,12 @@ interface Panel {
   lightboxTitle: string;
 }
 
-/** DORMANT until C2 ships the redesigned summary card (founder, 2026-07-09:
- *  do not platform the current card — it is about to change). Flip the flag
- *  and drop fresh summary-digest{,-full}.png captures into
- *  public/imagery/screenshots/ once C2 lands (C4 re-shoots everything anyway). */
-const SHOW_SUMMARY_PANEL = false;
+/** AWAKE (C4, 2026-07-09): C2 shipped the redesigned summary card and the
+ *  founder captured fresh screenshots (summary-digest{,-full}.png plus
+ *  re-shot Evidence/Map/Timeline). Gaps is NOT panelled (founder decision:
+ *  the capture check had no gaps to show) — it is named in the
+ *  "Also inside the console" strip alongside Sources and Video. */
+const SHOW_SUMMARY_PANEL = true;
 
 const SUMMARY_PANEL: Panel = {
   kind: 'summary',
@@ -99,24 +100,6 @@ const LENS_PANELS: Panel[] = [
   {
     kind: 'lens',
     number: '03',
-    label: 'Gaps',
-    subtitle: 'Seeker',
-    route: '/dashboard/check/[id]?view=seeker',
-    headline: (
-      <>
-        What we <span className="font-bold">don&rsquo;t know yet.</span>
-      </>
-    ),
-    description:
-      'Every evidence gap, surfaced clearly. Specify what data would fill each one, then trigger a targeted re-search.',
-    src: '/imagery/screenshots/seeker-unknowns.png',
-    lightboxSrc: '/imagery/screenshots/seeker-unknowns-full.png',
-    alt: 'The Gaps view — a ledger of unresolved elements with their uncertainty notes, bounty text, and a "Re-search" action button per gap.',
-    lightboxTitle: 'Gaps — known unknowns',
-  },
-  {
-    kind: 'lens',
-    number: '04',
     label: 'Timeline',
     subtitle: 'Chronologist',
     route: '/dashboard/check/[id]?view=chronologist',
@@ -186,6 +169,9 @@ export function StitchProductPreview() {
         <div className="mt-16 md:mt-20 pt-8 border-t border-zinc-100 flex flex-wrap items-baseline gap-x-3 gap-y-2 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-400">
           <span aria-hidden="true" className="w-1.5 h-1.5 bg-accent rotate-45 self-center shrink-0" />
           <span>Also inside the console:</span>
+          <span className="text-zinc-600">Gaps</span>
+          <span>— what&rsquo;s missing, with targeted re-search</span>
+          <span aria-hidden="true">·</span>
           <span className="text-zinc-600">Sources</span>
           <span>— outlet by outlet</span>
           <span aria-hidden="true">·</span>
