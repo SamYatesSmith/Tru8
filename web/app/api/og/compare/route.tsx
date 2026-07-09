@@ -53,7 +53,7 @@ export async function GET() {
             maxWidth: 1000,
           }}
         >
-          Tru8 vs four grounding APIs
+          Tru8 vs Webcite, scite &amp; Factiverse
         </div>
 
         {/* Tagline */}
@@ -65,7 +65,7 @@ export async function GET() {
             letterSpacing: '0.02em',
           }}
         >
-          Same claim. Verbatim responses.
+          The difference is what comes back.
         </div>
 
         {/* Bottom accent line */}

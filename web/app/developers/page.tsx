@@ -121,7 +121,7 @@ export default function DevelopersPage() {
                 <code className="text-sm font-mono text-zinc-900">receipts</code>,{' '}
                 <code className="text-sm font-mono text-zinc-900">manifest</code>.{' '}
                 <Link
-                  href="/compare"
+                  href="/compare#grounding-apis"
                   className="text-accent underline underline-offset-2 hover:text-zinc-900 transition-colors"
                 >
                   Same claim, Tru8 vs four grounding APIs →

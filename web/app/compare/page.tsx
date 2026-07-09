@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { ComparisonTable } from './comparison-table';
 import { ResponseTabs } from './response-tabs';
 import { ProofPanel } from './proof-panel';
+import { DirectAlternatives } from './direct-alternatives';
 import { CHECK_ID } from './demo-data';
 
-const PAGE_TITLE = 'Tru8 vs four grounding APIs — same claim, verbatim responses';
+const PAGE_TITLE = 'Tru8 vs Webcite, scite and Factiverse — the difference is what comes back';
 const PAGE_DESCRIPTION =
-  'The same claim through Tru8 vs four grounding APIs — Web IQ, Google check-grounding, Perplexity, Parallel — responses verbatim. Tier and type classification, supports/challenges relationships, dispute states, named gaps, receipts, signed manifest.';
+  'How Tru8 compares with Webcite, scite and Factiverse — what each returns, its scope, and published pricing — plus why Tru8 is not a grounding API: the same claim through Web IQ, Google check-grounding, Perplexity and Parallel, responses verbatim.';
 
 export const metadata = {
   title: PAGE_TITLE,
@@ -74,26 +75,49 @@ export default function ComparePage() {
               Module — Comparison
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-normal tracking-[-0.03em] text-zinc-900 leading-[1.05] mb-6 md:mb-8">
-              Grounding APIs check sentences. <span className="font-bold">Tru8 maps evidence.</span>
+              The difference is <span className="font-bold">what comes back.</span>
             </h1>
             <p className="text-base md:text-lg text-zinc-500 leading-relaxed max-w-3xl">
-              Who said it, what kind of source, who&apos;s echoing whom, what disputes it,
-              what&apos;s missing — classified, receipted, signed. Below: the same claim, Tru8 vs
-              four grounding APIs, responses verbatim.
+              Webcite returns a verdict with a confidence score. Factiverse returns
+              supported/disputed labels. scite counts citation stances for published papers.
+              Tru8 returns the organised evidence record — classified, mapped, receipted,
+              signed — and no verdict on the claim.
+            </p>
+          </section>
+
+          {/* The shortlist — the tools a buyer actually evaluates us against */}
+          <DirectAlternatives />
+        </div>
+
+        {/* What Tru8 returns, in human form — before the grounding-API layer */}
+        <ProofPanel />
+
+        {/* Seam: a different question — the infrastructure layer */}
+        <div className="container mx-auto px-4 md:px-6 max-w-5xl">
+          <section id="grounding-apis" className="mb-16 md:mb-20 pt-8 scroll-mt-24">
+            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-4">
+              Module — A Different Layer
+            </div>
+            <h2 className="text-2xl md:text-4xl font-normal tracking-[-0.02em] text-zinc-900 leading-[1.1] mb-5">
+              Grounding APIs check sentences. <span className="font-bold">Tru8 maps evidence.</span>
+            </h2>
+            <p className="text-base md:text-lg text-zinc-500 leading-relaxed max-w-3xl">
+              Search and grounding APIs — Web IQ, Google check-grounding, Perplexity,
+              Parallel — are sometimes mistaken for alternatives. They are a different layer:
+              built to ground answers at serving time, not to organise an evidence landscape.
+              Below: the capability contract, then the same claim through all five, responses
+              verbatim.
             </p>
           </section>
 
           {/* Capability table */}
           <section className="mb-20 md:mb-28">
             <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-6">
-              Module — Capabilities
+              Module — Grounding APIs · Capabilities
             </div>
             <ComparisonTable />
           </section>
         </div>
-
-        {/* What Tru8 returns, in human form — before the raw JSON band */}
-        <ProofPanel />
 
         {/* Dark band — same claim, verbatim responses */}
         <section className="py-20 md:py-28 bg-zinc-950 text-zinc-100">
