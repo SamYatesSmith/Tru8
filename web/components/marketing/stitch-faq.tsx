@@ -35,15 +35,9 @@ const FAQS: ReadonlyArray<QA> = [
     q: 'Does Tru8 use AI to decide what is true?',
     a: 'No. AI is used to decompose claims, retrieve evidence and classify it by source type and tier. It never scores credibility and never issues a verdict. The judgement stays with you.',
   },
-  {
-    q: 'Is there an API?',
-    a: 'Yes. Tru8 offers a developer API and an MCP server so agents and applications can request a structured, signed evidence record programmatically. See the developer docs to get an API key.',
-  },
-  {
-    q: 'Can a Tru8 report be checked independently?',
-    a: 'Every report includes an HMAC-signed manifest. Anyone can confirm the signed fields have not changed since the report was generated, and every source in the landscape links out so you can read it yourself.',
-  },
 ];
+// C1 (2026-07-09): "Is there an API?" + "Can a report be checked independently?"
+// moved to the /developers FAQ — this page keeps the five human-buyer questions.
 
 const faqJsonLd = {
   '@context': 'https://schema.org',

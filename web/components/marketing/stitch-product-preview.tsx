@@ -2,34 +2,69 @@
 
 import { useState, type ReactNode } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowUpRight, ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 import { ScrollReveal } from './scroll-reveal';
 import { SheetHeader } from './sheet-header';
 import { ScreenshotScrollLightbox, type ScreenshotSlide } from './screenshot-scroll-lightbox';
 
+/**
+ * Homepage — Sheet 02, Inside a check (C1 entry-point clarity, 2026-07-09).
+ *
+ * "The summary, then the lenses." — the results summary LEADS (labelled THE
+ * SUMMARY, deliberately unnumbered so it never reads as a seventh view), then
+ * the four strongest lenses as LENS 01–04. Large alternating clickable panels
+ * with the existing lightbox — the layout the founder kept. Sources + Video
+ * are named in the quiet strip below, so "six" stays honest without six heavy
+ * panels. Screenshots refreshed in C4 (post-C2 summary redesign).
+ */
+
 interface Panel {
-  number: string;
+  /** 'summary' renders the unnumbered THE SUMMARY chip; lenses get LENS NN / NN. */
+  kind: 'summary' | 'lens';
+  number?: string;
   label: string;
-  profession: string;
+  subtitle: string;
   route: string;
   headline: ReactNode;
   description: string;
   src: string;
-  /** Optional separate higher-resolution / longer image shown in the lightbox.
-   *  When omitted, lightbox uses `src`. Use this for tall full-page captures
-   *  whose 4:3 thumbnail crop hides most of the content. */
+  /** Optional separate higher-resolution / longer image shown in the lightbox. */
   lightboxSrc?: string;
   alt: string;
   lightboxTitle: string;
 }
 
-const PANELS: Panel[] = [
+/** DORMANT until C2 ships the redesigned summary card (founder, 2026-07-09:
+ *  do not platform the current card — it is about to change). Flip the flag
+ *  and drop fresh summary-digest{,-full}.png captures into
+ *  public/imagery/screenshots/ once C2 lands (C4 re-shoots everything anyway). */
+const SHOW_SUMMARY_PANEL = false;
+
+const SUMMARY_PANEL: Panel = {
+  kind: 'summary',
+  label: 'Summary',
+  subtitle: 'Digest',
+  route: '/dashboard/check/[id]',
+  headline: (
+    <>
+      The whole record, <span className="font-bold">at a glance.</span>
+    </>
+  ),
+  description:
+    "What was examined, how the evidence stacks up on each side, where the sourcing runs thin, and what's missing — before you open a single source.",
+  src: '/imagery/screenshots/summary-digest.png',
+  lightboxSrc: '/imagery/screenshots/summary-digest-full.png',
+  alt: 'The check summary — the claim, the elements examined, how many sources support and challenge each, sourcing-quality notes, and named gaps, in one card.',
+  lightboxTitle: 'Summary — the whole record at a glance',
+};
+
+const LENS_PANELS: Panel[] = [
   {
+    kind: 'lens',
     number: '01',
     label: 'Evidence',
-    profession: 'Librarian',
+    subtitle: 'Librarian',
     route: '/dashboard/check/[id]?view=librarian',
     headline: (
       <>
@@ -44,9 +79,10 @@ const PANELS: Panel[] = [
     lightboxTitle: 'Evidence — classified landscape',
   },
   {
+    kind: 'lens',
     number: '02',
     label: 'Map',
-    profession: 'Cartographer',
+    subtitle: 'Cartographer',
     route: '/dashboard/check/[id]?view=cartographer',
     headline: (
       <>
@@ -61,9 +97,10 @@ const PANELS: Panel[] = [
     lightboxTitle: 'Map — citation cascade',
   },
   {
+    kind: 'lens',
     number: '03',
     label: 'Gaps',
-    profession: 'Seeker',
+    subtitle: 'Seeker',
     route: '/dashboard/check/[id]?view=seeker',
     headline: (
       <>
@@ -78,9 +115,10 @@ const PANELS: Panel[] = [
     lightboxTitle: 'Gaps — known unknowns',
   },
   {
+    kind: 'lens',
     number: '04',
     label: 'Timeline',
-    profession: 'Chronologist',
+    subtitle: 'Chronologist',
     route: '/dashboard/check/[id]?view=chronologist',
     headline: (
       <>
@@ -95,6 +133,10 @@ const PANELS: Panel[] = [
     lightboxTitle: 'Timeline — evidence timeline',
   },
 ];
+
+const PANELS: Panel[] = SHOW_SUMMARY_PANEL ? [SUMMARY_PANEL, ...LENS_PANELS] : LENS_PANELS;
+
+const LENS_TOTAL = String(PANELS.filter((p) => p.kind === 'lens').length).padStart(2, '0');
 
 const SLIDES: ScreenshotSlide[] = PANELS.map((p) => ({
   src: p.lightboxSrc ?? p.src,
@@ -115,14 +157,15 @@ export function StitchProductPreview() {
   return (
     <section id="preview" className="py-24 md:py-32 bg-white border-t border-zinc-100 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
-        <SheetHeader number="05" label="Console" refText="6 VIEWS" />
+        <SheetHeader number="02" label="Inside a check" refText="ONE SUMMARY · SIX LENSES" />
         <ScrollReveal>
           <div className="mb-16 md:mb-20 max-w-3xl">
             <h2 className="text-3xl md:text-5xl font-normal tracking-[-0.02em] text-zinc-900 leading-[1.0]">
-              Prefer to review in a browser?
+              The summary, <span className="font-bold">then the lenses.</span>
             </h2>
             <p className="text-sm md:text-base text-zinc-500 leading-relaxed mt-6 max-w-xl">
-              The same structured record, as a human console — six ways to read the evidence.
+              Every check opens on a plain-English summary of what was found. Behind
+              it, the same evidence arranged six ways. Click any screen to look closer.
             </p>
           </div>
         </ScrollReveal>
@@ -130,24 +173,24 @@ export function StitchProductPreview() {
         <div className="space-y-20 md:space-y-28">
           {PANELS.map((panel, index) => (
             <PanelRow
-              key={panel.number}
+              key={panel.label}
               panel={panel}
               index={index}
-              total={PANELS.length}
               flipped={index % 2 === 1}
               onOpen={() => openAt(index)}
             />
           ))}
         </div>
 
-        <div className="mt-20 md:mt-28 pt-12 border-t border-zinc-100">
-          <Link
-            href="/research"
-            className="group inline-flex items-center gap-3 bg-black text-white px-10 py-5 text-xs md:text-sm font-bold tracking-[0.3em] uppercase transition-all hover:bg-zinc-900"
-          >
-            <span>Open the Research App</span>
-            <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-          </Link>
+        {/* The remaining lenses — named, not panelled */}
+        <div className="mt-16 md:mt-20 pt-8 border-t border-zinc-100 flex flex-wrap items-baseline gap-x-3 gap-y-2 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-400">
+          <span aria-hidden="true" className="w-1.5 h-1.5 bg-accent rotate-45 self-center shrink-0" />
+          <span>Also inside the console:</span>
+          <span className="text-zinc-600">Sources</span>
+          <span>— outlet by outlet</span>
+          <span aria-hidden="true">·</span>
+          <span className="text-zinc-600">Video</span>
+          <span>— what&rsquo;s said on camera</span>
         </div>
       </div>
 
@@ -165,13 +208,13 @@ export function StitchProductPreview() {
 interface PanelRowProps {
   panel: Panel;
   index: number;
-  total: number;
   flipped: boolean;
   onOpen: () => void;
 }
 
-function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
-  const pagination = `${panel.number} / ${String(total).padStart(2, '0')}`;
+function PanelRow({ panel, index, flipped, onOpen }: PanelRowProps) {
+  const pagination =
+    panel.kind === 'summary' ? 'The Summary' : `Lens ${panel.number} / ${LENS_TOTAL}`;
 
   return (
     <ScrollReveal>
@@ -183,7 +226,11 @@ function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
         {/* Caption rail */}
         <div className="lg:col-span-4 flex flex-col">
           <div className="flex items-center gap-3 mb-6">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
+            <span
+              className={`font-mono text-[10px] tracking-[0.3em] uppercase ${
+                panel.kind === 'summary' ? 'text-accent' : 'text-zinc-500'
+              }`}
+            >
               {pagination}
             </span>
             <div className="h-px flex-grow bg-zinc-200" />
@@ -203,7 +250,7 @@ function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
             className="group inline-flex items-center gap-2 self-start font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-900 hover:text-accent transition-colors"
             aria-label={`Open ${panel.label} screenshot full-size`}
           >
-            <span>Click to zoom</span>
+            <span>View full size</span>
             <ArrowUpRight
               size={14}
               className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -216,15 +263,15 @@ function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
           <button
             type="button"
             onClick={onOpen}
-            className="group block w-full text-left border border-zinc-200 bg-white overflow-hidden transition-colors hover:border-zinc-900 focus-visible:border-zinc-900"
+            className="group block w-full text-left border border-zinc-200 bg-white overflow-hidden transition-colors hover:border-accent focus-visible:border-accent"
             aria-label={`Open ${panel.label} screenshot full-size`}
           >
             <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100">
               <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400">
-                {panel.label} view — Console
+                {panel.label} — Console
               </span>
               <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 hidden sm:inline">
-                {panel.profession}
+                {panel.subtitle}
               </span>
             </div>
             <div className="relative aspect-[4/3] bg-zinc-50 flex items-center justify-center">
@@ -241,7 +288,7 @@ function PanelRow({ panel, index, total, flipped, onOpen }: PanelRowProps) {
                 className="absolute bottom-3 right-3 font-mono text-[10px] tracking-[0.3em] uppercase bg-white/95 text-zinc-900 px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
                 aria-hidden="true"
               >
-                Open ↗
+                View full size ↗
               </span>
             </div>
           </button>

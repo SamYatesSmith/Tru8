@@ -8,9 +8,9 @@ const steps = [
   {
     number: '01',
     label: 'Submit',
-    title: 'Submit content or a claim',
+    title: 'Submit a claim, question or URL',
     description:
-      'Send AI-generated text, a URL, or a single claim — via the API or the Research Console.',
+      'Paste a claim, a question, or an article — you choose which of its claims to pursue. Console or API.',
   },
   {
     number: '02',
@@ -39,7 +39,7 @@ export function StitchProcess() {
   return (
     <section className="py-20 md:py-24 bg-white border-t border-zinc-100">
       <div className="max-w-7xl mx-auto px-6">
-        <SheetHeader number="02" label="Process" refText="~60–90s · IDEMPOTENT" />
+        <SheetHeader number="03" label="How it works" refText="~60–90s · IDEMPOTENT" />
         <div className="max-w-3xl mb-12 md:mb-14">
           <h2 className="text-2xl md:text-3xl font-normal tracking-[-0.01em] text-zinc-900 leading-[1.1]">
             One submission, a retainable record.

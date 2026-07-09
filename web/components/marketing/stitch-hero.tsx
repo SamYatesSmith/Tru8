@@ -1,45 +1,48 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { capture } from '@/lib/analytics';
+import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
 
 /**
- * Stitch Hero — verification/dev-led, Phase 2 art-direction.
+ * Stitch Hero — human-first (C1 entry-point clarity, 2026-07-09).
  *
- * 84px headline full-width across the top; below it an asymmetric 7/5 split —
- * the tight sub + tagline + CTAs (left) and a light "record-fragment" proof panel
- * (right, lg+ only) that fills the former grid-dot void with product proof.
+ * The best message+action moment on the site (formerly stranded on /research)
+ * is now the front door: "See the evidence for and against. Show your working."
+ * Primary CTA = "Start a check" (the single start label sitewide) → /dashboard;
+ * middleware bounces a signed-out visitor into the auth modal with a redirect
+ * back. Secondary = a real public sample record (proof, not pictures).
  *
- * Locks: panel is illustrative (`sample`) and ALL-NEUTRAL mono — "supported" is a
- * plain zinc token, never a green verdict (§2.2 state-colour lock). Manifest footer
- * is a capability line, not a live /verify link. No "policy" (D15). Eyebrow zinc-400
- * (accent only in the CTA square + the manifest seal). US spelling (D13).
+ * Locks: panel is illustrative (`sample`) and ALL-NEUTRAL mono — never a green
+ * verdict (§2.2 state-colour lock). Manifest footer is a capability line, not a
+ * live /verify link. No "policy" (D15). UK spelling (D13, updated 2026-06-29).
  */
 
 // Illustrative record fragment — same field shapes as the real _meta/claimMap.
 const RECORD_LINES: ReadonlyArray<{ k: string; v: string }> = [
-  { k: 'claim', v: '"global avg temp rose 1.1°C…"' },
-  { k: 'element', v: '1.1°C rise — supported' },
-  { k: 'evidence', v: '6 support · 1 challenge' },
-  { k: 'sources', v: '18 domains · 3 tiers' },
-  { k: 'gap', v: 'no_academic_sources' },
+  { k: 'claim', v: '"UK inflation fell to 2.3% in April"' },
+  { k: 'elements', v: '3 examined' },
+  { k: 'evidence', v: '17 sources · 4 tiers' },
+  { k: 'mapped', v: '9 support · 3 challenge · 5 context' },
+  { k: 'gaps', v: '2 named' },
+  { k: 'excluded', v: '6 — receipts attached' },
 ];
 
 export function StitchHero() {
   return (
     <section className="relative pt-24 pb-16 md:pt-32 md:pb-40 bg-grid-dot overflow-hidden border-b border-zinc-100">
       <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
-        {/* Category eyebrow (zinc-400 — accent lives only in the marks) */}
+        {/* Category eyebrow (zinc — accent lives only in the marks) */}
         <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 mb-5 md:mb-6">
-          Evidence Research Infrastructure
+          Evidence research — not fact-checking
         </div>
 
         {/* Statement — full measure */}
-        <h1 className="max-w-5xl text-3xl sm:text-5xl md:text-7xl lg:text-[84px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-10 md:mb-14">
-          The evidence behind every factual claim &mdash;
+        <h1 className="max-w-5xl text-3xl sm:text-5xl md:text-7xl lg:text-[80px] font-normal tracking-[-0.03em] text-zinc-900 leading-[0.95] mb-10 md:mb-14">
+          See the evidence for and against.
           <br />
-          <span className="font-bold">before it ships.</span>
+          <span className="font-bold">Show your working.</span>
         </h1>
 
         {/* Asymmetric split — supporting copy left, proof panel right */}
@@ -47,21 +50,21 @@ export function StitchHero() {
           {/* Left — the argument + actions */}
           <div className="lg:col-span-7">
             <p className="text-sm md:text-base lg:text-lg text-zinc-500 mb-4 max-w-2xl leading-relaxed">
-              Tru8 decomposes AI-generated content into checkable claims and returns a
-              structured evidence record &mdash; what supports each, what challenges it,
-              what&rsquo;s missing. You decide what to publish, escalate, re-check or block.
+              Paste a claim, a question, or an article. Tru8 breaks it into its
+              checkable parts, gathers evidence from 30+ published sources, and
+              returns a signed, organised evidence record.
             </p>
             <p className="text-sm md:text-base text-zinc-900 mb-8 md:mb-10">
-              We organise; you decide.
+              Not a verdict — we organise; you decide.
             </p>
 
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
               <Link
-                href="/developers"
-                onClick={() => capture('get_api_key_click', { surface: 'hero' })}
+                href="/dashboard"
+                onClick={() => capture('start_check_click', { surface: 'hero' })}
                 className="group inline-flex items-center justify-center gap-4 bg-black text-white px-8 py-4 md:px-12 md:py-6 text-xs md:text-sm font-bold tracking-[0.3em] uppercase w-full sm:w-auto transition-all hover:bg-zinc-900"
               >
-                <span>Get API Key</span>
+                <span>Start a check</span>
                 {/* Orange diamond signature — decorative, inside the button bounds */}
                 <span
                   aria-hidden="true"
@@ -69,25 +72,20 @@ export function StitchHero() {
                 />
               </Link>
               <a
-                href="#preview"
+                href={SAMPLE_REPORT_PATH}
+                target="_blank"
+                rel="noopener"
+                onClick={() => capture('view_sample_click', { surface: 'hero' })}
                 className="group inline-flex items-center justify-center gap-2 border border-zinc-200 px-8 py-4 md:px-10 md:py-6 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-zinc-900 w-full sm:w-auto transition-colors hover:border-zinc-900"
               >
-                <span>See a Sample</span>
-                <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                <span>See a sample record</span>
+                <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
             </div>
 
-            {/* Quiet human path — the secondary audience, never a splash */}
-            <p className="mt-7 md:mt-8 text-xs md:text-sm text-zinc-500 max-w-xl leading-relaxed">
-              Need the human review console?{' '}
-              <Link
-                href="/research"
-                onClick={() => capture('research_app_click', { surface: 'hero' })}
-                className="underline underline-offset-2 hover:text-zinc-900 transition-colors"
-              >
-                Open the Research App
-              </Link>
-              .
+            {/* Reassurance microline — facts only */}
+            <p className="mt-7 md:mt-8 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-400">
+              Free to try · a record in ~90 seconds · no API needed
             </p>
           </div>
 

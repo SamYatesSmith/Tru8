@@ -8,15 +8,18 @@ import { Tru8Mark } from '@/components/brand/tru8-mark';
 import { capture } from '@/lib/analytics';
 
 /**
- * Desktop Navigation (Stitch W-01) — verification/dev-led repositioning.
+ * Desktop Navigation (Stitch W-01) — human-first (C1, 2026-07-09).
  *
  * Desktop only (>= 768px); mobile uses <MobileNav/>.
  * - Left: logo
  * - Centre: Product · Compare · Pricing · Developers (MCP/Docs are /developers sections)
- * - Right (signed out): Sign In (AuthModal) · Research App (→/research) · Get API Key (→/developers)
+ * - Right (signed out): Sign In (AuthModal) · Start a check (→/dashboard, filled primary)
+ *   The dev path is the Developers centre link; "Get API Key" lives on /developers.
  *
  * Per design-review B2: the primary CTAs NAVIGATE (Link), they do not open the
- * auth modal. Only "Sign In" opens the modal.
+ * auth modal. Only "Sign In" opens the modal. A signed-out /dashboard visit is
+ * bounced back by middleware with ?auth_redirect=true, which opens the modal
+ * and returns the visitor to /dashboard after sign-in.
  */
 const NAV_LINKS = [
   { label: 'Product', href: '/#record' },
@@ -91,18 +94,11 @@ export function Navigation({
                     Sign In
                   </button>
                   <Link
-                    href="/research"
-                    onClick={() => capture('research_app_click', { surface: 'nav' })}
-                    className="text-[11px] font-bold tracking-[0.2em] uppercase px-5 py-3 border border-zinc-200 hover:border-zinc-900 transition-colors whitespace-nowrap"
-                  >
-                    Research App
-                  </Link>
-                  <Link
-                    href="/developers"
-                    onClick={() => capture('get_api_key_click', { surface: 'nav' })}
+                    href="/dashboard"
+                    onClick={() => capture('start_check_click', { surface: 'nav' })}
                     className="bg-black text-white text-[11px] font-bold tracking-[0.2em] uppercase px-8 py-3 border border-black hover:bg-zinc-800 transition-colors whitespace-nowrap"
                   >
-                    Get API Key
+                    Start a check
                   </Link>
                 </>
               )}

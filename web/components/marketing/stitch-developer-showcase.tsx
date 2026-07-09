@@ -2,143 +2,59 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 
 import { ScrollReveal } from './scroll-reveal';
-import { CopyCodeButton } from './copy-code-button';
-import { CodeDisclosure } from './code-disclosure';
 import { SheetHeader } from './sheet-header';
 
-const SAMPLE_RESPONSE = `{
-  "id": "chk_8f3a...",
-  "status": "complete",
-  "claims": [
-    {
-      "id": "clm_01",
-      "text": "Global average temperature rose 1.1°C since pre-industrial times",
-      "claimMap": {
-        "normalisedClaim": "...",
-        "claimType": "scientific",
-        "elements": [
-          {
-            "elementId": "el_01",
-            "description": "1.1°C rise figure",
-            "state": "supported",
-            "evidenceRefs": [
-              { "evidenceId": "ev_a1", "relationship": "supports" },
-              { "evidenceId": "ev_b2", "relationship": "supports" }
-            ]
-          }
-        ],
-        "orientation": "Evidence converges on the 1.1°C figure across primary and academic sources."
-      }
-    }
-  ],
-  "_meta": {
-    "executedTier": "quick",
-    "chargedPence": 7,
-    "landscape": {
-      "elementCount": 4,
-      "elementStates": { "supported": 3, "unresolved": 1 },
-      "evidenceDensity": 24,
-      "sourcesConsidered": 24,
-      "sourceDiversity": {
-        "tierSpread": { "primary": 6, "reporting": 12, "commentary": 6 },
-        "uniqueDomains": 18,
-        "typeCoverage": 5
-      },
-      "freshness": { "freshestDaysAgo": 3, "dateSpanDays": 412 },
-      "gaps": [{ "reason": "no_academic_sources" }]
-    },
-    "limitations": ["heuristic_classification", "single_query_per_element"]
-  },
-  "_manifest": {
-    "checkId": "chk_8f3a...",
-    "landscapeHash": "9c14...",
-    "signature": "hmac-sha256:...",
-    "verifyUrl": "/verify/chk_8f3a..."
-  }
-}`;
+/**
+ * Homepage — Sheet 05, For developers (C1 entry-point clarity, 2026-07-09).
+ *
+ * Condensed to one dark band: the landing page platforms the HUMAN start; the
+ * developer pitch gets a headline, four capability chips, one CTA and a price
+ * line — the full pitch (code samples, tiers, MCP config, 14-section reference)
+ * lives on /developers. The former JSON/curl disclosures and the /compare link
+ * moved there with it.
+ */
 
-const SAMPLE_CURL = `curl -X POST https://api.trueight.com/api/v1/agent/quick \\
-  -H "X-API-Key: $TRU8_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{ "claim": "Global average temperature rose 1.1°C since pre-industrial times" }'`;
-
-const CALLOUTS: ReadonlyArray<{ key: string; description: string }> = [
-  {
-    key: 'claimMap',
-    description:
-      'Per-claim decomposition. Elements, evidence refs with relationship, mechanical orientation line.',
-  },
-  {
-    key: '_meta.landscape',
-    description:
-      'Computed metrics — element states, tier spread, unique domains, freshness, identified gaps.',
-  },
-  {
-    key: '_manifest',
-    description:
-      'Signed payload + verify URL. Your downstream caller can prove what you sent them.',
-  },
+const CHIPS: ReadonlyArray<{ key: string; description: string }> = [
+  { key: 'claimMap', description: 'elements, states, evidence refs' },
+  { key: '_manifest', description: 'signed, verifiable' },
+  { key: 'MCP server', description: 'pip install tru8-mcp' },
+  { key: 'webhooks', description: 'check.completed' },
 ];
 
 export function StitchDeveloperShowcase() {
   return (
-    <section id="developer-showcase" className="py-24 md:py-32 bg-zinc-950 text-zinc-100">
+    <section id="developer-showcase" className="py-20 md:py-28 bg-zinc-950 text-zinc-100">
       <div className="max-w-7xl mx-auto px-6">
-        <SheetHeader number="03" label="API" refText="POST /agent/*" tone="dark" />
+        <SheetHeader number="05" label="For developers" refText="POST /agent/*" tone="dark" />
         <ScrollReveal>
-          <div className="mb-16 md:mb-20 max-w-3xl">
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-normal tracking-[-0.02em] text-zinc-50 leading-[0.95]">
-              One submission,<br />
-              structured for agents.
+          <div className="mb-10 md:mb-12 max-w-3xl">
+            <h2 className="text-3xl md:text-5xl font-normal tracking-[-0.02em] text-zinc-50 leading-[1.0]">
+              The same record,<br />
+              <span className="font-bold">structured for agents.</span>
             </h2>
             <p className="text-sm md:text-base text-zinc-400 leading-relaxed mt-6 max-w-2xl">
-              The same structured evidence record, returned as a stable JSON contract. Per-claim
-              element decomposition, computed landscape metrics, and a signed manifest your callers
-              can verify.
+              Everything above ships as JSON — one call, a signed evidence
+              landscape your agent can act on.{' '}
+              <span className="text-zinc-100">Your agent decides what matters.</span>
             </p>
           </div>
         </ScrollReveal>
 
-        {/* Value first — what the response gives you, in plain terms (not a JSON wall) */}
-        <ScrollReveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 border border-zinc-800 mb-10 md:mb-12">
-            {CALLOUTS.map((callout, i) => (
-              <div
-                key={callout.key}
-                className={`flex flex-col gap-2 p-6 md:p-7 ${
-                  i > 0 ? 'border-t md:border-t-0 md:border-l border-zinc-800' : ''
-                }`}
+        <ScrollReveal delay={120}>
+          {/* Capability chips — mono, no code walls on the landing page */}
+          <div className="flex flex-wrap gap-3 mb-10 md:mb-12">
+            {CHIPS.map((chip) => (
+              <span
+                key={chip.key}
+                className="border border-zinc-800 px-4 py-2.5 font-mono text-[11px] tracking-tight text-zinc-300"
               >
-                <code className="font-mono text-sm text-accent tracking-tight">{callout.key}</code>
-                <p className="text-sm text-zinc-400 leading-relaxed">{callout.description}</p>
-              </div>
+                <span className="text-accent">{chip.key}</span>
+                <span className="text-zinc-500"> — {chip.description}</span>
+              </span>
             ))}
           </div>
-        </ScrollReveal>
 
-        {/* Code on demand — collapsed by default so it doesn't overwhelm the lay reader */}
-        <ScrollReveal delay={120}>
-          <div className="space-y-4">
-            <CodeDisclosure label="Sample response" meta="POST /agent/quick · 200 OK">
-              <pre className="px-5 py-5 overflow-x-auto text-[11px] md:text-xs font-mono leading-relaxed text-zinc-300">
-                {SAMPLE_RESPONSE}
-              </pre>
-            </CodeDisclosure>
-            <CodeDisclosure
-              label="Sample request"
-              meta="curl"
-              headerAction={<CopyCodeButton value={SAMPLE_CURL} />}
-            >
-              <pre className="px-5 py-4 overflow-x-auto text-[11px] font-mono leading-relaxed text-zinc-300">
-                {SAMPLE_CURL}
-              </pre>
-            </CodeDisclosure>
-          </div>
-        </ScrollReveal>
-
-        {/* CTAs */}
-        <ScrollReveal delay={160}>
-          <div className="mt-10 md:mt-12 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
             <Link
               href="/developers"
               className="group inline-flex items-center justify-between gap-6 bg-white text-zinc-950 px-8 py-5 text-xs font-bold tracking-[0.3em] uppercase transition-colors hover:bg-zinc-100"
@@ -150,16 +66,9 @@ export function StitchDeveloperShowcase() {
               />
             </Link>
             <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 leading-relaxed">
-              Signed manifests, MCP server, webhooks
+              From £0.02 per call · async · batch · webhooks
             </div>
           </div>
-
-          <Link
-            href="/compare"
-            className="mt-6 inline-block text-sm text-zinc-400 underline underline-offset-2 hover:text-zinc-200 transition-colors"
-          >
-            See how this compares to Web IQ, check-grounding and Sonar →
-          </Link>
         </ScrollReveal>
       </div>
     </section>

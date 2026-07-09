@@ -83,8 +83,11 @@ export type AnalyticsEvent =
   // durable surfaces now; more added in P4 when the homepage is rebuilt.
   | 'get_api_key_click' // developer-conversion CTA (nav/hero/developers)
   | 'try_in_browser_click' // legacy hero primary CTA (pre-repositioning)
-  | 'research_app_click' // human-path CTA → /research (P4 repositioning)
+  | 'research_app_click' // human-path CTA → /research (retired with /research, C1 2026-07-09)
   | 'research_start_click' // /research primary CTA → /dashboard (item 2, property: surface)
+  // C1 entry-point clarity (2026-07-09): the single human start funnel
+  | 'start_check_click' // "Start a check" CTA → /dashboard (property: surface — nav/mobile-nav/hero/record/closing/footer)
+  | 'view_sample_click' // "See a sample record" → public demo /r/ (property: surface — hero/closing)
   // Researcher funnel (Phase 1 instrumentation, 2026-06-23)
   | 'report_viewed' // a check report opened (public /r/ or dashboard)
   | 'evidence_expanded' // a supports/challenges evidence item expanded

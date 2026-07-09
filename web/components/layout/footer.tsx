@@ -3,11 +3,16 @@
 import Link from 'next/link';
 import { Tru8Mark } from '@/components/brand/tru8-mark';
 import { openConsentBanner } from '@/lib/consent';
+import { capture } from '@/lib/analytics';
 
 export function Footer() {
   const platformLinks = [
     { label: 'Product', href: '/#record' },
-    { label: 'Research App', href: '/research' },
+    {
+      label: 'Start a check',
+      href: '/dashboard',
+      onClick: () => capture('start_check_click', { surface: 'footer' }),
+    },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Compare', href: '/compare' },
   ];
@@ -56,7 +61,11 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-zinc-500">
               {platformLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="hover:text-black transition-colors">
+                  <Link
+                    href={link.href}
+                    onClick={link.onClick}
+                    className="hover:text-black transition-colors"
+                  >
                     {link.label}
                   </Link>
                 </li>

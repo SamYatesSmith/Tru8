@@ -3,19 +3,20 @@ import { Navigation } from '@/components/layout/navigation'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { Footer } from '@/components/layout/footer'
 import { StitchHero } from '@/components/marketing/stitch-hero'
-import { StitchProblem } from '@/components/marketing/stitch-problem'
+import { StitchWhy } from '@/components/marketing/stitch-why'
 import { StitchRecord } from '@/components/marketing/stitch-record'
-import { StitchProcess } from '@/components/marketing/stitch-process'
-import { StitchDeveloperShowcase } from '@/components/marketing/stitch-developer-showcase'
-import { StitchCompareTeaser } from '@/components/marketing/stitch-compare-teaser'
 import { StitchProductPreview } from '@/components/marketing/stitch-product-preview'
+import { StitchProcess } from '@/components/marketing/stitch-process'
+import { StitchEdges } from '@/components/marketing/stitch-edges'
+import { StitchDeveloperShowcase } from '@/components/marketing/stitch-developer-showcase'
 import { StitchFaq } from '@/components/marketing/stitch-faq'
+import { StitchClosingCta } from '@/components/marketing/stitch-closing-cta'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
 export const metadata: Metadata = {
   title: 'Tru8 — Evidence Research Infrastructure',
-  description: 'Research the evidence behind factual AI output before it ships. Tru8 turns AI content into checkable claims and returns a structured, signed evidence record — external sources, what supports each, what challenges it, what is missing.',
+  description: 'See the evidence for and against any claim — and show your working. Tru8 organises 30+ external published sources into a structured, signed evidence record: what supports each claim, what challenges it, and what is missing. No verdict — we organise; you decide.',
   alternates: { canonical: '/' },
 }
 
@@ -55,7 +56,8 @@ const jsonLd = {
 }
 
 /**
- * Home Page — verification/developer-led repositioning (asymmetric, no splash).
+ * Home Page — human-first single front door (C1 entry-point clarity, 2026-07-09).
+ * Order: what Tru8 is (hero) → why it exists (00) → what it offers (01–05) → FAQ → close.
  *
  * Auth-redirect handling: middleware sets ?auth_redirect=true when a user hits a
  * protected route signed-out; the nav opens the auth modal and stores redirect_url.
@@ -88,7 +90,7 @@ export default function Home({
           aria-hidden="true"
           className="pointer-events-none fixed left-1.5 top-1/2 z-40 hidden -translate-y-1/2 rotate-180 select-none font-mono text-[9px] tracking-[0.3em] text-zinc-300 [writing-mode:vertical-rl] xl:block"
         >
-          TRU8 · EVIDENCE RESEARCH INFRASTRUCTURE · REV 2026.06
+          TRU8 · EVIDENCE RESEARCH INFRASTRUCTURE · REV 2026.07
         </div>
         {/* Inset document frame — continuous 1px column edges at the max-w-7xl
             boundary, drawn over every section/room so the stacked sheets read as
@@ -101,13 +103,14 @@ export default function Home({
           <div className="absolute inset-y-0 right-0 w-px bg-zinc-200" />
         </div>
         <StitchHero />
-        <StitchProblem />
+        <StitchWhy />
         <StitchRecord />
-        <StitchProcess />
-        <StitchDeveloperShowcase />
-        <StitchCompareTeaser />
         <StitchProductPreview />
+        <StitchProcess />
+        <StitchEdges />
+        <StitchDeveloperShowcase />
         <StitchFaq />
+        <StitchClosingCta />
       </main>
 
       <Footer />

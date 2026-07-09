@@ -153,24 +153,14 @@ export function MobileNav() {
                   Sign In
                 </button>
                 <Link
-                  href="/research"
+                  href="/dashboard"
                   onClick={() => {
-                    capture('research_app_click', { surface: 'mobile-nav' });
-                    close();
-                  }}
-                  className="border border-zinc-200 text-xs font-bold tracking-[0.2em] uppercase px-6 py-4 text-center text-zinc-900"
-                >
-                  Research App
-                </Link>
-                <Link
-                  href="/developers"
-                  onClick={() => {
-                    capture('get_api_key_click', { surface: 'mobile-nav' });
+                    capture('start_check_click', { surface: 'mobile-nav' });
                     close();
                   }}
                   className="bg-black text-white text-xs font-bold tracking-[0.2em] uppercase px-6 py-4 text-center"
                 >
-                  Get API Key
+                  Start a check
                 </Link>
               </>
             )}
