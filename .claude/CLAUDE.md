@@ -104,6 +104,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 | `backend/app/models/claim_map.py` | ClaimMap types + enums (includes basis, orientation_basis) |
 | `backend/app/models/check.py` | DB schema (Evidence has tier, type, receipt_status, content_basis, archived_url, provenance fields; Check has manifest JSONB + `client` first-party-attribution column) |
 | `backend/app/models/agent_transaction.py` | Agent transaction model (5 statuses, idempotency) |
+| `backend/app/models/usage_event.py` | `usage_events` ledger — SINGLE SOURCE OF TRUTH for dashboard credits (2026-07-10). Append-only: +1 per check/re-search/top-up, -1 refund; all entitlement gates + meters sum it. Legacy counters (User.credits/total_credits_used, Check.credits_used) dual-written for API back-compat only — no gate reads them |
 | `backend/app/models/claim_consensus.py` | ClaimConsensus model (k≥3 cross-user consensus, stability classification) |
 | `backend/app/api/v1/checks.py` | API endpoints (dual auth, computed analytics, snapshot mode) |
 | `backend/app/api/v1/agent.py` | Agent Commerce Gateway (lookup/consensus/quick/full/check endpoints) |
@@ -121,6 +122,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 | `backend/app/services/consensus.py` | Convergence layer — daily batch consensus computation |
 | `backend/app/core/manifest_signer.py` | HMAC-SHA256 manifest signing, canonical payload, pipeline fingerprint |
 | `backend/app/services/payments/` | PaymentProvider ABC, credit + Skyfire providers |
+| `backend/app/services/usage_ledger.py` | Ledger gate/debit/refund: `enforce_usage_limit` (FOR UPDATE row lock → gate+debit atomic), `record_usage`, `refund_usage` (mirrors `drew_trial` — subscriber refunds never mint trial credits). Re-searches/top-ups COUNT against the plan (1 credit/run); debit commits BEFORE background work fires. Design: `audit/2026-07-10_usage_ledger_design.md` |
 | `backend/app/core/agent_auth.py` | Agent auth + concurrency limits |
 | `backend/app/core/client_origin.py` | `resolve_client(request)` — normalises `X-Tru8-Client` header (e.g. `mcp/1.0.2` → `mcp`) onto `Check.client` for first-party usage attribution |
 | `backend/app/core/agent_pricing.py` | Agent pricing (lookup $0.02, consensus $0.03, quick $0.07, full $0.15) |
@@ -175,6 +177,10 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 
 ## Latency review state (2026-07-02 — full check ~96s → high-50s, quality gated throughout)
 Shipped same day, all deployed: **V1** `f00e0e4` (cost_telemetry gains `timing.stage_timings_s` per-stage seconds + Gemini `thinking_tokens`; classify/distil timed separately; classifier+distiller tokens reach `by_stage` for the first time — a NameError had silently dropped them since inception). **M1** `b1c838b` + Railway env `MAPPING_THINKING_BUDGET=0` LIVE (mapping thinking OFF: 35–50s → ~11–15s; sweep across 5 pools incl. adversarial = equal-or-better quality, disputed-detection 3/3; rollback = delete env var, or `=1024` first on regression). **D1** `a324e8b` (`DISTIL_BATCH_SIZE=5` concurrent distil batches: 16.7–24.5s flaky → ~10s reliable, 15/17 items distilled vs 2/17 — old 15-article batch sat ON its own 15s timeout). **Bench** `9ba5266` re-baselined + GREEN (date-normalised cassette signatures; mapping schema enums `sorted()` — `list(set)` had made every mapping body unreplayable per-process; loud CASSETTE DRIFT failures; `--record-missing` patch mode; 3 hard invariants adjusted with dated in-file notes). Docs: `audit/2026-07-02_pipeline_timing_context.md` + `audit/2026-07-02_pipeline_latency_options.md` (local-only). **NEXT:** read prod `stage_timings_s` distribution after a few days of real checks → decides retrieve-tail work (R1/R2) and whether A1 (quick-tier lite mapping) is still needed. Local `OPENAI_API_KEY` is dead (401, fallback chain inoperative locally); prod key unverified — parked by founder.
+
+## Pending deploy / verify (2026-07-10 — usage ledger)
+- **`usage_events` migration** ships with the 2026-07-10 push (runs automatically via `entrypoint.sh`; backfills debit + adjustment events, parity-preserving). Verify: `railway run python -m alembic current` → `usage_events (head)`. **This MUST be live before the Stripe Console tier is wired** — Console = 200 credits/month hard cap (founder-decided 2026-07-10; the webhook maps get `("console", 200)`).
+- Remaining ledger phases: B (frontend — Seeker gate fix B2 reads the trial field and blocks paying subscribers; /pricing credit sentence) + C (non-admin meter proof). Register: `audit/OPEN_WORK.md`.
 
 ## Pending deploy / verify (as of 2026-06-11 — MCP-origin tracking)
 1. ✅ **Pushed 2026-06-11** — `7ca2689..4818c54` (feat `932cd9d` X-Tru8-Client + migration; docs `4818c54`). Railway auto-deploy triggered; backend `/api/v1/health/` → healthy/production post-push.
