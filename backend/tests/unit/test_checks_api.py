@@ -88,6 +88,33 @@ def _make_user(**overrides):
     return MagicMock(**defaults)
 
 
+def _ledger_session(user, subscription=None, usage=0):
+    """Session for the ledger-backed creation flow (2026-07-10).
+
+    Execute order in _validate_and_create_check: 1) locked user select
+    (FOR UPDATE, scalar_one), 2) subscription select, 3) ledger usage sum.
+    """
+    session = AsyncMock()
+    calls = {"n": 0}
+
+    async def _exec(stmt):
+        calls["n"] += 1
+        result = MagicMock()
+        if calls["n"] == 1:
+            result.scalar_one.return_value = user
+        elif calls["n"] == 2:
+            result.scalar_one_or_none.return_value = subscription
+        else:
+            result.scalar.return_value = usage
+        return result
+
+    session.execute = AsyncMock(side_effect=_exec)
+    session.add = MagicMock()
+    session.commit = AsyncMock()
+    session.refresh = AsyncMock()
+    return session
+
+
 # ---------------------------------------------------------------------------
 # _snake_to_camel (tested indirectly via _claim_map_to_camel_case)
 # ---------------------------------------------------------------------------
@@ -320,10 +347,7 @@ class TestValidateAndCreateCheck:
     @patch("app.api.v1.checks.get_or_create_user", new_callable=AsyncMock)
     async def test_url_type_requires_url(self, mock_get_user):
         mock_get_user.return_value = _make_user()
-        mock_session = AsyncMock()
-        mock_sub_result = MagicMock()
-        mock_sub_result.scalar_one_or_none.return_value = None
-        mock_session.execute = AsyncMock(return_value=mock_sub_result)
+        mock_session = _ledger_session(mock_get_user.return_value)
 
         body = _make_body(input_type="url", url=None)
 
@@ -341,10 +365,7 @@ class TestValidateAndCreateCheck:
     @patch("app.api.v1.checks.get_or_create_user", new_callable=AsyncMock)
     async def test_text_type_requires_content(self, mock_get_user):
         mock_get_user.return_value = _make_user()
-        mock_session = AsyncMock()
-        mock_sub_result = MagicMock()
-        mock_sub_result.scalar_one_or_none.return_value = None
-        mock_session.execute = AsyncMock(return_value=mock_sub_result)
+        mock_session = _ledger_session(mock_get_user.return_value)
 
         body = _make_body(input_type="text", content=None)
 
@@ -362,10 +383,7 @@ class TestValidateAndCreateCheck:
     @patch("app.api.v1.checks.get_or_create_user", new_callable=AsyncMock)
     async def test_search_clarity_max_200(self, mock_get_user):
         mock_get_user.return_value = _make_user()
-        mock_session = AsyncMock()
-        mock_sub_result = MagicMock()
-        mock_sub_result.scalar_one_or_none.return_value = None
-        mock_session.execute = AsyncMock(return_value=mock_sub_result)
+        mock_session = _ledger_session(mock_get_user.return_value)
 
         body = _make_body(user_query="x" * 201)
 
@@ -383,10 +401,7 @@ class TestValidateAndCreateCheck:
     @patch("app.api.v1.checks.get_or_create_user", new_callable=AsyncMock)
     async def test_invalid_input_type(self, mock_get_user):
         mock_get_user.return_value = _make_user()
-        mock_session = AsyncMock()
-        mock_sub_result = MagicMock()
-        mock_sub_result.scalar_one_or_none.return_value = None
-        mock_session.execute = AsyncMock(return_value=mock_sub_result)
+        mock_session = _ledger_session(mock_get_user.return_value)
 
         body = _make_body(input_type="invalid")
 
@@ -405,10 +420,7 @@ class TestValidateAndCreateCheck:
     async def test_creates_check_record(self, mock_get_user):
         mock_user = _make_user()
         mock_get_user.return_value = mock_user
-        mock_session = AsyncMock()
-        mock_sub_result = MagicMock()
-        mock_sub_result.scalar_one_or_none.return_value = None
-        mock_session.execute = AsyncMock(return_value=mock_sub_result)
+        mock_session = _ledger_session(mock_get_user.return_value)
 
         body = _make_body(input_type="text", content="The earth is flat")
 
@@ -423,25 +435,26 @@ class TestValidateAndCreateCheck:
             )
 
         assert user is mock_user
-        # session.add should have been called with the Check
-        mock_session.add.assert_called_once()
-        created_check = mock_session.add.call_args[0][0]
+        # session.add receives the Check AND its ledger debit event
+        added = [call.args[0] for call in mock_session.add.call_args_list]
+        assert len(added) == 2
+        created_check = added[0]
         assert created_check.input_type == "text"
         assert created_check.status == "processing"
         assert created_check.credits_used == 1
         assert created_check.user_id == "user-1"
+        debit_event = added[1]
+        assert debit_event.kind == "check"
+        assert debit_event.credits == 1
+        assert debit_event.check_id == created_check.id
         mock_session.commit.assert_awaited_once()
 
     @patch("app.api.v1.checks.get_or_create_user", new_callable=AsyncMock)
     async def test_credit_exhausted_raises_402(self, mock_get_user):
         mock_user = _make_user(credits=0, total_credits_used=3)
         mock_get_user.return_value = mock_user
-        mock_session = AsyncMock()
-
-        # No subscription
-        mock_sub_result = MagicMock()
-        mock_sub_result.scalar_one_or_none.return_value = None
-        mock_session.execute = AsyncMock(return_value=mock_sub_result)
+        # No subscription; ledger usage 3 of trial limit 3
+        mock_session = _ledger_session(mock_user, subscription=None, usage=3)
 
         body = _make_body(input_type="text", content="claim text")
 

@@ -30,6 +30,11 @@ import os
 import aiofiles
 from app.api.v1.users import get_or_create_user
 from app.services.storage import storage_service
+from app.services.usage_ledger import (
+    enforce_usage_limit,
+    record_usage,
+    reserve_usage,
+)
 from app.core.rate_limit import limiter
 from app.utils.encoding import fix_mojibake
 from pathlib import Path
@@ -142,46 +147,10 @@ async def _validate_and_create_check(
     # Get or create user (handles race conditions)
     user = await get_or_create_user(session, current_user)
 
-    # MONTHLY USAGE LIMIT CHECK
-    sub_stmt = select(Subscription).where(
-        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
-    )
-    sub_result = await session.execute(sub_stmt)
-    subscription = sub_result.scalar_one_or_none()
-
-    # Determine usage limit based on subscription tier
-    if subscription and subscription.current_period_start:
-        period_start = subscription.current_period_start
-        credits_limit = subscription.credits_per_month
-
-        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id, Check.created_at >= period_start
-        )
-        usage_result = await session.execute(usage_stmt)
-        current_usage = usage_result.scalar() or 0
-        limit_type = "monthly"
-    else:
-        # Free trial: limit derived from user's credit allocation.
-        # credits + total_credits_used = original allocation (deductions keep
-        # the sum constant). Default is 3; gifted users may have more.
-        credits_limit = max(3, user.credits + user.total_credits_used)
-        current_usage = user.total_credits_used
-        limit_type = "trial"
-
-    # Admin bypass (admins only — DEBUG must NOT bypass limits in production)
-    if user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
-        logger.info(f"Admin bypass: {user.email} - skipping credit limit check")
-    elif current_usage >= credits_limit:
-        if limit_type == "trial":
-            raise HTTPException(
-                status_code=402,
-                detail=f"Free trial exhausted ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
-            )
-        else:
-            raise HTTPException(
-                status_code=402,
-                detail=f"Monthly limit reached ({current_usage}/{credits_limit} checks used). Please upgrade your plan for more checks.",
-            )
+    # USAGE LIMIT CHECK — ledger-backed; locks the user row so the gate and
+    # the debit below commit atomically (admins bypass the limit, not the
+    # debit; DEBUG must NOT bypass limits in production).
+    user = await enforce_usage_limit(session, user, context="checks")
 
     # Validate input
     if body.input_type not in ["url", "text", "image", "video"]:
@@ -248,10 +217,9 @@ async def _validate_and_create_check(
 
     session.add(check)
 
-    # Reserve credits
-    if user.credits > 0:
-        user.credits -= 1
-    user.total_credits_used += 1
+    # Debit the usage ledger (+ legacy counters) in the same transaction as
+    # the Check row — the lock from enforce_usage_limit covers both.
+    record_usage(session, user, kind="check", check_id=check.id)
     await session.commit()
     await session.refresh(check)
 
@@ -1554,47 +1522,22 @@ async def update_bounty_text(
 # ============================================================================
 
 
-async def _check_credits(session: AsyncSession, current_user: dict):
-    """Validate credits and return user or raise 402."""
+async def _reserve_re_search_credit(
+    session: AsyncSession, current_user: dict, *, kind: str, check_id: str
+):
+    """Gate + debit 1 credit for a re-search/top-up run, then commit.
+
+    Ledger-backed (usage_ledger.reserve_usage): the debit lands in the same
+    period sum the monthly gate reads, so subscriber re-searches count
+    against the plan. Committed BEFORE the background work is launched —
+    a failed debit must never leave the pipeline running unbilled.
+    """
     user = await get_or_create_user(session, current_user)
-
-    # Admin bypass
-    if user.email and user.email.lower() in [e.lower() for e in settings.ADMIN_EMAILS]:
-        return user
-
-    sub_stmt = select(Subscription).where(
-        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
+    user = await reserve_usage(
+        session, user, kind=kind, check_id=check_id, context="re_search"
     )
-    sub_result = await session.execute(sub_stmt)
-    subscription = sub_result.scalar_one_or_none()
-
-    if subscription and subscription.current_period_start:
-        period_start = subscription.current_period_start
-        credits_limit = subscription.credits_per_month
-        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id, Check.created_at >= period_start
-        )
-        usage_result = await session.execute(usage_stmt)
-        current_usage = usage_result.scalar() or 0
-    else:
-        credits_limit = max(3, user.credits + user.total_credits_used)
-        current_usage = user.total_credits_used
-
-    if current_usage >= credits_limit:
-        raise HTTPException(
-            status_code=402,
-            detail="Credit limit reached. Please upgrade your plan for more re-searches.",
-        )
-
-    return user
-
-
-async def _deduct_credit(session: AsyncSession, user):
-    """Deduct 1 credit from user."""
-    user.total_credits_used += 1
-    if user.credits > 0:
-        user.credits -= 1
     await session.commit()
+    return user
 
 
 @router.post(
@@ -1682,15 +1625,14 @@ async def start_gap_research(
                 detail="Research is already in progress for one or more gap elements",
             )
 
-    # 4. Credit validation — 1 credit for all gaps
-    user = await _check_credits(session, current_user)
+    # 4. Gate + debit — 1 credit for all gaps, committed before work starts
+    await _reserve_re_search_credit(
+        session, current_user, kind="re_search", check_id=check_id
+    )
 
     # 5. Start background tasks for each gap element
     for eid in gap_element_ids:
         asyncio.create_task(run_element_re_search(check_id, claim_id, eid))
-
-    # 6. Deduct 1 credit
-    await _deduct_credit(session, user)
 
     return {
         "status": "started",
@@ -1787,15 +1729,14 @@ async def start_thin_research(
                 detail="Research is already in progress for one or more elements",
             )
 
-    # 4. Credit validation — 1 credit for the whole top-up run
-    user = await _check_credits(session, current_user)
+    # 4. Gate + debit — 1 credit for the whole top-up run, committed first
+    await _reserve_re_search_credit(
+        session, current_user, kind="top_up", check_id=check_id
+    )
 
     # 5. Start background tasks for each thin element
     for eid in thin_ids:
         asyncio.create_task(run_element_re_search(check_id, claim_id, eid))
-
-    # 6. Deduct 1 credit
-    await _deduct_credit(session, user)
 
     return {
         "status": "started",
@@ -1889,14 +1830,13 @@ async def start_element_research(
             detail="Research is already in progress for this element",
         )
 
-    # 5. Credit validation
-    user = await _check_credits(session, current_user)
+    # 5. Gate + debit — committed before the background task launches
+    await _reserve_re_search_credit(
+        session, current_user, kind="re_search", check_id=check_id
+    )
 
     # 6. Start background task
     asyncio.create_task(run_element_re_search(check_id, claim_id, element_id))
-
-    # 7. Deduct credit
-    await _deduct_credit(session, user)
 
     return {
         "status": "started",

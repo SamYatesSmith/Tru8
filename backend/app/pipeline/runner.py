@@ -3126,40 +3126,15 @@ async def handle_pipeline_failure(
 async def refund_check_credit_async(
     check_id: str, user_id: str, session: AsyncSession
 ) -> bool:
-    """Refund credit for failed check. IDEMPOTENT."""
-    try:
-        check_stmt = select(Check).where(Check.id == check_id)
-        check_result = await session.execute(check_stmt)
-        check = check_result.scalar_one_or_none()
+    """Refund credit for failed check. IDEMPOTENT.
 
-        if not check:
-            logger.error(f"Cannot refund: Check {check_id} not found")
-            return False
+    Delegates to the usage ledger (compensating -1 event + legacy counter
+    dual-write; trial field only re-credited when the debit drew from it).
+    Caller commits, as before.
+    """
+    from app.services.usage_ledger import refund_usage
 
-        # Already refunded
-        if check.credits_used == 0:
-            logger.info(f"Check {check_id} already refunded")
-            return True
-
-        credits_to_refund = check.credits_used
-
-        user_stmt = select(User).where(User.id == user_id)
-        user_result = await session.execute(user_stmt)
-        user = user_result.scalar_one_or_none()
-
-        if not user:
-            logger.error(f"Cannot refund: User {user_id} not found")
-            return False
-
-        user.credits += credits_to_refund
-        check.credits_used = 0
-
-        logger.info(f"Refunded {credits_to_refund} credit(s) for check {check_id}")
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to refund credit: {e}")
-        return False
+    return await refund_usage(session, check_id, user_id)
 
 
 async def send_success_notifications(

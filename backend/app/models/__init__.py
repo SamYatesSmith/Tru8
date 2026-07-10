@@ -14,6 +14,7 @@ from .video_recommendation import VideoRecommendation
 from .api_key import APIKey
 from .webhook import Webhook
 from .agent_transaction import AgentTransaction
+from .usage_event import UsageEvent
 
 __all__ = [
     "User",
@@ -34,4 +35,5 @@ __all__ = [
     "APIKey",
     "Webhook",
     "AgentTransaction",
+    "UsageEvent",
 ]

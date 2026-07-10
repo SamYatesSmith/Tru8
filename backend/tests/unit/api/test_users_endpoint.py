@@ -518,7 +518,8 @@ class TestGetUsage:
 
         session = _make_session(
             {"scalar": user},  # get_or_create_user
-            {"scalar": None},  # no subscription
+            {"scalar": None},  # no subscription (usage snapshot)
+            {"scalar": 1},  # ledger usage sum (usage_events)
         )
 
         with patch("app.api.v1.users.settings") as mock_settings:
@@ -538,6 +539,7 @@ class TestGetUsage:
         assert body["creditsRemaining"] == 2
         assert body["isTrial"] is True
         assert body["creditsPerPeriod"] == 3
+        assert body["periodCreditsUsed"] == 1  # from the ledger
         assert body["subscription"]["plan"] == "free_trial"
         assert body["subscription"]["resetDate"] is None
 
@@ -549,7 +551,8 @@ class TestGetUsage:
 
         session = _make_session(
             {"scalar": user},  # get_or_create_user
-            {"scalar": None},  # no subscription
+            {"scalar": None},  # no subscription (usage snapshot)
+            {"scalar": 50},  # ledger usage sum (usage_events)
         )
 
         with patch("app.api.v1.users.settings") as mock_settings:
@@ -568,6 +571,9 @@ class TestGetUsage:
         body = resp.json()
         assert body["creditsRemaining"] == 999999
         assert body["isAdmin"] is True
+        # D1 (2026-07-10): admins see their REAL usage, unlimited limit.
+        assert body["periodCreditsUsed"] == 50
+        assert body["creditsPerPeriod"] == 999999
         assert body["subscription"]["plan"] == "admin"
 
 

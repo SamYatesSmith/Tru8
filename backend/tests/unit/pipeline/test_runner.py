@@ -306,87 +306,107 @@ class TestHandlePipelineFailure:
 # ── refund_check_credit_async ───────────────────────────────────────────────
 
 
+def _refund_session(check, user, debit_event):
+    """Session for the ledger-backed refund path (2026-07-10).
+
+    Execute order inside usage_ledger.refund_usage: 1) Check select,
+    2) User select, 3) original 'check' debit event select.
+    """
+    session = AsyncMock()
+    call_count = {"n": 0}
+
+    async def _exec(stmt):
+        call_count["n"] += 1
+        result = MagicMock()
+        if call_count["n"] == 1:
+            result.scalar_one_or_none.return_value = check
+        elif call_count["n"] == 2:
+            result.scalar_one_or_none.return_value = user
+        else:
+            result.scalars.return_value.first.return_value = debit_event
+        return result
+
+    session.execute = AsyncMock(side_effect=_exec)
+    session.add = MagicMock()
+    return session, call_count
+
+
 @pytest.mark.asyncio
 class TestRefundCheckCreditAsync:
+    """The runner wrapper delegates to usage_ledger.refund_usage; these
+    tests pin the delegation and the caller-visible contract. The full
+    refund semantics live in tests/unit/services/test_usage_ledger.py."""
+
     async def test_idempotent_zero_credits(self):
         """credits_used=0 returns True without modifying anything."""
         check = MagicMock()
         check.credits_used = 0
 
-        session = AsyncMock()
-        call_count = {"n": 0}
-
-        async def _exec(stmt):
-            call_count["n"] += 1
-            result = MagicMock()
-            result.scalar_one_or_none.return_value = check
-            return result
-
-        session.execute = AsyncMock(side_effect=_exec)
+        session, call_count = _refund_session(check, None, None)
 
         result = await refund_check_credit_async("chk-1", "usr-1", session)
         assert result is True
         # credits_used was already 0, no user query needed
         assert call_count["n"] == 1
+        session.add.assert_not_called()
 
-    async def test_increments_user_credits(self):
+    async def test_increments_user_credits_when_debit_drew_trial(self):
         check = MagicMock()
         check.credits_used = 2
+        check.user_id = "usr-1"
 
         user = MagicMock()
         user.credits = 5
+        user.total_credits_used = 9
 
-        session = AsyncMock()
-        call_count = {"n": 0}
+        debit = MagicMock()
+        debit.drew_trial = True
 
-        async def _exec(stmt):
-            call_count["n"] += 1
-            result = MagicMock()
-            if call_count["n"] == 1:
-                result.scalar_one_or_none.return_value = check
-            else:
-                result.scalar_one_or_none.return_value = user
-            return result
-
-        session.execute = AsyncMock(side_effect=_exec)
+        session, _ = _refund_session(check, user, debit)
 
         result = await refund_check_credit_async("chk-1", "usr-1", session)
         assert result is True
         assert user.credits == 7  # 5 + 2
 
+    async def test_subscriber_refund_leaves_trial_field_alone(self):
+        """B3 regression: a refund whose debit did not draw from the trial
+        allocation must not increment User.credits."""
+        check = MagicMock()
+        check.credits_used = 1
+        check.user_id = "usr-1"
+
+        user = MagicMock()
+        user.credits = 0
+        user.total_credits_used = 12
+
+        debit = MagicMock()
+        debit.drew_trial = False
+
+        session, _ = _refund_session(check, user, debit)
+
+        result = await refund_check_credit_async("chk-1", "usr-1", session)
+        assert result is True
+        assert user.credits == 0
+
     async def test_resets_check_credits(self):
         check = MagicMock()
         check.credits_used = 3
+        check.user_id = "usr-1"
 
         user = MagicMock()
         user.credits = 10
+        user.total_credits_used = 5
 
-        session = AsyncMock()
-        call_count = {"n": 0}
+        debit = MagicMock()
+        debit.drew_trial = True
 
-        async def _exec(stmt):
-            call_count["n"] += 1
-            result = MagicMock()
-            if call_count["n"] == 1:
-                result.scalar_one_or_none.return_value = check
-            else:
-                result.scalar_one_or_none.return_value = user
-            return result
-
-        session.execute = AsyncMock(side_effect=_exec)
+        session, _ = _refund_session(check, user, debit)
 
         await refund_check_credit_async("chk-1", "usr-1", session)
         assert check.credits_used == 0
 
     async def test_missing_check_returns_false(self):
-        session = AsyncMock()
-
-        async def _exec(stmt):
-            result = MagicMock()
-            result.scalar_one_or_none.return_value = None
-            return result
-
-        session.execute = AsyncMock(side_effect=_exec)
+        session, _ = _refund_session(None, None, None)
 
         result = await refund_check_credit_async("chk-missing", "usr-1", session)
         assert result is False

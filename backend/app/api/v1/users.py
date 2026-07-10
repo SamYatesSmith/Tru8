@@ -12,6 +12,7 @@ from app.core.auth import get_current_user
 from app.core.config import settings
 from app.models import User, Check, Subscription, Claim, Evidence, RawEvidence
 from app.services.push_notifications import push_notification_service
+from app.services.usage_ledger import get_usage_snapshot
 from app.core.rate_limit import limiter
 import stripe
 import logging
@@ -295,31 +296,14 @@ async def get_usage(
         e.lower() for e in settings.ADMIN_EMAILS
     ]
 
-    # Get subscription data
-    sub_stmt = select(Subscription).where(
-        Subscription.user_id == user.id, Subscription.status.in_(["active", "trialing"])
-    )
-    sub_result = await session.execute(sub_stmt)
-    subscription = sub_result.scalar_one_or_none()
-
-    # Determine usage based on subscription tier
-    if subscription and subscription.current_period_start:
-        # Subscriber: use subscription billing period
-        period_start = subscription.current_period_start
-        credits_per_period = subscription.credits_per_month
-        is_trial = False
-
-        # Calculate monthly usage for subscribers
-        usage_stmt = select(func.coalesce(func.sum(Check.credits_used), 0)).where(
-            Check.user_id == user.id, Check.created_at >= period_start
-        )
-        usage_result = await session.execute(usage_stmt)
-        period_credits_used = usage_result.scalar() or 0
-    else:
-        # Free trial: limit from user's credit allocation (default 3, gifted may be higher)
-        credits_per_period = max(3, user.credits + user.total_credits_used)
-        period_credits_used = user.total_credits_used  # Lifetime usage
-        is_trial = True
+    # Usage from the ledger — the same sum the entitlement gates read, so
+    # the meters can never diverge from what is actually charged. Includes
+    # re-searches/top-ups (usage_events; design 2026-07-10).
+    snapshot = await get_usage_snapshot(session, user)
+    subscription = snapshot["subscription"]
+    period_credits_used = snapshot["usage"]
+    credits_per_period = snapshot["limit"]
+    is_trial = snapshot["limit_type"] == "trial"
 
     # Build subscription response
     if subscription:
@@ -347,12 +331,13 @@ async def get_usage(
             "periodStart": None,
         }
 
-    # Admin override: return unlimited credits
+    # Admin override: unlimited limit, but REAL usage (D1 2026-07-10) so
+    # the meters visibly move for admin accounts too.
     if is_admin:
         return {
             "creditsRemaining": 999999,
             "totalCreditsUsed": user.total_credits_used,
-            "periodCreditsUsed": 0,  # Always show 0 used for admins
+            "periodCreditsUsed": period_credits_used,
             "creditsPerPeriod": 999999,  # Unlimited
             "isTrial": False,
             "isAdmin": True,
