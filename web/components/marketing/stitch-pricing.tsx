@@ -1,27 +1,30 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 
 import { SheetHeader } from './sheet-header';
 import { capture } from '@/lib/analytics';
 
 /**
- * Pricing — Direction B: the Console (£20/mo) rendered as the site's signature
- * "artifact" datasheet panel (mono spine, numbered feature ledger, signed-manifest
- * footer), with Free + Teams as a supporting rail and a deliberately quiet API band.
- * Document-grammar vocabulary, zero new colours.
+ * Pricing — Direction B: the Console (£20/mo · £200/yr) rendered as the site's
+ * signature "artifact" datasheet panel (mono spine, numbered feature ledger,
+ * signed-manifest footer), with Free + Teams as a supporting rail and a
+ * deliberately quiet API band. Document-grammar vocabulary, zero new colours.
  *
  * P3 routes CTAs to the app / contact / developers — a real £20 Stripe checkout
- * needs a new Stripe product + price-id env (deferred to P4/deploy). tiers.ts is
- * left intact for the dashboard's existing-subscriber config; this surface no
- * longer displays the legacy £7/£29 plans.
+ * needs a new Stripe product + price-id env (deferred to P4/deploy). The
+ * monthly/annual toggle selects which price is shown; at checkout wiring it
+ * also selects the Stripe price id. tiers.ts is left intact for the dashboard's
+ * existing-subscriber config; this surface no longer displays the legacy
+ * £7/£29 plans.
  */
 
 const CONSOLE_FEATURES = [
   {
     n: '01',
-    key: 'Fair-use unlimited',
-    desc: 'Run as many checks as your research needs.',
+    key: '200 checks a month',
+    desc: "A working month's research, several times over.",
   },
   {
     n: '02',
@@ -46,6 +49,14 @@ const CONSOLE_FEATURES = [
 ];
 
 export function StitchPricing() {
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
+
+  const setPeriod = (period: 'monthly' | 'annual') => {
+    if (period === billing) return;
+    setBilling(period);
+    capture('pricing_billing_toggle', { surface: 'pricing', period });
+  };
+
   return (
     <section id="pricing" className="py-24 md:py-32">
       <div className="max-w-6xl mx-auto px-6">
@@ -70,12 +81,39 @@ export function StitchPricing() {
 
             {/* price block */}
             <div className="px-6 py-8">
+              <div
+                className="inline-flex border border-zinc-200 mb-6"
+                role="group"
+                aria-label="Billing period"
+              >
+                {(['monthly', 'annual'] as const).map((period) => (
+                  <button
+                    key={period}
+                    type="button"
+                    aria-pressed={billing === period}
+                    onClick={() => setPeriod(period)}
+                    className={`font-mono text-[10px] tracking-[0.2em] uppercase px-4 py-2 transition-colors ${
+                      billing === period
+                        ? 'bg-zinc-900 text-white'
+                        : 'text-zinc-500 hover:text-zinc-900'
+                    }`}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-light text-zinc-900">£20</span>
-                <span className="text-lg text-zinc-400">/mo</span>
+                <span className="text-5xl font-light text-zinc-900">
+                  {billing === 'monthly' ? '£20' : '£200'}
+                </span>
+                <span className="text-lg text-zinc-400">
+                  {billing === 'monthly' ? '/mo' : '/yr'}
+                </span>
               </div>
               <p className="text-sm text-zinc-500 mt-2">
-                or £200/yr · fair-use unlimited evidence research in the browser.
+                {billing === 'monthly'
+                  ? 'or £200/yr — two months free · evidence research in the browser.'
+                  : 'billed once a year — two months free · evidence research in the browser.'}
               </p>
             </div>
 
@@ -146,8 +184,8 @@ export function StitchPricing() {
                 <span className="text-lg text-zinc-400">/mo</span>
               </div>
               <p className="text-sm text-zinc-500 mt-2 flex-grow">
-                Shared workspace, retention controls and an SLA for newsrooms and
-                research teams.
+                For newsrooms and research teams — shared access, priced to fit.
+                Tell us what you need.
               </p>
               <Link
                 href="/contact"
