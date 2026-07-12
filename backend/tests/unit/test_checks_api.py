@@ -450,6 +450,42 @@ class TestValidateAndCreateCheck:
         mock_session.commit.assert_awaited_once()
 
     @patch("app.api.v1.checks.get_or_create_user", new_callable=AsyncMock)
+    async def test_check_flushed_before_ledger_debit(self, mock_get_user):
+        """Regression (Sentry PYTHON-FASTAPI-2F, 2026-07-12): the Check INSERT
+        must be flushed before the UsageEvent debit is added. Without a
+        relationship() the unit of work does not order inserts across mappers
+        by raw FK columns, so Postgres emitted usage_events before "check" —
+        FK violation → unhandled 500 on every /checks/stream submission.
+        """
+        mock_user = _make_user()
+        mock_get_user.return_value = mock_user
+        mock_session = _ledger_session(mock_user)
+
+        # Record the interleaved order of add/flush operations.
+        ops = []
+        mock_session.add = MagicMock(
+            side_effect=lambda obj: ops.append(("add", type(obj).__name__))
+        )
+        mock_session.flush = AsyncMock(side_effect=lambda: ops.append(("flush", None)))
+
+        body = _make_body(input_type="text", content="The earth is flat")
+
+        with patch("app.api.v1.checks.settings") as mock_settings:
+            mock_settings.DEBUG = True
+            mock_settings.BETA_TESTER_EMAILS = []
+            mock_settings.ADMIN_EMAILS = []
+            mock_settings.ENABLE_SEARCH_CLARITY = True
+
+            await _validate_and_create_check(body, {"sub": "user-1"}, mock_session)
+
+        add_check = ops.index(("add", "Check"))
+        add_event = ops.index(("add", "UsageEvent"))
+        flushes = [i for i, (op, _) in enumerate(ops) if op == "flush"]
+        assert any(
+            add_check < i < add_event for i in flushes
+        ), f"Check must be flushed before the ledger debit is added; got {ops}"
+
+    @patch("app.api.v1.checks.get_or_create_user", new_callable=AsyncMock)
     async def test_credit_exhausted_raises_402(self, mock_get_user):
         mock_user = _make_user(credits=0, total_credits_used=3)
         mock_get_user.return_value = mock_user

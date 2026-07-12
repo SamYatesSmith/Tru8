@@ -217,6 +217,13 @@ async def _validate_and_create_check(
 
     session.add(check)
 
+    # Flush the Check INSERT before appending the FK'd ledger event: without
+    # a relationship() the unit of work does NOT order inserts across mappers
+    # by raw FK columns, and Postgres emitted usage_events before "check"
+    # (FK violation → 500 on every submission; Sentry PYTHON-FASTAPI-2F).
+    # Same transaction, so the row lock from enforce_usage_limit still holds.
+    await session.flush()
+
     # Debit the usage ledger (+ legacy counters) in the same transaction as
     # the Check row — the lock from enforce_usage_limit covers both.
     record_usage(session, user, kind="check", check_id=check.id)
