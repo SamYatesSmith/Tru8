@@ -10,7 +10,7 @@ export default function RefundPolicyPage() {
   return (
     <LegalPageLayout
       title="Refund Policy"
-      lastUpdated="27 May 2026"
+      lastUpdated="13 July 2026"
     >
       <div className="prose-legal">
         <h2>1. Subscription Cancellation</h2>
@@ -47,7 +47,8 @@ export default function RefundPolicyPage() {
         <ul>
           <li>Partial months (prorated refunds not offered)</li>
           <li>Renewal payments beyond 14 days</li>
-          <li>Unused credits (credits don&apos;t roll over)</li>
+          <li>Unused monthly checks (checks don&apos;t roll over)</li>
+          <li>Prepaid API credit already spent on calls (unspent prepaid credit does not expire and remains available on your account)</li>
           <li>Service dissatisfaction after 14-day period</li>
           <li>Account termination due to Terms of Service violations</li>
         </ul>
@@ -68,10 +69,10 @@ export default function RefundPolicyPage() {
           within 14 days under the EU Consumer Rights Directive, regardless of reason.
         </p>
 
-        <h2>6. Free Plan</h2>
+        <h2>6. Free Trial</h2>
         <p>
-          The Free Plan has no charges and therefore no refunds apply. Free credits
-          are provided as-is with no cash value.
+          The free trial has no charges and therefore no refunds apply. Free trial
+          checks are provided as-is with no cash value.
         </p>
 
         <h2>7. Contact</h2>

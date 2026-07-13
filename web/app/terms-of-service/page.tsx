@@ -10,7 +10,7 @@ export default function TermsOfServicePage() {
   return (
     <LegalPageLayout
       title="Terms of Service"
-      lastUpdated="27 May 2026"
+      lastUpdated="13 July 2026"
     >
       <div className="prose-legal">
         <h2>1. Agreement to Terms</h2>
@@ -54,47 +54,52 @@ export default function TermsOfServicePage() {
           <li>Do not share login credentials</li>
         </ul>
 
-        <h2>4. Subscription Plans</h2>
+        <h2>4. Plans and Pricing</h2>
 
-        <h3>4.1 Free Plan</h3>
+        <h3>4.1 Free Trial</h3>
         <ul>
-          <li>3 free checks upon signup</li>
-          <li>Basic analysis features</li>
+          <li>3 free checks on signup</li>
+          <li>Full analysis features and all six views</li>
           <li>Standard support</li>
         </ul>
 
-        <h3>4.2 Starter Plan (£7/month)</h3>
+        <h3>4.2 Tru8 Console (£20/month or £200/year)</h3>
         <ul>
-          <li>40 checks per month (~18p per check)</li>
-          <li>URL analysis</li>
-          <li>Comprehensive source citations</li>
-          <li>Export to PDF/JSON/CSV</li>
-          <li>Priority support</li>
+          <li>200 checks per month</li>
+          <li>All source types and all six views</li>
+          <li>Signed evidence records with a receipt for every exclusion; export to PDF, CSV and JSON</li>
+          <li>Targeted re-search and a personal API allowance</li>
+          <li>The annual option (£200/year) is billed once a year</li>
         </ul>
 
-        <h3>4.3 Professional Plan (£29/month)</h3>
+        <h3>4.3 Teams (from £75/month)</h3>
         <ul>
-          <li>200 checks per month (~15p per check)</li>
-          <li>All Starter features</li>
-          <li>API access with dedicated API key</li>
-          <li>MCP server integration</li>
-          <li>Agent Commerce Gateway access (lookup, consensus, quick, full tiers)</li>
+          <li>For newsrooms and research teams: shared access and volume pricing, arranged with us</li>
+          <li>Direct support</li>
+          <li>Contact us for a quote</li>
         </ul>
 
-        <h3>4.4 Enterprise Plan (Custom)</h3>
+        <h3>4.4 API and Agent Access (metered, pay-as-you-go)</h3>
         <ul>
-          <li>Custom check volume</li>
-          <li>Dedicated support</li>
-          <li>Custom integrations</li>
-          <li>Volume pricing</li>
+          <li>Available on any account using an API key, independent of any subscription</li>
+          <li>Billed per call from a prepaid balance in GBP, from £0.02 per call up to £0.15 for a full record</li>
+          <li>Includes the MCP server and the Agent Commerce Gateway tiers (lookup, consensus, quick, full)</li>
+          <li>Prepaid credit is bought in packs and drawn down as you make calls</li>
         </ul>
 
-        <h3>4.5 Billing</h3>
+        <h3>4.5 Legacy Plans</h3>
         <ul>
-          <li>Monthly subscriptions auto-renew until cancelled</li>
-          <li>Payment processed via Stripe</li>
-          <li>Prices in GBP, inclusive of VAT where applicable</li>
-          <li>Unused credits do not roll over</li>
+          <li>Our Starter and Professional plans are closed to new subscriptions</li>
+          <li>Existing subscribers remain on their current plan and price until they change plan or cancel</li>
+        </ul>
+
+        <h3>4.6 Billing</h3>
+        <ul>
+          <li>Subscriptions auto-renew (monthly or annually) until cancelled</li>
+          <li>Payment is processed via Stripe</li>
+          <li>Prices are in GBP. Tru8 is not currently VAT-registered, so no VAT is added; if we become VAT-registered, we will give notice before applying VAT</li>
+          <li>Prepaid API credit does not expire, is usable only for Tru8 services, and is not exchangeable for cash. It is charged per call as it is used, and is non-refundable except where required by law</li>
+          <li>Unused monthly checks do not roll over</li>
         </ul>
 
         <h2>5. Acceptable Use Policy</h2>
@@ -119,7 +124,7 @@ export default function TermsOfServicePage() {
 
         <h3>6.1 API Access</h3>
         <ul>
-          <li>API access is available on all plans; the Professional and Enterprise plans include higher volume allowances</li>
+          <li>API access is a separate metered product, available on any account using an API key — a Console subscription is not required</li>
           <li>Each API key is tied to a single account and carries your identity and usage quota</li>
           <li>You are responsible for all activity performed using your API key</li>
           <li>API keys must be stored securely — never in client-side code, version control, or logs</li>
@@ -128,17 +133,17 @@ export default function TermsOfServicePage() {
 
         <h3>6.2 Rate Limits & Fair Use</h3>
         <ul>
-          <li>API requests are subject to rate limits based on your subscription tier</li>
+          <li>API requests are subject to rate limits applied per API key</li>
           <li>Concurrent request limits apply per API key (currently 3 simultaneous requests)</li>
           <li>Requests exceeding rate limits will receive HTTP 429 responses</li>
-          <li>Sustained high-volume usage beyond plan limits may require an Enterprise agreement</li>
+          <li>Sustained high-volume usage may be better served by a Teams agreement</li>
         </ul>
 
         <h3>6.3 Agent & Automated Usage</h3>
         <ul>
           <li>AI agents and automated systems may use the API under the same terms as human users</li>
           <li>Agent usage via MCP (Model Context Protocol) or direct API calls is permitted within plan limits</li>
-          <li>The Agent Commerce Gateway (x402, Skyfire, prepaid credits) provides pay-per-use access for agents without a subscription</li>
+          <li>The Agent Commerce Gateway provides pay-per-use access for agents via prepaid credit, without a subscription</li>
           <li>Agent operators are responsible for their agents&apos; compliance with these terms</li>
         </ul>
 
