@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { Check, AlertTriangle, ArrowRight } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import { TIERS, getTierPriceId, type TierConfig } from '@/lib/tiers';
+import { TIERS, getTierPriceId, purchasableTiers, type TierConfig } from '@/lib/tiers';
 
 interface SubscriptionTabProps {
   userData: any;
@@ -12,7 +12,7 @@ interface SubscriptionTabProps {
   onUpdate: () => void;
 }
 
-const TIER_ORDER = ['free', 'starter', 'professional', 'enterprise'];
+const TIER_ORDER = ['free', 'starter', 'professional', 'console', 'enterprise'];
 
 export function SubscriptionTab({
   userData,
@@ -66,8 +66,8 @@ export function SubscriptionTab({
     fetchUsage();
   }, [getToken]);
 
-  const handleUpgrade = async (tier: TierConfig) => {
-    const priceId = getTierPriceId(tier);
+  const handleUpgrade = async (tier: TierConfig, interval: 'month' | 'year' = 'month') => {
+    const priceId = getTierPriceId(tier, interval);
     if (!priceId) {
       alert('This plan is not yet available. Please try again later.');
       return;
@@ -153,8 +153,11 @@ export function SubscriptionTab({
     }
   };
 
+  // Retired tiers (Starter/Professional) render only for their existing subscribers
+  const visibleTiers = purchasableTiers(currentPlan);
+
   // Max feature count for equal-height cards
-  const maxFeatures = Math.max(...TIERS.map((t) => t.features.length));
+  const maxFeatures = Math.max(...visibleTiers.map((t) => t.features.length));
 
   return (
     <div className="space-y-10">
@@ -291,7 +294,7 @@ export function SubscriptionTab({
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {TIERS.map((tier) => {
+          {visibleTiers.map((tier) => {
             const tierIndex = TIER_ORDER.indexOf(tier.id);
             const isCurrent = tier.id === currentPlan;
             const isUpgrade = tierIndex > currentTierIndex;
@@ -372,14 +375,25 @@ export function SubscriptionTab({
                       <ArrowRight size={14} />
                     </a>
                   ) : isUpgrade ? (
-                    <button
-                      onClick={() => handleUpgrade(tier)}
-                      disabled={loading}
-                      className="flex items-center justify-center gap-2 w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:opacity-50"
-                    >
-                      {loading ? 'Loading...' : 'Upgrade'}
-                      {!loading && <ArrowRight size={14} />}
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handleUpgrade(tier)}
+                        disabled={loading}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:opacity-50"
+                      >
+                        {loading ? 'Loading...' : 'Upgrade'}
+                        {!loading && <ArrowRight size={14} />}
+                      </button>
+                      {tier.annualPrice != null && (
+                        <button
+                          onClick={() => handleUpgrade(tier, 'year')}
+                          disabled={loading}
+                          className="w-full text-center text-xs text-zinc-500 hover:text-zinc-900 transition-colors disabled:opacity-50"
+                        >
+                          or £{tier.annualPrice}/yr — two months free
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <div className="w-full py-2.5 text-center text-xs font-medium text-zinc-300 border border-zinc-100">
                       &mdash;

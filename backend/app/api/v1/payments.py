@@ -315,7 +315,11 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
     PRICE_TO_PLAN = {
         settings.STRIPE_PRICE_ID_PRO: ("starter", 40),
         settings.STRIPE_PRICE_ID_DEVELOPER: ("professional", 200),
+        # Console (2026-07): monthly + annual both grant 200 checks/month
+        settings.STRIPE_PRICE_ID_CONSOLE: ("console", 200),
+        settings.STRIPE_PRICE_ID_CONSOLE_ANNUAL: ("console", 200),
     }
+    PRICE_TO_PLAN.pop("", None)  # unset env vars must never match
 
     if price_id in PRICE_TO_PLAN:
         plan, credits_per_month = PRICE_TO_PLAN[price_id]
@@ -323,7 +327,8 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
         logger.error(
             f"Unknown Stripe price ID: {price_id}. "
             f"Expected: {list(PRICE_TO_PLAN.keys())}. "
-            f"Check STRIPE_PRICE_ID_PRO and STRIPE_PRICE_ID_DEVELOPER env vars."
+            f"Check STRIPE_PRICE_ID_PRO / _DEVELOPER / _CONSOLE / "
+            f"_CONSOLE_ANNUAL env vars."
         )
         return  # Do not create/update subscription with incorrect data
 
@@ -389,7 +394,11 @@ def _plan_from_price_id(price_id: str):
     mapping = {
         settings.STRIPE_PRICE_ID_PRO: ("starter", 40),
         settings.STRIPE_PRICE_ID_DEVELOPER: ("professional", 200),
+        # Console (2026-07): monthly + annual both grant 200 checks/month
+        settings.STRIPE_PRICE_ID_CONSOLE: ("console", 200),
+        settings.STRIPE_PRICE_ID_CONSOLE_ANNUAL: ("console", 200),
     }
+    mapping.pop("", None)  # unset env vars must never match
     return mapping.get(price_id)
 
 

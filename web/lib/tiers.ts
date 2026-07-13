@@ -9,7 +9,13 @@ export interface TierConfig {
   cta: string;
   highlighted: boolean;
   priceEnvVar?: string;
+  /** Optional annual price (Console: £200/yr). */
+  annualPrice?: number;
+  annualPriceEnvVar?: string;
   contactUrl?: string;
+  /** Retired from sale (2026-07 Console pricing) — kept so existing
+   *  subscribers' current plan still renders; never offered as an upgrade. */
+  retired?: boolean;
 }
 
 export const TIERS: TierConfig[] = [
@@ -20,7 +26,7 @@ export const TIERS: TierConfig[] = [
     period: "lifetime",
     credits: 3,
     description: "Try Tru8 with 3 free checks",
-    features: ["3 evidence checks", "All source types", "All six views"],
+    features: ["3 evidence checks", "All source types", "All six lenses"],
     cta: "Get Started",
     highlighted: false,
   },
@@ -35,6 +41,7 @@ export const TIERS: TierConfig[] = [
     cta: "Upgrade",
     highlighted: false,
     priceEnvVar: "NEXT_PUBLIC_STRIPE_PRICE_ID_PRO",
+    retired: true,
   },
   {
     id: "professional",
@@ -45,34 +52,68 @@ export const TIERS: TierConfig[] = [
     description: "High-volume evidence research",
     features: ["200 checks per month", "Full API & MCP access", "Priority processing", "Export reports"],
     cta: "Upgrade",
-    highlighted: true,
+    highlighted: false,
     priceEnvVar: "NEXT_PUBLIC_STRIPE_PRICE_ID_DEVELOPER",
+    retired: true,
+  },
+  {
+    id: "console",
+    name: "Tru8 Console",
+    price: 20,
+    period: "month",
+    credits: 200,
+    description: "Evidence research in the browser",
+    features: [
+      "200 checks per month",
+      "All six lenses",
+      "Signed records + PDF export",
+      "Targeted re-search",
+    ],
+    cta: "Upgrade",
+    highlighted: true,
+    priceEnvVar: "NEXT_PUBLIC_STRIPE_PRICE_ID_CONSOLE",
+    annualPrice: 200,
+    annualPriceEnvVar: "NEXT_PUBLIC_STRIPE_PRICE_ID_CONSOLE_ANNUAL",
   },
   {
     id: "enterprise",
-    name: "Enterprise",
+    name: "Teams",
     price: null,
     period: null,
     credits: null,
-    description: "Custom volume, SLA, and support",
-    features: ["Custom check volume", "Dedicated support", "SLA guarantee", "Custom integrations"],
+    description: "For teams working evidence together",
+    features: ["From £75/month", "Team onboarding", "Volume pricing", "Direct support"],
     cta: "Contact Us",
     highlighted: false,
-    contactUrl: "mailto:hello@trueight.com",
+    contactUrl: "/contact",
   },
 ];
+
+/** Tiers offered for purchase (retired tiers stay renderable for existing
+ *  subscribers via TIERS, but are never sold). */
+export function purchasableTiers(currentPlanId: string): TierConfig[] {
+  return TIERS.filter((t) => !t.retired || t.id === currentPlanId);
+}
 
 /** Resolve a tier's Stripe price ID.
  *
  * Next.js inlines NEXT_PUBLIC_* env vars at build time. The references
  * must be literal (not dynamic) for the compiler to replace them.
  */
-export function getTierPriceId(tier: TierConfig): string | null {
-  switch (tier.priceEnvVar) {
+export function getTierPriceId(
+  tier: TierConfig,
+  interval: 'month' | 'year' = 'month'
+): string | null {
+  const envVar = interval === 'year' ? tier.annualPriceEnvVar : tier.priceEnvVar;
+  switch (envVar) {
     case 'NEXT_PUBLIC_STRIPE_PRICE_ID_PRO':
       return process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO || null;
     case 'NEXT_PUBLIC_STRIPE_PRICE_ID_DEVELOPER':
       return process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_DEVELOPER || null;
+    case 'NEXT_PUBLIC_STRIPE_PRICE_ID_CONSOLE':
+      return process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_CONSOLE || null;
+    case 'NEXT_PUBLIC_STRIPE_PRICE_ID_CONSOLE_ANNUAL':
+      return process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_CONSOLE_ANNUAL || null;
     default:
       return null;
   }

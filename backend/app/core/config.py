@@ -110,6 +110,12 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = Field("", env="STRIPE_WEBHOOK_SECRET")
     STRIPE_PRICE_ID_PRO: str = Field("", env="STRIPE_PRICE_ID_PRO")
     STRIPE_PRICE_ID_DEVELOPER: str = Field("", env="STRIPE_PRICE_ID_DEVELOPER")
+    # Console tier (2026-07 pricing): £20/mo + £200/yr, 200 checks/month hard cap.
+    # _PRO/_DEVELOPER above are RETIRED from sale — kept for existing subscribers.
+    STRIPE_PRICE_ID_CONSOLE: str = Field("", env="STRIPE_PRICE_ID_CONSOLE")
+    STRIPE_PRICE_ID_CONSOLE_ANNUAL: str = Field(
+        "", env="STRIPE_PRICE_ID_CONSOLE_ANNUAL"
+    )
     STRIPE_PRICE_ID_CREDIT_PACK_5: str = Field("", env="STRIPE_PRICE_ID_CREDIT_PACK_5")
     STRIPE_PRICE_ID_CREDIT_PACK_20: str = Field(
         "", env="STRIPE_PRICE_ID_CREDIT_PACK_20"

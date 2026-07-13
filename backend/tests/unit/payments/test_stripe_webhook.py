@@ -118,3 +118,114 @@ class TestStripeWebhook:
             await stripe_webhook(request, mock_session)
 
         assert exc_info.value.status_code == 400
+
+
+class TestConsolePriceMapping:
+    """Console tier (2026-07): both price IDs map to ("console", 200);
+    unknown / unset price IDs must fail closed."""
+
+    def test_plan_from_console_monthly(self):
+        from app.api.v1.payments import _plan_from_price_id
+        from app.core.config import settings
+
+        with patch.object(settings, "STRIPE_PRICE_ID_CONSOLE", "price_console_m"):
+            assert _plan_from_price_id("price_console_m") == ("console", 200)
+
+    def test_plan_from_console_annual(self):
+        from app.api.v1.payments import _plan_from_price_id
+        from app.core.config import settings
+
+        with patch.object(
+            settings, "STRIPE_PRICE_ID_CONSOLE_ANNUAL", "price_console_y"
+        ):
+            assert _plan_from_price_id("price_console_y") == ("console", 200)
+
+    def test_unknown_price_returns_none(self):
+        from app.api.v1.payments import _plan_from_price_id
+
+        assert _plan_from_price_id("price_attacker_supplied") is None
+
+    def test_unset_env_vars_never_match(self):
+        """With console env vars unset (empty string), an empty price_id must
+        NOT resolve to a plan — the empty-key entry is popped from the map."""
+        from app.api.v1.payments import _plan_from_price_id
+        from app.core.config import settings
+
+        with (
+            patch.object(settings, "STRIPE_PRICE_ID_CONSOLE", ""),
+            patch.object(settings, "STRIPE_PRICE_ID_CONSOLE_ANNUAL", ""),
+        ):
+            assert _plan_from_price_id("") is None
+
+    @pytest.mark.asyncio
+    async def test_console_checkout_creates_console_subscription(self):
+        """handle_successful_payment on a Console price creates plan=console
+        with 200 credits/month."""
+        from app.api.v1.payments import handle_successful_payment
+        from app.core.config import settings
+
+        user = MagicMock()
+        no_sub = MagicMock()
+        no_sub.scalar_one_or_none.return_value = None
+        user_result = MagicMock()
+        user_result.scalar_one_or_none.return_value = user
+
+        session = AsyncMock()
+        session.execute = AsyncMock(side_effect=[user_result, no_sub])
+        session.add = MagicMock()
+
+        stripe_sub = {
+            "items": {"data": [{"price": {"id": "price_console_m"}}]},
+            "customer": "cus_1",
+            "current_period_start": 1750000000,
+            "current_period_end": 1752600000,
+        }
+        with (
+            patch.object(settings, "STRIPE_PRICE_ID_CONSOLE", "price_console_m"),
+            patch(
+                "app.api.v1.payments.stripe.Subscription.retrieve",
+                return_value=stripe_sub,
+            ),
+        ):
+            await handle_successful_payment(
+                {"client_reference_id": "user_1", "subscription": "sub_1"},
+                session,
+            )
+
+        session.add.assert_called_once()
+        new_sub = session.add.call_args[0][0]
+        assert new_sub.plan == "console"
+        assert new_sub.credits_per_month == 200
+        assert new_sub.credits_remaining == 200
+        session.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_unmapped_price_fails_closed(self):
+        """A checkout on an unmapped price must NOT create a subscription
+        (money taken + no plan is the trap; the handler must return early)."""
+        from app.api.v1.payments import handle_successful_payment
+
+        user_result = MagicMock()
+        user_result.scalar_one_or_none.return_value = MagicMock()
+
+        session = AsyncMock()
+        session.execute = AsyncMock(return_value=user_result)
+        session.add = MagicMock()
+
+        stripe_sub = {
+            "items": {"data": [{"price": {"id": "price_not_in_any_map"}}]},
+            "customer": "cus_1",
+            "current_period_start": 1750000000,
+            "current_period_end": 1752600000,
+        }
+        with patch(
+            "app.api.v1.payments.stripe.Subscription.retrieve",
+            return_value=stripe_sub,
+        ):
+            await handle_successful_payment(
+                {"client_reference_id": "user_1", "subscription": "sub_1"},
+                session,
+            )
+
+        session.add.assert_not_called()
+        session.commit.assert_not_awaited()

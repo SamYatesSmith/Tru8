@@ -476,6 +476,24 @@ class TestPriceConsistency:
             assert price.unit_amount == expected_amount
             assert price.recurring.interval == expected_interval
 
+    @pytest.mark.skipif(
+        SKIP or not settings.STRIPE_PRICE_ID_CONSOLE,
+        reason="STRIPE_PRICE_ID_CONSOLE not configured",
+    )
+    def test_console_prices_match(self):
+        """Console tier (2026-07): £20/mo + £200/yr, GBP, active."""
+        expected = {
+            settings.STRIPE_PRICE_ID_CONSOLE: (2000, "month"),
+            settings.STRIPE_PRICE_ID_CONSOLE_ANNUAL: (20000, "year"),
+        }
+        for pid, (expected_amount, expected_interval) in expected.items():
+            assert pid, "both Console price env vars must be set together"
+            price = stripe.Price.retrieve(pid)
+            assert price.currency == "gbp"
+            assert price.active
+            assert price.unit_amount == expected_amount
+            assert price.recurring.interval == expected_interval
+
     def test_no_old_usd_products_active(self):
         """Old USD credit pack products should be archived."""
         products = stripe.Product.list(limit=100)
