@@ -26,7 +26,7 @@ export const TIERS: TierConfig[] = [
     period: "lifetime",
     credits: 3,
     description: "Try Tru8 with 3 free checks",
-    features: ["3 evidence checks", "All source types", "All six lenses"],
+    features: ["3 evidence checks", "All source types", "All six views"],
     cta: "Get Started",
     highlighted: false,
   },
@@ -65,7 +65,7 @@ export const TIERS: TierConfig[] = [
     description: "Evidence research in the browser",
     features: [
       "200 checks per month",
-      "All six lenses",
+      "All six views",
       "Signed records + PDF export",
       "Targeted re-search",
     ],
@@ -93,6 +93,24 @@ export const TIERS: TierConfig[] = [
  *  subscribers via TIERS, but are never sold). */
 export function purchasableTiers(currentPlanId: string): TierConfig[] {
   return TIERS.filter((t) => !t.retired || t.id === currentPlanId);
+}
+
+/** Human price for a tier at a billing cadence.
+ *
+ * Console monthly (£20/mo) and annual (£200/yr) share one tier with a flat
+ * `price`; the backend now reports the cadence (`billingInterval`) so we can
+ * show the amount actually billed. Falls back to the monthly price when no
+ * annual price exists or the interval is unknown. Returns "Custom" for
+ * quote-only tiers (Teams). */
+export function formatTierPrice(
+  tier: TierConfig,
+  interval?: 'month' | 'year' | string | null
+): string {
+  if (tier.price == null) return 'Custom';
+  if (interval === 'year' && tier.annualPrice != null) {
+    return `£${tier.annualPrice}/year`;
+  }
+  return `£${tier.price}/month`;
 }
 
 /** Resolve a tier's Stripe price ID.

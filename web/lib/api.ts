@@ -112,6 +112,30 @@ class ApiClient {
   }
 
   /**
+   * GET /api/v1/users/agent-credits
+   * Prepaid agent API credit balance (separate from subscription checks).
+   */
+  async getAgentCreditBalance(token?: string | null) {
+    return this.request<{ balancePence: number; balanceGbp: string }>(
+      '/api/v1/users/agent-credits',
+      {},
+      token
+    );
+  }
+
+  /**
+   * POST /api/v1/users/agent-credits/purchase
+   * Create a Stripe Checkout session to top up the agent credit balance.
+   */
+  async purchaseAgentCredits(pack: '20' | '100', token?: string | null) {
+    return this.request<{ sessionId: string; url: string }>(
+      '/api/v1/users/agent-credits/purchase',
+      { method: 'POST', body: JSON.stringify({ pack }) },
+      token
+    );
+  }
+
+  /**
    * PATCH /api/v1/users/profile
    * Update user profile (name, etc.)
    */

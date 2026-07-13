@@ -359,6 +359,83 @@ async def get_usage(
     }
 
 
+# ---------------------------------------------------------------------------
+# Agent API prepaid credit balance — dashboard view of the /agent rail
+# ---------------------------------------------------------------------------
+# The /agent/credits/* endpoints authenticate agents (Skyfire / API key) and
+# cannot be called with a Clerk dashboard session. These mirror them for the
+# logged-in dashboard user so the Developer settings tab can show and top up
+# the SAME prepaid balance (User.credit_balance_pence — distinct from the
+# subscription check allowance). Fulfilment is the shared, auth-agnostic
+# webhook (purchase_type=agent_credits), so a top-up bought here credits the
+# balance identically to one bought via the API.
+
+
+@router.get("/agent-credits")
+async def get_agent_credit_balance(
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Prepaid agent API credit balance for the logged-in dashboard user."""
+    user = await get_or_create_user(session, current_user)
+    balance = user.credit_balance_pence or 0
+    return {"balancePence": balance, "balanceGbp": f"£{balance / 100:.2f}"}
+
+
+class AgentCreditPurchaseRequest(BaseModel):
+    pack: str  # '20' (£3.00) or '100' (£15.00)
+
+
+@router.post("/agent-credits/purchase")
+async def purchase_agent_credits(
+    body: AgentCreditPurchaseRequest,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Stripe Checkout for an agent credit pack, from the dashboard.
+
+    Same packs, price IDs and webhook fulfilment as POST /agent/credits/purchase;
+    only the auth (Clerk) and the success/cancel redirects (settings Developer
+    tab) differ.
+    """
+    user = await get_or_create_user(session, current_user)
+
+    pack_map = {
+        "20": (settings.STRIPE_PRICE_ID_CREDIT_PACK_20, 300),
+        "100": (settings.STRIPE_PRICE_ID_CREDIT_PACK_100, 1500),
+    }
+    if body.pack not in pack_map:
+        raise HTTPException(status_code=400, detail="Invalid pack. Choose 20 or 100.")
+
+    price_id, pence_value = pack_map[body.pack]
+    if not price_id:
+        raise HTTPException(
+            status_code=503,
+            detail="Credit packs not yet configured. Contact support.",
+        )
+
+    settings_url = f"{settings.FRONTEND_URL}/dashboard/settings?tab=developer"
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=user.email,
+            client_reference_id=user.id,
+            line_items=[{"price": price_id, "quantity": 1}],
+            mode="payment",
+            success_url=f"{settings_url}&credits=purchased",
+            cancel_url=f"{settings_url}&credits=cancelled",
+            metadata={
+                "user_id": user.id,
+                "credit_pack": body.pack,
+                "pence_value": str(pence_value),
+                "purchase_type": "agent_credits",
+            },
+        )
+        return {"sessionId": checkout_session.id, "url": checkout_session.url}
+    except Exception as e:
+        logger.error(f"Stripe error creating dashboard credit checkout: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+
+
 # Pydantic models for push notifications
 class PushTokenRequest(BaseModel):
     push_token: str

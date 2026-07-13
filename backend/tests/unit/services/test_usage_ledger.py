@@ -28,6 +28,7 @@ from app.models.usage_event import (
     UsageEvent,
 )
 from app.services.usage_ledger import (
+    _monthly_window_start,
     enforce_usage_limit,
     get_usage_snapshot,
     record_usage,
@@ -106,16 +107,36 @@ def _gate_session(locked_user, subscription, usage_sum):
 @pytest.mark.asyncio
 class TestGetUsageSnapshot:
     async def test_subscriber_uses_period_window_and_plan_limit(self):
-        sub = _subscription(credits_per_month=200)
+        sub = _subscription(credits_per_month=200)  # period_start 2026-07-01
         session = _snapshot_session(sub, usage_sum=42)
 
-        snap = await get_usage_snapshot(session, _user())
+        # now within the first month -> the monthly window == period_start
+        snap = await get_usage_snapshot(session, _user(), now=datetime(2026, 7, 20))
 
         assert snap["usage"] == 42
         assert snap["limit"] == 200
         assert snap["limit_type"] == "monthly"
         assert snap["period_start"] == sub.current_period_start
         assert snap["subscription"] is sub
+
+    async def test_annual_snapshot_counts_from_current_monthly_window(self):
+        # Annual sub started 2026-01-15; "now" is 3 months in. The allowance
+        # must refresh monthly, so usage is summed from 2026-03-15 (the most
+        # recent monthly anniversary), NOT from the annual period start.
+        sub = _subscription(credits_per_month=200, period_start=datetime(2026, 1, 15))
+        session = _snapshot_session(sub, usage_sum=0)
+
+        with patch(
+            "app.services.usage_ledger._ledger_usage",
+            new=AsyncMock(return_value=17),
+        ) as mock_usage:
+            snap = await get_usage_snapshot(session, _user(), now=datetime(2026, 4, 3))
+
+        assert snap["usage"] == 17
+        assert snap["period_start"] == datetime(2026, 3, 15)
+        # The ledger sum is taken FROM the monthly window start (3rd positional
+        # arg `since`), proving only the current month's checks count.
+        assert mock_usage.call_args.args[2] == datetime(2026, 3, 15)
 
     async def test_trial_uses_lifetime_window_and_allocation_limit(self):
         session = _snapshot_session(None, usage_sum=2)
@@ -131,6 +152,46 @@ class TestGetUsageSnapshot:
         session = _snapshot_session(None, usage_sum=4)
         snap = await get_usage_snapshot(session, _user(credits=6, total_used=4))
         assert snap["limit"] == 10
+
+
+# ---------------------------------------------------------------------------
+# _monthly_window_start (annual allowance refresh)
+# ---------------------------------------------------------------------------
+
+
+class TestMonthlyWindowStart:
+    def test_monthly_plan_returns_period_start(self):
+        start = datetime(2026, 7, 1)
+        now = datetime(2026, 7, 20)
+        assert _monthly_window_start(start, now) == start
+
+    def test_annual_advances_to_current_month_anniversary(self):
+        start = datetime(2026, 1, 15)
+        now = datetime(2026, 4, 3)  # most recent anniversary <= now is 15 Mar
+        assert _monthly_window_start(start, now) == datetime(2026, 3, 15)
+
+    def test_annual_on_the_anniversary_day(self):
+        start = datetime(2026, 1, 15)
+        now = datetime(2026, 4, 15)
+        assert _monthly_window_start(start, now) == datetime(2026, 4, 15)
+
+    def test_day_clamped_for_short_month(self):
+        # 31 Jan anchor: the Feb anniversary clamps to 28; on 10 Mar the
+        # current window still started at the clamped 28 Feb.
+        start = datetime(2026, 1, 31)
+        now = datetime(2026, 3, 10)
+        assert _monthly_window_start(start, now) == datetime(2026, 2, 28)
+
+    def test_now_before_start_returns_start(self):
+        start = datetime(2026, 7, 1)
+        now = datetime(2026, 6, 30)
+        assert _monthly_window_start(start, now) == start
+
+    def test_crosses_year_boundary(self):
+        # anniversaries: 20 Dec, 20 Jan, 20 Feb (> now) -> window is 20 Jan
+        start = datetime(2025, 11, 20)
+        now = datetime(2026, 2, 5)
+        assert _monthly_window_start(start, now) == datetime(2026, 1, 20)
 
 
 # ---------------------------------------------------------------------------

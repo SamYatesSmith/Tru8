@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { Check, AlertTriangle, ArrowRight } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import { TIERS, getTierPriceId, purchasableTiers, type TierConfig } from '@/lib/tiers';
+import { TIERS, getTierPriceId, purchasableTiers, formatTierPrice, type TierConfig } from '@/lib/tiers';
 
 interface SubscriptionTabProps {
   userData: any;
@@ -159,6 +159,10 @@ export function SubscriptionTab({
   // Max feature count for equal-height cards
   const maxFeatures = Math.max(...visibleTiers.map((t) => t.features.length));
 
+  // Grid columns follow the actual card count (usually 3; 4 for a legacy
+  // subscriber whose retired tier still shows) so there's no empty column.
+  const lgGridCols = visibleTiers.length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3';
+
   return (
     <div className="space-y-10">
       {/* ── Current Plan ── */}
@@ -175,7 +179,7 @@ export function SubscriptionTab({
               </h4>
               <p className="text-zinc-500 mt-1 font-mono text-sm">
                 {isPaid
-                  ? `£${currentTierConfig.price}/month · ${creditsPerMonth} checks`
+                  ? `${formatTierPrice(currentTierConfig, subscriptionData?.billingInterval)} · ${creditsPerMonth} checks`
                   : '3 free checks to try Tru8'}
               </p>
             </div>
@@ -253,13 +257,7 @@ export function SubscriptionTab({
                 disabled={loading}
                 className="text-xs font-medium text-zinc-900 hover:text-accent transition-colors disabled:opacity-50"
               >
-                Manage subscription &rarr;
-              </button>
-              <button
-                onClick={handleManageSubscription}
-                className="text-xs text-zinc-400 hover:text-zinc-900 transition-colors"
-              >
-                Billing history
+                Manage subscription &amp; billing &rarr;
               </button>
             </div>
             <div>
@@ -293,7 +291,7 @@ export function SubscriptionTab({
           Compare Plans
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${lgGridCols} gap-4`}>
           {visibleTiers.map((tier) => {
             const tierIndex = TIER_ORDER.indexOf(tier.id);
             const isCurrent = tier.id === currentPlan;
@@ -374,7 +372,7 @@ export function SubscriptionTab({
                       Contact Us
                       <ArrowRight size={14} />
                     </a>
-                  ) : isUpgrade ? (
+                  ) : canUpgrade ? (
                     <div className="space-y-2">
                       <button
                         onClick={() => handleUpgrade(tier)}

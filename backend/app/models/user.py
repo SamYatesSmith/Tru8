@@ -48,6 +48,11 @@ class Subscription(SQLModel, table=True):
     status: str = Field(default="active")  # 'active', 'cancelled', 'past_due'
     credits_per_month: int
     credits_remaining: int
+    # Billing cadence: 'month' or 'year'. Console monthly (£20/mo) and annual
+    # (£200/yr) both map to plan 'console' with 200 credits/month; this records
+    # which cadence so the dashboard can show the right price. Existing rows
+    # default to 'month' via the migration's server_default.
+    billing_interval: str = Field(default="month")
     current_period_start: datetime
     current_period_end: datetime
     stripe_subscription_id: Optional[str] = None

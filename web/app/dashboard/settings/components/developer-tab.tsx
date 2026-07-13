@@ -11,6 +11,7 @@ import {
   Loader2,
   AlertCircle,
   Shield,
+  CreditCard,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
@@ -43,6 +44,13 @@ export function DeveloperTab() {
   const [revoking, setRevoking] = useState<string | null>(null);
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
 
+  // Agent API credit balance (separate prepaid rail)
+  const [balancePence, setBalancePence] = useState<number | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState<'20' | '100' | null>(null);
+  const [topUpError, setTopUpError] = useState<string | null>(null);
+  const [creditNotice, setCreditNotice] = useState<'purchased' | 'cancelled' | null>(null);
+
   // Load keys on mount
   useEffect(() => {
     const fetchKeys = async () => {
@@ -61,6 +69,43 @@ export function DeveloperTab() {
     };
     fetchKeys();
   }, [getToken]);
+
+  // Load the prepaid agent credit balance
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const token = await getToken();
+        const data = await apiClient.getAgentCreditBalance(token);
+        setBalancePence(data.balancePence);
+      } catch (err) {
+        // Non-fatal — the panel shows a dash if the balance can't be read.
+        console.error('Failed to fetch agent credit balance:', err);
+      } finally {
+        setBalanceLoading(false);
+      }
+    };
+    fetchBalance();
+  }, [getToken]);
+
+  // Surface the Stripe redirect outcome (?credits=purchased|cancelled)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const c = new URLSearchParams(window.location.search).get('credits');
+    if (c === 'purchased' || c === 'cancelled') setCreditNotice(c);
+  }, []);
+
+  const handleTopUp = async (pack: '20' | '100') => {
+    setPurchasing(pack);
+    setTopUpError(null);
+    try {
+      const token = await getToken();
+      const session = await apiClient.purchaseAgentCredits(pack, token);
+      window.location.href = session.url;
+    } catch (err: any) {
+      setTopUpError(err?.message || 'Failed to start checkout. Please try again.');
+      setPurchasing(null);
+    }
+  };
 
   const handleCreate = async () => {
     if (!newKeyName.trim()) return;
@@ -383,6 +428,67 @@ export function DeveloperTab() {
             </div>
           </details>
         )}
+      </section>
+
+      {/* Agent API credits — separate prepaid rail */}
+      <section className="bg-white border border-zinc-200 p-6">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
+            <CreditCard size={20} />
+            Agent API credits
+          </h3>
+          <span className="text-sm font-mono font-medium text-zinc-900">
+            {balanceLoading || balancePence == null
+              ? '—'
+              : `£${(balancePence / 100).toFixed(2)}`}
+          </span>
+        </div>
+        <p className="text-xs text-zinc-500 mb-4">
+          A prepaid balance for API and agent calls (from £0.02 per call),
+          separate from your subscription check allowance.
+        </p>
+
+        {creditNotice === 'purchased' && (
+          <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
+            Top-up complete — your balance is updated.
+          </div>
+        )}
+        {creditNotice === 'cancelled' && (
+          <div className="mb-4 p-3 bg-zinc-50 border border-zinc-200 text-xs text-zinc-500">
+            Top-up cancelled — no charge was made.
+          </div>
+        )}
+        {topUpError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-xs text-red-600">
+            {topUpError}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          {([['20', '£3.00'], ['100', '£15.00']] as const).map(([pack, label]) => (
+            <button
+              key={pack}
+              onClick={() => handleTopUp(pack)}
+              disabled={purchasing !== null}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white text-xs font-medium hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {purchasing === pack ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Plus size={14} />
+              )}
+              Top up {label}
+            </button>
+          ))}
+          <a
+            href="/developers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-zinc-500 hover:text-zinc-900 underline underline-offset-2"
+          >
+            See per-call rates
+          </a>
+        </div>
       </section>
 
       {/* Quick reference */}

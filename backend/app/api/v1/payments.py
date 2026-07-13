@@ -342,6 +342,9 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
         existing_subscription.status = "active"
         existing_subscription.credits_per_month = credits_per_month
         existing_subscription.credits_remaining = credits_per_month  # Reset credits
+        existing_subscription.billing_interval = _interval_from_subscription(
+            stripe_subscription
+        )
         existing_subscription.current_period_start = datetime.fromtimestamp(
             stripe_subscription["current_period_start"], tz=timezone.utc
         ).replace(tzinfo=None)
@@ -362,12 +365,13 @@ async def handle_successful_payment(session_data: dict, session: AsyncSession):
             status="active",
             credits_per_month=credits_per_month,
             credits_remaining=credits_per_month,
+            billing_interval=_interval_from_subscription(stripe_subscription),
             current_period_start=datetime.fromtimestamp(
-                stripe_subscription["current_period_start"]
-            ),
+                stripe_subscription["current_period_start"], tz=timezone.utc
+            ).replace(tzinfo=None),
             current_period_end=datetime.fromtimestamp(
-                stripe_subscription["current_period_end"]
-            ),
+                stripe_subscription["current_period_end"], tz=timezone.utc
+            ).replace(tzinfo=None),
             stripe_subscription_id=stripe_subscription_id,
             stripe_customer_id=stripe_customer_id,
         )
@@ -402,6 +406,17 @@ def _plan_from_price_id(price_id: str):
     return mapping.get(price_id)
 
 
+def _interval_from_subscription(stripe_subscription: dict) -> str:
+    """Billing cadence ('month' | 'year') from the active price's recurring
+    interval. Defaults to 'month' if the shape is unexpected."""
+    try:
+        price = stripe_subscription["items"]["data"][0]["price"]
+        interval = (price.get("recurring") or {}).get("interval")
+    except (KeyError, IndexError, TypeError):
+        interval = None
+    return "year" if interval == "year" else "month"
+
+
 async def handle_subscription_updated(subscription: dict, session: AsyncSession):
     """Handle ``customer.subscription.updated`` from Stripe.
 
@@ -429,6 +444,7 @@ async def handle_subscription_updated(subscription: dict, session: AsyncSession)
     db_subscription.current_period_end = datetime.fromtimestamp(
         subscription["current_period_end"], tz=timezone.utc
     ).replace(tzinfo=None)
+    db_subscription.billing_interval = _interval_from_subscription(subscription)
     db_subscription.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # F-PAY-04: re-derive plan + credit allocation from price ID
@@ -695,6 +711,7 @@ async def handle_invoice_paid(invoice: dict, session: AsyncSession):
 
     db_subscription.current_period_start = new_period_start
     db_subscription.current_period_end = new_period_end
+    db_subscription.billing_interval = _interval_from_subscription(stripe_subscription)
     db_subscription.status = stripe_subscription["status"]
     db_subscription.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -786,6 +803,7 @@ async def get_subscription_status(
         "hasSubscription": True,
         "plan": subscription.plan,
         "status": subscription.status,
+        "billingInterval": subscription.billing_interval,
         "creditsPerMonth": subscription.credits_per_month,
         "creditsRemaining": subscription.credits_remaining,
         "currentPeriodStart": subscription.current_period_start.isoformat(),

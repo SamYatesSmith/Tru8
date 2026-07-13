@@ -7,7 +7,7 @@ import { User, Shield, Trash2, Check, X, Pencil, BarChart3, CreditCard } from 'l
 import Link from 'next/link';
 import { apiClient, UserStats } from '@/lib/api';
 import { useAuth, useUser } from '@clerk/nextjs';
-import { TIERS } from '@/lib/tiers';
+import { TIERS, formatTierPrice } from '@/lib/tiers';
 
 interface AccountTabProps {
   clerkUser: any;
@@ -379,7 +379,9 @@ function PlanUsageSection({ subscriptionData }: { subscriptionData: any }) {
         <div className="flex items-center justify-between">
           <span className="text-sm text-zinc-500">Current plan</span>
           <span className="text-sm font-medium text-zinc-900">
-            {isPaid ? `${currentTier.name} (£${currentTier.price}/month)` : 'Free Trial'}
+            {isPaid
+              ? `${currentTier.name} (${formatTierPrice(currentTier, subscriptionData?.billingInterval)})`
+              : 'Free Trial'}
           </span>
         </div>
 

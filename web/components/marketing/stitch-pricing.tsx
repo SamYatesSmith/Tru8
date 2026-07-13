@@ -205,7 +205,7 @@ export function StitchPricing() {
               API — metered
             </span>
             <p className="text-sm text-zinc-500 mt-1">
-              For systems and agents: metered verification, billed per call from a
+              For systems and agents: metered analysis, billed per call from a
               prepaid balance.
             </p>
           </div>

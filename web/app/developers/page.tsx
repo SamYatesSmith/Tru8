@@ -363,7 +363,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
               <div className="text-xs text-zinc-600">
                 <p className="font-semibold text-zinc-900 mb-1">Agent credits vs dashboard subscription</p>
                 <p>
-                  Dashboard subscriptions (Starter, Professional) give you a monthly check allowance for the web dashboard.
+                  The Tru8 Console subscription gives you a monthly check allowance for the web dashboard.
                   Agent API credits are a separate prepaid balance for programmatic access. Both are available on any account —
                   you can use the dashboard and the API independently.
                 </p>

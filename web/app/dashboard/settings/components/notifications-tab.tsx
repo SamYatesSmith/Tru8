@@ -247,61 +247,10 @@ export function NotificationsTab() {
             </button>
           </div>
 
-          {/* Weekly Digest */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-zinc-900">Weekly Digest</p>
-              <p className="text-xs text-zinc-500 mt-1">
-                Receive a weekly summary of your activity
-              </p>
-            </div>
-            <button
-              onClick={() => updatePreference('weeklyDigest', !preferences.weeklyDigest)}
-              disabled={!preferences.emailNotificationsEnabled || saving}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                preferences.weeklyDigest && preferences.emailNotificationsEnabled
-                  ? 'bg-zinc-900'
-                  : 'bg-zinc-200'
-              } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label="Toggle weekly digest"
-            >
-              <div
-                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  preferences.weeklyDigest && preferences.emailNotificationsEnabled
-                    ? 'translate-x-6'
-                    : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Marketing Emails */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-zinc-900">Marketing Emails</p>
-              <p className="text-xs text-zinc-500 mt-1">
-                Receive updates about new features and offers
-              </p>
-            </div>
-            <button
-              onClick={() => updatePreference('marketing', !preferences.marketing)}
-              disabled={!preferences.emailNotificationsEnabled || saving}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                preferences.marketing && preferences.emailNotificationsEnabled
-                  ? 'bg-zinc-900'
-                  : 'bg-zinc-200'
-              } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label="Toggle marketing emails"
-            >
-              <div
-                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  preferences.marketing && preferences.emailNotificationsEnabled
-                    ? 'translate-x-6'
-                    : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
+          {/* Weekly Digest and Marketing toggles removed 2026-07-13: no backend
+              sender exists for either (no scheduler, no marketing email path).
+              The DB columns remain (dormant) so the switches can return if the
+              emails are ever built. */}
         </div>
 
         <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200">

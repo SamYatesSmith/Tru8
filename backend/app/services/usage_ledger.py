@@ -22,6 +22,7 @@ entitlement. The rules:
 The /agent prepaid rail (User.credit_balance_pence) is a separate system.
 """
 
+import calendar
 import logging
 import uuid
 from datetime import datetime
@@ -33,6 +34,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models import Check, Subscription, User
+from app.models.check import _utcnow_naive
 from app.models.usage_event import (
     DEBIT_KINDS,
     KIND_CHECK,
@@ -60,6 +62,39 @@ async def _active_subscription(
     return result.scalar_one_or_none()
 
 
+def _add_months(dt: datetime, months: int) -> datetime:
+    """Add whole months to ``dt``, clamping the day to the target month length.
+
+    A 31st anchor added into a 30-day month lands on the 30th (or 28th/29th in
+    February) rather than overflowing.
+    """
+    total = dt.month - 1 + months
+    year = dt.year + total // 12
+    month = total % 12 + 1
+    day = min(dt.day, calendar.monthrange(year, month)[1])
+    return dt.replace(year=year, month=month, day=day)
+
+
+def _monthly_window_start(period_start: datetime, now: datetime) -> datetime:
+    """Start of the current one-month allowance window within a billing period.
+
+    The dashboard allowance (``credits_per_month``) refreshes every month. For a
+    monthly plan the Stripe billing period IS a month, so this returns
+    ``period_start`` unchanged. For an ANNUAL plan the billing period is a year;
+    without this the allowance would only reset once a year (the bug this fixes).
+    We therefore count from the most recent monthly anniversary of
+    ``period_start``: started 15 Jan, today 3 Apr -> window starts 15 Mar.
+    Day-of-month is clamped for short months.
+    """
+    if now <= period_start:
+        return period_start
+    months = (now.year - period_start.year) * 12 + (now.month - period_start.month)
+    candidate = _add_months(period_start, months)
+    if candidate > now:
+        candidate = _add_months(period_start, months - 1)
+    return candidate
+
+
 async def _ledger_usage(
     session: AsyncSession, user_id: str, since: Optional[datetime] = None
 ) -> int:
@@ -72,17 +107,27 @@ async def _ledger_usage(
     return result.scalar() or 0
 
 
-async def get_usage_snapshot(session: AsyncSession, user: User) -> dict:
+async def get_usage_snapshot(
+    session: AsyncSession, user: User, *, now: Optional[datetime] = None
+) -> dict:
     """Usage/limit picture for gates and the /users/usage endpoint.
 
-    Subscriber: usage = ledger sum within the current Stripe billing period
-    (renewal moves the window — no reset job). Trial: lifetime ledger sum;
-    the limit formula max(3, credits + total_credits_used) is the legacy
-    allocation invariant, preserved (equivalence proven in the design doc).
+    Subscriber: usage = ledger sum within the current MONTHLY allowance window.
+    The allowance refreshes every month; for a monthly plan that window is the
+    Stripe billing period, for an annual plan it is the current monthly
+    anniversary of the period start (see ``_monthly_window_start``) — so an
+    annual subscriber gets 200/month across all 12 months, not 200/year.
+    Trial: lifetime ledger sum; the limit formula max(3, credits +
+    total_credits_used) is the legacy allocation invariant, preserved
+    (equivalence proven in the design doc).
+
+    ``now`` is injectable for deterministic tests; production passes None.
     """
+    if now is None:
+        now = _utcnow_naive()
     subscription = await _active_subscription(session, user.id)
     if subscription and subscription.current_period_start:
-        period_start = subscription.current_period_start
+        period_start = _monthly_window_start(subscription.current_period_start, now)
         limit = subscription.credits_per_month
         limit_type = "monthly"
     else:
