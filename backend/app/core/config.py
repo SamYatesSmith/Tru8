@@ -305,6 +305,14 @@ class Settings(BaseSettings):
         "gpt-4o-mini-2024-07-18", env="ARTICLE_CLASSIFICATION_MODEL"
     )
 
+    # ========== OPINION DECOUPLING (Phase 1a, 2026-07-16) ==========
+    # Extraction KEEPS main-predicate evaluative claims (reframed affirmative,
+    # type_hint="normative") instead of dropping them under Rule 6. OFF by
+    # default and MUST stay off until Phase 1b's symmetric decompose stage is
+    # live — flipped early, opinions would flow into the confirmatory
+    # decomposition (decoupling plan §16.1; Artefact-1 finding P3).
+    ENABLE_OPINION_REFRAME: bool = Field(False, env="ENABLE_OPINION_REFRAME")
+
     # ========== QUERY PLANNING AGENT ==========
     # LLM-powered batch query planning for semantic claim understanding
     # Generates targeted queries based on claim type (squad, stats, contract, etc.)

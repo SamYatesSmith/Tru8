@@ -64,6 +64,14 @@ class ExtractedClaim(BaseModel):
         ),
         default=None,
     )
+    # Phase 1a (decoupling): optional, NON-BINDING claim-type hint — the Claim
+    # Map contract reserved this (§8). Only value emitted today: "normative"
+    # (main-predicate evaluative claim retained under ENABLE_OPINION_REFRAME).
+    # Decompose's own classification remains the authority downstream.
+    type_hint: Optional[str] = Field(
+        description="Non-binding claim-type hint (currently only 'normative')",
+        default=None,
+    )
 
     class Config:
         json_schema_extra = {
@@ -97,6 +105,34 @@ class ClaimExtractionResponse(BaseModel):
     extraction_confidence: int = Field(
         description="Overall extraction quality 0-100", default=80
     )
+
+
+# ── Phase 1a (decoupling, plan §16.2): flag-gated Rule 6 extension ───────────
+# When ENABLE_OPINION_REFRAME is on, main-predicate evaluative claims are KEPT
+# (affirmative, author's own direction, hinted) instead of dropped. The hint is
+# non-binding; decompose's classification is the authority. With the flag OFF
+# the system prompt is byte-identical to the pre-change prompt.
+_RULE6_ANCHOR = (
+    '   ✓ GOOD: "The policy was opposed by 67% of surveyed voters" (measurable fact)'
+)
+_OPINION_REFRAME_RULE = """
+   EXCEPTION - EVALUATIVE MAIN-PREDICATE CLAIMS: when the input's MAIN point
+   is an evaluative judgement about a named subject resting on measurable
+   grounds, do NOT discard it. Emit it as a self-contained AFFIRMATIVE claim
+   preserving the author's own direction and value words, and add
+   "type_hint": "normative" to that claim object.
+   ✓ "The Warner Bros-Paramount merger is a real danger to American democracy" → keep as-is + type_hint
+   ✓ "This policy is a gift to freedom" → keep as-is + type_hint (positive and negative valence treated identically)
+   ✗ NEVER invert, soften, or editorialise the judgement (same discipline as rule 9)
+   NOT evaluative (no hint): predicates with a codified, adjudicable test -
+   "anticompetitive", "illegal", "unconstitutional", "defamatory" - and flat
+   factual assertions even when false or inflammatory ("the election was
+   stolen", "vaccines cause autism"): extract these as plain claims.
+   STILL discard: subjective flavour with no named subject or measurable
+   grounds, and advisory/preference questions (rule 9 exclusions).
+   Incidental subjective adjectives inside a factual claim are still cleaned;
+   this exception applies only when the evaluation IS the claim.
+   A hinted claim must still obey rules 3-5 (atomic, self-contained, concrete)."""
 
 
 class ClaimExtractor:
@@ -333,6 +369,21 @@ Input: "The controversial policy was implemented hastily."
 
 Always return valid JSON matching the required format."""
 
+        # Phase 1a (decoupling): flag-gated evaluative-claims branch. OFF →
+        # prompt byte-identical. Anchor-drift fails LOUD and applies nothing —
+        # never silently alter extraction behaviour.
+        if settings.ENABLE_OPINION_REFRAME:
+            if _RULE6_ANCHOR in self.system_prompt:
+                self.system_prompt = self.system_prompt.replace(
+                    _RULE6_ANCHOR, _RULE6_ANCHOR + _OPINION_REFRAME_RULE, 1
+                )
+            else:
+                logger.error(
+                    "[EXTRACT] ENABLE_OPINION_REFRAME is set but the Rule 6 "
+                    "anchor is missing — reframe rule NOT applied (prompt "
+                    "drifted; re-anchor _RULE6_ANCHOR)"
+                )
+
     async def extract_claims(
         self, content: str, metadata: Dict[str, Any] = None
     ) -> Dict[str, Any]:
@@ -490,6 +541,9 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                             {"text": e.text, "type": e.type}
                             for e in (claim.key_entities or [])
                         ],
+                        # Phase 1a: non-binding hint, absent unless the
+                        # reframe rule emitted it (flag-gated).
+                        "type_hint": claim.type_hint,
                     }
                     for i, claim in enumerate(validated_response.claims)
                 ]
@@ -625,6 +679,9 @@ Use this to resolve relative time references ("yesterday", "this week", "recentl
                         {"text": e.text, "type": e.type}
                         for e in (claim.key_entities or [])
                     ],
+                    # Phase 1a: non-binding hint, absent unless the reframe
+                    # rule emitted it (flag-gated).
+                    "type_hint": claim.type_hint,
                 }
                 for i, claim in enumerate(validated_response.claims)
             ]

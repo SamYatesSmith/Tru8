@@ -68,20 +68,27 @@ const nextConfig = {
     // PostHog event). 'unsafe-inline'/'unsafe-eval' kept on
     // script-src because Next.js App Router relies on them; nonce-based CSP
     // is post-launch work bundled with the Next 16 migration.
+    // Dev-only (2026-07-16): allow the LOCAL backend on connect-src and skip
+    // upgrade-insecure-requests, so `npm run dev` against localhost:8000
+    // works. The CSP was blocking every local-API call ("Failed to fetch" —
+    // connect-src had prod api.trueight.com only). Production header is
+    // byte-identical to before: isDev is false on `next build`.
+    const isDev = process.env.NODE_ENV === 'development';
+    const devConnect = isDev ? ' http://localhost:8000 http://127.0.0.1:8000' : '';
     const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.trueight.com https://js.stripe.com https://browser.sentry-cdn.com https://*.sentry.io https://*.ingest.de.sentry.io https://cdn.jsdelivr.net https://eu-assets.i.posthog.com",
       "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.trueight.com https://*.clerk.accounts.dev https://clerk.trueight.com https://api.stripe.com https://*.sentry.io https://*.ingest.de.sentry.io https://eu.i.posthog.com https://eu-assets.i.posthog.com",
+      `connect-src 'self' https://api.trueight.com https://*.clerk.accounts.dev https://clerk.trueight.com https://api.stripe.com https://*.sentry.io https://*.ingest.de.sentry.io https://eu.i.posthog.com https://eu-assets.i.posthog.com${devConnect}`,
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
-      "upgrade-insecure-requests",
+      ...(isDev ? [] : ['upgrade-insecure-requests']),
     ].join('; ');
 
     return [

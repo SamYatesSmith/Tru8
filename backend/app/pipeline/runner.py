@@ -583,6 +583,28 @@ class PipelineError(Exception):
         super().__init__(message)
 
 
+def derive_entry_mode(claims: List[Dict[str, Any]]) -> str:
+    """Entry mode for a check's claim list.
+
+    ≥2 claims → "article" (selection pause). Exactly 1 claim → "focused"
+    (straight through) — UNLESS it carries the Phase 1a decoupling hint
+    ``type_hint == "normative"`` (a retained main-predicate opinion, emitted
+    only when ENABLE_OPINION_REFRAME is on): that claim takes the selection
+    pause as a CONFIRM STEP instead. The origin failure (TRU-1928-D5F6) was
+    focused mode's SILENCE — the user never learned what would be researched.
+    Decoupling plan §16.3; D5 = confirm-pause (founder, 2026-07-16).
+
+    The hint branch ALSO requires the flag (verifier fix D-1): stale cached
+    claims can carry a hint after a flag rollback — flag off must mean
+    today's behaviour, unconditionally.
+    """
+    if len(claims) != 1:
+        return "article"
+    if claims[0].get("type_hint") == "normative" and settings.ENABLE_OPINION_REFRAME:
+        return "article"  # single-opinion confirm step
+    return "focused"
+
+
 async def run_pipeline(
     check_id: str,
     user_id: str,
@@ -842,7 +864,7 @@ async def run_pipeline_phase1(
     # =========================================================================
     # Determine entry mode
     # =========================================================================
-    entry_mode = "focused" if len(claims) == 1 else "article"
+    entry_mode = derive_entry_mode(claims)
 
     # =========================================================================
     # Stage 2.6: Claim Selection / Ranking (article mode only)
@@ -1015,6 +1037,9 @@ async def run_pipeline_phase1(
                     "significanceScore": c.get("significance_score"),
                     "isSelected": c.get("is_selected", False),
                     "subjectContext": c.get("subject_context"),
+                    # Phase 1a: lets the selection UI tailor the single-opinion
+                    # confirm step (additive; absent on non-hinted claims).
+                    "typeHint": c.get("type_hint"),
                 }
             )
 

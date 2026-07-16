@@ -60,6 +60,13 @@ async def extract_claims_with_cache(
     try:
         # Try cache first using content hash and model name
         model_name = "gpt-4o-mini"  # Default extraction model
+        # Phase 1a fix D-1 (verifier, 2026-07-16): the extraction prompt varies
+        # with ENABLE_OPINION_REFRAME, so the cache identity must too —
+        # otherwise a flag flip serves up to 6h of the OTHER prompt's claims
+        # (stale unhinted after ON; hinted-with-flag-OFF after rollback).
+        # Flag off → key unchanged (today's cache untouched).
+        if getattr(settings, "ENABLE_OPINION_REFRAME", False):
+            model_name = f"{model_name}+reframe"
 
         # Check cache if available
         if cache_service:
