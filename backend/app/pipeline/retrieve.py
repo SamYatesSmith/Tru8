@@ -1359,7 +1359,11 @@ class EvidenceRetriever:
                 # Await both tasks concurrently with per-claim timeout
                 # IMPORTANT: Use asyncio.wait instead of wait_for+gather to preserve partial results
                 # If one task completes but the other times out, we keep the completed results
-                CLAIM_TIMEOUT = 45  # seconds per claim
+                # Env override exists for OFFLINE PROBES ONLY (e.g.
+                # scripts/pool_balance_probe.py, where local cold-cache fetch
+                # latency starves the web lane and Stage 3.8 recovery does not
+                # run). Unset in prod → 45, behaviour unchanged.
+                CLAIM_TIMEOUT = int(os.getenv("RETRIEVE_CLAIM_TIMEOUT_S", "45"))
                 logger.info(
                     f"[SINGLE CLAIM DEBUG] Awaiting web search + API tasks for claim {claim_position} (timeout={CLAIM_TIMEOUT}s)"
                 )
