@@ -174,3 +174,38 @@ async def test_extraction_cache_key_fingerprints_the_flag(monkeypatch):
     await extract_claims_with_cache("some content", {}, FakeCache())
     # Flag off keeps today's key untouched; flag on gets its own namespace.
     assert seen_model_names == ["gpt-4o-mini", "gpt-4o-mini+reframe"]
+
+
+# ── §20 slice 2: the grounds-stage wiring gate ───────────────────────────────
+
+
+def test_grounds_gate_flag_off_never_fires(monkeypatch):
+    from app.pipeline.runner import should_apply_grounds
+
+    monkeypatch.setattr(settings, "ENABLE_OPINION_REFRAME", False)
+    # Even a persisted stale hint must not trigger after a rollback (D-1 rule).
+    assert should_apply_grounds({"text": "x", "type_hint": "normative"}) is False
+    assert should_apply_grounds({"text": "x"}) is False
+
+
+def test_grounds_gate_flag_on_requires_the_hint(monkeypatch):
+    from app.pipeline.runner import should_apply_grounds
+
+    monkeypatch.setattr(settings, "ENABLE_OPINION_REFRAME", True)
+    assert should_apply_grounds({"text": "x", "type_hint": "normative"}) is True
+    assert should_apply_grounds({"text": "x", "type_hint": None}) is False
+    assert should_apply_grounds({"text": "x"}) is False
+    # Empirical claims never reach the stage regardless of other metadata.
+    assert should_apply_grounds({"text": "x", "claim_type": "statistical"}) is False
+
+
+def test_claim_model_persists_type_hint():
+    """§20.6(3a): the hint must survive the selection pause — the phase-2 DB
+    reload is the ONLY path a hinted claim takes (confirm step always pauses).
+    Pins the column's existence; the reload dict is pinned by inspection of
+    runner.py (type_hint included in the claim_dict rebuild)."""
+    from app.models.check import Claim
+
+    claim = Claim(check_id="c1", text="t", position=0, type_hint="normative")
+    assert claim.type_hint == "normative"
+    assert Claim(check_id="c1", text="t", position=0).type_hint is None

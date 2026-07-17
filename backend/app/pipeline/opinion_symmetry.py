@@ -35,32 +35,38 @@ claims when the flag is on).
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any, Dict, List, Optional
+
+from app.utils.scope_sensitivity import apply_scope_flags
 
 logger = logging.getLogger(__name__)
 
 MAX_ELEMENTS = 5
 BREADTH_FLOOR = 3
 
-# ── Prompts (slice 2 reshapes these to open questions; slice 1 = removal only,
-#    so the direction-forcing instructions are gone and nothing replaces them) ──
+# ── Prompts (§20.6(1): open questions — the discriminating run proved the
+#    assertion shape was the §19 toxin; NO direction quotas, NO counter-slot) ──
 
 NORMATIVE_DECOMPOSE_PROMPT = """\
-You are decomposing an EVALUATIVE claim into empirical sub-assertions a NEUTRAL
-analyst would test to inform (never settle) the judgement.
+You are decomposing an EVALUATIVE claim into the empirical questions a NEUTRAL
+analyst would investigate to inform (never settle) the judgement.
 
-Output 3-5 TESTABLE ASSERTIONS about the claim's NAMED SUBJECT:
-- Each assertion must be a single declarative, checkable sentence — NOT an open
-  question, NOT "the impact of X". State something evidence could confirm or
-  contradict.
-- Every assertion must be specifically about the claim's named subject, never
-  its general topic area.
-- NEVER restate the value judgement itself as an assertion (e.g. for "X is a
-  disaster", "X is a disaster" or "X has bad outcomes" are FORBIDDEN — decompose
-  into the specific measurable grounds instead).
+Output 3-5 OPEN QUESTIONS about the claim's NAMED SUBJECT:
+- Each question must be OPEN and empirically answerable — it must NOT presuppose
+  its own answer, and must NOT assert anything. Ask what the evidence shows;
+  never state what it shows. A well-chosen question is one the evidence could
+  answer either way.
+- Every question must be specifically about the claim's named subject, never
+  its general topic area, and must bear directly on the judgement being made —
+  not on some other actor or dispute.
+- NEVER ask whether the value judgement itself is true (e.g. for "X is a
+  disaster", "Is X a disaster?" is FORBIDDEN — ask about the specific
+  measurable grounds instead: stated targets, measured outcomes, documented
+  problems, comparative context, applicable formal proceedings or definitions).
 
 Respond with JSON only:
-{"elements": [{"description": "<testable assertion>"}, ...]}
+{"elements": [{"description": "<open question>"}, ...]}
 """
 
 ON_SUBJECT_PROMPT = """\
@@ -90,6 +96,59 @@ Respond with JSON only, in the SAME ORDER as the candidates:
 {"covered": [true|false, ...]}
 The array length MUST equal the number of candidates given.
 """
+
+
+# ── Mechanical value-predicate lock (§20.6(2) — deterministic, no LLM) ───────
+
+# "evidence"/"indicate" are the _as_question wrap boilerplate — stopped so the
+# wrap phrasing can never launder a bare judgement past the lock (slice-2
+# verify NIT-3: "What does the evidence indicate about whether X is a
+# disaster?" must still count as a restatement).
+_STOPWORDS = frozenset(
+    """a an the is are was were be been being of in on at to for with by from
+    as that this these those it its and or not no does do did has have had
+    will would can could should may might what which who whom whose when
+    where why how if whether there about into over under than then so such
+    any all some more most evidence indicate""".split()
+)
+
+
+def _strip_possessive(word: str) -> str:
+    # Suffix strip, NOT rstrip("'s") — rstrip strips a character SET, which
+    # would mangle words ending in s ("mess" → "me").
+    if word.endswith("'s"):
+        return word[:-2]
+    return word.rstrip("'")
+
+
+def _content_words(text: str) -> frozenset:
+    words = re.findall(r"[a-z0-9']+", text.lower())
+    return frozenset(_strip_possessive(w) for w in words) - _STOPWORDS
+
+
+def _as_question(text: str) -> str:
+    """Mechanical question-wrap for a declarative structural re-add (baseline
+    elements are assertion-shaped — today's decompose). Deterministic, no LLM;
+    neutral by construction ("what does the evidence indicate" invites either
+    answer). Question-shaped text passes through untouched."""
+    stripped = text.rstrip().rstrip(".")
+    if stripped.endswith("?"):
+        return stripped
+    body = stripped[0].lower() + stripped[1:] if stripped else stripped
+    return f"What does the evidence indicate about whether {body}?"
+
+
+def _is_restatement(claim_text: str, element_text: str) -> bool:
+    """True when the element merely re-asks/restates the value judgement:
+    it contains every content word of the claim while adding fewer than two
+    of its own. The legal-label exemption (D2) is emergent — a real route
+    ("status of ICJ proceedings on genocide") adds content words and passes;
+    the bare judgement ("Is the situation in Gaza a genocide?") does not."""
+    claim_words = _content_words(claim_text)
+    if not claim_words:
+        return False
+    element_words = _content_words(element_text)
+    return claim_words <= element_words and len(element_words - claim_words) < 2
 
 
 # ── LLM helpers (fail-safe: preserve, never condemn) ─────────────────────────
@@ -184,23 +243,51 @@ async def apply_grounds_stage(
             candidate = baseline_elems[:MAX_ELEMENTS]
 
         cand_subj = await _on_subject(analyzer, claim_text, candidate)
-        kept: List[str] = [e for e, s in zip(candidate, cand_subj) if s]
+        kept: List[str] = []
+        for e, s in zip(candidate, cand_subj):
+            if not s:
+                continue
+            if _is_restatement(claim_text, e):
+                logger.info(
+                    f"[OPINION GROUNDS] value-predicate lock dropped restatement: {e[:80]}"
+                )
+                continue
+            kept.append(e)
 
         # Structural coverage: baseline on-subject elements not already covered
         # are added back (catches a silently dropped structural element).
         base_subj = await _on_subject(analyzer, claim_text, baseline_elems)
-        structural = [e for e, s in zip(baseline_elems, base_subj) if s]
+        structural = [
+            e
+            for e, s in zip(baseline_elems, base_subj)
+            # The lock guards this door too: the baseline decompose can carry
+            # the value predicate as an element (P3, check 4E16197E) — it must
+            # not re-enter via structural coverage.
+            if s and not _is_restatement(claim_text, e)
+        ]
         pre_cov = await _coverage(analyzer, claim_text, kept, structural)
         for e, covered in zip(structural, pre_cov):
+            # Dedup on BOTH the raw and wrapped forms (verify NIT-1: when the
+            # candidate fell back to baseline, the raw string is already in
+            # kept and wrapping it would smuggle in a duplicate element).
             if not covered and len(kept) < MAX_ELEMENTS and e not in kept:
-                kept.append(e)
+                wrapped = _as_question(e)
+                if wrapped not in kept:
+                    kept.append(wrapped)
 
         final = kept[:MAX_ELEMENTS]
 
+        lock_collapsed = False
         if not final:  # never empty (given a non-empty baseline or candidate)
+            # The lock/filters emptied the set — restore the baseline but
+            # DISCLOSE the collapse (verify NIT-2): downstream must be able to
+            # tell these are the unrebuilt baseline elements.
             final = baseline_elems[:MAX_ELEMENTS] or candidate[:MAX_ELEMENTS]
+            lock_collapsed = True
 
-        converged = len(final) >= min(BREADTH_FLOOR, MAX_ELEMENTS)
+        converged = not lock_collapsed and len(final) >= min(
+            BREADTH_FLOOR, MAX_ELEMENTS
+        )
 
     except Exception as e:  # never fail a live check — baseline GENUINELY untouched
         logger.warning(
@@ -246,5 +333,8 @@ def _write_elements(claim_map: Dict[str, Any], descriptions: List[str]) -> None:
                 "uncertainty": None,
             }
         )
+    # F3 re-tag (§20.6(4)): the rebuilt elements must carry scope_flags — the
+    # baseline tagging at decompose time is lost with the baseline elements.
+    apply_scope_flags(elements)
     claim_map["elements"] = elements
     claim_map.setdefault("metadata", {})["element_count"] = len(elements)

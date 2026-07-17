@@ -225,6 +225,14 @@ class Claim(SQLModel, table=True):
         default=None, description="Publication date of source article"
     )
 
+    # §20 slice 2 (2026-07-17): Phase 1a extraction hint, persisted so the
+    # phase-2 DB reload (selection-pause resume — the ONLY path a hinted claim
+    # takes) can trigger the opinion grounds stage. "normative" or NULL.
+    # Nullable + additive; flag off → always NULL (extract emits no hint).
+    type_hint: Optional[str] = Field(
+        default=None, description="Extraction type hint (e.g. 'normative')"
+    )
+
     # Temporal Drift Comparison fields (API current data vs claimed values)
     current_verified_data: Optional[str] = Field(
         default=None,

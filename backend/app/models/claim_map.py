@@ -64,6 +64,12 @@ class ClaimMapMetadata(TypedDict):
     # parallel arrays. Diagnostic provenance only — absent on pre-R2e rows
     # and when query planning fell back.
     query_plan: NotRequired[dict]
+    # §20 slice 2 (2026-07-17, additive — audit/2026-07-15_decoupling_build_plan.md
+    # §20.6): opinion grounds stage disclosure. {applied: bool, converged: bool,
+    # element_count: int}. Present ONLY on normative-hinted claims processed
+    # with ENABLE_OPINION_REFRAME on; applied=false = stage failed or degenerate
+    # input, baseline kept untouched. Feeds the 1c receipt.
+    grounds: NotRequired[dict]
 
 
 class ClaimMap(TypedDict):

@@ -605,6 +605,16 @@ def derive_entry_mode(claims: List[Dict[str, Any]]) -> str:
     return "focused"
 
 
+def should_apply_grounds(claim: Dict[str, Any]) -> bool:
+    """§20 slice 2 gate: the opinion grounds stage runs ONLY for a
+    normative-hinted claim (1a extraction) with ENABLE_OPINION_REFRAME on.
+    Flag off = today's behaviour unconditionally (D-1 rule) — a stale
+    persisted hint after a rollback must not trigger the stage."""
+    return bool(
+        settings.ENABLE_OPINION_REFRAME and claim.get("type_hint") == "normative"
+    )
+
+
 async def run_pipeline(
     check_id: str,
     user_id: str,
@@ -989,6 +999,7 @@ async def run_pipeline_phase1(
                     source_title=claim_data.get("source_title"),
                     source_url=claim_data.get("source_url"),
                     source_date=claim_data.get("source_date"),
+                    type_hint=claim_data.get("type_hint"),
                     rhetorical_context=claim_data.get("rhetorical_analysis"),
                     has_rhetorical_context=claim_data.get(
                         "has_rhetorical_context", False
@@ -1101,6 +1112,7 @@ async def run_pipeline_phase2(
         search_factchecks_for_claims,
     )
     from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
+    from app.pipeline.opinion_symmetry import apply_grounds_stage
 
     start_time = datetime.now(timezone.utc)
     stage_timings = {}
@@ -1205,6 +1217,7 @@ async def run_pipeline_phase2(
                     "source_title": db_claim.source_title,
                     "source_url": db_claim.source_url,
                     "source_date": db_claim.source_date,
+                    "type_hint": db_claim.type_hint,
                     "rhetorical_analysis": db_claim.rhetorical_context,
                     "has_rhetorical_context": db_claim.has_rhetorical_context,
                     "rhetorical_style": db_claim.rhetorical_style,
@@ -1288,6 +1301,14 @@ async def run_pipeline_phase2(
         for claim in selected_claims:
             claim_id = str(claim.get("position", 0))
             claim["claim_map"] = results[claim_id]
+            # §20 slice 2: normative-hinted claims (1a, ENABLE_OPINION_REFRAME)
+            # get their elements rebuilt into neutral empirical grounds —
+            # without this, opinions flow into the confirmatory decompose
+            # (P3, plan §15.8). Flag off or no hint = this branch never runs.
+            if should_apply_grounds(claim):
+                claim["claim_map"] = await apply_grounds_stage(
+                    analyzer, claim["text"], claim["claim_map"]
+                )
         logger.info(
             f"[INLINE PIPELINE] Decomposed {len(selected_claims)} claims into elements"
         )
@@ -2916,6 +2937,7 @@ async def save_check_results_async(
                 source_title=claim_data.get("source_title"),
                 source_url=claim_data.get("source_url"),
                 source_date=claim_data.get("source_date"),
+                type_hint=claim_data.get("type_hint"),
                 current_verified_data=claim_data.get("current_verified_data"),
                 rhetorical_context=claim_data.get("rhetorical_analysis"),
                 has_rhetorical_context=claim_data.get("has_rhetorical_context", False),

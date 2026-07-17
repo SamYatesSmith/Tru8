@@ -1,0 +1,390 @@
+[
+  {
+    "run": 1,
+    "results": [
+      {
+        "claim": "The proposed Warner Bros-Paramount merger is a real danger to American democracy",
+        "elements": [
+          "What specific provisions in the proposed Warner Bros-Paramount merger could lead to a reduction in the diversity of news and entertainment content available to the American public?",
+          "How might the combined entity's control over content creation and distribution platforms influence public opinion and political discourse in the United States?",
+          "The proposed merger between Warner Bros and Paramount will be approved and proceed."
+        ],
+        "breadth": 3,
+        "leaks": [],
+        "question_ratio": 0.67,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 3
+        },
+        "pass": false
+      },
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          "What are the stated goals of the government's immigration policy, and what metrics were established to measure progress towards those goals?",
+          "What are the documented outcomes of the government's immigration policy in terms of border crossings, asylum applications, and visa processing times since its implementation?",
+          "How do key immigration metrics under the current policy compare to those under previous immigration policies in the country?",
+          "What are the reported impacts of the government's immigration policy on the labor market, social services, and public opinion, according to independent research and statistical data?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The new trade deal is a triumph for British workers",
+        "elements": [
+          "What specific provisions in the new trade deal directly address the wages and working conditions of British workers?",
+          "How have employment levels and job creation in sectors relevant to British workers changed since the implementation of the new trade deal?",
+          "What is the documented impact of the new trade deal on the purchasing power and disposable income of the average British worker?",
+          "Are there any independent analyses or reports that assess the economic benefits of the new trade deal specifically for the British workforce?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          "What has been the documented rate of civilian casualties in Gaza since October 7, 2023, and how does this compare to historical conflict casualty rates in similar contexts?",
+          "What is the documented extent of destruction to civilian infrastructure, including homes, hospitals, and schools, in Gaza, and what is the stated intent behind these actions?",
+          "What are the documented restrictions on the entry and distribution of essential humanitarian aid, such as food, water, and medical supplies, into Gaza, and what are the stated reasons for these restrictions?",
+          "What evidence exists regarding the intent of Israeli military actions in Gaza to destroy the Palestinian population, in whole or in part, as defined by international legal frameworks?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      }
+    ]
+  },
+  {
+    "run": 2,
+    "results": [
+      {
+        "claim": "The proposed Warner Bros-Paramount merger is a real danger to American democracy",
+        "elements": [
+          "What specific provisions or conditions in the proposed Warner Bros-Paramount merger agreement could potentially impact the diversity of media ownership or content creation in the United States?",
+          "What are the documented historical precedents or analyses of major media mergers and their effects on public discourse or access to information in the U.S.?",
+          "How would the combined entity's market share and influence over news dissemination and entertainment content compare to existing major media conglomerates in the U.S.?",
+          "What are the stated objectives of Warner Bros and Paramount regarding the proposed merger, and how do these align with or diverge from concerns about democratic processes?",
+          "What does the evidence indicate about whether the proposed merger between Warner Bros and Paramount will be approved?"
+        ],
+        "breadth": 5,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 5
+        },
+        "pass": true
+      },
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          "What are the stated goals of the government's current immigration policy?",
+          "What are the documented outcomes of the government's current immigration policy in terms of border crossings and asylum applications?",
+          "What are the reported impacts of the government's current immigration policy on the processing times for immigration cases?",
+          "What are the documented effects of the government's current immigration policy on the integration of immigrants into the workforce and society?",
+          "What does the evidence indicate about whether this policy has led to a measurable decline in key indicators related to immigration?"
+        ],
+        "breadth": 5,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 5
+        },
+        "pass": true
+      },
+      {
+        "claim": "The new trade deal is a triumph for British workers",
+        "elements": [
+          "What specific provisions in the new trade deal directly address the wages and working conditions of British workers?",
+          "How have employment levels and job creation in sectors relevant to British workers changed since the implementation of the new trade deal?",
+          "What impact has the new trade deal had on the competitiveness of British industries and the security of jobs within them?",
+          "Are there documented instances of improved benefits or protections for British workers as a direct result of the new trade deal?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          "What has been the documented rate of civilian casualties in Gaza since October 7, 2023, and how does this compare to historical conflict casualty rates in similar contexts?",
+          "What evidence exists regarding the intent of Israeli military actions in Gaza to destroy the Palestinian population, in whole or in part?",
+          "What are the documented conditions of essential services and humanitarian aid access within Gaza, and how have these conditions impacted the survival of the Palestinian population?",
+          "What has been the documented destruction of Palestinian homes, infrastructure, and cultural sites in Gaza, and what is the stated purpose of these actions?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      }
+    ]
+  },
+  {
+    "run": 3,
+    "results": [
+      {
+        "claim": "The proposed Warner Bros-Paramount merger is a real danger to American democracy",
+        "elements": [
+          "What is the current market share of Warner Bros. and Paramount in the U.S. media landscape, and how would a merger alter this concentration?",
+          "How have Warner Bros. and Paramount historically utilized their platforms to disseminate political or civic information, and what is the potential for this to change post-merger?",
+          "What does the evidence indicate about whether the proposed merger between Warner Bros and Paramount will be approved?"
+        ],
+        "breadth": 3,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 3
+        },
+        "pass": true
+      },
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          "What are the stated goals of the government's immigration policy?",
+          "What are the documented outcomes of the government's immigration policy in terms of border crossings and asylum claims?",
+          "What are the reported impacts of the government's immigration policy on the labor market and social services?",
+          "How do key metrics of the government's immigration policy compare to those of previous administrations or comparable countries?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The new trade deal is a triumph for British workers",
+        "elements": [
+          "What specific provisions in the new trade deal directly address the wages and working conditions of British workers?",
+          "How have employment levels and job creation in sectors relevant to British workers changed since the implementation of the new trade deal?",
+          "What impact has the new trade deal had on the competitiveness of British industries and the security of jobs within them?",
+          "Are there documented instances of improved benefits or protections for British workers as a direct result of the new trade deal?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          "What are the documented civilian casualty rates in Gaza, and how do they compare to historical or contemporary conflict benchmarks?",
+          "What is the extent of destruction to civilian infrastructure, including homes, hospitals, and schools, in Gaza, and what is the documented intent behind this destruction?",
+          "What are the documented restrictions on essential resources like food, water, and medical supplies entering Gaza, and what are the stated justifications for these restrictions?",
+          "What evidence exists regarding specific statements or actions by Israeli officials that indicate an intent to destroy the Palestinian population in Gaza, in whole or in part?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      }
+    ]
+  },
+  {
+    "run": 4,
+    "results": [
+      {
+        "claim": "The proposed Warner Bros-Paramount merger is a real danger to American democracy",
+        "elements": [
+          "What specific provisions or outcomes of the proposed Warner Bros-Paramount merger could impact the diversity of media ownership or content creation in the United States?",
+          "What historical precedents exist for large media mergers in the US, and what were their documented effects on market competition and public discourse?",
+          "How would the combined entity's market share and influence over news dissemination and entertainment production compare to existing major media conglomerates in the US?",
+          "What are the stated regulatory concerns, if any, from US government bodies regarding the potential impact of this merger on media concentration and democratic processes?",
+          "What does the evidence indicate about whether the proposed merger between Warner Bros and Paramount will be approved?"
+        ],
+        "breadth": 5,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 5
+        },
+        "pass": true
+      },
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          "What are the stated goals of the government's immigration policy, and what metrics were established to measure progress towards those goals?",
+          "What are the documented outcomes of the government's immigration policy in terms of border crossings, asylum applications, and visa processing times since its implementation?",
+          "How do key immigration statistics under the current policy compare to those from previous administrations or comparable countries?",
+          "What are the reported impacts of the government's immigration policy on the labor market, social services, and national security?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The new trade deal is a triumph for British workers",
+        "elements": [
+          "What impact has the new trade deal had on employment levels in the UK manufacturing sector since its implementation?",
+          "How have average wages for workers in sectors directly affected by the new trade deal changed in the past year compared to the previous year?",
+          "What are the documented changes in working conditions and benefits for employees in industries with increased trade volume under the new deal?",
+          "To what extent has the new trade deal influenced the availability of apprenticeships and training programs for skilled trades in the UK?",
+          "What does the evidence indicate about whether the new trade deal does not negatively impact the job security or overall economic well-being of British workers?"
+        ],
+        "breadth": 5,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 5
+        },
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          "What are the documented civilian casualty rates in Gaza since October 7, 2023, and how do these rates compare to historical conflict casualty rates in similar contexts?",
+          "What is the extent of destruction to civilian infrastructure, including homes, hospitals, and schools, in Gaza, and what is the documented impact on the civilian population's access to essential services?",
+          "What evidence exists regarding the intent of Israeli military actions in Gaza, specifically concerning the targeting of the Palestinian population as a group?",
+          "What are the documented reports from international humanitarian organizations and human rights groups regarding the conditions and treatment of civilians in Gaza?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      }
+    ]
+  },
+  {
+    "run": 5,
+    "results": [
+      {
+        "claim": "The proposed Warner Bros-Paramount merger is a real danger to American democracy",
+        "elements": [
+          "What specific provisions in the proposed Warner Bros-Paramount merger could lead to a reduction in the number of independent media outlets in the U.S.?",
+          "How might the combined market power of Warner Bros. and Paramount influence the content and distribution of news and entertainment accessible to American consumers?",
+          "What are the stated goals of the proposed Warner Bros-Paramount merger, and how do these align with or diverge from existing regulatory frameworks concerning media consolidation in the U.S.?",
+          "What does the evidence indicate about whether the proposed merger between Warner Bros and Paramount will be approved and proceed?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          "What are the stated goals of the government's immigration policy, and what metrics were established to measure progress towards those goals?",
+          "What are the documented outcomes of the government's immigration policy in terms of border crossings, asylum applications, and visa processing times?",
+          "How do key immigration metrics under the current policy compare to those under previous policies or policies in comparable nations?",
+          "What are the reported impacts of the government's immigration policy on the labor market, social services, and public opinion?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The new trade deal is a triumph for British workers",
+        "elements": [
+          "What specific provisions in the new trade deal directly impact the wages and benefits of British workers?",
+          "How do the projected employment figures for British workers under the new trade deal compare to previous trade agreements or baseline economic forecasts?",
+          "What are the documented changes in working conditions and labor rights for British workers that can be attributed to the new trade deal?",
+          "In what sectors of the British economy are the most significant changes in job creation or loss anticipated as a direct result of the new trade deal?"
+        ],
+        "breadth": 4,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 4
+        },
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          "What are the documented patterns of civilian casualties in Gaza, and how do they compare to the civilian casualty rates in other recent armed conflicts?",
+          "What is the stated intent of the Israeli military operations in Gaza, according to official Israeli government and military communications?",
+          "What is the rate of destruction of essential infrastructure in Gaza, such as hospitals, schools, and residential areas, and how does this compare to pre-conflict levels?",
+          "What are the documented impacts of the conflict on the availability of food, water, and medical supplies for the civilian population in Gaza?",
+          "What does the evidence indicate about whether the actions occurring in Gaza meet the legal definition of genocide as outlined in international law, including acts committed with intent to destroy, in whole or in part, a national, ethnical, racial or religious group?"
+        ],
+        "breadth": 5,
+        "leaks": [],
+        "question_ratio": 1.0,
+        "grounds": {
+          "applied": true,
+          "converged": true,
+          "element_count": 5
+        },
+        "pass": true
+      }
+    ]
+  }
+]
