@@ -1,0 +1,145 @@
+[
+  {
+    "claim": "The proposed Warner Bros-Paramount merger is a real danger to American democracy",
+    "arm": "questions",
+    "directions": {
+      "claim": 1,
+      "counter": 1,
+      "neutral": 3
+    },
+    "balanced": true,
+    "converged": true,
+    "value_word_leak": [],
+    "elements": [
+      {
+        "description": "What are the stated strategic objectives of Warner Bros. and Paramount in pursuing this merger, and how do these objectives align with or diverge from potential impacts on democratic discourse?",
+        "direction": "neutral"
+      },
+      {
+        "description": "What are the potential economic consequences of the merger for the U.S. media industry, including job creation/loss and investment in content production, and how might these consequences indirectly affect democratic processes?",
+        "direction": "neutral"
+      },
+      {
+        "description": "The proposed merger between Warner Bros and Paramount will be approved.",
+        "direction": "neutral"
+      },
+      {
+        "description": "What existing regulatory frameworks or antitrust laws could potentially mitigate concerns about the concentration of media power resulting from the Warner Bros-Paramount merger, and how effectively have these been applied in past media consolidation cases?",
+        "direction": "counter"
+      },
+      {
+        "description": "Beyond the direct impact on media ownership, what are the potential implications of the Warner Bros-Paramount merger for the diversity of news sources and perspectives available to the American public, considering the current landscape of media fragmentation and partisan polarization?",
+        "direction": "claim"
+      }
+    ],
+    "pass": true
+  },
+  {
+    "claim": "The government's immigration policy is a disaster",
+    "arm": "questions",
+    "directions": {
+      "claim": 0,
+      "counter": 2,
+      "neutral": 3
+    },
+    "balanced": true,
+    "converged": true,
+    "value_word_leak": [],
+    "elements": [
+      {
+        "description": "What are the reported rates of employment and wage growth among recent immigrants under the current policy?",
+        "direction": "counter"
+      },
+      {
+        "description": "The government has implemented a specific immigration policy.",
+        "direction": "neutral"
+      },
+      {
+        "description": "What are the projected long-term impacts of the current immigration policy on the national debt and social welfare programs?",
+        "direction": "counter"
+      },
+      {
+        "description": "What are the primary economic sectors experiencing labor shortages that the current immigration policy aims to address, and how effectively is it doing so?",
+        "direction": "neutral"
+      },
+      {
+        "description": "To what extent do existing international agreements or geopolitical factors influence the government's ability to implement and enforce its current immigration policy?",
+        "direction": "neutral"
+      }
+    ],
+    "pass": true
+  },
+  {
+    "claim": "The new trade deal is a triumph for British workers",
+    "arm": "questions",
+    "directions": {
+      "claim": 2,
+      "counter": 2,
+      "neutral": 1
+    },
+    "balanced": true,
+    "converged": true,
+    "value_word_leak": [],
+    "elements": [
+      {
+        "description": "What are the potential negative consequences or risks for British workers arising from the new trade deal, such as job displacement or reduced bargaining power?",
+        "direction": "counter"
+      },
+      {
+        "description": "How do the anticipated economic outcomes of this trade deal for British workers compare to those of previous trade agreements or alternative policy scenarios?",
+        "direction": "neutral"
+      },
+      {
+        "description": "What mechanisms are in place to support British workers who may be negatively affected by the new trade deal, and what is the track record of such support systems?",
+        "direction": "counter"
+      },
+      {
+        "description": "To what extent do the terms of the new trade deal directly impact the wages and benefits of specific sectors of British workers, beyond general economic indicators?",
+        "direction": "claim"
+      },
+      {
+        "description": "What evidence exists regarding the current baseline employment and wage levels for British workers in industries most likely to be affected by the new trade deal, prior to its full implementation?",
+        "direction": "claim"
+      }
+    ],
+    "pass": true
+  },
+  {
+    "claim": "The situation in Gaza is a genocide",
+    "arm": "questions",
+    "directions": {
+      "claim": 2,
+      "counter": 2,
+      "neutral": 1
+    },
+    "balanced": true,
+    "converged": true,
+    "value_word_leak": [
+      "What are the stated objectives of the Israeli military's operations in Gaza, and how do these objectives align with or diverge from the legal thresholds for genocide?",
+      "What are the documented instances of international legal bodies or human rights organizations formally accusing Israel of committing genocide in Gaza, and what evidence did they cite?"
+    ],
+    "elements": [
+      {
+        "description": "What measures, if any, has the Israeli government implemented to prevent or mitigate civilian harm during its military operations in Gaza?",
+        "direction": "counter"
+      },
+      {
+        "description": "What are the documented historical patterns of conflict and civilian casualties in the region prior to the current events, and how do they compare to the current situation in Gaza?",
+        "direction": "neutral"
+      },
+      {
+        "description": "What are the documented instances of Hamas or other Palestinian militant groups deliberately targeting Israeli civilians or using Palestinian civilians as human shields, and what impact has this had on the conflict's dynamics and civilian casualties?",
+        "direction": "counter"
+      },
+      {
+        "description": "What are the stated objectives of the Israeli military's operations in Gaza, and how do these objectives align with or diverge from the legal thresholds for genocide?",
+        "direction": "claim"
+      },
+      {
+        "description": "What are the documented instances of international legal bodies or human rights organizations formally accusing Israel of committing genocide in Gaza, and what evidence did they cite?",
+        "direction": "claim"
+      }
+    ],
+    "pass": false
+  }
+]
