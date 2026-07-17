@@ -1,0 +1,183 @@
+"""§20 slice 3 — grounds-aware mapping semantics (P4 fix), gated and inert.
+
+Pins: (1) the GROUNDS_MAPPING_ADDENDUM reaches the mapping prompt IFF the
+claim_map carries metadata.grounds.applied (written only by the grounds
+stage, which runs only flag-on + normative-hinted) — every other mapping
+prompt is byte-identical to before; (2) the batch path routes grounds
+claim_maps through the single-claim mapper (the only one carrying the
+addendum); (3) the addendum never leaks direction/balance machinery.
+"""
+
+import pytest
+
+from app.pipeline.claim_map_analyzer import (
+    GROUNDS_MAPPING_ADDENDUM,
+    MAPPING_PROMPT,
+    ClaimMapAnalyzer,
+    _grounds_applied,
+)
+
+
+def _cm(grounds: bool, claim_id: str = "c1"):
+    cm = {
+        "claim_id": claim_id,
+        "normalised_claim": "The policy is questioned",
+        "claim_type": "normative_flagged",
+        "elements": [
+            {
+                "element_id": "e1",
+                "description": "What are the documented outcomes?",
+                "evidence_refs": [],
+                "state": None,
+                "uncertainty": None,
+            }
+        ],
+        "orientation": None,
+        "orientation_basis": None,
+        "metadata": {"element_count": 1},
+    }
+    if grounds:
+        cm["metadata"]["grounds"] = {
+            "applied": True,
+            "converged": True,
+            "element_count": 1,
+        }
+    return cm
+
+
+EVIDENCE = [
+    {
+        "evidence_id": "ev-1",
+        "title": "Report",
+        "snippet": "Outcomes were documented in detail.",
+        "tier": "primary",
+        "evidence_type": "report",
+    }
+]
+
+
+# ── the gate ─────────────────────────────────────────────────────────────────
+
+
+def test_grounds_applied_truth_table():
+    assert _grounds_applied(_cm(True)) is True
+    assert _grounds_applied(_cm(False)) is False
+    assert _grounds_applied({"metadata": {"grounds": {"applied": False}}}) is False
+    assert _grounds_applied({"metadata": {}}) is False
+    assert _grounds_applied({}) is False
+    assert _grounds_applied({"metadata": None}) is False
+
+
+def test_addendum_is_direction_free_and_never_infers_the_claim():
+    low = GROUNDS_MAPPING_ADDENDUM.lower()
+    for forbidden in ("direction", "symmetric", "counter-", "rebalanc", "balance"):
+        assert forbidden not in low, forbidden
+    assert "never infer" in low  # the no-verdict guard is stated
+
+
+# ── prompt identity ──────────────────────────────────────────────────────────
+
+
+class _CaptureAnalyzer(ClaimMapAnalyzer):
+    """Captures the mapping prompt; returns a minimal valid mapping."""
+
+    def __init__(self):
+        super().__init__()
+        self.captured = []
+
+    async def _call_llm(self, prompt, temperature, max_tokens, label):
+        self.captured.append((label, prompt))
+        self._last_model_used = "stub"
+        elements = [
+            {
+                "element_id": "e1",
+                "evidence_refs": [
+                    {
+                        "evidence_id": "ev-1",
+                        "relationship": "supports",
+                        "reasoning": "Documents the outcomes asked about.",
+                    }
+                ],
+                "state": "supported",
+                "uncertainty": None,
+            }
+        ]
+        if label == "batch_mapping":
+            n = prompt.count("=== CLAIM ")
+            return {
+                "claims": [
+                    {"claim_index": i, "elements": list(elements)} for i in range(n)
+                ]
+            }
+        return {"elements": elements}
+
+
+@pytest.mark.asyncio
+async def test_non_grounds_mapping_prompt_is_byte_identical():
+    analyzer = _CaptureAnalyzer()
+    await analyzer.map_evidence_to_elements(_cm(False), list(EVIDENCE))
+    label, prompt = analyzer.captured[0]
+    assert label == "mapping"
+    assert GROUNDS_MAPPING_ADDENDUM not in prompt
+    # Byte-identity with the pre-slice-3 construction:
+    assert prompt.startswith(f"{MAPPING_PROMPT}\n\nClaim: ")
+
+
+@pytest.mark.asyncio
+async def test_grounds_mapping_prompt_carries_the_addendum():
+    analyzer = _CaptureAnalyzer()
+    await analyzer.map_evidence_to_elements(_cm(True), list(EVIDENCE))
+    _, prompt = analyzer.captured[0]
+    assert GROUNDS_MAPPING_ADDENDUM in prompt
+    assert prompt.startswith(f"{MAPPING_PROMPT}{GROUNDS_MAPPING_ADDENDUM}\n\nClaim: ")
+
+
+# ── batch partition ──────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_batch_routes_grounds_claims_individually(monkeypatch):
+    analyzer = _CaptureAnalyzer()
+    routed = []
+
+    async def fake_single(cm, ev):
+        routed.append(cm["claim_id"])
+
+    monkeypatch.setattr(analyzer, "map_evidence_to_elements", fake_single)
+
+    grounds_cm = _cm(True, "g1")
+    plain_a = _cm(False, "p1")
+    plain_b = _cm(False, "p2")
+    await analyzer.map_evidence_batch(
+        [
+            {"claim_map": grounds_cm, "evidence": list(EVIDENCE)},
+            {"claim_map": plain_a, "evidence": list(EVIDENCE)},
+            {"claim_map": plain_b, "evidence": list(EVIDENCE)},
+        ]
+    )
+    # The grounds claim went through the single-claim mapper...
+    assert routed == ["g1"]
+    # ...and the two plain claims went through ONE batch call.
+    batch_calls = [c for c in analyzer.captured if c[0] == "batch_mapping"]
+    assert len(batch_calls) == 1
+    assert GROUNDS_MAPPING_ADDENDUM not in batch_calls[0][1]
+    assert "p1" not in routed and "p2" not in routed
+
+
+@pytest.mark.asyncio
+async def test_batch_with_no_grounds_claims_is_unchanged(monkeypatch):
+    analyzer = _CaptureAnalyzer()
+    routed = []
+
+    async def fake_single(cm, ev):
+        routed.append(cm["claim_id"])
+
+    monkeypatch.setattr(analyzer, "map_evidence_to_elements", fake_single)
+    await analyzer.map_evidence_batch(
+        [
+            {"claim_map": _cm(False, "p1"), "evidence": list(EVIDENCE)},
+            {"claim_map": _cm(False, "p2"), "evidence": list(EVIDENCE)},
+        ]
+    )
+    assert routed == []  # nothing partitioned
+    assert len([c for c in analyzer.captured if c[0] == "batch_mapping"]) == 1

@@ -250,6 +250,54 @@ but only when it genuinely helps the reader interpret the element (per CONTEXT \
 DISCIPLINE above), otherwise omit.
 """
 
+# §20 slice 3 (P4 fix): appended to MAPPING_PROMPT ONLY when the claim_map was
+# rebuilt by the opinion grounds stage (metadata.grounds.applied — written
+# solely by that stage, which runs solely flag-on + normative-hinted). Question
+# -shaped elements otherwise get coerced, inconsistent stance labels (P4,
+# plan §15.8). Counts/states stay mechanical — this changes label SEMANTICS,
+# not the counting machinery, so state derivation/orientation are untouched.
+GROUNDS_MAPPING_ADDENDUM = """\
+
+ELEMENT SHAPE NOTE: This claim's elements are OPEN QUESTIONS — neutral \
+empirical grounds chosen to inform a judgement — not assertions. Use the same \
+relationships with these meanings:
+- "supports" = the evidence substantively ANSWERS the question, documenting \
+that the ground it asks about is established or present (e.g. for "What are \
+the documented casualties?", a casualty report is "supports").
+- "challenges" = the evidence disputes the substance the question asks about — \
+contradicting reported figures, showing the asked-about ground is absent, or \
+documenting the opposite.
+- "context" = background that helps interpret the answers (same discipline as \
+above).
+States keep their mechanical meaning over these counts: "supported" = the \
+ground is well-documented; "disputed" = the documentation is contested; \
+"unresolved" = no substantive answer found. Do NOT treat a question as an \
+assertion to confirm, and NEVER infer or signal whether the parent claim is \
+true — map only what the evidence shows about EACH ground.
+GROUND PRECISION: map a source to a ground ONLY when it substantively \
+addresses what THAT question asks. A statement about intent does not answer a \
+question about physical extent or casualty figures; an official denial of one \
+ground is not "supports" for a different ground. If a source addresses a \
+different element's question, map it there instead (per the census rule \
+above); if it addresses none substantively, leave it unmapped.
+"""
+
+
+def _grounds_applied(claim_map: Dict[str, Any]) -> bool:
+    """True iff the opinion grounds stage rebuilt this claim_map's elements
+    (§20 slice 2). Reading the map's own marker needs no type_hint threading;
+    flag off → the key never exists → prompts byte-identical. Total over
+    hostile shapes: this runs on EVERY mapping call, so a corrupt metadata
+    must degrade to False, never raise (slice-3 verify OBSERVATION-2)."""
+    metadata = claim_map.get("metadata")
+    if not isinstance(metadata, dict):
+        return False
+    grounds = metadata.get("grounds")
+    if not isinstance(grounds, dict):
+        return False
+    return grounds.get("applied") is True
+
+
 BATCH_DECOMPOSITION_PROMPT = """\
 You are an analytical decomposition engine. Given multiple claims, for EACH claim:
 
@@ -1135,7 +1183,8 @@ class ClaimMapAnalyzer:
         )
 
         prompt = (
-            f"{MAPPING_PROMPT}\n\n"
+            f"{MAPPING_PROMPT}"
+            f"{GROUNDS_MAPPING_ADDENDUM if _grounds_applied(claim_map) else ''}\n\n"
             f"Claim: {claim_map['normalised_claim']}\n\n"
             f"Elements:\n{elements_desc}\n\n"
             f"Evidence:\n{evidence_desc}"
@@ -1306,6 +1355,18 @@ class ClaimMapAnalyzer:
                 cm["metadata"]["completed_at"] = datetime.now(timezone.utc).isoformat()
             else:
                 with_evidence.append(item)
+
+        # §20 slice 3: grounds-rebuilt claim_maps (question-shaped elements)
+        # need the GROUNDS_MAPPING_ADDENDUM, which only the single-claim prompt
+        # carries — route them individually; the rest batch as today. A multi-
+        # claim article check CAN contain a hinted claim (Rule 6 hints
+        # per-claim). Flag off → no grounds key → nothing partitioned.
+        grounds_items = [i for i in with_evidence if _grounds_applied(i["claim_map"])]
+        with_evidence = [
+            i for i in with_evidence if not _grounds_applied(i["claim_map"])
+        ]
+        for item in grounds_items:
+            await self.map_evidence_to_elements(item["claim_map"], item["evidence"])
 
         if not with_evidence:
             return
@@ -2113,7 +2174,8 @@ class ClaimMapAnalyzer:
         evidence_desc = "\n".join(evidence_lines)
 
         prompt = (
-            f"{MAPPING_PROMPT}\n\n"
+            f"{MAPPING_PROMPT}"
+            f"{GROUNDS_MAPPING_ADDENDUM if _grounds_applied(claim_map) else ''}\n\n"
             f"Claim: {claim_map['normalised_claim']}\n\n"
             f"Elements:\n{elements_desc}\n\n"
             f"Evidence:\n{evidence_desc}"

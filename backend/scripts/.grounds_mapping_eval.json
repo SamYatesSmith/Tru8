@@ -1,0 +1,987 @@
+[
+  {
+    "run": 1,
+    "results": [
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          {
+            "description": "What are the stated goals of the government's immigration policy, and what metrics were established to measure progress towards those goals?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "supports",
+                "reasoning": "This evidence directly states the policy's goals to reduce the asylum backlog to 20,000 cases by 2025 and cut small-boat crossings by half."
+              },
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "context",
+                "reasoning": "This evidence mentions the stated 20,000 target for the asylum backlog, providing context for one of the policy's goals."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "context",
+                "reasoning": "This evidence refers to 'stated aims' of legal-route reforms, providing context regarding the policy's goals."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented outcomes of the government's immigration policy in terms of border crossings, asylum applications, and visa processing times?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "context",
+                "reasoning": "This evidence outlines the policy's targets for asylum backlog and small-boat crossings, which are relevant for interpreting actual outcomes."
+              },
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "This evidence documents that the asylum backlog increased to 94,000 cases in 2024 and processing costs exceeded projections by £1.2bn, providing specific outcomes."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "This evidence reports that work-visa route processing times decreased by 40% year on year, documenting a positive outcome."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "supports",
+                "reasoning": "This evidence provides a summary of outcomes, noting that enforcement targets were missed while legal-route reforms largely achieved their aims."
+              }
+            ]
+          },
+          {
+            "description": "How do key immigration metrics under the current policy compare to those under previous immigration policies or policies in comparable countries?",
+            "state": "unresolved",
+            "refs": []
+          },
+          {
+            "description": "What are the reported impacts of the government's immigration policy on the labor market, social services, and public opinion?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "context",
+                "reasoning": "This evidence mentions processing costs exceeding projections by £1.2bn, which could be relevant context for the impact on social services."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "This evidence indicates that employer sponsorship grew in shortage sectors, which is a reported impact on the labor market."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "This opinion column reflects a negative public sentiment regarding the policy, providing context for public opinion."
+              }
+            ]
+          }
+        ],
+        "pass": false
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          {
+            "description": "What are the documented civilian casualty rates in Gaza, and how do they compare to historical or contemporary conflict benchmarks?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-cas",
+                "relationship": "supports",
+                "reasoning": "UN OCHA tracking documents civilian deaths exceeding 40,000 in Gaza, with the majority being civilians, directly addressing casualty rates."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Government officials state that casualty figures are inflated, directly disputing the documented civilian casualty rates."
+              }
+            ]
+          },
+          {
+            "description": "What is the extent of destruction to civilian infrastructure, including homes, hospitals, and schools, in Gaza, and what is the stated intent behind these actions?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "supports",
+                "reasoning": "Officials state that operations target militants and deny any intent to harm civilians, providing the stated intent behind actions in Gaza."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented patterns of displacement and forced movement of the civilian population within Gaza, and what measures, if any, are being taken to facilitate their return or resettlement?",
+            "state": "unresolved",
+            "refs": []
+          },
+          {
+            "description": "What is the documented impact on essential services such as water, sanitation, and healthcare in Gaza, and what are the stated reasons for any disruptions?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-aid",
+                "relationship": "supports",
+                "reasoning": "The WHO report documents that aid convoy entries fell below assessed need for eleven consecutive weeks and medical supply access is restricted, indicating an impact on essential services."
+              }
+            ]
+          },
+          {
+            "description": "What does the evidence indicate about whether there is an intent to destroy, in whole or in part, a national, ethnical, racial or religious group, as such, in Gaza?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred, which requires intent to destroy a group, indicating evidence for such intent."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Government officials state that operations target militants and deny any intent to harm civilians, challenging the notion of intent to destroy a national, ethnical, racial, or religious group."
+              },
+              {
+                "evidence_id": "ev-bg",
+                "relationship": "context",
+                "reasoning": "The Encyclopaedia entry provides the definition of genocide from the 1948 Convention, which is essential for understanding the legal framework of intent to destroy a group."
+              }
+            ]
+          }
+        ],
+        "pass": false
+      }
+    ]
+  },
+  {
+    "run": 2,
+    "results": [
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          {
+            "description": "What are the stated goals of the government's immigration policy, and what metrics were established to measure progress towards those goals?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "supports",
+                "reasoning": "The Home Office policy statement directly outlines the stated targets to reduce the asylum backlog to 20,000 cases by 2025 and cut small-boat crossings by half."
+              },
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "context",
+                "reasoning": "The National Audit Office report refers to a 'stated 20,000 target' for the asylum backlog, providing context for one of the policy's goals."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "This opinion column expresses a negative sentiment about the policy, which can provide context for understanding public perception of its goals."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented outcomes of the government's immigration policy in terms of border crossings, asylum applications, and visa processing times over the past five years?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "context",
+                "reasoning": "This evidence outlines the government's targets for asylum backlog and small-boat crossings, providing context for evaluating the actual documented outcomes."
+              },
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "The National Audit Office report documents that the asylum backlog increased to 94,000 cases in 2024, providing a documented outcome for asylum applications."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "ONS statistics show that work-visa route processing times decreased by 40% year on year and employer sponsorship increased in shortage sectors, documenting specific outcomes."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "supports",
+                "reasoning": "The Migration Observatory analysis indicates mixed outcomes, including missed enforcement targets and achieved aims for legal-route reforms, documenting overall policy outcomes."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "challenges",
+                "reasoning": "The opinion column's statement that the policy is a 'shambles' directly challenges the idea that it is achieving its documented outcomes."
+              }
+            ]
+          },
+          {
+            "description": "How do key immigration metrics under the current policy compare to those under previous administrations or comparable countries?",
+            "state": "contextual",
+            "refs": [
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "The opinion column's strong negative assertion provides context for how the policy is perceived in relation to potential comparisons."
+              }
+            ]
+          },
+          {
+            "description": "What are the reported impacts of the government's immigration policy on the labor market, social services, and national security, according to independent analyses?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "ONS labour statistics indicate that employer sponsorship grew in shortage sectors, which is a reported impact on the labor market."
+              },
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "The National Audit Office report indicates that processing costs exceeded projections by £1.2bn, representing a reported impact on public finances related to social services."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "challenges",
+                "reasoning": "The opinion column's assertion that the policy is a 'shambles' challenges the reported impacts on the labor market, social services, and national security."
+              }
+            ]
+          }
+        ],
+        "pass": false
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          {
+            "description": "What are the documented casualty figures and rates in Gaza, and how do they compare to historical or contemporary conflict zones that have been subject to genocide investigations?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-cas",
+                "relationship": "supports",
+                "reasoning": "UN OCHA tracking documents deaths exceeding 40,000, with the majority being civilians, directly addressing casualty figures."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Government officials state that casualty figures are inflated, directly disputing the accuracy of reported numbers."
+              },
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "context",
+                "reasoning": "The ICJ's finding of plausible acts within the Genocide Convention provides context for comparing conflict zones subject to genocide investigations."
+              }
+            ]
+          },
+          {
+            "description": "What is the documented extent of destruction of civilian infrastructure and essential services in Gaza, and what is the stated intent behind these actions?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-aid",
+                "relationship": "supports",
+                "reasoning": "The WHO report documents that aid convoy entries fell below assessed need for eleven consecutive weeks and medical supply access is restricted, indicating disruption to essential services."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "supports",
+                "reasoning": "Government officials state that operations target militants and there is no intent to harm civilians, providing the stated intent behind the actions."
+              }
+            ]
+          },
+          {
+            "description": "What evidence exists regarding the systematic targeting of specific ethnic, religious, or national groups within Gaza, and what are the documented patterns of such targeting?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ's finding that it is plausible acts within the scope of the Genocide Convention occurred implies the existence of evidence regarding the targeting of a group."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Government officials state that operations target militants and deny intent to harm civilians, challenging the notion of systematic targeting of specific ethnic, religious, or national groups."
+              },
+              {
+                "evidence_id": "ev-bg",
+                "relationship": "context",
+                "reasoning": "The Encyclopaedia entry defines genocide as acts committed with intent to destroy a national, ethnical, racial or religious group, providing background for understanding group targeting."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented statements and actions by relevant authorities that could indicate an intent to destroy the Palestinian population in Gaza, in whole or in part?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ's finding that it is plausible acts within the scope of the Genocide Convention occurred suggests the existence of documented statements or actions indicating intent, as intent is a core element of genocide."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Government officials state that there is no intent to harm civilians, directly challenging the idea of an intent to destroy the Palestinian population."
+              },
+              {
+                "evidence_id": "ev-bg",
+                "relationship": "context",
+                "reasoning": "The Genocide Convention's definition of genocide, including 'intent to destroy, in whole or in part,' provides context for what constitutes relevant intent."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      }
+    ]
+  },
+  {
+    "run": 3,
+    "results": [
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          {
+            "description": "What are the stated goals of the government's immigration policy, and what metrics were established to measure progress towards those goals?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "supports",
+                "reasoning": "This policy statement directly outlines the government's stated targets to reduce the asylum backlog to 20,000 cases by 2025 and cut small-boat crossings by half."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented outcomes of the government's immigration policy in terms of border crossings, asylum applications, and visa processing times over the past five years?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "This report documents that the asylum backlog increased to 94,000 cases in 2024 and processing costs exceeded projections by £1.2bn, providing specific outcomes for asylum applications and costs."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "This statistical data indicates that work-visa processing times decreased by 40% year on year and employer sponsorship increased in shortage sectors, detailing specific outcomes."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "supports",
+                "reasoning": "This analysis indicates mixed outcomes, noting that enforcement targets were missed while legal-route reforms largely achieved their aims, providing a summary of policy results."
+              }
+            ]
+          },
+          {
+            "description": "How do key immigration metrics under the current policy compare to those under previous immigration policies, controlling for external factors?",
+            "state": "unresolved",
+            "refs": []
+          },
+          {
+            "description": "What are the reported impacts of the government's immigration policy on the labor market, including documented effects on wages and employment for both native-born and immigrant workers?",
+            "state": "contextual",
+            "refs": [
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "context",
+                "reasoning": "This statistical data indicates growth in employer sponsorship in shortage sectors, which provides context for the policy's interaction with the labor market, though it does not detail impacts on wages or employment."
+              }
+            ]
+          },
+          {
+            "description": "What does the evidence indicate about whether these outcomes are demonstrably negative in their impact?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "This report documents that the asylum backlog significantly exceeded its target and processing costs surpassed projections by £1.2bn, indicating demonstrably negative impacts in these areas."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "challenges",
+                "reasoning": "This statistical data shows a 40% reduction in work-visa processing times and growth in employer sponsorship in shortage sectors, indicating positive outcomes that challenge a solely negative impact assessment."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "challenges",
+                "reasoning": "This analysis explicitly states that outcomes are mixed, with some enforcement targets missed but legal-route reforms achieving most of their aims, directly challenging the notion of solely negative impacts."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "This opinion column expresses a strong negative view of the policy, providing context on public perception without offering factual evidence of specific negative impacts."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          {
+            "description": "What are the documented casualty figures and rates in Gaza, and how do they compare to historical or contemporary conflict zones?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-cas",
+                "relationship": "supports",
+                "reasoning": "The UN OCHA report documents over 40,000 deaths, mostly civilians, directly addressing the question about casualty figures in Gaza."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "The government spokesperson claims casualty figures are inflated and denies intent to harm civilians, challenging the documented numbers."
+              },
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred, which directly relates to the casualty figures and rates in Gaza."
+              }
+            ]
+          },
+          {
+            "description": "What is the extent of destruction to civilian infrastructure in Gaza, including homes, hospitals, and schools, and what is the documented intent behind this destruction?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "The government spokesperson states operations target militants and denies intent to harm civilians, challenging the implication of intent behind destruction."
+              },
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred, which can encompass the destruction of civilian infrastructure."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented patterns of displacement and forced movement of the civilian population within Gaza, and what measures, if any, are in place to facilitate their return or resettlement?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred, which can include patterns of displacement and forced movement."
+              }
+            ]
+          },
+          {
+            "description": "What is the documented impact of the conflict on access to essential resources such as food, water, and medical supplies for the civilian population in Gaza?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-aid",
+                "relationship": "supports",
+                "reasoning": "The WHO report documents that aid convoy entries are below assessed need for eleven consecutive weeks and medical supply access is restricted, directly addressing the impact on essential resources."
+              },
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred, which can relate to the impact on access to essential resources."
+              }
+            ]
+          },
+          {
+            "description": "What does the evidence indicate about whether there is evidence of measures intended to prevent births in the group in Gaza?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred, which is directly relevant to measures intended to prevent births."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      }
+    ]
+  },
+  {
+    "run": 4,
+    "results": [
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          {
+            "description": "What are the stated goals of the government's immigration policy, and what metrics were established to measure progress towards those goals?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "supports",
+                "reasoning": "The Home Office policy statement explicitly outlines stated targets to reduce the asylum backlog to 20,000 cases by 2025 and cut small-boat crossings by half."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "supports",
+                "reasoning": "The Migration Observatory analysis mentions that legal-route reforms achieved most of their stated aims, indicating the existence of specific goals for these reforms."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "This opinion column provides a commentary on the policy's perceived state without detailing specific goals or metrics."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented trends in key immigration indicators, such as application processing times, asylum claim approval rates, and border encounters, since the policy's implementation?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "The National Audit Office report documents that the asylum backlog rose to 94,000 cases in 2024 and processing costs exceeded projections by £1.2bn, indicating trends in key indicators."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "ONS labour statistics show that work-visa route processing times fell 40% year on year and employer sponsorship grew in shortage sectors, documenting trends in processing and employment indicators."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "This opinion column expresses a negative view of the policy but does not provide specific data on immigration indicators."
+              }
+            ]
+          },
+          {
+            "description": "How do current immigration levels and processing efficiency compare to historical benchmarks or the policy's projected targets?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "context",
+                "reasoning": "The Home Office policy statement provides the specific targets (reduce asylum backlog to 20,000 by 2025, cut small-boat crossings by half) against which current levels and efficiency can be compared."
+              },
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "The National Audit Office report directly compares the asylum backlog of 94,000 cases in 2024 to the stated 20,000 target and notes processing costs exceeded projections."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "ONS labour statistics indicate improved processing efficiency by stating work-visa route processing times fell 40% year on year, comparing to a previous benchmark."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "supports",
+                "reasoning": "The Migration Observatory analysis directly compares outcomes to targets, stating that enforcement targets were missed but legal-route reforms achieved most of their stated aims."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "This opinion column offers a general negative sentiment about the policy's effectiveness, which indirectly relates to comparisons with targets, but lacks specific data."
+              }
+            ]
+          },
+          {
+            "description": "What are the reported impacts of the policy on the integration and employment of immigrants, as documented by relevant agencies or independent researchers?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "ONS labour statistics report that employer sponsorship grew in shortage sectors, which is a documented impact on the employment of immigrants."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "This opinion column expresses a negative sentiment about the policy's outcomes, which could relate to immigrant integration and employment, but does not offer documented impacts."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          {
+            "description": "What are the documented civilian casualty rates in Gaza since the conflict began, and how do these compare to historical conflict casualty rates in similar contexts?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-cas",
+                "relationship": "supports",
+                "reasoning": "UN OCHA tracking documents deaths exceeding 40,000, with the majority being civilians, providing figures for casualty rates."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Government officials state that casualty figures are inflated, directly disputing the reported rates."
+              }
+            ]
+          },
+          {
+            "description": "What evidence exists regarding the intent of Israeli forces to destroy the Palestinian population in Gaza, in whole or in part?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred, indicating that evidence regarding intent was considered in their assessment."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Government officials explicitly state there is no intent to harm civilians, directly challenging the existence of such intent."
+              },
+              {
+                "evidence_id": "ev-bg",
+                "relationship": "context",
+                "reasoning": "The Encyclopaedia entry provides the definition of genocide from the 1948 Convention, which includes intent to destroy a group, offering background for understanding the element's question."
+              }
+            ]
+          },
+          {
+            "description": "What is the extent of destruction to civilian infrastructure, including homes, hospitals, and schools, in Gaza, and what is the documented cause of this destruction?",
+            "state": "unresolved",
+            "refs": []
+          },
+          {
+            "description": "What measures, if any, have been taken by Israeli forces to prevent or alleviate civilian harm in Gaza, and what has been the documented impact of these measures?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "supports",
+                "reasoning": "Government officials state that operations target militants, which is presented as a measure taken to prevent civilian harm."
+              },
+              {
+                "evidence_id": "ev-aid",
+                "relationship": "challenges",
+                "reasoning": "The WHO report documents that aid convoy entries fell below assessed need for eleven consecutive weeks and medical supply access is restricted, indicating that measures to alleviate civilian harm are insufficient or ineffective."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      }
+    ]
+  },
+  {
+    "run": 5,
+    "results": [
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          {
+            "description": "What are the stated goals of the government's immigration policy, and what metrics are being used to track progress towards those goals?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "supports",
+                "reasoning": "This evidence directly states the policy's goals to reduce the asylum backlog to 20,000 cases by 2025 and cut small-boat crossings by half, which are the metrics used to track progress."
+              },
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "context",
+                "reasoning": "This evidence provides an update on the asylum backlog metric, showing the current figure of 94,000 cases in 2024, which is a metric used to track progress."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "context",
+                "reasoning": "This evidence broadly refers to 'enforcement targets' and 'stated aims' of legal-route reforms, providing general context about the policy's objectives without detailing them."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented outcomes of the government's immigration policy in terms of border crossings, asylum applications, and integration of immigrants?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "context",
+                "reasoning": "This evidence outlines the government's targets for reducing the asylum backlog and small-boat crossings, providing context for what outcomes are being aimed for."
+              },
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "This evidence documents that the asylum backlog increased to 94,000 cases in 2024, which is an outcome related to asylum applications."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "This evidence documents positive outcomes such as a 40% reduction in work-visa processing times and growth in employer sponsorship in shortage sectors."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "supports",
+                "reasoning": "This evidence indicates mixed outcomes, noting that enforcement targets were missed while legal-route reforms largely achieved their stated aims."
+              }
+            ]
+          },
+          {
+            "description": "How do key indicators related to the government's immigration policy compare to those of similar countries or to previous periods?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "context",
+                "reasoning": "This evidence provides the current asylum backlog figure of 94,000 cases in 2024, which could serve as a data point for comparison with previous periods."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "This evidence directly compares work-visa processing times to a previous period, showing a 40% year-on-year fall."
+              }
+            ]
+          },
+          {
+            "description": "What are the reported impacts of the government's immigration policy on the labor market, social services, and public opinion?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "context",
+                "reasoning": "This evidence mentions processing costs exceeding projections by £1.2bn, which provides context regarding the financial implications of the policy."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "This evidence reports impacts on the labor market, specifically the growth of employer sponsorship in shortage sectors."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "context",
+                "reasoning": "This opinion column reflects a negative sentiment about the policy, providing some context related to public opinion."
+              }
+            ]
+          },
+          {
+            "description": "What does the evidence indicate about whether these outcomes are demonstrably negative in their impact?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "This evidence indicates negative impacts by showing the asylum backlog significantly increased beyond its target and processing costs exceeded projections by £1.2bn."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "challenges",
+                "reasoning": "This evidence challenges the notion of demonstrably negative impacts by reporting positive outcomes such as reduced work-visa processing times and increased employer sponsorship in shortage sectors."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "supports",
+                "reasoning": "This evidence indicates mixed outcomes, with 'enforcement targets missed' supporting the presence of negative impacts, while 'legal-route reforms achieved most of their stated aims' suggests some positive aspects."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "supports",
+                "reasoning": "This opinion column directly asserts that the policy is a 'shambles,' indicating a negative perception of its impact."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          {
+            "description": "What has been the documented rate of civilian casualties in Gaza since October 7, 2023, and how does this compare to historical conflict casualty rates in similar contexts?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-cas",
+                "relationship": "supports",
+                "reasoning": "The UN OCHA report documents over 40,000 deaths, mostly civilians, since October 7, 2023, directly addressing the documented casualty rate."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "The government spokesperson claims casualty figures are inflated and operations target militants, directly challenging the documented rate of civilian casualties."
+              }
+            ]
+          },
+          {
+            "description": "What is the documented extent of destruction to civilian infrastructure, including homes, hospitals, and schools, in Gaza, and what is the stated intent behind these actions?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "supports",
+                "reasoning": "The government spokesperson states that operations target militants and there is no intent to harm civilians, directly addressing the stated intent behind the actions."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented patterns of displacement and access to essential resources like food, water, and medical care for the civilian population in Gaza?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-aid",
+                "relationship": "supports",
+                "reasoning": "The WHO report documents that aid convoy entries were below assessed need for eleven weeks and medical supply access is restricted, directly addressing access to essential resources."
+              }
+            ]
+          },
+          {
+            "description": "What legal and international bodies have investigated the situation in Gaza for potential violations of international law, and what have been their findings regarding genocidal intent or acts?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred and ordered provisional measures, directly addressing investigations and findings regarding genocidal acts."
+              },
+              {
+                "evidence_id": "ev-bg",
+                "relationship": "context",
+                "reasoning": "The Encyclopaedia entry provides the definition of genocide from the 1948 Convention, offering context for understanding the legal framework mentioned in the element."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      }
+    ]
+  },
+  {
+    "run": 6,
+    "results": [
+      {
+        "claim": "The government's immigration policy is a disaster",
+        "elements": [
+          {
+            "description": "What are the stated goals of the government's immigration policy, and what metrics are used to track progress towards those goals?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-tgt",
+                "relationship": "supports",
+                "reasoning": "The Home Office policy statement explicitly outlines the government's stated targets for immigration policy, including reducing the asylum backlog to 20,000 cases by 2025 and halving small-boat crossings."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented trends in key immigration indicators, such as application processing times, asylum claim approval rates, and border encounters, since the policy's implementation?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-bad1",
+                "relationship": "supports",
+                "reasoning": "The National Audit Office report documents a significant trend, stating that the asylum backlog increased to 94,000 cases in 2024 and processing costs exceeded projections by £1.2bn."
+              },
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "ONS labour statistics document positive trends, showing that work-visa route processing times decreased by 40% year-on-year and employer sponsorship increased in shortage sectors."
+              },
+              {
+                "evidence_id": "ev-mixed",
+                "relationship": "supports",
+                "reasoning": "The Migration Observatory analysis provides an overview of documented trends, indicating that enforcement targets were missed while legal-route reforms largely achieved their stated aims."
+              }
+            ]
+          },
+          {
+            "description": "How do current immigration flows and integration outcomes compare to historical benchmarks or the outcomes of comparable nations with different immigration policies?",
+            "state": "unresolved",
+            "refs": []
+          },
+          {
+            "description": "What are the reported impacts of the immigration policy on the labor market, social services, and public opinion, according to independent analyses?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-good1",
+                "relationship": "supports",
+                "reasoning": "ONS labour statistics report an impact on the labor market, indicating that employer sponsorship grew in shortage sectors."
+              },
+              {
+                "evidence_id": "ev-op",
+                "relationship": "challenges",
+                "reasoning": "This opinion piece directly challenges the effectiveness of the immigration policy by calling it a 'shambles'."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      },
+      {
+        "claim": "The situation in Gaza is a genocide",
+        "elements": [
+          {
+            "description": "What has been the documented rate of civilian casualties in Gaza since October 7, 2023, and how does this compare to historical conflict casualty rates in similar contexts?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-cas",
+                "relationship": "supports",
+                "reasoning": "Documented deaths in Gaza exceed 40,000, with the majority being civilians, providing figures for the casualty rate since October 7, 2023."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Officials state that casualty figures are inflated, directly disputing the documented rate of civilian casualties."
+              }
+            ]
+          },
+          {
+            "description": "What is the documented extent of destruction to essential infrastructure in Gaza, including hospitals, schools, and water treatment facilities, and what is the stated intent behind these actions?",
+            "state": "contextual",
+            "refs": [
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "context",
+                "reasoning": "Officials state that operations target militants and there is no intent to harm civilians, providing the stated intent behind actions in Gaza."
+              }
+            ]
+          },
+          {
+            "description": "What are the documented patterns of displacement and access to essential resources like food, water, and medical care for the civilian population in Gaza?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-aid",
+                "relationship": "supports",
+                "reasoning": "Aid convoy entries fell below assessed need for eleven consecutive weeks and medical supply access is documented as restricted, indicating patterns of access to essential resources for the civilian population in Gaza."
+              }
+            ]
+          },
+          {
+            "description": "What legal or international body has formally investigated the situation in Gaza for potential violations of international law, and what have been their findings regarding intent and actions?",
+            "state": "supported",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The International Court of Justice (ICJ) found it plausible that acts within the scope of the Genocide Convention occurred and ordered provisional measures, identifying a legal body that has investigated the situation in Gaza."
+              }
+            ]
+          },
+          {
+            "description": "What does the evidence indicate about whether there is an intent to destroy, in whole or in part, a national, ethnical, racial or religious group, as such, in Gaza?",
+            "state": "disputed",
+            "refs": [
+              {
+                "evidence_id": "ev-icj",
+                "relationship": "supports",
+                "reasoning": "The ICJ found it plausible that acts within the scope of the Genocide Convention occurred, which implies a plausible indication of intent to destroy a group."
+              },
+              {
+                "evidence_id": "ev-deny",
+                "relationship": "challenges",
+                "reasoning": "Officials explicitly state there is no intent to harm civilians, directly challenging the assertion of an intent to destroy a group."
+              },
+              {
+                "evidence_id": "ev-bg",
+                "relationship": "context",
+                "reasoning": "The Genocide Convention (1948) defines genocide as acts committed with intent to destroy, in whole or in part, a national, ethnical, racial or religious group, providing the legal framework for understanding intent."
+              }
+            ]
+          }
+        ],
+        "pass": true
+      }
+    ]
+  }
+]
