@@ -1120,6 +1120,13 @@ async def get_checks(
     with a preview of the first claim. Use `GET /checks/{id}` for full
     claim and evidence data.
     """
+    # True total count of the user's checks — independent of this page — so the
+    # client's "Load More" pagination (hasMore = loaded < total) works. Using
+    # len(checks) here capped every user at their first `limit` checks.
+    total_stmt = select(func.count(Check.id)).where(Check.user_id == current_user["id"])
+    total_result = await session.execute(total_stmt)
+    total_count = total_result.scalar() or 0
+
     stmt = (
         select(Check)
         .where(Check.user_id == current_user["id"])
@@ -1190,7 +1197,7 @@ async def get_checks(
             }
         )
 
-    return {"checks": check_data, "total": len(checks)}
+    return {"checks": check_data, "total": total_count}
 
 
 @router.get(

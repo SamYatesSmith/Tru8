@@ -206,6 +206,7 @@ class TestGetChecks:
         """No checks → returns empty list."""
         app = _create_test_app()
         session = _make_session(
+            {"scalar": 0},  # total count query
             {"rows": []},  # checks query
         )
         app.dependency_overrides[get_current_user_or_api_key] = _mock_auth_override()
@@ -229,6 +230,7 @@ class TestGetChecks:
 
         app = _create_test_app()
         session = _make_session(
+            {"scalar": 1},  # total count query
             {"rows": [check]},  # checks query
             {"scalar": claim},  # first claim for check
             {"scalar": 1},  # claims count
@@ -247,6 +249,36 @@ class TestGetChecks:
         assert len(data["checks"]) == 1
         assert data["checks"][0]["id"] == "check-list-1"
         assert data["checks"][0]["claimsCount"] == 1
+
+    @pytest.mark.asyncio
+    async def test_get_checks_total_is_full_count_not_page_size(self):
+        """total must be the user's FULL check count, independent of the page —
+        otherwise the client's Load-More (hasMore = loaded < total) never fires
+        and every user is capped at their first `limit` checks (regression:
+        total was len(checks), the page size)."""
+        check = _make_check(check_id="check-page-1")
+        claim = _make_claim(check_id="check-page-1", text="Test claim")
+
+        app = _create_test_app()
+        session = _make_session(
+            {"scalar": 51},  # total count query — user has 51 checks
+            {"rows": [check]},  # checks query — this page returns 1 row
+            {"scalar": claim},  # first claim for check
+            {"scalar": 1},  # claims count
+        )
+        app.dependency_overrides[get_current_user_or_api_key] = _mock_auth_override()
+        app.dependency_overrides[get_session] = lambda: session
+
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            resp = await client.get("/api/v1/checks?skip=0&limit=20")
+
+        assert resp.status_code == 200
+        data = resp.json()
+        # Page returned 1 row, but total reflects all 51 → Load More stays alive.
+        assert len(data["checks"]) == 1
+        assert data["total"] == 51
 
 
 # ===========================================================================
