@@ -10,12 +10,32 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Parse a date string from the API into a Date, correcting for naive UTC.
+ *
+ * The backend stores timestamps as *naive UTC* (created_at/completed_at use
+ * `datetime.now(timezone.utc).replace(tzinfo=None)`), so `.isoformat()` emits a
+ * string with no `Z`/offset — e.g. "2025-07-20T14:30:00". `new Date()` reads a
+ * timezone-less datetime as *local* time, skewing relative times by the local
+ * UTC offset (under BST, +1h → a brand-new check shows "1 hour ago"). We treat
+ * a timezone-less datetime as UTC by appending `Z`. Date-only strings
+ * ("2024-01-15", already UTC per spec) and offset-bearing strings are untouched.
+ */
+export function parseServerDate(dateString: string): Date {
+  const hasTime = /\d{2}:\d{2}/.test(dateString);
+  const hasTz = /(Z|[+-]\d{2}:?\d{2})$/.test(dateString.trim());
+  if (hasTime && !hasTz) {
+    return new Date(`${dateString.trim()}Z`);
+  }
+  return new Date(dateString);
+}
+
+/**
  * Format date string for display
  * Shows relative time for recent dates, absolute date for older dates
  * Uses calendar day comparison (not 24-hour periods)
  */
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  const date = parseServerDate(dateString);
   const now = new Date();
 
   // Compare by calendar date (ignore time component)
@@ -42,7 +62,7 @@ export function formatDate(dateString: string): string {
  * Used for check metadata timestamps
  */
 export function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
+  const date = parseServerDate(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
@@ -64,7 +84,7 @@ export function formatMonthYear(dateString: string | null): string {
   if (!dateString) return 'Date unknown';
 
   try {
-    const date = new Date(dateString);
+    const date = parseServerDate(dateString);
     return date.toLocaleDateString('en-GB', {
       month: 'short',
       year: 'numeric',

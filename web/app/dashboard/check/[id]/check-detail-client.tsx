@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api';
+import { parseServerDate } from '@/lib/utils';
 import { useCheckProgress } from '@/hooks/use-check-progress';
 import { ClaimSelectionView } from '@/components/claim-selection';
 import { CheckMetadataCard } from './components/check-metadata-card';
@@ -417,7 +418,7 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
           claims={effectiveClaimsForSelection}
           checkId={checkId}
           referenceId={checkId.slice(0, 8).toUpperCase()}
-          extractionTime={new Date(checkData.createdAt).toLocaleString()}
+          extractionTime={parseServerDate(checkData.createdAt).toLocaleString()}
           onSubmit={handleSelectionSubmit}
           isSubmitting={isSubmittingSelection}
         />
