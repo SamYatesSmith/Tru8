@@ -587,21 +587,18 @@ def derive_entry_mode(claims: List[Dict[str, Any]]) -> str:
     """Entry mode for a check's claim list.
 
     ≥2 claims → "article" (selection pause). Exactly 1 claim → "focused"
-    (straight through) — UNLESS it carries the Phase 1a decoupling hint
-    ``type_hint == "normative"`` (a retained main-predicate opinion, emitted
-    only when ENABLE_OPINION_REFRAME is on): that claim takes the selection
-    pause as a CONFIRM STEP instead. The origin failure (TRU-1928-D5F6) was
-    focused mode's SILENCE — the user never learned what would be researched.
-    Decoupling plan §16.3; D5 = confirm-pause (founder, 2026-07-16).
+    (straight through), INCLUDING a normative-hinted opinion. The Phase 1a
+    decoupling (grounds decompose + grounds-aware mapping) runs SILENTLY in
+    focused mode via ``should_apply_grounds`` in phase 2 — no interstitial.
 
-    The hint branch ALSO requires the flag (verifier fix D-1): stale cached
-    claims can carry a hint after a flag rollback — flag off must mean
-    today's behaviour, unconditionally.
+    2026-07-20: the single-opinion CONFIRM-PAUSE (D5, plan §16.3) was DROPPED
+    (founder). It was inconsistent with the pipeline — factual claims are
+    silently decomposed into elements with no confirm — and it narrated our
+    own mechanism to the user. The finished report already surfaces the
+    grounds, so the "silence" the pause guarded against is filled there.
     """
     if len(claims) != 1:
         return "article"
-    if claims[0].get("type_hint") == "normative" and settings.ENABLE_OPINION_REFRAME:
-        return "article"  # single-opinion confirm step
     return "focused"
 
 

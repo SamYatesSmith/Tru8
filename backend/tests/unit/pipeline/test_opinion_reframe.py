@@ -9,11 +9,10 @@ Pins the §16 design guarantees (audit/2026-07-15_decoupling_build_plan.md):
   hinted claim in a procedural-negative shape ("X failed to …") can still be
   dropped/stripped by check 1; that is in-spec for 1a and a Phase 1b battery
   case, not a pinned guarantee here;
-- ``derive_entry_mode``: a single normative-hinted claim takes the selection
-  pause (confirm step) ONLY while ENABLE_OPINION_REFRAME is on (verifier fix
-  D-1 — stale cached claims may carry a hint after a flag rollback; flag off
-  must mean today's behaviour unconditionally). Everything else behaves
-  exactly as before.
+- ``derive_entry_mode``: every single claim is "focused" now — the
+  single-opinion confirm-pause was DROPPED (2026-07-20, founder). A normative
+  hint no longer routes to the selection pause; the decoupling runs silently
+  in phase 2. Everything else behaves exactly as before.
 """
 
 import pytest
@@ -114,17 +113,18 @@ def test_single_plain_claim_stays_focused():
     assert derive_entry_mode([{"text": "x", "position": 0}]) == "focused"
 
 
-def test_single_normative_hinted_claim_takes_the_pause_when_flag_on(monkeypatch):
+def test_single_normative_hinted_claim_stays_focused_pause_dropped(monkeypatch):
+    # 2026-07-20: the single-opinion confirm-pause was DROPPED. A normative
+    # single claim now flows focused like any other — the decoupling runs
+    # silently in phase 2. True regardless of the flag.
     monkeypatch.setattr(settings, "ENABLE_OPINION_REFRAME", True)
     assert (
         derive_entry_mode([{"text": "x", "position": 0, "type_hint": "normative"}])
-        == "article"
+        == "focused"
     )
 
 
 def test_hinted_claim_with_flag_off_stays_focused(monkeypatch):
-    # D-1: a stale cached hint after a flag rollback must NOT fire the pause —
-    # flag off is today's behaviour, unconditionally.
     monkeypatch.setattr(settings, "ENABLE_OPINION_REFRAME", False)
     assert (
         derive_entry_mode([{"text": "x", "position": 0, "type_hint": "normative"}])
@@ -133,7 +133,7 @@ def test_hinted_claim_with_flag_off_stays_focused(monkeypatch):
 
 
 def test_single_claim_with_other_hint_value_stays_focused(monkeypatch):
-    # Only the exact "normative" hint routes to the confirm step (even flag-on).
+    # Every single claim is focused now — no hint value routes to a pause.
     monkeypatch.setattr(settings, "ENABLE_OPINION_REFRAME", True)
     assert (
         derive_entry_mode([{"text": "x", "position": 0, "type_hint": "legal"}])
