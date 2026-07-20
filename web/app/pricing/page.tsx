@@ -4,6 +4,7 @@ import { Navigation } from '@/components/layout/navigation';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { Footer } from '@/components/layout/footer';
 import { StitchPricing } from '@/components/marketing/stitch-pricing';
+import { PricingFaq } from '@/components/marketing/pricing-faq';
 
 export const metadata: Metadata = {
   title: 'Pricing — Console & API',
@@ -26,6 +27,7 @@ export default function PricingPage() {
 
       <main id="main-content" className="relative pt-24 md:pt-32">
         <StitchPricing />
+        <PricingFaq />
       </main>
 
       <Footer />
