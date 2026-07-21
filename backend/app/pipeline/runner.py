@@ -314,6 +314,34 @@ def _compute_recovery_timeout(n_candidates: int) -> int:
     )
 
 
+def _element_is_starved(elem: Dict[str, Any]) -> bool:
+    """A context-only element: it HAS mapped evidence but none of it is
+    directional (0 supports AND 0 challenges). Such an element derives
+    ``contextual``, not ``unresolved``, so the unresolved-ratio trigger cannot
+    see it — the invisible starvation coverage recovery keys off (§4d fix 1).
+
+    An element with NO refs at all is a plain gap that already derives
+    ``unresolved`` (mechanical rule ``no_evidence``); the unresolved trigger
+    owns it, so it is deliberately NOT counted as starved here."""
+    refs = elem.get("evidence_refs") or []
+    if not refs:
+        return False
+    for ref in refs:
+        rel = ref.get("relationship")
+        rel = rel.value if hasattr(rel, "value") else rel
+        if rel in ("supports", "challenges"):
+            return False
+    return True
+
+
+def _element_needs_recovery(elem: Dict[str, Any]) -> bool:
+    """True for an element coverage recovery should re-query: state ``unresolved``
+    (original trigger) OR starved of directional evidence (§4d fix 1)."""
+    state = elem.get("state")
+    state = state.value if hasattr(state, "value") else state
+    return state == "unresolved" or _element_is_starved(elem)
+
+
 def _compute_element_resolution(claim_map: Optional[Dict[str, Any]]) -> float:
     """V3 quality signal: fraction of claim_map elements with state != 'unresolved'.
 
@@ -2298,14 +2326,9 @@ async def run_pipeline_phase2(
     # (Bug B — scales with len(recovery_candidates)).
 
     _skip_coverage_recovery = not config.enable_coverage_recovery
-    # Skip coverage recovery for small checks (≤2 claims) — disproportionate
-    # cost (10-15s) relative to value. Users can re-search via the Seeker view.
-    if not _skip_coverage_recovery and len(selected_claims) <= 2:
-        _skip_coverage_recovery = True
-        logger.info(
-            f"[COVERAGE RECOVERY] Skipped for small check "
-            f"({len(selected_claims)} claims, threshold=3)"
-        )
+    # §4d fix 1: the ≤2-claim skip is dropped so recovery reaches intact
+    # single-thesis checks — a claim can look healthy while one element is
+    # starved (0 supports/challenges). Cost is bounded by RECOVERY_MAX_* caps.
     if _skip_coverage_recovery:
         if "coverage_recovery" not in stage_timings:
             logger.info(f"[COVERAGE RECOVERY] Skipped (mode={config.mode})")
@@ -2318,23 +2341,19 @@ async def run_pipeline_phase2(
             continue
         elements = cm["elements"]
         total = len(elements)
-        unresolved = sum(
-            1
-            for e in elements
-            if (
-                e.get("state").value
-                if hasattr(e.get("state"), "value")
-                else e.get("state")
-            )
-            == "unresolved"
-        )
-        if total > 0 and (unresolved / total) > COVERAGE_RECOVERY_THRESHOLD:
+        # Elements recovery would re-query: unresolved (original) OR starved of
+        # directional evidence (new). Qualify on the 40% ratio OR ANY starved
+        # element — a single starved element on an otherwise-healthy claim is the
+        # founder's e02 case and must trigger.
+        needs = sum(1 for e in elements if _element_needs_recovery(e))
+        any_starved = any(_element_is_starved(e) for e in elements)
+        if total > 0 and ((needs / total) > COVERAGE_RECOVERY_THRESHOLD or any_starved):
             recovery_candidates.append(
                 {
                     "claim": claim,
                     "total": total,
-                    "unresolved": unresolved,
-                    "ratio": unresolved / total,
+                    "needs": needs,
+                    "ratio": needs / total,
                 }
             )
 
@@ -2345,13 +2364,13 @@ async def run_pipeline_phase2(
         recovery_timeout = _compute_recovery_timeout(len(recovery_candidates))
 
         candidate_info = [
-            (c["claim"].get("position", "?"), f"{c['unresolved']}/{c['total']}")
+            (c["claim"].get("position", "?"), f"{c['needs']}/{c['total']}")
             for c in recovery_candidates
         ]
         logger.info(
             f"[COVERAGE RECOVERY] {len(recovery_candidates)} claims qualify "
-            f"(>{COVERAGE_RECOVERY_THRESHOLD*100:.0f}% unresolved): {candidate_info} "
-            f"timeout={recovery_timeout}s"
+            f"(>{COVERAGE_RECOVERY_THRESHOLD*100:.0f}% unresolved or starved): "
+            f"{candidate_info} timeout={recovery_timeout}s"
         )
 
         # Collect existing URLs for dedup
@@ -2374,16 +2393,12 @@ async def run_pipeline_phase2(
             cm = claim["claim_map"]
             pos = str(claim.get("position", 0))
 
-            # Identify unresolved elements (cap per claim)
+            # Identify elements needing recovery — unresolved OR starved of
+            # directional evidence (§4d fix 1) — cap per claim.
             unresolved_elements = [
                 {"element_id": e["element_id"], "description": e["description"]}
                 for e in cm["elements"]
-                if (
-                    e.get("state").value
-                    if hasattr(e.get("state"), "value")
-                    else e.get("state")
-                )
-                == "unresolved"
+                if _element_needs_recovery(e)
             ][:RECOVERY_MAX_ELEMENTS]
 
             if not unresolved_elements:

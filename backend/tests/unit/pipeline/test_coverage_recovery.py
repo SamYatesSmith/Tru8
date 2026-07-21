@@ -21,6 +21,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from app.models.claim_map import ElementState, EvidenceRelationship
 from app.pipeline.retrieve import EvidenceRetriever
 from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer, derive_orientation
+from app.pipeline.runner import _element_is_starved, _element_needs_recovery
 from app.services.search import SearchResult
 
 
@@ -2692,3 +2693,70 @@ class TestRecoveryClassification:
             new_evidence[0]["evidence_type"] is not None
         ), "Heuristic should assign a type"
         assert new_evidence[0]["receipt_status"] == "classified"
+
+
+# =============================================================================
+# Group 9: Element-starvation trigger (§4d fix 1)
+# =============================================================================
+
+
+class TestStarvationTrigger:
+    """The element-level starvation signal that lets recovery reach an intact
+    claim where one element has evidence but none of it is directional."""
+
+    def _elem(self, state, rels):
+        return {
+            "element_id": "e1",
+            "description": "d",
+            "state": state,
+            "evidence_refs": [
+                {"evidence_id": f"x{i}", "relationship": r} for i, r in enumerate(rels)
+            ],
+        }
+
+    def test_starved_on_context_only(self):
+        # Context-only element derives `contextual`, not `unresolved` — starved.
+        assert (
+            _element_is_starved(self._elem("contextual", ["context", "context"]))
+            is True
+        )
+
+    def test_empty_refs_not_starved(self):
+        # A plain gap (no refs) derives `unresolved` — the unresolved trigger
+        # owns it, so it is NOT double-counted as starved.
+        assert _element_is_starved(self._elem("unresolved", [])) is False
+
+    def test_not_starved_with_one_support(self):
+        assert _element_is_starved(self._elem("supported", ["supports"])) is False
+
+    def test_not_starved_with_one_challenge(self):
+        assert _element_is_starved(self._elem("disputed", ["challenges"])) is False
+
+    def test_starved_handles_enum_relationship(self):
+        el = self._elem("contextual", [])
+        el["evidence_refs"] = [
+            {"evidence_id": "x", "relationship": EvidenceRelationship.context}
+        ]
+        assert _element_is_starved(el) is True
+        el["evidence_refs"] = [
+            {"evidence_id": "x", "relationship": EvidenceRelationship.supports}
+        ]
+        assert _element_is_starved(el) is False
+
+    def test_needs_recovery_context_only_element(self):
+        # The founder's e02 case: a lone context-only element on a claim that
+        # is otherwise healthy must be flagged for recovery.
+        assert _element_needs_recovery(self._elem("contextual", ["context"])) is True
+
+    def test_needs_recovery_unresolved(self):
+        assert _element_needs_recovery(self._elem("unresolved", [])) is True
+
+    def test_needs_recovery_false_for_supported(self):
+        assert (
+            _element_needs_recovery(self._elem("supported", ["supports", "supports"]))
+            is False
+        )
+
+    def test_needs_recovery_handles_enum_state(self):
+        el = self._elem(ElementState.unresolved, [])
+        assert _element_needs_recovery(el) is True
