@@ -96,6 +96,13 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    # Deploy-shutdown guard (2026-07-21): pipeline tasks die with the process
+    # (no Celery). Fail + refund whatever is still in flight so no check is
+    # ever left stuck 'processing' with a burned credit after a deploy.
+    from app.core.inflight import fail_and_refund_inflight
+
+    await fail_and_refund_inflight()
+
 
 API_DESCRIPTION = """
 Structured evidence research for AI agents and developers.

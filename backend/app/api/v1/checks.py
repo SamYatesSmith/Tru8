@@ -14,6 +14,7 @@ from app.core.auth import (
     get_current_user_or_api_key_sse,
 )
 from app.core.config import settings
+from app.core.inflight import inflight_register, inflight_unregister
 from app.core.pdf_assets import FONT_FACE_CSS
 from app.pipeline.support_structure import side_quality_note
 from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription
@@ -537,6 +538,7 @@ async def create_check_test_streaming(
 
     async def run_pipeline_and_save():
         """Background task that runs pipeline and saves results independently."""
+        inflight_register(check.id)  # deploy-shutdown guard (2026-07-21)
         try:
             logger.info(f"[TEST STREAM] Starting pipeline for check {check.id}")
             result = await asyncio.wait_for(
@@ -576,6 +578,9 @@ async def create_check_test_streaming(
             logger.error(traceback.format_exc())
             await handle_pipeline_failure(check.id, user.id, e)
             await progress_reporter.report_error(str(e))
+
+        finally:
+            inflight_unregister(check.id)
 
     # Start pipeline as fire-and-forget background task
     pipeline_task = asyncio.create_task(run_pipeline_and_save())
@@ -687,6 +692,7 @@ async def create_check_streaming(
         This runs INDEPENDENTLY of the SSE stream - results are saved
         even if the client disconnects.
         """
+        inflight_register(check.id)  # deploy-shutdown guard (2026-07-21)
         try:
             logger.info(f"[PIPELINE TASK] Starting pipeline for check {check.id}")
             result = await asyncio.wait_for(
@@ -812,6 +818,9 @@ async def create_check_streaming(
             await handle_pipeline_failure(check.id, user.id, e)
             await progress_reporter.report_error(str(e))
             _fire_webhook_failed(user.id, check.id, str(e))
+
+        finally:
+            inflight_unregister(check.id)
 
     # Start pipeline as fire-and-forget background task
     # This ensures results are saved even if client disconnects
@@ -1361,6 +1370,7 @@ async def select_claims(
     progress_reporter = ProgressReporter(check_id)
 
     async def run_phase2_and_save():
+        inflight_register(check_id)  # deploy-shutdown guard (2026-07-21)
         try:
             logger.info(f"[PHASE 2 TASK] Starting phase 2 for check {check_id}")
             phase2_result = await asyncio.wait_for(
@@ -1412,6 +1422,9 @@ async def select_claims(
             logger.error(traceback.format_exc())
             await handle_pipeline_failure(check_id, current_user["id"], e)
             await progress_reporter.report_error(str(e))
+
+        finally:
+            inflight_unregister(check_id)
 
     asyncio.create_task(run_phase2_and_save())
 
@@ -2011,7 +2024,6 @@ async def create_sse_token(
 async def stream_check_progress(
     check_id: str,
     current_user: dict = Depends(get_current_user_or_api_key_sse),
-    session: AsyncSession = Depends(get_session),
 ):
     """
     Stream real-time pipeline progress via Server-Sent Events.
@@ -2023,15 +2035,24 @@ async def stream_check_progress(
     (EventSource can't set headers).
     """
 
-    # Verify check belongs to user
-    stmt = select(Check).where(
-        Check.id == check_id, Check.user_id == current_user["id"]
-    )
-    result = await session.execute(stmt)
-    check = result.scalar_one_or_none()
+    # Verify check belongs to user. Deliberately NOT a Depends(get_session):
+    # a dependency session stays checked out for the STREAM's lifetime (up to
+    # 5 min), and reconnect loops on a dead check starved the pool into an
+    # API-wide brownout (2026-07-21 outage). Short-lived session, released
+    # before streaming starts; the generator only needs Redis + these fields.
+    async with async_session() as session:
+        stmt = select(Check).where(
+            Check.id == check_id, Check.user_id == current_user["id"]
+        )
+        result = await session.execute(stmt)
+        check = result.scalar_one_or_none()
 
-    if not check:
-        raise HTTPException(status_code=404, detail="Check not found")
+        if not check:
+            raise HTTPException(status_code=404, detail="Check not found")
+
+        # Snapshot before the session closes — the generator runs detached.
+        check_status = check.status
+        check_error = check.error_message
 
     def event_stream():
         """Generate SSE events for pipeline progress - reads from Redis"""
@@ -2046,13 +2067,13 @@ async def stream_check_progress(
             yield f"data: {safe_json_dumps({'type': 'connected', 'checkId': check_id, 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
 
             # Check if already completed/failed/awaiting in database
-            if check.status == "completed":
+            if check_status == "completed":
                 yield f"data: {json.dumps({'type': 'completed', 'checkId': check_id, 'status': 'completed', 'progress': 100})}\n\n"
                 return
-            elif check.status == "failed":
-                yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': check.error_message})}\n\n"
+            elif check_status == "failed":
+                yield f"data: {safe_json_dumps({'type': 'error', 'checkId': check_id, 'status': 'failed', 'error': check_error})}\n\n"
                 return
-            elif check.status == "waiting_for_selection":
+            elif check_status == "waiting_for_selection":
                 claims_key = f"inline-progress:{check_id}:claims"
                 claims_json = redis_client.get(claims_key)
                 claims = json.loads(claims_json) if claims_json else []
