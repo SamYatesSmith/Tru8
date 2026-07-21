@@ -1,153 +1,121 @@
 {
-  "claim_id": "TRU-C1A0-0004",
-  "captured_at": "2026-07-02T17:27:00.468055+00:00",
-  "captured_with": "a324e8b",
-  "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand.",
-  "hard_invariants": {
-    "classifier_inject": {
-      "primary": "Politics",
-      "secondaries_must_include": [
-        "Law"
-      ],
-      "jurisdiction_to": "US",
-      "_note_2026-07-02": "was ['Finance','Law']; classifier now picks Climate over Finance for the IRA (climate-spending act) — known LLM multi-signal variance, not a regression. Law is entity-derived and kept."
-    },
-    "must_have_url_substrings": [],
-    "must_not_have_url_substrings": [],
-    "expected_adapters_subset": [],
-    "coverage_recovery_failures_max": 6,
-    "v3_quality_floors": {
-      "unique_domains_min": 5,
-      "top_domain_share_max": 0.45,
-      "wikipedia_share_max": 0.4,
-      "factual_weight_share_min": 0.15,
-      "element_resolution_min": 0.3
-    },
-    "v3_quality_warn_band": {
-      "unique_domains_min": 7,
-      "top_domain_share_max": 0.3,
-      "wikipedia_share_max": 0.25,
-      "factual_weight_share_min": 0.25,
-      "element_resolution_min": 0.5
-    },
-    "coverage_recovery_must_not_timeout": true
+ "claim_id": "TRU-C1A0-0004",
+ "captured_at": "2026-07-21T10:11:11.071124+00:00",
+ "captured_with": "fdf3509",
+ "captured_with_known_bugs": [],
+ "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
+ "hard_invariants": {
+  "classifier_inject": {
+   "primary": "Politics",
+   "secondaries_must_include": [
+    "Climate",
+    "Law"
+   ],
+   "jurisdiction_to": "US"
   },
-  "tolerant_counters": {
-    "sources_included": {
-      "value": 38,
-      "tolerance": 8
-    },
-    "claims": {
-      "value": 2,
-      "tolerance": 1
-    },
-    "elements": {
-      "value": 7,
-      "tolerance": 3
-    },
-    "web_search": {
-      "value": 59,
-      "tolerance": 8
-    },
-    "api_adapters": {
-      "value": 1,
-      "tolerance": 8
-    },
-    "tier_reporting": {
-      "value": 8,
-      "tolerance": 4
-    },
-    "tier_primary": {
-      "value": 17,
-      "tolerance": 8
-    },
-    "tier_commentary": {
-      "value": 13,
-      "tolerance": 6
-    }
+  "must_have_url_substrings": [],
+  "must_not_have_url_substrings": [],
+  "expected_adapters_subset": [],
+  "coverage_recovery_failures_max": 6,
+  "v3_quality_floors": {
+   "unique_domains_min": 5,
+   "top_domain_share_max": 0.45,
+   "wikipedia_share_max": 0.4,
+   "factual_weight_share_min": 0.15,
+   "element_resolution_min": 0.3
   },
-  "set_jaccard": {
-    "url_ledger_flat": {
-      "golden": [
-        "http://cohen.house.gov/issues/energy",
-        "https://apnews.com/article/trump-biden-high-prices-inflation-angry-voters-e6e65165deaf9dfc8dbb986f43b1a61a",
-        "https://apnews.com/article/what-is-republican-trump-tax-bill-f65be44e1050431a601320197322551b",
-        "https://blogs.lse.ac.uk/usappblog/2026/06/05/looking-beyond-trump-understanding-the-building-blocks-of-recent-us-climate",
-        "https://cgs.umd.edu/research-impact/publications/impacts-inflation-reduction-act-and-one-big-beautiful-bill-act-us",
-        "https://cms.law/en/gbr/legal-updates/inflation-reduction-act",
-        "https://community.citizensclimate.org/resources/item/19/507",
-        "https://en.wikipedia.org/wiki/Inflation_Reduction_Act",
-        "https://energy.ri.gov/federalfunding",
-        "https://experience.arcgis.com/experience/45ac4dc0f74a42c6bc4548fbd8804c92",
-        "https://iopscience.iop.org/article/10.1088/2753-3751/ae17d1",
-        "https://iratracker.org/programs/ira-section-13102-renewable-energy-investment-tax-credit/",
-        "https://journals.stecab.com/jece/article/download/1038/458",
-        "https://link.springer.com/article/10.1007/s10584-026-04133-4",
-        "https://theconversation.com/topics/inflation-reduction-act-of-2022-124930",
-        "https://thespringgroup.org/articles/a-comprehensive-economic-analysis-of-renewable-energy-in-the-united-states",
-        "https://triagecancer.org/inflation-reduction-act-vaccines-blog",
-        "https://www.americanprogress.org/topic/inflation-reduction-act/",
-        "https://www.csis.org/analysis/why-new-climate-bill-also-about-competition-china",
-        "https://www.ebsco.com/research-starters/environmental-sciences/united-states-environmental-policies",
-        "https://www.economist.com/finance-and-economics/2026/07/02/how-much-will-a-4th-of-july-cookout-cost-this-year",
-        "https://www.energy.gov/edf/inflation-reduction-act-2022",
-        "https://www.energypolicy.columbia.edu/assessing-the-energy-impacts-of-the-one-big-beautiful-bill-act/",
-        "https://www.epa.gov/green-power-markets/summary-inflation-reduction-act-provisions-related-renewable-energy",
-        "https://www.epa.gov/inflation-reduction-act",
-        "https://www.epa.gov/inflation-reduction-act/select-infrastructure-investment-and-jobs-act-and-inflation-reduction-act",
-        "https://www.everycrsreport.com/reports/R48906.html",
-        "https://www.ft.com/content/20eed7c0-4c46-4516-8dda-cab48475c9fc?syn-25a6b1a6=1",
-        "https://www.healthinsurance.org/glossary/inflation-reduction-act/",
-        "https://www.iea.org/policies/16156-inflation-reduction-act-of-2022",
-        "https://www.irs.gov/inflation-reduction-act-of-2022",
-        "https://www.law.georgetown.edu/environmental-law-review/blog/is-the-inflation-reduction-act-just-applying-the-ira-to-the",
-        "https://www.mintz.com/our-services/specialty-issues/biden-administration/viewpoints",
-        "https://www.nature.com/articles/s44359-026-00168-z",
-        "https://www.nrdc.org/stories/consumer-guide-inflation-reduction-act",
-        "https://www.pillsburylaw.com/en/inflation-reduction-act-resource-center.html",
-        "https://www.politico.com/newsletters/power-switch/2025/08/08/lessons-from-the-rise-and-fall-of-bidens-ira-00499441",
-        "https://www.sierraclub.org/harnessing-power-inflation-reduction-act",
-        "https://www.solar.com/learn/inflation-reduction-act/",
-        "https://www.theguardian.com/environment/2025/nov/29/trump-coal-country"
-      ],
-      "min_similarity": 0.4
-    },
-    "domain_set": {
-      "golden": [
-        "americanprogress.org",
-        "apnews.com",
-        "blogs.lse.ac.uk",
-        "cgs.umd.edu",
-        "community.citizensclimate.org",
-        "ebsco.com",
-        "economist.com",
-        "en.wikipedia.org",
-        "energy.gov",
-        "energy.ri.gov",
-        "epa.gov",
-        "experience.arcgis.com",
-        "ft.com",
-        "healthinsurance.org",
-        "iea.org",
-        "iopscience.iop.org",
-        "iratracker.org",
-        "irs.gov",
-        "journals.stecab.com",
-        "law.georgetown.edu",
-        "link.springer.com",
-        "mintz.com",
-        "nrdc.org",
-        "pillsburylaw.com",
-        "politico.com",
-        "politifact.com",
-        "solar.com",
-        "theguardian.com",
-        "thespringgroup.org",
-        "triagecancer.org",
-        "usatoday.com"
-      ],
-      "min_similarity": 0.55
-    }
+  "v3_quality_warn_band": {
+   "unique_domains_min": 7,
+   "top_domain_share_max": 0.3,
+   "wikipedia_share_max": 0.25,
+   "factual_weight_share_min": 0.25,
+   "element_resolution_min": 0.5
+  },
+  "coverage_recovery_must_not_timeout": true
+ },
+ "tolerant_counters": {
+  "sources_included": {
+   "value": 19,
+   "tolerance": 8
+  },
+  "claims": {
+   "value": 1,
+   "tolerance": 1
+  },
+  "elements": {
+   "value": 3,
+   "tolerance": 3
+  },
+  "web_search": {
+   "value": 22,
+   "tolerance": 8
+  },
+  "api_adapters": {
+   "value": 0,
+   "tolerance": 8
+  },
+  "tier_primary": {
+   "value": 4,
+   "tolerance": 4
+  },
+  "tier_commentary": {
+   "value": 9,
+   "tolerance": 4
+  },
+  "tier_reporting": {
+   "value": 6,
+   "tolerance": 4
   }
+ },
+ "set_jaccard": {
+  "url_ledger_flat": {
+   "golden": [
+    "https://apnews.com/article/trump-biden-high-prices-inflation-angry-voters-e6e65165deaf9dfc8dbb986f43b1a61a",
+    "https://dcgreenbank.com/news/president-biden-signs-the-historic-inflation-reduction-act-unlocking-27-billion-for-green-b",
+    "https://energycommerce.house.gov/posts/one-year-later-even-president-biden-admits-the-inflation-reduction-act-failed-to-",
+    "https://grist.org/energy/trump-inflation-reduction-act-big-beautiful-bil/",
+    "https://link.springer.com/article/10.1007/s10584-026-04133-4",
+    "https://wildfiretaskforce.org/biden-signs-inflation-reduction-act-affecting-health-climate-and-the-economy/",
+    "https://www.americanprogress.org/topic/inflation-reduction-act/",
+    "https://www.c-span.org/program/white-house-event/president-biden-signs-inflation-reduction-act/615969",
+    "https://www.energy.gov/edf/inflation-reduction-act-2022",
+    "https://www.ft.com/content/20eed7c0-4c46-4516-8dda-cab48475c9fc?syn-25a6b1a6=1",
+    "https://www.ft.com/content/46152712-53f5-4664-acdf-e545dc7ddee8?syn-25a6b1a6=1",
+    "https://www.healthinsurance.org/glossary/inflation-reduction-act/",
+    "https://www.irs.gov/inflation-reduction-act-of-2022",
+    "https://www.law.georgetown.edu/environmental-law-review/blog/is-the-inflation-reduction-act-just-applying-the-ira-to-the",
+    "https://www.pbs.org/newshour/show/a-look-at-the-economic-impact-and-progress-of-bidens-inflation-reduction-act-so-far",
+    "https://www.presidency.ucsb.edu/documents/what-they-are-saying-biden-harris-administration-celebrates-two-years-the-infl",
+    "https://www.proskauertaxtalks.com/2022/08/president-biden-signs-inflation-reduction-act-into-law/",
+    "https://www.researchgate.net/publication/399536432_The_Impact_of_the_Inflation_Reduction_Act_on_Global_Manufacturing",
+    "https://www.theguardian.com/environment/2025/nov/29/trump-coal-country",
+    "https://www.theguardian.com/environment/2025/oct/02/down-to-earth-green-energy-climate-week-nyc-united-nations-us-politi",
+    "https://www.youtube.com/watch?v=3VWauAOR-gw"
+   ],
+   "min_similarity": 0.35
+  },
+  "domain_set": {
+   "golden": [
+    "americanprogress.org",
+    "c-span.org",
+    "dcgreenbank.com",
+    "energy.gov",
+    "energycommerce.house.gov",
+    "ft.com",
+    "grist.org",
+    "healthinsurance.org",
+    "irs.gov",
+    "law.georgetown.edu",
+    "link.springer.com",
+    "pbs.org",
+    "presidency.ucsb.edu",
+    "proskauertaxtalks.com",
+    "researchgate.net",
+    "theguardian.com",
+    "wildfiretaskforce.org",
+    "youtube.com"
+   ],
+   "min_similarity": 0.45
+  }
+ }
 }

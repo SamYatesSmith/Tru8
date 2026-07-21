@@ -1,104 +1,103 @@
 {
-  "claim_id": "TRU-C1A0-0001",
-  "captured_at": "2026-07-02T17:26:28.243009+00:00",
-  "captured_with": "a324e8b",
-  "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
-  "hard_invariants": {
-    "freshness_inject_must_fire_on_claims": [
-      0
-    ],
-    "must_have_url_substrings": [],
-    "must_not_have_url_substrings": [],
-    "expected_adapters_subset": [],
-    "coverage_recovery_failures_max": 6,
-    "v3_quality_floors": {
-      "unique_domains_min": 5,
-      "top_domain_share_max": 0.45,
-      "wikipedia_share_max": 0.4,
-      "factual_weight_share_min": 0.15,
-      "element_resolution_min": 0.3
-    },
-    "v3_quality_warn_band": {
-      "unique_domains_min": 7,
-      "top_domain_share_max": 0.3,
-      "wikipedia_share_max": 0.25,
-      "factual_weight_share_min": 0.25,
-      "element_resolution_min": 0.5
-    },
-    "coverage_recovery_must_not_timeout": true
+ "claim_id": "TRU-C1A0-0001",
+ "captured_at": "2026-07-21T10:10:14.106834+00:00",
+ "captured_with": "fdf3509",
+ "captured_with_known_bugs": [],
+ "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
+ "hard_invariants": {
+  "freshness_inject_must_fire_on_claims": [
+   0
+  ],
+  "must_have_url_substrings": [],
+  "must_not_have_url_substrings": [],
+  "expected_adapters_subset": [],
+  "coverage_recovery_failures_max": 6,
+  "v3_quality_floors": {
+   "unique_domains_min": 5,
+   "top_domain_share_max": 0.45,
+   "wikipedia_share_max": 0.4,
+   "factual_weight_share_min": 0.15,
+   "element_resolution_min": 0.3
   },
-  "tolerant_counters": {
-    "sources_included": {
-      "value": 17,
-      "tolerance": 8
-    },
-    "claims": {
-      "value": 1,
-      "tolerance": 1
-    },
-    "elements": {
-      "value": 2,
-      "tolerance": 3
-    },
-    "web_search": {
-      "value": 28,
-      "tolerance": 8
-    },
-    "api_adapters": {
-      "value": 3,
-      "tolerance": 8
-    },
-    "tier_primary": {
-      "value": 11,
-      "tolerance": 5
-    },
-    "tier_reporting": {
-      "value": 6,
-      "tolerance": 4
-    }
+  "v3_quality_warn_band": {
+   "unique_domains_min": 7,
+   "top_domain_share_max": 0.3,
+   "wikipedia_share_max": 0.25,
+   "factual_weight_share_min": 0.25,
+   "element_resolution_min": 0.5
   },
-  "set_jaccard": {
-    "url_ledger_flat": {
-      "golden": [
-        "http://www.contractoruk.com/calculators/inflation_calculator",
-        "https://commonslibrary.parliament.uk/cost-of-living-and-inflation/",
-        "https://commonslibrary.parliament.uk/research-briefings/sn02792/",
-        "https://tradingeconomics.com/united-kingdom/inflation-cpi",
-        "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
-        "https://www.bbc.co.uk/news/articles/c17rgd8e9gjo",
-        "https://www.bbc.co.uk/news/articles/cdjryg38elzo",
-        "https://www.bbc.co.uk/news/articles/czxkvkwjl5eo",
-        "https://www.cnbc.com/2022/11/16/uk-inflation-hits-new-41-year-high-as-food-and-energy-prices-continue-to-soar.html",
-        "https://www.crosslandsolicitors.com/site/media/October-2022-inflation-data-CPI-CPIH-RPI",
-        "https://www.ft.com/content/dec290b0-dc52-4486-81c7-2173188e281b?syn-25a6b1a6=1",
-        "https://www.ft.com/uk-inflation?page=28",
-        "https://www.gov.uk/government/statistics/consumer-price-inflation-uk-october-2022-time-series",
-        "https://www.hl.co.uk/tools/calculators/inflation-calculator",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2022",
-        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2024",
-        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOoqtWG",
-        "https://www.theguardian.com/business/2022/nov/16/uk-inflation-rate-energy-price-rises"
-      ],
-      "min_similarity": 0.35
-    },
-    "domain_set": {
-      "golden": [
-        "bankofengland.co.uk",
-        "bbc.co.uk",
-        "cnbc.com",
-        "commonslibrary.parliament.uk",
-        "contractoruk.com",
-        "crosslandsolicitors.com",
-        "data.worldbank.org",
-        "ft.com",
-        "gov.uk",
-        "hl.co.uk",
-        "ons.gov.uk",
-        "theguardian.com"
-      ],
-      "min_similarity": 0.3
-    }
+  "coverage_recovery_must_not_timeout": true
+ },
+ "tolerant_counters": {
+  "sources_included": {
+   "value": 12,
+   "tolerance": 8
+  },
+  "claims": {
+   "value": 1,
+   "tolerance": 1
+  },
+  "elements": {
+   "value": 3,
+   "tolerance": 3
+  },
+  "web_search": {
+   "value": 31,
+   "tolerance": 8
+  },
+  "api_adapters": {
+   "value": 4,
+   "tolerance": 8
+  },
+  "tier_primary": {
+   "value": 6,
+   "tolerance": 4
+  },
+  "tier_reporting": {
+   "value": 6,
+   "tolerance": 4
   }
+ },
+ "set_jaccard": {
+  "url_ledger_flat": {
+   "golden": [
+    "http://www.contractoruk.com/calculators/inflation_calculator",
+    "https://commonslibrary.parliament.uk/research-briefings/sn02792/",
+    "https://news.sky.com/story/office-for-national-statistics-adds-vinyl-gluten-free-bread-and-air-fryers-to-typical-shoppin",
+    "https://retailtimes.co.uk/retail-sales-fall-0-4-in-february-latest-data-from-office-for-national-statistics-shows/",
+    "https://tradingeconomics.com/united-kingdom/inflation-cpi",
+    "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
+    "https://www.bbc.co.uk/news/articles/c17rgd8e9gjo",
+    "https://www.bbc.co.uk/news/articles/czxkvkwjl5eo",
+    "https://www.bbc.co.uk/news/live/c5y9jl1r9g9t",
+    "https://www.bbc.co.uk/news/live/cvgv1071417t",
+    "https://www.blackenterprise.com/ons-losses-case-to-force-employees-to-be-in-office/",
+    "https://www.cnbc.com/2022/11/16/uk-inflation-hits-new-41-year-high-as-food-and-energy-prices-continue-to-soar.html",
+    "https://www.ft.com/content/8916354a-4c7c-4df6-8c9e-2303f883855d?syn-25a6b1a6=1",
+    "https://www.ft.com/uk-inflation",
+    "https://www.ons.gov.uk/economy/inflationandpriceindices",
+    "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/october2022",
+    "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOooZLR",
+    "https://www.theguardian.com/business/2022/dec/14/uk-inflation-falls-food-and-energy-prices",
+    "https://www.theguardian.com/business/2022/nov/16/uk-inflation-rate-energy-price-rises",
+    "https://www.theguardian.com/business/2026/jan/21/uk-inflation-rose-december-interest-rate-hold-likely"
+   ],
+   "min_similarity": 0.35
+  },
+  "domain_set": {
+   "golden": [
+    "api.beta.ons.gov.uk",
+    "bankofengland.co.uk",
+    "bbc.co.uk",
+    "cnbc.com",
+    "commonslibrary.parliament.uk",
+    "contractoruk.com",
+    "data.worldbank.org",
+    "ft.com",
+    "ons.gov.uk",
+    "theguardian.com"
+   ],
+   "min_similarity": 0.3
+  }
+ }
 }

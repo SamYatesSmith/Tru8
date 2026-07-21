@@ -166,6 +166,8 @@ Rules:
 - Minimum 1 element, maximum 5.
 - Each element description must be a single clear sentence.
 - claim_type must be exactly one of the five listed values.
+- If the claim asserts causation (X causes/drives/leads to Y), include the \
+causal link itself as one element, alongside the cause and the effect.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
 
@@ -325,6 +327,8 @@ Rules:
 - Minimum 1 element, maximum 5 per claim.
 - Each element description must be a single clear sentence.
 - claim_type must be exactly one of the five listed values.
+- If a claim asserts causation (X causes/drives/leads to Y), include the \
+causal link itself as one element, alongside the cause and the effect.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
 
@@ -1118,13 +1122,36 @@ class ClaimMapAnalyzer:
 
     # ── Public: Phase 1 — Decomposition ─────────────────────────────────
 
-    async def decompose_claim(self, claim_text: str, claim_id: str) -> ClaimMap:
+    @staticmethod
+    def _context_block(source_context: Optional[str], claim_text: str = "") -> str:
+        """Claim-integrity B (audit/CLAIM_INTEGRITY.md §4a): decompose sees the
+        original submission so elements anchor to the USER'S stated timeframe
+        and scope instead of inventing vague windows (probe: 2/7 → 7/7).
+        Empty when absent or identical to the claim (E-recombined case)."""
+        ctx = (source_context or "").strip()
+        if not ctx or ctx == claim_text.strip():
+            return ""
+        return (
+            f"\n\nOriginal submission (context — anchor elements to its stated "
+            f"timeframe and geographic scope; do not add assertions the "
+            f'claim itself does not make):\n"{ctx[:1200]}"'
+        )
+
+    async def decompose_claim(
+        self,
+        claim_text: str,
+        claim_id: str,
+        source_context: Optional[str] = None,
+    ) -> ClaimMap:
         """Decompose a claim into elements and classify its type.
 
         Returns a partial ClaimMap (evidence_refs empty, states null, no orientation).
         On parse failure: single-element fallback with raw claim text, type=empirical.
         """
-        prompt = f"{DECOMPOSITION_PROMPT}\n\nClaim: {claim_text}"
+        prompt = (
+            f"{DECOMPOSITION_PROMPT}\n\nClaim: {claim_text}"
+            f"{self._context_block(source_context, claim_text)}"
+        )
         parsed = await self._call_llm(
             prompt=prompt,
             temperature=self.decomposition_temperature,
@@ -1252,12 +1279,14 @@ class ClaimMapAnalyzer:
     # ── Public: Batch Decomposition ─────────────────────────────────
 
     async def decompose_claims_batch(
-        self, claims: List[Dict[str, str]]
+        self, claims: List[Dict[str, str]], source_context: Optional[str] = None
     ) -> Dict[str, ClaimMap]:
         """Decompose multiple claims in a single LLM call.
 
         Parameters:
             claims: list of {"text": str, "claim_id": str}
+            source_context: original submission text (claim-integrity B) —
+                anchors elements to the user's stated timeframe/scope.
 
         Returns:
             Dict mapping claim_id to ClaimMap.
@@ -1265,12 +1294,17 @@ class ClaimMapAnalyzer:
         Falls back to per-claim calls on batch parse failure.
         """
         if len(claims) == 1:
-            cm = await self.decompose_claim(claims[0]["text"], claims[0]["claim_id"])
+            cm = await self.decompose_claim(
+                claims[0]["text"], claims[0]["claim_id"], source_context
+            )
             return {claims[0]["claim_id"]: cm}
 
         # Build numbered claim list
         claim_lines = "\n".join(f"[{i}] {c['text']}" for i, c in enumerate(claims))
-        prompt = f"{BATCH_DECOMPOSITION_PROMPT}\n\nClaims:\n{claim_lines}"
+        prompt = (
+            f"{BATCH_DECOMPOSITION_PROMPT}\n\nClaims:\n{claim_lines}"
+            f"{self._context_block(source_context)}"
+        )
 
         parsed = await self._call_llm(
             prompt=prompt,
@@ -1319,7 +1353,7 @@ class ClaimMapAnalyzer:
 
             async def _retry_one(c: Dict[str, str]) -> None:
                 results[c["claim_id"]] = await self.decompose_claim(
-                    c["text"], c["claim_id"]
+                    c["text"], c["claim_id"], source_context
                 )
 
             await asyncio.gather(*[_retry_one(c) for c in failed_claims])

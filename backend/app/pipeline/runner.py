@@ -756,6 +756,23 @@ async def run_pipeline_phase1(
             stage="extract",
         )
 
+    # Claim integrity (E — audit/CLAIM_INTEGRITY.md §4a): a single-sentence
+    # declarative TEXT submission that extraction split into fragments is
+    # carried forward INTACT as one claim, so the thesis (incl. any causal
+    # link) stays researchable and decompose atomises at the element layer.
+    # Runs post-cache, so cached fragment extractions recombine too. One
+    # claim → focused mode → no selection pause (derive_entry_mode).
+    if extract_metadata.get("input_type") == "text" and len(claims) > 1:
+        from app.pipeline.extract import recombine_single_thesis
+
+        recombined = recombine_single_thesis(extract_content, claims)
+        if recombined is not None:
+            logger.info(
+                f"[CLAIM INTEGRITY] Recombined {len(claims)} fragments into "
+                f"one intact single-thesis claim"
+            )
+            claims = [recombined]
+
     # B1a: enrich classification with mechanical secondaries / jurisdiction
     # derived from NF-15 typed entities. Runs after extract because the
     # classifier itself fires before claims exist. Pure function — safe to
@@ -1294,7 +1311,12 @@ async def run_pipeline_phase2(
             {"text": c["text"], "claim_id": str(c.get("position", 0))}
             for c in selected_claims
         ]
-        results = await analyzer.decompose_claims_batch(batch_input)
+        # Claim integrity (B — audit/CLAIM_INTEGRITY.md §4a): decompose sees
+        # the submission/excerpt so elements anchor to its stated timeframe
+        # and scope. Bounded in _context_block; None when unavailable.
+        results = await analyzer.decompose_claims_batch(
+            batch_input, source_context=(content.get("content") or "") or None
+        )
         for claim in selected_claims:
             claim_id = str(claim.get("position", 0))
             claim["claim_map"] = results[claim_id]

@@ -135,6 +135,64 @@ _OPINION_REFRAME_RULE = """
    A hinted claim must still obey rules 3-5 (atomic, self-contained, concrete)."""
 
 
+# ── Claim integrity (E, audit/CLAIM_INTEGRITY.md §4a) ───────────────────────
+# A single-sentence declarative TEXT submission that extraction split into
+# fragments loses its causal connective and strands fragments without the
+# user's stated anchors (probe 2026-07-21: causal thesis survives 2/6,
+# fragment elements anchored 2/7). Recombination carries the thesis forward
+# INTACT as one claim; decompose atomises at the element layer instead,
+# where connectivity is structural (one pool, one orientation).
+
+_SENTENCE_BOUNDARY_RE = re.compile(r"[.!]\s+[\"'(A-Z]")
+
+
+def is_single_declarative_sentence(text: str) -> bool:
+    """True when text reads as ONE declarative sentence.
+
+    Mechanical, fail-safe: questions and anything with an internal sentence
+    boundary return False (caller keeps the split path). Abbreviation false
+    positives ("U.S. Government") also return False — the safe direction.
+    """
+    t = text.strip()
+    if not t or "?" in t:
+        return False
+    return not _SENTENCE_BOUNDARY_RE.search(t.rstrip(".! "))
+
+
+def recombine_single_thesis(
+    source_text: str, claims: List[Dict[str, Any]]
+) -> Optional[Dict[str, Any]]:
+    """Recombine fragments of a single-thesis text submission into one claim.
+
+    Returns the intact claim (user's exact sentence, merged entities, max
+    fragment confidence, any type_hint preserved for the §20 grounds gate),
+    or None when the rule doesn't apply (<2 claims / not single-sentence).
+    """
+    if len(claims) < 2 or not is_single_declarative_sentence(source_text):
+        return None
+
+    seen: Set[Tuple[str, Any]] = set()
+    merged_entities: List[Dict[str, Any]] = []
+    for c in claims:
+        for e in c.get("key_entities") or []:
+            key = ((e.get("text") or "").lower(), e.get("type"))
+            if key not in seen:
+                seen.add(key)
+                merged_entities.append(e)
+
+    return {
+        **claims[0],
+        "text": source_text.strip(),
+        "position": 0,
+        "confidence": max(int(c.get("confidence") or 0) for c in claims),
+        "key_entities": merged_entities,
+        "type_hint": next(
+            (c.get("type_hint") for c in claims if c.get("type_hint")), None
+        ),
+        "recombined_from": [c.get("text", "") for c in claims],
+    }
+
+
 class ClaimExtractor:
     """Extract atomic factual claims from content using LLM"""
 

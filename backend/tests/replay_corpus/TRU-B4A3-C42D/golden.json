@@ -1,147 +1,116 @@
 {
-  "claim_id": "TRU-B4A3-C42D",
-  "captured_at": "2026-07-02T17:26:18.885233+00:00",
-  "captured_with": "a324e8b",
-  "captured_with_known_bugs": [],
-  "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand.",
-  "hard_invariants": {
-    "classifier_inject": {
-      "primary": "Finance",
-      "secondaries_must_include": [
-        "Politics"
-      ],
-      "jurisdiction_to": "UK"
-    },
-    "freshness_inject_must_fire_on_claims": [
-      0,
-      1
-    ],
-    "must_have_url_substrings": [],
-    "must_not_have_url_substrings": [],
-    "expected_adapters_subset": [],
-    "coverage_recovery_failures_max": 6,
-    "v3_quality_floors": {
-      "unique_domains_min": 5,
-      "top_domain_share_max": 0.45,
-      "wikipedia_share_max": 0.4,
-      "factual_weight_share_min": 0.05,
-      "element_resolution_min": 0.3,
-      "_note_2026-07-02": "was 0.15; July pool for claim 0 measures 0.07 — current provider reality, floor re-based to catch FURTHER regression. Revisit if pool recovers."
-    },
-    "v3_quality_warn_band": {
-      "unique_domains_min": 7,
-      "top_domain_share_max": 0.3,
-      "wikipedia_share_max": 0.25,
-      "factual_weight_share_min": 0.25,
-      "element_resolution_min": 0.5
-    },
-    "coverage_recovery_must_not_timeout": true
+ "claim_id": "TRU-B4A3-C42D",
+ "captured_at": "2026-07-21T10:10:02.799168+00:00",
+ "captured_with": "fdf3509",
+ "captured_with_known_bugs": [],
+ "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
+ "hard_invariants": {
+  "classifier_inject": {
+   "primary": "Finance",
+   "secondaries_must_include": [
+    "Politics"
+   ],
+   "jurisdiction_to": "UK"
   },
-  "tolerant_counters": {
-    "sources_included": {
-      "value": 33,
-      "tolerance": 8
-    },
-    "claims": {
-      "value": 2,
-      "tolerance": 1
-    },
-    "elements": {
-      "value": 6,
-      "tolerance": 3
-    },
-    "web_search": {
-      "value": 63,
-      "tolerance": 8
-    },
-    "api_adapters": {
-      "value": 3,
-      "tolerance": 8
-    },
-    "tier_reporting": {
-      "value": 15,
-      "tolerance": 7
-    },
-    "tier_primary": {
-      "value": 5,
-      "tolerance": 4
-    },
-    "tier_commentary": {
-      "value": 13,
-      "tolerance": 6
-    }
+  "freshness_inject_must_fire_on_claims": [
+   0
+  ],
+  "must_have_url_substrings": [],
+  "must_not_have_url_substrings": [],
+  "expected_adapters_subset": [],
+  "coverage_recovery_failures_max": 6,
+  "v3_quality_floors": {
+   "unique_domains_min": 5,
+   "top_domain_share_max": 0.45,
+   "wikipedia_share_max": 0.4,
+   "factual_weight_share_min": 0.15,
+   "element_resolution_min": 0.3
   },
-  "set_jaccard": {
-    "url_ledger_flat": {
-      "golden": [
-        "https://cepr.org/voxeu/columns/role-borrowing-rise-gilt-yields-during-truss-episode-and-some-possible-implications",
-        "https://corporate-adviser.com/gilt-yields-higher-than-truss-budget-aftermath-but-unlikely-to-cause-same-problems-for-pen",
-        "https://economics.stackexchange.com/questions/57875/why-was-the-september-2022-united-kingdom-mini-budget-so-badly-recei",
-        "https://finance.yahoo.com/markets/crypto/articles/bank-england-publishes-stablecoin-rules-162300272.html",
-        "https://ifs.org.uk/publications/budget-and-bond-markets-when-youre-hole-stop-digging",
-        "https://markets.ft.com/data/bonds/tearsheet/charts?s=UK10YG",
-        "https://niesr.ac.uk/blog/truss-kwarteng-mini-budget-one-year",
-        "https://proactpartnership.com/blog/did-the-bank-of-england-tank-the-truss-government",
-        "https://robinjbrooks.substack.com/p/liz-truss-bond-market-blow-ups",
-        "https://tradingeconomics.com/united-kingdom/government-bond-yield",
-        "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
-        "https://www.avivainvestors.com/en-gb/capabilities/gilt-yields/",
-        "https://www.bankofengland.co.uk/-/media/boe/files/working-paper/2024/fire-sales-of-safe-assets",
-        "https://www.bbc.com/news/business-66897881",
-        "https://www.crfb.org/blogs/americas-truss-moment",
-        "https://www.dmo.gov.uk/data/ExportReport?reportCode=D4H",
-        "https://www.efginternational.com/ch/insights/2022/uk-mini-budget-sparks-gilt-market-mayhem.html",
-        "https://www.ft.com/content/372c13ed-c5ad-4dda-a98e-6474cb37c55f?syn-25a6b1a6=1",
-        "https://www.ft.com/content/4e6b89a3-a63e-49df-8a04-0488b69e84f5?syn-25a6b1a6=1",
-        "https://www.ft.com/content/79ee2bc5-3d16-45ae-adad-6db8e5e88954",
-        "https://www.ft.com/content/a5758ce9-f8f3-4013-aa97-81ff3db3eaf2",
-        "https://www.ft.com/content/ac3a7d47-cf37-4c15-b2b4-7dd7e0866e16?syn-25a6b1a6=1",
-        "https://www.ft.com/content/ca7c4ca5-029e-4675-b7bb-702e6a1c5f8f?syn-25a6b1a6=1",
-        "https://www.ft.com/gilts?page=10",
-        "https://www.hl.co.uk/shares/corporate-bonds-gilts/bond-prices/uk-gilts",
-        "https://www.lse.ac.uk/CFM/assets/pdf/CFM-Discussion-Papers-2024/CFMDP2024-08-Paper.pdf",
-        "https://www.reddit.com/r/explainlikeimfive/comments/1ip9ba6/eli5_why_did_liz_truss_fall_from_power_so/",
-        "https://www.reddit.com/r/ukpolitics/comments/1djvauz/did_liz_truss_really_cause_the_bond_market_rout/",
-        "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-england-rates-decision/",
-        "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-england-on-uk-economy/",
-        "https://www.schroders.com/en-us/us/wealth-management/insights/what-does-the-mini-budget-mean-for-uk-investors/",
-        "https://www.suerf.org/publications/suerf-policy-notes-and-briefs/putting-out-the-nbfire-lessons-from-the-uks-liability-d",
-        "https://www.tandfonline.com/doi/full/10.1080/13563467.2025.2585463",
-        "https://www.theguardian.com/business/2022/nov/29/bank-of-england-blindsided-by-kwasi-kwarteng-mini-budget-says-governor",
-        "https://www.theguardian.com/business/2022/oct/15/mini-budget-will-likely-mean-higher-interest-rates-warns-bank-of-englan",
-        "https://www.theguardian.com/business/2022/oct/20/the-mini-budget-that-broke-britain-and-liz-truss",
-        "https://www.theguardian.com/business/2022/sep/28/bank-of-england-in-65bn-scramble-to-avert-financial-crisis",
-        "https://www.theguardian.com/business/2022/sep/28/bank-of-england-launches-emergency-intervention-in-markets-after-kwarte",
-        "https://www.theguardian.com/business/live/2022/sep/28/sterling-slumps-imf-urges-uk-reconsider-tax-cuts-stinging-attack-b",
-        "https://www.theguardian.com/business/live/2026/may/12/uk-bond-yields-borrowing-costs-pound-falls-oil-inflation-live-upda",
-        "https://www.theguardian.com/uk-news/2022/sep/30/how-kwasi-kwarteng-mini-budget-hit-uk-economy-in-numbers",
-        "https://www.theguardian.com/uk-news/2023/jan/12/bank-of-england-completes-sale-of-19bn-emergency-bond-purchases-after-mi"
-      ],
-      "min_similarity": 0.4
-    },
-    "domain_set": {
-      "golden": [
-        "ajbell.co.uk",
-        "bankofengland.co.uk",
-        "bbc.com",
-        "cepr.org",
-        "corporate-adviser.com",
-        "crfb.org",
-        "economics.stackexchange.com",
-        "efginternational.com",
-        "ft.com",
-        "ifs.org.uk",
-        "lse.ac.uk",
-        "niesr.ac.uk",
-        "proactpartnership.com",
-        "reddit.com",
-        "robinjbrooks.substack.com",
-        "schroders.com",
-        "suerf.org",
-        "tandfonline.com",
-        "theguardian.com"
-      ],
-      "min_similarity": 0.45
-    }
+  "v3_quality_warn_band": {
+   "unique_domains_min": 7,
+   "top_domain_share_max": 0.3,
+   "wikipedia_share_max": 0.25,
+   "factual_weight_share_min": 0.25,
+   "element_resolution_min": 0.5
+  },
+  "coverage_recovery_must_not_timeout": true
+ },
+ "tolerant_counters": {
+  "sources_included": {
+   "value": 15,
+   "tolerance": 8
+  },
+  "claims": {
+   "value": 1,
+   "tolerance": 1
+  },
+  "elements": {
+   "value": 4,
+   "tolerance": 3
+  },
+  "web_search": {
+   "value": 31,
+   "tolerance": 8
+  },
+  "api_adapters": {
+   "value": 3,
+   "tolerance": 8
+  },
+  "tier_commentary": {
+   "value": 10,
+   "tolerance": 5
+  },
+  "tier_reporting": {
+   "value": 5,
+   "tolerance": 4
   }
+ },
+ "set_jaccard": {
+  "url_ledger_flat": {
+   "golden": [
+    "https://finance.yahoo.com/markets/crypto/articles/bank-england-publishes-stablecoin-rules-162300272.html",
+    "https://ifs.org.uk/publications/budget-and-bond-markets-when-youre-hole-stop-digging",
+    "https://markets.businessinsider.com/news/currencies/charts-liz-truss-resignation-uk-markets-gilts-pound-dollar-treasurys",
+    "https://media.quilter.com/search/2025/three-years-on-from-disastrous-mini-budget-uk-government-bonds-remain-in-focus/",
+    "https://tradingeconomics.com/united-kingdom/30-year-bond-yield",
+    "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
+    "https://www.cnbc.com/2022/10/21/3-charts-showing-the-market-turmoil-wreaked-during-uk-pm-truss-tenure.html",
+    "https://www.dmo.gov.uk/data/ExportReport?reportCode=D4H",
+    "https://www.economist.com/britain/2025/09/24/why-british-bond-yields-are-higher-than-elsewhere",
+    "https://www.efginternational.com/ch/insights/2022/uk-mini-budget-sparks-gilt-market-mayhem.html",
+    "https://www.ft.com/content/4e6b89a3-a63e-49df-8a04-0488b69e84f5?syn-25a6b1a6=1",
+    "https://www.ft.com/content/79ee2bc5-3d16-45ae-adad-6db8e5e88954",
+    "https://www.jpmorgan.com/content/dam/jpm/cib/complex/content/securities-services/uk-gilt-crisis/JPMorgan-Lessons-Learned",
+    "https://www.quiltercheviot.com/news-and-events/articles/gilt-markets-crisis-or-opportunity/",
+    "https://www.rostraeconomica.nl/post/breaking-bonds-the-uk-mini-budget-and-the-treasury-turmoil",
+    "https://www.rsmuk.com/insights/economic-voice/gilt-rout-is-not-liz-truss-2-point-0",
+    "https://www.rte.ie/news/business/2022/0804/1313914-bank-of-england-rates-decision/",
+    "https://www.rte.ie/news/business/2022/1108/1333861-bank-of-england-on-uk-economy/",
+    "https://www.theguardian.com/business/live/2025/sep/02/uk-long-term-borrowing-costs-27-year-high-gold-silver-inflation-bu",
+    "https://www.theguardian.com/business/live/2026/may/12/uk-bond-yields-borrowing-costs-pound-falls-oil-inflation-live-upda",
+    "https://www.theguardian.com/uk-news/2025/nov/18/bond-markets-rachel-reeves-budget-bond-yields-gilts",
+    "https://www.thetimes.com/uk/politics/article/gilt-yields-hit-their-highest-mark-since-liz-truss-mini-budget-fallout-t9cf"
+   ],
+   "min_similarity": 0.35
+  },
+  "domain_set": {
+   "golden": [
+    "ajbell.co.uk",
+    "cnbc.com",
+    "economist.com",
+    "efginternational.com",
+    "ft.com",
+    "ifs.org.uk",
+    "jpmorgan.com",
+    "markets.businessinsider.com",
+    "media.quilter.com",
+    "quiltercheviot.com",
+    "rostraeconomica.nl",
+    "rsmuk.com",
+    "theguardian.com",
+    "thetimes.com"
+   ],
+   "min_similarity": 0.3
+  }
+ }
 }

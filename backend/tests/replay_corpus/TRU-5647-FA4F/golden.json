@@ -1,114 +1,114 @@
 {
-  "claim_id": "TRU-5647-FA4F",
-  "captured_at": "2026-07-07T09:35:22.539475+00:00",
-  "captured_with": "e3d6d93",
-  "captured_with_known_bugs": [],
-  "notes": "Re-captured 2026-07-07 after F1 Phase C (D3 recency hedge + D1 range-anchor + planner-prompt revision; design audit/2026-07-03_f1f2_design_review.md). freshness_inject_must_fire is intentionally NOT pinned here: with the revised planner prompt the LLM emits freshness='none' natively for this historical claim, so B4's mechanical injection is a no-op and never logs. The OUTCOME (unwindowed historical retrieval) is preserved and now doubly guaranteed \u2014 planner-native + the D3 hedge's always-unwindowed 2nd query per element \u2014 and is measured by the F1 eval pool, not this pin. The url_ledger pool below reflects that unwindowed retrieval (year-anchored queries \u2192 smaller, more primary-weighted pool; the dropped tail was news/forum, quality floors still pass). classifier_inject (General/UK) auto-derived this run. Contrast TRU-93DD-F4B7, where B4 still fires and the pin is retained.",
-  "hard_invariants": {
-    "classifier_inject": {
-      "primary": "General",
-      "secondaries_must_include": [],
-      "jurisdiction_to": "UK"
-    },
-    "must_have_url_substrings": [],
-    "must_not_have_url_substrings": [],
-    "expected_adapters_subset": [],
-    "coverage_recovery_failures_max": 6,
-    "v3_quality_floors": {
-      "unique_domains_min": 5,
-      "top_domain_share_max": 0.45,
-      "wikipedia_share_max": 0.4,
-      "factual_weight_share_min": 0.15,
-      "element_resolution_min": 0.3
-    },
-    "v3_quality_warn_band": {
-      "unique_domains_min": 7,
-      "top_domain_share_max": 0.3,
-      "wikipedia_share_max": 0.25,
-      "factual_weight_share_min": 0.25,
-      "element_resolution_min": 0.5
-    },
-    "coverage_recovery_must_not_timeout": true
+ "claim_id": "TRU-5647-FA4F",
+ "captured_at": "2026-07-21T10:08:20.976529+00:00",
+ "captured_with": "fdf3509",
+ "captured_with_known_bugs": [],
+ "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
+ "hard_invariants": {
+  "classifier_inject": {
+   "primary": "General",
+   "secondaries_must_include": [],
+   "jurisdiction_to": "UK"
   },
-  "tolerant_counters": {
-    "sources_included": {
-      "value": 16,
-      "tolerance": 8
-    },
-    "claims": {
-      "value": 2,
-      "tolerance": 1
-    },
-    "elements": {
-      "value": 6,
-      "tolerance": 3
-    },
-    "web_search": {
-      "value": 32,
-      "tolerance": 8
-    },
-    "api_adapters": {
-      "value": 2,
-      "tolerance": 8
-    },
-    "tier_primary": {
-      "value": 10,
-      "tolerance": 5
-    },
-    "tier_commentary": {
-      "value": 4,
-      "tolerance": 4
-    },
-    "tier_reporting": {
-      "value": 2,
-      "tolerance": 4
-    }
+  "must_have_url_substrings": [],
+  "must_not_have_url_substrings": [],
+  "expected_adapters_subset": [],
+  "coverage_recovery_failures_max": 6,
+  "v3_quality_floors": {
+   "unique_domains_min": 5,
+   "top_domain_share_max": 0.45,
+   "wikipedia_share_max": 0.4,
+   "factual_weight_share_min": 0.15,
+   "element_resolution_min": 0.3
   },
-  "set_jaccard": {
-    "url_ledger_flat": {
-      "golden": [
-        "https://en.wikipedia.org/wiki/2022_European_heatwaves",
-        "https://en.wikipedia.org/wiki/2022_United_Kingdom_heatwaves",
-        "https://en.wikipedia.org/wiki/2024_Central_European_floods",
-        "https://en.wikipedia.org/wiki/2025_European_heatwaves",
-        "https://en.wikipedia.org/wiki/2026_European_heatwaves",
-        "https://en.wikipedia.org/wiki/Boris_Johnson",
-        "https://en.wikipedia.org/wiki/Floods_in_the_United_States_(2000%E2%80%93present)",
-        "https://en.wikipedia.org/wiki/Grenfell_Tower_fire",
-        "https://en.wikipedia.org/wiki/Hurricane_Ida",
-        "https://en.wikipedia.org/wiki/List_of_major_power_outages",
-        "https://pacinst.org/the-growing-threat-of-catastrophic-flooding-in-rural-america/",
-        "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7741",
-        "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
-        "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
-        "https://www.climate.gov/news-features/blogs/beyond-data/2024-active-year-us-billion-dollar-weather-and-climate-disasters",
-        "https://www.climatecentral.org/climate-matters/2025-in-review",
-        "https://www.metoffice.gov.uk/blog/2026/how-has-summer-warmth-changed-in-the-uk",
-        "https://www.ncei.noaa.gov/access/billions/",
-        "https://www.osbm.nc.gov/hurricane-helene-dna/open",
-        "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/what-is-a-heatwave",
-        "https://www.tandfonline.com/doi/full/10.1080/17524032.2025.2458219",
-        "https://www.theguardian.com/environment/2026/jun/24/uk-records-hottest-june-day"
-      ],
-      "min_similarity": 0.35
-    },
-    "domain_set": {
-      "golden": [
-        "anderson.ucla.edu",
-        "bbc.com",
-        "climate.gov",
-        "climatecentral.org",
-        "en.wikipedia.org",
-        "gov.uk",
-        "metoffice.gov.uk",
-        "ncei.noaa.gov",
-        "pacinst.org",
-        "redcross.org.uk",
-        "rmets.onlinelibrary.wiley.com",
-        "tandfonline.com",
-        "theguardian.com"
-      ],
-      "min_similarity": 0.3
-    }
+  "v3_quality_warn_band": {
+   "unique_domains_min": 7,
+   "top_domain_share_max": 0.3,
+   "wikipedia_share_max": 0.25,
+   "factual_weight_share_min": 0.25,
+   "element_resolution_min": 0.5
+  },
+  "coverage_recovery_must_not_timeout": true
+ },
+ "tolerant_counters": {
+  "sources_included": {
+   "value": 16,
+   "tolerance": 8
+  },
+  "claims": {
+   "value": 2,
+   "tolerance": 1
+  },
+  "elements": {
+   "value": 5,
+   "tolerance": 3
+  },
+  "web_search": {
+   "value": 32,
+   "tolerance": 8
+  },
+  "api_adapters": {
+   "value": 2,
+   "tolerance": 8
+  },
+  "tier_primary": {
+   "value": 9,
+   "tolerance": 4
+  },
+  "tier_commentary": {
+   "value": 5,
+   "tolerance": 4
+  },
+  "tier_reporting": {
+   "value": 2,
+   "tolerance": 4
   }
+ },
+ "set_jaccard": {
+  "url_ledger_flat": {
+   "golden": [
+    "https://en.wikipedia.org/wiki/2022_European_heatwaves",
+    "https://en.wikipedia.org/wiki/2022_United_Kingdom_heatwaves",
+    "https://en.wikipedia.org/wiki/2024_Central_European_floods",
+    "https://en.wikipedia.org/wiki/2025_European_heatwaves",
+    "https://en.wikipedia.org/wiki/2026_European_heatwaves",
+    "https://en.wikipedia.org/wiki/Boris_Johnson",
+    "https://en.wikipedia.org/wiki/Floods_in_the_United_States_(2000%E2%80%93present)",
+    "https://en.wikipedia.org/wiki/Grenfell_Tower_fire",
+    "https://en.wikipedia.org/wiki/Hurricane_Ida",
+    "https://en.wikipedia.org/wiki/List_of_major_power_outages",
+    "https://pacinst.org/the-growing-threat-of-catastrophic-flooding-in-rural-america/",
+    "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7741",
+    "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
+    "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
+    "https://www.climate.gov/news-features/blogs/beyond-data/2024-active-year-us-billion-dollar-weather-and-climate-disasters",
+    "https://www.climatecentral.org/climate-matters/2025-in-review",
+    "https://www.metoffice.gov.uk/blog/2026/how-has-summer-warmth-changed-in-the-uk",
+    "https://www.ncei.noaa.gov/access/billions/",
+    "https://www.osbm.nc.gov/hurricane-helene-dna/open",
+    "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/what-is-a-heatwave",
+    "https://www.tandfonline.com/doi/full/10.1080/17524032.2025.2458219",
+    "https://www.theguardian.com/environment/2026/jun/24/uk-records-hottest-june-day"
+   ],
+   "min_similarity": 0.35
+  },
+  "domain_set": {
+   "golden": [
+    "anderson.ucla.edu",
+    "bbc.com",
+    "climate.gov",
+    "climatecentral.org",
+    "en.wikipedia.org",
+    "gov.uk",
+    "metoffice.gov.uk",
+    "ncei.noaa.gov",
+    "pacinst.org",
+    "redcross.org.uk",
+    "rmets.onlinelibrary.wiley.com",
+    "tandfonline.com",
+    "theguardian.com"
+   ],
+   "min_similarity": 0.3
+  }
+ }
 }
