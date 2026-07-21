@@ -176,3 +176,96 @@ class TestCausalLinkTagger:
 
     def test_non_string_is_false(self):
         assert _is_causal_link(None) is False
+
+
+class TestCausalTagReachesPromptBuilders:
+    """Every mapping/completion/recovery builder that serialises elements must
+    append [CAUSAL LINK] to a causal element's line, else the SPECIFICITY CHECK
+    rule (which references the tag) is inert on that pass (§4d fix 2 — verify)."""
+
+    def _analyzer(self, captured):
+        a = ClaimMapAnalyzer.__new__(ClaimMapAnalyzer)
+        a.snippet_length = 200
+        a.analyzer_temperature = 0.1
+        a.analyzer_max_tokens = 2000
+        a.max_elements = 5
+
+        async def _fake(prompt, **kw):
+            captured.append(prompt)
+            return None  # short-circuit: prompt is built before this call
+
+        a._call_llm = _fake
+        return a
+
+    def _cm(self, cid="c1"):
+        from app.models.claim_map import ElementState
+
+        return {
+            "claim_id": cid,
+            "normalised_claim": "Elevated activity is driving a rise in eruptions",
+            "claim_type": "causal_interpretive",
+            "elements": [
+                {
+                    "element_id": "e1",
+                    "description": "Elevated activity is driving the rise in eruptions",
+                    "evidence_refs": [],
+                    "state": ElementState.unresolved,
+                    "uncertainty": None,
+                },
+                {
+                    "element_id": "e2",
+                    "description": "There is a rise in eruptions",
+                    "evidence_refs": [],
+                    "state": ElementState.unresolved,
+                    "uncertainty": None,
+                },
+            ],
+            "metadata": {
+                "decomposition_model": "t",
+                "mapping_model": None,
+                "element_count": 2,
+                "completed_at": None,
+            },
+            "orientation": None,
+        }
+
+    def _ev(self):
+        return {
+            "evidence_id": "ev1",
+            "title": "T",
+            "snippet": "s",
+            "tier": "reporting",
+            "evidence_type": "article",
+            "url": "https://example.com/x",
+        }
+
+    @pytest.mark.asyncio
+    async def test_tag_in_every_builder(self):
+        captured: list[str] = []
+        a = self._analyzer(captured)
+
+        async def _safe(coro):
+            try:
+                await coro
+            except Exception:
+                pass  # post-None processing is irrelevant — the prompt is built
+
+        await _safe(a.map_evidence_to_elements(self._cm(), [self._ev()]))
+        await _safe(
+            a.map_evidence_batch(
+                [
+                    {"claim_map": self._cm("c1"), "evidence": [self._ev()]},
+                    {"claim_map": self._cm("c2"), "evidence": [self._ev()]},
+                ]
+            )
+        )
+        await _safe(a._complete_unmapped_evidence(self._cm(), [self._ev()]))
+        await _safe(
+            a.map_evidence_to_specific_elements(self._cm(), ["e1", "e2"], [self._ev()])
+        )
+
+        assert captured, "no prompts were built"
+        for prompt in captured:
+            assert "driving the rise in eruptions [CAUSAL LINK]" in prompt
+            # The non-causal element must NOT be tagged.
+            assert "There is a rise in eruptions [CAUSAL LINK]" not in prompt

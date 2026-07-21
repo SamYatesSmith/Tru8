@@ -495,6 +495,10 @@ already mapped by the main pass.
 element's specific assertion (its figure, date, entity, or event) as \
 "supports" / "challenges". These change the element's state and must \
 be complete — do not sample.
+- For an element tagged [CAUSAL LINK], evidence that only describes a \
+general mechanism or educational/reference material is "context", never \
+"supports" — reserve directional labels for evidence bearing on whether \
+THAT specific cause is driving THAT specific effect.
 - Use "context" only for items that frame an element without \
 confirming or contradicting it, and keep context SPARSE — only where \
 it genuinely helps interpret the supports/challenges evidence. Do not \
@@ -2058,9 +2062,13 @@ class ClaimMapAnalyzer:
             )
             return
 
-        # Build prompt
+        # Build prompt. Tag causal-link elements so the COMPLETION_PROMPT
+        # specificity rule can bite (§4d fix 2) — completion adds state-bearing
+        # supports/challenges, so a generic item must not land as supports here.
         elements_desc = "\n".join(
-            f"- {e['element_id']}: {e['description']}" for e in all_elements
+            f"- {e['element_id']}: {e['description']}"
+            f"{' [CAUSAL LINK]' if _is_causal_link(e['description']) else ''}"
+            for e in all_elements
         )
         leftover_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
@@ -2232,9 +2240,13 @@ class ClaimMapAnalyzer:
         target_set = set(unresolved_element_ids)
         all_elements = claim_map["elements"]
 
-        # Build context for LLM -- include ALL elements for cross-element mapping
+        # Build context for LLM -- include ALL elements for cross-element
+        # mapping. Tag causal-link elements so the MAPPING_PROMPT specificity
+        # rule bites on recovery evidence too (§4d fix 2).
         elements_desc = "\n".join(
-            f"- {e['element_id']}: {e['description']}" for e in all_elements
+            f"- {e['element_id']}: {e['description']}"
+            f"{' [CAUSAL LINK]' if _is_causal_link(e['description']) else ''}"
+            for e in all_elements
         )
 
         # Neutralise element hints in recovery evidence IDs so the LLM
