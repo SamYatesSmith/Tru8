@@ -193,6 +193,44 @@ def test_side_quality_note_kinds_and_labels():
     assert again["label"] == "Mostly one source repeated"
 
 
+def test_portfolio_single_outlet_note_wording():
+    """A single-outlet side on a publisher platform reads differently from a
+    lone website (§4d fix 5). Parity twin: support-structure.test.ts."""
+    portfolio = side_quality_note(
+        _side(
+            count=3,
+            distinct_domains=1,
+            sole_domain="nature.com",
+            tier_counts={"primary": 0, "reporting": 3, "commentary": 0},
+        )
+    )
+    assert portfolio == {
+        "kind": "thin",
+        "label": "Thin sourcing",
+        "detail": "All via a single publisher platform, which may host multiple journals.",
+    }
+
+    plain = side_quality_note(
+        _side(
+            count=3,
+            distinct_domains=1,
+            sole_domain="example.com",
+            tier_counts={"primary": 0, "reporting": 3, "commentary": 0},
+        )
+    )
+    assert plain["detail"] == "All from a single website."
+
+    # sole_domain absent (legacy payload) → plain single-website note, no crash.
+    legacy = side_quality_note(
+        _side(
+            count=3,
+            distinct_domains=1,
+            tier_counts={"primary": 0, "reporting": 3, "commentary": 0},
+        )
+    )
+    assert legacy["detail"] == "All from a single website."
+
+
 def test_side_note_missing_derivation_does_not_crash():
     # A truncated/legacy payload without `derivation` must still classify thin.
     partial = {

@@ -181,6 +181,28 @@ def test_fonts_embedded_in_render(rendered_html):
     assert "var(--mono)" in rendered_html
 
 
+def test_challenges_only_element_reads_challenged():
+    """A disputed element whose state came from challenges alone renders
+    "− Challenged" (glyph + label), not "± disputed" (§4d fix 3)."""
+    ctx = _context()
+    el = ctx["claims"][0]["elements"][1]
+    el["evidence_refs"] = [{"evidence_id": "ev3", "relationship": "challenges"}]
+    el["basis"] = {"state_derivation": {"rule_applied": "all_challenges"}}
+    el["quality_notes"] = _element_quality_notes(el)
+
+    env = Environment(
+        loader=FileSystemLoader(str(TEMPLATE_DIR)),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+    html = env.get_template("pdf/fact_check_report.html").render(**ctx)
+
+    # Label reads "challenged" (CSS uppercases it) and glyph is a minus.
+    assert "challenged" in html
+    assert "&minus;" in html
+    # State class stays st-disputed — no enum/contract change, neutral styling.
+    assert "st-disputed" in html
+
+
 # ── NO VERDICT COLOUR — the standing invariant ────────────────────────────────
 
 

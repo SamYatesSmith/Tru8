@@ -11,6 +11,9 @@
  *   - `.badge` → filled pill classes for roster/card badges
  */
 
+import type { ElementBasis } from '@shared/types';
+import { CHALLENGED_GLYPH, CHALLENGED_LABEL, isChallengesOnly } from '@shared/constants';
+
 export type ElementStateKey = 'supported' | 'disputed' | 'unresolved' | 'contextual';
 
 // NEUTRAL by design (no-verdict colour lock): state is differentiated by ICON +
@@ -42,16 +45,23 @@ interface ElementStateBadgeProps {
   /** Badge scale — `sm` (overview cards, default) or `md` (the detail roster). */
   size?: keyof typeof BADGE_SIZE;
   className?: string;
+  /** Element basis — lets a challenges-only disputed element read "− Challenged". */
+  basis?: ElementBasis;
 }
 
-export function ElementStateBadge({ state, label, size = 'sm', className = '' }: ElementStateBadgeProps) {
+export function ElementStateBadge({ state, label, size = 'sm', className = '', basis }: ElementStateBadgeProps) {
   const cfg = ELEMENT_STATE[state] ?? ELEMENT_STATE.unresolved;
+  // A challenges-only disputed element reads "− Challenged" (same neutral zinc
+  // styling), so the badge matches the orientation prose. An explicit `label`
+  // (e.g. "Gap") still wins. §4d fix 3.
+  const challengesOnly = label == null && isChallengesOnly(state, basis);
+  const icon = challengesOnly ? CHALLENGED_GLYPH : cfg.icon;
   return (
     <span
       className={`${BADGE_SIZE[size]} inline-flex items-center gap-1 font-mono font-bold uppercase tracking-wider shrink-0 rounded ${cfg.badge} ${className}`}
     >
-      <span aria-hidden className="not-italic">{cfg.icon}</span>
-      {label ?? cfg.label}
+      <span aria-hidden className="not-italic">{icon}</span>
+      {label ?? (challengesOnly ? CHALLENGED_LABEL : cfg.label)}
     </span>
   );
 }

@@ -1,11 +1,18 @@
 'use client';
 
-import type { ElementState } from '@shared/types';
-import { ELEMENT_STATE_LABELS } from '@shared/constants';
+import type { ElementBasis, ElementState } from '@shared/types';
+import {
+  CHALLENGED_GLYPH,
+  CHALLENGED_LABEL,
+  ELEMENT_STATE_LABELS,
+  isChallengesOnly,
+} from '@shared/constants';
 
 interface ElementStateBadgeProps {
   state: ElementState;
   size?: 'sm' | 'md';
+  /** Element basis — lets a challenges-only disputed element read "− Challenged". */
+  basis?: ElementBasis;
 }
 
 // Neutral icons (no verdict glyphs): + supports-weighted, \u00B1 contested, \u25CB open,
@@ -30,13 +37,16 @@ const SIZE_CLASSES = {
   md: 'text-[10px] px-2 py-1',
 };
 
-export function ElementStateBadge({ state, size = 'md' }: ElementStateBadgeProps) {
+export function ElementStateBadge({ state, size = 'md', basis }: ElementStateBadgeProps) {
+  const challengesOnly = isChallengesOnly(state, basis);
+  const glyph = challengesOnly ? CHALLENGED_GLYPH : STATE_ICONS[state];
+  const label = challengesOnly ? CHALLENGED_LABEL : ELEMENT_STATE_LABELS[state];
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full border font-bold uppercase tracking-wider font-mono ${STATE_CLASSES[state]} ${SIZE_CLASSES[size]}`}
     >
-      <span>{STATE_ICONS[state]}</span>
-      <span>{ELEMENT_STATE_LABELS[state]}</span>
+      <span>{glyph}</span>
+      <span>{label}</span>
     </span>
   );
 }

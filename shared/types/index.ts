@@ -251,6 +251,9 @@ export interface EvidenceRef {
 export interface EvidenceSideStructure {
   count: number;
   distinct_domains: number;
+  // The one domain when this side is single-outlet, else '' (optional — older
+  // checks predate it). Distinguishes a publisher platform from a lone website.
+  sole_domain?: string;
   tier_counts: { primary: number; reporting: number; commentary: number };
   derivation: { originals: number; derivative_count: number };
   // F4: dominant unanchored-repetition cluster on this side (optional — older

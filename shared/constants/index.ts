@@ -79,6 +79,24 @@ export const ELEMENT_STATE_LABELS = {
   contextual: 'Contextual',
 } as const;
 
+// A `disputed` element whose evidence is challenges-only (0 supports) reads
+// "− Challenged", not "± Disputed" — the badge then matches the orientation
+// prose ("challenged with none supporting"). State stays `disputed`; this is
+// presentation only, keyed off basis.state_derivation.rule_applied (§4d fix 3).
+export const CHALLENGED_LABEL = 'Challenged';
+export const CHALLENGED_GLYPH = '−'; // minus sign
+
+// True when a disputed element's state was derived from challenges alone.
+export function isChallengesOnly(
+  state: string | null | undefined,
+  basis: unknown,
+): boolean {
+  if (state !== 'disputed') return false;
+  const rule = (basis as { state_derivation?: { rule_applied?: string } } | null)
+    ?.state_derivation?.rule_applied;
+  return rule === 'all_challenges';
+}
+
 export const CLAIM_TYPE_LABELS = {
   empirical: 'Empirical',
   definitional: 'Definitional',

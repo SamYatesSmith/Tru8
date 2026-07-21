@@ -40,6 +40,24 @@ _THIN_SINGLE_OUTLET_NOTE = {
     "label": "Thin sourcing",
     "detail": "All from a single website.",
 }
+_THIN_PORTFOLIO_NOTE = {
+    "kind": "thin",
+    "label": "Thin sourcing",
+    "detail": "All via a single publisher platform, which may host multiple journals.",
+}
+
+# Publisher platforms that host many independent journals under one domain
+# (§4d fix 5). A single-outlet side on one of these is not the same epistemic
+# concern as one website — the note wording says so, no counting changes.
+PORTFOLIO_HOSTS = {
+    "nature.com",
+    "sciencedirect.com",
+    "springer.com",
+    "onlinelibrary.wiley.com",
+    "tandfonline.com",
+    "academic.oup.com",
+    "journals.plos.org",
+}
 
 
 def side_quality_note(side: Any) -> dict | None:
@@ -88,6 +106,8 @@ def side_quality_note(side: Any) -> dict | None:
 
     single_outlet = count >= 2 and (side.get("distinct_domains") or 0) <= 1
     if single_outlet:
+        if (side.get("sole_domain") or "") in PORTFOLIO_HOSTS:
+            return dict(_THIN_PORTFOLIO_NOTE)
         return dict(_THIN_SINGLE_OUTLET_NOTE)
 
     return None

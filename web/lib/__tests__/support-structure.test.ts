@@ -91,6 +91,31 @@ describe('evidenceQualityNote', () => {
     expect(evidenceQualityNote(partial)?.kind).toBe('thin');
   });
 
+  it('reads a publisher-platform single outlet differently from a lone website', () => {
+    // Parity twin: backend test_thin_support.py::test_portfolio_single_outlet_note_wording
+    const portfolio = evidenceQualityNote(
+      side({
+        count: 3,
+        distinct_domains: 1,
+        sole_domain: 'nature.com',
+        tier_counts: { primary: 0, reporting: 3, commentary: 0 },
+      }),
+    );
+    expect(portfolio?.detail).toBe(
+      'All via a single publisher platform, which may host multiple journals.',
+    );
+
+    const plain = evidenceQualityNote(
+      side({
+        count: 3,
+        distinct_domains: 1,
+        sole_domain: 'example.com',
+        tier_counts: { primary: 0, reporting: 3, commentary: 0 },
+      }),
+    );
+    expect(plain?.detail).toBe('All from a single website.');
+  });
+
   it('does not throw on a side missing the derivation object', () => {
     // Defensive: real pipeline data always includes derivation, but a
     // truncated/legacy payload must not crash the render.

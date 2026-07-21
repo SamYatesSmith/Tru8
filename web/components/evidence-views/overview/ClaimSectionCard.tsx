@@ -119,6 +119,7 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
                 <ElementStateBadge
                   state={elIsGap ? 'unresolved' : state}
                   label={elIsGap ? 'Gap' : undefined}
+                  basis={element.basis}
                 />
               </div>
             );

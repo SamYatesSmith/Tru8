@@ -67,6 +67,7 @@ export function ElementList({ elements, topUp }: ElementListProps) {
                     <ElementStateBadge
                       state={isGap ? 'unresolved' : state}
                       label={isGap ? 'Gap' : undefined}
+                      basis={element.basis}
                       size="md"
                     />
                   </div>

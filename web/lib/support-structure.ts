@@ -17,6 +17,18 @@ export interface QualityNote {
   detail: string;
 }
 
+// Publisher platforms hosting many independent journals under one domain.
+// Parity-locked with PORTFOLIO_HOSTS in support_structure.py (§4d fix 5).
+const PORTFOLIO_HOSTS = new Set([
+  'nature.com',
+  'sciencedirect.com',
+  'springer.com',
+  'onlinelibrary.wiley.com',
+  'tandfonline.com',
+  'academic.oup.com',
+  'journals.plos.org',
+]);
+
 export function evidenceQualityNote(
   s: EvidenceSideStructure | undefined | null,
 ): QualityNote | null {
@@ -63,6 +75,16 @@ export function evidenceQualityNote(
     };
   }
   if (singleOutlet) {
+    // A publisher platform (Nature, ScienceDirect …) hosts many independent
+    // journals under one domain — not the same as one website. Parity twin of
+    // PORTFOLIO_HOSTS in support_structure.py.
+    if (PORTFOLIO_HOSTS.has(s.sole_domain || '')) {
+      return {
+        kind: 'thin',
+        label: 'Thin sourcing',
+        detail: 'All via a single publisher platform, which may host multiple journals.',
+      };
+    }
     return {
       kind: 'thin',
       label: 'Thin sourcing',

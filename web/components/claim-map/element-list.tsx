@@ -20,7 +20,9 @@ export function ElementList({ elements }: ElementListProps) {
             <div className="flex flex-col gap-2 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-zinc-700">{element.description}</span>
-                {element.state && <ElementStateBadge state={element.state} size="sm" />}
+                {element.state && (
+                  <ElementStateBadge state={element.state} size="sm" basis={element.basis} />
+                )}
               </div>
 
               {element.evidenceRefs.length > 0 && (

@@ -992,6 +992,10 @@ def _compute_relationship_structure(
     return {
         "count": len(rel_refs),
         "distinct_domains": len(domains),
+        # The one domain, when this side is single-outlet — lets the
+        # presentation layer distinguish a publisher platform from a lone
+        # website (§4d fix 5). Empty unless exactly one distinct domain.
+        "sole_domain": next(iter(domains)) if len(domains) == 1 else "",
         "tier_counts": tier_counts,
         "derivation": {
             "originals": originals,
