@@ -59,6 +59,26 @@ def _clean_uncertainty(value) -> Optional[str]:
     return None if value.strip().lower() in _UNCERTAINTY_SENTINELS else value
 
 
+# Causal-link detector (§4d fix 2). Deliberately broad — verbs + connectives —
+# mirroring the claim-integrity probe's CAUSE_RE (its precedent). A mechanical
+# tag: it decides WHERE the mapping SPECIFICITY CHECK rule applies (causal-link
+# elements only), it never judges the evidence itself.
+_CAUSAL_LINK_RE = re.compile(
+    r"\bcaus\w*|\bdriv(?:e|es|en|ing)\b|\bled to\b|\blead(?:s|ing)? to\b"
+    r"|\bresult(?:s|ed|ing)? (?:in|from)\b|\bdue to\b|\bbecause\b"
+    r"|\bcontribut\w+ (?:to|factor)|\btrigger\w*|\bresponsible for\b"
+    r"|\battribut\w+ to\b",
+    re.IGNORECASE,
+)
+
+
+def _is_causal_link(description: str) -> bool:
+    """True when an element description asserts a causal relationship."""
+    if not description or not isinstance(description, str):
+        return False
+    return bool(_CAUSAL_LINK_RE.search(description))
+
+
 # ── Response schemas for Gemini structured output ───────────────────────────
 # Constrains mapper output at the API level. Mirrors the structure the prompt
 # already requires; defensive parsing in _validate_evidence_refs still strips
@@ -168,6 +188,9 @@ Rules:
 - claim_type must be exactly one of the five listed values.
 - If the claim asserts causation (X causes/drives/leads to Y), include the \
 causal link itself as one element, alongside the cause and the effect.
+- If the claim makes an explicit comparison (e.g. "compared to X", "more than", \
+"since <year>"), EVERY element that asserts the compared quantity or trend must \
+state that comparison baseline explicitly in its description.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
 
@@ -214,6 +237,13 @@ the sources address only England and Wales), still map the genuine supports, but
 that element's "scope_caveat" to a SHORT factual name of what the evidence actually \
 covers (e.g. "England and Wales"). Otherwise set "scope_caveat" to null. Do NOT restate \
 or judge the claim in scope_caveat — describe only the evidence's reach.
+- SPECIFICITY CHECK: An element tagged [CAUSAL LINK] asserts a SPECIFIC causal \
+relationship — a named cause driving a named effect, often over a specific period. \
+Evidence that only describes a general mechanism, teaches how such processes work \
+(educational or explanatory material), or supplies background/reference content does \
+NOT support that specific causal assertion — map it as "context", not "supports". \
+Reserve "supports"/"challenges" for evidence bearing on whether THIS cause is driving \
+THIS effect as asserted.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
 - STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
@@ -329,6 +359,9 @@ Rules:
 - claim_type must be exactly one of the five listed values.
 - If a claim asserts causation (X causes/drives/leads to Y), include the \
 causal link itself as one element, alongside the cause and the effect.
+- If a claim makes an explicit comparison (e.g. "compared to X", "more than", \
+"since <year>"), EVERY element that asserts the compared quantity or trend must \
+state that comparison baseline explicitly in its description.
 - Do NOT include evidence_refs, state, or uncertainty — those come later.
 """
 
@@ -381,6 +414,13 @@ the sources address only England and Wales), still map the genuine supports, but
 that element's "scope_caveat" to a SHORT factual name of what the evidence actually \
 covers (e.g. "England and Wales"). Otherwise set "scope_caveat" to null. Do NOT restate \
 or judge the claim in scope_caveat — describe only the evidence's reach.
+- SPECIFICITY CHECK: An element tagged [CAUSAL LINK] asserts a SPECIFIC causal \
+relationship — a named cause driving a named effect, often over a specific period. \
+Evidence that only describes a general mechanism, teaches how such processes work \
+(educational or explanatory material), or supplies background/reference content does \
+NOT support that specific causal assertion — map it as "context", not "supports". \
+Reserve "supports"/"challenges" for evidence bearing on whether THIS cause is driving \
+THIS effect as asserted.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
 - STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
@@ -1196,9 +1236,12 @@ class ClaimMapAnalyzer:
             ).isoformat()
             return claim_map
 
-        # Build context for LLM
+        # Build context for LLM. Causal-link elements are tagged so the
+        # SPECIFICITY CHECK rule applies to them (§4d fix 2).
         elements_desc = "\n".join(
-            f"- {e['element_id']}: {e['description']}" for e in claim_map["elements"]
+            f"- {e['element_id']}: {e['description']}"
+            f"{' [CAUSAL LINK]' if _is_causal_link(e['description']) else ''}"
+            for e in claim_map["elements"]
         )
         evidence_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
@@ -1417,7 +1460,9 @@ class ClaimMapAnalyzer:
             ev = item["evidence"]
 
             elements_desc = "\n".join(
-                f"  - {e['element_id']}: {e['description']}" for e in cm["elements"]
+                f"  - {e['element_id']}: {e['description']}"
+                f"{' [CAUSAL LINK]' if _is_causal_link(e['description']) else ''}"
+                for e in cm["elements"]
             )
             evidence_desc = "\n".join(
                 f"  - {ev_item.get('evidence_id', 'unknown')}: "

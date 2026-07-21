@@ -8,7 +8,7 @@ elements anchor to the user's stated timeframe/scope.
 
 import pytest
 
-from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer
+from app.pipeline.claim_map_analyzer import ClaimMapAnalyzer, _is_causal_link
 from app.pipeline.extract import (
     is_single_declarative_sentence,
     recombine_single_thesis,
@@ -139,3 +139,40 @@ class TestDecomposeContextBlock:
     def test_context_bounded(self):
         block = ClaimMapAnalyzer._context_block("x" * 5000, "claim")
         assert len(block) < 1500
+
+
+class TestCausalLinkTagger:
+    """_is_causal_link (§4d fix 2): the mechanical gate deciding where the
+    mapping SPECIFICITY CHECK rule applies. Positives = causal-link elements."""
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "elevated tectonic activity is driving the rise in eruptions",
+            "the fall in investment caused the rise in sewage discharges",
+            "social media use is a primary contributing factor to anxiety",
+            "warming led to melting",
+            "declining ice leads to extreme winter weather",
+            "the rise is due to privatisation",
+            "measurement error is responsible for the discrepancy",
+            "the spike resulted from the policy change",
+        ],
+    )
+    def test_positives(self, text):
+        assert _is_causal_link(text) is True
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "tectonic plate movement is extremely active compared to the last 50 years",
+            "there is a large rise in volcanic eruptions",
+            "UK food prices have risen faster than the EU average",
+            "Arctic sea ice has declined dramatically over the past decade",
+            "",
+        ],
+    )
+    def test_negatives(self, text):
+        assert _is_causal_link(text) is False
+
+    def test_non_string_is_false(self):
+        assert _is_causal_link(None) is False
