@@ -347,8 +347,12 @@ class Settings(BaseSettings):
     RECOVERY_MAX_ELEMENTS_PER_CLAIM: int = Field(
         5, env="RECOVERY_MAX_ELEMENTS_PER_CLAIM"
     )  # Max elements to recover per claim
+    # 20→35 (2026-07-22): the §4d starvation trigger routes intact single-claim
+    # checks into recovery, where retrieval+enrichment alone can eat ~15s — the
+    # E323-8862 run's mapping call was killed 5.4s in with the work complete.
+    # Ceiling, not a sleep: typical recovery latency is unchanged.
     RECOVERY_TIMEOUT_SECONDS: int = Field(
-        20, env="RECOVERY_TIMEOUT_SECONDS"
+        35, env="RECOVERY_TIMEOUT_SECONDS"
     )  # Floor for coverage recovery wait; preserves 1-2 candidate behaviour
     RECOVERY_TIMEOUT_SECONDS_PER_CLAIM: int = Field(
         7, env="RECOVERY_TIMEOUT_SECONDS_PER_CLAIM"

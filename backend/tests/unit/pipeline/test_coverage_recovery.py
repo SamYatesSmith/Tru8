@@ -2760,3 +2760,36 @@ class TestStarvationTrigger:
     def test_needs_recovery_handles_enum_state(self):
         el = self._elem(ElementState.unresolved, [])
         assert _element_needs_recovery(el) is True
+
+
+class TestRecoveryTimeoutFloor:
+    """2026-07-22: the Bug-B timeout class recurred at n=1 — the §4d starvation
+    trigger routes intact single-claim checks into recovery, where the legacy
+    20s floor cancelled the in-flight mapping call with retrieval + classify
+    already complete (E323-8862: killed 5.4s into mapping, 0 recovered).
+    Floor raised to 35s; per-claim scaling unchanged."""
+
+    def test_single_claim_floor_covers_full_recovery_chain(self):
+        from app.pipeline.runner import _compute_recovery_timeout
+
+        # E323-8862 needed ~26s (retrieve 13.5 + classify 1.5 + map ~10).
+        assert _compute_recovery_timeout(1) >= 35
+
+    def test_per_claim_scaling_still_dominates_at_high_counts(self):
+        from app.core.config import settings
+        from app.pipeline.runner import _compute_recovery_timeout
+
+        n = 6
+        assert (
+            _compute_recovery_timeout(n)
+            == n * settings.RECOVERY_TIMEOUT_SECONDS_PER_CLAIM
+        )
+
+    def test_floor_is_env_overridable_rollback_lever(self):
+        from unittest.mock import patch as _patch
+
+        from app.core import config as config_mod
+        from app.pipeline.runner import _compute_recovery_timeout
+
+        with _patch.object(config_mod.settings, "RECOVERY_TIMEOUT_SECONDS", 20):
+            assert _compute_recovery_timeout(1) == 20

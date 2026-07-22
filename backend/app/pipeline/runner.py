@@ -307,6 +307,12 @@ def _compute_recovery_timeout(n_candidates: int) -> int:
 
     Pre-Bug-B the timeout was a hard 20s ceiling regardless of claim count,
     causing 4+ claim cases to time out and silently lose recovery results.
+
+    2026-07-22: the same bug class recurred at n=1 — the §4d starvation
+    trigger routes intact single-claim checks into recovery, where
+    retrieve(≈13s incl. enrichment) + classify + score + map overran the 20s
+    floor and the in-flight mapping call was cancelled with its inputs fully
+    paid for (E323-8862). Floor raised to 35s via RECOVERY_TIMEOUT_SECONDS.
     """
     return max(
         settings.RECOVERY_TIMEOUT_SECONDS,
@@ -2416,6 +2422,57 @@ async def run_pipeline_phase2(
                 logger.info(f"[COVERAGE RECOVERY] Claim {pos}: no new evidence found")
                 return
 
+            # Relevance-score recovery items (2026-07-22): recovery previously
+            # bypassed the SCORE stage entirely, so unscored junk (consultancy
+            # homepages, off-topic market reports on E323-8862) entered the
+            # final source list whenever recovery ran. Same gate + receipt
+            # shape as the main pass; scorer failure degrades to pass-through.
+            if config.enable_llm_relevance_scorer:
+                try:
+                    from app.pipeline.relevance_scorer import score_evidence_batch
+
+                    scored = await score_evidence_batch(
+                        claims=[claim.get("text", "")],
+                        evidence={"0": new_evidence},
+                        article_context=content.get("content", "")[:5000],
+                    )
+                    excluded_by_scorer = scored.pop("_excluded", [])
+                    for ex_ev in excluded_by_scorer:
+                        raw_evidence_data.append(
+                            {
+                                "source": ex_ev.get("source", "Unknown"),
+                                "url": ex_ev.get("url", ""),
+                                "title": ex_ev.get("title", ""),
+                                "snippet": ex_ev.get("snippet", ex_ev.get("text", "")),
+                                "published_date": ex_ev.get("published_date"),
+                                "relevance_score": float(
+                                    ex_ev.get("relevance_score", 0.0)
+                                ),
+                                "is_included": False,
+                                "filter_stage": "llm_relevance",
+                                "filter_reason": f"LLM score 1/5: {(ex_ev.get('llm_relevance_rationale') or 'off-topic')[:200]}",
+                                "tier": ex_ev.get("tier"),
+                                "claim_position": claim.get("position", 0),
+                            }
+                        )
+                    new_evidence = scored.get("0", [])
+                    if excluded_by_scorer:
+                        logger.info(
+                            f"[COVERAGE RECOVERY] Claim {pos}: scorer excluded "
+                            f"{len(excluded_by_scorer)} irrelevant recovery items"
+                        )
+                    if not new_evidence:
+                        logger.info(
+                            f"[COVERAGE RECOVERY] Claim {pos}: no recovery items "
+                            f"survived relevance scoring"
+                        )
+                        return
+                except Exception as e:
+                    logger.warning(
+                        f"[COVERAGE RECOVERY] Relevance scoring failed "
+                        f"(non-critical, passing through unscored): {e}"
+                    )
+
             # Classify new evidence (match CLASSIFY stage pattern)
             try:
                 if config.enable_llm_classifier:
@@ -2444,12 +2501,6 @@ async def run_pipeline_phase2(
             except Exception as e:
                 logger.warning(f"[COVERAGE RECOVERY] Classification failed: {e}")
 
-            # Add to evidence pool
-            if pos not in evidence:
-                evidence[pos] = []
-            evidence[pos].extend(new_evidence)
-            claim["evidence"] = evidence[pos]
-
             # Focused mapping for unresolved elements only
             unresolved_ids = [e["element_id"] for e in unresolved_elements]
             await analyzer.map_evidence_to_specific_elements(
@@ -2457,6 +2508,18 @@ async def run_pipeline_phase2(
                 unresolved_element_ids=unresolved_ids,
                 new_evidence=new_evidence,
             )
+
+            # Add to evidence pool AFTER the mapping attempt (2026-07-22): on
+            # E323-8862 the recovery timeout cancelled the mapping call
+            # mid-flight, but the items were already pooled — 20 unscored,
+            # unmapped sources shipped in the report. Extending here means a
+            # cancellation leaves the pool untouched; on mapping success the
+            # unselected items still enter with unmapped receipts, matching
+            # main-pass transparency.
+            if pos not in evidence:
+                evidence[pos] = []
+            evidence[pos].extend(new_evidence)
+            claim["evidence"] = evidence[pos]
 
             # Count results
             claims_recovered += 1
