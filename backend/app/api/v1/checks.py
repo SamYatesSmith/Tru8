@@ -2040,6 +2040,8 @@ async def stream_check_progress(
     # 5 min), and reconnect loops on a dead check starved the pool into an
     # API-wide brownout (2026-07-21 outage). Short-lived session, released
     # before streaming starts; the generator only needs Redis + these fields.
+    from app.core.database import async_session  # local import, matches module style
+
     async with async_session() as session:
         stmt = select(Check).where(
             Check.id == check_id, Check.user_id == current_user["id"]
