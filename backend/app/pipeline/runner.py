@@ -9,6 +9,7 @@ running them in a thread pool with asyncio.run() for proper isolation
 import asyncio
 import json
 import logging
+import re
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -313,11 +314,62 @@ def _compute_recovery_timeout(n_candidates: int) -> int:
     retrieve(≈13s incl. enrichment) + classify + score + map overran the 20s
     floor and the in-flight mapping call was cancelled with its inputs fully
     paid for (E323-8862). Floor raised to 35s via RECOVERY_TIMEOUT_SECONDS.
+
+    2026-07-22 (same day, 11F0-F1AE): the flat bump chased a moving target —
+    a fully-starved claim (4/4 elements → 8 queries → 42 items) consumed the
+    35s on retrieval+scoring+classify and the mapping call was cancelled with
+    0.7s left, discarding GVP/USGS-class evidence a second time. This budget
+    now covers PHASE A only (retrieve+score+classify); the mapping pass runs
+    under its own RECOVERY_MAPPING_GRACE_SECONDS and, once its inputs are
+    paid for, is never cancelled by the Phase A budget.
     """
     return max(
         settings.RECOVERY_TIMEOUT_SECONDS,
         n_candidates * settings.RECOVERY_TIMEOUT_SECONDS_PER_CLAIM,
     )
+
+
+_RECOVERY_ELEM_HINT_RE = re.compile(r"^ev-rec-(e\d+)_")
+
+
+def _cap_recovery_items(
+    items: List[Dict[str, Any]], max_items: int
+) -> List[Dict[str, Any]]:
+    """Bound the recovery items entering scoring/mapping, round-robin across
+    elements (invariant #2: never sequential slicing — a tail element's
+    results must not be the ones silently dropped).
+
+    Recovery evidence_ids carry the target element (``ev-rec-e3_0_<hash>``,
+    retrieve.py); items are grouped by that hint and taken one-per-element
+    in rotation, preserving within-element rank order. Un-hinted items form
+    their own group. 2026-07-22: 42 unbounded items cost 12.6s of scoring on
+    11F0-F1AE — a large slice of the recovery budget."""
+    if len(items) <= max_items:
+        return items
+    groups: Dict[str, List[Dict[str, Any]]] = {}
+    order: List[str] = []
+    for ev in items:
+        m = _RECOVERY_ELEM_HINT_RE.match(ev.get("evidence_id") or "")
+        key = m.group(1) if m else "_unhinted"
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append(ev)
+    capped: List[Dict[str, Any]] = []
+    idx = 0
+    while len(capped) < max_items:
+        took_any = False
+        for key in order:
+            group = groups[key]
+            if idx < len(group):
+                capped.append(group[idx])
+                took_any = True
+                if len(capped) >= max_items:
+                    break
+        if not took_any:
+            break
+        idx += 1
+    return capped
 
 
 def _element_is_starved(elem: Dict[str, Any]) -> bool:
@@ -2393,8 +2445,10 @@ async def run_pipeline_phase2(
         claims_recovered = 0
         elements_resolved = 0
 
-        async def _recover_single_claim(candidate):
-            nonlocal claims_recovered, elements_resolved
+        async def _recover_prepare(candidate):
+            """Phase A: retrieve → cap → score → classify. Returns a prep dict
+            for the mapping phase, or None when nothing survived. Runs under
+            the Phase A budget — safe to cancel (nothing is mutated)."""
             claim = candidate["claim"]
             cm = claim["claim_map"]
             pos = str(claim.get("position", 0))
@@ -2408,7 +2462,7 @@ async def run_pipeline_phase2(
             ][:RECOVERY_MAX_ELEMENTS]
 
             if not unresolved_elements:
-                return
+                return None
 
             # Targeted retrieval
             new_evidence = await retriever.retrieve_for_elements(
@@ -2420,7 +2474,19 @@ async def run_pipeline_phase2(
 
             if not new_evidence:
                 logger.info(f"[COVERAGE RECOVERY] Claim {pos}: no new evidence found")
-                return
+                return None
+
+            # Bound the scoring/mapping payload, round-robin per element
+            # (2026-07-22: 42 unbounded items cost 12.6s of scoring).
+            before_cap = len(new_evidence)
+            new_evidence = _cap_recovery_items(
+                new_evidence, settings.RECOVERY_MAX_SCORED_ITEMS
+            )
+            if len(new_evidence) < before_cap:
+                logger.info(
+                    f"[COVERAGE RECOVERY] Claim {pos}: capped {before_cap} → "
+                    f"{len(new_evidence)} items (round-robin per element)"
+                )
 
             # Relevance-score recovery items (2026-07-22): recovery previously
             # bypassed the SCORE stage entirely, so unscored junk (consultancy
@@ -2466,7 +2532,7 @@ async def run_pipeline_phase2(
                             f"[COVERAGE RECOVERY] Claim {pos}: no recovery items "
                             f"survived relevance scoring"
                         )
-                        return
+                        return None
                 except Exception as e:
                     logger.warning(
                         f"[COVERAGE RECOVERY] Relevance scoring failed "
@@ -2500,6 +2566,27 @@ async def run_pipeline_phase2(
                     )
             except Exception as e:
                 logger.warning(f"[COVERAGE RECOVERY] Classification failed: {e}")
+
+            return {
+                "claim": claim,
+                "cm": cm,
+                "pos": pos,
+                "unresolved_elements": unresolved_elements,
+                "new_evidence": new_evidence,
+            }
+
+        async def _recover_map(prep):
+            """Phase B: mapping + pool merge + counters. Runs under its own
+            grace window — once Phase A has paid for the inputs, the mapping
+            call is never cancelled by the Phase A budget (2026-07-22:
+            E323-8862 and 11F0-F1AE both discarded fully-prepared
+            GVP/USGS-class evidence at the single shared timeout)."""
+            nonlocal claims_recovered, elements_resolved
+            claim = prep["claim"]
+            cm = prep["cm"]
+            pos = prep["pos"]
+            unresolved_elements = prep["unresolved_elements"]
+            new_evidence = prep["new_evidence"]
 
             # Focused mapping for unresolved elements only
             unresolved_ids = [e["element_id"] for e in unresolved_elements]
@@ -2541,16 +2628,44 @@ async def run_pipeline_phase2(
                 f"{newly_resolved}/{len(unresolved_elements)} elements now resolved"
             )
 
-        try:
-            await asyncio.wait_for(
-                asyncio.gather(
-                    *[_recover_single_claim(c) for c in recovery_candidates],
-                    return_exceptions=True,
-                ),
-                timeout=recovery_timeout,
+        # Phase A — budgeted. asyncio.wait (NOT wait_for(gather)): a timeout
+        # cancels only the stragglers; claims whose prep already completed
+        # keep their results and proceed to mapping.
+        prep_tasks = [
+            asyncio.create_task(_recover_prepare(c)) for c in recovery_candidates
+        ]
+        done, pending = await asyncio.wait(prep_tasks, timeout=recovery_timeout)
+        if pending:
+            for t in pending:
+                t.cancel()
+            logger.warning(
+                f"[COVERAGE RECOVERY] Phase A timed out after {recovery_timeout}s "
+                f"({len(pending)}/{len(prep_tasks)} claims cancelled, "
+                f"{len(done)} proceeding to mapping)"
             )
-        except asyncio.TimeoutError:
-            logger.warning(f"[COVERAGE RECOVERY] Timed out after {recovery_timeout}s")
+        preps = []
+        for t in done:
+            if t.exception():
+                logger.warning(f"[COVERAGE RECOVERY] Prepare failed: {t.exception()}")
+            elif t.result() is not None:
+                preps.append(t.result())
+
+        # Phase B — mapping for every completed prep, own grace ceiling
+        # (hang protection only; a healthy Flash mapping call is ~5-12s).
+        if preps:
+            grace = settings.RECOVERY_MAPPING_GRACE_SECONDS
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(
+                        *[_recover_map(p) for p in preps], return_exceptions=True
+                    ),
+                    timeout=grace,
+                )
+            except asyncio.TimeoutError:
+                logger.warning(
+                    f"[COVERAGE RECOVERY] Mapping grace exceeded ({grace}s) — "
+                    f"a mapping call hung; unfinished claims discarded"
+                )
 
         recovery_elapsed = (datetime.now(timezone.utc) - recovery_start).total_seconds()
         stage_timings["coverage_recovery"] = recovery_elapsed

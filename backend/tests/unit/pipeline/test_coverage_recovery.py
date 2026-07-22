@@ -2793,3 +2793,61 @@ class TestRecoveryTimeoutFloor:
 
         with _patch.object(config_mod.settings, "RECOVERY_TIMEOUT_SECONDS", 20):
             assert _compute_recovery_timeout(1) == 20
+
+
+class TestCapRecoveryItems:
+    """2026-07-22 phase-split (11F0-F1AE): 42 unbounded recovery items cost
+    12.6s of scoring inside the recovery budget. Cap is round-robin across
+    element hints (invariant #2 — never sequential slicing)."""
+
+    @staticmethod
+    def _items(spec):
+        # spec: {element: count} → items in element-major order (like retrieval)
+        return [
+            {"evidence_id": f"ev-rec-{elem}_{i}_hash"}
+            for elem, count in spec.items()
+            for i in range(count)
+        ]
+
+    def test_under_cap_passthrough_untouched(self):
+        from app.pipeline.runner import _cap_recovery_items
+
+        items = self._items({"e1": 3, "e2": 3})
+        assert _cap_recovery_items(items, 24) is items
+
+    def test_round_robin_fair_across_elements(self):
+        from app.pipeline.runner import _cap_recovery_items
+
+        items = self._items({"e1": 20, "e2": 20, "e3": 20})
+        capped = _cap_recovery_items(items, 6)
+        by_elem = {}
+        for ev in capped:
+            key = ev["evidence_id"].split("_")[0]
+            by_elem[key] = by_elem.get(key, 0) + 1
+        # 2 each — a tail element is never the one silently dropped
+        assert by_elem == {"ev-rec-e1": 2, "ev-rec-e2": 2, "ev-rec-e3": 2}
+
+    def test_within_element_rank_order_preserved(self):
+        from app.pipeline.runner import _cap_recovery_items
+
+        items = self._items({"e1": 10, "e2": 10})
+        capped = _cap_recovery_items(items, 4)
+        e1_ids = [ev["evidence_id"] for ev in capped if "e1_" in ev["evidence_id"]]
+        assert e1_ids == ["ev-rec-e1_0_hash", "ev-rec-e1_1_hash"]
+
+    def test_small_group_exhausts_then_others_fill(self):
+        from app.pipeline.runner import _cap_recovery_items
+
+        items = self._items({"e1": 1, "e2": 10})
+        capped = _cap_recovery_items(items, 5)
+        assert len(capped) == 5
+        e2_count = sum(1 for ev in capped if "e2_" in ev["evidence_id"])
+        assert e2_count == 4  # e2 fills the slots e1 cannot use
+
+    def test_unhinted_items_form_own_group(self):
+        from app.pipeline.runner import _cap_recovery_items
+
+        items = self._items({"e1": 10}) + [{"evidence_id": "ev-abc123"}] * 10
+        capped = _cap_recovery_items(items, 4)
+        unhinted = sum(1 for ev in capped if ev["evidence_id"] == "ev-abc123")
+        assert unhinted == 2  # rotation includes the unhinted group

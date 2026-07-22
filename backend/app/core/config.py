@@ -354,6 +354,15 @@ class Settings(BaseSettings):
     RECOVERY_TIMEOUT_SECONDS: int = Field(
         35, env="RECOVERY_TIMEOUT_SECONDS"
     )  # Floor for coverage recovery wait; preserves 1-2 candidate behaviour
+    # Phase-split (2026-07-22, 11F0-F1AE): RECOVERY_TIMEOUT_SECONDS budgets
+    # Phase A (retrieve+score+classify) only. Mapping runs under its own
+    # grace and is never cancelled by the Phase A budget once inputs are
+    # paid for. MAX_SCORED_ITEMS bounds the scoring/mapping payload
+    # (42 unbounded items cost 12.6s of scoring), round-robin per element.
+    RECOVERY_MAX_SCORED_ITEMS: int = Field(24, env="RECOVERY_MAX_SCORED_ITEMS")
+    RECOVERY_MAPPING_GRACE_SECONDS: int = Field(
+        25, env="RECOVERY_MAPPING_GRACE_SECONDS"
+    )
     RECOVERY_TIMEOUT_SECONDS_PER_CLAIM: int = Field(
         7, env="RECOVERY_TIMEOUT_SECONDS_PER_CLAIM"
     )  # Per-candidate seconds; total = max(floor, n_candidates * this) (Bug B)
