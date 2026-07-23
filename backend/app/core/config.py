@@ -307,11 +307,13 @@ class Settings(BaseSettings):
 
     # ========== OPINION DECOUPLING (Phase 1a, 2026-07-16) ==========
     # Extraction KEEPS main-predicate evaluative claims (reframed affirmative,
-    # type_hint="normative") instead of dropping them under Rule 6. OFF by
-    # default and MUST stay off until Phase 1b's symmetric decompose stage is
-    # live — flipped early, opinions would flow into the confirmatory
-    # decomposition (decoupling plan §16.1; Artefact-1 finding P3).
-    ENABLE_OPINION_REFRAME: bool = Field(False, env="ENABLE_OPINION_REFRAME")
+    # type_hint="normative") instead of dropping them under Rule 6; the grounds
+    # stage then rebuilds their elements as neutral empirical questions.
+    # The gating precondition — Phase 1b's neutral decompose + grounds-aware
+    # mapping — went live in slices 1-3 (1e27f32/6f1c9fc/71e441d), so the flag
+    # defaults ON from 2026-07-23 (founder sign-off).
+    # ROLLBACK without a redeploy: set ENABLE_OPINION_REFRAME=False on Railway.
+    ENABLE_OPINION_REFRAME: bool = Field(True, env="ENABLE_OPINION_REFRAME")
 
     # ========== QUERY PLANNING AGENT ==========
     # LLM-powered batch query planning for semantic claim understanding

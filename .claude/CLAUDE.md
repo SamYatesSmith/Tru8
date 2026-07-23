@@ -167,6 +167,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 4. **Claim Map `evidence_refs` is source of truth.** `element_ids` on evidence is derived.
 5. **No hidden curation.** Every exclusion has a receipt.
 6. **Classify, don't score.** Tier + Type, not credibility numbers.
+7. **Never sycophantic, never false-balancing.** The submitted claim is the starting context for an honest search, never a conclusion to defend — and never a thing to artificially two-side. Distortion in *either* direction is the enemy: a false claim must not look supported, and a well-evidenced grave claim SHOULD look one-sided. Enforced mechanically (neutral question-shaped grounds, honest mapping), never by prompt alone; balance lives in retrieval and mapping, never in forced route symmetry. *(Wording drafted 2026-07-23 at the flag flip — founder to confirm/adjust.)*
 
 ## Database
 - **PostgreSQL 16** (port 5433) via SQLModel
