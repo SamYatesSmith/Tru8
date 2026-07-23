@@ -50,13 +50,13 @@ Two-phase pipeline with user claim selection gate:
 ```
 Phase 1 (0-30%):
   INGEST (10%)        → Fetch URL / OCR / transcript
-  EXTRACT (20%)       → LLM atomises into ≤12 claims (questions accepted via implicit claim extraction)
+  EXTRACT (20%)       → LLM atomises into ≤12 claims (questions accepted via implicit claim extraction). Opinion decoupling LIVE 2026-07-23 (`ENABLE_OPINION_REFRAME` default True): main-predicate evaluative claims are KEPT affirmative in the author's direction + hinted `normative` (Rule 6 exception), never dropped. Attributed/reported stances stay plain claims. Known: hint boundary noisy both directions (P13 under-fire / P18 over-fire — see `audit/2026-07-23_decoupling_live_test_plan.md`)
   SELECT/RANK (28%)   → Article classification + claim ranking
   [PAUSE]             → waiting_for_selection (ALL input modes — text checks pause too; verified live 2026-07-06)
 
 Phase 2 (30-100%):
   FACTCHECK (35%)     → Google Fact-Check API lookup
-  DECOMPOSE (45%)     → Claim → 1-5 elements (LLM call); each element tagged with scope_flags {geographic,universal} — mechanical scope-sensitivity tagger, F3 Phase A 2026-07-07 (app/utils/scope_sensitivity.py)
+  DECOMPOSE (45%)     → Claim → 1-5 elements (LLM call); each element tagged with scope_flags {geographic,universal} — mechanical scope-sensitivity tagger, F3 Phase A 2026-07-07 (app/utils/scope_sensitivity.py). Normative-hinted claims (flag ON): elements rebuilt as NEUTRAL open questions by the grounds stage (`opinion_symmetry.apply_grounds_stage` — value-predicate lock, on-subject, structural coverage; balance lives in retrieval+mapping, never forced route symmetry). SOT: `audit/DECOUPLING_STATE.md`
   RETRIEVE (60%)      → Per-element multi-source search (2 queries/element; element's 2nd query runs unwindowed unless planner chose pd/pw — F1-D3 recency hedge 2026-07-06; two-year claims get both years anchored — F1-D1)
   SCORE (65%)         → LLM topical relevance scoring (1-5 scale, max 50 items)
   CLASSIFY (75%)      → Tier/Type classification (batched LLM + heuristic fallback). Post-classify (needs tiers): mechanical derivation annotation writes per-element basis sourcing notes — echo (a primary re-reported by ≥2 derivatives), F4 repetition (≥3 non-primary sources reciting the same wording across ≥2 ownership groups with NO primary anchor — sentence-shingle, `corroboration.annotate_repetition_clusters`, 2026-07-07), thin (commentary-only / single-outlet). Surfaced as grey no-verdict notes (dashboard + `/r/`); a flagged element is toppable via "Strengthen this claim". Parity-locked `support_structure.py` ↔ `support-structure.ts`
@@ -71,6 +71,12 @@ Parallel tasks (fire-and-forget):
   - Video recommendations (YouTube API, max 5/claim)
   - Auto-archiving (Wayback Machine, ~15 req/min)
 ```
+
+## Reliability guarantees (2026-07-23 — a check always ends honestly, never hangs)
+Two incident classes closed in one day (design doc `audit/2026-07-23_hang_proofing_design.md`):
+- **PDF memory guards** (`df0095f`): evidence `.pdf` downloads capped at 20MB (content-length precheck + mid-stream cap, skip logged) and pypdf parses serialised module-wide (`pdf_evidence.py` semaphore of 1) — one 7.8MB treaty PDF measured ~600MB RSS and concurrent parses under the shared 25-slot fetch semaphore OOM-killed the container (SIGKILL = no exception, no Sentry, stranded row, CORS-less proxy errors in the browser).
+- **Hang-proofing** (`c7b4d4d`): ONE owner of a pipeline task's lifetime — the task itself; streams report, never control. W1 task-level watchdog on all 6 task sites (`app/core/watchdog.py`; `PIPELINE_WATCHDOG_SECONDS=300` / `RESEARCH_WATCHDOG_SECONDS=150`; breach → existing `handle_pipeline_failure` fail+refund, then re-raise so streams never announce "completed" for a failed check; re-search breach terminates the Redis status, parent check stays completed). W2 boot-time stale sweep (`inflight.sweep_stale_checks`, lifespan startup; `check.processing_started_at` column ages paused-then-resumed article checks correctly; excludes `waiting_for_selection`) — OOM strandings self-heal on next boot. W3 `progress.events()` stream bound is connection-only (the old branch cancelled the pipeline AND claimed a refund it never made — defect D3, dead). W4 frontend 45s calm stall notice.
+Worst case for a user: failed honestly, credit returned, told plainly.
 
 ## Six Profession Views
 
