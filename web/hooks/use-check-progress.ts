@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { ClaimForSelection } from '@/components/claim-selection/types';
 
 interface ProgressData {
-  type: 'progress' | 'completed' | 'error' | 'heartbeat' | 'connected' | 'timeout' | 'awaiting_selection';
+  type: 'progress' | 'completed' | 'error' | 'heartbeat' | 'connected' | 'timeout' | 'awaiting_selection' | 'stream_timeout';
   checkId?: string;
   stage?: string;
   progress?: number;
@@ -145,6 +145,13 @@ export function useCheckProgress(
 
             case 'timeout':
               setError('Connection timeout - please refresh');
+              eventSource.close();
+              break;
+
+            case 'stream_timeout':
+              // Server closed a long-lived stream (hang-proofing W3). NOT an
+              // error — the pipeline is unaffected; page polling takes over.
+              setIsConnected(false);
               eventSource.close();
               break;
 

@@ -297,21 +297,28 @@ class ProgressReporter:
         # Yield events from queue until completion
         while True:
             try:
-                # Check overall timeout - force termination if exceeded
+                # Stream-duration bound (hang-proofing W3, 2026-07-23): this
+                # closes the CONNECTION only — the client reconnects or polls.
+                # It must never cancel the pipeline (the task-level watchdog
+                # owns the lifetime) and must never claim a refund it did not
+                # make: the old branch cancelled the task via CancelledError,
+                # which skipped every except-Exception failure handler, so no
+                # refund and no 'failed' status happened — while telling the
+                # user "Your credit has been returned" (defect D3).
                 elapsed = time.time() - start_time
                 if elapsed > max_duration_seconds:
-                    logger.error(
-                        f"Pipeline exceeded max duration ({max_duration_seconds}s), forcing termination"
+                    logger.warning(
+                        f"[SSE] Stream for {self.check_id} open past "
+                        f"{max_duration_seconds}s — closing connection "
+                        f"(pipeline unaffected; client should reconnect/poll)"
                     )
-                    if pipeline_task and not pipeline_task.done():
-                        pipeline_task.cancel()
-                    error_event = {
-                        "type": "error",
+                    stream_event = {
+                        "type": "stream_timeout",
                         "checkId": self.check_id,
-                        "status": "failed",
-                        "error": "Pipeline timed out. Your credit has been returned.",
+                        "message": "Stream closed after maximum duration; "
+                        "reconnect or poll for status.",
                     }
-                    yield f"data: {json.dumps(error_event)}\n\n"
+                    yield f"data: {json.dumps(stream_event)}\n\n"
                     break
 
                 # Check if pipeline task completed (success or failure)

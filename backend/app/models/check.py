@@ -51,6 +51,12 @@ class Check(SQLModel, table=True):
     error_message: Optional[str] = None
     created_at: datetime = Field(default_factory=_utcnow_naive)
     completed_at: Optional[datetime] = None
+    # When the CURRENT processing run started (hang-proofing W2, 2026-07-23).
+    # Set at row creation (submissions are created 'processing') and refreshed
+    # when phase 2 flips status back to 'processing' — so the boot-time stale
+    # sweep can age paused-then-resumed article checks correctly instead of
+    # from created_at. Nullable: pre-migration rows COALESCE to created_at.
+    processing_started_at: Optional[datetime] = Field(default_factory=_utcnow_naive)
 
     # Agent commerce (Track L)
     initiated_via: Optional[str] = Field(

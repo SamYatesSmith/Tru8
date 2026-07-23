@@ -89,3 +89,79 @@ async def fail_and_refund_inflight() -> int:
             f"in-flight check(s): {sorted(_INFLIGHT)}"
         )
     return failed
+
+
+STALE_ERROR_MSG = (
+    "This check was interrupted and could not complete. "
+    "Your credit has been refunded — please submit it again."
+)
+
+
+async def sweep_stale_checks(session=None) -> int:
+    """Boot-time stale sweep (hang-proofing W2, 2026-07-23).
+
+    The SIGTERM guard above only covers graceful shutdowns; an OOM/SIGKILL
+    strands rows in 'processing' forever (check 46406547, 2026-07-23 outage).
+    On startup, fail + refund every check stuck 'processing' or 'pending'
+    for longer than the watchdog ceiling + grace.
+
+    Deploy-overlap safe BY CONSTRUCTION: with the task-level watchdog live,
+    no legitimate run can be older than the ceiling — any row past
+    ceiling+grace is definitionally dead. The old instance's still-running
+    checks are younger than the threshold and untouched. 'waiting_for_selection'
+    is a durable pause and is never swept.
+
+    Ages 'processing' rows from processing_started_at (COALESCE created_at
+    for pre-migration rows) — created_at would mis-age paused-then-resumed
+    article checks. 'pending' rows age from created_at. Idempotent via
+    refund_usage's credits_used==0 guard. Returns rows swept.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    from sqlmodel import select
+
+    from app.core.config import settings
+    from app.core.database import async_session
+    from app.models.check import Check
+    from app.services.usage_ledger import refund_usage
+
+    cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(
+        seconds=settings.PIPELINE_WATCHDOG_SECONDS + 120
+    )
+
+    async def _sweep(sess) -> int:
+        swept = 0
+        result = await sess.execute(
+            select(Check).where(Check.status.in_(("processing", "pending")))
+        )
+        for check in result.scalars().all():
+            started = (
+                (check.processing_started_at or check.created_at)
+                if check.status == "processing"
+                else check.created_at
+            )
+            if started is None or started >= cutoff:
+                continue
+            try:
+                await refund_usage(sess, check.id)
+                check.status = "failed"
+                check.error_message = STALE_ERROR_MSG
+                sess.add(check)
+                swept += 1
+                logger.warning(
+                    f"[BOOT SWEEP] Failed + refunded stale check {check.id} "
+                    f"(stuck since {started})"
+                )
+            except Exception as e:  # noqa: BLE001 — never abort the sweep
+                logger.error(f"[BOOT SWEEP] Could not clean check {check.id}: {e}")
+        await sess.commit()
+        return swept
+
+    try:
+        if session is not None:
+            return await _sweep(session)
+        async with async_session() as sess:
+            return await _sweep(sess)
+    except Exception as e:  # noqa: BLE001 — startup must not crash on the sweep
+        logger.error(f"[BOOT SWEEP] Sweep failed: {e}")
+        return 0

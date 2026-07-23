@@ -165,6 +165,17 @@ class Settings(BaseSettings):
 
     # Pipeline
     PIPELINE_TIMEOUT_SECONDS: int = Field(180, env="PIPELINE_TIMEOUT_SECONDS")
+
+    # ── Hang-proofing watchdogs (2026-07-23, audit/2026-07-23_hang_proofing_design.md)
+    # Hard wall-clock ceiling on background pipeline tasks (submission +
+    # phase 2). On breach the check is failed HONESTLY (user-friendly message
+    # + idempotent refund) via handle_pipeline_failure — never left hanging.
+    # Slowest honest check observed: 123.9s (TRU-1795-FFC5). Rollback: raise
+    # the env var.
+    PIPELINE_WATCHDOG_SECONDS: int = Field(300, env="PIPELINE_WATCHDOG_SECONDS")
+    # Ceiling for single-element re-search/top-up tasks. On breach the Redis
+    # research status is terminated ("error"); the completed check is untouched.
+    RESEARCH_WATCHDOG_SECONDS: int = Field(150, env="RESEARCH_WATCHDOG_SECONDS")
     CACHE_TTL_SECONDS: int = Field(3600, env="CACHE_TTL_SECONDS")
 
     # ========== SCORING MODE ==========

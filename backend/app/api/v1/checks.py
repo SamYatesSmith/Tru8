@@ -15,6 +15,7 @@ from app.core.auth import (
 )
 from app.core.config import settings
 from app.core.inflight import inflight_register, inflight_unregister
+from app.core.watchdog import supervise_pipeline_task, supervise_re_search_task
 from app.core.pdf_assets import FONT_FACE_CSS
 from app.pipeline.support_structure import side_quality_note
 from app.models import User, Check, Claim, Evidence, RawEvidence, Subscription
@@ -582,8 +583,13 @@ async def create_check_test_streaming(
         finally:
             inflight_unregister(check.id)
 
-    # Start pipeline as fire-and-forget background task
-    pipeline_task = asyncio.create_task(run_pipeline_and_save())
+    # Start pipeline as a supervised background task (hang-proofing W1)
+    pipeline_task = supervise_pipeline_task(
+        run_pipeline_and_save(),
+        check_id=check.id,
+        user_id=user.id,
+        label="test-stream pipeline",
+    )
 
     async def pipeline_stream():
         """Generator that yields SSE events - pipeline runs independently."""
@@ -822,9 +828,15 @@ async def create_check_streaming(
         finally:
             inflight_unregister(check.id)
 
-    # Start pipeline as fire-and-forget background task
-    # This ensures results are saved even if client disconnects
-    pipeline_task = asyncio.create_task(run_pipeline_and_save())
+    # Start pipeline as a SUPERVISED background task (hang-proofing W1):
+    # the wall-clock ceiling lives on the task itself, not the SSE stream —
+    # it survives client disconnects. On breach: honest failure + refund.
+    pipeline_task = supervise_pipeline_task(
+        run_pipeline_and_save(),
+        check_id=check.id,
+        user_id=user.id,
+        label="submission pipeline",
+    )
     logger.info(f"[SSE STREAM] Background pipeline task created for check {check.id}")
 
     async def pipeline_stream():
@@ -1426,7 +1438,13 @@ async def select_claims(
         finally:
             inflight_unregister(check_id)
 
-    asyncio.create_task(run_phase2_and_save())
+    # Supervised (hang-proofing W1): phase 2 previously had NO ceiling at all.
+    supervise_pipeline_task(
+        run_phase2_and_save(),
+        check_id=check_id,
+        user_id=current_user["id"],
+        label="phase-2 pipeline",
+    )
 
     return {
         "status": "processing",
@@ -1659,7 +1677,12 @@ async def start_gap_research(
 
     # 5. Start background tasks for each gap element
     for eid in gap_element_ids:
-        asyncio.create_task(run_element_re_search(check_id, claim_id, eid))
+        supervise_re_search_task(
+            run_element_re_search(check_id, claim_id, eid),
+            check_id=check_id,
+            claim_id=claim_id,
+            element_id=eid,
+        )
 
     return {
         "status": "started",
@@ -1763,7 +1786,12 @@ async def start_thin_research(
 
     # 5. Start background tasks for each thin element
     for eid in thin_ids:
-        asyncio.create_task(run_element_re_search(check_id, claim_id, eid))
+        supervise_re_search_task(
+            run_element_re_search(check_id, claim_id, eid),
+            check_id=check_id,
+            claim_id=claim_id,
+            element_id=eid,
+        )
 
     return {
         "status": "started",
@@ -1863,7 +1891,12 @@ async def start_element_research(
     )
 
     # 6. Start background task
-    asyncio.create_task(run_element_re_search(check_id, claim_id, element_id))
+    supervise_re_search_task(
+        run_element_re_search(check_id, claim_id, element_id),
+        check_id=check_id,
+        claim_id=claim_id,
+        element_id=element_id,
+    )
 
     return {
         "status": "started",

@@ -299,6 +299,24 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
   };
   const effectiveTimeEstimate = timeEstimate ?? (progress > 0 ? getTimeEstimateFromProgress(progress) : 'within 2 minutes');
 
+  // Hang-proofing W4 (2026-07-23): calm stall notice when progress hasn't
+  // moved for 45s. Counts BOTH SSE and polling updates (any change to
+  // progress/stage resets the clock). The backend watchdog + boot sweep
+  // guarantee a terminal state, so this only bridges the visible gap.
+  const [isStalled, setIsStalled] = useState(false);
+  const lastProgressChangeRef = useRef(Date.now());
+  useEffect(() => {
+    lastProgressChangeRef.current = Date.now();
+    setIsStalled(false);
+  }, [progress, currentStage]);
+  useEffect(() => {
+    if (checkData.status !== 'processing') return;
+    const timer = setInterval(() => {
+      setIsStalled(Date.now() - lastProgressChangeRef.current > 45000);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [checkData.status]);
+
   // Derive claims for selection: prefer SSE data, fall back to checkData.claims on page refresh
   const effectiveClaimsForSelection = claimsForSelection ?? (
     checkData.status === 'waiting_for_selection' && checkData.claims
@@ -409,7 +427,16 @@ export function CheckDetailClient({ initialData, checkId, isPro = false, rawSour
 
       {/* Status-based Rendering */}
       {checkData.status === 'processing' && (
-        <ProgressSection progress={progress} currentStage={currentStage} isConnected={isConnected} message={message} timeEstimate={effectiveTimeEstimate} />
+        <>
+          <ProgressSection progress={progress} currentStage={currentStage} isConnected={isConnected} message={message} timeEstimate={effectiveTimeEstimate} />
+          {isStalled && (
+            <p className="mt-3 text-sm text-slate-500 text-center">
+              This research is taking longer than usual — still working. If it
+              cannot complete, it will stop on its own and your credit will be
+              returned.
+            </p>
+          )}
+        </>
       )}
 
       {/* Claim Selection UI — shown when awaiting user selection */}

@@ -1330,8 +1330,14 @@ async def run_pipeline_phase2(
 
             selected_claims = [c for c in claims if c.get("is_selected")]
 
-            # Update check status to processing
+            # Update check status to processing. Refresh the processing clock:
+            # the boot-time stale sweep (hang-proofing W2) ages 'processing'
+            # rows from this timestamp, and an article check may have sat at
+            # the selection pause for hours since created_at.
             check.status = "processing"
+            check.processing_started_at = datetime.now(timezone.utc).replace(
+                tzinfo=None
+            )
             await session.commit()
 
         # No frozen evidence in article mode phase2

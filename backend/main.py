@@ -94,6 +94,15 @@ async def lifespan(app: FastAPI):
 
     start_consensus_loop()
 
+    # Hang-proofing W2 (2026-07-23): the SIGTERM guard below can't catch
+    # kills (OOM/SIGKILL strand rows 'processing' forever — check 46406547).
+    # On every boot, fail + refund anything stuck past the watchdog ceiling.
+    from app.core.inflight import sweep_stale_checks
+
+    swept = await sweep_stale_checks()
+    if swept:
+        logger.warning(f"[BOOT SWEEP] Healed {swept} stranded check(s) at startup")
+
     yield
 
     # Deploy-shutdown guard (2026-07-21): pipeline tasks die with the process
