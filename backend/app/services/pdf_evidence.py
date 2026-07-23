@@ -12,6 +12,20 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+# ── Peak-memory guards (2026-07-23, check 46406547 outage) ──────────────────
+# One 7.8MB treaty PDF (UK-EU TCA, gov.uk) measured ~600MB RSS through the
+# pypdf parse below, and parses ran under the SHARED url-fetch semaphore
+# (MAX_CONCURRENT_URL_FETCHES=25) — several treaty-sized PDFs in flight
+# OOM-killed the container (SIGKILL: no exception, no Sentry, no lifespan
+# guard, check row stuck 'processing'). Two mechanical guards:
+#   1. Byte cap on the download (content-length precheck + streamed cap) —
+#      oversize PDFs are skipped with a logged receipt, never buffered.
+#   2. Module-wide parse semaphore of 1 — at most ONE PDF parse at a time,
+#      so peak parse memory is ~one-PDF-sized regardless of fetch fan-out.
+#      Large primary sources (the treaty itself) stay INCLUDED, just queued.
+MAX_PDF_BYTES = 20 * 1024 * 1024
+_PARSE_SEMAPHORE = asyncio.Semaphore(1)
+
 
 class PDFEvidenceExtractor:
     """Extract evidence from PDFs with page-level precision"""
@@ -35,34 +49,53 @@ class PDFEvidenceExtractor:
             List of evidence dictionaries with page_number metadata
         """
         try:
-            # Download PDF
+            # Download PDF — streamed, hard byte cap (memory guard 1)
             logger.info(f"Downloading PDF: {url}")
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url)
-                response.raise_for_status()
+                async with client.stream("GET", url) as response:
+                    response.raise_for_status()
+                    declared = int(response.headers.get("content-length") or 0)
+                    if declared > MAX_PDF_BYTES:
+                        logger.warning(
+                            f"[PDF GUARD] skipped oversize PDF "
+                            f"({declared} bytes > {MAX_PDF_BYTES} cap): {url}"
+                        )
+                        return []
+                    buf = bytearray()
+                    async for chunk in response.aiter_bytes():
+                        buf += chunk
+                        if len(buf) > MAX_PDF_BYTES:
+                            logger.warning(
+                                f"[PDF GUARD] skipped PDF exceeding "
+                                f"{MAX_PDF_BYTES}-byte cap mid-stream: {url}"
+                            )
+                            return []
 
-            pdf_bytes = BytesIO(response.content)
+            pdf_bytes = BytesIO(bytes(buf))
 
-            # Run blocking PDF operations in executor to avoid blocking event loop
+            # Run blocking PDF operations in executor to avoid blocking event
+            # loop — serialised module-wide (memory guard 2): pypdf parse RSS
+            # is ~75x file size, so concurrent parses are the OOM vector.
             loop = asyncio.get_event_loop()
 
-            # Extract metadata (blocking operation)
-            metadata = await loop.run_in_executor(
-                None, self._extract_pdf_metadata, pdf_bytes
-            )
-            logger.info(
-                f"PDF metadata: {metadata['title']}, {metadata['total_pages']} pages"
-            )
+            async with _PARSE_SEMAPHORE:
+                # Extract metadata (blocking operation)
+                metadata = await loop.run_in_executor(
+                    None, self._extract_pdf_metadata, pdf_bytes
+                )
+                logger.info(
+                    f"PDF metadata: {metadata['title']}, {metadata['total_pages']} pages"
+                )
 
-            # Search for relevant content (blocking operation)
-            pdf_bytes.seek(0)  # Reset stream
-            matches = await loop.run_in_executor(
-                None,
-                self._search_pdf_for_claim,
-                pdf_bytes,
-                claim,
-                metadata["total_pages"],
-            )
+                # Search for relevant content (blocking operation)
+                pdf_bytes.seek(0)  # Reset stream
+                matches = await loop.run_in_executor(
+                    None,
+                    self._search_pdf_for_claim,
+                    pdf_bytes,
+                    claim,
+                    metadata["total_pages"],
+                )
 
             # Return top matches
             return matches[:max_results]
