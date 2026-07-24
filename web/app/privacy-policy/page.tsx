@@ -1,5 +1,6 @@
 import { LegalPageLayout } from '@/components/legal/legal-page-layout';
 import { CookiePreferencesButton } from '@/components/legal/cookie-preferences-button';
+import { LEGAL, ICO } from '@/lib/legal';
 
 export const metadata = {
   title: 'Privacy Policy',
@@ -16,7 +17,7 @@ export default function PrivacyPolicyPage() {
       <div className="prose-legal">
         <h2>1. Introduction</h2>
         <p>
-          Trueight Ltd (company number 17090683), trading as Tru8 (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the Tru8 evidence research platform.
+          {LEGAL.companyName} (company number {LEGAL.companyNumber}), trading as {LEGAL.tradingName} (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the Tru8 evidence research platform.
           This Privacy Policy explains how we collect, use, disclose, and safeguard
           your information when you use our services.
         </p>
@@ -183,9 +184,9 @@ export default function PrivacyPolicyPage() {
 
         <h2>13. Contact Us</h2>
         <p>
-          <strong>Data Controller:</strong> Trueight Ltd (company number 17090683), trading as Tru8<br />
-          <strong>Email:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a><br />
-          <strong>Location:</strong> London, UK
+          <strong>Data Controller:</strong> {LEGAL.companyName} (company number {LEGAL.companyNumber}), trading as {LEGAL.tradingName}<br />
+          <strong>Email:</strong> <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a><br />
+          <strong>Location:</strong> {LEGAL.location}
         </p>
 
         <p>
@@ -196,13 +197,13 @@ export default function PrivacyPolicyPage() {
 
         <p>
           <strong>Complaints to ICO:</strong><br />
-          Information Commissioner&apos;s Office<br />
-          Wycliffe House, Water Lane<br />
-          Wilmslow, Cheshire SK9 5AF<br />
-          Website: <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a>
+          {ICO.name}<br />
+          {ICO.addressLines[0]}<br />
+          {ICO.addressLines[1]}<br />
+          Website: <a href={ICO.websiteUrl} target="_blank" rel="noopener">{ICO.website}</a>
         </p>
         <p>
-          <strong>Our ICO registration:</strong> ZC110163
+          <strong>Our ICO registration:</strong> {LEGAL.icoRegistration}
         </p>
 
         <h2>14. Cross-User Consensus Analysis</h2>

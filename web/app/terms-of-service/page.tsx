@@ -1,4 +1,5 @@
 import { LegalPageLayout } from '@/components/legal/legal-page-layout';
+import { LEGAL } from '@/lib/legal';
 
 export const metadata = {
   title: 'Terms of Service',
@@ -285,9 +286,9 @@ export default function TermsOfServicePage() {
 
         <h2>14. Contact</h2>
         <p>
-          <strong>Company:</strong> Trueight Ltd (company number 17090683), trading as Tru8<br />
-          <strong>Email:</strong> <a href="mailto:hello@trueight.com">hello@trueight.com</a><br />
-          <strong>ICO registration:</strong> ZC110163
+          <strong>Company:</strong> {LEGAL.companyName} (company number {LEGAL.companyNumber}), trading as {LEGAL.tradingName}<br />
+          <strong>Email:</strong> <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a><br />
+          <strong>ICO registration:</strong> {LEGAL.icoRegistration}
         </p>
       </div>
     </LegalPageLayout>

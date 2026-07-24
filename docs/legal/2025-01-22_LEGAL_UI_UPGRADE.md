@@ -84,7 +84,7 @@ const legalLinks = [
 <div className="col-span-2 md:col-span-1">
   <h3 className="text-white font-semibold mb-3 text-sm">Compliance</h3>
   <p className="text-slate-400 text-xs">
-    ICO Registration: <span className="text-slate-300 font-mono">[ZA123456]</span>
+    ICO Registration: <span className="text-slate-300 font-mono">ZC110163</span>
   </p>
   <p className="text-slate-400 text-xs mt-2">
     Data Controller: Tru8 Ltd
@@ -92,7 +92,7 @@ const legalLinks = [
 </div>
 ```
 
-**Note:** Replace `[ZA123456]` with actual ICO registration number once obtained.
+**Note:** ICO registration obtained — number is `ZC110163` (single source of truth: `web/lib/legal.ts`).
 
 #### ✅ Update 3: Add Cookie Preferences Button
 
@@ -479,7 +479,7 @@ export default function PrivacyPolicyPage() {
         <h2>13. Contact Us</h2>
         <p>
           <strong>Data Controller:</strong> Tru8 Ltd<br />
-          <strong>ICO Registration:</strong> [ZA123456]<br />
+          <strong>ICO Registration:</strong> ZC110163<br />
           <strong>Email:</strong> <a href="mailto:hello@tru8.com">hello@tru8.com</a><br />
           <strong>Address:</strong> [Business Address]
         </p>
@@ -1057,7 +1057,7 @@ export default function ContactPage() {
             <strong className="text-white">Company Name:</strong> Tru8 Ltd
           </p>
           <p className="text-slate-300 mb-2">
-            <strong className="text-white">ICO Registration:</strong> [ZA123456]
+            <strong className="text-white">ICO Registration:</strong> ZC110163
           </p>
           <p className="text-slate-300 mb-2">
             <strong className="text-white">Business Address:</strong> [Full Business Address]
@@ -1122,7 +1122,7 @@ export default function ContactPage() {
 - [ ] Create `web/app/cookie-policy/page.tsx`
 - [ ] Create `web/app/refund-policy/page.tsx`
 - [ ] Create `web/app/contact/page.tsx`
-- [ ] Replace placeholder `[ZA123456]` with actual ICO number
+- [x] Replace placeholder ICO number with actual (`ZC110163`)
 - [ ] Replace `[Business Address]` with actual address
 - [ ] Replace `[VAT Number]` with actual VAT number (if applicable)
 - [ ] Test all pages render correctly
@@ -1909,7 +1909,7 @@ NEXT_PUBLIC_API_URL="http://localhost:8000"  # Development
 
 Before going live, replace these placeholders in legal pages:
 
-- `[ZA123456]` → Actual ICO registration number
+- ~~`[ZA123456]`~~ → Done: ICO registration `ZC110163`
 - `[Business Address]` → Actual business address
 - `[VAT Number]` → Actual VAT number (if applicable)
 - `hello@tru8.com` → Ensure this email address is created and monitored
