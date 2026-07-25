@@ -250,6 +250,43 @@ def test_t8_shape_all_challenges_gives_the_honest_unanimous_line():
     assert "mixed" not in line
 
 
+def test_addendum_forbids_silence_as_a_challenge():
+    """Live witness `TRU-3661-61C7` (MMR): two grounds badged `−CHALLENGED`
+    off ONE source whose own reasoning said the evidence "does not provide
+    specific rates" — i.e. silence read as contradiction. The likely licence
+    was the bare word "absent", which reads as "absent from the evidence" as
+    easily as "absent in the world". Both halves are pinned here.
+    """
+    low = GROUNDS_MAPPING_ADDENDUM.lower()
+    assert "silence is not a challenge" in low
+    assert "does not provide this" in low
+    assert "in the world" in low
+    # the ambiguous bare licence is gone
+    assert "it is absent" not in low
+
+
+def test_silence_outcomes_are_honest_states_not_manufactured_challenges():
+    """What the SILENCE rule points the mapper at: an unanswered ground lands
+    in a no-answer state. Neither path can produce `disputed`, so a challenge
+    on an unanswered question can only come from a mislabelled relationship.
+    """
+    ev = [{"evidence_id": "ev-1", "tier": "primary"}]
+    context_only = {
+        "element_id": "e1",
+        "evidence_refs": [{"evidence_id": "ev-1", "relationship": "context"}],
+        "state": None,
+    }
+    nothing = {"element_id": "e2", "evidence_refs": [], "state": None}
+
+    state_ctx, basis_ctx = _derive_element_state_with_authority(context_only, ev)
+    state_none, basis_none = _derive_element_state_with_authority(nothing, ev)
+
+    assert state_ctx == ElementState.contextual
+    assert basis_ctx["rule_applied"] == "context_only"
+    assert state_none == ElementState.unresolved
+    assert basis_none["rule_applied"] == "no_evidence"
+
+
 def test_orientation_is_untouched_by_bug_a():
     """Bug A is a mapper-semantics fix ONLY. A genuinely split grounded claim
     still reaches the aggregate "mixed" line with its assertion-framed

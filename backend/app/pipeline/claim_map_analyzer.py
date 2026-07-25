@@ -309,10 +309,11 @@ kind a question is BEFORE mapping evidence to it.
 case, or how much of it is (e.g. "What is the clinical effectiveness of X?", \
 "What does the evidence indicate about whether X?").
 - "supports" = the evidence shows the asked-about ground IS the case.
-- "challenges" = the evidence shows it is NOT the case, that it is absent, or \
-that the opposite holds. Evidence answering such a question in the NEGATIVE is \
-"challenges", NEVER "supports" — a study finding no effect challenges a \
-question about effectiveness, it does not support it.
+- "challenges" = the evidence shows the ground is NOT the case IN THE WORLD — \
+it does not hold, it does not occur, or the opposite is documented. Evidence \
+answering such a question in the NEGATIVE is "challenges", NEVER "supports" — \
+a study finding no effect challenges a question about effectiveness, it does \
+not support it.
 (2) WHAT / HOW MANY / WHICH questions — the question asks for an amount, a \
 record or an enumeration, with no single state of affairs to establish (e.g. \
 "What are the documented casualties?", "What were the stated targets?").
@@ -322,6 +323,15 @@ record or an enumeration, with no single state of affairs to establish (e.g. \
 figures, or giving a materially different record.
 - "context" (either kind) = relevant to the question but does not settle it \
 (same discipline as above).
+SILENCE IS NOT A CHALLENGE: a source that simply FAILS TO ANSWER a question — \
+it discusses the topic but supplies no figure, finding or record — is \
+"context" when it genuinely helps the reader interpret the question, and is \
+otherwise left unmapped. NEVER map "the evidence does not provide this" as \
+"challenges". "challenges" requires the evidence to say something CONTRARY: \
+that the ground does not hold in the world, or that a reported record is \
+wrong. A question with no substantive answer is MEANT to come out \
+"unresolved" — that is an honest result, and manufacturing a challenge to \
+fill it misreports the record.
 States are computed MECHANICALLY from these counts, so always map the \
 relationship the evidence actually bears, never the state you expect: \
 "supported" = the ground holds, or its answer is documented and unchallenged; \
