@@ -288,24 +288,49 @@ DISCIPLINE above), otherwise omit.
 # -shaped elements otherwise get coerced, inconsistent stance labels (P4,
 # plan §15.8). Counts/states stay mechanical — this changes label SEMANTICS,
 # not the counting machinery, so state derivation/orientation are untouched.
+#
+# P21 Bug A (2026-07-25): the original single rule ("supports" = the evidence
+# ANSWERS the question) was right for enumerative grounds and WRONG for
+# whether/extent grounds — a study finding no effect "answered" the question
+# and so scored a backwards +SUPPORTED badge (live battery T8, e02). The
+# decompose prompt commissions BOTH shapes (opinion_symmetry.py:55-66 — open
+# questions that must not presuppose an answer), so the rule is now shape-aware
+# rather than uniformly directional: forcing a direction onto "What were the
+# stated targets?" would have manufactured a label the question cannot carry.
+# The state gloss moved with it — "supported = the ground is well-documented"
+# re-licensed the answered reading two sentences below the fix.
 GROUNDS_MAPPING_ADDENDUM = """\
 
 ELEMENT SHAPE NOTE: This claim's elements are OPEN QUESTIONS — neutral \
-empirical grounds chosen to inform a judgement — not assertions. Use the same \
-relationships with these meanings:
-- "supports" = the evidence substantively ANSWERS the question, documenting \
-that the ground it asks about is established or present (e.g. for "What are \
-the documented casualties?", a casualty report is "supports").
-- "challenges" = the evidence disputes the substance the question asks about — \
-contradicting reported figures, showing the asked-about ground is absent, or \
-documenting the opposite.
-- "context" = background that helps interpret the answers (same discipline as \
-above).
-States keep their mechanical meaning over these counts: "supported" = the \
-ground is well-documented; "disputed" = the documentation is contested; \
-"unresolved" = no substantive answer found. Do NOT treat a question as an \
-assertion to confirm, and NEVER infer or signal whether the parent claim is \
-true — map only what the evidence shows about EACH ground.
+empirical grounds chosen to inform a judgement — not assertions. TWO kinds of \
+question appear here and they take the relationships differently. Decide which \
+kind a question is BEFORE mapping evidence to it.
+(1) WHETHER / TO WHAT EXTENT questions — the question asks if something is the \
+case, or how much of it is (e.g. "What is the clinical effectiveness of X?", \
+"What does the evidence indicate about whether X?").
+- "supports" = the evidence shows the asked-about ground IS the case.
+- "challenges" = the evidence shows it is NOT the case, that it is absent, or \
+that the opposite holds. Evidence answering such a question in the NEGATIVE is \
+"challenges", NEVER "supports" — a study finding no effect challenges a \
+question about effectiveness, it does not support it.
+(2) WHAT / HOW MANY / WHICH questions — the question asks for an amount, a \
+record or an enumeration, with no single state of affairs to establish (e.g. \
+"What are the documented casualties?", "What were the stated targets?").
+- "supports" = the evidence substantively supplies what the question asks for \
+(a casualty report is "supports" for the casualty question).
+- "challenges" = the evidence disputes that answer — contradicting reported \
+figures, or giving a materially different record.
+- "context" (either kind) = relevant to the question but does not settle it \
+(same discipline as above).
+States are computed MECHANICALLY from these counts, so always map the \
+relationship the evidence actually bears, never the state you expect: \
+"supported" = the ground holds, or its answer is documented and unchallenged; \
+"disputed" = challenging evidence is present and not outweighed — INCLUDING a \
+ground the evidence uniformly shows is NOT the case, which is the correct and \
+honest outcome, not a failure; "unresolved" = no substantive answer found. Do \
+NOT treat a question as an assertion to confirm, and NEVER infer or signal \
+whether the parent claim is true — map only what the evidence shows about EACH \
+ground.
 GROUND PRECISION: map a source to a ground ONLY when it substantively \
 addresses what THAT question asks. A statement about intent does not answer a \
 question about physical extent or casualty figures; an official denial of one \

@@ -10,11 +10,14 @@ addendum); (3) the addendum never leaks direction/balance machinery.
 
 import pytest
 
+from app.models.claim_map import ElementState
 from app.pipeline.claim_map_analyzer import (
     GROUNDS_MAPPING_ADDENDUM,
     MAPPING_PROMPT,
     ClaimMapAnalyzer,
+    _derive_element_state_with_authority,
     _grounds_applied,
+    derive_orientation,
 )
 
 
@@ -181,3 +184,87 @@ async def test_batch_with_no_grounds_claims_is_unchanged(monkeypatch):
     )
     assert routed == []  # nothing partitioned
     assert len([c for c in analyzer.captured if c[0] == "batch_mapping"]) == 1
+
+
+# ── P21 Bug A — shape-aware relationship semantics (2026-07-25) ──────────────
+
+
+def test_addendum_separates_the_two_question_shapes():
+    """The original single rule ("supports" = the evidence ANSWERS the
+    question) was right for enumerative grounds and wrong for whether/extent
+    ones — a study finding no effect "answered" the question and so earned a
+    backwards +SUPPORTED badge (live battery T8, e02). Both shapes must now be
+    spelled out, because NORMATIVE_DECOMPOSE_PROMPT commissions both.
+    """
+    low = GROUNDS_MAPPING_ADDENDUM.lower()
+    assert "whether / to what extent" in low
+    assert "what / how many / which" in low
+    # the whether-shape rule that fixes T8
+    assert "negative" in low
+    assert 'never "supports"' in low
+    # the enumerative shape keeps its worked example — it was never broken
+    assert "casualty report" in low
+
+
+def test_addendum_state_gloss_does_not_relicense_the_answered_reading():
+    """`"supported" = the ground is well-documented` sat two sentences below
+    the relationship rules and re-licensed exactly the reading Bug A removes:
+    evidence documenting that a ground is ABSENT also makes it well-documented.
+    """
+    low = GROUNDS_MAPPING_ADDENDUM.lower()
+    assert "well-documented" not in low
+    assert "uniformly shows is not the case" in low
+
+
+def test_t8_shape_all_challenges_gives_the_honest_unanimous_line():
+    """The worked trace behind Bug A: once a negative answer maps to
+    `challenges` rather than `supports`, the EXISTING mechanical path carries
+    it the rest of the way — no state-derivation or orientation change needed.
+    Two grounds whose evidence documents the negative must read as challenged,
+    never as "mixed" (invariant #7 — no manufactured false balance).
+    """
+    evidence = [{"evidence_id": f"ev-{i}", "tier": "primary"} for i in (1, 2, 3)]
+
+    elements = []
+    for eid in ("e1", "e2"):
+        elem = {
+            "element_id": eid,
+            "description": "What is the clinical effectiveness of X?",
+            "evidence_refs": [
+                {"evidence_id": ev["evidence_id"], "relationship": "challenges"}
+                for ev in evidence
+            ],
+            "state": None,
+        }
+        state, basis = _derive_element_state_with_authority(elem, evidence)
+        assert state == ElementState.disputed
+        assert basis["rule_applied"] == "all_challenges"
+        elem["state"] = state
+        elements.append(elem)
+
+    line = derive_orientation(elements)
+    assert line == (
+        "Of 2 elements examined, retrieved evidence challenges all 2, "
+        "with none supporting."
+    )
+    assert "mixed" not in line
+
+
+def test_orientation_is_untouched_by_bug_a():
+    """Bug A is a mapper-semantics fix ONLY. A genuinely split grounded claim
+    still reaches the aggregate "mixed" line with its assertion-framed
+    vocabulary — that is Bug B's job (deferred fast-follow). This pins that no
+    orientation code moved with Bug A, so the deferral stays honest.
+    """
+    evidence = [{"evidence_id": "ev-1", "tier": "primary"}]
+    supported = {
+        "element_id": "e1",
+        "evidence_refs": [{"evidence_id": "ev-1", "relationship": "supports"}],
+        "state": ElementState.supported,
+    }
+    challenged = {
+        "element_id": "e2",
+        "evidence_refs": [{"evidence_id": "ev-1", "relationship": "challenges"}],
+        "state": ElementState.disputed,
+    }
+    assert "mixed" in derive_orientation([supported, challenged])
