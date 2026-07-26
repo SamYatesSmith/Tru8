@@ -209,3 +209,141 @@ def test_claim_model_persists_type_hint():
     claim = Claim(check_id="c1", text="t", position=0, type_hint="normative")
     assert claim.type_hint == "normative"
     assert Claim(check_id="c1", text="t", position=0).type_hint is None
+
+
+# ── F-VERDICT / P13: mechanical evaluative-head second signal (2026-07-26) ──
+# Acceptance criteria (11)-(14), frozen at design time. The seam is
+# `apply_evaluative_head_signal`, called post-cache in runner.py alongside
+# recombine_single_thesis.
+
+
+def _claim(text, **kw):
+    base = {"text": text, "position": 0, "confidence": 80, "key_entities": []}
+    base.update(kw)
+    return base
+
+
+def test_11_seam_hints_unhinted_evaluative_claim(monkeypatch):
+    """(11) F-VERDICT witness: the LLM hint missed, the detector arms the gate."""
+    from app.pipeline.extract import apply_evaluative_head_signal
+
+    monkeypatch.setattr(settings, "ENABLE_EVALUATIVE_HEAD_SIGNAL", True)
+    claims = [_claim("The learning-styles theory is indefensible.")]
+    out, events = apply_evaluative_head_signal("...", claims, "text")
+
+    assert out[0]["type_hint"] == "normative"
+    assert out[0]["evaluative_head_signal"] == "indefensible"
+    assert [e["event"] for e in events] == ["hinted"]
+
+
+def test_11b_detector_flag_off_leaves_claims_untouched(monkeypatch):
+    """(11) D-1 parity: flag OFF → byte-identical claims, no events."""
+    from app.pipeline.extract import apply_evaluative_head_signal
+
+    monkeypatch.setattr(settings, "ENABLE_EVALUATIVE_HEAD_SIGNAL", False)
+    original = [_claim("The learning-styles theory is indefensible.")]
+    snapshot = [dict(c) for c in original]
+    out, events = apply_evaluative_head_signal("...", original, "text")
+
+    assert out == snapshot
+    assert events == []
+
+
+def test_12_never_unsets_an_llm_hint(monkeypatch):
+    """(12) The two signals are OR-ed. Idempotent: re-running is a no-op."""
+    from app.pipeline.extract import apply_evaluative_head_signal
+
+    monkeypatch.setattr(settings, "ENABLE_EVALUATIVE_HEAD_SIGNAL", True)
+    claims = [_claim("The merger is a real danger.", type_hint="normative")]
+    out, events = apply_evaluative_head_signal("...", claims, "text")
+    assert out[0]["type_hint"] == "normative"
+    assert events == []
+
+    again, _ = apply_evaluative_head_signal("...", out, "text")
+    assert again[0]["type_hint"] == "normative"
+
+
+def test_12b_empirical_claim_is_not_hinted(monkeypatch):
+    """(12) Over-correction guard at the SEAM, not just the detector."""
+    from app.pipeline.extract import apply_evaluative_head_signal
+
+    monkeypatch.setattr(settings, "ENABLE_EVALUATIVE_HEAD_SIGNAL", True)
+    claims = [_claim("Thames Water discharged 72 billion litres of sewage in 2023.")]
+    out, events = apply_evaluative_head_signal("...", claims, "text")
+
+    assert out[0].get("type_hint") is None
+    assert events == []
+
+
+def test_13_restoration_recovers_a_deleted_extraposed_judgement(monkeypatch):
+    """(13) P13 witness (b). Rule 6's cleaning licence DELETED the judgement;
+    the user's exact sentence is restored as one hinted claim."""
+    from app.pipeline.extract import apply_evaluative_head_signal
+
+    monkeypatch.setattr(settings, "ENABLE_EVALUATIVE_HEAD_SIGNAL", True)
+    source = "It is indefensible for a government to fund homeopathy with public money."
+    sanitised = [_claim("A government funds homeopathy with public money.")]
+
+    out, events = apply_evaluative_head_signal(source, sanitised, "text")
+
+    assert len(out) == 1
+    assert out[0]["text"] == source
+    assert out[0]["type_hint"] == "normative"
+    assert out[0]["evaluative_head_restored"] is True
+    assert events[0]["event"] == "restored"
+    assert events[0]["shape"] == "extraposed"
+
+
+def test_13b_no_restoration_when_a_claim_retains_the_head(monkeypatch):
+    """(13) Restoration is a last resort — it must not rewrite claims that
+    already carry the judgement."""
+    from app.pipeline.extract import apply_evaluative_head_signal
+
+    monkeypatch.setattr(settings, "ENABLE_EVALUATIVE_HEAD_SIGNAL", True)
+    source = "It is indefensible for a government to fund homeopathy."
+    kept = [_claim("Funding homeopathy is indefensible.")]
+
+    out, events = apply_evaluative_head_signal(source, kept, "text")
+
+    assert out[0]["text"] == "Funding homeopathy is indefensible."
+    assert "evaluative_head_restored" not in out[0]
+    assert [e["event"] for e in events] == ["hinted"]
+
+
+def test_13c_restoration_is_text_mode_and_single_sentence_only(monkeypatch):
+    """(13) Scope lock: article submissions and multi-sentence text are never
+    rewritten — an unrestorable mid-article drop is telemetry's job, not this."""
+    from app.pipeline.extract import apply_evaluative_head_signal
+
+    monkeypatch.setattr(settings, "ENABLE_EVALUATIVE_HEAD_SIGNAL", True)
+    source = "It is indefensible for a government to fund homeopathy."
+    sanitised = [_claim("A government funds homeopathy.")]
+
+    out_url, events_url = apply_evaluative_head_signal(source, sanitised, "url")
+    assert out_url[0]["text"] == "A government funds homeopathy."
+    assert events_url == []
+
+    multi = "It is indefensible to do this. Spending rose 4% last year."
+    out_multi, events_multi = apply_evaluative_head_signal(
+        multi, [_claim("Spending rose 4% last year.")], "text"
+    )
+    assert out_multi[0]["text"] == "Spending rose 4% last year."
+    assert events_multi == []
+
+
+def test_14_mechanical_hint_arms_the_grounds_gate(monkeypatch):
+    """(14) End-to-end mechanical trace: detector → hint → gate. This is the
+    branch whose failure produced F-VERDICT."""
+    from app.pipeline.extract import apply_evaluative_head_signal
+    from app.pipeline.runner import should_apply_grounds
+
+    monkeypatch.setattr(settings, "ENABLE_EVALUATIVE_HEAD_SIGNAL", True)
+    monkeypatch.setattr(settings, "ENABLE_OPINION_REFRAME", True)
+    claims, _ = apply_evaluative_head_signal(
+        "...", [_claim("The learning-styles theory is indefensible.")], "text"
+    )
+    assert should_apply_grounds(claims[0]) is True
+
+    # D-1: after a chain rollback the mechanically-set hint is inert too.
+    monkeypatch.setattr(settings, "ENABLE_OPINION_REFRAME", False)
+    assert should_apply_grounds(claims[0]) is False

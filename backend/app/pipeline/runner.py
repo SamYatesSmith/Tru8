@@ -859,6 +859,25 @@ async def run_pipeline_phase1(
             )
             claims = [recombined]
 
+    # F-VERDICT / P13 (2026-07-26): mechanical evaluative-head detector as a
+    # SECOND signal for the grounds gate. The LLM `normative` hint under-fires
+    # on an idea-as-subject ("The learning-styles theory is indefensible" →
+    # returned +SUPPORTED by 11 sources) and on extraposition ("It is
+    # indefensible for X to Y" → the judgement is deleted at extraction). One
+    # hint miss reverts the whole grounds chain to baseline with no later
+    # checkpoint. Runs post-cache alongside recombine, so cached extractions
+    # heal too. OR-ed with the LLM hint — never unsets it.
+    from app.pipeline.extract import apply_evaluative_head_signal
+
+    claims, evaluative_events = apply_evaluative_head_signal(
+        extract_content, claims, extract_metadata.get("input_type")
+    )
+    for event in evaluative_events:
+        logger.info(
+            f"[EVALUATIVE HEAD] check={check_id} event={event['event']} "
+            f"head={event['head']} shape={event['shape']}"
+        )
+
     # B1a: enrich classification with mechanical secondaries / jurisdiction
     # derived from NF-15 typed entities. Runs after extract because the
     # classifier itself fires before claims exist. Pure function — safe to
@@ -1086,6 +1105,28 @@ async def run_pipeline_phase1(
                     resolved_claim_type = ct.value if hasattr(ct, "value") else ct
 
                 claim_text = claim_data.get("text", "")
+
+                # F-VERDICT / P13 residual-miss telemetry (2026-07-26). Decompose
+                # classifies a 5-way `claim_type` including `normative_flagged`,
+                # but NOTHING routes on it — the grounds gate reads only the
+                # extraction hint. So a `normative_flagged` claim that reached
+                # here UNHINTED is precisely a case both the LLM hint and the
+                # mechanical detector missed. This is the measurement that
+                # justifies growing the (deliberately narrow) evaluative lexicon
+                # on witnesses rather than guesswork. Telemetry ONLY — wiring
+                # another LLM judgement into the gate would re-open the
+                # over-correction surface the live battery cleared.
+                if resolved_claim_type == "normative_flagged" and not claim_data.get(
+                    "type_hint"
+                ):
+                    logger.warning(
+                        f"[EVALUATIVE HEAD MISS] check={check_id} "
+                        f"claim_type=normative_flagged type_hint=None "
+                        f"text={claim_text[:120]!r} — decompose read this as "
+                        f"normative but neither the LLM hint nor the mechanical "
+                        f"detector fired; candidate lexicon witness"
+                    )
+
                 claim = Claim(
                     check_id=check_id,
                     text=claim_text,

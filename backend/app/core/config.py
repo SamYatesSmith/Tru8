@@ -326,6 +326,19 @@ class Settings(BaseSettings):
     # ROLLBACK without a redeploy: set ENABLE_OPINION_REFRAME=False on Railway.
     ENABLE_OPINION_REFRAME: bool = Field(True, env="ENABLE_OPINION_REFRAME")
 
+    # F-VERDICT / P13 (2026-07-26): the "normative" hint above is an LLM
+    # judgement and under-fires on two witnessed shapes — an IDEA/PROPOSITION as
+    # subject ("The learning-styles theory is indefensible" → returned +SUPPORTED
+    # by 11 sources, a verdict on a value judgement) and extraposition ("It is
+    # indefensible for X to Y", where Rule 6's cleaning licence DELETES the
+    # judgement). A mechanical evaluative-head detector runs as a SECOND signal,
+    # OR-ed with the LLM hint, never unsetting it.
+    # ROLLBACK without a redeploy: ENABLE_EVALUATIVE_HEAD_SIGNAL=False on Railway
+    # kills the detector alone; ENABLE_OPINION_REFRAME=False kills the chain.
+    ENABLE_EVALUATIVE_HEAD_SIGNAL: bool = Field(
+        True, env="ENABLE_EVALUATIVE_HEAD_SIGNAL"
+    )
+
     # ========== QUERY PLANNING AGENT ==========
     # LLM-powered batch query planning for semantic claim understanding
     # Generates targeted queries based on claim type (squad, stats, contract, etc.)

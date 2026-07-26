@@ -9,6 +9,7 @@ import httpx
 from pydantic import BaseModel, Field, ValidationError, field_validator
 from app.core.config import settings
 from app.services.google_ai import call_google_ai, call_google_ai_with_usage
+from app.utils.evaluative_heads import find_evaluative_head
 
 logger = logging.getLogger(__name__)
 
@@ -191,6 +192,111 @@ def recombine_single_thesis(
         ),
         "recombined_from": [c.get("text", "") for c in claims],
     }
+
+
+# ── F-VERDICT / P13 (2026-07-26): mechanical evaluative-head second signal ──
+# `_OPINION_REFRAME_RULE` above is an LLM judgement and under-fires on two
+# witnessed shapes (module docstring of `app/utils/evaluative_heads.py`). A hint
+# miss silently reverts the ENTIRE grounds chain to the baseline decompose path
+# — `should_apply_grounds` (runner.py) is the only gate, and there is no later
+# checkpoint — which is how a value judgement was returned as an element marked
+# `+SUPPORTED` by 11 sources (F-VERDICT, TRU-52FB-DDC3).
+#
+# This runs POST-CACHE at the same seam as recombine_single_thesis, so cached
+# extractions are healed too and no extraction-cache key bump is needed
+# (an in-extractor placement would require bumping workers/pipeline.py:64-68).
+
+
+def apply_evaluative_head_signal(
+    source_text: str,
+    claims: List[Dict[str, Any]],
+    input_type: Optional[str],
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Arm the grounds gate mechanically where the LLM hint under-fired.
+
+    Returns ``(claims, events)``. ``events`` are structured log payloads for the
+    caller to emit — keeping this function pure so it is directly testable.
+
+    Two operations, in order:
+
+    1. **Restoration** (extraposed shape). When a single-declarative-sentence
+       TEXT submission carries a main-predicate judgement that NO extracted
+       claim retained, the claims are replaced by ONE claim holding the user's
+       exact sentence. Rule 6's cleaning licence deletes the judgement in this
+       shape, and a silently-dropped user judgement is the defect class the
+       decoupling track exists to kill.
+    2. **Second signal** (predicative shape). Any unhinted claim whose own text
+       carries a main-predicate judgement is hinted ``normative``.
+
+    Never unsets an LLM hint — the two signals are OR-ed, so a detector miss is
+    exactly today's behaviour and only a false fire is new.
+    """
+    if not settings.ENABLE_EVALUATIVE_HEAD_SIGNAL:
+        return claims, []
+
+    events: List[Dict[str, Any]] = []
+
+    # Any truthy hint blocks restoration, not just "normative" — branch 2 skips
+    # on any truthy hint, and the two guards must not disagree (verification
+    # 2026-07-26). A future non-normative hint must never be silently overwritten.
+    already_hinted = any(c.get("type_hint") for c in claims)
+    claim_heads = [find_evaluative_head(c.get("text") or "") for c in claims]
+
+    # 1. Restoration — only when the judgement survives nowhere in the claims.
+    # NOTE (verification 2026-07-26): in isolation this branch would collapse a
+    # legitimate multi-claim extraction into one. It cannot do so in the wired
+    # path, but that safety is an UPSTREAM ORDERING GUARANTEE, not a property of
+    # this function: `recombine_single_thesis` runs first at the same seam under
+    # the same guards (text input + single declarative sentence), so by the time
+    # we run, such a submission is already one claim whose text IS the source —
+    # which then retains the head and blocks restoration here. Do not reorder
+    # these two without re-checking that.
+    if (
+        input_type == "text"
+        and not already_hinted
+        and not any(claim_heads)
+        and claims
+        and is_single_declarative_sentence(source_text or "")
+    ):
+        source_head = find_evaluative_head(source_text or "")
+        if source_head is not None and source_head.shape == "extraposed":
+            seen: Set[Tuple[str, Any]] = set()
+            merged_entities: List[Dict[str, Any]] = []
+            for c in claims:
+                for e in c.get("key_entities") or []:
+                    key = ((e.get("text") or "").lower(), e.get("type"))
+                    if key not in seen:
+                        seen.add(key)
+                        merged_entities.append(e)
+
+            restored = {
+                **claims[0],
+                "text": (source_text or "").strip(),
+                "position": 0,
+                "confidence": max(int(c.get("confidence") or 0) for c in claims),
+                "key_entities": merged_entities,
+                "type_hint": "normative",
+                "evaluative_head_restored": True,
+            }
+            events.append(
+                {
+                    "event": "restored",
+                    "head": source_head.head,
+                    "shape": source_head.shape,
+                    "dropped_claims": len(claims),
+                }
+            )
+            return [restored], events
+
+    # 2. Second signal — hint unhinted claims that carry the judgement.
+    for claim, head in zip(claims, claim_heads):
+        if head is None or claim.get("type_hint"):
+            continue
+        claim["type_hint"] = "normative"
+        claim["evaluative_head_signal"] = head.head
+        events.append({"event": "hinted", "head": head.head, "shape": head.shape})
+
+    return claims, events
 
 
 class ClaimExtractor:
