@@ -148,6 +148,206 @@ SATIRE_DOMAINS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Element-level retrieval lanes (Phase 2, 2026-07-27)
+#
+# Design: audit/2026-07-27_phase2_element_retrieval_build_design.md
+#
+# A "lane" is one target the query planner plans for. Until 2026-07-27 there
+# was exactly one lane per claim — a synthetic element carrying the raw claim
+# text — because the seam that was supposed to feed real elements read a key
+# (claim["elements"]) that nothing ever wrote. Now each claim gets:
+#
+#   * the CLAIM lane: the claim text, identical in every respect to the old
+#     synthetic element, so the factual path keeps the route that works;
+#   * one lane per Claim Map element, so the questions the map actually asks
+#     are searched rather than inferred from the claim's own wording.
+#
+# The claim lane's id is deliberately NOT "e1": every result it returns is
+# stamped with its lane id, and "e1" silently attributed the whole pool to the
+# first real element.
+# ---------------------------------------------------------------------------
+
+CLAIM_LANE_ELEMENT_ID = "c0"
+
+# Claim Map contract ceiling (1-5 elements). Defensive: a malformed map
+# cannot fan retrieval out without bound.
+MAX_ELEMENT_LANES = 5
+
+# Queries per element lane. The planner emits at most 2 per element
+# (query_planner._validate_plans), and class-targeted site: augmentation is
+# claim-lane only, so this is the natural ceiling rather than a cost trim.
+# More queries would not buy more evidence — the fetch budget binds, so extra
+# lanes only thin each lane's allocation.
+ELEMENT_LANE_MAX_QUERIES = 2
+
+# Results requested per element-lane query. Providers bill per call, not per
+# result (search.py caps `num` at 20), so this is about candidate diversity,
+# not cost. The claim lane keeps its historical depth: max_sources // n.
+ELEMENT_RESULTS_PER_QUERY = 5
+
+# Fetch-budget weighting. The claim lane draws this many URLs per
+# round-robin round against 1 for each element lane.
+CLAIM_LANE_FETCH_WEIGHT = 2
+ELEMENT_LANE_FETCH_WEIGHT = 1
+
+
+def _build_retrieval_lanes(claim: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Build the planner's lane list for one claim.
+
+    Returns ``[claim lane] + [element lanes]`` when the claim carries a
+    decomposed Claim Map and ``ENABLE_ELEMENT_RETRIEVAL`` is on; otherwise the
+    single synthetic claim-text lane the planner has always received (id
+    "e1"), byte-for-byte.
+
+    Elements are read from ``claim["claim_map"]["elements"]`` — where decompose
+    and the grounds stage actually write them.
+
+    A caller that populates ``claim["elements"]`` itself gets those lanes
+    verbatim, with **no** claim lane added: the one such caller is the
+    Seeker's re-search (``re_search.py``), whose whole contract is to search
+    ONE named element. Adding the claim text there would spend half the fetch
+    budget re-searching what the user already has.
+    """
+    claim_text = claim.get("text", "") or ""
+
+    if not settings.ENABLE_ELEMENT_RETRIEVAL:
+        return [{"element_id": "e1", "description": claim_text}]
+
+    caller_supplied = claim.get("elements") or []
+    if caller_supplied:
+        # Byte-identical to the pre-Phase-2 branch for this caller.
+        return [
+            {
+                "element_id": el.get("element_id", f"e{j + 1}"),
+                "description": el.get("description", ""),
+            }
+            for j, el in enumerate(caller_supplied)
+        ]
+
+    claim_map = claim.get("claim_map") or {}
+    elements = claim_map.get("elements") or []
+
+    element_lanes: List[Dict[str, str]] = []
+    for j, el in enumerate(elements):
+        if not isinstance(el, dict):
+            continue
+        description = (el.get("description") or "").strip()
+        if not description:
+            continue
+        element_id = el.get("element_id") or f"e{j + 1}"
+        if element_id == CLAIM_LANE_ELEMENT_ID:
+            # A real element must never collide with the claim lane.
+            continue
+        element_lanes.append({"element_id": element_id, "description": description})
+        if len(element_lanes) >= MAX_ELEMENT_LANES:
+            break
+
+    if not element_lanes:
+        # Pre-decomposition (or an empty map): unchanged single-lane behaviour.
+        return [{"element_id": "e1", "description": claim_text}]
+
+    return [
+        {"element_id": CLAIM_LANE_ELEMENT_ID, "description": claim_text}
+    ] + element_lanes
+
+
+def _class_augmentation_targets(
+    query_plans: List[Dict[str, Any]], wired_claim_idxs: set
+) -> List[Dict[str, Any]]:
+    """Plans that receive class-targeted ``site:`` variants.
+
+    On an element-wired claim these go to the CLAIM lane only: they are derived
+    from the article's domain/jurisdiction and exist to fix pool-wide outlet
+    diversity, so one authoritative lane serves the whole claim. Per-element
+    copies would spend queries without adding evidence — the fetch budget
+    binds, so extra queries only thin each lane's share of it.
+
+    Claims that are not wired (pre-decomposition, or the flag off) are
+    augmented exactly as before.
+    """
+    return [
+        p
+        for p in query_plans
+        if p.get("claim_index", 0) not in wired_claim_idxs
+        or p.get("element_id") == CLAIM_LANE_ELEMENT_ID
+    ]
+
+
+def _lane_of(query_index: Optional[int], query_element_ids: List[str]) -> str:
+    """Lane id that produced a search result, or "?" when unattributable."""
+    if query_index is None:
+        return "?"
+    if 0 <= query_index < len(query_element_ids):
+        return query_element_ids[query_index] or "?"
+    return "?"
+
+
+def _lane_histogram(results: List[Any], query_element_ids: List[str]) -> Dict[str, int]:
+    """Count results per lane — the per-lane share of the fetch budget."""
+    histogram: Dict[str, int] = {}
+    for result in results:
+        lane = _lane_of(getattr(result, "_query_index", None), query_element_ids)
+        histogram[lane] = histogram.get(lane, 0) + 1
+    return histogram
+
+
+def _allocate_fetch_budget(
+    results: List[Any],
+    query_element_ids: List[str],
+) -> List[Any]:
+    """Order search results so the fetch budget is shared across lanes.
+
+    ``results`` arrives in query order, so truncating it funds the earliest
+    queries and starves the latest — which, once element lanes exist, means
+    the last element of a claim can contribute nothing while its queries are
+    logged as having run.
+
+    This re-orders (never drops) by weighted round-robin over the queries:
+    each round takes ``CLAIM_LANE_FETCH_WEIGHT`` results from each claim-lane
+    query and ``ELEMENT_LANE_FETCH_WEIGHT`` from each element-lane query,
+    preserving each query's own ranking within its bucket. The caller applies
+    the ``max_sources`` cut, so every lane is represented before any lane goes
+    deep.
+    """
+    if not results:
+        return results
+
+    buckets: Dict[int, List[Any]] = {}
+    order: List[int] = []
+    for result in results:
+        qi = getattr(result, "_query_index", None)
+        key = qi if isinstance(qi, int) else -1
+        if key not in buckets:
+            buckets[key] = []
+            order.append(key)
+        buckets[key].append(result)
+
+    ordered: List[Any] = []
+    cursors = {key: 0 for key in order}
+    while len(ordered) < len(results):
+        progressed = False
+        for key in order:
+            bucket = buckets[key]
+            cursor = cursors[key]
+            if cursor >= len(bucket):
+                continue
+            lane = _lane_of(key if key >= 0 else None, query_element_ids)
+            weight = (
+                CLAIM_LANE_FETCH_WEIGHT
+                if lane == CLAIM_LANE_ELEMENT_ID
+                else ELEMENT_LANE_FETCH_WEIGHT
+            )
+            take = bucket[cursor : cursor + weight]
+            ordered.extend(take)
+            cursors[key] = cursor + len(take)
+            progressed = True
+        if not progressed:
+            break
+
+    return ordered
+
+
 def _hedged_query_freshness(element_freshness: str, query_position: int) -> str:
     """F1-D3 recency hedge (2026-07-06, design audit/2026-07-03_f1f2_design_review.md).
 
@@ -180,14 +380,34 @@ def _merge_element_plans(
     pre-extraction behaviour (2026-07-06 — pulled out of retrieve_evidence's
     inline loop so the hedge is testable at the wired seam).
     """
+    # Phase 2: a claim lane alongside ≥1 element lane means element-level
+    # retrieval is live for this claim. Derived from the plans themselves so
+    # the function stays pure — and so a claim whose element plans all failed
+    # falls back to exactly the old single-lane behaviour.
+    lane_ids = {p.get("element_id", "e1") for p in plans}
+    element_wired = CLAIM_LANE_ELEMENT_ID in lane_ids and len(lane_ids) > 1
+
+    # Claim lane first, deterministically; element order otherwise preserved.
+    if element_wired:
+        plans = sorted(
+            plans,
+            key=lambda p: 0 if p.get("element_id") == CLAIM_LANE_ELEMENT_ID else 1,
+        )
+
     merged_queries: List[str] = []
     query_element_ids: List[str] = []
     query_freshness: List[str] = []
     for p in plans:
         element_id = p.get("element_id", "e1")
         element_freshness = p.get("freshness", "py")
-        # Cap queries per element (L-04)
-        elem_queries = (p.get("queries") or [])[:max_queries_per_element]
+        # Cap queries per element (L-04). Element lanes take the tighter
+        # Phase 2 cap: the planner emits ≤2 per element and class-targeted
+        # augmentation is claim-lane only, so a third query would only thin
+        # the fetch allocation.
+        lane_cap = max_queries_per_element
+        if element_wired and element_id != CLAIM_LANE_ELEMENT_ID:
+            lane_cap = min(max_queries_per_element, ELEMENT_LANE_MAX_QUERIES)
+        elem_queries = (p.get("queries") or [])[:lane_cap]
         for pos, q in enumerate(elem_queries):
             merged_queries.append(q)
             query_element_ids.append(element_id)
@@ -198,6 +418,7 @@ def _merge_element_plans(
         "query_freshness": query_freshness,
         "freshness": plans[0].get("freshness", "py") if plans else "py",
         "reasoning": plans[0].get("reasoning", "") if plans else "",
+        "element_wired": element_wired,
     }
 
 
@@ -288,24 +509,25 @@ class EvidenceRetriever:
 
                     # Build claims_with_elements for element-level query planning
                     claims_with_elements = []
+                    wired_claim_idxs = set()
                     for i, claim in enumerate(claims):
-                        elements = claim.get("elements", [])
-                        if elements:
-                            elem_list = [
-                                {
-                                    "element_id": el.get("element_id", f"e{j+1}"),
-                                    "description": el.get("description", ""),
-                                }
-                                for j, el in enumerate(elements)
-                            ]
+                        elem_list = _build_retrieval_lanes(claim)
+                        if any(
+                            el["element_id"] == CLAIM_LANE_ELEMENT_ID
+                            for el in elem_list
+                        ):
+                            wired_claim_idxs.add(i)
+                            logger.info(
+                                f"[RETRIEVE] Element lanes wired | claim={i} "
+                                f"lanes={len(elem_list)} "
+                                f"element_lanes={len(elem_list) - 1} "
+                                f"ids={[el['element_id'] for el in elem_list]}"
+                            )
                         else:
-                            # Pre-decomposition: synthetic single element from claim text
-                            elem_list = [
-                                {
-                                    "element_id": "e1",
-                                    "description": claim.get("text", ""),
-                                }
-                            ]
+                            logger.info(
+                                f"[RETRIEVE] Claim-level lane only | claim={i} "
+                                f"(no decomposed elements or element retrieval off)"
+                            )
                         claims_with_elements.append(
                             {
                                 "text": claim.get("text", ""),
@@ -361,8 +583,9 @@ class EvidenceRetriever:
                         pre_count = sum(
                             len(p.get("queries") or []) for p in query_plans
                         )
-                        query_plans = augment_plans_with_class_queries(
-                            query_plans, article_context
+                        augment_plans_with_class_queries(
+                            _class_augmentation_targets(query_plans, wired_claim_idxs),
+                            article_context,
                         )
                         post_count = sum(
                             len(p.get("queries") or []) for p in query_plans
@@ -394,6 +617,37 @@ class EvidenceRetriever:
                                 )
                                 merged_plan["claim_index"] = claim_idx
                                 claims[claim_idx]["query_plan"] = merged_plan
+                                lane_counts: Dict[str, int] = {}
+                                for eid in merged_plan["query_element_ids"]:
+                                    lane_counts[eid] = lane_counts.get(eid, 0) + 1
+                                logger.info(
+                                    f"[RETRIEVE] Query lanes | claim={claim_idx} "
+                                    f"wired={merged_plan['element_wired']} "
+                                    f"lanes={len(lane_counts)} "
+                                    f"queries={len(merged_plan['queries'])} "
+                                    f"per_lane={lane_counts}"
+                                )
+                                # A lane the planner was given but returned no
+                                # queries for is an element that will never be
+                                # searched. The planner's own shortfall warning
+                                # is batch-level; this names the element.
+                                expected_lanes = [
+                                    el["element_id"]
+                                    for el in claims_with_elements[claim_idx][
+                                        "elements"
+                                    ]
+                                ]
+                                unqueried = [
+                                    eid
+                                    for eid in expected_lanes
+                                    if eid not in lane_counts
+                                ]
+                                if unqueried:
+                                    logger.warning(
+                                        f"[RETRIEVE] Lane shortfall | claim={claim_idx} "
+                                        f"unqueried_lanes={unqueried} — these elements "
+                                        f"will not be searched"
+                                    )
                     else:
                         logger.warning(
                             "Query planning returned no plans, using fallback"
@@ -1669,9 +1923,41 @@ class EvidenceRetriever:
 
             # Execute all queries concurrently
             query_tasks = []
+            plan_element_ids = query_plan.get("query_element_ids", [])
+            element_wired = bool(query_plan.get("element_wired"))
+
+            # Results requested per query.
+            #
+            # Unwired (and every pre-Phase-2 caller, e.g. re-search): one
+            # uniform share of the budget, exactly as before.
+            #
+            # Wired: the claim lane keeps the depth it would have had on its
+            # own — the factual path's route is not thinned by the arrival of
+            # element lanes — and each element-lane query asks for a smaller,
+            # fixed slice. Asking for more results costs nothing extra;
+            # providers bill per call and cap `num` at 20. The scarce budget
+            # is the FETCH cap below, not the search results.
             sources_per_query = max(
                 3, max_sources // len(queries)
             )  # Distribute sources across queries
+            per_query_sources = [sources_per_query] * len(queries)
+            if element_wired:
+                claim_lane_positions = [
+                    i
+                    for i in range(len(queries))
+                    if i < len(plan_element_ids)
+                    and plan_element_ids[i] == CLAIM_LANE_ELEMENT_ID
+                ]
+                if claim_lane_positions:
+                    claim_lane_depth = max(3, max_sources // len(claim_lane_positions))
+                    per_query_sources = [
+                        (
+                            claim_lane_depth
+                            if i in set(claim_lane_positions)
+                            else ELEMENT_RESULTS_PER_QUERY
+                        )
+                        for i in range(len(queries))
+                    ]
 
             for i, query in enumerate(queries):
                 # Per-query freshness: use the freshness for this specific query's element
@@ -1682,7 +1968,7 @@ class EvidenceRetriever:
                 )
                 task = self.evidence_extractor.search_service.search_for_evidence(
                     query,
-                    max_results=sources_per_query,
+                    max_results=per_query_sources[i],
                     freshness=this_freshness,
                     country=search_country,
                 )
@@ -1795,9 +2081,39 @@ class EvidenceRetriever:
             fetch_sem = url_fetch_semaphore or asyncio.Semaphore(
                 self.evidence_extractor.max_concurrent
             )
+
+            # Phase 2: allocate the fetch budget across lanes, not down the
+            # list. unique_search_results is in query order, so a plain
+            # [:max_sources] slice funds the first queries and starves the
+            # last — with one lane that never bit, with a dozen it drops whole
+            # elements before a single URL is fetched. Weighted round-robin
+            # (claim lane 2 : element lane 1) gives every lane a share, in the
+            # spirit of invariant #2. Unwired plans keep the original slice.
+            fetch_candidates = unique_search_results
+            if element_wired:
+                fetch_candidates = _allocate_fetch_budget(
+                    unique_search_results, plan_element_ids
+                )
+            fetch_set = fetch_candidates[:max_sources]
+
+            budget_dropped = len(unique_search_results) - len(fetch_set)
+            if budget_dropped > 0:
+                logger.info(
+                    f"[RETRIEVE] Fetch budget | candidates="
+                    f"{len(unique_search_results)} fetched={len(fetch_set)} "
+                    f"dropped_by_budget={budget_dropped} "
+                    f"per_lane={_lane_histogram(fetch_set, plan_element_ids)}"
+                )
+            else:
+                logger.info(
+                    f"[RETRIEVE] Fetch budget | candidates="
+                    f"{len(unique_search_results)} fetched={len(fetch_set)} "
+                    f"per_lane={_lane_histogram(fetch_set, plan_element_ids)}"
+                )
+
             extraction_tasks = [
                 self._extract_with_fallback(result, claim_text, fetch_sem)
-                for result in unique_search_results[:max_sources]
+                for result in fetch_set
             ]
 
             extracted_results = await asyncio.gather(
@@ -1822,7 +2138,7 @@ class EvidenceRetriever:
                 evidence_snippets.append(result)
 
             # Log extraction stats
-            total = len(unique_search_results[:max_sources])
+            total = len(fetch_set)
             total_found = len(unique_search_results)
             success_count = len(evidence_snippets) - fallback_count
             logger.info(

@@ -134,6 +134,27 @@ DEFAULT_FRESHNESS = {
 }
 
 
+# Output budget for the batch planning call.
+#
+# Until 2026-07-27 a batch was one plan per claim (≤5), and 3000 tokens was
+# ample. With element-level retrieval wired (Phase 2) a batch is up to 5 claims
+# × (1 claim lane + 5 elements) = 30 plans of ~100 tokens each. Truncation is
+# not loud: google_ai._try_parse_json REPAIRS a cut-off array by closing the
+# brackets, so an over-long response comes back as a SHORT plans list and the
+# tail elements silently lose their queries.
+_PLANNING_BASE_MAX_TOKENS = 3000
+_PLANNING_TOKENS_PER_ELEMENT = 220
+_PLANNING_MAX_TOKENS_CEILING = 8000
+
+
+def _planning_max_tokens(total_elements: int) -> int:
+    """Output-token budget scaled to the number of elements being planned."""
+    return min(
+        _PLANNING_MAX_TOKENS_CEILING,
+        max(_PLANNING_BASE_MAX_TOKENS, _PLANNING_TOKENS_PER_ELEMENT * total_elements),
+    )
+
+
 class LLMQueryPlanner:
     """
     Plans search queries using LLM for semantic understanding.
@@ -255,8 +276,12 @@ RESPOND WITH JSON:
 
             # Format claims with elements for the prompt
             claim_element_lines = []
-            # Build element-to-claim text mapping for relevance validation
+            # Build element-to-claim text mapping for relevance validation.
+            # Positional list kept for backward compatibility; the keyed map is
+            # what _validate_plans consults, because plan order is the LLM's
+            # choice and a batch now spans many elements per claim.
             element_texts = []  # (claim_text, element_description) pairs
+            element_texts_by_key: Dict[tuple, tuple] = {}
 
             for c in claims_with_elements:
                 claim_idx = c.get("claim_index", 0)
@@ -289,6 +314,7 @@ RESPOND WITH JSON:
                     desc = el.get("description", "")
                     claim_element_lines.append(f"  - {eid}: {desc}")
                     element_texts.append((claim_text, desc))
+                    element_texts_by_key[(claim_idx, eid)] = (claim_text, desc)
 
             claims_elements_text = "\n".join(claim_element_lines)
 
@@ -318,10 +344,13 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
 
             # Try Google first, then OpenAI as fallback
             parsed = None
+            max_tokens = _planning_max_tokens(total_elements)
 
             if self.google_ai_api_key:
                 try:
-                    parsed = await self._plan_with_google(user_prompt)
+                    parsed = await self._plan_with_google(
+                        user_prompt, max_tokens=max_tokens
+                    )
                     if parsed:
                         logger.info(
                             "[QUERY_PLANNER] Using Google Gemini for query planning"
@@ -334,7 +363,9 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
                     "[QUERY_PLANNER] Attempting OpenAI query planning as fallback"
                 )
                 try:
-                    parsed = await self._plan_with_openai(user_prompt)
+                    parsed = await self._plan_with_openai(
+                        user_prompt, max_tokens=max_tokens
+                    )
                 except Exception as e:
                     logger.error(f"[QUERY_PLANNER] OpenAI planning failed: {e}")
                     return None
@@ -379,7 +410,7 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
 
             # Validate structure and filter irrelevant queries
             validated_plans = self._validate_plans(
-                query_plans, total_elements, element_texts
+                query_plans, total_elements, element_texts_by_key or element_texts
             )
 
             # B4: mechanical freshness injection — historical claims get
@@ -410,18 +441,22 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
             )
             return None
 
-    async def _plan_with_google(self, user_prompt: str) -> Optional[Dict[str, Any]]:
+    async def _plan_with_google(
+        self, user_prompt: str, max_tokens: int = _PLANNING_BASE_MAX_TOKENS
+    ) -> Optional[Dict[str, Any]]:
         """Plan queries using Google Gemini (primary provider)"""
         full_prompt = f"{self.SYSTEM_PROMPT}\n\n{user_prompt}\n\nProvide your response as valid JSON."
         return await call_google_ai(
             full_prompt,
             temperature=0.1,
-            max_tokens=3000,
+            max_tokens=max_tokens,
             timeout=self.timeout,
             model=self.google_model,
         )
 
-    async def _plan_with_openai(self, user_prompt: str) -> Optional[Dict[str, Any]]:
+    async def _plan_with_openai(
+        self, user_prompt: str, max_tokens: int = _PLANNING_BASE_MAX_TOKENS
+    ) -> Optional[Dict[str, Any]]:
         """Plan queries using OpenAI (fallback provider)"""
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
@@ -437,7 +472,7 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
                         {"role": "user", "content": user_prompt},
                     ],
                     "temperature": 0.1,
-                    "max_tokens": 3000,
+                    "max_tokens": max_tokens,
                     "response_format": {"type": "json_object"},
                 },
             )
@@ -454,16 +489,24 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
         self,
         plans: List[Any],
         expected_count: int,
-        element_texts: Optional[List[tuple]] = None,
+        element_texts: Optional[Any] = None,
     ) -> List[Dict[str, Any]]:
         """Validate and normalize element-level query plans with freshness decisions.
 
         Args:
             plans: Raw plans from LLM response
             expected_count: Expected number of element plans
-            element_texts: List of (claim_text, element_description) tuples. The
-                claim_text half is consulted by _fix_hallucinated_years so that
-                years the user typed in the claim are preserved verbatim.
+            element_texts: Either a dict keyed by ``(claim_index, element_id)``
+                (preferred) or the legacy positional list of
+                (claim_text, element_description) tuples. The claim_text half
+                is consulted by _fix_hallucinated_years so that years the user
+                typed in the claim are preserved verbatim.
+
+                Keyed lookup exists because plan *order* is the LLM's choice.
+                While a batch held one plan per claim a positional slip was
+                invisible; with element-level retrieval a batch spans up to 30
+                plans, and mis-indexing would year-fix a query against another
+                claim's text.
         """
         validated = []
         # "none" is the B4 sentinel meaning "no freshness filter" — used by
@@ -502,7 +545,16 @@ Return a JSON object with "plans" array containing exactly {total_elements} plan
             # current year.
             if freshness in {"pd", "pw", "pm"}:
                 claim_text_for_years = ""
-                if element_texts and i < len(element_texts):
+                if isinstance(element_texts, dict):
+                    entry = element_texts.get(
+                        (
+                            validated_plan["claim_index"],
+                            validated_plan["element_id"],
+                        )
+                    )
+                    if entry:
+                        claim_text_for_years = entry[0]
+                elif element_texts and i < len(element_texts):
                     claim_text_for_years = element_texts[i][0]
                 validated_plan["queries"] = self._fix_hallucinated_years(
                     validated_plan["queries"], current_year, claim_text_for_years

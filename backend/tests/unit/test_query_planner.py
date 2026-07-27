@@ -776,3 +776,115 @@ class TestValidateFreshnessNoneIsAccepted:
         ]
         validated = planner._validate_plans(plans, 1)
         assert validated[0]["freshness"] == "none"
+
+
+class TestBatchCapacityAndAttribution:
+    """Phase 2 (2026-07-27) — a batch is now up to 30 element plans, not 5.
+
+    Design: audit/2026-07-27_phase2_element_retrieval_build_design.md
+    """
+
+    def test_planning_token_budget_scales_with_element_count(self):
+        from app.utils.query_planner import _planning_max_tokens
+
+        # One element: unchanged from the pre-Phase-2 constant.
+        assert _planning_max_tokens(1) == 3000
+        assert _planning_max_tokens(5) == 3000
+        # A wired batch (5 claims x 6 lanes) must ask for more than 3000, or
+        # google_ai's truncation REPAIR silently returns a short plans list
+        # and the tail elements lose their queries with no failure.
+        assert _planning_max_tokens(30) > 3000
+        # Bounded.
+        assert _planning_max_tokens(1000) == 8000
+
+    @pytest.mark.asyncio
+    async def test_google_call_receives_the_scaled_budget(self):
+        from app.utils.query_planner import LLMQueryPlanner, _planning_max_tokens
+
+        planner = LLMQueryPlanner()
+        planner.google_ai_api_key = "test-key"
+        planner.openai_api_key = "test-key"
+
+        claims = [
+            {
+                "text": f"claim {c}",
+                "claim_index": c,
+                "elements": [
+                    {"element_id": f"e{e}", "description": f"ground {c}-{e}"}
+                    for e in range(6)
+                ],
+            }
+            for c in range(5)
+        ]
+
+        captured = {}
+
+        async def _fake_call(prompt, **kwargs):
+            captured.update(kwargs)
+            return {"plans": []}
+
+        with patch("app.utils.query_planner.call_google_ai", _fake_call):
+            await planner.plan_queries_batch(claims)
+
+        assert captured["max_tokens"] == _planning_max_tokens(30)
+        assert captured["max_tokens"] > 3000
+
+    def test_year_fix_attributes_plans_by_element_key_not_position(self):
+        """Plan ORDER is the LLM's choice; attribution must not depend on it."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        current_year = __import__("datetime").datetime.now().year
+        historical_year = current_year - 2
+
+        element_texts = {
+            (0, "e1"): (f"A claim about the {historical_year} floods", "ground A"),
+            (1, "e1"): ("A claim with no year at all", "ground B"),
+        }
+
+        # Returned in the reverse order the elements were listed in.
+        plans = [
+            {
+                "claim_index": 1,
+                "element_id": "e1",
+                "queries": [f"unrelated {historical_year} figures"],
+                "freshness": "pm",
+            },
+            {
+                "claim_index": 0,
+                "element_id": "e1",
+                "queries": [f"{historical_year} floods damage"],
+                "freshness": "pm",
+            },
+        ]
+
+        validated = planner._validate_plans(plans, 2, element_texts)
+
+        by_key = {(p["claim_index"], p["element_id"]): p for p in validated}
+        # Claim 0 typed the year: preserved.
+        assert str(historical_year) in by_key[(0, "e1")]["queries"][0]
+        # Claim 1 did not: treated as a hallucinated year and rewritten.
+        assert str(current_year) in by_key[(1, "e1")]["queries"][0]
+
+    def test_positional_element_texts_still_supported(self):
+        """Legacy callers pass a list; behaviour must be unchanged for them."""
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        current_year = __import__("datetime").datetime.now().year
+        historical_year = current_year - 2
+
+        validated = planner._validate_plans(
+            [
+                {
+                    "claim_index": 0,
+                    "element_id": "e1",
+                    "queries": [f"{historical_year} floods damage"],
+                    "freshness": "pm",
+                }
+            ],
+            1,
+            [(f"A claim about the {historical_year} floods", "ground A")],
+        )
+
+        assert str(historical_year) in validated[0]["queries"][0]

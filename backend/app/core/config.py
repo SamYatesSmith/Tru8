@@ -348,6 +348,15 @@ class Settings(BaseSettings):
     )
     QUERY_PLANNING_TIMEOUT: int = Field(30, env="QUERY_PLANNING_TIMEOUT")
 
+    # Phase 2 (2026-07-27): element-level retrieval. The query planner has
+    # always been written for elements, but the key it reads
+    # (claim["elements"]) was never written by anything — decompose writes
+    # claim["claim_map"]["elements"] — so every check planned queries from a
+    # single synthetic element made of the raw claim text. Design:
+    # audit/2026-07-27_phase2_element_retrieval_build_design.md.
+    # False restores that behaviour byte-for-byte (rollback without a deploy).
+    ENABLE_ELEMENT_RETRIEVAL: bool = Field(True, env="ENABLE_ELEMENT_RETRIEVAL")
+
     # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails

@@ -1,6 +1,8 @@
 # Element-level retrieval — the unwired seam
 
-**Date:** 2026-07-27 · **Status:** DESIGN, pre-build · **Severity:** HIGH, affects every check
+**Date:** 2026-07-27 · **Status:** ✅ **BUILT** (committed, not pushed) — build design + frozen
+criteria: `audit/2026-07-27_phase2_element_retrieval_build_design.md`. §7's three open decisions
+are resolved there. **Severity:** HIGH, affects every check
 **Origin:** decoupling live verification (`TRU-4B9D-65EA`) — the track exposed this, did not cause it
 **SOT for the decoupling track:** `audit/DECOUPLING_STATE.md`
 
