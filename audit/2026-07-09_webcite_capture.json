@@ -1,0 +1,66 @@
+{
+  "_meta": {
+    "note": "ABRIDGED capture — webcite.co playground, 2026-07-09, paragraph input (bare-claim run errored twice: verdict.result 'unverified', confidence 0, claimGroups[0].verdict.summary 'Verification error.'). Full JSON held by founder (playground JSON View). Companion Tru8 check on identical input: TRU-C051-3024.",
+    "input": "Studies have long suggested that moderate alcohol consumption protects against heart disease, which is why many doctors historically recommended a daily glass of red wine.",
+    "observations": [
+      "Self-refuting correction: sub-claim 1 ('Studies have long suggested...') marked contradicted while its own citation (mensjournal.com) reads 'while some older studies suggested a protective effect...'",
+      "vertexaisearch.cloud.google.com redirect URLs leak through as sources (Google grounding under the hood)",
+      "medot-wines.com (wine merchant blog) counted supports @ 95 confidence on a health claim",
+      "news.yale.edu citation's stance_explanation is duplicated from the Wikipedia French-paradox citation",
+      "phi.org snippet is scraped page chrome; stance 'irrelevant', confidence 100",
+      "key_findings use three different denominators (10, 8, 13 sources)"
+    ]
+  },
+  "verdict": {
+    "claim": "Studies have long suggested that moderate alcohol consumption protects against heart disease, which is why many doctors historically recommended a daily glass of red wine.",
+    "result": "partially_false",
+    "confidence": 57,
+    "summary": "Analyzed 3 sub-claims: 0 verified, 2 partially verified, 1 contradicted, 0 unverified.",
+    "stance_breakdown": { "supports": 0, "partially_supports": 2, "contradicts": 1, "neutral": 0 },
+    "corrections": [
+      {
+        "claimed": "Studies have long suggested that moderate alcohol consumption protects against heart disease.",
+        "actual": "Evidence contradicts this claim",
+        "citation_ids": ["5", "9"]
+      }
+    ]
+  },
+  "sub_claim_verdicts": [
+    { "claim": "Studies have long suggested that moderate alcohol consumption protects against heart disease.", "result": "contradicted", "confidence": 62, "citations": 10 },
+    { "claim": "Many doctors historically recommended a daily glass of red wine.", "result": "partially_verified", "confidence": 57, "citations": 8 },
+    { "claim": "The historical recommendation ... was due to the suggestion that moderate alcohol consumption protects against heart disease.", "result": "partially_verified", "confidence": 53, "citations": 13 }
+  ],
+  "citations_abridged": [
+    { "domain": "acc.org", "stance": "partially_supports", "credibility": 84, "year": 2026 },
+    { "domain": "acc.org", "stance": "contradicts", "credibility": 84, "year": 2026 },
+    { "domain": "pmc.ncbi.nlm.nih.gov", "stance": "supports", "credibility": 83, "primary": true },
+    { "domain": "pmc.ncbi.nlm.nih.gov", "stance": "partially_supports", "credibility": 82, "primary": true },
+    { "domain": "pmc.ncbi.nlm.nih.gov", "stance": "contradicts", "credibility": 82, "primary": true },
+    { "domain": "mensjournal.com", "stance": "contradicts", "credibility": 81, "year": 2026 },
+    { "domain": "pmc.ncbi.nlm.nih.gov", "stance": "partially_supports", "credibility": 80, "primary": true },
+    { "domain": "ascopost.com", "stance": "contradicts", "credibility": 79, "year": 2026 },
+    { "domain": "news-medical.net", "stance": "partially_supports", "credibility": 79, "year": 2026 },
+    { "domain": "publichealth.columbia.edu", "stance": "contradicts", "credibility": 78, "primary": true },
+    { "domain": "health.harvard.edu", "stance": "neutral", "credibility": 76, "primary": true },
+    { "domain": "pmc.ncbi.nlm.nih.gov", "stance": "neutral", "credibility": 73, "primary": true },
+    { "domain": "pmc.ncbi.nlm.nih.gov", "stance": "neutral", "credibility": 73, "primary": true },
+    { "domain": "mayoclinic.org", "stance": "neutral", "credibility": 73 },
+    { "domain": "en.wikipedia.org", "stance": "neutral", "credibility": 73 },
+    { "domain": "health.harvard.edu", "stance": "neutral", "credibility": 70, "primary": true },
+    { "domain": "advisory.com", "stance": "neutral", "credibility": 69, "year": 2026 },
+    { "domain": "vertexaisearch.cloud.google.com (medrxiv.org)", "stance": "neutral", "credibility": 69, "year": 2026 },
+    { "domain": "ahajournals.org", "stance": "supports", "credibility": 69 },
+    { "domain": "ahajournals.org", "stance": "supports", "credibility": 68 },
+    { "domain": "vertexaisearch.cloud.google.com (vinology.com)", "stance": "supports", "credibility": 66, "status": "unverified" },
+    { "domain": "massgeneral.org", "stance": "neutral", "credibility": 66, "primary": true },
+    { "domain": "mensfitness.com", "stance": "neutral", "credibility": 65, "year": 2026 },
+    { "domain": "mdanderson.org", "stance": "contradicts", "credibility": 64 },
+    { "domain": "guildsomm.com", "stance": "supports", "credibility": 64 },
+    { "domain": "medot-wines.com", "stance": "supports", "credibility": 64 },
+    { "domain": "news.yale.edu", "stance": "neutral", "credibility": 64, "year": 2005, "primary": true },
+    { "domain": "wregional.com", "stance": "neutral", "credibility": 59 },
+    { "domain": "medicalnewstoday.com", "stance": "partially_supports", "credibility": 58, "year": 2018 },
+    { "domain": "psychologytoday.com", "stance": "neutral", "credibility": 57 },
+    { "domain": "phi.org", "stance": "irrelevant", "credibility": 55, "year": 2026 }
+  ]
+}

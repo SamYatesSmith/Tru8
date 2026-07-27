@@ -123,8 +123,17 @@ backend/data/domain_status.json
 # cassette.json.gz + golden.json; tracked copies just churn every run.
 backend/tests/replay_corpus/*/observation.json
 
-# Audit output
-audit/
+# Audit docs are TRACKED from 2026-07-27. The reasoning behind pipeline and
+# product decisions is expensive to reconstruct and was previously local-only,
+# so it never travelled with the commits it explained.
+# Two exceptions stay untracked:
+#   _archive/ — 230 completed/superseded docs, deliberately retired 2026-07-20.
+#     History, not live plans; tracking them would bury the 50 that matter.
+#   outreach contact map — 67 real named third parties' email addresses. Git
+#     history is effectively permanent; that is a privacy decision, not a
+#     housekeeping one. Delete this line to include it.
+audit/_archive/
+audit/2026-06-18_outreach_contact_map.md
 
 
 # A/B mapping harness (scripts + run artefacts, kept untracked)
