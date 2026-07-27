@@ -69,6 +69,14 @@ export function StitchDeveloperShowcase() {
               From £0.02 per call · async · batch · webhooks
             </div>
           </div>
+          <div className="mt-4">
+            <Link
+              href="/blog/evidence-research-for-agents"
+              className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Evidence research for AI agents →
+            </Link>
+          </div>
         </ScrollReveal>
       </div>
     </section>

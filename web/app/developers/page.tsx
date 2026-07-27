@@ -964,6 +964,16 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
                 <div className="font-mono text-xs text-zinc-400 mt-3">/api/redoc</div>
               </Link>
             </div>
+
+            <p className="text-sm text-zinc-500 mt-6">
+              New to the API?{' '}
+              <Link
+                href="/blog/evidence-research-for-agents"
+                className="text-accent underline underline-offset-2 hover:text-zinc-900 transition-colors"
+              >
+                Read: why structured evidence research matters for AI agents →
+              </Link>
+            </p>
           </section>
 
           {/* Divider */}

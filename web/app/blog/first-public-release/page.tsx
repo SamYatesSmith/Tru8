@@ -174,6 +174,10 @@ export default function FirstPublicReleasePage() {
             <p>
               Developer documentation and API keys are available from the{' '}
               <Link href="/developers" className="text-accent hover:underline font-medium">developer portal</Link>.
+              For a deeper look at how the API and MCP server work in agent systems,{' '}
+              <Link href="/blog/evidence-research-for-agents" className="text-accent hover:underline font-medium">
+                read our guide to evidence research for AI agents
+              </Link>.
             </p>
 
             <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 pt-6">What Comes Next</h2>
