@@ -70,6 +70,15 @@ predicative idea-as-subject claim.
   neutral grounds exactly as negative heads do. **Symmetry proven live for the first time.**
 
 ### ⛔ Bug B — 3 live witnesses, both directions, one mechanism
+### → PARTLY CLOSED by Phase 1 `007cf5c`; root cause is upstream (Phase 2)
+
+**Status 2026-07-27 cont. 2.** Witness 2 (false-balance orientation) and the *thin* half of
+witness 1 are closed: aggregate orientation is suppressed on grounds claims and a question
+supported by one source now reads `unresolved`. Witness 3 likewise. **Witness 1's e01/e02
+survive** — 4 and 3 supports clear the floor while the evidence still answered nothing;
+that is the mapper's threshold, Phase 3, and it must be tuned against the post-Phase-2 pool.
+**The root cause of all three is that the questions were never searched** — see
+`audit/2026-07-27_element_retrieval_design.md`. Original evidence below, unchanged.
 
 State and orientation are computed as if grounds were **assertions**, not questions. Not
 caused by `d944d18`; downstream of the detector.
@@ -219,6 +228,14 @@ new harness asserts the relationship over construction-fixed pools, decompose by
 the LLM is the only variable — the only cheap way to measure STABILITY, which live checks
 cannot. Needs prod credentials (`railway run …`); **UNRUN**.
 
+**⚠️ SUPERSEDED by the 3-phase plan below (2026-07-27 cont. 2).** Bug B turned out to be
+three defects in a chain, and the largest is NOT decoupling-owned — element-level retrieval
+has never run (`audit/2026-07-27_element_retrieval_design.md`). Current order:
+**Phase 1 mechanical honesty ✅ SHIPPED `007cf5c` → Phase 2 retrieval seam → re-measure →
+Phase 3 mapper answeredness + `_grounds_applied` precision + `P1` → `F-MMR-POOL`.**
+Phase 1 detail: `audit/2026-07-27_phase1_mechanical_honesty_design.md`.
+
+Prior wording, kept for the reasoning:
 **Next, severity order (updated 2026-07-27 after the live run): Bug B → `P1` →
 `F-MMR-POOL`.** Bug B is promoted to the top: the detector is confirmed, and Bug B is now
 the **largest remaining user-visible distortion**, witnessed 3× in both directions on live

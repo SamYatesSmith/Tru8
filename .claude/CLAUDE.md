@@ -23,6 +23,14 @@ AI-powered evidence research platform. Users submit a URL or claim, the pipeline
 | M | COMPLETE | Evidence Infrastructure — M-01 provenance, M-02 gap enrichment + provider status, M-03 smart endpoint, M-04 manifest signing + verify endpoint, M-05 jurisdiction routing, M-06 convergence layer + consensus tier, M-07 tests (+54). Deployment items remain (migrations, signing key, MCP consensus tier). |
 | N | COMPLETE | Mapping quality — 9 PQ items (PQ-01→PQ-09). Model upgrade (Flash Thinking), snippet 1000 chars, basis metadata, orientation reframe, adapter rebuild, heuristic classifier 93.7%, content_basis, question inputs. Register: `audit/PIPELINE_QUALITY_DISCUSSION.md`. |
 
+## Where the reasoning lives (changed 2026-07-27)
+`audit/` is now **TRACKED** (`a003759`) — 50 live docs including `audit/OPEN_WORK.md` (single
+source of truth for what is open NOW; edit it FIRST on every ship) and
+`audit/DECOUPLING_STATE.md` (SOT for the decoupling track). It was gitignored since
+inception, so design reasoning never travelled with the commits it explained. Still
+untracked by choice: `audit/_archive/` (230 retired docs — history, never resurrect as a live
+plan) and the outreach contact map (third-party personal data).
+
 ## Build & Test Commands
 
 ```bash
@@ -57,11 +65,12 @@ Phase 1 (0-30%):
 Phase 2 (30-100%):
   FACTCHECK (35%)     → Google Fact-Check API lookup
   DECOMPOSE (45%)     → Claim → 1-5 elements (LLM call); each element tagged with scope_flags {geographic,universal} — mechanical scope-sensitivity tagger, F3 Phase A 2026-07-07 (app/utils/scope_sensitivity.py). Normative-hinted claims (flag ON): elements rebuilt as NEUTRAL open questions by the grounds stage (`opinion_symmetry.apply_grounds_stage` — value-predicate lock, on-subject, structural coverage; balance lives in retrieval+mapping, never forced route symmetry). SOT: `audit/DECOUPLING_STATE.md`
-  RETRIEVE (60%)      → Per-element multi-source search (2 queries/element; element's 2nd query runs unwindowed unless planner chose pd/pw — F1-D3 recency hedge 2026-07-06; two-year claims get both years anchored — F1-D1)
+  RETRIEVE (60%)      → ⛔ **NOT per-element today — this line described an intent, not the code (proved 2026-07-27).** `retrieve.py:292` reads `claim["elements"]`; decompose writes `claim["claim_map"]["elements"]`; NOTHING writes the key it reads, so the "pre-decomposition" fallback (`:301-308`) fires on EVERY check and the planner gets the raw claim text as ONE synthetic element. Prod-proved: `1 element plans for 1 claims` on a 4-element claim, 3 Serper calls total. Worst effect — for an opinion claim the claim text IS the judgement, so the pool is gathered by searching its own valence ("success metrics", "achievements" for "was a triumph"): invariant #7 breached at pool constitution. Only per-element planner that works is COVERAGE RECOVERY (Stage 5.1). **Phase 2 fixes this** — design `audit/2026-07-27_element_retrieval_design.md`. Intended behaviour once wired: 2 queries/element; element's 2nd query unwindowed unless planner chose pd/pw — F1-D3 recency hedge 2026-07-06; two-year claims get both years anchored — F1-D1
   SCORE (65%)         → LLM topical relevance scoring (1-5 scale, max 50 items)
   CLASSIFY (75%)      → Tier/Type classification (batched LLM + heuristic fallback). Post-classify (needs tiers): mechanical derivation annotation writes per-element basis sourcing notes — echo (a primary re-reported by ≥2 derivatives), F4 repetition (≥3 non-primary sources reciting the same wording across ≥2 ownership groups with NO primary anchor — sentence-shingle, `corroboration.annotate_repetition_clusters`, 2026-07-07), thin (commentary-only / single-outlet). Surfaced as grey no-verdict notes (dashboard + `/r/`); a flagged element is toppable via "Strengthen this claim". Parity-locked `support_structure.py` ↔ `support-structure.ts`
   MAP (85%)           → Evidence → element mapping + state assignment (Gemini 2.5 Flash, 1000-char snippets; thinking OFF in prod via MAPPING_THINKING_BUDGET=0 — sweep-verified equal-or-better quality at −64-74% latency, 2026-07-02). Mapper also emits per-element scope_caveat (evidence's narrower reach) — F3-B2
   ORIENTATION         → Mechanical derivation from element states (no LLM) + orientation_basis + F3 scope caveats in state_derivation.caveat (neutral channel): universal ("only/first" cannot be established, tier-gated — F3-B1) + reach ("evidence covers X, narrower than Y", LLM∧tagger-gated — F3-B2). State never changes; describes evidential limit, never adjudicates
+                        **Grounds-routed (opinion) claims: prose orientation SUPPRESSED (`None`) — Phase 1 `007cf5c`.** Summing elements DERIVED FROM an opinion reads as a verdict on it (invariant #7, witnessed both directions). Single decision point `apply_orientation()`; `orientation_basis` still ALWAYS computed (it is in the manifest canonical payload — signing unaffected). Frontend must render NOTHING there — shared `web/lib/orientation.ts::isOrientationSuppressed`, 4 surfaces. Also `GROUNDS_MIN_WEIGHTED_SUPPORT=3`: a question-shaped element badged `supported` off one thin source now reads `unresolved` and reaches the Seeker; factual path untouched (floor defaults 0)
   QUERY (90%)         → Optional search clarity
   COMPLETE (100%)
 

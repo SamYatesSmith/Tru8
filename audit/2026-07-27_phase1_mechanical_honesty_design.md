@@ -1,6 +1,7 @@
 # Phase 1 design — mechanical honesty for question-shaped elements
 
-**Date:** 2026-07-27 · **Status:** DESIGN, awaiting approval · **No code written**
+**Date:** 2026-07-27 · **Status:** ✅ **SHIPPED `007cf5c`** (committed, NOT pushed — Railway
+auto-deploys on push). 14/14 criteria PASS under independent verification.
 **Parent:** `audit/2026-07-27_element_retrieval_design.md` (Phase 2) · SOT `audit/DECOUPLING_STATE.md`
 **Process:** phased-build-loop — acceptance criteria frozen here, before any code.
 

@@ -4,6 +4,18 @@
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
+**2026-07-27 (cont. 2) — ✅ PHASE 1 SHIPPED `007cf5c` (committed, NOT pushed). Plus `a003759`: `audit/` is now TRACKED.** Design + frozen criteria + mutation matrix: **`audit/2026-07-27_phase1_mechanical_honesty_design.md`**.
+
+Three-phase plan, Phase 1 of 3 done. **Phase 1 = mechanical honesty** (zero prompt bytes, cassettes intact): aggregate orientation SUPPRESSED on grounds-routed claims (summing questions derived from an opinion reads as a verdict on it); tier-weighted support floor `GROUNDS_MIN_WEIGHTED_SUPPORT=3` so a question badged `supported` off ONE source now reads `unresolved` and reaches the Seeker. Factual path untouched by construction (floor defaults 0). Five duplicated `derive_orientation`/`compute_orientation_basis` call sites consolidated into `apply_orientation`. `orientation_basis` still always computed — it is in the manifest canonical payload, so signed manifests stay byte-stable. Frontend: 4 surfaces would otherwise have replaced a false verdict with worse ("No orientation available.", "Analysis pending" on a COMPLETED check, and the false-balance line "doesn't clearly lean either way"); one shared `isOrientationSuppressed` serves all four. **Rollback: `GROUNDS_MIN_WEIGHTED_SUPPORT=0` disables the floor without a deploy; suppression reverts with the commit.**
+
+**Verification (phased-build-loop, independent verifier that did not build):** 14/14 criteria PASS after ONE genuine FAIL cycle. It caught a regression I shipped (clarity-card labelling a COMPLETED check "Analysis pending") and failed my first regression pin as **VACUOUS on the two highest-value strings** — empty fixture short-circuited the render before the guarded branch. Mutation matrix now fires 4/4, each on its semantically correct assertion; the fixture-realism guard is itself proven by mutation. Backend 2893 passed (11 pre-existing Redis-only failures, independently diagnosed); pipeline 1002 passed; frontend 87/87; `tsc` clean.
+
+**⚠️ STILL WRONG, as predicted before the build:** `TRU-4B9D-65EA` e01/e02 carry 4 and 3 supports, clear the floor, and STILL read `supported`. The headline verdict line dies; two element badges remain wrong until Phase 3.
+
+**NEXT = Phase 2** (element retrieval seam, below) → re-measure → Phase 3.
+
+---
+
 **2026-07-27 (cont.) — ⛔ HIGH: ELEMENT-LEVEL RETRIEVAL HAS NEVER RUN. Affects EVERY check, not just the decoupling track.** Design: **`audit/2026-07-27_element_retrieval_design.md`**.
 
 `retrieve.py:292` reads `claim["elements"]`; decompose writes `claim["claim_map"]["elements"]`; **nothing writes the key it reads**. So the "pre-decomposition" fallback (`:301-308`) fires on every check and the query planner is handed the raw claim text as one synthetic element. CLAUDE.md's "2 queries/element" has never happened. Proven from prod logs: *"1 element plans for 1 claims"* on a 4-element claim, **3 Serper calls** total, arithmetic closing exactly on 1 element × `max_queries_per_element=3`.
