@@ -4,19 +4,31 @@
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
-**2026-07-27 (cont. 3) — ✅ PHASE 2 BUILT: element-level retrieval is wired. Committed, NOT pushed.** Design + frozen criteria + mutation matrix: **`audit/2026-07-27_phase2_element_retrieval_build_design.md`**.
+**2026-07-27 (cont. 3) — ELEMENT-LEVEL RETRIEVAL IS WIRED (Phase 2 of 3), `36d3f4e`.** Design + 17 frozen criteria + mutation matrix: **`audit/2026-07-27_phase2_element_retrieval_build_design.md`**. Supersedes the diagnosis entry (deleted; it lives in `audit/2026-07-27_element_retrieval_design.md`).
 
-The seam now reads `claim["claim_map"]["elements"]` — where decompose actually writes. Each claim gets a **claim lane** (`c0`, the old synthetic element, unchanged so the factual path keeps the route that works) plus **one lane per element**, founder-decided *add, don't replace*. Deterministic counts: **13 queries/claim full mode (was 3), 6 quick, ≤65 per check** — measured from the code, not estimated. Fetch cap unchanged at 40; the claim lane keeps its historical depth (13 results/query), element lanes take 5.
+**NOW.** The questions a claim map asks are searched. Each claim gets a **claim lane** (`c0` — the pre-Phase-2 synthetic element, byte-identical, so the factual path keeps the route that works) plus **one lane per element** (≤5). **13 queries/claim full · 6 quick · ≤65/check** (was 3/claim). Fetch cap unchanged at 40, allocated by **weighted round-robin, claim lane 2:1**. Zero prompt bytes. Rollback `ENABLE_ELEMENT_RETRIEVAL=False` — env var, no deploy.
 
-**Three defects found only by reading the execution path, all fixed here.** (1) `unique_search_results[:40]` truncates in QUERY ORDER — harmless at 3 queries, but at 11 it drops the last elements' lanes entirely before a single URL is fetched; now a **weighted round-robin** (claim lane 2:1), invariant #2's principle at the one truncation point that never needed it. (2) Planner `max_tokens=3000` with up to 30 plans — and `google_ai._try_parse_json` **repairs** a truncated array by closing brackets, so an over-long response returns a SHORT plans list and tail elements silently lose their queries; tokens now scale with element count. (3) `_validate_plans` mapped plans to claims by list position, invisible while a batch was one plan per claim; now keyed by `(claim_index, element_id)`.
+**NEXT** · independent verification pass (never ran — see WATCH) · live pair, paraphrased first (caches replay identical text) · F7 bench re-gold · Phase 3 mapper answeredness, tuned on the POST-Phase-2 pool only.
 
-**Founder decisions:** fetch budget held at 40 with weighted round-robin (raising it would eat the 45s `CLAIM_TIMEOUT`, whose failure mode is losing the claim's ENTIRE web pool) · quick tier gets element retrieval, all lanes ("take what you need" — no further widening, because past this point the fetch cap binds and extra queries only thin each lane) · claim lane keeps 2:1 on grounds claims too, one variable at a time.
+**WATCH**
+- ⚠️ **Independent verification NOT done. Every piece of evidence is builder-run.** Two delegated verifiers ran long and returned nothing. What exists: full suite 2922 passed / 11 failed (Redis-only, pre-existing) / 69 skipped = baseline + exactly the 29 tests added; mutation matrix 16/16 firing on semantically correct assertions, files hash-verified after restore.
+- ⛔ **Live pair owed, blocks deploy.** `TRU-4B9D-65EA` — the 4 questions must be searched and queries must stop mirroring "was a triumph" · `TRU-25E5-0431` e03 (alternative NHS treatments) must be searched · `TRU-C681-2E38` Grenfell **must not regress**.
+- **Claim-lane depth falls ~13 → ~5 URLs/query.** The one honest cost; Grenfell is its guard. Thin factual pools after this are this, not chance.
+- **All replay cassettes are dead** (query strings are cassette keys) → F7 re-gold moves from owed to **blocking anything bench-gated**.
+- Coverage recovery (Stage 5.1) should now fire markedly **less** — behaviour change, not just volume. Consensus layer mixes pre/post-wiring element states. 2026-07-02 latency baselines and the pending prod `stage_timings_s` read are void.
 
-**Evidence.** Full suite **2922 passed / 11 failed / 69 skipped** = baseline + exactly the 29 tests added, no pre-existing test broken (the 11 are Redis-not-running). **Mutation matrix 16/16 fire**, each on a semantically correct assertion, files hash-verified byte-identical after restore. Zero prompt bytes (413 added lines, 0 touching a prompt string). ⚠️ **The independent verification pass did NOT complete** — two delegated verifiers ran long and returned nothing; the checks above are the builder's own. **An independent pass is owed before push.**
+**YOU** · push = deploy, and the live pair gates it · Serper spend ~4× (tenths of a penny per check), approved 2026-07-27.
 
-⛔ **OWED AND BLOCKING DEPLOY: the live pair** (criterion 17) — needs network + prod keys. Paraphrase before running (identical text replays the 1h/6h/24h caches). `TRU-4B9D-65EA`: the 4 questions must be searched and the queries must stop mirroring "was a triumph". `TRU-25E5-0431` e03 (alternative NHS treatments) must be searched. `TRU-C681-2E38` Grenfell **must not regress** — it is the guard on the one honest cost of this change: claim-lane depth falls from ~13 URLs/query to ~5.
+**WHY** (dies with the session otherwise)
+- *Add, don't replace* → element descriptions are entity-poor while the planner is instructed to use exact names/numbers/entities; replacing the claim-level query would trade one strong query for several weak ones and regress the demonstrably-working factual path.
+- *Fetch cap held at 40* → every extra fetch runs inside `CLAIM_TIMEOUT=45s`, whose failure mode is losing the claim's **entire** web pool. A known, reversible depth loss beats an unbounded one.
+- *Claim lane keeps 2:1 even on grounds claims* → one variable at a time; element lanes already cut an opinion's own valence from 100% of the pool to ~⅓. Revisit in Phase 3 **with measurements**.
+- *Class-targeted `site:` queries stay claim-lane only* → the fetch cap binds, so per-element copies buy no evidence, only thinner lanes.
+- *Round-robin allocation* → `[:40]` sliced in query order; harmless at 3 queries, but at 11 it dropped whole elements before a single URL was fetched.
+- *Re-search left deliberately unwired* → its contract is to search ONE named element; a claim lane there spends half the budget re-searching what the user already has.
+- *Planner token budget scales with element count* → the JSON repair path **closes** a truncated array rather than failing, so an over-long batch returns a SHORT plans list and tail elements lose their queries silently.
 
-**Also now due:** F7 bench re-gold — every cassette is dead (query strings are cassette keys), so it moves from owed to **blocking anything bench-gated**. Do it once, after this. **Rollback:** `ENABLE_ELEMENT_RETRIEVAL=False` restores today's behaviour without a deploy.
+**DEAD** · first build added a claim lane to any claim carrying an `elements` key → broke re-search targeting; caught by frozen criterion 3 · first allocation pin asserted the helper in isolation → still passed with the wiring removed; behavioural pin added.
 
 ---
 
@@ -29,18 +41,6 @@ Three-phase plan, Phase 1 of 3 done. **Phase 1 = mechanical honesty** (zero prom
 **⚠️ STILL WRONG, as predicted before the build:** `TRU-4B9D-65EA` e01/e02 carry 4 and 3 supports, clear the floor, and STILL read `supported`. The headline verdict line dies; two element badges remain wrong until Phase 3.
 
 **NEXT = Phase 2** (element retrieval seam, below) → re-measure → Phase 3.
-
----
-
-**2026-07-27 (cont.) — ⛔ HIGH: ELEMENT-LEVEL RETRIEVAL HAS NEVER RUN. Affects EVERY check, not just the decoupling track.** Design: **`audit/2026-07-27_element_retrieval_design.md`**.
-
-`retrieve.py:292` reads `claim["elements"]`; decompose writes `claim["claim_map"]["elements"]`; **nothing writes the key it reads**. So the "pre-decomposition" fallback (`:301-308`) fires on every check and the query planner is handed the raw claim text as one synthetic element. CLAUDE.md's "2 queries/element" has never happened. Proven from prod logs: *"1 element plans for 1 claims"* on a 4-element claim, **3 Serper calls** total, arithmetic closing exactly on 1 element × `max_queries_per_element=3`.
-
-**Worst consequence — for an opinion claim the claim text IS the judgement, so the pool is constituted by searching its own valence.** `TRU-4B9D-65EA` searched `UK COVID vaccine rollout success metrics` and `UK COVID vaccine program achievements`. **Invariant #7 breached at pool constitution** — the one point no downstream honesty can repair. Explains all 4 live checks incl. why T2 e03 (the only question outside the claim's orbit) was the only one to return "no evidence found", and why the factual path looks healthy (claim text ≈ elements there).
-
-**Latency risk LOW** (verified): queries `asyncio.gather` concurrently `:1691`, fetch capped at 40 `:1330`, `CLAIM_TIMEOUT=45s` `:1366`. **The real trade is depth:** `sources_per_query = max(3, 40//n_queries)` `:1675` — 3 queries → 13 results each; 12 queries → 3 (floor). More queries buys shallower results, not more evidence.
-
-**Design decisions open:** fetch budget (recommend weighted — claim-level keeps depth, element queries take the floor; only option that cannot regress the factual path) · quick tier in/out · order vs F7 re-gold. **Cassettes: all invalidated — F7 re-gold moves from owed to BLOCKING.** Regression pair already exists: `TRU-25E5-0431` + `TRU-4B9D-65EA`, with `TRU-C681-2E38` as the must-not-regress guard.
 
 ---
 
