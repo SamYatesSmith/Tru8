@@ -29,6 +29,7 @@
  */
 
 import { Claim, Evidence, InputType, EvidenceRelationship } from '@shared/types';
+import { isOrientationSuppressed } from '@/lib/orientation';
 import { Plus, Minus, Dot, ArrowRight, ArrowUpRight } from 'lucide-react';
 import {
   getTierColor,
@@ -97,6 +98,7 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
   const evidence = (claim.evidence || []).filter((ev) => ev.receiptStatus !== 'excluded');
   const evidenceCount = evidence.length;
   const orientation = claimMap?.orientation;
+  const orientationSuppressed = isOrientationSuppressed(claimMap);
   const claimType = claimMap?.claimType || claim.claimType;
 
   const rankText = rankLabel === undefined ? String(position + 1).padStart(2, '0') : rankLabel;
@@ -199,8 +201,14 @@ export function ClaimSummaryPanel({ claim, position, inputType, rankLabel, onNav
       </h2>
 
       {/* The lean (BLUF) — subject is the evidence, never the claim.
-          Null orientation gets an explicit line, never a blank where the answer should be. */}
-      {orientation ? (
+          Null orientation gets an explicit line, never a blank where the answer should be.
+          EXCEPT when suppressed (opinion claim, 2026-07-27): this slot is
+          cleared deliberately, so the fallback must NOT fire. It reads "the
+          gathered evidence doesn't clearly lean either way", which would put
+          false balance exactly where we removed a false verdict — the same
+          invariant breach in the other direction. Render nothing; the elements
+          below carry the content. */}
+      {orientationSuppressed ? null : orientation ? (
         <p className="text-base md:text-lg text-zinc-900 leading-snug">{orientation}</p>
       ) : evidenceCount > 0 ? (
         <p className="text-base md:text-lg text-zinc-900 leading-snug">

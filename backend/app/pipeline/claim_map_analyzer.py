@@ -689,6 +689,34 @@ def compute_orientation_basis(elements: List[ClaimElement]) -> dict:
     }
 
 
+def apply_orientation(claim_map: Dict[str, Any]) -> None:
+    """Write `orientation` + `orientation_basis` onto a claim_map (mutates).
+
+    Single decision point for both fields (Phase 1, 2026-07-27). The two calls
+    were previously duplicated verbatim at five sites; they are now here, so a
+    grounds-aware rule cannot drift between them.
+
+    **Prose orientation is suppressed (None) for grounds-routed claims.** Those
+    elements are open QUESTIONS derived FROM an evaluative claim, so summing
+    them ("evidence predominantly supports all 4") reads as a verdict on the
+    opinion — invariant #7. Witnessed live both ways: TRU-4B9D-65EA read as an
+    endorsement of "was a triumph", TRU-171A-9EF9 as "mixed" where 12-13
+    sources agreed with the claim. There is no wording that escapes it; the
+    aggregation itself carries the implication, so the line goes.
+
+    **`orientation_basis` is ALWAYS computed, including when the prose is
+    suppressed.** It is part of the manifest canonical payload
+    (`manifest_signer.py:76`) whereas the prose is explicitly excluded as
+    free-text narrative, so suppressing only the prose keeps signed manifests
+    byte-stable and preserves the mechanical audit trail.
+    """
+    elements = claim_map.get("elements") or []
+    claim_map["orientation_basis"] = compute_orientation_basis(elements)
+    claim_map["orientation"] = (
+        None if _grounds_applied(claim_map) else derive_orientation(elements)
+    )
+
+
 # Tier weights for authority-weighted state derivation (V1 plan post-acceptance
 # fix, 2026-05-08). primary > reporting > commentary so a single low-tier
 # challenger cannot flip an element to disputed when authoritative sources
@@ -731,8 +759,27 @@ def _display_scope_term(term: str) -> str:
     return _SCOPE_TERM_DISPLAY.get(term, term.title())
 
 
+def _state_floor_for(claim_map: Dict[str, Any]) -> int:
+    """Tier-weighted support floor for this claim's elements (Phase 1, 2026-07-27).
+
+    Grounds-routed claims carry QUESTION-shaped elements, for which the
+    `all_supports` rule (>=1 support, 0 challenges -> supported) is close to no
+    bar at all: TRU-4B9D-65EA badged two questions `supported` off ONE source
+    each while their own summaries said the evidence supplied nothing. Factual
+    claims return 0 and are therefore byte-identical to pre-Phase-1 behaviour.
+
+    Single source of this decision — the three state-derivation call sites read
+    it rather than each testing `_grounds_applied` themselves.
+    """
+    if not _grounds_applied(claim_map):
+        return 0
+    return max(0, int(getattr(settings, "GROUNDS_MIN_WEIGHTED_SUPPORT", 3) or 0))
+
+
 def _derive_element_state_with_authority(
-    elem: ClaimElement, evidence_list: List[Dict[str, Any]]
+    elem: ClaimElement,
+    evidence_list: List[Dict[str, Any]],
+    min_weighted_support: int = 0,
 ) -> Tuple[ElementState, dict]:
     """Override the LLM mapper's state with a tier-weighted majority rule.
 
@@ -750,6 +797,11 @@ def _derive_element_state_with_authority(
       weighted_supports   ≥ 2 × weighted_challenges → supported (caveat if challenges)
       weighted_challenges ≥ 2 × weighted_supports   → disputed
       otherwise (close split)                       → disputed
+
+    Then, only when ``min_weighted_support`` > 0 (grounds/question elements —
+    see ``_state_floor_for``): a `supported` state whose weighted supports fall
+    below the floor is downgraded to `unresolved`, rule
+    ``grounds_support_floor``. Default 0 → every other caller is unaffected.
 
     Tier weights: primary=3, reporting=2, commentary=1. Items whose
     evidence_id can't be resolved against ``evidence_list`` default to
@@ -834,6 +886,24 @@ def _derive_element_state_with_authority(
     else:
         state = ElementState.disputed
         rule = "close_split"
+
+    # Phase 1 mechanical honesty (2026-07-27): a QUESTION-shaped element must
+    # clear a tier-weighted floor before it may read "supported". Applies only
+    # when the caller passes a floor (grounds claims — see `_state_floor_for`);
+    # the default 0 leaves every other path byte-identical.
+    #
+    # Downgrade target is `unresolved`, NOT `contextual`, and that diverges
+    # deliberately from the 2026-05-12 rule (SeekerView.tsx:57-60) which keeps
+    # context-only ASSERTIONS out of the gap count because their pool is not
+    # empty. For a QUESTION, "topical material but no answer" is exactly an
+    # unknown worth re-searching, so it must reach the Seeker.
+    if (
+        min_weighted_support > 0
+        and state == ElementState.supported
+        and weighted_supports < min_weighted_support
+    ):
+        state = ElementState.unresolved
+        rule = "grounds_support_floor"
 
     caveat: Optional[str] = None
     if state == ElementState.supported and n_challenges > 0:
@@ -1268,10 +1338,7 @@ class ClaimMapAnalyzer:
                 elem["evidence_refs"] = []
                 elem["state"] = ElementState.unresolved
                 elem["uncertainty"] = "No evidence was retrieved for this element."
-            claim_map["orientation"] = derive_orientation(claim_map["elements"])
-            claim_map["orientation_basis"] = compute_orientation_basis(
-                claim_map["elements"]
-            )
+            apply_orientation(claim_map)
             claim_map["metadata"]["mapping_model"] = "none"
             claim_map["metadata"]["element_count"] = len(claim_map["elements"])
             claim_map["metadata"]["completed_at"] = datetime.now(
@@ -1349,10 +1416,7 @@ class ClaimMapAnalyzer:
             self._fallback_mapping(claim_map)
 
         # Derive orientation mechanically
-        claim_map["orientation"] = derive_orientation(claim_map["elements"])
-        claim_map["orientation_basis"] = compute_orientation_basis(
-            claim_map["elements"]
-        )
+        apply_orientation(claim_map)
 
         # Set mapping metadata
         model_used = "fallback" if parsed is None else self._last_model_used
@@ -1468,8 +1532,7 @@ class ClaimMapAnalyzer:
                     elem["evidence_refs"] = []
                     elem["state"] = ElementState.unresolved
                     elem["uncertainty"] = "No evidence was retrieved for this element."
-                cm["orientation"] = derive_orientation(cm["elements"])
-                cm["orientation_basis"] = compute_orientation_basis(cm["elements"])
+                apply_orientation(cm)
                 cm["metadata"]["mapping_model"] = "none"
                 cm["metadata"]["element_count"] = len(cm["elements"])
                 cm["metadata"]["completed_at"] = datetime.now(timezone.utc).isoformat()
@@ -1607,8 +1670,7 @@ class ClaimMapAnalyzer:
         for i, item in enumerate(with_evidence):
             if i not in failed_set:
                 cm = item["claim_map"]
-                cm["orientation"] = derive_orientation(cm["elements"])
-                cm["orientation_basis"] = compute_orientation_basis(cm["elements"])
+                apply_orientation(cm)
                 cm["metadata"]["mapping_model"] = model_used
                 cm["metadata"]["element_count"] = len(cm["elements"])
                 cm["metadata"]["completed_at"] = datetime.now(timezone.utc).isoformat()
@@ -1938,7 +2000,7 @@ class ClaimMapAnalyzer:
             # 2026-05-08, after TRU-EF20 surfaced an outlier source
             # flipping settled facts to disputed).
             mech_state, state_basis = _derive_element_state_with_authority(
-                elem, evidence_list
+                elem, evidence_list, _state_floor_for(claim_map)
             )
             state_basis["llm_state"] = raw_state
             elem["basis"]["state_derivation"] = state_basis
@@ -2195,7 +2257,7 @@ class ClaimMapAnalyzer:
                 # pass's additions.
                 elem["basis"] = _compute_element_basis(elem, evidence_list)
                 mech_state, state_basis = _derive_element_state_with_authority(
-                    elem, evidence_list
+                    elem, evidence_list, _state_floor_for(claim_map)
                 )
                 # Preserve the main pass's llm_state record if present.
                 prior_basis = (
@@ -2370,7 +2432,7 @@ class ClaimMapAnalyzer:
                         # majority-rule, just not fully tier-weighted across
                         # the merged ref set).
                         mech_state, state_basis = _derive_element_state_with_authority(
-                            elem, new_evidence
+                            elem, new_evidence, _state_floor_for(claim_map)
                         )
                         state_basis["llm_state"] = raw_state
                         elem.setdefault("basis", {})["state_derivation"] = state_basis
@@ -2390,10 +2452,7 @@ class ClaimMapAnalyzer:
             )
 
         # Re-derive orientation from all element states
-        claim_map["orientation"] = derive_orientation(claim_map["elements"])
-        claim_map["orientation_basis"] = compute_orientation_basis(
-            claim_map["elements"]
-        )
+        apply_orientation(claim_map)
 
     def _has_null_reasoning(self, claim_map: ClaimMap) -> bool:
         """Check if any evidence_ref has null reasoning."""

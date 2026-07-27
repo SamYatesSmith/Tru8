@@ -1,5 +1,7 @@
 'use client';
 
+import { isOrientationSuppressed } from '@/lib/orientation';
+
 interface ClarityResponseProps {
   userQuery: string;
   queryResponse?: string;
@@ -109,9 +111,14 @@ export function ClarityResponseCard({
                       <p className="text-zinc-900 flex-1">
                         Claim {position + 1}: {claim.text}
                       </p>
-                      <span className="ml-4 text-xs font-mono text-zinc-400">
-                        {claim.claimMap?.orientation || 'Analysis pending'}
-                      </span>
+                      {/* Suppressed (opinion claim) renders NOTHING. Without this
+                          a COMPLETED check reads "Analysis pending" — the null is
+                          deliberate, not an unfinished analysis. */}
+                      {!isOrientationSuppressed(claim.claimMap) && (
+                        <span className="ml-4 text-xs font-mono text-zinc-400">
+                          {claim.claimMap?.orientation || 'Analysis pending'}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-accent mt-2 hover:underline">
                       Jump to details

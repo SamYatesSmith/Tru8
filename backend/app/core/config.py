@@ -439,6 +439,18 @@ class Settings(BaseSettings):
     # entirely (API default: dynamic thinking — current behaviour, and keeps
     # the request body byte-identical for replay-bench cassettes); 0 = thinking
     # off; >0 = cap. Latency lever — see audit/2026-07-02_pipeline_latency_options.md (M1).
+    GROUNDS_MIN_WEIGHTED_SUPPORT: int = Field(
+        3, env="GROUNDS_MIN_WEIGHTED_SUPPORT"
+    )  # Phase 1 mechanical honesty (2026-07-27). Tier-weighted floor a
+    # QUESTION-shaped (grounds) element must clear before it can read
+    # "supported". Weights are the existing _STATE_TIER_WEIGHTS
+    # (primary=3, reporting=2, commentary=1), so 3 = one primary source, two
+    # reporting, or three commentary. Rationale: `all_supports` (>=1 support,
+    # 0 challenges) is a sound bar for an ASSERTION but near-zero for "did we
+    # find out?" — TRU-4B9D-65EA marked two questions supported off one source
+    # each. GROUNDS-ONLY: factual claims pass 0 and are untouched.
+    # Set 0 to disable the floor without a deploy (rollback lever).
+    # Design: audit/2026-07-27_phase1_mechanical_honesty_design.md
 
     # ========== TRACK M: EVIDENCE INFRASTRUCTURE ==========
 

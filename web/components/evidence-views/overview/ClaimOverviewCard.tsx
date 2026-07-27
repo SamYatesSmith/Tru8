@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Claim } from '@shared/types';
+import { isOrientationSuppressed } from '@/lib/orientation';
 
 interface ClaimOverviewCardProps {
   claim: Claim;
@@ -18,6 +19,7 @@ export function ClaimOverviewCard({ claim, position, checkId, isActive, onSelect
   const elements = claimMap?.elements || [];
   const evidenceCount = claim.evidence?.length || 0;
   const orientation = claimMap?.orientation;
+  const orientationSuppressed = isOrientationSuppressed(claimMap);
   const claimType = claimMap?.claimType || claim.claimType;
 
   // Count element states. 2026-05-12: contextual elements have
@@ -117,9 +119,16 @@ export function ClaimOverviewCard({ claim, position, checkId, isActive, onSelect
 
       {/* Orientation + drill arrow */}
       <div className="flex items-end justify-between">
-        <p className={`text-[12px] leading-relaxed flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          {orientation || 'No orientation available.'}
-        </p>
+        {/* Suppressed (opinion claim) renders NOTHING — not the fallback copy.
+            Summing question-shaped elements would read as a verdict on the
+            opinion. Spacer keeps the arrow right-aligned. */}
+        {orientationSuppressed ? (
+          <span className="flex-grow" />
+        ) : (
+          <p className={`text-[12px] leading-relaxed flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            {orientation || 'No orientation available.'}
+          </p>
+        )}
         <span className="drill-arrow text-zinc-300 text-sm ml-4 transition-colors">
           &rarr;
         </span>

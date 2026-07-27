@@ -2,6 +2,7 @@
 
 import { Claim, EvidenceTier, InputType } from '@shared/types';
 import { ElementStateBadge, ElementStateKey } from '../ElementStateBadge';
+import { isOrientationSuppressed } from '@/lib/orientation';
 
 const TYPE_LABELS: Record<string, string> = {
   empirical: 'Empirical',
@@ -24,6 +25,7 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
   const elements = claimMap?.elements || [];
   const evidence = claim.evidence || [];
   const orientation = claimMap?.orientation;
+  const orientationSuppressed = isOrientationSuppressed(claimMap);
   const claimType = claimMap?.claimType || claim.claimType;
   const rankLabel = String(position + 1).padStart(2, '0');
   // C2 R1 (mirrors ClaimSummaryPanel): the provenance chip only where it
@@ -129,9 +131,16 @@ export function ClaimSectionCard({ claim, position, onExplore, inputType }: Clai
 
       {/* Orientation + arrow */}
       <div className="border-t border-zinc-100 px-5 py-4 flex items-end justify-between gap-4">
-        <p className={`text-[12px] leading-relaxed flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          {orientation || 'No orientation available.'}
-        </p>
+        {/* Suppressed (opinion claim) renders NOTHING — not the fallback copy.
+            Summing question-shaped elements would read as a verdict on the
+            opinion. Spacer keeps "Explore" right-aligned. */}
+        {orientationSuppressed ? (
+          <span className="flex-grow" />
+        ) : (
+          <p className={`text-[12px] leading-relaxed flex-grow ${isGap ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            {orientation || 'No orientation available.'}
+          </p>
+        )}
         <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 shrink-0 flex items-center gap-1.5 transition-colors group-hover:text-zinc-900">
           Explore &rarr;
         </span>

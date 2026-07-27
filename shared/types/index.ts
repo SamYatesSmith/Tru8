@@ -294,6 +294,12 @@ export interface ClaimMap {
     // Diagnostic provenance — absent on pre-R2e checks and planner fallback.
     // Inner keys stay snake_case (only top-level metadata keys are camelCased).
     queryPlan?: { queries: string[]; element_ids: string[]; freshness: string[] };
+    // Opinion decoupling: written by the grounds stage when it rebuilt this
+    // claim's elements into neutral open questions. `applied` is the canonical
+    // "these elements are QUESTIONS, not assertions" signal — see
+    // `isOrientationSuppressed`. Absent on factual claims and pre-decoupling
+    // checks. Inner keys stay snake_case.
+    grounds?: { applied: boolean; converged: boolean; element_count: number };
   };
 }
 
