@@ -4,6 +4,32 @@
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
+**2026-07-28 (cont. 2) — ✅ CLAIM LANE REPAIRED, re-verified live.** The failure below is fixed. `wired=True` on 3/3 networked re-runs, claim lane present every time, fetch budget now actually biting (51 and 47 candidates → 40 fetched, vs 39/38/24 broken). **T3 Grenfell matches its recorded baseline exactly** — 2 elements, both `supported`, 13 + 12 refs, *"predominantly supports all 2"*. T2 PASS. Full suite **2944 passed / 0 failed / 69 skipped**; **14/14 mutations fire**, all files SHA-verified. Design: `audit/2026-07-28_retrieval_surface_audit_and_claim_lane_design.md`; harness: `backend/scripts/criterion17_live_pair.py`.
+- Three changes: `element_wired` now comes from the lanes **built** (D-1); the `c0` plan is **synthesised mechanically** from claim text when the planner omits it (D-2, NF-11 — never a prompt fix); the freshness fallback honours per-lane depths (D-4, a second criterion that was green in tests and dead live).
+- Self-caught in the same pass: mutation **M12 went SILENT** — D-1 and D-2 are redundant in the happy path and only one was pinned. Closed with a test on the one case that separates them (empty claim text: synthesis cannot fire, lanes were still built). And the synthesised lane asked for **40 results** because the depth rule divides the budget by the lane's query count; capped at the designed 13 (no change to the 3-query case, 40//3==13 already).
+
+**⚠️ OPEN DECISION — the deferred D3, now with measurements.** T4 still fails the valence assertion, and **not from a bug**: the claim lane's job is to search the claim text, and when the claim is a judgement that searches its valence (`[13 results] Britain's COVID-19 vaccination programme was an outstanding success`). **Two frozen criteria conflict on grounds-routed claims** — *"add, don't replace"* (founder D1) vs *"no query mirrors the claim's valence"* (criterion 17). Measured: the valence query fell from **the entire pool** to **1 of 13 queries / 8 of 40 fetch slots**. Options: drop the claim lane's weight on grounds-routed claims · remove it there · accept as-is. **Founder call, not a build task.**
+
+**2026-07-28 (cont.) — ⛔ CRITERION 17 FAILED LIVE [RESOLVED above, kept as the record].** Three networked checks run locally (Redis flushed first; paraphrased claims). **The claim lane `c0` was dropped on 3/3 runs.** Evidence, identical in shape every time:
+```
+[RETRIEVE] Element lanes wired | claim=0 lanes=5 element_lanes=4 ids=['c0','e1','e2','e3','e4']
+[RETRIEVE] Query lanes        | claim=0 wired=False lanes=4 queries=8 per_lane={'e1':2,'e2':2,'e3':2,'e4':2}
+[RETRIEVE] Lane shortfall     | claim=0 unqueried_lanes=['c0'] — these elements will not be searched
+```
+The lanes are built correctly and handed to the planner; **the LLM returns no plan for `c0`**, so `_merge_element_plans` computes `element_wired=False` and the whole Phase 2 budget machinery is bypassed in the live path.
+
+**Consequences, all confirmed in the run:**
+- **"Add, don't replace" silently became "replace"** — the founder decision (§4.1, D1) that the factual path keeps the route that works. It does not. Grenfell passed *without* a claim lane, so the design's intended configuration has still never been observed.
+- **Criteria 8, 9, 10 are green in unit tests and never execute live.** Per-query depth was uniform `max(3, 40//n)` on all three — T4 8 queries→5 each, T2 10→4, T3 6→6. The 13-vs-5 per-lane sizing and the weighted round-robin never ran.
+- **Pool is smaller, not larger:** candidates 39 / 38 / 24 against a cap of 40. With the claim lane at 13×3 it would be ~79 and the budget would actually bite.
+- Query counts are 8 / 10 / 6, not the designed 13.
+- **T4 valence FAIL:** `objectives of Britain's COVID vaccine rollout success` and a verbatim `Britain's COVID-19 vaccination programme was an outstanding success` (10 results, a fallback/recovery path, not the claim lane). Invariant #7 is still reachable by another route.
+- T2 **PASS** (`homeopathy vs conventional treatment patient satisfaction UK` — the alternative-treatments ground is searched). T3 Grenfell **no regression** (3 elements all `supported`, 24 refs, "predominantly supports all 3").
+
+**This is the same class of defect as the one Phase 2 was built to fix:** a stage that is wired, logs as though it ran, and does not. The `Lane shortfall` warning added in §6a is what caught it — it earned its keep on the first live run.
+
+**Fix is NOT prompt-only** ([[feedback_nf11_prompt_only_failed]]): derive `element_wired` from the lanes *built* rather than the plans *returned*, and synthesise the claim-lane query mechanically from claim text when the planner omits it. Needs a design pass + founder approval before build.
+
 **2026-07-28 — PHASE 2 INDEPENDENTLY VERIFIED.** Criteria 1–16 + new 18 PASS; **17 (live pair) still OWED and blocking deploy**. Run by a pass that did not build it, re-deriving PASS/FAIL from the frozen criteria: full suite **2922 passed / 11 failed (all Redis) / 69 skipped**, independent **10/10 mutation matrix** (mutations asserted-applied, files SHA-verified after restore), criterion 9 measured rather than inferred (`{c0:18, e1:6, e2:6, e3:6, e4:4}` of 40). Found **one real defect + two evidence gaps**, all closed and folded into `36d3f4e` by amend. Record: **§6b** of the build design.
 - ⛔ **The defect: the rollback lever broke the Seeker.** `ENABLE_ELEMENT_RETRIEVAL=False` returned early and discarded caller-supplied `claim["elements"]` — which `re_search.py:184-194` populates — so pulling the rollback would have silently re-pointed the Seeker's targeted re-query at the claim's own text. That is the defect this phase exists to kill, reappearing on the safety lever, at the moment of most pressure and least attention. Fixed: the caller branch now runs *above* the flag check, as it did pre-Phase-2. Criterion 18 + mutation M9 pin it.
 - Gaps closed: criterion 12 said "both providers" but only Google was pinned (OpenAI pin + M10 added); criterion 11's stated evidence — extending `test_f1_recency_hedge.py` — was never produced, the behaviour being pinned elsewhere instead (drift now declared in §6a).

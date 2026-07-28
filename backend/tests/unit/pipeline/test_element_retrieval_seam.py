@@ -27,6 +27,7 @@ from app.pipeline.retrieve import (
     _build_retrieval_lanes,
     _class_augmentation_targets,
     _merge_element_plans,
+    _synthesise_claim_lane_plan,
 )
 from app.services.search import SearchResult
 from app.services.evidence import EvidenceSnippet
@@ -285,6 +286,66 @@ class TestMergedPlan:
         ]
 
 
+# ── The claim lane is a guarantee, not a request (2026-07-28 live failure) ──
+
+
+@pytest.mark.unit
+class TestClaimLaneGuarantee:
+    """Live on 2026-07-28 the planner returned no c0 plan on 3/3 checks, so
+    element_wired went False and the entire budget mechanism was bypassed —
+    green in unit tests, dead in production. These pin the repair."""
+
+    def test_missing_claim_lane_plan_is_synthesised_from_claim_text(self):
+        plans = [_plan("e1", ["e1 q1"]), _plan("e2", ["e2 q1"])]
+
+        out = _synthesise_claim_lane_plan(plans, 0, CLAIM_TEXT)
+
+        assert out[0]["element_id"] == CLAIM_LANE_ELEMENT_ID
+        assert out[0]["queries"] == [CLAIM_TEXT]
+        assert out[0]["claim_index"] == 0
+        # The element plans survive untouched — this adds, never replaces.
+        assert [p["element_id"] for p in out[1:]] == ["e1", "e2"]
+
+    def test_existing_claim_lane_plan_is_left_alone(self):
+        plans = [_plan(CLAIM_LANE_ELEMENT_ID, ["real c q1"]), _plan("e1", ["e1 q1"])]
+
+        out = _synthesise_claim_lane_plan(plans, 0, CLAIM_TEXT)
+
+        assert out == plans
+        assert out[0]["queries"] == ["real c q1"]
+
+    def test_synthesised_lane_restores_wiring_and_per_lane_depth(self):
+        """The whole point: a planner omission must not disable the budget."""
+        plans = _synthesise_claim_lane_plan(
+            [_plan("e1", ["e1 q1", "e1 q2"]), _plan("e2", ["e2 q1", "e2 q2"])],
+            0,
+            CLAIM_TEXT,
+        )
+
+        merged = _merge_element_plans(plans, 3, element_wired=True)
+
+        assert merged["element_wired"] is True
+        assert merged["queries"][0] == CLAIM_TEXT
+        assert merged["query_element_ids"][0] == CLAIM_LANE_ELEMENT_ID
+
+    def test_element_wired_comes_from_lanes_built_not_plans_returned(self):
+        """Even with NO c0 plan present, an explicit True must win — the
+        derivation is what made the guarantee contingent on the LLM."""
+        merged = _merge_element_plans(
+            [_plan("e1", ["e1 q1"]), _plan("e2", ["e2 q1"])],
+            3,
+            element_wired=True,
+        )
+
+        assert merged["element_wired"] is True
+
+    def test_caller_supplied_plans_still_derive_unwired(self):
+        """re_search.py passes its own plans and must stay unwired."""
+        merged = _merge_element_plans([_plan("e3", ["q1", "q2"])], 3)
+
+        assert merged["element_wired"] is False
+
+
 # ── Criteria 8/9: the fetch budget reaches every lane ──
 
 
@@ -513,6 +574,57 @@ class TestPerLaneRequestSizes:
             "the first queries and drops the last elements entirely"
         )
 
+    async def test_synthesised_single_query_claim_lane_does_not_take_the_budget(
+        self, retriever
+    ):
+        """A synthesised claim lane has ONE query, and 40 // 1 asked for the
+        whole budget — observed live on 2026-07-28 as `[40 results]`."""
+        calls = []
+        plan = {
+            "queries": [CLAIM_TEXT, "e1a", "e1b", "e2a", "e2b"],
+            "query_element_ids": [CLAIM_LANE_ELEMENT_ID, "e1", "e1", "e2", "e2"],
+            "element_wired": True,
+        }
+
+        await self._run(retriever, plan, calls)
+
+        by_query = {c["query"]: c["max_results"] for c in calls}
+        assert by_query[CLAIM_TEXT] == 13
+        assert by_query["e1a"] == 5
+
+    async def test_freshness_fallback_keeps_per_lane_depth(self, retriever):
+        """Relaxing freshness must not flatten the claim lane to an element
+        lane's slice. This path used the uniform pre-Phase-2 share until
+        2026-07-28 — a second criterion that was green in tests and dead live.
+        """
+        calls = []
+
+        async def _empty_search(query, max_results=10, freshness=None, country=None):
+            calls.append(
+                {"query": query, "max_results": max_results, "freshness": freshness}
+            )
+            return []
+
+        retriever.evidence_extractor.search_service.search_for_evidence = _empty_search
+        plan = {
+            "queries": ["c1", "c2", "c3", "e1a", "e1b"],
+            "query_element_ids": [CLAIM_LANE_ELEMENT_ID] * 3 + ["e1", "e1"],
+            "element_wired": True,
+            "freshness": "pw",
+        }
+
+        await retriever._execute_planned_queries(
+            claim_text=CLAIM_TEXT, query_plan=plan, max_sources=40
+        )
+
+        fallback = [c for c in calls if c["freshness"] in ("pm", "py")]
+        assert fallback, "freshness fallback never fired — test is vacuous"
+        depths = {}
+        for c in fallback:
+            depths.setdefault(c["query"], set()).add(c["max_results"])
+        assert depths["c1"] == {13}, depths
+        assert depths["e1a"] == {5}, depths
+
     async def test_unwired_plan_keeps_the_uniform_share(self, retriever):
         calls = []
         plan = {
@@ -604,6 +716,87 @@ class TestWiredPlannerInput:
         ]
         assert wiring_lines, "element-wiring telemetry did not fire"
         assert "element_lanes=2" in wiring_lines[0]
+
+    async def test_planner_omitting_the_claim_lane_does_not_disable_wiring(
+        self, retriever, caplog
+    ):
+        """Reproduces the 2026-07-28 live failure through the real method.
+
+        The planner returned element plans and no c0 on 3/3 networked checks.
+        Testing the halves could not catch it: the lane builder was correct and
+        the merge was correct, and the defect lived in the join between them.
+        """
+
+        class _OmitsClaimLane:
+            async def plan_queries_batch(
+                self, claims_with_elements, article_context=None
+            ):
+                return [_plan("e1", ["e1 q1"]), _plan("e2", ["e2 q1"])]
+
+        claim = _claim_with_elements([GROUNDS_ELEMENT, "second ground"])
+        retriever._retrieve_evidence_for_single_claim = AsyncMock(
+            return_value={
+                "filtered_evidence": [],
+                "raw_evidence": [],
+                "pre_weighting_evidence": [],
+                "claim_position": 0,
+                "claim_text": CLAIM_TEXT,
+            }
+        )
+        retriever._ensure_minimum_evidence = AsyncMock(return_value=({"0": []}, []))
+
+        with patch(
+            "app.utils.query_planner.get_query_planner", return_value=_OmitsClaimLane()
+        ), caplog.at_level(logging.INFO, logger="app.pipeline.retrieve"):
+            await retriever.retrieve_evidence_for_claims([claim])
+
+        plan = claim["query_plan"]
+        # The guarantee: a planner omission cannot switch the budget off.
+        assert plan["element_wired"] is True
+        assert plan["query_element_ids"][0] == CLAIM_LANE_ELEMENT_ID
+        assert plan["queries"][0] == CLAIM_TEXT
+        # And the element lanes are still there — add, never replace.
+        assert set(plan["query_element_ids"]) == {CLAIM_LANE_ELEMENT_ID, "e1", "e2"}
+
+        synth = [
+            r.message for r in caplog.records if "Claim lane synthesised" in r.message
+        ]
+        assert synth, "synthesis happened silently — it must be visible in logs"
+
+    async def test_wiring_survives_when_synthesis_cannot_fire(self, retriever):
+        """Separates the two guards, which are otherwise redundant.
+
+        Synthesis needs claim text; with none it returns the plans untouched.
+        The lanes were still built, so element_wired must still be True —
+        deriving it from the plans returned would give False and switch the
+        budget off. Found by mutation M12 going silent: both guards were in
+        place and only one of them was actually pinned.
+        """
+
+        class _OmitsClaimLane:
+            async def plan_queries_batch(
+                self, claims_with_elements, article_context=None
+            ):
+                return [_plan("e1", ["e1 q1"]), _plan("e2", ["e2 q1"])]
+
+        claim = _claim_with_elements([GROUNDS_ELEMENT, "second ground"], text="")
+        retriever._retrieve_evidence_for_single_claim = AsyncMock(
+            return_value={
+                "filtered_evidence": [],
+                "raw_evidence": [],
+                "pre_weighting_evidence": [],
+                "claim_position": 0,
+                "claim_text": "",
+            }
+        )
+        retriever._ensure_minimum_evidence = AsyncMock(return_value=({"0": []}, []))
+
+        with patch(
+            "app.utils.query_planner.get_query_planner", return_value=_OmitsClaimLane()
+        ):
+            await retriever.retrieve_evidence_for_claims([claim])
+
+        assert claim["query_plan"]["element_wired"] is True
 
     async def test_lane_shortfall_is_named_not_just_counted(self, retriever, caplog):
         """A lane the planner skipped is an element that never gets searched."""

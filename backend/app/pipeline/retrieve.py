@@ -186,6 +186,14 @@ ELEMENT_LANE_MAX_QUERIES = 2
 # not cost. The claim lane keeps its historical depth: max_sources // n.
 ELEMENT_RESULTS_PER_QUERY = 5
 
+# Ceiling on results requested per CLAIM-lane query. The depth rule is
+# "the depth the claim lane would have had on its own" — max_sources // its own
+# query count — which lands on 13 for the designed 3 queries. A SYNTHESISED
+# claim lane has only one query, so the same rule asked for the entire budget
+# (40) and skewed the candidate pool. Capping at the designed depth leaves the
+# 3-query case untouched (40 // 3 == 13) and makes the 1-query case sane.
+CLAIM_LANE_MAX_RESULTS_PER_QUERY = 13
+
 # Fetch-budget weighting. The claim lane draws this many URLs per
 # round-robin round against 1 for each element lane.
 CLAIM_LANE_FETCH_WEIGHT = 2
@@ -355,6 +363,50 @@ def _allocate_fetch_budget(
     return ordered
 
 
+def _synthesise_claim_lane_plan(
+    plans: List[Dict[str, Any]], claim_index: int, claim_text: str
+) -> List[Dict[str, Any]]:
+    """Guarantee the claim lane has a plan, whatever the planner returned.
+
+    The planner is handed a ``c0`` lane carrying the claim text and, live, does
+    not plan for it. Three networked checks on 2026-07-28 each logged
+    ``Lane shortfall | unqueried_lanes=['c0']`` — consistently, not flakily:
+    the planner prompt's only JSON example shows an element id of the form
+    "e1", so ``c0`` reads as unfamiliar.
+
+    The damage was not one missing query. ``element_wired`` was derived from
+    the plans RETURNED, so a missing ``c0`` silently made it False and the
+    per-lane request sizes and weighted round-robin never executed at all —
+    green in unit tests, dead in production.
+
+    The claim lane's query IS the claim text: that is exactly what the single
+    synthetic lane searched pre-Phase-2. So this needs no model call and cannot
+    fail. Mechanical post-processing, never a prompt tweak — NF-11.
+    """
+    if not claim_text:
+        return plans
+    if any(p.get("element_id") == CLAIM_LANE_ELEMENT_ID for p in plans):
+        return plans
+
+    logger.info(
+        f"[RETRIEVE] Claim lane synthesised | claim={claim_index} — planner "
+        f"returned no {CLAIM_LANE_ELEMENT_ID} plan; using claim text verbatim"
+    )
+    return [
+        {
+            "claim_index": claim_index,
+            "element_id": CLAIM_LANE_ELEMENT_ID,
+            "queries": [claim_text],
+            # Inherit the batch's freshness rather than inventing one; "py" is
+            # the planner's own default when it has no reason to narrow.
+            "freshness": next(
+                (p.get("freshness") for p in plans if p.get("freshness")), "py"
+            ),
+            "reasoning": "synthesised claim lane (planner omitted it)",
+        }
+    ] + plans
+
+
 def _hedged_query_freshness(element_freshness: str, query_position: int) -> str:
     """F1-D3 recency hedge (2026-07-06, design audit/2026-07-03_f1f2_design_review.md).
 
@@ -376,7 +428,9 @@ def _hedged_query_freshness(element_freshness: str, query_position: int) -> str:
 
 
 def _merge_element_plans(
-    plans: List[Dict[str, Any]], max_queries_per_element: int
+    plans: List[Dict[str, Any]],
+    max_queries_per_element: int,
+    element_wired: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """Merge one claim's per-element query plans into a claim-level query_plan.
 
@@ -388,11 +442,17 @@ def _merge_element_plans(
     inline loop so the hedge is testable at the wired seam).
     """
     # Phase 2: a claim lane alongside ≥1 element lane means element-level
-    # retrieval is live for this claim. Derived from the plans themselves so
-    # the function stays pure — and so a claim whose element plans all failed
-    # falls back to exactly the old single-lane behaviour.
-    lane_ids = {p.get("element_id", "e1") for p in plans}
-    element_wired = CLAIM_LANE_ELEMENT_ID in lane_ids and len(lane_ids) > 1
+    # retrieval is live for this claim.
+    #
+    # `element_wired` is passed in by callers that KNOW which lanes they built.
+    # Deriving it from the plans returned made a budget guarantee contingent on
+    # the LLM's cooperation, and live it did not cooperate (2026-07-28: c0
+    # omitted on 3/3 checks, so the per-lane sizing and round-robin never ran).
+    # The derivation survives only for callers that supply their own plans
+    # wholesale — re_search.py — where it correctly yields False.
+    if element_wired is None:
+        lane_ids = {p.get("element_id", "e1") for p in plans}
+        element_wired = CLAIM_LANE_ELEMENT_ID in lane_ids and len(lane_ids) > 1
 
     # Claim lane first, deterministically; element order otherwise preserved.
     if element_wired:
@@ -616,11 +676,25 @@ class EvidenceRetriever:
 
                         for claim_idx, plans in plans_by_claim.items():
                             if claim_idx < len(claims):
+                                # The claim lane is a guarantee, not a request:
+                                # if the planner skipped c0, synthesise it from
+                                # the claim text before merging. Without this,
+                                # "add, don't replace" silently became
+                                # "replace" on every live check.
+                                claim_wired = claim_idx in wired_claim_idxs
+                                if claim_wired:
+                                    plans = _synthesise_claim_lane_plan(
+                                        plans,
+                                        claim_idx,
+                                        claims[claim_idx].get("text", ""),
+                                    )
                                 # Merge element plans into one query_plan with
                                 # element tracking + the F1-D3 recency hedge
                                 # (see _merge_element_plans).
                                 merged_plan = _merge_element_plans(
-                                    plans, self.max_queries_per_element
+                                    plans,
+                                    self.max_queries_per_element,
+                                    element_wired=claim_wired or None,
                                 )
                                 merged_plan["claim_index"] = claim_idx
                                 claims[claim_idx]["query_plan"] = merged_plan
@@ -1956,7 +2030,13 @@ class EvidenceRetriever:
                     and plan_element_ids[i] == CLAIM_LANE_ELEMENT_ID
                 ]
                 if claim_lane_positions:
-                    claim_lane_depth = max(3, max_sources // len(claim_lane_positions))
+                    claim_lane_depth = max(
+                        3,
+                        min(
+                            CLAIM_LANE_MAX_RESULTS_PER_QUERY,
+                            max_sources // len(claim_lane_positions),
+                        ),
+                    )
                     per_query_sources = [
                         (
                             claim_lane_depth
@@ -2041,11 +2121,15 @@ class EvidenceRetriever:
                         logger.info(
                             f"[FRESHNESS FALLBACK] Relaxing: {default_freshness} -> {fallback_freshness}"
                         )
-                        for query in queries:
+                        for fb_i, query in enumerate(queries):
                             try:
                                 results = await self.evidence_extractor.search_service.search_for_evidence(
                                     query,
-                                    max_results=sources_per_query,
+                                    # Per-lane depth, not the uniform
+                                    # pre-Phase-2 share: relaxing freshness
+                                    # must not quietly flatten the claim lane
+                                    # back to an element lane's slice.
+                                    max_results=per_query_sources[fb_i],
                                     freshness=fallback_freshness,
                                     country=search_country,
                                 )
