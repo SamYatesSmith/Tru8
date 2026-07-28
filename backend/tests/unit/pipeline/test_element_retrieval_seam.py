@@ -160,6 +160,31 @@ class TestUnchangedPaths:
 
         assert lanes == [{"element_id": "e1", "description": CLAIM_TEXT}]
 
+    def test_flag_off_still_honours_caller_supplied_elements(self):
+        """Criterion 18 — the rollback lever must not re-point the Seeker.
+
+        Pre-Phase-2 there was no flag: ``claim["elements"]`` was checked first
+        and won unconditionally. ENABLE_ELEMENT_RETRIEVAL=False promises
+        "today, byte-for-byte", so it has to keep winning. Gating it on the
+        flag means pulling the rollback — under pressure, e.g. a factual-path
+        regression — silently degrades re-search from element-targeted to
+        claim-text-targeted: the very defect this phase exists to kill,
+        arriving down the rollback path where nobody would connect the two.
+        """
+        re_search_claim = {
+            "text": CLAIM_TEXT,
+            "elements": [{"element_id": "e3", "description": "a target ground"}],
+        }
+
+        with patch("app.pipeline.retrieve.settings") as mock_settings:
+            mock_settings.ENABLE_ELEMENT_RETRIEVAL = False
+            lanes = _build_retrieval_lanes(re_search_claim)
+
+        assert lanes == [{"element_id": "e3", "description": "a target ground"}]
+        # The failure mode stated positively: the Seeker must not be handed
+        # the claim's own text in place of the element it was asked to search.
+        assert lanes[0]["description"] != CLAIM_TEXT
+
     def test_flag_off_leaves_the_merged_plan_unwired(self):
         """The whole chain keys off element_wired, so prove it stays False."""
         merged = _merge_element_plans([_plan("e1", ["q1", "q2", "q3"])], 3)
@@ -326,6 +351,20 @@ class TestFetchBudgetAllocation:
         element_queries = [per_query[i] for i in range(3, 11)]
         assert min(claim_queries) >= 2 * max(element_queries) - 1
         assert sum(claim_queries) > max(element_queries)
+
+        # The criterion is about per-LANE share, not per-query: the claim lane
+        # must receive strictly more slots than any single element lane.
+        # Measured split is {c0: 18, e1: 6, e2: 6, e3: 6, e4: 4} of 40.
+        per_lane = {}
+        for r in allocated:
+            lane = lane_ids[r._query_index]
+            per_lane[lane] = per_lane.get(lane, 0) + 1
+        element_lanes = {
+            k: v for k, v in per_lane.items() if k != CLAIM_LANE_ELEMENT_ID
+        }
+        assert per_lane[CLAIM_LANE_ELEMENT_ID] > max(element_lanes.values())
+        assert per_lane[CLAIM_LANE_ELEMENT_ID] == 18
+        assert min(element_lanes.values()) >= 1
 
     def test_allocation_reorders_and_never_drops(self):
         results, lane_ids = _wired_pool()

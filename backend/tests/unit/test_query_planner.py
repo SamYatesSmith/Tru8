@@ -829,6 +829,59 @@ class TestBatchCapacityAndAttribution:
         assert captured["max_tokens"] == _planning_max_tokens(30)
         assert captured["max_tokens"] > 3000
 
+    @pytest.mark.asyncio
+    async def test_openai_fallback_receives_the_scaled_budget(self):
+        """Criterion 12 says BOTH providers, and the fallback is the one that
+        matters most: it runs when Gemini is down, which is exactly when a
+        silent short-plans truncation would be hardest to attribute."""
+        from app.utils.query_planner import LLMQueryPlanner, _planning_max_tokens
+
+        planner = LLMQueryPlanner()
+        planner.google_ai_api_key = None  # force the OpenAI fallback path
+        planner.openai_api_key = "test-key"
+
+        claims = [
+            {
+                "text": f"claim {c}",
+                "claim_index": c,
+                "elements": [
+                    {"element_id": f"e{e}", "description": f"ground {c}-{e}"}
+                    for e in range(6)
+                ],
+            }
+            for c in range(5)
+        ]
+
+        captured = {}
+
+        class _FakeResponse:
+            status_code = 200
+
+            def json(self):
+                return {"choices": [{"message": {"content": '{"plans": []}'}}]}
+
+        class _FakeClient:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *exc):
+                return False
+
+            async def post(self, url, headers=None, json=None):
+                captured.update(json or {})
+                return _FakeResponse()
+
+        with patch(
+            "app.utils.query_planner.httpx.AsyncClient",
+            lambda *a, **k: _FakeClient(),
+        ):
+            await planner.plan_queries_batch(claims)
+
+        assert captured["max_tokens"] == _planning_max_tokens(30)
+        # Literal, not the function it pins: an assertion written against the
+        # helper it is meant to protect passes under any mutation of it.
+        assert captured["max_tokens"] > 3000
+
     def test_year_fix_attributes_plans_by_element_key_not_position(self):
         """Plan ORDER is the LLM's choice; attribution must not depend on it."""
         from app.utils.query_planner import LLMQueryPlanner

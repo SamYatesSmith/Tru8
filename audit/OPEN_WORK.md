@@ -4,14 +4,18 @@
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
-**2026-07-27 (cont. 3) — ELEMENT-LEVEL RETRIEVAL IS WIRED (Phase 2 of 3), `36d3f4e`.** Design + 17 frozen criteria + mutation matrix: **`audit/2026-07-27_phase2_element_retrieval_build_design.md`**. Supersedes the diagnosis entry (deleted; it lives in `audit/2026-07-27_element_retrieval_design.md`).
+**2026-07-28 — PHASE 2 INDEPENDENTLY VERIFIED.** Criteria 1–16 + new 18 PASS; **17 (live pair) still OWED and blocking deploy**. Run by a pass that did not build it, re-deriving PASS/FAIL from the frozen criteria: full suite **2922 passed / 11 failed (all Redis) / 69 skipped**, independent **10/10 mutation matrix** (mutations asserted-applied, files SHA-verified after restore), criterion 9 measured rather than inferred (`{c0:18, e1:6, e2:6, e3:6, e4:4}` of 40). Found **one real defect + two evidence gaps**, all closed and folded into `36d3f4e` by amend. Record: **§6b** of the build design.
+- ⛔ **The defect: the rollback lever broke the Seeker.** `ENABLE_ELEMENT_RETRIEVAL=False` returned early and discarded caller-supplied `claim["elements"]` — which `re_search.py:184-194` populates — so pulling the rollback would have silently re-pointed the Seeker's targeted re-query at the claim's own text. That is the defect this phase exists to kill, reappearing on the safety lever, at the moment of most pressure and least attention. Fixed: the caller branch now runs *above* the flag check, as it did pre-Phase-2. Criterion 18 + mutation M9 pin it.
+- Gaps closed: criterion 12 said "both providers" but only Google was pinned (OpenAI pin + M10 added); criterion 11's stated evidence — extending `test_f1_recency_hedge.py` — was never produced, the behaviour being pinned elsewhere instead (drift now declared in §6a).
+
+**2026-07-27 (cont. 3) — ELEMENT-LEVEL RETRIEVAL IS WIRED (Phase 2 of 3), `36d3f4e`.** Design + 18 frozen criteria + mutation matrix: **`audit/2026-07-27_phase2_element_retrieval_build_design.md`**. Supersedes the diagnosis entry (deleted; it lives in `audit/2026-07-27_element_retrieval_design.md`).
 
 **NOW.** The questions a claim map asks are searched. Each claim gets a **claim lane** (`c0` — the pre-Phase-2 synthetic element, byte-identical, so the factual path keeps the route that works) plus **one lane per element** (≤5). **13 queries/claim full · 6 quick · ≤65/check** (was 3/claim). Fetch cap unchanged at 40, allocated by **weighted round-robin, claim lane 2:1**. Zero prompt bytes. Rollback `ENABLE_ELEMENT_RETRIEVAL=False` — env var, no deploy.
 
-**NEXT** · independent verification pass (never ran — see WATCH) · live pair, paraphrased first (caches replay identical text) · F7 bench re-gold · Phase 3 mapper answeredness, tuned on the POST-Phase-2 pool only.
+**NEXT** · live pair, paraphrased first (caches replay identical text) · F7 bench re-gold · Phase 3 mapper answeredness, tuned on the POST-Phase-2 pool only.
 
 **WATCH**
-- ⚠️ **Independent verification NOT done. Every piece of evidence is builder-run.** Two delegated verifiers ran long and returned nothing. What exists: full suite 2922 passed / 11 failed (Redis-only, pre-existing) / 69 skipped = baseline + exactly the 29 tests added; mutation matrix 16/16 firing on semantically correct assertions, files hash-verified after restore.
+- ✅ **Independent verification DONE 2026-07-28** (see the entry above). Local criteria all PASS. It found a real rollback defect that builder-run evidence had missed — the value of the frozen-criteria mechanism, and the reason the live pair still cannot be waived.
 - ⛔ **Live pair owed, blocks deploy.** `TRU-4B9D-65EA` — the 4 questions must be searched and queries must stop mirroring "was a triumph" · `TRU-25E5-0431` e03 (alternative NHS treatments) must be searched · `TRU-C681-2E38` Grenfell **must not regress**.
 - **Claim-lane depth falls ~13 → ~5 URLs/query.** The one honest cost; Grenfell is its guard. Thin factual pools after this are this, not chance.
 - **All replay cassettes are dead** (query strings are cassette keys) → F7 re-gold moves from owed to **blocking anything bench-gated**.

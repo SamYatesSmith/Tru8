@@ -1,6 +1,7 @@
 # Phase 2 build design — wiring element-level retrieval
 
-**Date:** 2026-07-27 · **Status:** DESIGN, pre-build — **awaiting founder approval**
+**Date:** 2026-07-27 · **Status:** BUILT `36d3f4e` · **independently verified 2026-07-28** (§6b) —
+criteria 1–16 + 18 PASS, **criterion 17 (live pair) OWED and blocking deploy**
 **Parent (diagnosis, already proven):** `audit/2026-07-27_element_retrieval_design.md`
 **Sibling (shipped):** `audit/2026-07-27_phase1_mechanical_honesty_design.md` — its §4a testing
 rules apply here · **SOT:** `audit/DECOUPLING_STATE.md`
@@ -186,6 +187,7 @@ mutation must be asserted to have applied; restore in `finally`; hash-verify aft
 | 15 | Full backend suite: **no new failures** vs baseline 2893 passed / 11 failed (Redis-only) / 69 skipped; `tests/unit/pipeline/` 1002 passed | captured pytest output |
 | 16 | Zero prompt bytes changed (`SYSTEM_PROMPT`, decompose, mapping) | `git diff` |
 | 17 | **Live pair, networked** — T4 paraphrase: the 4 questions are searched and no query mirrors the claim's valence · T2 paraphrase: e03 (alternative NHS treatments) is searched · T3 Grenfell paraphrase: pool size, tier mix and element states do not regress | prod run + logs; **owed, not skippable — see §8** |
+| 18 | **Added 2026-07-28 by the independent pass** — `ENABLE_ELEMENT_RETRIEVAL=False` **still honours caller-supplied `claim["elements"]`**. Criterion 3 pins that caller, criterion 4 pins the flag; neither pinned the *intersection*, and that is exactly where the build broke | unit test + mutation M9 (restore the flag check above the branch → fails) |
 
 ---
 
@@ -205,6 +207,15 @@ additive; neither changes an acceptance criterion.
    same class of defect as Phase 1's vacuous fixture, caught here by the matrix rather than
    by the verifier.
 
+3. **Criterion 11's stated evidence was not produced** (found by the independent pass, not
+   declared here at build time). The criterion required the *existing*
+   `test_f1_recency_hedge.py` to be **extended** to multi-lane; that file was never touched.
+   Multi-lane hedging is pinned instead by
+   `test_hedge_applies_per_lane_not_across_the_merged_list` in the new file, and the original
+   13 tests still pass. Behaviour covered, criterion satisfied by a different route — recorded
+   because "evidence or it didn't happen" applies to *which* evidence, not just whether some
+   exists.
+
 **Mutation matrix: 15/15 fired**, each on a semantically correct assertion. Two rounds were
 needed — the first showed `M7 (revert to sequential slicing)` firing *only* on a telemetry
 assertion, because the allocation was pinned through the helper in isolation while nothing
@@ -212,6 +223,53 @@ proved `_execute_planned_queries` still called it. A behavioural pin
 (`test_wired_path_actually_fetches_from_every_lane`, driving the real method with a pool
 that overflows the budget and asserting on the URLs that reach the fetcher) now covers it.
 That is the NF-18 lesson again: **test the wired seam, not the halves.**
+
+---
+
+## 6b. Independent verification — 2026-07-28
+
+Run by a pass that did **not** build this, re-deriving PASS/FAIL from §6 rather than
+inheriting §6a's claims. The build's own evidence was entirely builder-run; two earlier
+delegated verifiers ran long and returned nothing.
+
+**Result: criteria 1–16 and 18 PASS. Criterion 17 remains OWED and blocks deploy.**
+
+Evidence captured:
+
+- **Full suite: 2922 passed / 11 failed / 69 skipped** (979s). All 11 failures are
+  `tests/performance/test_cache_monitoring.py` — Redis not running, matching the recorded
+  baseline exactly. 2922 = baseline 2893 + the 29 tests added. Criterion 15 confirmed.
+- **Mutation matrix re-run independently: 10/10 fired**, each on a semantically correct
+  assertion, every mutation asserted to have applied before running, all files restored and
+  SHA-256-verified after. Covers C1, C3, C5, C6, C8, C9, C10, C12, C13, C18.
+- **Criterion 9 measured, not inferred.** The build's pin compares per-*query* counts; the
+  criterion is about per-*lane* share. Driving the real allocator gives
+  `{c0: 18, e1: 6, e2: 6, e3: 6, e4: 4}` of 40 — claim lane 18 vs largest element lane 6,
+  and an 18/22 split against the §3.3 prediction of ~17/~23. The pin has been tightened to
+  assert the per-lane form. Note the **last lane systematically takes less** (4 vs 6) because
+  the budget runs out mid-round: bounded, not starvation, and C8's ≥1 floor holds.
+
+Three defects in the delivered evidence, all now closed:
+
+| Found | Criterion | Nature | Fix |
+|---|---|---|---|
+| Flag-off discards caller-supplied elements | 3 / **18** | **Real behaviour defect** | flag check moved *below* the `caller_supplied` branch; criterion 18 + mutation M9 |
+| OpenAI provider never pinned | 12 | Evidence gap ("both providers") | `test_openai_fallback_receives_the_scaled_budget` + mutation M10 |
+| Hedge file never extended | 11 | Undeclared drift | recorded in §6a item 3 |
+
+**The rollback defect is the one that mattered.** §3.4 and §8 promise
+`ENABLE_ELEMENT_RETRIEVAL=False` restores today's behaviour byte-for-byte without a deploy.
+It did not: `_build_retrieval_lanes` returned early on the flag and discarded
+`claim["elements"]`, which `re_search.py:184-194` populates. Pulling the rollback — the
+moment of most pressure and least attention — would have silently re-pointed the Seeker's
+targeted re-query at the claim's own text. That is precisely the defect this phase exists to
+kill, reappearing on the safety lever. Criterion 3 had already caught the builder once
+(adding a claim lane to re-search); it caught the same seam a second time on the flag axis,
+which is the argument for freezing criteria that pin **what must not change**.
+
+*Also corrected: §6a says 15/15 mutations, the commit message and MEMORY.md say 16/16. The
+independent matrix is a separate 10-mutation set and does not resolve which of the two the
+build actually ran.*
 
 ---
 
@@ -238,7 +296,12 @@ comparison is cross-version.
 | An element lane returns nothing and its element still reads unanswered | correct behaviour — that is the Seeker's job; Phase 1's floor now routes it there | n/a |
 | `c0` surfaces somewhere that expects a real element id | criterion 7 + repo-wide grep in verification | Yes |
 
-**Criterion 17 needs network + prod keys** (no working local LLM key — see CLAUDE.md).
+**Criterion 17 needs network + a real check run.** *(Corrected 2026-07-28: this line
+previously read "no working local LLM key", which is false and was propagated onward.
+**Google is the primary provider and `GOOGLE_AI_API_KEY` is set locally**; the dead key is
+`OPENAI_API_KEY`, which is only the fallback. What criterion 17 actually needs is a live
+networked check with real search providers and a prod check id to compare against — not an
+LLM key that was never missing. See CLAUDE.md "LLM providers".)*
 Local criteria 1–16 gate the build; 17 gates the *ship*. If it cannot be run at sign-off it
 is recorded as **owed and blocking deploy**, in the register, not quietly dropped —
 Phase 1's lesson: a mechanism verified is not an outcome verified.

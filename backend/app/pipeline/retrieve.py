@@ -204,16 +204,20 @@ def _build_retrieval_lanes(claim: Dict[str, Any]) -> List[Dict[str, str]]:
     and the grounds stage actually write them.
 
     A caller that populates ``claim["elements"]`` itself gets those lanes
-    verbatim, with **no** claim lane added: the one such caller is the
-    Seeker's re-search (``re_search.py``), whose whole contract is to search
-    ONE named element. Adding the claim text there would spend half the fetch
-    budget re-searching what the user already has.
+    verbatim, with **no** claim lane added, **whatever the flag says**: the one
+    such caller is the Seeker's re-search (``re_search.py``), whose whole
+    contract is to search ONE named element. Adding the claim text there would
+    spend half the fetch budget re-searching what the user already has.
     """
     claim_text = claim.get("text", "") or ""
 
-    if not settings.ENABLE_ELEMENT_RETRIEVAL:
-        return [{"element_id": "e1", "description": claim_text}]
-
+    # Checked BEFORE the flag, because pre-Phase-2 this was the first thing the
+    # seam did and there was no flag at all. ENABLE_ELEMENT_RETRIEVAL=False
+    # promises "today, byte-for-byte" — and today, a caller that names its own
+    # elements gets them. Gating this on the flag would make rolling back
+    # silently re-point the Seeker's targeted re-query at the claim text: the
+    # exact defect this phase exists to kill, arriving down the rollback path,
+    # at the moment of most pressure and least attention.
     caller_supplied = claim.get("elements") or []
     if caller_supplied:
         # Byte-identical to the pre-Phase-2 branch for this caller.
@@ -224,6 +228,9 @@ def _build_retrieval_lanes(claim: Dict[str, Any]) -> List[Dict[str, str]]:
             }
             for j, el in enumerate(caller_supplied)
         ]
+
+    if not settings.ENABLE_ELEMENT_RETRIEVAL:
+        return [{"element_id": "e1", "description": claim_text}]
 
     claim_map = claim.get("claim_map") or {}
     elements = claim_map.get("elements") or []
