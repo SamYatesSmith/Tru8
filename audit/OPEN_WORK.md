@@ -8,7 +8,15 @@
 - Three changes: `element_wired` now comes from the lanes **built** (D-1); the `c0` plan is **synthesised mechanically** from claim text when the planner omits it (D-2, NF-11 — never a prompt fix); the freshness fallback honours per-lane depths (D-4, a second criterion that was green in tests and dead live).
 - Self-caught in the same pass: mutation **M12 went SILENT** — D-1 and D-2 are redundant in the happy path and only one was pinned. Closed with a test on the one case that separates them (empty claim text: synthesis cannot fire, lanes were still built). And the synthesised lane asked for **40 results** because the depth rule divides the budget by the lane's query count; capped at the designed 13 (no change to the 3-query case, 40//3==13 already).
 
-**⚠️ OPEN DECISION — the deferred D3, now with measurements.** T4 still fails the valence assertion, and **not from a bug**: the claim lane's job is to search the claim text, and when the claim is a judgement that searches its valence (`[13 results] Britain's COVID-19 vaccination programme was an outstanding success`). **Two frozen criteria conflict on grounds-routed claims** — *"add, don't replace"* (founder D1) vs *"no query mirrors the claim's valence"* (criterion 17). Measured: the valence query fell from **the entire pool** to **1 of 13 queries / 8 of 40 fetch slots**. Options: drop the claim lane's weight on grounds-routed claims · remove it there · accept as-is. **Founder call, not a build task.**
+**✅ D3 DECIDED 2026-07-28 (founder) — SEPARATE DISPLAY FROM RETRIEVAL.** The user's own phrase stays **visible in the UI** (dropping it reads as "you ignored what I asked"), but **retrieval searches the decoupled enquiry lines only** — the claim text is not a search query. Rationale, product not engineering: people are emotional about their own wording, so it must be seen; but **the decomposed questions are the better route to the truth of the claim they made**, and searching their phrasing pulls the pool toward it.
+
+**This reverses "add, don't replace" for RETRIEVAL only** (the original D1 was a retrieval decision made before anyone could measure the alternative). Display was never in question and is unaffected.
+
+**Consequence to hold in view: this is the "replace" option the Phase 2 design rejected as risky for the factual path.** One piece of real evidence exists — the broken 2026-07-28 run was accidentally an elements-only test, and **Grenfell came back healthy on it**: 3 elements all `supported`, 24 refs, *"predominantly supports all 3"*. Not a clean comparison (element counts differed, 3 vs 2), but it is not nothing.
+
+**Must survive the change:** pre-decomposition claims have no elements, so claim text remains their only query — that path cannot be removed. `re_search.py` already searches one named element and is unaffected.
+
+**⚠️ Supersedes a frozen criterion, deliberately.** Criterion 17's valence clause becomes achievable rather than contradictory: with no claim-text query, **no query mirrors the claim's valence** — the original wording now stands as written.
 
 **2026-07-28 (cont.) — ⛔ CRITERION 17 FAILED LIVE [RESOLVED above, kept as the record].** Three networked checks run locally (Redis flushed first; paraphrased claims). **The claim lane `c0` was dropped on 3/3 runs.** Evidence, identical in shape every time:
 ```
