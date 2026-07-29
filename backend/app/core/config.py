@@ -357,6 +357,15 @@ class Settings(BaseSettings):
     # False restores that behaviour byte-for-byte (rollback without a deploy).
     ENABLE_ELEMENT_RETRIEVAL: bool = Field(True, env="ENABLE_ELEMENT_RETRIEVAL")
 
+    # Phase 3a (2026-07-29): element atomicity. 21.2% of grounds elements ask
+    # two questions at once and 13.8% ask two that take DIFFERENT grading
+    # rules — so the trivially-satisfiable half badges the whole element
+    # `supported` while the half bearing on the claim is never graded. Repairs
+    # compounds at decompose; a mechanical mapper tag backstops any survivor.
+    # Design: audit/2026-07-29_element_atomicity_design.md.
+    # False restores today's behaviour byte-for-byte (rollback, no deploy).
+    ENABLE_ELEMENT_ATOMICITY: bool = Field(True, env="ENABLE_ELEMENT_ATOMICITY")
+
     # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails

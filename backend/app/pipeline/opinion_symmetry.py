@@ -38,6 +38,8 @@ import logging
 import re
 from typing import Any, Dict, List, Optional
 
+from app.core.config import settings
+from app.utils.atomicity import compound_indices, is_compound
 from app.utils.scope_sensitivity import apply_scope_flags
 
 logger = logging.getLogger(__name__)
@@ -64,9 +66,44 @@ Output 3-5 OPEN QUESTIONS about the claim's NAMED SUBJECT:
   disaster", "Is X a disaster?" is FORBIDDEN — ask about the specific
   measurable grounds instead: stated targets, measured outcomes, documented
   problems, comparative context, applicable formal proceedings or definitions).
+- Each question must ask EXACTLY ONE thing. Never join two questions with
+  "and"/"or" ("What were the targets, and were they met?" is TWO questions).
+  Where a question has two parts, ask only the part that bears most directly
+  on the judgement — usually the outcome, not the setup.
 
 Respond with JSON only:
 {"elements": [{"description": "<open question>"}, ...]}
+"""
+
+# Phase 3a (2026-07-29): the prompt rule above is the first line of defence,
+# never the guarantee (NF-11 — prompt-only fixes fail). Compounds are detected
+# MECHANICALLY (app/utils/atomicity.py) and rewritten by this one repair call.
+#
+# REWRITE, never split: splitting takes 4 elements to 7, blows MAX_ELEMENTS,
+# and — because the trailing conjunct is usually the directional,
+# judgement-bearing half — any cap rule would drop precisely the half worth
+# keeping. It would also inflate the retrieval budget (element lanes are ≤2
+# queries each; 5 elements is exactly the 13-query design) and touch the
+# LOCKED 1-5 element contract. 1→1 keeps all of that identical.
+COMPOUND_REPAIR_PROMPT = """\
+You are repairing research questions that accidentally ask TWO things at once.
+
+Each numbered item below asks more than one question. Rewrite EACH as a SINGLE
+open question that asks exactly one thing.
+
+- Keep the part that bears most directly on the judgement being investigated —
+  usually the outcome or comparison, not the setup ("What were the targets,
+  and were they met?" becomes "To what extent were the targets met?").
+- The rewrite must stand alone: resolve any "this"/"these"/"it" back to the
+  thing it refers to, so the question is intelligible with no other context.
+- Keep it OPEN and empirically answerable. It must NOT presuppose its answer,
+  must NOT assert anything, and must NOT ask whether the value judgement
+  itself is true.
+- Stay on the claim's named subject. Do not broaden to the general topic.
+
+Respond with JSON only, in the SAME ORDER as the input:
+{"repaired": ["<single question>", ...]}
+The array length MUST equal the number of items given.
 """
 
 ON_SUBJECT_PROMPT = """\
@@ -216,6 +253,59 @@ async def _coverage(
     return [bool(c) for c in cov]
 
 
+async def _repair_compounds(
+    analyzer, claim: str, elements: List[str]
+) -> tuple[List[str], int, int]:
+    """Rewrite two-in-one questions as single questions.
+
+    Returns ``(elements, detected, repaired)``. FAIL-SAFE throughout: any
+    malformation, any exception, any rewrite that is STILL compound → that
+    element keeps its ORIGINAL text. Repair can improve an element or leave it
+    alone; it can never make one worse.
+    """
+    idx = compound_indices(elements)
+    if not idx:
+        return elements, 0, 0
+
+    numbered = "\n".join(f"{n + 1}. {elements[i]}" for n, i in enumerate(idx))
+    try:
+        parsed = await analyzer._call_llm(
+            prompt=f"{COMPOUND_REPAIR_PROMPT}\n\nClaim: {claim}\n\nItems:\n{numbered}",
+            temperature=0.0,
+            max_tokens=800,
+            label="decomposition",
+        )
+    except Exception as e:
+        logger.warning(f"[ATOMICITY] repair call failed, keeping originals: {e}")
+        return elements, len(idx), 0
+
+    rows = (parsed or {}).get("repaired") if isinstance(parsed, dict) else None
+    if not isinstance(rows, list) or len(rows) != len(idx):
+        logger.warning(
+            f"[ATOMICITY] repair malformed (want {len(idx)}, got "
+            f"{len(rows) if isinstance(rows, list) else 'n/a'}), keeping originals"
+        )
+        return elements, len(idx), 0
+
+    out = list(elements)
+    repaired = 0
+    for n, i in enumerate(idx):
+        candidate = rows[n]
+        if not isinstance(candidate, str):
+            continue
+        candidate = candidate.strip()
+        # Accept ONLY if the rewrite actually achieved atomicity. A still-
+        # compound rewrite is no better than the original and has lost the
+        # original's wording, so it is discarded rather than kept.
+        if not candidate or is_compound(candidate):
+            continue
+        logger.info(f"[ATOMICITY] repaired: {elements[i][:70]} -> {candidate[:70]}")
+        out[i] = candidate
+        repaired += 1
+
+    return out, len(idx), repaired
+
+
 # ── The stage ────────────────────────────────────────────────────────────────
 
 
@@ -241,6 +331,18 @@ async def apply_grounds_stage(
         candidate = await _decompose(analyzer, claim_text)
         if not candidate:
             candidate = baseline_elems[:MAX_ELEMENTS]
+
+        # Phase 3a: repair two-in-one questions BEFORE the value-predicate
+        # lock. Ordering is load-bearing — a rewrite can collapse into the
+        # judgement itself ("To what extent was HS2 a waste of money?"), and
+        # _is_restatement must see the FINAL text. Repairing after the lock
+        # would open a laundering route through the exact door slice 2 shut.
+        # Flag off, or nothing compound → no call, candidate untouched.
+        compound_detected = compound_repaired = 0
+        if settings.ENABLE_ELEMENT_ATOMICITY:
+            candidate, compound_detected, compound_repaired = await _repair_compounds(
+                analyzer, claim_text, candidate
+            )
 
         cand_subj = await _on_subject(analyzer, claim_text, candidate)
         kept: List[str] = []
@@ -311,11 +413,22 @@ async def apply_grounds_stage(
         return baseline_claim_map
 
     _write_elements(baseline_claim_map, final)
-    baseline_claim_map.setdefault("metadata", {})["grounds"] = {
+    grounds_meta: Dict[str, Any] = {
         "applied": True,
         "converged": bool(converged),
         "element_count": len(final),
     }
+    if settings.ENABLE_ELEMENT_ATOMICITY:
+        # Survivors are counted on FINAL — structural re-adds are wrapped
+        # baseline declaratives that never passed through repair, so counting
+        # on `candidate` would under-report the elements the mapper actually
+        # sees. Survivors are backstopped mechanically at mapping.
+        grounds_meta["atomicity"] = {
+            "detected": compound_detected,
+            "repaired": compound_repaired,
+            "surviving": sum(1 for d in final if is_compound(d)),
+        }
+    baseline_claim_map.setdefault("metadata", {})["grounds"] = grounds_meta
     return baseline_claim_map
 
 

@@ -36,6 +36,7 @@ from app.models.claim_map import (
     EvidenceRef,
     EvidenceRelationship,
 )
+from app.utils.atomicity import is_mixed_shape
 from app.utils.scope_sensitivity import apply_scope_flags
 
 logger = logging.getLogger(__name__)
@@ -77,6 +78,40 @@ def _is_causal_link(description: str) -> bool:
     if not description or not isinstance(description, str):
         return False
     return bool(_CAUSAL_LINK_RE.search(description))
+
+
+def _element_lines(
+    elements: List[Dict[str, Any]], grounds: bool = False, indent: str = ""
+) -> str:
+    """Render elements for a mapping prompt, with the mechanical tags.
+
+    ONE renderer for all three prompt sites (map / completion / recovery) so a
+    tag can never be live on some surfaces and dead on others — the Phase 2
+    lesson: don't generalise one probe to N surfaces.
+
+    [COMPOUND] (Phase 3a) marks an element asking two questions of DIFFERENT
+    shapes. The mapper is told to pick one shape per element, so such an
+    element has two right answers and gets graded by whichever half it read —
+    usually the trivially-satisfiable one. Computed mechanically here rather
+    than left for the LLM to notice; the addendum tells it to grade tagged
+    elements by the stricter whether/extent rule.
+    """
+    # Tagged ONLY on grounds-routed claims: the two-shape rule the tag steers
+    # lives in GROUNDS_MAPPING_ADDENDUM, which only those prompts carry. An
+    # untagged surface must never emit a token nothing explains.
+    tag_compound = grounds and bool(
+        getattr(settings, "ENABLE_ELEMENT_ATOMICITY", False)
+    )
+    lines = []
+    for e in elements:
+        desc = e.get("description", "")
+        line = f"{indent}- {e['element_id']}: {desc}"
+        if _is_causal_link(desc):
+            line += " [CAUSAL LINK]"
+        if tag_compound and is_mixed_shape(desc):
+            line += " [COMPOUND]"
+        lines.append(line)
+    return "\n".join(lines)
 
 
 # ── Response schemas for Gemini structured output ───────────────────────────
@@ -332,6 +367,13 @@ that the ground does not hold in the world, or that a reported record is \
 wrong. A question with no substantive answer is MEANT to come out \
 "unresolved" — that is an honest result, and manufacturing a challenge to \
 fill it misreports the record.
+ELEMENTS TAGGED [COMPOUND]: this element asks TWO questions of different \
+kinds, so it has no single shape. Grade it by rule (1) — WHETHER / TO WHAT \
+EXTENT — for the WHOLE element. Evidence that answers only the easier \
+enumerative half (supplying a figure, list or record) does NOT establish the \
+element: it is "context" at most. "supports" requires the evidence to bear on \
+the harder half — the outcome, the extent, or the comparison. If it does not, \
+the element is MEANT to come out "unresolved".
 States are computed MECHANICALLY from these counts, so always map the \
 relationship the evidence actually bears, never the state you expect: \
 "supported" = the ground holds, or its answer is documented and unchallenged; \
@@ -1348,10 +1390,8 @@ class ClaimMapAnalyzer:
 
         # Build context for LLM. Causal-link elements are tagged so the
         # SPECIFICITY CHECK rule applies to them (§4d fix 2).
-        elements_desc = "\n".join(
-            f"- {e['element_id']}: {e['description']}"
-            f"{' [CAUSAL LINK]' if _is_causal_link(e['description']) else ''}"
-            for e in claim_map["elements"]
+        elements_desc = _element_lines(
+            claim_map["elements"], grounds=_grounds_applied(claim_map)
         )
         evidence_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
@@ -1565,11 +1605,12 @@ class ClaimMapAnalyzer:
             cm = item["claim_map"]
             ev = item["evidence"]
 
-            elements_desc = "\n".join(
-                f"  - {e['element_id']}: {e['description']}"
-                f"{' [CAUSAL LINK]' if _is_causal_link(e['description']) else ''}"
-                for e in cm["elements"]
-            )
+            # grounds=False is correct here, not an oversight: grounds claims
+            # are partitioned OUT of the batch above and routed through the
+            # single-claim mapper, which is the only prompt carrying
+            # GROUNDS_MAPPING_ADDENDUM. Tagging here would emit a token
+            # BATCH_MAPPING_PROMPT never explains.
+            elements_desc = _element_lines(cm["elements"], grounds=False, indent="  ")
             evidence_desc = "\n".join(
                 f"  - {ev_item.get('evidence_id', 'unknown')}: "
                 f"[{ev_item.get('title', 'Untitled')}] "
@@ -2162,10 +2203,8 @@ class ClaimMapAnalyzer:
         # Build prompt. Tag causal-link elements so the COMPLETION_PROMPT
         # specificity rule can bite (§4d fix 2) — completion adds state-bearing
         # supports/challenges, so a generic item must not land as supports here.
-        elements_desc = "\n".join(
-            f"- {e['element_id']}: {e['description']}"
-            f"{' [CAUSAL LINK]' if _is_causal_link(e['description']) else ''}"
-            for e in all_elements
+        elements_desc = _element_lines(
+            all_elements, grounds=_grounds_applied(claim_map)
         )
         leftover_desc = "\n".join(
             f"- {ev.get('evidence_id', 'unknown')}: "
@@ -2340,10 +2379,8 @@ class ClaimMapAnalyzer:
         # Build context for LLM -- include ALL elements for cross-element
         # mapping. Tag causal-link elements so the MAPPING_PROMPT specificity
         # rule bites on recovery evidence too (§4d fix 2).
-        elements_desc = "\n".join(
-            f"- {e['element_id']}: {e['description']}"
-            f"{' [CAUSAL LINK]' if _is_causal_link(e['description']) else ''}"
-            for e in all_elements
+        elements_desc = _element_lines(
+            all_elements, grounds=_grounds_applied(claim_map)
         )
 
         # Neutralise element hints in recovery evidence IDs so the LLM
