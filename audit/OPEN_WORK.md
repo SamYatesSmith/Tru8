@@ -17,21 +17,38 @@
 - **Factual path deliberately NOT built.** `DECOMPOSITION_PROMPT:187` ("a single clear sentence") permits "X and Y" identically, and the retrieval consequence is the same. `scripts/compound_element_census.py` measures it and **could not run**: local Postgres is down.
 - **BLOCKER, founder machine:** Docker Desktop will not start — `systeminfo` → **"Virtualization Enabled In Firmware: No"** on an i9-9900K (WSL2 + Ubuntu are installed and healthy). VT-x is off in BIOS; something reset firmware defaults. Blocks Postgres, Redis, the census, and the 11 cache tests.
 
-**NEXT (order matters, from the design §8):** 3a is done → **D3** (retrieval searches element lines only — needs 3a first, since element text becomes the *sole* search surface) → **F7 re-gold ONCE after both** (each invalidates cassettes; re-golding between wastes the run) → **Phase 3 proper** (mapper answeredness, tuned on the resulting pool) → push.
+**NEXT (revised 2026-07-29 once D3 closed as no-build):** 3a is done → **F7 re-gold** (all cassettes dead since Phase 2; blocks every bench-gated change) → **Phase 3 proper** (mapper answeredness, tuned on the post-3a pool) → push. Atomicity improves the element lanes that sit *alongside* the claim lane; it does not replace it.
 
 **2026-07-28 (cont. 2) — ✅ CLAIM LANE REPAIRED, re-verified live.** The failure below is fixed. `wired=True` on 3/3 networked re-runs, claim lane present every time, fetch budget now actually biting (51 and 47 candidates → 40 fetched, vs 39/38/24 broken). **T3 Grenfell matches its recorded baseline exactly** — 2 elements, both `supported`, 13 + 12 refs, *"predominantly supports all 2"*. T2 PASS. Full suite **2944 passed / 0 failed / 69 skipped**; **14/14 mutations fire**, all files SHA-verified. Design: `audit/2026-07-28_retrieval_surface_audit_and_claim_lane_design.md`; harness: `backend/scripts/criterion17_live_pair.py`.
 - Three changes: `element_wired` now comes from the lanes **built** (D-1); the `c0` plan is **synthesised mechanically** from claim text when the planner omits it (D-2, NF-11 — never a prompt fix); the freshness fallback honours per-lane depths (D-4, a second criterion that was green in tests and dead live).
 - Self-caught in the same pass: mutation **M12 went SILENT** — D-1 and D-2 are redundant in the happy path and only one was pinned. Closed with a test on the one case that separates them (empty claim text: synthesis cannot fire, lanes were still built). And the synthesised lane asked for **40 results** because the depth rule divides the budget by the lane's query count; capped at the designed 13 (no change to the 3-query case, 40//3==13 already).
 
-**✅ D3 DECIDED 2026-07-28 (founder) — SEPARATE DISPLAY FROM RETRIEVAL.** The user's own phrase stays **visible in the UI** (dropping it reads as "you ignored what I asked"), but **retrieval searches the decoupled enquiry lines only** — the claim text is not a search query. Rationale, product not engineering: people are emotional about their own wording, so it must be seen; but **the decomposed questions are the better route to the truth of the claim they made**, and searching their phrasing pulls the pool toward it.
+**✅ D3 CLOSED — NO BUILD REQUIRED. "Add, don't replace" STANDS (founder, restated 2026-07-29).**
+**Both the claim and its elements are searched.** The user's claim MUST be searched — it is what
+they asked about. The decoupled elements MUST *also* be searched, and must be relevant to the
+user's line of enquiry, so that Tru8 grasps and relays the full context rather than only the
+user's phrasing.
 
-**This reverses "add, don't replace" for RETRIEVAL only** (the original D1 was a retrieval decision made before anyone could measure the alternative). Display was never in question and is unaffected.
+**This is already the shipped behaviour** — `_build_retrieval_lanes` returns `[c0 claim lane] +
+[element lanes]`, guaranteed by `7bc670a`. Verified 2026-07-29:
+```
+{'element_id': 'c0', 'description': 'The UK COVID vaccine rollout was a triumph'}
+{'element_id': 'e1', 'description': 'What were the stated targets?'}
+{'element_id': 'e2', 'description': 'To what extent were they met?'}
+```
+**Nothing to build. Building the entry this replaces would have BROKEN the intended design.**
 
-**Consequence to hold in view: this is the "replace" option the Phase 2 design rejected as risky for the factual path.** One piece of real evidence exists — the broken 2026-07-28 run was accidentally an elements-only test, and **Grenfell came back healthy on it**: 3 elements all `supported`, 24 refs, *"predominantly supports all 3"*. Not a clean comparison (element counts differed, 3 vs 2), but it is not nothing.
+**⚠️ CORRECTION — the previous entry here misrecorded the decision** as "retrieval searches the
+decoupled enquiry lines only; the claim text is not a search query", i.e. the *replace* option.
+That was never agreed. It survived into this register (and into commit `e304c46`) and was one
+step from being built on 2026-07-29 — caught only because the founder was asked to confirm the
+scope. **The lesson is the register's own: a misrecorded decision in the SOT is more dangerous
+than no record, because the next session builds from it without re-deriving it.**
 
-**Must survive the change:** pre-decomposition claims have no elements, so claim text remains their only query — that path cannot be removed. `re_search.py` already searches one named element and is unaffected.
-
-**⚠️ Supersedes a frozen criterion, deliberately.** Criterion 17's valence clause becomes achievable rather than contradictory: with no claim-text query, **no query mirrors the claim's valence** — the original wording now stands as written.
+**Criterion 17's valence clause is therefore still the open tension it always was**, and the
+Phase 2 measurement remains the answer of record: the valence query fell from **the entire
+pool** to **1 of 13 queries / 8 of 40 fetch slots**. Balance comes from the element lanes
+alongside it, never from removing the user's own claim.
 
 **2026-07-28 (cont.) — ⛔ CRITERION 17 FAILED LIVE [RESOLVED above, kept as the record].** Three networked checks run locally (Redis flushed first; paraphrased claims). **The claim lane `c0` was dropped on 3/3 runs.** Evidence, identical in shape every time:
 ```
