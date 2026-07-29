@@ -3,7 +3,9 @@
 > **This is the single source of truth for the decoupling track.** Every row is
 > confirmed against the CODE and git, not against any plan or memory. Where a
 > plan or memory disagrees with this file, this file wins (and the plan is an
-> archive candidate). Last reconciled: **2026-07-27** — detector LIVE-VERIFIED on 4 checks
+> archive candidate). Last reconciled: **2026-07-29** — **Phase 3a (element atomicity)
+> BUILT `2d77e7b`** and **D3 CLOSED as no-build**; see the two entries directly below.
+> Prior state **2026-07-27** — detector LIVE-VERIFIED on 4 checks
 > (F-VERDICT breach not reproduced; over-correction guard held; positive-valence symmetry
 > proven), and **Bug B promoted to top of the queue with 3 live witnesses in both
 > directions** — see "LIVE VERIFICATION 2026-07-27". Prior state **2026-07-26** —
@@ -19,6 +21,62 @@
 > and the halt/uncommitted framing in the `project_non_sycophancy_invariant`
 > memory, both of which froze at the 2026-07-16 halt and never reconciled with
 > the 2026-07-17 ship.
+
+## 2026-07-29 — Phase 3a: element atomicity (`2d77e7b`, committed not pushed)
+
+**Bug B witness 1 is now closed at its own layer.** `TRU-4B9D-65EA` e01/e02 carried 4 and 3
+supports, cleared Phase 1's floor, and still read `supported` while their summaries said the
+evidence supplied nothing. The reason was structural, not a threshold: **the elements were
+asking two questions at once.**
+
+`GROUNDS_MAPPING_ADDENDUM` tells the mapper to decide ONE shape per element before mapping.
+A compound element has two, so whichever half is read, the other is graded by the wrong
+standard — and the enumerative half ("What were the stated targets?") is trivially
+satisfiable, so it badges the whole element while the half bearing on the judgement ("...and
+were they met?") is never assessed.
+
+**Measured before designing** (`scripts/compound_question_battery.py`, 20 evaluative claims →
+80 elements): **21.2% compound, 13.8% mixed-shape, 40% of claims affected.** Two runs hit
+different claims at the same rate — it is the prompt, not the topics. Root cause was an
+omission: `extract.py` Rule 3 enforces atomicity for *claims*; nothing did for *elements*.
+
+**Fix, three layers** (design `audit/2026-07-29_element_atomicity_design.md`):
+1. Prompt rule in `NORMATIVE_DECOMPOSE_PROMPT` — first line of defence, never the guarantee.
+2. Mechanical detector (`app/utils/atomicity.py`) + one repair call that **rewrites 1→1,
+   never splits**. Splitting would take 4 elements to 7, blow `MAX_ELEMENTS`, inflate the
+   retrieval budget and touch the LOCKED 1-5 contract — and any cap rule drops the trailing
+   conjunct, which is usually the directional, judgement-bearing half.
+3. Mechanical `[COMPOUND]` mapper tag steering any survivor to the stricter whether/extent
+   rule — **the honesty guarantee, which holds even if repair fails entirely.**
+
+**Ordering is load-bearing:** repair runs BEFORE the value-predicate lock. A rewrite can
+collapse into the judgement ("To what extent was HS2 a waste of money?") and `_is_restatement`
+must see the final text, or repair becomes a laundering route through the door slice 2 shut.
+
+**Acceptance GREEN:** 21.2% → **0.0%**, mixed-shape 13.8% → **0.0%**, elements 80 → 85.
+Both layers proven to fire by deterministic counters rather than inferred from the headline —
+`scripts/atomicity_counters_probe.py`: detected=4 repaired=4 surviving=0. A 0% resting on the
+prompt alone would have been an unearned green. 36 tests, 13/13 mutations caught, zero
+regressions. Rollback `ENABLE_ELEMENT_ATOMICITY=False`.
+⚠️ **Verification NOT independent** — the same pass built and verified it.
+**Still open:** the factual path has the same fault, unmeasured (needs Postgres for the census).
+
+## 2026-07-29 — D3 CLOSED, no build: "add, don't replace" STANDS
+
+**Founder, restated:** the user's claim **MUST** be searched — it is what they asked about —
+**and** the decoupled elements must *also* be searched and be relevant to their line of
+enquiry, so Tru8 grasps the full context and relays it. Balance comes from the element lanes
+running **alongside** the claim, never from removing the user's own words.
+
+Already the shipped behaviour: `_build_retrieval_lanes` returns `[c0 claim lane] + [element
+lanes]`, guaranteed by `7bc670a`.
+
+⚠️ **The register had misrecorded this** as the *replace* option and it was one step from
+being built on 2026-07-29 — caught only by confirming scope before writing code. Corrected in
+`86e18ca`. **Criterion 17's valence clause therefore stays the open tension it always was**,
+and the Phase 2 measurement is the answer of record: the valence query fell from the entire
+pool to 1 of 13 queries / 8 of 40 fetch slots. Do not re-open this by proposing the claim
+lane's removal.
 
 ## The invariant (unchanged, founder-locked)
 Tru8 must never be **sycophantic** (agree by default / make a false claim look
@@ -42,7 +100,8 @@ confirm/adjust the exact words.)*
 | Slice 3 — grounds-aware mapping semantics | **SHIPPED** `71e441d` | addendum `claim_map_analyzer.py:259-283`; gate `_grounds_applied` `:286-298`; applied `:1187, 2178`, batch routing `:1359-1369` |
 | Slice 4 — single-claim confirm UI | **NULL — never built, now cancelled** with the confirm-pause drop | absent from `web/` |
 | D1 hardening — one-sided-pool tripwire / per-element evidence floor / disconfirm-aware recovery | **DEFERRED (post-release)** — absent from code by design | grep `app/` → no matches |
-| Tests | **PASS — 45** | `test_opinion_reframe.py`, `test_opinion_symmetry.py`, `test_grounds_mapping.py` |
+| Phase 3a — element atomicity (repair + `[COMPOUND]` mapper backstop) | **BUILT `2d77e7b` 2026-07-29** — 21.2% → 0.0%. Rollback `ENABLE_ELEMENT_ATOMICITY=False` | `app/utils/atomicity.py`; repair `opinion_symmetry.py` (before the lock); tag + addendum `claim_map_analyzer.py` |
+| Tests | **PASS — 45 + 36 (atomicity)** | `test_opinion_reframe.py`, `test_opinion_symmetry.py`, `test_grounds_mapping.py`, `test_element_atomicity.py` |
 
 ## LIVE VERIFICATION 2026-07-27 — detector CONFIRMED; Bug B has 3 witnesses
 
@@ -74,9 +133,14 @@ predicative idea-as-subject claim.
 
 **Status 2026-07-27 cont. 2.** Witness 2 (false-balance orientation) and the *thin* half of
 witness 1 are closed: aggregate orientation is suppressed on grounds claims and a question
-supported by one source now reads `unresolved`. Witness 3 likewise. **Witness 1's e01/e02
+supported by one source now reads `unresolved`. Witness 3 likewise. ~~**Witness 1's e01/e02
 survive** — 4 and 3 supports clear the floor while the evidence still answered nothing;
-that is the mapper's threshold, Phase 3, and it must be tuned against the post-Phase-2 pool.
+that is the mapper's threshold, Phase 3, and it must be tuned against the post-Phase-2 pool.~~
+**SUPERSEDED 2026-07-29 — the cause was NOT a threshold.** Those elements asked two questions
+at once, so the trivially-satisfiable half earned the supports while the half bearing on the
+claim went ungraded. Closed structurally by **Phase 3a** (see the 2026-07-29 section above);
+no threshold could have fixed it, because a compound element has no single answeredness to
+threshold. Phase 3's remaining answeredness work stands, now on atomic elements.
 **The root cause of all three is that the questions were never searched** — see
 `audit/2026-07-27_element_retrieval_design.md`. Original evidence below, unchanged.
 

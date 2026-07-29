@@ -92,9 +92,10 @@ sentence"* — a single sentence is freely compound (*"Expenditure exceeded £37
 reached five years"*). The two-shape rule does not apply to assertions, so the failure mode
 differs (partial support badges the whole), but the **retrieval** consequence is identical.
 
-`compound_element_census.py` measures this path and **could not run** — local Postgres is
-down (Docker Desktop: *"Virtualization Enabled In Firmware: No"*). Not built here. Stated as
-a known gap rather than silently omitted.
+`compound_element_census.py` measures this path — it reads decomposed elements from the local
+DB, so it needs Postgres running (`docker-compose up -d`). Not built here, and the rate is
+**unmeasured**: do not assume it mirrors the 21.2% on the grounds path. Stated as a known gap
+rather than silently omitted.
 
 ---
 
