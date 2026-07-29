@@ -17,6 +17,22 @@
 - **Factual path deliberately NOT built.** `DECOMPOSITION_PROMPT:187` ("a single clear sentence") permits "X and Y" identically, and the retrieval consequence is the same. `scripts/compound_element_census.py` measures it and **could not run**: local Postgres is down.
 - **BLOCKER, founder machine:** Docker Desktop will not start — `systeminfo` → **"Virtualization Enabled In Firmware: No"** on an i9-9900K (WSL2 + Ubuntu are installed and healthy). VT-x is off in BIOS; something reset firmware defaults. Blocks Postgres, Redis, the census, and the 11 cache tests.
 
+**2026-07-29 — ⛔ F7 RE-GOLD ATTEMPTED, BLOCKED ON THE SAME BIOS FAULT.** Not cassette drift — the bench dies *before* the pipeline: `[FATAL] TRU-B4A3-C42D: ConnectionRefusedError [WinError 1225]`. `scripts/replay_bench/runner.py` creates a bench user + a `Check` row first (`_ensure_bench_user`, `_create_check`), so the bench needs **Postgres** → Docker → VT-x. Corpus is 8 claims. Blocked alongside `compound_element_census.py` and the 11 cache tests.
+
+**Runbook — run in this order once Docker starts (≈$0.25, ≈10 min):**
+```bash
+docker-compose up -d                                   # Postgres 5433 + Redis 6379
+cd backend
+python scripts/replay_bench.py --all --record          # 1. live, captures cassettes
+python scripts/replay_bench.py --all --record-missing   # 2. patch pass — REQUIRED: record-time
+                                                        #    request construction differs from
+                                                        #    replay-time for order-sensitive
+                                                        #    prompts (evidence mapping)
+python scripts/replay_bench.py --all --update-golden    # 3. re-gold from deterministic replay
+python scripts/replay_bench.py --all                    # 4. must come back clean
+```
+⚠️ Step 3 **replaces** `golden.json` for all 8 claims. Goldens are being re-derived across Phase 1 + Phase 2 + the claim-lane repair + Phase 3a, so **read the step-4 diff as the record of what those four changes did to pipeline behaviour** — it is the only place that lands in one view. Do not skim it.
+
 **NEXT (revised 2026-07-29 once D3 closed as no-build):** 3a is done → **F7 re-gold** (all cassettes dead since Phase 2; blocks every bench-gated change) → **Phase 3 proper** (mapper answeredness, tuned on the post-3a pool) → push. Atomicity improves the element lanes that sit *alongside* the claim lane; it does not replace it.
 
 **2026-07-28 (cont. 2) — ✅ CLAIM LANE REPAIRED, re-verified live.** The failure below is fixed. `wired=True` on 3/3 networked re-runs, claim lane present every time, fetch budget now actually biting (51 and 47 candidates → 40 fetched, vs 39/38/24 broken). **T3 Grenfell matches its recorded baseline exactly** — 2 elements, both `supported`, 13 + 12 refs, *"predominantly supports all 2"*. T2 PASS. Full suite **2944 passed / 0 failed / 69 skipped**; **14/14 mutations fire**, all files SHA-verified. Design: `audit/2026-07-28_retrieval_surface_audit_and_claim_lane_design.md`; harness: `backend/scripts/criterion17_live_pair.py`.
