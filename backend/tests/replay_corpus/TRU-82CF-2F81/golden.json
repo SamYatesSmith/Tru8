@@ -2,8 +2,10 @@
  "claim_id": "TRU-82CF-2F81",
  "captured_at": "2026-07-21T10:08:28.836947+00:00",
  "captured_with": "fdf3509",
- "captured_with_known_bugs": [],
- "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
+ "captured_with_known_bugs": [
+  "KNOWN-FLAKY-replay-fetch-depth"
+ ],
+ "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK. | 2026-07-30 KNOWN-FLAKY, ACCEPTED (founder call). This claim CANNOT be re-golded: replay has no network latency, so the pipeline gets further through its fetch queue inside CLAIM_TIMEOUT=45s than any live run does, and requests pages the recording never reached (12 misses, all ordinary evidence fetches). The request set is a function of wall-clock timing, not of the cassette, so no amount of re-recording converges. The gate is therefore the OTHER 7 claims: a full --all run is EXPECTED to report exactly 1 fail (cassette_drift on this claim). DO NOT 'fix' that by making missed evidence fetches non-fatal \u2014 that weakens the drift guard for the whole corpus to buy a green. Golden below is still the 2026-07-21 fdf3509 capture and is NOT comparable to post-Phase-2 behaviour. See audit/OPEN_WORK.md 2026-07-30.",
  "hard_invariants": {
   "classifier_inject": {
    "primary": "Finance",

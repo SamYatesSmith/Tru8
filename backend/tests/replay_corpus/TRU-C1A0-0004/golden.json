@@ -1,121 +1,124 @@
 {
- "claim_id": "TRU-C1A0-0004",
- "captured_at": "2026-07-21T10:11:11.071124+00:00",
- "captured_with": "fdf3509",
- "captured_with_known_bugs": [],
- "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
- "hard_invariants": {
-  "classifier_inject": {
-   "primary": "Politics",
-   "secondaries_must_include": [
-    "Climate",
-    "Law"
-   ],
-   "jurisdiction_to": "US"
+  "claim_id": "TRU-C1A0-0004",
+  "captured_at": "2026-07-30T08:49:47.694998+00:00",
+  "captured_with": "61d75c9",
+  "captured_with_known_bugs": [],
+  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "hard_invariants": {
+    "classifier_inject": {
+      "primary": "Politics",
+      "secondaries_must_include": [
+        "Finance",
+        "Law"
+      ],
+      "jurisdiction_to": "US"
+    },
+    "must_have_url_substrings": [],
+    "must_not_have_url_substrings": [],
+    "expected_adapters_subset": [],
+    "coverage_recovery_failures_max": 6,
+    "v3_quality_floors": {
+      "unique_domains_min": 5,
+      "top_domain_share_max": 0.45,
+      "wikipedia_share_max": 0.4,
+      "factual_weight_share_min": 0.15,
+      "element_resolution_min": 0.3
+    },
+    "v3_quality_warn_band": {
+      "unique_domains_min": 7,
+      "top_domain_share_max": 0.3,
+      "wikipedia_share_max": 0.25,
+      "factual_weight_share_min": 0.25,
+      "element_resolution_min": 0.5
+    },
+    "coverage_recovery_must_not_timeout": true
   },
-  "must_have_url_substrings": [],
-  "must_not_have_url_substrings": [],
-  "expected_adapters_subset": [],
-  "coverage_recovery_failures_max": 6,
-  "v3_quality_floors": {
-   "unique_domains_min": 5,
-   "top_domain_share_max": 0.45,
-   "wikipedia_share_max": 0.4,
-   "factual_weight_share_min": 0.15,
-   "element_resolution_min": 0.3
+  "tolerant_counters": {
+    "sources_included": {
+      "value": 18,
+      "tolerance": 8
+    },
+    "claims": {
+      "value": 1,
+      "tolerance": 1
+    },
+    "elements": {
+      "value": 3,
+      "tolerance": 3
+    },
+    "web_search": {
+      "value": 24,
+      "tolerance": 8
+    },
+    "api_adapters": {
+      "value": 0,
+      "tolerance": 8
+    },
+    "tier_primary": {
+      "value": 9,
+      "tolerance": 4
+    },
+    "tier_commentary": {
+      "value": 7,
+      "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 2,
+      "tolerance": 4
+    }
   },
-  "v3_quality_warn_band": {
-   "unique_domains_min": 7,
-   "top_domain_share_max": 0.3,
-   "wikipedia_share_max": 0.25,
-   "factual_weight_share_min": 0.25,
-   "element_resolution_min": 0.5
-  },
-  "coverage_recovery_must_not_timeout": true
- },
- "tolerant_counters": {
-  "sources_included": {
-   "value": 19,
-   "tolerance": 8
-  },
-  "claims": {
-   "value": 1,
-   "tolerance": 1
-  },
-  "elements": {
-   "value": 3,
-   "tolerance": 3
-  },
-  "web_search": {
-   "value": 22,
-   "tolerance": 8
-  },
-  "api_adapters": {
-   "value": 0,
-   "tolerance": 8
-  },
-  "tier_primary": {
-   "value": 4,
-   "tolerance": 4
-  },
-  "tier_commentary": {
-   "value": 9,
-   "tolerance": 4
-  },
-  "tier_reporting": {
-   "value": 6,
-   "tolerance": 4
+  "set_jaccard": {
+    "url_ledger_flat": {
+      "golden": [
+        "https://blogs.lse.ac.uk/usappblog/2026/06/05/looking-beyond-trump-understanding-the-building-blocks-of-recent-us-climate",
+        "https://grist.org/energy/trump-inflation-reduction-act-big-beautiful-bil/",
+        "https://international.canada.ca/en/global-affairs/corporate/transparency/briefing-documents/parliamentary-committee/2023",
+        "https://iratracker.org/actions/",
+        "https://journals.stecab.com/jece/article/download/1038/458",
+        "https://scholarship.law.columbia.edu/sabin_climate_change/232/",
+        "https://thespringgroup.org/articles/a-comprehensive-economic-analysis-of-renewable-energy-in-the-united-states",
+        "https://triagecancer.org/inflation-reduction-act-vaccines-blog",
+        "https://www.amcp.org/advocacy/ira-implementation",
+        "https://www.c-span.org/program/white-house-event/president-biden-signs-inflation-reduction-act/615969",
+        "https://www.cambridge.org/core/journals/world-trade-review/article/tariffs-versus-subsidies-protection-versus-industrial",
+        "https://www.congress.gov/bill/117th-congress/house-bill/5376/text",
+        "https://www.energy.gov/edf/inflation-reduction-act-2022",
+        "https://www.epa.gov/green-power-markets/summary-inflation-reduction-act-provisions-related-renewable-energy",
+        "https://www.everycrsreport.com/reports/R48944.html",
+        "https://www.healthinsurance.org/glossary/inflation-reduction-act/",
+        "https://www.iea.org/policies/16156-inflation-reduction-act-of-2022",
+        "https://www.irs.gov/inflation-reduction-act-of-2022",
+        "https://www.naco.org/news/inflation-reduction-act-signed-law",
+        "https://www.nga.org/ira-resources/",
+        "https://www.nytimes.com/2022/08/16/business/biden-climate-tax-inflation-reduction.html",
+        "https://www.presidency.ucsb.edu/documents/what-they-are-saying-biden-harris-administration-celebrates-two-years-the-infl",
+        "https://www.proskauertaxtalks.com/2022/08/president-biden-signs-inflation-reduction-act-into-law/",
+        "https://www.researchgate.net/publication/399536432_The_Impact_of_the_Inflation_Reduction_Act_on_Global_Manufacturing"
+      ],
+      "min_similarity": 0.35
+    },
+    "domain_set": {
+      "golden": [
+        "amcp.org",
+        "blogs.lse.ac.uk",
+        "c-span.org",
+        "cambridge.org",
+        "congress.gov",
+        "energy.gov",
+        "epa.gov",
+        "grist.org",
+        "healthinsurance.org",
+        "iea.org",
+        "iratracker.org",
+        "irs.gov",
+        "naco.org",
+        "nga.org",
+        "nytimes.com",
+        "presidency.ucsb.edu",
+        "scholarship.law.columbia.edu",
+        "triagecancer.org"
+      ],
+      "min_similarity": 0.45
+    }
   }
- },
- "set_jaccard": {
-  "url_ledger_flat": {
-   "golden": [
-    "https://apnews.com/article/trump-biden-high-prices-inflation-angry-voters-e6e65165deaf9dfc8dbb986f43b1a61a",
-    "https://dcgreenbank.com/news/president-biden-signs-the-historic-inflation-reduction-act-unlocking-27-billion-for-green-b",
-    "https://energycommerce.house.gov/posts/one-year-later-even-president-biden-admits-the-inflation-reduction-act-failed-to-",
-    "https://grist.org/energy/trump-inflation-reduction-act-big-beautiful-bil/",
-    "https://link.springer.com/article/10.1007/s10584-026-04133-4",
-    "https://wildfiretaskforce.org/biden-signs-inflation-reduction-act-affecting-health-climate-and-the-economy/",
-    "https://www.americanprogress.org/topic/inflation-reduction-act/",
-    "https://www.c-span.org/program/white-house-event/president-biden-signs-inflation-reduction-act/615969",
-    "https://www.energy.gov/edf/inflation-reduction-act-2022",
-    "https://www.ft.com/content/20eed7c0-4c46-4516-8dda-cab48475c9fc?syn-25a6b1a6=1",
-    "https://www.ft.com/content/46152712-53f5-4664-acdf-e545dc7ddee8?syn-25a6b1a6=1",
-    "https://www.healthinsurance.org/glossary/inflation-reduction-act/",
-    "https://www.irs.gov/inflation-reduction-act-of-2022",
-    "https://www.law.georgetown.edu/environmental-law-review/blog/is-the-inflation-reduction-act-just-applying-the-ira-to-the",
-    "https://www.pbs.org/newshour/show/a-look-at-the-economic-impact-and-progress-of-bidens-inflation-reduction-act-so-far",
-    "https://www.presidency.ucsb.edu/documents/what-they-are-saying-biden-harris-administration-celebrates-two-years-the-infl",
-    "https://www.proskauertaxtalks.com/2022/08/president-biden-signs-inflation-reduction-act-into-law/",
-    "https://www.researchgate.net/publication/399536432_The_Impact_of_the_Inflation_Reduction_Act_on_Global_Manufacturing",
-    "https://www.theguardian.com/environment/2025/nov/29/trump-coal-country",
-    "https://www.theguardian.com/environment/2025/oct/02/down-to-earth-green-energy-climate-week-nyc-united-nations-us-politi",
-    "https://www.youtube.com/watch?v=3VWauAOR-gw"
-   ],
-   "min_similarity": 0.35
-  },
-  "domain_set": {
-   "golden": [
-    "americanprogress.org",
-    "c-span.org",
-    "dcgreenbank.com",
-    "energy.gov",
-    "energycommerce.house.gov",
-    "ft.com",
-    "grist.org",
-    "healthinsurance.org",
-    "irs.gov",
-    "law.georgetown.edu",
-    "link.springer.com",
-    "pbs.org",
-    "presidency.ucsb.edu",
-    "proskauertaxtalks.com",
-    "researchgate.net",
-    "theguardian.com",
-    "wildfiretaskforce.org",
-    "youtube.com"
-   ],
-   "min_similarity": 0.45
-  }
- }
 }

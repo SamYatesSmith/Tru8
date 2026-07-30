@@ -1,113 +1,107 @@
 {
- "claim_id": "TRU-93DD-F4B7",
- "captured_at": "2026-07-21T10:09:41.222575+00:00",
- "captured_with": "fdf3509",
- "captured_with_known_bugs": [],
- "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
- "hard_invariants": {
-  "freshness_inject_must_fire_on_claims": [
-   0
-  ],
-  "must_have_url_substrings": [],
-  "must_not_have_url_substrings": [],
-  "expected_adapters_subset": [],
-  "coverage_recovery_failures_max": 6,
-  "v3_quality_floors": {
-   "unique_domains_min": 5,
-   "top_domain_share_max": 0.45,
-   "wikipedia_share_max": 0.4,
-   "factual_weight_share_min": 0.15,
-   "element_resolution_min": 0.3
+  "claim_id": "TRU-93DD-F4B7",
+  "captured_at": "2026-07-30T08:48:59.917183+00:00",
+  "captured_with": "61d75c9",
+  "captured_with_known_bugs": [],
+  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "hard_invariants": {
+    "freshness_inject_must_fire_on_claims": [
+      0
+    ],
+    "must_have_url_substrings": [],
+    "must_not_have_url_substrings": [],
+    "expected_adapters_subset": [],
+    "coverage_recovery_failures_max": 6,
+    "v3_quality_floors": {
+      "unique_domains_min": 5,
+      "top_domain_share_max": 0.45,
+      "wikipedia_share_max": 0.4,
+      "factual_weight_share_min": 0.15,
+      "element_resolution_min": 0.3
+    },
+    "v3_quality_warn_band": {
+      "unique_domains_min": 7,
+      "top_domain_share_max": 0.3,
+      "wikipedia_share_max": 0.25,
+      "factual_weight_share_min": 0.25,
+      "element_resolution_min": 0.5
+    },
+    "coverage_recovery_must_not_timeout": true
   },
-  "v3_quality_warn_band": {
-   "unique_domains_min": 7,
-   "top_domain_share_max": 0.3,
-   "wikipedia_share_max": 0.25,
-   "factual_weight_share_min": 0.25,
-   "element_resolution_min": 0.5
+  "tolerant_counters": {
+    "sources_included": {
+      "value": 14,
+      "tolerance": 8
+    },
+    "claims": {
+      "value": 1,
+      "tolerance": 1
+    },
+    "elements": {
+      "value": 2,
+      "tolerance": 3
+    },
+    "web_search": {
+      "value": 22,
+      "tolerance": 8
+    },
+    "api_adapters": {
+      "value": 2,
+      "tolerance": 8
+    },
+    "tier_reporting": {
+      "value": 3,
+      "tolerance": 4
+    },
+    "tier_primary": {
+      "value": 11,
+      "tolerance": 5
+    }
   },
-  "coverage_recovery_must_not_timeout": true
- },
- "tolerant_counters": {
-  "sources_included": {
-   "value": 20,
-   "tolerance": 8
-  },
-  "claims": {
-   "value": 1,
-   "tolerance": 1
-  },
-  "elements": {
-   "value": 3,
-   "tolerance": 3
-  },
-  "web_search": {
-   "value": 27,
-   "tolerance": 8
-  },
-  "api_adapters": {
-   "value": 2,
-   "tolerance": 8
-  },
-  "tier_primary": {
-   "value": 7,
-   "tolerance": 4
-  },
-  "tier_reporting": {
-   "value": 13,
-   "tolerance": 6
+  "set_jaccard": {
+    "url_ledger_flat": {
+      "golden": [
+        "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/t/february-2/",
+        "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.19",
+        "https://rmets.onlinelibrary.wiley.com/doi/10.1002/joc.7787",
+        "https://weatherspark.com/h/m/38026/2021/2/Historical-Weather-in-February-2021-in-Edinburgh-United-Kingdom",
+        "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh-United-Kingdom-Year-Round",
+        "https://world-weather.info/forecast/united_kingdom/edinburgh/february-2021/",
+        "https://www.avisonyoung.com/drivers-of-change/heat-resilient-cities",
+        "https://www.climatexchange.org.uk/publications/scotclimate-a-tool-for-understanding-future-extreme-weather-in-scotland/",
+        "https://www.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/interesting/2",
+        "https://www.netweather.tv/weather-forecasts/news/10709-february-2021-cold-and-snow-down-to--230c",
+        "https://www.researchgate.net/profile/Buwen-Dong",
+        "https://www.rmets.org/sites/default/files/2025-04/january_2025_-_observer_notes.pdf",
+        "https://www.telegraph.co.uk/news/2021/02/11/uk-weather-extreme-freeze-could-cause-travel-meltdown-across/",
+        "https://www.the-sun.com/news/2317526/weather-forecast-snow-temperatures-rocket-next-week/",
+        "https://www.theguardian.com/uk-news/2021/feb/11/uk-temperature-falls-lowest-level-decade-extreme-freeze",
+        "https://www.theweatheroutlook.com/twocommunity/Posts/t21822-Availability-of-Weather-Station-Data/page3",
+        "https://www.timeanddate.com/weather/uk/edinburgh/historic",
+        "https://www.timeanddate.com/weather/uk/edinburgh/historic?month=9&year=2021",
+        "https://www.trevorharley.com/2021.html",
+        "https://www.worldweatheronline.com/edinburgh-weather-averages-february/city-of-edinburgh/gb.aspx",
+        "https://www.youtube.com/watch?v=fBc6MASiGOs"
+      ],
+      "min_similarity": 0.35
+    },
+    "domain_set": {
+      "golden": [
+        "en.climate-data.org",
+        "metoffice.gov.uk",
+        "netweather.tv",
+        "rmets.onlinelibrary.wiley.com",
+        "rmets.org",
+        "telegraph.co.uk",
+        "theguardian.com",
+        "theweatheroutlook.com",
+        "timeanddate.com",
+        "trevorharley.com",
+        "weatherspark.com",
+        "world-weather.info",
+        "worldweatheronline.com"
+      ],
+      "min_similarity": 0.3
+    }
   }
- },
- "set_jaccard": {
-  "url_ledger_flat": {
-   "golden": [
-    "https://edinburgh.public-i.tv/site/mg_bounce.php?mg_a_id=22582&mg_m_id=5596&language=en_GB",
-    "https://en.climate-data.org/europe/united-kingdom/scotland/edinburgh-48/t/february-2/",
-    "https://groups.google.com/g/weatherandclimate/c/SP51s4JFzus",
-    "https://open-meteo.com/en/docs#latitude=55.95&longitude=-3.19",
-    "https://pynck.com/2021/01/ceciles-top-picks-of-whats-on-in-edinburgh-february-2021.html",
-    "https://rmets.onlinelibrary.wiley.com/doi/10.1002/joc.7787",
-    "https://weatherspark.com/h/m/38026/2021/2/Historical-Weather-in-February-2021-in-Edinburgh-United-Kingdom",
-    "https://weatherspark.com/y/38026/Average-Weather-in-Edinburgh-United-Kingdom-Year-Round",
-    "https://www.alledinburghtheatre.com/2021/02/11/",
-    "https://www.bbc.co.uk/news/articles/c7vevn46gv8o",
-    "https://www.bbc.co.uk/news/articles/ckg9gxlg7x4o",
-    "https://www.bbc.co.uk/news/uk-55992385",
-    "https://www.bbc.co.uk/news/uk-scotland-63930618",
-    "https://www.bbc.co.uk/news/uk-scotland-highlands-islands-55981029",
-    "https://www.bbc.co.uk/news/uk-scotland-highlands-islands-56022387",
-    "https://www.bbc.com/news/uk-63893192",
-    "https://www.bbc.com/pages/content-index/2021/02/11?page=27",
-    "https://www.edinburghnews.scotsman.com/archive/2021-02-11",
-    "https://www.rmets.org/sites/default/files/2021-04/202102_0.pdf",
-    "https://www.theguardian.com/uk-news/2019/feb/23/scotland-warm-winter-record-breaking-weather-temperature",
-    "https://www.theguardian.com/uk-news/2021/feb/09/uk-temperatures-snow-ice-close-vaccination-centres-schools",
-    "https://www.theguardian.com/uk-news/2021/feb/11/uk-temperature-falls-lowest-level-decade-extreme-freeze",
-    "https://www.theweatheroutlook.com/twocommunity/Posts/t21886-Low-temperature-watch---9-to-11-February/page6",
-    "https://www.timeanddate.com/weather/uk/edinburgh/climate",
-    "https://www.youtube.com/watch?v=hWVMkJa41HA"
-   ],
-   "min_similarity": 0.35
-  },
-  "domain_set": {
-   "golden": [
-    "alledinburghtheatre.com",
-    "bbc.co.uk",
-    "bbc.com",
-    "edinburgh.public-i.tv",
-    "edinburghnews.scotsman.com",
-    "en.climate-data.org",
-    "groups.google.com",
-    "pynck.com",
-    "rmets.onlinelibrary.wiley.com",
-    "rmets.org",
-    "theguardian.com",
-    "theweatheroutlook.com",
-    "timeanddate.com",
-    "weatherspark.com",
-    "youtube.com"
-   ],
-   "min_similarity": 0.45
-  }
- }
 }

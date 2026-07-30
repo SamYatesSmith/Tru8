@@ -1,112 +1,116 @@
 {
- "claim_id": "TRU-C1A0-0003",
- "captured_at": "2026-07-21T10:11:00.656379+00:00",
- "captured_with": "fdf3509",
- "captured_with_known_bugs": [],
- "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
- "hard_invariants": {
-  "freshness_inject_must_fire_on_claims": [
-   0
-  ],
-  "must_have_url_substrings": [],
-  "must_not_have_url_substrings": [],
-  "expected_adapters_subset": [],
-  "coverage_recovery_failures_max": 6,
-  "v3_quality_floors": {
-   "unique_domains_min": 5,
-   "top_domain_share_max": 0.45,
-   "wikipedia_share_max": 0.4,
-   "factual_weight_share_min": 0.15,
-   "element_resolution_min": 0.3
+  "claim_id": "TRU-C1A0-0003",
+  "captured_at": "2026-07-30T08:49:36.470347+00:00",
+  "captured_with": "61d75c9",
+  "captured_with_known_bugs": [],
+  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "hard_invariants": {
+    "freshness_inject_must_fire_on_claims": [
+      0
+    ],
+    "must_have_url_substrings": [],
+    "must_not_have_url_substrings": [],
+    "expected_adapters_subset": [],
+    "coverage_recovery_failures_max": 6,
+    "v3_quality_floors": {
+      "unique_domains_min": 5,
+      "top_domain_share_max": 0.45,
+      "wikipedia_share_max": 0.4,
+      "factual_weight_share_min": 0.15,
+      "element_resolution_min": 0.3
+    },
+    "v3_quality_warn_band": {
+      "unique_domains_min": 7,
+      "top_domain_share_max": 0.3,
+      "wikipedia_share_max": 0.25,
+      "factual_weight_share_min": 0.25,
+      "element_resolution_min": 0.5
+    },
+    "coverage_recovery_must_not_timeout": true
   },
-  "v3_quality_warn_band": {
-   "unique_domains_min": 7,
-   "top_domain_share_max": 0.3,
-   "wikipedia_share_max": 0.25,
-   "factual_weight_share_min": 0.25,
-   "element_resolution_min": 0.5
+  "tolerant_counters": {
+    "sources_included": {
+      "value": 18,
+      "tolerance": 8
+    },
+    "claims": {
+      "value": 1,
+      "tolerance": 1
+    },
+    "elements": {
+      "value": 3,
+      "tolerance": 3
+    },
+    "web_search": {
+      "value": 38,
+      "tolerance": 8
+    },
+    "api_adapters": {
+      "value": 4,
+      "tolerance": 8
+    },
+    "tier_commentary": {
+      "value": 8,
+      "tolerance": 4
+    },
+    "tier_primary": {
+      "value": 10,
+      "tolerance": 5
+    }
   },
-  "coverage_recovery_must_not_timeout": true
- },
- "tolerant_counters": {
-  "sources_included": {
-   "value": 21,
-   "tolerance": 8
-  },
-  "claims": {
-   "value": 1,
-   "tolerance": 1
-  },
-  "elements": {
-   "value": 3,
-   "tolerance": 3
-  },
-  "web_search": {
-   "value": 32,
-   "tolerance": 8
-  },
-  "api_adapters": {
-   "value": 4,
-   "tolerance": 8
-  },
-  "tier_commentary": {
-   "value": 19,
-   "tolerance": 9
-  },
-  "tier_primary": {
-   "value": 2,
-   "tolerance": 4
+  "set_jaccard": {
+    "url_ledger_flat": {
+      "golden": [
+        "https://doi.org/10.1038/s41577-021-00592-1",
+        "https://doi.org/10.1056/nejmoa2118691",
+        "https://doi.org/10.1056/nejmoa2119451",
+        "https://en.wikipedia.org/wiki/COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Janssen_COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Moderna_COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Oxford%E2%80%93AstraZeneca_COVID-19_vaccine",
+        "https://en.wikipedia.org/wiki/Pfizer%E2%80%93BioNTech_COVID-19_vaccine",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8314794/",
+        "https://pubmed.ncbi.nlm.nih.gov/33301246/",
+        "https://pubmed.ncbi.nlm.nih.gov/34942066/",
+        "https://pubmed.ncbi.nlm.nih.gov/35767475/",
+        "https://www.biontech.com/content/dam/biontech-corporate/global/pdf/home/media/en/news/attachments/2021/03/9451.pdf",
+        "https://www.cdc.gov/acip/grade/covid-19-pfizer-biontech-vaccine.html",
+        "https://www.cdc.gov/mmwr/volumes/70/wr/mm7042e1.htm",
+        "https://www.cidrap.umn.edu/covid-19/covid-19-scan-feb-18-2021",
+        "https://www.cidrap.umn.edu/covid-19/peer-reviewed-data-show-high-protection-leading-covid-vaccines",
+        "https://www.nejm.org/doi/abs/10.1056/NEJMoa2110345",
+        "https://www.nejm.org/doi/full/10.1056/NEJMc2104974",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2105290",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2110345",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2114114",
+        "https://www.nejm.org/doi/full/10.1056/NEJMoa2510226",
+        "https://www.pfizer.com/news/press-release/press-release-detail/follow-data-phase-3-trial-pfizer-biontech-covid-19-vaccin",
+        "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-announce-publication-results-landmark",
+        "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-conclude-phase-3-study-covid-19-vacci",
+        "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-confirm-high-efficacy-and-no-serious",
+        "https://www.pfizer.com/science/coronavirus/updates",
+        "https://www.sciencedirect.com/science/article/pii/S0024320525002449",
+        "https://www.sciencedirect.com/science/article/pii/S1201971221008572",
+        "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02183-8/fulltext",
+        "https://www.upstate.edu/news/articles/2021/2021-05-27-thomas.php"
+      ],
+      "min_similarity": 0.4
+    },
+    "domain_set": {
+      "golden": [
+        "biontech.com",
+        "cdc.gov",
+        "cidrap.umn.edu",
+        "factcheck.org",
+        "nejm.org",
+        "pfizer.com",
+        "pubmed.ncbi.nlm.nih.gov",
+        "sciencedirect.com",
+        "thelancet.com",
+        "upstate.edu"
+      ],
+      "min_similarity": 0.3
+    }
   }
- },
- "set_jaccard": {
-  "url_ledger_flat": {
-   "golden": [
-    "https://clinician.nejm.org/moderna-covid-19-vaccine-noteworthy-efficacy-date-nejm-jw.NA53047",
-    "https://clinician.nejm.org/pfizer-covid-19-mrna-vaccines-real-world-performance-nejm-jw.NA53283",
-    "https://doi.org/10.1038/s41577-021-00592-1",
-    "https://doi.org/10.1056/nejmoa2118691",
-    "https://doi.org/10.1056/nejmoa2119451",
-    "https://en.wikipedia.org/wiki/COVID-19_vaccine",
-    "https://en.wikipedia.org/wiki/Moderna_COVID-19_vaccine",
-    "https://en.wikipedia.org/wiki/Pfizer",
-    "https://en.wikipedia.org/wiki/Pfizer%E2%80%93BioNTech_COVID-19_vaccine",
-    "https://en.wikipedia.org/wiki/Sputnik_V_COVID-19_vaccine",
-    "https://mediacenteratypon.nejmgroup-production.org/NEJMoa2114114.pdf",
-    "https://pubmed.ncbi.nlm.nih.gov/34942066/",
-    "https://pubmed.ncbi.nlm.nih.gov/35767475/",
-    "https://www.cdc.gov/acip/grade/covid-19-pfizer-biontech-vaccine.html",
-    "https://www.cidrap.umn.edu/covid-19/covid-19-scan-feb-18-2021",
-    "https://www.cidrap.umn.edu/covid-19/peer-reviewed-data-show-high-protection-leading-covid-vaccines",
-    "https://www.natap.org/2022/HIV/030422_01.htm",
-    "https://www.nejm.org/doi/abs/10.1056/NEJMoa2110345",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2106599",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2110345",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2114114",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2115463",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2117995",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2119451",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2200674",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2205011",
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2510226",
-    "https://www.ovid.com/journals/nejmjw/fulltext/10.1056/nejm-jw.na53283~pfizer-covid-19-mrna-vaccines-real-world-performan",
-    "https://www.pfizer.com/news/press-release/press-release-detail/pfizer-and-biontech-confirm-high-efficacy-and-no-serious"
-   ],
-   "min_similarity": 0.4
-  },
-  "domain_set": {
-   "golden": [
-    "cdc.gov",
-    "cidrap.umn.edu",
-    "clinician.nejm.org",
-    "factcheck.org",
-    "mediacenteratypon.nejmgroup-production.org",
-    "natap.org",
-    "nejm.org",
-    "ovid.com",
-    "pfizer.com"
-   ],
-   "min_similarity": 0.3
-  }
- }
 }

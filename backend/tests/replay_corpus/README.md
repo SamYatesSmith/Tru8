@@ -1,5 +1,22 @@
 # Replay Bench Corpus
 
+> ## ⚠️ A clean `--all` run reports **1 fail**, and that is EXPECTED (2026-07-30)
+>
+> **`TRU-82CF-2F81` is KNOWN-FLAKY and accepted as such (founder call).** The gate is
+> the other **7** claims. It reports `cassette_drift` (~12 misses, all ordinary evidence
+> page fetches) and **cannot be re-golded**: replay has no network latency, so the
+> pipeline gets further through its fetch queue inside `CLAIM_TIMEOUT=45s` than any live
+> run does, and requests pages the recording never reached. The request set depends on
+> wall-clock timing rather than on the cassette, so re-recording never converges — it was
+> tried, and misses went 9 → 8 → 12 across passes.
+>
+> **Do NOT "fix" this by making missed evidence fetches non-fatal.** That would weaken the
+> drift guard across the whole corpus to buy a green tick. Its golden is still the
+> 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
+>
+> So: **`135 ok / 2 warn / 1 fail` is the current PASS state.** Anything worse is a real
+> regression. Full reasoning in `audit/OPEN_WORK.md`, 2026-07-30.
+
 Frozen 5-claim regression corpus. Run `python scripts/replay_bench.py --all` before
 every commit on Phase B / B5 / Phase C work. Catches regressions of the
 "changed-stage-X-broke-stage-Y" class (e.g. NF-21, where Session B's Pydantic

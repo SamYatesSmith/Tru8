@@ -1,114 +1,140 @@
 {
- "claim_id": "TRU-5647-FA4F",
- "captured_at": "2026-07-21T10:08:20.976529+00:00",
- "captured_with": "fdf3509",
- "captured_with_known_bugs": [],
- "notes": "Auto-derived golden — review and tune tolerances/must-haves by hand. | 2026-07-21 re-gold: claim-integrity change (audit/CLAIM_INTEGRITY.md par-4a) -- E recombination (single-sentence text inputs now ONE intact claim: B4A3 2-to-1 claims, C1A0-0004 2-to-1) + B context-carry + causal-element decompose rule changed element wording/queries corpus-wide. Also pays off the owed F7 re-gold (2026-07-09 retrieval ships were never re-golded). MONITOR: B4A3 claim-0 primary-tier items 5-to-0 across this window (BoE/DMO fetched but excluded by scoring; pool now press/commentary) -- sits on the known UK-adapter 0-yield ceiling row in OPEN_WORK.",
- "hard_invariants": {
-  "classifier_inject": {
-   "primary": "General",
-   "secondaries_must_include": [],
-   "jurisdiction_to": "UK"
+  "claim_id": "TRU-5647-FA4F",
+  "captured_at": "2026-07-30T08:47:25.599145+00:00",
+  "captured_with": "61d75c9",
+  "captured_with_known_bugs": [],
+  "notes": "Auto-derived golden \u2014 review and tune tolerances/must-haves by hand.",
+  "hard_invariants": {
+    "freshness_inject_must_fire_on_claims": [
+      0,
+      1
+    ],
+    "must_have_url_substrings": [],
+    "must_not_have_url_substrings": [],
+    "expected_adapters_subset": [],
+    "coverage_recovery_failures_max": 6,
+    "v3_quality_floors": {
+      "unique_domains_min": 5,
+      "top_domain_share_max": 0.45,
+      "wikipedia_share_max": 0.4,
+      "factual_weight_share_min": 0.15,
+      "element_resolution_min": 0.3
+    },
+    "v3_quality_warn_band": {
+      "unique_domains_min": 7,
+      "top_domain_share_max": 0.3,
+      "wikipedia_share_max": 0.25,
+      "factual_weight_share_min": 0.25,
+      "element_resolution_min": 0.5
+    },
+    "coverage_recovery_must_not_timeout": true
   },
-  "must_have_url_substrings": [],
-  "must_not_have_url_substrings": [],
-  "expected_adapters_subset": [],
-  "coverage_recovery_failures_max": 6,
-  "v3_quality_floors": {
-   "unique_domains_min": 5,
-   "top_domain_share_max": 0.45,
-   "wikipedia_share_max": 0.4,
-   "factual_weight_share_min": 0.15,
-   "element_resolution_min": 0.3
+  "tolerant_counters": {
+    "sources_included": {
+      "value": 22,
+      "tolerance": 8
+    },
+    "claims": {
+      "value": 2,
+      "tolerance": 1
+    },
+    "elements": {
+      "value": 5,
+      "tolerance": 3
+    },
+    "web_search": {
+      "value": 45,
+      "tolerance": 8
+    },
+    "api_adapters": {
+      "value": 4,
+      "tolerance": 8
+    },
+    "tier_primary": {
+      "value": 10,
+      "tolerance": 5
+    },
+    "tier_commentary": {
+      "value": 7,
+      "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 5,
+      "tolerance": 4
+    }
   },
-  "v3_quality_warn_band": {
-   "unique_domains_min": 7,
-   "top_domain_share_max": 0.3,
-   "wikipedia_share_max": 0.25,
-   "factual_weight_share_min": 0.25,
-   "element_resolution_min": 0.5
-  },
-  "coverage_recovery_must_not_timeout": true
- },
- "tolerant_counters": {
-  "sources_included": {
-   "value": 16,
-   "tolerance": 8
-  },
-  "claims": {
-   "value": 2,
-   "tolerance": 1
-  },
-  "elements": {
-   "value": 5,
-   "tolerance": 3
-  },
-  "web_search": {
-   "value": 32,
-   "tolerance": 8
-  },
-  "api_adapters": {
-   "value": 2,
-   "tolerance": 8
-  },
-  "tier_primary": {
-   "value": 9,
-   "tolerance": 4
-  },
-  "tier_commentary": {
-   "value": 5,
-   "tolerance": 4
-  },
-  "tier_reporting": {
-   "value": 2,
-   "tolerance": 4
+  "set_jaccard": {
+    "url_ledger_flat": {
+      "golden": [
+        "https://centaur.reading.ac.uk/122041/10/Weather%20-%202025%20-%20Burt%20-%20Evaluation%20and%20verification%20of%20new%2",
+        "https://civilbeat.org/2026/03/hawai%CA%BBi-governor-estimates-storm-damage-has-already-hit-1-billion/",
+        "https://community.netweather.tv/topic/99812-july-2022-heatwave-403c-all-time-uk-record-high-temperature/",
+        "https://comptroller.nyc.gov/reports/ten-years-after-sandy/",
+        "https://doi.org/10.1016/j.heliyon.2023.e15277",
+        "https://doi.org/10.1016/j.jeem.2023.102915",
+        "https://doi.org/10.1016/j.trd.2023.104034",
+        "https://doi.org/10.1111/poms.13681",
+        "https://doi.org/10.1371/journal.pstr.0000028",
+        "https://doi.org/10.3390/ijerph19042189",
+        "https://eciu.net/analysis/briefings/climate-impacts/flood-risk-and-the-uk",
+        "https://laedc.org/wp-content/uploads/2025/02/LAEDC_2025-LA-Wildfires-Study_090525-UPDATE.pdf",
+        "https://onebillionresilient.org/hot-cities-chilled-economies-london/",
+        "https://open-meteo.com/en/docs#latitude=51.51&longitude=-0.13",
+        "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7669",
+        "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7709",
+        "https://www.accuweather.com/en/severe-weather/storm-eunice-storm-dudley-uk-europe-winds-flooding/1144745",
+        "https://www.actuarialpost.co.uk/article/overcoming-the-storm-22863.htm",
+        "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
+        "https://www.artemis.bm/news/storm-desmond-uk-floods-insured-loss-1bn-717m-perils/",
+        "https://www.barrons.com/news/extreme-weather-caused-165-billion-in-us-damage-in-2022-officials-01673368511",
+        "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
+        "https://www.carbonbrief.org/guest-post-a-met-office-review-of-the-uks-record-breaking-summer-in-2022",
+        "https://www.climate.gov/news-features/blogs/beyond-data/2024-active-year-us-billion-dollar-weather-and-climate-disasters",
+        "https://www.climatecentral.org/climate-services/billion-dollar-disasters",
+        "https://www.cnbc.com/2022/07/19/heatwave-uk-logs-hottest-day-on-record-with-temperature-hitting-102point4-f.html",
+        "https://www.gov.uk/government/publications/heat-mortality-monitoring-reports/heat-mortality-monitoring-report-2022",
+        "https://www.housing-ombudsman.org.uk/decisions/london-borough-of-hackney-202219315/",
+        "https://www.internetgeography.net/geotopics/extreme-weather-in-the-uk-2022-heatwave-case-study/",
+        "https://www.lse.ac.uk/granthaminstitute/extreme-heat-preparedness-and-resilience-in-the-uk/",
+        "https://www.lse.ac.uk/granthaminstitute/wp-content/uploads/2022/05/What-will-climate-change-cost-the-UK-risks-impacts-mi",
+        "https://www.metoffice.gov.uk/about-us/news-and-media/media-centre/weather-and-climate-news/2022/july-heat-review",
+        "https://www.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/weather/learn-about/uk-past-events/interesting/2",
+        "https://www.nature.com/articles/s41467-023-41888-1",
+        "https://www.ncei.noaa.gov/access/billions/",
+        "https://www.osbm.nc.gov/hurricane-helene-dna/open",
+        "https://www.pbs.org/newshour/nation/climate-change-helped-fuel-18-billion-dollar-disasters-in-2022-noaa-says",
+        "https://www.reddit.com/r/UKWeather/comments/1s8eyj6/remember_the_heat_wave_of_2022/",
+        "https://www.reddit.com/r/dataisbeautiful/comments/1023pd7/summary_of_uk_weather_and_climate_in_2022_it_was/",
+        "https://www.weather.gov/media/rnk/Newsletter/22FA-2022_UK_july_heatwave.pdf",
+        "https://www.worldweatherattribution.org/without-human-caused-climate-change-temperatures-of-40c-in-the-uk-would-have-bee"
+      ],
+      "min_similarity": 0.4
+    },
+    "domain_set": {
+      "golden": [
+        "accuweather.com",
+        "artemis.bm",
+        "bbc.com",
+        "carbonbrief.org",
+        "centaur.reading.ac.uk",
+        "climate.gov",
+        "climatecentral.org",
+        "cnbc.com",
+        "community.netweather.tv",
+        "gov.uk",
+        "internetgeography.net",
+        "lse.ac.uk",
+        "metoffice.gov.uk",
+        "ncei.noaa.gov",
+        "onebillionresilient.org",
+        "open-meteo.com",
+        "pbs.org",
+        "reddit.com",
+        "rmets.onlinelibrary.wiley.com",
+        "weather.gov",
+        "worldweatherattribution.org"
+      ],
+      "min_similarity": 0.45
+    }
   }
- },
- "set_jaccard": {
-  "url_ledger_flat": {
-   "golden": [
-    "https://en.wikipedia.org/wiki/2022_European_heatwaves",
-    "https://en.wikipedia.org/wiki/2022_United_Kingdom_heatwaves",
-    "https://en.wikipedia.org/wiki/2024_Central_European_floods",
-    "https://en.wikipedia.org/wiki/2025_European_heatwaves",
-    "https://en.wikipedia.org/wiki/2026_European_heatwaves",
-    "https://en.wikipedia.org/wiki/Boris_Johnson",
-    "https://en.wikipedia.org/wiki/Floods_in_the_United_States_(2000%E2%80%93present)",
-    "https://en.wikipedia.org/wiki/Grenfell_Tower_fire",
-    "https://en.wikipedia.org/wiki/Hurricane_Ida",
-    "https://en.wikipedia.org/wiki/List_of_major_power_outages",
-    "https://pacinst.org/the-growing-threat-of-catastrophic-flooding-in-rural-america/",
-    "https://rmets.onlinelibrary.wiley.com/doi/10.1002/wea.7741",
-    "https://www.anderson.ucla.edu/about/centers/ucla-anderson-forecast/economic-impact-los-angeles-wildfires",
-    "https://www.bbc.com/weather/articles/cwyq0k3nq2yo",
-    "https://www.climate.gov/news-features/blogs/beyond-data/2024-active-year-us-billion-dollar-weather-and-climate-disasters",
-    "https://www.climatecentral.org/climate-matters/2025-in-review",
-    "https://www.metoffice.gov.uk/blog/2026/how-has-summer-warmth-changed-in-the-uk",
-    "https://www.ncei.noaa.gov/access/billions/",
-    "https://www.osbm.nc.gov/hurricane-helene-dna/open",
-    "https://www.redcross.org.uk/stories/disasters-and-emergencies/uk/what-is-a-heatwave",
-    "https://www.tandfonline.com/doi/full/10.1080/17524032.2025.2458219",
-    "https://www.theguardian.com/environment/2026/jun/24/uk-records-hottest-june-day"
-   ],
-   "min_similarity": 0.35
-  },
-  "domain_set": {
-   "golden": [
-    "anderson.ucla.edu",
-    "bbc.com",
-    "climate.gov",
-    "climatecentral.org",
-    "en.wikipedia.org",
-    "gov.uk",
-    "metoffice.gov.uk",
-    "ncei.noaa.gov",
-    "pacinst.org",
-    "redcross.org.uk",
-    "rmets.onlinelibrary.wiley.com",
-    "tandfonline.com",
-    "theguardian.com"
-   ],
-   "min_similarity": 0.3
-  }
- }
 }
