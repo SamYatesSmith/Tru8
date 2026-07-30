@@ -3,7 +3,10 @@
 > **This is the single source of truth for the decoupling track.** Every row is
 > confirmed against the CODE and git, not against any plan or memory. Where a
 > plan or memory disagrees with this file, this file wins (and the plan is an
-> archive candidate). Last reconciled: **2026-07-29** — **Phase 3a (element atomicity)
+> archive candidate). Last reconciled: **2026-07-30** — **F7 bench re-gold DONE `f6fd038`**
+> (bench-gating available again; baseline **135 ok / 2 warn / 1 fail**), and the **factual-path
+> atomicity question MEASURED and DECLINED at 0.8%** — see "2026-07-30" below. Prior state
+> **2026-07-29** — **Phase 3a (element atomicity)
 > BUILT `2d77e7b`** and **D3 CLOSED as no-build**; see the two entries directly below.
 > Prior state **2026-07-27** — detector LIVE-VERIFIED on 4 checks
 > (F-VERDICT breach not reproduced; over-correction guard held; positive-valence symmetry
@@ -21,6 +24,40 @@
 > and the halt/uncommitted framing in the `project_non_sycophancy_invariant`
 > memory, both of which froze at the 2026-07-16 halt and never reconciled with
 > the 2026-07-17 ship.
+
+## 2026-07-30 — F7 re-gold done; factual-path atomicity measured and DECLINED
+
+**Everything through Phase 3a is PUSHED and therefore live** — `HEAD == origin/main`, verified
+by fetch. Entries below that read "committed not pushed" are historical.
+
+**Factual-path atomicity: MEASURED, and the answer is do-not-build.** Phase 3a deliberately left
+the factual path alone with the rate unmeasured, and warned against assuming it mirrored the
+grounds path. It does not. `scripts/compound_element_census.py` over 326 local claims / 984
+elements: **0.8% compound (8/984)**, loose upper bound 11.7%, against **21.2%** on the grounds
+path — roughly 26× lower. The 8 real hits are predicate coordination (*"Historical records …
+exist **and are accurate**"*, *"Copyright law exists **and is applicable**"*): the same failure
+mode, where the mapper can badge `supported` off the trivially-true half, but far too rare to
+justify touching `DECOMPOSITION_PROMPT` and the retrieval budget on the path that demonstrably
+works. **Closed as measured-and-declined, not as done.** Caveat: that DB holds **0
+question-shaped elements**, so it is a clean read of the factual path and says nothing about
+grounds.
+
+**F7 re-gold done (`f6fd038`), bench-gating restored.** Baseline **135 ok / 2 warn / 1 fail**.
+The blocker was never cassette drift — the bench writes a `Check` row before any stage runs, so
+it needs Postgres, and virtualisation was off in firmware. Two findings worth carrying:
+- **The goldens are the first corpus-wide evidence Phase 2 improved quality, not just changed
+  it.** Primary-tier evidence rose on every claim (2→10, 6→11, 7→11, 4→9, 0→4, 1→3) while
+  reporting/commentary fell by roughly the same amount — substitution, not a bigger pool.
+  Searching a claim's sub-questions finds the official record; searching its own sentence finds
+  coverage *about* it. Invisible until the goldens were re-derived.
+- **⚠️ Element counts FELL on 4 of 8 claims** (3→1 on `TRU-A3E8-3199`) and passed silently
+  because the counter tolerance is 3. Decompose is upstream of everything Phase 1/2/3a touched
+  and the goldens were 9 days old, so this is most likely model drift — but a narrower claim map
+  means fewer retrieval lanes, which works directly against what Phase 2 buys. **Worth a look
+  before Phase 3 tunes the mapper on this pool.**
+- `TRU-82CF-2F81` accepted **KNOWN-FLAKY** (founder call): replay has no network latency, so the
+  pipeline out-runs the recording's fetch queue and asks for pages it never reached. Timing-
+  dependent, so re-recording never converges. Do **not** make missed evidence fetches non-fatal.
 
 ## 2026-07-29 — Phase 3a: element atomicity (`2d77e7b`, committed not pushed)
 
@@ -100,7 +137,9 @@ confirm/adjust the exact words.)*
 | Slice 3 — grounds-aware mapping semantics | **SHIPPED** `71e441d` | addendum `claim_map_analyzer.py:259-283`; gate `_grounds_applied` `:286-298`; applied `:1187, 2178`, batch routing `:1359-1369` |
 | Slice 4 — single-claim confirm UI | **NULL — never built, now cancelled** with the confirm-pause drop | absent from `web/` |
 | D1 hardening — one-sided-pool tripwire / per-element evidence floor / disconfirm-aware recovery | **DEFERRED (post-release)** — absent from code by design | grep `app/` → no matches |
-| Phase 3a — element atomicity (repair + `[COMPOUND]` mapper backstop) | **BUILT `2d77e7b` 2026-07-29** — 21.2% → 0.0%. Rollback `ENABLE_ELEMENT_ATOMICITY=False` | `app/utils/atomicity.py`; repair `opinion_symmetry.py` (before the lock); tag + addendum `claim_map_analyzer.py` |
+| Phase 3a — element atomicity (repair + `[COMPOUND]` mapper backstop) | **BUILT `2d77e7b` 2026-07-29, PUSHED/LIVE** — 21.2% → 0.0%. Rollback `ENABLE_ELEMENT_ATOMICITY=False`. ⚠️ Verification was not independent | `app/utils/atomicity.py`; repair `opinion_symmetry.py` (before the lock); tag + addendum `claim_map_analyzer.py` |
+| Phase 3a — factual-path atomicity | **MEASURED 2026-07-30 → DECLINED, no build.** 0.8% (8/984), not the 21.2% of the grounds path | `scripts/compound_element_census.py`; `DECOMPOSITION_PROMPT:187` unchanged |
+| F7 replay-bench re-gold (gates all bench-gated work) | **DONE `f6fd038` 2026-07-30** — baseline **135 ok / 2 warn / 1 fail**; `TRU-82CF-2F81` known-flaky | `tests/replay_corpus/*/golden.json`; recorder fix `bed4da0` |
 | Tests | **PASS — 45 + 36 (atomicity)** | `test_opinion_reframe.py`, `test_opinion_symmetry.py`, `test_grounds_mapping.py`, `test_element_atomicity.py` |
 
 ## LIVE VERIFICATION 2026-07-27 — detector CONFIRMED; Bug B has 3 witnesses
@@ -295,8 +334,14 @@ cannot. Needs prod credentials (`railway run …`); **UNRUN**.
 **⚠️ SUPERSEDED by the 3-phase plan below (2026-07-27 cont. 2).** Bug B turned out to be
 three defects in a chain, and the largest is NOT decoupling-owned — element-level retrieval
 has never run (`audit/2026-07-27_element_retrieval_design.md`). Current order:
-**Phase 1 mechanical honesty ✅ SHIPPED `007cf5c` → Phase 2 retrieval seam → re-measure →
-Phase 3 mapper answeredness + `_grounds_applied` precision + `P1` → `F-MMR-POOL`.**
+**Phase 1 mechanical honesty ✅ SHIPPED `007cf5c` → Phase 2 retrieval seam ✅ SHIPPED `36d3f4e`
+(+ claim-lane repair `7bc670a`) → Phase 3a element atomicity ✅ `2d77e7b` → F7 bench re-gold
+✅ `f6fd038` → ⬅ WE ARE HERE → Phase 3 mapper answeredness + `_grounds_applied` precision +
+`P1` → `F-MMR-POOL`.**
+**Phase 3 must be tuned on the POST-Phase-2 pool only** — the pool it will judge is now
+primary-heavy in a way it was not when Bug B was witnessed, so pre-Phase-2 evidence about
+mapper behaviour is void. Check the element-count drop (4 of 8 corpus claims, one 3→1) before
+tuning: fewer elements means fewer lanes, which shrinks the very pool Phase 3 is being fitted to.
 Phase 1 detail: `audit/2026-07-27_phase1_mechanical_honesty_design.md`.
 
 Prior wording, kept for the reasoning:
@@ -407,7 +452,11 @@ described them as open are superseded by this section.
   1. **No live check.** `TRU-52FB-DDC3` has never been re-run end-to-end. The
      detector is verified; **the outcome it exists to change is not.** Paraphrase
      the input — identical text replays the 1h/6h/24h caches.
-  2. **Replay bench 6 rounds stale** — folds into the owed F7 re-gold below.
+  2. ~~**Replay bench 6 rounds stale** — folds into the owed F7 re-gold below.~~
+     **✅ CLOSED 2026-07-30 — F7 re-gold done (`f6fd038`).** Bench re-baselined to
+     **135 ok / 2 warn / 1 fail**, which is the new pass state. Bench-gating is
+     available again. Caveat: it is a *retrieval*-quality gate, not a decoupling
+     one — the corpus is factual, so it does not exercise the grounds path.
   3. **Telemetry branch unexecuted** — needs a real decompose result.
 - **FOUNDER CALLS still open:** (a) `_TERMINAL` admits `,` `;` `:`, so "was a
   catastrophe, killing 3,787 people" still fires — not free to fix, the same change
@@ -416,15 +465,21 @@ described them as open are superseded by this section.
   not an engineering one; (c) the attribution word list is simultaneously too wide
   (13/14 over-suppression) and too narrow (11/15 leak) — closing it needs syntax.
 
-### Known consequence of the flip — replay bench cassettes
-The cassette matching key is `sha256(request body)` and the Rule 6 exception
+### Known consequence of the flip — replay bench cassettes → ✅ RESOLVED 2026-07-30
+~~The cassette matching key is `sha256(request body)` and the Rule 6 exception
 enters the extraction system prompt on EVERY check, so replay **hard-misses on
-the extract call for every bench claim** under the new default. This is a
-prompt-BYTES change, not proven behaviour drift (Battery A shows extraction
-output unchanged on ordinary content). Until a re-record pass:
-run the bench with `ENABLE_OPINION_REFRAME=False` to exercise the
-flag-independent stages. A re-record re-baselines the 147/3/3 reference, so it
-is a founder call, not an automatic one. Folds into the already-owed F7 re-gold.
+the extract call for every bench claim** under the new default.~~ **Re-recorded
+in the F7 re-gold (`f6fd038`); the workaround below is obsolete — do NOT run the
+bench with `ENABLE_OPINION_REFRAME=False` any more, that now exercises the wrong
+configuration.** The old `147/3/3` reference is retired; the current baseline is
+**135 ok / 2 warn / 1 fail**, re-derived across Phase 1 + Phase 2 + the claim-lane
+repair + Phase 3a together. The re-baseline was the founder call it was flagged as
+being, and it was taken.
+
+One thing the re-gold settled that this section could not: the prompt-bytes change
+was indeed **not** behaviour drift. The measured change came from *retrieval* —
+primary-tier evidence rose on every claim while reporting/commentary fell — which
+is Phase 2's doing, not the Rule 6 exception's.
 
 ### Finding at the flip — value-predicate leak via structural coverage
 Battery B surfaced a real weakness (NOT a blocker; the flag-OFF path is
