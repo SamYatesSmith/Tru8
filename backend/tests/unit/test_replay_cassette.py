@@ -183,3 +183,46 @@ async def test_sync_and_async_share_one_cassette(
         assert r2.json()["echo"] == "sync-call"
         assert cas.stats["misses"] == 0
         assert cas.stats["hits"] == 2
+
+
+@pytest.mark.asyncio
+async def test_record_captures_non_httpx_failure(tmp_path: Path, monkeypatch):
+    """A request cut short by a cancellation must still be recorded.
+
+    Regression pin for 2026-07-30. The record paths caught only
+    httpx.HTTPError, so a request killed by an asyncio timeout, a
+    CancelledError, or the 20MB PDF guard propagated WITHOUT being appended —
+    unrecordable, and therefore a guaranteed cassette miss on every future
+    replay. It left --record-missing unable to converge on TRU-82CF-2F81.
+
+    The pin is behavioural, not structural: after recording, replay must
+    RAISE A FAILURE rather than a CassetteMiss. A miss would mean the request
+    never made it into the cassette at all.
+
+    CancelledError derives from BaseException, so `except Exception` does not
+    catch it — narrowing the handler back to Exception fails this test.
+    """
+    import asyncio
+
+    async def _cancelled_send(self, request, **kwargs):
+        raise asyncio.CancelledError()
+
+    monkeypatch.setattr(httpx.AsyncClient, "send", _cancelled_send)
+
+    cassette_path = tmp_path / "cassette.json"
+    with pytest.raises(asyncio.CancelledError):
+        with HttpxCassette(cassette_path, "record"):
+            async with httpx.AsyncClient() as c:
+                await c.get("https://slow.example/annual-report.pdf")
+
+    body = json.loads(cassette_path.read_text(encoding="utf-8"))
+    entries = [e for v in body["interactions"].values() for e in v]
+    assert any(e.get("_exception") == "CancelledError" for e in entries), (
+        "cancelled request was not recorded — it will miss forever on replay"
+    )
+
+    # And it is now replayable: a deterministic failure, NOT a miss.
+    with HttpxCassette(cassette_path, "replay"):
+        async with httpx.AsyncClient() as c:
+            with pytest.raises(httpx.HTTPError):
+                await c.get("https://slow.example/annual-report.pdf")

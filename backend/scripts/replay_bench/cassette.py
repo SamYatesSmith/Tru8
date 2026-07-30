@@ -289,11 +289,27 @@ class HttpxCassette:
         assert HttpxCassette._orig_send is not None
         try:
             response = await HttpxCassette._orig_send(client, request, **kwargs)
-        except httpx.HTTPError as exc:
-            # Record transport failures too (timeouts, refused connections):
-            # otherwise a URL that fails live is never captured, and replay
-            # misses on it forever (e.g. hard-blocking hosts like WaPo).
-            # Replay re-raises an equivalent exception — same pipeline path.
+        except (KeyboardInterrupt, SystemExit):
+            # Operator aborting the run is not pipeline behaviour — never store it.
+            raise
+        except BaseException as exc:
+            # Record ANY failed request, not just transport failures: otherwise a
+            # URL that fails live is never captured, and replay misses on it
+            # forever (e.g. hard-blocking hosts like WaPo).
+            #
+            # WIDENED 2026-07-30 from `except httpx.HTTPError`. That was too
+            # narrow: a request cut short by an asyncio timeout, a CancelledError,
+            # or the 20MB PDF guard raises something that is NOT an httpx error,
+            # so it propagated here without ever being appended — unrecordable,
+            # and therefore a guaranteed miss on every future replay. It made
+            # --record-missing unable to converge on TRU-82CF-2F81 (9 -> 8 misses
+            # across two live patch passes, while hits climbed 66 -> 74) and the
+            # cassette held zero exception entries. Note CancelledError derives
+            # from BaseException, so `except Exception` would still miss it.
+            #
+            # Replay re-raises an equivalent exception — same pipeline path. An
+            # unknown name falls back to httpx.ConnectError in _replay, i.e. "this
+            # fetch yielded nothing", which is what the golden actually recorded.
             entry = {
                 "_exception": type(exc).__name__,
                 "_url": _redact_url(request),
@@ -332,7 +348,10 @@ class HttpxCassette:
         assert HttpxCassette._orig_send_sync is not None
         try:
             response = HttpxCassette._orig_send_sync(client, request, **kwargs)
-        except httpx.HTTPError as exc:
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except BaseException as exc:
+            # Same widening as the async twin — see _record for the reasoning.
             entry = {
                 "_exception": type(exc).__name__,
                 "_url": _redact_url(request),
