@@ -4,7 +4,31 @@
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
-**2026-07-30 — ✅ F7 RE-GOLD DONE (7 of 8 claims). Bench went `128 ok / 19 warn / 6 fail` → `135 ok / 2 warn / 1 fail`.** Ran the register's 4-step runbook. Steps 1 and 2 returned **byte-identical** reports, which is the proof the patch pass exists to give: replay reproduces the live run exactly. Goldens + cassettes rewritten in the working tree, **not committed** pending the decisions below.
+**2026-07-31 — ✅ ELEMENT-COUNT FALL RESOLVED: it is NOT model drift and NOT a regression — it is fewer, better elements. Item 3 of the re-gold's absorbed trio is CLOSED; the gate on Phase 3 is lifted.** Probe: `backend/scripts/element_count_drift_probe.py` (decompose only, no retrieval/mapping, 3 runs per claim, A/B on `source_context`).
+
+**The register's diagnosis was wrong on cause.** It reasoned that decompose (45%) is upstream of retrieve (60%) and therefore "Phase 1/2/3a cannot reach it → most likely LLM drift → independent of our work". Upstream is not the same as untouched: the old goldens were captured on `fdf3509` (2026-07-20 code), and **`fa35465` + `2b8b8a9` — the claim-integrity commits — landed AFTER that and changed the shared factual `DECOMPOSITION_PROMPT` path** (source-context anchoring, causal-link rule, comparison-baseline rule). So a real code change sits between the two captures. Verified: `git merge-base --is-ancestor fa35465 fdf3509` → false.
+
+**Measured, not inferred.** Counts are **stable across runs at the lower value**, which rules out nondeterminism as the explanation:
+
+| claim | golden (07-21) | now, with anchoring | now, `--no-context` | read |
+|---|---|---|---|---|
+| TRU-A3E8-3199 | 3 (re-gold caught 1) | **2, 2, 2** | 3, 3, 2 | anchoring is the cause |
+| TRU-C1A0-0001 | 3 | **2, 2, 2** | 2, 2, 2 | complete at 2 either way |
+| TRU-93DD-F4B7 | 3 | **2, 2, 2** | 2, 2, 2 | complete at 2 either way |
+| TRU-B4A3-C42D | 4 | 4, 3, 4 | 4, 4, 3 | genuine noise, not a fall |
+| TRU-C1A0-0003 / -0004 | 3 / 3 | 3, 3, 3 | 3, 3, 3 | controls held |
+
+**The direction is an improvement, and the element TEXT is the proof — which is why the probe prints it rather than only counting.** Un-anchored, `TRU-A3E8-3199` ("Great white sharks are starting to inhabit British waters") decomposes into *"Great white sharks are a species of shark"* (tautology), *"British waters are geographically defined as the waters surrounding the United Kingdom"* (a dictionary definition, not a checkable element) and *"There is evidence of great white sharks being present in British waters"* — **which drops "starting to", the load-bearing qualifier of the whole claim.** Anchored, it decomposes into *"Great white sharks are observed in British waters"* + *"The presence … is a recent or increasing phenomenon."* **Two elements, no padding, and the trend is finally captured.** This is the near-tautology padding class logged on 2026-07-25 ("Teacher-training courses exist.", "The learning-styles theory exists.") being closed as a side-effect of claim integrity.
+
+**So the "narrower claim map = fewer retrieval lanes" worry does not bite.** The lanes that disappeared were a tautology and a definition; spending a retrieval lane on *"British waters are the waters surrounding the UK"* is pure waste. Fewer, better-aimed lanes is consistent with the primary-tier rise the re-gold measured — the two findings agree rather than conflict.
+
+**⚠️ One residual, carried into Phase 3: the `TRU-A3E8-3199` golden records 1 element, but current stable behaviour is 2.** That golden captured an unlucky run and is unrepresentative. **Do not tune the mapper against it** — the Phase 3 pool for that claim should be re-derived or excluded.
+
+**Items 1 and 2 of the trio remain OPEN** (deleted classifier-inject guard; `TRU-C1A0-0004` Climate secondary eviction). Neither gates Phase 3.
+
+**SAME DAY — SOT drift reconciled (3 items, each verified against evidence, not assumed):** (1) this register's own top block said the goldens were *"rewritten in the working tree, not committed"* — they were committed in `f6fd038` and pushed; corrected. (2) `.claude/CLAUDE.md` said the suite was *"1,118 collected, 1,068 pass, 13 skip"* — measured **3,050 collected / 2,981 pass / 69 skip / 0 fail** in 93s with Redis+Postgres up; corrected, and the invocation now records that the stack must be up or ~26 cache/perf tests fail on connection-refused rather than on logic. (3) `.claude/CLAUDE.md` said Console + credit-pack Stripe products were *"TEST mode only … live mode pending"* — **Stripe went LIVE 2026-07-13** (`f51c59d`, `3649901`, both in history; live price IDs, live webhook `we_1TEtiA`, real £3 purchase smoke-tested per this register's 2026-07-13 entry); corrected, with the `2025-09-30.clover` renewal watch carried across. **There is exactly ONE `CLAUDE.md` in this project — `.claude/CLAUDE.md`, tracked in git. No root, backend, web or global copy exists**, so there is no second file to drift against.
+
+**2026-07-30 — ✅ F7 RE-GOLD DONE (7 of 8 claims). Bench went `128 ok / 19 warn / 6 fail` → `135 ok / 2 warn / 1 fail`.** Ran the register's 4-step runbook. Steps 1 and 2 returned **byte-identical** reports, which is the proof the patch pass exists to give: replay reproduces the live run exactly. Goldens + cassettes rewritten and **COMMITTED `f6fd038`** (recorder fix `bed4da0`), pushed. The recommendation below was taken: the re-derived goldens stand, and the three absorbed items are carried here as named open work rather than as permanent reds in the bench.
 
 **📈 THE HEADLINE, and it is not the green tick — the evidence pool moved decisively toward PRIMARY sources.** Consistent across the corpus, in the same direction, on every claim:
 
@@ -20,7 +44,7 @@
 
 This is exactly what element-level retrieval was built to do: searching a claim's *sub-questions* surfaces the official record, where searching the claim's own sentence surfaced coverage *about* it. **It is the first corpus-wide evidence that Phase 2 improved evidence quality rather than merely changing it** — and it was invisible until the goldens were re-derived. Reporting/commentary fell as primary rose, so this is substitution, not just a bigger pool.
 
-**⚠️ Three things the re-gold silently absorbed — each needs a call before this is committed:**
+**⚠️ Three things the re-gold silently absorbed — STILL OPEN, each needs a call. Item 3 gates Phase 3 (see the 2026-07-31 entry above).**
 1. **A guard was DELETED, not updated.** `golden_io.py:55` is `if classifier_inject:` — so when a run emits no inject line, the invariant **vanishes** instead of being rewritten. `TRU-5647-FA4F` lost `{primary: General, jurisdiction_to: UK}` entirely, and that fixture's stated purpose includes *"Climate routing"*. Auto-derivation cannot distinguish "this guard is obsolete" from "this guard stopped being checked".
 2. **`TRU-C1A0-0004` lost its Climate secondary** — `[Climate, Law]` → `[Finance, Law]`, with `removed: ["Climate"]`. The claim is the Inflation Reduction Act *"$369 billion for climate and energy programmes"*; losing Climate de-routes the climate adapters. Cause is the 2-slot secondary cap evicting the non-entity-backed label (`article_classifier.py:380-388`).
 3. **Element counts FELL on 4 of 8 claims** (3→1 on `TRU-A3E8-3199`), and **passed silently because the tolerance is 3**. Narrower claim map = fewer retrieval lanes = the opposite of what Phase 2 buys.

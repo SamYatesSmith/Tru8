@@ -50,11 +50,19 @@ it needs Postgres, and virtualisation was off in firmware. Two findings worth ca
   reporting/commentary fell by roughly the same amount — substitution, not a bigger pool.
   Searching a claim's sub-questions finds the official record; searching its own sentence finds
   coverage *about* it. Invisible until the goldens were re-derived.
-- **⚠️ Element counts FELL on 4 of 8 claims** (3→1 on `TRU-A3E8-3199`) and passed silently
-  because the counter tolerance is 3. Decompose is upstream of everything Phase 1/2/3a touched
-  and the goldens were 9 days old, so this is most likely model drift — but a narrower claim map
-  means fewer retrieval lanes, which works directly against what Phase 2 buys. **Worth a look
-  before Phase 3 tunes the mapper on this pool.**
+- **~~⚠️ Element counts FELL on 4 of 8 claims~~ → RESOLVED 2026-07-31: fewer, BETTER elements.
+  Not drift, not a regression.** The "upstream of Phase 1/2/3a → therefore model drift" reasoning
+  was wrong: upstream ≠ untouched. The old goldens were captured on `fdf3509`, and the
+  claim-integrity commits `fa35465`/`2b8b8a9` land **after** it, changing the shared factual
+  decompose path (source-context anchoring). Counts are **stable across 3 runs at the lower
+  value** — nondeterminism ruled out — and an A/B on `source_context`
+  (`scripts/element_count_drift_probe.py`) shows what the lost elements were: un-anchored,
+  `TRU-A3E8-3199` yields *"Great white sharks are a species of shark"*, *"British waters are …
+  the waters surrounding the United Kingdom"*, and a third that **drops "starting to"** — the
+  claim's load-bearing qualifier. Anchored, it yields two elements that keep the trend. The
+  vanished lanes were a tautology and a dictionary definition, so "fewer lanes" costs nothing
+  and agrees with the primary-tier rise. **Residual for Phase 3: the `TRU-A3E8-3199` golden
+  records 1 element against a stable 2 — an unlucky capture; do not tune the mapper against it.**
 - `TRU-82CF-2F81` accepted **KNOWN-FLAKY** (founder call): replay has no network latency, so the
   pipeline out-runs the recording's fetch queue and asks for pages it never reached. Timing-
   dependent, so re-recording never converges. Do **not** make missed evidence fetches non-fatal.
