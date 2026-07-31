@@ -393,16 +393,40 @@ above); if it addresses none substantively, leave it unmapped.
 
 
 def _grounds_applied(claim_map: Dict[str, Any]) -> bool:
-    """True iff the opinion grounds stage rebuilt this claim_map's elements
-    (§20 slice 2). Reading the map's own marker needs no type_hint threading;
-    flag off → the key never exists → prompts byte-identical. Total over
-    hostile shapes: this runs on EVERY mapping call, so a corrupt metadata
-    must degrade to False, never raise (slice-3 verify OBSERVATION-2)."""
+    """True iff this claim_map's elements are QUESTION-shaped grounds.
+
+    §20 slice 2 originally read only `applied`, which asks whether the grounds
+    STAGE RAN — not whether the elements it left behind are questions. On the
+    lock-collapse path the value-predicate lock empties the rebuilt set and
+    `apply_grounds_stage` restores the BASELINE ASSERTION elements, yet still
+    marks `applied: True`. Every consumer of this predicate then mistreated
+    those assertions: they were given `GROUNDS_MAPPING_ADDENDUM` (which tells
+    the mapper to grade whether/extent questions), judged against the
+    question-shaped `GROUNDS_MIN_WEIGHTED_SUPPORT` floor, and had their
+    orientation suppressed as if summing them would read as a verdict on an
+    opinion. Carried from Phase 1 §4b to be fixed once, here, for all sites.
+
+    NOT `applied and converged`, which §4b tentatively suggested: `converged`
+    is also False for a set that is genuinely question-shaped but thinner than
+    BREADTH_FLOOR (`test_thin_set_discloses_not_fails`). Keying on it would
+    strip the addendum, the floor and the suppression from real questions —
+    a worse bug than the one being fixed. The collapse is therefore disclosed
+    on its own key.
+
+    Back-compatible by construction: a claim_map stored before `collapsed`
+    existed has no such key, reads as not-collapsed, and keeps exactly its
+    current behaviour.
+
+    Total over hostile shapes: this runs on EVERY mapping call, so a corrupt
+    metadata must degrade to False, never raise (slice-3 verify OBSERVATION-2).
+    """
     metadata = claim_map.get("metadata")
     if not isinstance(metadata, dict):
         return False
     grounds = metadata.get("grounds")
     if not isinstance(grounds, dict):
+        return False
+    if grounds.get("collapsed") is True:
         return False
     return grounds.get("applied") is True
 

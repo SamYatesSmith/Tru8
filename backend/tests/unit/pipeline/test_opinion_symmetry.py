@@ -209,6 +209,33 @@ async def test_lock_collapse_restores_baseline_but_discloses():
     g = cm["metadata"]["grounds"]
     assert g["applied"] is True
     assert g["converged"] is False, "lock collapse must be disclosed"
+    # Phase 3 (P3-A): disclosed on its OWN key, because `converged` is also
+    # False for a thin-but-genuine question set and cannot carry both meanings.
+    assert g["collapsed"] is True, "lock collapse must be distinguishable"
+
+
+@pytest.mark.asyncio
+async def test_collapsed_is_false_when_the_rebuild_actually_produced_questions():
+    """P3-A guard: `collapsed` must mark the LOCK path only. A normal rebuild
+    discloses collapsed=False, so the predicate that reads it cannot quietly
+    demote every grounds claim to assertion handling."""
+    baseline = _baseline("baseline a")
+    handlers = {
+        DECOMPOSE: _elements(
+            "What is the documented cost of X?",
+            "What outcomes has X produced?",
+            "How does X compare with the alternatives?",
+        ),
+        ON_SUBJECT: lambda p: {
+            "assessments": [{"on_subject": True}]
+            * len([ln for ln in p.splitlines() if ln[:2].rstrip(".").isdigit()])
+        },
+        COVERAGE: lambda _p: {"covered": [True]},
+    }
+    cm = await apply_grounds_stage(StubAnalyzer(handlers), "X is a disaster", baseline)
+    g = cm["metadata"]["grounds"]
+    assert g["applied"] is True
+    assert g["collapsed"] is False, "a real rebuild must not read as collapsed"
 
 
 def test_wrap_phrase_cannot_launder_the_bare_judgement():

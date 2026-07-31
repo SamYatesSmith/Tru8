@@ -3,7 +3,11 @@
 > **This is the single source of truth for the decoupling track.** Every row is
 > confirmed against the CODE and git, not against any plan or memory. Where a
 > plan or memory disagrees with this file, this file wins (and the plan is an
-> archive candidate). Last reconciled: **2026-07-30** — **F7 bench re-gold DONE `f6fd038`**
+> archive candidate). Last reconciled: **2026-07-31** — **Phase 3 MEASURED: the mapper
+> answeredness defect did not reproduce (0 of 15 supported elements, 0 of 72 supporting refs)
+> and the headline item is DECLINED; `P3-A` (grounds predicate) BUILT** — see "2026-07-31"
+> below. **The decoupling arc's remaining build queue is now empty.** Prior state
+> **2026-07-30** — **F7 bench re-gold DONE `f6fd038`**
 > (bench-gating available again; baseline **135 ok / 2 warn / 1 fail**), and the **factual-path
 > atomicity question MEASURED and DECLINED at 0.8%** — see "2026-07-30" below. Prior state
 > **2026-07-29** — **Phase 3a (element atomicity)
@@ -24,6 +28,64 @@
 > and the halt/uncommitted framing in the `project_non_sycophancy_invariant`
 > memory, both of which froze at the 2026-07-16 halt and never reconciled with
 > the 2026-07-17 ship.
+
+## 2026-07-31 — Phase 3: answeredness MEASURED and DECLINED; P3-A built
+
+Design + full evidence: `audit/2026-07-31_phase3_mapper_answeredness_design.md`.
+
+**The defect Phase 3 existed to fix did not reproduce.** Phase 1 predicted in writing that
+`TRU-4B9D-65EA`'s elements would still read `supported` off evidence that answered nothing,
+and left it to Phase 3 to fix against the post-Phase-2 pool. Measured there
+(`scripts/mapper_answeredness_census.py`, 6 live checks, both valences, **the witness claim
+itself as entry 1**): **23 grounds elements, 15 badged `supported`, 72 supporting refs — 0
+hollow, 0 non-answering.** The mapper's own reasonings now cite hard content ("over 90% of
+those aged 12 and over", "87.4%", "£92,412 in 2016", "£87.7bn–£102.7bn"), where the witness
+said "does not specify" and "not explicitly provided".
+
+**A 0.0% earns scepticism, not a tick, so the detector was tested for blindness:** a
+deliberately broader hedge scan over all 72 reasonings returned 10, of which 8 are ordinary
+evidential hedging around hard figures. The census is not under-powered.
+
+**Why it vanished is what this file already predicted** — *"the root cause of all three is
+that the questions were never searched."* Phase 2 put answers in the pool, so the labels
+followed. **Second time in two days a defect was found already closed by an upstream
+structural fix** (factual-path atomicity was the first). On this pipeline, reaching for a
+downstream judgement tweak is usually the wrong instinct.
+
+**DECLINED, not done.** Building an answeredness gate against 0/15 and 0/72 would add a
+contract to the one path currently working, tuned on examples that no longer occur. Limits
+stated plainly: n is small (6 claims), it rules out a HIGH rate not a zero one, and an earlier
+2-claim run flagged 1 of 29 — so "rare", not "never".
+
+**Residual, monitor only (~2 of 72):** a quantitative question answered by qualitative
+evidence and filed as a full support — *"What proportion of claimants experienced significant
+difficulties…?"* supported by *"claimants were 'scared' of Universal Credit"*. The evidence
+bears on the question but not at the precision asked. Materially milder than the witness;
+re-measure if a live report shows it compounding.
+
+**P3-A BUILT — `_grounds_applied` now means "these elements are QUESTIONS".** Carried from
+Phase 1 §4b. On the lock-collapse path the value-predicate lock empties the rebuilt set,
+`apply_grounds_stage` restores the **baseline ASSERTION** elements, and the map still said
+`applied: True` — so assertions were given the question-shaped mapping addendum, judged
+against the question-shaped support floor, and had their orientation suppressed.
+
+⚠️ **Phase 1's tentative `applied and converged` would have been a WORSE bug.** `converged` is
+also False for a set that is genuinely question-shaped but thinner than `BREADTH_FLOOR` (pinned
+by the pre-existing `test_thin_set_discloses_not_fails`), so keying on it would strip all three
+behaviours from **real questions**. `converged` cannot carry two meanings; the collapse is now
+disclosed on its own `collapsed` key and the predicate reads that. Back-compatible: maps stored
+before the key existed read as not-collapsed and keep current behaviour.
+
+**Bench exposure: none** — all 8 corpus claims are factual, never take the grounds path, carry
+no `metadata.grounds`, so every corpus prompt is byte-identical. This is why the item that
+Phase 1 deferred as cassette-invalidating could ship immediately after the re-gold.
+
+**Evidence:** suite **2,986 pass / 0 fail / 69 skip**; **mutation matrix 5/5 FIRE**
+(`scripts/p3a_mutation_matrix.py`), files SHA-verified restored. The harness caught its own
+defect first — a `write_text` restore rewrote `\n` as `\r\n` on Windows and silently
+un-matched two anchors, which the SHA guard exposed.
+
+⚠️ **Verification NOT independent** — the same pass built and verified it, as with Phase 3a.
 
 ## 2026-07-30 — F7 re-gold done; factual-path atomicity measured and DECLINED
 
@@ -148,7 +210,9 @@ confirm/adjust the exact words.)*
 | Phase 3a — element atomicity (repair + `[COMPOUND]` mapper backstop) | **BUILT `2d77e7b` 2026-07-29, PUSHED/LIVE** — 21.2% → 0.0%. Rollback `ENABLE_ELEMENT_ATOMICITY=False`. ⚠️ Verification was not independent | `app/utils/atomicity.py`; repair `opinion_symmetry.py` (before the lock); tag + addendum `claim_map_analyzer.py` |
 | Phase 3a — factual-path atomicity | **MEASURED 2026-07-30 → DECLINED, no build.** 0.8% (8/984), not the 21.2% of the grounds path | `scripts/compound_element_census.py`; `DECOMPOSITION_PROMPT:187` unchanged |
 | F7 replay-bench re-gold (gates all bench-gated work) | **DONE `f6fd038` 2026-07-30** — baseline **135 ok / 2 warn / 1 fail**; `TRU-82CF-2F81` known-flaky | `tests/replay_corpus/*/golden.json`; recorder fix `bed4da0` |
-| Tests | **PASS — 45 + 36 (atomicity)** | `test_opinion_reframe.py`, `test_opinion_symmetry.py`, `test_grounds_mapping.py`, `test_element_atomicity.py` |
+| Phase 3 — mapper answeredness (headline) | **MEASURED 2026-07-31 → DECLINED, no build.** 0 hollow of 15 supported elements, 0 non-answering of 72 refs, on the post-Phase-2 pool incl. the witness claim. Residual (~2/72) = quantitative question answered qualitatively; monitor only | `scripts/mapper_answeredness_census.py`; `.mapper_answeredness_census.json` |
+| P3-A — `_grounds_applied` means "elements are QUESTIONS" | **BUILT 2026-07-31.** Lock-collapse restores baseline ASSERTIONS while `applied` stayed True, so they got the question addendum + question floor + suppressed orientation. NOT `applied and converged` (that would demote thin-but-genuine question sets); collapse disclosed on its own key. Bench-inert — corpus is all factual. ⚠️ Verification not independent | `opinion_symmetry.py` grounds_meta `collapsed`; `claim_map_analyzer.py::_grounds_applied`; `scripts/p3a_mutation_matrix.py` 5/5 |
+| Tests | **PASS — 45 + 36 (atomicity) + 5 (P3-A); full suite 2,986 pass / 0 fail / 69 skip** | `test_opinion_reframe.py`, `test_opinion_symmetry.py`, `test_grounds_mapping.py`, `test_element_atomicity.py` |
 
 ## LIVE VERIFICATION 2026-07-27 — detector CONFIRMED; Bug B has 3 witnesses
 

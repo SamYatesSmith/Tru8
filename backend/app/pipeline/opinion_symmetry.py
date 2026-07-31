@@ -416,6 +416,15 @@ async def apply_grounds_stage(
     grounds_meta: Dict[str, Any] = {
         "applied": True,
         "converged": bool(converged),
+        # Phase 3 (P3-A). `converged` is False for TWO different reasons — the
+        # lock emptied the set and the baseline ASSERTIONS were restored, or
+        # the set is genuinely question-shaped but thinner than BREADTH_FLOOR.
+        # Downstream needs to tell those apart: the first must be treated as
+        # assertions (ordinary orientation, no grounds addendum, no question
+        # floor), the second is still questions and must keep all three. So
+        # the collapse is disclosed in its own right rather than inferred from
+        # `converged`, which cannot carry two meanings.
+        "collapsed": bool(lock_collapsed),
         "element_count": len(final),
     }
     if settings.ENABLE_ELEMENT_ATOMICITY:

@@ -68,6 +68,49 @@ def test_grounds_applied_truth_table():
     assert _grounds_applied({"metadata": {"grounds": {"applied": False}}}) is False
     assert _grounds_applied({"metadata": {}}) is False
     assert _grounds_applied({}) is False
+
+
+# ── P3-A: the predicate means "these elements are QUESTIONS" ─────────────────
+
+
+def test_lock_collapsed_map_is_not_treated_as_grounds():
+    """Phase 1 §4b, fixed here. On lock-collapse the stage restores the
+    BASELINE ASSERTION elements while still setting applied=True. Reading
+    `applied` alone gave those assertions the question-shaped addendum, the
+    question-shaped support floor, and suppressed orientation."""
+    cm = _cm(True)
+    cm["metadata"]["grounds"]["collapsed"] = True
+    cm["metadata"]["grounds"]["converged"] = False
+    assert _grounds_applied(cm) is False
+
+
+def test_thin_but_genuine_question_set_is_still_grounds():
+    """The reason P3-A is NOT `applied and converged`. A rebuild thinner than
+    BREADTH_FLOOR sets converged=False while its elements ARE questions —
+    keying on converged would strip the addendum, floor and orientation
+    suppression from real grounds, a worse bug than the one being fixed."""
+    cm = _cm(True)
+    cm["metadata"]["grounds"]["converged"] = False
+    cm["metadata"]["grounds"]["collapsed"] = False
+    assert _grounds_applied(cm) is True
+
+
+def test_map_stored_before_collapsed_existed_keeps_current_behaviour():
+    """Back-compat: claim_maps persisted before the key existed must not
+    change meaning — absent `collapsed` reads as not collapsed."""
+    cm = _cm(True)
+    cm["metadata"]["grounds"].pop("collapsed", None)
+    assert "collapsed" not in cm["metadata"]["grounds"]
+    assert _grounds_applied(cm) is True
+
+
+def test_collapsed_only_disables_on_exact_true():
+    """Total over hostile shapes — a corrupt/truthy-but-not-True value must not
+    silently disable grounds handling."""
+    for junk in ("true", 1, [], None, {}):
+        cm = _cm(True)
+        cm["metadata"]["grounds"]["collapsed"] = junk
+        assert _grounds_applied(cm) is True, f"collapsed={junk!r} disabled grounds"
     assert _grounds_applied({"metadata": None}) is False
 
 
