@@ -139,6 +139,14 @@ audit/2026-06-18_outreach_contact_map.md
 # A/B mapping harness (scripts + run artefacts, kept untracked)
 backend/scripts/ab/
 
+# Eval/probe RUN OUTPUTS — regenerable by the scripts beside them, and they churn
+# on every run. Two exceptions are negated below: the frozen candidate pools are
+# INPUTS, and the pending model sweep for the Gemini 2.5 migration is defined over
+# them, so they must travel with the commits that reason about them.
+backend/scripts/.*.json
+!backend/scripts/.mapping_sweep_pool.json
+!backend/scripts/.mapping_sweep_pool_adversarial.json
+
 # Local-only cost/profiling tooling + bench backups (keep untracked)
 backend/scripts/check_cost_snapshot.py
 backend/scripts/demo_candidates.py

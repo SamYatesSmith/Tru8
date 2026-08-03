@@ -1,0 +1,3340 @@
+[
+ {
+  "claim_text": "The 2022 UK mini-budget caused a sharp rise in government borrowing costs.",
+  "scaffold": {
+   "claim_id": "0",
+   "normalised_claim": "The UK government's borrowing costs increased sharply as a direct result of the 2022 mini-budget.",
+   "claim_type": "causal_interpretive",
+   "elements": [
+    {
+     "element_id": "e1",
+     "description": "The 2022 UK mini-budget was implemented.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null
+    },
+    {
+     "element_id": "e2",
+     "description": "There was a sharp rise in UK government borrowing costs.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null
+    },
+    {
+     "element_id": "e3",
+     "description": "The sharp rise in UK government borrowing costs was caused by the 2022 UK mini-budget.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null
+    }
+   ],
+   "orientation": null,
+   "metadata": {
+    "decomposition_model": "gemini-2.5-flash-lite",
+    "mapping_model": "fallback",
+    "element_count": 3,
+    "completed_at": "2026-07-02T14:42:58.065009+00:00"
+   },
+   "orientation_basis": null
+  },
+  "evidence": [
+   {
+    "id": "evidence_0",
+    "evidence_id": "ev-941f6a1e2d94",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "It is not a UK-specific problem this time either. Bond yields have also been rising in the US and Europe. Although the same was true in 2022, \u201cthe days immediately following the Mini-Budget marked a temporary UK decoupling from the global bond market, suggesting more local factors were at play,\u201d Khalaf said. This doesn\u2019t mean higher yields aren\u2019t creating a headache for the chancellor. They make it more expensive for the government to borrow money, thereby eroding its fiscal headroom",
+    "source": "moneyweek.com",
+    "url": "https://moneyweek.com/economy/uk-economy/three-years-after-the-mini-budget-where-are-we-now",
+    "title": "Three years after the Mini-Budget, where are we now?",
+    "published_date": "Sep 23, 2025",
+    "relevance_score": 0.13333333333333333,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 80,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "UK mini-budget 2022 government borrowing costs",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "2c9d5bce4e5641fee1e0d3a855c64cf7",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-b0c7c1ba6c39,ev-d623105daf9d,ev-82152f9f775c,ev-b9e0277a6617",
+    "corroborating_sources": 4,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly states that the mini-budget marked a temporary UK decoupling from the global bond market, suggesting local factors were at play, and that higher yields make it more expensive for the government to borrow money.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_2",
+    "evidence_id": "ev-ea6018f899b5",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "That pushed the UK\u2019s long-term borrowing costs close to a spike in April of 5. 66%, when 30-year bond yields reached their highest since 1998. UK borrowing costs have risen sharply in recent months, increasing the cost of financing UK government debt to more than \u00a3100bn a year \u2013 almost 10% of the annual budget. Economists have said the UK faces a unique strain on its financial position at a time when higher welfare and healthcare costs and rapid ageing are driving up the level of borrowing across most industrialised nations. Reeves is expected to be faced with a deficit of between \u00a320bn and \u00a340bn when she delivers the autumn budget",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/business/2025/aug/26/more-pain-reeves-government-borrowing-jumps-26-year-high",
+    "title": "More pain for Reeves as government borrowing cost nears 27-year high",
+    "published_date": "Aug 26, 2025",
+    "relevance_score": 0.3286516853932584,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 111,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "UK mini-budget 2022 government borrowing costs",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "76d25e125035ee9d28432206c6f20a5c",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "This evidence discusses UK borrowing costs rising sharply in recent months and nearing a 27-year high, and mentions that economists have said the UK faces a unique strain on its financial position, implying a connection to past events like the mini-budget.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_4",
+    "evidence_id": "ev-b0c7c1ba6c39",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "to repay the principle and interest on these debts. And, doesn't that then place a check on the amount of the fiscal deficit which a govt can safely run. Isn't that what happened in the UK in 2022 after the \u2018mini-budget' when the govt announced a slew of tax cuts and additional expenditure proposals, which sent the bond/treasuries market into a spin. That question is fair, but I would suggest that some of the assumptions in it are misplaced. That needs explanation, hence this blog post, because this seems of wider interest",
+    "source": "taxresearch.org.uk",
+    "url": "https://www.taxresearch.org.uk/Blog/2025/09/03/mmt-and-rules-of-government-borrowing/",
+    "title": "MMT and rules of government borrowing",
+    "published_date": "Sep 3, 2025",
+    "relevance_score": 0.11756756756756757,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 92,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "UK mini-budget 2022 government borrowing costs",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "86d84145685c090702af3e12c840ce16",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-941f6a1e2d94,ev-d623105daf9d,ev-82152f9f775c,ev-b9e0277a6617",
+    "corroborating_sources": 4,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence explicitly states that the UK in 2022, after the mini-budget, saw the government announce tax cuts and expenditure proposals that sent the bond/treasuries market into a spin, directly addressing the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "opinion",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_5",
+    "evidence_id": "ev-a2e64aa83094",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "23 September 2025 With today marking three years since the mini budget and the UK continuing to face fiscal pressures, as evidenced by current bond markets, please find below a comment from Richard Carter, head of fixed interest research at Quilter Cheviot: Three years on from disastrous mini budget, UK government bonds remain in focus As we reach the three-year anniversary of the ill-fated \u2018mini budget\u2019, delivered by Liz Truss\u2019 short-lived government, there remains pressure on the UK public finances, particularly from the bond markets that resulted in the downfall of that Conservative government. The yields on UK government debt have been reaching levels of late not seen since 1998, with long-term borrowing costs increasing due to economic outlook concerns, both domestically and overseas. Rising yields are a result of falling bond prices (yields move inversely to price) and the decline in long-dated UK government bonds has caused some concern among investors",
+    "source": "media.quilter.com",
+    "url": "https://media.quilter.com/search/2025/three-years-on-from-disastrous-mini-budget-uk-government-bonds-remain-in-focus/",
+    "title": "Three years on from disastrous mini budget, UK government bonds remain in focus | Quilter Media Centre",
+    "published_date": "Sep 23, 2025",
+    "relevance_score": 0.21956521739130436,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 152,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "UK mini-budget 2022 government borrowing costs",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "ab00128d7b64651756b8e09351fbf58a",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly references the 'disastrous mini budget' and states that UK government bonds remain in focus three years later, indicating ongoing relevance and impact on fiscal pressures.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_6",
+    "evidence_id": "ev-44476f01dd0f",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "The government of the United Kingdom borrowed approximately 132billion British pounds in the 2025/26 financial year",
+    "source": "statista.com",
+    "url": "https://www.statista.com/statistics/282796/uk-government-borrowing/?srsltid=AfmBOoryQwcR6ek2PmotEcbg9yU0eICht52BIAAEZD7CivxA4wIFp61R",
+    "title": "UK government borrowing 2025| Statista",
+    "published_date": "May 5, 2026",
+    "relevance_score": 0.030434782608695643,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 16,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "UK mini-budget 2022 government borrowing costs",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "501c03c99171633b3532186ba31c16a4",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence provides a statistic for UK government borrowing in the 2025/26 financial year, but does not connect it to the 2022 mini-budget or a sharp rise in costs.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "data",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_7",
+    "evidence_id": "ev-6853b444c061",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "In such an environment, the fiscal stimulus injected by the mini-Budget pushed hard against the Bank of England\u2019s attempts to curb inflation, and led to the market fearing even higher interest rates would be needed, with knock-on consequences for bond prices",
+    "source": "ajbell.co.uk",
+    "url": "https://www.ajbell.co.uk/group/news/three-years-after-mini-budget-why-isnt-market-panicking-about-higher-gilt-yields",
+    "title": "Three years after the mini-Budget, why isn\u2019t the market panicking about higher gilt yields?",
+    "published_date": "Sep 19, 2025",
+    "relevance_score": 0.06521739130434782,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 41,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "impact of 2022 UK mini-budget on gilt yields",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "cc506ba75057c0faa38ab30f6a990e9d",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly links the fiscal stimulus injected by the mini-Budget to market fears of higher interest rates and consequences for bond prices, which directly relates to government borrowing costs.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_8",
+    "evidence_id": "ev-d623105daf9d",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- The \u2018mini-budget\u2019 and elevated UK inflation [2022]: higher energy prices in the UK and Europe following the Russian invasion of Ukraine and the beginning of concerns about fiscal sustainability",
+    "source": "barnett-waddingham.co.uk",
+    "url": "https://www.barnett-waddingham.co.uk/comment-insight/blog/does-the-uk-economy-matter-for-gilt-yields/",
+    "title": "Barnett Waddingham - Does the UK economy matter for gilt yields?",
+    "published_date": "Dec 15, 2025",
+    "relevance_score": 0.14375,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 30,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "impact of 2022 UK mini-budget on gilt yields",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "35e6f2275e4879c87c837c4d3e301b28",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-941f6a1e2d94,ev-b0c7c1ba6c39,ev-82152f9f775c,ev-b9e0277a6617",
+    "corroborating_sources": 4,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence explicitly mentions the 'mini-budget' in 2022 and elevated UK inflation, and concerns about fiscal sustainability, directly linking the event to economic conditions that would affect borrowing costs.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_9",
+    "evidence_id": "ev-ad90d899ec26",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "For the government, it means an unhelpful combination of high funding costs for its debts alongside reduced tax revenues as growth slows",
+    "source": "corporate-adviser.com",
+    "url": "https://corporate-adviser.com/gilt-yields-higher-than-truss-budget-aftermath-but-unlikely-to-cause-same-problems-for-pension-sector/",
+    "title": "Gilt yields higher than Truss Budget aftermath &#8211; but unlikely to cause same problems for DB sector",
+    "published_date": "Mar 23, 2026",
+    "relevance_score": 0.06451612903225806,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 22,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "impact of 2022 UK mini-budget on gilt yields",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "b4694aa1637f32bc7d5a667c865b55d1",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 2,
+    "corroborating_evidence_ids": "ev-0881a123bb48",
+    "corroborating_sources": 1,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "This evidence discusses high funding costs for government debts and reduced tax revenues as growth slows, and mentions the 'Truss Budget aftermath', indicating a connection to the claim's topic.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_10",
+    "evidence_id": "ev-82152f9f775c",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "The most notable example of this in recent years was the aftermath of Liz Truss\u2019s \u2018mini-budget\u2019 in 2022",
+    "source": "instituteforgovernment.org.uk",
+    "url": "https://www.instituteforgovernment.org.uk/explainer/gilt-or-bond-market",
+    "title": "The gilt (or bond) market | Institute for Government",
+    "published_date": "Jun 1, 2026",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 18,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "impact of 2022 UK mini-budget on gilt yields",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "c9018a7ed385afc9b4cbc9d7c0c308b5",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-941f6a1e2d94,ev-b0c7c1ba6c39,ev-d623105daf9d,ev-b9e0277a6617",
+    "corroborating_sources": 4,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence explicitly identifies the aftermath of Liz Truss's 'mini-budget' in 2022 as the most notable example of the gilt (or bond) market's behavior in recent years.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_11",
+    "evidence_id": "ev-b6c8586ae44a",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "Liz Truss and Kwasi Kwarteng\u2019s Mini Budget three years ago saw gilt yields reach a then all-time high",
+    "source": "investmentweek.co.uk",
+    "url": "https://www.investmentweek.co.uk/news/4519399/reeves-urged-avoid-history-repeating-mini-budget",
+    "title": "Reeves urged to avoid history repeating itself three years after Mini Budget",
+    "published_date": "Sep 23, 2025",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 18,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "impact of 2022 UK mini-budget on gilt yields",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "a005a8fb0a1f504907c10a881984e8d7",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly states that Liz Truss and Kwasi Kwarteng's Mini Budget in 2022 saw gilt yields reach a then all-time high, directly addressing the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_12",
+    "evidence_id": "ev-ea9febf10d73",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "The UK\u2019s debt-to-GDP ratio is 101%, compared with 122% in the US and 237% in Japan, and the government is planning to halve the amount it borrows each year by the end of this parliament. The problem is that bond traders think the UK is not good at keeping to its fiscal policies, the IPPR said. The mini-budget in 2022 under the Liz Truss administration \u201cshowed how quickly a UK government could bypass the fiscal framework\u201d, the thinktank said. It added that in the years leading up to this event, successive chancellors had \u201crepeatedly changed, missed or redefined their own fiscal rules\u201d or changed themselves, with seven different chancellors from 2016 up to the 2024 election. A \u201clack of trust in stated fiscal policy has set in, as actions have spoken louder than words,\u201d it said",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/business/2025/dec/09/uk-higher-borrowing-costs-compared-with-major-countries-may-be-coming-to-an-end",
+    "title": "UK\u2019s higher borrowing costs compared with major countries \u2018may be coming to an end\u2019",
+    "published_date": "Dec 9, 2025",
+    "relevance_score": 0.36930693069306936,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 136,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "UK mini-budget 2022 government borrowing costs site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "51f2fb8028dc2b8b34b6d06ad159459a",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence states that the mini-budget in 2022 under the Liz Truss administration 'showed how quickly a UK government could bypass the fiscal framework', and discusses bond traders' concerns about the UK's fiscal policies, directly relating to borrowing costs.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_13",
+    "evidence_id": "ev-6c572ac30baf",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "Amid bond market jitters over the Middle East conflict and a Labour leadership challenge, the figure was \u00a33. 4bn higher than forecast by City economists and the Office for Budget Responsibility. Rising borrowing costs on financial markets drove the UK\u2019s debt interest payments to \u00a310. 3bn in April, \u00a3900m more than a year ago and the highest in any April on record. Grant Fitzner, the ONS chief economist, said: \u201cBorrowing this month was substantially higher than in April last year and although receipts increased compared with April 2025, this was more than offset by higher spending on benefits and other costs",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/business/2026/may/22/uk-borrowed-bigger-april-inflation-benefits-bill",
+    "title": "UK borrows more than forecast in April as inflation adds to benefits bill",
+    "published_date": "May 22, 2026",
+    "relevance_score": 0.21250000000000002,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 101,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "UK mini-budget 2022 government borrowing costs site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "3315ce5f186c36cb711030077c09a41b",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-112130ce3913",
+    "corroborating_sources": 1,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses rising borrowing costs and debt interest payments in April 2026 due to bond market jitters and the Iran war, but does not link these to the 2022 mini-budget.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_14",
+    "evidence_id": "ev-b9e0277a6617",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "The UK's long-term borrowing costs are the highest among the G7, expected to reach $17tn this year, up from $14tn in 2023. Liz Truss's 2022 \u201cmini\u201d Budget. 10- ...",
+    "source": "ft.com",
+    "url": "https://www.ft.com/content/372c13ed-c5ad-4dda-a98e-6474cb37c55f?syn-25a6b1a6=1",
+    "title": "Why are UK borrowing costs so high? - Financial Times",
+    "published_date": "Aug 29, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 29,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "UK mini-budget 2022 government borrowing costs site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "ea9f0444aeff9fdf89fce804b52b78db",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-941f6a1e2d94,ev-b0c7c1ba6c39,ev-d623105daf9d,ev-82152f9f775c,ev-112130ce3913",
+    "corroborating_sources": 5,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly links the UK's high long-term borrowing costs to Liz Truss's 2022 'mini' Budget, stating it is a cause.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_15",
+    "evidence_id": "ev-122e529ec594",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "UK borrowing costs fall as investors' nerves ease The cost of government borrowing has fallen, partly reversing a surge prompted by the chancellor's emotional appearance in the Commons on Wednesday. The yield on UK 10-year bonds fell to 4. 61% at the previous day's close, as markets reacted to the prime minister's comments that he worked \"in lockstep\" with Rachel Reeves",
+    "source": "bbc.co.uk",
+    "url": "https://www.bbc.co.uk/news/articles/ce3nj7yw2wvo",
+    "title": "UK borrowing costs fall as investors' nerves ease",
+    "published_date": "Jul 3, 2025",
+    "relevance_score": 0.275,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 61,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "UK mini-budget 2022 government borrowing costs site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "f3fe4b36d9e054b7b92e5ec0dc7bc303",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 3,
+    "llm_relevance_rationale": "This evidence discusses a fall in UK borrowing costs and a surge prompted by the chancellor's appearance, but does not directly link it to the 2022 mini-budget's impact.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_16",
+    "evidence_id": "ev-09e74e5f7010",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "In the final snapshot of the public finances before the chancellor\u2019s crunch budget, the Office for National Statistics (ONS) said borrowing \u2013 the difference between public spending and income \u2013 was \u00a317. That was lower than the same month last year, but still the third-highest October deficit on record. In the fiscal year so far, borrowing was running at \u00a3116. 8bn, the ONS said \u2013 \u00a39. 9bn more than the independent Office for Budget Responsibility (OBR) expected the government would be borrowing at this point",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/business/2025/nov/21/uk-government-borrowing-october-rachel-reeves",
+    "title": "UK government borrows more than expected in setback before budget",
+    "published_date": "Nov 21, 2025",
+    "relevance_score": 0.20714285714285716,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 85,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "UK mini-budget 2022 government borrowing costs site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "8ed8f95839b009974e275863aa47bc31",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses government borrowing in October 2025 and the fiscal year to date, but does not mention the 2022 mini-budget or its specific impact on borrowing costs.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_17",
+    "evidence_id": "ev-3d87dbdff149",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "UK government borrowing costs have risen above 5% amid an intensifying global bond market sell-off fuelled by the Iran war",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/business/2026/mar/27/uk-government-borrowing-iran-war-bond-market-sell-off",
+    "title": "UK government borrowing costs hit 5% as Iran war fuels bond market sell-off",
+    "published_date": "Mar 28, 2026",
+    "relevance_score": 0.03518518518518515,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 20,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "UK mini-budget 2022 government borrowing costs site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "01f3b06e1b0b5e3e6c589c14e1004e49",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses UK government borrowing costs rising above 5% due to the Iran war, but does not link this to the 2022 mini-budget.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_18",
+    "evidence_id": "ev-520586272889",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- The government borrowed a net total of \u00a3132bn for the financial year ending in March, the Office for National Statistics (ONS) said.\n- This slightly undershot the \u00a3132.7bn that the Office for Budget Responsibility (OBR) had forecast just last month.\n- The total was \u00a319.8bn less than the \u00a3151.9bn borrowed in the previous financial year, after rounding, although it was still the sixth highest on record.\n- For the month of March, public sector net borrowing \u2013 the difference between spending and income \u2013 was \u00a312.6bn, which was \u00a31.4bn lower than a year earlier and the lowest since March 2022.\n- The annual figure was better than economists had expected, partly because of revised borrowing figures by the ONS for previous months, as well as higher tax receipts and lower debt interest payments.\n- Reeves announced \u00a326bn in tax rises in her budget in November to lower debt and offset rising government spending on public services and upgrades to the UK\u2019s infrastructure.\n- The government\u2019s day-to-day spending rose by \u00a365.6bn, or 6.4%, in the year to March.\n- In February the chancellor announced that her buffer \u2013 or headroom \u2013 to meet this rule by 2030 had increased in its latest projections to \u00a323.6bn, from \u00a321.7bn at the time of the November budget.",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/business/2026/apr/23/uk-undershoots-annual-borrowing-target",
+    "title": "UK undershoots annual borrowing target by \u00a3700m",
+    "published_date": "Apr 23, 2026",
+    "relevance_score": 0.15000000000000002,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 65,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "UK mini-budget 2022 government borrowing costs site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "4269f048e4e0e043a745b527265730f9",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses the UK undershooting its annual borrowing target and the impact of the Iran war, but does not mention the 2022 mini-budget.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true,
+    "exclusion_reason": "not_selected_by_mapper"
+   },
+   {
+    "id": "evidence_19",
+    "evidence_id": "ev-9b31c8ed296e",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- After an explosion in government borrowing over the past decade; a sharp rise in debt interest costs, and with the scars of the Brexit vote and Liz Truss\u2019s mini-budget still fresh, how the market reacts is critically important.\n- Reeves was given a taste of the bond market\u2019s power earlier this month when government borrowing costs spiked after it emerged she had ditched plans for a manifesto-busting increase in income tax.\n- In recent years, the power of the bond trader has ballooned amid an explosion in government debt and borrowing costs across advanced economies driven in part by rising inflation and weak growth.\n- Britain has racked up a debt pile worth more than \u00a32.7tn \u2013 close to 100% of national income.\n- Inflation is at the highest rate in the G7, and continuous speculation over the government\u2019s fiscal position has not helped.\n- Britain\u2019s annual debt interest spending has reached \u00a3100bn \u2013 representing \u00a31 out of every \u00a310 spent by the Treasury.\n- The yield \u2013 in effect the interest rate \u2013 on 10-year bonds has reached 4.5%, the highest level in the G7.\n- The 30-year is close to its highest point since 1998.",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/uk-news/2025/nov/24/bond-market-power-rachel-reeves-budget",
+    "title": "Bond market power: why Rachel Reeves is keen to keep the \u00a32.7tn \u2018beast\u2019 onside",
+    "published_date": "Nov 25, 2025",
+    "relevance_score": 0.21621621621621623,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 38,
+    "external_source_provider": null,
+    "receipt_status": "unmapped",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "UK mini-budget 2022 government borrowing costs site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "5ca80ff4356234eb3074d803e0766634",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "This evidence mentions the 'scars of the Brexit vote and Liz Truss's mini-budget' in the context of government borrowing and debt interest costs, indicating a connection to the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true,
+    "exclusion_reason": "not_selected_by_mapper"
+   }
+  ],
+  "mapped_states_at_freeze": {
+   "e1": "unresolved",
+   "e2": "unresolved",
+   "e3": "unresolved"
+  }
+ },
+ {
+  "claim_text": "The EU imposed several rounds of sanctions on Russia following the 2022 invasion of Ukraine.",
+  "scaffold": {
+   "claim_id": "0",
+   "normalised_claim": "The European Union implemented multiple sets of sanctions against Russia after Russia's invasion of Ukraine in 2022.",
+   "claim_type": "empirical",
+   "elements": [
+    {
+     "element_id": "e1",
+     "description": "The European Union is a political and economic union of member states located primarily in Europe.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null,
+     "basis": {
+      "evidence_count": 1,
+      "relationship_breakdown": {
+       "context": 1
+      },
+      "tier_breakdown": {
+       "primary": 1
+      },
+      "classification_breakdown": {
+       "llm": 1
+      },
+      "content_basis_breakdown": {
+       "distilled": 1
+      },
+      "support_structure": {
+       "count": 0,
+       "distinct_domains": 0,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 0,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "challenge_structure": {
+       "count": 0,
+       "distinct_domains": 0,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 0,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "state_derivation": {
+       "supports_count": 0,
+       "challenges_count": 0,
+       "context_count": 1,
+       "weighted_supports": 0,
+       "weighted_challenges": 0,
+       "rule_applied": "context_only",
+       "caveat": null,
+       "llm_state": "unresolved"
+      }
+     }
+    },
+    {
+     "element_id": "e2",
+     "description": "Sanctions are penalties or measures imposed by one or more countries against another country, group, or individual.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null,
+     "basis": {
+      "evidence_count": 0,
+      "relationship_breakdown": {},
+      "tier_breakdown": {},
+      "classification_breakdown": {},
+      "content_basis_breakdown": {},
+      "support_structure": {
+       "count": 0,
+       "distinct_domains": 0,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 0,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "challenge_structure": {
+       "count": 0,
+       "distinct_domains": 0,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 0,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "state_derivation": {
+       "supports_count": 0,
+       "challenges_count": 0,
+       "context_count": 0,
+       "weighted_supports": 0,
+       "weighted_challenges": 0,
+       "rule_applied": "no_evidence",
+       "caveat": null,
+       "llm_state": "unresolved"
+      }
+     }
+    },
+    {
+     "element_id": "e3",
+     "description": "Russia invaded Ukraine in 2022.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null,
+     "basis": {
+      "evidence_count": 16,
+      "relationship_breakdown": {
+       "supports": 16
+      },
+      "tier_breakdown": {
+       "primary": 6,
+       "commentary": 3,
+       "reporting": 7
+      },
+      "classification_breakdown": {
+       "llm": 15,
+       "llm+override": 1
+      },
+      "content_basis_breakdown": {
+       "snippet": 5,
+       "distilled": 8,
+       "api": 3
+      },
+      "support_structure": {
+       "count": 16,
+       "distinct_domains": 12,
+       "tier_counts": {
+        "primary": 6,
+        "reporting": 7,
+        "commentary": 3
+       },
+       "derivation": {
+        "originals": 5,
+        "derivative_count": 7
+       }
+      },
+      "challenge_structure": {
+       "count": 0,
+       "distinct_domains": 0,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 0,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "state_derivation": {
+       "supports_count": 16,
+       "challenges_count": 0,
+       "context_count": 0,
+       "weighted_supports": 35,
+       "weighted_challenges": 0,
+       "rule_applied": "all_supports",
+       "caveat": null,
+       "llm_state": "supported"
+      }
+     }
+    },
+    {
+     "element_id": "e4",
+     "description": "The European Union imposed several rounds of sanctions on Russia.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null,
+     "basis": {
+      "evidence_count": 13,
+      "relationship_breakdown": {
+       "supports": 8,
+       "context": 4,
+       "challenges": 1
+      },
+      "tier_breakdown": {
+       "primary": 4,
+       "reporting": 8,
+       "commentary": 1
+      },
+      "classification_breakdown": {
+       "llm": 12,
+       "llm+override": 1
+      },
+      "content_basis_breakdown": {
+       "snippet": 2,
+       "full": 1,
+       "distilled": 8,
+       "api": 2
+      },
+      "support_structure": {
+       "count": 8,
+       "distinct_domains": 7,
+       "tier_counts": {
+        "primary": 3,
+        "reporting": 4,
+        "commentary": 1
+       },
+       "derivation": {
+        "originals": 3,
+        "derivative_count": 2
+       }
+      },
+      "challenge_structure": {
+       "count": 1,
+       "distinct_domains": 1,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 1,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "state_derivation": {
+       "supports_count": 8,
+       "challenges_count": 1,
+       "context_count": 4,
+       "weighted_supports": 18,
+       "weighted_challenges": 2,
+       "rule_applied": "supports_dominant_2x",
+       "caveat": "1 source disagrees: bbc.co.uk"
+      }
+     }
+    }
+   ],
+   "orientation": null,
+   "metadata": {
+    "decomposition_model": "gemini-2.5-flash-lite",
+    "mapping_model": "gemini-2.5-flash-lite",
+    "element_count": 4,
+    "completed_at": "2026-07-02T14:44:02.565531+00:00"
+   },
+   "orientation_basis": null
+  },
+  "evidence": [
+   {
+    "id": "evidence_0",
+    "evidence_id": "ev-3a8f79f3c240",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "Since the start of Russia's full-scale invasion of Ukraine on 24 February 2022, the EU has imposed massive and unprecedented sanctions against Russia.",
+    "source": "consilium.europa.eu",
+    "url": "https://www.consilium.europa.eu/en/policies/sanctions-against-russia-explained/",
+    "title": "EU sanctions against Russia: questions and answers - Consilium",
+    "published_date": "Dec 16, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 23,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "de1d066eaae82880fabcded98aab62e0",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-e1af24dd7c36,ev-7cd48255b9cc,ev-76fc7c8739ed,ev-029d1b8af816,ev-2a00e5918086,ev-e2932093e8a7,ev-aafef8621ef8,ev-5598d67b4270,ev-5aa674ec09e3,ev-c1cabe8133ef,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 12,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "The evidence directly states that the EU has imposed massive and unprecedented sanctions against Russia since the start of the full-scale invasion of Ukraine on February 24, 2022, which directly addresses the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "official_statement",
+    "derivation_chain": [
+     "ev-e1af24dd7c36",
+     "ev-e2932093e8a7",
+     "ev-5598d67b4270",
+     "ev-5aa674ec09e3"
+    ]
+   },
+   {
+    "id": "evidence_1",
+    "evidence_id": "ev-2c42fa916d49",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "About Press Copyright Contact us Creator Advertise Developers Terms",
+    "source": "youtube.com",
+    "url": "https://www.youtube.com/watch?v=EBDoV2HoddA",
+    "title": "How new EU sanctions could impact Russia | DW News",
+    "published_date": "Jul 18, 2025",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 9,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "071dd4da2235c729b0e7d451ee9f65e3",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "The title suggests the content is about EU sanctions impacting Russia, but the provided snippet is placeholder text and does not offer substantive information to evaluate topical relevance.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting"
+   },
+   {
+    "id": "evidence_2",
+    "evidence_id": "ev-b9b8d8b74473",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- Since Russia invaded Ukraine in February 2022, the United States has implemented a broad sweep of sanctions focused on isolating Russia from the global financial system, reducing the profitability of its energy sector, and blunting its military edge.\n- The United States began its 2022 barrage of sanctions by freezing $5 billion of the Russian central bank\u2019s U.S. assets, an unprecedented move to prevent Moscow from using its foreign reserves to prop up the Russian ruble.\n- In March 2022, Washington banned the import of Russian crude oil, liquified natural gas, and coal, and restricted U.S. investments in most Russian energy companies.\n- In December of that year, the United States and its Group of Seven (G7) allies implemented rules aimed at capping the price that other importing countries, such as China and India, would pay for Russian crude oil.\n- In 2024, the United States barred imports of Russian enriched uranium, cutting off a major source of revenue for Russia.\n- The United States implemented these sanctions in tandem with the European Union (EU) and other partners.\n- While the EU placed its own sanctions on Russian banks and individuals, including Putin, the bloc\u2019s sanctions on Russian energy have proven the most contentious.\n- In 2022, the EU announced an embargo on imports of most Russian crude oil and joined the G7 price cap; in early 2023, it imposed an additional ban on Russian refined oil products such as diesel and gasoline.",
+    "source": "cfr.org",
+    "url": "https://www.cfr.org/articles/three-years-war-ukraine-are-sanctions-against-russia-making-difference",
+    "title": "Three Years of War in Ukraine: Are Sanctions Against Russia Making a Difference? | Council on Foreign Relations",
+    "published_date": "Oct 23, 2025",
+    "relevance_score": 0.2277777777777778,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 114,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "d851f072c2a1ffad3f246a62d2ea6bb7",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-7cd48255b9cc,ev-76fc7c8739ed,ev-029d1b8af816,ev-e2932093e8a7,ev-aafef8621ef8,ev-5598d67b4270,ev-5aa674ec09e3,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 9,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses US sanctions and tariffs related to Russia and Ukraine, not specifically EU sanctions as stated in the claim.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_3",
+    "evidence_id": "ev-c05878977013",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- The EU has imposed an unprecedented 19 rounds of sanctions on Russia since the full-scale invasion of Ukraine in 2022, targeting more than 2,700 individuals and entities, and halting trade across vast economic areas including energy, aviation, IT, luxury and consumer goods, diamonds and gold.\n- O\u2019Sullivan was appointed EU special envoy for sanctions in December 2022 with a remit to counter their evasion and circumvention.\n- As of December, nearly 600 vessels were under EU sanctions.\n- Russia\u2019s federal budget revenues from oil and gas, the lifeblood of the economy, halved in January to the lowest level since July 2020, according to the finance ministry in Moscow.\n- Since the full-scale invasion, India has been either the world\u2019s first or second largest purchaser of Russian crude, heavily discounted due to the impact of western sanctions.\n- A few days later, the US claimed that India would stop buying Russian oil in exchange for a reduction in US tariffs on its goods.\n- O\u2019Sullivan defended the EU-India trade deal, pointing to developments that preceded its signing, namely EU sanctions imposed on a large Indian refinery, an EU ban on imports of refined products made from Russian crude, including those from India, and the decision of the owner of 14 Indian ports, the Adani Group, to block access to sanctioned tankers.\n- His team is especially focused on 300 products on the \u201ccommon high-priority list\u201d, critical products that do not count as dual-use items requiring export licences to be sold.",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/world/2026/feb/05/sanctions-significant-impact-russian-economy-interview-eu-special-envoy-david-osullivan",
+    "title": "Sanctions having \u2018significant impact\u2019 on Russian economy, says EU special envoy",
+    "published_date": "Feb 5, 2026",
+    "relevance_score": 0.4432203389830509,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 158,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "3ad1c911024017c6a52c868fbf5374ee",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "The evidence explicitly states that the EU has imposed 19 rounds of sanctions on Russia since the full-scale invasion of Ukraine in 2022, directly addressing the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_4",
+    "evidence_id": "ev-e1af24dd7c36",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- The European Union and Britain on Friday ramped up pressure on Russia over its war on Ukraine, targeting Moscow's energy sector, shadow fleet of aging oil tankers and military intelligence service with new sanctions.\n- Kallas said it's \"one of its strongest sanctions packages against Russia to date\" linked to the war, now in its fourth year.\n- The U.K., meanwhile, imposed sanctions on units of Russia's military intelligence service, GRU.\n- Also added to the list were 18 officers the U.K. said helped to plan a bomb attack on a theatre in southern Ukraine in 2022 and to target the family of a former Russian spy who was later poisoned with a nerve agent.\n- Hundreds of civilians sheltering in the theatre in Mariupol were killed in March 2022, shortly after Russia invaded Ukraine.\n- The European Commission, the EU's executive branch, had proposed to lower the oil price cap from $60 to $45, which is lower than the market price, to target Russia's vast energy revenues.\n- The EU also targeted the Nord Stream pipelines between Russia and Germany to prevent Putin from generating any revenue from them in future, notably by discouraging would-be investors.\n- The EU has slapped several rounds of sanctions on Russia since Putin ordered his troops into Ukraine in February 24, 2022.",
+    "source": "pbs.org",
+    "url": "https://www.pbs.org/newshour/world/eu-and-uk-hit-russia-with-new-sanctions-moscows-energy-revenue-and-spies-are-targeted",
+    "title": "EU and UK hit Russia with new sanctions. Moscow's energy revenue and spies are targeted",
+    "published_date": "Jul 18, 2025",
+    "relevance_score": 0.3546511627906977,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 103,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "2a4340163e59649109a6320f25f79ce7",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-c1cabe8133ef",
+    "corroborating_sources": 2,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence states that the EU has slapped several rounds of sanctions on Russia since Putin ordered troops into Ukraine on February 24, 2022, directly addressing the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_5",
+    "evidence_id": "ev-34a98aa7abca",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- Western democracies\u2019 response to Russia\u2019s full-scale invasion of Ukraine in 2022 was unprecedented.\n- The European Union managed to introduce 18 (and counting as of September 2025) sanctions packages against Russia following its aggression against Ukraine.\n- Russia shifted to opaque channels to access Western goods that are turning up on the front lines of the invasion as well as in stores in Russia proper.\n- Russia imports drones from Iran and oil from India, stockpiles munitions and missiles from North Korea, and ultimately relies on China to protect it from international isolation.\n- During the 2025 St. Petersburg International Economic Forum, Russian Economy Minister Maxim Reshetnikov went so as far as to say that the Russian economy is on the brink of a recession.\n- Retaliation for the global condemnation of its full-scale invasion of Ukraine in 2022, Russia leaned into a corrupt network of proxy companies to bypass restrictions.\n- Moscow has been able to orchestrate a system of companies with links to Russian state-owned entities or oligarchs.\n- The web of businesses is purposefully registered in third-party countries, which are often outside the network of sanctioning nations, to manipulate trade transactions that eventually land in the hands of the Russian military.",
+    "source": "bushcenter.org",
+    "url": "https://www.bushcenter.org/publications/russian-sanctions-evasion-in-europe",
+    "title": "Russian Sanctions: Evasion in Europe | George W. Bush Presidential Center",
+    "published_date": "Dec 9, 2025",
+    "relevance_score": 0.22339449541284406,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 142,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "f81444c6f9510ce133f1d2e70e35cf5d",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "The evidence mentions the EU introducing sanctions packages against Russia following the invasion of Ukraine, indicating relevance, though it focuses on evasion and persistence of economic ties.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_6",
+    "evidence_id": "ev-7cd48255b9cc",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- This article examines public support for international sanctions imposed by the European Union (EU) against Russia in response to the 2022 invasion of Ukraine.\n- In 2022, the EU implemented nine packages of restrictive measures under its sanctions regime against Russia.\n- As the war continued, the EU expanded its sanctions, adopting a total of fourteen sanctions packages by mid-2024.\n- The EU has been a notable actor in this area, regularly employing sanctions to address threatening actions by other states (Giumelli, 2017, p. 1063).\n- When faced with a major war on its eastern border, triggered by Russia\u2019s 2022 invasion of Ukraine, the EU exceeded its previously self-imposed limits of action (which had been confined to economic sanctions and humanitarian aid).\n- In a significant policy shift, the EU complemented economic sanctions against Russia by providing military equipment to Ukraine for the first time (Steiner et al., 2023; De la Baume & Barigazzi, 2022).\n- The evolution of the EU sanctions regime against Russia between 2014 and 2024 highlights a gradual and then accelerated expansion of restrictive measures, both in scope and intensity.\n- Initially, after the illegal annexation of Crimea in 2014, the EU adopted moderate targeted sanctions\u2014mainly individual measures (asset freezes and travel bans for implicated Russian officials and oligarchs) combined with initially limited sectoral restrictions (e.g. embargoes on arms and exports of sensitive technology)\u2014designed to penalise violations of Ukrainian sovereignty and induce compliance with the Minsk agreements (Lepeu, 2025).",
+    "source": "nature.com",
+    "url": "https://www.nature.com/articles/s41599-025-06252-2",
+    "title": "Presuming public support for international sanctions: the European Union versus Russia (2022) - Humanities and Social Sciences Communications",
+    "published_date": "Dec 17, 2025",
+    "relevance_score": 0.16267605633802817,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 85,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "01f5f968522d4484c044411cb92e97e1",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-b9b8d8b74473,ev-76fc7c8739ed,ev-029d1b8af816,ev-e2932093e8a7,ev-aafef8621ef8,ev-5598d67b4270,ev-5aa674ec09e3,ev-c1cabe8133ef,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 11,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "The abstract directly addresses public support for international sanctions imposed by the EU against Russia in response to the 2022 invasion of Ukraine, aligning perfectly with the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "academic",
+    "_distilled": true,
+    "derivation_chain": [
+     "ev-b9b8d8b74473",
+     "ev-974e26ad2876"
+    ]
+   },
+   {
+    "id": "evidence_7",
+    "evidence_id": "ev-76fc7c8739ed",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- Russia\u2019s central bank is suing the European Union over its decision to keep nearly $244 billion of its assets frozen \u201cfor an indefinite period\u201d to serve as collateral for a $104 billion loan to Ukraine, Politico reported.\n- In a statement on Tuesday, the Bank of Russia said it filed the lawsuit last week at the EU\u2019s General Court in Luxembourg and criticized the 27-nation bloc\u2019s \u201cunlawful action.\u201d\n- The bank also said that the EU is violating the \u201cprinciple of sovereign immunity of states and their central banks.\u201d\n- The dispute centers on a measure EU leaders agreed on in December to keep Russian state funds frozen, but it stopped short of seizing them.\n- The assets had originally been frozen under EU sanctions imposed after Moscow\u2019s 2022 invasion of Ukraine.",
+    "source": "globalpost.com",
+    "url": "https://globalpost.com/stories/russias-central-bank-sues-european-union-over-frozen-assets/",
+    "title": "Russia\u2019s Central Bank Sues European Union Over Frozen Assets",
+    "published_date": "Mar 4, 2026",
+    "relevance_score": 0.18846153846153846,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 74,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "European Union Russia sanctions history post-2022",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "40bfc5eddd46a28a046ce7df65f9c866",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-b9b8d8b74473,ev-7cd48255b9cc,ev-029d1b8af816,ev-e2932093e8a7,ev-aafef8621ef8,ev-5598d67b4270,ev-5aa674ec09e3,ev-c1cabe8133ef,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 11,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "The evidence mentions that EU sanctions were imposed after Moscow's 2022 invasion of Ukraine and discusses frozen assets related to these sanctions, directly supporting the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_8",
+    "evidence_id": "ev-029d1b8af816",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "This tracker is a high-level summary of the measures imposed by UK following Russia's invasion of Ukraine in February 2022. This page contains the measures ...",
+    "source": "lexology.com",
+    "url": "https://www.lexology.com/library/detail.aspx?g=fa05899e-6b14-45eb-a0e6-6b64b29dbad1",
+    "title": "Russia Sanctions Tracker - UK (2024-25) - Lexology",
+    "published_date": "Apr 9, 2026",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 26,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "European Union Russia sanctions history post-2022",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "9dbbaababfebfba8fcdce38b801c3fd7",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-b9b8d8b74473,ev-7cd48255b9cc,ev-76fc7c8739ed,ev-e2932093e8a7,ev-aafef8621ef8,ev-5598d67b4270,ev-5aa674ec09e3,ev-c1cabe8133ef,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 11,
+    "llm_relevance_score": 3,
+    "llm_relevance_rationale": "This evidence discusses UK sanctions following Russia's invasion of Ukraine in February 2022, which is related but not specifically about EU sanctions as stated in the claim.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "data",
+    "derivation_chain": [
+     "ev-34a98aa7abca",
+     "ev-e2932093e8a7",
+     "ev-5598d67b4270",
+     "ev-5aa674ec09e3"
+    ]
+   },
+   {
+    "id": "evidence_9",
+    "evidence_id": "ev-974e26ad2876",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- Sanctions expanded after Russia\u2019s annexation of Crimea in 2014, targeting politicians, military officials, security forces, and businesspeople involved in the occupation of Ukrainian territories.\n- Further waves followed in 2016\u22122018 due to Russia\u2019s interference in U.S. presidential elections, including cyberattacks, disinformation campaigns, and hacking of Democratic Party servers.\n- The culmination was the unprecedented sanctions after Russia\u2019s full-scale invasion of Ukraine in 2022, targeting thousands of officials, judges, security personnel, oligarchs, banks, companies, state institutions, Central Bank reserves, and critical exports.\n- By 2024, global sanctions related to the Ukraine war targeted 16,000 individuals, 9,000 businesses, and 3,000 organizations.\n- The U.S. adopts the broadest and most decisive approach, with decisions made by the Treasury (OFAC) and State Department, requiring minimal evidence for swift inclusion of individuals, intermediaries, shell companies, and sanction-evaders.\n- The EU, requiring consensus among member states, acts more cautiously but on a larger scale, often targeting symbolic figures like Russian MPs or governors.\n- Post-Brexit, the UK developed its own sanctions framework, blending U.S.-style flexibility with EU-style institutional focus, targeting specific sectors or individuals linked to repression or sanctions evasion.\n- From February 2022 to August 2025, some Russian diplomats made limited trips to the U.S. and Europe, mainly for UN events.",
+    "source": "ridl.io",
+    "url": "https://ridl.io/in-the-name-of-dialogue/",
+    "title": "In the Name of Dialogue \u2013 Riddle Russia",
+    "published_date": "Aug 14, 2025",
+    "relevance_score": 0.5985915492957746,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 85,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "European Union Russia sanctions history post-2022",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "466106e76eee9cb5a54e5f29e83e5e0c",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "The evidence details unprecedented sanctions imposed by the EU after Russia's full-scale invasion of Ukraine in 2022, directly addressing the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_10",
+    "evidence_id": "ev-2a00e5918086",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- The EU and its member states have provided \u20ac193.3 billion billion in assistance to Ukraine.\n- To date, the EU and its Member States have provided \u20ac59.6 billion in military support to Ukraine.\n- In June 2022, Ukraine was granted EU candidate status.\n- In December 2023, the European Council decided to open accession negotiations with Ukraine.\n- In March 2022, the EU activated the temporary protection directive and EU Member States have been providing protection for Ukrainian citizens displaced by the war ever since, with over 4 million people being under temporary protection in the EU.\n- The temporary protection was extended until March 2025.\n- Overall EU military support to Ukraine \u2013 provided by the European Peace Facility and the Member States directly \u2013 amounts to around \u20ac28 billion.\n- The EU is one of the main providers of military assistance and training to Ukrainian Armed Forces through the EU Military Assistance Mission in support of Ukraine (EUMAM Ukraine).",
+    "source": "eeas.europa.eu",
+    "url": "https://www.eeas.europa.eu/node/111539_fr?s=113",
+    "title": "#StandWithUkraine",
+    "published_date": "Jan 29, 2026",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 17,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "European Union Russia sanctions history post-2022",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "80e3392d97932e073bae11221672c905",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-5aa674ec09e3",
+    "corroborating_sources": 2,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence condemns Russia's war of aggression against Ukraine but does not specifically mention EU sanctions.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "official_statement",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_11",
+    "evidence_id": "ev-76a1e2c19b8b",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- Trump has put those sanctions, which appeared likely as recently as two weeks ago, on indefinite hold, and he appears to legitimately believe that Putin wants to make a deal.",
+    "source": "bbc.co.uk",
+    "url": "https://www.bbc.co.uk/news/articles/c776edpr10eo",
+    "title": "Trump under pressure as obstacles to progress on Ukraine persist",
+    "published_date": "Aug 19, 2025",
+    "relevance_score": 0.025,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 30,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "d41aa5e03fa5efba2167d205e9cfe60e",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses US sanctions and Trump's actions, not EU sanctions as specified in the claim.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_12",
+    "evidence_id": "ev-e2932093e8a7",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "... Russia's full-scale invasion of Ukraine in 2022, especially in the past year. Spoofing signals to trick navigation systems into thinking they are somewhere ...",
+    "source": "ft.com",
+    "url": "https://www.ft.com/content/0da88c58-6427-4feb-80d9-0718a7b7f141?syn-25a6b1a6=1",
+    "title": "Russia's reckless jamming of GPS systems - Financial Times",
+    "published_date": "Sep 2, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 25,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "c3e03487ca59f774d372b3ae58e53559",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-b9b8d8b74473,ev-7cd48255b9cc,ev-76fc7c8739ed,ev-029d1b8af816,ev-aafef8621ef8,ev-c1cabe8133ef,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 9,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence mentions Russia's invasion of Ukraine in 2022 but does not discuss EU sanctions.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting"
+   },
+   {
+    "id": "evidence_13",
+    "evidence_id": "ev-aafef8621ef8",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- Hungary\u2019s prime minister Viktor Orb\u00e1n has urged the European Union to form a \u201cfact-finding mission\u201d to inspect the Druzhba pipeline amid escalating tension with Ukraine.\n- In a letter to European Council president Ant\u00f3nio Costa,Orb\u00e1n insisted that his initiative seeks to \u201cfacilitate the timely resolution of this issue,\u201d which held up the payment of the EU\u2019s \u20ac90bn loan to Ukraine and the adoption of the 20th package of sanctions against Russia (9:47).\n- He asked that the mission included experts from Hungary and Slovakia, which also continues to be affected by the disrupted oil transit via the pipeline.\n- Defending Nato\u2019s eastern flank in the event of a potential Russian aggression would cost at least twelve hundred billion euros - twenty-four times more than the Polish defence budget,\u201d he warned.\n- He compared that to just under \u20ac200bn that the EU and its member states have paid to Ukraine since 2022.\n- At least 23 people were injured in overnight strikes, with 420 drones and 39 missiles used by Russia to target Ukraine in the latest round of attacks.\n- Hungary\u2019s Viktor Orb\u00e1n appears to be escalating his rhetoric against Ukraine even further, making unsubstantiated allegations that the wartorn country could be planning to disrupt Hungarian energy system.",
+    "source": "theguardian.com",
+    "url": "https://www.theguardian.com/world/live/2026/feb/26/europe-latest-news-updates-russia-ukraine-war?page=with%3Ablock-69a000fe8f08255e30052d23",
+    "title": "Denmark\u2019s Mette Frederiksen calls March election amid \u2018Greenland bounce\u2019 in polls \u2013 as it happened",
+    "published_date": "Feb 26, 2026",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 20,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "8fa3e897f6513665f706cbba320d3eb2",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-b9b8d8b74473,ev-7cd48255b9cc,ev-76fc7c8739ed,ev-029d1b8af816,ev-e2932093e8a7,ev-5598d67b4270,ev-5aa674ec09e3,ev-c1cabe8133ef,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 11,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence mentions EU payments to Ukraine since 2022 but does not discuss EU sanctions against Russia.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_14",
+    "evidence_id": "ev-5598d67b4270",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "... Russia's full-scale invasion of Ukraine in 2022. \u201cBabi\u0161 is not an extremist ... \u201cI don't think Babi\u0161 will be against [more] sanctions\u201d on Russia, he added.",
+    "source": "ft.com",
+    "url": "https://www.ft.com/content/d7c8ca34-73f9-48bb-a4d3-d5834653ecf0?syn-25a6b1a6=1",
+    "title": "Eurosceptic Babi\u0161 on course to win power in Czech election",
+    "published_date": "Oct 4, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 27,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "bc02446cb581920a654f3d66e0caf898",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-b9b8d8b74473,ev-7cd48255b9cc,ev-76fc7c8739ed,ev-029d1b8af816,ev-aafef8621ef8,ev-c1cabe8133ef,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 9,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "The evidence mentions the possibility of more sanctions on Russia following the invasion of Ukraine in 2022 and discusses a Czech politician's stance, which is topically relevant to EU actions.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting"
+   },
+   {
+    "id": "evidence_15",
+    "evidence_id": "ev-5aa674ec09e3",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "The moves were big steps in one of the most sweeping crackdowns on online freedoms since Russia's full-scale invasion of Ukraine in 2022. The state is also ...",
+    "source": "ft.com",
+    "url": "https://www.ft.com/content/b406ea9e-2376-42a4-ae9f-a486fe5ec46b?syn-25a6b1a6=1",
+    "title": "Russia promotes 'national messenger' to vanquish WhatsApp",
+    "published_date": "Sep 4, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 28,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "09374559e48da29165cea7b59d6aa3f3",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-b9b8d8b74473,ev-7cd48255b9cc,ev-76fc7c8739ed,ev-029d1b8af816,ev-2a00e5918086,ev-aafef8621ef8,ev-c1cabe8133ef,ev-9a544d290429,ev-dd309874f291",
+    "corroborating_sources": 10,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses crackdowns on online freedoms in Russia since the invasion of Ukraine in 2022 but does not mention EU sanctions.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting"
+   },
+   {
+    "id": "evidence_16",
+    "evidence_id": "ev-8c01b0ae2d67",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- The Chinese and Russian governments have deepened their ties in recent years, with China providing an economic lifeline to Russia in the face of Western sanctions over Moscow\u2019s invasion of Ukraine.\n- European leaders asked China again last week to use its influence to pressure Russia to end the war, now in its fourth year, but there was no sign that Beijing would do so.\n- Zhang said the exercise and patrol are part of an annual cooperation plan and are not aimed at any other country or related to the current international or regional situation.\n- The U.S. has been blindly flexing muscles in the Asia-Pacific region and attempting to use military drills as a pretext to gang up, intimidate and pressure other countries, and undermine peace and stability in the region.",
+    "source": "apnews.com",
+    "url": "https://apnews.com/article/china-russia-military-joint-sea-naval-exercise-69a9debd6eb6596b0dc0cb419568881a",
+    "title": "China and Russia to hold joint naval exercise near Japan next month",
+    "published_date": "Jul 30, 2025",
+    "relevance_score": 0.17142857142857143,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 31,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "EU sanctions Russia 2022 Ukraine invasion rounds site:bbc.co.uk OR site:theguardian.com OR site:reuters.com OR site:apnews.com OR site:ft.com OR site:economist.com",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "5e026a9d843f220163cb4ea3c9eb8dde",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 3,
+    "llm_relevance_rationale": "This evidence mentions Western sanctions over Moscow's invasion of Ukraine and China-Russia ties, which is related but not specifically focused on EU sanctions.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_17",
+    "evidence_id": "ev-c1cabe8133ef",
+    "element_ids": [],
+    "text": "\nFollowing the full declaration of the Russian invasion of Ukraine, which started on 24 February 2022, institutions such as the United States, the European Union, and other Western countries introduced or significantly expanded sanctions covering Russian president Vladimir Putin, other government members and Russian citizens in general. Some Russian banks were banned from using the SWIFT international payments system. The sanctions and the boycotts of Russia and Belarus have impacted the Russian economy in various ways. Nevertheless, Russian authorities have mitigated the impact of sanctions by procuring essential goods from consumer products that are rarely subject to export restrictions, by exploiting globalized supply chains, and by turning toward trading partners who have ignored Western sanctions, such as China, India, Turkey and the UAE.",
+    "source": "Wikipedia",
+    "url": "https://en.wikipedia.org/wiki/International_sanctions_during_the_Russian_invasion_of_Ukraine",
+    "title": "International sanctions during the Russian invasion of Ukraine",
+    "published_date": "2026-05-18T00:27:23+00:00",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 123,
+    "external_source_provider": "Wikipedia",
+    "receipt_status": "shown",
+    "metadata": {
+     "description": "Economic measures against Russia and Belarus since 2022",
+     "page_id": 70323386,
+     "last_modified": "2026-05-18T00:27:23Z",
+     "domain": "Politics",
+     "external_source_provider": "Wikipedia"
+    },
+    "content_basis": "api",
+    "content_hash": "b2f982d043a04dbef75ed1413b3d4b4f",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-e1af24dd7c36,ev-7cd48255b9cc,ev-76fc7c8739ed,ev-029d1b8af816,ev-e2932093e8a7,ev-aafef8621ef8,ev-5598d67b4270,ev-5aa674ec09e3",
+    "corroborating_sources": 9,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "The evidence explicitly states that the European Union introduced or significantly expanded sanctions following the full declaration of the Russian invasion of Ukraine on February 24, 2022, directly addressing the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "data",
+    "derivation_chain": [
+     "ev-e1af24dd7c36",
+     "ev-e2932093e8a7",
+     "ev-5598d67b4270",
+     "ev-5aa674ec09e3"
+    ]
+   },
+   {
+    "id": "evidence_18",
+    "evidence_id": "ev-9a544d290429",
+    "element_ids": [],
+    "text": "There have been several rounds of peace talks to end the ongoing Russo-Ukrainian war since it began with Russia's invasion in February 2022. Russia's president Vladimir Putin seeks recognition of all occupied land as Russian, for Russia to be given all of the regions it claims but does not fully occupy, guarantees that Ukraine will never join NATO, curtailment of Ukraine's military, and the lifting of sanctions against Russia. Ukraine's president Volodymyr Zelenskyy seeks a ceasefire, full withdrawal of Russian troops, the return of prisoners and kidnapped Ukrainian children, prosecution of Russian leaders for war crimes, and security guarantees to prevent further Russian aggression.",
+    "source": "Wikipedia",
+    "url": "https://en.wikipedia.org/wiki/Peace_negotiations_in_the_Russo-Ukrainian_war_(2022%E2%80%93present)",
+    "title": "Peace negotiations in the Russo-Ukrainian war (2022\u2013present)",
+    "published_date": "2026-07-01T14:13:43+00:00",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 104,
+    "external_source_provider": "Wikipedia",
+    "receipt_status": "shown",
+    "metadata": {
+     "description": "",
+     "page_id": 70255183,
+     "last_modified": "2026-07-01T14:13:43Z",
+     "domain": "Politics",
+     "external_source_provider": "Wikipedia"
+    },
+    "content_basis": "api",
+    "content_hash": "d0e22a686d349c31c41f6c69433617bc",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3a8f79f3c240,ev-b9b8d8b74473,ev-7cd48255b9cc,ev-76fc7c8739ed,ev-029d1b8af816,ev-e2932093e8a7,ev-aafef8621ef8,ev-5598d67b4270,ev-5aa674ec09e3",
+    "corroborating_sources": 9,
+    "llm_relevance_score": 3,
+    "llm_relevance_rationale": "This evidence discusses peace negotiations and mentions lifting sanctions against Russia as a Russian demand, which is related but not a direct statement about the EU imposing sanctions.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "data",
+    "derivation_chain": [
+     "ev-34a98aa7abca",
+     "ev-e2932093e8a7",
+     "ev-5598d67b4270",
+     "ev-5aa674ec09e3"
+    ]
+   },
+   {
+    "id": "evidence_19",
+    "evidence_id": "ev-fafb0354de72",
+    "element_ids": [],
+    "text": "\n\nOn 24 February 2022, Russia invaded Ukraine, starting the largest and deadliest war in Europe since World War II, in a major escalation of the existing war between the two countries that began when Russia attacked Ukraine in 2014. The fighting has caused hundreds of thousands of military casualties and tens of thousands of Ukrainian civilian casualties. As of July 2026, Russian troops occupy roughly 20% of Ukraine. From a population of 41 million, about 8 million Ukrainians have been internally displaced and 6\u20137 million have fled the country, creating Europe's largest refugee crisis since World War II.",
+    "source": "Wikipedia",
+    "url": "https://en.wikipedia.org/wiki/Russo-Ukrainian_war_(2022%E2%80%93present)",
+    "title": "Russo-Ukrainian war (2022\u2013present)",
+    "published_date": "2026-07-02T08:36:48+00:00",
+    "relevance_score": 0.0,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 98,
+    "external_source_provider": "Wikipedia",
+    "receipt_status": "shown",
+    "metadata": {
+     "description": "Phase since 2022 of war ongoing since 2014",
+     "page_id": 70149799,
+     "last_modified": "2026-07-02T08:36:48Z",
+     "domain": "Politics",
+     "external_source_provider": "Wikipedia"
+    },
+    "content_basis": "api",
+    "content_hash": "0922ee2c56f881eca90221512a735508",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence describes the Russian invasion of Ukraine in 2022 but does not mention EU sanctions.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "data"
+   }
+  ],
+  "mapped_states_at_freeze": {
+   "e1": "contextual",
+   "e2": "unresolved",
+   "e3": "supported",
+   "e4": "supported"
+  }
+ },
+ {
+  "claim_text": "Measles cases in Europe rose significantly during 2024.",
+  "scaffold": {
+   "claim_id": "0",
+   "normalised_claim": "The number of measles cases in Europe increased substantially in the year 2024.",
+   "claim_type": "empirical",
+   "elements": [
+    {
+     "element_id": "e1",
+     "description": "There was a measurable increase in the incidence of measles cases across Europe during 2024.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null,
+     "basis": {
+      "evidence_count": 17,
+      "relationship_breakdown": {
+       "supports": 12,
+       "context": 5
+      },
+      "tier_breakdown": {
+       "primary": 11,
+       "reporting": 3,
+       "commentary": 3
+      },
+      "classification_breakdown": {
+       "llm": 9,
+       "llm+override": 8
+      },
+      "content_basis_breakdown": {
+       "distilled": 7,
+       "snippet": 9,
+       "full": 1
+      },
+      "support_structure": {
+       "count": 12,
+       "distinct_domains": 10,
+       "tier_counts": {
+        "primary": 7,
+        "reporting": 3,
+        "commentary": 2
+       },
+       "derivation": {
+        "originals": 2,
+        "derivative_count": 2
+       }
+      },
+      "challenge_structure": {
+       "count": 0,
+       "distinct_domains": 0,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 0,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "state_derivation": {
+       "supports_count": 12,
+       "challenges_count": 0,
+       "context_count": 5,
+       "weighted_supports": 29,
+       "weighted_challenges": 0,
+       "rule_applied": "all_supports",
+       "caveat": null
+      }
+     }
+    },
+    {
+     "element_id": "e2",
+     "description": "The increase in measles cases during 2024 was statistically significant or noteworthy.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null,
+     "basis": {
+      "evidence_count": 11,
+      "relationship_breakdown": {
+       "supports": 11
+      },
+      "tier_breakdown": {
+       "primary": 6,
+       "reporting": 3,
+       "commentary": 2
+      },
+      "classification_breakdown": {
+       "llm": 6,
+       "llm+override": 5
+      },
+      "content_basis_breakdown": {
+       "distilled": 4,
+       "snippet": 7
+      },
+      "support_structure": {
+       "count": 11,
+       "distinct_domains": 10,
+       "tier_counts": {
+        "primary": 6,
+        "reporting": 3,
+        "commentary": 2
+       },
+       "derivation": {
+        "originals": 2,
+        "derivative_count": 2
+       }
+      },
+      "challenge_structure": {
+       "count": 0,
+       "distinct_domains": 0,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 0,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "state_derivation": {
+       "supports_count": 11,
+       "challenges_count": 0,
+       "context_count": 0,
+       "weighted_supports": 26,
+       "weighted_challenges": 0,
+       "rule_applied": "all_supports",
+       "caveat": null
+      }
+     }
+    },
+    {
+     "element_id": "e3",
+     "description": "The geographical scope of the claim pertains to the continent of Europe.",
+     "evidence_refs": [],
+     "state": null,
+     "uncertainty": null,
+     "basis": {
+      "evidence_count": 18,
+      "relationship_breakdown": {
+       "supports": 13,
+       "context": 5
+      },
+      "tier_breakdown": {
+       "primary": 11,
+       "reporting": 4,
+       "commentary": 3
+      },
+      "classification_breakdown": {
+       "llm": 10,
+       "llm+override": 8
+      },
+      "content_basis_breakdown": {
+       "distilled": 7,
+       "snippet": 10,
+       "full": 1
+      },
+      "support_structure": {
+       "count": 13,
+       "distinct_domains": 12,
+       "tier_counts": {
+        "primary": 7,
+        "reporting": 4,
+        "commentary": 2
+       },
+       "derivation": {
+        "originals": 1,
+        "derivative_count": 2
+       }
+      },
+      "challenge_structure": {
+       "count": 0,
+       "distinct_domains": 0,
+       "tier_counts": {
+        "primary": 0,
+        "reporting": 0,
+        "commentary": 0
+       },
+       "derivation": {
+        "originals": 0,
+        "derivative_count": 0
+       }
+      },
+      "state_derivation": {
+       "supports_count": 13,
+       "challenges_count": 0,
+       "context_count": 5,
+       "weighted_supports": 31,
+       "weighted_challenges": 0,
+       "rule_applied": "all_supports",
+       "caveat": null
+      }
+     }
+    }
+   ],
+   "orientation": null,
+   "metadata": {
+    "decomposition_model": "gemini-2.5-flash-lite",
+    "mapping_model": "gemini-2.5-flash-lite",
+    "element_count": 3,
+    "completed_at": "2026-07-02T14:45:56.172495+00:00"
+   },
+   "orientation_basis": null
+  },
+  "evidence": [
+   {
+    "id": "evidence_0",
+    "evidence_id": "ev-0cc21d5284e1",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- In 2024, a total of 35 212 measles cases were reported across the EU/EEA, marking a notable increase (ten-fold), from the 3 973 cases reported in 2023.\n- Measles activity had already begun to increase in 2023 after a period of unusually low activity during 2020\u20132022, coinciding with the COVID-19 pandemic.",
+    "source": "ecdc.europa.eu",
+    "url": "https://www.ecdc.europa.eu/en/publications-data/measles-annual-epidemiological-report-2024",
+    "title": "Measles - Annual Epidemiological Report for 2024",
+    "published_date": "Apr 28, 2025",
+    "relevance_score": 0.7246268656716418,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 89,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "measles cases Europe 2024 increase",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "fc898e723d542a4015127b6020409a84",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly states that measles cases in the EU/EEA in 2024 were 35,212, a ten-fold increase from 2023, which directly supports the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "data",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_2",
+    "evidence_id": "ev-3e69b0178b1d",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- 127,350 measles cases were reported in the European Region for 2024 \u2013 double the number reported for 2023 and the highest number seen in the Region since 1997.\n- Children under five accounted for more than 40 per cent of reported cases in the Region \u2013 comprising 53 countries in Europe and Central Asia.\n- More than half of the reported cases required hospitalization.\n- A total of 38 deaths have been reported, based on preliminary data received as of 6 March 2025.\n- Following a backsliding in immunization coverage during the COVID-19 pandemic, cases rose significantly again in 2023 and 2024.\n- The European Region accounted for one third of all measles cases globally in 2024.\n- In 2023 alone, 500,000 children across the Region missed the first dose of the measles vaccine (MCV1) that should be given through routine immunization services.\n- Romania reported the highest number of cases in the Region for 2024, with 30,692 cases, followed by Kazakhstan with 28,147 cases.",
+    "source": "unicef.org",
+    "url": "https://www.unicef.org/press-releases/european-region-reports-highest-number-measles-cases-more-25-years-unicef-whoeurope",
+    "title": "European Region reports highest number of measles cases in more than 25 years \u2013 UNICEF, WHO/Europe",
+    "published_date": null,
+    "relevance_score": 0.2571428571428572,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 87,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "measles cases Europe 2024 increase",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "1b70b6a018f8cbb3a6527cec262910ee",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-96a344d8fa73",
+    "corroborating_sources": 1,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence explicitly states that the European Region reported the highest number of measles cases in more than 25 years in 2024 and that cases have soared over the past two years, directly supporting the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_3",
+    "evidence_id": "ev-fba1c9d6041b",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "Measles cases across Europe were up 10-fold in 2024 compared to 2023, while cases in the Americas so far this year are 11-fold higher.",
+    "source": "cidrap.umn.edu",
+    "url": "https://www.cidrap.umn.edu/measles/measles-cases-europe-americas-skyrocket",
+    "title": "Measles cases in Europe, the Americas skyrocket - CIDRAP",
+    "published_date": "Apr 28, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 24,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "measles cases Europe 2024 increase",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "2d4c68b991ad7253face84b3135894af",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-759c90f906bb,ev-96a344d8fa73,ev-a82d467919be,ev-9c15257bb718",
+    "corroborating_sources": 4,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly states that measles cases in Europe were up 10-fold in 2024 compared to 2023, which directly supports the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "academic",
+    "derivation_chain": [
+     "ev-a82d467919be",
+     "ev-9c15257bb718"
+    ]
+   },
+   {
+    "id": "evidence_4",
+    "evidence_id": "ev-759c90f906bb",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- In 2023, an estimated 10.3 million people were infected with measles.\n- After a decrease in global measles incidence during the COVID-19 pandemic, measles activity globally and in the United States continues to rise.\n- Kazakhstan reported 7,597 cases.",
+    "source": "cdc.gov",
+    "url": "https://www.cdc.gov/global-measles-vaccination/data-research/global-measles-outbreaks/index.html",
+    "title": "Global Measles Outbreaks",
+    "published_date": "Jun 12, 2026",
+    "relevance_score": 0.24838709677419357,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 73,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "measles cases Europe 2024 increase",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "2893bff5db37e2a098a020aa7e62040b",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-fba1c9d6041b",
+    "corroborating_sources": 1,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses global measles outbreaks and cases in 2023 and the US, but does not specifically detail the rise in Europe during 2024.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "data",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_5",
+    "evidence_id": "ev-18b695cc974a",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "While this year's case numbers have comparatively dipped, they remain high; as of September 2025, 7,000 cases have been reported across Europe, ...",
+    "source": "weforum.org",
+    "url": "https://www.weforum.org/stories/2025/09/measles-cases-rising-health-vaccines/",
+    "title": "Measles cases are still high \u2013 are we at a tipping point?",
+    "published_date": "Sep 26, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 23,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "measles cases Europe 2024 increase",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "15f8d92f168f54533da91aab2f7dae1c",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 3,
+    "llm_relevance_rationale": "This evidence discusses measles cases in Europe but refers to September 2025 and a dip in cases, which is not directly relevant to the claim about 2024.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting"
+   },
+   {
+    "id": "evidence_6",
+    "evidence_id": "ev-96a344d8fa73",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "The World Health Organization (WHO) reported that measles cases in the European region more than doubled from 2023 to 2024, reaching about 127 ...",
+    "source": "jamanetwork.com",
+    "url": "https://jamanetwork.com/journals/jama/fullarticle/2833101",
+    "title": "Measles Cases in European Region Highest in More Than 25 Years",
+    "published_date": "Apr 18, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 24,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "measles cases Europe 2024 increase",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "58cd48776e89bf8005be9ab4f34ebfb3",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-3e69b0178b1d,ev-fba1c9d6041b,ev-a82d467919be,ev-02660224b732,ev-872879a62cd3",
+    "corroborating_sources": 5,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly states that measles cases in the European region more than doubled from 2023 to 2024, reaching about 127,000, which directly supports the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "academic"
+   },
+   {
+    "id": "evidence_7",
+    "evidence_id": "ev-a82d467919be",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "The ECDC reported 35,212 measles cases in Europe in 2024, marking a 786% increase from the previous year, with Romania accounting for 87% of the ...",
+    "source": "contagionlive.com",
+    "url": "https://www.contagionlive.com/view/as-us-measles-cases-rise-to-884-ecdc-reports-over-35-000-infections-in-2024",
+    "title": "As US Measles Cases Rise to 884, the European Centre for Disease ...",
+    "published_date": "Apr 29, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 26,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "measles cases Europe 2024 increase",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "0d74055fb9d0cf2a562eff762ba2cbc6",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-fba1c9d6041b,ev-96a344d8fa73,ev-0c3d61422add,ev-02660224b732,ev-9c15257bb718",
+    "corroborating_sources": 5,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly reports 35,212 measles cases in Europe in 2024, marking a 786% increase from the previous year, which directly supports the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting"
+   },
+   {
+    "id": "evidence_8",
+    "evidence_id": "ev-a2b2452049e1",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- In April 2026, 29 countries reported measles data.\n- Seventeen countries reported 451 cases and 12 countries reported zero cases.\n- Overall, case numbers increased compared with the previous month, however this may be subject to change in the event of a future retrospective update.\n- The highest case counts were reported by Bulgaria (163), Italy (133), Latvia (38), France (32) and Spain (23).\n- In the most recent 12-month period, from 1 May 2025 to 30 April 2026, 30 EU/EEA Member States reported a total of 3 779 measles cases.\n- During the 12-month period, three deaths (case fatality rate (CFR): 0.079 %) attributable to measles were reported to ECDC by France (two) and Netherlands (one).\n- In April 2026, 29 countries reported measles data.\n- The highest number of cases were reported by Romania (1 354), Italy (594), France (421), Spain (296) and Belgium (236), accounting for 35.8, 15.7, 11.1, 7.8 and 6.2 percent of all cases, respectively (Table 1).",
+    "source": "measles-rubella-monthly.ecdc.europa.eu",
+    "url": "https://measles-rubella-monthly.ecdc.europa.eu/",
+    "title": "report.knit",
+    "published_date": null,
+    "relevance_score": 0.741095890410959,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 87,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 0,
+     "query_used": "measles cases Europe 2024 increase",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "efc6202d5ef6f8d9eb858568f413070e",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses measles cases and deaths in the Czech Republic and EU/EEA countries between May 2025 and April 2026, which is outside the scope of the 2024 claim.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "primary",
+    "evidence_type": "data",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_9",
+    "evidence_id": "ev-6fa0b7b810ec",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- Countries in Europe and Central Asia reported 33 998 measles cases in 2025 \u2013 a nearly 75% drop compared to 127 412 in 2024.\n- The overall decreasing trend in cases reflects both outbreak response measures and the gradual decline in the number of people susceptible to measles infection, as the virus made its way through under-vaccinated communities.\n- The number of cases in 2025 still exceeded what has been reported for most years since 2000, and some countries reported more cases in 2025 than in 2024.\n- Measles cases continue to be detected in 2026 in the Region.\n- Based on country reporting for 2024, the European Regional Verification Commission for Measles and Rubella Elimination concluded at its September 2025 meeting that the number of countries with continuing or re-established endemic measles transmission increased to 19, from 12 the previous year.",
+    "source": "who.int",
+    "url": "https://www.who.int/europe/news/item/11-02-2026-measles-cases-dropped-in-europe-and-central-asia-in-2025-compared-to-the-previous-year--but-the-risk-of-outbreaks-remains---unicef-and-who",
+    "title": "Measles cases dropped in Europe and Central Asia in 2025 compared to the previous year, but the risk of outbreaks remains \u2013 UNICEF and WHO",
+    "published_date": "Feb 11, 2026",
+    "relevance_score": 0.754945054945055,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 123,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "Europe measles outbreak 2024 statistics",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "3c731a703f3c1930123c855fc0c5c1e6",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 3,
+    "llm_relevance_rationale": "This evidence discusses a decline in measles cases in 2025 compared to 2024, but the primary focus is on 2025 data, not the rise in 2024.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "official_statement",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_10",
+    "evidence_id": "ev-478fe56c32e6",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "Europe recorded 127,320 cases, with very large outbreaks in Romania (30,000 cases) and Kazakhstan (28,000). The situation is an 'extreme ...",
+    "source": "vaccinestoday.eu",
+    "url": "https://www.vaccinestoday.eu/stories/measles-in-europe-how-to-get-back-on-track/",
+    "title": "Measles in Europe: How to get back on track - VaccinesToday",
+    "published_date": "Jan 28, 2026",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 21,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 1,
+     "query_used": "Europe measles outbreak 2024 statistics",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "9164d55fe891a1d614b6e3078b91a9c8",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "This evidence states Europe recorded 127,320 cases and mentions large outbreaks in Romania and Kazakhstan, indicating a significant situation in Europe, though it doesn't explicitly state a 'rise' compared to the previous year.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "reporting",
+    "evidence_type": "news_reporting"
+   },
+   {
+    "id": "evidence_11",
+    "evidence_id": "ev-8e905934d268",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "over 30,000 cases were reported in the WHO European region \u2026 the number of reported global measles cases increased by 18%, deaths increased by 43%,",
+    "source": "thelancet.com",
+    "url": "https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(24)00081-6/fulltext",
+    "title": "Concerning global rise in measles cases - eClinicalMedicine",
+    "published_date": null,
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 25,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "measles cases Europe 2024 increase site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "f846826855b7349f1e780c3976c8c4a3",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-0c3d61422add",
+    "corroborating_sources": 1,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "This evidence mentions over 30,000 cases in the WHO European region and a global increase, suggesting a rise, but it also includes global data and doesn't explicitly compare 2024 to 2023 for Europe.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "academic"
+   },
+   {
+    "id": "evidence_12",
+    "evidence_id": "ev-0c3d61422add",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "In 2024, the European region reported the highest number of measles cases in more than 25 years, accounting for 20% of the total measles cases ...",
+    "source": "nejm.org",
+    "url": "https://www.nejm.org/doi/full/10.1056/NEJMra2504516",
+    "title": "Measles 2025 - The New England Journal of Medicine",
+    "published_date": "Jun 25, 2025",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 26,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "measles cases Europe 2024 increase site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "60f94cc816d58c455cf29431d9217e96",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-a82d467919be,ev-8e905934d268,ev-02660224b732,ev-872879a62cd3",
+    "corroborating_sources": 4,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly states that the European region reported the highest number of measles cases in more than 25 years in 2024, which directly supports the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis"
+   },
+   {
+    "id": "evidence_13",
+    "evidence_id": "ev-02660224b732",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "The increase in measles cases is strongly associated with decreased vaccination coverage: of 59 outbreaks recorded in 2024, around 39 ...",
+    "source": "thelancet.com",
+    "url": "https://www.thelancet.com/journals/lanmic/article/PIIS2666-5247(26)00002-9/fulltext",
+    "title": "Global resurgence in measles - The Lancet Microbe",
+    "published_date": "Jan 29, 2026",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 21,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "measles cases Europe 2024 increase site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "9ac99f41f0bfa39f66e8463b0ba3b595",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-96a344d8fa73,ev-a82d467919be,ev-0c3d61422add,ev-872879a62cd3",
+    "corroborating_sources": 4,
+    "llm_relevance_score": 3,
+    "llm_relevance_rationale": "This evidence discusses the increase in measles cases and decreased vaccination coverage in 2024, but focuses on outbreaks generally rather than specifically detailing the rise in Europe.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "academic",
+    "derivation_chain": [
+     "ev-a82d467919be",
+     "ev-0c3d61422add"
+    ]
+   },
+   {
+    "id": "evidence_14",
+    "evidence_id": "ev-aa1007176b53",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- NEWS EXPLAINER Measles outbreaks cause alarm: what the data say Access options Access Nature and 54 other Nature Portfolio journals Get Nature+, our best-value online-access subscription \u00a317",
+    "source": "nature.com",
+    "url": "https://www.nature.com/articles/d41586-024-00265-8",
+    "title": "Measles outbreaks cause alarm: what the data say",
+    "published_date": "Jan 31, 2024",
+    "relevance_score": 0.1303030303030303,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 28,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "measles cases Europe 2024 increase site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "full",
+    "content_hash": "5bc9d7428d89da3198b0dd859d7c49c0",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence is a news explainer about measles outbreaks and data but does not provide specific figures or trends for Europe in 2024.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "academic"
+   },
+   {
+    "id": "evidence_15",
+    "evidence_id": "ev-9c15257bb718",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "Measles cases worldwide rose by 20% in a single year\u2014from about 8.6 million in 2022 to 10.3 million in 2023, which the World Health ...",
+    "source": "doi.org",
+    "url": "https://doi.org/10.1001/jama.2024.25514",
+    "title": "Global Measles Cases Rose 20% in 1 Year as Vaccine Coverage ...",
+    "published_date": "Dec 27, 2024",
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 25,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "measles cases Europe 2024 increase site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "466a73c06311ec7de23013bbf24baf1d",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-fba1c9d6041b,ev-a82d467919be",
+    "corroborating_sources": 2,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses a global rise in measles cases from 2022 to 2023, not the specific rise in Europe during 2024.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis"
+   },
+   {
+    "id": "evidence_16",
+    "evidence_id": "ev-4e48f98d5f1d",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- This paper examines the epidemiology and recent measles outbreaks in the United States, focusing on the significant rise in cases from 2020 to 2024.\n- Although measles was declared eliminated in the United States in 2000, the country continues to face challenges due to cases imported from other regions.\n- In 2019, the U.S. nearly lost its elimination status with almost 1,300 measles cases from a large outbreak in New York and cases in 30 additional states.\n- Measles cases have dramatically increased recently, with over 500,000 cases reported to the World Health Organization (WHO) in 2019.\n- From 2021 to 2022, 170 measles cases we",
+    "source": "doi.org",
+    "url": "https://doi.org/10.3389/fpubh.2024.1491927?urlappend=%3Futm_source%3Dresearchgate.net%26utm_medium%3Darticle",
+    "title": "Frontiers | Contagion comeback: unravelling the measles outbreak across the USA",
+    "published_date": "2024-12-18",
+    "relevance_score": 0.3916666666666667,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 49,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "measles cases Europe 2024 increase site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": true,
+      "is_warning": false,
+      "age_days": 561,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "STALE: Evidence is 561 days old, max allowed for standard data is 365 days"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "606518103e727190d08ce3e934ba8e39",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 2,
+    "llm_relevance_rationale": "This evidence discusses measles outbreaks in the USA and a global rise in cases, but does not provide specific data for Europe in 2024.",
+    "llm_relevant_claims": [],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "academic",
+    "_distilled": true
+   },
+   {
+    "id": "evidence_17",
+    "evidence_id": "ev-e0df46a36913",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "This led to a total of 2911 laboratory confirmed measles cases in England in 2024, the highest number of cases recorded annually since 2012.",
+    "source": "thelancet.com",
+    "url": "https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(25)00106-3/fulltext",
+    "title": "US measles outbreak: causes, consequences and the path forward",
+    "published_date": null,
+    "relevance_score": 0.5,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 24,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "measles cases Europe 2024 increase site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "snippet",
+    "content_hash": "de5494dfb413afbf88458bcc4ce4c75b",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "corroboration_group_id": 1,
+    "corroborating_evidence_ids": "ev-872879a62cd3",
+    "corroborating_sources": 1,
+    "llm_relevance_score": 4,
+    "llm_relevance_rationale": "This evidence states there were 2911 confirmed measles cases in England in 2024, the highest since 2012, indicating a significant rise in a European country, though not a comprehensive European figure.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm+override",
+    "tier": "primary",
+    "evidence_type": "academic"
+   },
+   {
+    "id": "evidence_18",
+    "evidence_id": "ev-782dc15ddd67",
+    "element_ids": [
+     "e1"
+    ],
+    "text": "- A total of 791 measles cases were reported during the study period, of which 762 (96%) were laboratory confirmed, 29 (4%) were probable and 416 (53%) were male.\n- Most cases (546; 69%) occurred in 2019.\n- In total, 109 (14%) measles cases were imported (62 from Ukraine and smaller numbers from 25 other countries; 57 of the imported cases were unvaccinated) and 523 cases (70%) were hospitalised.\n- In total, 330 (42%) of all cases were known to have been vaccinated, of which 205 (62%) with two or three doses and 75 (23%) with only one dose.\n- Of 88 complications (11% of all cases) was pneumonia most frequent (n = 19; 2%).\n- In 2024, the WHO European Region reported 127,350 measles cases, doubling the number recorded in 2023 and representing the highest incidence since 1997.\n- The highest number of cases for 2024 was reported in Romania (30,692) and Kazakhstan (more than 28,000).\n- In 2023, approximately 500,000 children missed their first dose due to access and acceptance challenges.",
+    "source": "doi.org",
+    "url": "https://doi.org/10.1186/s12889-026-27042-8",
+    "title": "Measles \u2013 retrospective study of cases reported in a national notification system, Czech Republic, 2018\u20132024 - BMC Public Health",
+    "published_date": "Mar 25, 2026",
+    "relevance_score": 0.8618556701030928,
+    "semantic_similarity": 0.0,
+    "combined_score": 0.0,
+    "word_count": 118,
+    "external_source_provider": null,
+    "receipt_status": "shown",
+    "metadata": {
+     "query_index": 2,
+     "query_used": "measles cases Europe 2024 increase site:nature.com OR site:science.org OR site:doi.org OR site:nejm.org OR site:thelancet.com OR site:plos.org",
+     "claim_type": "general",
+     "source_path": "query_planning",
+     "extraction_status": "success",
+     "is_snippet_fallback": false,
+     "element_ids": [
+      "e1"
+     ],
+     "staleness_check": {
+      "is_stale": false,
+      "is_warning": false,
+      "age_days": null,
+      "max_age_days": 365,
+      "warning_age_days": 730,
+      "message": "Evidence date unknown - cannot verify recency"
+     }
+    },
+    "content_basis": "distilled",
+    "content_hash": "f84b410165e40fd1c9b1141a85448bba",
+    "is_syndicated": false,
+    "original_source_url": null,
+    "llm_relevance_score": 5,
+    "llm_relevance_rationale": "This evidence directly states that in 2024, the WHO European Region reported 127,350 measles cases, doubling the number recorded in 2023 and representing the highest incidence since 1997, which directly supports the claim.",
+    "llm_relevant_claims": [
+     0
+    ],
+    "classification_method": "llm",
+    "tier": "commentary",
+    "evidence_type": "analysis",
+    "_distilled": true
+   }
+  ],
+  "mapped_states_at_freeze": {
+   "e1": "supported",
+   "e2": "supported",
+   "e3": "supported"
+  }
+ }
+]
