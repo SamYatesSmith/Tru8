@@ -226,14 +226,70 @@ guard so a change can pass — the same move the replay-bench README already
 forbids for missed evidence fetches, on the grounds that it degrades the drift
 guard corpus-wide. The invariant is not the problem here.
 
-### Why the interaction is real (hypothesis, unproven)
+### Mechanism — FOUND. It is not domain capping.
 
-Domain capping (`runner.py:266-282`) only treats **primary/reporting** items as
-demotion candidates, and gates on a domain's primary/reporting *share*. Upgrading
-a block of same-domain items into `primary` changes both which items are
-demotable and how that share computes. The observed direction — concentration
-going **up**, not down — is the opposite of the naive reading, so the mechanism
-is not yet understood and **must not be guessed at in a fix**.
+The earlier hypothesis (domain capping) was **wrong**, and provably so:
+`_apply_domain_concentration_cap` demotes **tier** and explicitly leaves items in
+place — *"Items remain visible (no hidden curation — receipts trail the
+decision)"*. A function that changes no item's presence cannot change a domain
+**share**.
+
+The actual chain:
+
+1. `top_domain_share` is computed by `_compute_claim_quality_signals` over
+   **MAPPED items only** — the evidence the mapper chose to `evidence_refs`.
+2. The mapping prompt **shows the mapper every item's tier** —
+   `f"[Tier: {ev.get('tier')}] "` at `claim_map_analyzer.py:1465, 1683, 2278,
+   2465` — and instructs it to use them: *"DATA PROVENANCE: Each evidence item
+   shows [Tier] and [Type]"* (`:322`, `:582`).
+3. Relabelling six items commentary → primary therefore does two things at once:
+   it changes the **prompt text** (→ the cassette miss, finding ①) and it changes
+   **which evidence the model references** (→ a different mapped set, finding ②).
+4. Those items concentrate on one domain, so the mapped set concentrates:
+   0.32 → 0.47.
+
+The mapper is doing exactly what it is told: weighting provenance. Given
+more-authoritative labels, it cited those sources more.
+
+### The real, pre-existing defect this exposed
+
+**Nothing enforces domain diversity on the mapped set.** `top_domain_share` is an
+*observed* invariant in the bench with no *mechanism* upholding it in the
+pipeline:
+
+- `_apply_domain_concentration_cap` acts on the **shown** set, and only relabels
+  tier — it cannot affect which items the mapper cites.
+- `ENABLE_DOMAIN_CAPPING` exists in `backend/.env` but is **referenced nowhere in
+  `app/`** — a dead flag, and worth deleting so it stops implying a protection
+  that does not exist.
+
+So the bench has been passing this invariant by luck of pool composition, not by
+design. This change did not create the fragility; it revealed it. Any future
+change that shifts tier — the Gemini migration will, since classification moves
+with the model — can trip the same wire.
+
+### Options, scoped
+
+| # | Option | Assessment |
+|---|---|---|
+| A | **Diversity constraint on `evidence_refs`** — cap refs per domain at mapping, or enforce post-hoc | Directly fixes the invariant. ⚠️ Post-hoc ref removal is **hidden curation** — it would drop evidence the mapper judged relevant with no receipt, breaching invariant #5. Would need a receipt trail. |
+| B | **Prompt-level diversity instruction** — tell the mapper to avoid over-citing one domain | Cheap, no architecture change. ⚠️ Prompt-only, and `feedback_nf11_prompt_only_failed` says fragile behaviours need a *mechanical* rule. Unreliable alone; possibly fine as a supplement. |
+| C | **Retrieval-side domain cap** — bound how many items one domain contributes to the pool | Fixes the cause rather than the symptom, and a thin pool cannot concentrate a mapped set. ⚠️ Interacts with the element-lane fetch budget (weighted round-robin, claim lane 2:1) and could starve legitimately dominant sources — on a legal claim, `legislation.gov.uk` *should* dominate. |
+| D | **Stop showing tier to the mapper** | Removes the coupling entirely. **Rejected** — provenance weighting is deliberate and load-bearing for mapping quality. |
+| E | **Make the invariant tier-aware** — allow higher concentration when the dominant domain is primary-tier | Arguably the *honest* reading: 47% from NEJM is not the same failure as 47% from one blog. ⚠️ Risks becoming a way to explain away real concentration. |
+
+### What the next session must establish FIRST
+
+1. **Which domain dominated** in the failing run, and whether its items were among
+   the six re-tiered. Not captured — the run was not kept. One live record with
+   `--verbose` settles it, and the answer decides between (C) and (E).
+2. Whether other corpus claims sit near the 0.45 cap, i.e. how much slack the
+   invariant currently has across the corpus.
+3. Whether `top_domain_share` should be measured on the mapped set at all, or on
+   the shown set — the mapped set is a *model output*, which makes the invariant
+   a check on the LLM's citation behaviour rather than on retrieval.
+
+Only then choose between A/B/C/E. Deciding now would be guessing.
 
 ### Options
 
