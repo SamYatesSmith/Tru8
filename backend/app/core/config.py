@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
@@ -26,6 +26,55 @@ class Settings(BaseSettings):
                 "DATABASE_URL",
                 self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1),
             )
+
+        self._refuse_live_stripe_outside_deployment()
+
+    # -- Safety: a developer machine must be incapable of charging anyone ------
+    #
+    # Found 2026-08-03: backend/.env carried ENVIRONMENT=development alongside a
+    # live STRIPE_SECRET_KEY (sk_live_) and a live webhook secret. Nothing was
+    # leaked — the file has never been committed — but every local run of the
+    # payments path was pointed at REAL customers and REAL money. Clerk was
+    # correctly on a test key; Stripe was not.
+    #
+    # The fix is not "remember to use test keys". A convention decays the next
+    # time someone copies a .env to debug a payment; an assertion does not. So
+    # the key is REFUSED rather than trusted: outside a deployed environment a
+    # live key is discarded, and Stripe calls then fail loudly on auth instead
+    # of quietly succeeding against production.
+    #
+    # Discarding rather than raising is deliberate — raising would brick the
+    # test suite and local boot on a machine that merely has a stale .env, which
+    # punishes the person doing the right thing. The CRITICAL log is the signal.
+    _DEPLOYED_ENVIRONMENTS: ClassVar[set] = {"production", "staging"}
+
+    def _refuse_live_stripe_outside_deployment(self) -> None:
+        if self.ENVIRONMENT.lower() in self._DEPLOYED_ENVIRONMENTS:
+            return
+        if self.ALLOW_LIVE_STRIPE_IN_DEV:
+            return
+
+        # Only the SECRET KEY is guarded, because it is the only one whose mode
+        # is legible: sk_live_ vs sk_test_. Stripe webhook secrets are `whsec_`
+        # in BOTH modes, so there is no prefix to test and no way to catch a live
+        # one here — swapping that value stays a manual step. It is also the far
+        # smaller risk: a webhook secret only verifies inbound signatures, it
+        # cannot move money.
+        if not self.STRIPE_SECRET_KEY.startswith("sk_live_"):
+            return
+
+        object.__setattr__(self, "STRIPE_SECRET_KEY", "")
+        # print to stderr, not logger: this runs at import, before logging config.
+        print(
+            "CRITICAL [config] STRIPE_SECRET_KEY held a LIVE key (sk_live_) while "
+            f"ENVIRONMENT={self.ENVIRONMENT!r}. It has been DISCARDED so this "
+            "process cannot reach live Stripe. Put a test-mode key in "
+            "backend/.env — the live value belongs on Railway only. Remember the "
+            "webhook secret too: it is `whsec_` in both modes, so it cannot be "
+            "checked here. Override with ALLOW_LIVE_STRIPE_IN_DEV=true if you "
+            "really mean to bill real customers from this machine.",
+            file=__import__("sys").stderr,
+        )
 
     DATABASE_SSL: bool = Field(
         True, env="DATABASE_SSL"
@@ -106,6 +155,8 @@ class Settings(BaseSettings):
     S3_REGION: str = Field("eu-north-1", env="S3_REGION")
 
     # Stripe Payments
+    # Escape hatch for _refuse_live_stripe_outside_deployment(). Leave False.
+    ALLOW_LIVE_STRIPE_IN_DEV: bool = Field(False, env="ALLOW_LIVE_STRIPE_IN_DEV")
     STRIPE_SECRET_KEY: str = Field("", env="STRIPE_SECRET_KEY")
     STRIPE_WEBHOOK_SECRET: str = Field("", env="STRIPE_WEBHOOK_SECRET")
     STRIPE_PRICE_ID_PRO: str = Field("", env="STRIPE_PRICE_ID_PRO")
