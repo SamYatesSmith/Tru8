@@ -350,7 +350,22 @@ async def get_usage(
         }
 
     return {
-        "creditsRemaining": user.credits,
+        # DERIVED from the same snapshot the gate enforces — never `user.credits`.
+        #
+        # B2 (found 2026-07-10, fixed 2026-08-03). `user.credits` is a legacy
+        # counter reset only by handle_invoice_paid (payments.py), i.e. on the
+        # STRIPE BILLING PERIOD. For an annual plan that fires once a year, while
+        # the allowance itself refreshes MONTHLY (get_usage_snapshot uses
+        # _monthly_window_start). So a £200/yr subscriber who spent 200 checks in
+        # month 1 read creditsRemaining: 0 for the following ELEVEN months, and
+        # the Seeker re-search button disabled itself on exactly that value —
+        # while the backend ledger gate would happily have served the request.
+        #
+        # Monthly plans were unaffected (their billing period IS the window),
+        # which is why the 2026-07-13 payment smoke test could not catch it.
+        #
+        # Deriving here makes the DISPLAY agree with ENFORCEMENT by construction.
+        "creditsRemaining": max(0, credits_per_period - period_credits_used),
         "totalCreditsUsed": user.total_credits_used,
         "periodCreditsUsed": period_credits_used,  # Renamed from monthlyCreditsUsed
         "creditsPerPeriod": credits_per_period,  # Renamed from creditsPerMonth

@@ -544,6 +544,86 @@ class TestGetUsage:
         assert body["subscription"]["resetDate"] is None
 
     @pytest.mark.asyncio
+    async def test_annual_subscriber_mid_year_sees_the_monthly_allowance(self):
+        """B2: an annual subscriber eleven months in must not read zero.
+
+        This is the case the 2026-07-13 payment smoke test structurally could not
+        catch, because monthly plans are unaffected.
+
+        `user.credits` is a legacy counter reset only by handle_invoice_paid, so
+        on a GBP200/yr plan it refreshes ONCE A YEAR. The allowance it is meant to
+        describe refreshes MONTHLY (get_usage_snapshot._monthly_window_start).
+        A subscriber who spent all 200 checks in month 1 therefore had
+        user.credits == 0 for the following eleven months, and
+        ResearchButton.tsx disabled Seeker re-search on exactly that value —
+        while the backend ledger gate would have served the request.
+
+        The endpoint must report what the gate would actually enforce: a fresh
+        200 for the current monthly window, regardless of the stale counter.
+        """
+        app = _create_test_app()
+        # Spent the lot in month 1 and never had it reset since.
+        user = _make_user(credits=0, total_credits_used=200)
+        sub = _make_subscription(
+            plan="console",
+            credits_per_month=200,
+            current_period_start=datetime(2026, 1, 1, 0, 0, 0),  # annual, Jan
+            current_period_end=datetime(2027, 1, 1, 0, 0, 0),
+        )
+
+        session = _make_session(
+            {"scalar": user},  # get_or_create_user
+            {"scalar": sub},  # subscription query
+            {"scalar": 0},  # nothing used in the CURRENT monthly window
+        )
+
+        with patch("app.api.v1.users.settings") as mock_settings:
+            mock_settings.ADMIN_EMAILS = []
+            mock_settings.BETA_TESTER_EMAILS = []
+
+            app.dependency_overrides[get_current_user] = _mock_auth_override()
+            app.dependency_overrides[get_session] = lambda: session
+
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                resp = await client.get("/api/v1/users/usage")
+
+        assert resp.status_code == 200
+        body = resp.json()
+        # The bug returned user.credits == 0 here and disabled the Seeker.
+        assert body["creditsRemaining"] == 200
+        assert body["creditsPerPeriod"] == 200
+        assert body["periodCreditsUsed"] == 0
+
+    @pytest.mark.asyncio
+    async def test_credits_remaining_never_goes_negative(self):
+        """An over-spend (refund race, admin top-up) must floor at zero, not invert."""
+        app = _create_test_app()
+        user = _make_user(credits=0, total_credits_used=205)
+        sub = _make_subscription(plan="console", credits_per_month=200)
+
+        session = _make_session(
+            {"scalar": user},
+            {"scalar": sub},
+            {"scalar": 205},  # used MORE than the allowance
+        )
+
+        with patch("app.api.v1.users.settings") as mock_settings:
+            mock_settings.ADMIN_EMAILS = []
+            mock_settings.BETA_TESTER_EMAILS = []
+
+            app.dependency_overrides[get_current_user] = _mock_auth_override()
+            app.dependency_overrides[get_session] = lambda: session
+
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                resp = await client.get("/api/v1/users/usage")
+
+        assert resp.json()["creditsRemaining"] == 0
+
+    @pytest.mark.asyncio
     async def test_admin_gets_unlimited_credits(self):
         """Admin user sees unlimited credits."""
         app = _create_test_app()

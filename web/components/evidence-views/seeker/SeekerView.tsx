@@ -42,9 +42,27 @@ export function SeekerView({ claim, readOnly, checkId, token, onResearchComplete
 
     apiClient.getUsage(token).then((raw: unknown) => {
       if (cancelled) return;
-      const usage = raw as { creditsRemaining?: number } | undefined;
-      if (typeof usage?.creditsRemaining === 'number') {
-        setCreditInfo({ remaining: usage.creditsRemaining });
+      // Derive from the allowance window, the same pair every other surface
+      // uses (dashboard hero, new-check, settings). NOT `creditsRemaining`.
+      //
+      // B2: that field was `user.credits`, a legacy counter reset only on the
+      // Stripe billing period — once a YEAR on an annual plan, while the
+      // allowance itself refreshes monthly. An annual subscriber who spent 200
+      // checks in month 1 read 0 for the next eleven months and had re-search
+      // disabled on it, while the backend would have served the request.
+      //
+      // The endpoint now derives the field correctly too, so this is belt and
+      // braces — and it leaves the legacy counter with no readers at all.
+      const usage = raw as
+        | { creditsPerPeriod?: number; periodCreditsUsed?: number }
+        | undefined;
+      if (
+        typeof usage?.creditsPerPeriod === 'number' &&
+        typeof usage?.periodCreditsUsed === 'number'
+      ) {
+        setCreditInfo({
+          remaining: Math.max(0, usage.creditsPerPeriod - usage.periodCreditsUsed),
+        });
       }
     }).catch(() => {
       // Non-critical — button will work without credit display
