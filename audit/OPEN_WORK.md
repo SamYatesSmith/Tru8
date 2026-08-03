@@ -4,6 +4,21 @@
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
+**2026-08-03 — ✅ SHIPPED (9 commits `f748430..744a90a`, NOT PUSHED — founder call). Suite 3,010 pass / 0 fail · web tsc clean · vitest 87 pass. Plan: `audit/2026-08-03_launch_fix_plan.md`.**
+
+| W | Item | Commit | Gate |
+|---|---|---|---|
+| W0 | Commit hygiene — planner fix + test; eval harnesses tracked, outputs ignored (frozen sweep POOLS negated back in — an untracked frozen pool is not frozen); Track N's 85-file record moved into `audit/`; cruft cleared | `f748430` `d2513f8` `37d1c32` `4407b58` | byte-identity verified before source removal |
+| W4 | **Stripe: a dev machine cannot charge anyone.** `Settings` DISCARDS `sk_live_` outside prod/staging + CRITICAL notice; `ALLOW_LIVE_STRIPE_IN_DEV` escape hatch. Discards rather than raises so a stale `.env` doesn't brick local boot | `9bb6929` | 14 tests · **mutation: guard removed → 7 fail; env check removed → exactly the 3 prod cases fail** |
+| W3 | **Sentry noise.** `sentry_sdk.init()` had NO `integrations=`, so default `LoggingIntegration` sat at ERROR and all ~282 `logger.error()` sites emailed. Now `event_level=CRITICAL`, ERROR retained as breadcrumbs. Config + reasoning in `app/core/observability.py` | `84519d5` | 7 behavioural tests vs a real capturing transport · **mutation: restoring ERROR fails 4** |
+| W5 | **B2 annual credits.** `users.py` now derives `max(0, credits_per_period - period_credits_used)`; `SeekerView` switched to the same pair → legacy counter has **no frontend readers left** | `2d7286e` | **mutation: restoring `user.credits` fails the new annual test and nothing else — the pre-existing fixtures coincidentally agreed under both formulas, which is why this survived** |
+| W6 | Contact page sourced from `LEGAL` (was "Tru8 Ltd"/"London" — a company that does not exist at the wrong address); fictional support team replaced with the honest solo framing + ICO escalation; refund policy cites UK CCRs 2013 alongside the EU directive | `0c5e73b` | web tsc |
+| W1c | Title suffix doubled on 4 pages (layout already applies `%s \| Tru8`); sitemap used `new Date()` for /blog + /contact against its own stated rule — and the pages changed TODAY needed their lastmod moved forward | `744a90a` | web tsc |
+
+**⛔ OWED BY FOUNDER (I cannot do these):** ① **swap `backend/.env` Stripe values to test mode** — the guard neutralises the secret key but the *webhook* secret is `whsec_` in both modes and cannot be detected, so that swap is manual; a hook blocks me editing `.env*`, so the `.env.example` snippet is in the session notes. ② **triage the 17 Sentry issues** + re-key **Companies House** (401 in prod). ③ **read the Serper/Google invoices** — this is the fastest route to a real cost-per-check and needs no code and no customers. ④ **push** (Railway auto-deploys).
+**STILL HELD, do not commit:** `claim_map_analyzer.py` mapping-prompt reframe — needs the bench re-record + re-gold, its own session.
+**NEXT:** W1a sample report (3 candidate checks → pin → assert), which also generates W2's cost data; then W1b screenshot recapture at one fixed ratio; then W2 meter instrumentation.
+
 **2026-08-03 — 🚀 LAUNCH READINESS AUDIT. Full re-derivation from code + live prod + Sentry + Companies House, deliberately NOT from audit docs. Detail: `audit/2026-08-03_launch_readiness_audit.md`.** Verdict: the pipeline is not what blocks revenue. Six things sit between a stranger and a paid subscription, and unit cost is currently unmeasurable.
 
 - **⛔ F-01 BLOCKER — the sample report linked from the homepage is DEAD.** `/r/TRU-8723-1E97` returns **HTTP 200** with body `Report Not Found` (server-rendered, verified twice over plain HTTP). It is `SAMPLE_REPORT_PATH` in `web/lib/marketing.ts`, linked from **three** conversion surfaces: hero (`stitch-hero.tsx:74`), closing CTA (`stitch-closing-cta.tsx:39`), `/compare` (`direct-alternatives.tsx:176`). This is the only way a stranger evaluates the product **without signing up** — for a no-verdict tool the sample IS the pitch. 200-not-404 means no uptime monitor catches it and Google indexes it. **Fix: pin a real check ID + assert it in CI; make a missing report 404.**
