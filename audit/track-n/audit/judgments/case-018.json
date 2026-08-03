@@ -1,0 +1,132 @@
+{
+  "case_id": "case-018",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-092a45e47bf6",
+      "mapper_relationship": "context",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-141e79ab9d3f",
+      "mapper_relationship": "context",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-e1fc5de57de7",
+      "mapper_relationship": "context",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-092a45e47bf6",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-bc81fc106cf5",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-092a45e47bf6",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-56473142f329",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-141e79ab9d3f",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-e1fc5de57de7",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": null,
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

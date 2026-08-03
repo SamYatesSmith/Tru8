@@ -1,0 +1,127 @@
+[
+  {
+    "claim_id": "eval-001",
+    "normalised_claim": "UK GDP grew by 0.5% in Q3 2025",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "UK GDP grew in Q3 2025"
+      },
+      {
+        "element_id": "e2",
+        "description": "The growth rate was 0.5%"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-001",
+        "title": "ONS GDP Estimate - Q3 2025",
+        "text": "The Office for National Statistics estimates that UK gross domestic product grew by 0.1% in Quarter 3 2025, following growth of 0.5% in Quarter 2. The services sector was the main contributor to growth.",
+        "snippet": "The Office for National Statistics estimates that UK gross domestic product grew by 0.1% in Quarter 3 2025, following growth of 0.5% in Quarter 2.",
+        "source": "ons.gov.uk",
+        "url": "https://ons.gov.uk/gdp/q3-2025",
+        "tier": "primary",
+        "evidence_type": "data",
+        "relevance_score": 0.95
+      },
+      {
+        "evidence_id": "ev-002",
+        "title": "UK economy shows resilience despite headwinds",
+        "text": "Britain's economy continued to expand in the third quarter according to preliminary data, though at a slower pace than previously. Analysts had expected growth of around 0.3 per cent.",
+        "snippet": "Britain's economy continued to expand in the third quarter according to preliminary data, though at a slower pace than previously.",
+        "source": "ft.com",
+        "url": "https://ft.com/content/uk-economy-q3",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "relevance_score": 0.8
+      },
+      {
+        "evidence_id": "ev-003",
+        "title": "Why the UK economy is still underperforming",
+        "text": "Commentators have noted that while GDP is growing, the pace remains below trend. Some attribute this to persistent supply-side constraints and weak business investment.",
+        "snippet": "Commentators have noted that while GDP is growing, the pace remains below trend.",
+        "source": "economist.com",
+        "url": "https://economist.com/uk-underperformance",
+        "tier": "commentary",
+        "evidence_type": "analysis",
+        "relevance_score": 0.55
+      }
+    ]
+  },
+  {
+    "claim_id": "eval-002",
+    "normalised_claim": "The Amazon rainforest lost 10,000 square kilometres of tree cover in 2024",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The Amazon rainforest experienced tree cover loss in 2024"
+      },
+      {
+        "element_id": "e2",
+        "description": "The amount of tree cover lost was 10,000 square kilometres"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-010",
+        "title": "INPE Deforestation Alert Data 2024",
+        "text": "Brazil's National Institute for Space Research (INPE) recorded 8,453 square kilometres of deforestation alerts in the Legal Amazon region during 2024, a 22% reduction from the previous year's 10,834 sq km.",
+        "snippet": "Brazil's National Institute for Space Research (INPE) recorded 8,453 square kilometres of deforestation alerts in the Legal Amazon during 2024.",
+        "source": "inpe.br",
+        "url": "https://terrabrasilis.dpi.inpe.br/deforestation-2024",
+        "tier": "primary",
+        "evidence_type": "data",
+        "relevance_score": 0.92
+      },
+      {
+        "evidence_id": "ev-011",
+        "title": "Amazon deforestation falls to lowest level in six years",
+        "text": "Deforestation in the Brazilian Amazon dropped significantly in 2024, with satellite data showing the lowest annual rate since 2018. Environmental groups cautiously welcomed the decline.",
+        "snippet": "Deforestation in the Brazilian Amazon dropped significantly in 2024, with satellite data showing the lowest annual rate since 2018.",
+        "source": "reuters.com",
+        "url": "https://reuters.com/amazon-deforestation-2024",
+        "tier": "reporting",
+        "evidence_type": "news_reporting",
+        "relevance_score": 0.78
+      }
+    ]
+  },
+  {
+    "claim_id": "eval-003",
+    "normalised_claim": "Tesla delivered over 2 million vehicles globally in 2024",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "Tesla made vehicle deliveries globally in 2024"
+      },
+      {
+        "element_id": "e2",
+        "description": "The number of deliveries exceeded 2 million"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-020",
+        "title": "Tesla Q4 and Full Year 2024 Delivery Report",
+        "text": "Tesla reported total deliveries of 1,789,226 vehicles for full year 2024, down from 1,808,581 in 2023. This marked the company's first annual delivery decline.",
+        "snippet": "Tesla reported total deliveries of 1,789,226 vehicles for full year 2024, down from 1,808,581 in 2023.",
+        "source": "ir.tesla.com",
+        "url": "https://ir.tesla.com/press-release/q4-2024-deliveries",
+        "tier": "primary",
+        "evidence_type": "data",
+        "relevance_score": 0.98
+      },
+      {
+        "evidence_id": "ev-021",
+        "title": "Electric vehicle market trends 2024",
+        "text": "Global EV sales reached new records in 2024, driven by Chinese manufacturers. Tesla remained the single largest EV brand but faced growing competition.",
+        "snippet": "Global EV sales reached new records in 2024. Tesla remained the single largest EV brand but faced growing competition.",
+        "source": "iea.org",
+        "url": "https://iea.org/reports/ev-trends-2024",
+        "tier": "reporting",
+        "evidence_type": "analysis",
+        "relevance_score": 0.45
+      }
+    ]
+  }
+]

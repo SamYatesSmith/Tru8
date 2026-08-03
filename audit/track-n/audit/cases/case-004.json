@@ -1,0 +1,238 @@
+{
+  "case_id": "case-004",
+  "source": {
+    "check_id": "fb7cc173-eda4-43c4-841d-74a9868a7b5b",
+    "claim_id": "733cec61-fb56-4e44-a5b7-7305b79768ad",
+    "claim_position": 1,
+    "extracted_at": "2026-03-02T21:10:57.643923+00:00"
+  },
+  "claim": {
+    "normalised_claim": "Tesla holds the leading position in worldwide electric vehicle sales.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The total number of electric vehicles sold by each manufacturer globally is recorded."
+      },
+      {
+        "element_id": "e2",
+        "description": "Tesla's electric vehicle sales figures are compared against all other manufacturers."
+      },
+      {
+        "element_id": "e3",
+        "description": "Tesla's sales volume is higher than that of any other single manufacturer."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-5f119449aecd",
+      "title": "BYD\u2019s Pricing Strategy in the EV Market: Comparative Analysis with Tesla and Strategic Recommendations for Sustainable Development",
+      "full_text": "<jats:p>In the highly competitive global electric vehicle (EV) market, a sustainable pricing strategy is crucial for commercial success. Through comparing the pricing strategies of BYD, a Chinese volume leader, and Tesla, a premium innovator located in the US, this study examines the differences bet",
+      "mapper_window": "<jats:p>In the highly competitive global electric vehicle (EV) market, a sustainable pricing strategy is crucial for commercial success. Through comparing the pricing strategies of BYD, a Chinese volume leader, and Tesla, a premium innovator located in the US, this study examines the differences bet",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.61173/jwzch613"
+    },
+    {
+      "evidence_id": "ev-9517c5521ebb",
+      "title": "BYD Auto",
+      "full_text": "BYD Auto Co., Ltd. is the automotive subsidiary of BYD Company, a publicly listed Chinese multinational manufacturing company. It manufactures passenger battery electric vehicles (BEVs) and plug-in hybrid electric vehicles (PHEVs)\u2014collectively known as new energy vehicles (NEVs) in China\u2014along with electric buses and electric trucks. The company sells its vehicles under its main BYD brand as well as its high-end brands, which are Denza, Fangchengbao and Yangwang.",
+      "mapper_window": "BYD Auto Co., Ltd. is the automotive subsidiary of BYD Company, a publicly listed Chinese multinational manufacturing company. It manufactures passenger battery electric vehicles (BEVs) and plug-in hybrid electric vehicles (PHEVs)\u2014collectively known as new energy vehicles (NEVs) in China\u2014along with electric buses and electric trucks. The company sells its vehicles under its main BYD brand as well ",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/BYD_Auto"
+    },
+    {
+      "evidence_id": "ev-rpf-1_0",
+      "title": "China's BYD Surpasses Tesla as World Leader in Electric Car Sales",
+      "full_text": "Tesla has lost its status as the world's biggest seller of electric vehicles after Congress and President Trump eliminated the federal tax credits that had ...",
+      "mapper_window": "Tesla has lost its status as the world's biggest seller of electric vehicles after Congress and President Trump eliminated the federal tax credits that had ...",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nytimes.com",
+      "url": "https://www.nytimes.com/2026/01/02/business/tesla-electric-vehicles-fourth-quarter-sales.html"
+    },
+    {
+      "evidence_id": "ev-rpf-1_2",
+      "title": "Tesla's European Sales Slide Continues as BYD Surges Ahead in ...",
+      "full_text": "Tesla registrations dipped slightly by 1.6% to 7,187 units in January, maintaining a 0.9% share of the market, while BYD surged 175% during the same period.",
+      "mapper_window": "Tesla registrations dipped slightly by 1.6% to 7,187 units in January, maintaining a 0.9% share of the market, while BYD surged 175% during the same period.",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "driveteslacanada.ca",
+      "url": "https://driveteslacanada.ca/news/teslas-european-sales-slide-continues-as-byd-surges-ahead-in-january-registrations/"
+    },
+    {
+      "evidence_id": "ev-rec-e1_2_cb16a95b",
+      "title": "Tesla statistics, data and sales numbers - all the latest figures - RAC",
+      "full_text": "Nearly 8.5 million Teslas have been produced and sold around the world, with the brand's record year of 2023 making up 1.8 million of those. While the Tesla ...",
+      "mapper_window": "Nearly 8.5 million Teslas have been produced and sold around the world, with the brand's record year of 2023 making up 1.8 million of those. While the Tesla ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "rac.co.uk",
+      "url": "https://www.rac.co.uk/drive/electric-cars/choosing/tesla-data-statistics-and-projections/"
+    },
+    {
+      "evidence_id": "ev-rec-e1_3_8abf0395",
+      "title": "Popular Tesla and BYD models set for global EV victory - Autovista24",
+      "full_text": "The Tesla Model Y appeared safe at the top of the global BEV leaderboard 11 months into 2025. Between January and November, the crossover saw 959,904 sales and ...",
+      "mapper_window": "The Tesla Model Y appeared safe at the top of the global BEV leaderboard 11 months into 2025. Between January and November, the crossover saw 959,904 sales and ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "autovista24.autovistagroup.com",
+      "url": "https://autovista24.autovistagroup.com/news/popular-tesla-and-byd-models-set-for-global-ev-victory/"
+    },
+    {
+      "evidence_id": "ev-rec-e2_1_5f109087",
+      "title": "Despite Q4 Collapse, 2025 EV Sales Decline Only 2% Versus 2024",
+      "full_text": "Tesla remains the EV market leader, by far, even with sales declining for the second year after peaking in 2023. Nearly half of all EVs sold in the U.S. come ...",
+      "mapper_window": "Tesla remains the EV market leader, by far, even with sales declining for the second year after peaking in 2023. Nearly half of all EVs sold in the U.S. come ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "coxautoinc.com",
+      "url": "https://www.coxautoinc.com/insights-hub/q4-2025-ev-sales-report-commentary/"
+    },
+    {
+      "evidence_id": "ev-rec-e2_3_c42ce0c4",
+      "title": "Tesla Worldwide Car Sales by Model and Outlook 2026 to 2029",
+      "full_text": "Worldwide deliveries (global Tesla sales) were 8.6% lower than a year ago, while total production in 2025 was 6.7% lower than a year ago. The Tesla Model Y ...",
+      "mapper_window": "Worldwide deliveries (global Tesla sales) were 8.6% lower than a year ago, while total production in 2025 was 6.7% lower than a year ago. The Tesla Model Y ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "best-selling-cars.com",
+      "url": "https://www.best-selling-cars.com/brands/2025-full-year-global-tesla-worldwide-car-sales-by-model-and-outlook-2026-to-2029/"
+    },
+    {
+      "evidence_id": "ev-rec-e2_4_78b8fc7d",
+      "title": "Tesla's Model 3 and Model Y overwhelmingly dominated the US EV ...",
+      "full_text": "Tesla remained the market leader with 633,762 sales, followed by General Motors and Ford. However, popular models like the Tesla Model Y and Model 3 saw ...",
+      "mapper_window": "Tesla remained the market leader with 633,762 sales, followed by General Motors and Ford. However, popular models like the Tesla Model Y and Model 3 saw ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "facebook.com",
+      "url": "https://www.facebook.com/groups/582587802126171/posts/2650206215364309/"
+    },
+    {
+      "evidence_id": "ev-rpf-1_1",
+      "title": "China's BYD overtakes Tesla as world's top EV seller - BBC",
+      "full_text": "Tesla car sales dropped by nearly 9% in 2025 to 1.64 million vehicles sold worldwide, the carmaker said on Friday - its second consecutive year of falling car ...",
+      "mapper_window": "Tesla car sales dropped by nearly 9% in 2025 to 1.64 million vehicles sold worldwide, the carmaker said on Friday - its second consecutive year of falling car ...",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "bbc.com",
+      "url": "https://www.bbc.com/news/articles/cj9rjwpvmpzo"
+    },
+    {
+      "evidence_id": "ev-rec-e1_1_1b536bb8",
+      "title": "Tesla - statistics & facts | Statista",
+      "full_text": "Tesla is the leading producer of plug-in electric vehicles globally. Its Model 3 has become the world's best-selling all-electric vehicle model.",
+      "mapper_window": "Tesla is the leading producer of plug-in electric vehicles globally. Its Model 3 has become the world's best-selling all-electric vehicle model.",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "statista.com",
+      "url": "https://www.statista.com/topics/2086/tesla/?srsltid=AfmBOoo9w9eBDnZY5GcaM-AwmBzeY8DV1jBkIuSyEYRqFg4ePCz845Q_"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "71a520d6f35b",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-e1_1_1b536bb8",
+            "relationship": "supports",
+            "reasoning": "States Tesla is the leading producer of plug-in electric vehicles globally and its Model 3 is the world's best-selling all-electric vehicle model."
+          },
+          {
+            "evidence_id": "ev-rec-e1_2_cb16a95b",
+            "relationship": "supports",
+            "reasoning": "Indicates nearly 8.5 million Teslas have been produced and sold worldwide, with 1.8 million in 2023, supporting the idea of significant sales volume."
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_8abf0395",
+            "relationship": "supports",
+            "reasoning": "Reports that the Tesla Model Y was at the top of the global BEV leaderboard with 959,904 sales between January and November 2025."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-5f119449aecd",
+            "relationship": "context",
+            "reasoning": "This evidence discusses BYD and Tesla's pricing strategies in the global EV market, providing context for sales comparisons."
+          },
+          {
+            "evidence_id": "ev-rec-e2_1_5f109087",
+            "relationship": "supports",
+            "reasoning": "Explicitly states Tesla remains the EV market leader, even with declining sales, implying a comparison against all other manufacturers."
+          },
+          {
+            "evidence_id": "ev-rec-e2_4_78b8fc7d",
+            "relationship": "supports",
+            "reasoning": "Confirms Tesla remained the market leader in the US with 633,762 sales, followed by General Motors and Ford, indicating a comparison of sales figures."
+          },
+          {
+            "evidence_id": "ev-rec-e2_3_c42ce0c4",
+            "relationship": "context",
+            "reasoning": "Provides context on Tesla's worldwide deliveries and production figures, which are used in comparisons to assess market position."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rpf-1_0",
+            "relationship": "challenges",
+            "reasoning": "States that BYD has surpassed Tesla as the world's biggest seller of electric vehicles, directly challenging the claim that Tesla holds the leading position."
+          },
+          {
+            "evidence_id": "ev-rpf-1_1",
+            "relationship": "challenges",
+            "reasoning": "Reports that BYD has overtaken Tesla as the world's top EV seller, challenging the claim."
+          },
+          {
+            "evidence_id": "ev-rpf-1_2",
+            "relationship": "challenges",
+            "reasoning": "Indicates that BYD is surging ahead while Tesla's registrations dipped, challenging Tesla's leading position."
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": "While Tesla was previously a leader, recent reports indicate BYD has surpassed it."
+      }
+    ]
+  }
+}

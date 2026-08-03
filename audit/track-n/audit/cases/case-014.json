@@ -1,0 +1,250 @@
+{
+  "case_id": "case-014",
+  "source": {
+    "check_id": "54ac601e-d36e-4b6b-a5bc-34106bb8aff7",
+    "claim_id": "f4b9a7c1-e9f0-4e81-9f11-f59868055d29",
+    "claim_position": 2,
+    "extracted_at": "2026-03-02T21:10:57.664523+00:00"
+  },
+  "claim": {
+    "normalised_claim": "The Amazon river is the longest river globally.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The length of the Amazon river can be measured."
+      },
+      {
+        "element_id": "e2",
+        "description": "The lengths of all other rivers in the world can be measured."
+      },
+      {
+        "element_id": "e3",
+        "description": "The Amazon river's measured length is greater than the measured length of any other river."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-1e55d586ea33",
+      "title": "Geography Facts About the Amazon River",
+      "full_text": "At 3,976 miles (6,400 km) in length, it only narrowly loses the title for the world's longest river to the Nile River in Egypt, which is 4,132 miles (6,650 km) ...",
+      "mapper_window": "At 3,976 miles (6,400 km) in length, it only narrowly loses the title for the world's longest river to the Nile River in Egypt, which is 4,132 miles (6,650 km) ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "geographyrealm.com",
+      "url": "https://www.geographyrealm.com/geography-facts-about-the-amazon-river/"
+    },
+    {
+      "evidence_id": "ev-3eda447011eb",
+      "title": "Which is the Longest River in the World? - Superprof",
+      "full_text": "Top 10 Longest and Largest Rivers in the World \u00b7 1. The Nile River - 6,695 km \u00b7 2. The Amazon River - 6,400 km \u00b7 3. The Yangtze River - 6,300 km \u00b7 4. Mississippi ...",
+      "mapper_window": "Top 10 Longest and Largest Rivers in the World \u00b7 1. The Nile River - 6,695 km \u00b7 2. The Amazon River - 6,400 km \u00b7 3. The Yangtze River - 6,300 km \u00b7 4. Mississippi ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "superprof.co.in",
+      "url": "https://www.superprof.co.in/blog/10-longest-rivers-in-the-world/"
+    },
+    {
+      "evidence_id": "ev-f1a1c17eddbd",
+      "title": "Top 30 Rivers in the World by discharge rate : r/charts - Reddit",
+      "full_text": "The flow of The Amazon is so great it extends fresh water about 80 kilometers into the Atlantic Ocean.",
+      "mapper_window": "The flow of The Amazon is so great it extends fresh water about 80 kilometers into the Atlantic Ocean.",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "reddit.com",
+      "url": "https://www.reddit.com/r/charts/comments/1oyczjc/top_30_rivers_in_the_world_by_discharge_rate/"
+    },
+    {
+      "evidence_id": "ev-16e09dd31de8",
+      "title": "World's longest rivers | Description & Facts | Britannica",
+      "full_text": "Accurate comparable river-length measurements, however, are often difficult to obtain, because stream definitions and measurement standards vary between countries. It is possible that the main channels of well over 100 of the greatest rivers may exceed 1,600 km (about 1,000 miles) in length. Measuring from the headwaters of the most distant source, the five longest rivers in the world are the Nile (in eastern and northeastern Africa), the Amazon\u2013Ucayali\u2013Apur\u00edmac (in South America), the Yangtze (in China), the Mississippi\u2013Missouri\u2013Red Rock (in the United States), and the Yenisey\u2013Baikal\u2013Selenga (in northern Asia). |rank |name |length* |(km) |(miles) |*Figures based on official sources. In countries where the metric system is used, conversions are from kilometres to miles",
+      "mapper_window": "Accurate comparable river-length measurements, however, are often difficult to obtain, because stream definitions and measurement standards vary between countries. It is possible that the main channels of well over 100 of the greatest rivers may exceed 1,600 km (about 1,000 miles) in length. Measuring from the headwaters of the most distant source, the five longest rivers in the world are the Nile",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "britannica.com",
+      "url": "https://www.britannica.com/science/worlds-longest-rivers-2225894"
+    },
+    {
+      "evidence_id": "ev-255834e088ff",
+      "title": "Amazon River | Facts, History, Location, Length, Animals, & Map",
+      "full_text": "Amazon River Where is the Amazon River located. How long is the Amazon River. Why is the Amazon River famous. What animals live in the Amazon River",
+      "mapper_window": "Amazon River Where is the Amazon River located. How long is the Amazon River. Why is the Amazon River famous. What animals live in the Amazon River",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "britannica.com",
+      "url": "https://www.britannica.com/place/Amazon-River"
+    },
+    {
+      "evidence_id": "ev-19eba9905a26",
+      "title": "World Rivers: A Comprehensive Overview",
+      "full_text": "Key Takeaways Indian subcontinent rivers include west-flowing and other major systems. African rivers like Limpopo and Congo cross significant global lines. Amazon is the world's second-longest river by length and largest by discharge. Nile is the longest river globally, while Yangtze is the third longest. Rivers are ranked by basin size and water discharge, with Amazon leading",
+      "mapper_window": "Key Takeaways Indian subcontinent rivers include west-flowing and other major systems. African rivers like Limpopo and Congo cross significant global lines. Amazon is the world's second-longest river by length and largest by discharge. Nile is the longest river globally, while Yangtze is the third longest. Rivers are ranked by basin size and water discharge, with Amazon leading",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "mindmapai.app",
+      "url": "https://mindmapai.app/mind-mapping/world-rivers-a-comprehensive-overview"
+    },
+    {
+      "evidence_id": "ev-976a6a4a77aa",
+      "title": "Where Does the Amazon River Begin? - National Geographic",
+      "full_text": "\" When water flows through the Mantaro, the river \"probably has a greater flow distance than any other Amazon tributary,\" Johnston says. But when the Mantaro is dry, \"the Apur\u00edmac is once again the place where water flows the greatest distance into the Amazon. \" It may be more straightforward to trace the source of other rivers, Johnston notes, but \"the Amazon, by far the largest river in the world, is not so simple. \" Scientists need to look at all three of its proposed source tributaries\u2014the Mara\u00f1\u00f3n, the Apur\u00edmac, and the Mantaro\u2014he says, to truly understand the mighty Amazon",
+      "mapper_window": "\" When water flows through the Mantaro, the river \"probably has a greater flow distance than any other Amazon tributary,\" Johnston says. But when the Mantaro is dry, \"the Apur\u00edmac is once again the place where water flows the greatest distance into the Amazon. \" It may be more straightforward to trace the source of other rivers, Johnston notes, but \"the Amazon, by far the largest river in the worl",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "education.nationalgeographic.org",
+      "url": "https://education.nationalgeographic.org/resource/where-does-amazon-river-begin/"
+    },
+    {
+      "evidence_id": "ev-4e6f52335b29",
+      "title": "The Longest River in the World: Nile vs Amazon - YouTube",
+      "full_text": "Before you continue to YouTube We use cookies and data to - Deliver and maintain Google services - Track outages and protect against spam, fraud and abuse - Measure audience engagement and site statistics to understand how our services are used and enhance the quality of those services If you choose to 'Accept all', we will also use cookies and data to - Develop and improve new services - Deliver and measure the effectiveness of ads - Show personalised content, depending on your settings - Show personalised ads, depending on your settings If you choose to 'Reject all', we will not use cookies for these additional purposes",
+      "mapper_window": "Before you continue to YouTube We use cookies and data to - Deliver and maintain Google services - Track outages and protect against spam, fraud and abuse - Measure audience engagement and site statistics to understand how our services are used and enhance the quality of those services If you choose to 'Accept all', we will also use cookies and data to - Develop and improve new services - Deliver ",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "youtube.com",
+      "url": "https://www.youtube.com/shorts/N9IoVqQ57Es"
+    },
+    {
+      "evidence_id": "ev-ea841c166495",
+      "title": "Top 10 Longest Rivers in the World - YouTube",
+      "full_text": "About Press Copyright Contact us Creator Advertise Developers Terms",
+      "mapper_window": "About Press Copyright Contact us Creator Advertise Developers Terms",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "youtube.com",
+      "url": "https://www.youtube.com/watch?v=e9byMbAcTz4"
+    },
+    {
+      "evidence_id": "ev-01f7e0388076",
+      "title": "Amazon River may be altered forever by climate change",
+      "full_text": "Academic research: Amazon River may be altered forever by climate change",
+      "mapper_window": "Academic research: Amazon River may be altered forever by climate change",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.1126/science.zesodls"
+    },
+    {
+      "evidence_id": "ev-52e7a0685c62",
+      "title": "Modulation of Amazon River Plume: numerical studies",
+      "full_text": "<jats:p>The Amazon River Plume (ARP) is a dynamic feature of the Amazon Shelf (AS), shaped by a combination of natural forces: density-driven currents, tides, and wind variability. To better understand its movement and modulation, we combined the robust Eulerian modelling (ROMS) and the effective La",
+      "mapper_window": "<jats:p>The Amazon River Plume (ARP) is a dynamic feature of the Amazon Shelf (AS), shaped by a combination of natural forces: density-driven currents, tides, and wind variability. To better understand its movement and modulation, we combined the robust Eulerian modelling (ROMS) and the effective La",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.5194/egusphere-egu25-582"
+    },
+    {
+      "evidence_id": "ev-43a5bd4672a9",
+      "title": "Source apportionment and risk assessment of perfluorinated compounds in the world's third-longest river",
+      "full_text": "<jats:p>This study investigated the pollution of per- and polyfluoroalkyl substances (PFASs)&amp;#160; in sediments from the main stream of the Yangtze River, the world's third-longest river. Totally, 13 of 15 PFASs were detected in the sediments and the total concentrations ranged from 0.058 ng/g t",
+      "mapper_window": "<jats:p>This study investigated the pollution of per- and polyfluoroalkyl substances (PFASs)&amp;#160; in sediments from the main stream of the Yangtze River, the world's third-longest river. Totally, 13 of 15 PFASs were detected in the sediments and the total concentrations ranged from 0.058 ng/g t",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.5194/egusphere-egu24-12904"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "429fbbcc6018",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-255834e088ff",
+            "relationship": "context",
+            "reasoning": "Poses the question 'How long is the Amazon River?', implying its length can be measured."
+          },
+          {
+            "evidence_id": "ev-1e55d586ea33",
+            "relationship": "supports",
+            "reasoning": "Provides a specific length for the Amazon River: 3,976 miles (6,400 km)."
+          },
+          {
+            "evidence_id": "ev-976a6a4a77aa",
+            "relationship": "context",
+            "reasoning": "Discusses tracing the source of the Amazon River, implying its length can be measured."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-16e09dd31de8",
+            "relationship": "context",
+            "reasoning": "Mentions that comparable river-length measurements can be difficult due to varying standards, but implies that measurements are possible for other rivers."
+          },
+          {
+            "evidence_id": "ev-19eba9905a26",
+            "relationship": "context",
+            "reasoning": "Ranks rivers by length, implying that the lengths of other rivers can be measured."
+          },
+          {
+            "evidence_id": "ev-43a5bd4672a9",
+            "relationship": "context",
+            "reasoning": "Refers to the 'world's third-longest river', implying lengths of other rivers are measured."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": "While evidence suggests other rivers' lengths can be measured, it does not provide a comprehensive list or confirmation that all other rivers' lengths have been measured and compared."
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-1e55d586ea33",
+            "relationship": "challenges",
+            "reasoning": "States the Amazon River 'only narrowly loses the title for the world's longest river to the Nile River'."
+          },
+          {
+            "evidence_id": "ev-19eba9905a26",
+            "relationship": "challenges",
+            "reasoning": "States that 'Nile is the longest river globally, while Yangtze is the third longest' and the Amazon is the second-longest."
+          },
+          {
+            "evidence_id": "ev-3eda447011eb",
+            "relationship": "challenges",
+            "reasoning": "Lists the Nile River as the longest (6,695 km) and the Amazon River as the second longest (6,400 km)."
+          },
+          {
+            "evidence_id": "ev-16e09dd31de8",
+            "relationship": "challenges",
+            "reasoning": "Lists the Nile as one of the five longest rivers in the world, without explicitly stating the Amazon is longer."
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": null
+      }
+    ]
+  }
+}

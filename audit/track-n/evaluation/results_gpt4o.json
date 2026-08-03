@@ -1,0 +1,346 @@
+[
+  {
+    "claim_id": "eval-001",
+    "normalised_claim": "UK GDP grew by 0.5% in Q3 2025",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "UK GDP grew in Q3 2025"
+      },
+      {
+        "element_id": "e2",
+        "description": "The growth rate was 0.5%"
+      }
+    ],
+    "evidence_summary": [
+      {
+        "evidence_id": "ev-001",
+        "title": "ONS GDP Estimate - Q3 2025"
+      },
+      {
+        "evidence_id": "ev-002",
+        "title": "UK economy shows resilience despite headwinds"
+      },
+      {
+        "evidence_id": "ev-003",
+        "title": "Why the UK economy is still underperforming"
+      }
+    ],
+    "prompt_hash": "ec800e6beba3",
+    "model": "gpt-4o",
+    "error": null,
+    "usage": {
+      "input_tokens": 945,
+      "output_tokens": 384
+    },
+    "wall_time_seconds": 4.94,
+    "raw_response": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-001",
+              "relationship": "supports",
+              "reasoning": "Reports that UK GDP grew by 0.1% in Q3 2025, confirming growth occurred."
+            },
+            {
+              "evidence_id": "ev-002",
+              "relationship": "supports",
+              "reasoning": "States that the UK economy continued to expand in Q3 2025, indicating GDP growth."
+            },
+            {
+              "evidence_id": "ev-003",
+              "relationship": "context",
+              "reasoning": "Discusses the UK economy's performance, noting growth but not specifying Q3 2025 figures."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-001",
+              "relationship": "challenges",
+              "reasoning": "States the growth rate was 0.1% in Q3 2025, contradicting the claimed 0.5%."
+            },
+            {
+              "evidence_id": "ev-002",
+              "relationship": "context",
+              "reasoning": "Mentions economic expansion but does not specify the growth rate for Q3 2025."
+            },
+            {
+              "evidence_id": "ev-003",
+              "relationship": "context",
+              "reasoning": "Comments on the UK economy's performance without addressing specific growth rates."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The exact growth rate for Q3 2025 is contested."
+        }
+      ]
+    },
+    "validated": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-001",
+              "relationship": "supports",
+              "reasoning": "Reports that UK GDP grew by 0.1% in Q3 2025, confirming growth occurred."
+            },
+            {
+              "evidence_id": "ev-002",
+              "relationship": "supports",
+              "reasoning": "States that the UK economy continued to expand in Q3 2025, indicating GDP growth."
+            },
+            {
+              "evidence_id": "ev-003",
+              "relationship": "context",
+              "reasoning": "Discusses the UK economy's performance, noting growth but not specifying Q3 2025 figures."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-001",
+              "relationship": "challenges",
+              "reasoning": "States the growth rate was 0.1% in Q3 2025, contradicting the claimed 0.5%."
+            },
+            {
+              "evidence_id": "ev-002",
+              "relationship": "context",
+              "reasoning": "Mentions economic expansion but does not specify the growth rate for Q3 2025."
+            },
+            {
+              "evidence_id": "ev-003",
+              "relationship": "context",
+              "reasoning": "Comments on the UK economy's performance without addressing specific growth rates."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The exact growth rate for Q3 2025 is contested."
+        }
+      ],
+      "validation_errors": []
+    },
+    "timestamp": "2026-03-05T13:31:39.409625+00:00"
+  },
+  {
+    "claim_id": "eval-002",
+    "normalised_claim": "The Amazon rainforest lost 10,000 square kilometres of tree cover in 2024",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The Amazon rainforest experienced tree cover loss in 2024"
+      },
+      {
+        "element_id": "e2",
+        "description": "The amount of tree cover lost was 10,000 square kilometres"
+      }
+    ],
+    "evidence_summary": [
+      {
+        "evidence_id": "ev-010",
+        "title": "INPE Deforestation Alert Data 2024"
+      },
+      {
+        "evidence_id": "ev-011",
+        "title": "Amazon deforestation falls to lowest level in six years"
+      }
+    ],
+    "prompt_hash": "30099162a18f",
+    "model": "gpt-4o",
+    "error": null,
+    "usage": {
+      "input_tokens": 913,
+      "output_tokens": 245
+    },
+    "wall_time_seconds": 4.49,
+    "raw_response": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-010",
+              "relationship": "supports",
+              "reasoning": "INPE recorded deforestation alerts in the Legal Amazon during 2024, confirming tree cover loss occurred."
+            },
+            {
+              "evidence_id": "ev-011",
+              "relationship": "supports",
+              "reasoning": "Reports a significant drop in deforestation in 2024, implying tree cover loss still occurred."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-010",
+              "relationship": "challenges",
+              "reasoning": "INPE recorded 8,453 square kilometres of deforestation, which is less than the claimed 10,000 square kilometres."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The recorded deforestation is less than the claimed amount."
+        }
+      ]
+    },
+    "validated": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-010",
+              "relationship": "supports",
+              "reasoning": "INPE recorded deforestation alerts in the Legal Amazon during 2024, confirming tree cover loss occurred."
+            },
+            {
+              "evidence_id": "ev-011",
+              "relationship": "supports",
+              "reasoning": "Reports a significant drop in deforestation in 2024, implying tree cover loss still occurred."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-010",
+              "relationship": "challenges",
+              "reasoning": "INPE recorded 8,453 square kilometres of deforestation, which is less than the claimed 10,000 square kilometres."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The recorded deforestation is less than the claimed amount."
+        }
+      ],
+      "validation_errors": []
+    },
+    "timestamp": "2026-03-05T13:31:54.656991+00:00"
+  },
+  {
+    "claim_id": "eval-003",
+    "normalised_claim": "Tesla delivered over 2 million vehicles globally in 2024",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "Tesla made vehicle deliveries globally in 2024"
+      },
+      {
+        "element_id": "e2",
+        "description": "The number of deliveries exceeded 2 million"
+      }
+    ],
+    "evidence_summary": [
+      {
+        "evidence_id": "ev-020",
+        "title": "Tesla Q4 and Full Year 2024 Delivery Report"
+      },
+      {
+        "evidence_id": "ev-021",
+        "title": "Electric vehicle market trends 2024"
+      }
+    ],
+    "prompt_hash": "fe20f165200e",
+    "model": "gpt-4o",
+    "error": null,
+    "usage": {
+      "input_tokens": 895,
+      "output_tokens": 282
+    },
+    "wall_time_seconds": 5.78,
+    "raw_response": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-020",
+              "relationship": "supports",
+              "reasoning": "Tesla reported vehicle deliveries for the full year 2024, confirming global activity."
+            },
+            {
+              "evidence_id": "ev-021",
+              "relationship": "context",
+              "reasoning": "Discusses global EV market trends in 2024, indicating Tesla's presence but not specific delivery figures."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-020",
+              "relationship": "challenges",
+              "reasoning": "Reports Tesla delivered 1,789,226 vehicles in 2024, which is below the claimed 2 million."
+            },
+            {
+              "evidence_id": "ev-021",
+              "relationship": "context",
+              "reasoning": "Mentions Tesla's market position but does not provide specific delivery numbers."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The reported delivery figure is significantly below 2 million."
+        }
+      ]
+    },
+    "validated": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-020",
+              "relationship": "supports",
+              "reasoning": "Tesla reported vehicle deliveries for the full year 2024, confirming global activity."
+            },
+            {
+              "evidence_id": "ev-021",
+              "relationship": "context",
+              "reasoning": "Discusses global EV market trends in 2024, indicating Tesla's presence but not specific delivery figures."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-020",
+              "relationship": "challenges",
+              "reasoning": "Reports Tesla delivered 1,789,226 vehicles in 2024, which is below the claimed 2 million."
+            },
+            {
+              "evidence_id": "ev-021",
+              "relationship": "context",
+              "reasoning": "Mentions Tesla's market position but does not provide specific delivery numbers."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The reported delivery figure is significantly below 2 million."
+        }
+      ],
+      "validation_errors": []
+    },
+    "timestamp": "2026-03-05T13:32:09.209412+00:00"
+  }
+]

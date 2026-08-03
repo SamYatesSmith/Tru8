@@ -1,0 +1,348 @@
+{
+  "case_id": "case-020",
+  "source": {
+    "check_id": "25bdb7b7-9b15-4861-a617-c67b8b5bb185",
+    "claim_id": "f4c18096-8da6-485a-8c63-8ecde1bcc298",
+    "claim_position": 0,
+    "extracted_at": "2026-03-02T21:10:57.672758+00:00"
+  },
+  "claim": {
+    "normalised_claim": "The location of Stonehenge has changed over time.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "There is historical or archaeological evidence indicating a shift in the original placement of Stonehenge."
+      },
+      {
+        "element_id": "e2",
+        "description": "The current location of Stonehenge is demonstrably different from its initial construction site."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-0615dd8435d9",
+      "title": "Research and experimentation suggest a new theory on how the ...",
+      "full_text": "Research and experimentation suggest a new theory on how the ancients moved the massive stones for Stonehenge and the Egyptian pyramids. By Paul Sullivan Mon, ...",
+      "mapper_window": "Research and experimentation suggest a new theory on how the ancients moved the massive stones for Stonehenge and the Egyptian pyramids. By Paul Sullivan Mon, ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "popular-archaeology.com",
+      "url": "https://popular-archaeology.com/article/research-and-experimentation-suggest-a-new-theory-on-how-the-ancients-moved-the-massive-stones-for-stonehenge-and-the-egyptian-pyramids/"
+    },
+    {
+      "evidence_id": "ev-99ff04ccdd2b",
+      "title": "In the 1950s, engineers at Stonehenge raised a huge fallen trilithon ...",
+      "full_text": "Restoration work began in 1901, when several stones were straightened and set in concrete to stabilize the site. Further repairs followed in the 1920s and 1950s ...",
+      "mapper_window": "Restoration work began in 1901, when several stones were straightened and set in concrete to stabilize the site. Further repairs followed in the 1920s and 1950s ...",
+      "tier": "commentary",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "reddit.com",
+      "url": "https://www.reddit.com/r/HistoricalCapsule/comments/1qdfcjp/in_the_1950s_engineers_at_stonehenge_raised_a/"
+    },
+    {
+      "evidence_id": "ev-4c7742447345",
+      "title": "Stonehenge: History and Restoration Through Old Photographs ...",
+      "full_text": "Stonehenge, on the Salisbury Plain in Wiltshire in southern England, is certainly one of the most well-known and well-studied prehistoric megalithic monuments. Scholars had determined that there was a very long process of construction and use of Stonehenge (approximately 3000-1500 BCE), with many additions and alterations made to the site during three distinct phases of building and renovation. The monument consists of a number of large upright standing stones (menhirs), enclosed within a circular ditch (or henge) with a series of 56 burial pits on the interior of the ditch. Many archaeologists believe that the stones replaced an earlier timber structure on the site, which served as a type of mortuary chapel for corpses awaiting burial",
+      "mapper_window": "Stonehenge, on the Salisbury Plain in Wiltshire in southern England, is certainly one of the most well-known and well-studied prehistoric megalithic monuments. Scholars had determined that there was a very long process of construction and use of Stonehenge (approximately 3000-1500 BCE), with many additions and alterations made to the site during three distinct phases of building and renovation. Th",
+      "tier": "commentary",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "rarehistoricalphotos.com",
+      "url": "https://rarehistoricalphotos.com/stonehenge-history-restoration-old-photographs/"
+    },
+    {
+      "evidence_id": "ev-b72917d28a6f",
+      "title": "People, not glaciers, transported rocks to Stonehenge, study confirms",
+      "full_text": "More remarkable still, researchers think the Altar Stone inside Stonehenge's middle circle came from northern England or Scotland, which is much farther away \u2014 at least 300 miles (500 km) \u2014 from Salisbury Plain and may have required boats",
+      "mapper_window": "More remarkable still, researchers think the Altar Stone inside Stonehenge's middle circle came from northern England or Scotland, which is much farther away \u2014 at least 300 miles (500 km) \u2014 from Salisbury Plain and may have required boats",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "livescience.com",
+      "url": "https://www.livescience.com/archaeology/people-not-glaciers-transported-rocks-to-stonehenge-study-confirms"
+    },
+    {
+      "evidence_id": "ev-20ded152be67",
+      "title": "The most fascinating facts you never knew about Stonehenge",
+      "full_text": "These very stones were transported over 150 miles from the Preseli Hills in Wales, an extraordinary feat for Neolithic people without wheels or beasts of burden. This long-distance move has prompted speculation that the stones were sacred, or even believed to possess healing powers. Their inclusion remains one of Stonehenge\u2019s greatest mysteries. Animals once gathered here too It is speculated that the humans who built Stonehenge (if it is man-made and not magic, after all) most likely lived at nearby Durrington Walls, a major Neolithic settlement. Evidence from this settlement shows that people traveled great distances to bring livestock to the site, and that the Neolithic builders of Stonehenge feasted heartily",
+      "mapper_window": "These very stones were transported over 150 miles from the Preseli Hills in Wales, an extraordinary feat for Neolithic people without wheels or beasts of burden. This long-distance move has prompted speculation that the stones were sacred, or even believed to possess healing powers. Their inclusion remains one of Stonehenge\u2019s greatest mysteries. Animals once gathered here too It is speculated that",
+      "tier": "commentary",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "insightvacations.com",
+      "url": "https://www.insightvacations.com/blog/the-most-fascinating-facts-you-never-knew-about-stonehenge/"
+    },
+    {
+      "evidence_id": "ev-376689fadfa3",
+      "title": "Stonehenge: The Mystery of Its Moved Stones Finally Finds ... - Futura",
+      "full_text": "For years, debates about Stonehenge have swung between gritty human effort and sweeping natural forces. Some picture sledges, ropes and boats, plus a remarkable dose of determination, hauling stones across Britain to the Salisbury Plain in south west England. Others prefer giants, wizards or even extraterrestrials",
+      "mapper_window": "For years, debates about Stonehenge have swung between gritty human effort and sweeping natural forces. Some picture sledges, ropes and boats, plus a remarkable dose of determination, hauling stones across Britain to the Salisbury Plain in south west England. Others prefer giants, wizards or even extraterrestrials",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "futura-sciences.com",
+      "url": "https://www.futura-sciences.com/en/stonehenge-the-mystery-of-its-moved-stones-finally-finds-an-explanation_25759/"
+    },
+    {
+      "evidence_id": "ev-f4f5e056f76b",
+      "title": "Stonehenge mystery solved? Study reveals how 25-tonne stones ...",
+      "full_text": "Moving such massive stones would have required careful planning, extraordinary labour, and considerable time to relocate them safely across the landscape. The mineral analysis does not explicitly address sarsens; rather, it corroborates a more extensive pattern. Stonehenge was not constructed using materials that were haphazardly found in the vicinity. Every material was intentionally chosen and deliberately introduced with purpose and precision. Bluestones point clearly to human effort The smaller bluestones tell a sharper story",
+      "mapper_window": "Moving such massive stones would have required careful planning, extraordinary labour, and considerable time to relocate them safely across the landscape. The mineral analysis does not explicitly address sarsens; rather, it corroborates a more extensive pattern. Stonehenge was not constructed using materials that were haphazardly found in the vicinity. Every material was intentionally chosen and d",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "timesofindia.indiatimes.com",
+      "url": "https://timesofindia.indiatimes.com/world/uk/stonehenge-mystery-solved-study-reveals-how-25-tonne-stones-reached-the-site-in-southern-england/articleshow/127561744.cms"
+    },
+    {
+      "evidence_id": "ev-0bee3a942c7a",
+      "title": "A century-old Stonehenge mystery may finally be solved",
+      "full_text": "- Share: - New research from Curtin University offers the clearest scientific support so far that people, rather than glaciers, carried Stonehenge's well known bluestones to the ancient monument. The findings take aim at one of archaeology's longest running debates and add weight to the idea that the stones were deliberately moved by human hands. The study focuses on how the Altar Stone and other massive rocks ended up at Stonehenge, a question that has puzzled researchers for generations. By ruling out natural ice driven transport, the research strengthens the case for purposeful human planning and effort. Tracing Stonehenge Through Tiny Minerals To investigate the stones' journey, Curtin scientists used advanced mineral \"fingerprinting\" methods to study microscopic grains found in rivers near Salisbury Plain in southern England",
+      "mapper_window": "- Share: - New research from Curtin University offers the clearest scientific support so far that people, rather than glaciers, carried Stonehenge's well known bluestones to the ancient monument. The findings take aim at one of archaeology's longest running debates and add weight to the idea that the stones were deliberately moved by human hands. The study focuses on how the Altar Stone and other ",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "sciencedaily.com",
+      "url": "https://www.sciencedaily.com/releases/2026/01/260127010208.htm"
+    },
+    {
+      "evidence_id": "ev-rec-e1_2_4e12fd88",
+      "title": "Scientists reveal new findings in 5000-year-old Stonehenge mystery",
+      "full_text": "A new study published in the Journal of Archaeological Science sheds further light on a major Stonehenge mystery.",
+      "mapper_window": "A new study published in the Journal of Archaeological Science sheds further light on a major Stonehenge mystery.",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "unilad.com",
+      "url": "https://www.unilad.com/news/uk-news/stonehenge-mystery-scientists-significant-new-findings-531208-20250722"
+    },
+    {
+      "evidence_id": "ev-rec-e1_3_8d6d91bd",
+      "title": "The new evidence confirms a key detail about Stonehenge - Facebook",
+      "full_text": "The findings suggest Neolithic Britain was a far more connected and advanced society than earlier evidence indicated. The distance between Stonehenge and the ...",
+      "mapper_window": "The findings suggest Neolithic Britain was a far more connected and advanced society than earlier evidence indicated. The distance between Stonehenge and the ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "facebook.com",
+      "url": "https://www.facebook.com/TheIndependentOnline/posts/the-new-evidence-confirms-a-key-detail-about-stonehenge/1275357997953524/"
+    },
+    {
+      "evidence_id": "ev-rec-e1_4_bc1f43b9",
+      "title": "Scientists Dismiss Ice-Age Theory for Stonehenge Stones",
+      "full_text": "New Curtin University research has delivered the strongest scientific evidence yet that people - not glaciers - transported Stonehenge's famous bluestones ...",
+      "mapper_window": "New Curtin University research has delivered the strongest scientific evidence yet that people - not glaciers - transported Stonehenge's famous bluestones ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "miragenews.com",
+      "url": "https://www.miragenews.com/scientists-dismiss-ice-age-theory-for-1605969/"
+    },
+    {
+      "evidence_id": "ev-rec-e2_0_d1871131",
+      "title": "Stonehenge's original purpose and alignment - Facebook",
+      "full_text": "The original entrance to Phase I of Stonehenge was in the North-West, towards the midwinter moonset, perceived as the place of the dead and the afterlife, ...",
+      "mapper_window": "The original entrance to Phase I of Stonehenge was in the North-West, towards the midwinter moonset, perceived as the place of the dead and the afterlife, ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "facebook.com",
+      "url": "https://www.facebook.com/groups/prehistoricbritain/posts/2083093549191565/"
+    },
+    {
+      "evidence_id": "ev-rec-e2_1_1965629a",
+      "title": "Britain's First Road - Stonehenge Avenue - Prehistoric Britain",
+      "full_text": "Great mysteries of the past can now be revealed in Britain's First Road - The Avenue at Stonehenge that leads to the old river Avon.",
+      "mapper_window": "Great mysteries of the past can now be revealed in Britain's First Road - The Avenue at Stonehenge that leads to the old river Avon.",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "prehistoric-britain.co.uk",
+      "url": "https://prehistoric-britain.co.uk/britains-first-road"
+    },
+    {
+      "evidence_id": "ev-rec-e2_2_9bc6bd59",
+      "title": "Henge Monuments - From Dot To Domesday",
+      "full_text": "Featuring in-depth discussions of the two most famous henge monuments, Stonehenge and Avebury, and also of Silbury Hill.",
+      "mapper_window": "Featuring in-depth discussions of the two most famous henge monuments, Stonehenge and Avebury, and also of Silbury Hill.",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "dot-domesday.me.uk",
+      "url": "https://www.dot-domesday.me.uk/henge.htm"
+    },
+    {
+      "evidence_id": "ev-50f8b7ba9e92",
+      "title": "Stonehenge History | Explore 5,000 Years of Heritage",
+      "full_text": "These ancient postholes reveal that Stonehenge\u2019s landscape was already marked as meaningful, possibly for rituals, territory, or seasonal gathering points",
+      "mapper_window": "These ancient postholes reveal that Stonehenge\u2019s landscape was already marked as meaningful, possibly for rituals, territory, or seasonal gathering points",
+      "tier": "commentary",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "stonehenge-london-tours.com",
+      "url": "https://www.stonehenge-london-tours.com/history-stonehenge/"
+    },
+    {
+      "evidence_id": "ev-rec-e2_4_4b00737f",
+      "title": "Why was the Egyptian engineer in the pyramid period so much ...",
+      "full_text": "Stonehenge is smaller, because they felt they were finished a lot sooner, having done what they set out to do. It's not like they actually tried to build a ...",
+      "mapper_window": "Stonehenge is smaller, because they felt they were finished a lot sooner, having done what they set out to do. It's not like they actually tried to build a ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "quora.com",
+      "url": "https://www.quora.com/Why-was-the-Egyptian-engineer-in-the-pyramid-period-so-much-further-advanced-than-its-contemporary-at-Stonehenge"
+    },
+    {
+      "evidence_id": "ev-979a18c7ca55",
+      "title": "Stonehenge restoration photos shared alongside false claim ...",
+      "full_text": "Fact-check rating: False",
+      "mapper_window": "Fact-check rating: False",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "AFP Fact Check",
+      "url": "https://factcheck.afp.com/stonehenge-restoration-photos-shared-alongside-false-claim-monument-was-built-1950s"
+    },
+    {
+      "evidence_id": "ev-rec-e1_0_33f300e9",
+      "title": "Scientists uncover secrets of Stonehenge's mysterious cattle",
+      "full_text": "In the 2010s, archaeologists and geologists identified two quarries in Wales as the sources of Stonehenge's legendary standing bluestones. Now, new evidence ...",
+      "mapper_window": "In the 2010s, archaeologists and geologists identified two quarries in Wales as the sources of Stonehenge's legendary standing bluestones. Now, new evidence ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "bgs.ac.uk",
+      "url": "https://www.bgs.ac.uk/news/scientists-uncover-secrets-of-stonehenges-mysterious-cattle/"
+    },
+    {
+      "evidence_id": "ev-rec-e1_1_7f1c95f6",
+      "title": "The enigmatic 'Newall boulder' excavated at Stonehenge in 1924",
+      "full_text": "One proposed piece of potential evidence is the 'Newall boulder', a stone recovered from excavations at Stonehenge by Lt-Col Hawley in 1924. Kellaway (1991) ...",
+      "mapper_window": "One proposed piece of potential evidence is the 'Newall boulder', a stone recovered from excavations at Stonehenge by Lt-Col Hawley in 1924. Kellaway (1991) ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "sciencedirect.com",
+      "url": "https://www.sciencedirect.com/science/article/pii/S2352409X25003360"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "9bcf2ed3b612",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-4c7742447345",
+            "relationship": "context",
+            "reasoning": "Mentions a long process of construction and use with many additions and alterations, suggesting changes to the site over time."
+          },
+          {
+            "evidence_id": "ev-376689fadfa3",
+            "relationship": "context",
+            "reasoning": "Discusses debates about how the stones were moved to the Salisbury Plain, implying a deliberate relocation effort."
+          },
+          {
+            "evidence_id": "ev-b72917d28a6f",
+            "relationship": "context",
+            "reasoning": "Suggests the Altar Stone came from a location hundreds of miles away, indicating stones were transported to the site."
+          },
+          {
+            "evidence_id": "ev-rec-e1_0_33f300e9",
+            "relationship": "context",
+            "reasoning": "This evidence discusses the identification of quarries for Stonehenge's bluestones, which is related to the movement and placement of stones but does not directly indicate a shift in the monument's overall location."
+          },
+          {
+            "evidence_id": "ev-rec-e1_1_7f1c95f6",
+            "relationship": "context",
+            "reasoning": "This evidence mentions an excavated stone at Stonehenge, which is relevant to archaeological findings but does not directly address a change in the monument's location over time."
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_8d6d91bd",
+            "relationship": "context",
+            "reasoning": "This evidence discusses the distance between Stonehenge and other locations, implying connectivity, but does not provide information about a shift in Stonehenge's own placement."
+          },
+          {
+            "evidence_id": "ev-rec-e1_4_bc1f43b9",
+            "relationship": "context",
+            "reasoning": "This evidence dismisses a theory about glaciers transporting stones, focusing on human transport, but does not provide evidence for a change in Stonehenge's location."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-99ff04ccdd2b",
+            "relationship": "context",
+            "reasoning": "Describes restoration work where stones were straightened and set in concrete to stabilize the site, implying they had fallen or moved."
+          },
+          {
+            "evidence_id": "ev-4c7742447345",
+            "relationship": "context",
+            "reasoning": "Notes a long process of construction and use with many additions and alterations made to the site during distinct phases."
+          },
+          {
+            "evidence_id": "ev-376689fadfa3",
+            "relationship": "context",
+            "reasoning": "Discusses the movement of stones to the Salisbury Plain, implying a deliberate relocation from their original source."
+          },
+          {
+            "evidence_id": "ev-b72917d28a6f",
+            "relationship": "context",
+            "reasoning": "States that researchers think the Altar Stone came from a distant location, implying it was moved to the current site."
+          },
+          {
+            "evidence_id": "ev-rec-e2_0_d1871131",
+            "relationship": "context",
+            "reasoning": "This evidence describes the original entrance and alignment of Stonehenge, providing information about its initial state but not directly comparing it to its current location to show a difference."
+          },
+          {
+            "evidence_id": "ev-rec-e2_1_1965629a",
+            "relationship": "context",
+            "reasoning": "This evidence discusses the Avenue at Stonehenge leading to the river Avon, which describes a feature of the site but does not compare its original and current locations."
+          },
+          {
+            "evidence_id": "ev-rec-e2_2_9bc6bd59",
+            "relationship": "context",
+            "reasoning": "This evidence mentions Stonehenge and Avebury as henge monuments but does not provide details about changes in Stonehenge's location."
+          },
+          {
+            "evidence_id": "ev-rec-e2_4_4b00737f",
+            "relationship": "context",
+            "reasoning": "This evidence compares Stonehenge to pyramids and discusses its completion, but does not offer information about a change in its location."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": null
+      }
+    ]
+  }
+}

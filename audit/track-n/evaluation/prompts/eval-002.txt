@@ -1,0 +1,48 @@
+You are an evidence mapping engine. You are given:
+1. A list of elements (sub-assertions) of a claim.
+2. A list of evidence items, each with an evidence_id, title, and snippet.
+
+For each element, map relevant evidence and assign a state. EVERY evidence_ref MUST include all three fields: evidence_id, relationship, reasoning.
+
+Respond with JSON only:
+{
+  "elements": [
+    {
+      "element_id": "<e1..e5>",
+      "evidence_refs": [
+        {"evidence_id": "ev-abc", "relationship": "supports", "reasoning": "Reports GDP rose 0.1% in Q3, confirming growth occurred"},
+        {"evidence_id": "ev-def", "relationship": "challenges", "reasoning": "States growth was 0.1%, contradicting the claimed 0.6%"}
+      ],
+      "state": "supported|disputed|unresolved",
+      "uncertainty": "<one sentence or null>"
+    }
+  ]
+}
+
+Rules:
+- Only use evidence_ids from the provided list. Do NOT invent IDs.
+- relationship must be exactly one of: supports, challenges, context.
+- reasoning is REQUIRED on every evidence_ref. One sentence: what the evidence says and why the relationship applies. Cite specific figures, dates, or entities.
+- state must be exactly one of: supported, disputed, unresolved.
+- "supported" = predominantly supportive evidence, no significant challenges.
+- "disputed" = both supporting and challenging evidence present.
+- "unresolved" = no meaningful supporting or challenging evidence.
+- uncertainty is optional (null if not applicable), max one sentence.
+- Every element_id from the input must appear in the output.
+- SCOPE CHECK: Before assigning "supports", verify that the evidence's geographic and temporal scope matches the element's scope. Evidence about one country does NOT support a claim about "worldwide" or "global" figures. Evidence from one time period does NOT support a claim about a different time period.
+- STATE RULE: An element can only be "supported" if at least one evidence_ref has relationship = "supports". If all refs are "context", the state MUST be "unresolved".
+- CROSS-ELEMENT: A single evidence item may be relevant to multiple elements. For each evidence item, consider ALL elements it could inform, not just the most obvious one.
+- PRECISION: When comparing numbers, treat round figures (e.g. "sixty percent") as approximate. A source saying "59%" does not challenge a claim of "approximately 60%". But a source saying "25%" DOES challenge a claim of "18%".
+- DATA PROVENANCE: Each evidence item shows [Tier] and [Type]. When an element asserts a specific figure, date, or quantity, prioritise primary/reporting tier evidence that cites the same figure. Commentary or opinion discussing the broader topic is "context" for that element, not "supports" or "challenges", unless it directly confirms or contradicts the specific figure. Example: an element states "expenditure exceeded £37bn"; an opinion piece saying "the programme was controversial" is "context", while an official report stating "the two-year budget was £37 billion" is "supports".
+- TOPIC vs FIGURE: Distinguish between evidence about a topic and evidence about a specific statistic within that topic. An element asserting a number requires evidence that addresses the number itself, not merely the surrounding subject. Evidence that discusses the subject without mentioning the figure should be mapped as "context".
+
+
+Claim: The Amazon rainforest lost 10,000 square kilometres of tree cover in 2024
+
+Elements:
+- e1: The Amazon rainforest experienced tree cover loss in 2024
+- e2: The amount of tree cover lost was 10,000 square kilometres
+
+Evidence:
+- ev-010: [INPE Deforestation Alert Data 2024] [Tier: primary] [Type: data] Brazil's National Institute for Space Research (INPE) recorded 8,453 square kilometres of deforestation alerts in the Legal Amazon during 2024.
+- ev-011: [Amazon deforestation falls to lowest level in six years] [Tier: reporting] [Type: news_reporting] Deforestation in the Brazilian Amazon dropped significantly in 2024, with satellite data showing the lowest annual rate since 2018.

@@ -1,0 +1,915 @@
+{
+  "run_id": "2026-03-03_gemini-2.5-flash",
+  "model": "gemini-2.5-flash",
+  "snippet_length": 400,
+  "prompt_hash": "3977efd7002f",
+  "timestamp": "2026-03-03T11:15:45.956417+00:00",
+  "cases": [
+    {
+      "case_id": "case-002",
+      "state_results": [
+        {
+          "element_id": "e1",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "expected": "disputed",
+          "actual": "disputed",
+          "match": true
+        }
+      ],
+      "ref_results": [
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-343cece8454e",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-100341d813bd",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-4261bdd01d2b",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-57b48fe392ab",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-6cf0c6342ff8",
+          "expected_rel": "supports",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-b0e690dce64c",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-4261bdd01d2b",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-31f6b0ae6efe",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-5a1e621ec551",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-dd70f1ce4877",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-57b48fe392ab",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-0ffb39bff315",
+          "expected_rel": "challenges",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-6cf0c6342ff8",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        }
+      ],
+      "regressions": [
+        "e2/ev-6cf0c6342ff8: rel expected=supports, actual=None",
+        "e3/ev-0ffb39bff315: rel expected=challenges, actual=supports",
+        "e3/ev-6cf0c6342ff8: rel expected=context, actual=None"
+      ]
+    },
+    {
+      "case_id": "case-003",
+      "state_results": [
+        {
+          "element_id": "e1",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "expected": "unresolved",
+          "actual": "supported",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e4",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        }
+      ],
+      "ref_results": [
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+          "expected_rel": "supports",
+          "actual_rel": "context",
+          "match": false
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_1_b11d8c1a",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_2_0af6920e",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_3_7d5808eb",
+          "expected_rel": "supports",
+          "actual_rel": "context",
+          "match": false
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_4_b8754c12",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e2_0_78322e4f",
+          "expected_rel": "supports",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e2_2_6048b534",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e2_4_6e6ff20a",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e3_3_c42ea694",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-bff968da5b5d",
+          "expected_rel": "supports",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e1_1_b11d8c1a",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e1_3_7d5808eb",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e3_0_c853f191",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e3_2_dfe65749",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e3_3_c42ea694",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-bff968da5b5d",
+          "expected_rel": "supports",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-8a4c2e369c9c",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+          "expected_rel": "supports",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-e1_1_b11d8c1a",
+          "expected_rel": "supports",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-e1_3_7d5808eb",
+          "expected_rel": "supports",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-e3_2_dfe65749",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-e4_2_105b5ee6",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-e4_3_d4e652a5",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-e4_4_1f66a72a",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        }
+      ],
+      "regressions": [
+        "e2: state expected=unresolved, actual=supported",
+        "e1/ev-rec-e1_0_f2dbe8e9: rel expected=supports, actual=context",
+        "e1/ev-rec-e1_3_7d5808eb: rel expected=supports, actual=context",
+        "e1/ev-rec-e1_4_b8754c12: rel expected=context, actual=None",
+        "e2/ev-rec-e2_0_78322e4f: rel expected=supports, actual=None",
+        "e2/ev-rec-e2_2_6048b534: rel expected=context, actual=None",
+        "e2/ev-rec-e2_4_6e6ff20a: rel expected=context, actual=None",
+        "e3/ev-bff968da5b5d: rel expected=supports, actual=None",
+        "e3/ev-rec-e3_3_c42ea694: rel expected=context, actual=supports",
+        "e4/ev-bff968da5b5d: rel expected=supports, actual=None",
+        "e4/ev-8a4c2e369c9c: rel expected=context, actual=None",
+        "e4/ev-rec-e1_0_f2dbe8e9: rel expected=supports, actual=None",
+        "e4/ev-rec-e1_1_b11d8c1a: rel expected=supports, actual=None",
+        "e4/ev-rec-e1_3_7d5808eb: rel expected=supports, actual=None"
+      ]
+    },
+    {
+      "case_id": "case-008",
+      "state_results": [
+        {
+          "element_id": "e1",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "expected": "disputed",
+          "actual": "disputed",
+          "match": true
+        }
+      ],
+      "ref_results": [
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_0_346ed6d7",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_1_9bc51699",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_2_015ac81e",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_3_4ab7e69f",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_4_65bdb51c",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e2_1_8e292d25",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e3_1_c8bb72da",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e3_4_2bd08f08",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e1_0_346ed6d7",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e1_4_65bdb51c",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e2_1_8e292d25",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e1_3_4ab7e69f",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e3_4_2bd08f08",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e3_1_c8bb72da",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-e2_3_da2a6aff",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        }
+      ],
+      "regressions": [
+        "e3/ev-rec-e1_3_4ab7e69f: rel expected=context, actual=supports",
+        "e3/ev-rec-e3_4_2bd08f08: rel expected=context, actual=None"
+      ]
+    },
+    {
+      "case_id": "case-010",
+      "state_results": [
+        {
+          "element_id": "e1",
+          "expected": "unresolved",
+          "actual": "unresolved",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "expected": "supported",
+          "actual": "unresolved",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e4",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        }
+      ],
+      "ref_results": [
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-5_3_c3474498",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-5_0_4f641eaa",
+          "expected_rel": "supports",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-5_0_4f641eaa",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-5_1_aef46242",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-rec-5_2_f08ef83e",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-5_0_4f641eaa",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-5_1_aef46242",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e4",
+          "evidence_id": "ev-rec-5_2_f08ef83e",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        }
+      ],
+      "regressions": [
+        "e2: state expected=supported, actual=unresolved",
+        "e1/ev-rec-5_3_c3474498: rel expected=context, actual=None",
+        "e2/ev-rec-5_0_4f641eaa: rel expected=supports, actual=None"
+      ]
+    },
+    {
+      "case_id": "case-013",
+      "state_results": [
+        {
+          "element_id": "e1",
+          "expected": "unresolved",
+          "actual": "supported",
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "expected": "unresolved",
+          "actual": "supported",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "expected": "disputed",
+          "actual": "disputed",
+          "match": true
+        }
+      ],
+      "ref_results": [
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-f88e50b2eed0",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-0c8929bec31f",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-f88e50b2eed0",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-0c8929bec31f",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-f88e50b2eed0",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-0c8929bec31f",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        }
+      ],
+      "regressions": [
+        "e1: state expected=unresolved, actual=supported",
+        "e2: state expected=unresolved, actual=supported",
+        "e1/ev-f88e50b2eed0: rel expected=context, actual=supports",
+        "e1/ev-0c8929bec31f: rel expected=context, actual=supports",
+        "e2/ev-f88e50b2eed0: rel expected=context, actual=supports",
+        "e2/ev-0c8929bec31f: rel expected=context, actual=supports"
+      ]
+    },
+    {
+      "case_id": "case-015",
+      "state_results": [
+        {
+          "element_id": "e1",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "expected": "supported",
+          "actual": "supported",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "expected": "disputed",
+          "actual": "disputed",
+          "match": true
+        }
+      ],
+      "ref_results": [
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-343cece8454e",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-100341d813bd",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-4261bdd01d2b",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-57b48fe392ab",
+          "expected_rel": "supports",
+          "actual_rel": "supports",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-5a1e621ec551",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-41b6720224f2",
+          "expected_rel": "challenges",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-4261bdd01d2b",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-0ffb39bff315",
+          "expected_rel": "challenges",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-5a1e621ec551",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-31f6b0ae6efe",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-dd70f1ce4877",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-57b48fe392ab",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-6cf0c6342ff8",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        }
+      ],
+      "regressions": [
+        "e2/ev-5a1e621ec551: rel expected=context, actual=None",
+        "e3/ev-41b6720224f2: rel expected=challenges, actual=None",
+        "e3/ev-0ffb39bff315: rel expected=challenges, actual=supports",
+        "e3/ev-6cf0c6342ff8: rel expected=context, actual=None"
+      ]
+    },
+    {
+      "case_id": "case-020",
+      "state_results": [
+        {
+          "element_id": "e1",
+          "expected": "unresolved",
+          "actual": "unresolved",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "expected": "unresolved",
+          "actual": "disputed",
+          "match": false
+        }
+      ],
+      "ref_results": [
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-4c7742447345",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-376689fadfa3",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-b72917d28a6f",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_0_33f300e9",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_1_7f1c95f6",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_3_8d6d91bd",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-rec-e1_4_bc1f43b9",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-99ff04ccdd2b",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-4c7742447345",
+          "expected_rel": "context",
+          "actual_rel": "challenges",
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-376689fadfa3",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-b72917d28a6f",
+          "expected_rel": "context",
+          "actual_rel": "context",
+          "match": true
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e2_0_d1871131",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e2_1_1965629a",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e2_2_9bc6bd59",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-rec-e2_4_4b00737f",
+          "expected_rel": "context",
+          "actual_rel": null,
+          "match": false
+        }
+      ],
+      "regressions": [
+        "e2: state expected=unresolved, actual=disputed",
+        "e1/ev-rec-e1_1_7f1c95f6: rel expected=context, actual=None",
+        "e1/ev-rec-e1_3_8d6d91bd: rel expected=context, actual=None",
+        "e2/ev-4c7742447345: rel expected=context, actual=challenges",
+        "e2/ev-rec-e2_0_d1871131: rel expected=context, actual=None",
+        "e2/ev-rec-e2_1_1965629a: rel expected=context, actual=None",
+        "e2/ev-rec-e2_2_9bc6bd59: rel expected=context, actual=None",
+        "e2/ev-rec-e2_4_4b00737f: rel expected=context, actual=None"
+      ]
+    }
+  ],
+  "summary": {
+    "cases_tested": 7,
+    "state_accuracy": 0.77,
+    "ref_accuracy": 0.63,
+    "regressions": 40
+  }
+}

@@ -1,0 +1,277 @@
+{
+  "case_id": "case-008",
+  "claim": {
+    "normalised_claim": "The Amazon river is the longest river globally.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The length of the Amazon river can be measured."
+      },
+      {
+        "element_id": "e2",
+        "description": "The lengths of all other major rivers in the world can be measured."
+      },
+      {
+        "element_id": "e3",
+        "description": "The Amazon river's measured length is greater than the measured length of any other river."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-f1d845015a49",
+      "title": "Brazil and the Amazon: 50 Years of Shifting Policy & Global Impact",
+      "full_text": "The results were dramatic: deforestation plummeted from 27,772 km\u00b2 in 2004 to 4,571 km\u00b2 in 2012. Brazil was hailed as the world's leader in reducing greenhouse ...",
+      "mapper_window": "The results were dramatic: deforestation plummeted from 27,772 km\u00b2 in 2004 to 4,571 km\u00b2 in 2012. Brazil was hailed as the world's leader in reducing greenhouse ...",
+      "tier": "commentary",
+      "evidence_type": "data"
+    },
+    {
+      "evidence_id": "ev-15cc7d944772",
+      "title": "Deforestation is drying out the Amazon rainforest faster than ... - Reddit",
+      "full_text": "Brazilian Amazon deforestation peaked around 2004 at approximately 27,000 km\u00b2/year before falling dramatically by roughly 80% to 4,500-7,000 km\u00b2/year by the mid ...",
+      "mapper_window": "Brazilian Amazon deforestation peaked around 2004 at approximately 27,000 km\u00b2/year before falling dramatically by roughly 80% to 4,500-7,000 km\u00b2/year by the mid ...",
+      "tier": "commentary",
+      "evidence_type": "data"
+    },
+    {
+      "evidence_id": "ev-96d053925705",
+      "title": "Deforestation and economic growth in the Amazon region",
+      "full_text": "The Climate Institute, Washington, D. com/uploads/1/7/8/5/17857089/deforestation_and_climate_change. Deforestation and forest degradation in the Amazon: status and trends up to year 2020. Publications Office of the European Union, Luxembourg. The economic costs of deforestation: constructing an economic account of the value of lost forest ecosystem services, with Argentina case study",
+      "mapper_window": "The Climate Institute, Washington, D. com/uploads/1/7/8/5/17857089/deforestation_and_climate_change. Deforestation and forest degradation in the Amazon: status and trends up to year 2020. Publications Office of the European Union, Luxembourg. The economic costs of deforestation: constructing an economic account of the value of lost forest ecosystem services, with Argentina case study",
+      "tier": "commentary",
+      "evidence_type": "academic"
+    },
+    {
+      "evidence_id": "ev-f69b3762444b",
+      "title": "Deforestation in the Brazilian Amazon has fallen again in 2025",
+      "full_text": "Deforestation in the Brazilian Amazon has fallen again in 2025 Progress on deforestation, but increased threats from wildfires. This year, 5,800 square kilometres (km2) were cleared, which was an 11% drop compared to last year. You can see this in the chart below, which shows deforestation rates since the late 1980s",
+      "mapper_window": "Deforestation in the Brazilian Amazon has fallen again in 2025 Progress on deforestation, but increased threats from wildfires. This year, 5,800 square kilometres (km2) were cleared, which was an 11% drop compared to last year. You can see this in the chart below, which shows deforestation rates since the late 1980s",
+      "tier": "commentary",
+      "evidence_type": "analysis"
+    },
+    {
+      "evidence_id": "ev-5cb964f28c56",
+      "title": "Nature Crime Fuels Deforestation in the Amazon - WRI.org",
+      "full_text": "Fires in the Amazon are largely started by arson1 and related criminal activity accompanying agriculture, logging, mining and road building. In fact, a recent survey of government data concluded that 91% of forest loss in the Brazilian Amazon is linked to illegal activity like land-clearing for agriculture and artisanal mining, often orchestrated by well-structured international criminal enterprises. Nature crime has long been an overlooked but growing driver of deforestation in the Amazon \u2014 one that\u2019s pushing into new territories. Borderlands: Criminal Threats to the Amazon\u2019s Most Remote Regions Forest loss in the Amazon has historically been greatest in the \u201carc of deforestation\u201d stretching from east to west along the southern flank of the biome. This is also where the majority of the 2024 fires took place, where most forest conversion to agriculture and cattle ranching has occurred, and where most people in the Amazon live",
+      "mapper_window": "Fires in the Amazon are largely started by arson1 and related criminal activity accompanying agriculture, logging, mining and road building. In fact, a recent survey of government data concluded that 91% of forest loss in the Brazilian Amazon is linked to illegal activity like land-clearing for agriculture and artisanal mining, often orchestrated by well-structured international criminal enterpris",
+      "tier": "reporting",
+      "evidence_type": "news_reporting"
+    },
+    {
+      "evidence_id": "ev-80e9fdc1de64",
+      "title": "Fires Archives - MAAP - The Monitoring of the Andes Amazon Program",
+      "full_text": "There is also a strong link between deforestation and fire in the Bolivian Amazon. While deforestation often precedes fires, as in Brazil, there is also a second round of deforestation following the fires In both contexts, real-time fire monitoring, such as the MAAP Fire Tracker, should be integrated into national response protocols and field-level coordination. Beyond fire, high rates of forest loss continue to be driven by deforestation across other parts of the Amazon. In Colombia\u2019s arc of deforestation, we detected very high deforestation around Chiribiquete National Park, as well as high deforestation within Tinigua and Macarena National Parks. Although the national government is engaged on the issue of deforestation, these losses are closely tied to the presence and influence of armed groups in the country, which exert substantial control over land-use and deforestation dynamics (explaining shifts such as the dip in 2023 and the rise again in 2024)",
+      "mapper_window": "There is also a strong link between deforestation and fire in the Bolivian Amazon. While deforestation often precedes fires, as in Brazil, there is also a second round of deforestation following the fires In both contexts, real-time fire monitoring, such as the MAAP Fire Tracker, should be integrated into national response protocols and field-level coordination. Beyond fire, high rates of forest l",
+      "tier": "reporting",
+      "evidence_type": "news_reporting"
+    },
+    {
+      "evidence_id": "ev-d3d9b2970ab4",
+      "title": "Is the Amazon rainforest moving towards a tipping point? - Bon Pote",
+      "full_text": "NB: answering the question \u201cwho owns the Amazon. \u201d is not the subject of this article, but if you are interested, here is a very well done video. Effects of Deforestation on the Amazon The effects of deforestation are many and varied. Since Bolsonaro and his accomplices wanted \u201cto bring progress to the Amazon\u201c, risks to biodiversity, climate and millions of people have increased. Here are the main ones",
+      "mapper_window": "NB: answering the question \u201cwho owns the Amazon. \u201d is not the subject of this article, but if you are interested, here is a very well done video. Effects of Deforestation on the Amazon The effects of deforestation are many and varied. Since Bolsonaro and his accomplices wanted \u201cto bring progress to the Amazon\u201c, risks to biodiversity, climate and millions of people have increased. Here are the main",
+      "tier": "commentary",
+      "evidence_type": "analysis"
+    },
+    {
+      "evidence_id": "ev-d7276b4db5ca",
+      "title": "Deforestation in the Amazon Rainforest - Ballard Brief",
+      "full_text": "Deforestation in the Amazon Rainforest + Summary Deforestation in the Amazon rainforest represents a critical issue in our modern world, as it is the root cause of many other problems that affect the entire planet. The Amazon\u2019s deforestation is particularly relevant because it has been a chronic issue that has plagued the region for decades. Some of the key contributing factors include cattle ranching, infrastructure development such as roads, the building of many large dams, and small-scale subsistence farming. Consequences of deforestation in the Amazon include a significant loss of species and their habitats, a disturbance of indigenous peoples and their health, an increase in CO2 emissions, and a negatively altered water cycle around the globe",
+      "mapper_window": "Deforestation in the Amazon Rainforest + Summary Deforestation in the Amazon rainforest represents a critical issue in our modern world, as it is the root cause of many other problems that affect the entire planet. The Amazon\u2019s deforestation is particularly relevant because it has been a chronic issue that has plagued the region for decades. Some of the key contributing factors include cattle ranc",
+      "tier": "primary",
+      "evidence_type": "analysis"
+    },
+    {
+      "evidence_id": "ev-rec-e1_3_4ab7e69f",
+      "title": "Mapped: The 15 Longest Rivers in the World - Visual Capitalist",
+      "full_text": "Experts disagree on the length of the Amazon\u2014some measurements put it at 4,345 miles (6,992 km), narrowly edging out the Nile. China's Yangtze is the ...",
+      "mapper_window": "Experts disagree on the length of the Amazon\u2014some measurements put it at 4,345 miles (6,992 km), narrowly edging out the Nile. China's Yangtze is the ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e1_4_65bdb51c",
+      "title": "Geography Facts About the Amazon River",
+      "full_text": "The Amazon River located in South America is the world's second longest river. At 3,976 miles (6,400 km) in length, it only narrowly loses the title for the ...",
+      "mapper_window": "The Amazon River located in South America is the world's second longest river. At 3,976 miles (6,400 km) in length, it only narrowly loses the title for the ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e2_1_8e292d25",
+      "title": "Understanding Rivers - National Geographic Education",
+      "full_text": "The Amazon River is about 6,437 kilometers (4,000 miles) long, while the Nile River is about 6,650 kilometers (4,135 miles) long. There is no debate, however, ...",
+      "mapper_window": "The Amazon River is about 6,437 kilometers (4,000 miles) long, while the Nile River is about 6,650 kilometers (4,135 miles) long. There is no debate, however, ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e2_3_da2a6aff",
+      "title": "and even more in floodplains. 5\ufe0f\u20e3 Extraordinary ... - Facebook",
+      "full_text": "The Amazon River is the longest and largest river in the world, surpassing the Nile, with a length of approximately 7,000 kilometers. It rises in the Peruvian ...",
+      "mapper_window": "The Amazon River is the longest and largest river in the world, surpassing the Nile, with a length of approximately 7,000 kilometers. It rises in the Peruvian ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e3_1_c8bb72da",
+      "title": "The world's longest rivers, ranked by length. The Nile or the Amazon ...",
+      "full_text": "The #Amazon River is 6,992.06 kilometers long, originating at the foot of Mount Mismi in Peru and flowing into the Atlantic Ocean in Brazil. For centuries, the ...",
+      "mapper_window": "The #Amazon River is 6,992.06 kilometers long, originating at the foot of Mount Mismi in Peru and flowing into the Atlantic Ocean in Brazil. For centuries, the ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e3_4_2bd08f08",
+      "title": "Is the Amazon or the Nile the Longest Reiver in the World? Depends ...",
+      "full_text": "While there is a consensus on the Nile being the longest, some experts list the Amazon's length at 4,345 miles (6,992 km), making it 300 miles (342 km) longer ...",
+      "mapper_window": "While there is a consensus on the Nile being the longest, some experts list the Amazon's length at 4,345 miles (6,992 km), making it 300 miles (342 km) longer ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e1_1_9bc51699",
+      "title": "Where Does the Amazon River Begin? - National Geographic",
+      "full_text": "If they're right, their discovery would add 47 to 57 miles (75 to 92 kilometers) to the length of the Amazon, currently measured at about 4,000 miles (6,437 ...",
+      "mapper_window": "If they're right, their discovery would add 47 to 57 miles (75 to 92 kilometers) to the length of the Amazon, currently measured at about 4,000 miles (6,437 ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-87cf7cd86007",
+      "title": "Deforestation of the Amazon rainforest",
+      "full_text": "The Amazon rainforest, spanning an area of 3,000,000\u00a0km2, is the world's largest rainforest. It encompasses the largest and most biodiverse tropical rainforest on the planet, representing over half of all rainforests. The Amazon region includes the territories of nine nations, with Brazil containing the majority (60%), followed by Peru (13%), Colombia (10%), and smaller portions in Venezuela, Ecuador, Bolivia (6%), Guyana, Suriname, and French Guiana. Over one-third of the Amazon rainforest is designated as formally acknowledged indigenous territory, amounting to more than 3,344 territories. Historically, indigenous Amazonian peoples have relied on the forest for various needs such as food, shelter, water, fiber, futon, and medicines. The forest holds significant cultural and cosmological importance for them.",
+      "mapper_window": "The Amazon rainforest, spanning an area of 3,000,000\u00a0km2, is the world's largest rainforest. It encompasses the largest and most biodiverse tropical rainforest on the planet, representing over half of all rainforests. The Amazon region includes the territories of nine nations, with Brazil containing the majority (60%), followed by Peru (13%), Colombia (10%), and smaller portions in Venezuela, Ecua",
+      "tier": "primary",
+      "evidence_type": "data"
+    },
+    {
+      "evidence_id": "ev-dccbda7630c0",
+      "title": "Deforestation in Brazil",
+      "full_text": "Brazil once had the highest deforestation rate in the world, and recent data still shows high rates of deforestation. Between 2001 and 2023, Brazil lost 68.9 Mha of tree cover, and in 2022, Brazilian forest loss accounted for 43% of global deforestation. In 2005, Brazil still had the largest area of forest removed annually. Since 1970, over 700,000 square kilometres (270,000\u00a0sq\u00a0mi) of the Amazon rainforest have been destroyed. In 2001, the Amazon was approximately 5,400,000 square kilometres (2,100,000\u00a0sq\u00a0mi), which is only 87% of the Amazon's original size. According to official data, about 729,000\u00a0km\u00b2 have already been deforested in the Amazon biome, which corresponds to 17% of the total. 300,000 km\u00b2 have been deforested in the last 20 years.",
+      "mapper_window": "Brazil once had the highest deforestation rate in the world, and recent data still shows high rates of deforestation. Between 2001 and 2023, Brazil lost 68.9 Mha of tree cover, and in 2022, Brazilian forest loss accounted for 43% of global deforestation. In 2005, Brazil still had the largest area of forest removed annually. Since 1970, over 700,000 square kilometres (270,000\u00a0sq\u00a0mi) of the Amazon r",
+      "tier": "primary",
+      "evidence_type": "data"
+    },
+    {
+      "evidence_id": "ev-2e55b9cd2b63",
+      "title": "Deforestation",
+      "full_text": "Deforestation or forest clearance is the removal and destruction of a forest or stand of trees from land that is then converted to non-forest use. Deforestation can involve conversion of forest land to farms, ranches, or urban use. About 31% of Earth's land surface is covered by forests at present. This is one-third less than the forest cover before the expansion of agriculture, with half of that loss occurring in the last century. On average 2,400 trees are cut down each minute. Estimates vary widely as to the extent of deforestation in the tropics. In 2019, nearly a third of the overall tree cover loss, or 3.8 million hectares, occurred within humid tropical primary forests. These are areas of mature rainforest that are especially important for biodiversity and carbon storage.",
+      "mapper_window": "Deforestation or forest clearance is the removal and destruction of a forest or stand of trees from land that is then converted to non-forest use. Deforestation can involve conversion of forest land to farms, ranches, or urban use. About 31% of Earth's land surface is covered by forests at present. This is one-third less than the forest cover before the expansion of agriculture, with half of that ",
+      "tier": "primary",
+      "evidence_type": "data"
+    },
+    {
+      "evidence_id": "ev-b647f748768c",
+      "title": "Deforestation by continent",
+      "full_text": "Rates and causes of deforestation vary from region to region around the world. In 2009, two-thirds of the world's forests were located in just 10 countries: Russia, Brazil, Canada, the United States, China, Australia, the Democratic Republic of the Congo, Indonesia, India, and Peru.",
+      "mapper_window": "Rates and causes of deforestation vary from region to region around the world. In 2009, two-thirds of the world's forests were located in just 10 countries: Russia, Brazil, Canada, the United States, China, Australia, the Democratic Republic of the Congo, Indonesia, India, and Peru.",
+      "tier": "primary",
+      "evidence_type": "data"
+    },
+    {
+      "evidence_id": "ev-rec-e1_0_346ed6d7",
+      "title": "Amazon River | Facts, History, Location, Length, Animals, & Map",
+      "full_text": "While there is some debate about its length, the river is generally believed to be at least 4,000 miles (6,400 km) long, which makes it the second longest river ...",
+      "mapper_window": "While there is some debate about its length, the river is generally believed to be at least 4,000 miles (6,400 km) long, which makes it the second longest river ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-cf0147c2ba6d",
+      "title": "Amazon rainforest",
+      "full_text": "The Amazon rainforest, also called the Amazon jungle or Amazonia, is a moist broadleaf tropical rainforest in the Amazon biome that covers most of the Amazon basin of South America. This basin encompasses 7\u00a0million\u00a0km2 (2.7\u00a0million\u00a0sq\u00a0mi), of which 6\u00a0million\u00a0km2 (2.3\u00a0million\u00a0sq\u00a0mi) are covered by the rainforest. This region includes territory belonging to nine nations and 3,344 indigenous territories.",
+      "mapper_window": "The Amazon rainforest, also called the Amazon jungle or Amazonia, is a moist broadleaf tropical rainforest in the Amazon biome that covers most of the Amazon basin of South America. This basin encompasses 7\u00a0million\u00a0km2 (2.7\u00a0million\u00a0sq\u00a0mi), of which 6\u00a0million\u00a0km2 (2.3\u00a0million\u00a0sq\u00a0mi) are covered by the rainforest. This region includes territory belonging to nine nations and 3,344 indigenous territor",
+      "tier": "primary",
+      "evidence_type": "data"
+    },
+    {
+      "evidence_id": "ev-rec-e1_2_015ac81e",
+      "title": "Amazon river facts and geography - Facebook",
+      "full_text": "THE LONGEST RIVER IN THE WORLD The Amazon River measures 7020 km, originates at the foot of the Mismi mountain in Peru and empties into the Atlantic ...",
+      "mapper_window": "THE LONGEST RIVER IN THE WORLD The Amazon River measures 7020 km, originates at the foot of the Mismi mountain in Peru and empties into the Atlantic ...",
+      "tier": null,
+      "evidence_type": null
+    }
+  ],
+  "expected": {
+    "elements": [
+      {
+        "element_id": "e1",
+        "expected_state": "supported",
+        "expected_refs": [
+          {
+            "evidence_id": "ev-rec-e1_0_346ed6d7",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_1_9bc51699",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_2_015ac81e",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_4ab7e69f",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_4_65bdb51c",
+            "expected_relationship": "supports"
+          }
+        ]
+      },
+      {
+        "element_id": "e2",
+        "expected_state": "supported",
+        "expected_refs": [
+          {
+            "evidence_id": "ev-rec-e2_1_8e292d25",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e3_1_c8bb72da",
+            "expected_relationship": "supports"
+          }
+        ]
+      },
+      {
+        "element_id": "e3",
+        "expected_state": "disputed",
+        "expected_refs": [
+          {
+            "evidence_id": "ev-rec-e1_0_346ed6d7",
+            "expected_relationship": "challenges"
+          },
+          {
+            "evidence_id": "ev-rec-e1_4_65bdb51c",
+            "expected_relationship": "challenges"
+          },
+          {
+            "evidence_id": "ev-rec-e2_1_8e292d25",
+            "expected_relationship": "challenges"
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_4ab7e69f",
+            "expected_relationship": "context"
+          },
+          {
+            "evidence_id": "ev-rec-e3_4_2bd08f08",
+            "expected_relationship": "context"
+          },
+          {
+            "evidence_id": "ev-rec-e3_1_c8bb72da",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e2_3_da2a6aff",
+            "expected_relationship": "supports"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,253 @@
+{
+  "case_id": "case-002",
+  "source": {
+    "check_id": "68bd71c3-3d9e-4b3e-a11d-bcadc01a9603",
+    "claim_id": "20e79ca0-e436-4f96-95ea-afe90757baf9",
+    "claim_position": 0,
+    "extracted_at": "2026-03-02T21:10:57.640914+00:00"
+  },
+  "claim": {
+    "normalised_claim": "The Great Wall of China is visible from space with the naked eye.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The Great Wall of China is a physical structure that can be observed."
+      },
+      {
+        "element_id": "e2",
+        "description": "There exists a vantage point in space from which observations can be made."
+      },
+      {
+        "element_id": "e3",
+        "description": "The human eye, without optical aid, is capable of perceiving the Great Wall of China from that vantage point."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-0ffb39bff315",
+      "title": "TIL the Great Wall of China is not actually visible from space, its just ...",
+      "full_text": "The Great Wall of China is the only man made structure big enough to be seen from outer space with the naked eye. You can 100% see the Great Wall of China from ...",
+      "mapper_window": "The Great Wall of China is the only man made structure big enough to be seen from outer space with the naked eye. You can 100% see the Great Wall of China from ...",
+      "tier": "commentary",
+      "evidence_type": "opinion",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "reddit.com",
+      "url": "https://www.reddit.com/r/todayilearned/comments/1kg3uwe/til_the_great_wall_of_china_is_not_actually/"
+    },
+    {
+      "evidence_id": "ev-4261bdd01d2b",
+      "title": "Great Wall of China is visible from space: Fact or myth?",
+      "full_text": "NASA astronauts have echoed similar observations. According to NASA , while certain human-made structures can be seen from low Earth orbit under ideal conditions, the Great Wall is not easily distinguishable without visual aid. NASA's comment on Great Wall of China being seen from space Why it\u2019s so hard to see At first glance, this seems surprising. The Great Wall stretches more than 21,000 kilometers in total length (including natural barriers and trenches). But here\u2019s the catch: length isn\u2019t the issue, the width is",
+      "mapper_window": "NASA astronauts have echoed similar observations. According to NASA , while certain human-made structures can be seen from low Earth orbit under ideal conditions, the Great Wall is not easily distinguishable without visual aid. NASA's comment on Great Wall of China being seen from space Why it\u2019s so hard to see At first glance, this seems surprising. The Great Wall stretches more than 21,000 kilome",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "timesofindia.indiatimes.com",
+      "url": "https://timesofindia.indiatimes.com/life-style/travel/news/great-wall-of-china-is-visible-from-space-fact-or-myth/articleshow/128671144.cms"
+    },
+    {
+      "evidence_id": "ev-dd70f1ce4877",
+      "title": "This human landmark truly shines from space, not the Great Wall of ...",
+      "full_text": "This human landmark truly shines from space, not the Great Wall of China, say astronauts For centuries, people believed the Great Wall ruled space views, yet astronauts spotted something else entirely. A vast white landscape in Spain quietly rewrote what humanity leaves visible from orbit. February 10, 2026 / 15:24 IST The Great Wall Isn\u2019t What Astronauts See From Orbit, This Shimmering Human Footprint Is (Image: Canva) The article explores why the Great Wall of China is rarely visible from space, despite long held myths, and how Spain\u2019s Almer\u00eda greenhouses became one of Earth\u2019s clearest human made features from orbit. Astronaut accounts reveal that contrast, scale and reflectivity matter more than history. While the plastic covered farmland feeds much of Europe, its visibility highlights environmental costs, showing how modern activity now leaves stronger planetary fingerprints than ancient wonders",
+      "mapper_window": "This human landmark truly shines from space, not the Great Wall of China, say astronauts For centuries, people believed the Great Wall ruled space views, yet astronauts spotted something else entirely. A vast white landscape in Spain quietly rewrote what humanity leaves visible from orbit. February 10, 2026 / 15:24 IST The Great Wall Isn\u2019t What Astronauts See From Orbit, This Shimmering Human Foot",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "moneycontrol.com",
+      "url": "https://www.moneycontrol.com/science/this-human-landmark-truly-shines-from-space-not-the-great-wall-of-china-say-astronauts-article-13821635.html"
+    },
+    {
+      "evidence_id": "ev-100341d813bd",
+      "title": "Curiosity: Is the Great Wall of China visible from space with the ...",
+      "full_text": "Curiosity: Is the Great Wall of China visible from space with the naked eye It's the longest man-made structure in the world Measuring an astounding total of 21,196 kilometres, the Great Wall of China is indeed the longest man-made structure in the world. However, even though it boasts such an impressive length, it is only approximately six metres at its widest \u2013 at the wall base itself. This, coupled with the fact that the Great Wall is made of materials that indeed look very similar to the neighbouring terrain, means that the Great Wall is actually not visible from space, even from low Earth orbit at an altitude of some 160km above the Earth\u2019s surface",
+      "mapper_window": "Curiosity: Is the Great Wall of China visible from space with the naked eye It's the longest man-made structure in the world Measuring an astounding total of 21,196 kilometres, the Great Wall of China is indeed the longest man-made structure in the world. However, even though it boasts such an impressive length, it is only approximately six metres at its widest \u2013 at the wall base itself. This, cou",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "timesofmalta.com",
+      "url": "https://timesofmalta.com/article/curiosity-is-great-wall-china-visible-space-naked-eye.1106177"
+    },
+    {
+      "evidence_id": "ev-5a1e621ec551",
+      "title": "Forget the Great Wall: the human landmark astronauts actually see ...",
+      "full_text": "The Great Wall myth: a 300-year-old guess The idea that the Great Wall of China is visible from the Moon didn\u2019t start with the space age; it likely traces back to 18th century writers who were simply guessing. Since the Apollo missions, astronauts have consistently pushed back on this. Apollo crew members, including Neil Armstrong and others, have noted that from the Moon you can make out Earth\u2019s continents and clouds, but essentially no specific human made structure stands out to the naked eye",
+      "mapper_window": "The Great Wall myth: a 300-year-old guess The idea that the Great Wall of China is visible from the Moon didn\u2019t start with the space age; it likely traces back to 18th century writers who were simply guessing. Since the Apollo missions, astronauts have consistently pushed back on this. Apollo crew members, including Neil Armstrong and others, have noted that from the Moon you can make out Earth\u2019s ",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "futura-sciences.com",
+      "url": "https://www.futura-sciences.com/en/its-not-the-great-wall-heres-the-most-visible-human-made-structure-from-space_24815/"
+    },
+    {
+      "evidence_id": "ev-31f6b0ae6efe",
+      "title": "Can the Great Wall Be Seen from the Space? - Travel China Guide",
+      "full_text": "Can the Great Wall Be Seen from the Space. It was once widely believed that the Great Wall could be seen from space. However, as humans ventured into space, this myth was completely debunked",
+      "mapper_window": "Can the Great Wall Be Seen from the Space. It was once widely believed that the Great Wall could be seen from space. However, as humans ventured into space, this myth was completely debunked",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "travelchinaguide.com",
+      "url": "https://www.travelchinaguide.com/china_great_wall/facts/seen-from-space.htm"
+    },
+    {
+      "evidence_id": "ev-57b48fe392ab",
+      "title": "Forget the Great Wall: The Human Landmark Astronauts Actually ...",
+      "full_text": "What Astronauts Really See From low Earth orbit \u2014 such as aboard the International Space Station \u2014 the most visible human features are typically those that maximize brightness and contrast. Here\u2019s how various landmarks compare: - Cities at night: Clearly visible due to artificial lighting. - Great Wall of China: Rarely visible due to low contrast. - Almer\u00eda greenhouses: Often visible thanks to reflectivity and scale. - Large open-pit mines: Frequently visible because of exposed rock and size",
+      "mapper_window": "What Astronauts Really See From low Earth orbit \u2014 such as aboard the International Space Station \u2014 the most visible human features are typically those that maximize brightness and contrast. Here\u2019s how various landmarks compare: - Cities at night: Clearly visible due to artificial lighting. - Great Wall of China: Rarely visible due to low contrast. - Almer\u00eda greenhouses: Often visible thanks to ref",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "billysbeds.com.au",
+      "url": "https://billysbeds.com.au/forget-the-great-wall-the-human-landmark-astronauts-actually-see-from-space/?srsltid=AfmBOoqfyqRPk27qHvmaVkd_h35T0RdHXTnDKHsIrTNHc6gNwBW0TYD_"
+    },
+    {
+      "evidence_id": "ev-343cece8454e",
+      "title": "Great Wall of China",
+      "full_text": "The Great Wall of China is a series of fortifications in China. They were built across the historical northern borders of ancient Chinese states and Imperial China as protection against various nomadic groups from the Eurasian Steppe. The first walls date to the 7th century BC; these were joined together in the Qin dynasty. Successive dynasties expanded the wall system; the best-known sections were built by the Ming dynasty (1368\u20131644).",
+      "mapper_window": "The Great Wall of China is a series of fortifications in China. They were built across the historical northern borders of ancient Chinese states and Imperial China as protection against various nomadic groups from the Eurasian Steppe. The first walls date to the 7th century BC; these were joined together in the Qin dynasty. Successive dynasties expanded the wall system; the best-known sections wer",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Great_Wall_of_China"
+    },
+    {
+      "evidence_id": "ev-6cf0c6342ff8",
+      "title": "Artificial structures visible from space",
+      "full_text": "Artificial structures visible from space without magnification include highways, dams, and cities.",
+      "mapper_window": "Artificial structures visible from space without magnification include highways, dams, and cities.",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Artificial_structures_visible_from_space"
+    },
+    {
+      "evidence_id": "ev-b0e690dce64c",
+      "title": "Is the Great Wall of China Visible from the Moon?",
+      "full_text": "The claim that China's Great Wall is the only man-made object that can be seen from the moon with the naked eye is one of our more tenaciously incorrect \"facts,\" a bit of erroneous speculation which was spawned decades before we had the means to demonstrate it true, and which continues to have currency despite having long since been proved false. Some less specific versions of the Great Wall claim maintain it is the only man-made object that can be seen from \"space,\" but although the term \"space\" is rather non-specific, it is not difficult to show the Great Wall claim to be false for any reasonable definition of the term. If we take \"space\" to mean a low Earth orbit such as the one traveled by the Space Shuttle (roughly 160 to 350 miles above Earth), the Great Wall claim fails twice. First of all, it's not the only object visible from that distance: NASA's Earth from Space photographic archive (particularly the Human Interactions section) shows that pictures taken from low orbit reveal human-built structures such as highways, airports, bridges, dams, and components of the Kennedy Space Center. Secondly, even though other objects are visible at this distance, according to Shuttle astronaut Jay Apt, the Great Wall is barely discernable, if not invisible: We look for the Great Wall of China. Although we can see things as small as airport runways, the Great Wall seems to be made largely of materials that have the same color as the surrounding soil. Despite persistent stories that it can be seen from the moon, the Great Wall is almost invisible from only 180 miles up! An object that can barely be seen from a height of 180 miles up is obviously not going to be visible from the moon (roughly 237,000 miles away), as confirmed by Apollo 12 astronaut Alan Bean: The only thing you can see from the moon is a beautiful sphere, mostly white (clouds), some blue (ocean), patches of yellow (deserts), and every once in a while some green vegetation. No man-made object is visible on",
+      "mapper_window": "The claim that China's Great Wall is the only man-made object that can be seen from the moon with the naked eye is one of our more tenaciously incorrect \"facts,\" a bit of erroneous speculation which was spawned decades before we had the means to demonstrate it true, and which continues to have currency despite having long since been proved false. Some less specific versions of the Great Wall claim",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Snopes",
+      "url": "https://www.snopes.com/fact-check/great-wall-from-moon/"
+    },
+    {
+      "evidence_id": "ev-66a07338993e",
+      "title": "Can you actually see the Great Wall of China from space? - YouTube",
+      "full_text": "Select 'More options' to see additional information, including details about managing your privacy settings",
+      "mapper_window": "Select 'More options' to see additional information, including details about managing your privacy settings",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "youtube.com",
+      "url": "https://www.youtube.com/shorts/nK1dEWAHQsQ"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "5e8a5a5ad98b",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-343cece8454e",
+            "relationship": "supports",
+            "reasoning": "Describes the Great Wall of China as a series of fortifications built across historical northern borders, confirming it is a physical structure."
+          },
+          {
+            "evidence_id": "ev-100341d813bd",
+            "relationship": "supports",
+            "reasoning": "States the Great Wall of China is the longest man-made structure in the world, measuring 21,196 kilometers, confirming its existence as a physical structure."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-4261bdd01d2b",
+            "relationship": "supports",
+            "reasoning": "Mentions observations by NASA astronauts from low Earth orbit, indicating a vantage point in space exists for observation."
+          },
+          {
+            "evidence_id": "ev-57b48fe392ab",
+            "relationship": "supports",
+            "reasoning": "Discusses what astronauts see from low Earth orbit, such as aboard the International Space Station, confirming a vantage point in space for observation."
+          },
+          {
+            "evidence_id": "ev-6cf0c6342ff8",
+            "relationship": "supports",
+            "reasoning": "States that artificial structures are visible from space, implying that space is a vantage point from which observations can be made."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-b0e690dce64c",
+            "relationship": "challenges",
+            "reasoning": "Explicitly states that the claim of the Great Wall being seen from the moon with the naked eye is an 'erroneous speculation' that has been 'proved false'."
+          },
+          {
+            "evidence_id": "ev-4261bdd01d2b",
+            "relationship": "challenges",
+            "reasoning": "Notes that the Great Wall is not easily distinguishable without visual aid, contradicting the idea that it can be perceived with the naked eye from space."
+          },
+          {
+            "evidence_id": "ev-31f6b0ae6efe",
+            "relationship": "challenges",
+            "reasoning": "States that the myth of the Great Wall being seen from space was 'completely debunked' as humans ventured into space."
+          },
+          {
+            "evidence_id": "ev-5a1e621ec551",
+            "relationship": "challenges",
+            "reasoning": "Mentions that astronauts have consistently pushed back on the idea, noting that from the Moon, specific landmarks are not easily discernible without aid."
+          },
+          {
+            "evidence_id": "ev-dd70f1ce4877",
+            "relationship": "challenges",
+            "reasoning": "Asserts that the Great Wall isn't what astronauts see from orbit, implying it's not visible with the naked eye."
+          },
+          {
+            "evidence_id": "ev-57b48fe392ab",
+            "relationship": "challenges",
+            "reasoning": "States the Great Wall of China is 'Rarely visible due to low contrast' from low Earth orbit, directly challenging its visibility with the naked eye."
+          },
+          {
+            "evidence_id": "ev-0ffb39bff315",
+            "relationship": "challenges",
+            "reasoning": "This evidence directly contradicts itself, first stating the Great Wall is visible from space with the naked eye, then immediately questioning it by saying 'You can 100% see the Great Wall of China from ...' but the ellipsis suggests incompleteness or doubt."
+          },
+          {
+            "evidence_id": "ev-6cf0c6342ff8",
+            "relationship": "context",
+            "reasoning": "This evidence discusses artificial structures visible from space but does not specify if the Great Wall is among them or if it's visible with the naked eye."
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": "While some sources claim the Great Wall is visible from space, multiple astronaut accounts and scientific explanations indicate it is not easily distinguishable without aid and is rarely visible due to low contrast."
+      }
+    ]
+  }
+}

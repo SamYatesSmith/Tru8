@@ -1,0 +1,259 @@
+{
+  "case_id": "case-012",
+  "source": {
+    "check_id": "54ac601e-d36e-4b6b-a5bc-34106bb8aff7",
+    "claim_id": "22dd4d60-7950-4e49-8fbe-a3fc322d6d1f",
+    "claim_position": 3,
+    "extracted_at": "2026-03-02T21:10:57.661960+00:00"
+  },
+  "claim": {
+    "normalised_claim": "Sixty percent of the Amazon rainforest is located within the borders of Brazil.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The total area of the Amazon rainforest can be quantified."
+      },
+      {
+        "element_id": "e2",
+        "description": "The area of the Amazon rainforest located within Brazil can be quantified."
+      },
+      {
+        "element_id": "e3",
+        "description": "The proportion of the Amazon rainforest within Brazil is 60% of the total area."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-b957bf967a43",
+      "title": "Amazon Rainforest - Plants, Animals, Climate, & ...",
+      "full_text": "In the 20th century, Brazil\u2019s rapidly growing population settled major areas of the Amazon Rainforest. The size of the Amazon forest shrank dramatically as a result of settlers\u2019 clearance of the land to obtain lumber and to create grazing pastures and farmland. Brazil holds approximately 60 percent of the Amazon basin within its borders, and some 1,583,000 square miles (4,100,000 square km) of this was covered by forests in 1970. The amount of forest cover declined to some 1,283,000 square miles (3,323,000 square km) by 2016, about 81 percent of the area that had been covered by forests in 1970. In the 1990s the Brazilian government and various international bodies began efforts to protect parts of the forest from human encroachment, exploitation, deforestation, and other forms of destruction",
+      "mapper_window": "In the 20th century, Brazil\u2019s rapidly growing population settled major areas of the Amazon Rainforest. The size of the Amazon forest shrank dramatically as a result of settlers\u2019 clearance of the land to obtain lumber and to create grazing pastures and farmland. Brazil holds approximately 60 percent of the Amazon basin within its borders, and some 1,583,000 square miles (4,100,000 square km) of thi",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "britannica.com",
+      "url": "https://www.britannica.com/place/Amazon-Rainforest"
+    },
+    {
+      "evidence_id": "ev-154ac72500ce",
+      "title": "In 2025, deforestation fell by 11.08 percent in the Amazon ...",
+      "full_text": "Not\u00edcias COMBATING DEFORESTATION In 2025, deforestation fell by 11. 08 percent in the Amazon and by 11. 49 percent in the Cerrado A stretch of forest along the Negro River in the Amazon. Image: Fabio Rodrigues-Pozzebom / Ag\u00eancia Brasil The deforested area in the Amazon reached 5,796 km\u00b2 between August 2024 and July 2025, representing an 11. 08 percent decrease compared with the previous period (August 2023 to July 2024), according to estimates from the Prodes system of the National Institute for Space Research (Instituto Nacional de Pesquisas Espaciais/Inpe), released this Thursday, October 30, in Bras\u00edlia",
+      "mapper_window": "Not\u00edcias COMBATING DEFORESTATION In 2025, deforestation fell by 11. 08 percent in the Amazon and by 11. 49 percent in the Cerrado A stretch of forest along the Negro River in the Amazon. Image: Fabio Rodrigues-Pozzebom / Ag\u00eancia Brasil The deforested area in the Amazon reached 5,796 km\u00b2 between August 2024 and July 2025, representing an 11. 08 percent decrease compared with the previous period (Au",
+      "tier": "primary",
+      "evidence_type": "official_statement",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "gov.br",
+      "url": "https://www.gov.br/secom/en/latest-news/2025/10/in-2025-deforestation-fell-by-11-08-percent-in-the-amazon-and-by-11-49-percent-in-the-cerrado"
+    },
+    {
+      "evidence_id": "ev-8c1d6248751b",
+      "title": "Brazil's Amazon lost area the size of Spain in 40 years: study",
+      "full_text": "Brazil\u2019s Amazon lost area the size of Spain in 40 years: study Published: Here Are The 60 Best Advent Calendars For 2025 You Can Get In Canada (So Far) I\u2019ve been Using This Canadian Shampoo And Conditioner For Over A Month, And It\u2019s Totally Changed My Scalp And Hair Health 20 Foolproof Gifts To Order If You Want To Get Your Holiday Shopping Done Early I Tried It: A Laundry Basket So Smart It Solved Our Biggest Household Argument 20 Things From Amazon Canada That CTV Shopping Trends Readers Loved Ordering In October How To Choose The Best Vacuum Sealer For You (And A Few Of Our Favourite Models For 2025) 13 Budget-Friendly Beauty Products That Are Dupes Of More Expensive Items 12 Products For Damaged Hair That\u2019ll Help Bring Your Fried Tresses Back To Life 15 Of The Best Korean Beauty Skincare Finds For Fall 2025 27 Of The Absolute Best Last-Minute Beauty Discounts To Take Advantage Of Before The Amazon Prime Big Deal Days Sale Ends The Shopping Trends team is independent of the journalists at CTV News",
+      "mapper_window": "Brazil\u2019s Amazon lost area the size of Spain in 40 years: study Published: Here Are The 60 Best Advent Calendars For 2025 You Can Get In Canada (So Far) I\u2019ve been Using This Canadian Shampoo And Conditioner For Over A Month, And It\u2019s Totally Changed My Scalp And Hair Health 20 Foolproof Gifts To Order If You Want To Get Your Holiday Shopping Done Early I Tried It: A Laundry Basket So Smart It Solve",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "ctvnews.ca",
+      "url": "https://www.ctvnews.ca/climate-and-environment/article/brazils-amazon-lost-area-the-size-of-spain-in-40-years-study/"
+    },
+    {
+      "evidence_id": "ev-10f060cef63d",
+      "title": "About 60% of the entire Amazon rainforest lies in Brazil : r/MapPorn",
+      "full_text": "About 60% of the entire Amazon rainforest lies in Brazil \u00b7 Comments Section \u00b7 More posts you may like.",
+      "mapper_window": "About 60% of the entire Amazon rainforest lies in Brazil \u00b7 Comments Section \u00b7 More posts you may like.",
+      "tier": "commentary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "reddit.com",
+      "url": "https://www.reddit.com/r/MapPorn/comments/1pu4q43/about_60_of_the_entire_amazon_rainforest_lies_in/"
+    },
+    {
+      "evidence_id": "ev-3d32c0cd4676",
+      "title": "The Amazon by the Numbers",
+      "full_text": "It covers 59% of Brazil and includes the states of Acre, Amap\u00e1, Amazonas, Mato Grosso, Par\u00e1, Rond\u00f4nia, Roraima, Tocantins, and more than half of Maranh\u00e3o.",
+      "mapper_window": "It covers 59% of Brazil and includes the states of Acre, Amap\u00e1, Amazonas, Mato Grosso, Par\u00e1, Rond\u00f4nia, Roraima, Tocantins, and more than half of Maranh\u00e3o.",
+      "tier": "commentary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "americasquarterly.org",
+      "url": "https://americasquarterly.org/article/amazon-numbers/"
+    },
+    {
+      "evidence_id": "ev-468bdec07380",
+      "title": "Amazon Rainforest Facts - One Tree Planted",
+      "full_text": "Covering an area of approximately 2. 3 million square miles (6 million square kilometers), it's home to the world's largest rainforest. As a whole, the Amazon Biome covers about 40% of the continent of South America. The Amazon River is the world's largest river by volume of flow and size of the drainage basin. Covering at least 4,000 miles, it carries the largest volume of freshwater on Earth\u2014about 20% of the world's liquid freshwater",
+      "mapper_window": "Covering an area of approximately 2. 3 million square miles (6 million square kilometers), it's home to the world's largest rainforest. As a whole, the Amazon Biome covers about 40% of the continent of South America. The Amazon River is the world's largest river by volume of flow and size of the drainage basin. Covering at least 4,000 miles, it carries the largest volume of freshwater on Earth\u2014abo",
+      "tier": "commentary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "onetreeplanted.org",
+      "url": "https://onetreeplanted.org/blogs/stories/amazon-rainforest-facts?srsltid=AfmBOoragbvmnNcQc8onprBbKq_tS6s7wAeXEgZbkRv5Qg99w_q72_qb"
+    },
+    {
+      "evidence_id": "ev-fe5bca72e16f",
+      "title": "Revealing the Amazon Rainforest Map Through Geography ...",
+      "full_text": "Though originating in Peru, the river\u2019s identity as the Amazon is most prominently mapped within Brazilian territory, where it expands into a web of over 1,100 tributaries. Maps also reveal the presence of the Hamza River, a subterranean flow mirroring the Amazon\u2019s route beneath Brazil\u2014an underground enigma that may even stretch into Peruvian soil. Borders of Biodiversity: Brazil and Peru in the Amazon Geographically, Brazil contains roughly 60% of the Amazon Rainforest, making it the country most associated with the region. Yet Peru holds the second-largest share, with about 13% of the Amazon within its borders. These two nations anchor much of the basin\u2019s ecological and cultural wealth",
+      "mapper_window": "Though originating in Peru, the river\u2019s identity as the Amazon is most prominently mapped within Brazilian territory, where it expands into a web of over 1,100 tributaries. Maps also reveal the presence of the Hamza River, a subterranean flow mirroring the Amazon\u2019s route beneath Brazil\u2014an underground enigma that may even stretch into Peruvian soil. Borders of Biodiversity: Brazil and Peru in the A",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "puertomaldonadotours.com",
+      "url": "https://puertomaldonadotours.com/amazon-map/"
+    },
+    {
+      "evidence_id": "ev-3ae582654297",
+      "title": "Brazilian Amazon on Track for Record Low Deforestation - Yale E360",
+      "full_text": "The water needed to feed a single soybean crop is equal to the output of roughly 18 square feet of rainforest, and each bit of rainforest cleared has ramifications for growers. Already, the clearing of forest has trimmed yields of soy and maize. For a new study, researchers totted the total contribution of the Brazilian Amazon to agriculture. They found the rainfall generated yearly by the rainforest is worth roughly $20 billion to farmers in surrounding regions. ALSO ON YALE E360 Carbon Offsets Are Failing",
+      "mapper_window": "The water needed to feed a single soybean crop is equal to the output of roughly 18 square feet of rainforest, and each bit of rainforest cleared has ramifications for growers. Already, the clearing of forest has trimmed yields of soy and maize. For a new study, researchers totted the total contribution of the Brazilian Amazon to agriculture. They found the rainfall generated yearly by the rainfor",
+      "tier": "reporting",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "e360.yale.edu",
+      "url": "https://e360.yale.edu/digest/amazon-record-low-deforestation"
+    },
+    {
+      "evidence_id": "ev-e4684bb7246f",
+      "title": "Leaders Back Tropical Forests Fund at Bogot\u00e1 Summit - OTCA",
+      "full_text": "2 billion hectares of tropical forests distributed across the Amazon, the Congo Basin, and Southeast Asia, ecosystems that are being affected by uncontrolled deforestation",
+      "mapper_window": "2 billion hectares of tropical forests distributed across the Amazon, the Congo Basin, and Southeast Asia, ecosystems that are being affected by uncontrolled deforestation",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "otca.org",
+      "url": "https://otca.org/en/leaders-back-tropical-forests-fund-at-bogota-summit/"
+    },
+    {
+      "evidence_id": "ev-7b5e58fd328d",
+      "title": "Safeguarding biodiversity in the Amazon \u2013 key to ...",
+      "full_text": "\u00a9UNDP Brazil/ Leonardo Dall\u2019Igna The Amazon rainforest is one of Earth\u2019s most biodiverse ecosystems, home to a staggering variety of plant and animal species. Spanning across nine countries, the Amazon plays a crucial role in regulating the global climate, storing carbon, and supporting the livelihoods of millions. Among these countries, Brazil stands as the largest holder of Amazonian biodiversity, with approximately 60 percent of the rainforest contained within its borders. The country\u2019s Amazon region hosts an unparalleled array of life, from the mighty jaguar and the elusive Amazon river dolphin to countless species of birds, insects, and plants. Its dense forests and river systems create a unique, interconnected web of life that is essential for maintaining the ecological balance of the entire region",
+      "mapper_window": "\u00a9UNDP Brazil/ Leonardo Dall\u2019Igna The Amazon rainforest is one of Earth\u2019s most biodiverse ecosystems, home to a staggering variety of plant and animal species. Spanning across nine countries, the Amazon plays a crucial role in regulating the global climate, storing carbon, and supporting the livelihoods of millions. Among these countries, Brazil stands as the largest holder of Amazonian biodiversit",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "un-redd.org",
+      "url": "https://www.un-redd.org/post/safeguarding-biodiversity-amazon-key-planets-ecological-balance"
+    },
+    {
+      "evidence_id": "ev-6a05af64b0f3",
+      "title": "Tropical forests of the Americas",
+      "full_text": "Distribution and Characteristics - Distribution\uff1aRainforest are mainly distributed in Amazon basin in south America. Its rainforest area accounts for about half of the global tropical rainforest area. It is the largest, most diverse,and well preserved tropical rainforest in the world. In addition, it is also distributed in south of Mexico in Central America and the Antilles",
+      "mapper_window": "Distribution and Characteristics - Distribution\uff1aRainforest are mainly distributed in Amazon basin in south America. Its rainforest area accounts for about half of the global tropical rainforest area. It is the largest, most diverse,and well preserved tropical rainforest in the world. In addition, it is also distributed in south of Mexico in Central America and the Antilles",
+      "tier": "commentary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "tropicalforesters.org",
+      "url": "https://tropicalforesters.org/tropical-forests-of-the-americas/"
+    },
+    {
+      "evidence_id": "ev-92a5c852c18b",
+      "title": "Review for \"Simulated sensitivity of the Amazon rainforest to extreme drought\"",
+      "full_text": "Academic research: Review for \"Simulated sensitivity of the Amazon rainforest to extreme drought\"",
+      "mapper_window": "Academic research: Review for \"Simulated sensitivity of the Amazon rainforest to extreme drought\"",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.1088/1748-9326/ad8f48/v2/review4"
+    },
+    {
+      "evidence_id": "ev-4153c1e779d7",
+      "title": "Rainforest Guardians and Sustainable Development",
+      "full_text": "Academic research: Rainforest Guardians and Sustainable Development",
+      "mapper_window": "Academic research: Rainforest Guardians and Sustainable Development",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.2307/jj.14250115.20"
+    },
+    {
+      "evidence_id": "ev-437180d343b5",
+      "title": "A DATA DRIVEN APPROACH TO STUDYING THE AMAZON RAINFOREST OF BRAZIL",
+      "full_text": "Academic research: A DATA DRIVEN APPROACH TO STUDYING THE AMAZON RAINFOREST OF BRAZIL",
+      "mapper_window": "Academic research: A DATA DRIVEN APPROACH TO STUDYING THE AMAZON RAINFOREST OF BRAZIL",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.1130/abs/2024se-398594"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "42d34cb9117b",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-468bdec07380",
+            "relationship": "supports",
+            "reasoning": "States the Amazon covers an area of approximately 2.3 million square miles (6 million square kilometers)."
+          },
+          {
+            "evidence_id": "ev-b957bf967a43",
+            "relationship": "supports",
+            "reasoning": "Mentions 'some 1,583,000 square miles (4,100,000 square km) of this' referring to the Amazon basin within Brazil, implying a total area can be quantified."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-b957bf967a43",
+            "relationship": "supports",
+            "reasoning": "States that Brazil holds approximately 60 percent of the Amazon basin within its borders and quantifies this as 'some 1,583,000 square miles (4,100,000 square km)'."
+          },
+          {
+            "evidence_id": "ev-3d32c0cd4676",
+            "relationship": "supports",
+            "reasoning": "States the Amazon covers 59% of Brazil and lists the states included, quantifying the portion within Brazil."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-10f060cef63d",
+            "relationship": "supports",
+            "reasoning": "Directly states 'About 60% of the entire Amazon rainforest lies in Brazil'."
+          },
+          {
+            "evidence_id": "ev-b957bf967a43",
+            "relationship": "supports",
+            "reasoning": "States Brazil holds approximately 60 percent of the Amazon basin within its borders."
+          },
+          {
+            "evidence_id": "ev-3d32c0cd4676",
+            "relationship": "challenges",
+            "reasoning": "States the Amazon covers 59% of Brazil, which is very close but not exactly 60%."
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": "One piece of evidence states 'About 60%' and another states 'approximately 60 percent', while a third states '59%', indicating a slight discrepancy."
+      }
+    ]
+  }
+}

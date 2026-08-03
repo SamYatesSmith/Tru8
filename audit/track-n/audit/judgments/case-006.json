@@ -1,0 +1,143 @@
+{
+  "case_id": "case-006",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-2_2_7545b3a7",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "States the Amazon spans over 3 million square miles, implying its total area can be determined.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-2_4_a6c243a6",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions the Amazon basin and its rainfall, implying its area is a quantifiable aspect.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-2_0_46bfbafd",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Explicitly states Brazil holds approximately 60 percent of the Amazon within its borders.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-2_2_7545b3a7",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States the majority (approximately 60%) is nestled within the borders of Brazil.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-2_3_4d9f2a2a",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Mentions Brazil is home to 60% of the Amazon.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-2_4_a6c243a6",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States the rainforest in Brazil is 60% of the Amazon Rainforest.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-2_0_46bfbafd",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States Brazil holds approximately 60 percent of the Amazon.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-2_2_7545b3a7",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States the majority (approximately 60%) is within Brazil's borders.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-2_3_4d9f2a2a",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Confirms Brazil is home to 60% of the Amazon.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-2_4_a6c243a6",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Directly states the rainforest in Brazil is 60% of the Amazon Rainforest.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

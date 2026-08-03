@@ -1,0 +1,143 @@
+{
+  "case_id": "case-014",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-255834e088ff",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Poses the question 'How long is the Amazon River?', implying its length can be measured.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-1e55d586ea33",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Provides a specific length for the Amazon River: 3,976 miles (6,400 km).",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-976a6a4a77aa",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses tracing the source of the Amazon River, implying its length can be measured.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-16e09dd31de8",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions that comparable river-length measurements can be difficult due to varying standards, but implies that measurements are possible for other rivers.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-19eba9905a26",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Ranks rivers by length, implying that the lengths of other rivers can be measured.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-43a5bd4672a9",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Refers to the 'world's third-longest river', implying lengths of other rivers are measured.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-1e55d586ea33",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "States the Amazon River 'only narrowly loses the title for the world's longest river to the Nile River'.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-19eba9905a26",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "States that 'Nile is the longest river globally, while Yangtze is the third longest' and the Amazon is the second-longest.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-3eda447011eb",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Lists the Nile River as the longest (6,695 km) and the Amazon River as the second longest (6,400 km).",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-16e09dd31de8",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Lists the Nile as one of the five longest rivers in the world, without explicitly stating the Amazon is longer.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "disputed",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

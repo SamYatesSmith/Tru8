@@ -1,0 +1,129 @@
+{
+  "case_id": "case-010",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-5_3_c3474498",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions the transition from Proof of Work to Proof of Stake but does not quantify pre-transition energy consumption.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-5_0_4f641eaa",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that by transitioning to Proof of Stake, Ethereum's energy consumption dropped, implying a measurable consumption after the transition.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-5_0_4f641eaa",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Explicitly states 'By transitioning to Proof of Stake, Ethereum's energy consumption dropped by more than 99%', directly linking the transition to the reduction.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-5_1_aef46242",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "The title 'Ethereum's Shift to Proof of Stake Cuts Energy Use by 99%' directly attributes the reduction to the shift.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-5_2_f08ef83e",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States 'Energy usage dropped by more than 99%, and Ethereum became the most prominent proof-of-stake blockchain overnight', linking the drop to becoming PoS.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-5_0_4f641eaa",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States 'Ethereum's energy consumption dropped by more than 99%'.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-5_1_aef46242",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Title states 'Ethereum's Shift to Proof of Stake Cuts Energy Use by 99%'.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-5_2_f08ef83e",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States 'Energy usage dropped by more than 99%'.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

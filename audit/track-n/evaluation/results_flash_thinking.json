@@ -1,0 +1,356 @@
+[
+  {
+    "claim_id": "eval-001",
+    "normalised_claim": "UK GDP grew by 0.5% in Q3 2025",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "UK GDP grew in Q3 2025"
+      },
+      {
+        "element_id": "e2",
+        "description": "The growth rate was 0.5%"
+      }
+    ],
+    "evidence_summary": [
+      {
+        "evidence_id": "ev-001",
+        "title": "ONS GDP Estimate - Q3 2025"
+      },
+      {
+        "evidence_id": "ev-002",
+        "title": "UK economy shows resilience despite headwinds"
+      },
+      {
+        "evidence_id": "ev-003",
+        "title": "Why the UK economy is still underperforming"
+      }
+    ],
+    "prompt_hash": "ec800e6beba3",
+    "model": "gemini-2.5-flash",
+    "error": null,
+    "usage": {
+      "input_tokens": 1001,
+      "output_tokens": 514
+    },
+    "wall_time_seconds": 7.61,
+    "raw_response": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-001",
+              "relationship": "supports",
+              "reasoning": "The ONS report states that UK gross domestic product grew by 0.1% in Quarter 3 2025, directly confirming growth occurred."
+            },
+            {
+              "evidence_id": "ev-002",
+              "relationship": "supports",
+              "reasoning": "The news report indicates that Britain's economy continued to expand in the third quarter, supporting the claim of growth."
+            },
+            {
+              "evidence_id": "ev-003",
+              "relationship": "supports",
+              "reasoning": "The analysis piece acknowledges that GDP is growing, providing general support for the occurrence of growth."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-001",
+              "relationship": "challenges",
+              "reasoning": "The ONS report states that UK GDP grew by 0.1% in Quarter 3 2025, which challenges the claimed rate of 0.5% for the same period."
+            },
+            {
+              "evidence_id": "ev-002",
+              "relationship": "context",
+              "reasoning": "The news report indicates growth occurred but does not specify the exact rate for Q3 2025, providing general context."
+            },
+            {
+              "evidence_id": "ev-003",
+              "relationship": "context",
+              "reasoning": "The analysis discusses the general pace of GDP growth but does not provide a specific figure for Q3 2025, offering general context."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The primary data from the ONS directly contradicts the claimed growth rate for Q3 2025, reporting 0.1% instead of 0.5%."
+        }
+      ]
+    },
+    "validated": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-001",
+              "relationship": "supports",
+              "reasoning": "The ONS report states that UK gross domestic product grew by 0.1% in Quarter 3 2025, directly confirming growth occurred."
+            },
+            {
+              "evidence_id": "ev-002",
+              "relationship": "supports",
+              "reasoning": "The news report indicates that Britain's economy continued to expand in the third quarter, supporting the claim of growth."
+            },
+            {
+              "evidence_id": "ev-003",
+              "relationship": "supports",
+              "reasoning": "The analysis piece acknowledges that GDP is growing, providing general support for the occurrence of growth."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-001",
+              "relationship": "challenges",
+              "reasoning": "The ONS report states that UK GDP grew by 0.1% in Quarter 3 2025, which challenges the claimed rate of 0.5% for the same period."
+            },
+            {
+              "evidence_id": "ev-002",
+              "relationship": "context",
+              "reasoning": "The news report indicates growth occurred but does not specify the exact rate for Q3 2025, providing general context."
+            },
+            {
+              "evidence_id": "ev-003",
+              "relationship": "context",
+              "reasoning": "The analysis discusses the general pace of GDP growth but does not provide a specific figure for Q3 2025, offering general context."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The primary data from the ONS directly contradicts the claimed growth rate for Q3 2025, reporting 0.1% instead of 0.5%."
+        }
+      ],
+      "validation_errors": []
+    },
+    "timestamp": "2026-03-05T13:31:34.477286+00:00"
+  },
+  {
+    "claim_id": "eval-002",
+    "normalised_claim": "The Amazon rainforest lost 10,000 square kilometres of tree cover in 2024",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The Amazon rainforest experienced tree cover loss in 2024"
+      },
+      {
+        "element_id": "e2",
+        "description": "The amount of tree cover lost was 10,000 square kilometres"
+      }
+    ],
+    "evidence_summary": [
+      {
+        "evidence_id": "ev-010",
+        "title": "INPE Deforestation Alert Data 2024"
+      },
+      {
+        "evidence_id": "ev-011",
+        "title": "Amazon deforestation falls to lowest level in six years"
+      }
+    ],
+    "prompt_hash": "30099162a18f",
+    "model": "gemini-2.5-flash",
+    "error": null,
+    "usage": {
+      "input_tokens": 974,
+      "output_tokens": 406
+    },
+    "wall_time_seconds": 10.0,
+    "raw_response": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-010",
+              "relationship": "supports",
+              "reasoning": "Reports 8,453 square kilometres of deforestation alerts in the Legal Amazon during 2024, confirming tree cover loss occurred in the Amazon in that year."
+            },
+            {
+              "evidence_id": "ev-011",
+              "relationship": "supports",
+              "reasoning": "States that deforestation in the Brazilian Amazon occurred in 2024, confirming tree cover loss in the Amazon during that year."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-010",
+              "relationship": "challenges",
+              "reasoning": "Reports 8,453 square kilometres of deforestation alerts in the Legal Amazon during 2024, which is lower than the claimed 10,000 square kilometres."
+            },
+            {
+              "evidence_id": "ev-011",
+              "relationship": "context",
+              "reasoning": "Discusses a significant drop in deforestation in the Brazilian Amazon in 2024, providing general context but not a specific figure for the total amount of tree cover lost."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The evidence refers to \"deforestation alerts\" in the \"Legal Amazon,\" which may not perfectly align with \"tree cover loss\" across the entire Amazon rainforest."
+        }
+      ]
+    },
+    "validated": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-010",
+              "relationship": "supports",
+              "reasoning": "Reports 8,453 square kilometres of deforestation alerts in the Legal Amazon during 2024, confirming tree cover loss occurred in the Amazon in that year."
+            },
+            {
+              "evidence_id": "ev-011",
+              "relationship": "supports",
+              "reasoning": "States that deforestation in the Brazilian Amazon occurred in 2024, confirming tree cover loss in the Amazon during that year."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-010",
+              "relationship": "challenges",
+              "reasoning": "Reports 8,453 square kilometres of deforestation alerts in the Legal Amazon during 2024, which is lower than the claimed 10,000 square kilometres."
+            },
+            {
+              "evidence_id": "ev-011",
+              "relationship": "context",
+              "reasoning": "Discusses a significant drop in deforestation in the Brazilian Amazon in 2024, providing general context but not a specific figure for the total amount of tree cover lost."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": "The evidence refers to \"deforestation alerts\" in the \"Legal Amazon,\" which may not perfectly align with \"tree cover loss\" across the entire Amazon rainforest."
+        }
+      ],
+      "validation_errors": []
+    },
+    "timestamp": "2026-03-05T13:31:50.170628+00:00"
+  },
+  {
+    "claim_id": "eval-003",
+    "normalised_claim": "Tesla delivered over 2 million vehicles globally in 2024",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "Tesla made vehicle deliveries globally in 2024"
+      },
+      {
+        "element_id": "e2",
+        "description": "The number of deliveries exceeded 2 million"
+      }
+    ],
+    "evidence_summary": [
+      {
+        "evidence_id": "ev-020",
+        "title": "Tesla Q4 and Full Year 2024 Delivery Report"
+      },
+      {
+        "evidence_id": "ev-021",
+        "title": "Electric vehicle market trends 2024"
+      }
+    ],
+    "prompt_hash": "fe20f165200e",
+    "model": "gemini-2.5-flash",
+    "error": null,
+    "usage": {
+      "input_tokens": 960,
+      "output_tokens": 375
+    },
+    "wall_time_seconds": 7.05,
+    "raw_response": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-020",
+              "relationship": "supports",
+              "reasoning": "The primary report confirms Tesla made global vehicle deliveries in 2024 by stating a total of 1,789,226 vehicles were delivered."
+            },
+            {
+              "evidence_id": "ev-021",
+              "relationship": "supports",
+              "reasoning": "This report on global EV sales in 2024 implies Tesla made deliveries by noting it remained the single largest EV brand during that year."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-020",
+              "relationship": "challenges",
+              "reasoning": "The primary Tesla report states total deliveries for full year 2024 were 1,789,226 vehicles, which is less than the claimed 2 million."
+            },
+            {
+              "evidence_id": "ev-021",
+              "relationship": "context",
+              "reasoning": "This report discusses global EV sales trends and Tesla's market position in 2024 but does not provide specific delivery figures to address whether they exceeded 2 million."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": null
+        }
+      ]
+    },
+    "validated": {
+      "elements": [
+        {
+          "element_id": "e1",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-020",
+              "relationship": "supports",
+              "reasoning": "The primary report confirms Tesla made global vehicle deliveries in 2024 by stating a total of 1,789,226 vehicles were delivered."
+            },
+            {
+              "evidence_id": "ev-021",
+              "relationship": "supports",
+              "reasoning": "This report on global EV sales in 2024 implies Tesla made deliveries by noting it remained the single largest EV brand during that year."
+            }
+          ],
+          "state": "supported",
+          "uncertainty": null
+        },
+        {
+          "element_id": "e2",
+          "evidence_refs": [
+            {
+              "evidence_id": "ev-020",
+              "relationship": "challenges",
+              "reasoning": "The primary Tesla report states total deliveries for full year 2024 were 1,789,226 vehicles, which is less than the claimed 2 million."
+            },
+            {
+              "evidence_id": "ev-021",
+              "relationship": "context",
+              "reasoning": "This report discusses global EV sales trends and Tesla's market position in 2024 but does not provide specific delivery figures to address whether they exceeded 2 million."
+            }
+          ],
+          "state": "disputed",
+          "uncertainty": null
+        }
+      ],
+      "validation_errors": []
+    },
+    "timestamp": "2026-03-05T13:32:03.424293+00:00"
+  }
+]

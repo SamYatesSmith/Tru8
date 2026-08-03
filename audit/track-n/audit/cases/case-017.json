@@ -1,0 +1,196 @@
+{
+  "case_id": "case-017",
+  "source": {
+    "check_id": "6f2d40e6-a4d0-446a-b379-e65f4f81566b",
+    "claim_id": "6c40524c-7e6e-47a7-b0bc-437197f644d3",
+    "claim_position": 0,
+    "extracted_at": "2026-03-02T21:10:57.668641+00:00"
+  },
+  "claim": {
+    "normalised_claim": "In the year 2023, Tesla's sales volume of electric vehicles exceeded that of all other automotive companies.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The total number of electric vehicles sold by Tesla in 2023 is quantifiable."
+      },
+      {
+        "element_id": "e2",
+        "description": "The total number of electric vehicles sold by every other automotive company in 2023 is quantifiable."
+      },
+      {
+        "element_id": "e3",
+        "description": "Tesla's 2023 electric vehicle sales figure is greater than the 2023 electric vehicle sales figure of any single competitor."
+      },
+      {
+        "element_id": "e4",
+        "description": "Tesla's 2023 electric vehicle sales figure is greater than the aggregated 2023 electric vehicle sales figure of all other automotive companies combined."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-20a2f1346c00",
+      "title": "Trends in electric car markets \u2013 Global EV Outlook 2025 - IEA",
+      "full_text": "A total of 24 new electric car models were launched in 2024, increasing model availability by 15% compared to 2023, providing consumers with more choices and further increasing competition. While the Tesla Model Y and Model 3 have been the two best-selling models in the United States since 2020, the 110 new models that have entered the market since then have driven the market share of Tesla down from 60% in 2020 to 38% in 2024. Furthermore, 2024 was the first year in which Tesla saw a drop in sales in the United States, while other OEMs saw sales increase by 20% on aggregate. A modification to the US Clean Vehicle Tax Credit at the start of 2024 enabled buyers to receive an instant discount (up to USD 7 500 for a new electric car and USD 4 000 for a used electric car) at the point of sale, which may have served to entice interested buyers. However, not all electric cars were eligible for the credit: in 2024 about 20 electric models (not accounting for different trim levels) out of a total 110 were eligible, which translated to over half of US electric car sales",
+      "mapper_window": "A total of 24 new electric car models were launched in 2024, increasing model availability by 15% compared to 2023, providing consumers with more choices and further increasing competition. While the Tesla Model Y and Model 3 have been the two best-selling models in the United States since 2020, the 110 new models that have entered the market since then have driven the market share of Tesla down f",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "iea.org",
+      "url": "https://www.iea.org/reports/global-ev-outlook-2025/trends-in-electric-car-markets-2"
+    },
+    {
+      "evidence_id": "ev-081e790f4b23",
+      "title": "Tesla Worldwide Car Sales by Model and Outlook 2026 to 2029",
+      "full_text": "In full-year 2025, Tesla worldwide car sales and production contracted for the second consecutive year, but many analysts maintained a positive outlook with growth predicted for 2026, 2027, 2028, and 2029. 2025 (January to December): Tesla\u2019s worldwide electric car production and global sales were lower for the second consecutive year. Worldwide deliveries (global Tesla sales) were 8. 6% lower than a year ago, while total production in 2025 was 6",
+      "mapper_window": "In full-year 2025, Tesla worldwide car sales and production contracted for the second consecutive year, but many analysts maintained a positive outlook with growth predicted for 2026, 2027, 2028, and 2029. 2025 (January to December): Tesla\u2019s worldwide electric car production and global sales were lower for the second consecutive year. Worldwide deliveries (global Tesla sales) were 8. 6% lower than",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "best-selling-cars.com",
+      "url": "https://www.best-selling-cars.com/brands/2025-full-year-global-tesla-worldwide-car-sales-by-model-and-outlook-2026-to-2029/"
+    },
+    {
+      "evidence_id": "ev-5201f3c34802",
+      "title": "China's BYD Surpasses Tesla as World Leader in Electric Car Sales",
+      "full_text": "The company's car sales peaked in 2023, when it delivered 1.8 million vehicles, even though total sales of electric vehicles have grown rapidly over the past ...",
+      "mapper_window": "The company's car sales peaked in 2023, when it delivered 1.8 million vehicles, even though total sales of electric vehicles have grown rapidly over the past ...",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nytimes.com",
+      "url": "https://www.nytimes.com/2026/01/02/business/tesla-electric-vehicles-fourth-quarter-sales.html"
+    },
+    {
+      "evidence_id": "ev-44e845340270",
+      "title": "America Hit Peak Tesla in February 2023 - Kelley Blue Book",
+      "full_text": "Americans bought 60,325 Tesla electric vehicles (EVs) in February of 2023. The company's sales have not crossed the 60,000-model line in any month since.",
+      "mapper_window": "Americans bought 60,325 Tesla electric vehicles (EVs) in February of 2023. The company's sales have not crossed the 60,000-model line in any month since.",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "kbb.com",
+      "url": "https://www.kbb.com/car-news/america-hit-peak-tesla-in-february-2023/"
+    },
+    {
+      "evidence_id": "ev-a2924d8b20e6",
+      "title": "Tesla deliveries by quarter 2025 - Statista",
+      "full_text": "How many Tesla vehicles were delivered in 2025. Tesla's vehicle deliveries in the third quarter of 2025 amounted to around 497,120 units. Quarterly deliveries increased by around seven percent during the third quarter of 2025, compared with the third quarter of 2024",
+      "mapper_window": "How many Tesla vehicles were delivered in 2025. Tesla's vehicle deliveries in the third quarter of 2025 amounted to around 497,120 units. Quarterly deliveries increased by around seven percent during the third quarter of 2025, compared with the third quarter of 2024",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "statista.com",
+      "url": "https://www.statista.com/statistics/502208/tesla-quarterly-vehicle-deliveries/?srsltid=AfmBOoqK3dYCTE2GTIzkNMKQgQVZchvJ2mnP8MtFY6CttOJ2rELNJEGx"
+    },
+    {
+      "evidence_id": "ev-54027ca89267",
+      "title": "Despite Q4 Collapse, 2025 EV Sales Decline Only 2% Versus 2024",
+      "full_text": "\u201cRather than signaling a retreat from electrification, this shift marks a structural transition toward a market increasingly driven by consumer choice. While 2026 will bring challenges, momentum remains grounded in market maturation: expanding model availability across price points, improving charging reliability, and continued advances in battery performance and cost. \u201d Tesla remains the EV market leader, by far, even with sales declining for the second year after peaking in 2023. Nearly half of all EVs sold in the U. come from Tesla, mostly the popular Model 3 and Model Y",
+      "mapper_window": "\u201cRather than signaling a retreat from electrification, this shift marks a structural transition toward a market increasingly driven by consumer choice. While 2026 will bring challenges, momentum remains grounded in market maturation: expanding model availability across price points, improving charging reliability, and continued advances in battery performance and cost. \u201d Tesla remains the EV marke",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "coxautoinc.com",
+      "url": "https://www.coxautoinc.com/insights-hub/q4-2025-ev-sales-report-commentary/"
+    },
+    {
+      "evidence_id": "ev-c23e7fe8f75a",
+      "title": "Tesla's U.S. sales peaked in 2023. Can it recover? - Automotive News",
+      "full_text": "Chinese automakers face Commerce Department software bans and steep tariffs",
+      "mapper_window": "Chinese automakers face Commerce Department software bans and steep tariffs",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "autonews.com",
+      "url": "https://www.autonews.com/tesla/an-tesla-faces-us-decline-cox-says-0331/"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "fc0cbe93f0a4",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-081e790f4b23",
+            "relationship": "context",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-44e845340270",
+            "relationship": "context",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-a2924d8b20e6",
+            "relationship": "context",
+            "reasoning": null
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-20a2f1346c00",
+            "relationship": "context",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-54027ca89267",
+            "relationship": "context",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-5201f3c34802",
+            "relationship": "context",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-c23e7fe8f75a",
+            "relationship": "context",
+            "reasoning": null
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-5201f3c34802",
+            "relationship": "challenges",
+            "reasoning": null
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": "BYD surpassed Tesla in electric car sales in 2023."
+      },
+      {
+        "element_id": "e4",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-5201f3c34802",
+            "relationship": "challenges",
+            "reasoning": null
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": "BYD's 2023 sales volume suggests Tesla may not have exceeded the aggregated sales of all other companies."
+      }
+    ]
+  }
+}

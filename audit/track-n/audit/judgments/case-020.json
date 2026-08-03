@@ -1,0 +1,190 @@
+{
+  "case_id": "case-020",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-4c7742447345",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions a long process of construction and use with many additions and alterations, suggesting changes to the site over time.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-376689fadfa3",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses debates about how the stones were moved to the Salisbury Plain, implying a deliberate relocation effort.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-b72917d28a6f",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Suggests the Altar Stone came from a location hundreds of miles away, indicating stones were transported to the site.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_0_33f300e9",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses the identification of quarries for Stonehenge's bluestones, which is related to the movement and placement of stones but does not directly indicate a shift in the monument's overall location.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_1_7f1c95f6",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence mentions an excavated stone at Stonehenge, which is relevant to archaeological findings but does not directly address a change in the monument's location over time.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_3_8d6d91bd",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses the distance between Stonehenge and other locations, implying connectivity, but does not provide information about a shift in Stonehenge's own placement.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_4_bc1f43b9",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence dismisses a theory about glaciers transporting stones, focusing on human transport, but does not provide evidence for a change in Stonehenge's location.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-99ff04ccdd2b",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Describes restoration work where stones were straightened and set in concrete to stabilize the site, implying they had fallen or moved.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-4c7742447345",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Notes a long process of construction and use with many additions and alterations made to the site during distinct phases.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-376689fadfa3",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses the movement of stones to the Salisbury Plain, implying a deliberate relocation from their original source.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-b72917d28a6f",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "States that researchers think the Altar Stone came from a distant location, implying it was moved to the current site.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_0_d1871131",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence describes the original entrance and alignment of Stonehenge, providing information about its initial state but not directly comparing it to its current location to show a difference.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_1_1965629a",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses the Avenue at Stonehenge leading to the river Avon, which describes a feature of the site but does not compare its original and current locations.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_2_9bc6bd59",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence mentions Stonehenge and Avebury as henge monuments but does not provide details about changes in Stonehenge's location.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_4_4b00737f",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence compares Stonehenge to pyramids and discusses its completion, but does not offer information about a change in its location.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

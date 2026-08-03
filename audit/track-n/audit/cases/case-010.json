@@ -1,0 +1,203 @@
+{
+  "case_id": "case-010",
+  "source": {
+    "check_id": "a35e6f45-a251-4792-9c9e-e62e26eb0ccc",
+    "claim_id": "4de8954a-95af-49c4-8161-ece519217e71",
+    "claim_position": 5,
+    "extracted_at": "2026-03-02T21:10:57.658333+00:00"
+  },
+  "claim": {
+    "normalised_claim": "Ethereum's shift to proof-of-stake resulted in a 99% reduction in its energy consumption.",
+    "claim_type": "causal_interpretive",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The energy consumption of the Ethereum network before the proof-of-stake transition can be measured."
+      },
+      {
+        "element_id": "e2",
+        "description": "The energy consumption of the Ethereum network after the proof-of-stake transition can be measured."
+      },
+      {
+        "element_id": "e3",
+        "description": "The transition to proof-of-stake was the primary cause of the change in energy consumption."
+      },
+      {
+        "element_id": "e4",
+        "description": "The measured reduction in energy consumption is approximately 99%."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-rec-5_5_2e9b21eb",
+      "title": "Canary MOG ETF S-1 - SEC.gov",
+      "full_text": "In proof-of-stake, validators stake ETH to compete to be selected to propose and attest to blocks of transactions and are rewarded in proportion to the amount ...",
+      "mapper_window": "In proof-of-stake, validators stake ETH to compete to be selected to propose and attest to blocks of transactions and are rewarded in proportion to the amount ...",
+      "tier": "primary",
+      "evidence_type": "official_statement",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "sec.gov",
+      "url": "https://www.sec.gov/Archives/edgar/data/2091595/000199937125017506/mog-s1_111225.htm"
+    },
+    {
+      "evidence_id": "ev-rec-5_6_7a4c360f",
+      "title": "tm2519799-1_s1 - none - 14.7656219s - SEC.gov",
+      "full_text": "The move to proof-of-stake may subject Ethereum and ether to new and unexpected vulnerabilities not applicable to proof-of-work consensus models. History of ...",
+      "mapper_window": "The move to proof-of-stake may subject Ethereum and ether to new and unexpected vulnerabilities not applicable to proof-of-work consensus models. History of ...",
+      "tier": "primary",
+      "evidence_type": "official_statement",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "sec.gov",
+      "url": "https://www.sec.gov/Archives/edgar/data/2075457/000110465925066296/tm2519799-1_s1.htm"
+    },
+    {
+      "evidence_id": "ev-rec-5_8_f797e828",
+      "title": "S-1 - SEC.gov",
+      "full_text": "In June 2016, an anonymous hacker exploited a smart contract running on the Ethereum Network to syphon approximately $60 million of Ether held by The DAO, a ...",
+      "mapper_window": "In June 2016, an anonymous hacker exploited a smart contract running on the Ethereum Network to syphon approximately $60 million of Ether held by The DAO, a ...",
+      "tier": "primary",
+      "evidence_type": "official_statement",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "sec.gov",
+      "url": "https://www.sec.gov/Archives/edgar/data/2055510/000095017025109442/ck0002055510-20250815.htm"
+    },
+    {
+      "evidence_id": "ev-rec-5_1_aef46242",
+      "title": "Ethereum's Shift to Proof of Stake Cuts Energy Use by 99% - LinkedIn",
+      "full_text": "Ethereum's Shift to Proof of Stake Cuts Energy Use by 99% | Legacy Quant Trading AI posted on the topic | LinkedIn.",
+      "mapper_window": "Ethereum's Shift to Proof of Stake Cuts Energy Use by 99% | Legacy Quant Trading AI posted on the topic | LinkedIn.",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "linkedin.com",
+      "url": "https://www.linkedin.com/posts/legacyquant_ethereum-blockchain-sustainability-activity-7425128411884486656-18JI"
+    },
+    {
+      "evidence_id": "ev-rec-5_3_c3474498",
+      "title": "Danny Ryan on Ethereum's Biggest Upgrade, the SEC, & the $120 ...",
+      "full_text": "Ethereum was transitioning from Proof of Work to Proof of Stake without stopping the network. Billions of dollars were secured by that code. The Merge ...",
+      "mapper_window": "Ethereum was transitioning from Proof of Work to Proof of Stake without stopping the network. Billions of dollars were secured by that code. The Merge ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "etherworld.co",
+      "url": "https://etherworld.co/danny-ryan-on-ethereums-biggest-upgrade-the-sec-the-120-trillion-question/"
+    },
+    {
+      "evidence_id": "ev-rec-5_0_4f641eaa",
+      "title": "What is the EIP-3675 update? | Crypto Academy - Finst",
+      "full_text": "By transitioning to Proof of Stake, Ethereum's energy consumption dropped by more than 99%. This made Ethereum significantly more environmentally friendly ...",
+      "mapper_window": "By transitioning to Proof of Stake, Ethereum's energy consumption dropped by more than 99%. This made Ethereum significantly more environmentally friendly ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "finst.com",
+      "url": "https://finst.com/en/learn/articles/what-is-eip-3675"
+    },
+    {
+      "evidence_id": "ev-rec-5_4_95ca6a28",
+      "title": "iset20251205_s1.htm - SEC.gov",
+      "full_text": "Under the Trust's staking program, the Sponsor instructs the Ether Custodian to stake the Trust's ether. The Ether Custodian then delegates a specified ...",
+      "mapper_window": "Under the Trust's staking program, the Sponsor instructs the Ether Custodian to stake the Trust's ether. The Ether Custodian then delegates a specified ...",
+      "tier": "primary",
+      "evidence_type": "official_statement",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "sec.gov",
+      "url": "https://www.sec.gov/Archives/edgar/data/2099103/000143774925037057/iset20251205_s1.htm"
+    },
+    {
+      "evidence_id": "ev-rec-5_2_f08ef83e",
+      "title": "10 Defining Moments in Ethereum's First 10 Years - Coin Metrics",
+      "full_text": "Energy usage dropped by more than 99%, and Ethereum became the most prominent proof-of-stake blockchain overnight.",
+      "mapper_window": "Energy usage dropped by more than 99%, and Ethereum became the most prominent proof-of-stake blockchain overnight.",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "coinmetrics.io",
+      "url": "https://coinmetrics.io/news/10-years-of-ethereum/"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "17bef1b58434",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-5_3_c3474498",
+            "relationship": "context",
+            "reasoning": "Mentions the transition from Proof of Work to Proof of Stake but does not quantify pre-transition energy consumption."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": "While evidence indicates Ethereum used proof-of-work previously, it does not provide a specific measurement of its energy consumption before the transition."
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-5_0_4f641eaa",
+            "relationship": "supports",
+            "reasoning": "States that by transitioning to Proof of Stake, Ethereum's energy consumption dropped, implying a measurable consumption after the transition."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-5_0_4f641eaa",
+            "relationship": "supports",
+            "reasoning": "Explicitly states 'By transitioning to Proof of Stake, Ethereum's energy consumption dropped by more than 99%', directly linking the transition to the reduction."
+          },
+          {
+            "evidence_id": "ev-rec-5_1_aef46242",
+            "relationship": "supports",
+            "reasoning": "The title 'Ethereum's Shift to Proof of Stake Cuts Energy Use by 99%' directly attributes the reduction to the shift."
+          },
+          {
+            "evidence_id": "ev-rec-5_2_f08ef83e",
+            "relationship": "supports",
+            "reasoning": "States 'Energy usage dropped by more than 99%, and Ethereum became the most prominent proof-of-stake blockchain overnight', linking the drop to becoming PoS."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e4",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-5_0_4f641eaa",
+            "relationship": "supports",
+            "reasoning": "States 'Ethereum's energy consumption dropped by more than 99%'."
+          },
+          {
+            "evidence_id": "ev-rec-5_1_aef46242",
+            "relationship": "supports",
+            "reasoning": "Title states 'Ethereum's Shift to Proof of Stake Cuts Energy Use by 99%'."
+          },
+          {
+            "evidence_id": "ev-rec-5_2_f08ef83e",
+            "relationship": "supports",
+            "reasoning": "States 'Energy usage dropped by more than 99%'."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "case_id": "case-009",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-fbecdcc2008a",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses the percentage of oxygen produced by the Amazon rainforest, implying it can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-7744e79261da",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions scientists' estimates of oxygen production, indicating it can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_0_e82d0bd2",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that the Amazon region produces over 20% of the world's atmospheric oxygen through photosynthesis.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_1_e5366e7b",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Explicitly states that the Amazon Rainforest provides 20 percent of the world's oxygen.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_2_f5ac46cc",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Mentions that 20% of the world's oxygen comes from the Amazon.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_3_563f4056",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Asserts that the Amazon forest alone produces 20% of the world's oxygen.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_4_d31ba035",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses the Amazon rainforest as a source of biogenic volatile organic compounds, but does not quantify oxygen production.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e2_1_4ab63237",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Acknowledges the common statement that the Amazon produces 20% of the world's oxygen but does not quantify it, instead providing context about the Amazon's land coverage.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-fbecdcc2008a",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses the percentage of oxygen produced by the Amazon rainforest in relation to the world's oxygen, implying global oxygen production can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-7744e79261da",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions the world's oxygen production in the context of the Amazon's contribution, implying it can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e1_0_e82d0bd2",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions the Amazon producing over 20% of the world's atmospheric oxygen, implying a quantifiable total world oxygen production, but does not state the figure.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e1_1_e5366e7b",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "States the Amazon provides 20 percent of the world's oxygen, implying a quantifiable total world oxygen production, but does not state the figure.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e1_2_f5ac46cc",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "States 20% of the world's oxygen comes from the Amazon, implying a quantifiable total world oxygen production, but does not state the figure.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e1_3_563f4056",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Asserts the Amazon produces 20% of the world's oxygen, implying a quantifiable total world oxygen production, but does not state the figure.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_1_4ab63237",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Acknowledges the common statement that the Amazon produces 20% of the world's oxygen, implying a quantifiable total world oxygen production, but does not state the figure.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-fbecdcc2008a",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "States the percentage is closer to 6 to 9%, directly contradicting the claimed 20%.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-7744e79261da",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Explicitly states the claim is false and that the Amazon does not produce 20% of the world's oxygen.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "disputed",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

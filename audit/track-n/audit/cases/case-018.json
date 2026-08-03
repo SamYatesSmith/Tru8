@@ -1,0 +1,185 @@
+{
+  "case_id": "case-018",
+  "source": {
+    "check_id": "8e2f8baf-4ee8-4ef7-a190-6e123286507f",
+    "claim_id": "c2a96303-0e25-4e1a-9f10-42fcb1c07866",
+    "claim_position": 0,
+    "extracted_at": "2026-03-02T21:10:57.670233+00:00"
+  },
+  "claim": {
+    "normalised_claim": "Global sea levels have risen by approximately 8 to 9 inches between the years 1880 and the present.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "There exists a measurable global average sea level in the year 1880."
+      },
+      {
+        "element_id": "e2",
+        "description": "There exists a measurable global average sea level in the present day."
+      },
+      {
+        "element_id": "e3",
+        "description": "The difference between the present-day global average sea level and the global average sea level in 1880 is approximately 8 to 9 inches."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-141e79ab9d3f",
+      "title": "Which of these actually contributes to rising sea levels?",
+      "full_text": "For thousands of years, sea levels were relatively stable. But around 1850, when we began burning fossil fuels on a large scale, the oceans started to rise \u2013 and they haven\u2019t stopped since (6,10,11,12). The global sea level average has already risen 8-9 inches (21\u201324 cm) since 1880, and the pace is accelerating (6,7,13). 7 mm per year in the early 1900s increased to 1. 5 mm per year in 2023",
+      "mapper_window": "For thousands of years, sea levels were relatively stable. But around 1850, when we began burning fossil fuels on a large scale, the oceans started to rise \u2013 and they haven\u2019t stopped since (6,10,11,12). The global sea level average has already risen 8-9 inches (21\u201324 cm) since 1880, and the pace is accelerating (6,7,13). 7 mm per year in the early 1900s increased to 1. 5 mm per year in 2023",
+      "tier": "reporting",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "scienceupfirst.com",
+      "url": "https://scienceupfirst.com/climate/which-of-these-actually-contributes-to-rising-sea-levels/"
+    },
+    {
+      "evidence_id": "ev-bc81fc106cf5",
+      "title": "Global sea level rose faster than expected in 2024, according to ...",
+      "full_text": "\"With 2024 as the warmest year on record, Earth\u2019s expanding oceans are following suit, reaching their highest levels in three decades,\" said Nadya Vinogradova Shiffer, head of physical oceanography programs and the Integrated Earth System Observatory at NASA. The rate of annual sea level rise has more than doubled since the satellite record began in 1993 -- with sea levels rising at least 4 inches since then, according to NASA. Sea levels have risen between 8 inches and 9 inches since 1880, according to the National Oceanic and Atmospheric Administration. Human-amplified climate change is the primary cause for present-day rising sea levels, climate research shows. Heat from the ocean's surface has slowly making its way down into cooler waters deeper into the sea, according to NASA",
+      "mapper_window": "\"With 2024 as the warmest year on record, Earth\u2019s expanding oceans are following suit, reaching their highest levels in three decades,\" said Nadya Vinogradova Shiffer, head of physical oceanography programs and the Integrated Earth System Observatory at NASA. The rate of annual sea level rise has more than doubled since the satellite record began in 1993 -- with sea levels rising at least 4 inches",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "abcnews.com",
+      "url": "https://abcnews.com/International/global-sea-level-rose-faster-expected-2024-nasa/story?id=119795389"
+    },
+    {
+      "evidence_id": "ev-092a45e47bf6",
+      "title": "Sea-Level Rise and the Role of Geneva",
+      "full_text": "Even if the world successfully limits global warming to 1. 5\u00b0C above pre-industrial levels, the target set by the Paris Agreement, sea levels are still expected to rise significantly. The World Meteorological Organization (WMO) reported that global sea levels reached a record high in 2023, rising about 20\u201323 cm since 1880. Alarmingly, the rate of rise has more than doubled in the last decade compared to the 1990s. Average sea levels could rise by up to 90 cm by 2100 under worst-case IPCC climate scenarios, and recent research suggests the increase could even surpass these projections",
+      "mapper_window": "Even if the world successfully limits global warming to 1. 5\u00b0C above pre-industrial levels, the target set by the Paris Agreement, sea levels are still expected to rise significantly. The World Meteorological Organization (WMO) reported that global sea levels reached a record high in 2023, rising about 20\u201323 cm since 1880. Alarmingly, the rate of rise has more than doubled in the last decade compa",
+      "tier": "reporting",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "genevaenvironmentnetwork.org",
+      "url": "https://www.genevaenvironmentnetwork.org/resources/updates/sea-level-rise-and-the-role-of-geneva/"
+    },
+    {
+      "evidence_id": "ev-56473142f329",
+      "title": "Climate Indicators | NASA Earthdata",
+      "full_text": "Access a range of datasets and data tools to further your climate indicators research. Global sea level has risen eight to nine inches since reliable record keeping began in 1880 and is projected to rise another one to eight feet by 2100. Sea level rise is one of the indicators that describe climate without reducing changes to only temperature. The indicators comprise key information for the most relevant domains of climate: temperature and energy, atmospheric composition, ocean and water, and the frozen cryosphere",
+      "mapper_window": "Access a range of datasets and data tools to further your climate indicators research. Global sea level has risen eight to nine inches since reliable record keeping began in 1880 and is projected to rise another one to eight feet by 2100. Sea level rise is one of the indicators that describe climate without reducing changes to only temperature. The indicators comprise key information for the most ",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "earthdata.nasa.gov",
+      "url": "https://www.earthdata.nasa.gov/topics/climate-indicators"
+    },
+    {
+      "evidence_id": "ev-e1fc5de57de7",
+      "title": "NOAA Sea Level Rise Data",
+      "full_text": "NOAA's tide gauge and satellite altimetry data shows global mean sea level has risen about 3.4 mm per year since 1993. Long-term records from tide gauges show approximately 8-9 inches of sea level rise since 1880.",
+      "mapper_window": "NOAA's tide gauge and satellite altimetry data shows global mean sea level has risen about 3.4 mm per year since 1993. Long-term records from tide gauges show approximately 8-9 inches of sea level rise since 1880.",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "NOAA CDO",
+      "url": "https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level"
+    },
+    {
+      "evidence_id": "ev-bafad35f38b5",
+      "title": "A Seafloor Spreading Slowdown May Have Slashed Sea Levels",
+      "full_text": "<jats:p>Between 15 million and 6 million years ago, a drop in ocean crust production may have lowered sea level by 26\u201332 meters.</jats:p>",
+      "mapper_window": "<jats:p>Between 15 million and 6 million years ago, a drop in ocean crust production may have lowered sea level by 26\u201332 meters.</jats:p>",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.1029/2025eo250071"
+    },
+    {
+      "evidence_id": null,
+      "title": "No, coastal peak images don't disprove sea level rise | Fact check",
+      "full_text": "Sea level rise detected worldwide, including near Sugarloaf Mountain in Brazil | Fact check The claim: Images of Brazilian rock formation show global sea levels haven't risen since 1880 A June 1 Facebook post (direct link, archive link) shows three images of Sugarloaf Mountain, a peak on the edge of a bay in Rio de Janeiro, Brazil. Each image is labeled with a date: 1880, 1910 and 2020. The images do not show an obvious change in relative sea level at the landmark. \"Oh yes, I forgot. Sea levels are rising!\" reads the caption. \"I don\u2019t think so!\" The post was shared more than 6,000 times in less than a week. More from the Fact-Check Team: How we pick and research claims | Email newsletter | Facebook page Our rating: False Sea level change cannot be determined by comparing past and present images of one landmark, according to researchers. One reason for this is that local sea level rise varies considerably on different parts of the planet. Sea levels have risen worldwide and at Sugarloaf Mountain since 1880 Data from satellites and tide gauges show that global average sea levels have risen roughly 8-9 inches since 1880, according to the National Oceanic and Atmospheric Administration. However, researchers previously told USA TODAY that comparing \"before and after\" photos of one random landmark is not an effective strategy for detecting this change. This is because relative sea level rise \u2212 the amount sea levels have risen with respect to the land at a given locale \u2212 varies across the globe. According to NOAA, relative sea levels can be influenced by: - Vertical movement of land due to natural processes or human activity - Gravitational force changes as mass is redistributed on Earth due to glacier and ice sheet melt - Geographic differences in current and wind patterns Additionally, photos don't provide information about tidal conditions, which fluctuate throughout the day. Unless photos are taken at the same point in the tidal cycle, comparing them isn't meaningful, ",
+      "mapper_window": "Sea level rise detected worldwide, including near Sugarloaf Mountain in Brazil | Fact check The claim: Images of Brazilian rock formation show global sea levels haven't risen since 1880 A June 1 Facebook post (direct link, archive link) shows three images of Sugarloaf Mountain, a peak on the edge of a bay in Rio de Janeiro, Brazil. Each image is labeled with a date: 1880, 1910 and 2020. The images",
+      "tier": "reporting",
+      "evidence_type": "opinion",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "USA Today",
+      "url": "https://www.usatoday.com/story/news/factcheck/2024/06/06/images-sugarloaf-mountain-brazil-sea-level/73993779007/"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "2c6f56bfb7e5",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-092a45e47bf6",
+            "relationship": "context",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-141e79ab9d3f",
+            "relationship": "context",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-e1fc5de57de7",
+            "relationship": "context",
+            "reasoning": null
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": "The evidence discusses sea level rise since 1880 but does not explicitly state that a measurable global average sea level existed in 1880."
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-092a45e47bf6",
+            "relationship": "supports",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-bc81fc106cf5",
+            "relationship": "supports",
+            "reasoning": null
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-092a45e47bf6",
+            "relationship": "supports",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-56473142f329",
+            "relationship": "supports",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-141e79ab9d3f",
+            "relationship": "supports",
+            "reasoning": null
+          },
+          {
+            "evidence_id": "ev-e1fc5de57de7",
+            "relationship": "supports",
+            "reasoning": null
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      }
+    ]
+  }
+}

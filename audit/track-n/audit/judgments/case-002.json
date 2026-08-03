@@ -1,0 +1,176 @@
+{
+  "case_id": "case-002",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-343cece8454e",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Describes the Great Wall of China as a series of fortifications built across historical northern borders, confirming it is a physical structure.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-100341d813bd",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States the Great Wall of China is the longest man-made structure in the world, measuring 21,196 kilometers, confirming its existence as a physical structure.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-4261bdd01d2b",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Mentions observations by NASA astronauts from low Earth orbit, indicating a vantage point in space exists for observation.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-57b48fe392ab",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Discusses what astronauts see from low Earth orbit, such as aboard the International Space Station, confirming a vantage point in space for observation.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-6cf0c6342ff8",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that artificial structures are visible from space, implying that space is a vantage point from which observations can be made.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-b0e690dce64c",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Explicitly states that the claim of the Great Wall being seen from the moon with the naked eye is an 'erroneous speculation' that has been 'proved false'.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-4261bdd01d2b",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Notes that the Great Wall is not easily distinguishable without visual aid, contradicting the idea that it can be perceived with the naked eye from space.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-31f6b0ae6efe",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "States that the myth of the Great Wall being seen from space was 'completely debunked' as humans ventured into space.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-5a1e621ec551",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Mentions that astronauts have consistently pushed back on the idea, noting that from the Moon, specific landmarks are not easily discernible without aid.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-dd70f1ce4877",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Asserts that the Great Wall isn't what astronauts see from orbit, implying it's not visible with the naked eye.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-57b48fe392ab",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "States the Great Wall of China is 'Rarely visible due to low contrast' from low Earth orbit, directly challenging its visibility with the naked eye.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-0ffb39bff315",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "This evidence directly contradicts itself, first stating the Great Wall is visible from space with the naked eye, then immediately questioning it by saying 'You can 100% see the Great Wall of China from ...' but the ellipsis suggests incompleteness or doubt.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-6cf0c6342ff8",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses artificial structures visible from space but does not specify if the Great Wall is among them or if it's visible with the naked eye.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "disputed",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

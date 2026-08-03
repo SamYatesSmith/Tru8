@@ -1,0 +1,110 @@
+{
+  "case_id": "case-007",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-3_2_8b0804d0",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that between 2004 and 2014, the deforestation rate was reduced by approximately five times, implying the 2004 rate is a quantifiable baseline.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-3_0_ac5de883",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions that the review provides key statistics on Amazon deforestation, suggesting rates can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_4_bde0f2af",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This study analyzes spatial-temporal deforestation patterns in Amazonas using 36 years of land use and land cover changes, which would include quantifying the rate in 2004.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-3_1_5a6e5f52",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions loss from 2023 to 2024, indicating current deforestation rates can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-3_5_24757032",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses observed shifts in climate linked to forest loss, implying current deforestation rates are tracked.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_2_bb295be2",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence reports regional average forest cover decreases by an average of 3.2% over a period and mentions matching the deforestation rate reported by PRODES, indicating a quantifiable current rate.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-3_2_8b0804d0",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that between 2004 and 2014, the deforestation rate was reduced by approximately five times, which is a reduction of about 80%, not 50%.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "disputed",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

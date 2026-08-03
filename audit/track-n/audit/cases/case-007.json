@@ -1,0 +1,247 @@
+{
+  "case_id": "case-007",
+  "source": {
+    "check_id": "951a49dc-c791-436b-baac-b541a89346b8",
+    "claim_id": "ac042e7f-e921-4449-addd-1e046818694f",
+    "claim_position": 3,
+    "extracted_at": "2026-03-02T21:10:57.649793+00:00"
+  },
+  "claim": {
+    "normalised_claim": "Deforestation in the Amazon has decreased by 50% compared to the level in 2004.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The rate of deforestation in the Amazon in the year 2004 can be quantified."
+      },
+      {
+        "element_id": "e2",
+        "description": "The current rate of deforestation in the Amazon can be quantified."
+      },
+      {
+        "element_id": "e3",
+        "description": "The current rate of deforestation is 50% lower than the rate in 2004."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-rec-3_6_d319b0f8",
+      "title": "\u201cVulnerabilities and compound risks of escalating climate disasters ...",
+      "full_text": "The Brazilian Amazon is severely impacted by extreme climate events, with 1.8 million people (6.4% of the Brazilian Amazon's population) affected by ...",
+      "mapper_window": "The Brazilian Amazon is severely impacted by extreme climate events, with 1.8 million people (6.4% of the Brazilian Amazon's population) affected by ...",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s41467-025-66603-0"
+    },
+    {
+      "evidence_id": "ev-rec-3_4_fce7014f",
+      "title": "How climate change and deforestation interact in the transformation ...",
+      "full_text": "Here, we quantify the relative contributions of deforestation and global climate change to observed shifts in key Amazonian climate parameters. We analyzed long ...",
+      "mapper_window": "Here, we quantify the relative contributions of deforestation and global climate change to observed shifts in key Amazonian climate parameters. We analyzed long ...",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s41467-025-63156-0"
+    },
+    {
+      "evidence_id": "ev-rec-3_5_24757032",
+      "title": "Observed shifts in regional climate linked to Amazon ...",
+      "full_text": "Our findings show compelling evidence that forest loss has contributed to shift climate toward higher land surface temperatures, lower evapotranspiration, lower ...",
+      "mapper_window": "Our findings show compelling evidence that forest loss has contributed to shift climate toward higher land surface temperatures, lower evapotranspiration, lower ...",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s43247-025-02900-2"
+    },
+    {
+      "evidence_id": "ev-rec-3_7_79022512",
+      "title": "Impact of Amazonian deforestation on precipitation reverses ...",
+      "full_text": "Here we show reversed precipitation responses to Amazon deforestation across wet and dry seasons. During the wet season, deforested grids experienced a ...",
+      "mapper_window": "Here we show reversed precipitation responses to Amazon deforestation across wet and dry seasons. During the wet season, deforested grids experienced a ...",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s41586-024-08570-y"
+    },
+    {
+      "evidence_id": "ev-rec-3_0_ac5de883",
+      "title": "Amazon deforestation: Drivers, damages, and policies - ScienceDirect",
+      "full_text": "This review discusses the economic drivers, the environmental damages, and the policies enacted to fight Amazon deforestation. It provides key statistics ...",
+      "mapper_window": "This review discusses the economic drivers, the environmental damages, and the policies enacted to fight Amazon deforestation. It provides key statistics ...",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "sciencedirect.com",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0264837725003448"
+    },
+    {
+      "evidence_id": "ev-rec-3_1_5a6e5f52",
+      "title": "Fires Drove Record-breaking Tropical Forest Loss in 2024",
+      "full_text": "The Amazon biome experienced the most loss since a record high in 2016, jumping 110% from 2023 to 2024. 60% of it was due to fires. Agricultural expansion is a ...",
+      "mapper_window": "The Amazon biome experienced the most loss since a record high in 2016, jumping 110% from 2023 to 2024. 60% of it was due to fires. Agricultural expansion is a ...",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "gfr.wri.org",
+      "url": "https://gfr.wri.org/latest-analysis-deforestation-trends"
+    },
+    {
+      "evidence_id": "ev-rec-3_2_8b0804d0",
+      "title": "When the River Runs Dry: How Amazon Deforestation Threatens the ...",
+      "full_text": "In 2023, the drought in the Amazon reduced the volume of grain ... Between 2004 and 2014, the deforestation rate was reduced by approximately five times.",
+      "mapper_window": "In 2023, the drought in the Amazon reduced the volume of grain ... Between 2004 and 2014, the deforestation rate was reduced by approximately five times.",
+      "tier": "primary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "climatepolicyinitiative.org",
+      "url": "https://www.climatepolicyinitiative.org/publication/when-the-river-runs-dry-how-amazon-deforestation-threatens-the-brazilian-economy/"
+    },
+    {
+      "evidence_id": "ev-rec-3_3_9ddc95bf",
+      "title": "Amazon dieback beyond the 21st century under high-emission ...",
+      "full_text": "The Amazon rainforest, the world's largest tropical forest, plays a crucial role in climate regulation but faces risks of dieback under climate change.",
+      "mapper_window": "The Amazon rainforest, the world's largest tropical forest, plays a crucial role in climate regulation but faces risks of dieback under climate change.",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s43247-025-02606-5"
+    },
+    {
+      "evidence_id": "ev-rec-e1_1_41ffad33",
+      "title": "(PDF) The global deforestation footprint of agriculture and forestry",
+      "full_text": "For example, 86% of global deforestation occurring between 2001 and 2022 can be attributed to crop and cattle production. Footprinting of commodity-linked ...",
+      "mapper_window": "For example, 86% of global deforestation occurring between 2001 and 2022 can be attributed to crop and cattle production. Footprinting of commodity-linked ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "researchgate.net",
+      "url": "https://www.researchgate.net/publication/391272223_The_global_deforestation_footprint_of_agriculture_and_forestry"
+    },
+    {
+      "evidence_id": "ev-rec-e1_2_1efb0496",
+      "title": "The impact of Amazon deforestation is magnified by changing the ...",
+      "full_text": "Overall, natural vegetation cover declined from 90.9% to 62.7% between 1986 and 2020, and fragmentation greatly increased, generating 78 000 forest fragments ...",
+      "mapper_window": "Overall, natural vegetation cover declined from 90.9% to 62.7% between 1986 and 2020, and fragmentation greatly increased, generating 78 000 forest fragments ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "cambridge.org",
+      "url": "https://www.cambridge.org/core/journals/environmental-conservation/article/impact-of-amazon-deforestation-is-magnified-by-changing-the-configuration-of-forest-cover/199F5F9E5A14D533A65AA576CFDD7BD8"
+    },
+    {
+      "evidence_id": "ev-rec-e1_3_74345907",
+      "title": "Water Surface Loss and Deforestation in the Brazilian Amazon ...",
+      "full_text": "The study examines the relationship between water surface loss and deforestation in the Brazilian Amazon, focusing on the expansion of farming (crops and ...",
+      "mapper_window": "The study examines the relationship between water surface loss and deforestation in the Brazilian Amazon, focusing on the expansion of farming (crops and ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "mdpi.com",
+      "url": "https://www.mdpi.com/2673-4834/6/3/108"
+    },
+    {
+      "evidence_id": "ev-rec-e1_4_bde0f2af",
+      "title": "[PDF] Analyzing and forecasting the morphology of Amazon deforestation",
+      "full_text": "This study analyzes spatial\u2013temporal deforestation patterns in Amazonas using 36 years of land use and land cover changes .",
+      "mapper_window": "This study analyzes spatial\u2013temporal deforestation patterns in Amazonas using 36 years of land use and land cover changes .",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "repositorio.usp.br",
+      "url": "https://repositorio.usp.br/directbitstream/5c11f208-9973-4635-a321-48e8ba2f807c/1-s2.0-S0378112725001707-main.pdf"
+    },
+    {
+      "evidence_id": "ev-rec-e2_2_bb295be2",
+      "title": "Recent Forest Loss in the Brazilian Amazon Causes Substantial ...",
+      "full_text": "Regional average forest cover decreases by an average of 3.2% over this period, closely matching the deforestation rate reported by the PRODES (Figure S2 in ...",
+      "mapper_window": "Regional average forest cover decreases by an average of 3.2% over this period, closely matching the deforestation rate reported by the PRODES (Figure S2 in ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "agupubs.onlinelibrary.wiley.com",
+      "url": "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2025AV001670"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "d4cd8af9b3ac",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-3_2_8b0804d0",
+            "relationship": "supports",
+            "reasoning": "States that between 2004 and 2014, the deforestation rate was reduced by approximately five times, implying the 2004 rate is a quantifiable baseline."
+          },
+          {
+            "evidence_id": "ev-rec-3_0_ac5de883",
+            "relationship": "context",
+            "reasoning": "Mentions that the review provides key statistics on Amazon deforestation, suggesting rates can be quantified."
+          },
+          {
+            "evidence_id": "ev-rec-e1_4_bde0f2af",
+            "relationship": "supports",
+            "reasoning": "This study analyzes spatial-temporal deforestation patterns in Amazonas using 36 years of land use and land cover changes, which would include quantifying the rate in 2004."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-3_1_5a6e5f52",
+            "relationship": "context",
+            "reasoning": "Mentions loss from 2023 to 2024, indicating current deforestation rates can be quantified."
+          },
+          {
+            "evidence_id": "ev-rec-3_5_24757032",
+            "relationship": "context",
+            "reasoning": "Discusses observed shifts in climate linked to forest loss, implying current deforestation rates are tracked."
+          },
+          {
+            "evidence_id": "ev-rec-e2_2_bb295be2",
+            "relationship": "supports",
+            "reasoning": "This evidence reports regional average forest cover decreases by an average of 3.2% over a period and mentions matching the deforestation rate reported by PRODES, indicating a quantifiable current rate."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-3_2_8b0804d0",
+            "relationship": "supports",
+            "reasoning": "States that between 2004 and 2014, the deforestation rate was reduced by approximately five times, which is a reduction of about 80%, not 50%."
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": "One piece of evidence suggests a reduction of approximately five times (around 80%) between 2004 and 2014, which contradicts the claim of a 50% decrease."
+      }
+    ]
+  }
+}

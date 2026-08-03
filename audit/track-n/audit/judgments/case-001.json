@@ -1,0 +1,162 @@
+{
+  "case_id": "case-001",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-a478790db9d9",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "The title mentions a mandate for transparency in AI in Nurse Anesthesiology, which is contextually relevant to a transparency mandate.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-0853fcdeeecf",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "The title discusses transparency in medical AI and its promotion for safety, accountability, and trust, providing context for a transparency mandate in healthcare.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rpf-0_0",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This GOV.UK document discusses AI education in the UK, providing context for the implementation of AI-related mandates.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rpf-0_1",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This document discusses 'Healthcare 2026' and the role of AI, providing context for a mandate implemented around that time.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_3_e8e047a7",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence mentions a study conducted in the UK between January and April 2025, which is contextually relevant to the timeframe of the mandate.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-beac060411b1",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "The title 'Hallucinations' directly refers to the phenomenon of medical hallucinations.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-0853fcdeeecf",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "The paper discusses the safe use of medical AI and the need for transparency, implying that issues like hallucinations are a concern in the NHS.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rpf-0_1",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence suggests AI can reduce administrative burden, allowing clinicians more patient care time, which is a potential indirect effect of a transparency mandate but does not directly link it to reducing hallucinations.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_4_f97ac692",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses the dual nature of AI-generated reports, including the risk of misinformation, which is relevant to the topic of medical hallucinations.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e4_2_5ab701cb",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses patient empowerment and understanding of treatment plans, which is related to the broader context of medical record access and patient experience.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e4_4_2a59d419",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses concerns about AI Overviews citing YouTube more than medical websites for health queries, indicating potential issues with AI-generated health information.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

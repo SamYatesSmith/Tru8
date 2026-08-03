@@ -1,0 +1,143 @@
+{
+  "case_id": "case-004",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_1_1b536bb8",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States Tesla is the leading producer of plug-in electric vehicles globally and its Model 3 is the world's best-selling all-electric vehicle model.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_2_cb16a95b",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Indicates nearly 8.5 million Teslas have been produced and sold worldwide, with 1.8 million in 2023, supporting the idea of significant sales volume.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_3_8abf0395",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Reports that the Tesla Model Y was at the top of the global BEV leaderboard with 959,904 sales between January and November 2025.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-5f119449aecd",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses BYD and Tesla's pricing strategies in the global EV market, providing context for sales comparisons.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_1_5f109087",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Explicitly states Tesla remains the EV market leader, even with declining sales, implying a comparison against all other manufacturers.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_4_78b8fc7d",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Confirms Tesla remained the market leader in the US with 633,762 sales, followed by General Motors and Ford, indicating a comparison of sales figures.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_3_c42ce0c4",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Provides context on Tesla's worldwide deliveries and production figures, which are used in comparisons to assess market position.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rpf-1_0",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "States that BYD has surpassed Tesla as the world's biggest seller of electric vehicles, directly challenging the claim that Tesla holds the leading position.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rpf-1_1",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Reports that BYD has overtaken Tesla as the world's top EV seller, challenging the claim.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rpf-1_2",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Indicates that BYD is surging ahead while Tesla's registrations dipped, challenging Tesla's leading position.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "disputed",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

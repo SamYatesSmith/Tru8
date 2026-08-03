@@ -1,0 +1,206 @@
+{
+  "case_id": "case-005",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_2_41cc5938",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence mentions the BEV share of total new registrations in the context of European markets, implying total new registrations are tracked.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e3_2_780649c4",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence states that EVs accounted for 18% of global new-vehicle sales, implying that total new-vehicle sales are recorded.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e3_4_7f815aff",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence states that global EV sales represented 18% of total car sales in 2023, implying that total car sales are recorded.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e1_1_e2fa0b6c",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence reports that 1.7 million plugin vehicles were registered worldwide in August, indicating a recording of global EV sales.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_2_34dad788",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence states that Global BEV sales surpassed 4 million in Q4 2025, confirming that global electric vehicle sales are recorded.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e3_4_7f815aff",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence states that in 2023, global EV sales exceeded 14 million units, confirming that global electric vehicle sales are recorded.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e1_2_41cc5938",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence states that the BEV share of total new registrations was 18% year-to-date 2025, directly indicating the calculation of this ratio.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_0_890a4b1d",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence mentions the global electric passenger vehicle penetration rate achieved 18%, which is the ratio of EV sales to total car sales.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_1_f281254c",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence states that electric vehicles (EVs) now account for more than 20% of global sales, which is the ratio of EV sales to total sales.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_2_780649c4",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence states that EVs accounted for 18% of the global new-vehicle sales, directly representing the calculated ratio.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_4_7f815aff",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "This evidence states that global EV sales represented 18% of total car sales in 2023, confirming the calculation of this ratio.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e1_4_8e16e0b5",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses global sales of electric vehicles and their share of cars sold, providing context for the calculation of this ratio.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_3_951f63cd",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "This evidence discusses how different datasets might include or exclude certain types of electric vehicles when calculating market share, providing context for the ratio calculation.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rpf-0_1",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that BEV penetration reached 18% of global PV sales, directly supporting the claim.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rpf-0_3",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Mentions 'THE 18% MILESTONE!' in relation to global EV sales, supporting the claim.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

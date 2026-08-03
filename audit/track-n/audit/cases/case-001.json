@@ -1,0 +1,254 @@
+{
+  "case_id": "case-001",
+  "source": {
+    "check_id": "d966e055-530d-40b1-b6ae-c3eedd3c4b1f",
+    "claim_id": "d69e7654-9bc1-4b9c-b64f-a8c5dc2bd65a",
+    "claim_position": 0,
+    "extracted_at": "2026-03-02T21:10:57.639905+00:00"
+  },
+  "claim": {
+    "normalised_claim": "The 2026 UK Transparency Mandate led to a 22% reduction in medical hallucinations within the NHS.",
+    "claim_type": "causal_interpretive",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The 2026 UK Transparency Mandate was implemented."
+      },
+      {
+        "element_id": "e2",
+        "description": "Medical hallucinations occurred within the NHS prior to the mandate."
+      },
+      {
+        "element_id": "e3",
+        "description": "The 2026 UK Transparency Mandate caused a reduction in medical hallucinations."
+      },
+      {
+        "element_id": "e4",
+        "description": "The reduction in medical hallucinations within the NHS was specifically 22%."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-beac060411b1",
+      "title": "Hallucinations",
+      "full_text": "Academic research: Hallucinations",
+      "mapper_window": "Academic research: Hallucinations",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.1201/9788743808145-7"
+    },
+    {
+      "evidence_id": "ev-0853fcdeeecf",
+      "title": "Transparency Fallacy: Insights from Healthcare Professionals on the Safe Use of Medical AI",
+      "full_text": "<jats:p>As medical Artificial Intelligence (AI) becomes increasingly embedded in clinical care, transparency is widely promoted as a means to support safety, accountability, and trust. In this paper, 'transparency' refers to the provision of meaningful information about an AI system, conceptually di",
+      "mapper_window": "<jats:p>As medical Artificial Intelligence (AI) becomes increasingly embedded in clinical care, transparency is widely promoted as a means to support safety, accountability, and trust. In this paper, 'transparency' refers to the provision of meaningful information about an AI system, conceptually di",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.2139/ssrn.6146506"
+    },
+    {
+      "evidence_id": "ev-rpf-0_0",
+      "title": "AI Skills for Life and Work: Rapid Evidence Review - GOV.UK",
+      "full_text": "The current state of AI education in the UK in the context of predicted levels of need and specific skill gaps is identified and the range of strategies for AI ...",
+      "mapper_window": "The current state of AI education in the UK in the context of predicted levels of need and specific skill gaps is identified and the range of strategies for AI ...",
+      "tier": "primary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "gov.uk",
+      "url": "https://www.gov.uk/government/publications/ai-skills-for-life-and-work-rapid-evidence-review/ai-skills-for-life-and-work-rapid-evidence-review"
+    },
+    {
+      "evidence_id": "ev-rpf-0_1",
+      "title": "Healthcare 2026: AI, Decentralization, and Hyper-Personalization",
+      "full_text": "When implemented responsibly, AI can significantly reduce administrative burden, allowing clinicians to dedicate more time to direct patient care. 3.",
+      "mapper_window": "When implemented responsibly, AI can significantly reduce administrative burden, allowing clinicians to dedicate more time to direct patient care. 3.",
+      "tier": "commentary",
+      "evidence_type": "opinion",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "linkedin.com",
+      "url": "https://www.linkedin.com/posts/dr-hyke-lemeke-29142155_extraordinary-times-require-extraordinary-activity-7423789548649758720-NPjQ"
+    },
+    {
+      "evidence_id": "ev-rec-e1_2_52358124",
+      "title": "[PDF] Study on the deployment of AI in healthcare - Studio Legale Stefanelli",
+      "full_text": "Similarly, in the United Kingdom (UK), an AI tool pilot project at Mid and South Essex NHS. Foundation Trust reduced patient non-attendances by 30% over six ...",
+      "mapper_window": "Similarly, in the United Kingdom (UK), an AI tool pilot project at Mid and South Essex NHS. Foundation Trust reduced patient non-attendances by 30% over six ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "studiolegalestefanelli.it",
+      "url": "https://www.studiolegalestefanelli.it/Media/pdf/study%20on%20the%20deployment%20of%20ai%20in%20healthcare-EW0125076ENN.pdf"
+    },
+    {
+      "evidence_id": "ev-a478790db9d9",
+      "title": "AI in Nurse Anesthesiology: A Mandate for Rigor, Reproducibility, and Transparency",
+      "full_text": "Academic research: AI in Nurse Anesthesiology: A Mandate for Rigor, Reproducibility, and Transparency",
+      "mapper_window": "Academic research: AI in Nurse Anesthesiology: A Mandate for Rigor, Reproducibility, and Transparency",
+      "tier": "primary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "CrossRef",
+      "url": "https://doi.org/10.70278/aanaj/.0000001082"
+    },
+    {
+      "evidence_id": "ev-rec-e1_3_e8e047a7",
+      "title": "[PDF] 2026 Abstract Book - UK Foundation Programme",
+      "full_text": "This was a cross sectional study conducted between January and April 2025 at 11 medical schools in the UK. ... foundationprogramme.nhs.uk medicine, identity, and ...",
+      "mapper_window": "This was a cross sectional study conducted between January and April 2025 at 11 medical schools in the UK. ... foundationprogramme.nhs.uk medicine, identity, and ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "foundationprogramme.nhs.uk",
+      "url": "https://foundationprogramme.nhs.uk/wp-content/uploads/sites/2/2026/02/NFDPD-2026-Abstract-Book-FINAL.pdf"
+    },
+    {
+      "evidence_id": "ev-rec-e1_4_3dd37e43",
+      "title": "Palantir Opts Out of UK Digital ID Initiative Amid Privacy Concerns",
+      "full_text": "Palantir rejects UK digital ID plan, citing privacy risks and lack of democratic mandate, aligning with public and civil liberties concerns.",
+      "mapper_window": "Palantir rejects UK digital ID plan, citing privacy risks and lack of democratic mandate, aligning with public and civil liberties concerns.",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "complexdiscovery.com",
+      "url": "https://complexdiscovery.com/palantir-opts-out-of-uk-digital-id-initiative-amid-privacy-concerns/"
+    },
+    {
+      "evidence_id": "ev-rec-e3_4_f97ac692",
+      "title": "AI-Generated Reports: Improved Insights or Risk of Misinformation?",
+      "full_text": "This comprehensive analysis explores the dual nature of AI-generated reports: their potential to deliver unprecedented insights and their inherent risk of ...",
+      "mapper_window": "This comprehensive analysis explores the dual nature of AI-generated reports: their potential to deliver unprecedented insights and their inherent risk of ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "linkedin.com",
+      "url": "https://www.linkedin.com/pulse/ai-generated-reports-improved-insights-risk-andre-ripla-pgcert-pgdip-c1vxe"
+    },
+    {
+      "evidence_id": "ev-rec-e4_2_5ab701cb",
+      "title": "surveillance capitalism, patient privacy and online record access",
+      "full_text": "Patients report many benefits from reading their clinical records including feeling more empowered, better understanding and remembering their treatment plan,.",
+      "mapper_window": "Patients report many benefits from reading their clinical records including feeling more empowered, better understanding and remembering their treatment plan,.",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "jme.bmj.com",
+      "url": "https://jme.bmj.com/content/medethics/50/2/84.full.pdf"
+    },
+    {
+      "evidence_id": "ev-rec-e4_4_2a59d419",
+      "title": "New research suggests Google's AI Overviews cites YouTube more ...",
+      "full_text": "New research suggests Google's AI Overviews cites YouTube more than any medical website when answering queries about health conditions. Concerns are...",
+      "mapper_window": "New research suggests Google's AI Overviews cites YouTube more than any medical website when answering queries about health conditions. Concerns are...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "facebook.com",
+      "url": "https://www.facebook.com/edinburgh.evening.news/posts/new-research-suggests-googles-ai-overviews-cites-youtube-more-than-any-medical-w/1352272336940736/"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "bbe6acb53706",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-a478790db9d9",
+            "relationship": "context",
+            "reasoning": "The title mentions a mandate for transparency in AI in Nurse Anesthesiology, which is contextually relevant to a transparency mandate."
+          },
+          {
+            "evidence_id": "ev-0853fcdeeecf",
+            "relationship": "context",
+            "reasoning": "The title discusses transparency in medical AI and its promotion for safety, accountability, and trust, providing context for a transparency mandate in healthcare."
+          },
+          {
+            "evidence_id": "ev-rpf-0_0",
+            "relationship": "context",
+            "reasoning": "This GOV.UK document discusses AI education in the UK, providing context for the implementation of AI-related mandates."
+          },
+          {
+            "evidence_id": "ev-rpf-0_1",
+            "relationship": "context",
+            "reasoning": "This document discusses 'Healthcare 2026' and the role of AI, providing context for a mandate implemented around that time."
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_e8e047a7",
+            "relationship": "context",
+            "reasoning": "This evidence mentions a study conducted in the UK between January and April 2025, which is contextually relevant to the timeframe of the mandate."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-beac060411b1",
+            "relationship": "supports",
+            "reasoning": "The title 'Hallucinations' directly refers to the phenomenon of medical hallucinations."
+          },
+          {
+            "evidence_id": "ev-0853fcdeeecf",
+            "relationship": "context",
+            "reasoning": "The paper discusses the safe use of medical AI and the need for transparency, implying that issues like hallucinations are a concern in the NHS."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": "The evidence confirms the existence of 'hallucinations' as a topic, which can be inferred to occur within the NHS in the context of medical AI."
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rpf-0_1",
+            "relationship": "context",
+            "reasoning": "This evidence suggests AI can reduce administrative burden, allowing clinicians more patient care time, which is a potential indirect effect of a transparency mandate but does not directly link it to reducing hallucinations."
+          },
+          {
+            "evidence_id": "ev-rec-e3_4_f97ac692",
+            "relationship": "context",
+            "reasoning": "This evidence discusses the dual nature of AI-generated reports, including the risk of misinformation, which is relevant to the topic of medical hallucinations."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": "No direct evidence links the Transparency Mandate to a reduction in medical hallucinations."
+      },
+      {
+        "element_id": "e4",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-e4_2_5ab701cb",
+            "relationship": "context",
+            "reasoning": "This evidence discusses patient empowerment and understanding of treatment plans, which is related to the broader context of medical record access and patient experience."
+          },
+          {
+            "evidence_id": "ev-rec-e4_4_2a59d419",
+            "relationship": "context",
+            "reasoning": "This evidence discusses concerns about AI Overviews citing YouTube more than medical websites for health queries, indicating potential issues with AI-generated health information."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": "No evidence directly supports or challenges the specific 22% reduction in medical hallucinations."
+      }
+    ]
+  }
+}

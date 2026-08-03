@@ -1,0 +1,316 @@
+{
+  "case_id": "case-003",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that China is the world's EV manufacturing hub and responsible for more than 70% of global production.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_1_b11d8c1a",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Reports that China produced 12.4 million EVs in 2024, accounting for 70% of global production.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_2_0af6920e",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Indicates that China's total production of New Energy Vehicles topped 16 million units in 2025.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_3_7d5808eb",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that in 2023, China manufactured 58% of the world's electric vehicles.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-rec-e1_4_b8754c12",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions that more than 60 percent of vehicles produced by Chinese manufacturers are now electric, but does not provide total production numbers.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_0_78322e4f",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Suggests that Chinese EV manufacturers' factories can produce far more than can be sold within China, implying significant production capacity beyond domestic demand.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_2_6048b534",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "States China exports more cars than any other nation, but specifies this is primarily gas-powered cars currently, and EV export markets are developing.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e2_4_6e6ff20a",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Notes that the Chinese electric car supply chain invested more overseas than domestically, but does not provide specific production numbers for other countries.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-rec-e3_3_c42ea694",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that China's automotive industry produced close to 30% of the nearly 80m vehicles made worldwide in 2024, indicating a large overall vehicle manufacturing base.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-bff968da5b5d",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that Chinese OEMs' share in the Chinese market is over 70%, indicating a significant manufacturing presence.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States China is responsible for more than 70% of global EV production, directly comparing its output to the rest of the world.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e1_1_b11d8c1a",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Reports China accounted for 70% of global EV production in 2024, providing a comparative figure.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e1_3_7d5808eb",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States China manufactured 58% of the world's electric vehicles in 2023, directly comparing its output to global figures.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_0_c853f191",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Confirms China remains the world's electric car manufacturing hub, accounting for more than 70% of global production in 2024.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_2_dfe65749",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Quotes an analyst stating China is '10 years ahead and 10 times better than any other country' in EVs, implying a significant output advantage.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-rec-e3_3_c42ea694",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "States China is the largest manufacturer of vehicles overall, producing more than any other country, but does not specify the proportion of electric vehicles compared to other nations.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-bff968da5b5d",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Indicates that Chinese OEMs hold over 70% share of the Chinese market, suggesting a high volume of manufacturing.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-8a4c2e369c9c",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions BYD (a Chinese EV giant) mulling new plants in Europe and Canada, indicating global expansion but not directly comparing manufacturing quantities.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States China is responsible for more than 70% of global EV production, implying its output is greater than any other single nation.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e1_1_b11d8c1a",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Reports China accounted for 70% of global EV production in 2024, indicating its manufacturing volume exceeds that of any other single country.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e1_3_7d5808eb",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States China manufactured 58% of the world's electric vehicles in 2023, which is a larger share than any other single country could produce.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e3_2_dfe65749",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Quotes an analyst stating China is '10 times better than any other country' in EVs, implying a superior manufacturing output.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e4_2_105b5ee6",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Mentions China accounts for most of the world's manufacturing of electric vehicles, implying its output is greater than any other single nation.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e4_3_d4e652a5",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "States China exports more cars than any other nation, but clarifies this is primarily gas-powered cars, and EV export markets are developing.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "evidence_id": "ev-rec-e4_4_1f66a72a",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States China's automakers produce far more EVs than any other country.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e4",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

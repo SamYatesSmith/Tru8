@@ -1,0 +1,297 @@
+{
+  "case_id": "case-009",
+  "source": {
+    "check_id": "951a49dc-c791-436b-baac-b541a89346b8",
+    "claim_id": "852ae935-5efd-4328-9adb-69771edcc306",
+    "claim_position": 0,
+    "extracted_at": "2026-03-02T21:10:57.656315+00:00"
+  },
+  "claim": {
+    "normalised_claim": "The Amazon rainforest is responsible for producing 20% of the Earth's oxygen.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The total oxygen production of the Amazon rainforest can be quantified."
+      },
+      {
+        "element_id": "e2",
+        "description": "The total oxygen production of the Earth can be quantified."
+      },
+      {
+        "element_id": "e3",
+        "description": "The ratio of oxygen produced by the Amazon rainforest to the Earth's total oxygen production is 20%."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-fbecdcc2008a",
+      "title": "Amazon Doesn\u2019t Produce 20% of Earth\u2019s Oxygen",
+      "full_text": "Q: Does the Amazon produce 20% of the world\u2019s oxygen? A: No. Scientists estimate the percentage is closer to 6 to 9%, and the Amazon ultimately consumes nearly all of that oxygen itself. FULL QUESTION Does the Amazon Rainforest truly produce 20% of the Earth\u2019s oxygen? Where does the remaining 80% come from? FULL ANSWER On Aug. 20, Brazil\u2019s space agency sparked a media frenzy when it released satellite data showing an alarming number of wildfires in the Amazon rainforest over the past year \u2014 nearly 40,000, or a 77% rise compared with the same time period in 2018. Most of the fires have started since June. NASA also has confirmed the surge, declaring 2019 the worst year for wildfires in the region since 2010. Scientists attribute the uptick in fires to increased deforestation, at least some of which, critics say, has been encouraged by Brazil\u2019s president, Jair Bolsonaro. As news outlets across the globe picked up the story, journalists began to spread the false but catchy factoid that the Amazon produces 20% of the world\u2019s oxygen. ABC, CNN and Newsweek, among others, cited the statistic. Politicians then joined in, repeating the factoid to draw attention to the blazes. For instance, Sen. Kamala Harris, a Democratic presidential candidate, shared the number and suggested it was even higher. \u201cThe Amazon creates over 20% of the world\u2019s oxygen and is home to one million Indigenous people,\u201d she said in an Aug. 23 tweet. French President Emmanuel Macron also quoted the statistic in an Aug. 22 tweet calling for world leaders to address the fires at the Group of Seven summit. (His tweet was accompanied by an outdated photo of a burning forest from 1989.) Our house is burning. Literally. The Amazon rain forest \u2013 the lungs which produces 20% of our planet\u2019s oxygen \u2013 is on fire. It is an international crisis. Members of the G7 Summit, let's discuss this emergency first order in two days! #ActForTheAmazon pic.twitter.com/dogOJj9big \u2014 Emmanuel Macron (@EmmanuelMacron) August 22,",
+      "mapper_window": "Q: Does the Amazon produce 20% of the world\u2019s oxygen? A: No. Scientists estimate the percentage is closer to 6 to 9%, and the Amazon ultimately consumes nearly all of that oxygen itself. FULL QUESTION Does the Amazon Rainforest truly produce 20% of the Earth\u2019s oxygen? Where does the remaining 80% come from? FULL ANSWER On Aug. 20, Brazil\u2019s space agency sparked a media frenzy when it released satel",
+      "tier": "reporting",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "FactCheck.org",
+      "url": "https://www.factcheck.org/2019/09/amazon-doesnt-produce-20-of-earths-oxygen/"
+    },
+    {
+      "evidence_id": "ev-7744e79261da",
+      "title": "Take a breath: the Amazon does not produce 20% of the world's ...",
+      "full_text": "Take a breath: the Amazon does not produce 20% of the world\u2019s oxygen CLAIM: The Amazon rainforest _ \u201cthe lungs of the Earth\u201d _ produces 20% of the planet\u2019s oxygen. AP\u2019S ASSESSMENT: False. Scientists say while the Amazon is important to the world\u2019s ecosystem, it does not produce 20% of the world\u2019s oxygen. In fact, the region absorbs about the same amount of oxygen it produces. THE FACTS: The 20% figure circulated widely this month as concerns grew around fires burning in the Amazon. It was passed on social media platforms, cited by politicians and quoted by the media, including The Associated Press. The reality, according to experts, is that the Amazon produces and consumes oxygen in nearly perfect balance. That\u2019s because while it produces oxygen through photosynthesis, it also absorbs it to grow, as do animals and microbes. \u201cEven if all plants in the Amazon stopped doing photosynthesis, we would not notice,\u201d Jonathan Foley, executive director of Project Drawdown, a global climate solutions initiative, told the AP. \u201cIt would take millions of years for the atmosphere to run out of oxygen.\u201d Still, that doesn\u2019t mean the fires aren\u2019t an issue for the planet. The Amazon plays a key role in draining heat-trapping carbon dioxide, CO2, from the atmosphere. It\u2019s estimated the Amazon takes in almost 2 billion tons of CO2 a year, making it key to preventing climate change. Scott Denning, an atmospheric scientist at Colorado State University, told the AP that much of the world\u2019s oxygen comes from the ocean. Plants, such as phytoplankton, have contributed to breathable oxygen through photosynthesis for millions of years. Denning said he has a theory about how the 20 percent figure might have originated, citing a study published in Science Magazine in 2010, which found the Amazon accounts for 20 percent of land photosynthesis. Among those who used the false figure was French President Emmanuel Macron, who took to Twitter on Aug. 22 to demand that world leaders at the G-7 summit",
+      "mapper_window": "Take a breath: the Amazon does not produce 20% of the world\u2019s oxygen CLAIM: The Amazon rainforest _ \u201cthe lungs of the Earth\u201d _ produces 20% of the planet\u2019s oxygen. AP\u2019S ASSESSMENT: False. Scientists say while the Amazon is important to the world\u2019s ecosystem, it does not produce 20% of the world\u2019s oxygen. In fact, the region absorbs about the same amount of oxygen it produces. THE FACTS: The 20% fi",
+      "tier": "reporting",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "AP News",
+      "url": "https://apnews.com/article/archive-fact-checking-7106380249"
+    },
+    {
+      "evidence_id": "ev-e68c558e5bc9",
+      "title": "Amazon fires are destructive, but they aren't depleting Earth's ...",
+      "full_text": "Fires in the Amazon rainforest have captured attention worldwide in August. Brazilian President Jair Bolsonaro, who took office in 2019, pledged in his campaign to reduce environmental protection and increase agricultural development in the Amazon, and he appears to have followed through on that promise. The resurgence of forest clearing in the Amazon, which had decreased more than 80% following a peak in 2004, is alarming for many reasons. Tropical forests harbor many species of plants and animals found nowhere else. They are important refuges for indigenous people, and contain enormous stores of carbon as wood and other organic matter that would otherwise contribute to the climate crisis. Some media accounts have suggested that fires in the Amazon also threaten the atmospheric oxygen that we breathe. French President Emmanuel Macron tweeted on Aug. 22 that \u201cthe Amazon rain forest \u2013 the lungs which produces 20% of our planet\u2019s oxygen \u2013 is on fire.\u201d The oft-repeated claim that the Amazon rainforest produces 20% of our planet\u2019s oxygen is based on a misunderstanding. In fact nearly all of Earth\u2019s breathable oxygen originated in the oceans, and there is enough of it to last for millions of years. There are many reasons to be appalled by this year\u2019s Amazon fires, but depleting Earth\u2019s oxygen supply is not one of them. Oxygen from plants As an atmospheric scientist, much of my work focuses on exchanges of various gases between Earth\u2019s surface and the atmosphere. Many elements, including oxygen, constantly cycle between land-based ecosystems, the oceans and the atmosphere in ways that can be measured and quantified. Nearly all free oxygen in the air is produced by plants through photosynthesis. About one-third of land photosynthesis occurs in tropical forests, the largest of which is located in the Amazon Basin. But virtually all of the oxygen produced by photosynthesis each year is consumed by living organisms and fires. Trees constantly shed dead leaves, twigs, roots",
+      "mapper_window": "Fires in the Amazon rainforest have captured attention worldwide in August. Brazilian President Jair Bolsonaro, who took office in 2019, pledged in his campaign to reduce environmental protection and increase agricultural development in the Amazon, and he appears to have followed through on that promise. The resurgence of forest clearing in the Amazon, which had decreased more than 80% following a",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "The Conversation",
+      "url": "https://theconversation.com/amazon-fires-are-destructive-but-they-arent-depleting-earths-oxygen-supply-122369"
+    },
+    {
+      "evidence_id": "ev-cf0147c2ba6d",
+      "title": "Amazon rainforest",
+      "full_text": "The Amazon rainforest, also called the Amazon jungle or Amazonia, is a moist broadleaf tropical rainforest in the Amazon biome that covers most of the Amazon basin of South America. This basin encompasses 7\u00a0million\u00a0km2 (2.7\u00a0million\u00a0sq\u00a0mi), of which 6\u00a0million\u00a0km2 (2.3\u00a0million\u00a0sq\u00a0mi) are covered by the rainforest. This region includes territory belonging to nine nations and 3,344 indigenous territories.",
+      "mapper_window": "The Amazon rainforest, also called the Amazon jungle or Amazonia, is a moist broadleaf tropical rainforest in the Amazon biome that covers most of the Amazon basin of South America. This basin encompasses 7\u00a0million\u00a0km2 (2.7\u00a0million\u00a0sq\u00a0mi), of which 6\u00a0million\u00a0km2 (2.3\u00a0million\u00a0sq\u00a0mi) are covered by the rainforest. This region includes territory belonging to nine nations and 3,344 indigenous territor",
+      "tier": "reporting",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Amazon_rainforest"
+    },
+    {
+      "evidence_id": "ev-87cf7cd86007",
+      "title": "Deforestation of the Amazon rainforest",
+      "full_text": "The Amazon rainforest, spanning an area of 3,000,000\u00a0km2, is the world's largest rainforest. It encompasses the largest and most biodiverse tropical rainforest on the planet, representing over half of all rainforests. The Amazon region includes the territories of nine nations, with Brazil containing the majority (60%), followed by Peru (13%), Colombia (10%), and smaller portions in Venezuela, Ecuador, Bolivia (6%), Guyana, Suriname, and French Guiana. Over one-third of the Amazon rainforest is designated as formally acknowledged indigenous territory, amounting to more than 3,344 territories. Historically, indigenous Amazonian peoples have relied on the forest for various needs such as food, shelter, water, fiber, futon, and medicines. The forest holds significant cultural and cosmological importance for them.",
+      "mapper_window": "The Amazon rainforest, spanning an area of 3,000,000\u00a0km2, is the world's largest rainforest. It encompasses the largest and most biodiverse tropical rainforest on the planet, representing over half of all rainforests. The Amazon region includes the territories of nine nations, with Brazil containing the majority (60%), followed by Peru (13%), Colombia (10%), and smaller portions in Venezuela, Ecua",
+      "tier": "reporting",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Deforestation_of_the_Amazon_rainforest"
+    },
+    {
+      "evidence_id": "ev-dccbda7630c0",
+      "title": "Deforestation in Brazil",
+      "full_text": "Brazil once had the highest deforestation rate in the world, and recent data still shows high rates of deforestation. Between 2001 and 2023, Brazil lost 68.9 Mha of tree cover, and in 2022, Brazilian forest loss accounted for 43% of global deforestation. In 2005, Brazil still had the largest area of forest removed annually. Since 1970, over 700,000 square kilometres (270,000\u00a0sq\u00a0mi) of the Amazon rainforest have been destroyed. In 2001, the Amazon was approximately 5,400,000 square kilometres (2,100,000\u00a0sq\u00a0mi), which is only 87% of the Amazon's original size. According to official data, about 729,000\u00a0km\u00b2 have already been deforested in the Amazon biome, which corresponds to 17% of the total. 300,000 km\u00b2 have been deforested in the last 20 years.",
+      "mapper_window": "Brazil once had the highest deforestation rate in the world, and recent data still shows high rates of deforestation. Between 2001 and 2023, Brazil lost 68.9 Mha of tree cover, and in 2022, Brazilian forest loss accounted for 43% of global deforestation. In 2005, Brazil still had the largest area of forest removed annually. Since 1970, over 700,000 square kilometres (270,000\u00a0sq\u00a0mi) of the Amazon r",
+      "tier": "reporting",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Deforestation_in_Brazil"
+    },
+    {
+      "evidence_id": "ev-14fa302bde05",
+      "title": "Amazon River",
+      "full_text": "The Amazon River in South America is the largest river by discharge volume of water in the world, and the longest or second-longest river system in the world, a title which is disputed with the Nile.",
+      "mapper_window": "The Amazon River in South America is the largest river by discharge volume of water in the world, and the longest or second-longest river system in the world, a title which is disputed with the Nile.",
+      "tier": "reporting",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Amazon_River"
+    },
+    {
+      "evidence_id": "ev-rec-e1_1_e5366e7b",
+      "title": "The Amazon rainforest is dying from the bottom up\u2014tree roots are ...",
+      "full_text": "The Amazon Rainforest provides 20 percent of the world's oxygen, is home to the greatest biodiversity of species on Earth, and is the world's biggest carbon ...",
+      "mapper_window": "The Amazon Rainforest provides 20 percent of the world's oxygen, is home to the greatest biodiversity of species on Earth, and is the world's biggest carbon ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "facebook.com",
+      "url": "https://www.facebook.com/groups/physicsisfun109/posts/950888284256683/"
+    },
+    {
+      "evidence_id": "ev-rec-e1_2_f5ac46cc",
+      "title": "NASA Satellite Measures Saharan Dust Transport to Amazon",
+      "full_text": "And when the Amazon is alive, it produces oxygen. 20% of the world's oxygen comes from the Amazon, and that oxygen keeps us alive. So yes, our breath is ...",
+      "mapper_window": "And when the Amazon is alive, it produces oxygen. 20% of the world's oxygen comes from the Amazon, and that oxygen keeps us alive. So yes, our breath is ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "linkedin.com",
+      "url": "https://www.linkedin.com/posts/william-r-g-3182ba37_nasa-satellite-reveals-how-much-saharan-dust-activity-7383003642485833728-Ve3A"
+    },
+    {
+      "evidence_id": "ev-rec-e1_3_563f4056",
+      "title": "Charted: Tropical Forest Loss in 2024",
+      "full_text": "The Amazon forest alone produces 20% of the world's oxygen, earning it the nickname \u201cthe lungs of the planet.\u201d It is also home to over 10% of all known ...",
+      "mapper_window": "The Amazon forest alone produces 20% of the world's oxygen, earning it the nickname \u201cthe lungs of the planet.\u201d It is also home to over 10% of all known ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "visualcapitalist.com",
+      "url": "https://www.visualcapitalist.com/charted-tropical-forest-loss-in-2024/"
+    },
+    {
+      "evidence_id": "ev-rec-e2_1_4ab63237",
+      "title": "World Bank Group's post - Facebook",
+      "full_text": "While it's commonly said that the Amazon produces 20% of the world's oxygen ... For context the Amazon Rainforest would cover roughly 60% of the total United ...",
+      "mapper_window": "While it's commonly said that the Amazon produces 20% of the world's oxygen ... For context the Amazon Rainforest would cover roughly 60% of the total United ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "facebook.com",
+      "url": "https://www.facebook.com/worldbank/posts/-the-%F0%9D%90%80%F0%9D%90%A6%F0%9D%90%9A%F0%9D%90%B3%F0%9D%90%A8%F0%9D%90%A7%F0%9D%90%A2%F0%9D%90%9A-spans-67-million-square-kilometers-and-holds-half-of-the-planets-r/1283999727101001/"
+    },
+    {
+      "evidence_id": "ev-rec-e1_0_e82d0bd2",
+      "title": "Amazon Lungs of the Earth: 7 Rainforest Benefits",
+      "full_text": "Through photosynthesis, Amazonian plants absorb CO2 and release oxygen, with the region producing over 20% of the world's atmospheric oxygen. This ongoing cycle ...",
+      "mapper_window": "Through photosynthesis, Amazonian plants absorb CO2 and release oxygen, with the region producing over 20% of the world's atmospheric oxygen. This ongoing cycle ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "farmonaut.com",
+      "url": "https://farmonaut.com/south-america/amazon-lungs-of-the-earth-7-rainforest-benefits"
+    },
+    {
+      "evidence_id": "ev-rec-e1_4_d31ba035",
+      "title": "Impacts of convection, chemistry, and forest clearing on biogenic ...",
+      "full_text": "The Amazon rainforest is the largest source of biogenic volatile organic compounds (BVOCs) to the atmosphere. To understand the distribution and chemistry ...",
+      "mapper_window": "The Amazon rainforest is the largest source of biogenic volatile organic compounds (BVOCs) to the atmosphere. To understand the distribution and chemistry ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "pmc.ncbi.nlm.nih.gov",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12092753/"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "19a8212629c0",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-fbecdcc2008a",
+            "relationship": "context",
+            "reasoning": "Discusses the percentage of oxygen produced by the Amazon rainforest, implying it can be quantified."
+          },
+          {
+            "evidence_id": "ev-7744e79261da",
+            "relationship": "context",
+            "reasoning": "Mentions scientists' estimates of oxygen production, indicating it can be quantified."
+          },
+          {
+            "evidence_id": "ev-rec-e1_0_e82d0bd2",
+            "relationship": "supports",
+            "reasoning": "States that the Amazon region produces over 20% of the world's atmospheric oxygen through photosynthesis."
+          },
+          {
+            "evidence_id": "ev-rec-e1_1_e5366e7b",
+            "relationship": "supports",
+            "reasoning": "Explicitly states that the Amazon Rainforest provides 20 percent of the world's oxygen."
+          },
+          {
+            "evidence_id": "ev-rec-e1_2_f5ac46cc",
+            "relationship": "supports",
+            "reasoning": "Mentions that 20% of the world's oxygen comes from the Amazon."
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_563f4056",
+            "relationship": "supports",
+            "reasoning": "Asserts that the Amazon forest alone produces 20% of the world's oxygen."
+          },
+          {
+            "evidence_id": "ev-rec-e1_4_d31ba035",
+            "relationship": "context",
+            "reasoning": "Discusses the Amazon rainforest as a source of biogenic volatile organic compounds, but does not quantify oxygen production."
+          },
+          {
+            "evidence_id": "ev-rec-e2_1_4ab63237",
+            "relationship": "context",
+            "reasoning": "Acknowledges the common statement that the Amazon produces 20% of the world's oxygen but does not quantify it, instead providing context about the Amazon's land coverage."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-fbecdcc2008a",
+            "relationship": "context",
+            "reasoning": "Discusses the percentage of oxygen produced by the Amazon rainforest in relation to the world's oxygen, implying global oxygen production can be quantified."
+          },
+          {
+            "evidence_id": "ev-7744e79261da",
+            "relationship": "context",
+            "reasoning": "Mentions the world's oxygen production in the context of the Amazon's contribution, implying it can be quantified."
+          },
+          {
+            "evidence_id": "ev-rec-e1_0_e82d0bd2",
+            "relationship": "context",
+            "reasoning": "Mentions the Amazon producing over 20% of the world's atmospheric oxygen, implying a quantifiable total world oxygen production, but does not state the figure."
+          },
+          {
+            "evidence_id": "ev-rec-e1_1_e5366e7b",
+            "relationship": "context",
+            "reasoning": "States the Amazon provides 20 percent of the world's oxygen, implying a quantifiable total world oxygen production, but does not state the figure."
+          },
+          {
+            "evidence_id": "ev-rec-e1_2_f5ac46cc",
+            "relationship": "context",
+            "reasoning": "States 20% of the world's oxygen comes from the Amazon, implying a quantifiable total world oxygen production, but does not state the figure."
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_563f4056",
+            "relationship": "context",
+            "reasoning": "Asserts the Amazon produces 20% of the world's oxygen, implying a quantifiable total world oxygen production, but does not state the figure."
+          },
+          {
+            "evidence_id": "ev-rec-e2_1_4ab63237",
+            "relationship": "context",
+            "reasoning": "Acknowledges the common statement that the Amazon produces 20% of the world's oxygen, implying a quantifiable total world oxygen production, but does not state the figure."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": "The provided evidence does not quantify the total oxygen production of the Earth."
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-fbecdcc2008a",
+            "relationship": "challenges",
+            "reasoning": "States the percentage is closer to 6 to 9%, directly contradicting the claimed 20%."
+          },
+          {
+            "evidence_id": "ev-7744e79261da",
+            "relationship": "challenges",
+            "reasoning": "Explicitly states the claim is false and that the Amazon does not produce 20% of the world's oxygen."
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": "The evidence suggests the Amazon produces between 6-9% of the Earth's oxygen, not 20%."
+      }
+    ]
+  }
+}

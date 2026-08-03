@@ -1,0 +1,226 @@
+{
+  "case_id": "case-006",
+  "source": {
+    "check_id": "951a49dc-c791-436b-baac-b541a89346b8",
+    "claim_id": "30b33c76-823b-412f-899d-1a322f39a915",
+    "claim_position": 2,
+    "extracted_at": "2026-03-02T21:10:57.646749+00:00"
+  },
+  "claim": {
+    "normalised_claim": "Approximately 60% of the Amazon rainforest is located within Brazil.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The total geographical area of the Amazon rainforest can be determined."
+      },
+      {
+        "element_id": "e2",
+        "description": "The geographical area of the Amazon rainforest located within Brazil can be determined."
+      },
+      {
+        "element_id": "e3",
+        "description": "The proportion of the Amazon rainforest within Brazil is approximately 60%."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-rec-2_0_46bfbafd",
+      "title": "Amazon Rainforest | Plants, Animals, Climate, & Deforestation",
+      "full_text": "Brazil holds approximately 60 percent of the Amazon within its borders. How many species does the Amazon Rainforest contain? The Amazon Rainforest is the ...",
+      "mapper_window": "Brazil holds approximately 60 percent of the Amazon within its borders. How many species does the Amazon Rainforest contain? The Amazon Rainforest is the ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "britannica.com",
+      "url": "https://www.britannica.com/place/Amazon-Rainforest"
+    },
+    {
+      "evidence_id": "ev-rec-2_1_1e46c67f",
+      "title": "Brazil and local communities key to conserving Amazon rainforest",
+      "full_text": "The Brazilian Amazon supports more than 40 million people, contains at least 10% of the world's known species, and contributes to the stability of the climate, ...",
+      "mapper_window": "The Brazilian Amazon supports more than 40 million people, contains at least 10% of the world's known species, and contributes to the stability of the climate, ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "worldwildlife.org",
+      "url": "https://www.worldwildlife.org/news/stories/government-of-brazil-communities-to-join-forces-to-conserve-nearly-60-million-acres-across-the-brazilian-amazon/"
+    },
+    {
+      "evidence_id": "ev-rec-2_2_7545b3a7",
+      "title": "Amazon Rainforest: A Natural Gem of Brazil - Craft Travel",
+      "full_text": "Spanning over 3 million square miles, it stretches across nine countries in South America, with the majority (approximately 60%) nestled within the borders of ...",
+      "mapper_window": "Spanning over 3 million square miles, it stretches across nine countries in South America, with the majority (approximately 60%) nestled within the borders of ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "crafttravel.com",
+      "url": "https://www.crafttravel.com/blog/amazon-rainforest"
+    },
+    {
+      "evidence_id": "ev-rec-2_4_a6c243a6",
+      "title": "Approximately 60% of all Amazon rainforest is located in Brazil....      ",
+      "full_text": "The rainforest in Brazil is 60% of the Amazon Rainforest. Brazil contains 25% of the world's rainforests and the Amazon basin gets 7 feet or more of rain a year ...",
+      "mapper_window": "The rainforest in Brazil is 60% of the Amazon Rainforest. Brazil contains 25% of the world's rainforests and the Amazon basin gets 7 feet or more of rain a year ...",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "facebook.com",
+      "url": "https://www.facebook.com/chmubeen.khan.90/posts/approximately-60-of-all-amazon-rainforest-is-located-in-brazil/1608420886815586/"
+    },
+    {
+      "evidence_id": "ev-rec-2_5_d319b0f8",
+      "title": "\u201cVulnerabilities and compound risks of escalating climate disasters ...",
+      "full_text": "The Brazilian Amazon is severely impacted by extreme climate events, with 1.8 million people (6.4% of the Brazilian Amazon's population) affected by ...",
+      "mapper_window": "The Brazilian Amazon is severely impacted by extreme climate events, with 1.8 million people (6.4% of the Brazilian Amazon's population) affected by ...",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s41467-025-66603-0"
+    },
+    {
+      "evidence_id": "ev-rec-2_6_fce7014f",
+      "title": "How climate change and deforestation interact in the transformation ...",
+      "full_text": "While the Amazon biome extends beyond Brazil's borders, the BLA encompasses the vast majority of its forest area under national jurisdiction and includes the ...",
+      "mapper_window": "While the Amazon biome extends beyond Brazil's borders, the BLA encompasses the vast majority of its forest area under national jurisdiction and includes the ...",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s41467-025-63156-0"
+    },
+    {
+      "evidence_id": "ev-rec-2_7_24757032",
+      "title": "Observed shifts in regional climate linked to Amazon ...",
+      "full_text": "Since 1985, the Amazon rainforest has lost approximately 11% (~59 Mha) of its forest cover to anthropogenic land uses (based on data from MapBiomas Amazonia ...",
+      "mapper_window": "Since 1985, the Amazon rainforest has lost approximately 11% (~59 Mha) of its forest cover to anthropogenic land uses (based on data from MapBiomas Amazonia ...",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s43247-025-02900-2"
+    },
+    {
+      "evidence_id": "ev-rec-2_8_79022512",
+      "title": "Impact of Amazonian deforestation on precipitation reverses ...",
+      "full_text": "The crucial role of nonlocal effects in the deforestation\u2013precipitation relationships over the Amazon is important, as 50\u201360% of the water vapour contribution ...",
+      "mapper_window": "The crucial role of nonlocal effects in the deforestation\u2013precipitation relationships over the Amazon is important, as 50\u201360% of the water vapour contribution ...",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s41586-024-08570-y"
+    },
+    {
+      "evidence_id": "ev-rec-2_9_bcb8ac55",
+      "title": "The influence of environmental attitudes on urban afforestation in ...",
+      "full_text": "... (Brazilian Atlantic Forest), and Andira inermis (Amazon), accounting for 60% of all trees. The vast majority of species (approximately 70%) are exotic. Data ...",
+      "mapper_window": "... (Brazilian Atlantic Forest), and Andira inermis (Amazon), accounting for 60% of all trees. The vast majority of species (approximately 70%) are exotic. Data ...",
+      "tier": "commentary",
+      "evidence_type": "academic",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s41599-025-05994-3"
+    },
+    {
+      "evidence_id": "ev-rec-2_3_4d9f2a2a",
+      "title": "How healthy is the Amazon, the world's largest tropical rainforest?",
+      "full_text": "Brazil, which is home to 60% of the Amazon, has lost 17% of its forest cover in under 40 years, according to the study. Where do things stand today? In Brazil ...",
+      "mapper_window": "Brazil, which is home to 60% of the Amazon, has lost 17% of its forest cover in under 40 years, according to the study. Where do things stand today? In Brazil ...",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "lemonde.fr",
+      "url": "https://www.lemonde.fr/en/environment/article/2025/11/05/how-healthy-is-the-amazon-the-world-s-largest-tropical-rainforest_6747118_114.html"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "92fc10695e55",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-2_2_7545b3a7",
+            "relationship": "context",
+            "reasoning": "States the Amazon spans over 3 million square miles, implying its total area can be determined."
+          },
+          {
+            "evidence_id": "ev-rec-2_4_a6c243a6",
+            "relationship": "context",
+            "reasoning": "Mentions the Amazon basin and its rainfall, implying its area is a quantifiable aspect."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-2_0_46bfbafd",
+            "relationship": "supports",
+            "reasoning": "Explicitly states Brazil holds approximately 60 percent of the Amazon within its borders."
+          },
+          {
+            "evidence_id": "ev-rec-2_2_7545b3a7",
+            "relationship": "supports",
+            "reasoning": "States the majority (approximately 60%) is nestled within the borders of Brazil."
+          },
+          {
+            "evidence_id": "ev-rec-2_3_4d9f2a2a",
+            "relationship": "supports",
+            "reasoning": "Mentions Brazil is home to 60% of the Amazon."
+          },
+          {
+            "evidence_id": "ev-rec-2_4_a6c243a6",
+            "relationship": "supports",
+            "reasoning": "States the rainforest in Brazil is 60% of the Amazon Rainforest."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-2_0_46bfbafd",
+            "relationship": "supports",
+            "reasoning": "States Brazil holds approximately 60 percent of the Amazon."
+          },
+          {
+            "evidence_id": "ev-rec-2_2_7545b3a7",
+            "relationship": "supports",
+            "reasoning": "States the majority (approximately 60%) is within Brazil's borders."
+          },
+          {
+            "evidence_id": "ev-rec-2_3_4d9f2a2a",
+            "relationship": "supports",
+            "reasoning": "Confirms Brazil is home to 60% of the Amazon."
+          },
+          {
+            "evidence_id": "ev-rec-2_4_a6c243a6",
+            "relationship": "supports",
+            "reasoning": "Directly states the rainforest in Brazil is 60% of the Amazon Rainforest."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "case_id": "case-013",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-f88e50b2eed0",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses the percentage of oxygen produced by the Amazon, implying it can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-0c8929bec31f",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions scientists' estimates of oxygen production by the Amazon, implying it can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-f88e50b2eed0",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Discusses the percentage of oxygen produced by the Amazon in relation to the world's oxygen, implying global production can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-0c8929bec31f",
+      "mapper_relationship": "context",
+      "mapper_reasoning": "Mentions the world's oxygen production in the context of the Amazon's contribution, implying global production can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-f88e50b2eed0",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "States the percentage is closer to 6 to 9%, directly contradicting the claimed 20%.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-0c8929bec31f",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "Explicitly states the claim that the Amazon produces 20% of the world's oxygen is false.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "unresolved",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "disputed",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}

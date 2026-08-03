@@ -1,0 +1,310 @@
+{
+  "case_id": "case-005",
+  "source": {
+    "check_id": "fb7cc173-eda4-43c4-841d-74a9868a7b5b",
+    "claim_id": "e8dc2001-3cf6-4963-b79a-f7a6758c9499",
+    "claim_position": 0,
+    "extracted_at": "2026-03-02T21:10:57.645432+00:00"
+  },
+  "claim": {
+    "normalised_claim": "Electric vehicles constitute 18% of all new car sales globally.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The total number of new cars sold globally is recorded."
+      },
+      {
+        "element_id": "e2",
+        "description": "The total number of new electric vehicles sold globally is recorded."
+      },
+      {
+        "element_id": "e3",
+        "description": "The ratio of new electric vehicle sales to total new car sales is calculated."
+      },
+      {
+        "element_id": "e4",
+        "description": "This calculated ratio is equal to 18%."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-b65537736bac",
+      "title": "Electric car use by country",
+      "full_text": "Electric car use by country varies worldwide, as the adoption of plug-in electric vehicles is affected by consumer demand, market prices, availability of charging infrastructure, and government policies, such as purchase incentives and long term regulatory signals.",
+      "mapper_window": "Electric car use by country varies worldwide, as the adoption of plug-in electric vehicles is affected by consumer demand, market prices, availability of charging infrastructure, and government policies, such as purchase incentives and long term regulatory signals.",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Electric_car_use_by_country"
+    },
+    {
+      "evidence_id": "ev-rpf-0_1",
+      "title": "Global Electric Vehicle Market Share - Counterpoint Research",
+      "full_text": "BEV penetration reached a new milestone in the quarter, accounting for 18% of global PV sales, up from 14% in the same period last year. China remained the ...",
+      "mapper_window": "BEV penetration reached a new milestone in the quarter, accounting for 18% of global PV sales, up from 14% in the same period last year. China remained the ...",
+      "tier": "reporting",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "counterpointresearch.com",
+      "url": "https://counterpointresearch.com/en/insights/global-electric-vehicle-market-share-quarterly"
+    },
+    {
+      "evidence_id": "ev-rpf-0_3",
+      "title": "THE 18% MILESTONE! Global EV Sales Explode 40% - YouTube",
+      "full_text": "THE 18% MILESTONE! Global EV Sales Explode 40%\u2014But China is Dominating Global electric vehicle sales have surged more than 40%, pushing EVs to a historic ...",
+      "mapper_window": "THE 18% MILESTONE! Global EV Sales Explode 40%\u2014But China is Dominating Global electric vehicle sales have surged more than 40%, pushing EVs to a historic ...",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "youtube.com",
+      "url": "https://www.youtube.com/watch?v=fhJ8C4qbFcI"
+    },
+    {
+      "evidence_id": "ev-rec-e1_1_e2fa0b6c",
+      "title": "Global EV Sales Report \u2014 BEVs Reach 18% Share in August!",
+      "full_text": "There were 1.7 million plugin vehicles registered worldwide in August. Global plugin vehicle registrations were up 14% in August 2025 compared to August 2024.",
+      "mapper_window": "There were 1.7 million plugin vehicles registered worldwide in August. Global plugin vehicle registrations were up 14% in August 2025 compared to August 2024.",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "cleantechnica.com",
+      "url": "https://cleantechnica.com/2025/10/06/global-ev-sales-report-bevs-reach-18-share-in-august/"
+    },
+    {
+      "evidence_id": "ev-rec-e1_2_41cc5938",
+      "title": "European Market Monitor: Cars and Vans (November 2025)",
+      "full_text": "For year-to-date (YTD) 2025, the BEV share of total new registrations was 18%, which represents an increase of 4 percentage points compared with the same period ...",
+      "mapper_window": "For year-to-date (YTD) 2025, the BEV share of total new registrations was 18%, which represents an increase of 4 percentage points compared with the same period ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "theicct.org",
+      "url": "https://theicct.org/publication/european-market-monitor-cars-and-vans-nov-2025/"
+    },
+    {
+      "evidence_id": "ev-rec-e1_4_8e16e0b5",
+      "title": "Electric Vehicle Outlook | BloombergNEF",
+      "full_text": "Global sales of electric vehicles continue to rise and are set to represent one in four cars sold this year. But some markets are experiencing a significant ...",
+      "mapper_window": "Global sales of electric vehicles continue to rise and are set to represent one in four cars sold this year. But some markets are experiencing a significant ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "about.bnef.com",
+      "url": "https://about.bnef.com/insights/clean-transport/electric-vehicle-outlook/"
+    },
+    {
+      "evidence_id": "ev-rec-e2_2_34dad788",
+      "title": "Electric Vehicle Sales Review Q4-2025 | PwC and Strategy",
+      "full_text": "Global BEV sales surpassed 4 million in Q4 2025 for the first time, with over 20% of vehicles sold globally being BEVs and full-year growth of 30% ...",
+      "mapper_window": "Global BEV sales surpassed 4 million in Q4 2025 for the first time, with over 20% of vehicles sold globally being BEVs and full-year growth of 30% ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "strategyand.pwc.com",
+      "url": "https://www.strategyand.pwc.com/de/en/industries/automotive/electric-vehicle-sales-review-q4-2025.html"
+    },
+    {
+      "evidence_id": "ev-rec-e3_0_890a4b1d",
+      "title": "A high-resolution dataset on electric passenger vehicle ... - Nature",
+      "full_text": "Also, the global electric passenger vehicle penetration rate achieved 18%, which is expected to exceed 80% by 2040 under net-zero emission targets. Behind such ...",
+      "mapper_window": "Also, the global electric passenger vehicle penetration rate achieved 18%, which is expected to exceed 80% by 2040 under net-zero emission targets. Behind such ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nature.com",
+      "url": "https://www.nature.com/articles/s41597-025-05770-7"
+    },
+    {
+      "evidence_id": "ev-rec-e3_1_f281254c",
+      "title": "[PDF] \u201cEquilibrium Effects in Complementary Markets: Electric Vehicle ...",
+      "full_text": "Electric vehicles. (EVs) now account for more than 20% of global sales (International Energy Agency, 2025). This shift moves the complementary market for ...",
+      "mapper_window": "Electric vehicles. (EVs) now account for more than 20% of global sales (International Energy Agency, 2025). This shift moves the complementary market for ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "tse-fr.eu",
+      "url": "https://www.tse-fr.eu/sites/default/files/TSE/documents/doc/wp/2024/wp_tse_1589.pdf"
+    },
+    {
+      "evidence_id": "ev-rec-e3_2_780649c4",
+      "title": "Differences in vehicle electrification policies and optimal transition ...",
+      "full_text": "Electric vehicles (EVs), including plug-in hybrid vehicles (PHEVs) and battery electric vehicles (BEVs), accounted for 18% of the global new-vehicle sales in ...",
+      "mapper_window": "Electric vehicles (EVs), including plug-in hybrid vehicles (PHEVs) and battery electric vehicles (BEVs), accounted for 18% of the global new-vehicle sales in ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "onlinelibrary.wiley.com",
+      "url": "https://onlinelibrary.wiley.com/doi/full/10.1111/jiec.70028"
+    },
+    {
+      "evidence_id": "ev-rec-e3_3_951f63cd",
+      "title": "[PDF] autosinnovate.org Alliance for Automotive Innovation Comments on ...",
+      "full_text": "Some data sets herein may also include fuel cell electric vehicles, which are only a very small portion of total electric vehicles sales or market share. 15 ...",
+      "mapper_window": "Some data sets herein may also include fuel cell electric vehicles, which are only a very small portion of total electric vehicles sales or market share. 15 ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "autosinnovate.org",
+      "url": "https://www.autosinnovate.org/posts/agency-comments/energy-environment/2025-energy-environment/EPA%20on%20GHG%20Endangerment%20and%20Standards%20Rescission%209-22-2025"
+    },
+    {
+      "evidence_id": "ev-rec-e3_4_7f815aff",
+      "title": "Emissions reduction potential and feasibility of vehicle-to-grid for ...",
+      "full_text": "In 2023, global EV sales exceed 14 million units\u2014mostly passenger EVs\u2014representing 18% of total car sales, and the average proportion is expected to jump ...",
+      "mapper_window": "In 2023, global EV sales exceed 14 million units\u2014mostly passenger EVs\u2014representing 18% of total car sales, and the average proportion is expected to jump ...",
+      "tier": null,
+      "evidence_type": null,
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "sciencedirect.com",
+      "url": "https://www.sciencedirect.com/science/article/pii/S2666386425002152"
+    },
+    {
+      "evidence_id": "ev-rpf-0_2",
+      "title": "Electric Vehicle Sales Review Q3-2025 | PwC and Strategy",
+      "full_text": "Sales in Q3 increased by 36% year-on-year, exceeding two million registrations and resulting in a BEV market share of 34%. The increasing popularity of BEVs, ...",
+      "mapper_window": "Sales in Q3 increased by 36% year-on-year, exceeding two million registrations and resulting in a BEV market share of 34%. The increasing popularity of BEVs, ...",
+      "tier": "reporting",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "strategyand.pwc.com",
+      "url": "https://www.strategyand.pwc.com/de/en/industries/automotive/electric-vehicle-sales-review-q3-2025.html"
+    },
+    {
+      "evidence_id": "ev-rpf-0_0",
+      "title": "The rest of the world is lapping the U.S. in the EV race",
+      "full_text": "EVs made up about 25% of global car sales in 2025. In the U.S., they only made up 10%.",
+      "mapper_window": "EVs made up about 25% of global car sales in 2025. In the U.S., they only made up 10%.",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "yaleclimateconnections.org",
+      "url": "https://yaleclimateconnections.org/2025/12/the-rest-of-the-world-is-lapping-the-u-s-in-the-ev-race/"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "89c616093abf",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-e1_2_41cc5938",
+            "relationship": "context",
+            "reasoning": "This evidence mentions the BEV share of total new registrations in the context of European markets, implying total new registrations are tracked."
+          },
+          {
+            "evidence_id": "ev-rec-e3_2_780649c4",
+            "relationship": "context",
+            "reasoning": "This evidence states that EVs accounted for 18% of global new-vehicle sales, implying that total new-vehicle sales are recorded."
+          },
+          {
+            "evidence_id": "ev-rec-e3_4_7f815aff",
+            "relationship": "context",
+            "reasoning": "This evidence states that global EV sales represented 18% of total car sales in 2023, implying that total car sales are recorded."
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": "The evidence does not explicitly state that the total number of new cars sold globally is recorded, only that it is implied by the reporting of EV sales percentages."
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-e1_1_e2fa0b6c",
+            "relationship": "supports",
+            "reasoning": "This evidence reports that 1.7 million plugin vehicles were registered worldwide in August, indicating a recording of global EV sales."
+          },
+          {
+            "evidence_id": "ev-rec-e2_2_34dad788",
+            "relationship": "supports",
+            "reasoning": "This evidence states that Global BEV sales surpassed 4 million in Q4 2025, confirming that global electric vehicle sales are recorded."
+          },
+          {
+            "evidence_id": "ev-rec-e3_4_7f815aff",
+            "relationship": "supports",
+            "reasoning": "This evidence states that in 2023, global EV sales exceeded 14 million units, confirming that global electric vehicle sales are recorded."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rec-e1_2_41cc5938",
+            "relationship": "supports",
+            "reasoning": "This evidence states that the BEV share of total new registrations was 18% year-to-date 2025, directly indicating the calculation of this ratio."
+          },
+          {
+            "evidence_id": "ev-rec-e3_0_890a4b1d",
+            "relationship": "supports",
+            "reasoning": "This evidence mentions the global electric passenger vehicle penetration rate achieved 18%, which is the ratio of EV sales to total car sales."
+          },
+          {
+            "evidence_id": "ev-rec-e3_1_f281254c",
+            "relationship": "supports",
+            "reasoning": "This evidence states that electric vehicles (EVs) now account for more than 20% of global sales, which is the ratio of EV sales to total sales."
+          },
+          {
+            "evidence_id": "ev-rec-e3_2_780649c4",
+            "relationship": "supports",
+            "reasoning": "This evidence states that EVs accounted for 18% of the global new-vehicle sales, directly representing the calculated ratio."
+          },
+          {
+            "evidence_id": "ev-rec-e3_4_7f815aff",
+            "relationship": "supports",
+            "reasoning": "This evidence states that global EV sales represented 18% of total car sales in 2023, confirming the calculation of this ratio."
+          },
+          {
+            "evidence_id": "ev-rec-e1_4_8e16e0b5",
+            "relationship": "context",
+            "reasoning": "This evidence discusses global sales of electric vehicles and their share of cars sold, providing context for the calculation of this ratio."
+          },
+          {
+            "evidence_id": "ev-rec-e3_3_951f63cd",
+            "relationship": "context",
+            "reasoning": "This evidence discusses how different datasets might include or exclude certain types of electric vehicles when calculating market share, providing context for the ratio calculation."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e4",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-rpf-0_1",
+            "relationship": "supports",
+            "reasoning": "States that BEV penetration reached 18% of global PV sales, directly supporting the claim."
+          },
+          {
+            "evidence_id": "ev-rpf-0_3",
+            "relationship": "supports",
+            "reasoning": "Mentions 'THE 18% MILESTONE!' in relation to global EV sales, supporting the claim."
+          }
+        ],
+        "state": "supported",
+        "uncertainty": null
+      }
+    ]
+  }
+}

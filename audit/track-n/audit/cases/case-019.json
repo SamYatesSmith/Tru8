@@ -1,0 +1,195 @@
+{
+  "case_id": "case-019",
+  "source": {
+    "check_id": "d62b32d1-8a0c-44f4-b701-ef4a87c5d76a",
+    "claim_id": "86bb2fc7-c897-4e93-a99f-1b74761f2152",
+    "claim_position": 0,
+    "extracted_at": "2026-03-02T21:10:57.671749+00:00"
+  },
+  "claim": {
+    "normalised_claim": "The state of Israel functions as a satellite state of the United States.",
+    "claim_type": "causal_interpretive",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "Israel is heavily dependent on the United States for political support."
+      },
+      {
+        "element_id": "e2",
+        "description": "Israel's foreign policy decisions are significantly influenced or dictated by the United States."
+      },
+      {
+        "element_id": "e3",
+        "description": "The United States exerts substantial control over Israel's economic or military capabilities."
+      },
+      {
+        "element_id": "e4",
+        "description": "Israel lacks genuine autonomy in its decision-making processes, acting primarily in accordance with U.S. interests."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-598f29e59c3f",
+      "title": "Maps: Where the U.S. Is Building Up Military Force Near Iran",
+      "full_text": "Flight tracking data and satellite imagery suggest that the United States is also moving additional aircraft, including refueling planes and reconnaissance ...",
+      "mapper_window": "Flight tracking data and satellite imagery suggest that the United States is also moving additional aircraft, including refueling planes and reconnaissance ...",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "nytimes.com",
+      "url": "https://www.nytimes.com/2026/01/29/us/politics/trump-iran-us-military-maps.html"
+    },
+    {
+      "evidence_id": "ev-113aea1fcf6b",
+      "title": "A look at the military hardware the US has positioned for potential ...",
+      "full_text": "As the US has collected its military hardware in the area, Iran is fortifying several of its nuclear facilities, using concrete and large amounts of soil to bury key sites, according to new satellite imagery and analysis from the Institute for Science and International Security",
+      "mapper_window": "As the US has collected its military hardware in the area, Iran is fortifying several of its nuclear facilities, using concrete and large amounts of soil to bury key sites, according to new satellite imagery and analysis from the Institute for Science and International Security",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "cnn.com",
+      "url": "https://www.cnn.com/2026/02/20/politics/military-power-buildup-us-iran-intl-vis"
+    },
+    {
+      "evidence_id": "ev-c1d72a1a63bb",
+      "title": "Israel's Space Program Is Falling Behind \u2013 Just as the Global Space ...",
+      "full_text": "Defense needs drove the goal to breach the atmosphere, but the civilian potential quickly became apparent, and Israel turned itself into a powerhouse that has operated more than 50 satellites to date, for uses ranging from photoreconnaissance to missile defense",
+      "mapper_window": "Defense needs drove the goal to breach the atmosphere, but the civilian potential quickly became apparent, and Israel turned itself into a powerhouse that has operated more than 50 satellites to date, for uses ranging from photoreconnaissance to missile defense",
+      "tier": "commentary",
+      "evidence_type": "analysis",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "haaretz.com",
+      "url": "https://www.haaretz.com/israel-news/security-aviation/2026-01-28/ty-article-magazine/.premium/israels-space-program-is-falling-behind-just-as-the-global-space-race-accelerates/0000019b-ffa8-d58f-a9db-ffb83a9c0000"
+    },
+    {
+      "evidence_id": "ev-8a632f770f79",
+      "title": "Has Israel Become a Client State of the United States? - The Blogs",
+      "full_text": "Vice President JD Vance and Secretary of State Marco Rubio have recently tried to neutralize that idea, insisting that the US\u2013Israel relationship remains a partnership of equals. Yet their reassurances ring hollow in the shadow of President Donald Trump\u2019s increasingly personal interventions in Israeli decision-making. To be clear: Israel is no satellite state. It is a regional powerhouse with world-class intelligence services, cutting-edge military technology, and a strategic location that anchors American interests in the Middle East. Its influence in Washington \u2014 through AIPAC, bipartisan congressional support, and evangelical networks \u2014 far exceeds what might be expected of a country of ten million people",
+      "mapper_window": "Vice President JD Vance and Secretary of State Marco Rubio have recently tried to neutralize that idea, insisting that the US\u2013Israel relationship remains a partnership of equals. Yet their reassurances ring hollow in the shadow of President Donald Trump\u2019s increasingly personal interventions in Israeli decision-making. To be clear: Israel is no satellite state. It is a regional powerhouse with worl",
+      "tier": "commentary",
+      "evidence_type": "opinion",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "blogs.timesofisrael.com",
+      "url": "https://blogs.timesofisrael.com/has-israel-become-a-client-state-of-the-united-states/"
+    },
+    {
+      "evidence_id": "ev-cc6fe271aba6",
+      "title": "Israeli-Palestinian Conflict | Global Conflict Tracker - CFR.org",
+      "full_text": "Israel-Somaliland Ties Israeli Foreign Minister Gideon Saar visited Somaliland after Israel became the first country in the world to officially recognize the breakaway territory\u2019s independence last month; Saar said that Israel would soon open an embassy in Somaliland (AP)",
+      "mapper_window": "Israel-Somaliland Ties Israeli Foreign Minister Gideon Saar visited Somaliland after Israel became the first country in the world to officially recognize the breakaway territory\u2019s independence last month; Saar said that Israel would soon open an embassy in Somaliland (AP)",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "cfr.org",
+      "url": "https://www.cfr.org/global-conflict-tracker/conflict/israeli-palestinian-conflict"
+    },
+    {
+      "evidence_id": "ev-d44b3742b076",
+      "title": "Satellite state",
+      "full_text": "A satellite state or dependent state is a country that is formally independent but under heavy political, economic, and military influence or control from another country. The term was coined by analogy to planetary objects orbiting a larger object, such as smaller moons revolving around larger planets, and is used mainly to refer to Central and Eastern European member states of the Warsaw Pact during the Cold War, as well as to Mongolia and Tuva between 1924 and 1990, all of which were economically, culturally, and politically dominated by the Soviet Union. While primarily referring to the Soviet-controlled states in Central and Eastern Europe or Asia, in some contexts the term also refers to other countries under Soviet hegemony during the Cold War, such as North Korea, Cuba, North Vietnam during the Vietnam War, and some countries in the American sphere of influence, such as South Vietnam during 1964\u20131973. In Western usage, the term has seldom been applied to states other than those in the Soviet orbit. In Soviet usage, the term applied to states in the orbit of Nazi Germany, Fascist Italy, and Imperial Japan, whereas in the West the term to refer to those has typically been client states.",
+      "mapper_window": "A satellite state or dependent state is a country that is formally independent but under heavy political, economic, and military influence or control from another country. The term was coined by analogy to planetary objects orbiting a larger object, such as smaller moons revolving around larger planets, and is used mainly to refer to Central and Eastern European member states of the Warsaw Pact du",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Satellite_state"
+    },
+    {
+      "evidence_id": "ev-0e121a8615f5",
+      "title": "Iran\u2013Israel war",
+      "full_text": "The Iran\u2013Israel war, also known as the Twelve-Day War, was an armed conflict in the Middle East. The war began when Israel bombed military and nuclear facilities in Iran in a surprise attack, assassinating prominent military leaders, nuclear scientists, and politicians, killing civilians, and damaging or destroying air defenses. Iran retaliated with over 550 ballistic missiles and over 1,000 suicide drones, hitting civilian population centers, one hospital and at least twelve military, energy, and government sites. The United States intercepted Iranian attacks, and bombed three Iranian nuclear sites on 22 June. Iran retaliated by firing missiles at a US base in Qatar. On 24 June, Israel and Iran agreed to a ceasefire under US pressure.",
+      "mapper_window": "The Iran\u2013Israel war, also known as the Twelve-Day War, was an armed conflict in the Middle East. The war began when Israel bombed military and nuclear facilities in Iran in a surprise attack, assassinating prominent military leaders, nuclear scientists, and politicians, killing civilians, and damaging or destroying air defenses. Iran retaliated with over 550 ballistic missiles and over 1,000 suici",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Iran%E2%80%93Israel_war"
+    },
+    {
+      "evidence_id": "ev-e33f7fead3f0",
+      "title": "Israel and state-sponsored terrorism",
+      "full_text": "The State of Israel has been accused of engaging in state-sponsored terrorism, as well as committing acts of state terrorism on a daily basis in the Palestinian territories. Countries that have condemned Israel's role as a perpetrator of state-sponsored terrorism or state terrorism include Bolivia, Iran, Lebanon, Oman, Qatar, Saudi Arabia, Syria, Turkey, and Yemen.",
+      "mapper_window": "The State of Israel has been accused of engaging in state-sponsored terrorism, as well as committing acts of state terrorism on a daily basis in the Palestinian territories. Countries that have condemned Israel's role as a perpetrator of state-sponsored terrorism or state terrorism include Bolivia, Iran, Lebanon, Oman, Qatar, Saudi Arabia, Syria, Turkey, and Yemen.",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Israel_and_state-sponsored_terrorism"
+    },
+    {
+      "evidence_id": "ev-67690110a2c7",
+      "title": "Satellite images reveal build-up of US fighter jets and missile ...",
+      "full_text": "Iran retaliated with a wave of ballistic missiles, which overpowered Israel's defence system",
+      "mapper_window": "Iran retaliated with a wave of ballistic missiles, which overpowered Israel's defence system",
+      "tier": "reporting",
+      "evidence_type": "news_reporting",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "abc.net.au",
+      "url": "https://www.abc.net.au/news/2026-02-06/us-military-escalation-iran-middle-east-nuclear-talks-satellite/106309628"
+    },
+    {
+      "evidence_id": "ev-6b5dfbe2f7ea",
+      "title": "Israel",
+      "full_text": "Israel, officially the State of Israel, is a country in the Southern Levant region of West Asia. It is bordered by Lebanon to the north, Syria to the northeast, Jordan to the east, and Egypt to the southwest. Israel occupies the West Bank and the Gaza Strip of the Palestinian territories, as well as the Syrian Golan Heights. Israel's western coast lies on the Mediterranean Sea, its southern tip reaching the Red Sea, and the east includes the Earth's lowest point near the Dead Sea. Jerusalem is the government seat and proclaimed capital, while Tel Aviv is Israel's largest urban area and economic centre.",
+      "mapper_window": "Israel, officially the State of Israel, is a country in the Southern Levant region of West Asia. It is bordered by Lebanon to the north, Syria to the northeast, Jordan to the east, and Egypt to the southwest. Israel occupies the West Bank and the Gaza Strip of the Palestinian territories, as well as the Syrian Golan Heights. Israel's western coast lies on the Mediterranean Sea, its southern tip re",
+      "tier": "primary",
+      "evidence_type": "data",
+      "llm_relevance_score": null,
+      "classification_method": null,
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Israel"
+    }
+  ],
+  "mapper_output": {
+    "model": "gemini-2.5-flash-lite",
+    "prompt_hash": "273046c53991",
+    "elements": [
+      {
+        "element_id": "e1",
+        "evidence_refs": [],
+        "state": "unresolved",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e2",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-8a632f770f79",
+            "relationship": "context",
+            "reasoning": null
+          }
+        ],
+        "state": "unresolved",
+        "uncertainty": "While the article mentions US interventions in Israeli decision-making, it does not provide enough detail to determine the extent of influence or control."
+      },
+      {
+        "element_id": "e3",
+        "evidence_refs": [],
+        "state": "unresolved",
+        "uncertainty": null
+      },
+      {
+        "element_id": "e4",
+        "evidence_refs": [
+          {
+            "evidence_id": "ev-8a632f770f79",
+            "relationship": "challenges",
+            "reasoning": null
+          }
+        ],
+        "state": "disputed",
+        "uncertainty": "One source explicitly states Israel is not a satellite state and is a regional powerhouse, while another suggests US presidential interventions influence Israeli decision-making."
+      }
+    ]
+  }
+}

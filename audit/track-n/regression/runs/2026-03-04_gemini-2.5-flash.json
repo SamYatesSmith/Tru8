@@ -1,0 +1,144 @@
+{
+  "run_id": "2026-03-04_gemini-2.5-flash",
+  "model": "gemini-2.5-flash",
+  "snippet_length": 400,
+  "prompt_hash": "e4d22024bffa",
+  "timestamp": "2026-03-04T10:22:14.937289+00:00",
+  "cases": [
+    {
+      "case_id": "case-002",
+      "error": "Parse error: Unterminated string starting at: line 103 column 24 (char 5055)",
+      "state_results": [],
+      "ref_results": [],
+      "regressions": [
+        "LLM call failed: Parse error: Unterminated string starting at: line 103 column 24 (char 5055)"
+      ]
+    },
+    {
+      "case_id": "case-003",
+      "error": "Parse error: Unterminated string starting at: line 41 column 24 (char 1838)",
+      "state_results": [],
+      "ref_results": [],
+      "regressions": [
+        "LLM call failed: Parse error: Unterminated string starting at: line 41 column 24 (char 1838)"
+      ]
+    },
+    {
+      "case_id": "case-008",
+      "error": "Parse error: Expecting property name enclosed in double quotes: line 14 column 11 (char 472)",
+      "state_results": [],
+      "ref_results": [],
+      "regressions": [
+        "LLM call failed: Parse error: Expecting property name enclosed in double quotes: line 14 column 11 (char 472)"
+      ]
+    },
+    {
+      "case_id": "case-010",
+      "error": "Parse error: Unterminated string starting at: line 68 column 11 (char 3257)",
+      "state_results": [],
+      "ref_results": [],
+      "regressions": [
+        "LLM call failed: Parse error: Unterminated string starting at: line 68 column 11 (char 3257)"
+      ]
+    },
+    {
+      "case_id": "case-013",
+      "state_results": [
+        {
+          "element_id": "e1",
+          "expected": "unresolved",
+          "actual": "supported",
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "expected": "unresolved",
+          "actual": "supported",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "expected": "disputed",
+          "actual": "disputed",
+          "match": true
+        }
+      ],
+      "ref_results": [
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-f88e50b2eed0",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e1",
+          "evidence_id": "ev-0c8929bec31f",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-f88e50b2eed0",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e2",
+          "evidence_id": "ev-0c8929bec31f",
+          "expected_rel": "context",
+          "actual_rel": "supports",
+          "match": false
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-f88e50b2eed0",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        },
+        {
+          "element_id": "e3",
+          "evidence_id": "ev-0c8929bec31f",
+          "expected_rel": "challenges",
+          "actual_rel": "challenges",
+          "match": true
+        }
+      ],
+      "regressions": [
+        "e1: state expected=unresolved, actual=supported",
+        "e2: state expected=unresolved, actual=supported",
+        "e1/ev-f88e50b2eed0: rel expected=context, actual=supports",
+        "e1/ev-0c8929bec31f: rel expected=context, actual=supports",
+        "e2/ev-f88e50b2eed0: rel expected=context, actual=supports",
+        "e2/ev-0c8929bec31f: rel expected=context, actual=supports"
+      ]
+    },
+    {
+      "case_id": "case-015",
+      "error": "Parse error: Expecting ',' delimiter: line 104 column 4 (char 5062)",
+      "state_results": [],
+      "ref_results": [],
+      "regressions": [
+        "LLM call failed: Parse error: Expecting ',' delimiter: line 104 column 4 (char 5062)"
+      ]
+    },
+    {
+      "case_id": "case-020",
+      "error": "Parse error: Unterminated string starting at: line 13 column 11 (char 533)",
+      "state_results": [],
+      "ref_results": [],
+      "regressions": [
+        "LLM call failed: Parse error: Unterminated string starting at: line 13 column 11 (char 533)"
+      ]
+    }
+  ],
+  "summary": {
+    "cases_tested": 7,
+    "state_accuracy": 0.33,
+    "ref_accuracy": 0.33,
+    "regressions": 12
+  }
+}

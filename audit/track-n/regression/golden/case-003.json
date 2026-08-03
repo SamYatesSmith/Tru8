@@ -1,0 +1,307 @@
+{
+  "case_id": "case-003",
+  "claim": {
+    "normalised_claim": "China manufactures a greater quantity of electric vehicles than any other nation.",
+    "claim_type": "empirical",
+    "elements": [
+      {
+        "element_id": "e1",
+        "description": "The total number of electric vehicles manufactured in China is recorded."
+      },
+      {
+        "element_id": "e2",
+        "description": "The total number of electric vehicles manufactured in every other country is recorded."
+      },
+      {
+        "element_id": "e3",
+        "description": "China's electric vehicle manufacturing output is compared to that of all other countries."
+      },
+      {
+        "element_id": "e4",
+        "description": "China's manufacturing output is greater than that of any other single country."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-e4945aec4a61",
+      "title": "Stock Slide and Slow Sales: What's Happening in China's E.V. ...",
+      "full_text": "In 2025, nearly 400 electric vehicle models were for sale in China, more than double the number in 2019, according to JATO, an automotive market research firm.",
+      "mapper_window": "In 2025, nearly 400 electric vehicle models were for sale in China, more than double the number in 2019, according to JATO, an automotive market research firm.",
+      "tier": "reporting",
+      "evidence_type": "news_reporting"
+    },
+    {
+      "evidence_id": "ev-8a4c2e369c9c",
+      "title": "BYD mulls new plant in Europe, Canada foray in '26 overseas shift",
+      "full_text": "Chinese EV giant BYD weighs further Europe expansion, Canada foray in shift to overseas conquest in 2026 January 28, 2026 08:25 AM EST Featured Stories Stellantis confirms full-year 2025 loss on impact of EV missteps Stellantis said the bulk of the negative result was tied to North America, where operating losses amounted to \u20ac941 million",
+      "mapper_window": "Chinese EV giant BYD weighs further Europe expansion, Canada foray in shift to overseas conquest in 2026 January 28, 2026 08:25 AM EST Featured Stories Stellantis confirms full-year 2025 loss on impact of EV missteps Stellantis said the bulk of the negative result was tied to North America, where operating losses amounted to \u20ac941 million",
+      "tier": "reporting",
+      "evidence_type": "news_reporting"
+    },
+    {
+      "evidence_id": "ev-bff968da5b5d",
+      "title": "Sales Volume 34.4M units, Chinese OEMs' Share over 70%",
+      "full_text": "4M units, Chinese OEMs\u2019 Share over 70% Geely enters the top 3; BYD's exports up about 140% y/y Summary For the full year of 2025, new vehicle sales in the Chinese market grew by 9",
+      "mapper_window": "4M units, Chinese OEMs\u2019 Share over 70% Geely enters the top 3; BYD's exports up about 140% y/y Summary For the full year of 2025, new vehicle sales in the Chinese market grew by 9",
+      "tier": "reporting",
+      "evidence_type": "news_reporting"
+    },
+    {
+      "evidence_id": "ev-1b164e348b01",
+      "title": "EV sales in China drop in January - electrive.com",
+      "full_text": "EV sales in China drop in January At the start of the year, sales of new energy vehicles (NEVs) in China once again fell significantly below the one-million mark",
+      "mapper_window": "EV sales in China drop in January At the start of the year, sales of new energy vehicles (NEVs) in China once again fell significantly below the one-million mark",
+      "tier": "reporting",
+      "evidence_type": "news_reporting"
+    },
+    {
+      "evidence_id": "ev-f97c101d4ba5",
+      "title": "China's EV market still has vast untapped potential for further growth",
+      "full_text": "Illustration: Xia Qing/GT The New York Times questioned the future of China's electric vehicle (EV) sector in a headline \"Stock Slide and Slow Sales: What's Happening in China's E",
+      "mapper_window": "Illustration: Xia Qing/GT The New York Times questioned the future of China's electric vehicle (EV) sector in a headline \"Stock Slide and Slow Sales: What's Happening in China's E",
+      "tier": "commentary",
+      "evidence_type": "opinion"
+    },
+    {
+      "evidence_id": "ev-rec-e1_2_0af6920e",
+      "title": "China tightens clean tech grip with growing EV export reach | Reuters",
+      "full_text": "China's total production of so-called New Energy Vehicles topped 16 million units in 2025, according to the China Association of Automobile Manufacturers (CAAM) ...",
+      "mapper_window": "China's total production of so-called New Energy Vehicles topped 16 million units in 2025, according to the China Association of Automobile Manufacturers (CAAM) ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e1_3_7d5808eb",
+      "title": "In 2023, China manufactured 58% of the world's electric vehicles ...",
+      "full_text": "In 2023, China manufactured 58% of the world's electric vehicles (EVs), cementing its position as a dominant player in an industry that's crucial for both ...",
+      "mapper_window": "In 2023, China manufactured 58% of the world's electric vehicles (EVs), cementing its position as a dominant player in an industry that's crucial for both ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e2_0_78322e4f",
+      "title": "China's Electric Vehicle Dominance, Except in U.S. and Canada",
+      "full_text": "Chinese EV manufacturers are eager to sell abroad because their factories can produce far more than the 25 million vehicles they can sell within China each ...",
+      "mapper_window": "Chinese EV manufacturers are eager to sell abroad because their factories can produce far more than the 25 million vehicles they can sell within China each ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e2_4_6e6ff20a",
+      "title": "China's electric car industry invests more overseas than at ...",
+      "full_text": "For the first time on record, the Chinese electric car supply chain last year invested more overseas than domestically, according to Rhodium Group.",
+      "mapper_window": "For the first time on record, the Chinese electric car supply chain last year invested more overseas than domestically, according to Rhodium Group.",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e3_0_c853f191",
+      "title": "Trends in the electric car industry \u2013 Global EV Outlook 2025 - IEA",
+      "full_text": "China remains the world's electric car manufacturing hub, accounting for more than 70% of global production in 2024. Production in China has been increasingly ...",
+      "mapper_window": "China remains the world's electric car manufacturing hub, accounting for more than 70% of global production in 2024. Production in China has been increasingly ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e3_2_dfe65749",
+      "title": "How China made electric vehicles mainstream - BBC",
+      "full_text": "\"When it comes to EVs, China is 10 years ahead and 10 times better than any other country,\" says auto sector analyst Michael Dunne. China's BYD now leads the ...",
+      "mapper_window": "\"When it comes to EVs, China is 10 years ahead and 10 times better than any other country,\" says auto sector analyst Michael Dunne. China's BYD now leads the ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e3_4_ae73887e",
+      "title": "Canadians Need to Think Strategically on Electric Vehicles and China",
+      "full_text": "Several factors have enabled Chinese OEMs to gain a competitive edge. First, China's EV industry has benefited from nearly two decades of production and ...",
+      "mapper_window": "Several factors have enabled Chinese OEMs to gain a competitive edge. First, China's EV industry has benefited from nearly two decades of production and ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e4_2_105b5ee6",
+      "title": "By dominating clean energy, China is leading on climate action",
+      "full_text": "Because of China's role in clean technology \u2014 accounting for most of the world's manufacturing of electric vehicles, for instance, or controlling most of the ...",
+      "mapper_window": "Because of China's role in clean technology \u2014 accounting for most of the world's manufacturing of electric vehicles, for instance, or controlling most of the ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e4_3_d4e652a5",
+      "title": "China's EV Influence Expands Nearly Everywhere",
+      "full_text": "China already exports more cars than any other nation, though primarily gas-powered ones at the moment. Export markets for Chinese EVs are developing in ...",
+      "mapper_window": "China already exports more cars than any other nation, though primarily gas-powered ones at the moment. Export markets for Chinese EVs are developing in ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e4_4_1f66a72a",
+      "title": "Why China Is Trying to Tame Its Electric Car Frenzy",
+      "full_text": "China is conquering the world in electric vehicles. Its automakers produce far more than any other country and outpace them on innovation. China's appetite ...",
+      "mapper_window": "China is conquering the world in electric vehicles. Its automakers produce far more than any other country and outpace them on innovation. China's appetite ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e3_3_c42ea694",
+      "title": "China's auto industry: EV surge, exports and global manufacturing",
+      "full_text": "In 2024 China's automotive industry produced close to 30% of the nearly 80m vehicles made worldwide; it is the largest manufacturer of vehicles, producing more ...",
+      "mapper_window": "In 2024 China's automotive industry produced close to 30% of the nearly 80m vehicles made worldwide; it is the largest manufacturer of vehicles, producing more ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e1_4_b8754c12",
+      "title": "Electric car sales in 2025: China consolidates its position as the ...",
+      "full_text": "This means that more than 60 percent of the vehicles produced by Chinese manufacturers are now electric. The trend towards fully electric vehicles is also ...",
+      "mapper_window": "This means that more than 60 percent of the vehicles produced by Chinese manufacturers are now electric. The trend towards fully electric vehicles is also ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-b65537736bac",
+      "title": "Electric car use by country",
+      "full_text": "Electric car use by country varies worldwide, as the adoption of plug-in electric vehicles is affected by consumer demand, market prices, availability of charging infrastructure, and government policies, such as purchase incentives and long term regulatory signals.",
+      "mapper_window": "Electric car use by country varies worldwide, as the adoption of plug-in electric vehicles is affected by consumer demand, market prices, availability of charging infrastructure, and government policies, such as purchase incentives and long term regulatory signals.",
+      "tier": "primary",
+      "evidence_type": "data"
+    },
+    {
+      "evidence_id": "ev-rec-e2_2_6048b534",
+      "title": "China's electric vehicle influence expands nearly everywhere",
+      "full_text": "China already exports more cars than any other nation, though primarily gas-powered ones at the moment. Export markets for Chinese EVs are developing in ...",
+      "mapper_window": "China already exports more cars than any other nation, though primarily gas-powered ones at the moment. Export markets for Chinese EVs are developing in ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+      "title": "Executive summary \u2013 Global EV Outlook 2025 \u2013 Analysis - IEA",
+      "full_text": "China continues to be the world's EV manufacturing hub and is responsible for more than 70% of global production. \u00b7 Global trade of electric cars increased 20% ...",
+      "mapper_window": "China continues to be the world's EV manufacturing hub and is responsible for more than 70% of global production. \u00b7 Global trade of electric cars increased 20% ...",
+      "tier": null,
+      "evidence_type": null
+    },
+    {
+      "evidence_id": "ev-rec-e1_1_b11d8c1a",
+      "title": "China's EV impact on Canada's auto sector | EDC",
+      "full_text": "According to the International Energy Agency (IEA), China produced 12.4 million EVs\u2014battery (BEVs) and plug-in hybrids (PHEVs)\u2014in 2024, accounting for 70% of ...",
+      "mapper_window": "According to the International Energy Agency (IEA), China produced 12.4 million EVs\u2014battery (BEVs) and plug-in hybrids (PHEVs)\u2014in 2024, accounting for 70% of ...",
+      "tier": null,
+      "evidence_type": null
+    }
+  ],
+  "expected": {
+    "elements": [
+      {
+        "element_id": "e1",
+        "expected_state": "supported",
+        "expected_refs": [
+          {
+            "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_1_b11d8c1a",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_2_0af6920e",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_7d5808eb",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_4_b8754c12",
+            "expected_relationship": "context"
+          }
+        ]
+      },
+      {
+        "element_id": "e2",
+        "expected_state": "unresolved",
+        "expected_refs": [
+          {
+            "evidence_id": "ev-rec-e2_0_78322e4f",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e2_4_6e6ff20a",
+            "expected_relationship": "context"
+          },
+          {
+            "evidence_id": "ev-rec-e3_3_c42ea694",
+            "expected_relationship": "supports"
+          }
+        ]
+      },
+      {
+        "element_id": "e3",
+        "expected_state": "supported",
+        "expected_refs": [
+          {
+            "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_1_b11d8c1a",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_7d5808eb",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e3_0_c853f191",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e3_2_dfe65749",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e3_3_c42ea694",
+            "expected_relationship": "context"
+          }
+        ]
+      },
+      {
+        "element_id": "e4",
+        "expected_state": "supported",
+        "expected_refs": [
+          {
+            "evidence_id": "ev-rec-e1_0_f2dbe8e9",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_1_b11d8c1a",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e1_3_7d5808eb",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e3_2_dfe65749",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e4_2_105b5ee6",
+            "expected_relationship": "supports"
+          },
+          {
+            "evidence_id": "ev-rec-e4_3_d4e652a5",
+            "expected_relationship": "context"
+          },
+          {
+            "evidence_id": "ev-rec-e4_4_1f66a72a",
+            "expected_relationship": "supports"
+          }
+        ]
+      }
+    ]
+  }
+}

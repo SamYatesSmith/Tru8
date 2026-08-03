@@ -1,0 +1,110 @@
+{
+  "case_id": "case-012",
+  "reviewed_at": null,
+  "ref_judgments": [
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-468bdec07380",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States the Amazon covers an area of approximately 2.3 million square miles (6 million square kilometers).",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e1",
+      "evidence_id": "ev-b957bf967a43",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Mentions 'some 1,583,000 square miles (4,100,000 square km) of this' referring to the Amazon basin within Brazil, implying a total area can be quantified.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-b957bf967a43",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States that Brazil holds approximately 60 percent of the Amazon basin within its borders and quantifies this as 'some 1,583,000 square miles (4,100,000 square km)'.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "evidence_id": "ev-3d32c0cd4676",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States the Amazon covers 59% of Brazil and lists the states included, quantifying the portion within Brazil.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-10f060cef63d",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "Directly states 'About 60% of the entire Amazon rainforest lies in Brazil'.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-b957bf967a43",
+      "mapper_relationship": "supports",
+      "mapper_reasoning": "States Brazil holds approximately 60 percent of the Amazon basin within its borders.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "evidence_id": "ev-3d32c0cd4676",
+      "mapper_relationship": "challenges",
+      "mapper_reasoning": "States the Amazon covers 59% of Brazil, which is very close but not exactly 60%.",
+      "correct": null,
+      "expected_relationship": null,
+      "failure_mode": null,
+      "window_sufficient": null,
+      "notes": ""
+    }
+  ],
+  "missing_refs": [],
+  "state_judgments": [
+    {
+      "element_id": "e1",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e2",
+      "mapper_state": "supported",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    },
+    {
+      "element_id": "e3",
+      "mapper_state": "disputed",
+      "correct": null,
+      "expected_state": null,
+      "failure_mode": null,
+      "notes": ""
+    }
+  ]
+}
