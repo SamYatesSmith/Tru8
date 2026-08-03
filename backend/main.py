@@ -14,6 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from app.core.config import settings
+from app.core.observability import sentry_integrations
 from app.core.rate_limit import limiter
 
 from app.core.exceptions import register_exception_handlers
@@ -385,6 +386,11 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT.lower() in _SENTRY_ENABLED_ENVIR
         before_send=_scrub_event_pii,
         send_default_pii=False,
         max_breadcrumbs=100,
+        # Sentry carries EXCEPTIONS; logs go to the log stream. Omitting this
+        # argument left the SDK's default LoggingIntegration on at ERROR, so all
+        # ~280 logger.error() sites became issues and emails — see
+        # app/core/observability.py for the full reasoning before changing it.
+        integrations=sentry_integrations(),
     )
     app.add_middleware(SentryAsgiMiddleware)
 elif settings.SENTRY_DSN:
