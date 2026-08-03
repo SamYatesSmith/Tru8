@@ -278,11 +278,64 @@ with the model — can trip the same wire.
 | D | **Stop showing tier to the mapper** | Removes the coupling entirely. **Rejected** — provenance weighting is deliberate and load-bearing for mapping quality. |
 | E | **Make the invariant tier-aware** — allow higher concentration when the dominant domain is primary-tier | Arguably the *honest* reading: 47% from NEJM is not the same failure as 47% from one blog. ⚠️ Risks becoming a way to explain away real concentration. |
 
-### What the next session must establish FIRST
+### ANSWERED — the dominant domain is `nejm.org`
 
-1. **Which domain dominated** in the failing run, and whether its items were among
-   the six re-tiered. Not captured — the run was not kept. One live record with
-   `--verbose` settles it, and the answer decides between (C) and (E).
+Live probe (`--live --verbose`, corpus untouched):
+
+```
+"top_domain": "nejm.org",
+"top_domain_share": 0.35
+```
+
+The concentrating domain is **the New England Journal of Medicine** — precisely
+the venue this change upgrades. Measurements across three live runs of the same
+claim:
+
+| Classifier | `top_domain_share` | Band |
+|---|---|---|
+| old | 0.32 | Mediocre |
+| new (run 1) | **0.47** | **Poor — FAIL** |
+| new (run 2) | 0.35 | Mediocre |
+
+Two things follow. The effect is **real but noisy**: the change raises
+concentration, and *one* run crossed the cap while another did not. So this claim
+sits borderline against 0.45 regardless, and the failure is pool-dependent rather
+than deterministic.
+
+### This decides the option — and (E) is safe for a reason worth stating
+
+The invariant's own documented target case is the opposite situation. From
+`_apply_domain_concentration_cap`:
+
+> *"TRU-B3A4 (UK election) had Wikipedia at 12 of 25 = 48% and the LLM classifier
+> was over-promoting Wikipedia entries to primary tier, inflating the apparent
+> authority of the evidence landscape."*
+
+The guard exists to catch **a tertiary encyclopedia being over-promoted**. NEJM
+dominating a medical claim is not that failure — it is the correct authority
+being correctly cited.
+
+The obvious objection to (E) is that exempting `primary` would re-open exactly
+the Wikipedia hole, since Wikipedia was *being over-promoted to primary*. **It
+would not**, and this is the load-bearing detail: `wikipedia_share` is a
+**separate max-capped signal** in its own right —
+`_V3_MAX_SIGNALS = ("top_domain_share", "wikipedia_share")`. Wikipedia is
+independently guarded, so relaxing `top_domain_share` for peer-reviewed venues
+does not restore the original defect.
+
+**Proposed shape** (design only — not built, not agreed): allow a higher
+`top_domain_share` when the dominant domain is a peer-reviewed academic venue
+(`_ACADEMIC_PATTERNS`), holding the existing cap for everything else. That keeps
+the guard pointed at what it was built for — a single non-authoritative source
+inflating apparent authority — while not penalising a medical claim for citing
+the medical record.
+
+**Still to settle before building:** how much slack other corpus claims have
+against 0.45 (question 2 below), and whether an *academic-venue* exemption is
+the right predicate versus something narrower. The noisiness above also argues
+for checking whether this claim's tolerance band is simply set too tight.
+
+### Remaining questions
 2. Whether other corpus claims sit near the 0.45 cap, i.e. how much slack the
    invariant currently has across the corpus.
 3. Whether `top_domain_share` should be measured on the mapped set at all, or on
