@@ -117,7 +117,7 @@ async def lifespan(app: FastAPI):
 API_DESCRIPTION = """
 Structured evidence research for AI agents and developers.
 
-Tru8 extracts claims from text or URLs, retrieves evidence from 30+ source
+Tru8 extracts claims from text or URLs, retrieves evidence from web search and specialist
 providers (government data, academic databases, news, official records),
 decomposes claims into verifiable elements, and maps evidence to elements
 with relationship labels (**supports** / **challenges** / **context**).
@@ -168,7 +168,7 @@ For cost-sensitive agent workflows, use the `/agent/` endpoints:
 | Lookup | `POST /agent/lookup` | Instant | £0.02 | Cached result lookup |
 | Consensus | via `/agent/check` | Instant | £0.03 | Cross-user consensus (k≥3) |
 | Quick | `POST /agent/quick` | ~15s | £0.07 | Reduced pipeline, heuristic classification |
-| Full | `POST /agent/full` | ~90s | £0.15 | Complete pipeline, 30+ sources |
+| Full | `POST /agent/full` | ~90s | £0.15 | Complete pipeline, web + specialist APIs |
 | Smart | `POST /agent/check` | Varies | Varies | Automatic fallback: lookup → consensus → quick → full |
 
 Payment via prepaid credits, Skyfire JWT, or x402 (USDC/SIWE).

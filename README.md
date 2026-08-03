@@ -1,6 +1,6 @@
 # Tru8 — AI-Powered Evidence Research Platform
 
-Tru8 organises evidence so you can decide what matters. Submit a claim or URL, and Tru8 retrieves evidence from 30+ sources, classifies it by tier (primary / reporting / commentary) and type (data / official / news / analysis / opinion / academic), decomposes claims into elements, maps evidence to those elements, and presents the full landscape — structured, not summarised.
+Tru8 organises evidence so you can decide what matters. Submit a claim or URL, and Tru8 retrieves evidence from the open web and specialist APIs, classifies it by tier (primary / reporting / commentary) and type (data / official / news / analysis / opinion / academic), decomposes claims into elements, maps evidence to those elements, and presents the full landscape — structured, not summarised.
 
 **Mission:** "We organise; you decide."
 
@@ -77,7 +77,7 @@ Phase 2:  Fact-check lookup → Decompose into elements → Retrieve evidence �
 Post:     Coverage recovery (Stage 5.1), video recommendations, auto-archiving
 ```
 
-Evidence flows through 30+ source adapters:
+Evidence flows through web search plus specialist source adapters:
 
 | Category | Sources |
 |----------|---------|
@@ -127,7 +127,7 @@ curl -X POST https://api.trueight.com/api/v1/agent/check \
 | Lookup | ~£0.02 | instant | Cached prior analysis |
 | Consensus | ~£0.03 | instant | Cross-user aggregate landscape (k>=3 checks) |
 | Quick | ~£0.07 | ~15s | Web search + heuristic classification |
-| Full | ~£0.15 | ~60-90s | 30+ sources, LLM classification, element decomposition |
+| Full | ~£0.15 | ~60-90s | web + specialist APIs, LLM classification, element decomposition |
 
 Three payment rails: x402 (USDC/SIWE), Skyfire (JWT), prepaid credits.
 

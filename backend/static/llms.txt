@@ -1,6 +1,6 @@
 # Tru8 — Evidence Research API
 
-> Submit a claim or URL. Get structured evidence from 30+ sources, classified by source tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic). No verdicts — organised evidence.
+> Submit a claim or URL. Get structured evidence from the open web and specialist APIs, classified by source tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic). No verdicts — organised evidence.
 
 ## API
 
@@ -12,7 +12,7 @@ Endpoints:
 - POST /agent/check — Smart endpoint, automatic tier fallback (lookup → consensus → quick → full)
 - POST /agent/lookup — Cached prior analysis (£0.02, instant)
 - POST /agent/quick — Web search + heuristic classification (£0.07, ~15s)
-- POST /agent/full — Full 30+ source pipeline (£0.15, ~60-90s)
+- POST /agent/full — Full pipeline, web + specialist APIs (£0.15, ~60-90s)
 - Consensus tier (£0.03, cross-user aggregate) — reachable via /agent/check with max_tier=consensus
 - GET /agent/result/{id} — Retrieve completed check (free)
 - POST /agent/batch — Up to 10 claims (per-claim pricing, async)

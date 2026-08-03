@@ -6,7 +6,7 @@
 
 ## 1. What Tru8 Is
 
-Tru8 is an evidence research platform. A user submits a URL or a plain-text claim. The system extracts verifiable assertions, retrieves evidence from 30+ sources (web search, government APIs, academic databases, fact-check registries), classifies each piece by proximity and content type, maps evidence to sub-components of each claim, and presents the result through six specialised views.
+Tru8 is an evidence research platform. A user submits a URL or a plain-text claim. The system extracts verifiable assertions, retrieves evidence from the open web and specialist APIs (web search, government APIs, academic databases, fact-check registries), classifies each piece by proximity and content type, maps evidence to sub-components of each claim, and presents the result through six specialised views.
 
 **The core philosophy: "We organise; you decide."** Tru8 does not render verdicts. It does not score source credibility. It classifies sources by **Tier** (primary / reporting / commentary) and **Type** (data / official / news / analysis / opinion / academic), maps their relationship to each claim element (supports / challenges / context), and shows everything it excluded and why (receipts). The user draws their own conclusions.
 
@@ -39,7 +39,7 @@ The human product is a dashboard with six evidence views (see §5). Value propos
 |------|-------|-------|-------------|
 | Lookup | $0.02 | Instant | Returns a cached prior analysis (exact claim match) |
 | Quick | $0.07 | ~15s | Web search only, heuristic classification (93.7% accuracy), no API adapters |
-| Full | $0.15 | ~90s | Complete pipeline — 30+ sources, LLM classification, element decomposition, coverage recovery |
+| Full | $0.15 | ~90s | Complete pipeline — web + specialist APIs, LLM classification, element decomposition, coverage recovery |
 
 The MCP server auto-escalates: lookup → quick → full, charging only for the tier actually executed.
 
@@ -221,7 +221,7 @@ To be clear about what's working well:
 - **Receipt system** — full audit trail of every exclusion, visible to users. Rare in the industry.
 - **Element decomposition** — breaking claims into testable sub-assertions is a genuine differentiator. Most competitors treat claims as monolithic.
 - **Element basis metadata** — per-element transparency on evidence count, tier/relationship/classification/content_basis breakdowns. Agents can assess determination quality programmatically.
-- **Source diversity** — 30+ sources with priority-tiered, domain-routed API adapters. Not just web search.
+- **Source diversity** — web search plus priority-tiered, domain-routed API adapters. Not just web search.
 - **Six views** — each answers a different analytical question. Not just a list of links.
 - **Dual-market architecture** — same pipeline serves both human dashboard and agent API with appropriate pricing and auth for each.
 - **Three-tier agent commerce** — lookup (instant, $0.02), quick (~15s, $0.07), full (~90s, $0.15) with three payment rails.

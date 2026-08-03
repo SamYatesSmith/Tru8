@@ -676,9 +676,9 @@ async def agent_full(
     session: AsyncSession = Depends(get_session),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ) -> JSONResponse:
-    """Complete evidence research pipeline — 30+ sources, all stages. ~50-70 seconds, £0.15.
+    """Complete evidence research pipeline — web + specialist APIs, all stages. ~50-70 seconds, £0.15.
 
-    Runs the full pipeline: fact-check lookup, 30+ source providers (government,
+    Runs the full pipeline: fact-check lookup, web search and specialist providers (government,
     academic, news, data APIs), LLM classification, coverage recovery, and
     query answering. Set your HTTP client timeout to at least 180 seconds.
 
@@ -1448,7 +1448,7 @@ async def agent_tiers(request: Request) -> JSONResponse:
         "lookup": ("Cached prior analysis", 0),
         "consensus": ("Cross-user aggregate landscape (k>=3 checks)", 0),
         "quick": ("Web search + heuristic classification", 15),
-        "full": ("30+ sources, LLM classification, coverage recovery", 60),
+        "full": ("web + specialist APIs, LLM classification, coverage recovery", 60),
     }
 
     tiers = []

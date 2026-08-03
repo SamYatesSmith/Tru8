@@ -26,7 +26,7 @@ Tiers (depth and cost increase down the list):
 - POST /agent/lookup — cached prior record, instant
 - Consensus — privacy-preserving cross-user aggregate (via /agent/check with max_tier=consensus)
 - POST /agent/quick — web search + heuristic classification, ~15s
-- POST /agent/full — full 30+ source pipeline, ~60–90s
+- POST /agent/full — full pipeline, web + specialist APIs, ~60–90s
 - POST /agent/check — smart endpoint, automatic tier fallback (lookup → consensus → quick → full)
 - GET /agent/result/{id} — retrieve a completed record (free)
 - POST /agent/batch — up to 10 claims (async)
