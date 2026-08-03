@@ -184,9 +184,9 @@ export default function PrivacyPolicyPage() {
 
         <h2>13. Contact Us</h2>
         <p>
-          <strong>Data Controller:</strong> {LEGAL.companyName} (company number {LEGAL.companyNumber}), trading as {LEGAL.tradingName}<br />
+          <strong>Data Controller:</strong> {LEGAL.companyName} (company number {LEGAL.companyNumber}, registered in {LEGAL.placeOfRegistration}), trading as {LEGAL.tradingName}<br />
           <strong>Email:</strong> <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a><br />
-          <strong>Location:</strong> {LEGAL.location}
+          <strong>Registered office:</strong> {LEGAL.registeredOffice}
         </p>
 
         <p>

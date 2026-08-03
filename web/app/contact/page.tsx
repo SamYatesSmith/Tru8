@@ -1,9 +1,10 @@
 import { LegalPageLayout } from '@/components/legal/legal-page-layout';
+import { LEGAL, ICO } from '@/lib/legal';
 import { Mail, MapPin } from 'lucide-react';
 
 export const metadata = {
   title: 'Contact',
-  description: 'Get in touch with Tru8 for support, billing enquiries, privacy requests, or general questions. Based in London, UK.',
+  description: 'Get in touch with Tru8 for support, billing enquiries, privacy requests, or general questions. Trueight Ltd, registered in England and Wales.',
   alternates: { canonical: '/contact' },
 };
 
@@ -54,32 +55,36 @@ export default function ContactPage() {
 
         <h2>Business Information</h2>
         <div className="bg-zinc-50 border border-zinc-200 p-6 not-prose">
-          <p className="text-zinc-600 mb-2 flex items-center gap-2">
-            <MapPin className="text-zinc-500 flex-shrink-0" size={18} />
-            <span><strong className="text-zinc-900">Location:</strong> London, UK</span>
+          <p className="text-zinc-600 mb-2">
+            <strong className="text-zinc-900">Company:</strong> {LEGAL.companyName} (company number {LEGAL.companyNumber}), registered in {LEGAL.placeOfRegistration}, trading as {LEGAL.tradingName}
           </p>
-          <p className="text-zinc-600 ml-[26px]">
-            <strong className="text-zinc-900">Company:</strong> Tru8 Ltd
+          <p className="text-zinc-600 flex items-start gap-2">
+            <MapPin className="text-zinc-500 flex-shrink-0 mt-1" size={18} />
+            <span><strong className="text-zinc-900">Registered office:</strong> {LEGAL.registeredOffice}</span>
           </p>
         </div>
 
-        <h2>Office Hours</h2>
+        <h2>Who you are actually emailing</h2>
         <p>
-          Our support team operates Monday-Friday, 9:00 AM - 5:00 PM GMT (UK time).
+          Tru8 is built and run by one person. There is no support desk and no
+          call queue — your email comes to me directly, and I answer it myself.
         </p>
         <p>
-          <em>Urgent privacy requests are monitored outside business hours.</em>
+          In practice that means most messages get a reply the same working day,
+          and complicated ones get a considered answer rather than a template. It
+          also means I am occasionally asleep. If something is urgent, say so in
+          the subject line.
         </p>
 
-        <h2>Complaints Escalation</h2>
+        <h2>If you are not happy with my answer</h2>
         <p>
-          If you&apos;re not satisfied with our response:
+          Reply and say so plainly. I would rather hear it than not. If we still
+          cannot resolve it, you can escalate a data-protection complaint to the{' '}
+          <a href={ICO.websiteUrl} target="_blank" rel="noopener noreferrer">
+            {ICO.name}
+          </a>{' '}
+          ({ICO.website}), the UK&apos;s supervisory authority.
         </p>
-        <ol>
-          <li>Reply to the original support email requesting escalation</li>
-          <li>Your case will be reviewed by a senior team member</li>
-          <li>You&apos;ll receive a response within 7 business days</li>
-        </ol>
       </div>
     </LegalPageLayout>
   );

@@ -9,9 +9,20 @@ export const LEGAL = {
   companyName: 'Trueight Ltd',
   tradingName: 'Tru8',
   companyNumber: '17090683',
+  /** Where the company is registered. Required alongside the number. */
+  placeOfRegistration: 'England and Wales',
+  /**
+   * The REGISTERED OFFICE, not a description of where we work.
+   *
+   * Companies Act 2006 website-disclosure rules require the registered name,
+   * company number, place of registration and registered office address. The
+   * contact page previously said "Tru8 Ltd" / "London, UK" — a company that does
+   * not exist at an address that is not the registered one. Verified against
+   * Companies House 2026-08-03.
+   */
+  registeredOffice: '115a Queensway, Petts Wood, Orpington, England, BR5 1DG',
   icoRegistration: 'ZC110163',
   contactEmail: 'hello@trueight.com',
-  location: 'London, UK',
 } as const;
 
 /** The UK Information Commissioner's Office — for complaint / supervisory-authority blocks. */

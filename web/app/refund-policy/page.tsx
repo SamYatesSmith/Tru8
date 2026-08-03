@@ -63,10 +63,21 @@ export default function RefundPolicyPage() {
           <li>We&apos;ll investigate and resolve within 7 business days</li>
         </ul>
 
-        <h2>5. EU Consumer Rights</h2>
+        <h2>5. Statutory Cancellation Rights</h2>
         <p>
-          <strong>EU Customers:</strong> You have the right to withdraw from your subscription
-          within 14 days under the EU Consumer Rights Directive, regardless of reason.
+          <strong>UK consumers:</strong> you have the right to cancel within 14 days
+          of entering the contract, for any reason, under the Consumer Contracts
+          (Information, Cancellation and Additional Charges) Regulations 2013.
+        </p>
+        <p>
+          <strong>EU consumers:</strong> the equivalent 14-day right of withdrawal
+          applies under the EU Consumer Rights Directive.
+        </p>
+        <p>
+          Where you ask us to begin the service within the cancellation period, we
+          may normally charge for what you have used. <strong>We do not.</strong>{' '}
+          Our 14-day guarantee above is a full refund, which is more generous than
+          the statutory minimum in both cases.
         </p>
 
         <h2>6. Free Trial</h2>
