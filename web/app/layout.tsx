@@ -30,7 +30,11 @@ export const metadata: Metadata = {
   },
   description: 'Evidence research infrastructure for factual AI content. Tru8 decomposes content into checkable claims, retrieves external published sources, and returns a structured, signed evidence record. We organise; you decide.',
   icons: {
-    icon: '/favicon.proper.png',
+    // 64x64, 1.9KB. Was favicon.proper.png — the 1024x1024, 1.3MB MASTER,
+    // shipped as the browser-tab icon and therefore downloaded by every
+    // visitor. The master stays in public/ as the source for regenerating
+    // this and the apple-touch icon.
+    icon: '/favicon.png',
     apple: '/apple-touch-icon.png',
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'),
