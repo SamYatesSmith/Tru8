@@ -1,0 +1,30 @@
+name: Production health
+
+# The public surfaces a stranger actually touches, checked on a schedule.
+#
+# Deliberately NOT part of ci.yml. CI gates code on push; this observes a running
+# production system. Mixing them would fail builds whenever prod hiccups, and
+# would not run at all during the long gaps between pushes — which is precisely
+# when the sample report rotted unnoticed for weeks.
+
+on:
+  schedule:
+    # 08:00 and 20:00 UTC. Frequent enough to catch rot within half a day,
+    # infrequent enough that a flaky upstream does not train you to ignore it.
+    - cron: '0 8,20 * * *'
+  workflow_dispatch:
+
+jobs:
+  surfaces:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No dependencies: the script uses only the standard library, so this job
+      # cannot break because of a package resolution problem in a monitor.
+      - name: Check public surfaces
+        run: python scripts/check_public_surfaces.py

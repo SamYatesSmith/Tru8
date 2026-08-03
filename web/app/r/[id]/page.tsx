@@ -8,6 +8,7 @@
  * This is the landing page for all social shares.
  */
 
+import { cache } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Navigation } from '@/components/layout/navigation';
@@ -20,10 +21,24 @@ interface PageProps {
   searchParams: { claim?: string; view?: string };
 }
 
-// Fetch public check data
-async function getPublicCheck(id: string, detailed: boolean = false) {
+/**
+ * Fetch the public check ONCE per request.
+ *
+ * This used to be called twice with DIFFERENT urls — generateMetadata asked for
+ * the summary, the page body asked for `?detailed=true`. Two consequences, both
+ * seen in production on 2026-08-03:
+ *
+ *  1. Two API round-trips on every single report view, for one page.
+ *  2. The two calls could DISAGREE. Metadata could resolve "Report Not Found"
+ *     while the body rendered a report, or vice versa, because nothing tied the
+ *     two answers together.
+ *
+ * React's `cache` dedupes within a request, so metadata and body now see one
+ * answer from one call. Detailed is the superset, so it serves both.
+ */
+const getPublicCheck = cache(async (id: string) => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  const url = `${apiUrl}/api/v1/checks/public/${id}${detailed ? '?detailed=true' : ''}`;
+  const url = `${apiUrl}/api/v1/checks/public/${id}?detailed=true`;
 
   try {
     const res = await fetch(url, {
@@ -39,17 +54,28 @@ async function getPublicCheck(id: string, detailed: boolean = false) {
     console.error('Failed to fetch public check:', error);
     return null;
   }
-}
+});
 
 // Generate dynamic OG metadata
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const check = await getPublicCheck(params.id, false);
+  const check = await getPublicCheck(params.id);
 
+  // A missing report must be a REAL 404, and the decision has to be made HERE.
+  //
+  // This previously returned a "Report Not Found" title and let the page body
+  // call notFound() afterwards. By then rendering has begun and the response
+  // headers are already committed, so Next could no longer change the status:
+  // the page answered HTTP 200 carrying not-found content — a soft 404.
+  //
+  // That is how the sample report linked from the homepage hero, the closing CTA
+  // and /compare stayed broken without anyone noticing: no uptime monitor treats
+  // a 200 as an outage, and search engines index it as a valid page.
+  //
+  // generateMetadata runs BEFORE the page streams, so notFound() here yields a
+  // genuine 404. (Unmatched routes like /nonexistent already 404 correctly;
+  // only routes that match and then bail were affected.)
   if (!check) {
-    return {
-      title: 'Report Not Found',
-      description: 'This evidence report could not be found.',
-    };
+    notFound();
   }
 
   // Build dynamic title and description
@@ -92,8 +118,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PublicReportPage({ params, searchParams }: PageProps) {
-  // Fetch full check data for the report
-  const check = await getPublicCheck(params.id, true);
+  // Deduped by React cache — generateMetadata already resolved this, and would
+  // have 404'd before we got here. Kept as a belt-and-braces guard.
+  const check = await getPublicCheck(params.id);
 
   if (!check) {
     notFound();
