@@ -84,10 +84,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run tests
+        run: npx vitest run
+
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci_dummy
+          # Must be a STRUCTURALLY VALID Clerk key, not a placeholder string.
+          # @clerk/clerk-react parses this at build time and throws
+          # "The publishableKey passed to Clerk is invalid" on anything that is
+          # not pk_test_<base64 of "host$">. The old value, pk_test_ci_dummy,
+          # failed that parse, so ClerkProvider threw during prerender and
+          # static generation failed for EVERY page — the frontend job had been
+          # red for a long time as a result. Decodes to ci-dummy.clerk.accounts.dev$
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2ktZHVtbXkuY2xlcmsuYWNjb3VudHMuZGV2JA==
           NEXT_PUBLIC_API_URL: http://localhost:8000
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
           NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED: 'false'
