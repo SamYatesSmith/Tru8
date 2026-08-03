@@ -94,7 +94,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com';
 
   return {
-    title: `${title} | Tru8 Evidence Report`,
+    // No "| Tru8" here — the root layout template already appends it. Including
+    // it produced "… | Tru8 Evidence Report | Tru8" in search results.
+    title: `${title} — Evidence Report`,
     description,
     alternates: {
       canonical: `${baseUrl}/r/${params.id}`,

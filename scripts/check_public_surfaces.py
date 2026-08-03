@@ -39,7 +39,7 @@ TIMEOUT = 30
 
 # Kept in step with web/lib/marketing.ts::SAMPLE_REPORT_PATH.
 # If you repoint the sample, repoint it here too — that is the whole point.
-SAMPLE_REPORT_PATH = "/r/TRU-8723-1E97"
+SAMPLE_REPORT_PATH = "/r/2484b9da-4c94-4042-9fac-61919b93e008"
 
 
 @dataclass
@@ -118,7 +118,16 @@ def build_checks(web: str, api: str) -> List[Check]:
         Check(
             name="Sample report (the demo a stranger evaluates)",
             url=f"{web}{SAMPLE_REPORT_PATH}",
-            must_not_contain=["Report Not Found", "Page not found"],
+            # Assert POSITIVELY on the report shell. "Evidence Report" comes from
+            # the page's own generateMetadata and appears only on a real record.
+            #
+            # Do NOT add "Page not found" as a forbidden string: Next inlines the
+            # not-found boundary component into the RSC payload of every route,
+            # so it is present on healthy pages too. That gave a false positive
+            # on the first run of this script. A monitor that cries wolf gets
+            # ignored, which is precisely how the real breakage survived.
+            must_contain=["Evidence Report"],
+            must_not_contain=["Report Not Found"],
             why=(
                 "this is the only no-signup evaluation path, linked from the "
                 "hero, the closing CTA and /compare — a dead one silently wastes "

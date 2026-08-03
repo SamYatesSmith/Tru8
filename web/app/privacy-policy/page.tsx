@@ -110,11 +110,35 @@ export default function PrivacyPolicyPage() {
         <h3>5.5 AI Processing</h3>
         <p><strong>Google AI (Gemini):</strong> Processes submitted claims and evidence for classification, mapping, and analysis</p>
         <p>Privacy Policy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></p>
+        <p><strong>OpenAI:</strong> Fallback processor for the same stages, used only when the primary provider is unavailable or errors</p>
+        <p>Privacy Policy: <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">openai.com/policies/privacy-policy</a></p>
         <p>
           When you submit content for research, it is sent to Google&apos;s Gemini API for
           processing. Google acts as a data processor under our instructions. Submitted
           content is used solely to generate your evidence research results and is not
-          used by Google to train their models.
+          used by Google to train their models. The same applies to OpenAI on the
+          fallback path.
+        </p>
+
+        <h3>5.6 Hosting and Infrastructure</h3>
+        <p><strong>Railway:</strong> Application hosting and managed PostgreSQL/Redis — this is where your account data and research records are stored</p>
+        <p>Privacy Policy: <a href="https://railway.com/legal/privacy" target="_blank" rel="noopener">railway.com/legal/privacy</a></p>
+        <p><strong>Cloudflare:</strong> DNS, CDN and object storage</p>
+        <p>Privacy Policy: <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">cloudflare.com/privacypolicy</a></p>
+
+        <h3>5.7 Email</h3>
+        <p><strong>Resend:</strong> Sends transactional email (check completion, account notices)</p>
+        <p>Privacy Policy: <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">resend.com/legal/privacy-policy</a></p>
+        <p><strong>Zoho Mail:</strong> Receives and stores email you send to our contact address</p>
+        <p>Privacy Policy: <a href="https://www.zoho.com/privacy.html" target="_blank" rel="noopener">zoho.com/privacy</a></p>
+
+        <h3>5.8 Evidence Retrieval</h3>
+        <p>
+          To research a claim we query external search and data providers — including
+          Serper, Brave Search and a range of public government, academic and
+          statistical APIs. These receive the <em>search queries</em> derived from your
+          submitted claim. They do not receive your name, email address or account
+          identifiers.
         </p>
 
         <h2>6. Data Retention</h2>
