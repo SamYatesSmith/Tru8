@@ -4,6 +4,39 @@
 > Edit this register FIRST when items ship or open, BEFORE editing detail docs.
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
+---
+## 🟢 START HERE — next session (written 2026-08-03, end of a long launch session)
+
+**Everything below the divider is history. This block is what to do next.**
+
+**State:** all work PUSHED and LIVE (`3c00b14..236d4ba`, 22 commits). Suite **3,029 pass / 0 fail** · web tsc clean · vitest 87 · **CI GREEN both jobs** (first time in months). Working tree holds **two deliberately-held changes** — see HELD below.
+
+**Tru8 is listed on the official MCP registry** — `io.github.SamYatesSmith/tru8` v1.0.2, status `active`, published 2026-08-03T15:15:29Z. Verify: `curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.SamYatesSmith/tru8"`.
+
+### Do these first (small, unblocked)
+1. **Smithery submission** — `backend/smithery.yaml` exists and is correct. Connect the repo at smithery.ai. mcp.so + PulseMCP index FROM the official registry, so give them ~2 weeks before submitting manually.
+2. **Run one check on prod.** It will be the FIRST check carrying real search-cost telemetry (the meter shipped this session). ⚠️ **`cost_telemetry` is NOT exposed in any API or UI** — only `backend/scripts/verify_m1_d1_prod.py` + `retrieval_capture_pull.py` read it, both via direct DB. **A small `scripts/cost_report.py` was promised and NOT built** — build it, or the meter has no dial.
+3. **Soft-404** (`/r/<unknown>` returns 200). Diagnosed, unfixed: `notFound()` in `generateMetadata` DOES fire (the real not-found page renders), but `x-middleware-rewrite` from `clerkMiddleware` masks the status. Candidate: exclude `/r/` from the middleware matcher — **verified safe-ish**, `Navigation` uses `useAuth()` (client hook via `ClerkProvider`), and nothing in the `/r/` tree calls server `auth()`. Untestable locally without Clerk keys; `scripts/check_public_surfaces.py` reports it (currently **5/6**).
+
+### The real priority (founder-agreed, not technical)
+**The funnel, not the pipeline.** There is **no onboarding email and no trial-exhausted email**. A user signs up, spends 3 free checks, and hears nothing — the highest-intent moment in the funnel is silent. The MCP listing will start sending developers; this gap is now the shortest path between traffic and revenue. Second: **screenshot recapture** (container is `aspect-[4/3]`, captures run 1.46:1→2.76:1 = the letterboxing; the four `-full` lightbox variants are **byte-identical duplicates**, so "zoom" gains nothing — one job, fixes both).
+
+### ⛔ HELD in the working tree — do NOT commit without reading the design docs
+- `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Correct and unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design + full attribution: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the test file WITHOUT the classifier change fails 40 tests.
+- `backend/app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe, needs a bench **re-record + re-gold**. Record it SEPARATELY from the classifier change or golden drift is unattributable.
+
+### ⛔ OWED BY FOUNDER
+① **Clear `COMPANIES_HOUSE_API_KEY` on Railway** — agreed to drop it; registry is already conditional (`api_adapters/__init__.py:110`), no code change, and it stops the live 401s. ② Swap `backend/.env` Stripe values to test mode (the guard neutralises the secret key; the **webhook secret is `whsec_` in both modes and cannot be detected**). ③ Triage the Sentry backlog — the noise fix is live, so it is finally legible.
+
+### Durable lessons from this session
+- **Verify against the DEPLOYED page, not the source.** Two real defects (footer naming a non-existent company; my own 404 fix not working) survived hours of code reading and fell out of ten minutes poking production.
+- **A permanently-red CI is worse than no CI** — it trained everyone to ignore the one channel whose job is to say something broke. Same failure as the Sentry flood. Both closed today.
+- **Grep case-insensitively for brand/company strings** (`TRU8 LTD` hid from a `Tru8 Ltd` grep), and **search the whole repo, not one directory** — the first "30+ sources" sweep missed 6 public surfaces including `llms.txt` and the FastAPI description.
+- **"My change only affects post-processing" is not a cassette-safety argument** on this pipeline: tier → domain capping → shown pool → **the mapping prompt**.
+- **Ask why something was removed before re-adding it.** The CrossRef re-registration I proposed was wrong; the April coverage review had already established it would add "a fourth DOI-registry client, not a fourth *independent* source".
+
+---
+
 **2026-08-03 — ✅ SHIPPED (9 commits `f748430..744a90a`, NOT PUSHED — founder call). Suite 3,010 pass / 0 fail · web tsc clean · vitest 87 pass. Plan: `audit/2026-08-03_launch_fix_plan.md`.**
 
 | W | Item | Commit | Gate |
