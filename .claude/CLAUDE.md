@@ -59,12 +59,28 @@ npm run build && npm run start                   # Production build
 docker-compose up -d                             # Postgres, Redis, Qdrant, MinIO
 ```
 
+## ⏳ DEADLINE — Gemini 2.5 retires 16 October 2026; EVERY primary stage is on it
+`GOOGLE_LLM_MODEL=gemini-2.5-flash-lite` + `MAPPING_GOOGLE_MODEL=gemini-2.5-flash` both retire
+(https://ai.google.dev/gemini-api/docs/deprecations). **Not a model-string swap:** thinking
+cannot be fully disabled on any Gemini 3 model (our `MAPPING_THINKING_BUDGET=0` has no
+successor), a lone `thinkingBudget` is a **hard 400** on 3.x so every mapping call breaks the
+day the string changes (`google_ai.py:333` needs a `thinking_level` branch in the same commit),
+and `temperature` is advised removed. Verified live 2026-08-01 — the flat
+`responseMimeType`/`responseSchema` we send **does** still work on 3.x, so structured output
+needs no work. Candidates `gpt-5.6-luna` / `gemini-3.5-flash-lite` (NOT `3.1-flash-lite` — it
+retires 7 May 2027). Every Gemini path raises cost; Google's own recommendation is 3.65×.
+Full record + what is owed: `audit/OPEN_WORK.md` 2026-08-01.
+
 ## LLM providers — Google is PRIMARY, OpenAI is the FALLBACK
-**Every** LLM stage tries Google Gemini first and falls back to OpenAI only if the primary is
+**Most** LLM stages try Google Gemini first and fall back to OpenAI only if the primary is
 absent, errors, or times out. Verify in code, never infer: `query_planner.py` (*"Try Google
 first, then OpenAI as fallback"*), `claim_map_analyzer.py:1797` (*"Fall back to OpenAI"*),
-`evidence_classifier.py:838` (same), `claim_selector.py`. `GOOGLE_AI_API_KEY` is the key that
-matters; `ANTHROPIC_API_KEY` is deprecated (`config.py:59`).
+`evidence_classifier.py:838` (same), `claim_selector.py`, `relevance_scorer.py:648`.
+⚠️ **"Every" was wrong — two stages are GOOGLE-ONLY with no fallback at all** (audited
+2026-08-01): `evidence_distiller.py` (only import is `call_google_ai_with_usage`, `:19` — and it
+is the pipeline's *largest* consumer, ~60% of counted input tokens and its slowest stage at
+~63s) and `extract.py:1125` claim synthesis (whose fallback is a string concat, not a model).
+`GOOGLE_AI_API_KEY` is the key that matters; `ANTHROPIC_API_KEY` is deprecated (`config.py:59`).
 
 A dead `OPENAI_API_KEY` therefore does **not** stop the pipeline — it removes the safety net.
 Do not read "the local OpenAI key is dead" as "there is no working local LLM key": the local
