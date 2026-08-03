@@ -164,7 +164,7 @@ export default function FirstPublicReleasePage() {
             <ul className="list-disc list-outside ml-6 space-y-2 text-zinc-600">
               <li><span className="font-medium text-zinc-900">Lookup</span> — instant cached results for claims that have already been researched</li>
               <li><span className="font-medium text-zinc-900">Quick</span> — a faster analysis (~15 seconds) with core evidence retrieval</li>
-              <li><span className="font-medium text-zinc-900">Full</span> — the complete pipeline, searching 30+ sources with tier and type classification, element decomposition, and six-view evidence landscape</li>
+              <li><span className="font-medium text-zinc-900">Full</span> — the complete pipeline, searching published sources with tier and type classification, element decomposition, and six-view evidence landscape</li>
             </ul>
 
             <p>

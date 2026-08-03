@@ -17,7 +17,7 @@ interface QA {
 const FAQS: ReadonlyArray<QA> = [
   {
     q: 'What is Tru8?',
-    a: 'Tru8 is evidence research infrastructure. You submit a URL or a claim, and Tru8 decomposes it into checkable elements, retrieves evidence from more than 30 published sources, and organises the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Tru8 does not issue a verdict. We organise; you decide.',
+    a: 'Tru8 is evidence research infrastructure. You submit a URL or a claim, and Tru8 decomposes it into checkable elements, retrieves evidence from published sources, and organises the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Tru8 does not issue a verdict. We organise; you decide.',
   },
   {
     q: 'How is Tru8 different from a fact-checker?',
@@ -29,7 +29,7 @@ const FAQS: ReadonlyArray<QA> = [
   },
   {
     q: 'What sources does Tru8 search?',
-    a: 'More than 30, across government, legislation, academic literature, economic data, news, archives and more — for example GOV.UK, Hansard, FRED, Semantic Scholar, PubMed, the World Bank and the Internet Archive. Every source that is included, and every one that is excluded, carries a receipt.',
+    a: 'The open web, plus specialist APIs across government, legislation, academic literature, economic data, news and archives — for example GOV.UK, Hansard, FRED, Semantic Scholar, PubMed, the World Bank and the Internet Archive. Every source that is included, and every one that is excluded, carries a receipt.',
   },
   {
     q: 'Does Tru8 use AI to decide what is true?',

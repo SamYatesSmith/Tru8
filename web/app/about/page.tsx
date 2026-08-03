@@ -52,7 +52,7 @@ export default function AboutPage() {
               </p>
 
               <p>
-                Tru8 takes that complexity and makes it manageable. You paste a news article, headline, or claim, and Tru8 searches across 30+ public sources, classifies each by tier and type, maps what supports and challenges each claim, names what is missing, and gives you a structured evidence record you can explore — and defend.
+                Tru8 takes that complexity and makes it manageable. You paste a news article, headline, or claim, and Tru8 searches the open web and specialist public-data APIs, classifies each by tier and type, maps what supports and challenges each claim, names what is missing, and gives you a structured evidence record you can explore — and defend.
               </p>
 
               {/* Emphasis Block */}

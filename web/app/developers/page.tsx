@@ -54,7 +54,7 @@ const DEV_FAQS: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: 'How long does a check take?',
-    a: 'Typically 15–90 seconds depending on the tier, because Tru8 retrieves and classifies evidence across 30+ sources rather than returning passages and a score.',
+    a: 'Typically 15–90 seconds depending on the tier, because Tru8 retrieves and classifies evidence across the open web and specialist APIs rather than returning passages and a score.',
   },
 ];
 
@@ -326,7 +326,7 @@ export TRU8_API_KEY="tru8_sk_..."`}
                   </tr>
                   <tr className="border-t-2 border-accent">
                     <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-accent">Full</code></td>
-                    <td className="py-3 px-2 text-xs leading-relaxed">The complete pipeline: 3 queries/element across 30+ sources incl. government + academic APIs and fact-check lookup, LLM classification + relevance scoring, coverage recovery.</td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">The complete pipeline: 3 queries/element across the web plus government + academic APIs and fact-check lookup, LLM classification + relevance scoring, coverage recovery.</td>
                     <td className="py-3 px-2 font-mono text-xs text-zinc-400">~60–90s</td>
                     <td className="py-3 pl-2 text-right font-mono text-accent">£0.15</td>
                   </tr>

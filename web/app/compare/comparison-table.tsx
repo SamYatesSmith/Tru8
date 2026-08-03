@@ -25,7 +25,7 @@ const ROWS: Row[] = [
   {
     capability: 'Retrieves evidence',
     cells: [
-      { mark: 'yes', note: '30+ sources' },
+      { mark: 'yes', note: 'Web + specialist APIs' },
       { mark: 'yes', note: 'Bing index' },
       { mark: 'no', note: 'caller supplies facts' },
       { mark: 'yes' },

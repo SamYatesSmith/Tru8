@@ -59,7 +59,7 @@ export function StitchRecord() {
       className="py-28 md:py-40 bg-zinc-50 border-t border-zinc-100 scroll-mt-24"
     >
       <div className="max-w-7xl mx-auto px-6">
-        <SheetHeader number="01" label="The Record" refText="30+ SOURCES · SIGNED" />
+        <SheetHeader number="01" label="The Record" refText="PUBLISHED SOURCES · SIGNED" />
         <ScrollReveal>
           <div className="max-w-3xl mb-12 md:mb-14">
             <h2 className="text-3xl md:text-5xl font-normal tracking-[-0.02em] text-zinc-900 leading-[1.05]">

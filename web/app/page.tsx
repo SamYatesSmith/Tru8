@@ -16,7 +16,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 
 export const metadata: Metadata = {
   title: 'Tru8 — Evidence Research Infrastructure',
-  description: 'See the evidence for and against any claim — and show your working. Tru8 organises 30+ external published sources into a structured, signed evidence record: what supports each claim, what challenges it, and what is missing. No verdict — we organise; you decide.',
+  description: 'See the evidence for and against any claim — and show your working. Tru8 organises external published sources into a structured, signed evidence record: what supports each claim, what challenges it, and what is missing. No verdict — we organise; you decide.',
   alternates: { canonical: '/' },
 }
 

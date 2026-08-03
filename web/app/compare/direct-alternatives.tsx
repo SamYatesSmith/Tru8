@@ -74,7 +74,7 @@ const TABLE_ROWS: { label: string; cells: [string, string, string, string] }[] =
   {
     label: 'Scope',
     cells: [
-      'Any claim or URL · 30+ source systems',
+      'Any claim or URL · web + specialist APIs',
       'Web claims',
       'Academic literature only',
       'Broadcast / video streams',

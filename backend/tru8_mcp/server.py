@@ -69,7 +69,7 @@ async def tru8_check(
     - lookup    (~£0.02, instant) — cached prior analysis
     - consensus (~£0.03, instant) — cross-user aggregate landscape (k≥3 checks)
     - quick     (~£0.07, ~15s) — web search + heuristic classification
-    - full      (~£0.15, ~60-90s) — 30+ sources, LLM classification, coverage recovery
+    - full      (~£0.15, ~60-90s) — web + specialist APIs, LLM classification, coverage recovery
 
     Charges based on tier actually executed, not tier requested.
     Set max_tier to control maximum spend per call.

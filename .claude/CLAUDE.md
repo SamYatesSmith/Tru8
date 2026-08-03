@@ -1,7 +1,7 @@
 # Tru8 — Engineering Context
 
 ## What This Is
-AI-powered evidence research platform. Users submit a URL or claim, the pipeline extracts claims, retrieves evidence from 30+ sources, and presents an organised evidence landscape via six profession views. Mission: "We organise; you decide."
+AI-powered evidence research platform. Users submit a URL or claim, the pipeline extracts claims, retrieves evidence from the open web and ~22 specialist APIs, and presents an organised evidence landscape via six profession views. Mission: "We organise; you decide."
 
 ## Track Status (2026-03-09)
 

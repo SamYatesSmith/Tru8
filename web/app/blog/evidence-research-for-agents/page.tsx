@@ -82,7 +82,7 @@ export default function EvidenceResearchForAgentsPage() {
             </p>
 
             <p>
-              Tru8 sits in the gap between search and synthesis. Given a claim, it searches across 30+ source categories — government data, academic papers, news, official records, legislation, economic indicators, health data — and returns a structured evidence landscape. Every source is classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Nothing is hidden; exclusions are logged with reasons.
+              Tru8 sits in the gap between search and synthesis. Given a claim, it searches the open web and specialist sources — government data, academic papers, news, official records, legislation, economic indicators, health data — and returns a structured evidence landscape. Every source is classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Nothing is hidden; exclusions are logged with reasons.
             </p>
 
             <p>
@@ -109,7 +109,7 @@ export default function EvidenceResearchForAgentsPage() {
 
             <h3 className="text-lg md:text-xl font-bold text-zinc-900 pt-4">Full Analysis</h3>
             <p>
-              The complete pipeline. Claims are decomposed into elements, evidence is retrieved from 30+ source categories, scored for relevance, classified by tier and type, and mapped back to the specific elements they address. The result is a full evidence landscape — the same structured output available in the Tru8 dashboard.
+              The complete pipeline. Claims are decomposed into elements, evidence is retrieved from published sources, scored for relevance, classified by tier and type, and mapped back to the specific elements they address. The result is a full evidence landscape — the same structured output available in the Tru8 dashboard.
             </p>
 
             <h3 className="text-lg md:text-xl font-bold text-zinc-900 pt-4">Smart Endpoint</h3>
