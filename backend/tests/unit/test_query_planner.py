@@ -269,17 +269,44 @@ class TestQueryPlannerIntegration:
 
     @pytest.mark.asyncio
     async def test_plan_queries_batch_no_api_key(self):
-        """Test graceful handling when API key is missing."""
+        """Planning bails only when NO provider is configured.
+
+        Both keys must be cleared. Google is the PRIMARY planner and OpenAI the
+        fallback, so nulling OpenAI alone leaves a working planner — asserting
+        None on that would pin the old bug, in which an empty OPENAI_API_KEY
+        silently disabled LLM query planning pipeline-wide while the Google key
+        sat there working.
+        """
         from app.utils.query_planner import LLMQueryPlanner
 
         planner = LLMQueryPlanner()
-        planner.openai_api_key = None  # Simulate missing key
+        planner.openai_api_key = None
+        planner.google_ai_api_key = None  # no provider at all
 
         claims = [{"text": "Some claim"}]
         result = await planner.plan_queries_batch(claims)
 
-        # Should return None when no API key
+        # Should return None when no provider key is configured
         assert result is None
+
+    @pytest.mark.asyncio
+    async def test_plan_queries_batch_google_only_still_plans(self):
+        """A dead/absent OpenAI key must NOT disable planning — Google is primary.
+
+        Regression guard for the gate bug: with only the fallback missing, the
+        method must get past the provider gate. It returns [] here because the
+        claim carries no elements, which is the guard AFTER the gate — the point
+        is that it is not None.
+        """
+        from app.utils.query_planner import LLMQueryPlanner
+
+        planner = LLMQueryPlanner()
+        planner.openai_api_key = None  # fallback gone
+        planner.google_ai_api_key = "test-google-key"  # primary present
+
+        result = await planner.plan_queries_batch([{"text": "Some claim"}])
+
+        assert result is not None
 
     @pytest.mark.asyncio
     async def test_plan_queries_batch_empty_claims(self):

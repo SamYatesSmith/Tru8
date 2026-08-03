@@ -255,8 +255,15 @@ RESPOND WITH JSON:
         if not claims_with_elements:
             return []
 
-        if not self.openai_api_key:
-            logger.warning("[QUERY_PLANNER] OpenAI API key not configured")
+        # Gate on BOTH providers being absent, never on OpenAI alone. Google is the
+        # PRIMARY planner (see the try-Google-then-OpenAI cascade below); gating the
+        # whole method on OPENAI_API_KEY meant an empty OpenAI key silently disabled
+        # LLM query planning pipeline-wide — retrieval fell back to non-LLM query
+        # construction while the Google key sat there working. Found 2026-08-01 while
+        # scoping the Gemini 2.5 retirement, precisely because that migration may
+        # change which provider keys are set.
+        if not self.google_ai_api_key and not self.openai_api_key:
+            logger.warning("[QUERY_PLANNER] No LLM provider key configured")
             return None
 
         # Count total elements for logging and validation
