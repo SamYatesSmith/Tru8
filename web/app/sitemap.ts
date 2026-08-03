@@ -8,8 +8,12 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'
 const REPOSITIONED = new Date('2026-06-18')
 // The homepage went human-first + absorbed /research (C1, one front door).
 const HUMAN_FIRST = new Date('2026-07-09')
-// Second blog post publish date.
+// Second blog post publish date. Also the last time the blog INDEX changed,
+// since the index changes when a post is added.
 const AGENTS_POST = new Date('2026-03-25')
+// Legal-details pass: correct registered company name/number/office across the
+// contact and privacy pages, and the UK statutory citation on the refund page.
+const LEGAL_REFRESH = new Date('2026-08-03')
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -45,7 +49,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/blog`,
-      lastModified: new Date(),
+      lastModified: AGENTS_POST,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
@@ -63,13 +67,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/contact`,
-      lastModified: new Date(),
+      lastModified: LEGAL_REFRESH,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${baseUrl}/privacy-policy`,
-      lastModified: new Date('2026-01-06'),
+      lastModified: LEGAL_REFRESH,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
@@ -81,7 +85,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/refund-policy`,
-      lastModified: new Date('2026-05-27'),
+      lastModified: LEGAL_REFRESH,
       changeFrequency: 'yearly',
       priority: 0.3,
     },

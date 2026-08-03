@@ -43,7 +43,7 @@ async function getVerification(id: string): Promise<VerifyResult | null> {
 }
 
 export const metadata: Metadata = {
-  title: 'Verify record | Tru8',
+  title: 'Verify record',
   description:
     'Confirm a Tru8 evidence record has not changed since it was signed — its signed fields re-checked against the signature.',
   robots: { index: false, follow: false },

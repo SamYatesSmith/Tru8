@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!check) {
     return {
-      title: 'Report Not Found | Tru8',
+      title: 'Report Not Found',
       description: 'This evidence report could not be found.',
     };
   }

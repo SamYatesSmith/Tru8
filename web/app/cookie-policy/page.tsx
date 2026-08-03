@@ -2,7 +2,7 @@ import { LegalPageLayout } from '@/components/legal/legal-page-layout';
 import { CookiePreferencesButton } from '@/components/legal/cookie-preferences-button';
 
 export const metadata = {
-  title: 'Cookie Policy | Tru8',
+  title: 'Cookie Policy',
   description: 'How Tru8 uses cookies and similar technologies',
   alternates: { canonical: '/cookie-policy' },
 };
