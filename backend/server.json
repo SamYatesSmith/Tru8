@@ -1,21 +1,19 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.tru8/mcp-server",
+  "name": "io.github.SamYatesSmith/tru8",
   "title": "Tru8 Evidence Research",
   "description": "Structured evidence research for AI agents. Ground factual claims in source-traced evidence organized by tier (primary data / news reporting / commentary) and type (data / official / news / analysis / opinion / academic). Returns element decomposition with relationship mapping (supports / challenges / context).",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "websiteUrl": "https://www.trueight.com/developers",
-  "_note_repository": "Make repo public before submitting to MCP Registry",
   "repository": {
     "url": "https://github.com/SamYatesSmith/Tru8",
     "source": "github"
   },
   "packages": [
     {
-      "_note_package": "Publish to PyPI before submitting to MCP Registry",
-      "registryType": "pip",
+      "registryType": "pypi",
       "identifier": "tru8-mcp",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "transport": {
         "type": "stdio"
       },
@@ -35,20 +33,6 @@
         }
       ],
       "runtimeHint": "python -m tru8_mcp"
-    }
-  ],
-  "tools": [
-    {
-      "name": "tru8_check",
-      "description": "Evidence research for any claim or URL. Accepts max_tier (lookup/quick/full) to control depth and cost. Tier fallback: lookup → quick → full. Returns structured evidence landscape with element decomposition, source classification, and _meta (executedTier, chargedPence)."
-    },
-    {
-      "name": "tru8_get_result",
-      "description": "Retrieve a completed check with pre-computed analytics: tier/type distributions, corroboration groups, diagnostic values, timeline, per-claim dispositions."
-    },
-    {
-      "name": "tru8_get_result_raw",
-      "description": "Retrieve raw check data without computed analytics. Smaller payload for custom post-processing."
     }
   ]
 }
