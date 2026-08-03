@@ -539,3 +539,92 @@ class TestWarmupSearchProviders:
         assert search_module._brave_last_request_time == 42.0
         assert search_module._serpapi_last_request_time == 42.0
         assert search_module._serper_last_request_time == 42.0
+
+
+class TestSearchMeterIsActuallyWired:
+    """The seam, not the halves.
+
+    The meter and the providers were each unit-tested in isolation. That is
+    exactly how NF-18 hid — both halves green, the wire between them dead. These
+    tests drive the REAL provider request path and assert the tally moved.
+    """
+
+    @patch("app.services.search.asyncio.sleep", new_callable=AsyncMock)
+    @patch("app.services.search.settings")
+    async def test_serper_records_two_credits_for_a_claim_lane_query(
+        self, mock_settings, mock_sleep
+    ):
+        from app.core.search_meter import meter_searches, snapshot
+
+        mock_settings.SERPER_API_KEY = "test-key"
+        provider = SerperProvider()
+        provider.api_key = "test-key"
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {"organic": []}
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+        provider._client = mock_client
+
+        with meter_searches():
+            # 13 = retrieve.CLAIM_LANE_MAX_RESULTS_PER_QUERY
+            await provider.search("test query", max_results=13)
+            snap = snapshot()
+
+        assert snap["queries_by_provider"] == {"serper": 1}
+        assert snap["billable_units_by_provider"] == {"serper": 2}
+
+    @patch("app.services.search.asyncio.sleep", new_callable=AsyncMock)
+    @patch("app.services.search.settings")
+    async def test_serper_records_one_credit_for_an_element_lane_query(
+        self, mock_settings, mock_sleep
+    ):
+        from app.core.search_meter import meter_searches, snapshot
+
+        mock_settings.SERPER_API_KEY = "test-key"
+        provider = SerperProvider()
+        provider.api_key = "test-key"
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {"organic": []}
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+        provider._client = mock_client
+
+        with meter_searches():
+            # 5 = retrieve.ELEMENT_RESULTS_PER_QUERY
+            await provider.search("test query", max_results=5)
+            snap = snapshot()
+
+        assert snap["billable_units_by_provider"] == {"serper": 1}
+
+    @patch("app.services.search.asyncio.sleep", new_callable=AsyncMock)
+    @patch("app.services.search.settings")
+    async def test_a_query_returning_nothing_is_still_billed(
+        self, mock_settings, mock_sleep
+    ):
+        """The provider charges for the request, not for useful results."""
+        from app.core.search_meter import meter_searches, snapshot
+
+        mock_settings.SERPER_API_KEY = "test-key"
+        provider = SerperProvider()
+        provider.api_key = "test-key"
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {"organic": []}
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+        provider._client = mock_client
+
+        with meter_searches():
+            results = await provider.search("test query", max_results=5)
+            snap = snapshot()
+
+        assert results == []
+        assert snap["total_billable_units"] == 1

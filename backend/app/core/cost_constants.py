@@ -41,6 +41,50 @@ LLM_PRICING_USD_PER_1M: Dict[str, Dict[str, float]] = {
 }
 _DEFAULT_LLM = "gemini-2.5-flash-lite"
 
+# USD per BILLABLE UNIT, per search provider. A "unit" is what the provider
+# actually charges for, which is not always one request: Serper bills 2 credits
+# when 11-100 results are requested, and the claim lane asks for 13. See
+# app/core/search_meter.py, which does that conversion.
+#
+# ⚠️ SET THESE FROM YOUR OWN INVOICES. Serper's list price runs from $1.00 per
+# 1,000 credits at entry volume down to $0.30 at the top tier, so the same
+# pipeline can be margin-positive or margin-negative on the SAME query count
+# depending only on which pack was bought. The entry rate is used below because
+# assuming the volume discount would flatter the estimate, and a cost model
+# should fail pessimistic.
+#   Serper:  https://serper.dev/pricing
+#   Brave:   https://brave.com/search/api/
+#   SerpAPI: https://serpapi.com/pricing
+SEARCH_PRICING_USD_PER_UNIT: Dict[str, float] = {
+    "serper": 0.001,  # $1.00 / 1,000 credits (entry tier)
+    "brave": 0.005,  # $5.00 / 1,000 queries (Data for Search, base paid tier)
+    "serpapi": 0.015,  # $75 / 5,000 searches
+}
+_DEFAULT_SEARCH_UNIT_USD = 0.001
+
+
+def estimate_search_cost_usd(meter: Optional[Dict[str, Any]]) -> Optional[float]:
+    """Search spend for one check, from measured billable units.
+
+    Returns None when the check predates metering, so an un-instrumented check is
+    reported as unknown rather than as free — a silent zero here would read as
+    "search is costless", which is the opposite of true.
+    """
+    if not isinstance(meter, dict):
+        return None
+    units = meter.get("billable_units_by_provider")
+    if not isinstance(units, dict):
+        return None
+
+    total = 0.0
+    for provider, count in units.items():
+        rate = SEARCH_PRICING_USD_PER_UNIT.get(provider, _DEFAULT_SEARCH_UNIT_USD)
+        try:
+            total += int(count) * rate
+        except (TypeError, ValueError):
+            continue
+    return round(total, 6)
+
 
 def _rate(model: Optional[str]) -> Dict[str, float]:
     """Resolve a model name to a pricing row by case-insensitive substring match."""
@@ -133,6 +177,10 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
     # PARTIAL — captured LLM stages only (limitation #1 in module docstring).
     llm_cost = estimate_llm_cost_usd(in_tok, out_tok, by_stage)
 
+    # Measured search spend (2026-08-03). None for checks that predate metering.
+    search_meter = results.get("search_meter")
+    search_cost = estimate_search_cost_usd(search_meter)
+
     # Per-stage wall-clock (seconds) — measured every run by the pipeline
     # (runner.py stage_timings) but previously discarded at save time.
     # Rounded to 2dp; non-numeric values filtered defensively; None when the
@@ -160,7 +208,21 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
             "web_results_reviewed": web_results_reviewed,
             "api_adapters_with_results": api_adapters_with_results,
             "provider_status": results.get("provider_status"),
-            "note": "result counts, NOT query counts — true per-query call counts not yet instrumented",
+            # Measured query counts (2026-08-03). The two fields above remain
+            # RESULT counts and are kept for continuity with historical rows;
+            # everything cost-bearing now comes from the meter.
+            "queries_by_provider": (search_meter or {}).get("queries_by_provider"),
+            "billable_units_by_provider": (search_meter or {}).get(
+                "billable_units_by_provider"
+            ),
+            "total_queries": (search_meter or {}).get("total_queries"),
+            "total_billable_units": (search_meter or {}).get("total_billable_units"),
+            "note": (
+                "queries/billable units are MEASURED per check; a billable unit is "
+                "what the provider charges for (Serper bills 2 credits for 11-100 "
+                "results). web_results_reviewed remains a RESULT count, kept for "
+                "continuity with pre-2026-08-03 rows."
+            ),
         },
         "timing": {
             "wall_time_ms": int(results.get("processing_time_ms", 0) or 0),
@@ -168,12 +230,22 @@ def build_cost_telemetry(results: Dict[str, Any]) -> Dict[str, Any]:
         },
         "estimated_cost_usd": {
             "llm_partial": llm_cost,
-            "search": None,  # not computable without true query counts
+            "search": search_cost,
+            # The number that actually decides whether a Console subscriber is
+            # profitable. Console is GBP20 for 200 checks = 10p (~$0.128) of
+            # revenue per check, so compare against that. None when either half
+            # is unknown, rather than a misleading partial sum.
+            "total_partial": (
+                round(llm_cost + search_cost, 6) if search_cost is not None else None
+            ),
             "note": (
-                "ESTIMATE — raw token/count data is ground truth. LLM cost is "
-                "PARTIAL (captured stages only); search cost omitted (no query "
-                f"counts). Prices {PRICING_VERSION}; recompute when rates + full "
-                "instrumentation land."
+                "ESTIMATE — raw token/count data is ground truth. Search cost is "
+                "now MEASURED from per-provider billable units, priced at ENTRY "
+                "tier (pessimistic by design; volume discounts would flatter it). "
+                "LLM cost remains PARTIAL — captured stages only, excluding "
+                "extract, the relevance scorer and the query stage — so "
+                "total_partial is a FLOOR, not a full COGS figure. Prices "
+                f"{PRICING_VERSION}; reset them from real invoices."
             ),
         },
     }

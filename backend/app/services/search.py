@@ -9,6 +9,8 @@ import httpx
 from urllib.parse import quote_plus
 from app.core.config import settings
 
+from app.core.search_meter import record_search
+
 logger = logging.getLogger(__name__)
 
 # Jurisdiction-to-country mapping for search providers.
@@ -274,6 +276,7 @@ class BraveSearchProvider(BaseSearchProvider):
                 f"BRAVE FRESHNESS: Using '{freshness}' for time-sensitive claim"
             )
 
+        record_search("brave", params["count"])
         logger.info(
             f"[SEARCH PAYLOAD] provider=brave count={params['count']} "
             f"country={params.get('country', '-')} freshness={params.get('freshness', 'none')} q='{query[:60]}'"
@@ -502,6 +505,7 @@ class SerpAPIProvider(BaseSearchProvider):
             if country_code is not None:
                 params["gl"] = country_code.lower()
 
+            record_search("serpapi", params["num"])
             logger.info(
                 f"[SEARCH PAYLOAD] provider=serpapi num={params['num']} "
                 f"gl={params.get('gl', '-')} tbs={params.get('tbs', 'none')} q='{query[:60]}'"
@@ -678,6 +682,7 @@ class SerperProvider(BaseSearchProvider):
             if country_code is not None:
                 payload["gl"] = country_code.lower()
 
+            record_search("serper", payload["num"])
             logger.info(
                 f"[SEARCH PAYLOAD] provider=serper num={payload['num']} "
                 f"gl={payload.get('gl', '-')} tbs={payload.get('tbs', 'none')} q='{query[:60]}'"

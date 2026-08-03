@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import async_session
+from app.core.search_meter import metered
 from app.models import Check, Claim, Evidence, RawEvidence, User
 from app.models.check import compute_claim_text_hash
 from app.pipeline.progress import ProgressReporter
@@ -1231,6 +1232,7 @@ async def run_pipeline_phase1(
     )
 
 
+@metered  # counts every billable search query this check issues
 async def run_pipeline_phase2(
     check_id: str,
     user_id: str,
