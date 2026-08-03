@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Tru8Mark } from '@/components/brand/tru8-mark';
 import { openConsentBanner } from '@/lib/consent';
 import { capture } from '@/lib/analytics';
+import { LEGAL } from '@/lib/legal';
 
 export function Footer() {
   const platformLinks = [
@@ -126,8 +127,15 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-zinc-200/50">
+          {/*
+            The registered name, from LEGAL — not a hardcoded one. This read
+            "TRU8 LTD" until 2026-08-03: a company that does not exist, in the
+            footer of every page. The contact page carried the same error and was
+            fixed first; this one survived because the casing hid it from the
+            grep. `uppercase` is a CSS transform, so the source stays readable.
+          */}
           <div className="font-mono text-[10px] text-zinc-400 tracking-widest uppercase mb-4 md:mb-0">
-            &copy; 2026 TRU8 LTD. ALL RIGHTS RESERVED.
+            &copy; 2026 {LEGAL.companyName}. All rights reserved.
           </div>
           <div className="flex gap-8 font-mono text-[10px] text-zinc-400 tracking-widest uppercase">
             <Link href="/privacy-policy" className="hover:text-black transition-colors">Privacy Policy</Link>
