@@ -6,6 +6,25 @@ MCP server for [Tru8 Evidence Research](https://www.trueight.com) — structured
 
 Submit a claim or URL, get back source-traced evidence organized by tier (primary/reporting/commentary) and type (data/official/news/analysis/opinion/academic), with element decomposition and relationship mapping.
 
+## Two ways to connect
+
+**Hosted (nothing to install).** Point any MCP client that supports remote
+servers at:
+
+```
+https://api.trueight.com/mcp
+```
+
+Authenticate with your Tru8 API key, sent either as an `X-API-Key` header or
+as `Authorization: Bearer`. Each request is authenticated on its own, so one
+endpoint serves every user without their keys ever meeting.
+
+**Local (this package).** Runs on your own machine over stdio, which means
+your API key never leaves it. Use this if you would rather not send a
+credential through anyone else's infrastructure.
+
+Both serve the identical tools from the identical code — pick whichever suits.
+
 ## Quick Start
 
 ```bash

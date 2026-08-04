@@ -21,6 +21,7 @@ Environment variables:
 """
 
 import json
+from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
@@ -36,15 +37,59 @@ mcp = FastMCP(
     ),
 )
 
-_client: Tru8APIClient | None = None
+
+def _request_api_key() -> Optional[str]:
+    """The calling user's API key for THIS request, or None.
+
+    Only meaningful over an HTTP transport, where one process serves many
+    users. Reads the same header the Tru8 API itself uses (``X-API-Key``),
+    accepts ``Authorization: Bearer`` as a courtesy, and finally a query
+    parameter — which is how Smithery-style gateways pass session config.
+
+    Returns None under stdio, where there is no HTTP request and the key
+    belongs in the environment instead.
+    """
+    try:
+        request = mcp.get_context().request_context.request
+    except Exception:
+        return None
+    if request is None or not hasattr(request, "headers"):
+        return None
+
+    key = request.headers.get("x-api-key")
+    if key:
+        return key.strip()
+
+    auth = request.headers.get("authorization") or ""
+    if auth.lower().startswith("bearer "):
+        return auth[7:].strip() or None
+
+    params = getattr(request, "query_params", None)
+    if params:
+        for name in ("apiKey", "api_key", "TRU8_API_KEY"):
+            if params.get(name):
+                return params[name].strip()
+    return None
 
 
 def _get_client() -> Tru8APIClient:
-    """Lazy-initialize the API client (reads env vars on first call)."""
-    global _client
-    if _client is None:
-        _client = Tru8APIClient()
-    return _client
+    """Build the API client for the current request.
+
+    DELIBERATELY NOT CACHED. This was a module-level singleton built once
+    from the environment, which is correct for stdio (one process, one user)
+    and a credential-crossing bug the moment the same process serves more
+    than one caller over HTTP: whichever key initialised the singleton would
+    then have served everyone else's requests.
+
+    The client is a stateless holder of a base URL and a key — it opens its
+    own connection per call — so constructing one per request costs an object
+    allocation and removes the entire class of bug. Do not reintroduce a
+    cache here without keying it on the resolved credential.
+
+    Under stdio ``_request_api_key()`` returns None and Tru8APIClient falls
+    back to TRU8_API_KEY, so local behaviour is unchanged.
+    """
+    return Tru8APIClient(api_key=_request_api_key())
 
 
 def _format(data: dict) -> str:

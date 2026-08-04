@@ -38,6 +38,34 @@
 
 ---
 
+**2026-08-04 — ✅ REMOTE MCP SERVER BUILT. `POST /mcp` on the existing API, streamable HTTP, credential isolation proven end to end. Suite 3,138 pass / 0 fail.**
+
+**Shape: mounted on the existing API, not a second service.** The MCP server is a thin adapter over `/agent/*` endpoints this process already serves, so a separate deployment would have added infrastructure and cost for nothing. Same `FastMCP` instance as the published stdio package — **one codebase, two transports**, so the tools cannot drift.
+
+**Phase A — `dde1391` (independently valuable, shipped separately).** `pydantic-settings==2.1.0` → `>=2.6.1,<3` and `mcp[cli]>=1.0.0` → `>=1.2,<2`. That pin was why pip could never resolve a working mcp here, why the MCP test module skipped itself, and therefore why the broken package went unnoticed. **The `importorskip` is now a hard import** — if the floor moves again the suite says so loudly. `pydantic-settings` is used in exactly one file; only the deprecated inner `class Config` needed migrating to `SettingsConfigDict`. Clean build resolves fastapi 0.115.6 with starlette 0.41.3 (inside FastAPI's range), `pip check` clean, FastAPI pin unmoved.
+
+**Phase B — the credential fix is the whole job.** `tru8_mcp/server.py` held the API client in a module-level singleton built once from the environment. Correct for stdio (one process, one user); **a credential-crossing bug the instant one process serves many callers** — whichever key initialised it would then have served everyone else, silently. Now resolved **per request** (`X-API-Key` → `Authorization: Bearer` → query param, then env fallback for stdio) and **never cached**. The client is a stateless holder of a URL and a key, so per-request construction costs an allocation and removes the class of bug.
+
+**Verified for real, not mocked.** Two live MCP sessions over HTTP with different keys, against a listener recording what each tool forwarded upstream:
+```
+/api/v1/agent/check  tru8_sk_ALICE
+/api/v1/agent/check  tru8_sk_BOB
+```
+Each caller's own key, and the decoy `TRU8_API_KEY=tru8_sk_ENV_SHOULD_NOT_BE_USED` set on the host **never appeared**. That also proves the HTTP request context genuinely reaches the tool — the one assumption unit tests have to mock.
+
+`tests/unit/test_mcp_request_auth.py` (16 tests) is the acceptance gate. **Mutation-verified 3/3**: reintroducing the singleton fails 6; ignoring the request key fails 3; removing the header lookup fails 6.
+
+**Three integration traps hit and closed — each would have shipped a broken endpoint that looked healthy at boot:**
+1. **A mounted sub-app's lifespan does NOT run under FastAPI.** `streamable_http_app()` carries `lifespan=session_manager.run()`; mounting alone leaves the session manager unstarted and every request failing. Driven explicitly from `main.py`'s `lifespan()`.
+2. **Double prefix.** FastMCP serves at `settings.streamable_http_path`, default `/mcp`; mounting *that* at `/mcp` yields `/mcp/mcp`. Inner path set to `/` at the mount site so the published package keeps stock settings.
+3. **Trailing slash.** A mount with an inner `/` route answers only `/mcp/`, and this app sets `redirect_slashes=False`, so the documented bare `/mcp` 404s. Explicit **307** (preserves method and body — every MCP call is a POST).
+
+**Test-pollution bug found by the new guard:** an obsolete `_reset_client` fixture in `test_mcp_server.py` set `server_module._client = None` between tests, which — once the real attribute was gone — was the only thing still *creating* it, and it leaked across files. Removed. The old `test_get_client_lazy_init` asserted `first is second`; **deliberately inverted**, with the reasoning in place.
+
+⏳ **Owed:** deploy, then verify `POST https://api.trueight.com/mcp` end to end, then Smithery (paste that URL — no GitHub repo, no base directory, no Docker build; `smithery.yaml`/`Dockerfile.mcp` remain valid for the container route but are not needed for this one).
+
+---
+
 **2026-08-04 — 🔴 THE PUBLISHED `tru8-mcp` PACKAGE IS BROKEN ON PyPI. Code fix committed as 1.0.3; PUBLISH IS OWED (needs the founder's PyPI token).**
 
 Found while preparing the Smithery submission — not while looking for it.

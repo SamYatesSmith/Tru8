@@ -43,12 +43,12 @@ from tru8_mcp.server import (
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(autouse=True)
-def _reset_client():
-    """Reset the module-level _client singleton between tests."""
-    server_module._client = None
-    yield
-    server_module._client = None
+# The `_reset_client` fixture that used to live here is gone with the
+# singleton it existed to reset. It set `server_module._client = None`
+# between tests — which, once the real attribute was removed, was the only
+# thing still CREATING it, and it leaked across files: the guard in
+# tests/unit/test_mcp_request_auth.py that asserts no module-level client
+# survives caught exactly that. Do not reinstate it.
 
 
 # ===========================================================================
@@ -82,13 +82,25 @@ class TestFormat:
 
 
 class TestGetClient:
-    """_get_client — lazy singleton initialization."""
+    """_get_client — a fresh client per request, never a shared one."""
 
-    def test_get_client_lazy_init(self, monkeypatch):
+    def test_get_client_is_never_cached(self, monkeypatch):
+        """DELIBERATELY INVERTED on 2026-08-04.
+
+        This asserted `first is second` — that the client was a lazily-built
+        singleton. That was correct while the server only ever ran over stdio
+        (one process, one user, one env var), and became a credential-crossing
+        bug the moment the same process began serving many callers over HTTP:
+        whichever key initialised the singleton would then have been used for
+        everyone else's requests.
+
+        A fresh client per call is now the contract. Fuller coverage of the
+        per-request behaviour lives in tests/unit/test_mcp_request_auth.py.
+        """
         monkeypatch.setenv("TRU8_API_KEY", "sk-lazy")
         first = _get_client()
         second = _get_client()
-        assert first is second
+        assert first is not second
 
     def test_get_client_reads_env(self, monkeypatch):
         monkeypatch.setenv("TRU8_API_KEY", "sk-env-check")
@@ -107,14 +119,20 @@ class TestToolFunctions:
     """MCP tool wrappers — delegation and argument forwarding."""
 
     @pytest.fixture(autouse=True)
-    def _inject_mock_client(self):
-        """Replace _client with a mock for all tool-function tests."""
+    def _inject_mock_client(self, monkeypatch):
+        """Stub the client the tools resolve for this request.
+
+        This used to assign `server_module._client = mock`, reaching into the
+        module-level singleton. That singleton is gone — it was the
+        credential-crossing bug — so the seam to stub is now the resolver
+        itself.
+        """
         mock = AsyncMock()
         mock.submit_with_fallback = AsyncMock(
             return_value={"id": "chk-1", "status": "completed"}
         )
         mock.get_check = AsyncMock(return_value={"id": "chk-1", "claims": []})
-        server_module._client = mock
+        monkeypatch.setattr(server_module, "_get_client", lambda: mock)
         self.mock_client = mock
         yield
 

@@ -104,7 +104,17 @@ async def lifespan(app: FastAPI):
     if swept:
         logger.warning(f"[BOOT SWEEP] Healed {swept} stranded check(s) at startup")
 
-    yield
+    # Remote MCP transport (2026-08-04). The MCP ASGI app is MOUNTED below, and
+    # a mounted sub-app's own lifespan is NOT run by the parent — a Starlette
+    # behaviour that would leave the session manager unstarted and every /mcp
+    # request failing at runtime with nothing obviously wrong at boot. So its
+    # lifespan is driven from here, explicitly.
+    from tru8_mcp.server import mcp as tru8_mcp_server
+
+    async with tru8_mcp_server.session_manager.run():
+        logger.info("[STARTUP] MCP streamable-HTTP transport ready at /mcp")
+
+        yield
 
     # Deploy-shutdown guard (2026-07-21): pipeline tasks die with the process
     # (no Celery). Fail + refund whatever is still in flight so no check is
@@ -408,6 +418,57 @@ app.add_middleware(CorrelationIdMiddleware)
 # Metrics endpoint
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
+
+# Remote MCP server (2026-08-04) — the same tools the published `tru8-mcp`
+# package serves over stdio, exposed over streamable HTTP at /mcp so clients
+# can connect without installing anything.
+#
+# One codebase, two transports: this mounts the SAME FastMCP instance from
+# tru8_mcp.server, so the tools cannot drift between local and hosted.
+#
+# Mounted rather than run as a second service: it is a thin adapter over
+# /agent/* endpoints this process already serves, so a separate deployment
+# would add infrastructure and cost for nothing.
+#
+# ⚠️ Two things this depends on, both easy to break silently:
+#   1. The session manager's lifespan is driven from `lifespan()` above.
+#      Mounting alone does NOT start it.
+#   2. Credentials are resolved PER REQUEST in tru8_mcp.server._get_client().
+#      A cached client here would serve one caller's key to everyone —
+#      see tests/unit/test_mcp_request_auth.py.
+from tru8_mcp.server import mcp as _tru8_mcp_server
+
+# FastMCP's own app serves at settings.streamable_http_path, which defaults to
+# "/mcp". Mounting THAT at "/mcp" would put the endpoint at "/mcp/mcp" — and
+# the wrong path 404s while everything looks healthy at boot. Set the inner
+# path to root so the mount point alone decides the URL.
+#
+# Set here rather than in tru8_mcp/server.py so the published stdio package
+# keeps its stock settings.
+_tru8_mcp_server.settings.streamable_http_path = "/"
+
+app.mount("/mcp", _tru8_mcp_server.streamable_http_app())
+
+
+# A mount whose inner route is "/" only answers "/mcp/", and this app sets
+# redirect_slashes=False, so the bare "/mcp" 404s. Developers will paste the
+# bare URL — it is what we document — so send it on explicitly.
+#
+# 307 rather than 302: it preserves the method and body, which matters because
+# every MCP call is a POST carrying JSON-RPC.
+@app.api_route(
+    "/mcp",
+    methods=["GET", "POST", "DELETE"],
+    include_in_schema=False,
+)
+async def _mcp_trailing_slash(request: Request):
+    from fastapi.responses import RedirectResponse
+
+    target = "/mcp/"
+    if request.url.query:
+        target = f"{target}?{request.url.query}"
+    return RedirectResponse(url=target, status_code=307)
+
 
 # API Routes
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
