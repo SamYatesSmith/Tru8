@@ -336,10 +336,26 @@ async def agent_smart_check(
                         headers={"X-Tru8-Tx-Id": tx.id},
                     )
         except Exception:
-            import logging as _log
+            # ROLLBACK IS NOT OPTIONAL HERE.
+            #
+            # This handler used to swallow the failure at DEBUG and fall
+            # through with no rollback. Postgres marks a transaction aborted
+            # after any failed statement, so the session was already poisoned:
+            # the NEXT write — the credit debit — died with
+            # InFailedSQLTransactionError and the caller got a 500 whose Sentry
+            # trace pointed squarely at billing code that had done nothing
+            # wrong. The real cause (claim_consensus did not exist) was
+            # invisible because it was logged at DEBUG.
+            #
+            # Rolling back returns the session to a usable state so a consensus
+            # problem costs the caller a cache miss instead of their request.
+            await session.rollback()
 
-            _log.getLogger(__name__).debug(
-                "Consensus lookup failed, continuing fallback"
+            # WARNING, not DEBUG. Consensus is an optimisation; failing it is
+            # survivable but never normal, and the whole point of the incident
+            # above is that nobody could see it happening.
+            logger.warning(
+                "Consensus lookup failed, continuing without it", exc_info=True
             )
 
     # Step 2.6: If max_tier is "consensus" and no hit, return structured miss.

@@ -38,6 +38,30 @@
 
 ---
 
+**2026-08-04 — 🔴 THE `/agent` QUICK+FULL PATH HAS BEEN 500ing, AND THE SENTRY TRACE BLAMED THE WRONG CODE. Fixed; three bugs stacked. Suite 3,141 pass / 0 fail.**
+
+Found by dogfooding the new remote MCP endpoint — the first thing that had actually exercised this path. `lookup` and `consensus` tiers returned clean misses; **`quick` returned 500**.
+
+**Root cause, in full:**
+1. **`ClaimConsensus` was never exported from `app/models/__init__.py`.** `entrypoint.sh` bootstraps a fresh database with `from app.models import *` → `create_all` → **`alembic stamp head`**. An unexported model is therefore never created **and** its migration is stamped as already-applied. `m06_claim_consensus` (2026-03-09) is correct and in the chain, and **has never run**. Confirmed locally at head: `relation "claim_consensus" does not exist`.
+2. **`agent.py` swallowed the resulting `UndefinedTableError` at DEBUG with no `session.rollback()`.** Postgres marks a transaction aborted after any failed statement, so the session was poisoned and execution continued on it.
+3. **The next write — the credit debit — died with `InFailedSQLTransactionError`,** which is what surfaced in Sentry, pointing at `credit_provider.py` billing code that had done nothing wrong.
+
+**A correct migration, sitting in the chain, skipped forever.** That is the interesting failure: the bootstrap path and the migration path each assumed the other had it covered.
+
+**Fixes (all three layers):**
+- `ClaimConsensus` exported, with a comment at the import site explaining why every table-backed model must be.
+- **`2026_08_04_claim_consensus_repair.py`** — creates the table **only if absent** (checked via the live inspector, so normally-migrated databases are a no-op). Needed because existing deployments are stamped past `m06` and can never reach it. DDL copied column-for-column from `m06`, not written from the model — a migration must express the schema as defined, not as the model looks today. `downgrade()` deliberately does nothing rather than risk dropping a table `m06` legitimately owns.
+- `agent.py` now **rolls back** and logs at **WARNING with `exc_info`**. A consensus problem now costs the caller a cache miss instead of their request, and is visible.
+
+**`tests/unit/test_model_registration.py` is the general guard** — it walks every table-backed model under `app/models` and fails if any is not exported. **Mutation-verified**: removing the `ClaimConsensus` export (the original bug) fails 2 of 3. This catches the whole class for every model added from here on, not just this one.
+
+⚠️ **Also true and worth knowing: the consensus "miss" was never a miss.** The query threw on every call and the handler returned a tidy `hit: false`. **Consensus has been silently failing since M-06 shipped** — no user ever received a consensus response.
+
+✅ No user was charged and no stranded rows were created: the failure lands before the Check row is written.
+
+---
+
 **2026-08-04 — ✅ REMOTE MCP SERVER BUILT. `POST /mcp` on the existing API, streamable HTTP, credential isolation proven end to end. Suite 3,138 pass / 0 fail.**
 
 **Shape: mounted on the existing API, not a second service.** The MCP server is a thin adapter over `/agent/*` endpoints this process already serves, so a separate deployment would have added infrastructure and cost for nothing. Same `FastMCP` instance as the published stdio package — **one codebase, two transports**, so the tools cannot drift.
