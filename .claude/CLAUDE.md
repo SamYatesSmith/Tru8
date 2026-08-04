@@ -16,11 +16,11 @@ AI-powered evidence research platform. Users submit a URL or claim, the pipeline
 | G | COMPLETE | The Seeker (known unknowns) + Re-search mechanism. |
 | H API | COMPLETE | Agent API (8 PRs), MCP server, dual auth, webhooks, snapshot mode, sync `/run` endpoint. |
 | H NAV | COMPLETE | Unified check detail — single page, state-driven claim focus. Commit `6403227`. |
-| I | IN PROGRESS | Pre-release readiness. Subs LIVE in production (`SUBSCRIPTIONS_ENABLED=True` deployed long ago — confirmed 2026-05-01; I-03/I-04 closed). I-07 MCP publication DONE — `tru8-mcp` 1.0.2 on PyPI. **✅ LISTED ON THE OFFICIAL MCP REGISTRY 2026-08-03** — `io.github.SamYatesSmith/tru8` v1.0.2, status `active`. `server.json` had five faults that would each have failed the publish (namespace pointed at `tru8.io`, a domain that does not exist; `registryType: "pip"`; version 1.0.0 vs PyPI 1.0.2; a 312-char description against a **server-side 100 limit** invisible to the JSON schema). **Always run `mcp-publisher validate <path>` — it catches what the schema cannot.** Remaining: I-06 OG cards visual review, Smithery submission (`backend/smithery.yaml` ready), mcp.so + PulseMCP (they index FROM the official registry — wait ~2 weeks before submitting manually). See `audit/track-i/PROGRESS.md`. |
+| I | IN PROGRESS | Pre-release readiness. Subs LIVE in production (`SUBSCRIPTIONS_ENABLED=True` deployed long ago — confirmed 2026-05-01; I-03/I-04 closed). I-07 MCP publication DONE — **`tru8-mcp` 1.0.3 on PyPI** (1.0.0/1.0.1/1.0.2 **YANKED 2026-08-04**: they declared `mcp>=1.0.0`, and mcp 2.0.0 removed `mcp.server.fastmcp`, so every `pip install` died on ImportError **while listed on the registry**). **✅ OFFICIAL MCP REGISTRY** — `io.github.SamYatesSmith/tru8` **v1.0.3**, `isLatest`, status `active`. **✅ REMOTE MCP SERVER LIVE 2026-08-04 — `POST https://api.trueight.com/mcp`** (streamable HTTP mounted on the API; same tools, no install). `server.json` had five faults that would each have failed the publish (namespace pointed at `tru8.io`, a domain that does not exist; `registryType: "pip"`; version 1.0.0 vs PyPI 1.0.2; a 312-char description against a **server-side 100 limit** invisible to the JSON schema). **Always run `mcp-publisher validate <path>` — it catches what the schema cannot.** Remaining: I-06 OG cards visual review, **Smithery submission — paste the `/mcp` URL** into their publish form (it wants an HTTP URL, not a repo; `smithery.yaml` + `Dockerfile.mcp` remain valid for the container route but are not used by it), mcp.so + PulseMCP (they index FROM the official registry — wait ~2 weeks before submitting manually). See `audit/track-i/PROGRESS.md`. |
 | J | COMPLETE | Test suite overhaul — 0 failures, +87 new tests. Commit `a5ed52d`. |
 | K | COMPLETE | Endpoint + efficacy testing. 1,092 tests collected. Commit `14371cf` + subsequent. |
 | L | COMPLETE | Agent Commerce Gateway — 3 tiers (Lookup/Quick/Full), 3 payment rails (x402/Skyfire/credits), `/agent/` endpoints, MCP tier tool. Deployment-only items remain (Stripe credit packs, PyPI publish). |
-| M | COMPLETE | Evidence Infrastructure — M-01 provenance, M-02 gap enrichment + provider status, M-03 smart endpoint, M-04 manifest signing + verify endpoint, M-05 jurisdiction routing, M-06 convergence layer + consensus tier, M-07 tests (+54). Deployment items remain (migrations, signing key, MCP consensus tier). |
+| M | COMPLETE (⚠️ M-06 was DEAD until 2026-08-04) | Evidence Infrastructure — M-01 provenance, M-02 gap enrichment + provider status, M-03 smart endpoint, M-04 manifest signing + verify endpoint, M-05 jurisdiction routing, M-06 convergence layer + consensus tier, M-07 tests (+54). **⚠️ M-06 NEVER RAN IN PRODUCTION until `dc61c0f`:** `ClaimConsensus` was missing from `app/models/__init__.py`, and `entrypoint.sh` bootstraps a fresh DB with `create_all` (exported models only) then `alembic stamp head` — so the table was never created AND `m06_claim_consensus` was permanently stamped past. Every `/agent` quick|full call raised `UndefinedTableError`, which `agent.py` swallowed at DEBUG **without rollback**, poisoning the session so the credit debit died with `InFailedSQLTransactionError` — a 500 whose Sentry trace accused billing. Consensus returned a tidy `hit: false` throughout, so **no user ever received one**. Deployment items remain (signing key). |
 | N | COMPLETE | Mapping quality — 9 PQ items (PQ-01→PQ-09). Model upgrade (Flash Thinking), snippet 1000 chars, basis metadata, orientation reframe, adapter rebuild, heuristic classifier 93.7%, content_basis, question inputs. Register: `audit/PIPELINE_QUALITY_DISCUSSION.md`. |
 
 ## Where the reasoning lives (changed 2026-07-27)
@@ -37,7 +37,7 @@ plan) and the outreach contact map (third-party personal data).
 # Backend
 cd backend
 uvicorn app.main:app --reload                    # API server (port 8000)
-pytest tests/ -q --no-cov                        # All tests (3,050 collected, 2,981 pass, 69 skip, ~95s)
+pytest tests/ -q --no-cov                        # All tests (3,141 pass, 69 skip, ~85s)
 # Redis + Postgres must be up or ~26 cache/perf tests fail on connection refused, not on logic.
 pytest tests/unit/pipeline/ -v                   # Pipeline unit tests
 pytest tests/integration/ -v                     # Integration tests
@@ -168,6 +168,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 | File | Purpose |
 |------|---------|
 | `backend/app/services/wayback_archive.py` | Auto-archiving service |
+| `backend/app/services/lifecycle_emails.py` | Funnel emails (welcome on first arrival, trial-exhausted on the 3rd check). Eligibility + exactly-once claiming (`UPDATE ... WHERE marker IS NULL`) + off-loop dispatch. Reuses `get_usage_snapshot` — never re-derive the trial limit. Design: `audit/2026-08-04_funnel_lifecycle_emails_design.md` |
 | `backend/app/services/video_recommendations.py` | YouTube video provider |
 | `backend/app/services/computed_analytics.py` | Computed analytics + freshness |
 | `backend/app/services/consensus.py` | Convergence layer — daily batch consensus computation |
@@ -178,7 +179,7 @@ Cross-cutting: Diagnostic Value Highlighter (ACH toggle on Cartographer + Librar
 | `backend/app/core/client_origin.py` | `resolve_client(request)` — normalises `X-Tru8-Client` header (e.g. `mcp/1.0.2` → `mcp`) onto `Check.client` for first-party usage attribution |
 | `backend/app/core/agent_pricing.py` | Agent pricing (lookup $0.02, consensus $0.03, quick $0.07, full $0.15) |
 | `backend/app/middleware/x402_audit.py` | x402 payment middleware |
-| `backend/tru8_mcp/server.py` | MCP server for Claude/agents — 3 tools: `tru8_check` (submit with tier fallback), `tru8_get_result` (computed analytics), `tru8_get_result_raw` (raw data). Thin HTTP client over `/agent/*` + `/checks/*`; inherits pipeline upgrades automatically. Sends `X-Tru8-Client: mcp/<version>` on every request (see `tru8_mcp/tools.py::_headers`). |
+| `backend/tru8_mcp/server.py` | MCP server — 3 tools: `tru8_check`, `tru8_get_result`, `tru8_get_result_raw`. Thin HTTP client over `/agent/*` + `/checks/*`; inherits pipeline upgrades automatically. Sends `X-Tru8-Client: mcp/<version>`. **TWO TRANSPORTS off ONE instance (2026-08-04):** stdio via the published `tru8-mcp` PyPI package, and **streamable HTTP mounted at `POST /mcp` on the API** (`main.py`). ⚠️ Credentials resolve **PER REQUEST** (`_get_client()`) — the old module-level client singleton was a credential-crossing bug the moment one process served two callers. Never cache it. Guard: `tests/unit/test_mcp_request_auth.py`. |
 | `backend/scripts/mcp_usage.py` | "Is the MCP package being used?" report — counts `Check.client` by client with 24h/7d/30d windows + distinct users. Run `python -m scripts.mcp_usage` (or `railway run python -m scripts.mcp_usage` against prod). |
 
 ### Frontend

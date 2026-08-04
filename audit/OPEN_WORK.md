@@ -5,31 +5,43 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (written 2026-08-03, end of a long launch session)
+## 🟢 START HERE — next session (rewritten 2026-08-04, end of a long session)
 
 **Everything below the divider is history. This block is what to do next.**
 
-**State:** all work PUSHED and LIVE (`3c00b14..236d4ba`, 22 commits). Suite **3,029 pass / 0 fail** · web tsc clean · vitest 87 · **CI GREEN both jobs** (first time in months). Working tree holds **two deliberately-held changes** — see HELD below.
+**State:** all work PUSHED and LIVE. Suite **3,141 pass / 0 fail** · web tsc clean · vitest 87. Working tree still holds **two deliberately-held pipeline changes** — see HELD below.
 
-**Tru8 is listed on the official MCP registry** — `io.github.SamYatesSmith/tru8` v1.0.2, status `active`, published 2026-08-03T15:15:29Z. Verify: `curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.SamYatesSmith/tru8"`.
+**Everything user-facing was verified live at the end of the session — 16/16 checks passed** (PyPI, registry, remote MCP endpoint, clean-environment install, 6/6 public surfaces, API health).
 
-### Do these first (small, unblocked)
-1. ⛔ **PUBLISH `tru8-mcp` 1.0.3 TO PyPI — the listed package is BROKEN on PyPI right now.** Code fix is committed; the publish needs the founder's token. Then republish `server.json` to the MCP registry. **This is the top item on the board.** See the 2026-08-04 entry below.
-2. **Smithery submission** — ⚠️ the old note said "exists and is correct, just connect the repo". **It was not correct and would have failed.** Now fixed (`Dockerfile.mcp` + `dockerfile:` key). Connect the repo at smithery.ai **after** 1.0.3 is on PyPI. mcp.so + PulseMCP index FROM the official registry, so give them ~2 weeks before submitting manually.
-2. **Run one check on prod.** It will be the FIRST check carrying real search-cost telemetry (the meter shipped this session). ⚠️ **`cost_telemetry` is NOT exposed in any API or UI** — only `backend/scripts/verify_m1_d1_prod.py` + `retrieval_capture_pull.py` read it, both via direct DB. **A small `scripts/cost_report.py` was promised and NOT built** — build it, or the meter has no dial.
-3. ~~**Soft-404** (`/r/<unknown>` returns 200)~~ ✅ **FIXED 2026-08-04 — and the recorded diagnosis was WRONG on both counts.** See the entry below.
+### ⏳ THE ONE THING OUTSTANDING
+**Run a `quick`-tier check through the MCP client with a real API key.** Auth rejects before the consensus code path, so **the `/agent` 500 fix cannot be verified from outside** — only a valid key proves it. If evidence comes back instead of a 500, the fix is confirmed and Smithery is unblocked.
+
+### Then, small and unblocked
+1. **Smithery** — paste `https://api.trueight.com/mcp` into their publish form. It wants an **HTTP URL, not a repo**; no base directory, no Docker build. (`smithery.yaml` + `Dockerfile.mcp` are fixed and valid for the container route, just unused by this one.) mcp.so + PulseMCP index FROM the official registry — give them ~2 weeks before submitting manually.
+2. **Build `scripts/cost_report.py`.** Four prod checks now carry real search-cost telemetry, and **nothing can read it** — `cost_telemetry` is exposed in no API or UI. It was promised and not built, so the meter still has no dial.
+3. **Screenshot recapture is DONE**, but the four `-full` lightbox images are 315–638KB. Lazy by construction (the lightbox is unmounted when closed), so no page-load cost — worth a WebP pass only if that changes.
 
 ### The real priority (founder-agreed, not technical)
-**The funnel, not the pipeline.** ✅ **The two lifecycle emails SHIPPED 2026-08-04.** ✅ **Screenshot recapture DONE 2026-08-04** — both defects closed. See both entries below.
+**The funnel, not the pipeline.** ✅ Lifecycle emails shipped. ✅ Screenshots recaptured. ✅ Remote MCP server live. **What remains is distribution** — Sentry still shows near-zero traffic. Everything built this week is plumbing that only pays off when people arrive.
 
 ### ⛔ HELD in the working tree — do NOT commit without reading the design docs
-- `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Correct and unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design + full attribution: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the test file WITHOUT the classifier change fails 40 tests.
-- `backend/app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe, needs a bench **re-record + re-gold**. Record it SEPARATELY from the classifier change or golden drift is unattributable.
+- `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Correct and unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the test file WITHOUT the classifier change fails 40 tests.
+- `backend/app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe, needs a bench **re-record + re-gold**, recorded SEPARATELY from the classifier change or golden drift is unattributable.
 
 ### ⛔ OWED BY FOUNDER
-① **Clear `COMPANIES_HOUSE_API_KEY` on Railway** — agreed to drop it; registry is already conditional (`api_adapters/__init__.py:110`), no code change, and it stops the live 401s. ② Swap `backend/.env` Stripe values to test mode (the guard neutralises the secret key; the **webhook secret is `whsec_` in both modes and cannot be detected**). ③ Triage the Sentry backlog — the noise fix is live, so it is finally legible.
+① **Clear `COMPANIES_HOUSE_API_KEY` on Railway** — agreed; the registry is already conditional (`api_adapters/__init__.py:110`), so no code change, and it stops the live 401s. ② Swap `backend/.env` Stripe values to test mode (the guard neutralises the secret key; the **webhook secret is `whsec_` in both modes and cannot be detected**). ③ Triage the Sentry backlog — the noise fix is live, so it is finally legible, and the `/agent` 500s in there are now explained. ④ **Rotate the Tru8 API key pasted into chat during MCP setup.**
 
-### Durable lessons from this session
+### Durable lessons — 2026-08-04
+- **Test the PUBLISHED artefact, not the repo.** Everything in-repo passed while `pip install tru8-mcp` was dead for every new user. `scripts/check_published_mcp.py` now installs the real thing in a fresh venv twice daily.
+- **A plausible mechanism is not a diagnosis.** The soft-404's recorded cause (Clerk middleware) was wrong, and so was "untestable locally" — a five-minute reproduction disproved both. It was `app/loading.tsx`.
+- **A skip guard is where breakages hide.** `importorskip` written for "mcp too old" silently absorbed "mcp too new" while the shipped package was broken. Now a hard import.
+- **`create_all` + `stamp head` can skip a correct migration forever.** An unexported model is never created *and* is stamped as done. `tests/unit/test_model_registration.py` guards every model from here on.
+- **"Transaction is aborted" is never the cause** — find what failed earlier and was swallowed. A missing `rollback()` turned a cache miss into a 500 and made Sentry accuse billing.
+- **A brief can name the wrong fix.** "Recapture at one fixed ratio" would have cropped the product out of frame; the defect was letterboxing, and per-panel ratios solved it.
+- **Verify auth with a listener, not a mock** — only that proves the request context reaches the tool and a host env var does not leak into hosted calls.
+- **Dogfooding found what monitoring could not.** Sentry had been showing the `/agent` 500 and blaming the wrong file for months; nothing exercised the path until the MCP endpoint existed.
+
+### Durable lessons — 2026-08-03
 - **Verify against the DEPLOYED page, not the source.** Two real defects (footer naming a non-existent company; my own 404 fix not working) survived hours of code reading and fell out of ten minutes poking production.
 - **A permanently-red CI is worse than no CI** — it trained everyone to ignore the one channel whose job is to say something broke. Same failure as the Sentry flood. Both closed today.
 - **Grep case-insensitively for brand/company strings** (`TRU8 LTD` hid from a `Tru8 Ltd` grep), and **search the whole repo, not one directory** — the first "30+ sources" sweep missed 6 public surfaces including `llms.txt` and the FastAPI description.
