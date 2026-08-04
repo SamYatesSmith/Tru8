@@ -90,7 +90,11 @@ The new check installs the **published** package into a **fresh venv** and makes
 
 **The incident is closed.** Elapsed from discovery to fully-fixed: about two hours, and it was found only because the Smithery prep made someone actually install the published package.
 
-⚠️ **Optional, founder's call: yank 1.0.2 on PyPI.** Nobody reaches it by the normal route any more (PyPI latest and the registry both point at 1.0.3), so this only protects someone who explicitly pins the broken version. Low urgency.
+✅ **1.0.0, 1.0.1 AND 1.0.2 YANKED on PyPI (founder, 2026-08-04).** It was never just 1.0.2 — **all three predated the pin** and carried the same unbounded `mcp>=1.0.0`, so every one of them resolved to mcp 2.0 and died. Checked before acting rather than assuming the newest was the only broken one.
+- Verified in the **simple index** (what pip actually resolves against): 1.0.0/1.0.1/1.0.2 `yanked`, 1.0.3 live.
+- Behaviour confirmed: unpinned → **1.0.3**; explicitly pinning `==1.0.2` still installs but emits `WARNING: ... is a yanked version` carrying the reason. That is the point of yanking over deleting — nobody's pinned build hard-fails, and nobody arrives there by accident.
+- ⚠️ **PyPI's JSON metadata reported all four as live after the yanks had taken effect.** Second time today that endpoint lagged reality. **Check `https://pypi.org/simple/<pkg>/` with `Accept: application/vnd.pypi.simple.v1+json`, not the JSON API.**
+- ⚠️ **The yank dialog is a live footgun:** its Version confirmation box is free text and does **not** have to match the release named in the header. It was pre-filled with `1.0.3` — the *working* release — while yanking 1.0.0. The button stays disabled on a mismatch, which is the only thing standing between a tidy-up and yanking the good build. Read the header, then type that version.
 
 ⚠️ **`mcp-publisher login github` is a device-code flow that expires while it polls** — the first attempt failed with `incorrect_device_code`. Open <https://github.com/login/device> **first**, then run the login so the code can be pasted immediately, then `publish` straight after (JWT is short-lived). Binary at `C:\Users\james\mcp-publisher.exe`, **not on PATH**. `dns`/`http` auth cannot substitute — they need a domain, and the namespace is a GitHub one.
 
