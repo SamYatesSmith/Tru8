@@ -28,3 +28,33 @@ jobs:
       # cannot break because of a package resolution problem in a monitor.
       - name: Check public surfaces
         run: python scripts/check_public_surfaces.py
+
+  published-mcp-package:
+    # The MCP package we publish is a public surface too, and it is the one
+    # nothing was watching. On 2026-08-04 `pip install tru8-mcp` had been dead
+    # for an unknown number of days — mcp 2.0.0 removed a module the server
+    # imports, and the package's `mcp>=1.0.0` happily resolved to it — while
+    # Tru8 was listed on the official MCP registry.
+    #
+    # Three things that look like they cover this did not:
+    #   * the repo was fine; the break was in the PUBLISHED artefact's metadata
+    #   * the unit tests skip on `importorskip("mcp.server.fastmcp")`
+    #   * dev machines already had a working mcp installed
+    #
+    # A separate job from `surfaces` on purpose: a PyPI outage must not mask
+    # the website check, and a website wobble must not mask this one.
+    #
+    # Runs on a schedule rather than on push because nothing in this repo has
+    # to change for it to break — an upstream release is enough.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The fresh runner IS the point: it has no mcp already installed, so it
+      # gets exactly what a new user gets.
+      - name: Install the published package and make it speak
+        run: python scripts/check_published_mcp.py

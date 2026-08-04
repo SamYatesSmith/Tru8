@@ -58,6 +58,24 @@ Found while preparing the Smithery submission — not while looking for it.
 
 Durable: **"exists and is correct" in a register is a claim, not a verification** — this one was wrong in a way that would have wasted a submission attempt. And **a skip guard is a place breakages hide**: it was doing its job for one failure mode while concealing another.
 
+**✅ THE MISSING CHECK IS NOW BUILT — `scripts/check_published_mcp.py` + a second job in `production-health.yml` (twice daily).**
+
+**Why yesterday's monitor did not catch this, plainly: it was never asked to.** `check_public_surfaces.py` covers the surfaces a *stranger browsing the site* touches — homepage, pricing, sample report, API health. The package a *developer installs* was outside its scope. That was a real gap in what shipped yesterday, on the very day the registry listing went live.
+
+The new check installs the **published** package into a **fresh venv** and makes it speak:
+1. `pip install tru8-mcp` **unpinned** — a new user does not pin, and dependency drift is the failure mode.
+2. MCP `initialize` handshake completes.
+3. `tools/list` returns all three advertised tools.
+
+**It discriminates, which is the only thing that makes a monitor worth having:** against the live 1.0.2 it **FAILS** (exit 1, reproducing the user-facing `ModuleNotFoundError`, reporting `resolved mcp==2.0.0`); against the fixed 1.0.3 artefact it **PASSES** (exit 0, `mcp==1.29.0`, 3 tools).
+
+- **Separate CI job** from `surfaces` on purpose: a PyPI outage must not mask the website check, nor the reverse.
+- **Scheduled, not on push** — nothing in this repo has to change for it to break; an upstream release is enough. That is exactly what happened.
+- **The fresh runner is the mechanism.** A dev machine with a working `mcp` already installed cannot reproduce a new user's install, which is why this passed locally right up to publication.
+- **Pre-publish mode:** `python scripts/check_published_mcp.py path/to/dist/*.whl` verifies an artefact **before** upload. A PyPI version cannot be re-uploaded, so that is the cheap place to catch it.
+
+⛔ **Publish of 1.0.3 is STILL OWED** — `twine upload` was **blocked by a session permission rule, not skipped**. Artefacts are built and `twine check`-clean at `backend/tru8_mcp/dist/tru8_mcp-1.0.3*`. Command: `cd backend/tru8_mcp && python -m twine upload dist/tru8_mcp-1.0.3*`, then `mcp-publisher validate server.json && mcp-publisher publish`. **The new monitor stays RED until that happens** — correct behaviour, and the check doing its job.
+
 ---
 
 **2026-08-04 — ✅ SOFT-404 FIXED. One line: `web/app/loading.tsx` deleted. The recorded diagnosis was wrong on BOTH counts, and both wrong beliefs were disproved by measurement, not reasoning.**
