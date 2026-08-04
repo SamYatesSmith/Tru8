@@ -1,5 +1,5 @@
 from typing import ClassVar, List, Optional
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
 
@@ -577,10 +577,14 @@ class Settings(BaseSettings):
     SIWE_DOMAIN: str = Field("app.tru8.com", env="SIWE_DOMAIN")
     SIWE_NONCE_TTL_SECONDS: int = Field(300, env="SIWE_NONCE_TTL_SECONDS")
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "ignore"
+    # Modern pydantic-settings form. The old inner `class Config` is deprecated
+    # in pydantic-settings 2.x; the behaviour here is identical, but the class
+    # form emits warnings on the >=2.6.1 required by mcp>=1.2.
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",
+    )
 
 
 settings = Settings()

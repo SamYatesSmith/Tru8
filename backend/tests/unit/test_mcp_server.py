@@ -10,27 +10,23 @@ from datetime import datetime
 import pytest
 from unittest.mock import AsyncMock, patch
 
-# tru8_mcp.server imports mcp.server.fastmcp (FastMCP), which exists only in
-# mcp >= 1.2 AND < 2 — mcp 2.0.0 REMOVED it.
+# DELIBERATELY A HARD IMPORT, NOT importorskip.
 #
-# The backend cannot install that range: mcp 1.2+ requires
-# pydantic-settings>=2.6.1 and requirements.txt pins pydantic-settings==2.1.0,
-# so pip resolves *outside* the working window in this environment and this
-# module skips.
+# This module used to open with `pytest.importorskip("mcp.server.fastmcp")`,
+# added when requirements.txt pinned pydantic-settings==2.1.0 — a pin that
+# forced pip outside the mcp range containing FastMCP, so these tests could
+# not run and were skipped instead.
 #
-# ⚠️ This skip is why a real breakage stayed invisible. The original note here
-# said pip resolves an OLDER mcp; as of 2026-08-04 it resolves mcp 2.0.0
-# instead — a different failure with the same symptom, and the skip absorbed
-# both silently while the PUBLISHED tru8-mcp package was dead on arrival for
-# every new user (`mcp>=1.0.0` → 2.0.0 → ImportError). Fixed in tru8_mcp
-# 1.0.3 by pinning `mcp>=1.2,<2` in the package's own pyproject.toml, which
-# has no pydantic-settings constraint.
+# That skip is how a real breakage stayed invisible for days. It was written
+# for mcp being too OLD and silently absorbed mcp 2.0.0 being too NEW (2.0.0
+# removed mcp.server.fastmcp), all while the PUBLISHED tru8-mcp package was
+# dead on arrival for every new user. The suite stayed green throughout.
 #
-# These tests therefore still do NOT run here. The package is verified on its
-# own build instead (clean-container install + MCP initialize handshake).
-# Making them run requires upgrading pydantic-settings across the backend —
-# its own change. See OPEN_WORK 2026-08-04.
-pytest.importorskip("mcp.server.fastmcp")
+# requirements.txt now pins `pydantic-settings>=2.6.1,<3` and `mcp[cli]>=1.2,<2`,
+# so the import is guaranteed in any environment built from it. If this line
+# raises, the dependency floor has moved and that is EXACTLY what we want to
+# hear about — loudly, not as a skipped module. Do not soften it back.
+from mcp.server.fastmcp import FastMCP  # noqa: F401
 
 import tru8_mcp.server as server_module
 from tru8_mcp.server import (
