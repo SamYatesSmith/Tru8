@@ -37,7 +37,14 @@
 
 ---
 
-**2026-08-04 — ✅ FUNNEL LIFECYCLE EMAILS SHIPPED. Design + self-review: `audit/2026-08-04_funnel_lifecycle_emails_design.md`. Suite 3,122 pass / 0 fail · web tsc clean · migration applied locally and verified.**
+**2026-08-04 — ✅ FUNNEL LIFECYCLE EMAILS SHIPPED + PUSHED + LIVE (`0016e92`, `993c801..0016e92`). Design + self-review: `audit/2026-08-04_funnel_lifecycle_emails_design.md`. Suite 3,122 pass / 0 fail · web tsc clean · migration applied locally and in prod.**
+
+**Deploy verified in production:** `email_lifecycle` is present in the served
+`EmailPreferencesRequest` schema at `GET /api/openapi.json` — the new build is running.
+`entrypoint.sh` runs `alembic upgrade head` under `set -e` *before* uvicorn, so a serving
+new build is proof the migration completed. **Both emails sent live to the founder via
+Resend and confirmed accepted** (real send path incl. `List-Unsubscribe`; sent through the
+service directly, so no DB markers were burned).
 
 The silence between signup and revenue is closed: a **welcome** email on first arrival, and a **"free checks used up"** email when the trial is spent. Resend was already live in prod (`/health/email-config` → `ready`), so this is new templates + triggers on the existing path — **no new vendor, no domain work**.
 
