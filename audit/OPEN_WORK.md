@@ -80,13 +80,19 @@ The new check installs the **published** package into a **fresh venv** and makes
 - Cross-checked on **Python 3.10 / 3.11 / 3.12 / 3.13** and two OSes before publishing. The whole 1.0.2→1.0.3 diff is the version string and the dependency bound — **not one line of `server.py` or `tools.py`** — so tool behaviour is unchanged.
 - ⚠️ PyPI's JSON metadata lagged ~10s behind `pip` (reported 1.0.2 while pip already served 1.0.3). **Trust the install, not the metadata endpoint.**
 
-⏳ **REGISTRY REPUBLISH STILL OWED (founder — interactive login).** The registry still pins **`tru8-mcp 1.0.2`**, and a client reading the registry may install that exact broken version. `server.json` is bumped to 1.0.3 and **`mcp-publisher validate` PASSES**. `mcp-publisher publish` returns **401, expired JWT** — the login is a browser flow. Binary is at `C:\Users\james\mcp-publisher.exe` (not on PATH). Run back to back:
-```
-cd C:\Users\projects\Tru8\backend
-C:\Users\james\mcp-publisher.exe login github
-C:\Users\james\mcp-publisher.exe publish
-```
-⚠️ **Consider yanking 1.0.2 on PyPI** — plain `pip install tru8-mcp` now gets 1.0.3, but anyone pinned to 1.0.2 (or following the registry pin until it is updated) still gets the broken build. Founder's call.
+✅ **REGISTRY REPUBLISHED 2026-08-04T12:24Z — the whole chain is now green and verified end to end.**
+
+| Link in the chain | State |
+|---|---|
+| PyPI | **1.0.3**, `Requires-Dist: mcp<2,>=1.2` |
+| MCP registry | **`isLatest: True` on 1.0.3**, pins `tru8-mcp 1.0.3` (1.0.2 remains as `isLatest: False` — normal version history) |
+| `scripts/check_published_mcp.py` | **exit 0** — clean venv, resolves mcp 1.29.0, handshake OK, 3 tools |
+
+**The incident is closed.** Elapsed from discovery to fully-fixed: about two hours, and it was found only because the Smithery prep made someone actually install the published package.
+
+⚠️ **Optional, founder's call: yank 1.0.2 on PyPI.** Nobody reaches it by the normal route any more (PyPI latest and the registry both point at 1.0.3), so this only protects someone who explicitly pins the broken version. Low urgency.
+
+⚠️ **`mcp-publisher login github` is a device-code flow that expires while it polls** — the first attempt failed with `incorrect_device_code`. Open <https://github.com/login/device> **first**, then run the login so the code can be pasted immediately, then `publish` straight after (JWT is short-lived). Binary at `C:\Users\james\mcp-publisher.exe`, **not on PATH**. `dns`/`http` auth cannot substitute — they need a domain, and the namespace is a GitHub one.
 
 ---
 
