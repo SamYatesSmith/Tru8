@@ -3491,5 +3491,16 @@ async def send_success_notifications(
     except Exception as e:
         logger.warning(f"Failed to send completion email: {e}")
 
+    # Trial exhausted — the primary trigger. Credits are debited before the
+    # pipeline starts, so by now the ledger already counts this check and the
+    # user is looking at a finished evidence landscape. No-ops unless this is
+    # a trial user who has just spent their last credit.
+    try:
+        from app.services.lifecycle_emails import schedule_trial_exhausted_email
+
+        schedule_trial_exhausted_email(user_id)
+    except Exception as e:
+        logger.warning(f"Failed to queue trial-exhausted email: {e}")
+
 
 # reload trigger

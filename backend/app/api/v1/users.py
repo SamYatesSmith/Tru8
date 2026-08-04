@@ -77,6 +77,19 @@ async def get_or_create_user(session: AsyncSession, current_user: dict) -> User:
         user = result.scalar_one()
         await session.commit()
         logger.info(f"User created/updated: {email} (ID: {user_id})")
+
+        # Welcome email — first arrival in the app.
+        #
+        # This is ON CONFLICT DO UPDATE, so reaching here does NOT mean a user
+        # was created: a returning user whose Clerk ID changed takes the update
+        # branch. The welcome_email_sent_at marker is what actually tells them
+        # apart (and the migration backfilled it for everyone who predates it).
+        # Fire-and-forget so Resend never adds latency to a page load, and so a
+        # mail failure can never fail this request.
+        from app.services.lifecycle_emails import schedule_welcome_email
+
+        schedule_welcome_email(user.id)
+
         return user
     except Exception as e:
         await session.rollback()
@@ -654,6 +667,7 @@ class EmailPreferencesRequest(BaseModel):
     email_check_failure: bool | None = None
     email_weekly_digest: bool | None = None
     email_marketing: bool | None = None
+    email_lifecycle: bool | None = None
 
 
 @router.get("/email-preferences")
@@ -675,6 +689,7 @@ async def get_email_preferences(
         "checkFailure": user.email_check_failure,
         "weeklyDigest": user.email_weekly_digest,
         "marketing": user.email_marketing,
+        "lifecycle": user.email_lifecycle,
     }
 
 
@@ -701,6 +716,7 @@ async def update_email_preferences(
             user.email_check_failure = False
             user.email_weekly_digest = False
             user.email_marketing = False
+            user.email_lifecycle = False
 
     if request.email_check_completion is not None:
         user.email_check_completion = request.email_check_completion
@@ -710,6 +726,8 @@ async def update_email_preferences(
         user.email_weekly_digest = request.email_weekly_digest
     if request.email_marketing is not None:
         user.email_marketing = request.email_marketing
+    if request.email_lifecycle is not None:
+        user.email_lifecycle = request.email_lifecycle
 
     try:
         await session.commit()
@@ -729,6 +747,7 @@ async def update_email_preferences(
             "checkFailure": user.email_check_failure,
             "weeklyDigest": user.email_weekly_digest,
             "marketing": user.email_marketing,
+            "lifecycle": user.email_lifecycle,
         },
     }
 

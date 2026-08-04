@@ -33,6 +33,17 @@ class User(SQLModel, table=True):
     email_weekly_digest: bool = Field(default=False)
     email_marketing: bool = Field(default=False)
 
+    # Lifecycle (funnel) emails: welcome on first arrival, trial exhausted.
+    # Separate from email_marketing, which defaults False — gating on that
+    # would ship the feature dark for everyone.
+    email_lifecycle: bool = Field(default=True)
+
+    # Exactly-once markers. Claimed by a conditional UPDATE ... WHERE ... IS
+    # NULL before sending, so concurrent requests and pipeline workers cannot
+    # double-send. Backfilled for pre-existing users by the migration.
+    welcome_email_sent_at: Optional[datetime] = Field(default=None)
+    trial_exhausted_email_sent_at: Optional[datetime] = Field(default=None)
+
     created_at: datetime = Field(default_factory=_utcnow_naive)
     updated_at: datetime = Field(default_factory=_utcnow_naive)
 

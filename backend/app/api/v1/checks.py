@@ -1582,6 +1582,15 @@ async def _reserve_re_search_credit(
         session, user, kind=kind, check_id=check_id, context="re_search"
     )
     await session.commit()
+
+    # Trial exhausted — second trigger point. Re-searches and top-ups debit
+    # credits but never reach send_success_notifications, so without this a
+    # user could spend their last credit here and never be told. The marker
+    # makes double-wiring safe: whichever trigger fires first claims it.
+    from app.services.lifecycle_emails import schedule_trial_exhausted_email
+
+    schedule_trial_exhausted_email(user.id)
+
     return user
 
 

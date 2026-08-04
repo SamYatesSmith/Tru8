@@ -19,7 +19,7 @@
 3. **Soft-404** (`/r/<unknown>` returns 200). Diagnosed, unfixed: `notFound()` in `generateMetadata` DOES fire (the real not-found page renders), but `x-middleware-rewrite` from `clerkMiddleware` masks the status. Candidate: exclude `/r/` from the middleware matcher — **verified safe-ish**, `Navigation` uses `useAuth()` (client hook via `ClerkProvider`), and nothing in the `/r/` tree calls server `auth()`. Untestable locally without Clerk keys; `scripts/check_public_surfaces.py` reports it (currently **5/6**).
 
 ### The real priority (founder-agreed, not technical)
-**The funnel, not the pipeline.** There is **no onboarding email and no trial-exhausted email**. A user signs up, spends 3 free checks, and hears nothing — the highest-intent moment in the funnel is silent. The MCP listing will start sending developers; this gap is now the shortest path between traffic and revenue. Second: **screenshot recapture** (container is `aspect-[4/3]`, captures run 1.46:1→2.76:1 = the letterboxing; the four `-full` lightbox variants are **byte-identical duplicates**, so "zoom" gains nothing — one job, fixes both).
+**The funnel, not the pipeline.** ✅ **The two lifecycle emails SHIPPED 2026-08-04** — see the entry below. Remaining: **screenshot recapture** (container is `aspect-[4/3]`, captures run 1.46:1→2.76:1 = the letterboxing; the four `-full` lightbox variants are **byte-identical duplicates**, so "zoom" gains nothing — one job, fixes both).
 
 ### ⛔ HELD in the working tree — do NOT commit without reading the design docs
 - `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Correct and unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design + full attribution: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the test file WITHOUT the classifier change fails 40 tests.
@@ -34,6 +34,25 @@
 - **Grep case-insensitively for brand/company strings** (`TRU8 LTD` hid from a `Tru8 Ltd` grep), and **search the whole repo, not one directory** — the first "30+ sources" sweep missed 6 public surfaces including `llms.txt` and the FastAPI description.
 - **"My change only affects post-processing" is not a cassette-safety argument** on this pipeline: tier → domain capping → shown pool → **the mapping prompt**.
 - **Ask why something was removed before re-adding it.** The CrossRef re-registration I proposed was wrong; the April coverage review had already established it would add "a fourth DOI-registry client, not a fourth *independent* source".
+
+---
+
+**2026-08-04 — ✅ FUNNEL LIFECYCLE EMAILS SHIPPED. Design + self-review: `audit/2026-08-04_funnel_lifecycle_emails_design.md`. Suite 3,122 pass / 0 fail · web tsc clean · migration applied locally and verified.**
+
+The silence between signup and revenue is closed: a **welcome** email on first arrival, and a **"free checks used up"** email when the trial is spent. Resend was already live in prod (`/health/email-config` → `ready`), so this is new templates + triggers on the existing path — **no new vendor, no domain work**.
+
+- **Founder decisions:** welcome fires on **first arrival in the app** (not the Clerk `user.created` webhook — no external config to forget, testable locally, guaranteed to fire); exhaustion fires when the **3rd check finishes** (not on the 402 block — reaches 100% of exhausted users, not only those who return).
+- **The email service had ZERO tests before this.** Now 36, every guard and every wire mutation-verified (10/10 mutations killed). Two initially **SURVIVED** — the marker early-returns were redundant with the claim *in the fixtures*, so the tests were passing for the wrong reason. Fixtures rewritten to prime the whole downstream path so only the marker can stop the send. **A green test file is not evidence it pins anything.**
+- **Self-review before building caught 4 real defects in my own plan** (§7 of the design doc): ① **admins would have been emailed "your free trial is over" on every check** — `_is_admin` bypasses the gate but NOT `get_usage_snapshot`; ② **re-searches/top-ups debit credits but never reach `send_success_notifications`**, so a trial could be spent in total silence — fixed with a second trigger at `_reserve_re_search_credit`, safe to double-wire because the marker is atomic; ③ **lapsed subscribers** fall back to `limit_type='trial'` and would have been told about "your 3 free checks"; ④ a disabled email service would have **burned the marker in dev**, permanently suppressing the real email.
+- **Exactly-once = conditional `UPDATE ... WHERE marker IS NULL RETURNING`,** claimed *before* sending. Losing one email to a Resend outage beats a retry loop mailing someone repeatedly.
+- **`get_or_create_user` is `INSERT … ON CONFLICT DO UPDATE`** — reaching the success branch does NOT mean a user was created (a returning user whose Clerk ID changed takes the update branch). The marker is what distinguishes them; `created_at == updated_at` would not (two separate `datetime.now()` calls).
+- **Migration backfills both markers.** Verified locally: 5 users, 5 welcome-suppressed, 1 exhaustion-suppressed. Founder believed there was no user base — there were still rows, and one of them would have been mailed.
+- Reuses `get_usage_snapshot` rather than re-deriving the trial limit (`max(3, credits + total_credits_used)`, **not a literal 3**) — a second copy drifts from the paywall and then the email and the gate disagree.
+- Off the event loop (`asyncio.to_thread`, Resend's SDK is sync) and fire-and-forget with a strong task reference, so a mail failure can never fail a page load or a check.
+- New `email_lifecycle` preference (defaults **True** — deliberately NOT `email_marketing`, which defaults False and would have shipped the feature dark) + toggle in the settings tab + `List-Unsubscribe` header.
+- **No pipeline behaviour touched → replay bench not in play, no re-gold owed.** Independent of the two changes still held in the tree.
+- ⏳ **Owed:** one-click unsubscribe deferred (needs an unauthenticated tokened endpoint; not justified at current volume) · **live verification after deploy — send yourself both emails and read them on a phone.**
+- 🔎 **Incidental:** `GET /api/v1/health/email-config` is **publicly reachable, unauthenticated**, and returns the sending address + first 8 chars of the Resend key. Not a key leak; should be closed. **Not fixed.**
 
 ---
 

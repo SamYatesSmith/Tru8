@@ -724,6 +724,7 @@ class ApiClient {
       checkFailure: boolean;
       weeklyDigest: boolean;
       marketing: boolean;
+      lifecycle: boolean;
     }>('/api/v1/users/email-preferences', {}, token);
   }
 
@@ -738,6 +739,7 @@ class ApiClient {
       email_check_failure?: boolean;
       email_weekly_digest?: boolean;
       email_marketing?: boolean;
+      email_lifecycle?: boolean;
     },
     token?: string | null
   ) {

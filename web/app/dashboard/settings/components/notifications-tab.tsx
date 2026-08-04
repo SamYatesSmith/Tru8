@@ -11,6 +11,7 @@ interface NotificationPreferences {
   checkFailure: boolean;
   weeklyDigest: boolean;
   marketing: boolean;
+  lifecycle: boolean;
 }
 
 const defaultPreferences: NotificationPreferences = {
@@ -19,6 +20,7 @@ const defaultPreferences: NotificationPreferences = {
   checkFailure: true,
   weeklyDigest: false,
   marketing: false,
+  lifecycle: true,
 };
 
 export function NotificationsTab() {
@@ -43,6 +45,7 @@ export function NotificationsTab() {
           checkFailure: data.checkFailure,
           weeklyDigest: data.weeklyDigest,
           marketing: data.marketing,
+          lifecycle: data.lifecycle ?? true,
         });
         // Save to localStorage as backup
         if (typeof window !== 'undefined') {
@@ -62,6 +65,7 @@ export function NotificationsTab() {
                 checkFailure: parsed.checkFailure ?? true,
                 weeklyDigest: parsed.weeklyDigest ?? false,
                 marketing: parsed.marketing ?? false,
+                lifecycle: parsed.lifecycle ?? true,
               });
             } catch {
               // Use defaults
@@ -89,6 +93,7 @@ export function NotificationsTab() {
         email_check_failure: updated.checkFailure,
         email_weekly_digest: updated.weeklyDigest,
         email_marketing: updated.marketing,
+        email_lifecycle: updated.lifecycle,
       }, token);
       // Update localStorage backup
       if (typeof window !== 'undefined') {
@@ -115,6 +120,7 @@ export function NotificationsTab() {
         checkFailure: false,
         weeklyDigest: false,
         marketing: false,
+        lifecycle: false,
       };
     }
 
@@ -240,6 +246,37 @@ export function NotificationsTab() {
               <div
                 className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
                   preferences.checkFailure && preferences.emailNotificationsEnabled
+                    ? 'translate-x-6'
+                    : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Account & Product — welcome on signup, and the notice when the
+              free checks run out. Unlike the weekly-digest/marketing switches
+              removed 2026-07-13, this one has a real sender behind it
+              (app/services/lifecycle_emails.py). */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-zinc-900">Account &amp; Product</p>
+              <p className="text-xs text-zinc-500 mt-1">
+                Getting started, and when your free checks run out
+              </p>
+            </div>
+            <button
+              onClick={() => updatePreference('lifecycle', !preferences.lifecycle)}
+              disabled={!preferences.emailNotificationsEnabled || saving}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                preferences.lifecycle && preferences.emailNotificationsEnabled
+                  ? 'bg-zinc-900'
+                  : 'bg-zinc-200'
+              } ${!preferences.emailNotificationsEnabled || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label="Toggle account and product notifications"
+            >
+              <div
+                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  preferences.lifecycle && preferences.emailNotificationsEnabled
                     ? 'translate-x-6'
                     : 'translate-x-0'
                 }`}
