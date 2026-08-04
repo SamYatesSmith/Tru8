@@ -74,7 +74,19 @@ The new check installs the **published** package into a **fresh venv** and makes
 - **The fresh runner is the mechanism.** A dev machine with a working `mcp` already installed cannot reproduce a new user's install, which is why this passed locally right up to publication.
 - **Pre-publish mode:** `python scripts/check_published_mcp.py path/to/dist/*.whl` verifies an artefact **before** upload. A PyPI version cannot be re-uploaded, so that is the cheap place to catch it.
 
-⛔ **Publish of 1.0.3 is STILL OWED** — `twine upload` was **blocked by a session permission rule, not skipped**. Artefacts are built and `twine check`-clean at `backend/tru8_mcp/dist/tru8_mcp-1.0.3*`. Command: `cd backend/tru8_mcp && python -m twine upload dist/tru8_mcp-1.0.3*`, then `mcp-publisher validate server.json && mcp-publisher publish`. **The new monitor stays RED until that happens** — correct behaviour, and the check doing its job.
+✅ **PyPI FIXED AND VERIFIED — 1.0.3 published 2026-08-04 (founder ran `twine upload`; it was blocked for the assistant by a session permission rule).**
+- PyPI now serves **1.0.3** with `Requires-Dist: mcp<2,>=1.2`.
+- **Verified from a clean environment, not from the upload message:** `python scripts/check_published_mcp.py` → **exit 0** — `pip install tru8-mcp` resolves 1.0.3 with mcp 1.29.0, completes the MCP handshake, lists all three tools. The same command returned exit 1 an hour earlier.
+- Cross-checked on **Python 3.10 / 3.11 / 3.12 / 3.13** and two OSes before publishing. The whole 1.0.2→1.0.3 diff is the version string and the dependency bound — **not one line of `server.py` or `tools.py`** — so tool behaviour is unchanged.
+- ⚠️ PyPI's JSON metadata lagged ~10s behind `pip` (reported 1.0.2 while pip already served 1.0.3). **Trust the install, not the metadata endpoint.**
+
+⏳ **REGISTRY REPUBLISH STILL OWED (founder — interactive login).** The registry still pins **`tru8-mcp 1.0.2`**, and a client reading the registry may install that exact broken version. `server.json` is bumped to 1.0.3 and **`mcp-publisher validate` PASSES**. `mcp-publisher publish` returns **401, expired JWT** — the login is a browser flow. Binary is at `C:\Users\james\mcp-publisher.exe` (not on PATH). Run back to back:
+```
+cd C:\Users\projects\Tru8\backend
+C:\Users\james\mcp-publisher.exe login github
+C:\Users\james\mcp-publisher.exe publish
+```
+⚠️ **Consider yanking 1.0.2 on PyPI** — plain `pip install tru8-mcp` now gets 1.0.3, but anyone pinned to 1.0.2 (or following the registry pin until it is updated) still gets the broken build. Founder's call.
 
 ---
 
