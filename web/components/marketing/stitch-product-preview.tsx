@@ -31,6 +31,11 @@ interface Panel {
   src: string;
   /** Optional separate higher-resolution / longer image shown in the lightbox. */
   lightboxSrc?: string;
+  /**
+   * Intrinsic width/height of `src`. The frame is sized to THIS, not to a
+   * fixed ratio — see the recapture note below.
+   */
+  ratio: number;
   alt: string;
   lightboxTitle: string;
 }
@@ -39,7 +44,26 @@ interface Panel {
  *  founder captured fresh screenshots (summary-digest{,-full}.png plus
  *  re-shot Evidence/Map/Timeline). Gaps is NOT panelled (founder decision:
  *  the capture check had no gaps to show) — it is named in the
- *  "Also inside the console" strip alongside Sources and Video. */
+ *  "Also inside the console" strip alongside Sources and Video.
+ *
+ *  RECAPTURED 2026-08-04. Two defects were fixed together:
+ *
+ *  1. LETTERBOXING. Every frame was `aspect-[4/3]` (1.33) while the images
+ *     ran 1.46–2.76, so `object-contain` pillarboxed all four by different
+ *     amounts. A single fixed ratio cannot fit components whose natural
+ *     shapes differ this much without either cropping the product out or
+ *     padding it back in — so each frame is now sized to ITS OWN image via
+ *     `panel.ratio`. No bars, no crop.
+ *  2. THE `-full` FILES WERE BYTE-IDENTICAL to their base images (verified
+ *     by sha256), so "View full size" showed exactly what was already on
+ *     screen. They are now whole-report captures — which is what the
+ *     lightbox was always built for: it is a SCROLLING container
+ *     (`overflow-y-auto`, `w-full h-auto`), not a zoom box.
+ *
+ *  Each panel now comes from a DIFFERENT check, chosen so the view has
+ *  something real to show: a contested claim for the summary, an even
+ *  tier spread for the heatmap, a wide date range for the timeline.
+ *  Captured from public `/r/` reports at 1984px wide. */
 const SHOW_SUMMARY_PANEL = true;
 
 const SUMMARY_PANEL: Panel = {
@@ -56,7 +80,8 @@ const SUMMARY_PANEL: Panel = {
     "What was examined, how the evidence stacks up on each side, where the sourcing runs thin, and what's missing — before you open a single source.",
   src: '/imagery/screenshots/summary-digest.png',
   lightboxSrc: '/imagery/screenshots/summary-digest-full.png',
-  alt: 'The check summary — the claim, the elements examined, how many sources support and challenge each, sourcing-quality notes, and named gaps, in one card.',
+  ratio: 1984 / 1316,
+  alt: 'The check summary for the claim that raising the minimum wage reduces employment: three elements examined, two supported and one disputed, a band showing 12 sources supporting, 2 giving context and 4 challenging, and the most relevant source on each side.',
   lightboxTitle: 'Summary — the whole record at a glance',
 };
 
@@ -76,7 +101,8 @@ const LENS_PANELS: Panel[] = [
       'Tier × type heatmap and ledger. Filter, sort, browse. Receipts for everything excluded — no hidden curation.',
     src: '/imagery/screenshots/librarian-landscape.png',
     lightboxSrc: '/imagery/screenshots/librarian-landscape-full.png',
-    alt: 'The Evidence view — evidence classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic). Heatmap grid with a ledger of source rows underneath.',
+    ratio: 1984 / 1323,
+    alt: 'The Evidence view — sixteen sources on semaglutide and cardiovascular risk, classified by tier (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic) in a heatmap grid, with filters and the evidence ledger beneath showing the FDA, the BMJ and PubMed.',
     lightboxTitle: 'Evidence — classified landscape',
   },
   {
@@ -94,7 +120,8 @@ const LENS_PANELS: Panel[] = [
       'A citation cascade. See where sources agree, where they diverge, and which are just echoing the same original.',
     src: '/imagery/screenshots/cartographer-network.png',
     lightboxSrc: '/imagery/screenshots/cartographer-network-full.png',
-    alt: 'The Map view — a Dagre layout of evidence nodes clustered by source and connected by citation relationships. Tier-coloured nodes; one claim node selected with its evidence panel populated.',
+    ratio: 1984 / 805,
+    alt: 'The Map view — sources on UK greenhouse gas emissions plotted by tier against the two elements of the claim, each source shown as its own site mark. Nine primary sources including GOV.UK, the ONS and Our World in Data sit above four commentary sources.',
     lightboxTitle: 'Map — citation cascade',
   },
   {
@@ -112,7 +139,8 @@ const LENS_PANELS: Panel[] = [
       'A timeline of every source, ordered by publication date. See how the conversation developed and where the reporting clusters.',
     src: '/imagery/screenshots/chronologist-timeline.png',
     lightboxSrc: '/imagery/screenshots/chronologist-timeline-full.png',
-    alt: 'The Timeline view — a horizontal SVG timeline with evidence markers plotted by publication date, grouped into temporal clusters with tier indicators.',
+    ratio: 1984 / 1438,
+    alt: 'The Timeline view — evidence on global extreme poverty plotted by publication date from May 2018 to February 2026, with gaps marked between clusters, and a panel listing the four sources that carry no publication date at all.',
     lightboxTitle: 'Timeline — evidence timeline',
   },
 ];
@@ -260,14 +288,19 @@ function PanelRow({ panel, index, flipped, onOpen }: PanelRowProps) {
                 {panel.subtitle}
               </span>
             </div>
-            <div className="relative aspect-[4/3] bg-zinc-50 flex items-center justify-center">
-              {/* object-contain so the entire screenshot is visible inline; lightbox handles zoom */}
+            {/* Frame matches THIS image's ratio, so object-cover cannot crop and
+                nothing is letterboxed. The old fixed aspect-[4/3] pillarboxed
+                every panel — see the recapture note at the top of this file. */}
+            <div
+              className="relative bg-white flex items-center justify-center"
+              style={{ aspectRatio: String(panel.ratio) }}
+            >
               <Image
                 src={panel.src}
                 alt={panel.alt}
                 fill
                 sizes="(min-width: 1024px) 66vw, 100vw"
-                className="object-contain transition-transform duration-500 group-hover:scale-[1.01]"
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                 priority={index === 0}
               />
               <span

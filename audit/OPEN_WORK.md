@@ -19,7 +19,7 @@
 3. **Soft-404** (`/r/<unknown>` returns 200). Diagnosed, unfixed: `notFound()` in `generateMetadata` DOES fire (the real not-found page renders), but `x-middleware-rewrite` from `clerkMiddleware` masks the status. Candidate: exclude `/r/` from the middleware matcher — **verified safe-ish**, `Navigation` uses `useAuth()` (client hook via `ClerkProvider`), and nothing in the `/r/` tree calls server `auth()`. Untestable locally without Clerk keys; `scripts/check_public_surfaces.py` reports it (currently **5/6**).
 
 ### The real priority (founder-agreed, not technical)
-**The funnel, not the pipeline.** ✅ **The two lifecycle emails SHIPPED 2026-08-04** — see the entry below. Remaining: **screenshot recapture** (container is `aspect-[4/3]`, captures run 1.46:1→2.76:1 = the letterboxing; the four `-full` lightbox variants are **byte-identical duplicates**, so "zoom" gains nothing — one job, fixes both).
+**The funnel, not the pipeline.** ✅ **The two lifecycle emails SHIPPED 2026-08-04.** ✅ **Screenshot recapture DONE 2026-08-04** — both defects closed. See both entries below.
 
 ### ⛔ HELD in the working tree — do NOT commit without reading the design docs
 - `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Correct and unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design + full attribution: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the test file WITHOUT the classifier change fails 40 tests.
@@ -34,6 +34,26 @@
 - **Grep case-insensitively for brand/company strings** (`TRU8 LTD` hid from a `Tru8 Ltd` grep), and **search the whole repo, not one directory** — the first "30+ sources" sweep missed 6 public surfaces including `llms.txt` and the FastAPI description.
 - **"My change only affects post-processing" is not a cassette-safety argument** on this pipeline: tier → domain capping → shown pool → **the mapping prompt**.
 - **Ask why something was removed before re-adding it.** The CrossRef re-registration I proposed was wrong; the April coverage review had already established it would add "a fourth DOI-registry client, not a fourth *independent* source".
+
+---
+
+**2026-08-04 — ✅ HOMEPAGE SCREENSHOT RECAPTURE DONE. Both defects closed; web tsc clean; production build clean.**
+
+Four fresh checks run on prod, **one per panel**, each chosen so the view has something real to show. Captured from the **public `/r/` reports** (Playwright, unauthenticated) rather than the dashboard — 1984px wide vs the old 1239px, and no auth needed, so this is now repeatable by anyone.
+
+| Panel | Check | Why that one |
+|---|---|---|
+| Summary | *Raising the minimum wage reduces employment* | 3 elements — 2 supported, **1 disputed** — and three bands (Supports 12 / Context 2 / Challenges 4). IZA vs EPI as the two notables |
+| Evidence | *Semaglutide reduces heart attack and stroke risk* | Evenest tier spread (6 primary / 4 reporting / 6 commentary) → 5 populated heatmap cells vs the old 3 |
+| Map | *UK greenhouse gas emissions have halved since 1990* | 9 primary incl. GOV.UK, ONS, Our World in Data — and it exercises the UK gov adapters |
+| Timeline | *Global extreme poverty has fallen over 200 years* | May 2018 → Feb 2026 with a **legible** year axis, plus an honest "date unknown · 4" panel |
+
+- **Letterboxing fixed by dropping the fixed ratio, not by matching it.** The frame was `aspect-[4/3]` (1.33) against images of 1.46–2.76. A single ratio cannot hold components whose natural shapes differ that much without either cropping the product out or padding it back in — so each frame is now sized to its own image (`panel.ratio`). **Verified in the browser: frame ratio == image ratio on all four** (1.508/1.508, 1.500/1.501, 2.465/2.468, 1.380).
+- **The `-full` files were byte-identical to their base images** (sha256-verified) — "View full size" showed exactly what was already on screen. They are now **whole-report captures** (e.g. 1280×6440), because the lightbox is a **scrolling** container (`overflow-y-auto`, `w-full h-auto`), not a zoom box. It was always built for tall images and never got one. Verified live: lightbox loads `summary-digest-full.png` at 1280×6440 and scrolls.
+- **Alt text rewritten** to describe what is actually in each new image, not the old ones.
+- 🔎 **Genuine defect found, NOT fixed:** the **cartographer view throws `<rect> attribute width: A negative value is not valid` in production**, and its Dagre layout collapses all nodes into an overlapping cluster whenever the container width changes after mount. Four capture attempts could not get it to re-lay out. The standalone map renders correctly on first paint, so the inline screenshot is fine — but this is a real layout bug worth its own look.
+- ⚠️ Screenshots total **2.5MB** (inline 137–193KB each, full 315–623KB). The `-full` images are lazy **by construction** — the lightbox returns `null` when closed, so they are never in the DOM until opened. Worth a WebP pass if that changes ([[the favicon lesson]]).
+- Durable: **a "fixed ratio" brief can be the wrong fix** — the requirement was *no letterboxing*, and matching each frame to its own image achieves it without cropping. Check what the container was actually built for (this lightbox scrolls) before assuming the asset spec.
 
 ---
 
