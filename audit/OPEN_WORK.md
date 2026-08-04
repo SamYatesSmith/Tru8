@@ -16,7 +16,7 @@
 ### Do these first (small, unblocked)
 1. **Smithery submission** — `backend/smithery.yaml` exists and is correct. Connect the repo at smithery.ai. mcp.so + PulseMCP index FROM the official registry, so give them ~2 weeks before submitting manually.
 2. **Run one check on prod.** It will be the FIRST check carrying real search-cost telemetry (the meter shipped this session). ⚠️ **`cost_telemetry` is NOT exposed in any API or UI** — only `backend/scripts/verify_m1_d1_prod.py` + `retrieval_capture_pull.py` read it, both via direct DB. **A small `scripts/cost_report.py` was promised and NOT built** — build it, or the meter has no dial.
-3. **Soft-404** (`/r/<unknown>` returns 200). Diagnosed, unfixed: `notFound()` in `generateMetadata` DOES fire (the real not-found page renders), but `x-middleware-rewrite` from `clerkMiddleware` masks the status. Candidate: exclude `/r/` from the middleware matcher — **verified safe-ish**, `Navigation` uses `useAuth()` (client hook via `ClerkProvider`), and nothing in the `/r/` tree calls server `auth()`. Untestable locally without Clerk keys; `scripts/check_public_surfaces.py` reports it (currently **5/6**).
+3. ~~**Soft-404** (`/r/<unknown>` returns 200)~~ ✅ **FIXED 2026-08-04 — and the recorded diagnosis was WRONG on both counts.** See the entry below.
 
 ### The real priority (founder-agreed, not technical)
 **The funnel, not the pipeline.** ✅ **The two lifecycle emails SHIPPED 2026-08-04.** ✅ **Screenshot recapture DONE 2026-08-04** — both defects closed. See both entries below.
@@ -34,6 +34,18 @@
 - **Grep case-insensitively for brand/company strings** (`TRU8 LTD` hid from a `Tru8 Ltd` grep), and **search the whole repo, not one directory** — the first "30+ sources" sweep missed 6 public surfaces including `llms.txt` and the FastAPI description.
 - **"My change only affects post-processing" is not a cassette-safety argument** on this pipeline: tier → domain capping → shown pool → **the mapping prompt**.
 - **Ask why something was removed before re-adding it.** The CrossRef re-registration I proposed was wrong; the April coverage review had already established it would add "a fourth DOI-registry client, not a fourth *independent* source".
+
+---
+
+**2026-08-04 — ✅ SOFT-404 FIXED. One line: `web/app/loading.tsx` deleted. The recorded diagnosis was wrong on BOTH counts, and both wrong beliefs were disproved by measurement, not reasoning.**
+
+- ❌ **"Untestable locally without Clerk keys"** — it reproduces perfectly against a local production build (`npm run build && npm run start`): `/r/<unknown>` → 200 with `x-middleware-rewrite`. Clerk loads fine locally with dev keys.
+- ❌ **"`x-middleware-rewrite` from `clerkMiddleware` masks the status"** — plausible, and wrong. Excluding `/r/` from the middleware matcher **removed the header and changed nothing**: still 200. That change has been **reverted**; it was unnecessary, and it would have cost signed-in users their nav auth state on `/r/`.
+- ✅ **Real cause: the root `app/loading.tsx`.** It put a Suspense boundary above every route, so Next flushed a 200 shell before the report fetch resolved; `notFound()` then swapped in the correct not-found UI but the status had already been sent. That is exactly the observed signature — right page, wrong status.
+- **Isolation that found it:** unmatched routes (`/totally-unmatched`) already 404 correctly because they never stream; only *matched-then-bail* routes were affected. Removing `loading.tsx` flipped `/r/<unknown>` 200 → **404** with nothing else changed.
+- **Cost of the fix is ~nil:** `app/dashboard/loading.tsx` already exists and is kept, and every other route without its own loading state is statically prerendered, so the spinner never rendered for them anyway.
+- **Verified with the backend running**, so a real report is distinguishable from a missing one: real `/r/<id>` **200** · unknown `/r/<id>` **404** · `/` `/pricing` `/compare` `/developers` `/blog` **200** · unmatched **404** · `/dashboard` anon **307**. web tsc clean · vitest 87 pass.
+- Durable: **a plausible mechanism is not a diagnosis.** Both recorded beliefs survived because nobody tried the five-minute local reproduction. Reproduce first, then explain.
 
 ---
 
