@@ -14,7 +14,8 @@
 **Tru8 is listed on the official MCP registry** — `io.github.SamYatesSmith/tru8` v1.0.2, status `active`, published 2026-08-03T15:15:29Z. Verify: `curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.SamYatesSmith/tru8"`.
 
 ### Do these first (small, unblocked)
-1. **Smithery submission** — `backend/smithery.yaml` exists and is correct. Connect the repo at smithery.ai. mcp.so + PulseMCP index FROM the official registry, so give them ~2 weeks before submitting manually.
+1. ⛔ **PUBLISH `tru8-mcp` 1.0.3 TO PyPI — the listed package is BROKEN on PyPI right now.** Code fix is committed; the publish needs the founder's token. Then republish `server.json` to the MCP registry. **This is the top item on the board.** See the 2026-08-04 entry below.
+2. **Smithery submission** — ⚠️ the old note said "exists and is correct, just connect the repo". **It was not correct and would have failed.** Now fixed (`Dockerfile.mcp` + `dockerfile:` key). Connect the repo at smithery.ai **after** 1.0.3 is on PyPI. mcp.so + PulseMCP index FROM the official registry, so give them ~2 weeks before submitting manually.
 2. **Run one check on prod.** It will be the FIRST check carrying real search-cost telemetry (the meter shipped this session). ⚠️ **`cost_telemetry` is NOT exposed in any API or UI** — only `backend/scripts/verify_m1_d1_prod.py` + `retrieval_capture_pull.py` read it, both via direct DB. **A small `scripts/cost_report.py` was promised and NOT built** — build it, or the meter has no dial.
 3. ~~**Soft-404** (`/r/<unknown>` returns 200)~~ ✅ **FIXED 2026-08-04 — and the recorded diagnosis was WRONG on both counts.** See the entry below.
 
@@ -34,6 +35,28 @@
 - **Grep case-insensitively for brand/company strings** (`TRU8 LTD` hid from a `Tru8 Ltd` grep), and **search the whole repo, not one directory** — the first "30+ sources" sweep missed 6 public surfaces including `llms.txt` and the FastAPI description.
 - **"My change only affects post-processing" is not a cassette-safety argument** on this pipeline: tier → domain capping → shown pool → **the mapping prompt**.
 - **Ask why something was removed before re-adding it.** The CrossRef re-registration I proposed was wrong; the April coverage review had already established it would add "a fourth DOI-registry client, not a fourth *independent* source".
+
+---
+
+**2026-08-04 — 🔴 THE PUBLISHED `tru8-mcp` PACKAGE IS BROKEN ON PyPI. Code fix committed as 1.0.3; PUBLISH IS OWED (needs the founder's PyPI token).**
+
+Found while preparing the Smithery submission — not while looking for it.
+
+- **`pip install tru8-mcp==1.0.2` dies on ImportError.** Reproduced from a clean `python:3.12-slim` container: `ModuleNotFoundError: No module named 'mcp.server.fastmcp'`. **Tru8 is listed on the official MCP registry and the package that listing points at does not run.** Every new user since `mcp` 2.0.0 shipped has hit this.
+- **Cause:** `mcp` **2.0.0 removed `mcp.server.fastmcp`**, which `tru8_mcp/server.py` imports. The package declared `mcp>=1.0.0`, so pip resolves 2.0.0.
+- **Fix (committed):** `mcp>=1.2,<2` in `tru8_mcp/pyproject.toml`, version → **1.0.3**. Lower bound is 1.2 because that is where fastmcp appeared. **Verified**: fixed wheel built, installed in a clean container, resolves mcp 1.29.0 and completes an MCP `initialize` handshake; the 1.0.2 wheel dies on import.
+- `server.json` bumped to 1.0.3 in **both** fields. PyPI ownership marker (`<!-- mcp-name: io.github.SamYatesSmith/tru8 -->`) confirmed still present in the README, so the registry namespace survives the republish. ⚠️ `mcp-publisher` is **not on PATH** — install it and `validate` before publishing ([[reference_mcp_registry_publishing]]).
+- **⛔ OWED BY FOUNDER:** `python -m build` + `twine upload` for 1.0.3, then `mcp-publisher publish`. I did not publish — it needs your token and a PyPI version cannot be re-uploaded.
+
+**Why nobody noticed: the test suite was skipping the MCP module, silently.** `tests/unit/test_mcp_server.py` opens with `pytest.importorskip("mcp.server.fastmcp")`. It was added for the *opposite* problem (mcp too OLD) and absorbed this one (mcp too NEW) without a murmur. The backend genuinely cannot install the working range — **mcp 1.2+ requires `pydantic-settings>=2.6.1` and `requirements.txt` pins `pydantic-settings==2.1.0`** — so the skip is legitimate *there*, but it must not stand in for verifying the shipped package. Comment rewritten to say what is actually true. **Still open: upgrading pydantic-settings so these 27 tests run in CI — its own change.**
+
+**Smithery config was also wrong, and would have deployed the API instead of the MCP server.**
+- `smithery.yaml` had no `dockerfile:` key, so the build defaulted to `./Dockerfile` — the API image (CPU PyTorch, sentence-transformers, Cairo, Postgres client).
+- Worse than wasteful: that image sets `ENTRYPOINT ["./entrypoint.sh"]`, and the script ends `exec uvicorn main:app`, **ignoring its arguments**. Smithery's `python -m tru8_mcp` would have become arguments to it, so the container would have run **database migrations and the API server** against a database that is not there.
+- **New `backend/Dockerfile.mcp`** — 245MB, no ENTRYPOINT, built from source (not a PyPI pin, so it cannot drift from the repo). **Verified**: built, and an MCP `initialize` + `tools/list` handshake returns all three tools.
+- `exampleConfig` added. stdio + `commandFunction` **is still supported** by Smithery (checked, not assumed).
+
+Durable: **"exists and is correct" in a register is a claim, not a verification** — this one was wrong in a way that would have wasted a submission attempt. And **a skip guard is a place breakages hide**: it was doing its job for one failure mode while concealing another.
 
 ---
 

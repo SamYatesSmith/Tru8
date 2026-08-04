@@ -1,7 +1,16 @@
-# Smithery configuration — https://smithery.ai/docs/config
+# Smithery configuration — https://smithery.ai/docs
 # Tru8 MCP server: structured evidence research for AI agents
+#
+# `dockerfile` is REQUIRED here and was previously absent, which meant the
+# build defaulted to ./Dockerfile — the API image. That would not merely have
+# been wasteful (gigabytes of PyTorch and Cairo for a thin HTTP client); it
+# would have failed, because ./Dockerfile's ENTRYPOINT runs entrypoint.sh,
+# which ignores its arguments and execs uvicorn. Smithery's command would have
+# been swallowed and the container would have started the API server and its
+# database migrations instead of the MCP server. See Dockerfile.mcp.
 
 build:
+  dockerfile: Dockerfile.mcp
   dockerBuildPath: .
 
 startCommand:
@@ -21,3 +30,6 @@ startCommand:
   commandFunction:
     |-
     (config) => ({ command: 'python', args: ['-m', 'tru8_mcp'], env: { TRU8_API_KEY: config.apiKey, TRU8_API_URL: config.apiUrl || 'https://api.trueight.com' } })
+  exampleConfig:
+    apiKey: tru8_sk_example_key_not_a_real_secret
+    apiUrl: https://api.trueight.com

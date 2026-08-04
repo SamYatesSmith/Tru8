@@ -1,0 +1,42 @@
+# Tru8 MCP server — slim image for Smithery (and anyone else running it in a
+# container).
+#
+# WHY THIS EXISTS, rather than reusing ./Dockerfile:
+#
+# ./Dockerfile builds the API. It carries CPU PyTorch, sentence-transformers,
+# Cairo/Pango and the Postgres client — gigabytes of machinery the MCP server
+# has no use for, since the MCP server is a thin HTTP client over the public
+# /agent/* and /checks/* endpoints.
+#
+# Worse, it would not have worked at all. ./Dockerfile sets
+# `ENTRYPOINT ["./entrypoint.sh"]`, and that script ends in
+# `exec uvicorn main:app`, ignoring any arguments passed to it. A container
+# command of `python -m tru8_mcp` becomes ARGUMENTS to that entrypoint, so the
+# container would have run database migrations and started the API server
+# instead of the MCP server — against a database that is not there.
+#
+# Built from source, not from the published PyPI wheel, so the image always
+# matches the committed code. A version pin here would silently serve an old
+# release every time the repo moved on.
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Dependencies first so edits to the server don't invalidate the layer.
+# Kept in step with tru8_mcp/pyproject.toml [project.dependencies] — the `<2`
+# is load-bearing: mcp 2.0.0 removed mcp.server.fastmcp, which server.py
+# imports. Without it the image builds and then dies on ImportError.
+RUN pip install --no-cache-dir "mcp>=1.2,<2" "httpx>=0.25.0"
+
+# The package's modules sit flat alongside its pyproject.toml (see the
+# force-include block there), so copy them into a proper package directory.
+COPY tru8_mcp/__init__.py tru8_mcp/__main__.py tru8_mcp/server.py tru8_mcp/tools.py ./tru8_mcp/
+
+# Unbuffered so stdio framing is not held in a pipe buffer — the MCP
+# transport is stdin/stdout.
+ENV PYTHONUNBUFFERED=1
+
+# No ENTRYPOINT: Smithery supplies the command via smithery.yaml's
+# commandFunction, and an entrypoint would swallow it (see above).
+CMD ["python", "-m", "tru8_mcp"]

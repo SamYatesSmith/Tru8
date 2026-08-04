@@ -10,11 +10,26 @@ from datetime import datetime
 import pytest
 from unittest.mock import AsyncMock, patch
 
-# tru8_mcp.server imports mcp.server.fastmcp (FastMCP), which only exists in
-# mcp >= 1.2. The backend's pinned pydantic-settings==2.1.0 makes pip resolve
-# an older mcp in clean installs (e.g. CI), so skip this module there instead
-# of aborting the entire collection. See OPEN_WORK: mcp/pydantic-settings dep
-# alignment. tru8_mcp is exercised separately on its own package build.
+# tru8_mcp.server imports mcp.server.fastmcp (FastMCP), which exists only in
+# mcp >= 1.2 AND < 2 — mcp 2.0.0 REMOVED it.
+#
+# The backend cannot install that range: mcp 1.2+ requires
+# pydantic-settings>=2.6.1 and requirements.txt pins pydantic-settings==2.1.0,
+# so pip resolves *outside* the working window in this environment and this
+# module skips.
+#
+# ⚠️ This skip is why a real breakage stayed invisible. The original note here
+# said pip resolves an OLDER mcp; as of 2026-08-04 it resolves mcp 2.0.0
+# instead — a different failure with the same symptom, and the skip absorbed
+# both silently while the PUBLISHED tru8-mcp package was dead on arrival for
+# every new user (`mcp>=1.0.0` → 2.0.0 → ImportError). Fixed in tru8_mcp
+# 1.0.3 by pinning `mcp>=1.2,<2` in the package's own pyproject.toml, which
+# has no pydantic-settings constraint.
+#
+# These tests therefore still do NOT run here. The package is verified on its
+# own build instead (clean-container install + MCP initialize handshake).
+# Making them run requires upgrading pydantic-settings across the backend —
+# its own change. See OPEN_WORK 2026-08-04.
 pytest.importorskip("mcp.server.fastmcp")
 
 import tru8_mcp.server as server_module
