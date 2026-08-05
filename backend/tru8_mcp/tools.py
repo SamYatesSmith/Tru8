@@ -58,9 +58,16 @@ class Tru8APIClient:
         ).rstrip("/")
         self.api_key = api_key or os.environ.get("TRU8_API_KEY", "")
         if not self.api_key:
+            # One class serves both transports, so this message must too. The
+            # old wording named only the environment variable, which is the
+            # stdio answer — a hosted caller over /mcp has no environment to
+            # set and was being told to do something impossible.
             raise ValueError(
-                "TRU8_API_KEY environment variable required. "
-                "Create one at your Tru8 dashboard → Settings → Developer."
+                "No Tru8 API key supplied. Over HTTP, send your key as an "
+                "'X-API-Key' header (or an 'apiKey' query parameter). Running "
+                "the tru8-mcp package locally, set the TRU8_API_KEY "
+                "environment variable. Create a key at your Tru8 dashboard "
+                "→ Settings → Developer."
             )
 
     def _headers(self) -> dict:

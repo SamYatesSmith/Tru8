@@ -5,21 +5,21 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (rewritten 2026-08-04, end of a long session)
+## 🟢 START HERE — next session (updated 2026-08-05, MCP pre-Smithery hardening)
 
 **Everything below the divider is history. This block is what to do next.**
 
-**State:** all work PUSHED and LIVE. Suite **3,141 pass / 0 fail** · web tsc clean · vitest 87. Working tree still holds **two deliberately-held pipeline changes** — see HELD below.
+**State:** all work through 2026-08-04 PUSHED and LIVE. Working tree holds **two deliberately-held pipeline changes** (see HELD below) **plus the 2026-08-05 MCP CORS fix, which is ready and needs deploying.**
 
-**Everything user-facing was verified live at the end of the session — 16/16 checks passed** (PyPI, registry, remote MCP endpoint, clean-environment install, 6/6 public surfaces, API health).
-
-### ⏳ THE ONE THING OUTSTANDING
-**Run a `quick`-tier check through the MCP client with a real API key.** Auth rejects before the consensus code path, so **the `/agent` 500 fix cannot be verified from outside** — only a valid key proves it. If evidence comes back instead of a 500, the fix is confirmed and Smithery is unblocked.
+### ⏳ OUTSTANDING — in order
+1. **Deploy the MCP CORS fix, then re-run the browser-client checks against prod.** Until it deploys, **no browser-based MCP client can connect to us at all** — including Smithery's playground and the MCP Inspector. Details in the 2026-08-05 entry below. Post-deploy, expect `OPTIONS /mcp/` from any origin → **200** with `mcp-session-id` in both `access-control-allow-headers` and `access-control-expose-headers`.
+2. **Run a `quick`-tier check through the MCP client with a real API key.** Auth rejects before the consensus code path, so **the `/agent` 500 fix cannot be verified from outside** — only a valid key proves it. If evidence comes back instead of a 500, the fix is confirmed.
+3. **Smithery** — paste `https://api.trueight.com/mcp` into their publish form. It wants an **HTTP URL, not a repo**; no base directory, no Docker build. (`smithery.yaml` + `Dockerfile.mcp` are fixed and valid for the container route, just unused by this one.) Their scan needs `tools/list` **without** credentials — verified working 2026-08-05. mcp.so + PulseMCP index FROM the official registry — give them ~2 weeks before submitting manually.
 
 ### Then, small and unblocked
-1. **Smithery** — paste `https://api.trueight.com/mcp` into their publish form. It wants an **HTTP URL, not a repo**; no base directory, no Docker build. (`smithery.yaml` + `Dockerfile.mcp` are fixed and valid for the container route, just unused by this one.) mcp.so + PulseMCP index FROM the official registry — give them ~2 weeks before submitting manually.
-2. **Build `scripts/cost_report.py`.** Four prod checks now carry real search-cost telemetry, and **nothing can read it** — `cost_telemetry` is exposed in no API or UI. It was promised and not built, so the meter still has no dial.
-3. **Screenshot recapture is DONE**, but the four `-full` lightbox images are 315–638KB. Lazy by construction (the lightbox is unmounted when closed), so no page-load cost — worth a WebP pass only if that changes.
+4. **The official registry entry advertises no hosted endpoint.** `server.json` declares only `packages` (stdio/PyPI), so everyone arriving from the registry is sent to `pip install` and never learns the zero-install HTTP endpoint exists. The schema **does** support it (`remotes[] → StreamableHttpTransport`, confirmed against the 2025-12-11 schema 2026-08-05). ⚠️ Not a free edit: a registry publish needs a **new version**, and the recorded 2026-08-04 failure list includes *"version 1.0.0 vs PyPI 1.0.2"* — top-level and package versions are expected to agree, so this likely means a **1.0.4 PyPI release too**. Left untouched deliberately so the file keeps matching the live registry. Founder call.
+5. **Build `scripts/cost_report.py`.** Four prod checks now carry real search-cost telemetry, and **nothing can read it** — `cost_telemetry` is exposed in no API or UI. It was promised and not built, so the meter still has no dial.
+6. **Screenshot recapture is DONE**, but the four `-full` lightbox images are 315–638KB. Lazy by construction (the lightbox is unmounted when closed), so no page-load cost — worth a WebP pass only if that changes.
 
 ### The real priority (founder-agreed, not technical)
 **The funnel, not the pipeline.** ✅ Lifecycle emails shipped. ✅ Screenshots recaptured. ✅ Remote MCP server live. **What remains is distribution** — Sentry still shows near-zero traffic. Everything built this week is plumbing that only pays off when people arrive.
@@ -28,8 +28,9 @@
 - `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Correct and unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the test file WITHOUT the classifier change fails 40 tests.
 - `backend/app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe, needs a bench **re-record + re-gold**, recorded SEPARATELY from the classifier change or golden drift is unattributable.
 
-### ⛔ OWED BY FOUNDER
-① **Clear `COMPANIES_HOUSE_API_KEY` on Railway** — agreed; the registry is already conditional (`api_adapters/__init__.py:110`), so no code change, and it stops the live 401s. ② Swap `backend/.env` Stripe values to test mode (the guard neutralises the secret key; the **webhook secret is `whsec_` in both modes and cannot be detected**). ③ Triage the Sentry backlog — the noise fix is live, so it is finally legible, and the `/agent` 500s in there are now explained. ④ **Rotate the Tru8 API key pasted into chat during MCP setup.**
+### ✅ FOUNDER ITEMS — ALL FOUR DONE 2026-08-05. Do not re-raise.
+Confirmed complete by the founder on 2026-08-05: ① `COMPANIES_HOUSE_API_KEY` cleared on Railway (the adapter registry is conditional at `api_adapters/__init__.py:110`, so the live 401s stop with no code change). ② `backend/.env` Stripe values swapped to test mode. ③ Sentry backlog triaged. ④ The Tru8 API key pasted into chat during MCP setup has been **rotated** — any key seen in an earlier transcript is dead; ask for a current one, never reuse.
+**Nothing is owed by the founder as of 2026-08-05.**
 
 ### Durable lessons — 2026-08-04
 - **Test the PUBLISHED artefact, not the repo.** Everything in-repo passed while `pip install tru8-mcp` was dead for every new user. `scripts/check_published_mcp.py` now installs the real thing in a fresh venv twice daily.
@@ -47,6 +48,42 @@
 - **Grep case-insensitively for brand/company strings** (`TRU8 LTD` hid from a `Tru8 Ltd` grep), and **search the whole repo, not one directory** — the first "30+ sources" sweep missed 6 public surfaces including `llms.txt` and the FastAPI description.
 - **"My change only affects post-processing" is not a cassette-safety argument** on this pipeline: tier → domain capping → shown pool → **the mapping prompt**.
 - **Ask why something was removed before re-adding it.** The CrossRef re-registration I proposed was wrong; the April coverage review had already established it would add "a fourth DOI-registry client, not a fourth *independent* source".
+
+### Durable lessons — 2026-08-05
+- **CORS is enforced by browsers and by nothing else.** The hosted MCP endpoint was verified end to end on 2026-08-04 with curl and a live listener — both non-browser clients — so the verification was structurally incapable of finding the defect that made it unusable from a browser. **Match the verification client to the client you are claiming works.**
+- **A second CORS policy does not replace the first, it stacks on it.** Starlette attaches its `simple_headers` to *any* response whose request carried an `Origin`, allowlist or not — so the app-level policy stamped `allow-credentials: true` onto our `allow-origin: *`, a pair the CORS spec forbids. Wrapping was not enough; the inner policy had to be made blind to the path.
+- **Ordering can be the whole feature.** Starlette answers a preflight and returns without calling downstream, so a CORS middleware registered *inside* another never sees an `OPTIONS`. `add_middleware` is last-added-outermost, which reads backwards from the file. Pinned by a test rather than a comment.
+- **An identity invented once tends to persist.** `io.tru8/mcp-server` — a namespace on a domain nobody owns — had already broken a registry publish and was still being served publicly from the discovery card months later, because nothing linked the four places we declare who we are.
+
+---
+
+**2026-08-05 — 🔴 NO BROWSER COULD CONNECT TO THE HOSTED MCP ENDPOINT. Found pre-Smithery; fixed, mutation-verified 4/4. Needs deploy.**
+
+Found by preflighting the Smithery submission rather than by a report. The endpoint itself was healthy — the *browser* path was not.
+
+**Measured against production before the fix:**
+```
+OPTIONS /mcp/  Origin: https://smithery.ai       → 400 "Disallowed CORS origin, headers"
+OPTIONS /mcp/  Origin: https://www.trueight.com  → 400 "Disallowed CORS headers"
+```
+The second line is the finding. `mcp-session-id` was in **neither** `allow_headers` nor `expose_headers`, so a browser could neither send it nor read it — and the streamable-HTTP spec requires the client to read that header off `initialize` and echo it on every later request. **So no browser-based MCP client could hold a session with us from any origin, including our own site.** That covers the Smithery playground and the MCP Inspector: the two things a stranger evaluating Tru8 is most likely to point at us.
+
+**Why 2026-08-04's "verified end to end" missed it:** that verification used curl and a live listener. CORS is enforced by browsers and by nothing else, so the check could not have failed. Not a gap in rigour — a gap in *client*.
+
+**Fix — `app/middleware/mcp_cors.py`, scoped to `/mcp` alone.** Permissive origin, `allow_credentials=False`, the four MCP request headers (`Mcp-Session-Id`, `MCP-Protocol-Version`, `Last-Event-ID`, `X-API-Key`) allowed, `Mcp-Session-Id` exposed, `GET/POST/DELETE` allowed.
+- **Credentials off is the load-bearing detail**, not an oversight: with no cookies attached there is no ambient authority for a hostile page to borrow, and a tool call needs an API key it does not have. The transport spec's "validate Origin" warning targets DNS-rebinding against loopback/private servers where network position implies trust; this endpoint is public and key-authenticated.
+- **Widening the app-level policy instead would have been a real security regression** — it guards the Clerk-authenticated dashboard API. Hence path scoping; everything outside `/mcp` is untouched, pinned by a test.
+- **Two traps hit:** ① registration order — Starlette answers preflights without calling downstream, so this must be added *after* the app-level CORS to sit *outside* it; ② a wrapped policy still stacks, because Starlette adds `simple_headers` to any request bearing an `Origin` regardless of allowlist. The app-level middleware was stamping `allow-credentials: true` beside our `allow-origin: *` — invalid under the CORS spec. Fixed by hiding `Origin` from everything downstream of the MCP policy, so exactly one policy applies.
+
+**Two more public-facing defects fixed while here:**
+- **A missing key told hosted callers to set an environment variable they cannot set.** One client class serves both transports; the message named only `TRU8_API_KEY`. Now names the header *and* the env var. This text is surfaced verbatim to the user as the tool's error.
+- **The discovery card claimed an identity we do not own.** `/.well-known/mcp/server-card.json` served `io.tru8/mcp-server` — asserting `tru8.io`, a domain that does not exist and the exact invention that broke the first registry publish — with a stale version 1.0.0 against PyPI's 1.0.3. Now `io.github.SamYatesSmith/tru8` @ 1.0.3, matching the registry and the PyPI ownership marker. The card also now advertises the hosted endpoint and states plainly that **discovery needs no credential** (a bare `required: true` invites a scanner to attempt an OAuth handshake we do not implement).
+
+**Verified good, unchanged:** `tools/list` returns all three tools with **no credentials** (what Smithery's scan needs); missing and invalid keys both fail cleanly with no traceback; gzip does not break the SSE stream; the bare-`/mcp` 307 redirect preserves method and body.
+
+**Tests: +23** — `test_mcp_cors.py` (14) and `test_mcp_identity.py` (8, pins the four places we declare identity against each other), +1 on the error message. **Mutation-verified 4/4**: dropping `mcp-session-id` from allow_headers fails 5; from expose_headers fails 1; removing the origin-stripping wrapper fails 1; registering the middleware in the wrong order fails 11.
+
+⏳ **Owed:** deploy, then re-run the preflight checks against production.
 
 ---
 

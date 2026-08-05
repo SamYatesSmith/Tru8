@@ -6,6 +6,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+
+from app.middleware.mcp_cors import MCPCorsMiddleware
 import sentry_sdk
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from prometheus_client import make_asgi_app
@@ -292,6 +294,21 @@ app.add_middleware(
         "PAYMENT-CHALLENGE",
     ],
 )
+
+# CORS for /mcp only (2026-08-05). The policy above is right for the dashboard
+# API and wrong for a public protocol endpoint: it rejected `mcp-session-id` as
+# a request header and never exposed it as a response header, so NO browser MCP
+# client could hold a session with us — from any origin, including our own.
+#
+# Registered AFTER the block above on purpose. Starlette answers a preflight and
+# returns without calling downstream, and the last middleware added is the
+# outermost, so this must be added later to see OPTIONS at all. Moving it above
+# the CORSMiddleware call silently disables it.
+#
+# Everything outside /mcp passes straight through, so the authenticated API's
+# CORS posture is unchanged. Reasoning in app/middleware/mcp_cors.py.
+app.add_middleware(MCPCorsMiddleware, path_prefix="/mcp")
+
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # A8a (pipeline remediation 2026-04-22): filter pipeline-instrumentation
@@ -510,15 +527,32 @@ async def root():
 
 
 # MCP Discovery (SEP-1649 draft) — allows agents to find the MCP server
-# by probing the API host at a well-known path.
+# by probing the API host at a well-known path. Smithery also falls back to
+# this card when its automatic scan of the endpoint fails, so it is a public
+# statement of identity and must agree with the other two places we declare it.
+#
+# ⚠️ `name` MUST match the official MCP registry namespace and the PyPI
+# ownership marker in the package README (`io.github.SamYatesSmith/tru8`).
+# It read `io.tru8/mcp-server` until 2026-08-05 — a namespace asserting
+# ownership of `tru8.io`, a domain that does not exist. That exact invention
+# already cost us one failed registry publish; served publicly it also
+# contradicts the registry entry anyone cross-checks us against.
 MCP_SERVER_CARD = {
     "version": "1.0",
     "protocolVersion": "2025-06-18",
     "serverInfo": {
-        "name": "io.tru8/mcp-server",
+        "name": "io.github.SamYatesSmith/tru8",
         "title": "Tru8 Evidence Research",
-        "version": "1.0.0",
+        "version": "1.0.3",
     },
+    # Where the hosted transport actually is. Without this a scanner reading
+    # the card has our identity but no endpoint to connect to.
+    "remotes": [
+        {
+            "type": "streamable-http",
+            "url": "https://api.trueight.com/mcp",
+        }
+    ],
     "description": (
         "Structured evidence research. Ground factual claims in source-traced "
         "evidence organized by tier (primary/reporting/commentary) and type "
@@ -529,9 +563,20 @@ MCP_SERVER_CARD = {
     "capabilities": {
         "tools": {"listChanged": False},
     },
+    # Precise on purpose: connecting and listing tools needs NO credential —
+    # that is what lets Smithery and other registries scan us automatically.
+    # A key is required only to INVOKE a tool. Saying just "required: true"
+    # invites a scanner to assume an OAuth handshake we do not implement.
     "authentication": {
         "required": True,
         "schemes": ["apiKey"],
+        "appliesTo": "toolInvocation",
+        "discoveryRequiresAuth": False,
+        "apiKey": {
+            "header": "X-API-Key",
+            "queryParameter": "apiKey",
+            "obtainAt": "https://www.trueight.com/dashboard/settings",
+        },
     },
     "tools": [
         {

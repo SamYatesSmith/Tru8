@@ -63,6 +63,20 @@ class TestConstructor:
         with pytest.raises(ValueError, match="TRU8_API_KEY"):
             Tru8APIClient()
 
+    def test_no_key_message_covers_both_transports(self, monkeypatch):
+        """One client serves stdio AND the hosted /mcp endpoint.
+
+        The message named only the environment variable until 2026-08-05, which
+        told every hosted caller to set something they have no way to set — this
+        text is surfaced verbatim to the user as the tool's error.
+        """
+        monkeypatch.delenv("TRU8_API_KEY", raising=False)
+        with pytest.raises(ValueError) as exc:
+            Tru8APIClient()
+        message = str(exc.value)
+        assert "X-API-Key" in message, "hosted callers need the header named"
+        assert "TRU8_API_KEY" in message, "stdio users still need the env var named"
+
     def test_trailing_slash_stripped(self):
         client = Tru8APIClient(api_url="http://localhost:8000/", api_key="sk-test")
         assert client.base_url == "http://localhost:8000"
