@@ -1,7 +1,7 @@
 # Agent tier quality — four findings, scoped for design review
 
 **Date:** 2026-08-05
-**Status:** SCOPED, not built. Design review owed before any code.
+**Status:** F2, F3, F4a, F5 SHIPPED. F1 mechanical half SHIPPED but **efficacy unproven live**. F4b and the payload-date half OPEN.
 **Origin:** Live audit of the paid agent path, prompted by the founder question
 *"will a developer receive what they pay for?"* — asked while publishing to Smithery.
 **Spend:** 52p across 4 live checks (approved).
@@ -241,12 +241,12 @@ their own lower price, so the default costs 15p only on genuinely new claims.
 
 | Finding | State |
 |---|---|
-| F2 receipts | **DONE**, mutation-verified. Limitations derived from config (`app/core/tier_limitations.py`), 5 stored-check call sites fixed across `agent.py` + `agent_x402.py`, `_meta.cachedTier` added. 6→11 declared slugs. |
-| F3 `max_age_hours=0` | **DONE**, mutation-verified. Both truthiness sites (cache + consensus freshness). |
-| F4a metadata lies | **DONE**, mutation-verified. Cause was ordering, not a race: the completion pass runs between the mapping call and the metadata write. Model now captured at the call. |
+| F2 receipts | **SHIPPED `aa91888`**, mutation-verified. Limitations derived from config (`app/core/tier_limitations.py`), 5 stored-check call sites fixed across `agent.py` + `agent_x402.py`, `_meta.cachedTier` added. 6→11 declared slugs. |
+| F3 `max_age_hours=0` | **SHIPPED `aa91888`**, mutation-verified. Both truthiness sites (cache + consensus freshness). |
+| F4a metadata lies | **BUILT, HELD uncommitted** (same file as the reframe), mutation-verified. Cause was ordering, not a race: the completion pass runs between the mapping call and the metadata write. Model now captured at the call. |
 | F4b cheap model on mapping stages | **OPEN** — decision above. |
-| F1 temporal scoping | **NOT STARTED** — design below, needs bench. |
-| F5 default tier | Changed, uncommitted, sign-off + Cloudflare headroom outstanding. |
+| F1 temporal scoping | **SHIPPED `656618b`** — mechanical half only. Bench-clean, mutation-verified, **efficacy unproven live** (see below). Payload-date half deliberately not built; the live evidence now argues for a narrower version of it. |
+| F5 default tier | **SHIPPED `749ff13`.** Cloudflare headroom (60–90s vs 100s) still unmeasured; 1.0.4 release held on it. |
 
 Tests added: `tests/unit/test_tier_limitations.py` (9), `tests/unit/agent/test_tier_receipts.py` (5),
 `tests/unit/pipeline/test_mapping_model_metadata.py` (3). 148 pass across the agent suite.
@@ -277,6 +277,63 @@ guessing, and over-firing hides genuine disputes.
 
 Expected effect on `618efbc4`: the May-2024, June and annual-2024 items scope
 out; the undated commentary does not.
+
+## Live proof of F1 — attempted, and it did NOT succeed
+
+Two full checks after deploy (30p), both worded afresh to defeat the cache:
+
+| Check | Result |
+|---|---|
+| `7bfea317` | element `disputed`, **no `temporal_scope` receipt**. Ran ~7 min after push; may have preceded the deploy. |
+| `b0a720f8` | 4 elements, all `supported`, **no receipt**. Deploy confirmed by the founder beforehand. |
+
+`b0a720f8` looks like a win and is not one. The element read `supported` because the
+authority weighting discounted a Substack (`blog_platform_floor`, weighted 1 against 4) —
+the existing TRU-EF20 protection, not the new gate.
+
+**What the raw evidence showed, and it is the important part of this document:**
+
+```
+ev-160901d1e6b9
+  title      : "UK September-25 CPI Inflation Report"
+  published  : 2025-10-22
+  snippet    : "UK CPI increased by 3.8% year-on-year in September,
+                the same as August's 3.8% YoY figure..."
+  mapped as  : challenges, against an element pinned to September 2024
+```
+
+A September **2025** report challenging a September **2024** element — the exact F1 failure
+mode — and the shipped rule misses it, for three nameable reasons:
+
+1. `September-25` is a two-digit year form the patterns do not parse.
+2. The snippet names months with **no year anywhere**, so `extract_periods` returns empty.
+3. The rule deliberately ignores `published_date`.
+
+`extract_periods` returning empty means `is_out_of_period` is False and the item is left
+alone. **The gate behaved exactly as designed; the design was too narrow.**
+
+### The extension this evidence argues for
+
+Both mechanical, neither a prompt:
+
+- Parse two-digit year forms (`September-25`, `Sept-25`).
+- When evidence names a bare month with **no year anywhere in the text**, resolve it from
+  `published_date` — a report published 22 October 2025 saying "in September" means
+  September 2025. Deterministic, and `date_basis` already records how the date was obtained
+  (`page_metadata|engine|url_inferred_suspect|api_adapter`), so trust can be gated on it —
+  `url_inferred_suspect` should probably not be used this way.
+
+⚠️ **This corrects a judgement recorded earlier in this document.** I argued `published_date`
+should not enter the payload because publication date is not the period a source covers. That
+is right for *describing* a source and wrong for *resolving a bare month it names*. The two
+uses are different and only the first is unsafe.
+
+### What is still true about the shipped half
+
+- Mutation-verified: removing the call fails 4 tests; the flag is a true rollback.
+- Bench 135 ok / 2 warn / 1 fail, the documented pass state — **having fired zero times**.
+- It is on the path production uses: the batch mapper calls `_parse_mapping_response`.
+- It has never been observed scoping anything outside a test fixture.
 
 ## Recommended order
 

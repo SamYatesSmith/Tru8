@@ -5,45 +5,139 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (rewritten 2026-08-05)
+## 🟢 START HERE — next session (rewritten 2026-08-05, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
 
-### ⏳ DO THIS FIRST
-1. **Smithery — submit it. Everything that blocked it is cleared.** Paste **`https://api.trueight.com/mcp/`** (trailing slash) into their publish form. It wants an **HTTP URL, not a repo** — no base directory, no Docker build. Their scan needs `tools/list` **without** credentials; verified working 2026-08-05.
-2. **The official registry advertises no hosted endpoint.** `server.json` declares only `packages` (stdio/PyPI), so everyone arriving from the registry is sent to `pip install` and never learns the zero-install HTTP endpoint exists. The schema supports `remotes[]`. ⚠️ Not free: a publish needs a new version, and top-level/package versions are expected to agree, so likely a **1.0.4 PyPI release too**. Left matching the live registry on purpose — founder call.
-3. **Build `scripts/cost_report.py`.** Prod checks carry real search-cost telemetry and **nothing can read it**. Promised, not built; the meter still has no dial.
+### ✅ SHIPPED TODAY — live and verified, do not re-raise
+`4910f17..dbba4c4`, six commits, all pushed and deployed:
 
-### 🔬 Reframe bench verdict 2026-08-05 — the replay CANNOT judge it
-Ran with the reframe alone in the tree: **0 ok, 0 warn, 8 fail, every claim on `cassette_drift`** (40/16/16/10/22/16/22/22 misses). Request signatures are cassette keys, so changing three mapping prompts invalidates every mapping cassette. That is the bench working correctly — it refused to compare rather than report a misleading pass. **Judging the reframe needs a live RE-RECORD plus a manual golden review**, and the F7 lesson applies: re-golding can silently delete a guard. Contrast F1, which post-processes the mapping *response*, touches no prompt, and replayed cleanly at 135/2/1.
+| Commit | What it fixed |
+|---|---|
+| `a8534a4` | **Smithery saw a server with no tools.** SDK holds sessions `NotInitialized` until `notifications/initialized`; Smithery goes straight from initialize to listing, so all four list methods returned `-32602`. Fixed with `stateless_http`. **Also stated `transport_security` explicitly** — FastMCP auto-enables DNS-rebinding protection with a localhost-only allowlist when `host` is the default `127.0.0.1`, so the NEXT REBUILD would have returned 421 on our own domain and 403 to browser origins. |
+| `aa91888` | **The receipt understated what the tier withheld** — 6 declared vs 10 disabled, and five stored-check call sites served possibly-quick analyses with `limitations: []`. Now derived from the config diff. `max_age_hours=0` was falsy at two sites. |
+| `749ff13` | MCP tool default tier `quick` → `full`. |
+| `fd4266b` | The listing advertised the **SDK's** version (`1.12.4`) as ours; now `1.0.3`. |
+| `656618b` | **F1: settled facts read as `disputed` on other months' figures.** Mechanical temporal gate. |
+| `dbba4c4` | Docs. |
 
-### ⛔ HELD in the working tree — do NOT commit without reading the design docs
-- `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the tests WITHOUT the classifier change fails 40.
-- `backend/app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe. Needs a bench **re-record + re-gold**, recorded SEPARATELY from the classifier change or golden drift is unattributable.
+**🎉 SMITHERY IS LIVE** — `samyatessmith/tru8`, scan reports **3 tools**. The residual
+`triggers/list` warning is expected and harmless: `triggers` is not an MCP method, so the
+SDK validates it as unknown and returns `-32602`. Every server on the official Python SDK
+does this.
 
-### ✅ CLOSED 2026-08-05 — do not re-raise
-- **`/agent` 500 CONFIRMED FIXED live**, all three layers checked rather than assumed. Consensus can work for the first time; **0 rows is correct** (needs 3 distinct users on full-tier checks of one claim) — not a defect to hunt.
-- **MCP CORS fix shipped `6e36136`, live-verified 15/15.** Before it, no browser could hold a session with us from any origin.
-- **Every founder-owed item done**, plus key hygiene: dedicated `claude-code-local` key, duplicate MCP registration removed.
-- **Billable calls now prompt** — `permissions.ask: ["mcp__tru8__tru8_check"]`. **Never spend the founder's money without asking, any amount.**
+### ⏳ DO THIS FIRST — in this order
+1. **Extend the F1 temporal gate — evidence is already in hand.** Live check `b0a720f8`
+   retrieved *"UK **September-25** CPI Inflation Report"* (published 2025-10-22, snippet
+   *"CPI increased by 3.8% YoY in September"*) and used it to **challenge a September 2024
+   element**. That is exactly the F1 failure mode and the shipped rule MISSES it, for three
+   nameable reasons: the title uses a two-digit year (`September-25`) the patterns do not
+   parse; the snippet names months with **no year anywhere**; and the rule deliberately
+   ignores `published_date`. Two mechanical additions fix it — parse `Sept-25` forms, and
+   resolve a bare month from `published_date` (a report published 22 Oct 2025 saying "in
+   September" means September 2025). ⚠️ This corrects my earlier reasoning that
+   `published_date` must not be used: it is a poor guide to the period a source *covers*
+   but a good one for resolving a bare month it *names*. `date_basis` records provenance,
+   so trust can be gated on it.
+2. **Add a time-pinned claim to the replay corpus.** The F1 gate fired **zero times** across
+   all 8 corpus claims — the corpus contains no month-pinned claims at all, so the drift
+   guard is blind to exactly the class that failed in production. Use `ev-160901d1e6b9`
+   above as the fixture.
+3. **Put the commit SHA on `/api/v1/health/`.** Today two live checks (30p) could not
+   distinguish "fix not deployed" from "fix deployed but did not fire", because nothing
+   served by the app reveals which code is running — the health endpoint reports a static
+   `0.1.0` and the manifest fingerprint only hashes model config. This cost real money and
+   an hour.
+4. **`server.json` still advertises no hosted endpoint** (unchanged from yesterday). Needs
+   `remotes[]`, a version bump, and probably a 1.0.4 PyPI release — founder call.
+5. **Build `scripts/cost_report.py`.** Prod checks carry search-cost telemetry nothing can read.
 
-### 🔬 OPENED 2026-08-05 — agent tier quality, SCOPED not built
-Live audit of the paid agent path (52p, 4 production checks), prompted by *"will a developer receive what they pay for?"*. Full scoping + proposed fixes + open questions: **`audit/2026-08-05_agent_tier_quality_findings.md`**. **Design review owed before any code.**
+### 🔬 Two bench facts that decide how any mapping change is validated
+- **Prompt changes CANNOT be replayed.** Request signatures are cassette keys. The held
+  reframe alone produced **0 ok / 0 warn / 8 fail, every claim on `cassette_drift`**
+  (40/16/16/10/22/16/22/22 misses). Judging it needs a live **re-record plus a manual golden
+  review**, and the F7 lesson applies: re-golding can silently delete a guard.
+- **Response post-processing CAN be replayed.** F1 touches no prompt, so cassettes stayed
+  valid and it replayed at **135 ok / 2 warn / 1 fail** — the documented pass state, single
+  failure on the known-flaky `TRU-82CF-2F81`. **But it fired zero times, so that is evidence
+  of NO REGRESSION, not of efficacy.** Do not read the green bench as proof F1 works.
 
-- ✅ **F1 MECHANICAL HALF DONE `656618b`** (committed, NOT pushed) — `app/utils/temporal_scope.py` + a gate in `_parse_mapping_response` running BEFORE the state derivation, symmetric (scopes `supports` as readily as `challenges`), re-labels to `context` and never deletes, receipt in `basis.temporal_scope`. 29 tests, mutation-verified, rollback `ENABLE_TEMPORAL_SCOPE_GATE=False`. **Touches no prompt, so cassettes stay valid — bench 135 ok / 2 warn / 1 fail, the documented pass state.** ⚠️ **The gate fired ZERO times across the corpus: that is evidence of no regression, NOT of efficacy.** The replay corpus contains no time-pinned claims — a blind spot worth closing, since this is the class that failed in production. Live proof still owed (one full check, 15p). **Deliberately NOT built: `[Published: …]` in the evidence payload** — publication date is not the period a source discusses (an ONS page published 16 Oct is about September), so feeding it risks the model conflating the two, and it cannot be validated without a re-record. NF-11 trap; decide on evidence.
-- ~~**F1 HIGH — time-pinned claims read `disputed` when settled.** `618efbc4`: "UK CPI below 2% in Sept 2024" is TRUE, ONS 1.7% was retrieved, element still came back `disputed` because six *other-period* figures (June 2.6%, May 2024 2.0%, annual 3.27%) mapped as `challenges`. **Invariant #7 false-balancing, in production.** Root cause verified and mechanical: the evidence payload sent to the mapper carries `[Tier]`, `[Type]`, title and snippet — **no date** — while `MAPPING_PROMPT` already instructs that evidence from another period does not bear on the claim. A rule asserted in a prompt that the payload cannot support (NF-11 again). Fix = date in the payload **plus** a mechanical temporal gate (`scope_sensitivity.py` shape) forcing `context`, never `challenges`. ⚠️ Over-firing hides genuine disputes — must fire only when BOTH periods are explicit and differ. ⚠️ Touches `claim_map_analyzer.py`, which is **already HELD**; bench re-record must stay separately attributable.~~
-- ✅ **F2 DONE** (uncommitted, mutation-verified) — limitations now derived from the config diff (`app/core/tier_limitations.py`), so a stage cannot be disabled without a receipt. 6 → 11 declared slugs. **Five** stored-check call sites fixed, not one: smart cache hit, `agent_lookup`, `get_agent_result`, `x402_lookup`, `x402_result` — two of which hardcoded `executed_tier="full"`, stating something untrue. New `_meta.cachedTier`. Original scoping said one site; the wider sweep found five.
-- ✅ **F3 DONE** (uncommitted, mutation-verified) — `is not None` at **both** truthiness sites (cache freshness + consensus freshness).
-- ✅ **F4a DONE** (uncommitted, mutation-verified) — the metadata WAS lying, and it is not a race: the completion pass (`map_completion`, a non-mapping label → cheaper model) runs *between* the mapping call and the metadata write, so the write recorded whichever model spoke last. Model is now captured at the mapping call, on both paths. Mapping still runs on Flash as configured.
-- 🔶 **F4b OPEN DECISION — two mapping stages run on the cheap model, undeclared.** `is_mapping` is `label in ("mapping","batch_mapping")`, so `map_completion` AND `recovery_mapping` get `google_model` (Flash-Lite) and the short timeout — while both assign supports/challenges/context, the same judgement that fails in F1, on the model measured at 50.7% parrot vs Flash 17.2%. No comment suggests it was decided. **Not built: promoting them raises per-check cost on every check and needs the bench.**
-- ~~**F2 MED-HIGH — the receipts understate what was withheld.** `QUICK_LIMITATIONS` declares 6 omissions; `QUICK_CONFIG` disables **10** — undeclared: evidence distillation, post-filter recovery, sources 20→8, queries 3→1. Worse: the cache path matches on claim hash + user **without tier**, so a caller requesting `full` can be served a cached `quick` result at 2p with `limitations: []`. `Check.executed_tier` already holds the answer and is not read. Invariant #5.~~
-- ~~**F4 MED — `mappingModel` metadata probably lying.** Reported Flash-Lite ×3 / Flash ×1 across four checks. Hypothesis: `_last_model_used` is shared instance state written by every LLM call and read after the fact, so the decomposition model (Flash-Lite) leaks into mapping metadata. **Confirmed 2026-08-05: the label was wrong.**~~
-- **F5 — MCP default tier changed `quick` → `full`** (uncommitted). Measured: full buys primary 3→13 and commentary 4→0 on matched claims. `max_tier` is a ceiling, so cache/consensus hits still return at their own price. Open: stdio users need a **1.0.4 release**; full runs measured ~60–90s against **Cloudflare's 100s origin timeout** — headroom unverified.
+### 🔶 OPEN DECISIONS — founder, not technical
+- **F4b — two mapping stages run on the cheap model, undeclared.** `is_mapping` is
+  `label in ("mapping","batch_mapping")`, so `map_completion` and `recovery_mapping` get
+  `google_model` (Flash-Lite) and the short timeout, while both assign
+  supports/challenges/context — the same judgement that fails in F1, on the model measured
+  at 50.7% parrot vs Flash's 17.2%. Nothing suggests it was decided. **Promoting them raises
+  per-check cost on every check**, so it needs the bench and a cost decision.
+- **The held mapping-prompt reframe** — see HELD below. It gates every further mapping change
+  in that file.
+- **Cloudflare headroom** — full runs measured 60–90s against a **100s** origin timeout. A 524
+  is indistinguishable from a broken server to a first-time caller. Settle before a 1.0.4
+  release puts the `full` default in front of stdio users.
+
+### 💷 Spend today
+**82p of founder money**, all approved in advance: 52p on the four-check tier audit
+(7+15+15+15), 30p on two live F1 proofs (15+15) that did **not** succeed in proving the gate
+fires. Bench runs were replay-only (no live LLM spend).
+
+### ⛔ HELD in the working tree — read before committing anything under `backend/app/pipeline/`
+Three uncommitted changes, deliberately. `git status` will show them; none is abandoned.
+
+1. **`app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe** (hunks at lines ~257–654;
+   45 insertions). Adds a "supports means WARRANTS AS STATED" definition, a MODALITY MATCH
+   rule, and a NOT-A-SCEPTICISM-DIAL counterweight, to all three mapping prompts.
+   **Bench-blocked in a way replay cannot resolve** — see the bench facts above. Deciding it
+   needs a live re-record + golden review. Concern on record: it is prompt-only, and rule 3
+   exists to stop rule 2 over-firing; two prompt rules pulling against each other can only be
+   measured, not reasoned about (NF-11 shape). Acceptance criterion if it IS re-recorded: do
+   any `supported` → `unresolved` flips appear where the supporting evidence is primary-tier
+   and unhedged? If only hedged sources move to `context`, it is working.
+2. **`app/pipeline/claim_map_analyzer.py` — F4a metadata fix** (hunks at lines ~1480–1780;
+   18 insertions) + untracked `tests/unit/pipeline/test_mapping_model_metadata.py` (3 tests,
+   mutation-verified). Captures the mapping model AT the mapping call instead of reading
+   `_last_model_used` afterwards. **Confirmed cause:** the completion pass (`map_completion`,
+   a non-mapping label → Flash-Lite) runs BETWEEN the mapping call and the metadata write, so
+   the write recorded whichever model spoke last. Not a race — plain ordering. Behaviour-neutral
+   (changes only a recorded string), so it needs no bench of its own.
+3. **`app/pipeline/evidence_classifier.py` — journal-tier fix** + untracked
+   `tests/unit/pipeline/test_society_journal_tiers.py` (57 tests). Unchanged from before today.
+   Unit-verified but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax
+   the cap.** Design: `audit/2026-08-03_journal_tier_classification_design.md`.
+   ⚠️ Committing the tests WITHOUT the classifier change fails 40.
+
+**Separating them is easy and was done twice today:** `git diff` the file, split hunks by
+CONTENT (`mapping_model_used` = F4a, `MODALITY`/`SCEPTICISM`/`WARRANTS` = reframe,
+`temporal_scope`/`element_period` = F1), write each to its own `.patch`, and `git apply -R`
+the ones you want out. ⚠️ Write the patch to a path Git Bash and Windows Python agree on —
+Python's `/tmp` is `C:	mp`, Git Bash's is `%LOCALAPPDATA%\Temp`, and the mismatch silently
+produced an empty apply.
 
 ### The real priority (founder-agreed, not technical)
 **Distribution, not the pipeline.** Sentry still shows near-zero traffic. Everything built this week is plumbing that only pays off once people arrive.
 
 ### Durable lessons — 2026-08-05
+- **A conservative rule that does not fire proves nothing.** F1 passed the bench at the
+  documented 135/2/1 having fired **zero times**, and two live checks (30p) also failed to
+  make it fire. "No regression" and "it works" are different claims and today only earned the
+  first. Absence of firing is not evidence of correctness.
+- **Nothing served by the app says which code is running.** Health reports a static `0.1.0`;
+  the manifest fingerprint hashes only model config. So a live check that behaves unexpectedly
+  cannot be attributed to "not deployed" vs "deployed but wrong" — which is exactly what
+  happened, at a cost of 30p and an hour. Put the commit SHA on the health endpoint.
+- **Cassette keys are request signatures.** Change a prompt and the replay bench can no longer
+  compare anything; change only response post-processing and it can. That single distinction
+  decides whether a mapping change costs a $0.25 replay or a full live re-record plus golden
+  review.
+- **A green test can pin a defect in place.** `test_quick_endpoint` asserted
+  `len(QUICK_LIMITATIONS) == 6` and passed happily while ten stages were being disabled. A
+  test that counts a hand-written list can only confirm the list is the length someone typed;
+  the guard has to compare the DECLARATION against the CONFIG.
+- **"Verified" needs the client you are claiming works.** Yesterday's lesson repeated in a new
+  form: the Smithery scan failed against an endpoint that curl handled perfectly, because curl
+  sends `notifications/initialized` and their scanner does not.
+- **Scope the sweep wider than the symptom.** The receipts bug looked like one call site and
+  was five; `max_age_hours` looked like one truthiness test and was two.
+
 - **CORS is enforced by browsers and by nothing else.** The hosted MCP endpoint was verified end to end on 2026-08-04 with curl and a live listener — both non-browser clients — so the verification was structurally incapable of finding the defect that made it unusable from a browser. **Match the verification client to the client you are claiming works.**
 - **A second CORS policy does not replace the first, it stacks on it.** Starlette attaches its `simple_headers` to *any* response whose request carried an `Origin`, allowlist or not — so the app-level policy stamped `allow-credentials: true` onto our `allow-origin: *`, a pair the CORS spec forbids. Wrapping was not enough; the inner policy had to be made blind to the path.
 - **Ordering can be the whole feature.** Starlette answers a preflight and returns without calling downstream, so a CORS middleware registered *inside* another never sees an `OPTIONS`. `add_middleware` is last-added-outermost, which reads backwards from the file. Pinned by a test rather than a comment.
