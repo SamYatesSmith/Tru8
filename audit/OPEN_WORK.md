@@ -5,43 +5,33 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-05, MCP pre-Smithery hardening)
+## 🟢 START HERE — next session (rewritten 2026-08-05)
 
-**Everything below the divider is history. This block is what to do next.**
+**This block is what to do next. Everything below the divider is history.**
 
-**State:** all work through 2026-08-04 PUSHED and LIVE. Working tree holds **two deliberately-held pipeline changes** (see HELD below) **plus the 2026-08-05 MCP CORS fix, which is ready and needs deploying.**
-
-### ✅ THE `/agent` 500 FIX IS CONFIRMED LIVE — 2026-08-05, do not re-raise
-Authenticated `quick`-tier check run through the MCP client against production:
-`check 2e296d3a-ef11-4e0b-9b78-f0a9459e823f` → `executedTier: quick`, **`chargedPence: 7`**, `status: completed`, 8 evidence items, signed manifest.
-**`chargedPence: 7` is the proof, not the evidence.** The old failure was the consensus query poisoning the session so the *credit debit* died with `InFailedSQLTransactionError` — a recorded charge means the session survived the consensus step. `dc61c0f` layer 3 (rollback) is confirmed working end to end.
-**✅ All three layers now confirmed against production**, checked rather than assumed:
-- `railway ssh python -m alembic current` → **`claim_consensus_repair (head)`** — the repair migration ran.
-- `to_regclass('public.claim_consensus')` → **table exists**, 0 rows.
-- The charge above proves the rollback layer.
-
-⚠️ **`railway run` cannot do this** — it injects Railway's env vars into a process on *your* machine, and `DATABASE_URL` is a private hostname that only resolves inside Railway's network (`socket.gaierror: getaddrinfo failed`). Use **`railway ssh <command>`**, which executes inside the container. Quoting note: `railway ssh` hands the command to a remote `sh`, so parentheses break unless the whole command is wrapped — `railway ssh "python -c 'print(1+1)'"` works. For anything multi-line, base64 the script and `exec(base64.b64decode("..."))`.
-
-**Consensus is now capable of working for the first time — but will stay empty on merit, not on fault.** `_consensus_loop()` is started at boot (`main.py:98`) and runs daily at **02:00 UTC**; until now it threw `UndefinedTableError` into its own `except` every night. Qualifying requires **≥3 DISTINCT users** running **completed `full`-tier** checks on the **same claim hash** (`consensus.py:69-87`). At current traffic that is unlikely to be met, so **0 rows is the correct reading of demand, not a bug** — do not go looking for a defect. It is another instance of the same conclusion: the constraint is distribution.
-
-### ⏳ OUTSTANDING — in order
-1. **Smithery — UNBLOCKED, submit it.** Paste **`https://api.trueight.com/mcp/`** into their publish form (**with the trailing slash**: the bare path 307s correctly and preserves method + body, but the slash removes a redirect hop for browser clients and costs nothing). It wants an **HTTP URL, not a repo**; no base directory, no Docker build. (`smithery.yaml` + `Dockerfile.mcp` are fixed and valid for the container route, just unused by this one.) Their scan needs `tools/list` **without** credentials — verified working. mcp.so + PulseMCP index FROM the official registry — give them ~2 weeks before submitting manually.
-
-### Then, small and unblocked
-2. **The official registry entry advertises no hosted endpoint.** `server.json` declares only `packages` (stdio/PyPI), so everyone arriving from the registry is sent to `pip install` and never learns the zero-install HTTP endpoint exists. The schema **does** support it (`remotes[] → StreamableHttpTransport`, confirmed against the 2025-12-11 schema 2026-08-05). ⚠️ Not a free edit: a registry publish needs a **new version**, and the recorded 2026-08-04 failure list includes *"version 1.0.0 vs PyPI 1.0.2"* — top-level and package versions are expected to agree, so this likely means a **1.0.4 PyPI release too**. Left untouched deliberately so the file keeps matching the live registry. Founder call.
-3. **Build `scripts/cost_report.py`.** Four prod checks now carry real search-cost telemetry, and **nothing can read it** — `cost_telemetry` is exposed in no API or UI. It was promised and not built, so the meter still has no dial.
-4. **Screenshot recapture is DONE**, but the four `-full` lightbox images are 315–638KB. Lazy by construction (the lightbox is unmounted when closed), so no page-load cost — worth a WebP pass only if that changes.
-
-### The real priority (founder-agreed, not technical)
-**The funnel, not the pipeline.** ✅ Lifecycle emails shipped. ✅ Screenshots recaptured. ✅ Remote MCP server live. **What remains is distribution** — Sentry still shows near-zero traffic. Everything built this week is plumbing that only pays off when people arrive.
+### ⏳ DO THIS FIRST
+1. **Smithery — submit it. Everything that blocked it is cleared.** Paste **`https://api.trueight.com/mcp/`** (trailing slash) into their publish form. It wants an **HTTP URL, not a repo** — no base directory, no Docker build. Their scan needs `tools/list` **without** credentials; verified working 2026-08-05.
+2. **The official registry advertises no hosted endpoint.** `server.json` declares only `packages` (stdio/PyPI), so everyone arriving from the registry is sent to `pip install` and never learns the zero-install HTTP endpoint exists. The schema supports `remotes[]`. ⚠️ Not free: a publish needs a new version, and top-level/package versions are expected to agree, so likely a **1.0.4 PyPI release too**. Left matching the live registry on purpose — founder call.
+3. **Build `scripts/cost_report.py`.** Prod checks carry real search-cost telemetry and **nothing can read it**. Promised, not built; the meter still has no dial.
 
 ### ⛔ HELD in the working tree — do NOT commit without reading the design docs
-- `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Correct and unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the test file WITHOUT the classifier change fails 40 tests.
-- `backend/app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe, needs a bench **re-record + re-gold**, recorded SEPARATELY from the classifier change or golden drift is unattributable.
+- `backend/app/pipeline/evidence_classifier.py` + `backend/tests/unit/pipeline/test_society_journal_tiers.py` (57 tests, untracked) — **journal-tier fix, BENCH-BLOCKED.** Unit-verified, but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax the cap.** Design: `audit/2026-08-03_journal_tier_classification_design.md`. ⚠️ Committing the tests WITHOUT the classifier change fails 40.
+- `backend/app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe. Needs a bench **re-record + re-gold**, recorded SEPARATELY from the classifier change or golden drift is unattributable.
 
-### ✅ FOUNDER ITEMS — ALL FOUR DONE 2026-08-05. Do not re-raise.
-Confirmed complete by the founder on 2026-08-05: ① `COMPANIES_HOUSE_API_KEY` cleared on Railway (the adapter registry is conditional at `api_adapters/__init__.py:110`, so the live 401s stop with no code change). ② `backend/.env` Stripe values swapped to test mode. ③ Sentry backlog triaged. ④ The Tru8 API key pasted into chat during MCP setup has been **rotated** — any key seen in an earlier transcript is dead; ask for a current one, never reuse.
-**Nothing is owed by the founder as of 2026-08-05.**
+### ✅ CLOSED 2026-08-05 — do not re-raise
+- **`/agent` 500 CONFIRMED FIXED live**, all three layers checked rather than assumed. Consensus can work for the first time; **0 rows is correct** (needs 3 distinct users on full-tier checks of one claim) — not a defect to hunt.
+- **MCP CORS fix shipped `6e36136`, live-verified 15/15.** Before it, no browser could hold a session with us from any origin.
+- **Every founder-owed item done**, plus key hygiene: dedicated `claude-code-local` key, duplicate MCP registration removed.
+- **Billable calls now prompt** — `permissions.ask: ["mcp__tru8__tru8_check"]`. **Never spend the founder's money without asking, any amount.**
+
+### The real priority (founder-agreed, not technical)
+**Distribution, not the pipeline.** Sentry still shows near-zero traffic. Everything built this week is plumbing that only pays off once people arrive.
+
+### Durable lessons — 2026-08-05
+- **CORS is enforced by browsers and by nothing else.** The hosted MCP endpoint was verified end to end on 2026-08-04 with curl and a live listener — both non-browser clients — so the verification was structurally incapable of finding the defect that made it unusable from a browser. **Match the verification client to the client you are claiming works.**
+- **A second CORS policy does not replace the first, it stacks on it.** Starlette attaches its `simple_headers` to *any* response whose request carried an `Origin`, allowlist or not — so the app-level policy stamped `allow-credentials: true` onto our `allow-origin: *`, a pair the CORS spec forbids. Wrapping was not enough; the inner policy had to be made blind to the path.
+- **Ordering can be the whole feature.** Starlette answers a preflight and returns without calling downstream, so a CORS middleware registered *inside* another never sees an `OPTIONS`. `add_middleware` is last-added-outermost, which reads backwards from the file. Pinned by a test rather than a comment.
+- **An identity invented once tends to persist.** `io.tru8/mcp-server` — a namespace on a domain nobody owns — had already broken a registry publish and was still being served publicly from the discovery card months later, because nothing linked the four places we declare who we are.
 
 ### Durable lessons — 2026-08-04
 - **Test the PUBLISHED artefact, not the repo.** Everything in-repo passed while `pip install tru8-mcp` was dead for every new user. `scripts/check_published_mcp.py` now installs the real thing in a fresh venv twice daily.
@@ -60,13 +50,26 @@ Confirmed complete by the founder on 2026-08-05: ① `COMPANIES_HOUSE_API_KEY` c
 - **"My change only affects post-processing" is not a cassette-safety argument** on this pipeline: tier → domain capping → shown pool → **the mapping prompt**.
 - **Ask why something was removed before re-adding it.** The CrossRef re-registration I proposed was wrong; the April coverage review had already established it would add "a fourth DOI-registry client, not a fourth *independent* source".
 
-### Durable lessons — 2026-08-05
-- **CORS is enforced by browsers and by nothing else.** The hosted MCP endpoint was verified end to end on 2026-08-04 with curl and a live listener — both non-browser clients — so the verification was structurally incapable of finding the defect that made it unusable from a browser. **Match the verification client to the client you are claiming works.**
-- **A second CORS policy does not replace the first, it stacks on it.** Starlette attaches its `simple_headers` to *any* response whose request carried an `Origin`, allowlist or not — so the app-level policy stamped `allow-credentials: true` onto our `allow-origin: *`, a pair the CORS spec forbids. Wrapping was not enough; the inner policy had to be made blind to the path.
-- **Ordering can be the whole feature.** Starlette answers a preflight and returns without calling downstream, so a CORS middleware registered *inside* another never sees an `OPTIONS`. `add_middleware` is last-added-outermost, which reads backwards from the file. Pinned by a test rather than a comment.
-- **An identity invented once tends to persist.** `io.tru8/mcp-server` — a namespace on a domain nobody owns — had already broken a registry publish and was still being served publicly from the discovery card months later, because nothing linked the four places we declare who we are.
-
 ---
+
+**2026-08-05 — ✅ THE `/agent` 500 FIX IS CONFIRMED LIVE, and the founder-owed queue is empty.**
+
+Authenticated `quick`-tier check run through the MCP client against production:
+`check 2e296d3a-ef11-4e0b-9b78-f0a9459e823f` → `executedTier: quick`, **`chargedPence: 7`**, `status: completed`, 8 evidence items, signed manifest.
+**`chargedPence: 7` is the proof, not the evidence.** The old failure was the consensus query poisoning the session so the *credit debit* died with `InFailedSQLTransactionError` — a recorded charge means the session survived the consensus step. `dc61c0f` layer 3 (rollback) is confirmed working end to end.
+**✅ All three layers now confirmed against production**, checked rather than assumed:
+- `railway ssh python -m alembic current` → **`claim_consensus_repair (head)`** — the repair migration ran.
+- `to_regclass('public.claim_consensus')` → **table exists**, 0 rows.
+- The charge above proves the rollback layer.
+
+⚠️ **`railway run` cannot do this** — it injects Railway's env vars into a process on *your* machine, and `DATABASE_URL` is a private hostname that only resolves inside Railway's network (`socket.gaierror: getaddrinfo failed`). Use **`railway ssh <command>`**, which executes inside the container. Quoting note: `railway ssh` hands the command to a remote `sh`, so parentheses break unless the whole command is wrapped — `railway ssh "python -c 'print(1+1)'"` works. For anything multi-line, base64 the script and `exec(base64.b64decode("..."))`.
+
+**Consensus is now capable of working for the first time — but will stay empty on merit, not on fault.** `_consensus_loop()` is started at boot (`main.py:98`) and runs daily at **02:00 UTC**; until now it threw `UndefinedTableError` into its own `except` every night. Qualifying requires **≥3 DISTINCT users** running **completed `full`-tier** checks on the **same claim hash** (`consensus.py:69-87`). At current traffic that is unlikely to be met, so **0 rows is the correct reading of demand, not a bug** — do not go looking for a defect. It is another instance of the same conclusion: the constraint is distribution.
+
+### ✅ FOUNDER ITEMS — ALL FOUR DONE 2026-08-05. Do not re-raise.
+Confirmed complete by the founder on 2026-08-05: ① `COMPANIES_HOUSE_API_KEY` cleared on Railway (the adapter registry is conditional at `api_adapters/__init__.py:110`, so the live 401s stop with no code change). ② `backend/.env` Stripe values swapped to test mode. ③ Sentry backlog triaged. ④ The Tru8 API key pasted into chat during MCP setup has been **rotated** — any key seen in an earlier transcript is dead; ask for a current one, never reuse.
+**Nothing is owed by the founder as of 2026-08-05.**
+
 
 **2026-08-05 — 🔴 NO BROWSER COULD CONNECT TO THE HOSTED MCP ENDPOINT. Found pre-Smithery; fixed, mutation-verified 4/4. ✅ SHIPPED `6e36136`, DEPLOYED AND LIVE-VERIFIED 15/15.**
 
