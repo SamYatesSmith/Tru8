@@ -21,10 +21,12 @@ Environment variables:
 """
 
 import json
+from importlib.metadata import PackageNotFoundError, version as _package_version
 from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
+from . import __version__
 from .tools import Tru8APIClient
 
 mcp = FastMCP(
@@ -36,6 +38,22 @@ mcp = FastMCP(
         "decomposition and relationship mapping (supports/challenges/context)."
     ),
 )
+
+# serverInfo.version — stated, not inherited (2026-08-05).
+#
+# FastMCP takes no `version` argument and the low-level Server defaults it to
+# None, at which point the SDK reports ITS OWN version during initialize. So
+# Smithery's capability scan advertised "name: tru8, version: 1.12.4" — the mcp
+# library's version — on a listing where readers take it for ours.
+# The installed distribution is authoritative for stdio users; the module
+# constant covers the hosted transport, where the API imports this package from
+# the source tree and no distribution is installed.
+try:
+    _SERVER_VERSION = _package_version("tru8-mcp")
+except PackageNotFoundError:
+    _SERVER_VERSION = __version__
+
+mcp._mcp_server.version = _SERVER_VERSION
 
 
 def _request_api_key() -> Optional[str]:

@@ -96,3 +96,49 @@ class TestHostedEndpointIsDiscoverable:
         auth = _server_card()["authentication"]
         assert auth["discoveryRequiresAuth"] is False
         assert auth["apiKey"]["header"] == "X-API-Key"
+
+
+# ---------------------------------------------------------------------------
+# serverInfo.version — ours, not the SDK's (2026-08-05)
+# ---------------------------------------------------------------------------
+
+
+def test_server_reports_our_version_not_the_sdk_version():
+    """Smithery's scan advertised "name: tru8, version: 1.12.4" on our listing.
+
+    That is the mcp library's version. FastMCP takes no `version` argument and
+    the low-level Server defaults it to None, at which point the SDK reports
+    itself during initialize — so the number readers take for Tru8's was
+    whichever mcp release the image happened to resolve.
+    """
+    import importlib.metadata
+
+    from tru8_mcp import __version__
+    from tru8_mcp.server import mcp
+
+    reported = mcp._mcp_server.version
+
+    assert reported == __version__
+    assert reported != importlib.metadata.version("mcp")
+
+
+def test_package_version_matches_pyproject():
+    """The constant and the packaging metadata must not drift.
+
+    `__version__` exists because the hosted transport imports this package from
+    the source tree, where importlib.metadata finds no installed distribution.
+    Two places holding one version is exactly how the wrong number gets shipped.
+    """
+    import pathlib
+    import re
+
+    from tru8_mcp import __version__
+
+    pyproject = (
+        pathlib.Path(__file__).resolve().parents[2] / "tru8_mcp" / "pyproject.toml"
+    ).read_text(encoding="utf-8")
+    declared = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, re.M).group(1)
+
+    assert __version__ == declared, (
+        f"tru8_mcp.__version__ is {__version__} but pyproject declares {declared}"
+    )
