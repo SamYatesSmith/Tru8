@@ -9,7 +9,9 @@
       "Bash(git branch:*)",
       "Bash(wc -l:*)",
       "Bash(alembic:*)",
-      "WebSearch"
+      "WebSearch",
+      "mcp__tru8__tru8_get_result",
+      "mcp__tru8__tru8_get_result_raw"
     ],
     "deny": [
       "Bash(rm -rf:*)",
@@ -17,6 +19,9 @@
       "Bash(git reset --hard:*)",
       "Bash(drop table:*)",
       "Bash(drop database:*)"
+    ],
+    "ask": [
+      "mcp__tru8__tru8_check"
     ]
   },
   "hooks": {
