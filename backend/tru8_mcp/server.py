@@ -100,7 +100,7 @@ def _format(data: dict) -> str:
 @mcp.tool()
 async def tru8_check(
     claim: str,
-    max_tier: str = "quick",
+    max_tier: str = "full",
     max_age_hours: int | None = None,
     compact: bool = False,
 ) -> str:
@@ -134,7 +134,13 @@ async def tru8_check(
                since 1880") or an article URL (https://example.com/article).
                URLs are auto-detected and the pipeline extracts claims from
                the page content.
-        max_tier: Maximum tier to attempt — "lookup", "consensus", "quick" (default), or "full".
+        max_tier: Maximum tier to attempt — "lookup", "consensus", "quick", or
+                  "full" (default). This is a CEILING, not a floor: cached and
+                  consensus hits still return instantly at their own lower
+                  price, so the default costs ~£0.15 only for claims that have
+                  never been researched. Set "quick" to cap spend at ~£0.07,
+                  accepting web-search-only sourcing and heuristic
+                  classification (see the limitations list in _meta).
         max_age_hours: Skip cache hits older than this many hours. If set,
                        lookup hits that are stale will be discarded and the
                        pipeline re-runs at the next tier up to max_tier.
