@@ -208,6 +208,7 @@ async def build_agent_response(
     limitations: List[str],
     compact: bool = False,
     cached_from: Optional[str] = None,
+    cached_tier: Optional[str] = None,
 ) -> dict:
     """Build response for agent endpoints with _meta block.
 
@@ -235,6 +236,16 @@ async def build_agent_response(
     }
     if cached_from:
         meta["cachedFrom"] = cached_from
+
+    # Which tier actually produced the analysis being served (2026-08-05).
+    #
+    # `executedTier` reports what THIS request did — "lookup" for a cache hit —
+    # which says nothing about how the underlying result was produced. The cache
+    # matches on claim hash and user WITHOUT tier, so a caller asking for full
+    # can be served a quick-produced analysis. They were previously told
+    # `limitations: []` and had no way to discover it.
+    if cached_tier:
+        meta["cachedTier"] = cached_tier
 
     if compact:
         # Compact mode: claims + claimMap + _meta only, no evidence arrays

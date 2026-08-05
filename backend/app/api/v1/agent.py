@@ -27,6 +27,7 @@ from app.core.agent_auth import (
     get_agent_payment,
 )
 from app.core.agent_pricing import get_tier_price
+from app.core.tier_limitations import limitations_for_tier
 from app.core.client_origin import resolve_client
 from app.core.config import settings
 from app.core.database import get_session
@@ -208,9 +209,14 @@ async def agent_smart_check(
     if row:
         claim_row, check_row = row
 
-        # Check max_age_hours freshness filter
+        # Check max_age_hours freshness filter.
+        #
+        # `is not None`, not truthiness: 0 is a meaningful value meaning "never
+        # serve me a cached result", and `if body.max_age_hours` silently
+        # treated it as "no freshness constraint" — the opposite. Until
+        # 2026-08-05 there was no way for a caller to force a fresh run.
         cache_valid = True
-        if body.max_age_hours and check_row.completed_at:
+        if body.max_age_hours is not None and check_row.completed_at:
             age_hours = (
                 datetime.now(timezone.utc)
                 - check_row.completed_at.replace(tzinfo=timezone.utc)
@@ -241,13 +247,17 @@ async def agent_smart_check(
                     session=session,
                     executed_tier="lookup",
                     charged_pence=amount_pence,
-                    limitations=[],
+                    # The cached analysis carries ITS producing tier's
+                    # limitations, not this request's. A quick-produced result
+                    # served to a full request reported none until 2026-08-05.
+                    limitations=limitations_for_tier(check_row.executed_tier),
                     compact=body.compact,
                     cached_from=(
                         check_row.completed_at.isoformat()
                         if check_row.completed_at
                         else None
                     ),
+                    cached_tier=check_row.executed_tier,
                 )
             except Exception:
                 await _refund_and_fail_tx(tx, payment, amount_pence, session)
@@ -298,7 +308,7 @@ async def agent_smart_check(
                 ).days
                 # Check both server-side max age and caller's freshness constraint (O-02)
                 consensus_fresh = age_days <= CONSENSUS_MAX_AGE_DAYS
-                if consensus_fresh and body.max_age_hours:
+                if consensus_fresh and body.max_age_hours is not None:
                     age_hours = (
                         datetime.now(timezone.utc)
                         - consensus.computed_at.replace(tzinfo=timezone.utc)
@@ -376,7 +386,7 @@ async def agent_smart_check(
 
     amount_pence = get_tier_price(resolved_tier)
     request_hash = compute_request_hash(resolved_tier, claim_hash, body.compact)
-    limitations = QUICK_LIMITATIONS if resolved_tier == "quick" else []
+    limitations = limitations_for_tier(resolved_tier)
 
     return await _run_agent_pipeline(
         body=AgentClaimRequest(
@@ -481,9 +491,10 @@ async def agent_lookup(
             session=session,
             executed_tier=tier,
             charged_pence=amount_pence,
-            limitations=[],
+            limitations=limitations_for_tier(check.executed_tier),
             compact=body.compact or False,
             cached_from=check.completed_at.isoformat() if check.completed_at else None,
+            cached_tier=check.executed_tier,
         )
     except Exception:
         await _refund_and_fail_tx(tx, payment, amount_pence, session)
@@ -557,12 +568,16 @@ async def get_agent_result(
 
     from app.api.v1.response_builder import build_agent_response
 
+    # Report the tier that ACTUALLY produced this check, not a hardcoded "full"
+    # (2026-08-05). Retrieving a quick-produced check by id claimed it was full
+    # and declared no limitations — a plain misstatement, not just an omission.
+    # `or "full"` covers rows written before the column existed.
     response_data = await build_agent_response(
         check_id=check_id,
         session=session,
-        executed_tier="full",
+        executed_tier=check.executed_tier or "full",
         charged_pence=0,
-        limitations=[],
+        limitations=limitations_for_tier(check.executed_tier),
     )
 
     return JSONResponse(
@@ -575,14 +590,12 @@ async def get_agent_result(
 # Quick mode limitations (L-04) — reported in _meta.limitations
 # ---------------------------------------------------------------------------
 
-QUICK_LIMITATIONS = [
-    "heuristic_classification",
-    "no_factcheck_lookup",
-    "no_api_sources",
-    "no_llm_relevance_scoring",
-    "no_coverage_recovery",
-    "no_query_answering",
-]
+# Derived from the pipeline config, not written by hand (2026-08-05). The
+# hand-written list declared six omissions while QUICK_CONFIG disabled ten, so
+# a paying caller was told less had been withheld than actually was. The name
+# is kept because callers and tests import it; the value now cannot drift from
+# the config. See app/core/tier_limitations.py.
+QUICK_LIMITATIONS = limitations_for_tier("quick")
 
 
 # ---------------------------------------------------------------------------
@@ -647,7 +660,7 @@ async def agent_quick(
         amount_pence=amount_pence,
         claim_hash=claim_hash,
         request_hash=request_hash,
-        limitations=QUICK_LIMITATIONS,
+        limitations=limitations_for_tier(tier),
         payment=payment,
         session=session,
         idempotency_key=idempotency_key,
@@ -716,7 +729,7 @@ async def agent_full(
         amount_pence=amount_pence,
         claim_hash=claim_hash,
         request_hash=request_hash,
-        limitations=[],
+        limitations=limitations_for_tier(tier),
         payment=payment,
         session=session,
         idempotency_key=idempotency_key,

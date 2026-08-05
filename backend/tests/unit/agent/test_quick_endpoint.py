@@ -121,11 +121,22 @@ class TestQuickEndpoint:
 
     @pytest.mark.asyncio
     async def test_quick_meta_limitations(self):
-        """QUICK_LIMITATIONS contains exactly 6 items."""
-        assert len(QUICK_LIMITATIONS) == 6
+        """QUICK_LIMITATIONS declares every reduction quick mode makes.
+
+        Was `== 6`, asserting the hand-written list's length — which is how the
+        list stayed wrong: quick mode disabled ten things and this test passed
+        for all of them. The count now comes from the config, so the guard that
+        matters is completeness (tests/unit/test_tier_limitations.py), and the
+        original six slugs are pinned here because callers may branch on them.
+        """
         assert "heuristic_classification" in QUICK_LIMITATIONS
         assert "no_factcheck_lookup" in QUICK_LIMITATIONS
         assert "no_api_sources" in QUICK_LIMITATIONS
         assert "no_llm_relevance_scoring" in QUICK_LIMITATIONS
         assert "no_coverage_recovery" in QUICK_LIMITATIONS
         assert "no_query_answering" in QUICK_LIMITATIONS
+        # The four that were withheld without being declared until 2026-08-05.
+        assert "no_evidence_distillation" in QUICK_LIMITATIONS
+        assert "no_post_filter_recovery" in QUICK_LIMITATIONS
+        assert "reduced_source_cap" in QUICK_LIMITATIONS
+        assert "reduced_query_breadth" in QUICK_LIMITATIONS

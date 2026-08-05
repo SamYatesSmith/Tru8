@@ -27,6 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.agent import _resolve_input
 from app.core.agent_auth import AgentPaymentContext, compute_request_hash
 from app.core.agent_pricing import get_tier_price
+from app.core.tier_limitations import limitations_for_tier
 from app.core.client_origin import resolve_client
 from app.core.config import settings
 from app.core.database import get_session
@@ -111,14 +112,10 @@ async def get_x402_payment(
 # Shared pipeline handler (reuses agent.py pattern)
 # ---------------------------------------------------------------------------
 
-QUICK_LIMITATIONS = [
-    "heuristic_classification",
-    "no_factcheck_lookup",
-    "no_api_sources",
-    "no_llm_relevance_scoring",
-    "no_coverage_recovery",
-    "no_query_answering",
-]
+# Derived from the pipeline config (2026-08-05). This was a verbatim copy of
+# the list in agent.py — two hand-maintained copies of the same truth, either
+# of which could be updated without the other. Both now read the same source.
+QUICK_LIMITATIONS = limitations_for_tier("quick")
 
 
 async def _run_x402_pipeline(
@@ -450,9 +447,10 @@ async def x402_lookup(
         session=session,
         executed_tier=tier,
         charged_pence=amount_pence,
-        limitations=[],
+        limitations=limitations_for_tier(check.executed_tier),
         compact=body.compact or False,
         cached_from=check.completed_at.isoformat() if check.completed_at else None,
+        cached_tier=check.executed_tier,
     )
     response_data["hit"] = True
     await session.commit()
@@ -481,7 +479,7 @@ async def x402_quick(
         body=body,
         tier="quick",
         amount_pence=get_tier_price("quick"),
-        limitations=QUICK_LIMITATIONS,
+        limitations=limitations_for_tier("quick"),
         payment=payment,
         session=session,
         request=request,
@@ -507,7 +505,7 @@ async def x402_full(
         body=body,
         tier="full",
         amount_pence=get_tier_price("full"),
-        limitations=[],
+        limitations=limitations_for_tier("full"),
         payment=payment,
         session=session,
         request=request,
@@ -594,12 +592,13 @@ async def x402_result(
 
     from app.api.v1.response_builder import build_agent_response
 
+    # Producing tier, not a hardcoded "full" — see agent.get_agent_result.
     response_data = await build_agent_response(
         check_id=check_id,
         session=session,
-        executed_tier="full",
+        executed_tier=check.executed_tier or "full",
         charged_pence=0,
-        limitations=[],
+        limitations=limitations_for_tier(check.executed_tier),
     )
 
     return JSONResponse(
