@@ -12,9 +12,8 @@
 **State:** all work through 2026-08-04 PUSHED and LIVE. Working tree holds **two deliberately-held pipeline changes** (see HELD below) **plus the 2026-08-05 MCP CORS fix, which is ready and needs deploying.**
 
 ### ⏳ OUTSTANDING — in order
-1. **Deploy the MCP CORS fix, then re-run the browser-client checks against prod.** Until it deploys, **no browser-based MCP client can connect to us at all** — including Smithery's playground and the MCP Inspector. Details in the 2026-08-05 entry below. Post-deploy, expect `OPTIONS /mcp/` from any origin → **200** with `mcp-session-id` in both `access-control-allow-headers` and `access-control-expose-headers`.
-2. **Run a `quick`-tier check through the MCP client with a real API key.** Auth rejects before the consensus code path, so **the `/agent` 500 fix cannot be verified from outside** — only a valid key proves it. If evidence comes back instead of a 500, the fix is confirmed.
-3. **Smithery** — paste `https://api.trueight.com/mcp` into their publish form. It wants an **HTTP URL, not a repo**; no base directory, no Docker build. (`smithery.yaml` + `Dockerfile.mcp` are fixed and valid for the container route, just unused by this one.) Their scan needs `tools/list` **without** credentials — verified working 2026-08-05. mcp.so + PulseMCP index FROM the official registry — give them ~2 weeks before submitting manually.
+1. **Run a `quick`-tier check through the MCP client with a real API key.** Auth rejects before the consensus code path, so **the `/agent` 500 fix cannot be verified from outside** — only a valid key proves it. If evidence comes back instead of a 500, the fix is confirmed.
+2. **Smithery — UNBLOCKED, submit it.** Paste **`https://api.trueight.com/mcp/`** into their publish form (**with the trailing slash**: the bare path 307s correctly and preserves method + body, but the slash removes a redirect hop for browser clients and costs nothing). It wants an **HTTP URL, not a repo**; no base directory, no Docker build. (`smithery.yaml` + `Dockerfile.mcp` are fixed and valid for the container route, just unused by this one.) Their scan needs `tools/list` **without** credentials — verified working. mcp.so + PulseMCP index FROM the official registry — give them ~2 weeks before submitting manually.
 
 ### Then, small and unblocked
 4. **The official registry entry advertises no hosted endpoint.** `server.json` declares only `packages` (stdio/PyPI), so everyone arriving from the registry is sent to `pip install` and never learns the zero-install HTTP endpoint exists. The schema **does** support it (`remotes[] → StreamableHttpTransport`, confirmed against the 2025-12-11 schema 2026-08-05). ⚠️ Not a free edit: a registry publish needs a **new version**, and the recorded 2026-08-04 failure list includes *"version 1.0.0 vs PyPI 1.0.2"* — top-level and package versions are expected to agree, so this likely means a **1.0.4 PyPI release too**. Left untouched deliberately so the file keeps matching the live registry. Founder call.
@@ -57,7 +56,9 @@ Confirmed complete by the founder on 2026-08-05: ① `COMPANIES_HOUSE_API_KEY` c
 
 ---
 
-**2026-08-05 — 🔴 NO BROWSER COULD CONNECT TO THE HOSTED MCP ENDPOINT. Found pre-Smithery; fixed, mutation-verified 4/4. Needs deploy.**
+**2026-08-05 — 🔴 NO BROWSER COULD CONNECT TO THE HOSTED MCP ENDPOINT. Found pre-Smithery; fixed, mutation-verified 4/4. ✅ SHIPPED `6e36136`, DEPLOYED AND LIVE-VERIFIED 15/15.**
+
+**Live verification after deploy (2026-08-05):** preflight from `https://smithery.ai` → **200** with all four MCP request headers allowed and `DELETE` permitted · `mcp-session-id` exposed on real responses · **no** invalid `allow-credentials`+wildcard pair · foreign origins **still rejected on `/api/v1/*`**, so the dashboard policy is provably untouched · discovery card serves the registry namespace at 1.0.3, advertises the hosted endpoint, states discovery needs no credential · **full browser-style session end to end** (initialize → 202 initialized → `tools/list` returning all three tools) with an `Origin` header set and no credentials.
 
 Found by preflighting the Smithery submission rather than by a report. The endpoint itself was healthy — the *browser* path was not.
 
