@@ -453,6 +453,8 @@ app.mount("/metrics", metrics_app)
 #   2. Credentials are resolved PER REQUEST in tru8_mcp.server._get_client().
 #      A cached client here would serve one caller's key to everyone —
 #      see tests/unit/test_mcp_request_auth.py.
+from mcp.server.transport_security import TransportSecuritySettings
+
 from tru8_mcp.server import mcp as _tru8_mcp_server
 
 # FastMCP's own app serves at settings.streamable_http_path, which defaults to
@@ -463,6 +465,67 @@ from tru8_mcp.server import mcp as _tru8_mcp_server
 # Set here rather than in tru8_mcp/server.py so the published stdio package
 # keeps its stock settings.
 _tru8_mcp_server.settings.streamable_http_path = "/"
+
+# Stateless transport (2026-08-05). The SDK keeps an initialisation state per
+# session: a session only becomes usable once the client sends the
+# `notifications/initialized` notification, and until then EVERY other request
+# is rejected with `-32602 Invalid request parameters` before it reaches method
+# dispatch. That is spec-correct — clients are required to send it — but it is
+# not what real clients all do. Smithery's capability scanner goes straight
+# from `initialize` to listing, so it saw:
+#
+#   Failed to list tools / resources / prompts / triggers:
+#   MCP error -32602: Invalid request parameters
+#
+# and published us as a server with no tools at all. Diagnosed by A/B against
+# the deployed endpoint and against mcp 1.12.4 locally: the SAME `tools/list`
+# call fails with -32602 without the notification and returns all three tools
+# with it. One variable, one outcome.
+#
+# Stateless mode starts each session already initialised, so a first-request
+# `tools/list` is answered normally and a compliant handshake still works. What
+# it gives up is session continuity: no `mcp-session-id` is issued, and
+# server-initiated messages, resumable streams, progress notifications and
+# sampling become impossible. We use none of them — the tools are plain
+# request/response — and per-request credential resolution is unaffected
+# because it reads the live request, not the session.
+#
+# It also removes an assumption we would otherwise be making silently: a
+# stateful session lives in ONE process, so it breaks the moment this service
+# runs more than one replica.
+#
+# Guard: tests/unit/test_mcp_stateless.py
+_tru8_mcp_server.settings.stateless_http = True
+
+# Transport security, stated rather than inherited (2026-08-05). The SDK ships
+# DNS rebinding protection that validates the Host and Origin headers, and
+# FastMCP AUTO-ENABLES it — with a localhost-only allowlist — whenever the
+# server's `host` setting is the default 127.0.0.1, which ours is. That default
+# is right for a laptop and fatal for a public endpoint.
+#
+# It does not fire on the deployed image only because that image resolved
+# mcp 1.12.4, which predates the auto-enable. requirements.txt pins a RANGE
+# (`mcp[cli]>=1.2,<2`), pip resolves 1.29.0 today, and measured on 1.29.0:
+#
+#   Host: api.trueight.com      -> 421 Misdirected Request
+#   Origin: https://smithery.ai -> 403 Forbidden
+#
+# i.e. the next rebuild would have taken /mcp down and re-broken every browser
+# client, with no code change and nothing in the diff to explain it — the same
+# shape as the `mcp>=1.0.0` resolution that killed the PyPI package.
+#
+# Disabled rather than allowlisted because an allowlist has to be right about
+# every hostname that will ever reach us (public domain, Railway health checks,
+# any future domain) and is silent when it is wrong. The protection guards
+# browser-reachable localhost servers that carry ambient authority; this one is
+# public, behind Cloudflare, and authenticates every call with an explicit API
+# key, so there is no ambient authority to steal. This restores exactly the
+# behaviour production has been verified against, on every version in the range.
+#
+# Guard: tests/unit/test_mcp_stateless.py
+_tru8_mcp_server.settings.transport_security = TransportSecuritySettings(
+    enable_dns_rebinding_protection=False
+)
 
 app.mount("/mcp", _tru8_mcp_server.streamable_http_app())
 
