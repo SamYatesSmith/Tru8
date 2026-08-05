@@ -417,6 +417,17 @@ class Settings(BaseSettings):
     # False restores today's behaviour byte-for-byte (rollback, no deploy).
     ENABLE_ELEMENT_ATOMICITY: bool = Field(True, env="ENABLE_ELEMENT_ATOMICITY")
 
+    # F1 (2026-08-05): scope evidence about a DIFFERENT period out of the state
+    # count. Production check 618efbc4 returned "UK CPI below 2% in September
+    # 2024" — a true, ONS-sourced claim — as `disputed`, on figures from June,
+    # May and the 2024 annual average. The mapping prompt already forbade that;
+    # the evidence payload carried no dates, so it could not comply.
+    # Symmetric: scopes `supports` as readily as `challenges`.
+    # ROLLBACK without a redeploy: set ENABLE_TEMPORAL_SCOPE_GATE=False.
+    ENABLE_TEMPORAL_SCOPE_GATE: bool = Field(
+        True, env="ENABLE_TEMPORAL_SCOPE_GATE"
+    )
+
     # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails

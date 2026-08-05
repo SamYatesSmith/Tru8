@@ -38,6 +38,7 @@ from app.models.claim_map import (
 )
 from app.utils.atomicity import is_mixed_shape
 from app.utils.scope_sensitivity import apply_scope_flags
+from app.utils.temporal_scope import Period, element_period, is_out_of_period
 
 logger = logging.getLogger(__name__)
 
@@ -1276,6 +1277,13 @@ def _compute_element_basis(
 # ── ClaimMapAnalyzer ────────────────────────────────────────────────────────
 
 
+def _format_period(period: "Period") -> str:
+    """Human-readable period for the receipt: "2024-09", or "2024" if year-only."""
+    if period.month is None:
+        return str(period.year)
+    return f"{period.year}-{period.month:02d}"
+
+
 class ClaimMapAnalyzer:
     """Decomposes claims into elements and maps evidence to them."""
 
@@ -2041,6 +2049,13 @@ class ClaimMapAnalyzer:
                 raw_refs, evidence_list
             )
 
+            # F1 (2026-08-05): scope out evidence about a DIFFERENT period.
+            # Runs before the basis and the state derivation below, because
+            # state is COUNTED from these relationships — scoping afterwards
+            # would leave the state derived from evidence we had already
+            # judged not to bear on the element.
+            temporal_receipt = self._apply_temporal_scope(elem, evidence_list)
+
             # Validate state — LLM's value is the seed, but the
             # mechanical override below is authoritative. Kept for
             # observability (state_basis records the LLM's call too).
@@ -2061,6 +2076,13 @@ class ClaimMapAnalyzer:
             # PQ-03: Attach evidence basis metadata
             elem["basis"] = _compute_element_basis(elem, evidence_list)
 
+            # Invariant #5 — every exclusion has a receipt. Scoping an item to
+            # "context" is an exclusion from the state count, so it is recorded
+            # where the rest of the derivation is visible rather than applied
+            # silently.
+            if temporal_receipt:
+                elem["basis"]["temporal_scope"] = temporal_receipt
+
             # Authority-weighted state override (V1 acceptance fix
             # 2026-05-08, after TRU-EF20 surfaced an outlier source
             # flipping settled facts to disputed).
@@ -2078,6 +2100,79 @@ class ClaimMapAnalyzer:
                     f"supports={state_basis['weighted_supports']}, "
                     f"challenges={state_basis['weighted_challenges']})"
                 )
+
+    def _apply_temporal_scope(
+        self,
+        elem: Dict[str, Any],
+        evidence_list: List[Dict[str, Any]],
+    ) -> Optional[Dict[str, Any]]:
+        """Scope directional refs whose evidence is about a different period.
+
+        Returns a receipt when anything was scoped, else None.
+
+        Symmetric by design: `supports` is scoped exactly as `challenges` is. A
+        source about June bears on a September element in neither direction,
+        and a gate that only removed challenges would be a sycophancy
+        mechanism — the thing invariant #7 exists to forbid.
+
+        Fires only where the element pins ONE month-level period and the
+        evidence states periods of which none match. Evidence stating no period
+        is left exactly as the mapper labelled it; see app/utils/temporal_scope.
+
+        Rollback: ENABLE_TEMPORAL_SCOPE_GATE=False.
+        """
+        if not getattr(settings, "ENABLE_TEMPORAL_SCOPE_GATE", True):
+            return None
+
+        target = element_period(elem.get("description"))
+        if target is None:
+            return None
+
+        by_id = {
+            ev.get("evidence_id"): ev for ev in evidence_list if ev.get("evidence_id")
+        }
+        scoped: List[Dict[str, str]] = []
+
+        for ref in elem.get("evidence_refs") or []:
+            relationship = ref.get("relationship")
+            value = getattr(relationship, "value", relationship)
+            if value not in ("supports", "challenges"):
+                continue
+
+            ev = by_id.get(ref.get("evidence_id"))
+            if not ev:
+                continue
+
+            text = " ".join(
+                part
+                for part in (ev.get("title"), ev.get("snippet") or ev.get("text"))
+                if part
+            )
+            if not is_out_of_period(target, text):
+                continue
+
+            ref["relationship"] = EvidenceRelationship.context
+            scoped.append(
+                {
+                    "evidence_id": ref.get("evidence_id"),
+                    "was": value,
+                    "element_period": _format_period(target),
+                }
+            )
+
+        if not scoped:
+            return None
+
+        logger.info(
+            f"[TEMPORAL SCOPE] elem={elem.get('element_id')}: "
+            f"{len(scoped)} ref(s) scoped to context — "
+            f"element pins {_format_period(target)}"
+        )
+        return {
+            "element_period": _format_period(target),
+            "scoped_count": len(scoped),
+            "scoped": scoped,
+        }
 
     def _validate_evidence_refs(
         self,
