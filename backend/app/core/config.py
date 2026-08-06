@@ -424,8 +424,18 @@ class Settings(BaseSettings):
     # the evidence payload carried no dates, so it could not comply.
     # Symmetric: scopes `supports` as readily as `challenges`.
     # ROLLBACK without a redeploy: set ENABLE_TEMPORAL_SCOPE_GATE=False.
-    ENABLE_TEMPORAL_SCOPE_GATE: bool = Field(
-        True, env="ENABLE_TEMPORAL_SCOPE_GATE"
+    ENABLE_TEMPORAL_SCOPE_GATE: bool = Field(True, env="ENABLE_TEMPORAL_SCOPE_GATE")
+
+    # F1 extension (2026-08-06): resolve a bare month ("in September") against
+    # the item's published_date, so an undated-year source is placed in time.
+    # This is the INFERRING half of the gate — the source never stated the year —
+    # so it carries its own switch. The lexical half (two-digit years such as
+    # "September-25") is not affected by this flag and stays on with the gate.
+    # Only `date_basis` in TRUSTED_PUBLICATION_BASES is used; url_inferred_suspect
+    # is refused. See app/utils/temporal_scope for the over-fire guards.
+    # ROLLBACK without a redeploy: ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False.
+    ENABLE_TEMPORAL_PUBLICATION_RESOLUTION: bool = Field(
+        True, env="ENABLE_TEMPORAL_PUBLICATION_RESOLUTION"
     )
 
     # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?

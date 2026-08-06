@@ -38,7 +38,7 @@ from app.models.claim_map import (
 )
 from app.utils.atomicity import is_mixed_shape
 from app.utils.scope_sensitivity import apply_scope_flags
-from app.utils.temporal_scope import Period, element_period, is_out_of_period
+from app.utils.temporal_scope import Period, element_period, read_evidence_periods
 
 logger = logging.getLogger(__name__)
 
@@ -2116,10 +2116,18 @@ class ClaimMapAnalyzer:
         mechanism — the thing invariant #7 exists to forbid.
 
         Fires only where the element pins ONE month-level period and the
-        evidence states periods of which none match. Evidence stating no period
-        is left exactly as the mapper labelled it; see app/utils/temporal_scope.
+        evidence carries periods of which none match. Evidence carrying no
+        period at all is left exactly as the mapper labelled it; see
+        app/utils/temporal_scope.
 
-        Rollback: ENABLE_TEMPORAL_SCOPE_GATE=False.
+        A period is "carried" if the text states it, or (2026-08-06) if a bare
+        month resolves against a trusted publication date. The gate fired zero
+        times across the whole replay corpus on the stated-only rule, while
+        production supplied a live miss of each kind.
+
+        Rollback: ENABLE_TEMPORAL_SCOPE_GATE=False disables the gate entirely;
+        ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False keeps it but stops it
+        inferring a period the source never stated.
         """
         if not getattr(settings, "ENABLE_TEMPORAL_SCOPE_GATE", True):
             return None
@@ -2128,10 +2136,13 @@ class ClaimMapAnalyzer:
         if target is None:
             return None
 
+        resolve_publication = getattr(
+            settings, "ENABLE_TEMPORAL_PUBLICATION_RESOLUTION", True
+        )
         by_id = {
             ev.get("evidence_id"): ev for ev in evidence_list if ev.get("evidence_id")
         }
-        scoped: List[Dict[str, str]] = []
+        scoped: List[Dict[str, Any]] = []
 
         for ref in elem.get("evidence_refs") or []:
             relationship = ref.get("relationship")
@@ -2148,17 +2159,33 @@ class ClaimMapAnalyzer:
                 for part in (ev.get("title"), ev.get("snippet") or ev.get("text"))
                 if part
             )
-            if not is_out_of_period(target, text):
+            # 2026-08-06: a bare month ("in September") is placed in time using
+            # the item's own publication date. Withholding the date here is the
+            # rollback for that inferring half alone — the lexical half
+            # (two-digit years) stays on with the gate itself.
+            reading = read_evidence_periods(
+                text,
+                published_date=(
+                    ev.get("published_date") if resolve_publication else None
+                ),
+                date_basis=ev.get("date_basis") if resolve_publication else None,
+            )
+            if not reading.all_periods or target in reading.all_periods:
                 continue
 
             ref["relationship"] = EvidenceRelationship.context
-            scoped.append(
-                {
-                    "evidence_id": ref.get("evidence_id"),
-                    "was": value,
-                    "element_period": _format_period(target),
-                }
-            )
+            entry = {
+                "evidence_id": ref.get("evidence_id"),
+                "was": value,
+                "element_period": _format_period(target),
+            }
+            # Invariant #5 again, one level deeper: when the decision rested on
+            # an INFERRED period rather than a stated one, the receipt has to
+            # say so, and name the provenance it trusted to do it.
+            if not reading.stated and reading.inferred:
+                entry["period_from"] = "published_date"
+                entry["date_basis"] = ev.get("date_basis")
+            scoped.append(entry)
 
         if not scoped:
             return None

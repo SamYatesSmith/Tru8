@@ -269,3 +269,143 @@ def test_flag_off_restores_the_old_behaviour(monkeypatch):
     assert _rel(elem, "ev-june") == "challenges"
     assert _rel(elem, "ev-may") == "challenges"
     assert "temporal_scope" not in elem["basis"]
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-06 — the two live misses, through the real parser
+#
+# The shipped gate fired ZERO times across the whole replay corpus, so the
+# corpus could not have caught either of these. Production did: check
+# b0a720f8 used a September 2025 report to challenge a September 2024
+# element, twice over — once via a title the patterns could not parse, once
+# via a snippet naming a month with no year at all.
+# ---------------------------------------------------------------------------
+
+LIVE_MISS_EVIDENCE = [
+    {
+        "evidence_id": "ev-ons",
+        "title": "Consumer price inflation, UK: September 2024",
+        "snippet": "CPI rose by 1.7% in the 12 months to September 2024.",
+        "tier": "primary",
+        "evidence_type": "official",
+    },
+    {
+        # Miss 1 — the year is in the title, behind a hyphen.
+        "evidence_id": "ev-title-shortyear",
+        "title": "UK September-25 CPI Inflation Report",
+        "snippet": "Headline CPI came in at 3.8% against a 2% target.",
+        "tier": "reporting",
+        "evidence_type": "news",
+    },
+    {
+        # Miss 2 — the month is named, the year is nowhere in the text.
+        "evidence_id": "ev-bare-month",
+        "title": "Inflation runs hot",
+        "snippet": "CPI increased by 3.8% YoY in September, the ONS said.",
+        "published_date": "2025-10-22",
+        "date_basis": "engine",
+        "tier": "reporting",
+        "evidence_type": "news",
+    },
+    {
+        # The same shape on a date we do NOT trust — must be left alone.
+        "evidence_id": "ev-bare-month-suspect",
+        "title": "Inflation commentary",
+        "snippet": "CPI increased by 3.8% YoY in September, the ONS said.",
+        "published_date": "2025-10-22",
+        "date_basis": "url_inferred_suspect",
+        "tier": "commentary",
+        "evidence_type": "analysis",
+    },
+]
+
+
+def _live_miss_response():
+    return {
+        "elements": [
+            {
+                "element_id": "e1",
+                "state": "disputed",
+                "evidence_refs": [
+                    {
+                        "evidence_id": ev["evidence_id"],
+                        "relationship": (
+                            "supports"
+                            if ev["evidence_id"] == "ev-ons"
+                            else "challenges"
+                        ),
+                        "reasoning": "…",
+                    }
+                    for ev in LIVE_MISS_EVIDENCE
+                ],
+            }
+        ]
+    }
+
+
+def _parse_live_miss():
+    analyzer = ClaimMapAnalyzer()
+    claim_map = _claim_map()
+    analyzer._parse_mapping_response(
+        _live_miss_response(), claim_map, LIVE_MISS_EVIDENCE
+    )
+    return claim_map["elements"][0]
+
+
+def test_a_two_digit_year_in_the_title_is_now_out_of_period():
+    elem = _parse_live_miss()
+
+    assert _rel(elem, "ev-title-shortyear") == "context"
+
+
+def test_a_bare_month_is_placed_by_its_publication_date():
+    elem = _parse_live_miss()
+
+    assert _rel(elem, "ev-bare-month") == "context"
+
+
+def test_an_untrusted_publication_date_places_nothing():
+    """`url_inferred_suspect` is probably an upload path, so it earns no inference."""
+    elem = _parse_live_miss()
+
+    assert _rel(elem, "ev-bare-month-suspect") == "challenges"
+
+
+def test_on_period_evidence_survives_both_new_halves():
+    elem = _parse_live_miss()
+
+    assert _rel(elem, "ev-ons") == "supports"
+
+
+def test_an_inferred_period_says_so_in_the_receipt():
+    """Invariant #5 one level deeper.
+
+    A scoping that rested on a period the source never stated must be
+    distinguishable in the receipt from one that read a stated period, and must
+    name the provenance it trusted — otherwise a wrong inference is invisible.
+    """
+    elem = _parse_live_miss()
+    scoped = {s["evidence_id"]: s for s in elem["basis"]["temporal_scope"]["scoped"]}
+
+    assert scoped["ev-bare-month"]["period_from"] == "published_date"
+    assert scoped["ev-bare-month"]["date_basis"] == "engine"
+    # The title stated its period outright — no inference was involved.
+    assert "period_from" not in scoped["ev-title-shortyear"]
+
+
+def test_publication_resolution_rolls_back_independently(monkeypatch):
+    """The two halves must be separately disableable.
+
+    The lexical half only tightens parsing of a period the source DID state; the
+    inferring half supplies one it did not. Rolling back the riskier half must
+    not take the safe half with it.
+    """
+    from app.core import config
+
+    monkeypatch.setattr(
+        config.settings, "ENABLE_TEMPORAL_PUBLICATION_RESOLUTION", False
+    )
+    elem = _parse_live_miss()
+
+    assert _rel(elem, "ev-bare-month") == "challenges"
+    assert _rel(elem, "ev-title-shortyear") == "context"
