@@ -63,12 +63,34 @@ cost an 11-minute run to diagnose. Take held prompt work out of the tree first.
    not to act** — the sole challenge is `cso.ie` (the **Irish** CSO) naming September
    2024 repeatedly, so no period mismatch exists.
 
-### 🆕 NEW ITEM — a jurisdiction gate, the mechanical analogue of F1
-Check `757f02c2` shows a true UK claim reading `disputed` off an **Irish** statistics
-release, in a check already classified `articleJurisdiction: UK` with the element
-tagged `geographic: ["uk"]`. Two mismatches F1 cannot reach: wrong **jurisdiction**
-and wrong **measure** (a Sept-2024→Sept-2025 annual change is not "the 12 months to
-Sept 2024"). The signal already exists in the payload. Not built; not a patch to F1.
+### ✅ SHIPPED — the jurisdiction gate (`945f2d1`)
+Check `757f02c2` showed a true UK claim reading `disputed` off an **Irish** statistics
+release. F1 was right not to act (the snippet names September 2024), so this is a
+separate mechanical rule: a national **official** source of another country cannot
+support or challenge a country-scoped claim → `context` + receipt. **57 tests,
+10/10 mutations killed** (incl. the sycophancy-dial and writer mutations), 1,197
+pipeline tests green, bench **158/2/1**. Rollback `ENABLE_JURISDICTION_SCOPE_GATE=False`.
+Design: `audit/2026-08-06_jurisdiction_scope_gate.md`.
+
+**The seam is PROVEN WIRED, which F1 never managed.** The gate fired zero times on
+the corpus, and zero firings has two causes — nothing to scope, or a dead seam like
+`retrieve.py`'s. Instrumented and replayed rather than assumed:
+`raw_jurisdiction='UK' target='UK'` on both elements, every directional ref either
+our own country or `None` (press/commentary, correctly untouched). `bls.gov` US data
+was in the retrieval ledger but never mapped directionally.
+
+Limits, stated: coverage-recovery mapping is not covered (F1 has the same gap,
+matched deliberately); the domain map is incomplete by construction (absent domain →
+no fire, the safe direction); **and the MEASURE mismatch is still unaddressed** — a
+Sept-2024→Sept-2025 annual change is not "the 12 months to Sept 2024" even from a UK
+source, so a UK source making that error would still be counted.
+
+### 🆕 OWED — a jurisdiction fixture, and its matcher, TOGETHER
+No corpus claim carries foreign official evidence mapped directionally, so nothing
+guards this gate against regression. A `capture.py` matcher for `[JURISDICTION SCOPE]`
+was **deliberately not added yet**: with no such claim it could only record zero, and
+by this week's own standard a guard that cannot fail on the known break is decoration.
+Add the fixture and the matcher in one go. Needs `--record` → a spend call.
 
 ### ⚠️ WATCH — `page_metadata` is on the temporal trust allowlist and is sometimes wrong
 Same check: the CSO **September 2025** release carries `publishedDate: 2026-04-21`,
@@ -215,6 +237,13 @@ prove the gate fires. Every bench run after that was replay-only, so free.
   rewriting underneath it, and its exit code meant nothing. Discarded and re-run.
   Mutation harnesses are not read-only, so they are not parallel-safe with anything
   that reads the tree.
+- **Zero firings has two causes, and absence cannot tell them apart.** "The rule ran
+  and had nothing to do" and "the rule is silently dead because nobody writes the key
+  it reads" look identical from outside. The jurisdiction gate fired zero times on the
+  corpus; a five-minute instrumented replay (free) showed `raw_jurisdiction='UK'` at
+  the seam and explained every non-firing ref. **Instrument and observe rather than
+  reason about silence** — this is what F1 never did, and why F1's efficacy stayed
+  unproven for two days while 45p went on live checks.
 - **A rule behaving exactly as designed can still leave the user with a wrong answer.**
   F1 correctly declined to scope the Irish CSO item — it names September 2024, so no
   period mismatch exists — and the true claim still read `disputed`. Checking that the
