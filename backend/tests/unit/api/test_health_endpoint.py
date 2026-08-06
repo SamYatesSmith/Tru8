@@ -73,6 +73,37 @@ class TestHealthCheck:
                 assert body["environment"] == "testing"
                 assert body["version"] == "0.1.0"
 
+    @pytest.mark.asyncio
+    async def test_names_the_commit_that_is_answering(self):
+        """The seam, not the helper — 2026-08-05's unanswerable question.
+
+        `version` is static and says nothing about the deployed code. Without
+        these fields on the response itself, a live check that behaves
+        unexpectedly cannot be attributed to "not deployed" vs "deployed but
+        wrong" — which cost 30p and an hour.
+        """
+        app = _create_test_app()
+
+        with patch(
+            "app.api.v1.health.get_build_info",
+            return_value={
+                "commit": "27fc5dc",
+                "commit_full": "27fc5dc4737fefeeee5e018cd92617f6bf2020ed",
+                "commit_source": "RAILWAY_GIT_COMMIT_SHA",
+                "branch": "main",
+            },
+        ):
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                body = (await client.get("/health/")).json()
+
+        assert body["commit"] == "27fc5dc"
+        assert body["commit_source"] == "RAILWAY_GIT_COMMIT_SHA"
+        assert body["branch"] == "main"
+        # The monitor asserts on this string; adding fields must not disturb it.
+        assert body["status"] == "healthy"
+
 
 # ---------------------------------------------------------------------------
 # TestReadinessCheck — GET /ready

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from app.core.database import get_session
+from app.core.build_info import get_build_info
 from app.core.config import settings
 from app.services.cache import get_sync_cache_service
 from app.services.circuit_breaker import get_circuit_breaker_registry
@@ -10,25 +11,38 @@ import redis.asyncio as redis
 
 router = APIRouter()
 
+
 @router.get("/")
 async def health_check():
+    """Liveness, plus WHICH COMMIT is answering.
+
+    `version` is a static string and always has been; it says nothing about the
+    deployed code. The commit fields are the ones that let you tell "the fix is
+    not deployed" from "the fix is deployed and did not fire" — a distinction
+    that cost 30p and an hour on 2026-08-05 for want of exactly this.
+    `commit_source` is reported so a caller can see whether the value came from
+    the platform or from a local working tree; `unknown` means we could not
+    establish it, and is never filled with a placeholder.
+    """
     return {
         "status": "healthy",
         "environment": settings.ENVIRONMENT,
-        "version": "0.1.0"
+        "version": "0.1.0",
+        **get_build_info(),
     }
+
 
 @router.get("/ready")
 async def readiness_check(session: AsyncSession = Depends(get_session)):
     checks = {}
-    
+
     # Check database
     try:
         await session.execute(text("SELECT 1"))
         checks["database"] = "ok"
     except Exception as e:
         checks["database"] = f"error: {str(e)}"
-    
+
     # Check Redis
     try:
         r = redis.from_url(settings.REDIS_URL)
@@ -37,16 +51,16 @@ async def readiness_check(session: AsyncSession = Depends(get_session)):
         checks["redis"] = "ok"
     except Exception as e:
         checks["redis"] = f"error: {str(e)}"
-    
+
     all_healthy = all(v == "ok" for v in checks.values())
 
-    return {
-        "ready": all_healthy,
-        "checks": checks
-    }
+    return {"ready": all_healthy, "checks": checks}
+
 
 @router.get("/cache-metrics")
-async def get_cache_metrics(api_name: str = Query(None, description="Optional: Get metrics for specific API")):
+async def get_cache_metrics(
+    api_name: str = Query(None, description="Optional: Get metrics for specific API")
+):
     """
     Get API cache hit/miss statistics.
 
@@ -68,12 +82,17 @@ async def get_cache_metrics(api_name: str = Query(None, description="Optional: G
                 hit_rate = metrics.get("hit_rate_percentage", 0)
                 metrics["status"] = _evaluate_cache_performance(hit_rate)
             else:
-                overall_hit_rate = metrics.get("overall", {}).get("hit_rate_percentage", 0)
-                metrics["overall"]["status"] = _evaluate_cache_performance(overall_hit_rate)
+                overall_hit_rate = metrics.get("overall", {}).get(
+                    "hit_rate_percentage", 0
+                )
+                metrics["overall"]["status"] = _evaluate_cache_performance(
+                    overall_hit_rate
+                )
 
         return metrics
     except Exception as e:
         return {"error": f"Failed to retrieve cache metrics: {str(e)}"}
+
 
 def _evaluate_cache_performance(hit_rate: float) -> str:
     """
@@ -94,8 +113,11 @@ def _evaluate_cache_performance(hit_rate: float) -> str:
     else:
         return "needs_optimization"  # Significantly below target
 
+
 @router.get("/circuit-breakers")
-async def get_circuit_breakers(api_name: str = Query(None, description="Optional: Get state for specific API")):
+async def get_circuit_breakers(
+    api_name: str = Query(None, description="Optional: Get state for specific API")
+):
     """
     Get circuit breaker states for API adapters.
 
@@ -131,6 +153,7 @@ async def check_email_config():
     resend_available = False
     try:
         import resend
+
         resend_available = True
     except ImportError:
         pass
@@ -142,5 +165,9 @@ async def check_email_config():
         "from_address": service.from_address,
         "from_name": service.from_name,
         "resend_package_installed": resend_available,
-        "status": "ready" if (service.enabled and service.api_key and resend_available) else "not_configured"
+        "status": (
+            "ready"
+            if (service.enabled and service.api_key and resend_available)
+            else "not_configured"
+        ),
     }
