@@ -81,9 +81,52 @@ was in the retrieval ledger but never mapped directionally.
 
 Limits, stated: coverage-recovery mapping is not covered (F1 has the same gap,
 matched deliberately); the domain map is incomplete by construction (absent domain →
-no fire, the safe direction); **and the MEASURE mismatch is still unaddressed** — a
-Sept-2024→Sept-2025 annual change is not "the 12 months to Sept 2024" even from a UK
-source, so a UK source making that error would still be counted.
+no fire, the safe direction).
+
+### ✅ SHIPPED — the measure gate, and the three gates are now ONE driver (`182e194`)
+The other element defect in `757f02c2`, which the jurisdiction gate only *masked*: a
+rate of change is identified by its interval's **END**, not the months it mentions.
+`"between September 2024 and September 2025"` ends 2025-09; the element's `"twelve
+months to September 2024"` ends 2024-09. F1 correctly declines (the snippet names our
+period) — **a test pins that gap**, so if F1 ever starts firing there this gate has
+become redundant. Needed *in addition* to the jurisdiction gate because a **UK**
+source making the same error is our own country and names September 2024, so nothing
+else can reach it. Runs LAST, so it can only claim refs the others left. Rollback
+`ENABLE_MEASURE_SCOPE_GATE=False`.
+
+**The two near-duplicate gate methods are gone** — one driver over three gate
+definitions, removing a triplicated ref loop, evidence lookup and receipt assembly.
+`by_id`, the title+snippet join and the source-country resolution are now computed
+**once per claim** (`_index_evidence`) rather than once per gate × element × ref.
+
+⚠️ **Two invariants the refactor created, both mutation-pinned — do not "tidy" them:**
+1. **Gate ORDER is behaviour.** Temporal stays first; that is what holds F1's receipts
+   and the corpus `temporal_scoped_refs` assertion at **tolerance 0**.
+2. **One gate owns a reference.** Remove the `break` and the same exclusion is
+   double-counted in two receipts.
+
+⚠️ **The measure gate never ARMED on the corpus** — instrumented and replayed, not
+assumed: no corpus element expresses an interval measure, so the bench says nothing
+about it either way. Temporal and jurisdiction *do* arm on both corpus elements.
+
+Verified: 25 measure tests, 142 across all gates, 1,225 pipeline tests, 7/7 mutations,
+bench **158/2/1 unchanged**.
+
+### Durable lessons — the gates, 2026-08-06 (second pass)
+- **A shared driver turns a gate's ORDER into behaviour.** Three separate methods had
+  no ordering to get wrong; one loop does. Both new invariants — order, and one-gate-
+  owns-a-ref — are invisible in the code's shape and only exist because a test says so.
+- **An over-fire test can fail to reach the guard it names.** Four "verbs are not
+  months" cases all died at the interval *prefix*, so removing the capitalisation
+  guard entirely survived them. The mutation found it; reading the tests would not
+  have. A test named after a guard is not evidence it exercises that guard.
+- **Never write a regex through a shell heredoc.** `\\b` became a literal `\x08`
+  inside a raw string and the pattern silently matched nothing — invisible in the
+  file, visible only in `repr()` of the compiled pattern. Write patterns from a file,
+  and assert the module is free of control characters.
+- **A prose-width capture group silently widens a rule.** 44 characters after "to"
+  swallowed a conjunction, so a two-measure element read as pinned to one measure.
+  Match the expression you mean, not a window of text that usually contains it.
 
 ### 🆕 OWED — a jurisdiction fixture, and its matcher, TOGETHER
 No corpus claim carries foreign official evidence mapped directionally, so nothing

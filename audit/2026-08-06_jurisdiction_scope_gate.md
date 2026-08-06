@@ -158,11 +158,11 @@ the silence is explained.
   surface in retrieval for UK/US economic claims. An absent domain means the gate
   does not fire — the safe direction. The structural fix would be a publisher-country
   registry, not a longer list.
-- **The measure mismatch in `757f02c2` is still unaddressed.** A
-  Sept-2024→Sept-2025 annual change is not "the 12 months to Sept 2024" even from
-  the right country. This gate removes the item for being Irish, so the observed
-  check is fixed — but a UK source making the same period-pair error would still be
-  counted. Not built; noted.
+- ~~The measure mismatch in `757f02c2` is still unaddressed.~~ **CLOSED same day
+  (`182e194`)** — a third gate compares interval ENDS, so a UK source making the
+  same period-pair error is caught too. The two gates deliberately OVERLAP on the
+  Irish item; jurisdiction owns it, because a domain is the least ambiguous signal
+  and one gate must own a reference or the exclusion is double-counted.
 - **Not yet proven in production.** Unit-verified and bench-checked only. The corpus
   claim `TRU-C1A0-0005` does carry `bls.gov` US CPI data for a UK claim, so the bench
   may exercise it; whether it does is recorded with the bench result, not assumed.
