@@ -136,3 +136,68 @@ another `--record` run, i.e. another spend decision.
 The trap worth remembering: the fixture went green, the gate genuinely fired, and
 it would have been easy to write down "the extension is now covered by the bench".
 Only mutating the two halves showed it is not.
+
+---
+
+## Live proof attempt — 15p, and the gate STILL did not fire
+
+Check `757f02c2` (production, `full` tier, `chargedPence: 15`), submitted after
+confirming deployment via the new health endpoint (`commit: f7e487c`,
+`commit_source: RAILWAY_GIT_COMMIT_SHA` — so Railway does inject it; that open
+question is closed). Claim, deliberately paraphrased because an identical re-test
+replays caches: *"UK consumer price inflation fell to 1.7 percent in the twelve
+months to September 2024."*
+
+**The gate did not fire.** The element's `basis` carries no `temporal_scope` key;
+the five `context` labels came from the mapper. Three attempts across two days
+have now failed to make it fire on a live check. The corpus fixture remains the
+only observation of it acting on real evidence.
+
+**And the claim still read `disputed`** — `close_split`, weighted 5 supports vs 3
+challenges, on a claim the ONS primary states verbatim. But **F1 was correct not to
+act**, which is the useful part:
+
+The sole challenge is `cso.ie` — the **Irish** CSO — reporting *"CPI rose by 2.7%
+between September 2024 and September 2025"*. The gate fires only when NONE of the
+evidence's periods match, and that snippet names September 2024 repeatedly. So the
+rule behaved exactly as designed and documented.
+
+### This is a different defect class, and F1 cannot reach it
+
+| Mismatch | Present here | Does F1 address it |
+|---|---|---|
+| different period | no — Sept 2024 is named | n/a |
+| **wrong jurisdiction** | yes — Irish CPI against a UK claim, in a check classified `articleJurisdiction: UK` | **no** |
+| **wrong measure** | yes — a Sept-2024→Sept-2025 annual change is not "the 12 months to Sept 2024" | **no** |
+
+A jurisdiction gate would be the mechanical analogue of F1: where a claim is
+scoped to one jurisdiction and an item is a national statistics release of a
+different one, the relationship is `context`. The scope tagger already flags
+`geographic: ["uk"]` on this element, so the signal exists. **Not built — this is a
+new item, not a patch to F1.**
+
+### ⚠️ `page_metadata` is less trustworthy than the allowlist assumes
+
+Two dates in this check are plainly wrong, both labelled `dateBasis:
+page_metadata`, which this design put on the TRUSTED list:
+
+- the CSO **September 2025** release → `publishedDate: 2026-04-21`
+- a BBC inflation explainer → `publishedDate: 2011-01-14` (a live-updated page)
+
+Had either snippet named a bare month with no year, the publication-date inference
+would have resolved it to the wrong year and scoped out a relevant item — the
+over-firing direction. The three guards do not protect against this; only the
+`period_from`/`date_basis` receipt makes it visible after the fact.
+
+**Not changed on this evidence alone**, because tightening the allowlist to
+`api_adapter` only would disable the inference on nearly all web evidence and the
+half would never fire at all. Recorded as the thing to watch: if mis-scoping shows
+up in the wild, tighten the allowlist rather than adding a prompt rule.
+
+### One more thing this check paid for
+
+`mappingModel: gemini-2.5-flash-lite` in the metadata. That is almost certainly the
+**F4a misrecording** held in the working tree (the completion pass runs between the
+mapping call and the metadata write), not a real downgrade — independent live
+evidence that the held F4a fix is worth shipping, since nobody can currently read
+this field and know which model judged the evidence.

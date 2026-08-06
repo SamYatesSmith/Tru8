@@ -52,9 +52,36 @@ cost an 11-minute run to diagnose. Take held prompt work out of the tree first.
    `ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False`. Its firing comes from the ORIGINAL
    stated-period rule. **Owed: a second fixture whose off-period evidence carries a
    two-digit year or a bare month** — another `--record` run, so another spend call.
-2. **Confirm the health SHA in production** after the next deploy — one curl.
-3. **Live proof check (15p, approved)** that the extension fires in prod — paraphrase
-   the claim, an identical re-test replays caches.
+2. ✅ **DONE — health SHA confirmed live.** `commit: f7e487c`,
+   `commit_source: RAILWAY_GIT_COMMIT_SHA`, `branch: main`. Railway **does** inject
+   the SHA, so that open uncertainty is closed by observation, not assumption. It
+   immediately paid for itself: it established the extension was deployed *before*
+   any money went on a live check.
+3. ✅ **DONE, and it failed to prove the gate fires — 15p, check `757f02c2`.** No
+   `temporal_scope` key in the element basis: the gate fired **zero times** for the
+   third time across two days. The claim still read `disputed`, and **F1 was right
+   not to act** — the sole challenge is `cso.ie` (the **Irish** CSO) naming September
+   2024 repeatedly, so no period mismatch exists.
+
+### 🆕 NEW ITEM — a jurisdiction gate, the mechanical analogue of F1
+Check `757f02c2` shows a true UK claim reading `disputed` off an **Irish** statistics
+release, in a check already classified `articleJurisdiction: UK` with the element
+tagged `geographic: ["uk"]`. Two mismatches F1 cannot reach: wrong **jurisdiction**
+and wrong **measure** (a Sept-2024→Sept-2025 annual change is not "the 12 months to
+Sept 2024"). The signal already exists in the payload. Not built; not a patch to F1.
+
+### ⚠️ WATCH — `page_metadata` is on the temporal trust allowlist and is sometimes wrong
+Same check: the CSO **September 2025** release carries `publishedDate: 2026-04-21`,
+and a BBC explainer `2011-01-14` — both `dateBasis: page_metadata`, which the
+2026-08-06 inference treats as trusted. A bare month in either would have resolved
+to the wrong year and scoped out a relevant item. **Deliberately not changed:**
+tightening to `api_adapter` only would stop the half firing on web evidence at all.
+If mis-scoping appears in the wild, tighten the allowlist — do not add a prompt rule.
+
+### 🔎 Independent evidence for the HELD F4a fix
+`757f02c2` reports `mappingModel: gemini-2.5-flash-lite`, almost certainly the F4a
+misrecording (the completion pass writes last), not a real downgrade. Nobody can
+currently read that field and know which model judged the evidence.
 4. **`server.json` still advertises no hosted endpoint.** Needs `remotes[]`, a
    version bump, probably a 1.0.4 PyPI release — founder call.
 5. **Build `scripts/cost_report.py`.** Prod checks carry search-cost telemetry
@@ -170,6 +197,11 @@ produced an empty apply.
 ### The real priority (founder-agreed, not technical)
 **Distribution, not the pipeline.** Sentry still shows near-zero traffic. Everything built this week is plumbing that only pays off once people arrive.
 
+### 💷 Spend 2026-08-06
+**~20p, all approved in advance:** ~5p recording `TRU-C1A0-0005` (a `--record` run
+plus a `--record-missing` patch pass) and 15p on the live proof check that did not
+prove the gate fires. Every bench run after that was replay-only, so free.
+
 ### Durable lessons — 2026-08-06
 - **An assertion that imports the sentinel it is pinning moves with the mutation.**
   The honesty test for `build_info` compared the response against the imported
@@ -183,6 +215,14 @@ produced an empty apply.
   rewriting underneath it, and its exit code meant nothing. Discarded and re-run.
   Mutation harnesses are not read-only, so they are not parallel-safe with anything
   that reads the tree.
+- **A rule behaving exactly as designed can still leave the user with a wrong answer.**
+  F1 correctly declined to scope the Irish CSO item — it names September 2024, so no
+  period mismatch exists — and the true claim still read `disputed`. Checking that the
+  rule fired is not the same as checking the user got an honest landscape. Read the
+  outcome, then work out which rule owns it; here, none did.
+- **The health SHA paid for itself on its first use.** It established that the fix was
+  deployed *before* 15p went on a live check. Yesterday the same question cost 30p and
+  an hour precisely because nothing served by the app could answer it.
 - **"Silence is guessing" and "a bare month is guessing" are different claims.**
   F1 refused `published_date` wholesale. That was right for evidence naming no
   period at all and wrong for evidence naming a month with no year: a publication
