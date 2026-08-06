@@ -3,24 +3,34 @@
 > ## ⚠️ A clean `--all` run reports **1 fail**, and that is EXPECTED (2026-07-30)
 >
 > **`TRU-82CF-2F81` is KNOWN-FLAKY and accepted as such (founder call).** The gate is
-> the other **7** claims. It reports `cassette_drift` (~12 misses, all ordinary evidence
-> page fetches) and **cannot be re-golded**: replay has no network latency, so the
-> pipeline gets further through its fetch queue inside `CLAIM_TIMEOUT=45s` than any live
-> run does, and requests pages the recording never reached. The request set depends on
-> wall-clock timing rather than on the cassette, so re-recording never converges — it was
-> tried, and misses went 9 → 8 → 12 across passes.
+> the other **8** claims. It reports `cassette_drift` (~12–20 misses, all ordinary
+> evidence page fetches) and **cannot be re-golded**: replay has no network latency, so
+> the pipeline gets further through its fetch queue inside `CLAIM_TIMEOUT=45s` than any
+> live run does, and requests pages the recording never reached. The request set depends
+> on wall-clock timing rather than on the cassette, so re-recording never converges — it
+> was tried, and misses went 9 → 8 → 12 across passes.
 >
 > **Do NOT "fix" this by making missed evidence fetches non-fatal.** That would weaken the
 > drift guard across the whole corpus to buy a green tick. Its golden is still the
 > 2026-07-21 `fdf3509` capture and is **not** comparable to post-Phase-2 behaviour.
 >
-> So: **`135 ok / 2 warn / 1 fail` is the current PASS state.** Anything worse is a real
-> regression. Full reasoning in `audit/OPEN_WORK.md`, 2026-07-30.
+> So: **`158 ok / 2 warn / 1 fail` is the current PASS state** (was 135/2/1 until
+> `TRU-C1A0-0005` was added on 2026-08-06, which contributes 23 ok). Anything worse is a
+> real regression. Full reasoning in `audit/OPEN_WORK.md`, 2026-07-30 and 2026-08-06.
+>
+> The 2 warns are expected too: `TRU-A3E8-3199` factual_weight_share 0.23 and
+> `TRU-C1A0-0001` top_domain_share 0.40, both in the "Mediocre" band, neither a failure.
 
-Frozen 5-claim regression corpus. Run `python scripts/replay_bench.py --all` before
-every commit on Phase B / B5 / Phase C work. Catches regressions of the
+**Frozen 9-claim regression corpus** (it was 5 when this file was written; the C1A0
+series was added later). Run `python scripts/replay_bench.py --all` before every
+pipeline-quality commit. Catches regressions of the
 "changed-stage-X-broke-stage-Y" class (e.g. NF-21, where Session B's Pydantic
 conversion broke coverage recovery silently for 2 weeks).
+
+⚠️ **The bench runs against the WORKING TREE.** Any uncommitted prompt change makes
+every claim fail on `cassette_drift` — request signatures are cassette keys — so an
+in-progress prompt edit must be taken out of the tree before the bench can measure
+anything else. This cost a full 11-minute run to notice on 2026-08-06.
 
 ## Coverage
 
@@ -28,9 +38,28 @@ conversion broke coverage recovery silently for 2 weeks).
 |---|---|---|
 | TRU-B4A3-C42D | article (3 claims) | B1a inject, B4 freshness inject, NF-11 Growth Plan exclusion, SC-11 `.co.uk` gap, NF-21 coverage recovery |
 | TRU-82CF-2F81 | article (2 claims) | B1a LAW→Law, cap widening, Finance/UK routing |
-| TRU-93DD-F4B7 | focused (1 claim) | NF-18 wired `prepare_query` path, NOAA CDO end-to-end |
-| TRU-A3E8-3199 | focused (1 claim) | NF-07 hardening, GBIF species extraction |
+| TRU-93DD-F4B7 | focused (1 claim) | NF-18 wired `prepare_query` path, NOAA CDO end-to-end, DATE-driven date window |
+| TRU-A3E8-3199 | focused (1 claim) | NF-07 hardening, GBIF species extraction, biodiversity routing |
 | TRU-5647-FA4F | article (2 claims) | NF-11 baseline UK coverage, Climate routing, B4 (2022) |
+| TRU-C1A0-0001 | article (1 claim) | ONS routing + yield, Finance/UK jurisdiction, `ONS_DATASET_MAPPING` concept match |
+| TRU-C1A0-0003 | focused (1 claim) | PubMed routing + yield, Health domain, Semantic Scholar keyless 429 |
+| TRU-C1A0-0004 | article (2 claims) | GovInfo routing + yield (Politics/US), GET→POST 400 fix, US jurisdiction |
+| TRU-C1A0-0005 | focused (1 claim) | **F1 temporal scope gate fires** — the only month-pinned claim, so the only one that can exercise the gate at all. See the caveat below. |
+
+### TRU-C1A0-0005 guards the GATE, not the 2026-08-06 extension
+
+Added because F1 shipped, passed the bench at 135/2/1 and had fired **zero times** — a
+corpus with no month-pinned claim cannot see the gate. Two things were needed beyond
+the fixture: `capture.py` observes `[TEMPORAL SCOPE]` (`RE_TEMPORAL_SCOPE`), and
+`comparator.py` gained the `temporal_scope_must_fire_on_periods` hard invariant.
+Without the matcher the fixture would still have gone green while the gate died.
+
+**Verified by mutation, not assumed:** the claim fails under
+`ENABLE_TEMPORAL_SCOPE_GATE=False`, so it pins real behaviour — but it still passes
+with the two-digit year parsing disabled, with the month/year separator reverted, and
+with `ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False`. Its firing comes from the
+**original** stated-period rule. A second fixture whose off-period evidence carries a
+two-digit year (`September-25`) or a bare month is owed to guard the extension.
 
 ## Schema — `input.json`
 

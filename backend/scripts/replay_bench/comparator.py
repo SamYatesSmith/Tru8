@@ -94,6 +94,51 @@ def compare_hard_invariants(obs: Dict[str, Any], hard: Dict[str, Any]) -> List[D
     if v3_floors:
         out.extend(_check_v3_quality_per_claim(obs, v3_floors, v3_warn or {}))
 
+    temporal_periods = hard.get("temporal_scope_must_fire_on_periods")
+    if temporal_periods is not None:
+        out.extend(_check_temporal_scope(obs, temporal_periods))
+
+    return out
+
+
+def _check_temporal_scope(
+    obs: Dict[str, Any], expected_periods: Sequence[str]
+) -> List[Diff]:
+    """The F1 gate must still fire, on the periods it fired on when golden.
+
+    A boolean structural signal, so it belongs in hard invariants rather than in
+    tolerant counters: the gate either acted on a month-pinned element or it did
+    not, and that cannot drift without code changing. This exists because the gate
+    shipped, passed the bench and had fired zero times — a corpus with no
+    month-pinned claim cannot notice a gate that stops working.
+    """
+    events = obs.get("temporal_scope_events") or []
+    observed_periods = sorted({e.get("period") for e in events if e.get("period")})
+    scoped_refs = sum(int(e.get("scoped", 0)) for e in events)
+    out: List[Diff] = []
+
+    for period in expected_periods:
+        fired = period in observed_periods
+        out.append(
+            Diff(
+                level="ok" if fired else "failure",
+                signal=f"temporal_scope:{period}",
+                expected=f"gate fires on an element pinned to {period}",
+                observed=(
+                    f"{scoped_refs} ref(s) scoped on {observed_periods}"
+                    if events
+                    else "never fired"
+                ),
+                message=(
+                    f"temporal scope gate fired on {period}"
+                    if fired
+                    else (
+                        "the F1 temporal scope gate stopped scoping off-period "
+                        "evidence — settled facts can read as disputed again"
+                    )
+                ),
+            )
+        )
     return out
 
 
@@ -479,6 +524,9 @@ _COUNTER_PATHS = {
     "b3_shown": ("b3_receipts", "shown"),
     "b3_unmapped": ("b3_receipts", "unmapped"),
     "b3_excluded": ("b3_receipts", "excluded"),
+    # F1 temporal scope gate (2026-08-06)
+    "temporal_scoped_refs": ("temporal_scope_summary", "scoped_refs"),
+    "temporal_scoped_elements": ("temporal_scope_summary", "elements"),
 }
 
 

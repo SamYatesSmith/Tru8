@@ -32,15 +32,32 @@ this class either way. That is now item 1 below and it needs money.
 One curl after the deploy settles it; the fallback is to set `GIT_COMMIT_SHA` by
 hand on the service.
 
+### 🧪 Bench pass state CHANGED — `158 ok / 2 warn / 1 fail`
+`TRU-C1A0-0005` joined the corpus 2026-08-06 (+23 ok), so **135/2/1 is stale**. Same
+2 warns, same single known-flaky failure (`TRU-82CF-2F81`). Updated in `CLAUDE.md`
+and `tests/replay_corpus/README.md` (whose "5-claim corpus" was stale too — it is 9).
+
+**The bench runs against the WORKING TREE.** Any uncommitted prompt change makes all
+9 claims fail on `cassette_drift`; the held reframe alone produced exactly that and
+cost an 11-minute run to diagnose. Take held prompt work out of the tree first.
+
 ### ⏳ DO THIS FIRST — in this order
-1. **Add a time-pinned claim to the replay corpus.** ⚠️ **Needs a `--record` run =
-   live LLM + search spend = founder approval.** Until it exists the drift guard is
-   blind to the class that failed in production twice. Fixture: check `b0a720f8`'s
-   CPI claim (evidence described in the design doc above).
+1. ✅ **DONE — but read the caveat.** A month-pinned claim is now in the corpus
+   (`TRU-C1A0-0005`), the bench can SEE the gate (`capture.py` `RE_TEMPORAL_SCOPE` +
+   the `temporal_scope_must_fire_on_periods` hard invariant), and the gate **fired on
+   real retrieved evidence** — element `e2`, 1 ref scoped on `2024-09`. It fails under
+   `ENABLE_TEMPORAL_SCOPE_GATE=False`, so it pins behaviour.
+   ⚠️ **It does NOT guard the 2026-08-06 extension.** Mutation-checked: the claim still
+   passes with two-digit parsing disabled, with the separator reverted, and with
+   `ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False`. Its firing comes from the ORIGINAL
+   stated-period rule. **Owed: a second fixture whose off-period evidence carries a
+   two-digit year or a bare month** — another `--record` run, so another spend call.
 2. **Confirm the health SHA in production** after the next deploy — one curl.
-3. **`server.json` still advertises no hosted endpoint.** Needs `remotes[]`, a
+3. **Live proof check (15p, approved)** that the extension fires in prod — paraphrase
+   the claim, an identical re-test replays caches.
+4. **`server.json` still advertises no hosted endpoint.** Needs `remotes[]`, a
    version bump, probably a 1.0.4 PyPI release — founder call.
-4. **Build `scripts/cost_report.py`.** Prod checks carry search-cost telemetry
+5. **Build `scripts/cost_report.py`.** Prod checks carry search-cost telemetry
    nothing can read.
 
 ### 📜 Superseded below — kept for the reasoning, not the instructions

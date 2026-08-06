@@ -93,10 +93,46 @@ response post-processing was altered.
 open — the replay corpus contains **no month-pinned claim at all**, so a green
 bench cannot speak to this class either way.
 
-## The corpus gap is now the binding item
+## The corpus gap — closed for the GATE, still open for the EXTENSION
 
-Adding a time-pinned claim to `tests/replay_corpus/` requires a `--record` run,
-i.e. **live LLM + search spend**, so it is a founder decision and is not taken here.
-Until it exists, the drift guard is blind to the exact class that failed in
-production twice. Fixture to use: check `b0a720f8`'s CPI claim, whose evidence is
-already described above.
+`TRU-C1A0-0005` was recorded live the same day (founder-approved spend): *"UK CPI
+inflation was below 2% in September 2024."*, focused mode, the corpus's first and
+only month-pinned claim. Two supporting pieces were needed for it to guard
+anything at all:
+
+- **`capture.py` learned to observe the gate** (`RE_TEMPORAL_SCOPE` →
+  `temporal_scope_events` + a summary). Without this the bench cannot see the
+  gate, so a fixture alone would still have reported green while the gate died.
+- **`comparator.py` gained `temporal_scope_must_fire_on_periods`**, a hard
+  invariant, because "did the gate act on a month-pinned element" is a boolean
+  structural signal, not a drifting count.
+
+**Proven at capture:** the gate fired on element `e2`, scoping 1 ref to context
+on `2024-09` — F1's first observed action on a real retrieved pool rather than a
+unit fixture. The guard **fails** under `ENABLE_TEMPORAL_SCOPE_GATE=False`, so it
+pins real behaviour. Replay is deterministic (23 ok / 0 warn / 0 fail).
+
+### ⚠️ What this fixture does NOT guard — measured, not assumed
+
+Three mutation runs, all replays:
+
+| Mutation | Result |
+|---|---|
+| two-digit/delimited short-year parsing disabled | claim still passes |
+| month/year separator reverted to whitespace-only | claim still passes |
+| `ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False` | claim still passes |
+
+So the firing here comes from the **original** stated-period rule, and **neither
+of today's halves is pinned by this fixture**. The substack *"September-25"*
+report is in the pool (and pinned by URL) but is not the ref being scoped.
+
+This is the honest position: the register's item — *"the corpus contains no
+month-pinned claim at all, so the drift guard is blind"* — **is** closed, and the
+gate is now guarded corpus-wide. Today's two additions remain covered by unit
+tests only (61 tests, 8/8 mutations). A **second fixture whose off-period evidence
+carries a two-digit year or a bare month** is owed to close that, and it needs
+another `--record` run, i.e. another spend decision.
+
+The trap worth remembering: the fixture went green, the gate genuinely fired, and
+it would have been easy to write down "the extension is now covered by the bench".
+Only mutating the two halves showed it is not.

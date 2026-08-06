@@ -45,8 +45,11 @@ alembic upgrade head                             # Run migrations
 
 # Replay bench — run before EVERY pipeline-quality commit (~$0.25 live, ~10 min)
 docker-compose up -d                             # REQUIRED: the bench writes a Check row
-python scripts/replay_bench.py --all             # expect exactly: 135 ok / 2 warn / 1 fail
-# That 1 fail is TRU-82CF-2F81, accepted KNOWN-FLAKY 2026-07-30 — the gate is the other 7.
+python scripts/replay_bench.py --all             # expect exactly: 158 ok / 2 warn / 1 fail
+# That 1 fail is TRU-82CF-2F81, accepted KNOWN-FLAKY 2026-07-30 — the gate is the other 8.
+# 158 since TRU-C1A0-0005 joined the corpus 2026-08-06 (+23 ok); it was 135 before.
+# ⚠️ The bench runs against the WORKING TREE: any uncommitted PROMPT change makes all 9
+# claims fail on cassette_drift, because request signatures are cassette keys.
 # Anything worse is a real regression. Do NOT make missed evidence fetches non-fatal to
 # reach a clean 8/8: it weakens the drift guard corpus-wide. tests/replay_corpus/README.md
 

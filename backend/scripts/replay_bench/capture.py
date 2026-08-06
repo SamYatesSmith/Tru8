@@ -141,6 +141,21 @@ RE_COVERAGE_RECOVERY_TIMEOUT = re.compile(
     r"\[COVERAGE RECOVERY\]\s+Timed out after (?P<seconds>\d+)s"
 )
 
+# F1 temporal scope gate fired on an element (2026-08-06):
+#   [TEMPORAL SCOPE] elem=e1: 3 ref(s) scoped to context — element pins 2024-09
+#
+# WHY THIS IS OBSERVED AT ALL. The gate shipped, passed the bench at 135/2/1 and
+# had fired ZERO times — the corpus contained no month-pinned claim, so the drift
+# guard was blind to the only class the gate acts on. A fixture alone would not
+# have fixed that: without this matcher the bench cannot see the gate, so a change
+# that silently stopped it firing would still show green.
+#
+# The em dash is literal in the log line; the count is matched before it.
+RE_TEMPORAL_SCOPE = re.compile(
+    r"\[TEMPORAL SCOPE\]\s+elem=(?P<element>\S+?):\s+(?P<scoped>\d+)\s+ref\(s\)\s+"
+    r"scoped to context\s+\S+\s+element pins (?P<period>\d{4}-\d{2})"
+)
+
 RE_FACTCHECKS = re.compile(
     r"Found (?P<count>\d+) fact-checks for claim position (?P<position>\d+)"
 )
@@ -207,6 +222,9 @@ class Observation:
     #    "post_pr_share": float, "demoted": int}
     domain_cap_events: List[Dict[str, Any]] = field(default_factory=list)
     domain_cap_total: int = 0
+    # F1 temporal scope gate events (2026-08-06). Shape per entry:
+    #   {"element": str, "scoped": int, "period": "YYYY-MM"}
+    temporal_scope_events: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {
@@ -251,6 +269,16 @@ class Observation:
             },
             "domain_cap_events": self.domain_cap_events,
             "domain_cap_total": self.domain_cap_total,
+            "temporal_scope_events": self.temporal_scope_events,
+            # Summary so a tolerant counter can address it by path. `elements` is
+            # how many elements the gate acted on, `scoped_refs` how many
+            # relationships it re-labelled in total.
+            "temporal_scope_summary": {
+                "elements": len(self.temporal_scope_events),
+                "scoped_refs": sum(
+                    int(e.get("scoped", 0)) for e in self.temporal_scope_events
+                ),
+            },
         }
         return d
 
@@ -496,6 +524,18 @@ class PipelineCaptureHandler(logging.Handler):
         self.obs.coverage_recovery_timed_out = True
         self.obs.coverage_recovery_timeout_seconds = int(m.group("seconds"))
 
+    def _match_temporal_scope(self, msg: str) -> None:
+        m = RE_TEMPORAL_SCOPE.search(msg)
+        if not m:
+            return
+        self.obs.temporal_scope_events.append(
+            {
+                "element": m.group("element"),
+                "scoped": int(m.group("scoped")),
+                "period": m.group("period"),
+            }
+        )
+
     # Order matters only for shared regex prefixes; each matcher is independent.
     _matchers = [
         _match_classifier_inject,
@@ -517,4 +557,5 @@ class PipelineCaptureHandler(logging.Handler):
         _match_allowlist_bypass,
         _match_b3_quality,
         _match_domain_cap,
+        _match_temporal_scope,
     ]

@@ -1,0 +1,115 @@
+{
+  "claim_id": "TRU-C1A0-0005",
+  "captured_at": "2026-08-06T10:30:35.343575+00:00",
+  "captured_with": "f7e487c",
+  "captured_with_known_bugs": [],
+  "notes": "The corpus's only month-pinned claim, and therefore the only one that can exercise the F1 temporal scope gate at all. The claim is TRUE (ONS: CPI 1.7% in the 12 months to September 2024) and the retrieved pool carries off-period figures \u2014 the mix that made check 618efbc4 read `disputed`. VERIFIED AT CAPTURE: the gate fired on element e2, scoping 1 ref to context on 2024-09 \u2014 the first observation of F1 acting on a real retrieved pool rather than a unit fixture, and it FAILS as intended under ENABLE_TEMPORAL_SCOPE_GATE=False. \u26a0\ufe0f WHAT THIS DOES NOT GUARD, established by mutation rather than assumed: the firing here comes from the ORIGINAL stated-period rule. Disabling the 2026-08-06 two-digit parsing, reverting the month/year separator, and setting ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False each leave this claim passing unchanged. So this fixture pins the GATE, not the extension \u2014 the extension is covered by unit tests only, and a second fixture is owed for the publication-date inference. The pool does contain gianlucabenigno.substack.com's 'UK September-25 CPI Inflation Report', the item that defeated the shipped gate in check b0a720f8, pinned in must_have_url_substrings so a drop-out reads as 'the fixture lost its off-period evidence' rather than 'the gate broke' \u2014 but it is NOT the ref being scoped here. If temporal_scope fails, a settled fact can read as disputed again: do NOT relax it for a green tick.",
+  "hard_invariants": {
+    "freshness_inject_must_fire_on_claims": [
+      0
+    ],
+    "temporal_scope_must_fire_on_periods": [
+      "2024-09"
+    ],
+    "must_have_url_substrings": [
+      "ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/september2024",
+      "gianlucabenigno.substack.com/p/uk-september-25-cpi-inflation-report"
+    ],
+    "must_not_have_url_substrings": [],
+    "expected_adapters_subset": [],
+    "coverage_recovery_failures_max": 6,
+    "v3_quality_floors": {
+      "unique_domains_min": 5,
+      "top_domain_share_max": 0.45,
+      "wikipedia_share_max": 0.4,
+      "factual_weight_share_min": 0.15,
+      "element_resolution_min": 0.3
+    },
+    "v3_quality_warn_band": {
+      "unique_domains_min": 7,
+      "top_domain_share_max": 0.3,
+      "wikipedia_share_max": 0.25,
+      "factual_weight_share_min": 0.25,
+      "element_resolution_min": 0.5
+    },
+    "coverage_recovery_must_not_timeout": true
+  },
+  "tolerant_counters": {
+    "sources_included": {
+      "value": 13,
+      "tolerance": 8
+    },
+    "claims": {
+      "value": 1,
+      "tolerance": 1
+    },
+    "elements": {
+      "value": 2,
+      "tolerance": 3
+    },
+    "web_search": {
+      "value": 24,
+      "tolerance": 8
+    },
+    "api_adapters": {
+      "value": 3,
+      "tolerance": 8
+    },
+    "tier_primary": {
+      "value": 8,
+      "tolerance": 4
+    },
+    "tier_reporting": {
+      "value": 3,
+      "tolerance": 4
+    },
+    "tier_commentary": {
+      "value": 2,
+      "tolerance": 4
+    },
+    "temporal_scoped_refs": {
+      "value": 1,
+      "tolerance": 0
+    }
+  },
+  "set_jaccard": {
+    "url_ledger_flat": {
+      "golden": [
+        "https://commonslibrary.parliament.uk/research-briefings/sn02792/",
+        "https://gianlucabenigno.substack.com/p/uk-september-25-cpi-inflation-report",
+        "https://tradingeconomics.com/united-kingdom/inflation-cpi",
+        "https://www.bankofengland.co.uk/monetary-policy/inflation",
+        "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
+        "https://www.bbc.com/news/live/cvgv1071417t",
+        "https://www.bls.gov/opub/ted/2024/consumer-prices-up-2-4-percent-from-september-2023-to-september-2024.htm",
+        "https://www.cnbc.com/2024/10/16/uk-inflation-september-2024.html",
+        "https://www.crosslandsolicitors.com/site/media/september-2024-inflation-cpi-cpih-rpi",
+        "https://www.cso.ie/en/releasesandpublications/ep/p-cpi/consumerpriceindexseptember2024/",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/december2024",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/july2024",
+        "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/september2024",
+        "https://www.ons.gov.uk/releases/consumerpriceinflationukseptember2024",
+        "https://www.statista.com/statistics/306648/inflation-rate-consumer-price-index-cpi-united-kingdom-uk/?srsltid=AfmBOoopSi",
+        "https://x.com/elerianm/status/1846434930798055449"
+      ],
+      "min_similarity": 0.35
+    },
+    "domain_set": {
+      "golden": [
+        "api.beta.ons.gov.uk",
+        "bankofengland.co.uk",
+        "bbc.com",
+        "bls.gov",
+        "cnbc.com",
+        "commonslibrary.parliament.uk",
+        "crosslandsolicitors.com",
+        "data.worldbank.org",
+        "gianlucabenigno.substack.com",
+        "ons.gov.uk",
+        "x.com"
+      ],
+      "min_similarity": 0.3
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "claim_id": "TRU-C1A0-0005",
+  "description": "Month-pinned true claim (ONS reports 1.7% for September 2024) — the ONLY corpus claim whose elements pin a single month, so the ONLY one that can exercise the F1 temporal scope gate. Added 2026-08-06 because the gate shipped, passed the bench at 135/2/1 and had fired ZERO times: the corpus was blind to the class that failed in production twice (checks 618efbc4 and b0a720f8).",
+  "tests": ["F1 temporal scope gate fires on a month-pinned element", "off-period figures (other months, annual averages) scoped to context not challenges", "a settled fact does not read as disputed"],
+  "input_type": "text",
+  "content": "UK CPI inflation was below 2% in September 2024.",
+  "url": null,
+  "user_query": null,
+  "entry_mode": "focused",
+  "selected_positions": [0]
+}
