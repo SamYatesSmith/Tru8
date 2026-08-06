@@ -5,9 +5,47 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (rewritten 2026-08-05, end of day)
+## 🟢 START HERE — next session (updated 2026-08-06)
 
 **This block is what to do next. Everything below the divider is history.**
+
+### ✅ DONE 2026-08-06 — the two F1 misses, and "which code is running?"
+
+| What | State |
+|---|---|
+| **F1 extension — both named misses closed.** `September-25` (two-digit year behind a delimiter) and `September-2025` (the separator was whitespace-only) now parse; a **bare month** ("in September") resolves against the item's `published_date`. | Built, 61 unit tests, **8/8 mutations killed**, pipeline suite green (1,199 / 44 skipped). Design: `audit/2026-08-06_f1_temporal_gate_extension.md` |
+| **`/api/v1/health/` names the commit answering.** New `app/core/build_info.py`; reads `GIT_COMMIT_SHA` then `RAILWAY_GIT_COMMIT_SHA`, falls back to reading `.git/HEAD` locally. Reports `commit`, `commit_full`, `commit_source`, `branch`. | Built, 13 tests, **6/6 mutations killed** |
+
+**The riskier half of F1 is separately disableable.** The lexical half only tightens
+parsing of a period the source *did* state; the inferring half supplies one it did
+not. `ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False` rolls back the inference alone
+and leaves the lexical fix on — pinned by a test, because rolling back the risky
+half must not take the safe half with it.
+
+⚠️ **Still not proven to fire in production** — the same gap as yesterday, for the
+same reason: the corpus has no month-pinned claim, so the bench cannot speak to
+this class either way. That is now item 1 below and it needs money.
+
+⚠️ **`commit_source` will read `unknown` in production if Railway does not inject
+`RAILWAY_GIT_COMMIT_SHA` on this service.** Unverified — `.git/` is in
+`backend/.dockerignore`, so the env var is the only source that can work there.
+One curl after the deploy settles it; the fallback is to set `GIT_COMMIT_SHA` by
+hand on the service.
+
+### ⏳ DO THIS FIRST — in this order
+1. **Add a time-pinned claim to the replay corpus.** ⚠️ **Needs a `--record` run =
+   live LLM + search spend = founder approval.** Until it exists the drift guard is
+   blind to the class that failed in production twice. Fixture: check `b0a720f8`'s
+   CPI claim (evidence described in the design doc above).
+2. **Confirm the health SHA in production** after the next deploy — one curl.
+3. **`server.json` still advertises no hosted endpoint.** Needs `remotes[]`, a
+   version bump, probably a 1.0.4 PyPI release — founder call.
+4. **Build `scripts/cost_report.py`.** Prod checks carry search-cost telemetry
+   nothing can read.
+
+### 📜 Superseded below — kept for the reasoning, not the instructions
+The 2026-08-05 block that follows lists items 1 and 3 of its queue as open. Both
+are done (table above). Its bench facts and open decisions still stand.
 
 ### ✅ SHIPPED TODAY — live and verified, do not re-raise
 `4910f17..dbba4c4`, six commits, all pushed and deployed:
@@ -26,8 +64,8 @@
 SDK validates it as unknown and returns `-32602`. Every server on the official Python SDK
 does this.
 
-### ⏳ DO THIS FIRST — in this order
-1. **Extend the F1 temporal gate — evidence is already in hand.** Live check `b0a720f8`
+### ⏳ DO THIS FIRST — in this order *(items 1 and 3 DONE 2026-08-06 — see the block above; item 2 is still open and needs spend approval)*
+1. ✅ **DONE 2026-08-06.** **Extend the F1 temporal gate — evidence is already in hand.** Live check `b0a720f8`
    retrieved *"UK **September-25** CPI Inflation Report"* (published 2025-10-22, snippet
    *"CPI increased by 3.8% YoY in September"*) and used it to **challenge a September 2024
    element**. That is exactly the F1 failure mode and the shipped rule MISSES it, for three
@@ -43,7 +81,7 @@ does this.
    all 8 corpus claims — the corpus contains no month-pinned claims at all, so the drift
    guard is blind to exactly the class that failed in production. Use `ev-160901d1e6b9`
    above as the fixture.
-3. **Put the commit SHA on `/api/v1/health/`.** Today two live checks (30p) could not
+3. ✅ **DONE 2026-08-06** (`app/core/build_info.py`). **Put the commit SHA on `/api/v1/health/`.** Today two live checks (30p) could not
    distinguish "fix not deployed" from "fix deployed but did not fire", because nothing
    served by the app reveals which code is running — the health endpoint reports a static
    `0.1.0` and the manifest fingerprint only hashes model config. This cost real money and
@@ -114,6 +152,26 @@ produced an empty apply.
 
 ### The real priority (founder-agreed, not technical)
 **Distribution, not the pipeline.** Sentry still shows near-zero traffic. Everything built this week is plumbing that only pays off once people arrive.
+
+### Durable lessons — 2026-08-06
+- **An assertion that imports the sentinel it is pinning moves with the mutation.**
+  The honesty test for `build_info` compared the response against the imported
+  `UNKNOWN` constant. Redefining `UNKNOWN = "0.1.0"` — precisely the defect the
+  module exists to prevent, a static version-shaped string standing in for the
+  running commit — left the whole file green. Only the literal `"unknown"` pins it.
+  This is yesterday's "a green test can pin a defect in place" in a new costume,
+  and it was caught only because the mutation was actually run.
+- **Never run a test suite and a mutation harness at the same time.** Both were
+  launched in one batch; the suite spent ten minutes importing files the harness was
+  rewriting underneath it, and its exit code meant nothing. Discarded and re-run.
+  Mutation harnesses are not read-only, so they are not parallel-safe with anything
+  that reads the tree.
+- **"Silence is guessing" and "a bare month is guessing" are different claims.**
+  F1 refused `published_date` wholesale. That was right for evidence naming no
+  period at all and wrong for evidence naming a month with no year: a publication
+  date is a poor guide to what a source *covers* but a good one for resolving a
+  month it *names*. Splitting the two let the safe half ship without the inference
+  and gave the risky half its own switch.
 
 ### Durable lessons — 2026-08-05
 - **A conservative rule that does not fire proves nothing.** F1 passed the bench at the
