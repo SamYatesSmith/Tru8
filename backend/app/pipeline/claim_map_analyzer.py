@@ -38,6 +38,11 @@ from app.models.claim_map import (
 )
 from app.utils.atomicity import is_mixed_shape
 from app.utils.scope_sensitivity import apply_scope_flags
+from app.utils.jurisdiction_scope import (
+    claim_target_country,
+    evidence_country,
+    is_out_of_jurisdiction,
+)
 from app.utils.temporal_scope import Period, element_period, read_evidence_periods
 
 logger = logging.getLogger(__name__)
@@ -2056,6 +2061,14 @@ class ClaimMapAnalyzer:
             # judged not to bear on the element.
             temporal_receipt = self._apply_temporal_scope(elem, evidence_list)
 
+            # 2026-08-06: the same treatment for the OTHER mismatch production
+            # showed us — another country's official statistics used to support or
+            # challenge a claim scoped to ours. Runs here for the same reason as
+            # the temporal gate: state is counted from these relationships.
+            jurisdiction_receipt = self._apply_jurisdiction_scope(
+                elem, evidence_list, claim_map
+            )
+
             # Validate state — LLM's value is the seed, but the
             # mechanical override below is authoritative. Kept for
             # observability (state_basis records the LLM's call too).
@@ -2082,6 +2095,8 @@ class ClaimMapAnalyzer:
             # silently.
             if temporal_receipt:
                 elem["basis"]["temporal_scope"] = temporal_receipt
+            if jurisdiction_receipt:
+                elem["basis"]["jurisdiction_scope"] = jurisdiction_receipt
 
             # Authority-weighted state override (V1 acceptance fix
             # 2026-05-08, after TRU-EF20 surfaced an outlier source
@@ -2197,6 +2212,87 @@ class ClaimMapAnalyzer:
         )
         return {
             "element_period": _format_period(target),
+            "scoped_count": len(scoped),
+            "scoped": scoped,
+        }
+
+    def _apply_jurisdiction_scope(
+        self,
+        elem: Dict[str, Any],
+        evidence_list: List[Dict[str, Any]],
+        claim_map: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        """Scope directional refs that are another country's official sources.
+
+        Returns a receipt when anything was scoped, else None.
+
+        Production check `757f02c2` returned a true, ONS-verbatim UK CPI claim as
+        `disputed` on a single challenge from the IRISH CSO. The snippet named
+        neither Ireland nor the UK, so only the domain carried the mismatch and the
+        mapper had nothing to go on — NF-11's original shape.
+
+        Symmetric by design, exactly as the temporal gate is: another country's
+        national statistics bear on our figure in neither direction, and a gate
+        that only removed challenges would be a sycophancy mechanism.
+
+        Never fires on foreign PRESS (an Irish paper reporting on UK inflation is
+        legitimate evidence), never on supranational bodies, and never when the
+        item's own text names the claim's jurisdiction. See
+        app/utils/jurisdiction_scope for the full reasoning.
+
+        Rollback: ENABLE_JURISDICTION_SCOPE_GATE=False.
+        """
+        if not getattr(settings, "ENABLE_JURISDICTION_SCOPE_GATE", True):
+            return None
+
+        jurisdiction = (claim_map.get("metadata") or {}).get("jurisdiction")
+        target = claim_target_country(jurisdiction)
+        if target is None:
+            return None
+
+        by_id = {
+            ev.get("evidence_id"): ev for ev in evidence_list if ev.get("evidence_id")
+        }
+        scoped: List[Dict[str, Any]] = []
+
+        for ref in elem.get("evidence_refs") or []:
+            relationship = ref.get("relationship")
+            value = getattr(relationship, "value", relationship)
+            if value not in ("supports", "challenges"):
+                continue
+
+            ev = by_id.get(ref.get("evidence_id"))
+            if not ev:
+                continue
+
+            text = " ".join(
+                part
+                for part in (ev.get("title"), ev.get("snippet") or ev.get("text"))
+                if part
+            )
+            if not is_out_of_jurisdiction(target, ev.get("url"), text):
+                continue
+
+            ref["relationship"] = EvidenceRelationship.context
+            scoped.append(
+                {
+                    "evidence_id": ref.get("evidence_id"),
+                    "was": value,
+                    "claim_jurisdiction": target,
+                    "source_country": evidence_country(ev.get("url")),
+                }
+            )
+
+        if not scoped:
+            return None
+
+        logger.info(
+            f"[JURISDICTION SCOPE] elem={elem.get('element_id')}: "
+            f"{len(scoped)} ref(s) scoped to context — "
+            f"claim pins {target}"
+        )
+        return {
+            "claim_jurisdiction": target,
             "scoped_count": len(scoped),
             "scoped": scoped,
         }

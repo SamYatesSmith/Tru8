@@ -438,6 +438,19 @@ class Settings(BaseSettings):
         True, env="ENABLE_TEMPORAL_PUBLICATION_RESOLUTION"
     )
 
+    # Jurisdiction gate (2026-08-06): the mechanical analogue of F1. Production
+    # check 757f02c2 returned a true, ONS-verbatim UK CPI claim as `disputed`, its
+    # sole challenge being the IRISH CSO — whose snippet never says "Ireland", so
+    # only the domain reveals the mismatch and no prompt could have caught it.
+    # Fires only for country-level claims (UK/US), only on foreign NATIONAL
+    # OFFICIAL domains (never foreign press, never supranational bodies), and never
+    # when the item's own text names the claim's jurisdiction.
+    # Symmetric: scopes `supports` as readily as `challenges`.
+    # ROLLBACK without a redeploy: ENABLE_JURISDICTION_SCOPE_GATE=False.
+    ENABLE_JURISDICTION_SCOPE_GATE: bool = Field(
+        True, env="ENABLE_JURISDICTION_SCOPE_GATE"
+    )
+
     # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails

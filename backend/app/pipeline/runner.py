@@ -150,6 +150,33 @@ def _accumulate_tokens(
     bucket["output_tokens"] += usage.get("output_tokens", 0)
 
 
+def attach_claim_jurisdiction(
+    claim: Dict[str, Any], claim_map: Dict[str, Any]
+) -> Optional[str]:
+    """Carry the claim's jurisdiction onto its claim_map, and return what was set.
+
+    The jurisdiction gate (2026-08-06) needs to know which country a claim is
+    scoped to, so that another country's official statistics cannot support or
+    challenge it — production check 757f02c2 had the IRISH CSO challenging a true
+    UK CPI claim, and only the domain revealed the mismatch.
+
+    It rides claim_map["metadata"] because EVERY mapping path already receives that
+    object — batch, single-claim and grounds alike — so there is one writer here
+    rather than a new parameter threaded through four signatures.
+
+    A module-level function rather than four inline lines specifically so it can be
+    tested: a reader whose key nobody writes is the failure that hid in retrieve.py
+    for months, and the gate degrades to today's behaviour if this stops running,
+    which is safe but silent.
+
+    Not part of the signed canonical payload — that canonicalises claim_map
+    ELEMENTS, not claim_map metadata — so signing is unaffected.
+    """
+    jurisdiction = (claim.get("article_classification") or {}).get("jurisdiction")
+    claim_map.setdefault("metadata", {})["jurisdiction"] = jurisdiction
+    return jurisdiction
+
+
 def extract_pipeline_metrics(
     final_result: Dict[str, Any], config: PipelineConfig
 ) -> PipelineMetrics:
@@ -2364,6 +2391,7 @@ async def run_pipeline_phase2(
             claim["claim_map_input_hash"] = _compute_claim_map_input_hash(
                 scaffold, ev_list
             )
+            attach_claim_jurisdiction(claim, scaffold)
 
     # Budget: ~55s Google thinking model batch mapping + ~25s parallel
     # completion passes (Step 2 NF-19 fix, 2026-05-12) + ~30s OpenAI
