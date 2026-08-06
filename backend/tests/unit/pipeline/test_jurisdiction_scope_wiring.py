@@ -52,6 +52,22 @@ EVIDENCE = [
 ]
 
 
+@pytest.fixture(autouse=True)
+def _isolate_from_the_measure_gate(monkeypatch):
+    """Test ONE gate at a time.
+
+    The CSO item is caught by the measure gate too — its "between September 2024
+    and September 2025" measures a different twelve months from the element's
+    "twelve months to September 2024". That overlap is deliberate defence in depth
+    and is asserted explicitly in `test_the_measure_gate_catches_it_independently`
+    below, but leaving it on here would mean the jurisdiction assertions passed
+    whether or not the jurisdiction gate worked.
+    """
+    from app.core import config
+
+    monkeypatch.setattr(config.settings, "ENABLE_MEASURE_SCOPE_GATE", False)
+
+
 def _claim_map(jurisdiction="UK"):
     return {
         "claim_id": "0",
@@ -214,3 +230,44 @@ def test_flag_off_restores_the_old_behaviour(monkeypatch):
 
     assert _rel(elem, "ev-cso") == "challenges"
     assert "jurisdiction_scope" not in elem["basis"]
+
+
+def test_the_measure_gate_catches_it_independently(monkeypatch):
+    """The overlap the fixture above suppresses, asserted on purpose.
+
+    With the jurisdiction gate OFF, the same Irish item is still scoped — by the
+    measure gate, because it measures September 2024→September 2025 while the
+    element measures the twelve months TO September 2024. Two independent
+    mechanical reasons cover the production failure, and the receipt names which
+    one acted.
+    """
+    from app.core import config
+
+    monkeypatch.setattr(config.settings, "ENABLE_MEASURE_SCOPE_GATE", True)
+    monkeypatch.setattr(config.settings, "ENABLE_JURISDICTION_SCOPE_GATE", False)
+
+    elem = _parse()
+
+    assert _rel(elem, "ev-cso") == "context"
+    assert "jurisdiction_scope" not in elem["basis"]
+    receipt = elem["basis"]["measure_scope"]
+    assert receipt["element_interval_end"] == "2024-09"
+    assert receipt["scoped"][0]["evidence_id"] == "ev-cso"
+    assert "2025-09" in receipt["scoped"][0]["evidence_interval_ends"]
+
+
+def test_jurisdiction_owns_the_ref_when_both_gates_apply(monkeypatch):
+    """Ordering is behaviour: one gate owns a reference, never two.
+
+    A domain is the least ambiguous signal available, so "wrong country" is the
+    reason recorded when an item is both foreign and off-measure — and the same
+    exclusion must not be double-counted in two receipts.
+    """
+    from app.core import config
+
+    monkeypatch.setattr(config.settings, "ENABLE_MEASURE_SCOPE_GATE", True)
+
+    elem = _parse()
+
+    assert elem["basis"]["jurisdiction_scope"]["scoped_count"] == 1
+    assert "measure_scope" not in elem["basis"]

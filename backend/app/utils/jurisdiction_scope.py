@@ -57,7 +57,7 @@ about the UK is legitimate and must never be scoped out on domain alone.
 from __future__ import annotations
 
 import re
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 #: Claim-level jurisdictions that name exactly one country. `article_classifier`
@@ -128,14 +128,26 @@ NATIONAL_OFFICIAL_DOMAINS: Dict[str, str] = {
 #: "US" is matched case-sensitively and the bare pronoun "us" is excluded — a
 #: case-insensitive match would fire on ordinary prose and suppress the gate
 #: everywhere, which is safe but useless.
-_MENTION_PATTERNS: Dict[str, re.Pattern] = {
-    "UK": re.compile(
-        r"\b(uk|u\.k\.|united kingdom|britain|british|england|english|"
-        r"scotland|scottish|wales|welsh|northern ireland)\b",
-        re.I,
+#: Two patterns per country: words that are unambiguous in any case, and tokens
+#: that are only a country when capitalised. Folding them into one
+#: case-insensitive pattern would make "us" the pronoun read as the country, and
+#: one case-SENSITIVE pattern would miss a lowercase "united states".
+_MENTION_PATTERNS: Dict[str, Tuple[re.Pattern, Optional[re.Pattern]]] = {
+    "UK": (
+        re.compile(
+            r"\b(uk|u\.k\.|united kingdom|britain|british|england|english|"
+            r"scotland|scottish|wales|welsh|northern ireland)\b",
+            re.I,
+        ),
+        None,
     ),
-    "US": re.compile(
-        r"\b(U\.?S\.?A\.?|United States|america|american|federal reserve)\b|\bUS\b"
+    "US": (
+        re.compile(
+            r"\b(u\.s\.a\.?|usa|united states|america|american|federal reserve)\b",
+            re.I,
+        ),
+        # "US" the country vs "us" the pronoun — capitalisation is the only signal.
+        re.compile(r"\bU\.?S\.?\b"),
     ),
 }
 
@@ -178,10 +190,29 @@ def evidence_country(url: Optional[str]) -> Optional[str]:
 
 def mentions_jurisdiction(text: Optional[str], country: str) -> bool:
     """Does the item's own text locate itself in the claim's jurisdiction?"""
-    pattern = _MENTION_PATTERNS.get(country)
-    if pattern is None or not text:
+    patterns = _MENTION_PATTERNS.get(country)
+    if patterns is None or not text:
         return False
-    return pattern.search(text) is not None
+    any_case, cased = patterns
+    if any_case.search(text) is not None:
+        return True
+    return cased is not None and cased.search(text) is not None
+
+
+def is_out_of_jurisdiction_for_country(
+    target_country: str,
+    source_country: Optional[str],
+    evidence_text: Optional[str],
+) -> bool:
+    """As `is_out_of_jurisdiction`, but for an ALREADY-RESOLVED source country.
+
+    The mapping pipeline resolves each item's country once per claim and caches
+    it, so re-deriving it from the URL per element and per gate is wasted work.
+    This is the single implementation; the URL-taking form below delegates here.
+    """
+    if source_country is None or source_country == target_country:
+        return False
+    return not mentions_jurisdiction(evidence_text, target_country)
 
 
 def is_out_of_jurisdiction(
@@ -197,7 +228,6 @@ def is_out_of_jurisdiction(
     removes the suppression, which is why the observed failure is caught: the CSO
     snippet names neither Ireland nor the UK.
     """
-    country = evidence_country(url)
-    if country is None or country == target_country:
-        return False
-    return not mentions_jurisdiction(evidence_text, target_country)
+    return is_out_of_jurisdiction_for_country(
+        target_country, evidence_country(url), evidence_text
+    )

@@ -451,6 +451,15 @@ class Settings(BaseSettings):
         True, env="ENABLE_JURISDICTION_SCOPE_GATE"
     )
 
+    # Measure gate (2026-08-06): the third mismatch in check 757f02c2. A rate of
+    # change is identified by the interval's END, not by the months it mentions —
+    # "between September 2024 and September 2025" measures a DIFFERENT twelve
+    # months from "the twelve months to September 2024", yet names ours, so the
+    # temporal gate correctly declines to act. Runs LAST of the three, so it can
+    # only claim references the others left alone and cannot alter their receipts.
+    # ROLLBACK without a redeploy: ENABLE_MEASURE_SCOPE_GATE=False.
+    ENABLE_MEASURE_SCOPE_GATE: bool = Field(True, env="ENABLE_MEASURE_SCOPE_GATE")
+
     # Fallback policy: When content extraction fails (403/timeout), should we use search snippets?
     # True = Keep snippet as low-quality fallback (marked in metadata for downstream weighting)
     # False = Drop sources entirely if content extraction fails

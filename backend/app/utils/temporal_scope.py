@@ -174,6 +174,12 @@ _BARE_MONTH = re.compile(
     re.I,
 )
 
+# A month name on its own. Used ONLY inside an interval's end fragment, where the
+# connective ("…to September") has already established the temporal context — see
+# `_first_month_level`. Never used for free-text bare months, which need the
+# preposition in `_BARE_MONTH`.
+_MONTH_TOKEN = re.compile(rf"\b({_MONTH_ALT})\b", re.I)
+
 
 class Period(NamedTuple):
     """A point in time at the granularity it was actually stated."""
@@ -322,6 +328,142 @@ def element_period(description: Optional[str]) -> Optional[Period]:
     """
     month_level = {p for p in extract_periods(description) if p.is_month_level}
     return month_level.pop() if len(month_level) == 1 else None
+
+
+# ---------------------------------------------------------------------------
+# Interval measures — the SECOND defect in production check 757f02c2
+# ---------------------------------------------------------------------------
+#
+# The Irish-CSO item was removed by the jurisdiction gate, but the same check
+# exposed a mismatch neither gate reaches: a rate of change over an interval is
+# identified by the interval's END, not by the months it happens to mention.
+#
+#     element : "the twelve months to September 2024"          end = 2024-09
+#     evidence: "between September 2024 and September 2025"     end = 2025-09
+#
+# Both name September 2024, so `is_out_of_period` correctly declines — one
+# matching mention means the source is talking about our period. But the evidence
+# measures a DIFFERENT twelve months, and a UK source making the same period-pair
+# error would still be counted as a challenge.
+#
+# Comparing interval ENDS is what separates them. This is deliberately a separate
+# check rather than a change to `is_out_of_period`, so it can only ever scope refs
+# the period rule LEFT ALONE — it cannot alter that rule's count or its receipts.
+
+# A period EXPRESSION, not a run of prose. An earlier version captured up to 44
+# non-punctuation characters after the connective, which read "12 months to June
+# 2024 and the 12 months to June 2025" as ONE interval ending June 2024 — the
+# second interval was swallowed by the first fragment, so a two-measure element
+# looked pinned to a single measure. Matching the period itself bounds the end
+# exactly and lets `finditer` see the second interval.
+_PERIOD_EXPR = (
+    rf"(?:{_MONTH_ALT})\.?(?:\s*[\s\-/]\s*\d{{2,4}})?|\d{{4}}-\d{{2}}(?:-\d{{2}})?"
+)
+
+# "in the 12 months to September 2024", "in the year to September",
+# "the annual rate to August 2025", "12-month rate to September 2024"
+_TO_INTERVAL = re.compile(
+    r"\b(?:(?:\d{1,2}|twelve)[\s-]*month[\s-]*(?:rate|period)?s?"
+    r"|year|annual(?:\s+\w+){0,2})"
+    rf"\s+to\s+(?:the\s+)?(?P<end>{_PERIOD_EXPR})",
+    re.I,
+)
+# "between September 2024 and September 2025"
+_BETWEEN_INTERVAL = re.compile(
+    rf"\bbetween\s+(?:{_PERIOD_EXPR})\s+and\s+(?P<end>{_PERIOD_EXPR})", re.I
+)
+# "from September 2023 to September 2024"
+_FROM_TO_INTERVAL = re.compile(
+    rf"\bfrom\s+(?:{_PERIOD_EXPR})\s+to\s+(?P<end>{_PERIOD_EXPR})", re.I
+)
+
+_INTERVAL_PATTERNS = (_TO_INTERVAL, _BETWEEN_INTERVAL, _FROM_TO_INTERVAL)
+
+
+def _first_month_level(
+    fragment: str, published: Optional[datetime]
+) -> Optional[Period]:
+    """The nearest month-level period in a fragment, resolving a bare month.
+
+    Nearest rather than any: in "September 2024 was 1.7% against 2% in August"
+    the interval's end is the first period named after "to", not the later aside.
+
+    The preposition guard `_bare_month_numbers` applies is deliberately NOT used
+    here. This fragment sits immediately after an interval connective ("…to
+    September"), which consumed the preposition, so demanding another one makes
+    every bare-month interval unreadable — and "in the year to September" is
+    ordinary phrasing, not an edge case. Capitalisation is still required, which is
+    what keeps the modal "may" and the verb "march" out.
+    """
+    stated, consumed = _scan(fragment)
+    month_level = sorted(p for p in stated if p.is_month_level)
+    if month_level:
+        return month_level[0]
+
+    if published is None:
+        return None
+    months = {
+        _MONTHS[m.group(1).lower()]
+        for m in _MONTH_TOKEN.finditer(fragment)
+        if m.group(1)[:1].isupper()
+        and not any(start <= m.start(1) < end for start, end in consumed)
+    }
+    if len(months) != 1:
+        return None
+    return resolve_bare_month(months.pop(), published)
+
+
+def interval_ends(
+    text: Optional[str],
+    published_date=None,
+    date_basis: Optional[str] = None,
+) -> Set[Period]:
+    """Every interval END the text expresses, at month granularity.
+
+    Empty when the text expresses no interval at all — which disarms the measure
+    check, the safe direction.
+    """
+    if not text:
+        return set()
+
+    published = None
+    if date_basis in TRUSTED_PUBLICATION_BASES:
+        published = parse_date(published_date)
+
+    ends: Set[Period] = set()
+    for pattern in _INTERVAL_PATTERNS:
+        for match in pattern.finditer(text):
+            end = _first_month_level(match.group("end"), published)
+            if end is not None:
+                ends.add(end)
+    return ends
+
+
+def element_interval_end(description: Optional[str]) -> Optional[Period]:
+    """The single interval END an element pins, or None.
+
+    None when the element expresses no interval, or more than one — an element
+    spanning two measures is not pinned to one and must not be scoped against.
+    """
+    ends = interval_ends(description)
+    return ends.pop() if len(ends) == 1 else None
+
+
+def is_measure_mismatch(
+    target_end: Period,
+    evidence_text: Optional[str],
+    published_date=None,
+    date_basis: Optional[str] = None,
+) -> bool:
+    """True when the evidence measures intervals and none ends where ours does.
+
+    Requires the evidence to express an interval of its own: without one there is
+    no measure to compare, so the item is left exactly as the mapper labelled it.
+    """
+    ends = interval_ends(evidence_text, published_date, date_basis)
+    if not ends:
+        return False
+    return target_end not in ends
 
 
 def is_out_of_period(

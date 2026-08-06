@@ -20,7 +20,7 @@ import logging
 import re
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 
 import httpx
 import sentry_sdk
@@ -41,9 +41,16 @@ from app.utils.scope_sensitivity import apply_scope_flags
 from app.utils.jurisdiction_scope import (
     claim_target_country,
     evidence_country,
-    is_out_of_jurisdiction,
+    is_out_of_jurisdiction_for_country,
 )
-from app.utils.temporal_scope import Period, element_period, read_evidence_periods
+from app.utils.temporal_scope import (
+    Period,
+    element_interval_end,
+    element_period,
+    interval_ends,
+    is_measure_mismatch,
+    read_evidence_periods,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1289,6 +1296,54 @@ def _format_period(period: "Period") -> str:
     return f"{period.year}-{period.month:02d}"
 
 
+class _IndexedEvidence(NamedTuple):
+    """Everything the scope gates need from one evidence item, derived ONCE.
+
+    The gates run per element and an item can be referenced by several elements,
+    so joining title+snippet and resolving a source country per (gate, element,
+    reference) is repeated work — it was being done three times over.
+    """
+
+    ev: Dict[str, Any]
+    text: str
+    country: Optional[str]
+
+
+class _ScopeGate(NamedTuple):
+    """One mechanical reason a reference cannot speak to an element.
+
+    `fires` and `entry` both take an `_IndexedEvidence`; `summary` is merged into
+    the top of the receipt, `pins` is the human clause in the log line.
+    """
+
+    key: str
+    label: str
+    pins: str
+    summary: Dict[str, Any]
+    fires: Callable[["_IndexedEvidence"], bool]
+    entry: Callable[["_IndexedEvidence"], Dict[str, Any]]
+
+
+def _index_evidence(
+    evidence_list: List[Dict[str, Any]]
+) -> Dict[str, _IndexedEvidence]:
+    """Index evidence by id with the fields the scope gates read."""
+    index: Dict[str, _IndexedEvidence] = {}
+    for ev in evidence_list or []:
+        eid = ev.get("evidence_id")
+        if not eid:
+            continue
+        text = " ".join(
+            part
+            for part in (ev.get("title"), ev.get("snippet") or ev.get("text"))
+            if part
+        )
+        index[eid] = _IndexedEvidence(
+            ev=ev, text=text, country=evidence_country(ev.get("url"))
+        )
+    return index
+
+
 class ClaimMapAnalyzer:
     """Decomposes claims into elements and maps evidence to them."""
 
@@ -2034,6 +2089,12 @@ class ClaimMapAnalyzer:
         # Index by element_id for lookup
         raw_by_id = {e.get("element_id"): e for e in raw_elements}
 
+        # Built ONCE per claim, not once per (gate, element): the scope gates run
+        # per element, an item can be referenced by several elements, and joining
+        # title+snippet or re-deriving a source country per reference is wasted
+        # work. It was being done three times over before this index existed.
+        ev_index = _index_evidence(evidence_list)
+
         for elem in claim_map["elements"]:
             eid = elem["element_id"]
             mapped = raw_by_id.get(eid)
@@ -2054,20 +2115,12 @@ class ClaimMapAnalyzer:
                 raw_refs, evidence_list
             )
 
-            # F1 (2026-08-05): scope out evidence about a DIFFERENT period.
-            # Runs before the basis and the state derivation below, because
-            # state is COUNTED from these relationships — scoping afterwards
-            # would leave the state derived from evidence we had already
+            # Mechanical scope gates (F1 2026-08-05, jurisdiction + measure
+            # 2026-08-06). Run before the basis and the state derivation below,
+            # because state is COUNTED from these relationships — scoping
+            # afterwards would leave the state derived from evidence already
             # judged not to bear on the element.
-            temporal_receipt = self._apply_temporal_scope(elem, evidence_list)
-
-            # 2026-08-06: the same treatment for the OTHER mismatch production
-            # showed us — another country's official statistics used to support or
-            # challenge a claim scoped to ours. Runs here for the same reason as
-            # the temporal gate: state is counted from these relationships.
-            jurisdiction_receipt = self._apply_jurisdiction_scope(
-                elem, evidence_list, claim_map
-            )
+            scope_receipts = self._apply_scope_gates(elem, ev_index, claim_map)
 
             # Validate state — LLM's value is the seed, but the
             # mechanical override below is authoritative. Kept for
@@ -2093,10 +2146,7 @@ class ClaimMapAnalyzer:
             # "context" is an exclusion from the state count, so it is recorded
             # where the rest of the derivation is visible rather than applied
             # silently.
-            if temporal_receipt:
-                elem["basis"]["temporal_scope"] = temporal_receipt
-            if jurisdiction_receipt:
-                elem["basis"]["jurisdiction_scope"] = jurisdiction_receipt
+            elem["basis"].update(scope_receipts)
 
             # Authority-weighted state override (V1 acceptance fix
             # 2026-05-08, after TRU-EF20 surfaced an outlier source
@@ -2116,144 +2166,181 @@ class ClaimMapAnalyzer:
                     f"challenges={state_basis['weighted_challenges']})"
                 )
 
-    def _apply_temporal_scope(
-        self,
-        elem: Dict[str, Any],
-        evidence_list: List[Dict[str, Any]],
-    ) -> Optional[Dict[str, Any]]:
-        """Scope directional refs whose evidence is about a different period.
+    def _armed_scope_gates(
+        self, elem: Dict[str, Any], claim_map: Dict[str, Any]
+    ) -> List["_ScopeGate"]:
+        """The gates that have both a target and their flag on, in priority order.
 
-        Returns a receipt when anything was scoped, else None.
+        ORDER IS BEHAVIOUR, not taste. The first gate to fire owns the reference
+        and the rest see it as `context`, so:
 
-        Symmetric by design: `supports` is scoped exactly as `challenges` is. A
-        source about June bears on a September element in neither direction,
-        and a gate that only removed challenges would be a sycophancy
-        mechanism — the thing invariant #7 exists to forbid.
-
-        Fires only where the element pins ONE month-level period and the
-        evidence carries periods of which none match. Evidence carrying no
-        period at all is left exactly as the mapper labelled it; see
-        app/utils/temporal_scope.
-
-        A period is "carried" if the text states it, or (2026-08-06) if a bare
-        month resolves against a trusted publication date. The gate fired zero
-        times across the whole replay corpus on the stated-only rule, while
-        production supplied a live miss of each kind.
-
-        Rollback: ENABLE_TEMPORAL_SCOPE_GATE=False disables the gate entirely;
-        ENABLE_TEMPORAL_PUBLICATION_RESOLUTION=False keeps it but stops it
-        inferring a period the source never stated.
+          * temporal stays FIRST, exactly where F1 shipped it, which is what keeps
+            its receipts and the corpus assertion on `temporal_scoped_refs` stable;
+          * jurisdiction is next — a domain is the least ambiguous signal we have,
+            so when an item is both foreign and off-measure, "wrong country" is the
+            honest reason to record;
+          * measure is LAST, so it can only ever claim references the other two
+            left alone. That is what makes it purely additive: it cannot alter the
+            counts or receipts of the gates that shipped before it.
         """
-        if not getattr(settings, "ENABLE_TEMPORAL_SCOPE_GATE", True):
-            return None
+        gates: List[_ScopeGate] = []
 
-        target = element_period(elem.get("description"))
-        if target is None:
-            return None
+        if getattr(settings, "ENABLE_TEMPORAL_SCOPE_GATE", True):
+            period = element_period(elem.get("description"))
+            if period is not None:
+                # Withholding the date is the rollback for the INFERRING half
+                # alone; the lexical half (two-digit years) rides the gate flag.
+                resolve_publication = getattr(
+                    settings, "ENABLE_TEMPORAL_PUBLICATION_RESOLUTION", True
+                )
 
-        resolve_publication = getattr(
-            settings, "ENABLE_TEMPORAL_PUBLICATION_RESOLUTION", True
-        )
-        by_id = {
-            ev.get("evidence_id"): ev for ev in evidence_list if ev.get("evidence_id")
-        }
-        scoped: List[Dict[str, Any]] = []
+                def _temporal_reading(item: "_IndexedEvidence") -> Any:
+                    return read_evidence_periods(
+                        item.text,
+                        published_date=(
+                            item.ev.get("published_date")
+                            if resolve_publication
+                            else None
+                        ),
+                        date_basis=(
+                            item.ev.get("date_basis") if resolve_publication else None
+                        ),
+                    )
 
-        for ref in elem.get("evidence_refs") or []:
-            relationship = ref.get("relationship")
-            value = getattr(relationship, "value", relationship)
-            if value not in ("supports", "challenges"):
-                continue
+                def _temporal_fires(item: "_IndexedEvidence", _p=period) -> bool:
+                    reading = _temporal_reading(item)
+                    return bool(reading.all_periods) and _p not in reading.all_periods
 
-            ev = by_id.get(ref.get("evidence_id"))
-            if not ev:
-                continue
+                def _temporal_entry(
+                    item: "_IndexedEvidence", _p=period
+                ) -> Dict[str, Any]:
+                    entry: Dict[str, Any] = {"element_period": _format_period(_p)}
+                    reading = _temporal_reading(item)
+                    # Invariant #5 one level deeper: a decision that rested on an
+                    # INFERRED period must say so, and name the provenance it
+                    # trusted to do it.
+                    if not reading.stated and reading.inferred:
+                        entry["period_from"] = "published_date"
+                        entry["date_basis"] = item.ev.get("date_basis")
+                    return entry
 
-            text = " ".join(
-                part
-                for part in (ev.get("title"), ev.get("snippet") or ev.get("text"))
-                if part
+                gates.append(
+                    _ScopeGate(
+                        key="temporal_scope",
+                        label="TEMPORAL SCOPE",
+                        pins=f"element pins {_format_period(period)}",
+                        summary={"element_period": _format_period(period)},
+                        fires=_temporal_fires,
+                        entry=_temporal_entry,
+                    )
+                )
+
+        if getattr(settings, "ENABLE_JURISDICTION_SCOPE_GATE", True):
+            country = claim_target_country(
+                (claim_map.get("metadata") or {}).get("jurisdiction")
             )
-            # 2026-08-06: a bare month ("in September") is placed in time using
-            # the item's own publication date. Withholding the date here is the
-            # rollback for that inferring half alone — the lexical half
-            # (two-digit years) stays on with the gate itself.
-            reading = read_evidence_periods(
-                text,
-                published_date=(
-                    ev.get("published_date") if resolve_publication else None
-                ),
-                date_basis=ev.get("date_basis") if resolve_publication else None,
-            )
-            if not reading.all_periods or target in reading.all_periods:
-                continue
+            if country is not None:
+                gates.append(
+                    _ScopeGate(
+                        key="jurisdiction_scope",
+                        label="JURISDICTION SCOPE",
+                        pins=f"claim pins {country}",
+                        summary={"claim_jurisdiction": country},
+                        fires=lambda item, _c=country: is_out_of_jurisdiction_for_country(
+                            _c, item.country, item.text
+                        ),
+                        entry=lambda item, _c=country: {
+                            "claim_jurisdiction": _c,
+                            "source_country": item.country,
+                        },
+                    )
+                )
 
-            ref["relationship"] = EvidenceRelationship.context
-            entry = {
-                "evidence_id": ref.get("evidence_id"),
-                "was": value,
-                "element_period": _format_period(target),
-            }
-            # Invariant #5 again, one level deeper: when the decision rested on
-            # an INFERRED period rather than a stated one, the receipt has to
-            # say so, and name the provenance it trusted to do it.
-            if not reading.stated and reading.inferred:
-                entry["period_from"] = "published_date"
-                entry["date_basis"] = ev.get("date_basis")
-            scoped.append(entry)
+        if getattr(settings, "ENABLE_MEASURE_SCOPE_GATE", True):
+            end = element_interval_end(elem.get("description"))
+            if end is not None:
+                resolve_publication = getattr(
+                    settings, "ENABLE_TEMPORAL_PUBLICATION_RESOLUTION", True
+                )
+                gates.append(
+                    _ScopeGate(
+                        key="measure_scope",
+                        label="MEASURE SCOPE",
+                        pins=f"element measures the interval ending {_format_period(end)}",
+                        summary={"element_interval_end": _format_period(end)},
+                        fires=lambda item, _e=end: is_measure_mismatch(
+                            _e,
+                            item.text,
+                            published_date=(
+                                item.ev.get("published_date")
+                                if resolve_publication
+                                else None
+                            ),
+                            date_basis=(
+                                item.ev.get("date_basis")
+                                if resolve_publication
+                                else None
+                            ),
+                        ),
+                        entry=lambda item, _e=end: {
+                            "element_interval_end": _format_period(_e),
+                            "evidence_interval_ends": sorted(
+                                _format_period(p)
+                                for p in interval_ends(
+                                    item.text,
+                                    (
+                                        item.ev.get("published_date")
+                                        if resolve_publication
+                                        else None
+                                    ),
+                                    (
+                                        item.ev.get("date_basis")
+                                        if resolve_publication
+                                        else None
+                                    ),
+                                )
+                            ),
+                        },
+                    )
+                )
 
-        if not scoped:
-            return None
+        return gates
 
-        logger.info(
-            f"[TEMPORAL SCOPE] elem={elem.get('element_id')}: "
-            f"{len(scoped)} ref(s) scoped to context — "
-            f"element pins {_format_period(target)}"
-        )
-        return {
-            "element_period": _format_period(target),
-            "scoped_count": len(scoped),
-            "scoped": scoped,
-        }
-
-    def _apply_jurisdiction_scope(
+    def _apply_scope_gates(
         self,
         elem: Dict[str, Any],
-        evidence_list: List[Dict[str, Any]],
+        ev_index: Dict[str, "_IndexedEvidence"],
         claim_map: Dict[str, Any],
-    ) -> Optional[Dict[str, Any]]:
-        """Scope directional refs that are another country's official sources.
+    ) -> Dict[str, Any]:
+        """Re-label directional refs that do not bear on the element, in ONE pass.
 
-        Returns a receipt when anything was scoped, else None.
+        Returns ``{basis_key: receipt}`` for whichever gates fired, so the caller
+        can merge it straight into the basis.
 
-        Production check `757f02c2` returned a true, ONS-verbatim UK CPI claim as
-        `disputed` on a single challenge from the IRISH CSO. The snippet named
-        neither Ireland nor the UK, so only the domain carried the mismatch and the
-        mapper had nothing to go on — NF-11's original shape.
+        Three mechanical rules share this body because they share everything except
+        the question they ask: each finds evidence that cannot speak to the element,
+        re-labels it `context` (never deletes it), and leaves a receipt. Writing
+        them as separate methods duplicated the reference loop, the evidence lookup
+        and the receipt assembly three times over.
 
-        Symmetric by design, exactly as the temporal gate is: another country's
-        national statistics bear on our figure in neither direction, and a gate
-        that only removed challenges would be a sycophancy mechanism.
+          temporal      — a different PERIOD          (F1, check 618efbc4)
+          jurisdiction  — a different COUNTRY         (check 757f02c2)
+          measure       — a different INTERVAL        (check 757f02c2)
 
-        Never fires on foreign PRESS (an Irish paper reporting on UK inflation is
-        legitimate evidence), never on supranational bodies, and never when the
-        item's own text names the claim's jurisdiction. See
-        app/utils/jurisdiction_scope for the full reasoning.
+        **Symmetric, all three.** They scope `supports` exactly as they scope
+        `challenges`, because evidence that does not bear on an element bears on it
+        in neither direction, and a gate that only removed challenges would be a
+        sycophancy mechanism — the thing invariant #7 forbids.
 
-        Rollback: ENABLE_JURISDICTION_SCOPE_GATE=False.
+        Rollback: ENABLE_TEMPORAL_SCOPE_GATE, ENABLE_JURISDICTION_SCOPE_GATE,
+        ENABLE_MEASURE_SCOPE_GATE — each independently, plus
+        ENABLE_TEMPORAL_PUBLICATION_RESOLUTION for the inferring half.
         """
-        if not getattr(settings, "ENABLE_JURISDICTION_SCOPE_GATE", True):
-            return None
+        gates = self._armed_scope_gates(elem, claim_map)
+        if not gates:
+            return {}
 
-        jurisdiction = (claim_map.get("metadata") or {}).get("jurisdiction")
-        target = claim_target_country(jurisdiction)
-        if target is None:
-            return None
-
-        by_id = {
-            ev.get("evidence_id"): ev for ev in evidence_list if ev.get("evidence_id")
-        }
-        scoped: List[Dict[str, Any]] = []
+        scoped: Dict[str, List[Dict[str, Any]]] = {gate.key: [] for gate in gates}
 
         for ref in elem.get("evidence_refs") or []:
             relationship = ref.get("relationship")
@@ -2261,41 +2348,39 @@ class ClaimMapAnalyzer:
             if value not in ("supports", "challenges"):
                 continue
 
-            ev = by_id.get(ref.get("evidence_id"))
-            if not ev:
+            item = ev_index.get(ref.get("evidence_id"))
+            if item is None:
                 continue
 
-            text = " ".join(
-                part
-                for part in (ev.get("title"), ev.get("snippet") or ev.get("text"))
-                if part
-            )
-            if not is_out_of_jurisdiction(target, ev.get("url"), text):
-                continue
-
-            ref["relationship"] = EvidenceRelationship.context
-            scoped.append(
-                {
+            for gate in gates:
+                if not gate.fires(item):
+                    continue
+                ref["relationship"] = EvidenceRelationship.context
+                entry: Dict[str, Any] = {
                     "evidence_id": ref.get("evidence_id"),
                     "was": value,
-                    "claim_jurisdiction": target,
-                    "source_country": evidence_country(ev.get("url")),
                 }
+                entry.update(gate.entry(item))
+                scoped[gate.key].append(entry)
+                # One gate owns the reference. Letting a second also claim it
+                # would double-count the same exclusion in two receipts.
+                break
+
+        receipts: Dict[str, Any] = {}
+        for gate in gates:
+            entries = scoped[gate.key]
+            if not entries:
+                continue
+            logger.info(
+                f"[{gate.label}] elem={elem.get('element_id')}: "
+                f"{len(entries)} ref(s) scoped to context — {gate.pins}"
             )
-
-        if not scoped:
-            return None
-
-        logger.info(
-            f"[JURISDICTION SCOPE] elem={elem.get('element_id')}: "
-            f"{len(scoped)} ref(s) scoped to context — "
-            f"claim pins {target}"
-        )
-        return {
-            "claim_jurisdiction": target,
-            "scoped_count": len(scoped),
-            "scoped": scoped,
-        }
+            receipts[gate.key] = {
+                **gate.summary,
+                "scoped_count": len(entries),
+                "scoped": entries,
+            }
+        return receipts
 
     def _validate_evidence_refs(
         self,
