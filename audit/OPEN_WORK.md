@@ -9,6 +9,69 @@
 
 **This block is what to do next. Everything below the divider is history.**
 
+---
+### 📍 HANDOFF — exactly where the mapping-gates session stopped (2026-08-06, end of day)
+
+**Last code commit: `182e194`. Last commit: `8e76f70`. Everything is PUSHED**
+(`git log origin/main..HEAD` → 0). I stopped at a **clean boundary — none of my own
+work is half-finished in the tree.** Nine commits, `27fc5dc..8e76f70`.
+
+⚠️ **The working tree holds TWO uncommitted workstreams, and NEITHER is unfinished
+work of mine. Do not commit or revert either without deciding deliberately.**
+
+| # | What | Files | State |
+|---|---|---|---|
+| 1 | **The three long-HELD pipeline changes** (mapping-prompt reframe, F4a metadata, journal tiers) | `claim_map_analyzer.py` +63, `evidence_classifier.py` +29 = **86 insertions**, plus untracked `test_mapping_model_metadata.py` and `test_society_journal_tiers.py` | **Unchanged from session start, byte-verified by SHA.** See the HELD section further down — still the governing description. |
+| 2 | **A PARALLEL session's Smithery quality-score work** | `tru8_mcp/server.py`, `tru8_mcp/pyproject.toml`, `requirements.txt`, `api/v1/agent.py`, `test_mcp_server.py`, `test_agent_retrieval.py`, `web/app/developers/page.tsx` | Appeared mid-session; documented in its own "IN TREE, NOT COMMITTED" block below. **I did not touch it.** ⚠️ Its `requirements.txt` floor `mcp>=1.12` is uncommitted, and the hosted API **will not boot** without it once `annotations=` ships — do not commit `server.py` without it. |
+
+#### The three mechanical scope gates now live in production
+
+All three sit in ONE driver — `_apply_scope_gates` in `claim_map_analyzer.py`, fed by
+`_armed_scope_gates`, over an `_index_evidence` cache built once per claim. Each
+re-labels a directional ref to `context`, never deletes, runs before state
+derivation, and writes a receipt into the element `basis`. **All symmetric** —
+`supports` is scoped exactly as `challenges`.
+
+| Gate | Catches | Rule lives in | Flag | Live-proven? |
+|---|---|---|---|---|
+| temporal | a different **period** | `utils/temporal_scope.py` | `ENABLE_TEMPORAL_SCOPE_GATE` (+ `ENABLE_TEMPORAL_PUBLICATION_RESOLUTION` for the inferring half) | fires on corpus `TRU-C1A0-0005`; **never fired on a live check** (3 attempts, 45p) |
+| jurisdiction | a different **country** | `utils/jurisdiction_scope.py` | `ENABLE_JURISDICTION_SCOPE_GATE` | **seam proven wired** by instrumented replay; never had anything to scope |
+| measure | a different **interval end** | `utils/temporal_scope.py` (`interval_ends`) | `ENABLE_MEASURE_SCOPE_GATE` | **never even ARMED** on the corpus — no corpus element expresses an interval |
+
+⚠️ **Two invariants live only in tests, not in the code's shape. Do not "tidy" them:**
+1. **Gate ORDER is behaviour** — temporal first, measure last. That ordering is what
+   holds F1's receipts and the corpus `temporal_scoped_refs` assertion at **tolerance 0**.
+2. **One gate owns a reference** (the `break` in the ref loop) — remove it and the same
+   exclusion is double-counted in two receipts.
+
+#### Other things shipped today
+- `app/core/build_info.py` → `/api/v1/health/` serves `commit`/`commit_full`/
+  `commit_source`/`branch`. **Live-verified**: `commit_source: RAILWAY_GIT_COMMIT_SHA`.
+  Use it before spending money on a live check.
+- Corpus claim `TRU-C1A0-0005` + the bench instrumentation that can see a gate:
+  `RE_TEMPORAL_SCOPE`/`temporal_scope_events` in `scripts/replay_bench/capture.py`,
+  `temporal_scope_must_fire_on_periods` + two `_COUNTER_PATHS` entries in `comparator.py`.
+
+#### 🧪 Bench: `158 ok / 2 warn / 1 fail` is the PASS state (was 135/2/1)
+Sole failure is the known-flaky `TRU-82CF-2F81`. **The bench reads the WORKING TREE, so
+it CANNOT run meaningfully while the held mapping-prompt reframe is in it** — all 9
+claims fail on `cassette_drift`, because request signatures are cassette keys. Take the
+held work out first. (Workstream 2 above does not affect cassettes.)
+
+#### 🔧 How to split the held work out again — the scratchpad is GONE
+My patches, backups and mutation harnesses lived in a session temp dir and will not
+survive. Re-derive with the documented technique: `git diff` the file **to a file via
+shell redirection** (⚠️ NOT through Python text mode — universal-newline translation
+strips the `\r` from CRLF patches and the result silently fails to apply), split hunks
+on `@@` boundaries, classify by CONTENT, then `git apply -R` the held ones.
+
+- **HELD markers:** `WARRANTS`, `MODALITY`, `SCEPTICISM`, `asserted STRENGTH` (the
+  reframe — note the third mapping prompt states the rule in prose and carries none of
+  the first three tokens), `mapping_model_used` (F4a).
+- **Everything else in that file is committed**, so any other hunk means someone has
+  started new work — stop and check rather than classify it.
+- Restore afterwards from a byte-exact copy of the file, and verify by SHA.
+
 ### ✅ DONE 2026-08-06 — the two F1 misses, and "which code is running?"
 
 | What | State |
