@@ -5,9 +5,37 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-06)
+## 🟢 START HERE — next session (updated 2026-08-07)
 
 **This block is what to do next. Everything below the divider is history.**
+
+---
+### ✅ SHIPPED 2026-08-07 (morning) — the tree is down to what is genuinely undecided
+
+Founder instruction: commit and push everything except the Möbius/logo work,
+which is undecided and incomplete. Two of the three held pipeline changes were
+put to the founder before pushing, because both carry an explicit
+"do not ship without validation" note and a push auto-deploys. **Decision: hold
+both.** So what went out is the finished work only.
+
+| Commit | What |
+|---|---|
+| `9d3f75c` | The parallel session's Smithery/MCP metadata work + the rewritten developers page. 179 MCP + agent tests, `npm run build` clean. |
+| `d3162a7` | **F4a split out of the held pile and shipped alone.** The recorded `mapping_model` named whichever model spoke last, because the completion pass runs between the mapping call and the metadata write. Behaviour-neutral — it changes a recorded string — so it needed no bench. 3 tests, 1,285 pipeline tests green. |
+
+**Still in the tree, deliberately, and NOTHING ELSE:**
+
+| # | What | Why it is held |
+|---|---|---|
+| 1 | Mapping-prompt reframe (`claim_map_analyzer.py`, ~45 insertions) | Prompt-only, so replay cannot judge it. Needs a live re-record + golden review. Two of its rules pull against each other, which can only be measured. |
+| 2 | Journal-tier fix (`evidence_classifier.py` +29, untracked `test_society_journal_tiers.py`) | Unit-verified, but breaches `v3:top_domain_share` (0.32 → 0.47 against a 0.45 cap). **Do not relax the cap.** |
+| 3 | `design/mobius-mark/` (untracked) | Founder: undecided and incomplete. Nothing wired in. |
+
+⚠️ The bench still cannot run while item 1 is in the tree — take it out first.
+The splitting technique is documented in the HELD section below and **was used
+again this morning**: back the file up, `git diff` it to a file via shell
+redirection, cut the patch at the last reframe hunk, `git apply -R`, commit,
+then `git apply` to restore and **verify by SHA**. It worked cleanly.
 
 ---
 ### 📍 HANDOFF — exactly where the mapping-gates session stopped (2026-08-06, end of day)
@@ -21,8 +49,8 @@ work of mine. Do not commit or revert either without deciding deliberately.**
 
 | # | What | Files | State |
 |---|---|---|---|
-| 1 | **The three long-HELD pipeline changes** (mapping-prompt reframe, F4a metadata, journal tiers) | `claim_map_analyzer.py` +63, `evidence_classifier.py` +29 = **86 insertions**, plus untracked `test_mapping_model_metadata.py` and `test_society_journal_tiers.py` | **Unchanged from session start, byte-verified by SHA.** See the HELD section further down — still the governing description. |
-| 2 | **A PARALLEL session's Smithery quality-score work** | `tru8_mcp/server.py`, `tru8_mcp/pyproject.toml`, `requirements.txt`, `api/v1/agent.py`, `test_mcp_server.py`, `test_agent_retrieval.py`, `web/app/developers/page.tsx` | Appeared mid-session; documented in its own "IN TREE, NOT COMMITTED" block below. **I did not touch it.** ⚠️ Its `requirements.txt` floor `mcp>=1.12` is uncommitted, and the hosted API **will not boot** without it once `annotations=` ships — do not commit `server.py` without it. |
+| 1 | **The three long-HELD pipeline changes** (mapping-prompt reframe, F4a metadata, journal tiers) | `claim_map_analyzer.py` +63, `evidence_classifier.py` +29 = **86 insertions**, plus untracked `test_mapping_model_metadata.py` and `test_society_journal_tiers.py` | ~~Unchanged from session start~~ → **2026-08-07: F4a shipped alone (`d3162a7`); the other two remain held.** |
+| 2 | **A PARALLEL session's Smithery quality-score work** | `tru8_mcp/server.py`, `tru8_mcp/pyproject.toml`, `requirements.txt`, `api/v1/agent.py`, `test_mcp_server.py`, `test_agent_retrieval.py`, `web/app/developers/page.tsx` | ~~In tree~~ → **SHIPPED 2026-08-07 (`9d3f75c`)**, with the `mcp>=1.12` floor in the same commit. |
 
 #### The three mechanical scope gates now live in production
 
@@ -94,6 +122,113 @@ this class either way. That is now item 1 below and it needs money.
 `backend/.dockerignore`, so the env var is the only source that can work there.
 One curl after the deploy settles it; the fallback is to set `GIT_COMMIT_SHA` by
 hand on the service.
+
+### ✅ SHIPPED 2026-08-07 (`9d3f75c`) — Smithery quality score + the developers page
+*(written 2026-08-06 as "in tree, not committed"; the code half is now pushed.
+The three founder items below are still open — they are not code.)*
+
+Smithery scores us **53/100**. The missing 47 points are five items in two places,
+and the split matters: **32 of them are not code at all.**
+
+| Missing | Pts | Where it lives | State |
+|---|---|---|---|
+| Server description | 12 | Smithery's own record | ⏳ **needs founder** |
+| Homepage | 12 | Smithery's own record | ⏳ **needs founder** |
+| Icon | 8 | Smithery's own record | ⏳ **needs founder** |
+| Parameter descriptions | 8.89 | `tru8_mcp/server.py` | ✅ done, in tree |
+| Tool annotations | 5.93 | `tru8_mcp/server.py` | ✅ done, in tree |
+
+Their record is genuinely empty — `GET https://api.smithery.ai/servers/samyatessmith/tru8`
+returns `"description": ""`, `"iconUrl": null`, no homepage. It is **not** read from
+`/.well-known/mcp/server-card.json` (which carries a description) nor from `instructions`
+in our initialize response (which we set). Fix = `PATCH https://api.smithery.ai/servers/
+samyatessmith/tru8` with `displayName`/`description`/`homepage`/`repositoryUrl`/`license`/
+`iconUrl`, or the same fields on the listing's Settings page. ⚠️ `logo.proper.png` is
+1.54MB against their **1MB** upload cap — use `apple-touch-icon.png` or re-export.
+
+**Code side, done and proven:** all 3 tools now carry `ToolAnnotations` + a `Field`
+description on every parameter (dumped from `list_tools()`: 4/4, 1/1, 1/1, annotations
+on all three). The `Args:` docstring blocks were **deleted, not duplicated** — FastMCP
+never puts them in `inputSchema`, so they were guidance no client could read. Also set
+`serverInfo.websiteUrl` + `icons` (assignment, inert on older SDKs — same trick as
+`version`). ⚠️ **Dependency floor raised `1.2` → `1.12`** in BOTH `tru8_mcp/pyproject.toml`
+and `backend/requirements.txt`: `annotations=` is a TypeError at import on an SDK without
+it, which for the hosted transport means **the API does not boot**. Verified against the
+1.12.4 sdist rather than assumed.
+
+**Version deliberately NOT bumped.** The hosted endpoint gets this on the next deploy;
+stdio users need a **1.0.4 PyPI release**, and `server.json` + `MCP_SERVER_CARD` +
+`__init__` + `pyproject` must move together in that same commit (`test_mcp_identity.py`
+enforces it). Bumping before publishing would point the registry at a version PyPI does
+not have — the exact class of fault that failed the first publish.
+
+**Developers page rewritten** (`web/app/developers/page.tsx`, 1035 → ~690 lines, 13
+sections → 8). It was the Smithery "homepage" candidate and carried **five outright
+errors**: webhook payload shown without its `{event, timestamp, data}` envelope; "register
+a webhook in dashboard settings" (**no such UI exists** — grep the dashboard, zero hits;
+registration is `POST /api/v1/webhooks`, API-key auth); `_computed.summary` flattened
+(states nest under `elementStates`); "`_computed` requires `?computed=true`" (agent
+responses always include it unless `compact`); and `claimType: "statistical"`, which is
+not one of the five enum values. Plus: `max_tier` sold as a general spend cap when only
+`/agent/check` accepts it — and that endpoint appeared nowhere except one row of the
+rate-limit table. **The cause was one thing: the page hand-copied schemas Swagger already
+generates.** So the hand-copied reference is gone and the page links `/api/docs` instead.
+Also fixed en route: `/agent/result/{id}` declared a **409 the handler has never raised**
+(returns 200 + status — that is what makes polling work), and `test_mcp_server.py` carried
+a **red test since `749ff13`** asserting `max_tier` defaults to `"quick"` when it is
+`"full"`. 207 MCP + agent tests green, `npm run build` clean, page driven in a browser.
+
+⏳ **Unresolved, needs one look:** `MANIFEST_SIGNING_ENABLED` on Railway is masked. The
+config default is `False`, and if it is off then `_manifest` is `null` on every response
+and `/verify/{id}` answers `not_found`. The page now says "Null when manifest signing is
+not enabled" rather than promising it — true either way, but weaker than it needs to be.
+Reveal the var; if it is `True`, strengthen that line and the FAQ answer.
+
+### 🟡 IN TREE, NOT COMMITTED — the Möbius mark (design exploration)
+*(2026-08-07: founder confirmed this stays out of the commits — "undecided and
+incomplete". `design/` remains untracked. Do not commit it without being asked.)*
+
+**Nothing is wired in. `web/components/brand/tru8-mark.tsx` is UNTOUCHED** — the live nav
+mark is exactly as it was. All work is a standalone generator at
+**`design/mobius-mark/`** (new directory, untracked; `README.md` there is canonical for
+this thread and states every measured property and every fault found).
+
+**Where it landed.** The founder's reference (shared 18:09) is a **holographic
+light-lattice** — a translucent ribbon structure with many strands of light flowing along
+it, sci-fi UI style — *in Tru8 styling, as a figure-8*. `holo.py` is built to that and is
+**the live direction**. Preview: run the snippet in the README, open in a browser (it is
+animated; a still tells you nothing).
+
+**The lesson that cost the session.** Almost every problem came from drawing **opaque**
+shapes: occlusion, weave order, gaps at the crossing, the glow popping. None of them exist
+in a translucent structure — everything shows through everything and depth reads as
+brightness. **If tomorrow's agent finds itself cutting a strand to fake a weave, stop.**
+That is the wrong object.
+
+**Verified properties (re-run if you touch the geometry):** the surface never
+self-intersects (closest approach of the two passes **41.4 units on a 14-unit band**), a
+strand at constant lateral position closes after **two** laps and not one (lands exactly
+`W/2` away after one, 0.00 after two), sharpest turn on the light's route **1.64°**.
+
+**Faults found and fixed — do not reintroduce** (full detail in the README): eight cusps in
+the constructed core from two direction-sign errors (the "right angles" complaint — the
+path stopped dead and reversed 8×/lap); twist spread evenly round a loop starves every bowl
+(2.5 vs 16.7 units *within one bowl*); `tanh` of a wrapped distance-to-fold steps hard at
+the antipode; filling a self-crossing ribbon as one polygon pinches at the overlap and
+fuses the waist; and the "flicker" was **92 concurrent animations + 23 live Gaussian blurs
+on one preview page**, not the mark — `holo.py` uses no filters at all.
+
+**Open:** founder wants more air between strands, triangulated bracing rather than straight
+rungs, and a call on strand count / pulse speed / depth contrast — all one-line parameters
+in `holo.svg()`. ⚠️ **This is a hero object and will not reduce to 24px.** Expect a
+simplified sibling for nav and favicon, derived FROM the large one (`render5.py` is the
+structurally-correct solid version and is the natural basis for it).
+
+**Process note, recorded deliberately.** Six rounds, each fixing the named symptom and
+leaving a different visible fault, every one caught by the founder rather than by me. What
+worked was measuring (cusps, widths, step ratios, closest approach) — every real cause was
+found that way and none by eyeballing. What did not work was making taste calls silently.
+Show options, state the numbers, let the founder choose.
 
 ### 🧪 Bench pass state CHANGED — `158 ok / 2 warn / 1 fail`
 `TRU-C1A0-0005` joined the corpus 2026-08-06 (+23 ok), so **135/2/1 is stale**. Same
@@ -206,10 +341,12 @@ to the wrong year and scoped out a relevant item. **Deliberately not changed:**
 tightening to `api_adapter` only would stop the half firing on web evidence at all.
 If mis-scoping appears in the wild, tighten the allowlist — do not add a prompt rule.
 
-### 🔎 Independent evidence for the HELD F4a fix
+### 🔎 Independent evidence for the F4a fix *(shipped 2026-08-07, `d3162a7`)*
 `757f02c2` reports `mappingModel: gemini-2.5-flash-lite`, almost certainly the F4a
-misrecording (the completion pass writes last), not a real downgrade. Nobody can
-currently read that field and know which model judged the evidence.
+misrecording (the completion pass writes last), not a real downgrade. Nobody could
+read that field and know which model judged the evidence. **Fixed and deployed —
+so any check run after 2026-08-07 reports the field honestly, and F4b can now be
+decided on observation rather than inference.**
 4. **`server.json` still advertises no hosted endpoint.** Needs `remotes[]`, a
    version bump, probably a 1.0.4 PyPI release — founder call.
 5. **Build `scripts/cost_report.py`.** Prod checks carry search-cost telemetry
@@ -291,7 +428,9 @@ does this.
 fires. Bench runs were replay-only (no live LLM spend).
 
 ### ⛔ HELD in the working tree — read before committing anything under `backend/app/pipeline/`
-Three uncommitted changes, deliberately. `git status` will show them; none is abandoned.
+~~Three~~ **TWO** uncommitted changes, deliberately (item 2, F4a, **shipped
+2026-08-07 as `d3162a7`** — it was behaviour-neutral, so it needed no bench and
+had no reason to stay held). `git status` will show them; neither is abandoned.
 
 1. **`app/pipeline/claim_map_analyzer.py` — mapping-prompt reframe** (hunks at lines ~257–654;
    45 insertions). Adds a "supports means WARRANTS AS STATED" definition, a MODALITY MATCH
@@ -302,13 +441,15 @@ Three uncommitted changes, deliberately. `git status` will show them; none is ab
    measured, not reasoned about (NF-11 shape). Acceptance criterion if it IS re-recorded: do
    any `supported` → `unresolved` flips appear where the supporting evidence is primary-tier
    and unhedged? If only hedged sources move to `context`, it is working.
-2. **`app/pipeline/claim_map_analyzer.py` — F4a metadata fix** (hunks at lines ~1480–1780;
-   18 insertions) + untracked `tests/unit/pipeline/test_mapping_model_metadata.py` (3 tests,
-   mutation-verified). Captures the mapping model AT the mapping call instead of reading
+2. ✅ **SHIPPED 2026-08-07 — `d3162a7`. No longer in the tree.** `app/pipeline/claim_map_analyzer.py`
+   — F4a metadata fix + `tests/unit/pipeline/test_mapping_model_metadata.py` (3 tests,
+   mutation-verified). Captured the mapping model AT the mapping call instead of reading
    `_last_model_used` afterwards. **Confirmed cause:** the completion pass (`map_completion`,
    a non-mapping label → Flash-Lite) runs BETWEEN the mapping call and the metadata write, so
    the write recorded whichever model spoke last. Not a race — plain ordering. Behaviour-neutral
-   (changes only a recorded string), so it needs no bench of its own.
+   (changes only a recorded string), so it needed no bench of its own. **This also closes the
+   "nobody can read `mappingModel` and know which model judged the evidence" blocker on the
+   open F4b decision** — that field is now trustworthy on any check run after this deploy.
 3. **`app/pipeline/evidence_classifier.py` — journal-tier fix** + untracked
    `tests/unit/pipeline/test_society_journal_tiers.py` (57 tests). Unchanged from before today.
    Unit-verified but breaches `v3:top_domain_share` (0.32→0.47 vs a 0.45 cap). **Do not relax
