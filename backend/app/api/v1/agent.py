@@ -526,12 +526,22 @@ async def agent_lookup(
     "/result/{check_id}",
     summary="Retrieve a completed check result (no charge)",
     responses={
-        200: {"description": "Full evidence landscape", "model": AgentCheckResponse},
+        # A check still running returns 200 with {checkId, status, hit: false},
+        # NOT an error — that is what makes async polling work (O-06). This
+        # block declared a 409 the handler has never raised, so the generated
+        # reference contradicted both the code and the developer docs that
+        # point at it (2026-08-06).
+        200: {
+            "description": (
+                "Full evidence landscape when completed; otherwise "
+                "{checkId, status, hit: false} while the pipeline runs"
+            ),
+            "model": AgentCheckResponse,
+        },
         404: {
             "description": "Check not found or not owned by this agent",
             "model": ErrorResponse,
         },
-        409: {"description": "Check is not yet completed", "model": ErrorResponse},
     },
 )
 @limiter.limit("30/minute")

@@ -137,10 +137,18 @@ class TestToolFunctions:
         yield
 
     async def test_tru8_check_calls_submit_with_fallback(self):
+        """An omitted max_tier means "full" — the CEILING, not the price.
+
+        This asserted "quick" and had been failing since 749ff13 deliberately
+        raised the default, so the suite carried a red test that described
+        behaviour we had chosen against. The ceiling is safe to default high
+        because the fallback still serves cached and consensus hits at their
+        own lower price; only a never-researched claim reaches ~£0.15.
+        """
         result = await tru8_check("The earth is round")
         self.mock_client.submit_with_fallback.assert_awaited_once_with(
             "The earth is round",
-            max_tier="quick",
+            max_tier="full",
             max_age_hours=None,
             compact=False,
         )

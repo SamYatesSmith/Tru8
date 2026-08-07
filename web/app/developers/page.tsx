@@ -8,7 +8,7 @@ import { TrackedLink } from '@/components/analytics/tracked-link';
 
 export const metadata = {
   title: 'API & MCP Server for AI Agents',
-  description: 'Structured evidence research in one API call. Four call tiers, MCP server for Claude and other AI agents. From £0.02/query.',
+  description: 'Structured evidence research in one API call. Four call tiers, an MCP server hosted and self-installed, for Claude and other AI agents. From £0.02/query.',
   alternates: { canonical: '/developers' },
 };
 
@@ -16,13 +16,8 @@ const TOC_ITEMS = [
   { id: 'quick-start', label: 'Quick Start' },
   { id: 'pricing', label: 'Tiers & Pricing' },
   { id: 'mcp', label: 'MCP' },
-  { id: 'async', label: 'Async' },
-  { id: 'batch', label: 'Batch' },
-  { id: 'webhooks', label: 'Webhooks' },
-  { id: 'discovery', label: 'Discovery' },
-  { id: 'rate-limits', label: 'Limits' },
-  { id: 'errors', label: 'Errors' },
-  { id: 'response', label: 'Response' },
+  { id: 'response', label: 'What You Get' },
+  { id: 'limits', label: 'Limits & Ops' },
   { id: 'faq', label: 'FAQ' },
   { id: 'docs', label: 'Docs' },
 ];
@@ -30,31 +25,31 @@ const TOC_ITEMS = [
 // One source array drives both the visible FAQ and the FAQPage JSON-LD, so the
 // markup always matches the rendered answers (a Google requirement). Answers are
 // grounded in this page's own content. No verdict language; functional manifest
-// "verify" wording mirrors the response section above.
+// "verify" wording mirrors the response section below.
 const DEV_FAQS: ReadonlyArray<{ q: string; a: string }> = [
   {
     q: 'How do I get started with the Tru8 API?',
-    a: 'Create an API key in your dashboard settings, then POST a claim or URL to the API. The Quick Start above shows a working request; a single call returns a structured evidence landscape.',
+    a: 'Create an API key in your dashboard settings, then POST a claim or URL to /agent/check. That one endpoint tries the cheapest route first and escalates only as far as max_tier allows, so a single call returns a structured evidence landscape at the lowest price that can answer it.',
   },
   {
     q: 'What does a Tru8 API call return?',
-    a: 'A structured evidence landscape: each claim is decomposed into 1–5 elements, evidence is mapped to those elements with supports, challenges or context relationships, every source is classified by tier and type, gaps are named, and the response carries an HMAC-signed manifest. It does not return a true/false verdict. We organise; you decide.',
+    a: 'A structured evidence landscape: each claim is decomposed into 1–5 elements, evidence is mapped to those elements with supports, challenges or context relationships, every source is classified by tier and type, and gaps are named. It does not return a true/false verdict. We organise; you decide.',
   },
   {
     q: 'Is there an MCP server for Claude and other AI agents?',
-    a: 'Yes. The tru8-mcp package is published on PyPI and exposes tools for submitting a check and retrieving results, so Claude and other agents can request an evidence landscape directly.',
+    a: 'Yes, by three routes. Connect straight to the hosted server at https://api.trueight.com/mcp with no install, add it through the Smithery registry, or pip install tru8-mcp to run it locally over stdio. All three expose the same three tools against the same API.',
   },
   {
     q: 'How are API calls priced?',
-    a: 'Calls are metered per request across four tiers — lookup, consensus, quick and full — billed from prepaid credits. See the Tiers & Pricing section above for the current per-tier rates.',
+    a: 'Calls are metered per request across four tiers — lookup, consensus, quick and full — billed from prepaid credits, and you are charged for the tier that actually executed rather than the one you requested. See the Tiers & Pricing section above for the current per-tier rates.',
   },
   {
     q: 'How can an agent confirm a result has not changed?',
-    a: 'Every response includes a signed _manifest. A caller can verify the signed fields have not changed since signing by calling GET /verify/{check_id}.',
+    a: 'When a response carries a _manifest, its signed landscape hash can be re-checked at any time by calling GET /verify/{check_id}, a public endpoint that recomputes the hash from the stored data and reports whether it still matches.',
   },
   {
     q: 'How long does a check take?',
-    a: 'Typically 15–90 seconds depending on the tier, because Tru8 retrieves and classifies evidence across the open web and specialist APIs rather than returning passages and a score.',
+    a: 'Typically 15–90 seconds depending on the tier, because Tru8 retrieves and classifies evidence across the open web and specialist APIs rather than returning passages and a score. Cached and consensus routes return instantly.',
   },
 ];
 
@@ -67,6 +62,8 @@ const faqJsonLd = {
     acceptedAnswer: { '@type': 'Answer', text: item.a },
   })),
 };
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function DevelopersPage() {
   return (
@@ -85,7 +82,7 @@ export default function DevelopersPage() {
           aria-hidden="true"
           className="pointer-events-none fixed left-1.5 top-1/2 z-40 hidden -translate-y-1/2 rotate-180 select-none font-mono text-[9px] tracking-[0.3em] text-zinc-300 [writing-mode:vertical-rl] xl:block"
         >
-          TRU8 · DEVELOPERS · REV 2026.07
+          TRU8 · DEVELOPERS · REV 2026.08
         </div>
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {/* Back Button */}
@@ -107,7 +104,7 @@ export default function DevelopersPage() {
             <div className="space-y-6 text-base md:text-lg text-zinc-600 leading-relaxed">
               <p>
                 Submit a claim, URL, or article. Get back structured evidence — organised by source tier
-                (primary, reporting, commentary) and type (data, official, news, analysis, academic),
+                (primary, reporting, commentary) and type (data, official, news, analysis, opinion, academic),
                 with element decomposition and relationship mapping.
               </p>
 
@@ -118,8 +115,7 @@ export default function DevelopersPage() {
                 <code className="text-sm font-mono text-zinc-900">relationship</code>,{' '}
                 <code className="text-sm font-mono text-zinc-900">state</code>,{' '}
                 <code className="text-sm font-mono text-zinc-900">gaps</code>,{' '}
-                <code className="text-sm font-mono text-zinc-900">receipts</code>,{' '}
-                <code className="text-sm font-mono text-zinc-900">manifest</code>.{' '}
+                <code className="text-sm font-mono text-zinc-900">receipts</code>.{' '}
                 <Link
                   href="/compare#grounding-apis"
                   className="text-accent underline underline-offset-2 hover:text-zinc-900 transition-colors"
@@ -152,11 +148,11 @@ export default function DevelopersPage() {
                   href="#response"
                   className="inline-flex items-center justify-center gap-2 border border-zinc-200 px-8 py-4 text-xs font-bold tracking-[0.3em] uppercase text-zinc-900 w-full sm:w-auto transition-colors hover:border-zinc-900"
                 >
-                  See the response shape
+                  See what comes back
                 </a>
               </div>
               <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-400">
-                From £0.02 per call · no subscription required · signed manifests
+                From £0.02 per call · no subscription required · charged on the tier that actually ran
               </p>
 
               <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-zinc-500">
@@ -226,13 +222,12 @@ export TRU8_API_KEY="tru8_sk_..."`}
                     <ShieldCheck size={18} className="text-zinc-400 flex-shrink-0 mt-0.5" />
                     <div className="text-xs text-zinc-600 space-y-1">
                       <p className="font-semibold text-zinc-900">Key security</p>
-                      <p>Your API key carries your identity and usage quota. Treat it like a password.</p>
-                      <ul className="list-disc list-inside space-y-0.5 text-zinc-500">
-                        <li>Store in environment variables or a secrets manager — never in source code</li>
-                        <li>Never commit keys to git, logs, or client-side bundles</li>
-                        <li>If a key is exposed, revoke it immediately in dashboard settings and create a new one</li>
-                        <li>Use separate keys per agent or environment for auditability</li>
-                      </ul>
+                      <p>
+                        Your API key carries your identity and usage quota. Store it in environment
+                        variables or a secrets manager, never in source code, logs or client-side
+                        bundles. Use separate keys per agent or environment, and revoke immediately
+                        in dashboard settings if one is exposed.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -245,14 +240,23 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-semibold text-zinc-900 mb-2">Submit a claim</h3>
+                  <p className="text-zinc-600 text-sm mb-3">
+                    <code className="text-zinc-900 font-mono text-xs">/agent/check</code> is the endpoint
+                    to reach for first. It tries the cheapest route that can answer — your own cached
+                    analysis, then cross-user consensus — and only runs the pipeline if neither hits,
+                    escalating no further than <code className="text-zinc-400">max_tier</code>.
+                  </p>
                   <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`curl -X POST https://api.trueight.com/api/v1/agent/quick \\
+{`curl -X POST https://api.trueight.com/api/v1/agent/check \\
   -H "X-API-Key: $TRU8_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"claim": "Global average temperature rose 1.1°C since pre-industrial times"}'`}
+  -d '{
+    "claim": "Global average temperature rose 1.1°C since pre-industrial times",
+    "max_tier": "full"
+  }'`}
                   </pre>
                   <p className="text-zinc-500 text-xs mt-2 font-mono">
-                    Returns structured result with _meta (executedTier, chargedPence)
+                    Returns the landscape plus _meta.executedTier and _meta.chargedPence
                   </p>
                 </div>
               </div>
@@ -269,10 +273,57 @@ export TRU8_API_KEY="tru8_sk_..."`}
   -H "X-API-Key: $TRU8_API_KEY"`}
                   </pre>
                   <p className="text-zinc-500 text-xs mt-2 font-mono">
-                    Completed checks return the full evidence landscape. Processing checks return status for polling.
+                    Free, and only for your own checks. Still running: {'{'}&quot;status&quot;: &quot;processing&quot;, &quot;hit&quot;: false{'}'}
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Other submission routes — the deep spec for each lives in the API reference */}
+            <div className="bg-zinc-50 border border-zinc-200 p-6 mt-8">
+              <h3 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-4">
+                Other ways to submit
+              </h3>
+              <dl className="space-y-3 text-sm text-zinc-600">
+                <div>
+                  <dt className="font-mono text-xs text-zinc-900">POST /agent/quick · POST /agent/full</dt>
+                  <dd className="mt-0.5">
+                    Force one tier, no fallback. Add <code className="text-zinc-400">?async=true</code> for an
+                    immediate 202 carrying a <code className="text-zinc-400">pollUrl</code>, and let the
+                    pipeline run in the background.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-mono text-xs text-zinc-900">POST /agent/batch</dt>
+                  <dd className="mt-0.5">
+                    Up to 10 claims at one tier, run concurrently. The whole batch is costed upfront and
+                    rejected with 402 if the balance cannot cover it; each claim fires its own webhook.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-mono text-xs text-zinc-900">POST /agent/lookup</dt>
+                  <dd className="mt-0.5">Cache only — returns a prior analysis or nothing. Never runs the pipeline.</dd>
+                </div>
+                <div>
+                  <dt className="font-mono text-xs text-zinc-900">GET /agent/health · /tiers · /me</dt>
+                  <dd className="mt-0.5">
+                    Availability, live per-tier pricing, and your own identity and balance. The first two
+                    need no key, so an agent can check we are up and what we cost before it commits.
+                  </dd>
+                </div>
+              </dl>
+              <p className="text-xs text-zinc-500 mt-4">
+                Full request and response schemas for every endpoint are in the{' '}
+                <Link
+                  href={`${API_BASE}/api/docs`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent underline underline-offset-2 hover:text-zinc-900"
+                >
+                  interactive API reference
+                </Link>
+                , generated from the running code.
+              </p>
             </div>
           </section>
 
@@ -308,25 +359,25 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 <tbody className="text-zinc-600 align-top">
                   <tr className="border-b border-zinc-100">
                     <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-zinc-900">Lookup</code></td>
-                    <td className="py-3 px-2 text-xs leading-relaxed">Cached prior analysis — instant hash match on your previous research. No pipeline run.</td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">Your own prior analysis of the same claim, matched by hash. No pipeline run.</td>
                     <td className="py-3 px-2 font-mono text-xs text-zinc-400">instant</td>
                     <td className="py-3 pl-2 text-right font-mono text-zinc-900">£0.02</td>
                   </tr>
                   <tr className="border-b border-zinc-100">
                     <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-zinc-900">Consensus</code></td>
-                    <td className="py-3 px-2 text-xs leading-relaxed">Cross-user aggregate landscape. Available when 3+ independent checks exist. No pipeline run.</td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">Cross-user aggregate landscape, available once three different accounts have run a full check on the same claim. No pipeline run.</td>
                     <td className="py-3 px-2 font-mono text-xs text-zinc-400">instant</td>
                     <td className="py-3 pl-2 text-right font-mono text-zinc-900">£0.03</td>
                   </tr>
                   <tr className="border-b border-zinc-100">
                     <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-zinc-900">Quick</code></td>
-                    <td className="py-3 px-2 text-xs leading-relaxed">Web search (1 query/element), heuristic classification, evidence mapping + orientation. Fast triage.</td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">Up to 6 web searches per claim, heuristic classification, evidence mapping and orientation. Fast triage.</td>
                     <td className="py-3 px-2 font-mono text-xs text-zinc-400">~15s</td>
                     <td className="py-3 pl-2 text-right font-mono text-zinc-900">£0.07</td>
                   </tr>
                   <tr className="border-t-2 border-accent">
                     <td className="py-3 pr-4"><code className="text-sm font-mono font-semibold text-accent">Full</code></td>
-                    <td className="py-3 px-2 text-xs leading-relaxed">The complete pipeline: 3 queries/element across the web plus government + academic APIs and fact-check lookup, LLM classification + relevance scoring, coverage recovery.</td>
+                    <td className="py-3 px-2 text-xs leading-relaxed">The complete pipeline: up to 13 searches per claim across the web plus government, academic and fact-check sources, LLM classification and relevance scoring, coverage recovery.</td>
                     <td className="py-3 px-2 font-mono text-xs text-zinc-400">~60–90s</td>
                     <td className="py-3 pl-2 text-right font-mono text-accent">£0.15</td>
                   </tr>
@@ -349,11 +400,19 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-accent mt-0.5">3.</span>
-                  <span>Use <code className="text-zinc-400">max_tier</code> to cap maximum spend per call</span>
+                  <span>
+                    On <code className="text-zinc-400">/agent/check</code>, <code className="text-zinc-400">max_tier</code>{' '}
+                    caps how far it may escalate. <code className="text-zinc-400">/agent/quick</code> and{' '}
+                    <code className="text-zinc-400">/agent/full</code> run exactly the tier you name
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-accent mt-0.5">4.</span>
-                  <span>You are only charged for the tier actually executed, not the tier requested</span>
+                  <span>
+                    You are charged for the tier actually executed, not the tier requested — and{' '}
+                    <code className="text-zinc-400">_meta.limitations</code> names every stage the executed
+                    tier withheld
+                  </span>
                 </li>
               </ul>
             </div>
@@ -384,28 +443,102 @@ export TRU8_API_KEY="tru8_sk_..."`}
             <p className="text-base md:text-lg text-zinc-600 mb-8 leading-relaxed">
               Tru8 exposes three tools via the{' '}
               <span className="text-zinc-900 font-medium">Model Context Protocol</span>.
-              Any MCP-compatible agent (Claude, GPT, Gemini) can discover and use Tru8 automatically.
+              Any MCP-compatible agent can discover and use them. Three routes, same tools, same API —
+              pick by how much you want to install.
             </p>
 
+            <div className="space-y-4 mb-10">
+              {/* Route 1 — hosted */}
+              <div className="border border-zinc-200 border-l-2 border-l-accent p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Layers size={15} className="text-accent" />
+                  <h3 className="text-sm font-semibold text-zinc-900">Hosted — nothing to install</h3>
+                </div>
+                <pre className="bg-zinc-950 text-zinc-300 p-3 overflow-x-auto text-xs font-mono mt-3">
+{`https://api.trueight.com/mcp`}
+                </pre>
+                <p className="text-xs text-zinc-600 mt-3">
+                  Streamable HTTP. Authenticate with an <code className="text-zinc-400">X-API-Key</code> header,
+                  or an <code className="text-zinc-400">apiKey</code> query parameter for clients that pass
+                  configuration that way. Listing the tools needs no credential; invoking one does.
+                </p>
+              </div>
+
+              {/* Route 2 — Smithery */}
+              <div className="border border-zinc-200 p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Radio size={15} className="text-zinc-400" />
+                  <h3 className="text-sm font-semibold text-zinc-900">Smithery registry</h3>
+                </div>
+                <p className="text-xs text-zinc-600 mt-2">
+                  Listed as{' '}
+                  <a
+                    href="https://smithery.ai/server/samyatessmith/tru8"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent underline underline-offset-2 hover:text-zinc-900"
+                  >
+                    samyatessmith/tru8
+                  </a>{' '}
+                  for clients that install from a registry. Supply your API key as the single{' '}
+                  <code className="text-zinc-400">apiKey</code> configuration value.
+                </p>
+              </div>
+
+              {/* Route 3 — local stdio */}
+              <div className="border border-zinc-200 p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileJson size={15} className="text-zinc-400" />
+                  <h3 className="text-sm font-semibold text-zinc-900">Local — stdio via PyPI</h3>
+                </div>
+                <pre className="bg-zinc-950 text-zinc-300 p-3 overflow-x-auto text-xs font-mono mt-3">
+{`pip install tru8-mcp`}
+                </pre>
+                <p className="text-xs text-zinc-600 mt-3 mb-3">Then, in Claude Desktop:</p>
+                <pre className="bg-zinc-950 text-zinc-300 p-3 overflow-x-auto text-xs font-mono leading-relaxed">
+{`{
+  "mcpServers": {
+    "tru8": {
+      "command": "python",
+      "args": ["-m", "tru8_mcp"],
+      "env": {
+        "TRU8_API_KEY": "tru8_sk_..."
+      }
+    }
+  }
+}`}
+                </pre>
+                <p className="text-xs text-zinc-500 mt-3">
+                  The <code className="text-zinc-400">env</code> block is injected at server startup — the key is never
+                  sent to the model. Your Claude Desktop config file
+                  (<code className="text-zinc-400">claude_desktop_config.json</code>) is local-only,
+                  but keep it out of any version control or backup sync that could expose secrets.
+                </p>
+              </div>
+            </div>
+
+            <h3 className="font-mono text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-4">
+              The three tools
+            </h3>
             <div className="space-y-4">
               {[
                 {
                   name: 'tru8_check',
-                  desc: 'Evidence research with tier fallback (lookup \u2192 consensus \u2192 quick \u2192 full). Set max_tier to control depth and cost.',
+                  desc: 'Evidence research with automatic tier fallback (lookup → consensus → quick → full). Set max_tier to cap depth and cost.',
                   time: 'varies',
                   icon: 'search' as const,
                   primary: true,
                 },
                 {
                   name: 'tru8_get_result',
-                  desc: 'Retrieve completed check with pre-computed analytics (_computed block)',
+                  desc: 'Retrieve a completed check with pre-computed analytics (_computed block)',
                   time: '<1s',
                   icon: 'chart' as const,
                   primary: false,
                 },
                 {
                   name: 'tru8_get_result_raw',
-                  desc: 'Retrieve raw check data without computed analytics',
+                  desc: 'Retrieve raw check data without computed analytics — smaller payload',
                   time: '<1s',
                   icon: 'json' as const,
                   primary: false,
@@ -427,498 +560,251 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 </div>
               ))}
             </div>
-
-            <div className="mt-8">
-              <p className="text-sm text-zinc-600 mb-3">Configure for Claude Desktop:</p>
-              <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`{
-  "mcpServers": {
-    "tru8": {
-      "command": "python",
-      "args": ["-m", "tru8_mcp"],
-      "env": {
-        "TRU8_API_KEY": "tru8_sk_..."
-      }
-    }
-  }
-}`}
-              </pre>
-              <p className="text-xs text-zinc-500 mt-3">
-                The <code className="text-zinc-400">env</code> block is injected at server startup — the key is never
-                sent to the model. Your Claude Desktop config file
-                (<code className="text-zinc-400">claude_desktop_config.json</code>) is local-only,
-                but ensure it is excluded from any version control or backup sync that could expose secrets.
-              </p>
-            </div>
-          </section>
-
-          {/* Divider + full-reference seam — everything below is the deep spec */}
-          <div className="border-t border-zinc-200 mt-12 md:mt-16 mb-4" />
-          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-400 mb-12 md:mb-16">
-            Full reference — the deep spec continues below
-          </p>
-
-          {/* Async Mode */}
-          <section id="async" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="05" label="Async Mode" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
-              Non-Blocking Submission
-            </h2>
-
-            <div className="space-y-6 text-base text-zinc-600 leading-relaxed">
-              <p>
-                Add <code className="text-zinc-900 font-mono text-sm">?async=true</code> to{' '}
-                <code className="text-zinc-400">/agent/quick</code> or{' '}
-                <code className="text-zinc-400">/agent/full</code> to get an immediate 202 response.
-                The pipeline runs in the background — poll for the result when ready.
-              </p>
-
-              <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`# Submit async
-curl -X POST "https://api.trueight.com/api/v1/agent/full?async=true" \\
-  -H "X-API-Key: $TRU8_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"claim": "The UK left the EU in 2020"}'
-
-# Response: 202 Accepted
-{
-  "checkId": "abc-123",
-  "status": "processing",
-  "tier": "full",
-  "chargedPence": 15,
-  "pollUrl": "/api/v1/agent/result/abc-123",
-  "estimatedSeconds": 60
-}
-
-# Poll for result
-curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
-  -H "X-API-Key: $TRU8_API_KEY"
-# While processing: { "status": "processing", "checkId": "abc-123", "hit": false }
-# When complete:   { full result payload }`}
-              </pre>
-
-              <p className="text-sm text-zinc-500">
-                Prefer <a href="#webhooks" className="text-accent hover:underline">webhooks</a> over
-                polling — register a callback URL and receive events when checks complete or fail.
-              </p>
-            </div>
           </section>
 
           {/* Divider */}
           <div className="border-t border-zinc-200 my-12 md:my-16" />
 
-          {/* Batch Submission */}
-          <section id="batch" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="06" label="Batch Mode" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
-              Multi-Claim Submission
-            </h2>
-
-            <div className="space-y-6 text-base text-zinc-600 leading-relaxed">
-              <p>
-                Submit up to <strong className="text-zinc-900">10 claims</strong> in a single call.
-                All claims run concurrently in the background at the same tier. Each creates its own
-                check with a separate poll URL.
-              </p>
-
-              <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`curl -X POST https://api.trueight.com/api/v1/agent/batch \\
-  -H "X-API-Key: $TRU8_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "tier": "quick",
-    "claims": [
-      { "claim": "Global sea levels rose 3.6mm per year since 2006" },
-      { "claim": "The Amazon rainforest produces 20% of world oxygen" },
-      { "claim": "Electric vehicles have lower lifetime emissions than petrol cars" }
-    ]
-  }'
-
-# Response: 202 Accepted
-{
-  "accepted": 3,
-  "tier": "quick",
-  "totalChargedPence": 21,
-  "estimatedSeconds": 15,
-  "checks": [
-    { "index": 0, "checkId": "...", "pollUrl": "/api/v1/agent/result/..." },
-    { "index": 1, "checkId": "...", "pollUrl": "/api/v1/agent/result/..." },
-    { "index": 2, "checkId": "...", "pollUrl": "/api/v1/agent/result/..." }
-  ]
-}`}
-              </pre>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="bg-zinc-50 border border-zinc-200 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Layers size={14} className="text-accent" />
-                    <p className="text-xs font-semibold text-zinc-900">Upfront balance check</p>
-                  </div>
-                  <p className="text-xs text-zinc-500">
-                    Total cost is verified before any claims are submitted. If your balance
-                    can&apos;t cover all claims, the entire batch is rejected with 402.
-                  </p>
-                </div>
-                <div className="bg-zinc-50 border border-zinc-200 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Bell size={14} className="text-accent" />
-                    <p className="text-xs font-semibold text-zinc-900">Webhook per claim</p>
-                  </div>
-                  <p className="text-xs text-zinc-500">
-                    Each claim fires its own <code className="text-zinc-400">check.completed</code> or{' '}
-                    <code className="text-zinc-400">check.failed</code> webhook event independently.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
-                <div className="text-xs text-zinc-600">
-                  <p className="font-semibold text-zinc-900 mb-1">Idempotency in batch</p>
-                  <p>
-                    If you send an <code className="text-zinc-400">Idempotency-Key</code> header, each claim
-                    receives a derived key (<code className="text-zinc-400">your-key_0</code>,{' '}
-                    <code className="text-zinc-400">your-key_1</code>, etc). Safe to retry the
-                    entire batch on network failure.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Divider */}
-          <div className="border-t border-zinc-200 my-12 md:my-16" />
-
-          {/* Webhooks */}
-          <section id="webhooks" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="07" label="Webhooks" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
-              Event Notifications
-            </h2>
-
-            <div className="space-y-6 text-base text-zinc-600 leading-relaxed">
-              <p>
-                Register a webhook URL in your{' '}
-                <Link href="/dashboard/settings?tab=developer" className="text-accent hover:underline">
-                  dashboard settings
-                </Link>
-                {' '}to receive POST callbacks when checks complete or fail. No polling required.
-              </p>
-
-              <div className="space-y-4">
-                {[
-                  {
-                    event: 'check.completed',
-                    desc: 'Pipeline finished successfully. Result is ready to retrieve.',
-                    payload: '{ "checkId": "...", "status": "completed", "tier": "quick" }',
-                  },
-                  {
-                    event: 'check.failed',
-                    desc: 'Pipeline error or timeout. Credits have been refunded.',
-                    payload: '{ "checkId": "...", "status": "failed", "error": "Pipeline timed out" }',
-                  },
-                ].map((wh) => (
-                  <div key={wh.event} className="border border-zinc-200 p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Radio size={14} className="text-accent" />
-                      <code className="text-sm font-mono font-semibold text-zinc-900">{wh.event}</code>
-                    </div>
-                    <p className="text-sm text-zinc-600 mb-3">{wh.desc}</p>
-                    <pre className="bg-zinc-950 text-zinc-300 p-3 overflow-x-auto text-xs font-mono">
-{wh.payload}
-                    </pre>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
-                <div className="text-xs text-zinc-600">
-                  <p className="font-semibold text-zinc-900 mb-1">Delivery guarantee</p>
-                  <p>
-                    Webhooks are delivered best-effort with automatic retries (2 attempts, exponential backoff).
-                    If your endpoint returns a non-2xx status, delivery is retried. Design your handler to be
-                    idempotent — you may receive the same event more than once.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Divider */}
-          <div className="border-t border-zinc-200 my-12 md:my-16" />
-
-          {/* Agent Discovery */}
-          <section id="discovery" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="08" label="Agent Discovery" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
-              Self-Service Endpoints
-            </h2>
-
-            <div className="space-y-6 text-base text-zinc-600 leading-relaxed">
-              <p>
-                These endpoints let agents inspect the API programmatically — check availability,
-                discover pricing, and verify their own identity before submitting work.
-              </p>
-
-              <div className="space-y-3">
-                {[
-                  {
-                    method: 'GET',
-                    path: '/agent/health',
-                    desc: 'API and dependency status (database, Redis). No auth required.',
-                    auth: false,
-                  },
-                  {
-                    method: 'GET',
-                    path: '/agent/tiers',
-                    desc: 'Available tiers with per-call pricing (pence) and estimated latency. No auth required.',
-                    auth: false,
-                  },
-                  {
-                    method: 'GET',
-                    path: '/agent/me',
-                    desc: 'Authenticated identity, provider type, and current credit balance.',
-                    auth: true,
-                  },
-                  {
-                    method: 'GET',
-                    path: '/agent/stats',
-                    desc: 'Usage analytics — transactions by tier and provider, total agent checks.',
-                    auth: true,
-                  },
-                  {
-                    method: 'GET',
-                    path: '/agent/credits/balance',
-                    desc: 'Current prepaid credit balance in pence.',
-                    auth: true,
-                  },
-                ].map((ep) => (
-                  <div key={ep.path} className="flex items-start gap-4 border border-zinc-200 p-4">
-                    <div className="flex-shrink-0">
-                      <span className="inline-block font-mono text-[10px] font-bold tracking-wider bg-zinc-100 text-zinc-500 px-2 py-1">
-                        {ep.method}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <code className="text-sm font-mono font-semibold text-zinc-900">{ep.path}</code>
-                      <p className="text-sm text-zinc-600 mt-1">{ep.desc}</p>
-                    </div>
-                    <div className="flex-shrink-0">
-                      {ep.auth ? (
-                        <span className="font-mono text-[10px] text-zinc-400 bg-zinc-50 px-2 py-1 border border-zinc-100">auth</span>
-                      ) : (
-                        <span className="font-mono text-[10px] text-zinc-300 bg-zinc-50 px-2 py-1 border border-zinc-100">public</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-sm text-zinc-500">
-                An agent can call <code className="text-zinc-400">/agent/health</code> to confirm the API is live,
-                then <code className="text-zinc-400">/agent/tiers</code> to discover current pricing, then{' '}
-                <code className="text-zinc-400">/agent/me</code> to check its balance — all before submitting
-                a single claim.
-              </p>
-            </div>
-          </section>
-
-          {/* Divider */}
-          <div className="border-t border-zinc-200 my-12 md:my-16" />
-
-          {/* Rate Limits */}
-          <section id="rate-limits" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="09" label="Rate Limits" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
-              Throttling
-            </h2>
-
-            <div className="space-y-6 text-base text-zinc-600 leading-relaxed">
-              <p>
-                Rate limits are applied <strong className="text-zinc-900">per API key</strong>, not per IP address.
-                Agents sharing a cloud IP won&apos;t interfere with each other.
-              </p>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-zinc-200">
-                      <th className="text-left py-3 pr-4 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Endpoint group</th>
-                      <th className="text-left py-3 px-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Limit</th>
-                      <th className="text-left py-3 pl-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Scope</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-zinc-600">
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4"><code className="text-xs">POST /agent/lookup</code></td><td className="py-2 px-2">30/minute</td><td className="py-2 pl-2">Per API key</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4"><code className="text-xs">POST /agent/quick</code></td><td className="py-2 px-2">10/minute</td><td className="py-2 pl-2">Per API key</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4"><code className="text-xs">POST /agent/full</code></td><td className="py-2 px-2">5/minute</td><td className="py-2 pl-2">Per API key</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4"><code className="text-xs">POST /agent/check</code></td><td className="py-2 px-2">10/minute</td><td className="py-2 pl-2">Per API key</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4"><code className="text-xs">POST /agent/batch</code></td><td className="py-2 px-2">5/minute</td><td className="py-2 pl-2">Per API key</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4"><code className="text-xs">GET /agent/result/*</code></td><td className="py-2 px-2">30/minute</td><td className="py-2 pl-2">Per API key</td></tr>
-                    <tr><td className="py-2 pr-4"><code className="text-xs">GET /agent/health, /tiers, /me</code></td><td className="py-2 px-2">60/minute</td><td className="py-2 pl-2">Per API key</td></tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <p className="text-sm text-zinc-500">
-                Pipeline endpoints also enforce a <strong className="text-zinc-700">concurrency limit</strong> of 5 simultaneous
-                processing checks per API key. If you hit this limit, you&apos;ll receive a 429 with a
-                <code className="text-zinc-400 ml-1">Retry-After: 30</code> header.
-              </p>
-            </div>
-          </section>
-
-          {/* Divider */}
-          <div className="border-t border-zinc-200 my-12 md:my-16" />
-
-          {/* Error Codes */}
-          <section id="errors" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="10" label="Error Handling" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
-              Error Codes
-            </h2>
-
-            <div className="space-y-6 text-base text-zinc-600 leading-relaxed">
-              <p>
-                All errors return JSON with a <code className="text-zinc-400">detail</code> field. Agents should
-                handle these programmatically — retry on 429/504, alert on 402, and log on 502.
-              </p>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-zinc-200">
-                      <th className="text-left py-3 pr-4 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Code</th>
-                      <th className="text-left py-3 px-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Meaning</th>
-                      <th className="text-left py-3 pl-2 font-mono text-[10px] tracking-widest uppercase text-zinc-400">Agent action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-zinc-600">
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4 font-mono text-xs">401</td><td className="py-2 px-2">Missing or invalid API key</td><td className="py-2 pl-2 text-xs text-zinc-500">Check X-API-Key header</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4 font-mono text-xs">402</td><td className="py-2 px-2">Insufficient credit balance</td><td className="py-2 pl-2 text-xs text-zinc-500">Top up via /agent/credits/purchase</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4 font-mono text-xs">404</td><td className="py-2 px-2">Check not found or not owned</td><td className="py-2 pl-2 text-xs text-zinc-500">Verify check ID and ownership</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4 font-mono text-xs">409</td><td className="py-2 px-2">Idempotency key reused with different params</td><td className="py-2 pl-2 text-xs text-zinc-500">Use a new idempotency key</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4 font-mono text-xs">429</td><td className="py-2 px-2">Rate limit or concurrency limit exceeded</td><td className="py-2 pl-2 text-xs text-zinc-500">Wait for Retry-After header value</td></tr>
-                    <tr className="border-b border-zinc-50"><td className="py-2 pr-4 font-mono text-xs">502</td><td className="py-2 px-2">Pipeline processing error</td><td className="py-2 pl-2 text-xs text-zinc-500">Retry with same idempotency key</td></tr>
-                    <tr><td className="py-2 pr-4 font-mono text-xs">504</td><td className="py-2 px-2">Pipeline timed out (no charge)</td><td className="py-2 pl-2 text-xs text-zinc-500">Retry — consider async mode</td></tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
-                <div className="text-xs text-zinc-600">
-                  <p className="font-semibold text-zinc-900 mb-1">Refund policy</p>
-                  <p>
-                    Pipeline errors (502) and timeouts (504) are automatically refunded — credits are returned
-                    to your balance immediately. Only successful completions are charged.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Divider */}
-          <div className="border-t border-zinc-200 my-12 md:my-16" />
-
-          {/* Response Shape */}
+          {/* What you get back — concepts, not a schema dump. The generated API
+              reference is the single source of truth for field-level shape;
+              duplicating it here is how this page drifted from the code before. */}
           <section id="response" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="11" label="Response Shape" />
+            <SheetHeader number="05" label="Response" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               What You Get Back
             </h2>
 
+            <p className="text-base text-zinc-600 leading-relaxed mb-8">
+              Every tier returns the same record. No verdict, no credibility score — a landscape your
+              agent can reason over.
+            </p>
+
+            <dl className="space-y-4 mb-8">
+              {[
+                {
+                  key: 'claims[]',
+                  body: 'Each claim decomposed into 1–5 elements — the separate things that must hold for the claim to hold.',
+                },
+                {
+                  key: 'elements[].state',
+                  body: 'supported, disputed, unresolved, or contextual — the last meaning related evidence exists but none of it directly bears on the element. Derived mechanically from what is mapped to that element, never asserted by a model on its own.',
+                },
+                {
+                  key: 'elements[].evidenceRefs[]',
+                  body: 'The link between an element and a source: relationship (supports / challenges / context) plus one sentence of reasoning.',
+                },
+                {
+                  key: 'evidence[]',
+                  body: 'Every source classified by tier (primary / reporting / commentary) and type (data / official / news / analysis / opinion / academic), with snippet, published date and archive URL.',
+                },
+                {
+                  key: '_meta',
+                  body: 'executedTier, chargedPence, limitations, and a landscape block covering element states, source diversity, freshness and named gaps.',
+                },
+                {
+                  key: '_computed',
+                  body: 'Ready-made analytics — tier and type distributions, corroboration groups, diagnostic values. Included by default; send compact: true to drop it and the evidence arrays.',
+                },
+                {
+                  key: '_manifest',
+                  body: 'A signed hash of the landscape plus a verifyUrl. Null when manifest signing is not enabled on the deployment serving you.',
+                },
+              ].map((row) => (
+                <div key={row.key} className="border-l-2 border-zinc-200 pl-4">
+                  <dt className="font-mono text-sm font-semibold text-zinc-900">{row.key}</dt>
+                  <dd className="text-sm text-zinc-600 mt-1 leading-relaxed">{row.body}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <p className="text-sm text-zinc-500 mb-3 font-mono text-xs tracking-wide uppercase">
+              _meta, abridged
+            </p>
             <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
-{`{
-  "id": "check-uuid",
-  "status": "completed",
-  "claims": [
-    {
-      "text": "Global average temperature rose 1.1°C since pre-industrial times",
-      "claimType": "statistical",
-      "claimMap": {
-        "elements": [
-          {
-            "elementId": "e1",
-            "text": "Global average temperature increase",
-            "state": "supported",
-            "evidenceRefs": [
-              {
-                "evidenceId": "ev1",
-                "relationship": "supports",
-                "reasoning": "NASA GISS dataset confirms 1.1°C anomaly..."
-              }
-            ]
-          }
-        ],
-        "orientation": "Evidence broadly supports this claim..."
-      },
-      "evidence": [
-        {
-          "evidenceId": "ev1",
-          "title": "GISS Surface Temperature Analysis",
-          "url": "https://data.giss.nasa.gov/gistemp/",
-          "tier": "primary",
-          "evidenceType": "data",
-          "snippet": "Global mean surface temperature anomaly..."
-        }
-      ]
-    }
+{`"_meta": {
+  "executedTier": "quick",
+  "chargedPence": 7,
+  "limitations": [
+    "heuristic_classification", "no_api_sources", "no_coverage_recovery",
+    "no_factcheck_lookup", "reduced_query_breadth", ...
   ],
-  "_meta": {
-    "executedTier": "quick",
-    "chargedPence": 7,
-    "limitations": ["heuristic_classification", "no_coverage_recovery"],
-    "cached": false,
-    "landscape": {
-      "sourceDiversity": { "uniqueDomains": 5, "typeCoverage": 3 },
-      "freshness": { "freshestDaysAgo": 2, "undatedCount": 1 },
-      "gaps": [],
-      "providerStatus": null
-    }
-  },
-  "_manifest": {
-    "checkId": "check-uuid",
-    "landscapeHash": "a1b2c3d4...",
-    "signedAt": "2026-03-09T12:00:00Z",
-    "signature": "hmac-sha256:...",
-    "kid": "tru8-2026-03",
-    "verifyUrl": "/verify/check-uuid"
-  },
-  "_computed": {
-    "summary": { "totalElements": 3, "supported": 2, "disputed": 0, "unresolved": 1 },
-    "evidenceByTier": { "primary": 4, "reporting": 8, "commentary": 2 },
-    "evidenceByType": { "data": 3, "official": 2, "news": 5, "analysis": 3, "academic": 1 },
-    "corroboration": { "groups": [...], "convergenceCount": 3 },
-    "diagnosticValues": [...]
+  "landscape": {
+    "elementCount": 3,
+    "elementStates": { "supported": 2, "unresolved": 1 },
+    "sourceDiversity": { "uniqueDomains": 5, "typeCoverage": 3 },
+    "freshness": { "freshestDaysAgo": 2, "undatedCount": 1 },
+    "gaps": [{ "reason": "no_primary_sources" }],
+    "providerStatus": null
   }
 }`}
             </pre>
 
-            <div className="mt-6 space-y-3">
-              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
-                <div className="text-xs text-zinc-600">
-                  <p className="font-semibold text-zinc-900 mb-1">claims[].claimMap</p>
-                  <p>Each claim is decomposed into 1–5 elements. Evidence maps to elements with relationship types (supports/challenges/context) and reasoning.</p>
-                </div>
-              </div>
-              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
-                <div className="text-xs text-zinc-600">
-                  <p className="font-semibold text-zinc-900 mb-1">_meta vs _computed</p>
-                  <p><code className="text-zinc-400">_meta</code> is always present — tier, cost, limitations, landscape. <code className="text-zinc-400">_computed</code> requires <code className="text-zinc-400">?computed=true</code> — adds analytics, corroboration, diagnostics.</p>
-                </div>
-              </div>
-              <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4">
-                <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
-                <div className="text-xs text-zinc-600">
-                  <p className="font-semibold text-zinc-900 mb-1">_manifest</p>
-                  <p>HMAC-signed manifest. Agents can verify the signed fields haven&apos;t changed since signing via <code className="text-zinc-400">GET /verify/{'{'}<span>check_id</span>{'}'}</code>.</p>
-                </div>
+            <div className="flex gap-3 bg-zinc-50 border border-zinc-200 p-4 mt-6">
+              <div className="flex-shrink-0 w-6 h-6 bg-zinc-100 text-zinc-500 flex items-center justify-center font-mono text-xs font-bold rounded">?</div>
+              <div className="text-xs text-zinc-600">
+                <p className="font-semibold text-zinc-900 mb-1">limitations is the honest part</p>
+                <p>
+                  It is derived from the pipeline configuration rather than written by hand, so it cannot
+                  drift from what the tier actually skipped. A quick call returns eleven entries. A full
+                  call returns none. If you are served a cached analysis produced at a lower tier,{' '}
+                  <code className="text-zinc-400">cachedTier</code> says so.
+                </p>
               </div>
             </div>
+
+            <p className="text-sm text-zinc-500 mt-6">
+              Field-by-field schemas for every endpoint live in the{' '}
+              <Link
+                href={`${API_BASE}/api/docs`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent underline underline-offset-2 hover:text-zinc-900"
+              >
+                interactive reference
+              </Link>
+              , generated from the running API.
+            </p>
+          </section>
+
+          {/* Divider */}
+          <div className="border-t border-zinc-200 my-12 md:my-16" />
+
+          {/* Limits, errors & webhooks — operational surface, kept short.
+              Legacy anchors preserved so older inbound links still land. */}
+          <section id="limits" className="mb-16 md:mb-20 scroll-mt-28">
+            <span id="rate-limits" className="block scroll-mt-28" aria-hidden="true" />
+            <span id="errors" className="block scroll-mt-28" aria-hidden="true" />
+            <span id="webhooks" className="block scroll-mt-28" aria-hidden="true" />
+            <span id="async" className="block scroll-mt-28" aria-hidden="true" />
+            <span id="batch" className="block scroll-mt-28" aria-hidden="true" />
+            <span id="discovery" className="block scroll-mt-28" aria-hidden="true" />
+            <SheetHeader number="06" label="Operations" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
+              Limits, Errors, Webhooks
+            </h2>
+
+            <div className="space-y-8 text-base text-zinc-600 leading-relaxed">
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 mb-3">Rate limits</h3>
+                <p className="text-sm mb-4">
+                  Applied <strong className="text-zinc-900">per API key</strong>, not per IP — agents sharing
+                  a cloud IP do not interfere with each other.
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <tbody className="text-zinc-600">
+                      <tr className="border-b border-zinc-100"><td className="py-2 pr-4"><code className="text-xs">POST /agent/full · /agent/batch</code></td><td className="py-2 pl-2 font-mono text-xs">5 / minute</td></tr>
+                      <tr className="border-b border-zinc-100"><td className="py-2 pr-4"><code className="text-xs">POST /agent/check · /agent/quick</code></td><td className="py-2 pl-2 font-mono text-xs">10 / minute</td></tr>
+                      <tr className="border-b border-zinc-100"><td className="py-2 pr-4"><code className="text-xs">POST /agent/lookup · GET /agent/result/*</code></td><td className="py-2 pl-2 font-mono text-xs">30 / minute</td></tr>
+                      <tr><td className="py-2 pr-4"><code className="text-xs">GET /agent/health · /tiers · /me · /credits/balance</code></td><td className="py-2 pl-2 font-mono text-xs">60 / minute</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-sm text-zinc-500 mt-4">
+                  Pipeline endpoints also cap <strong className="text-zinc-700">5 simultaneous processing checks</strong>{' '}
+                  per key. Exceeding either limit returns 429 with a{' '}
+                  <code className="text-zinc-400">Retry-After</code> header.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 mb-3">Errors worth handling</h3>
+                <p className="text-sm">
+                  Every error returns JSON with a <code className="text-zinc-400">detail</code> field. Four
+                  matter operationally: <strong className="text-zinc-900">402</strong> means top up (
+                  <code className="text-zinc-400">/agent/credits/purchase</code>);{' '}
+                  <strong className="text-zinc-900">429</strong> means wait for{' '}
+                  <code className="text-zinc-400">Retry-After</code>;{' '}
+                  <strong className="text-zinc-900">409</strong> means an{' '}
+                  <code className="text-zinc-400">Idempotency-Key</code> was reused with different
+                  parameters; <strong className="text-zinc-900">502</strong> is a pipeline failure and
+                  refunds your credits, <strong className="text-zinc-900">504</strong> is a timeout and
+                  applies no charge at all. Either way you are{' '}
+                  <strong className="text-zinc-900">not billed for work that did not complete</strong>. The
+                  full code list is in the API reference.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 mb-3">Webhooks</h3>
+                <p className="text-sm mb-4">
+                  Register a callback with your API key and skip polling. Up to 5 active webhooks per
+                  account; HTTPS and public addresses only.
+                </p>
+                <pre className="bg-zinc-950 text-zinc-300 p-4 overflow-x-auto text-xs font-mono leading-relaxed">
+{`curl -X POST https://api.trueight.com/api/v1/webhooks \\
+  -H "X-API-Key: $TRU8_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"url": "https://example.com/hooks/tru8",
+       "events": ["check.completed", "check.failed"]}'
+
+# The response carries a signing secret, shown once. Store it.`}
+                </pre>
+
+                <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                  <div className="bg-zinc-50 border border-zinc-200 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Radio size={14} className="text-accent" />
+                      <p className="text-xs font-semibold text-zinc-900">Payload shape</p>
+                    </div>
+                    <pre className="bg-zinc-950 text-zinc-300 p-3 overflow-x-auto text-[11px] font-mono leading-relaxed">
+{`{
+  "event": "check.completed",
+  "timestamp": "2026-08-06T12:00:00Z",
+  "data": {
+    "checkId": "...",
+    "status": "completed",
+    "tier": "quick"
+  }
+}`}
+                    </pre>
+                  </div>
+                  <div className="bg-zinc-50 border border-zinc-200 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Bell size={14} className="text-accent" />
+                      <p className="text-xs font-semibold text-zinc-900">Verify before you trust it</p>
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      Each delivery carries <code className="text-zinc-400">X-Tru8-Signature</code>: an
+                      HMAC-SHA256 hex digest of the raw body, keyed with your signing secret. Recompute it
+                      and compare before acting. <code className="text-zinc-400">X-Tru8-Event</code> names
+                      the event.
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-zinc-500 mt-4">
+                  Delivery is best-effort: 2 attempts with exponential backoff, and a webhook is
+                  deactivated after 10 consecutive failures. Make your handler idempotent — the same event
+                  may arrive twice. <code className="text-zinc-400">check.failed</code> carries an{' '}
+                  <code className="text-zinc-400">error</code> string in place of the tier, and its credits
+                  have already been refunded.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Divider */}
+          <div className="border-t border-zinc-200 my-12 md:my-16" />
+
+          {/* FAQ */}
+          <section id="faq" className="mb-16 md:mb-20 scroll-mt-28">
+            <SheetHeader number="07" label="FAQ" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-8 md:mb-10">
+              Frequently asked questions
+            </h2>
+            <dl className="divide-y divide-zinc-100 border-t border-zinc-100">
+              {DEV_FAQS.map((item) => (
+                <div key={item.q} className="py-6 md:py-7">
+                  <dt className="text-base md:text-lg font-semibold text-zinc-900 mb-2">
+                    {item.q}
+                  </dt>
+                  <dd className="text-sm md:text-base text-zinc-600 leading-relaxed">
+                    {item.a}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </section>
 
           {/* Divider */}
@@ -926,14 +812,18 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
 
           {/* API Docs + Resources */}
           <section id="docs" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="12" label="Resources" />
+            <SheetHeader number="08" label="Resources" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-6 md:mb-8">
               Documentation
             </h2>
 
+            <p className="text-base text-zinc-600 leading-relaxed mb-8">
+              Both references are generated from the running API, so they cannot fall behind it.
+            </p>
+
             <div className="grid md:grid-cols-2 gap-6">
               <Link
-                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/docs`}
+                href={`${API_BASE}/api/docs`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border border-zinc-200 p-6 hover:border-zinc-400 transition-colors group"
@@ -949,7 +839,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
               </Link>
 
               <Link
-                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/redoc`}
+                href={`${API_BASE}/api/redoc`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border border-zinc-200 p-6 hover:border-zinc-400 transition-colors group"
@@ -976,29 +866,6 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
             </p>
           </section>
 
-          {/* Divider */}
-          <div className="border-t border-zinc-200 my-12 md:my-16" />
-
-          {/* FAQ */}
-          <section id="faq" className="mb-16 md:mb-20 scroll-mt-28">
-            <SheetHeader number="13" label="FAQ" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-zinc-900 mb-8 md:mb-10">
-              Frequently asked questions
-            </h2>
-            <dl className="divide-y divide-zinc-100 border-t border-zinc-100">
-              {DEV_FAQS.map((item) => (
-                <div key={item.q} className="py-6 md:py-7">
-                  <dt className="text-base md:text-lg font-semibold text-zinc-900 mb-2">
-                    {item.q}
-                  </dt>
-                  <dd className="text-sm md:text-base text-zinc-600 leading-relaxed">
-                    {item.a}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-
           {/* CTA */}
           <div className="mt-16 md:mt-20 text-center border border-zinc-200 p-8 md:p-12">
             <div className="flex justify-center mb-4">
@@ -1023,7 +890,7 @@ curl "https://api.trueight.com/api/v1/agent/result/abc-123" \\
           {/* Mono metadata footer */}
           <div className="mt-12 pt-6 border-t border-zinc-100">
             <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-400">
-              TRU8 — DEVELOPERS — V1.1
+              TRU8 — DEVELOPERS — V2.0
             </span>
           </div>
         </div>

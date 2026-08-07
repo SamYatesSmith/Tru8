@@ -21,9 +21,16 @@ classifiers = [
 dependencies = [
     # UPPER BOUND IS LOAD-BEARING. mcp 2.0.0 REMOVED mcp.server.fastmcp,
     # which server.py imports, so `mcp>=1.0.0` resolved to 2.0.0 and every
-    # fresh `pip install tru8-mcp` died on ImportError. Lower bound is 1.2
-    # because that is where fastmcp was introduced.
-    "mcp>=1.2,<2",
+    # fresh `pip install tru8-mcp` died on ImportError.
+    #
+    # LOWER BOUND RAISED 1.2 -> 1.12 (2026-08-06): server.py now passes
+    # `annotations=ToolAnnotations(...)` to @mcp.tool(). On an SDK without that
+    # keyword the decorator raises TypeError at IMPORT time, which for the
+    # hosted transport means the API does not boot. Verified against the 1.12.4
+    # sdist: `FastMCP.tool(name, title, description, annotations,
+    # structured_output)` — present. Do not lower this without re-checking that
+    # signature in the target version.
+    "mcp>=1.12,<2",
     "httpx>=0.25.0",
 ]
 

@@ -3,7 +3,7 @@
 Covers:
 - Success: returns check data for completed check owned by user
 - Wrong user: check owned by different user → 404
-- Not completed: check still processing → 409
+- Not completed: check still processing → 200 with a status body (async polling)
 """
 
 import json

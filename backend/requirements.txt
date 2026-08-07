@@ -48,7 +48,11 @@ PyPDF2>=3.0.0  # Phase 2: PDF page extraction
 pdfplumber>=0.10.0  # Phase 2: PDF text extraction with page numbers
 
 # MCP (Model Context Protocol)
-mcp[cli]>=1.2,<2  # H-API-07: MCP server for AI agent discovery.
+# Floor raised 1.2 -> 1.12 (2026-08-06) to match tru8_mcp/pyproject.toml: the
+# API imports tru8_mcp.server to mount the hosted transport, and that module
+# now passes `annotations=` to @mcp.tool() — a TypeError at import, i.e. no
+# boot at all, on an SDK that predates the keyword.
+mcp[cli]>=1.12,<2  # H-API-07: MCP server for AI agent discovery.
                   # UPPER BOUND IS LOAD-BEARING: mcp 2.0.0 removed
                   # mcp.server.fastmcp, which tru8_mcp/server.py imports.
 

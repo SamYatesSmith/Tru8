@@ -22,12 +22,23 @@ Environment variables:
 
 import json
 from importlib.metadata import PackageNotFoundError, version as _package_version
-from typing import Optional
+from typing import Annotated, Optional
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
+from pydantic import Field
 
 from . import __version__
 from .tools import Tru8APIClient
+
+# Icon reached mcp.types with the 2025-11-25 spec; the floor we support (1.12)
+# predates it. Import defensively rather than raising the floor further — an
+# icon in serverInfo is a nicety, and the registries that matter carry their
+# own.
+try:  # pragma: no cover - exercised by whichever SDK the caller installed
+    from mcp.types import Icon
+except ImportError:
+    Icon = None
 
 mcp = FastMCP(
     "tru8",
@@ -54,6 +65,27 @@ except PackageNotFoundError:
     _SERVER_VERSION = __version__
 
 mcp._mcp_server.version = _SERVER_VERSION
+
+# serverInfo.websiteUrl + icons — the 2025-11-25 spec's own channel for "where
+# does this server come from, what does it look like" (2026-08-06).
+#
+# Assignment, not a constructor argument, for the same reason `version` is: the
+# low-level Server gained these fields after the floor we support, so on an
+# older SDK these are inert attributes nobody reads, and on a current one they
+# reach the client in the initialize response. Neither case raises.
+#
+# This does NOT feed Smithery's metadata score — that reads its own registry
+# record, set via their API. It serves every other client and registry that
+# reads what the server says about itself.
+mcp._mcp_server.website_url = "https://www.trueight.com/developers"
+if Icon is not None:
+    mcp._mcp_server.icons = [
+        Icon(
+            src="https://www.trueight.com/apple-touch-icon.png",
+            mimeType="image/png",
+            sizes=["180x180"],
+        )
+    ]
 
 
 def _request_api_key() -> Optional[str]:
@@ -115,12 +147,65 @@ def _format(data: dict) -> str:
     return json.dumps(data, indent=2, default=str)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(
+        title="Evidence research",
+        # Honest, not flattering. This tool creates a check and spends the
+        # caller's credits, so a client that hides confirmation for read-only
+        # tools must NOT hide it for this one. Repeating a call can charge
+        # again, hence not idempotent; it searches the live web, hence open
+        # world; it destroys nothing.
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    )
+)
 async def tru8_check(
-    claim: str,
-    max_tier: str = "full",
-    max_age_hours: int | None = None,
-    compact: bool = False,
+    claim: Annotated[
+        str,
+        Field(
+            description=(
+                "A factual claim (\"The Earth's average temperature rose 1.1°C "
+                'since 1880") or an article URL (https://example.com/article). '
+                "URLs are auto-detected and the pipeline extracts claims from "
+                "the page content."
+            )
+        ),
+    ],
+    max_tier: Annotated[
+        str,
+        Field(
+            description=(
+                'Maximum tier to attempt — "lookup", "consensus", "quick" or '
+                '"full" (default). A CEILING, not a floor: cached and consensus '
+                "hits still return instantly at their own lower price, so the "
+                "default costs ~£0.15 only for claims never researched before. "
+                'Set "quick" to cap spend at ~£0.07, accepting web-search-only '
+                "sourcing and heuristic classification (see _meta.limitations)."
+            )
+        ),
+    ] = "full",
+    max_age_hours: Annotated[
+        Optional[int],
+        Field(
+            description=(
+                "Skip cache hits older than this many hours. Stale lookup hits "
+                "are discarded and the pipeline re-runs at the next tier up to "
+                "max_tier. 0 means never serve a cached result."
+            )
+        ),
+    ] = None,
+    compact: Annotated[
+        bool,
+        Field(
+            description=(
+                "If true, strip the full evidence arrays and computed analytics "
+                "from the response, leaving claims and claim maps. Smaller "
+                "payload for agents that only need orientation."
+            )
+        ),
+    ] = False,
 ) -> str:
     """Evidence research for a factual claim or article URL.
 
@@ -147,22 +232,9 @@ async def tru8_check(
     - claims[].claimMap.orientation — mechanical summary from element states
     - _meta — execution metadata: executedTier, chargedPence, limitations
 
-    Args:
-        claim: A factual claim ("The Earth's average temperature rose 1.1°C
-               since 1880") or an article URL (https://example.com/article).
-               URLs are auto-detected and the pipeline extracts claims from
-               the page content.
-        max_tier: Maximum tier to attempt — "lookup", "consensus", "quick", or
-                  "full" (default). This is a CEILING, not a floor: cached and
-                  consensus hits still return instantly at their own lower
-                  price, so the default costs ~£0.15 only for claims that have
-                  never been researched. Set "quick" to cap spend at ~£0.07,
-                  accepting web-search-only sourcing and heuristic
-                  classification (see the limitations list in _meta).
-        max_age_hours: Skip cache hits older than this many hours. If set,
-                       lookup hits that are stale will be discarded and the
-                       pipeline re-runs at the next tier up to max_tier.
-        compact: If True, strip full evidence arrays from response (smaller payload).
+    Per-argument guidance lives on the parameters themselves (see the
+    Annotated/Field declarations above), which is where a client can actually
+    read it — a docstring "Args:" block never reaches the tool's inputSchema.
     """
     client = _get_client()
     result = await client.submit_with_fallback(
@@ -174,8 +246,27 @@ async def tru8_check(
     return _format(result)
 
 
-@mcp.tool()
-async def tru8_get_result(check_id: str) -> str:
+@mcp.tool(
+    annotations=ToolAnnotations(
+        title="Get result (with analytics)",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    )
+)
+async def tru8_get_result(
+    check_id: Annotated[
+        str,
+        Field(
+            description=(
+                "The check UUID returned by tru8_check. Retrieval is free and "
+                "limited to your own checks; a check still running returns its "
+                "status rather than a result, so this is also the poll call."
+            )
+        ),
+    ],
+) -> str:
     """Retrieve a previously submitted check with pre-computed analytics.
 
     Returns the full result including a _computed block with tier/type
@@ -184,25 +275,37 @@ async def tru8_get_result(check_id: str) -> str:
 
     Use this over tru8_get_result_raw when you want structured analytics
     ready for summarisation or comparison without post-processing.
-
-    Args:
-        check_id: UUID returned by tru8_check.
     """
     client = _get_client()
     result = await client.get_check(check_id, computed=True)
     return _format(result)
 
 
-@mcp.tool()
-async def tru8_get_result_raw(check_id: str) -> str:
+@mcp.tool(
+    annotations=ToolAnnotations(
+        title="Get result (raw)",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    )
+)
+async def tru8_get_result_raw(
+    check_id: Annotated[
+        str,
+        Field(
+            description=(
+                "The check UUID returned by tru8_check. Same retrieval as "
+                "tru8_get_result, without the computed analytics block."
+            )
+        ),
+    ],
+) -> str:
     """Retrieve a previously submitted check without computed analytics.
 
     Returns claims, elements, evidence, and claim maps only. No _computed
     block. Smaller response payload. Use this when you will compute your
     own aggregations or only need specific fields from the raw data.
-
-    Args:
-        check_id: UUID returned by tru8_check.
     """
     client = _get_client()
     result = await client.get_check(check_id, computed=False)
