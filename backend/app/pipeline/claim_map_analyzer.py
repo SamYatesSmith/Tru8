@@ -1509,6 +1509,13 @@ class ClaimMapAnalyzer:
             label="mapping",
         )
 
+        # Capture the mapping model HERE, not where the metadata is written
+        # (2026-08-05). `_last_model_used` is instance state overwritten by
+        # every subsequent call, and the completion pass below runs on a
+        # different label — and therefore a different model — so reading it
+        # later reported the COMPLETION model as the mapping model.
+        mapping_model_used = self._last_model_used
+
         if parsed is not None:
             try:
                 self._parse_mapping_response(parsed, claim_map, evidence_list)
@@ -1551,7 +1558,7 @@ class ClaimMapAnalyzer:
         apply_orientation(claim_map)
 
         # Set mapping metadata
-        model_used = "fallback" if parsed is None else self._last_model_used
+        model_used = "fallback" if parsed is None else mapping_model_used
         claim_map["metadata"]["mapping_model"] = model_used
         claim_map["metadata"]["element_count"] = len(claim_map["elements"])
         claim_map["metadata"]["completed_at"] = datetime.now(timezone.utc).isoformat()
@@ -1728,6 +1735,10 @@ class ClaimMapAnalyzer:
             label="batch_mapping",
         )
 
+        # See map_evidence_to_elements: capture before the completion pass runs,
+        # or the metadata reports whichever model spoke last.
+        mapping_model_used = self._last_model_used
+
         failed_indices: List[int] = []
 
         if parsed is not None and isinstance(parsed.get("claims"), list):
@@ -1799,7 +1810,7 @@ class ClaimMapAnalyzer:
 
         # Derive orientation + set metadata for successfully batch-mapped claims
         # (failed claims get this via per-claim map_evidence_to_elements)
-        model_used = self._last_model_used
+        model_used = mapping_model_used
         for i, item in enumerate(with_evidence):
             if i not in failed_set:
                 cm = item["claim_map"]
