@@ -5,9 +5,106 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-07)
+## 🟢 START HERE — next session (updated 2026-08-10)
 
 **This block is what to do next. Everything below the divider is history.**
+
+---
+### ✅ SHIPPED 2026-08-10 — the brand went live, and Smithery went 53 → 92
+
+| Commit | What |
+|---|---|
+| `65ada92` | **The Möbius mark across the site.** Nav, mobile nav, footer, dashboard nav, hero. |
+| `4a74858` | **Raster app icons** — favicon, apple-touch, PWA, and the JSON-LD + email logos. |
+| `4c4f9d8` | **White rounded tile** behind the favicon. |
+| `958e4bf` | **Smithery backlink fix** — `/server/` → `/servers/`. |
+
+#### ONE logo, and the builder now enforces it
+The nav mark and the hero mark were **two different objects** — different band
+geometry (1:1.39 vs 1:2.15), different strand counts (7 vs 11), sharing only a
+name. Founder called it. `design/mobius-mark/build_assets.py` now holds ONE
+`BAND` and ONE `STYLE` that every asset inherits; only sampling fidelity varies
+by size. **The builder asserts all four emitted assets agree on aspect ratio**,
+measured from the viewBox (width/height round to whole pixels, so a 64px render
+disagrees with a 520px one in the third decimal). They cannot drift apart again
+without failing the build. Mirror the printed `ASPECT` into `tru8-mark.tsx`.
+
+Consequences: `Tru8Mark` is sized by **height**, not width; and the hero mark now
+stands beside the *whole* hero block, because flanking only the lower half made
+its height set a grid row the left column could not fill (~250px of dead white).
+
+#### Icons: the lattice does not survive small rasters
+At page opacity, **zero** pixels landed above half alpha at 16px or 32px — the
+favicon was a smudge with no solid ink in it. `build_icons.py` raises opacity and
+stroke weight (same object, more ink — the same class of decision as varying
+`samples`), and **prints the ink figures every run as a guard**. 16px is still
+honestly poor: the mark is ~6px across in a 16px square. Four alternative 16px
+treatments were rendered and compared; the full lattice won, so **no separate
+small-size logo was introduced**. `favicon_options.py` regenerates the comparison.
+
+⚠️ `favicon.proper.png` / `logo.proper.png` are now unreferenced but deliberately
+left in place — previous brand masters, not mine to delete.
+
+#### Smithery: 53 → 92/100, and the real breakdown is now known
+The published weightings (from the owner dashboard — **not** in their docs, not
+in their API, not in the public tooltip):
+
+| Group | Item | Pts |
+|---|---|---|
+| Capability Quality /40 | Descriptions 10.37 · Parameter descriptions 8.89 · Output schemas 10.37 · Annotations 5.93 · Naming 4.44 | 40 |
+| Server Metadata /35 | Description 12 · Homepage 12 · Icon 8 · Display name 3 | 35 |
+| Configuration UX /25 | Optional config 15 · Config schema 10 | 25 |
+
+Done: display name, description, homepage, repository set; **re-published**,
+which collected the parameter descriptions + annotations shipped on 7 August
+(they were live in our API the whole time — Smithery was scoring a 5-day-old
+scan). ⚠️ **Leave `apiKey` NOT required** — "Optional config" is worth 15pt and
+we hold 25/25 on it; making the key mandatory would likely forfeit that.
+
+**Still open, all founder-only:**
+1. **Icon (8pt → 100).** Settings → Server Icon → upload `web/public/icon-512.png`.
+   I cannot: the file input does not exist until clicked and opens a native
+   picker. ⚠️ Smithery defaulted to **Google's favicon proxy at 64px**, which is
+   serving a **stale grey figure-8 — the OLD mark**.
+2. **The listing is UNLISTED** — invisible in Smithery search, direct link only.
+   Worth more than the 8 points. Deliberately not flipped: publishing is a
+   founder call.
+3. **Verification** — release ✅, score >80 ✅, homepage ✅, backlink fixed
+   (`958e4bf`, needs a re-check after deploy). Outstanding: a **DNS TXT on
+   `www.trueight.com`** (`smithery-verification=6cc59aa96a3827ceb2b0f35c97ef129b72bb627f991704fbb68eb3907c603ae4`,
+   add as an ADDITIONAL value) and a **paid developer plan**. SmitheryBot/1.0
+   fetches us with a 200, so Cloudflare is not in the way.
+
+#### MCP protocol research (2026-08-10) — two findings worth acting on
+1. **Spec revision `2026-07-28` is current and removes the handshake and sessions
+   entirely.** We serve `2025-06-18` and refuse the new one (verified live).
+   Not urgent — dual-era clients fall back — and **no date exists** for when
+   they stop. Our `stateless_http` workaround becomes the norm, so the Smithery
+   scanner bug class is deleted by the new spec.
+2. ⚠️ **`Mcp-Method` / `Mcp-Name` are now mandatory headers and our `/mcp` CORS
+   preflight REJECTS them — verified 400 against production**, against a 200
+   control. Same bug as `mcp-session-id` in August, one revision later. One-line
+   fix in `app/middleware/mcp_cors.py` + a guard in `test_mcp_cors.py`. **NOT YET
+   DONE.**
+3. ⚠️ **`httpx==0.27.0` (requirements.txt:32) silently caps `mcp` at 1.12.4**, not
+   the 1.29.0 the comment at `main.py:507` claims. Proven by pip dry-run; mcp
+   1.13.0 raised its httpx floor to `>=0.27.1`. **Consequence already live:** the
+   `website_url`/`icons` serverInfo work of 6 August is **inert** — 1.12.4 has no
+   `Icon` class — and production's initialize response confirms it. Also means
+   the two transports run different SDK versions. **NOT YET DONE.**
+   `<2` stays: v2 renames `mcp.server.fastmcp` → `mcp.server.mcpserver`, and the
+   `get_context()` → `ctx: Context` change lands exactly on the per-request
+   credential seam. Unconfirmed and load-bearing: whether v2 still exposes
+   `query_params`, which is how Smithery's gateway passes `apiKey`.
+
+#### The SEO notifications the founder was seeing
+`tru8-visibility-loop` (`trig_01V123r4yXvRRr5vnSsiqKcf`), Mondays 08:00 UTC,
+enabled, **ran 2026-08-10 08:19 and committed nothing** (origin unchanged;
+on-site backlog was deliberately exhausted in July). It has a **Google Calendar
+connector attached that it cannot use** — its tools are Bash/Read/Write/Edit/
+Glob/Grep. Junk config, harmless. The "opens Google Maps" symptom matches
+**nothing** in either routine and is most likely a Google Business Profile
+notification, which is managed inside Maps.
 
 ---
 ### ✅ SHIPPED 2026-08-07 (morning) — the tree is down to what is genuinely undecided
