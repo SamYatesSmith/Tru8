@@ -3,7 +3,7 @@
   "name": "io.github.SamYatesSmith/tru8",
   "title": "Tru8 Evidence Research",
   "description": "Source-traced evidence research for AI agents. We organise the evidence; you decide.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "websiteUrl": "https://www.trueight.com/developers",
   "repository": {
     "url": "https://github.com/SamYatesSmith/Tru8",
@@ -33,6 +33,20 @@
         }
       ],
       "runtimeHint": "python -m tru8_mcp"
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.trueight.com/mcp/",
+      "headers": [
+        {
+          "name": "X-API-Key",
+          "description": "Tru8 API key (tru8_sk_...). Create at dashboard > Settings > Developer.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
     }
   ]
 }
