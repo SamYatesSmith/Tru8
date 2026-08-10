@@ -61,13 +61,16 @@ which collected the parameter descriptions + annotations shipped on 7 August
 scan). ⚠️ **Leave `apiKey` NOT required** — "Optional config" is worth 15pt and
 we hold 25/25 on it; making the key mandatory would likely forfeit that.
 
-**Still open, all founder-only:**
-1. **Icon (8pt → 100).** Settings → Server Icon → upload `web/public/icon-512.png`.
-   I cannot: the file input does not exist until clicked and opens a native
-   picker. ⚠️ Smithery defaulted to **Google's favicon proxy at 64px**, which is
-   serving a **stale grey figure-8 — the OLD mark**.
-2. **The listing is UNLISTED** — invisible in Smithery search, direct link only.
-   Worth more than the 8 points. Deliberately not flipped: publishing is a
+**✅ ICON DONE (founder uploaded it, 2026-08-10).** `iconUrl` is now
+`https://api.smithery.ai/servers/samyatessmith/tru8/icon`, and the bytes it
+serves are **identical (sha256) to `web/public/icon-512.png`** — 512x512, 52,040
+bytes. It had defaulted to **Google's favicon proxy at 64px**, which was serving
+a stale grey figure-8, i.e. the OLD mark. That is the 8th point, so the score
+should now read **100/100**.
+
+**Still open, founder-only:**
+1. **The listing is UNLISTED** — invisible in Smithery search, direct link only.
+   Worth more than any score point. Deliberately not flipped: publishing is a
    founder call.
 3. **Verification** — release ✅, score >80 ✅, homepage ✅, backlink fixed
    (`958e4bf`, needs a re-check after deploy). Outstanding: a **DNS TXT on
