@@ -11,7 +11,8 @@ export function Footer() {
     { label: 'Product', href: '/#record' },
     {
       label: 'Start a check',
-      href: '/dashboard',
+      // The check FORM, not the account overview — see stitch-hero.tsx.
+      href: '/dashboard/new-check',
       onClick: () => capture('start_check_click', { surface: 'footer' }),
     },
     { label: 'Pricing', href: '/pricing' },

@@ -197,7 +197,7 @@ export default function ComparePage() {
                   <span className="w-2.5 h-2.5 bg-accent rotate-45 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/dashboard/new-check"
                   className="group inline-flex items-center justify-center gap-2 border border-zinc-200 px-8 py-4 md:px-10 md:py-5 text-xs font-bold tracking-[0.3em] uppercase text-zinc-900 transition-colors hover:border-zinc-900"
                 >
                   <span>Start a check</span>

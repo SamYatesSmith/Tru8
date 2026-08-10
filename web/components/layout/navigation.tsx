@@ -13,7 +13,8 @@ import { capture } from '@/lib/analytics';
  * Desktop only (>= 768px); mobile uses <MobileNav/>.
  * - Left: logo
  * - Centre: Product · Compare · Pricing · Developers (MCP/Docs are /developers sections)
- * - Right (signed out): Sign In (AuthModal) · Start a check (→/dashboard, filled primary)
+ * - Right (signed out): Sign In (AuthModal) · Start a check (→/dashboard/new-check,
+ *   filled primary — the CHECK FORM, not the account overview; see stitch-hero)
  *   The dev path is the Developers centre link; "Get API Key" lives on /developers.
  *
  * Per design-review B2: the primary CTAs NAVIGATE (Link), they do not open the
@@ -94,7 +95,7 @@ export function Navigation({
                     Sign In
                   </button>
                   <Link
-                    href="/dashboard"
+                    href="/dashboard/new-check"
                     onClick={() => capture('start_check_click', { surface: 'nav' })}
                     className="bg-black text-white text-[11px] font-bold tracking-[0.2em] uppercase px-8 py-3 border border-black hover:bg-zinc-800 transition-colors whitespace-nowrap"
                   >

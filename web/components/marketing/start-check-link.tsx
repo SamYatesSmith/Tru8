@@ -18,7 +18,7 @@ export function StartCheckLink({
 }) {
   return (
     <Link
-      href="/dashboard"
+      href="/dashboard/new-check"
       onClick={() => capture('start_check_click', { surface })}
       className="group inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-900 hover:text-accent transition-colors"
     >

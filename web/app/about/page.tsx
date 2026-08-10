@@ -136,7 +136,7 @@ export default function AboutPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
               <Link
-                href="/dashboard"
+                href="/dashboard/new-check"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-[0.2em] transition-colors"
               >
                 Start in the browser

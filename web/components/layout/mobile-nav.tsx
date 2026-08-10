@@ -153,7 +153,7 @@ export function MobileNav() {
                   Sign In
                 </button>
                 <Link
-                  href="/dashboard"
+                  href="/dashboard/new-check"
                   onClick={() => {
                     capture('start_check_click', { surface: 'mobile-nav' });
                     close();

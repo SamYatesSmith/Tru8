@@ -25,7 +25,7 @@ export function StitchClosingCta() {
           </p>
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
             <Link
-              href="/dashboard"
+              href="/dashboard/new-check"
               onClick={() => capture('start_check_click', { surface: 'closing' })}
               className="group inline-flex items-center justify-center gap-4 bg-black text-white px-10 py-5 text-xs md:text-sm font-bold tracking-[0.3em] uppercase transition-all hover:bg-zinc-900 w-full sm:w-auto"
             >

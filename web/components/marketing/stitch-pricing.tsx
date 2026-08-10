@@ -146,7 +146,7 @@ export function StitchPricing() {
                 signed record
               </span>
               <Link
-                href="/dashboard"
+                href="/dashboard/new-check"
                 onClick={() => capture('pricing_console_click', { surface: 'pricing' })}
                 className="bg-black text-white px-6 py-3 text-[11px] font-bold tracking-[0.2em] uppercase hover:bg-zinc-800 transition-colors text-center"
               >
@@ -167,7 +167,7 @@ export function StitchPricing() {
                 looks like.
               </p>
               <Link
-                href="/dashboard"
+                href="/dashboard/new-check"
                 onClick={() => capture('pricing_free_click', { surface: 'pricing' })}
                 className="mt-6 inline-block font-mono text-[11px] tracking-[0.2em] uppercase text-zinc-900 hover:text-accent transition-colors"
               >

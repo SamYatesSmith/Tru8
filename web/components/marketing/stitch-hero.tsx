@@ -10,9 +10,17 @@ import { SAMPLE_REPORT_PATH } from '@/lib/marketing';
  *
  * The best message+action moment on the site (formerly stranded on /research)
  * is now the front door: "See the evidence for and against. Show your working."
- * Primary CTA = "Start a check" (the single start label sitewide) → /dashboard;
- * middleware bounces a signed-out visitor into the auth modal with a redirect
- * back. Secondary = a real public sample record (proof, not pictures).
+ * Primary CTA = "Start a check" (the single start label sitewide) →
+ * /dashboard/new-check; middleware bounces a signed-out visitor into the auth
+ * modal with a redirect back to that same path. Secondary = a real public
+ * sample record (proof, not pictures).
+ *
+ * 2026-08-10 — this pointed at /dashboard, the ACCOUNT OVERVIEW, not the check
+ * form. A signed-in visitor clicking "Start a check" landed on usage cards and
+ * recent-checks history with no form in sight, which reads as a dead button.
+ * Signed-out was worse: they signed in and arrived at the same wrong page.
+ * Every CTA that promises a check now targets the form; links that say
+ * "Dashboard" still say /dashboard.
  *
  * 2026-08-07 — the illustrative record fragment that stood in the right column
  * was REPLACED by the mark at hero scale (founder call). The §2.2 state-colour
@@ -59,7 +67,7 @@ export function StitchHero() {
 
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
               <Link
-                href="/dashboard"
+                href="/dashboard/new-check"
                 onClick={() => capture('start_check_click', { surface: 'hero' })}
                 className="group inline-flex items-center justify-center gap-4 bg-black text-white px-8 py-4 md:px-12 md:py-6 text-xs md:text-sm font-bold tracking-[0.3em] uppercase w-full sm:w-auto transition-all hover:bg-zinc-900"
               >
