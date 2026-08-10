@@ -5,9 +5,68 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-10)
+## 🟢 START HERE — next session (updated 2026-08-10, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
+
+---
+### 📍 HANDOFF — exactly where 2026-08-10 stopped
+
+**Last commit `26a7a0f`, everything PUSHED and DEPLOYED** (`/api/v1/health/`
+reports `26a7a0f`, healthy). **No half-finished work of mine in the tree.**
+
+⚠️ **The tree holds the two long-HELD pipeline changes and nothing else of
+substance** — the mapping-prompt reframe (`claim_map_analyzer.py`) and the
+journal-tier fix (`evidence_classifier.py`, plus untracked
+`test_society_journal_tiers.py`). **Neither is mine; do not commit or revert
+without a decision.** Also untracked and free to ship whenever: `scripts/
+cost_report.py` + `tests/unit/test_cost_report.py`.
+⚠️ **The replay bench CANNOT run while the reframe is in the tree** (prompt text
+is a cassette key — all 9 claims fail on `cassette_drift`). Pass state is
+**158 ok / 2 warn / 1 fail**. This is the standing blocker on all
+pipeline-quality work and has been open since 3 August.
+
+#### 🔴 THE ACTUAL PRIORITY — read `audit/2026-08-10_distribution_reality.md`
+
+Queried production directly: **12 accounts ever, two of them the founder, at
+least two family, one business domain. 129 checks, 104 by the founder. Last
+signup 20 July.** Tru8 has **never been used by a stranger.**
+
+That reframes everything. It is not a retention problem — friends and family
+were never a cohort. It is that the market has **never been tested**, after five
+months live with pricing, payments, an agent API, an MCP server and four
+registry listings all working. **Registries are shelves; they do not create
+demand. SEO harvests demand that does not exist for this category** (nobody
+searches "evidence landscape", and the fact-check queries that do have volume
+are the positioning we deliberately reject).
+
+The goal is **the first ten strangers**, not growth. Methodology, kill
+conditions and the founder/engineer split are in the doc. Engineering half:
+**signup-source attribution** (today `Check.client` records HOW a check arrived,
+never WHY the person came, so no channel can be evaluated).
+
+#### ✅ Also shipped today, all live-verified
+
+| Commit | What |
+|---|---|
+| `65ada92` `4a74858` `4c4f9d8` | Möbius mark sitewide + raster app icons + white-tile favicon |
+| `958e4bf` | Smithery backlink `/server/` → `/servers/` |
+| `29c9963` | `/mcp` CORS accepts `Mcp-Method`/`Mcp-Name` (**live: 400 → 200**) |
+| `5012c9a` | Official registry `remotes[]` — **published, v1.0.4 `isLatest`** |
+| `d18955b` | **Reverted** the mcp 1.29 bump (see below) |
+| `1d2fceb` | "Start a check" pointed at the account overview, not the check form |
+| `26a7a0f` | Signed-in nav had no start CTA at all |
+
+**Registries: on 4 of 5.** Official MCP registry (v1.0.4, 1 remote + 1 package),
+PyPI (1.0.3), Smithery (**100/100**, listed and searchable), Glama (found us
+unaided; grades A/A/**D for maintenance** — no release cadence). **Not on
+PulseMCP or mcp.so** — both index FROM the official registry, which we changed
+today, so **wait ~1 week and re-check before submitting manually.**
+
+**Owed:** a `tru8-mcp` **1.0.4 PyPI release** to carry the security floor to
+stdio users (founder call — it is a publish). Smithery verification still wants
+a **DNS TXT on `www.trueight.com`** and, apparently, a paid plan; the backlink
+and score>80 checks now pass.
 
 ---
 ### ✅ SHIPPED 2026-08-10 — the brand went live, and Smithery went 53 → 92
