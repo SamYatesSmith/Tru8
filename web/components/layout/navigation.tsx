@@ -13,14 +13,19 @@ import { capture } from '@/lib/analytics';
  * Desktop only (>= 768px); mobile uses <MobileNav/>.
  * - Left: logo
  * - Centre: Product · Compare · Pricing · Developers (MCP/Docs are /developers sections)
- * - Right (signed out): Sign In (AuthModal) · Start a check (→/dashboard/new-check,
- *   filled primary — the CHECK FORM, not the account overview; see stitch-hero)
- *   The dev path is the Developers centre link; "Get API Key" lives on /developers.
+ * - Right (signed out): Sign In (AuthModal) · Start a check (filled primary)
+ * - Right (signed in):  Get API Key (lg+) · Dashboard · Start a check (filled primary)
+ *
+ * BOTH states end in the same filled primary, "Start a check" →
+ * /dashboard/new-check — the CHECK FORM, not the account overview (see
+ * stitch-hero.tsx for what that cost us). One secondary text link per role,
+ * then one primary; do not add a second filled button to either branch.
  *
  * Per design-review B2: the primary CTAs NAVIGATE (Link), they do not open the
- * auth modal. Only "Sign In" opens the modal. A signed-out /dashboard visit is
- * bounced back by middleware with ?auth_redirect=true, which opens the modal
- * and returns the visitor to /dashboard after sign-in.
+ * auth modal. Only "Sign In" opens the modal. A signed-out visit to a protected
+ * route is bounced back by middleware with ?auth_redirect=true, which opens the
+ * modal and returns the visitor to THAT route (not a fixed /dashboard) after
+ * sign-in, via AuthModal's forceRedirectUrl.
  */
 const NAV_LINKS = [
   { label: 'Product', href: '/#record' },
@@ -71,18 +76,37 @@ export function Navigation({
             <div className="flex items-center gap-4 shrink-0">
               {isSignedIn ? (
                 <>
+                  {/* Signed-in mirrors the signed-out shape: secondary text
+                      links, then ONE filled primary. Until 2026-08-10 the
+                      primary here was "Dashboard", so a signed-in visitor on
+                      /pricing or /compare had no way to start a check without
+                      going via the dashboard first. The primary is now the same
+                      action in both states, which is also what makes "Start a
+                      check" the single start label sitewide.
+
+                      "Get API Key" drops below lg: at md the row is logo + four
+                      links + three CTAs, which overflows. It is the least
+                      urgent of the three and /developers is in the centre nav
+                      anyway. */}
                   <Link
                     href="/developers"
                     onClick={() => capture('get_api_key_click', { surface: 'nav' })}
-                    className="text-[11px] font-bold tracking-[0.2em] uppercase px-4 py-3 text-zinc-500 hover:text-black transition-colors whitespace-nowrap"
+                    className="hidden lg:inline-flex text-[11px] font-bold tracking-[0.2em] uppercase px-4 py-3 text-zinc-500 hover:text-black transition-colors whitespace-nowrap"
                   >
                     Get API Key
                   </Link>
                   <Link
                     href="/dashboard"
-                    className="bg-black text-white text-[11px] font-bold tracking-[0.2em] uppercase px-8 py-3 border border-black hover:bg-zinc-800 transition-colors"
+                    className="text-[11px] font-bold tracking-[0.2em] uppercase px-3 py-3 text-zinc-500 hover:text-black transition-colors whitespace-nowrap"
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    href="/dashboard/new-check"
+                    onClick={() => capture('start_check_click', { surface: 'nav' })}
+                    className="bg-black text-white text-[11px] font-bold tracking-[0.2em] uppercase px-8 py-3 border border-black hover:bg-zinc-800 transition-colors whitespace-nowrap"
+                  >
+                    Start a check
                   </Link>
                 </>
               ) : (

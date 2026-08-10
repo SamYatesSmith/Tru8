@@ -134,13 +134,30 @@ export function MobileNav() {
             <div className="h-px bg-zinc-100 my-2" />
 
             {isSignedIn ? (
-              <Link
-                href="/dashboard"
-                onClick={close}
-                className="bg-black text-white text-xs font-bold tracking-[0.2em] uppercase px-6 py-4 text-center"
-              >
-                Dashboard
-              </Link>
+              /* Same shape as the signed-out branch below and as the desktop
+                 nav: secondary text link, then ONE filled primary. The primary
+                 is "Start a check" in BOTH states — before 2026-08-10 a
+                 signed-in visitor's only mobile CTA was "Dashboard", so there
+                 was no way to start a check from the menu at all. */
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={close}
+                  className="text-left text-sm font-bold tracking-[0.2em] uppercase text-zinc-500"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/dashboard/new-check"
+                  onClick={() => {
+                    capture('start_check_click', { surface: 'mobile-nav' });
+                    close();
+                  }}
+                  className="bg-black text-white text-xs font-bold tracking-[0.2em] uppercase px-6 py-4 text-center"
+                >
+                  Start a check
+                </Link>
+              </>
             ) : (
               <>
                 <button
