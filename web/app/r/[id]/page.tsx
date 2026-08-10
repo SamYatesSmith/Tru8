@@ -143,7 +143,7 @@ export default async function PublicReportPage({ params, searchParams }: PagePro
       url: baseUrl,
       logo: {
         '@type': 'ImageObject',
-        url: `${baseUrl}/logo.proper.png`,
+        url: `${baseUrl}/icon-512.png`,
       },
     },
     mainEntity: {

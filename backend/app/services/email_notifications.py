@@ -336,7 +336,7 @@ class EmailNotificationService:
       <td>
         <!-- Header: Logo -->
         <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB;">
-          <img src="{frontend_url}/logo.proper.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
+          <img src="{frontend_url}/icon-192.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
         </div>
 
         <!-- Main Card -->
@@ -421,7 +421,7 @@ class EmailNotificationService:
       <td>
         <!-- Header: Logo -->
         <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB;">
-          <img src="{frontend_url}/logo.proper.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
+          <img src="{frontend_url}/icon-192.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
         </div>
 
         <!-- Main Card -->
@@ -506,7 +506,7 @@ class EmailNotificationService:
       <td>
         <!-- Header: Logo -->
         <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB;">
-          <img src="{frontend_url}/logo.proper.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
+          <img src="{frontend_url}/icon-192.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
         </div>
 
         <!-- Main Card -->
@@ -622,7 +622,7 @@ class EmailNotificationService:
       <td>
         <!-- Header: Logo -->
         <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB;">
-          <img src="{frontend_url}/logo.proper.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
+          <img src="{frontend_url}/icon-192.png" alt="Tru8" width="48" height="48" style="display: inline-block;" />
         </div>
 
         <!-- Main Card -->

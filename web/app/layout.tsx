@@ -30,11 +30,18 @@ export const metadata: Metadata = {
   },
   description: 'Evidence research infrastructure for factual AI content. Tru8 decomposes content into checkable claims, retrieves external published sources, and returns a structured, signed evidence record. We organise; you decide.',
   icons: {
-    // 64x64, 1.9KB. Was favicon.proper.png — the 1024x1024, 1.3MB MASTER,
-    // shipped as the browser-tab icon and therefore downloaded by every
-    // visitor. The master stays in public/ as the source for regenerating
-    // this and the apple-touch icon.
-    icon: '/favicon.png',
+    // All generated from the one mark by `design/mobius-mark/build_icons.py`,
+    // rasterised from the same SVG the nav and hero load — never hand-drawn,
+    // never a separate small-size logo.
+    //
+    // .ico first and it carries 16/32/48: the mark is 1 wide : 2.15 high, so
+    // in a square tab icon it is only ~6px across at 16px. Letting the browser
+    // pick a real 16px frame beats it downscaling a 64px PNG on its own.
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/favicon.png', type: 'image/png', sizes: '64x64' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
     apple: '/apple-touch-icon.png',
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.trueight.com'),
