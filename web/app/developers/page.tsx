@@ -472,8 +472,13 @@ export TRU8_API_KEY="tru8_sk_..."`}
                 </div>
                 <p className="text-xs text-zinc-600 mt-2">
                   Listed as{' '}
+                  {/* /servers/ (plural) is deliberate. Smithery's backlink
+                      verification scans this page for its own canonical URL
+                      form; the singular /server/ we had here reads fine to a
+                      human, redirects fine in a browser, and did NOT satisfy
+                      the scan. Do not "tidy" it back. */}
                   <a
-                    href="https://smithery.ai/server/samyatessmith/tru8"
+                    href="https://smithery.ai/servers/samyatessmith/tru8"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-accent underline underline-offset-2 hover:text-zinc-900"
