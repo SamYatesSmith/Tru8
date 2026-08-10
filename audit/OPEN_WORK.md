@@ -84,19 +84,45 @@ should now read **100/100**.
    Not urgent — dual-era clients fall back — and **no date exists** for when
    they stop. Our `stateless_http` workaround becomes the norm, so the Smithery
    scanner bug class is deleted by the new spec.
-2. ⚠️ **`Mcp-Method` / `Mcp-Name` are now mandatory headers and our `/mcp` CORS
-   preflight REJECTS them — verified 400 against production**, against a 200
-   control. Same bug as `mcp-session-id` in August, one revision later. One-line
-   fix in `app/middleware/mcp_cors.py` + a guard in `test_mcp_cors.py`. **NOT YET
-   DONE.**
-3. ⚠️ **`httpx==0.27.0` (requirements.txt:32) silently caps `mcp` at 1.12.4**, not
-   the 1.29.0 the comment at `main.py:507` claims. Proven by pip dry-run; mcp
-   1.13.0 raised its httpx floor to `>=0.27.1`. **Consequence already live:** the
-   `website_url`/`icons` serverInfo work of 6 August is **inert** — 1.12.4 has no
-   `Icon` class — and production's initialize response confirms it. Also means
-   the two transports run different SDK versions. **NOT YET DONE.**
-   `<2` stays: v2 renames `mcp.server.fastmcp` → `mcp.server.mcpserver`, and the
-   `get_context()` → `ctx: Context` change lands exactly on the per-request
+2. ✅ **DONE (`29c9963`, live-verified on `d18955b`).** `Mcp-Method`/`Mcp-Name`
+   became mandatory in 2026-07-28 and our `/mcp` preflight rejected them.
+   Production now: **200** for `content-type, mcp-method, mcp-name` (was 400),
+   200 control, and the advertised `access-control-allow-headers` includes both.
+   Tools + annotations re-probed after deploy, unchanged. Mutation-verified.
+3. ⚠️ **`httpx==0.27.0` silently caps `mcp` at 1.12.4** — so the `website_url`/
+   `icons` serverInfo work of 6 August is **inert** (1.12.4 has no `Icon` class;
+   production's initialize response confirms it), and the two transports run
+   different SDKs. **ATTEMPTED AND REVERTED 2026-08-10 (`d18955b`).**
+
+   **Why it is not a small fix.** Raising the floor broke the Railway build
+   twice on `ResolutionImpossible`. The mcp bump drags core infrastructure:
+
+   | mcp needs | we pin |
+   |---|---|
+   | `pyjwt>=2.10.1` (since **1.20**) | `PyJWT[crypto]==2.8.0` |
+   | `uvicorn>=0.31.1` (since **1.16**) | `uvicorn[standard]==0.27.0` |
+   | `httpx>=0.27.1` (since **1.13**) | `httpx==0.27.0` |
+
+   There is **no version that carries `Icon` without also forcing the ASGI
+   server and the auth library up**. So this is an infrastructure upgrade and
+   needs its own scoped job: raise all four together, resolve the **WHOLE**
+   requirements file, run the suite, deploy, re-probe `/mcp`.
+
+   ⚠️ **The trap that caught me: a PARTIAL dependency resolve proves nothing.**
+   I dry-ran `fastapi + httpx + mcp` only, so pyjwt and uvicorn were invisible.
+   Resolve the entire file or let the image tell you. (A related near-miss:
+   installing mcp *in isolation* pulled starlette 1.6.0 past fastapi's `<0.42`
+   cap and broke test collection — a full resolve gives 0.41.3 and is fine.)
+
+   Cost of NOT doing it is genuinely small: `Icon`/`website_url` stay inert,
+   which affects neither registry (Smithery serves the uploaded icon; the
+   official registry reads `server.json`), and we are exposed to none of the
+   three advisories (stateless HTTP, no WebSocket transport, no task handlers).
+   Both call sites were checked and already pass `algorithms=` explicitly, so
+   the PyJWT 2.10 tightening is not a blocker when this is picked up.
+
+   `<2` stays regardless: v2 renames `mcp.server.fastmcp` → `mcp.server.mcpserver`,
+   and `get_context()` → `ctx: Context` lands exactly on the per-request
    credential seam. Unconfirmed and load-bearing: whether v2 still exposes
    `query_params`, which is how Smithery's gateway passes `apiKey`.
 
