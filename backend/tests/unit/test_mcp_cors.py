@@ -87,6 +87,22 @@ class TestBrowserClientsCanConnect:
         assert r.status_code == 200
         assert "last-event-id" in r.headers["access-control-allow-headers"].lower()
 
+    def test_2026_mandatory_routing_headers_are_accepted(self):
+        """`Mcp-Method`/`Mcp-Name` are REQUIRED on POSTs by spec revision
+        2026-07-28 (SEP-2243). Measured against production before the fix, this
+        exact preflight returned 400 while the 2025-era header set returned 200.
+
+        We do not serve 2026-07-28 yet — the SDK pin holds us at 2025-06-18 —
+        but a modern client has to get through the preflight before it can
+        discover that and fall back. Being unable to negotiate is worse than
+        being old.
+        """
+        r = _preflight("/mcp/", headers="content-type, mcp-method, mcp-name")
+        assert r.status_code == 200, r.text
+        allowed = r.headers["access-control-allow-headers"].lower()
+        assert "mcp-method" in allowed
+        assert "mcp-name" in allowed
+
     def test_api_key_header_is_accepted(self):
         """The only way a browser client can authenticate a tool call."""
         r = _preflight("/mcp/", headers="x-api-key")

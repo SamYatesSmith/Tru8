@@ -63,11 +63,33 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 # `mcp-protocol-version` are required by the 2025-06-18 streamable-HTTP spec;
 # `last-event-id` is the SSE resumption header. Listed explicitly rather than
 # "*" so the set stays auditable.
+#
+# 2026-08-10 — `Mcp-Method` and `Mcp-Name` added. Spec revision 2026-07-28 makes
+# them REQUIRED on streamable-HTTP POSTs (SEP-2243, with server-side header↔body
+# validation and a new -32020 HeaderMismatch error). Measured against production
+# before this change:
+#
+#     OPTIONS /mcp/  Access-Control-Request-Headers: content-type, mcp-method, mcp-name
+#     → 400 Bad Request
+#     OPTIONS /mcp/  Access-Control-Request-Headers: content-type, mcp-session-id, mcp-protocol-version
+#     → 200 OK                                                          (control)
+#
+# This is the SAME failure as `mcp-session-id` above, one revision later, and it
+# recurs because this list is hand-maintained against a moving spec. We do not
+# yet SERVE 2026-07-28 — the SDK pin holds us at 2025-06-18 — but a modern
+# client's preflight has to succeed before it can discover that and fall back.
+# Being unable to negotiate is worse than being old.
+#
+# NOT added: the optional `Mcp-Param-{Name}` family from the same SEP. Those are
+# driven by `x-mcp-header` in a tool's input schema, none of our three tools
+# declare one, and CORS allow-lists cannot express a prefix wildcard.
 MCP_ALLOW_HEADERS = [
     "Accept",
     "Authorization",
     "Content-Type",
     "Last-Event-ID",
+    "MCP-Method",
+    "MCP-Name",
     "MCP-Protocol-Version",
     "Mcp-Session-Id",
     "X-API-Key",
