@@ -45,7 +45,7 @@ export function Footer() {
           {/* Logo + Tagline */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Tru8Mark size={24} animated={false} className="opacity-80" />
+              <Tru8Mark height={30} animated={false} className="opacity-80" />
               <span className="font-bold tracking-tighter uppercase">
                 TRU<span className="text-zinc-400 font-normal">8</span>
               </span>

@@ -47,7 +47,7 @@ export function Navigation({
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-8">
           {/* Left: Logo */}
           <Link href="/" className="flex items-center gap-3 shrink-0" aria-label="Tru8 home">
-            <Tru8Mark size={40} />
+            <Tru8Mark height={48} />
             <span className="text-xl font-bold tracking-tighter uppercase">
               TRU<span className="text-zinc-400 font-normal">8</span>
             </span>

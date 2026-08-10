@@ -76,7 +76,7 @@ export function MobileNav() {
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-zinc-100">
         <div className="flex items-center justify-between px-5 h-16">
           <Link href="/" className="flex items-center gap-2" aria-label="Tru8 home">
-            <Tru8Mark size={32} />
+            <Tru8Mark height={40} />
             <span className="text-lg font-bold tracking-tighter uppercase leading-none">
               TRU<span className="text-zinc-400 font-normal">8</span>
             </span>

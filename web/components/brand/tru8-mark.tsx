@@ -1,80 +1,48 @@
 'use client';
 
-import { useEffect, useId, useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
+
+/**
+ * Tru8 mark — the Möbius band, drawn as a luminous lattice.
+ *
+ * The artwork is GENERATED, not hand-authored: `design/mobius-mark/` holds the
+ * geometry and lighting model, and `python design/mobius-mark/build_assets.py`
+ * emits the files in `public/brand/`. Never edit those SVGs by hand — rerun the
+ * builder and commit its output.
+ *
+ * Why files rather than inline JSX: the mark is static art, so it belongs in
+ * `public/` where the browser caches it once, not in the JS bundle where it is
+ * re-parsed on every page. SMIL keeps running inside an `<img>` (browsers use
+ * "secure animated mode" there — declarative animation allowed, script not),
+ * verified by pixel-diffing the rendered frames. 5.2KB gzipped animated.
+ *
+ * THERE IS ONE LOGO. This is the hero mark rendered small — same band, same
+ * lattice, same proportions, fewer sample points. It is not a nav-specific
+ * variant, and reintroducing one is a regression: the builder asserts every
+ * emitted asset shares an aspect ratio precisely so they cannot drift apart.
+ *
+ * Sized by HEIGHT, because the mark is tall and narrow (1 wide : 2.15 high) and
+ * every place it appears is height-constrained — an 80px navbar, a 64px mobile
+ * bar, a line of footer text. Width follows from the ratio.
+ *
+ * Motion is refusable two ways — `prefers-reduced-motion` and the `animated`
+ * prop — and both resolve to a genuinely frozen file, not a paused one.
+ */
 
 interface Tru8MarkProps {
-  size?: number;
+  /** Rendered height in px. Width is derived — never set it independently. */
+  height?: number;
   animated?: boolean;
   className?: string;
   style?: CSSProperties;
 }
 
-// Split the figure-8 into TWO strands that meet at the X (50, 65).
-// UNDER strand traces the SW-going diagonal (drawn first → underneath).
-// OVER strand traces the NW-going diagonal (drawn last → on top).
-// Each is half of the figure-8, opened at the crossover.
-const UNDER_STRAND = 'M 50,8 C 90,8 90,55 50,65 C 10,75 10,122 50,122';
-const OVER_STRAND = 'M 50,122 C 90,122 90,75 50,65 C 10,55 10,8 50,8';
+/** Height per unit width, mirrored from `build_assets.py`, which prints it and
+ *  asserts all four assets agree. Rerun the builder and update this together. */
+const ASPECT = 2.1488;
 
-// Dot's Möbius-edge route — continuous 2-lap figure-8 traversal.
-// The Möbius strip's single edge has length 2L (twice the strip length), so in 2D
-// projection it winds around the figure-8 TWICE before returning home.
-//
-// Path = figure-8 bezier traversed TWICE end-to-end (no M-jumps, fully continuous).
-// Each lap: 4 cubic beziers, ~95 units each, totalling ~380 units per lap.
-// 2 laps = ~760 units. Each crossover encounter at 12.5% of cycle (95/760).
-//
-// Crossover encounters within the 2-lap cycle:
-//   12.5% — Lap 1, first crossover (going SW) — THE TWIST: front face → back face
-//   37.5% — Lap 1, second crossover (going NW) — no twist
-//   62.5% — Lap 2, first crossover (going SW) — THE TWIST: back face → front face (HOME)
-//   87.5% — Lap 2, second crossover (going NW) — no twist
-//
-// The dot is on FRONT FACE (visible) from 0%→12.5% and from 62.5%→100%.
-// The dot is on BACK FACE (invisible) from 12.5%→62.5%.
-// Viewer infers the unseen Möbius traversal from the absence + the asymmetric reappearance.
-const FULL_PATH = [
-  'M 50,8',
-  // Lap 1
-  'C 90,8 90,55 50,65',
-  'C 10,75 10,122 50,122',
-  'C 90,122 90,75 50,65',
-  'C 10,55 10,8 50,8',
-  // Lap 2
-  'C 90,8 90,55 50,65',
-  'C 10,75 10,122 50,122',
-  'C 90,122 90,75 50,65',
-  'C 10,55 10,8 50,8',
-].join(' ');
-
-// Opacity timeline: visible 0→11%, fade out 11→13%, invisible 13→62%,
-// fade in 62→64%, visible 64→100%.
-const OPACITY_KEYTIMES = '0;0.11;0.13;0.62;0.64;1';
-const OPACITY_KEYSPLINES = '0 0 1 1;0.4 0 0.6 1;0 0 1 1;0.4 0 0.6 1;0 0 1 1';
-
-// Ghost path — figure-8 offset OUTWARD from the visible ribbon by ~6 units, so the glow
-// sits on the far side of the outer dark stroke. Same 2-lap structure as FULL_PATH.
-const GHOST_PATH = [
-  'M 50,-1',
-  // Lap 1 (outer offset)
-  'C 96,-1 96,53 50,65',
-  'C 4,77 4,131 50,131',
-  'C 96,131 96,77 50,65',
-  'C 4,53 4,-1 50,-1',
-  // Lap 2
-  'C 96,-1 96,53 50,65',
-  'C 4,77 4,131 50,131',
-  'C 96,131 96,77 50,65',
-  'C 4,53 4,-1 50,-1',
-].join(' ');
-
-// Ghost trail — same shape as DOT_LAYERS but on the outer offset path, inverted timing.
-const GHOST_LAYERS = [
-  { r: 2.5, opacity: 0.18, begin: '0.45s' },
-  { r: 3.5, opacity: 0.32, begin: '0.3s' },
-  { r: 4.5, opacity: 0.46, begin: '0.15s' },
-  { r: 5, opacity: 0.55, begin: '0s' },
-];
+const SRC_ANIMATED = '/brand/tru8-mark.svg';
+const SRC_STATIC = '/brand/tru8-mark-static.svg';
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -88,155 +56,28 @@ function useReducedMotion() {
   return reduced;
 }
 
-const DOT_LAYERS = [
-  { r: 2.5, opacity: 0.25, begin: '0.45s' },
-  { r: 3.5, opacity: 0.5, begin: '0.3s' },
-  { r: 4, opacity: 0.8, begin: '0.15s' },
-  { r: 4.5, opacity: 1, begin: '0s' },
-];
-
-const STROKE_OUTER = 10;
-const STROKE_INNER = 6;
-
 export function Tru8Mark({
-  size = 40,
+  height = 44,
   animated = true,
   className,
   style,
 }: Tru8MarkProps) {
-  const reactId = useId().replace(/:/g, '');
-  const glowId = `tru8-glow-${reactId}`;
-  const ghostGlowId = `tru8-ghost-${reactId}`;
-  const shadowId = `tru8-shadow-${reactId}`;
-
   const reducedMotion = useReducedMotion();
   const showAnimation = animated && !reducedMotion;
-
-  const height = Math.round(size * 1.39);
+  const size = Math.round(height / ASPECT);
 
   return (
-    <svg
+    // eslint-disable-next-line @next/next/no-img-element -- generated SVG art;
+    // next/image would neither optimise nor resize it, and would defer paint.
+    <img
+      src={showAnimation ? SRC_ANIMATED : SRC_STATIC}
       width={size}
       height={height}
-      viewBox="-6 -12 112 150"
-      fill="none"
+      alt=""
+      aria-hidden="true"
+      draggable={false}
       className={className}
       style={style}
-      aria-hidden="true"
-    >
-      <defs>
-        <filter id={glowId} x="-200%" y="-200%" width="500%" height="500%">
-          <feGaussianBlur stdDeviation="3.5" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        {/* Diffuse glow for the GHOST trail — sits outside the ribbon, suggesting the unseen back-face traversal */}
-        <filter id={ghostGlowId} x="-200%" y="-200%" width="500%" height="500%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        {/* Drop shadow for the OVER strand — gives it visible depth above the under strand */}
-        <filter id={shadowId} x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" />
-          <feOffset dx="0" dy="1.5" result="offsetblur" />
-          <feComponentTransfer>
-            <feFuncA type="linear" slope="0.5" />
-          </feComponentTransfer>
-          <feMerge>
-            <feMergeNode />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
-      {/* GHOST trail — rendered UNDER the visible ribbon, so the ribbon's strokes naturally cover
-          any glow that bleeds into the parallel tracks. Ghost only shows outside the ribbon footprint. */}
-      {showAnimation && GHOST_LAYERS.map((layer, i) => (
-        <circle
-          key={`ghost-${i}`}
-          r={layer.r}
-          fill="#EA580C"
-          opacity="0"
-          filter={`url(#${ghostGlowId})`}
-        >
-          <animateMotion
-            dur="12s"
-            begin={layer.begin}
-            repeatCount="indefinite"
-            path={GHOST_PATH}
-          />
-          <animate
-            attributeName="opacity"
-            dur="12s"
-            begin={layer.begin}
-            repeatCount="indefinite"
-            calcMode="spline"
-            values={`0;0;${layer.opacity};${layer.opacity};0;0`}
-            keyTimes={OPACITY_KEYTIMES}
-            keySplines={OPACITY_KEYSPLINES}
-          />
-        </circle>
-      ))}
-
-      {/* UNDER STRAND — drawn first, gets covered at the X */}
-      <path d={UNDER_STRAND} stroke="#18181b" strokeWidth={STROKE_OUTER} strokeLinecap="butt" fill="none" />
-      <path d={UNDER_STRAND} stroke="white" strokeWidth={STROKE_INNER} strokeLinecap="butt" fill="none" />
-
-      {/* WHITE PATCH at the X — cuts a clean break in the under strand so the over strand reads as "passing over" */}
-      <ellipse cx="50" cy="65" rx="14" ry="8" fill="white" />
-
-      {/* OVER STRAND — drawn last with a drop shadow, visibly bridges over the under strand */}
-      <g filter={`url(#${shadowId})`}>
-        <path d={OVER_STRAND} stroke="#18181b" strokeWidth={STROKE_OUTER} strokeLinecap="butt" fill="none" />
-        <path d={OVER_STRAND} stroke="white" strokeWidth={STROKE_INNER} strokeLinecap="butt" fill="none" />
-      </g>
-
-      {/* Main dot + trail — rendered ON TOP, visible above the ribbon */}
-      {showAnimation ? (
-        <>
-          {DOT_LAYERS.map((layer, i) => (
-          <circle
-            key={i}
-            r={layer.r}
-            fill="#EA580C"
-            opacity={layer.opacity}
-            filter={`url(#${glowId})`}
-          >
-            <animateMotion
-              dur="12s"
-              begin={layer.begin}
-              repeatCount="indefinite"
-              path={FULL_PATH}
-            />
-            <animate
-              attributeName="opacity"
-              dur="12s"
-              begin={layer.begin}
-              repeatCount="indefinite"
-              calcMode="spline"
-              values={`${layer.opacity};${layer.opacity};0;0;${layer.opacity};${layer.opacity}`}
-              keyTimes={OPACITY_KEYTIMES}
-              keySplines={OPACITY_KEYSPLINES}
-            />
-          </circle>
-        ))}
-        </>
-      ) : (
-        <circle
-          cx="50"
-          cy="8"
-          r="4.5"
-          fill="#EA580C"
-          filter={`url(#${glowId})`}
-        />
-      )}
-    </svg>
+    />
   );
 }

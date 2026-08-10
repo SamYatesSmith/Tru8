@@ -50,7 +50,7 @@ export function SignedInNav({ user }: SignedInNavProps) {
           <div className="flex items-center justify-between h-14 md:h-16">
             {/* Left: Logo */}
             <Link href="/" className="flex-shrink-0 flex items-center gap-2" aria-label="Tru8 home">
-              <Tru8Mark size={40} />
+              <Tru8Mark height={40} />
               <span className="text-lg font-bold tracking-tighter uppercase hidden sm:inline">
                 TRU<span className="text-zinc-400 font-normal">8</span>
               </span>
