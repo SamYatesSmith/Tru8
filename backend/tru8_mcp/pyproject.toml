@@ -30,8 +30,22 @@ dependencies = [
     # sdist: `FastMCP.tool(name, title, description, annotations,
     # structured_output)` — present. Do not lower this without re-checking that
     # signature in the target version.
-    "mcp>=1.12,<2",
-    "httpx>=0.25.0",
+    #
+    # FLOOR RAISED 1.12 -> 1.29 (2026-08-10). 1.29.0 is the final 1.x feature
+    # release and 1.x is maintenance-only from here. It puts installs above
+    # three High-severity advisories (newest fixed in 1.28.1) — this package's
+    # own usage is not exposed to any of them, but a floor that PERMITS a
+    # vulnerable resolution costs nothing to close.
+    #
+    # It also aligns the two transports. The API pins the same range now; until
+    # today this package resolved 1.29.0 while the API resolved 1.12.4, because
+    # the API carried `httpx==0.27.0` and this one did not. main.py claims "one
+    # codebase, two transports: the tools cannot drift" — true of the tools,
+    # and it was false of the SDK.
+    "mcp>=1.29,<2",
+    # Raised from >=0.25.0 to match mcp 1.29's own floor, so the constraint is
+    # stated here rather than inherited invisibly from a transitive dependency.
+    "httpx>=0.27.1",
 ]
 
 [project.urls]

@@ -503,9 +503,15 @@ _tru8_mcp_server.settings.stateless_http = True
 # server's `host` setting is the default 127.0.0.1, which ours is. That default
 # is right for a laptop and fatal for a public endpoint.
 #
-# It does not fire on the deployed image only because that image resolved
-# mcp 1.12.4, which predates the auto-enable. requirements.txt pins a RANGE
-# (`mcp[cli]>=1.2,<2`), pip resolves 1.29.0 today, and measured on 1.29.0:
+# It did not fire on the deployed image only because that image resolved mcp
+# 1.12.4, which predates the auto-enable — and it resolved 1.12.4 not by choice
+# but because `httpx==0.27.0` capped it there (mcp 1.13.0 raised its httpx floor
+# to >=0.27.1). This comment previously claimed "pip resolves 1.29.0 today",
+# which was false for months while the line above it said 1.12.4.
+#
+# That cap was lifted on 2026-08-10 and the floor raised to `mcp[cli]>=1.29,<2`,
+# so the auto-enable IS now in play and this block is the only thing stopping
+# it. Measured on 1.29.0:
 #
 #   Host: api.trueight.com      -> 421 Misdirected Request
 #   Origin: https://smithery.ai -> 403 Forbidden
