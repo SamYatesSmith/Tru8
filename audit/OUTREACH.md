@@ -10,11 +10,12 @@
 
 ## Why this plan is shaped the way it is — four facts
 
-1. **Tru8 has never been used by a stranger.** 12 accounts in five months: two
-   are the founder, at least two family, the rest friends, **one** business
-   domain (burned its 3-check trial in one sitting on 2026-07-20, never
-   returned — the only genuine signal in the database). 104 of 129 checks are
-   the founder's. Last signup 20 July.
+1. **Tru8 has never been used by a stranger — by literally zero.** 12 accounts
+   in five months: two are the founder, the rest family and friends. The one
+   "business domain" account previously read as the sole stranger signal is
+   **the founder's sister** (corrected 2026-08-11 — her feedback has been
+   flowing into the product for months). 104 of 129 checks are the founder's;
+   the last non-founder check was 2026-07-23; last signup 20 July.
 2. **Nobody can search for this category** — it has no name in buyers' heads,
    and the adjacent category with volume (verdicts/fact-checking) is the
    positioning we deliberately reject. Channels that require someone to *name
@@ -98,9 +99,9 @@ impression, opened inside a DM with no context:
       100/100 and invisible in their search).
 
 **E. Calibration.** 
-- [ ] **Send the business-domain email first.** It is the prototype of the
-      whole motion: what were you trying to do, what was missing. Not a sales
-      email.
+- [x] ~~Send the business-domain email first.~~ **DISSOLVED 2026-08-11: the
+      account is the founder's sister.** There is no stranger to learn from —
+      the first cold send in Stage 3 becomes the prototype of the motion.
 - [ ] Sales Safari, 3–4 hours, once: read 20–30 pieces of the targets' public
       work and their complaints. Outreach uses **their** words for the job —
       we say "evidence landscape"; they don't. What they say is what converts.
