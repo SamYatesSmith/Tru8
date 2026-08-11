@@ -341,9 +341,13 @@ a stale grey figure-8, i.e. the OLD mark. That is the 8th point, so the score
 should now read **100/100**.
 
 **Still open, founder-only:**
-1. **The listing is UNLISTED** — invisible in Smithery search, direct link only.
-   Worth more than any score point. Deliberately not flipped: publishing is a
-   founder call.
+1. ✅ **RESOLVED 2026-08-11 — the listing IS public.** Verified by
+   unauthenticated search: "tru8" on smithery.ai returns Tru8 Evidence
+   Research (position 2 of 26). This row was stale and was restated unverified
+   on 2026-08-11 before being checked — the `reverify_before_restating` rule
+   applies to this register's own rows. ⚠️ New: Smithery is **now part of
+   Arcade.dev** (site banner, 2026-08-11) — no action, but if listings migrate
+   to an Arcade directory the registry presence needs a re-check.
 3. **Verification** — release ✅, score >80 ✅, homepage ✅, backlink fixed
    (`958e4bf`, needs a re-check after deploy). Outstanding: a **DNS TXT on
    `www.trueight.com`** (`smithery-verification=6cc59aa96a3827ceb2b0f35c97ef129b72bb627f991704fbb68eb3907c603ae4`,
