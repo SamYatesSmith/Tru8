@@ -475,6 +475,58 @@ class NotificationPreferencesRequest(BaseModel):
     notifications: bool
 
 
+class SignupSourceRequest(BaseModel):
+    source: str
+
+
+@router.post("/signup-source")
+async def record_signup_source(
+    request: SignupSourceRequest,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Record WHY this account was created — the ?src= tag the visitor arrived
+    with (audit/OUTREACH.md). Write-once and time-boxed:
+
+    - the tag only lands while ``signup_source`` is NULL (conditional UPDATE,
+      the same exactly-once shape as the lifecycle-email markers), and
+    - only within the attribution window after account creation, so an old
+      account cannot be re-attributed by a later tagged visit.
+
+    Refusals are 200s with ``recorded: false`` — a rejected tag simply leaves
+    the user UNKNOWN, and the frontend must not retry forever on an error.
+    """
+    from app.core.attribution import (
+        attribution_window_open,
+        normalise_signup_source,
+    )
+
+    source = normalise_signup_source(request.source)
+    if source is None:
+        return {"recorded": False, "reason": "invalid_source"}
+
+    user = await get_or_create_user(session, current_user)
+    if user.signup_source is not None:
+        return {"recorded": False, "reason": "already_set"}
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    if not attribution_window_open(user.created_at, now):
+        return {"recorded": False, "reason": "window_closed"}
+
+    result = await session.execute(
+        text(
+            'UPDATE "user" SET signup_source = :source, signup_source_at = :now '
+            "WHERE id = :user_id AND signup_source IS NULL"
+        ),
+        {"source": source, "now": now, "user_id": user.id},
+    )
+    await session.commit()
+    recorded = result.rowcount == 1
+    if recorded:
+        logger.info(f"Signup source recorded: {source} (user {user.id})")
+    return {"recorded": recorded, "reason": None if recorded else "already_set"}
+
+
 @router.post("/push-token")
 async def register_push_token(
     request: PushTokenRequest,

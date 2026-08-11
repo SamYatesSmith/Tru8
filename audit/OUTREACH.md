@@ -81,10 +81,14 @@ impression, opened inside a DM with no context:
       googling? Fix what fails; ship nothing speculative.
 - [ ] Cold load speed acceptable on mobile.
 
-**C. Measurement exists.** 
-- [ ] Signup-source attribution shipped (requirement already logged in
-      `OPEN_WORK.md`): tagged links per contact; untagged = `unknown`, never
-      `direct`.
+**C. Measurement exists. ✅ SHIPPED 2026-08-11.**
+- [x] Signup-source attribution: outreach links carry `?src=<tag>`
+      (`utm_source` honoured). First-touch capture in localStorage on any
+      page (`lib/attribution.ts`), flushed once post-auth to
+      `User.signup_source` — write-once, 72h window so an old account cannot
+      be re-attributed. Report: `python -m scripts.signup_sources` (mirrors
+      `mcp_usage.py`; NULL prints `(unknown)`, never `direct`). 31 tests.
+      ⏳ Verify post-deploy: `alembic current` → `signup_source (head)`.
 
 **D. Founder decisions.** 
 - [ ] Two segments confirmed (or overruled).

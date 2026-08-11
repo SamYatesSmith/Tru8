@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { apiClient } from '@/lib/api';
+import { AttributionFlush } from '@/components/analytics/attribution-flush';
 import { SignedInNav } from './components/signed-in-nav';
 import { Footer } from '@/components/layout/footer';
 import { FeedbackWidget } from './components/feedback-widget';
@@ -34,6 +35,8 @@ export default async function DashboardLayout({
   // Render layout
   return (
     <div className="min-h-screen bg-white">
+      {/* Delivers a stored ?src= signup tag once, now that auth is certain */}
+      <AttributionFlush />
       <SignedInNav user={user} />
 
       {/* Main content - adjusted padding for mobile nav (top: h-14, bottom: h-16) */}

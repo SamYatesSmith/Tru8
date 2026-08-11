@@ -2,9 +2,11 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
+import { Suspense } from 'react'
 import { ServiceWorkerTombstone } from '@/components/layout/service-worker-tombstone'
 import { AnalyticsProvider } from '@/components/analytics/posthog-provider'
 import { AnalyticsIdentify } from '@/components/analytics/analytics-identify'
+import { AttributionCapture } from '@/components/analytics/attribution-capture'
 import { CookieConsent } from '@/components/legal/cookie-consent'
 
 const inter = Inter({
@@ -90,6 +92,11 @@ export default function RootLayout({
           </a>
           <ServiceWorkerTombstone />
           <AnalyticsIdentify />
+          {/* Suspense: useSearchParams in a layout-mounted client component
+              needs a boundary or the static build bails out. */}
+          <Suspense fallback={null}>
+            <AttributionCapture />
+          </Suspense>
           <AnalyticsProvider>
             {children}
           </AnalyticsProvider>

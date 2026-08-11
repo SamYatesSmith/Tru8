@@ -104,6 +104,19 @@ class ApiClient {
   }
 
   /**
+   * POST /api/v1/users/signup-source
+   * Delivers the ?src= tag a signup arrived with. Backend is write-once and
+   * time-boxed; refusals come back as 200 {recorded:false}.
+   */
+  async recordSignupSource(source: string, token?: string | null) {
+    return this.request<{ recorded: boolean; reason: string | null }>(
+      '/api/v1/users/signup-source',
+      { method: 'POST', body: JSON.stringify({ source }) },
+      token
+    );
+  }
+
+  /**
    * GET /api/v1/users/stats
    * Returns aggregated user statistics for dashboard insights
    */

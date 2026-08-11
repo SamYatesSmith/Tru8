@@ -33,6 +33,14 @@ class User(SQLModel, table=True):
     email_weekly_digest: bool = Field(default=False)
     email_marketing: bool = Field(default=False)
 
+    # Signup-source attribution (2026-08-11). WHY the person came — set once,
+    # from a ?src= / ?utm_source= tag carried through signup by the frontend.
+    # NULL means UNKNOWN and must never be re-read as "direct": with a dozen
+    # accounts, a wrong attribution kills the wrong channel. Distinct from
+    # Check.client, which records HOW a check arrived (web/mcp) per check.
+    signup_source: Optional[str] = Field(default=None, max_length=64, index=True)
+    signup_source_at: Optional[datetime] = Field(default=None)
+
     # Lifecycle (funnel) emails: welcome on first arrival, trial exhausted.
     # Separate from email_marketing, which defaults False — gating on that
     # would ship the feature dark for everyone.
