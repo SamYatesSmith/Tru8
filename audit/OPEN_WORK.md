@@ -191,11 +191,16 @@ journal-tier fix (`evidence_classifier.py`, plus untracked
 without a decision.** Also untracked and free to ship whenever: `scripts/
 cost_report.py` + `tests/unit/test_cost_report.py`.
 ⚠️ **The replay bench CANNOT run while the reframe is in the tree** (prompt text
-is a cassette key — all 9 claims fail on `cassette_drift`). Pass state is
-**158 ok / 2 warn / 1 fail**. This is the standing blocker on all
-pipeline-quality work and has been open since 3 August.
+is a cassette key). Pass state is **143 ok / 13 warn / 5 fail** as of the
+2026-08-11 corpus restoration below — 158/2/1 is retired.
 
-#### 🔴 THE ACTUAL PRIORITY — read `audit/2026-08-10_distribution_reality.md`
+#### 🔴 THE ACTUAL PRIORITY — read `audit/OUTREACH.md`
+
+**`audit/OUTREACH.md` is now the single source of truth for all outreach**
+(2026-08-11). Its predecessors — the 10 Aug distribution-reality audit, the
+11 Aug next-steps review and the 11 Aug methodology review — are consolidated
+into it and moved to `audit/_archive/`; the production numbers they rested on
+are restated in its header.
 
 Queried production directly: **12 accounts ever, two of them the founder, at
 least two family, one business domain. 129 checks, 104 by the founder. Last
@@ -209,10 +214,11 @@ demand. SEO harvests demand that does not exist for this category** (nobody
 searches "evidence landscape", and the fact-check queries that do have volume
 are the positioning we deliberately reject).
 
-The goal is **the first ten strangers**, not growth. Methodology, kill
-conditions and the founder/engineer split are in the doc. Engineering half:
-**signup-source attribution** (today `Check.client` records HOW a check arrived,
-never WHY the person came, so no channel can be evaluated).
+The goal is **the first ten strangers**, not growth — recruited by hand via
+personalised `/r/` records (0→10 is a list problem, not a channel problem).
+Prerequisites, cadence and the 50-send verdict are in `OUTREACH.md`.
+Engineering half: **signup-source attribution** (today `Check.client` records
+HOW a check arrived, never WHY the person came).
 
 #### 📋 OPEN REQUIREMENT — signup-source attribution (logged 2026-08-11, NOT started)
 
