@@ -102,13 +102,40 @@ _GOV_PATTERNS = re.compile(
 # publishers / indexes of published work). Preprint servers, working-paper
 # repositories and bare university hosts are NOT here — they go to
 # `_PREPRINT_PATTERNS` → analysis. arXiv stays (the arXiv smell test refines it).
+#
+# 2026-08-03 — LEARNED-SOCIETY VENUES ON THEIR OWN DOMAINS.
+# The list covered the big commercial platforms (Elsevier, Springer, Wiley) and
+# a handful of flagship titles, but omitted journals that societies publish
+# themselves. The effect was not marginal: the New England Journal of Medicine
+# classified as COMMENTARY, and in TRU-577F-AB3F an AHA Scientific Statement in
+# Circulation sat in the same tier as a consumer explainer.
+#
+# The selection bar is the one _high_confidence_override already sets — the
+# domain must be a peer-reviewed venue such that URL identity SETTLES the tier,
+# with no reading of the content. University news offices, consumer health
+# publications and society campaign sites deliberately stay out: they report ON
+# research and are correctly commentary.
+#
+# ⚠️ An allowlist cannot close an open set. There are thousands of legitimate
+# journals; this list is incomplete by construction and the next gap will look
+# exactly like this one did. The structural fix is a publisher-identity signal
+# (DOI/Crossref or an ISSN registry), not a longer list. Design:
+# audit/2026-08-03_journal_tier_classification_design.md
 _ACADEMIC_PATTERNS = re.compile(
     r"pubmed\.ncbi|arxiv\.org|nature\.com|sciencedirect\.com"
     r"|springer\.com|wiley\.com|jstor\.org|ncbi\.nlm\.nih\.gov"
     r"|scholar\.google|thelancet\.com|jamanetwork\.com|science\.org"
     r"|ipcc\.ch|semanticscholar\.org|openalex\.org|academic\.oup\.com"
     r"|clinicaltrials\.gov|pubs\.acs\.org|pmc\.ncbi|cell\.com|pnas\.org"
-    r"|bmj\.com|frontiersin\.org|plos\.org|royalsocietypublishing\.org",
+    r"|bmj\.com|frontiersin\.org|plos\.org|royalsocietypublishing\.org"
+    # Medical societies publishing their own peer-reviewed record
+    r"|nejm\.org|ahajournals\.org|annals\.org|acpjournals\.org"
+    r"|ajconline\.org|diabetesjournals\.org|aacrjournals\.org"
+    r"|ashpublications\.org|atsjournals\.org|physiology\.org"
+    r"|jneurosci\.org|biomedcentral\.com|embopress\.org|elifesciences\.org"
+    # Established academic publishers not already covered above
+    r"|tandfonline\.com|sagepub\.com|cambridge\.org|karger\.com"
+    r"|ieeexplore\.ieee\.org",
     re.IGNORECASE,
 )
 

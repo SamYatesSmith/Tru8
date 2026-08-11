@@ -112,7 +112,24 @@ sound *when measured*; it has simply expired. **Do not delete that section** —
 it is still the record of how the coupling works (tier → mapper citation →
 mapped-set concentration). Re-decide the fix on its own merits.
 
-#### ❌ The journal-tier fix was recorded and NOT shipped — the evidence did not clear it
+#### ✅ SHIPPED — the journal-tier fix went out on its unit tests, and the bench was the wrong gate
+**Founder call, and it was right.** The change is a domain allowlist — pure
+Python, no model in the path. 57 unit tests cover both consumers
+(`_classify_heuristic` AND `_high_confidence_override`, the one that beats the
+LLM), including negative tests pinning that university news offices, consumer
+health publications and charity explainers **stay** commentary. That is the
+mechanism, fully covered, in thirty seconds.
+
+Gating it on the replay bench was a category error: the corpus asserts URLs,
+adapters, counts and five quality proxies, and **not one golden pins an element
+state**. It cannot tell you whether a tier change made the output better. It was
+never the right instrument, and holding a unit-verified fix behind it for eight
+days left NEJM classified as commentary in production the whole time.
+
+**The bench keeps its real job** — a tripwire for "did I accidentally break
+retrieval" — and must not gate a quality change again.
+
+#### ⚠️ The record of the re-record — kept because it cost 65p to learn
 Second full live re-record with the classifier change alone in the tree, patched,
 and replayed. Deterministic replay against deterministic replay:
 
