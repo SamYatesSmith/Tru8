@@ -112,6 +112,44 @@ sound *when measured*; it has simply expired. **Do not delete that section** —
 it is still the record of how the coupling works (tier → mapper citation →
 mapped-set concentration). Re-decide the fix on its own merits.
 
+#### ❌ The journal-tier fix was recorded and NOT shipped — the evidence did not clear it
+Second full live re-record with the classifier change alone in the tree, patched,
+and replayed. Deterministic replay against deterministic replay:
+
+| | clean baseline | with journal fix |
+|---|---|---|
+| **Overall** | **143 ok / 13 warn / 5 fail** | **138 ok / 15 warn / 8 fail** |
+| `TRU-5647-FA4F` | 0 fail | **3 fail** — freshness inject stopped firing on claims 0 and 1, `web_search` 26 vs 45±8 |
+| `TRU-93DD-F4B7` | 1 fail (`unique_domains` 4.0) | **0 fail** — improved |
+| `TRU-A3E8-3199` | 0 fail | **1 fail** — `factual_weight_share` 0.0 |
+| `TRU-C1A0-0003` | 1 fail (0.53) | 1 fail (**0.56**) |
+
+**It got worse, and I cannot prove the change caused it.** The two recordings are
+independent live draws twenty minutes apart, and the design doc's own rule
+applies: *only a matched live pair attributes anything*. The movements go both
+ways (93DD improved, A3E8 and 5647 worsened), which is the signature of pool
+noise rather than of a tier change — and neither freshness inject nor
+`factual_weight_share` has a plausible mechanical path from a domain allowlist.
+The one consistent signal is `top_domain_share` **0.53 → 0.56**, a +0.03 nudge on
+a claim already over the cap.
+
+**So the honest state is: the recorded objection has expired, but nothing has
+replaced it with a pass.** Shipping now would mean shipping on a corpus that got
+measurably worse in the same session, with no attribution. The unit case remains
+strong (57 tests, both consumers, negative tests pinning the correctly-commentary
+domains) and NEJM is still classified as commentary in production.
+
+**What would settle it, cheaply:** a matched controlled pair on `TRU-C1A0-0003`
+alone — record clean and record with the change back to back, same claim, ~6p —
+rather than two full-corpus draws at ~25p each. That is the method §4b used and
+it is the method that produced an attributable number. Budget was exhausted
+before this could run.
+
+⚠️ **The corpus in git is the CLEAN recording** (`5a8cbd6`). The
+change-in-tree recording was discarded via `git checkout -- backend/tests/replay_corpus/`
+and the clean corpus re-verified afterwards (`TRU-C1A0-0003` reproduces 15 ok /
+2 warn / 1 fail exactly). Committed cassettes match committed code.
+
 **Goldens were deliberately NOT refreshed.** The counter drift is real and would
 be legitimate to re-gold, but `--update-golden` rewrites the whole file including
 hard invariants, which is the F7 trap (re-golding can silently delete a guard).
