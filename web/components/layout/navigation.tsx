@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { Tru8Mark } from '@/components/brand/tru8-mark';
@@ -43,6 +44,24 @@ export function Navigation({
 }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(initialAuthOpen);
   const { isSignedIn } = useAuth();
+  const router = useRouter();
+
+  // The middleware bounce reaches this component two ways. On a full page
+  // load, useState reads initialAuthOpen and the modal opens. On a CLIENT-SIDE
+  // navigation (hero/nav "Start a check" clicked from "/"), this component is
+  // already mounted, useState ignores the prop change, and the modal silently
+  // failed to open — a signed-out visitor's primary CTA did nothing
+  // (2026-08-11, reproduced in-browser). This effect closes that path.
+  useEffect(() => {
+    if (initialAuthOpen) setIsAuthModalOpen(true);
+  }, [initialAuthOpen]);
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+    // Strip the bounce params so the next bounce is a fresh false→true
+    // transition, and a refresh or shared URL doesn't reopen the modal.
+    if (initialAuthOpen) router.replace('/', { scroll: false });
+  };
 
   return (
     <>
@@ -132,10 +151,10 @@ export function Navigation({
         </div>
       </nav>
 
-      {/* Auth Modal — only opened by "Sign In" */}
+      {/* Auth Modal — opened by "Sign In" or the middleware bounce */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={closeAuthModal}
         redirectUrl={redirectUrl}
       />
     </>
