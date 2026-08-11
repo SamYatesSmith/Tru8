@@ -7,6 +7,7 @@ import { Loader2, Twitter, Linkedin, MessageCircle, Lock, Upload, X, Image as Im
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 import { capture } from '@/lib/analytics';
+import { triageText, triageUrl } from '@/lib/input-triage';
 import { PageHeader } from '../components/page-header';
 import { SubscriptionsComingSoon } from '@/components/subscriptions/coming-soon';
 
@@ -39,7 +40,9 @@ export default function NewCheckPage() {
   const searchParams = useSearchParams();
   const { getToken } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<TabType>('url');
+  // Claim-first: typed claims produced the best checks in the 2026-08-11
+  // usage audit; pasted URLs produced most of the failures.
+  const [activeTab, setActiveTab] = useState<TabType>('text');
   const [urlInput, setUrlInput] = useState('');
   const [textInput, setTextInput] = useState('');
   const [queryInput, setQueryInput] = useState('');
@@ -155,6 +158,11 @@ export default function NewCheckPage() {
         setError('Please enter a valid URL (e.g., https://example.com)');
         return;
       }
+      const triage = triageUrl(urlInput);
+      if (!triage.ok) {
+        setError(triage.message);
+        return;
+      }
     }
 
     if (activeTab === 'text') {
@@ -168,6 +176,11 @@ export default function NewCheckPage() {
       }
       if (textInput.length > 5000) {
         setError('Text must be less than 5000 characters');
+        return;
+      }
+      const triage = triageText(textInput);
+      if (!triage.ok) {
+        setError(triage.message);
         return;
       }
     }
@@ -284,7 +297,7 @@ export default function NewCheckPage() {
     <div className="space-y-8">
       <PageHeader
         title="New Evidence Check"
-        subtitle="Submit a claim, URL, or article for multi-source analysis."
+        subtitle="Submit a claim, a question, or a URL."
       />
 
       {/* Limit Reached Banner */}
@@ -318,12 +331,23 @@ export default function NewCheckPage() {
           </div>
           <h3 className="text-lg font-bold text-zinc-900">Submit Content</h3>
           <p className="text-zinc-500 text-sm mt-1">
-            Enter a URL, paste text, or upload an image to analyse
+            Type a claim, paste a URL, or upload an image
           </p>
         </div>
 
-        {/* Tab Selector */}
+        {/* Tab Selector — claim first, matching the default */}
         <div className="flex gap-6 mb-6 border-b border-zinc-100">
+          <button
+            type="button"
+            onClick={() => setActiveTab('text')}
+            className={`pb-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors ${
+              activeTab === 'text'
+                ? 'text-black border-b-2 border-accent'
+                : 'text-zinc-400 hover:text-zinc-600'
+            }`}
+          >
+            CLAIM
+          </button>
           <button
             type="button"
             onClick={() => setActiveTab('url')}
@@ -334,17 +358,6 @@ export default function NewCheckPage() {
             }`}
           >
             URL
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('text')}
-            className={`pb-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors ${
-              activeTab === 'text'
-                ? 'text-black border-b-2 border-accent'
-                : 'text-zinc-400 hover:text-zinc-600'
-            }`}
-          >
-            TEXT
           </button>
           <button
             type="button"
@@ -364,7 +377,7 @@ export default function NewCheckPage() {
           {activeTab === 'url' && (
             <div>
               <label htmlFor="url-input" className="block text-zinc-400 font-mono text-[9px] font-bold uppercase tracking-[0.2em] mb-2">
-                Target Evidence URL
+                Article URL
               </label>
               <input
                 id="url-input"
@@ -375,6 +388,9 @@ export default function NewCheckPage() {
                 className="w-full bg-zinc-50 border border-zinc-200 px-4 py-3 text-zinc-900 placeholder:text-zinc-300 focus:border-black focus:outline-none focus:ring-0 transition-colors"
                 disabled={isSubmitting}
               />
+              <p className="text-sm text-zinc-400 mt-2">
+                We extract the page&apos;s claims — you pick which to research.
+              </p>
             </div>
           )}
 
@@ -382,13 +398,13 @@ export default function NewCheckPage() {
           {activeTab === 'text' && (
             <div>
               <label htmlFor="text-input" className="block text-zinc-400 font-mono text-[9px] font-bold uppercase tracking-[0.2em] mb-2">
-                Text Content
+                Claim or question
               </label>
               <textarea
                 id="text-input"
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
-                placeholder="Paste or type the text you want to analyse..."
+                placeholder="Type the claim or question to check..."
                 rows={8}
                 className="w-full bg-zinc-50 border border-zinc-200 px-4 py-3 text-zinc-900 placeholder:text-zinc-300 focus:border-black focus:outline-none focus:ring-0 transition-colors resize-vertical"
                 disabled={isSubmitting}

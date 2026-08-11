@@ -57,9 +57,9 @@ export function StitchHero() {
               Evidence, <span className="font-bold">not verdicts.</span>
             </h1>
             <p className="text-sm md:text-base lg:text-lg text-zinc-500 mb-4 max-w-2xl leading-relaxed">
-              Paste a claim, a question, or an article. Tru8 breaks it into its
-              checkable parts, gathers evidence from published sources, and
-              returns a signed, organised evidence record.
+              Paste a claim or a question. Tru8 breaks it into its checkable
+              parts, gathers evidence from published sources, and returns a
+              signed, organised evidence record.
             </p>
             <p className="text-sm md:text-base text-zinc-900 mb-8 md:mb-10">
               We organise; you decide.

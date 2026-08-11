@@ -17,7 +17,7 @@ interface QA {
 const PRICING_FAQS: ReadonlyArray<QA> = [
   {
     q: 'What is a check?',
-    a: 'A check is a single evidence research run. You submit a URL, an article or a claim; Tru8 breaks it into its constituent elements, retrieves relevant evidence from published sources, and returns an organised evidence record — with a receipt for every source included and every source excluded.',
+    a: 'A check is a single evidence research run. You submit a claim or a question; Tru8 breaks it into its constituent elements, retrieves relevant evidence from published sources, and returns an organised evidence record — with a receipt for every source included and every source excluded.',
   },
   {
     q: 'What does a check return?',

@@ -65,6 +65,14 @@ up the sender. That path must be clean, not impressive:
 - Do **not** manufacture authority — no bought followers, no burst of
   backdated posts. An honest thin profile beats a fake thick one.
 
+**B0. The second touch survives. ✅ SHIPPED 2026-08-11.** The 23 external
+checks showed three kill-points before any value was seen: half the news-URL
+attempts died at an empty claim-selection gate, homepages/videos/papers ate a
+check to learn they were unreadable, and bare topics failed. Fixed: top claim
+pre-selected at the gate (one-click default), input triage refuses
+never-works inputs at the paste box with recovery guidance (`lib/input-triage.ts`,
+12 tests), copy leads claim-first on all surfaces, CLAIM tab is the default.
+
 **B. The record survives a cold viewer.** The `/r/` link is the entire first
 impression, opened inside a DM with no context:
 - [ ] I-06 OG cards reviewed — the link *preview* is the advert.

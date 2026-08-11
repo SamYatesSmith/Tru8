@@ -20,8 +20,8 @@ export function StitchClosingCta() {
             See the record for <span className="font-bold">your claim.</span>
           </h2>
           <p className="text-sm md:text-base text-zinc-500 leading-relaxed max-w-xl mb-9">
-            Paste a headline, article, or claim and read the evidence for and
-            against — in your browser. We organise; you decide.
+            Paste a claim and read the evidence for and against — in your
+            browser. We organise; you decide.
           </p>
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
             <Link

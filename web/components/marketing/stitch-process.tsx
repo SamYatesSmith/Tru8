@@ -8,9 +8,9 @@ const steps = [
   {
     number: '01',
     label: 'Submit',
-    title: 'Submit a claim, question or URL',
+    title: 'Submit a claim or question',
     description:
-      'Paste a claim, a question, or an article — you choose which of its claims to pursue. Console or API.',
+      'Paste a claim or a question. From an article, we extract its claims — you pick which to pursue. Console or API.',
   },
   {
     number: '02',

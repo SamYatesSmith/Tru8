@@ -17,7 +17,7 @@ interface QA {
 const FAQS: ReadonlyArray<QA> = [
   {
     q: 'What is Tru8?',
-    a: 'Tru8 is evidence research infrastructure. You submit a URL or a claim, and Tru8 decomposes it into checkable elements, retrieves evidence from published sources, and organises the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Tru8 does not issue a verdict. We organise; you decide.',
+    a: 'Tru8 is evidence research infrastructure. You submit a claim or a question, and Tru8 decomposes it into checkable elements, retrieves evidence from published sources, and organises the results into a structured evidence landscape — what supports each element, what challenges it, and what is missing. Submit an article and Tru8 extracts its claims for you to choose from. Tru8 does not issue a verdict. We organise; you decide.',
   },
   {
     q: 'How is Tru8 different from a fact-checker?',

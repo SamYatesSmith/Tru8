@@ -24,7 +24,17 @@ export function ClaimSelectionView({
   onSubmit,
   isSubmitting,
 }: ClaimSelectionViewProps) {
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  // Pre-select the top-ranked claim so the default path through the gate is
+  // one click. Half the external news-URL checks were abandoned here when the
+  // gate opened empty (2026-08-11 usage audit). Rank is used, not array
+  // order — the page-refresh fallback maps claims in position order.
+  const [selected, setSelected] = useState<Set<number>>(() => {
+    if (claims.length === 0) return new Set();
+    const top = claims.reduce((a, b) =>
+      a.significanceRank <= b.significanceRank ? a : b
+    );
+    return new Set([top.position]);
+  });
 
   const capExceedsClaims = claims.length > MAX_SELECTABLE_CLAIMS;
   const isAtCap = selected.size >= MAX_SELECTABLE_CLAIMS;
@@ -73,8 +83,7 @@ export function ClaimSelectionView({
       />
 
       <p className="text-sm text-zinc-500 mb-8">
-        Select up to {MAX_SELECTABLE_CLAIMS} claims to investigate. We do our most
-        thorough work when you pick the ones that matter most.
+        The top claim is pre-selected. Adjust or add up to {MAX_SELECTABLE_CLAIMS}.
       </p>
 
       <ClaimSelectionToolbar
