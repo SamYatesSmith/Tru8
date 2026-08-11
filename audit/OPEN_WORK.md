@@ -10,6 +10,120 @@
 **This block is what to do next. Everything below the divider is history.**
 
 ---
+### 🔴 2026-08-11 — THE REPLAY BENCH IS DEAD AT CLEAN HEAD, AND THE HELD WORK IS NOT WHY
+
+**Found while validating the two held pipeline changes. This supersedes every
+statement in this register that the held mapping-prompt reframe is what blocks
+the bench.** With **both held changes taken out of the tree** — verified clean by
+`git status` — `--all` reports:
+
+```
+OVERALL: FAIL   0 ok, 0 warn, 9 fail      (every claim: cassette_drift)
+TRU-A3E8-3199   44 misses / 0 HITS
+```
+
+**Zero hits, on every claim.** That is not the reframe's signature (which left
+hits intact) and not the classifier change's (documented at 22 misses / **55
+hits**). Nothing replays at all.
+
+**Where it breaks:** request **#0** — the article-classifier Gemini call, the
+first HTTP request the pipeline makes. Everything after it is cascade: the Google
+call misses → OpenAI fallback fires and also misses (5 OpenAI calls, **0**
+recorded) → extract degrades → every downstream query differs → Serper misses →
+Brave → SerpAPI (**10 / 10 / 10** calls today against **3** Serper recorded).
+One miss at the head of the run destroys the whole recording's usefulness.
+
+**Reproduced at the commits that recorded the cassettes**, which is the part that
+matters:
+
+| Tree | Result |
+|---|---|
+| Clean `HEAD` (`a343964`) | #0 misses |
+| `06dc794` — the commit carrying the `TRU-C1A0-0005` cassette | #0 misses, identical 7802-byte body |
+| `f7e487c` — the exact `captured_with` SHA in that golden | #0 misses |
+
+So **the cassettes cannot be replayed by the code that recorded them.**
+
+**Ruled out by test, not by argument** (each one cost a run, so do not re-derive):
+- **Date normalisation** — substituting `2026-08-06` / `2026-07-30` into the
+  captured body yields a byte-identical normalised hash. The normaliser works.
+- **`backend/.env`** — unmodified since 2026-07-23.
+- **httpx JSON encoding** — pin unchanged (`0.27.0`), installed `0.27.2`, and
+  `encode_json` still uses default separators. Not the 0.28 compaction change.
+- **CRLF/LF** — `core.autocrlf=true` and the sources are CRLF on disk, but Python
+  reads source with universal newlines, so the prompt literals carry `\n`; the
+  captured body contains **zero** CR escapes.
+- **The harness** — `cassette.py` untouched since `f6fd038`; `capture.py` /
+  `comparator.py` gained only instrumentation.
+- **The prompt's own code** — `article_classifier.py` and `google_ai.py`
+  unchanged since `f6fd038`.
+
+**What that leaves:** the recordings hold a first-call body that **no committed
+state reproduces** — most plausibly captured against an uncommitted tree that no
+longer exists. Unproven, and further archaeology is not worth the money.
+
+#### What this costs us, stated plainly
+The bench has not been a working guard since at least the 2026-08-06 green run.
+Every "bench green" claim in this register after that date attests to nothing,
+and any pipeline change gated on it was gated on a test that could not fail for
+the right reason. **The 158/2/1 pass state is not currently reachable.**
+
+#### The remedy, and the step that was missing
+A full-corpus `--record` at a **clean** tree, then — the part nobody has been
+doing — **immediately re-run `--all` and require green before trusting the
+recording**. Nothing today verifies that a fresh cassette actually replays, which
+is exactly how a corpus can rot while reporting green on the day it is made.
+Sequencing for the held work is unchanged: record clean first (that IS the
+baseline), then the classifier change, then the reframe — separately, or the
+golden drift is unattributable.
+
+#### ✅ DONE the same day — the corpus is recorded and REPLAYS again
+
+Full live `--record --all` at a clean tree, then a `--record-missing` patch pass,
+then the verification replay that had never been run. **8 of 9 claims are now
+drift-free**; `TRU-82CF-2F81` reports 3 misses / **60 hits** (it was 44 misses /
+**0 hits** across the board this morning). The bench is a working guard again.
+
+**The new clean-tree baseline is `143 ok / 13 warn / 5 fail`, and 158/2/1 is
+retired.** The five failures were each traced rather than assumed:
+
+| Claim | Failure | Verdict |
+|---|---|---|
+| `TRU-82CF-2F81` | 3 cassette misses | The accepted known-flaky claim. Better than its documented 9–12. |
+| `TRU-93DD-F4B7` | `unique_domains` 4.0 < 5.0 floor | Live pool is thinner than 30 July. Pool drift, not code. |
+| `TRU-C1A0-0003` | `top_domain_share` **0.53** > 0.45 cap | **See below — this changes the journal-tier decision.** |
+| `TRU-C1A0-0005` | temporal gate `never fired` (×2 assertions) | **Not a regression.** The mechanism is intact — 83 `temporal`/`scope`/`jurisdiction` unit tests pass. Today's pool for that claim is 17 items, ONS-dominated, `element_resolution` 1.0, with no off-period evidence left to scope. |
+
+⚠️ **`TRU-C1A0-0005` has therefore gone blind, and the README already predicted
+it.** The fixture only exercises the gate while the live pool *happens* to carry
+off-period figures. It no longer does. A guard that depends on incidental pool
+composition is not a guard — the off-period item needs pinning
+(`must_have_url_substrings`) or the fixture needs rebuilding around evidence that
+cannot drift out. Until then, nothing in the corpus can see the F1 gate.
+
+#### 🔴 The recorded objection to the journal-tier fix no longer holds
+`audit/2026-08-03_journal_tier_classification_design.md` §4b blocked that change
+because it moved `top_domain_share` on `TRU-C1A0-0003` from 0.32 to **0.47**,
+past the 0.45 Poor cap. **On today's clean tree, with the change NOT in the tree,
+that same claim measures 0.53.** The invariant is breached by pool drift alone,
+so the classifier fix is no longer what breaks it — and "hold the change to
+protect the cap" now protects nothing. The design doc's §4b attribution was
+sound *when measured*; it has simply expired. **Do not delete that section** —
+it is still the record of how the coupling works (tier → mapper citation →
+mapped-set concentration). Re-decide the fix on its own merits.
+
+**Goldens were deliberately NOT refreshed.** The counter drift is real and would
+be legitimate to re-gold, but `--update-golden` rewrites the whole file including
+hard invariants, which is the F7 trap (re-golding can silently delete a guard).
+Cassettes only, so no guard moved in the dark.
+
+**Diagnostic technique, so this is cheap next time:** monkeypatch
+`HttpxCassette._replay` to log each miss's URL + request body, and
+`_canonical_signature` to capture the body being signed. Replay mode touches no
+network, so the whole diagnosis is **free**. Compare the captured body's
+normalised hash against the cassette's recorded signatures directly.
+
+---
 ### 📍 HANDOFF — exactly where 2026-08-10 stopped
 
 **Last commit `26a7a0f`, everything PUSHED and DEPLOYED** (`/api/v1/health/`
@@ -44,6 +158,44 @@ The goal is **the first ten strangers**, not growth. Methodology, kill
 conditions and the founder/engineer split are in the doc. Engineering half:
 **signup-source attribution** (today `Check.client` records HOW a check arrived,
 never WHY the person came, so no channel can be evaluated).
+
+#### 📋 OPEN REQUIREMENT — signup-source attribution (logged 2026-08-11, NOT started)
+
+**Blocks step 2 of the distribution plan.** "One channel, thirty days, with a
+kill condition" is unfalsifiable until a signup can be traced to a channel. With
+12 accounts, the measurement does not need to be sophisticated — it needs to
+**exist** and to be honest about what it does not know.
+
+**Today, precisely:** `Check.client` (`app/core/client_origin.py`, written from
+`X-Tru8-Client`) records the *surface a check arrived through* — `web`, `mcp`.
+That is a transport fact. Nothing anywhere records how the person came to Tru8,
+so every channel is unevaluable, including the ones already paid for in effort
+(four registries, five months of SEO).
+
+**Scope of the requirement:**
+1. **Capture a source at account creation** and persist it on the user — the
+   value must survive the Clerk hop, which is where a naive implementation loses
+   it (the landing page and the authenticated first call are different origins in
+   the user's session).
+2. **A report**, alongside `scripts/mcp_usage.py` and reading the same way:
+   signups by source, over 24h/7d/30d, with checks-run per source.
+3. **An explicit `unknown` bucket.** Untagged arrivals must read `unknown`, never
+   be defaulted into `direct` or into the last-touch channel. Given the sample
+   size, a wrong attribution is worse than an absent one — the point is a kill
+   decision, and a fabricated attribution kills the wrong channel.
+
+**Not yet decided, and deliberately not decided here:** whether the source comes
+from UTM params carried through signup, from a single "how did you hear about
+us" question on first run, or both. They fail differently — link tags survive
+only if the link is the entry point (they are lost on a copy-pasted URL or an
+app-to-browser hop), and a self-report question adds friction at the exact moment
+the trial is being spent. Decide it in a design pass, not in the register.
+
+**Acceptance:** a signup arriving via a tagged link is attributable to its
+channel in the report, and an untagged signup reads `unknown` rather than
+anything else. **Non-goals:** no third-party analytics dependency, no PII beyond
+what the accounts already hold, no change to `Check.client` (it answers a
+different question correctly and should keep answering it).
 
 #### ✅ Also shipped today, all live-verified
 
