@@ -127,7 +127,11 @@ impression, opened inside a DM with no context:
       `User.signup_source` — write-once, 72h window so an old account cannot
       be re-attributed. Report: `python -m scripts.signup_sources` (mirrors
       `mcp_usage.py`; NULL prints `(unknown)`, never `direct`). 31 tests.
-      ⏳ Verify post-deploy: `alembic current` → `signup_source (head)`.
+      ✅ Verified in prod 2026-08-12: `alembic_version` = `signup_source`
+      AND the `user.signup_source` column exists (checked directly, not
+      inferred — note the table is `user`, singular). Verified via
+      `railway ssh "<command>"` — command mode works non-interactively, no
+      founder-in-the-loop needed for container checks.
 
 **D. Founder decisions.** 
 - [ ] Two segments confirmed (or overruled).
