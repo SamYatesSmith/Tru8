@@ -5,9 +5,51 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-10, end of day)
+## 🟢 START HERE — next session (updated 2026-08-12, end of day)
 
 **This block is what to do next. Everything below the divider is history.**
+
+### 📍 HANDOFF — exactly where 2026-08-12 stopped
+
+**Everything pushed; working tree holds only the long-HELD reframe
+(`claim_map_analyzer.py` — not mine, don't touch) and the free-to-ship
+`cost_report.py` + test.** CI GREEN. Outreach SOT: `audit/OUTREACH.md`.
+
+**⏳ THE OPEN DECISION (founder, first thing):** the first-five swap.
+Two of the four outreach checks are weak for their intended recipients
+(graded C+/C− — each MISSED the recipient's own published rebuttal).
+Proposed batch: Heneghan/Jefferson (NHS, A−) · Viglione (wildfire, A) ·
+Seymour (same wildfire record) · Tapper (Scotland, C+ but he's pro-claim) ·
+McSweeney (needs ONE more ~1.5p check on the heatwave-pollution claim).
+Macfarlane + Gid M-K to round two. **On approval: run the McSweeney check,
+draft five two-sentence notes, founder sends.** Still gating actual sends:
+`sam@trueight.com` + one public founder profile (prereq A).
+
+#### ✅ DONE 2026-08-12 (the whole day, in order)
+| What | Where |
+|---|---|
+| OG cards verified live — already worked, nothing rebuilt | `0f3bf68` |
+| Cold-viewer pass: comprehension PASSES; two defects found | `849d59b` |
+| **MAP clump fixed — Chrome painted stale CSS-transitioned SVG transforms; DOM was always right.** SVG `transform` attribute now; `<rect> negative width` killed same commit; live-verified | `0758154` |
+| Scroll freeze closed as automation artefact (founder hand-scroll clean) | `41ce283` |
+| **`tru8-mcp` 1.0.4 on PyPI (founder uploaded; wheel + sdist), verified in clean venv; CI GREEN again** — the version guard had failed every push since the 10th | `e9a81eb` |
+| `.gitignore` held a cp1252 em-dash breaking every hatchling build | same |
+| Developer-docs audit: every numeric claim verified accurate; ONE finding | `6d32387` |
+| **Stale `tru8-mcp` mirror repo synced to 1.0.4** (was 5 months behind, pre-DOA-fix, while being the PyPI Repository/Issues target). Sync = copy `backend/tru8_mcp/*` + push, EVERY release | mirror `b1809eb` |
+| Prereqs B, C, D CLOSED (founder: no freezes, phone fine, cards fine; segments confirmed; comp built at **10 checks** — `grant_checks.py`, 3 tests) | `9346e71`, `c7bf5d1`, `278b508` |
+| `signup_source` migration + column verified IN PROD (note: `railway ssh "<cmd>"` works non-interactively; table is `user` singular) | `98d5bc3` |
+| **Measured cost: 1.18p/check median** (prod telemetry, `cost_report.py`); Console margin ~88%; the plan's 2–7p was 2–5x high | `1301edb` |
+| **THE LIST: 42 verified outreach rows** (4 parallel agents, every row's piece fetched + confirmed; 4 spot-checked again) → untracked contact map, August section. 3 dispute clusters incl. Neidle £22m (3 people) and Ridley-vs-Carbon-Brief wildfires (4 people) | contact map (untracked) |
+| **4 outreach checks run** (~4.8p measured; 60p agent-balance internal transfer). Grades: wildfire **A** (`d18d1b02`), NHS 29% **A−** (`11f54993`), Scotland **C+** (`7a6a4b91`), dairy **C−** (`c2bfbb8c`) | check IDs in contact map |
+
+#### 🔎 PIPELINE OBSERVATION — recorded, deliberately NOT actioned (plan bans pipeline work)
+Both weak records failed the SAME way: **a mainstream claim's Substack/small-site
+rebuttal never enters the pool** (Macfarlane's futureeconomy.scot response;
+Gid M-K's Substack teardown) while the claim's press echo dominates — so a live
+two-sided dispute renders one-sided, which brushes invariant #7. The wildfire
+check escaped only because Carbon Brief indexes well. Also seen: a
+loss-vs-generated wording slip in a decomposed element (Scotland e1). File
+under retrieval recency/platform coverage when pipeline work reopens.
 
 ---
 ### 🔴 2026-08-11 — THE REPLAY BENCH IS DEAD AT CLEAN HEAD, AND THE HELD WORK IS NOT WHY

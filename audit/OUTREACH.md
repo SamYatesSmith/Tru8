@@ -155,6 +155,32 @@ impression, opened inside a DM with no context:
       we say "evidence landscape"; they don't. What they say is what converts.
 - [ ] The list: 50 valid rows.
 
+## STATE OF PLAY (2026-08-12, end of day)
+
+**The list exists: 42 verified rows** (untracked contact map, August section —
+4 parallel research agents, every row's piece fetched and byline/date/claim
+confirmed; 4 rows independently re-verified). Three dispute clusters where one
+record serves several sends. Tags minted per person (`o-<name>`, attribution
+charset).
+
+**Four checks run** (~4.8p measured; 60p internal agent-balance transfer),
+graded as artefacts for their recipients:
+| Claim | Check | Grade | Note |
+|---|---|---|---|
+| "2026 quietest wildfire year" | `d18d1b02` | **A** | Both elements disputed; Russia-dataset crux named; serves Viglione + Seymour (+ Ridley later) |
+| NHS App "29% queue reduction" | `11f54993` | **A−** | Echo detector: 6 of 7 supports derive from 1 original; unpublished-evaluation provenance named. For Heneghan/Jefferson |
+| Scotland 48p "lost £22m" | `7a6a4b91` | **C+** | Zero challenges — Macfarlane's published rebuttal missing from pool; fine for Tapper only |
+| Full-fat dairy "no weight gain" | `c2bfbb8c` | **C−** | One trial + its echo, uniformly supported; Gid M-K's teardown absent. Do not send as-is |
+
+**⏳ OPEN DECISION (founder):** approve the swap — first five = Heneghan/
+Jefferson, Viglione, Seymour, Tapper, McSweeney (one more ~1.5p check needed);
+Macfarlane + Gid M-K to round two once their records can carry the rebuttals.
+
+**⚠️ Learned, recorded in OPEN_WORK, not actioned:** Substack/small-site
+rebuttals of mainstream claims don't reach the evidence pool — the exact
+failure both weak records share. Never send a record to a disputant whose own
+rebuttal it missed.
+
 ## The cadence
 
 - **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find
