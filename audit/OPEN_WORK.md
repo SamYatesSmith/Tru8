@@ -313,16 +313,21 @@ webhook constants (5 active cap, 2 attempts, 10-failure deactivation,
 exactly 11), batch cap 10, `Idempotency-Key`→409, `compact`, `cachedTier`,
 5 simultaneous processing (`MAX_CONCURRENT_AGENT_ANALYSES=5`), MCP tools and
 auth routes, `/api/docs` + `/api/redoc` live.
-🔴 **The one misalignment: `github.com/SamYatesSmith/tru8-mcp` is a STALE
-MIRROR — last pushed 2026-03-27, five months behind, pre-dating the DOA fix.**
-The PyPI README's "From source" section and pyproject's `Repository`/`Issues`
-URLs all point there, so anyone cloning gets the era of code that broke on
-install, and issues filed there are watched by nobody. Founder call: either
-push the current `backend/tru8_mcp` to the mirror, or repoint the URLs at the
-monorepo (reaches PyPI only with the next release). Minor cousin: the live
-registry entry (v1.0.4) still names pypi package version 1.0.3 — installable
-and harmless; the repo's server.json now says 1.0.4 and the next registry
-publish carries it.
+✅ **The one misalignment is CLOSED (2026-08-12): the stale
+`github.com/SamYatesSmith/tru8-mcp` mirror is synced to 1.0.4**
+(mirror commit `b1809eb`). It had not been pushed since 2026-03-27 —
+pre-dating the DOA fix — while being the Repository/Issues target on every
+PyPI page. Now a **byte-for-byte copy of `backend/tru8_mcp`** (same flat
+layout + pyproject; `pip install -e .` verified in a clean venv, imports and
+reports 1.0.4). Its 1.0.0-era relics (`Dockerfile`, `server.json`,
+`smithery.yaml` — including the old namespace invention) are deleted; the
+canonical copies live in this repo. ⚠️ **Sync procedure: on every release,
+copy `backend/tru8_mcp/{*.py,pyproject.toml,README.md,LICENSE}` to the
+mirror and push** — nothing enforces this, so it lives in the release
+ritual next to the PyPI upload. Minor cousin, still open: the live registry
+entry (v1.0.4) names pypi package version 1.0.3 — installable and harmless;
+the repo's server.json now says 1.0.4 and the next registry publish carries
+it.
 
 ---
 ### ✅ SHIPPED 2026-08-10 — the brand went live, and Smithery went 53 → 92
