@@ -94,14 +94,12 @@ impression, opened inside a DM with no context:
       evidence"), element badges and the stance bar; a stranger knows what
       they are looking at without scrolling. **Two defects found, one
       serious:**
-      1. 🔴 **Intermittent renderer freezes while scrolling** — three times
-         in one session the page went blank mid-scroll and the tab was
-         unresponsive for 30+ seconds before recovering (broken frames
-         painted the sticky nav mid-viewport). Console clean, no JS errors.
-         Observed via automated CDP session, so needs ONE hand reproduction:
-         founder scrolls the sample record top-to-bottom at normal speed. If
-         it reproduces by hand it BLOCKS sends — a frozen tab is a closed
-         tab for a cold viewer.
+      1. ✅ **Renderer freezes: NOT user-facing — CLOSED 2026-08-12.**
+         Founder hand-scrolled the sample record on a normal browser: no
+         freezes. The 30s stalls were an artefact of the automated CDP
+         session (screenshot capture pressure on the compositor), which also
+         fits the evidence — JS stayed healthy and example.com captured
+         instantly in the same tab. Does not block sends.
       2. ✅ **MAP icon clump — FIXED AND LIVE-VERIFIED 2026-08-12
          (`0758154`).** The layout was never wrong: the DOM had every icon
          correctly placed (verified via getBoundingClientRect) while the
