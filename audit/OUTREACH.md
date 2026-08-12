@@ -133,12 +133,15 @@ impression, opened inside a DM with no context:
       `railway ssh "<command>"` — command mode works non-interactively, no
       founder-in-the-loop needed for container checks.
 
-**D. Founder decisions.** 
-- [ ] Two segments confirmed (or overruled).
-- [ ] Comp code: ~30 checks for recipients who bite, so nobody hits the
-      3-check wall mid-evaluation. Costs pence; it is still money — decide it.
-- [ ] Smithery listing flipped to public (free, unrelated, one toggle — it is
-      100/100 and invisible in their search).
+**D. Founder decisions. ✅ CLOSED 2026-08-12.**
+- [x] Two segments confirmed by founder (journalists/newsletter writers +
+      OSINT wildcard).
+- [x] Comp approved and BUILT (`9346e71`): when a recipient bites, run
+      `railway ssh "python -m scripts.grant_checks --email <them> --checks 30"`.
+      Mechanically a bump to `User.credits` (the trial gate reads
+      `max(3, credits + total_credits_used)`); refuses subscribers, where a
+      grant would be silently inert. Three tests pin the mechanism.
+- [x] Smithery listing was already public (resolved 2026-08-11).
 
 **E. Calibration.** 
 - [x] ~~Send the business-domain email first.~~ **DISSOLVED 2026-08-11: the
