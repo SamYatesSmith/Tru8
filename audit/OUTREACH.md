@@ -85,10 +85,35 @@ impression, opened inside a DM with no context:
       nothing stale. ⚠️ Remaining is the founder eyeball only: paste one `/r/`
       link into WhatsApp/X/LinkedIn/Slack and check the crop — key content is
       left-anchored, so a square small-preview crop is the thing to look at.
-- [ ] One cold-viewer pass of a real record: does a stranger grasp in ~10
+- [x] One cold-viewer pass of a real record: does a stranger grasp in ~10
       seconds what they are looking at and why it beats 30 seconds of
       googling? Fix what fails; ship nothing speculative.
-- [ ] Cold load speed acceptable on mobile.
+      **RUN 2026-08-12 on the live sample record. Comprehension PASSES** —
+      the first screen carries claim, EMPIRICAL badge, the one-line reading
+      ("Of 3 elements examined, 2 predominantly supported; 1 with conflicting
+      evidence"), element badges and the stance bar; a stranger knows what
+      they are looking at without scrolling. **Two defects found, one
+      serious:**
+      1. 🔴 **Intermittent renderer freezes while scrolling** — three times
+         in one session the page went blank mid-scroll and the tab was
+         unresponsive for 30+ seconds before recovering (broken frames
+         painted the sticky nav mid-viewport). Console clean, no JS errors.
+         Observed via automated CDP session, so needs ONE hand reproduction:
+         founder scrolls the sample record top-to-bottom at normal speed. If
+         it reproduces by hand it BLOCKS sends — a frozen tab is a closed
+         tab for a cold viewer.
+      2. **MAP view (cartographer): all source icons collapse into one
+         overlapping clump** between the element columns instead of
+         distributing — reads as broken, and it is the view a curious
+         stranger clicks ("Shape of the debate?"). Likely the same defect as
+         the recorded prod `<rect> negative width`. EVIDENCE / TIMELINE /
+         SOURCES views all render well.
+      Minor (not send-blocking): evidence titles truncate mid-word with no
+      ellipsis ("…: a Burden of"); "SOURCES REVIEWED 14" vs "SOURCES
+      ORGANISED 17" is unexplained on the page.
+- [ ] Cold load speed acceptable on mobile. (Page TTFB ~0.4s measured; the
+      rendering check needs a real phone — window-resize emulation was
+      refused by the environment 2026-08-12.)
 
 **C. Measurement exists. ✅ SHIPPED 2026-08-11.**
 - [x] Signup-source attribution: outreach links carry `?src=<tag>`
