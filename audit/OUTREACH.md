@@ -137,7 +137,10 @@ impression, opened inside a DM with no context:
 - [x] Two segments confirmed by founder (journalists/newsletter writers +
       OSINT wildcard).
 - [x] Comp approved and BUILT (`9346e71`): when a recipient bites, run
-      `railway ssh "python -m scripts.grant_checks --email <them> --checks 30"`.
+      `railway ssh "python -m scripts.grant_checks --email <them> --checks 10"`.
+      **Founder sized it at 10 (2026-08-12, revised down from ~30)** — if
+      someone exhausts 10, that is a strong engagement signal and a top-up
+      is one command at exactly the right moment.
       Mechanically a bump to `User.credits` (the trial gate reads
       `max(3, credits + total_credits_used)`); refuses subscribers, where a
       grant would be silently inert. Three tests pin the mechanism.
