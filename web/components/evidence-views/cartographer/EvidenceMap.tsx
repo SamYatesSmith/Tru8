@@ -349,7 +349,9 @@ export function EvidenceMap({
   const innerHeight = height - PADDING.top - PADDING.bottom;
   const innerWidth = containerWidth - PADDING.left - PADDING.right;
   const elementCount = Math.max(elements.length, 1);
-  const columnWidth = innerWidth / elementCount;
+  // Clamped: this component can mount display:none (mobile) where the
+  // container measures 0 wide, and a negative rect width is an SVG error.
+  const columnWidth = Math.max(0, innerWidth / elementCount);
 
   const populatedBands = TIERS.filter((t) => bandLayout[t] !== null).map(
     (tier, idx) => ({
@@ -551,23 +553,24 @@ export function EvidenceMap({
         </defs>
 
         {/* ── Evidence nodes ── */}
+        {/* Positioned via the SVG transform ATTRIBUTE, never CSS transform +
+            transition: Chrome's compositor can leave CSS-transitioned SVG <g>
+            transforms painted at a stale frame (layout correct, pixels wrong),
+            which rendered this map as a single overlapping clump in prod.
+            Entrance is an opacity fade instead — opacity composites fine. */}
         {nodes.map((node) => {
           const isHovered = hoveredId === node.id;
           const isSelected = selectedId === node.id;
           const isDimmed =
             !!(hoveredId || selectedId) && !isHovered && !isSelected;
-          const cx = settled ? node.x! : PADDING.left + innerWidth / 2;
-          const cy = settled ? node.y! : PADDING.top + innerHeight / 2;
 
           return (
             <g
               key={node.id}
+              transform={`translate(${node.x}, ${node.y})`}
               style={{
-                transform: `translate(${cx}px, ${cy}px)`,
-                transition: settled
-                  ? 'transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease'
-                  : 'none',
-                opacity: isDimmed ? 0.2 : 1,
+                opacity: isDimmed ? 0.2 : settled ? 1 : 0,
+                transition: 'opacity 0.3s ease',
                 cursor: 'pointer',
               }}
               onMouseEnter={() => handleNodeHover(node.id)}
