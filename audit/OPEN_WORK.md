@@ -304,6 +304,26 @@ the dev machine.
 `www.trueight.com`** and, apparently, a paid plan; the backlink and score>80
 checks now pass.
 
+#### 📋 Developer-docs accuracy audit (2026-08-12) — one real finding
+Audited README (PyPI), /developers page, smithery.yaml, server.json, blog
+post against the code. **Verified accurate:** all four tier prices (live
+`/agent/tiers` agrees), every rate-limit row (decorators match the table),
+webhook constants (5 active cap, 2 attempts, 10-failure deactivation,
+`X-Tru8-Signature`), "quick returns eleven limitations" (derived count is
+exactly 11), batch cap 10, `Idempotency-Key`→409, `compact`, `cachedTier`,
+5 simultaneous processing (`MAX_CONCURRENT_AGENT_ANALYSES=5`), MCP tools and
+auth routes, `/api/docs` + `/api/redoc` live.
+🔴 **The one misalignment: `github.com/SamYatesSmith/tru8-mcp` is a STALE
+MIRROR — last pushed 2026-03-27, five months behind, pre-dating the DOA fix.**
+The PyPI README's "From source" section and pyproject's `Repository`/`Issues`
+URLs all point there, so anyone cloning gets the era of code that broke on
+install, and issues filed there are watched by nobody. Founder call: either
+push the current `backend/tru8_mcp` to the mirror, or repoint the URLs at the
+monorepo (reaches PyPI only with the next release). Minor cousin: the live
+registry entry (v1.0.4) still names pypi package version 1.0.3 — installable
+and harmless; the repo's server.json now says 1.0.4 and the next registry
+publish carries it.
+
 ---
 ### ✅ SHIPPED 2026-08-10 — the brand went live, and Smithery went 53 → 92
 
