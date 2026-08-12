@@ -158,7 +158,9 @@ impression, opened inside a DM with no context:
 ## The cadence
 
 - **5 sends/week for 10 weeks. Every message bespoke.** Each ≈ 20 min: find
-  the live claim (10), run + read the check (5, ~2–7p), write the note (5).
+  the live claim (10), run + read the check (5; **measured median 1.18p/check,
+  full tier ~1.3p** — prod telemetry via `scripts/cost_report.py` 2026-08-12;
+  the old ~2–7p estimate was 2–5x high), write the note (5).
 - **Never send an unread record**, and send it whatever it shows — choosing
   only agreeable landscapes would breach invariant #7 at the distribution
   layer.
