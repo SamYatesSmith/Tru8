@@ -114,9 +114,11 @@ impression, opened inside a DM with no context:
       Minor (not send-blocking): evidence titles truncate mid-word with no
       ellipsis ("…: a Burden of"); "SOURCES REVIEWED 14" vs "SOURCES
       ORGANISED 17" is unexplained on the page.
-- [ ] Cold load speed acceptable on mobile. (Page TTFB ~0.4s measured; the
-      rendering check needs a real phone — window-resize emulation was
-      refused by the environment 2026-08-12.)
+- [x] Cold load speed acceptable on mobile. **Founder-confirmed on a real
+      phone 2026-08-12** (page TTFB ~0.4s measured earlier).
+- [x] Card crop eyeball: **founder pasted the record into
+      WhatsApp/X/LinkedIn/Slack 2026-08-12 — all previews fine.**
+      Prerequisite B is CLOSED in full.
 
 **C. Measurement exists. ✅ SHIPPED 2026-08-11.**
 - [x] Signup-source attribution: outreach links carry `?src=<tag>`
