@@ -3,9 +3,10 @@
 Founder/admin utility — used when Stripe credit packs are unavailable
 (e.g. STRIPE_PRICE_ID_CREDIT_PACK_* not configured) or for comp credits.
 
-Run against production (Railway):
-    railway run python -m scripts.grant_credits --email someone@example.com            # inspect
-    railway run python -m scripts.grant_credits --email someone@example.com --pence 500  # grant £5.00
+Run against production (``railway run`` cannot reach the prod DB — its
+hostname only resolves inside Railway's network; use ``railway ssh``):
+    railway ssh "python -m scripts.grant_credits --email someone@example.com"              # inspect
+    railway ssh "python -m scripts.grant_credits --email someone@example.com --pence 500"  # grant £5.00
 
 Adds to User.credit_balance_pence (the agent-credit balance, NOT the
 subscription `credits` column).

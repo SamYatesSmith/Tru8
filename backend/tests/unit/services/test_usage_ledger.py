@@ -430,3 +430,49 @@ class TestRefundUsage:
         session, _ = _refund_session(check, user, _debit(drew_trial=False))
 
         assert await refund_usage(session, "chk-1", None) is True
+
+
+# ---------------------------------------------------------------------------
+# Comp-grant mechanism (scripts/grant_checks.py relies on exactly this)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+class TestCompGrantMechanism:
+    """The outreach comp (audit/OUTREACH.md prerequisite D) is a bump to
+    User.credits — these pin that the gate genuinely honours it, and that
+    it is inert for subscribers (why grant_checks.py refuses them)."""
+
+    async def test_exhausted_trial_user_is_gated_before_a_grant(self):
+        user = _user(credits=0, total_used=3)  # limit = max(3, 0+3) = 3
+        session, _ = _gate_session(user, None, usage_sum=3)
+
+        with pytest.raises(HTTPException) as exc:
+            await enforce_usage_limit(session, user)
+        assert exc.value.status_code == 402
+
+    async def test_granted_credits_raise_the_trial_limit_and_pass_the_gate(self):
+        # The same exhausted user after `grant_checks --checks 30`
+        user = _user(credits=30, total_used=3)  # limit = max(3, 30+3) = 33
+        session, _ = _gate_session(user, None, usage_sum=3)
+
+        locked = await enforce_usage_limit(session, user)
+        assert locked is user
+
+        snap_session = _snapshot_session(None, usage_sum=3)
+        snap = await get_usage_snapshot(
+            snap_session, user, now=datetime(2026, 8, 12)
+        )
+        assert snap["limit"] == 33
+        assert snap["limit_type"] == "trial"
+
+    async def test_a_grant_is_inert_for_a_subscriber(self):
+        # Bumped trial fields must NOT move a subscriber's monthly limit —
+        # this is why the script refuses to grant while a sub is active.
+        user = _user(credits=30, total_used=3)
+        sub = _subscription(credits_per_month=200)
+        session = _snapshot_session(sub, usage_sum=42)
+
+        snap = await get_usage_snapshot(session, user, now=datetime(2026, 7, 20))
+        assert snap["limit"] == 200
+        assert snap["limit_type"] == "monthly"
