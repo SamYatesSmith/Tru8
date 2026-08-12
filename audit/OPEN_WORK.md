@@ -289,6 +289,14 @@ today, so **wait ~1 week and re-check before submitting manually.**
 stdio users (founder call — it is a publish). Smithery verification still wants
 a **DNS TXT on `www.trueight.com`** and, apparently, a paid plan; the backlink
 and score>80 checks now pass.
+⚠️ **This owed release is now what keeps CI RED** (noticed 2026-08-12): the
+`test_mcp_identity.py` version-agreement guard fails on every push —
+`server.json` says 1.0.4 (published to the registry 2026-08-10), the package
+still says 1.0.3. The guard is doing its job; the inconsistency is real.
+Every CI run since the `remotes[]` publish reads "failure", which buries any
+genuine breakage. Resolve by publishing 1.0.4 (bump package + pyproject in the
+same change) — not by weakening the guard. Railway deploys are unaffected
+(they do not gate on GH CI).
 
 ---
 ### ✅ SHIPPED 2026-08-10 — the brand went live, and Smithery went 53 → 92

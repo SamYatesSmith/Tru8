@@ -102,12 +102,17 @@ impression, opened inside a DM with no context:
          founder scrolls the sample record top-to-bottom at normal speed. If
          it reproduces by hand it BLOCKS sends — a frozen tab is a closed
          tab for a cold viewer.
-      2. **MAP view (cartographer): all source icons collapse into one
-         overlapping clump** between the element columns instead of
-         distributing — reads as broken, and it is the view a curious
-         stranger clicks ("Shape of the debate?"). Likely the same defect as
-         the recorded prod `<rect> negative width`. EVIDENCE / TIMELINE /
-         SOURCES views all render well.
+      2. ✅ **MAP icon clump — FIXED AND LIVE-VERIFIED 2026-08-12
+         (`0758154`).** The layout was never wrong: the DOM had every icon
+         correctly placed (verified via getBoundingClientRect) while the
+         PIXELS showed one clump — Chrome's compositor left the
+         CSS-transitioned SVG `<g>` transforms painted at a stale frame,
+         minutes after the transition ended. Nodes now use the SVG
+         `transform` attribute (always paints) with an opacity-only
+         entrance. Same commit clamps `columnWidth` at zero, killing the
+         recorded prod `<rect> negative width` console error (the component
+         mounts display:none on mobile where the container measures 0).
+         Post-deploy check: icons distributed across all columns and tiers.
       Minor (not send-blocking): evidence titles truncate mid-word with no
       ellipsis ("…: a Burden of"); "SOURCES REVIEWED 14" vs "SOURCES
       ORGANISED 17" is unexplained on the page.
