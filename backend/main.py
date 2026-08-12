@@ -606,7 +606,7 @@ MCP_SERVER_CARD = {
     "serverInfo": {
         "name": "io.github.SamYatesSmith/tru8",
         "title": "Tru8 Evidence Research",
-        "version": "1.0.3",
+        "version": "1.0.4",
     },
     # Where the hosted transport actually is. Without this a scanner reading
     # the card has our identity but no endpoint to connect to.

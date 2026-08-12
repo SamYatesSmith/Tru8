@@ -153,5 +153,5 @@ backend/scripts/demo_candidates.py
 backend/scripts/profile_stage_timings.py
 backend/data/*.bench_backup
 
-# Visual review screenshots — local only, regenerated per review
+# Visual review screenshots â€” local only, regenerated per review
 design/preview/
