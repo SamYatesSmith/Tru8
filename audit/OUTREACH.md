@@ -76,7 +76,15 @@ never-works inputs at the paste box with recovery guidance (`lib/input-triage.ts
 
 **B. The record survives a cold viewer.** The `/r/` link is the entire first
 impression, opened inside a DM with no context:
-- [ ] I-06 OG cards reviewed — the link *preview* is the advert.
+- [x] I-06 OG cards reviewed — the link *preview* is the advert. **Verified
+      LIVE 2026-08-12, no rebuild needed** (built `0d595b9` 2026-07-02): the
+      sample record's card renders in <1s (58KB PNG, claim + neutral stance
+      bar + tier mix + sources), and the served page carries correct
+      `og:title/description/image` + `twitter:summary_large_image` with
+      absolute URLs. Card has no logo, so the 2026-08-10 brand change left
+      nothing stale. ⚠️ Remaining is the founder eyeball only: paste one `/r/`
+      link into WhatsApp/X/LinkedIn/Slack and check the crop — key content is
+      left-anchored, so a square small-preview crop is the thing to look at.
 - [ ] One cold-viewer pass of a real record: does a stranger grasp in ~10
       seconds what they are looking at and why it beats 30 seconds of
       googling? Fix what fails; ship nothing speculative.

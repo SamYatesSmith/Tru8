@@ -220,7 +220,16 @@ Prerequisites, cadence and the 50-send verdict are in `OUTREACH.md`.
 Engineering half: **signup-source attribution** (today `Check.client` records
 HOW a check arrived, never WHY the person came).
 
-#### 📋 OPEN REQUIREMENT — signup-source attribution (logged 2026-08-11, NOT started)
+#### ✅ SHIPPED 2026-08-11 (`ad4a2a9`) — signup-source attribution
+
+**This block was written before the ship the same day and the register lagged it
+(corrected 2026-08-12).** Built exactly to the scope below: `?src=`/`utm_source`
+first-touch capture (`lib/attribution.ts`), write-once `User.signup_source`
+(minted-charset gate, `UPDATE ... WHERE signup_source IS NULL`, 72h window),
+report `python -m scripts.signup_sources`, NULL prints `(unknown)` never
+`direct`. 31 tests. ⏳ One verification owed: prod `alembic current` →
+`signup_source (head)` (needs `railway ssh`). Requirement as logged, kept as the
+record of the scope:
 
 **Blocks step 2 of the distribution plan.** "One channel, thirty days, with a
 kill condition" is unfalsifiable until a signup can be traced to a channel. With
