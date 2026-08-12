@@ -285,18 +285,24 @@ unaided; grades A/A/**D for maintenance** — no release cadence). **Not on
 PulseMCP or mcp.so** — both index FROM the official registry, which we changed
 today, so **wait ~1 week and re-check before submitting manually.**
 
-**Owed:** a `tru8-mcp` **1.0.4 PyPI release** to carry the security floor to
-stdio users (founder call — it is a publish). Smithery verification still wants
-a **DNS TXT on `www.trueight.com`** and, apparently, a paid plan; the backlink
-and score>80 checks now pass.
-⚠️ **This owed release is now what keeps CI RED** (noticed 2026-08-12): the
-`test_mcp_identity.py` version-agreement guard fails on every push —
-`server.json` says 1.0.4 (published to the registry 2026-08-10), the package
-still says 1.0.3. The guard is doing its job; the inconsistency is real.
-Every CI run since the `remotes[]` publish reads "failure", which buries any
-genuine breakage. Resolve by publishing 1.0.4 (bump package + pyproject in the
-same change) — not by weakening the guard. Railway deploys are unaffected
-(they do not gate on GH CI).
+✅ **`tru8-mcp` 1.0.4 PUBLISHED TO PYPI 2026-08-12** (founder ran the upload;
+release commit `e9a81eb`). This closes the version drift that had CI RED on
+every push since the 2026-08-10 registry publish — the `test_mcp_identity.py`
+guard was correctly failing on `server.json` 1.0.4 vs package 1.0.3, and
+`pip install tru8-mcp==1.0.4` was a broken promise. All four declarations now
+agree (package, served card, server.json top-level, its pypi packages entry);
+**CI green again from `e9a81eb`**. Published artefact verified in a clean
+venv: version 1.0.4 everywhere, server reports 1.0.4 (not the SDK's),
+`X-Tru8-Client` header present, entry point resolves. 1.0.4 carries the httpx
+pin fix, full-tier default, and version-reporting fix landed since 1.0.3.
+⚠️ Small residue: only the **wheel** was uploaded — the sdist
+(`dist/tru8_mcp-1.0.4.tar.gz`) is built and twine-checked but not on PyPI;
+one `twine upload` when convenient. Also fixed en route: root `.gitignore`
+held a cp1252 em-dash (invalid UTF-8) that broke every hatchling build on
+the dev machine.
+**Still open:** Smithery verification wants a **DNS TXT on
+`www.trueight.com`** and, apparently, a paid plan; the backlink and score>80
+checks now pass.
 
 ---
 ### ✅ SHIPPED 2026-08-10 — the brand went live, and Smithery went 53 → 92
