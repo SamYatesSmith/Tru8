@@ -18,14 +18,21 @@ e4's `llm_state` was `disputed` — overridden by `supports_dominant_2x` on an e
 `>=` tie. Same signature as 3 of the 4 graded outreach records (echo/recital
 inflation) — this is the pipeline's most systematic distortion, not a one-off.
 
-**OPEN — the fix, founder-commissioned (pipeline ban lifted for this item only):**
-`audit/2026-08-13_assertion_evidence_design.md` — RECITAL rule (assertion ≠
-evidence; prompt + mechanical gate) + INTERESTED-PARTY gate (claimant-controlled
-domains re-labelled context, receipt). Phase 1 mechanical (no cassette drift) →
-Phase 2 prompt (re-record; **founder decision owed on sequencing vs the held
-reframe**, §8). Acceptance: re-run this exact claim — e3/e4 must NOT read
-supported. Adjacent defects recorded in design §10 (>= boundary, print-only
-`uncertainty`, decompose duplicates, stale basis blocks after coverage recovery).
+**The fix (founder-commissioned; pipeline ban lifted for this item only):**
+`audit/2026-08-13_assertion_evidence_design.md`. **✅ PHASE 1 SHIPPED + PUSHED
+`3574c80` same day** — both mechanical gates live (`ENABLE_INTERESTED_PARTY_GATE`
+/ `ENABLE_RECITAL_SCOPE_GATE`, default True), appended after temporal/
+jurisdiction/measure; subjects written by `runner.attach_claim_subjects`; 46 new
+tests with the incident's reasoning strings verbatim; 1,732 pipeline+utils tests
+green. No prompt text changed → no cassette drift. Held reframe preserved
+untouched (patched out for the commit, patched back in).
+**STILL OPEN:** (1) **acceptance** — live re-run of this exact claim post-deploy;
+e3/e4 must NOT read supported (then re-grade the three outreach records, design
+§9); (2) **bench run against the gates** — owed, but blocked while the held
+reframe sits in the tree (~$0.25 when run); (3) **Phase 2 prompt half** —
+**founder decision owed on sequencing vs the held reframe** (§8). Adjacent
+defects recorded in design §10 (>= boundary, print-only `uncertainty`, decompose
+duplicates, stale basis blocks after coverage recovery).
 
 **⏸ OUTREACH HELD** until acceptance passes (design §9) — the first-five swap
 decision below stays open but sends wait; the list keeps.
