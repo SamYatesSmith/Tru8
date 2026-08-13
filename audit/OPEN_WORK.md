@@ -26,13 +26,20 @@ jurisdiction/measure; subjects written by `runner.attach_claim_subjects`; 46 new
 tests with the incident's reasoning strings verbatim; 1,732 pipeline+utils tests
 green. No prompt text changed → no cassette drift. Held reframe preserved
 untouched (patched out for the commit, patched back in).
-**STILL OPEN:** (1) **acceptance** — live re-run of this exact claim post-deploy;
-e3/e4 must NOT read supported (then re-grade the three outreach records, design
-§9); (2) **bench run against the gates** — owed, but blocked while the held
-reframe sits in the tree (~$0.25 when run); (3) **Phase 2 prompt half** —
+**Acceptance run 1 (`6f88a77f`, 15p): PARTIAL — e3 flipped `disputed` ✅ and the
+recital gate has its first production receipt (e2, CFR, `found_in: reasoning`);
+e4 stayed `supported` ❌ because BOTH post-mapping merge paths (completion
+census + coverage recovery) bypassed ALL five gates and the completion pass
+destroyed main-pass receipts. CLOSED `d39b65d` (+2 seam tests; also fixed:
+the MCP client dropped `max_age_hours=0` on truthiness — tools.py, the twin of
+the 2026-08-05 server fix; **PyPI 1.0.5 release owed, founder-gated**).**
+**STILL OPEN:** (1) **acceptance re-run** on the deploy carrying `d39b65d` —
+e3 AND e4 must not read supported (then re-grade the three outreach records,
+design §9); (2) **bench run against the gates** — owed, but blocked while the
+held reframe sits in the tree (~$0.25 when run); (3) **Phase 2 prompt half** —
 **founder decision owed on sequencing vs the held reframe** (§8). Adjacent
-defects recorded in design §10 (>= boundary, print-only `uncertainty`, decompose
-duplicates, stale basis blocks after coverage recovery).
+defects recorded in design §10 (>= boundary — e4 sat on the `>=` tie AGAIN in
+run 1, print-only `uncertainty`, decompose duplicates, stale basis blocks).
 
 **⏸ OUTREACH HELD** until acceptance passes (design §9) — the first-five swap
 decision below stays open but sends wait; the list keeps.

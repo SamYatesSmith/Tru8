@@ -240,6 +240,31 @@ prompt change, one re-record, or (b) sequentially with a re-record each, per the
 before trusting it). (b) is attributable; (a) is cheaper. Recommend **(b)** —
 prompt-change effects on this pipeline have surprised us every single time.
 
+## 9a. Acceptance run 1 — 2026-08-13, check `6f88a77f` (PARTIAL, gap found and closed)
+
+Fresh full-tier run of the exact claim on deploy `ade5672` (15p; a first attempt
+was served the stale cached record because **the MCP client dropped
+`max_age_hours=0` on truthiness** — `tools.py:146`, the client-side twin of the
+server bug fixed 2026-08-05; fixed in `d39b65d`, PyPI 1.0.5 release owed).
+
+- **e3 → `disputed`** ✅ (was supported). **e2 carries the recital gate's first
+  production receipt** — CFR "Trump claims to have…" scoped from supports,
+  `found_in: reasoning` — so the mechanism is proven live.
+- **e4 → still `supported`** ❌ — and the trace showed exactly why: the
+  whitehouse.gov "365 WINS" release re-entered e3/e4 as a weight-carrying
+  support via the **coverage-recovery merge**, which — like the completion
+  census — merged refs and re-derived state WITHOUT running any gate. A
+  pre-existing bypass for ALL five gates, not just the new pair. Worse, the
+  completion pass's fresh basis recompute **destroyed main-pass gate receipts**.
+- **Closed in `d39b65d`:** both merge paths now gate merged refs before state
+  re-derivation and MERGE receipts (`_merge_scope_receipts`); two seam tests
+  pin it (canned-LLM completion + recovery). e4 also sat on the
+  `supports_dominant_2x` `>=` boundary AGAIN (4 vs 2) — the §10 boundary fix
+  would independently have flipped it.
+- Orientation moved "supports all 4" → "3 supported; 1 with conflicting
+  evidence". Not yet honest enough: acceptance re-run owed on the deploy
+  carrying `d39b65d`.
+
 ## 9. Acceptance
 
 1. **The incident is the fixture:** re-run "Donald Trump stopped 6 wars" live after
