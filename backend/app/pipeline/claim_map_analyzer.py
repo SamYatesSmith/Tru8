@@ -298,6 +298,14 @@ Evidence that only describes a general mechanism, teaches how such processes wor
 NOT support that specific causal assertion — map it as "context", not "supports". \
 Reserve "supports"/"challenges" for evidence bearing on whether THIS cause is driving \
 THIS effect as asserted.
+- RECITAL CHECK: Evidence that REPORTS a claim being made — by the claim's subject \
+(or anyone else) saying it — "X claimed", "X says", "X announced", "touted", \
+"purportedly", a direct quotation of the claimant — supports only the fact that \
+the claim was MADE, not its content. For an element asserting the claim's content, \
+map such evidence "context". If the source independently verifies or contradicts \
+part of the claim, map THAT finding directionally — the direction comes from the \
+verification, never from the recital. A claimant's own statement is never evidence \
+for its own content, whatever the source's tier.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
 - STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
@@ -541,6 +549,14 @@ Evidence that only describes a general mechanism, teaches how such processes wor
 NOT support that specific causal assertion — map it as "context", not "supports". \
 Reserve "supports"/"challenges" for evidence bearing on whether THIS cause is driving \
 THIS effect as asserted.
+- RECITAL CHECK: Evidence that REPORTS a claim being made — by the claim's subject \
+(or anyone else) saying it — "X claimed", "X says", "X announced", "touted", \
+"purportedly", a direct quotation of the claimant — supports only the fact that \
+the claim was MADE, not its content. For an element asserting the claim's content, \
+map such evidence "context". If the source independently verifies or contradicts \
+part of the claim, map THAT finding directionally — the direction comes from the \
+verification, never from the recital. A claimant's own statement is never evidence \
+for its own content, whatever the source's tier.
 - STATE RULE: An element can only be "supported" if at least one evidence_ref has \
 relationship = "supports". If all refs are "context", the state MUST be "unresolved".
 - STATE-BEARING COMPLETENESS: An element's state (supported / disputed / unresolved) \
@@ -619,6 +635,12 @@ be complete — do not sample.
 general mechanism or educational/reference material is "context", never \
 "supports" — reserve directional labels for evidence bearing on whether \
 THAT specific cause is driving THAT specific effect.
+- Evidence that REPORTS a claim being made ("X claimed", "X says", \
+"touted", "purportedly", quoting the claimant) supports only the fact \
+that the claim was made, not its content — label it "context". A \
+claimant's own statement is never evidence for its own content. If \
+the source independently verifies or contradicts part of the claim, \
+label THAT finding directionally.
 - Use "context" only for items that frame an element without \
 confirming or contradicting it, and keep context SPARSE — only where \
 it genuinely helps interpret the supports/challenges evidence. Do not \
