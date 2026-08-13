@@ -182,10 +182,24 @@ each for a structural reason now on the register:
 | Scotland 48p | `12cc567a` | **C+ (unchanged), Tapper only** | Not a recital claim (the claim is Neidle's, not the Scottish Government's). Macfarlane's actual rebuttal (post 589) STILL absent from the pool; his post 587's distill now carries the critique lines but is mapped `supports`. Zero challenges. |
 | Dairy | `c2bfbb8c` re-run `5a32dd70` | **C− (unchanged), HOLD** | `subjects: []` — no PERSON/ORG entity, gates structurally unarmed. One trial + 9 echoes uniformly `supports`; Gid M-K's teardown still not retrieved. |
 
+**SECOND RE-GRADE 2026-08-13 late (post Phase 2 recital prompt rule, 45p):**
+| Record | Check | Grade | Movement |
+|---|---|---|---|
+| NHS 29% | `a8a1e127` | **B−** | Up from the C+ midday run: TTE's critique correctly `context` on all elements, its e3 reasoning names the internal-evaluation provenance. Still below the ORIGINAL `11f54993` (A−): no uncertainty note, and the six press echoes of NHS England's stat still read `supports` — press asserts the number in its own voice, so it is an ECHO problem (originals: 1 / derivatives: 6, annotated but not state-bearing), not a recital one. |
+| Scotland 48p | `d1833200` | **C+** | Unchanged. e1 uncertainty now cites its evidence ("modelled assumptions, not official outturn, as noted in ev-49e2…") — marginally better transparency; still zero challenges, Macfarlane's rebuttal still unretrieved. |
+| Dairy | `d8547278` | **C−** | Unchanged, structurally out of the gates'/rule's reach: `subjects: []`, and sources report a *finding*, not a claim-being-made — correctly not recital. One trial + echoes; teardown still unretrieved. |
+
+**Conclusion, three-layer:** Trump-class (named claimant + own organ + recitals)
+is FIXED. NHS-class needs the ECHO structure to become state-bearing — the
+mechanism already measures it (`support_structure.derivation`), it just doesn't
+count. Scotland/dairy-class needs RETRIEVAL to fetch the named rebuttal.
+Recorded in OPEN_WORK; both remain deliberately unactioned pipeline work.
+
 **⏳ OPEN DECISION (founder):** approve the swap — first five = Heneghan/
-Jefferson (send the ORIGINAL `11f54993`), Viglione, Seymour, Tapper, McSweeney
-(one more ~1.5p check needed); Macfarlane + Gid M-K to round two once their
-records can carry the rebuttals.
+Jefferson (send the ORIGINAL `11f54993`), Viglione, Seymour, Tapper (keep
+original `7a6a4b91` — today's equal-grade rerun buys nothing worth re-tagging),
+McSweeney (one more ~1.5p check needed); Macfarlane + Gid M-K to round two once
+their records can carry the rebuttals.
 
 **⚠️ Learned, recorded in OPEN_WORK, not actioned:** Substack/small-site
 rebuttals of mainstream claims don't reach the evidence pool — the exact
