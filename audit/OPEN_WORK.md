@@ -54,15 +54,33 @@ fetches the named rebuttal** (Macfarlane 589, Gid M-K teardown — the recorded
 (c) **run-variance**: same pool, mapper flipped TTE's critique context→supports
 and dropped the uncertainty note — a re-run can be WORSE; send decisions should
 name a specific check id, never "the latest run".
-**STILL OPEN:** (2) **bench run against the gates** — blocked while the held
-reframe sits in the tree (~$0.25 when run; baseline the gates against existing
-cassettes FIRST, then the prompt change with its own re-record); (3) **Phase 2
-prompt half** — proceeding sequentially per design §8 recommendation (recital
-rule alone; the reframe stays held, its shipping remains the founder's call);
-(4) **`tru8-mcp` 1.0.5 PyPI release** (founder) — carries the
-`max_age_hours=0` client fix; sync the mirror repo on release. Adjacent
-defects: design §10 (all_supports floor, `>=` boundary, print-only
-`uncertainty`, decompose duplicates/wording drift, stale basis blocks).
+**(2)+(3) ✅ DONE 2026-08-13 — bench baseline AND Phase 2 both shipped
+(`3a7b7ff`, `5ca9691`, pushed):**
+- **Gates baseline:** replay of the old cassettes against the shipped gates
+  found ONE gate-attributable movement — 0005 `temporal_scoped_refs` 1→6 via
+  the `d39b65d` merge-path fix, which **REVERSES the 2026-08-11 "corpus has
+  gone blind to the F1 gate" finding** (off-period evidence still arrives via
+  the completion/recovery merges, now gated). Other four fails byte-identical
+  to the 2026-08-11 baseline.
+- **Phase 2 recital rule** now in all three mapping prompts — needs no subject
+  anchor, which is exactly what the mechanical gate cannot do (the outreach
+  re-grade lesson). **Corpus re-recorded AND replay-verified same day: 143 ok /
+  13 warn / 5 fail, the accepted baseline shape; sole drift 82CF 3 misses /
+  66 hits (its known-flaky signature).** Verify-pass fails all attributed:
+  82CF known-flaky; 5647 `tier_reporting` 16 + 0004 secondaries
+  (`Climate/Law` vs pinned `Finance`) + 0004 `domain_set` 0.22 = record-time
+  live drift; 0005 re-pinned 6→2 (pins are per-recording; the gate fires
+  green). **The held reframe was reconstructed byte-shape-identical (45/+3)
+  and remains uncommitted in the tree — its shipping is still the founder's
+  call, now rebased over the recital rule.**
+**STILL OPEN:** (4) **`tru8-mcp` 1.0.5 PyPI release** (founder) — carries the
+`max_age_hours=0` client fix; sync the mirror repo on release. (5) **Prod
+verify of the recital prompt rule** — one fresh full check on a recital-heavy
+claim once Railway deploys `5ca9691`. Adjacent defects: design §10
+(all_supports floor, `>=` boundary, print-only `uncertainty`, decompose
+duplicates/wording drift, stale basis blocks) + **gate-arming gap for implicit
+claimants** (claimant ∉ key_entities — NHS class; prompt half now covers it,
+mechanical half cannot).
 
 **⏸ OUTREACH HELD** until acceptance passes (design §9) — the first-five swap
 decision below stays open but sends wait; the list keeps.
