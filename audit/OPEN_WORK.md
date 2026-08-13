@@ -73,10 +73,12 @@ name a specific check id, never "the latest run".
   green). **The held reframe was reconstructed byte-shape-identical (45/+3)
   and remains uncommitted in the tree — its shipping is still the founder's
   call, now rebased over the recital rule.**
-**STILL OPEN:** (4) **`tru8-mcp` 1.0.5 PyPI release** (founder) — carries the
-`max_age_hours=0` client fix; sync the mirror repo on release. (5) **Prod
-verify of the recital prompt rule** — one fresh full check on a recital-heavy
-claim once Railway deploys `5ca9691`. Adjacent defects: design §10
+**(4) ✅ `tru8-mcp` 1.0.5 LIVE ON PYPI 2026-08-13** (founder uploaded; wheel
+verified to contain the fix BEFORE upload, published package verified in a
+clean venv after — version, fix, clean import). Mirror synced same hour
+(`15d151a`). **(5) ✅ prod verify done** — the second outreach re-grade ran
+three full checks through the deployed recital rule (and `max_age_hours=0`
+worked end-to-end through the hosted MCP, proving the server-side half live). Adjacent defects: design §10
 (all_supports floor, `>=` boundary, print-only `uncertainty`, decompose
 duplicates/wording drift, stale basis blocks) + **gate-arming gap for implicit
 claimants** (claimant ∉ key_entities — NHS class; prompt half now covers it,
