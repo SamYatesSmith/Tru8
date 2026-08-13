@@ -5,9 +5,30 @@
 > Each row points to its detail doc — the detail doc remains canonical for the *why* and *how*; this register is the *what's-open-right-now*.
 
 ---
-## 🟢 START HERE — next session (updated 2026-08-12, end of day)
+## 🟢 START HERE — next session (updated 2026-08-13)
 
 **This block is what to do next. Everything below the divider is history.**
+
+### 🔴 2026-08-13 — TRU-018F-44AA: "Donald Trump stopped 6 wars" returned *supported all 4*
+
+Live founder check. The claimant's own press office (whitehouse.gov, primary w3 ×2)
+plus press RECITALS of the claim ("Trump claimed to have settled six wars" → mapped
+`supports`) outweighed PolitiFact ("Pants on Fire") + PRIO at commentary w1 each.
+e4's `llm_state` was `disputed` — overridden by `supports_dominant_2x` on an exact
+`>=` tie. Same signature as 3 of the 4 graded outreach records (echo/recital
+inflation) — this is the pipeline's most systematic distortion, not a one-off.
+
+**OPEN — the fix, founder-commissioned (pipeline ban lifted for this item only):**
+`audit/2026-08-13_assertion_evidence_design.md` — RECITAL rule (assertion ≠
+evidence; prompt + mechanical gate) + INTERESTED-PARTY gate (claimant-controlled
+domains re-labelled context, receipt). Phase 1 mechanical (no cassette drift) →
+Phase 2 prompt (re-record; **founder decision owed on sequencing vs the held
+reframe**, §8). Acceptance: re-run this exact claim — e3/e4 must NOT read
+supported. Adjacent defects recorded in design §10 (>= boundary, print-only
+`uncertainty`, decompose duplicates, stale basis blocks after coverage recovery).
+
+**⏸ OUTREACH HELD** until acceptance passes (design §9) — the first-five swap
+decision below stays open but sends wait; the list keeps.
 
 ### 📍 HANDOFF — exactly where 2026-08-12 stopped
 
