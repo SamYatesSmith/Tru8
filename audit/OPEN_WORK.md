@@ -33,13 +33,23 @@ census + coverage recovery) bypassed ALL five gates and the completion pass
 destroyed main-pass receipts. CLOSED `d39b65d` (+2 seam tests; also fixed:
 the MCP client dropped `max_age_hours=0` on truthiness — tools.py, the twin of
 the 2026-08-05 server fix; **PyPI 1.0.5 release owed, founder-gated**).**
-**STILL OPEN:** (1) **acceptance re-run** on the deploy carrying `d39b65d` —
-e3 AND e4 must not read supported (then re-grade the three outreach records,
-design §9); (2) **bench run against the gates** — owed, but blocked while the
-held reframe sits in the tree (~$0.25 when run); (3) **Phase 2 prompt half** —
-**founder decision owed on sequencing vs the held reframe** (§8). Adjacent
-defects recorded in design §10 (>= boundary — e4 sat on the `>=` tie AGAIN in
-run 1, print-only `uncertainty`, decompose duplicates, stale basis blocks).
+**Acceptance run 2 (`83120010`, 15p): PASS on the crux.** The attribution
+element reads **`disputed` via `all_challenges` — 0 supports, 3 challenges**;
+orientation now *"3 predominantly supported; 1 challenged with none
+supporting"* (the 3 are facts both sides agree on). Gates fired with receipts:
+interested_party ×2 (incl. a RECOVERY ref — live proof the `d39b65d`
+merge-path fix works), recital ×4 (both press recitals + StateDept tweet, all
+`found_in: reasoning`). Residual softness: one element `supported` off a single
+BBC ref (`all_supports` floor, §10). Design §9a/§9b hold the full record.
+**STILL OPEN:** (1) **re-run + re-grade the three outreach records** (NHS
+`11f54993` · Scotland `7a6a4b91` · dairy `c2bfbb8c`, ~45p) before any send;
+(2) **bench run against the gates** — blocked while the held reframe sits in
+the tree (~$0.25 when run); (3) **Phase 2 prompt half** — **founder decision
+owed on sequencing vs the held reframe** (§8); (4) **`tru8-mcp` 1.0.5 PyPI
+release** (founder) — carries the `max_age_hours=0` client fix; sync the
+mirror repo on release. Adjacent defects: design §10 (all_supports floor,
+`>=` boundary, print-only `uncertainty`, decompose duplicates/wording drift,
+stale basis blocks).
 
 **⏸ OUTREACH HELD** until acceptance passes (design §9) — the first-five swap
 decision below stays open but sends wait; the list keeps.

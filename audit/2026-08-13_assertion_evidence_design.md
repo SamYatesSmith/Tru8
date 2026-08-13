@@ -265,6 +265,33 @@ server bug fixed 2026-08-05; fixed in `d39b65d`, PyPI 1.0.5 release owed).
   evidence". Not yet honest enough: acceptance re-run owed on the deploy
   carrying `d39b65d`.
 
+## 9b. Acceptance run 2 — 2026-08-13, check `83120010` (PASS on the crux)
+
+Full-tier fresh run on deploy `4bb326a` (15p). Orientation:
+*"Of 4 elements examined, 3 predominantly supported; 1 challenged with none
+supporting."* Decompose split the crux differently this run (e3 "took actions
+that officially concluded" / e4 "conclusion directly attributable"):
+
+- **e4 (attribution — the claim's actual crux): `disputed`, rule
+  `all_challenges` — 0 supports, 3 challenges** (PolitiFact, PRIO, samf). The
+  LLM said disputed and the mechanics agree. The element that carried the
+  propaganda now reads challenged with none supporting.
+- **e3: gates fired comprehensively, with receipts** — `interested_party`
+  scoped whitehouse.gov ×2 **including recovery ref `ev-rec-e1_2_7f37dde9`,
+  live proof the `d39b65d` merge-path fix works in production**; `recital_scope`
+  scoped 4 (both press recitals, CFR, the StateDept tweet), all
+  `found_in: reasoning`. Residual: e3 reads `supported` off ONE remaining BBC
+  ref (`all_supports`, sole_domain bbc.com) — the known §10 thin-support
+  weakness, surfaced to users by the existing thin-sourcing annotation.
+- e1/e2 `supported` is honest: he was president, and ≥6 conflicts existed —
+  facts both sides agree on; the dispute was never there.
+
+**Verdict: the record is no longer sycophantic.** A reader now sees the causal
+attribution challenged with zero support and receipts explaining why the White
+House's own statements do not count. Remaining §10 items (all_supports floor,
+`>=` boundary, decompose duplicate/wording drift) are real but secondary.
+**Next per §9.4: re-run + re-grade the three outreach records before any send.**
+
 ## 9. Acceptance
 
 1. **The incident is the fixture:** re-run "Donald Trump stopped 6 wars" live after
